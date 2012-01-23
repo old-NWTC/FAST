@@ -32,6 +32,8 @@ C
 
       SUBROUTINE RFFTI1 (N,WA,IFAC)
 !bjj START (fix for compatibility in double precision):
+!bjj: perhaps we get read RFAC as a REAL(4), then
+!declare IFAC as INTEGER(4) and EQUIVALENCE them
 !rm      DIMENSION       WA(*)      ,IFAC(*)    ,NTRYH(4)
          USE PRECISION
       REAL(ReKi), DIMENSION(*) :: IFAC

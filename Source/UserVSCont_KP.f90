@@ -62,11 +62,7 @@ SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, D
    !            TCONST*S+1
 
 
-!bjj rm NWTC_Library: USE                            Precision
-!BJJ Start of proposed change AD_v12.70
 USE                            NWTC_Library
-!rmUSE                            AeroSubs, ONLY: Locate      ! Locate()
-!BJJ End of proposed change
 
 
 IMPLICIT                       NONE
@@ -93,56 +89,29 @@ CHARACTER(1024),INTENT(IN ) :: DirRoot                                       ! T
 REAL(ReKi), SAVE            :: C1
 REAL(ReKi), SAVE            :: C2
 REAL(ReKi)                  :: DELT
-!bjj start of proposed change
-!rmREAL(ReKi), SAVE            :: FRPM    (5)                                   ! Filtered RPM.
-!RMREAL(ReKi), SAVE            :: FTRQ                                          ! Filtered torque, N-m.
-!RMREAL(ReKi), SAVE            :: OLTRQ
 REAL(ReKi), SAVE            :: FRPM    (5) = 0.0                             ! Filtered RPM.
 REAL(ReKi), SAVE            :: FTRQ    = 0.0                                 ! Filtered torque, N-m.
 REAL(ReKi), SAVE            :: OLTRQ   = 0.0
-!bjj end of proposed change
 REAL(ReKi)                  :: OMEGA                                         ! Rotor speed, rad/s.
-!bjj rm not used:REAL(ReKi)                  :: P1
-!bjj rm NWTC_Library: REAL(ReKi), PARAMETER       :: Pi      =  3.1415927                          ! Ratio of a circle's circumference to its diameter.
 REAL(ReKi)                  :: RPM
-!bjj start of proposed change
-!rmREAL(ReKi)                  :: RPMSCH  (1,100)
 REAL(ReKi), SAVE            :: RPMSCH  (100)
-!bjj end of proposed change
 REAL(ReKi), SAVE            :: SMPDT
-!bjj start of proposed change
-!RM REAL(ReKi)                  :: TCONST  = 0.05                                ! Time constant of first order lag applied to torque
-!RM REAL(ReKi)                  :: TLST    = 0.0
 REAL(ReKi), PARAMETER       :: TCONST  = 0.05                                ! Time constant of first order lag applied to torque
 REAL(ReKi), SAVE            :: TLST    = 0.0
-!bjj END of proposed change
 REAL(ReKi), SAVE            :: TRQ     = 0.0
-!bjj start of proposed change
-!rm REAL(ReKi)                  :: TRQSCH  (100)
-!RM REAL(ReKi)                  :: TTRQ    = 0.0
 REAL(ReKi), SAVE            :: TRQSCH  (100)
 REAL(ReKi), SAVE            :: TTRQ    = 0.0
-!bjj END of proposed change
 
 INTEGER(4)                  :: I
 INTEGER(4)                  :: IOS                                           ! I/O status.  Negative values indicate end of file.
 INTEGER(4)                  :: N1
-!bjj rm not used:INTEGER(4)                  :: N1P1
-!bjj start of proposed change
-!rmINTEGER(4)                  :: NSCH   = 1
-!rmINTEGER(4)                  :: NST    = 5                                    ! Number of integration time steps between controller torque calculations.
 INTEGER, SAVE               :: NSCH   = 0                                    ! Number of lines found in the file
 INTEGER, PARAMETER          :: NST    = 5                                    ! Number of integration time steps between controller torque calculations.
 INTEGER, PARAMETER          :: UnCont = 99                                   ! Unit number for the input file
-!bjj end of proposed change
 
-!bjj chg: LOGICAL(1), SAVE            :: SFLAG  = .TRUE.
 LOGICAL,    SAVE            :: SFLAG  = .TRUE.
 
-!bjj start of proposed change
-!rmCHARACTER(80)               :: TITLE
 CHARACTER(1024)             :: TITLE
-!bjj end of proposed change
 
 
   ! Abort if GBRatio is not unity; since this example routine returns the
@@ -158,35 +127,18 @@ OMEGA = HSS_Spd
 
 IF ( SFLAG )  THEN
 
-!BJJ: UNIT 99 is the same unit number as the AeroDyn Error Log file.  It should not a problem (now) since each subroutine now opens and closes the file on the same subroutine call
-!bjj start of proposed change
-!rm   CALL OpenFInpFile ( 99, 'spd_trq.dat' )
-!rm
-!rm   READ (99,'(A)') TITLE
-
    CALL OpenFInpFile ( UnCont, 'spd_trq.dat' )
 
    READ (UnCont,'(A)') TITLE
-!bjj end of proposed change
 
-!bjj start of proposed change
-!rm   WRITE (*,*) ' '
-!rm   WRITE (*,*) ' Using variable speed generator option.'
-!rm   WRITE (*,'(A)') TITLE
-!rm   WRITE (*,*) ' '
    CALL WrScr1( ' Using variable speed generator option.' )
    CALL WrScr ( '   '//TRIM( TITLE ) )
    CALL WrScr ( ' ' )
-!bjj end of proposed change
 
    DO I=1,100
-!bjj start of proposed change
-!rm      READ(99,*,IOSTAT=IOS)  RPMSCH(1,I), TRQSCH(I)
       READ(UnCont,*,IOSTAT=IOS)  RPMSCH(I), TRQSCH(I)
-!bjj end of proposed change
       IF ( IOS < 0 )  EXIT
 
-!bjj start of proposed change
       IF ( I > 1 ) THEN
          IF ( RPMSCH(I) <= RPMSCH(I-1) ) THEN
             CALL ProgWarn('RPM schedule must be increasing in file spd_trq.dat. Schedule will be stopped at ' &
@@ -194,7 +146,6 @@ IF ( SFLAG )  THEN
             EXIT
          END IF
       END IF
-!bjj end of proposed change
       NSCH = NSCH + 1
    ENDDO ! I
 
@@ -204,7 +155,6 @@ IF ( SFLAG )  THEN
    C2 = 1.0 - C1
 
    SFLAG = .FALSE.
-!bjj start of proposed change
    CLOSE(UnCont)
 
    IF ( NSCH < 2 ) THEN
@@ -216,7 +166,6 @@ IF ( SFLAG )  THEN
       RPMSCH(2) = RPMSCH(1)
       TRQSCH(2) = TRQSCH(1)
    END IF
-!bjj end of proposed change
 ENDIF
 
 DELT = ZTime - TLST
@@ -241,17 +190,10 @@ IF ( DELT >= ( SMPDT - 0.5*DT ) )  THEN
 
    FRPM(1) = 0.7*FRPM(2) + 0.3*RPM
 
-!bjj start of proposed change
-!rm   CALL LOCATE ( RPMSCH, NSCH, 1, 100, FRPM(1), N1, 1 )
-!rm
-!rm   N1P1 = N1 + 1
-!rm   P1   = (FRPM(1) - RPMSCH(1,N1))/(RPMSCH(1,N1P1) - RPMSCH(1,N1))
-!rm   TRQ  = TRQSCH(N1) + P1*( TRQSCH(N1P1) - TRQSCH(N1) )
 
    FRPM(1) = MIN( MAX( FRPM(1), RPMSCH(1) ), RPMSCH(NSCH) )
    TRQ     = InterpBin( FRPM(1), RPMSCH(1:NSCH), TRQSCH(1:NSCH), N1, NSCH )
 
-!bjj end of proposed change
 
 ENDIF
 

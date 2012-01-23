@@ -1,10 +1,8 @@
-!BJJ Start of proposed change vXX NWTC_Lib
 MODULE FAST2ADAMSSubs
 
    USE   NWTC_Library
 
 CONTAINS
-!bjj end of proposed change
 !=======================================================================
 SUBROUTINE MakeACF
 
@@ -13,26 +11,15 @@ SUBROUTINE MakeACF
    !   SIMULATE analysis using the properties specified in the FAST
    !   input files as model parameters.
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Simplify the SFORCE used to generate free surface GRAPHICS in the
-!jmj   FAST-to-ADAMS preprocessor.  Also, eliminate the free surface DOFs
-!jmj   during a linearization analysis:
 USE                             ADAMSInput
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 USE                             Blades
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Simplify the SFORCE used to generate free surface GRAPHICS in the
-!jmj   FAST-to-ADAMS preprocessor.  Also, eliminate the free surface DOFs
-!jmj   during a linearization analysis:
 USE                             EnvCond
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 USE                             Features
 USE                             General
 USE                             MassInert
 USE                             Output
 USE                             SimCont
-!bjj rm NWTC_Library: USE                             SysSubs
 USE                             Tower
 USE                             TurbConf
 USE                             TurbCont
@@ -46,14 +33,9 @@ IMPLICIT                        NONE
 INTEGER(4)                   :: K                                               ! Loops through blades.
 
 CHARACTER( 3)                :: FmtText   = '(A)'                               ! Format for outputting pure text.
-!bjj rm unused:CHARACTER(10)                :: FmtTR     = '(A,ES13.6)'                        ! Format for outputting text then a real value.
 CHARACTER(12)                :: FmtTRT    = '(A,ES13.6,A)'                      ! Format for outputting text then a real value then text again.
 CHARACTER(19)                :: FmtTRTR   = '(A,ES13.6,A,ES13.6)'               ! Format for outputting text, a real value, text, and a real value.
 
-
-   ! Global functions.
-
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
 
 
 
@@ -155,10 +137,6 @@ IF ( FlapDOF1 )  THEN   ! Blade flexibility is enabled.
 
 ENDIF
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Simplify the SFORCE used to generate free surface GRAPHICS in the
-!jmj   FAST-to-ADAMS preprocessor.  Also, eliminate the free surface DOFs
-!jmj   during a linearization analysis:
    ! DEACTIVATE the MOTION statements for the translational DOFs of the free
    !   surface if necessary:
 
@@ -170,7 +148,6 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
 ENDIF
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    ! Continue the simulation from where we left off before, but now
    !   with tower and blade flexibility and other DOFs if requested:
 
@@ -206,24 +183,14 @@ SUBROUTINE MakeACF_LIN
 
 
 USE                             Blades
-!bjj rm NWTC_Library: USE                             Constants
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
 USE                             EnvCond
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 USE                             Features
 USE                             General
 USE                             InitCond
 USE                             MassInert
 USE                             Output
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
 USE                             Platform
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 USE                             SimCont
-!bjj rm NWTC_Library: USE                             SysSubs
 USE                             TipBrakes
 USE                             Tower
 USE                             TurbConf
@@ -244,37 +211,18 @@ CHARACTER(12)                :: FmtTRT    = '(A,ES13.6,A)'                      
 CHARACTER(19)                :: FmtTRTR   = '(A,ES13.6,A,ES13.6)'               ! Format for outputting text, a real value, text, and a real value.
 
 
-   ! Global functions.
-
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
    ! The ADAMS LINEAR analysis will fail when the hydrodynamic loads are time
    !    variant.
    ! Make sure FAST aborts if any of the following conditions are met:
 
 IF ( ( WaveMod  /= 0   ) .AND. CompHydro )  &
-!jmj Start of proposed change.  v6.10a-jmj  21-Feb-2007.
-!jmj Reword Abort message:
-!remove6.10a   CALL ProgAbort ( ' An ADAMS control file for a LINEAR analysis can''t linearize be built when using incident wave '// &
-!remove6.10a                     'kinematics. Set WaveMod to 0 or MakeLINacf to False.'                                              )
    CALL ProgAbort ( ' An ADAMS control file for a LINEAR analysis can''t be built when using incident wave kinematics.'// &
                     '  Set WaveMod to 0 or MakeLINacf to False.'                                                           )
-!jmj End of proposed change.  v6.10a-jmj  21-Feb-2007.
 
 
 IF ( ( RdtnTMax /= 0.0 ) .AND. CompHydro )  &
-!jmj Start of proposed change.  v6.10a-jmj  21-Feb-2007.
-!jmj Reword Abort message:
-!remove6.10a   CALL ProgAbort ( ' An ADAMS control file for a LINEAR analysis can''t linearize be built when using wave radiation '// &
-!remove6.10a                     'damping. Set RdtnTMax to 0.0 or MakeLINacf to False.'                                               )
    CALL ProgAbort ( ' An ADAMS control file for a LINEAR analysis can''t be built when using wave radiation damping.'// &
                     '  Set RdtnTMax to 0.0 or MakeLINacf to False.'                                                       )
-!jmj End of proposed change.  v6.10a-jmj  21-Feb-2007.
-
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
    ! Open the ADAMS control file and give it a heading:
 
@@ -289,16 +237,6 @@ WRITE (UnAL,FmtText  )  TRIM( RootName )//'_ADAMS'
    ! Use the same name appended with "_LIN" for the output files:
 
 WRITE (UnAL,FmtText  )  TRIM( RootName )//'_ADAMS_LIN'
-
-
-!jmj Start of proposed change.  v6.10d-jmj  13-Aug-2009.
-!jmj Do not disable gravity when linearizing in ADAMS:
-!remove6.10d   ! Turn off gravity:
-!remove6.10d
-!remove6.10dWRITE (UnAL,FmtText  )  'ACCGRAV/KGRAV = 0'
-!remove6.10d
-!remove6.10d
-!jmj End of proposed change.  v6.10d-jmj  13-Aug-2009.
 
 
    ! Make sure generator and rotor are not spinning by switching
@@ -394,12 +332,7 @@ IF ( DrTrDOF   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 3020'
    !   to intensly during the initial condition solution.  Locking the
    !   elements together during the initial condition solution eliminates
    !   this problem.
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Simplify the SFORCE used to generate free surface GRAPHICS in the
-!jmj   FAST-to-ADAMS preprocessor.  Also, eliminate the free surface DOFs
-!jmj   during a linearization analysis:
    ! Do not DEACTIVATE the free surface MOTION statements here:
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 IF ( TwFADOF1 )  THEN   ! Tower flexibility is enabled.
 
@@ -430,11 +363,7 @@ WRITE (UnAL,FmtText  )  'SIMULATE/STATICS'
 
    ! Run the ADAMS LINEAR analysis; send the first 25 mode shapes to the .out file:
 
-!jmj Start of proposed change.  v6.10d-jmj  13-Aug-2009.
-!jmj Do not eliminate damping when linearizing in ADAMS:
-!remove6.10dWRITE (UnAL,FmtText  )  'LINEAR/EIGENSOL, NODAMPIN, COORDS = 1, 25'
 WRITE (UnAL,FmtText  )  'LINEAR/EIGENSOL, COORDS = 1, 25'
-!jmj End of proposed change.  v6.10d-jmj  13-Aug-2009.
 
 
    ! We're done!
@@ -466,12 +395,7 @@ SUBROUTINE MakeADM
 
    ! AeroDyn MODULEs:
 
-!bjj Start of proposed change, AD v12.70a-bjj
-!rmUSE                             AD_IOParams
-!USE                             AD_IOParams, ONLY: UnADin
 USE                             AeroDyn  !to get the unit number for AeroDyn... can we fix this????
-!bjj End of proposed change
-!bjj rm NWTC_Library: USE                             Precision
 
 
    ! FAST MODULEs:
@@ -490,15 +414,10 @@ USE                             MassInert
 USE                             Modes
 USE                             NacelleYaw
 USE                             Output
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Rename MODULE PlatformLd() to Platform():
-!remove6.02aUSE                             PlatformLd
 USE                             Platform
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 USE                             RotorFurling
 USE                             RtHndSid
 USE                             SimCont
-!bjj rm NWTC_Library: USE                             SysSubs
 USE                             TeeterVars
 USE                             TailAero
 USE                             TailFurling
@@ -506,9 +425,7 @@ USE                             TipBrakes
 USE                             Tower
 USE                             TurbConf
 USE                             TurbCont
-!bjj start of proposed change vXX
 USE                             FASTSubs    !SetCoordSy
-!bjj end of proposed change
 
 
 IMPLICIT                        NONE
@@ -521,16 +438,7 @@ REAL(ReKi)                   :: CRatioBEd                                       
 REAL(ReKi)                   :: CRatioBFl                                       ! The ratio of CMatrix to KMatrix for the blade flap        deflection.
 REAL(ReKi)                   :: CRatioTFA                                       ! The ratio of CMatrix to KMatrix for the tower FA          deflection.
 REAL(ReKi)                   :: CRatioTSS                                       ! The ratio of CMatrix to KMatrix for the tower SS          deflection.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 REAL(ReKi)                   :: CWaveDir                                        ! COS( WaveDir )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 REAL(ReKi), ALLOCATABLE      :: DRNodesGRA(:)                                   ! Length of variable-spaced blade elements used in blade graphics.
 REAL(ReKi), ALLOCATABLE      :: EAVec     (:,:,:)                               ! Position vector directed from the structural axis of blade K, element J-1 to the structural axis of blade K, element J.
 REAL(ReKi)                   :: KMatrix   (6,6)                                 ! A temporary element stiffness KMatrix for FIELD statements.
@@ -540,16 +448,7 @@ REAL(ReKi)                   :: Ref3      (3)                                   
 REAL(ReKi)                   :: Slopexb                                         ! Slope of the reference axis about the xb-axis using central difference differentation.
 REAL(ReKi)                   :: Slopeyb                                         ! Slope of the reference axis about the yb-axis using central difference differentation.
 REAL(ReKi), PARAMETER        :: SmllNmbr  = 9.999E-4                            ! A small number used to define masses and inertias of PARTs in ADAMS to avoid singularities in ADAMS' equations of motion (EoM).
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 REAL(ReKi)                   :: SWaveDir                                        ! SIN( WaveDir )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 REAL(ReKi)                   :: ThnBarI                                         ! The tranverse inertia of thin uniform bar about the bar's c.g. used to determine the transverse inertias of tower and blade elements
 REAL(ReKi)                   :: TmpLength                                       ! A temporary distance
 REAL(ReKi)                   :: TmpLength2                                      ! = TmpLength^2.
@@ -560,69 +459,22 @@ REAL(ReKi)                   :: TmpVec2   (3)                                   
 REAL(ReKi)                   :: TransMat  (3,3)                                 ! The resulting transformation matrix due to three orthogonal rotations, (-).
 
 INTEGER(4)                   :: CompAeroI                                       ! An INTEGER representing what is in CompAero: = 0 if CompAero = .FALSE., 1 if CompAero = .TRUE.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
-!remove6.02aINTEGER(4)                   :: CompAeroNB                                      ! An INTEGER representing what is in CompAero, NumBl, and TabDelim: = NumBl if CompAero = .FALSE. (+ 10 if CompAero = .TRUE. ) (+ 100 if TabDelim = .TRUE.).
 INTEGER(4)                   :: CompHydroI                                      ! An INTEGER representing what is in CompHydro: = 0 if CompHydro = .FALSE., 1 if CompHydro = .TRUE.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 INTEGER(4)                   :: GenTiStrp                                       ! An INTEGER representing what is in GenTiStr and GenTiStp = (1 if GenTiStr = .TRUE.) (+ 10 if GenTiStp = .TRUE.).
 INTEGER(4)                   :: I                                               ! Generic Index
 INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
 INTEGER(4)                   :: K                                               ! Loops through blades.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Simplify the SFORCE used to generate free surface GRAPHICS in the
-!jmj   FAST-to-ADAMS preprocessor.  Also, eliminate the free surface DOFs
-!jmj   during a linearization analysis:
-!remove6.02bINTEGER(4)                   :: NFreeSrfc = -1                                  ! Number of points on free surface (not including the zero'th point) where the elevation of the incident waves will be computed (computed every FrSrfcSpc meters along the incident wave propogation heading direction for a length of the rotor diameter).
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-!bjj start of proposed change
-!INTEGER(4)                   :: Sttus                                           ! Status of an attempted array allocation.
 INTEGER                      :: Sttus                                           ! Status of an attempted array allocation.
-!bjj end of proposed change
 INTEGER(4)                   :: SubAxI                                          ! An INTEGER representing what is in SubAxInd = (1 if SubAxInd = .TRUE.; 0 otherwise).
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 INTEGER(4)                   :: TabDelimI                                       ! An INTEGER representing what is in TabDelim : = 0 if TabDelim  = .FALSE., 1 if TabDelim  = .TRUE.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 INTEGER(4)                   :: TmpID                                           ! A temporary ID for a PART, MARKER, etc...
 INTEGER(4)                   :: TmpID2                                          ! A temporary ID for a PART, MARKER, etc...
 
 CHARACTER( 3)                :: FmtText   = '(A)'                               ! Format for outputting pure text.
 CHARACTER(10)                :: FmtTR     = '(A,ES13.6)'                        ! Format for outputting text then a real value.
-!bjj rm unused:CHARACTER(19)                :: FmtTRTR   = '(A,ES13.6,A,ES13.6)'               ! Format for outputting text, a real value, text, and a real value.
 CHARACTER(28)                :: FmtTRTRTR = '(A,ES13.6,A,ES13.6,A,ES13.6)'      ! Format for outputting text, a real value, text, a real value, text, and (you guessed it!) a real value.
 CHARACTER(55)                :: FmtTRTRTRTRTRTR = '(A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4)' ! Format for outputting text, a real value, text, a real value, text, a real value, text, a real value, text, a real value, text, and (you guessed it!) a real value.
 
-
-   ! Global functions:
-
-!bjj rm DOT_PRODUCT: REAL(ReKi), EXTERNAL         :: DotProd                                         ! A function returning the dot product of two vectors.
-
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: CurDate                                         ! A function that returns the durrent date in the form "dd-mmm-ccyy".
-!bjj rm AD 12.70b CHARACTER( 8), EXTERNAL      :: CurTime                                         ! A function that returns the durrent date in the form "hh:mm:ss".
-!bjj rm AD 12.70b CHARACTER(15), EXTERNAL      :: Flt2LStr                                        ! A function to convert a real to a left-justified string.
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
 
 
 
@@ -689,13 +541,8 @@ IF ( TwrNodes  > 99  )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with
 IF ( BldNodes  > 99  )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with more than 99 blade elements.'// &
                                          '  Set BldNodes <= 99.'                                                   )
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 IF ( NumLines  > 99  )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with more than 99 mooring lines.'// &
                                          '  Set NumLines <= 99.'                                                  )
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
    ! ALLOCATE some arrays:
@@ -724,37 +571,13 @@ CALL SetCoordSy
 CALL OpenFOutFile ( UnAD, TRIM( RootName )//'_ADAMS.adm' )
 
 WRITE (UnAD,FmtText  )  '!ADAMS/View model name: '//TRIM( FTitle )
-!bjj start of proposed change vxx
-!rmWRITE (UnAD,FmtText  )  '!This ADAMS dataset file was generated by '//ProgName//TRIM( ProgVer )// &
-!rm                        ' on '//CurDate()//' at '//CurTime()//'.'
 WRITE (UnAD,FmtText  )  '!This ADAMS dataset file was generated by '//TRIM(ProgName)//' '//TRIM( ProgVer )// &
                         ' on '//CurDate()//' at '//CurTime()//'.'
-!bjj end of proposed change
 WRITE (UnAD,FmtText  )  '!Turbine input data from file "'//TRIM( PriFile )//'".'
 
 
    ! The VARIABLE statement for calling routine CalcOuts() at every time step:
    ! Find CompAeroI  = 0 if CompAero  = .FALSE., 1 if CompAero  = .TRUE.:
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
-!remove6.02a   ! Find CompAeroNB = NumBl (+ 10 if CompAero = .TRUE.) (+ 100 if TabDelim = .TRUE.):
-!remove6.02a
-!remove6.02aIF ( CompAero )  THEN
-!remove6.02a   CompAeroI  = 1
-!remove6.02a   CompAeroNB = 10  + NumBl
-!remove6.02aELSE
-!remove6.02a   CompAeroI  = 0
-!remove6.02a   CompAeroNB =       NumBl
-!remove6.02aENDIF
-!remove6.02aIF ( TabDelim )  THEN
-!remove6.02a   CompAeroNB = 100 + CompAeroNB
-!remove6.02aENDIF
    ! Find CompHydroI = 0 if CompHydro = .FALSE., 1 if CompHydro = .TRUE.:
    ! Find TabDelimI  = 0 if TabDelim  = .FALSE., 1 if TabDelim  = .TRUE.:
 
@@ -775,29 +598,16 @@ IF ( TabDelim  )  THEN
 ELSE
    TabDelimI  = 0
 ENDIF
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''CalcOuts_V'''
 WRITE (UnAD,FmtText  )  'VARIABLE/1'
 WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Flt2LStr( AzimB1Up ))//', '//TRIM(Flt2LStr( GBRatio ))// &
                         ', '//TRIM(Flt2LStr( AvgNrmTpRd ))//', '//TRIM(Flt2LStr( ProjArea ))//               &
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
-!remove6.02a                        ', '//TRIM(Int2LStr( CompAeroNB ))//', '//TRIM(Int2LStr( BldNodes ))//               &
-!remove6.02a                        ', '//TRIM(Int2LStr( TwrNodes   ))//', '//TRIM(Flt2LStr( TipRad   ))//               &
-!remove6.02a                        ', '//TRIM(Flt2LStr( GenIner    ))//' )'
                         ', '//TRIM(Int2LStr( CompAeroI  ))//', '//TRIM(Int2LStr( CompHydroI ))//             &
                         ', '//TRIM(Int2LStr( TabDelimI  ))//', '//TRIM(Int2LStr( NumBl      ))//','
 WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( BldNodes   ))//', '//TRIM(Int2LStr( TwrNodes   ))//             &
                         ', '//TRIM(Flt2LStr( TipRad     ))//', '//TRIM(Flt2LStr( GenIner    ))//' )'
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
 
@@ -844,10 +654,6 @@ WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0  , ', ', 0.0   , ', ', 0.0    ! Orient th
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', a2(1), ', ', -a2(3), ', ', a2(2)  ! orientation MARKER
 WRITE (UnAD,FmtTRTRTR)  ', XP = ', a1(1), ', ', -a1(3), ', ', a1(2)  ! using the 3-point method
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
    IF ( LineMod == 1 )  THEN                    ! .TRUE if we have standard quasi-static mooring lines; store the mooring line data into the ARRAY
 
@@ -865,35 +671,20 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
 ENDIF
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
    ! FLOATING Aerodynamic and Hydrodynamic MARKERs:
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinFloatingAero_M'''
 WRITE (UnAD,FmtText  )  'MARKER/500'
 WRITE (UnAD,FmtText  )  ', PART = 1'
 WRITE (UnAD,FmtText  )  ', FLOATING'
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''PlatformLoadingFloating_M'''
 WRITE (UnAD,FmtText  )  'MARKER/800'
 WRITE (UnAD,FmtText  )  ', PART = 1'
 WRITE (UnAD,FmtText  )  ', FLOATING'
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
-!remove6.02a
-!remove6.02aWRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinFloatingAero_M'''
-!remove6.02aWRITE (UnAD,FmtText  )  'MARKER/500'
-!remove6.02aWRITE (UnAD,FmtText  )  ', PART = 1'
-!remove6.02aWRITE (UnAD,FmtText  )  ', FLOATING'
 WRITE (UnAD,FmtText  )  '!------------------ Ground: Floating Aero and Hydro for Tower ------------------'
 
 DO J = 1,TwrNodes ! Loop through the blade nodes / elements
@@ -903,7 +694,6 @@ DO J = 1,TwrNodes ! Loop through the blade nodes / elements
    WRITE (UnAD,FmtText     )  ', PART = 1'
    WRITE (UnAD,FmtText     )  ', FLOATING'
 ENDDO             ! J - Blade nodes / elements
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 DO K = 1,NumBl       ! Loop through all blades
 
@@ -925,16 +715,6 @@ DO K = 1,NumBl       ! Loop through all blades
 
 ENDDO                ! K - All Blades
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
-!jmj Also, add a GRAPHICS statement to depict the ground as a CIRCLE of radius
-!jmj   TipRad:
 WRITE (UnAD,FmtText  )  '!------------------------------- Ground GRAPHICS -------------------------------'
 
 
@@ -956,14 +736,7 @@ IF ( CompHydro )  THEN  ! .TRUE. if we are using the undocumented monopile or pl
    WRITE (UnAD,FmtText  )  'GRAPHICS/20'
    WRITE (UnAD,FmtText  )  ', CIRCLE'
    WRITE (UnAD,FmtText  )  ', CM = 20'
-!JASON:THIS CHANGED FOR ITI BARGE:   WRITE (UnAD,FmtText  )  ', RADIUS = 425'  !JASON:THIS CHANGED FOR ITI BARGE:
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Start of proposed change.  v6.10a-jmj  21-Feb-2007.
-!jmj Make sure the seabed GRAPHICS in FAST-to-ADAMS has a radius at least as
-!jmj   large as the maximum mooring line anchor radius:
-!remove6.10a   WRITE (UnAD,FmtTR    )  ', RADIUS = ', TipRad
    WRITE (UnAD,FmtTR    )  ', RADIUS = ', MAX( TipRad, MaxLRadAnch )
-!jmj End of proposed change.  v6.10a-jmj  21-Feb-2007.
    WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
 
@@ -976,13 +749,7 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
 
    ! Those on the free surface of the water:
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Simplify the SFORCE used to generate free surface GRAPHICS in the
-!jmj   FAST-to-ADAMS preprocessor.  Also, eliminate the free surface DOFs
-!jmj   during a linearization analysis:
-!remove6.02b   WRITE (UnAD,FmtText  )  '!-------------------------- Free Surface of the Water --------------------------'
    WRITE (UnAD,FmtText  )  '!--------------------- Free Surface of the Water GRAPHICS ----------------------'
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
    ! Compute the variables needed to place MARKERs on the incident wave
@@ -1060,16 +827,6 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , 'Actuator_SF'''
       WRITE (UnAD,FmtText     )  'SFORCE/'//TRIM(Int2LStr( TmpID ))
       WRITE (UnAD,FmtText     )  ', TRANSLATION'
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Simplify the SFORCE used to generate free surface GRAPHICS in the
-!jmj   FAST-to-ADAMS preprocessor.  Also, eliminate the free surface DOFs
-!jmj   during a linearization analysis:
-!remove6.02b      WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID ))
-!remove6.02b      WRITE (UnAD,FmtText     )  ', J = '//TRIM(Int2LStr( TmpID - 100000 ))
-!remove6.02b      WRITE (UnAD,FmtText     )  ', FUNCTION = '//TRIM(Flt2LStr( 0.0002249775 ))//'*VARVAL('//TRIM(Int2LStr( TmpID2 ))// &          ! NOTE: 0.0002249775kN/m     = 0.001*  Mass*NaturalFrequency^2            = 0.001*  (9.999E-4kg)*(5*(3 rad/s))^2
-!remove6.02b                                 ')*SIGN(1.0,DZ('//TRIM(Int2LStr( TmpID ))//','//TRIM(Int2LStr( TmpID - 100000 ))//',10))'
-!remove6.02b      WRITE (UnAD,FmtText     )           ', - '//TRIM(Flt2LStr( 0.0000209979 ))//'*VZ('//TRIM(Int2LStr( TmpID ))// &               ! NOTE: 0.0000209979kN/(m/s) = 0.001*2*Mass*NaturalFrequency*DampingRatio = 0.001*2*(9.999E-4kg)*(5*(3 rad/s))*(0.7)
-!remove6.02b                                 ',0,10,0)*SIGN(1.0,DZ('//TRIM(Int2LStr( TmpID ))//','//TRIM(Int2LStr( TmpID - 100000 ))//',10))'
       WRITE (UnAD,FmtText     )  ', ACTIONONLY'
       WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID ))
       WRITE (UnAD,FmtText     )  ', J = '//TRIM(Int2LStr( TmpID ))
@@ -1083,7 +840,6 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
       WRITE (UnAD,FmtText     )  ', Z'
       WRITE (UnAD,FmtText     )  ', DISPLACEMENT'
       WRITE (UnAD,FmtText     )  ', FUNCTION = 0'  ! Lock free surface PART at the MSL
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
    ! Free surface GRAPHICS:
@@ -1115,14 +871,6 @@ ELSE
 ENDIF
 
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
-!JASON: MOVE THE ADAMS STATEMENTS TO THE PROPER LOCATIONS WITHIN THE ADM FILE ONCE WE DOCUMENT THIS FEATURE!!!!!
-!JASON: WHAT DO WE DO HERE DURING LINEARIZATION????
 IF ( ( PtfmModel == 3 ) .AND. CompHydro .AND. SaveGrphcs )  THEN  ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features .AND. SaveGrphcs is enabled.
    IF ( LineMod == 1 )  THEN                                      ! .TRUE if we have standard quasi-static mooring lines; store the mooring line data into the ARRAY
 
@@ -1237,7 +985,6 @@ ENDIF
 
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
    ! Those on the support platform:
 
@@ -1280,17 +1027,8 @@ WRITE (UnAD,FmtText  )  ', PART = 1000'
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', RefTwrHt
 WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
 IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    IF ( LineMod == 1 )  THEN  ! .TRUE if we have standard quasi-static mooring lines; store the mooring line data into the ARRAY
 
    ! Fairleads:
@@ -1307,7 +1045,6 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
    ENDIF
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    ! Platform graphics:
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Platform_G'''
@@ -1328,7 +1065,6 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
 ENDIF
 
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    ! Those on the tower:
 
 WRITE (UnAD,FmtText  )  '!------------------------------------ Tower ------------------------------------'
@@ -1395,10 +1131,6 @@ DO J = 1,TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
 
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
    ! Aerodynamic and hydrodynamic MARKERs:
 
    TmpID2 = 1800 + J
@@ -1409,7 +1141,6 @@ DO J = 1,TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,FmtText     )  ', REULER = 90D, 90D, 90D'
 
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    ! Graphics:
 
    TmpID2 = 1200 + J
@@ -1514,10 +1245,7 @@ WRITE (UnAD,FmtText  )  '!----------------------------------- Nacelle ----------
 TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2   ! rO = Position vector from ground to tower-top / base plate (point O)
 TmpVec1 = TmpVec + d2
 TmpVec2 = TmpVec + d1
-!bjj start of proposed change v6.02d-bjj: fix spelling
-!rmWRITE (UnAD,FmtText  )  '!                             adams_view_name=''Nacalle_P''' !bjj: spelling???
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Nacelle_P'''
-!bjj end of proposed change
 WRITE (UnAD,FmtText  )  'PART/2000'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the
 WRITE (UnAD,FmtTRTRTR)  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! nacelle using the
@@ -1536,10 +1264,7 @@ WRITE (UnAD,FmtText  )  ', PART = 2000'
 
    ! Nacelle center of mass:
 
-!bjj start of proposed change - spelling Nacelle correctly
-!rmWRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacalleCM_M'''
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacelleCM_M'''
-!bjj end of proposed change
 WRITE (UnAD,FmtText  )  'MARKER/2005'
 WRITE (UnAD,FmtText  )  ', PART = 2000'
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', NacCMxn, ', ', NacCMyn, ', ', NacCMzn
@@ -1663,7 +1388,6 @@ IF ( TmpLength /= 0.0 )  THEN                                                   
    WRITE (UnAD,FmtText  )  'MARKER/5020'
    WRITE (UnAD,FmtText  )  ', PART = 5000'
    WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0                    , ', ',  0.0                    , ', ', 0.0
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
    WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
                                       DOT_PRODUCT( TmpVec1, tf2 )
    WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, tf1 ), ', ', -DOT_PRODUCT( TmpVec2, tf3 ), ', ', &
@@ -1720,7 +1444,6 @@ TmpVec2 = TmpVec + p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinAero_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5110'  ! MARKER/5110 is equivalent to the tail fin coordinate system: X = tail fin x, Y = tail fin y, Z = tail fin z
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', &
                                    DOT_PRODUCT( TmpVec , tf2 )  ! Orient the tail
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', &
@@ -1737,7 +1460,6 @@ TmpVec2 = TmpVec + p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline1_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5121'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
                                    DOT_PRODUCT( TmpVec , tf2 )
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
@@ -1751,7 +1473,6 @@ TmpVec2 = TmpVec + p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline2_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5122'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
                                    DOT_PRODUCT( TmpVec , tf2 )
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
@@ -1765,7 +1486,6 @@ TmpVec2 = TmpVec + p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline3_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5123'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
                                    DOT_PRODUCT( TmpVec , tf2 )
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
@@ -1779,7 +1499,6 @@ TmpVec2 = TmpVec + p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline4_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5124'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
                                    DOT_PRODUCT( TmpVec , tf2 )
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
@@ -1793,7 +1512,6 @@ TmpVec2 = TmpVec + p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline5_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5125'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
                                    DOT_PRODUCT( TmpVec , tf2 )
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
@@ -1863,7 +1581,6 @@ TmpVec2 = TmpVec + c1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacelleIMU_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2140'
 WRITE (UnAD,FmtText  )  ', PART = 2100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , rf1 ), ', ', -DOT_PRODUCT( TmpVec , rf3 ), ', ', & 
                                    DOT_PRODUCT( TmpVec , rf2 )  ! Orient the nacelle
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, rf1 ), ', ', -DOT_PRODUCT( TmpVec1, rf3 ), ', ', & 
@@ -1880,7 +1597,6 @@ TmpVec2 = TmpVec + c1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''ShaftCS_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2150'  ! MARKER/2150 is equivalent to the shaft coordinate system: X = Xs, Y = Ys, Z = Zs
 WRITE (UnAD,FmtText  )  ', PART = 2100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , rf1 ), ', ', -DOT_PRODUCT( TmpVec , rf3 ), ', ', &
                                    DOT_PRODUCT( TmpVec , rf2 )  ! Orient the shaft
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, rf1 ), ', ', -DOT_PRODUCT( TmpVec1, rf3 ), ', ', &
@@ -1894,13 +1610,9 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, rf1 ), ', ', -DOT_PRODU
 TmpVec  = rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3  ! = Position vector from specified point on rotor-furl axis (point V) to origin of shaft CS
 TmpVec1 = TmpVec + c1
 TmpVec2 = TmpVec - c2
-!bjj start of proposed change - spelling Nacelle correctly
-!rmWRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacalleHubRef_M'''
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacelleHubRef_M'''
-!bjj end of proposed change - spelling Nacelle correctly
 WRITE (UnAD,FmtText  )  'MARKER/2050'
 WRITE (UnAD,FmtText  )  ', PART = 2100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , rf1 ), ', ', -DOT_PRODUCT( TmpVec , rf3 ), ', ', &
                                    DOT_PRODUCT( TmpVec , rf2 )  ! Orient the nacelle/hub
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, rf1 ), ', ', -DOT_PRODUCT( TmpVec1, rf3 ), ', ', &
@@ -1918,7 +1630,6 @@ IF ( GBoxLength > 0.0 )  THEN ! Only include these statements in the dataset if 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''GBoxGraphics_M'''
    WRITE (UnAD,FmtText  )  'MARKER/2120'
    WRITE (UnAD,FmtText  )  ', PART = 2100'
-!bjj: I had to make continuation lines since DOT_PRODUCT is longer than DotProd:   
    WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , rf1 ), ', ', -DOT_PRODUCT( TmpVec , rf3 ), ', ', &
                                       DOT_PRODUCT( TmpVec , rf2 )  ! Orient the gearbox
    WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, rf1 ), ', ', -DOT_PRODUCT( TmpVec1, rf3 ), ', ', &
@@ -2215,10 +1926,7 @@ WRITE (UnAD,FmtText  )  'MARKER/4010'
 WRITE (UnAD,FmtText  )  ', PART = 4000'
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', UndSling, ', ', 0.0, ', ', 0.0
 
-!bjj Start of proposed change v12.70
-!rm      WRITE (UnAD,FmtTRTRTR)  ', REULER = ', 0.0, ', ', -Delta3 - PiOvr2, ', ', 0.0
 WRITE (UnAD,FmtTRTRTR)  ', REULER = ', 0.0, ', ', -Delta3 - PiBy2, ', ', 0.0
-!bjj End of proposed change
 
 
 DO K = 1,NumBl ! Loop through all blades
@@ -2346,10 +2054,7 @@ DO K = 1,NumBl       ! Loop through all blades
    WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
    WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Int2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', QP = 0, 0, 0'
-!bjj Start of proposed change v12.70
-!rm      WRITE (UnAD,FmtTRTRTR )  ', REULER = ', -ThetaS(K,1), ', ', PiOvr2, ', ', PiOvr2
    WRITE (UnAD,FmtTRTRTR )  ', REULER = ', -ThetaS(K,1), ', ', PiBy2, ', ', PiBy2
-!bjj End of proposed change
 
 
 
@@ -2522,7 +2227,6 @@ DO K = 1,NumBl       ! Loop through all blades
       WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
       IF ( J == BldNodes )  THEN ! Outermost blade element
-!bjj: I removed 2 spaces so the line is not too long; now it doesn't quite match the spacing above... that's for JASON! ;-)         
          WRITE (UnAD,FmtTRTRTR   )  ', QP = ', DOT_PRODUCT(     EAVec(K,J+1,:)              ,  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
                                              + DOT_PRODUCT(     EAVec(K,J+1,:)              , -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
                                              + DOT_PRODUCT(     EAVec(K,J+1,:)              , -te2(K,J,:) )                        ! Orient the MARKER
@@ -2552,11 +2256,7 @@ DO K = 1,NumBl       ! Loop through all blades
       WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0, ', ', -cgOffBFlp(K,J), ', ', -cgOffBEdg(K,J)
-!bjj start of proposed change v6.02d-bjj
-! parentheses around an I/O list is an extension to Standard F2003
-!rm      WRITE (UnAD,FmtTRTRTR        )  ', REULER = ', 0.0, ', ', ( AeroTwst(J) - ThetaS(K,J) ), ', ', 0.0    ! Use the same orientation as the structural axis
       WRITE (UnAD,FmtTRTRTR        )  ', REULER = ', 0.0, ', ', AeroTwst(J) - ThetaS(K,J), ', ', 0.0    ! Use the same orientation as the structural axis
-!bjj end of proposed change
 
    ! Structural Axis:
    ! This MARKER is positioned at the structural axis of the precurved and
@@ -2618,10 +2318,7 @@ DO K = 1,NumBl       ! Loop through all blades
    WRITE (UnAD,FmtText   )  ', QP = 0, 0, 0'
 
 
-!bjj Start of proposed change v12.70
-!rm   WRITE (UnAD,FmtTRTRTR )  ', REULER = ', -PiOvr2, ', ', -PiOvr2, ', ', ThetaS(K,BldNodes)
    WRITE (UnAD,FmtTRTRTR )  ', REULER = ', -PiBy2, ', ', -PiBy2, ', ', ThetaS(K,BldNodes)
-!bjj End of proposed change
 
 ENDDO                ! K - Blades
 
@@ -2931,29 +2628,6 @@ WRITE (UnAD,FmtText  )  '!=================================== FORCES ===========
 
 WRITE (UnAD,FmtText  )  '!------------------------------ Support Platform -------------------------------'
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!remove6.02aSELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
-!remove6.02a
-!remove6.02aCASE ( 0 )                 ! None!
-!remove6.02a
-!remove6.02a   ! Do nothing here!
-!remove6.02a
-!remove6.02a
-!remove6.02aCASE ( 1 )                 ! User-defined platform loading.
-!remove6.02a
-!remove6.02a   WRITE (UnAD,FmtText  )  '!                             adams_view_name=''PlatformLoading_GF'''
-!remove6.02a   WRITE (UnAD,FmtText  )  'GFORCE/1000'
-!remove6.02a   WRITE (UnAD,FmtText  )  ', I = 1000'
-!remove6.02a   WRITE (UnAD,FmtText  )  ', JFLOAT = 800'
-!remove6.02a   WRITE (UnAD,FmtText  )  ', RM = 1000'
-!remove6.02a   WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmLdMod ))//' )'
-!remove6.02a
-!remove6.02a
-!remove6.02aENDSELECT
 SELECT CASE ( PtfmModel )  ! Which platform model are we using?
 
 CASE ( 0 )                 ! None!
@@ -3050,10 +2724,6 @@ CASE ( 3 )                 ! Floating offshore.
                               ', '//TRIM(Flt2LStr( CurrNSV0    ))//', '//TRIM(Flt2LStr( CurrNSDir   ))//              &
                               ', '//TRIM(Flt2LStr( CurrDIV     ))//', '//TRIM(Flt2LStr( CurrDIDir   ))//              &
                               ', '//TRIM(Flt2LStr( Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//' )'
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 
 
    ! Create an ARRAY statement to hold the mooring line data:
@@ -3116,14 +2786,12 @@ CASE ( 3 )                 ! Floating offshore.
          WRITE (UnAD,FmtText        )  ', NUMBERS = '//TRIM(Int2LStr( NumLines ))
 
       ENDIF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
    ENDSELECT
 
 
 ENDSELECT
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Tower segment stiffness and damping:
@@ -3320,10 +2988,6 @@ WRITE (UnAD,FmtTRTRTRTRTRTR)  ', ', KMatrix(1,6), ', ', KMatrix(2,6), ', ', KMat
                               ', ', KMatrix(4,6), ', ', KMatrix(5,6), ', ', KMatrix(6,6)
 WRITE (UnAD,FmtTRTRTR      )  ', LENGTH = ', TmpLength, ', 0.0, 0.0, ', 0.0, ', 0.0, ', 0.0
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
    ! Tower aerodynamic and hydrodynamic forces
 
 WRITE (UnAD,FmtText  )  '!------------------------------------ Tower ------------------------------------'
@@ -3419,7 +3083,6 @@ ENDSELECT
 
 
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Nacelle yaw:
@@ -4007,16 +3670,10 @@ DO K = 1,NumBl       ! Loop through all blades
       WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', KMatrix(1,6), ', ', KMatrix(2,6), ', ', KMatrix(3,6), &
                                       ', ', KMatrix(4,6), ', ', KMatrix(5,6), ', ', KMatrix(6,6)
       WRITE (UnAD,FmtText          )  ', LENGTH = '
-!bjj start of proposed change v6.02d-bjj
-! parentheses around an I/O list is an extension to Standard F2003
-!rm      WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', TmpLength, ', ', DOT_PRODUCT( EAVec(K,J,:), -n1(K,J-1,:) ), &
-!rm                                      ', ', DOT_PRODUCT( EAVec(K,J,:), -n2(K,J-1,:) ),                  &
-!rm                                      ', ', ( ThetaS(K,J-1) - ThetaS(K,J) ), ', ', 0.0, ', ', 0.0
 
       WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', TmpLength, ', ', DOT_PRODUCT( EAVec(K,J,:), -n1(K,J-1,:) ), &
                                       ', ', DOT_PRODUCT( EAVec(K,J,:), -n2(K,J-1,:) ),                  &
                                       ', ', ThetaS(K,J-1) - ThetaS(K,J), ', ', 0.0, ', ', 0.0
-!bjj end of proposed change
 
    ENDDO             ! J - Blade nodes/elements
 
@@ -4147,13 +3804,8 @@ IF ( ( TBDrConN /= 0.0 ) .OR. ( TBDrConD /= 0.0 ) )  THEN   ! Only added when TB
       WRITE (UnAD,FmtText   )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Int2LStr( NumBl ))//', '//TRIM(Flt2LStr( TBDrConN ))// &
                                ', '//TRIM(Flt2LStr( TBDrConD ))//', '//TRIM(Flt2LStr( TpBrDT ))//                 &
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Pass CompAero to the tip brake drag VFORCE to ensure that CompAero is
-!jmj   known within VFOSUB():
-!remove6.02a                               ', '//TRIM(Flt2LStr( TTpBrDp(K) ))//', '//TRIM(Flt2LStr( TBDepISp(K) ))//' )'
                                ', '//TRIM(Int2LStr( CompAeroI   ))//', '//TRIM(Flt2LStr( TTpBrDp(K) ))//          &
                                ', '//TRIM(Flt2LStr( TBDepISp(K) ))//' )'
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ENDDO                ! K - Blades
 
@@ -4217,47 +3869,15 @@ IF ( NumOuts /= 0 )  THEN
    WRITE (UnAD,FmtText  )  'ARRAY/1'
    WRITE (UnAD,FmtText  )  ', IC, SIZE = '//TRIM(Int2LStr( NumOuts ))   ! Specify a list of constants.  The number of elements in the ARRAY is NumOuts
    IF ( NumOuts == 1 )  THEN  ! Only one output channel  selected
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
-!jmj Also, replace the hard-coded mooring line restoring calculation with a
-!jmj   general purpose, quasi-static solution based on the analytical catenary
-!jmj   cable equations with seabed interaction:
-!remove6.02b      WRITE (      UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( OutInd(1) + 250*( 1 - OutSign(1) ) ))
       WRITE (      UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( OutInd(1) + 500*( 1 - OutSign(1) ) ))
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    ELSE                       ! Multiple output channels selected
       DO I = 1,NumOuts  ! Loop through all selected output channels
          IF ( I == NumOuts )  THEN  ! Last output channel
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
-!jmj Also, replace the hard-coded mooring line restoring calculation with a
-!jmj   general purpose, quasi-static solution based on the analytical catenary
-!jmj   cable equations with seabed interaction:
-!remove6.02b            WRITE (UnAD,FmtText  )  ', '          //TRIM(Int2LStr( OutInd(I) + 250*( 1 - OutSign(I) ) ))
             WRITE (UnAD,FmtText  )  ', '          //TRIM(Int2LStr( OutInd(I) + 500*( 1 - OutSign(I) ) ))
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
          ELSEIF ( I == 1   )  THEN  ! First output channel
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
-!jmj Also, replace the hard-coded mooring line restoring calculation with a
-!jmj   general purpose, quasi-static solution based on the analytical catenary
-!jmj   cable equations with seabed interaction:
-!remove6.02b            WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( OutInd(I) + 250*( 1 - OutSign(I) ) ))//','
             WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( OutInd(I) + 500*( 1 - OutSign(I) ) ))//','
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
          ELSE                       ! All other output channels
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
-!jmj Also, replace the hard-coded mooring line restoring calculation with a
-!jmj   general purpose, quasi-static solution based on the analytical catenary
-!jmj   cable equations with seabed interaction:
-!remove6.02b            WRITE (UnAD,FmtText  )  ', '          //TRIM(Int2LStr( OutInd(I) + 250*( 1 - OutSign(I) ) ))//','  ! Each element of the list is OutInd() ( + 500 if the corresponding OutSign() = -1 ).
             WRITE (UnAD,FmtText  )  ', '          //TRIM(Int2LStr( OutInd(I) + 500*( 1 - OutSign(I) ) ))//','  ! Each element of the list is OutInd() ( + 1000 if the corresponding OutSign() = -1 ).
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
          ENDIF
       ENDDO             ! I - all selected output channels
    ENDIF
@@ -4306,14 +3926,6 @@ IF ( NTwGages /= 0 )  THEN
 
 ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 IF ( ( NWaveKin /= 0 ) .AND. CompHydro )  THEN  ! .TRUE. if we are using the undocumented monopile or platform features
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''WaveKinNd_A'''
@@ -4336,30 +3948,13 @@ IF ( ( NWaveKin /= 0 ) .AND. CompHydro )  THEN  ! .TRUE. if we are using the und
 ENDIF
 
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! The STRING statements for passing constant STRING expressions to the
    !   user-written subroutines:
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add a STRING constant in the ADAMS dataset that FAST2ADAMS creates, which
-!jmj   represents the program version number of A2AD that is required to run
-!jmj   the ADAMS model:
 WRITE (UnAD,FmtText        )  '!                             adams_view_name=''ProgVerOfA2AD_SG'''
 WRITE (UnAD,FmtText        )  'STRING/1'
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Update STRING/1 to the latest program version of A2AD:
-!remove6.02bWRITE (UnAD,FmtText        )  ', STRING = v12.20a-jmj'
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Update STRING/1 to the latest program version of A2AD:
-!remove6.02cWRITE (UnAD,FmtText        )  ', STRING = v12.20b-jmj'
-!bjj start of proposed change
-!rmWRITE (UnAD,FmtText        )  ', STRING = v12.20c-jmj'
 WRITE (UnAD,FmtText        )  ', STRING = v13.00.00a-bjj'
-!bjj end of proposed change
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 WRITE (UnAD,FmtText        )  '!                             adams_view_name=''FTitle_SG'''
 WRITE (UnAD,FmtText        )  'STRING/21'
@@ -4368,14 +3963,6 @@ WRITE (UnAD,FmtText        )  ', STRING = '//TRIM( FTitle )             ! The ti
 WRITE (UnAD,FmtText        )  '!                             adams_view_name=''OutFmt_SG'''
 WRITE (UnAD,FmtText        )  'STRING/22'
 WRITE (UnAD,FmtText        )  ', STRING = '//TRIM( OutFmt )             ! Output format for tabular data.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 IF ( ( WaveMod   == 4 ) .AND. CompHydro )  THEN ! .TRUE if we are to use GH Bladed wave data.
    WRITE (UnAD,FmtText     )  '!                             adams_view_name=''GHWvFile_SG'''
    WRITE (UnAD,FmtText     )  'STRING/31'
@@ -4388,12 +3975,8 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
    WRITE (UnAD,FmtText     )  ', STRING = '//TRIM( WAMITFile )          ! Root name of WAMIT output files.
 ENDIF
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 WRITE (UnAD,FmtText        )  '!                             adams_view_name=''ADIptFile_SG'''
-!BJJ START OF PROPOSED CHANGE
-!RMWRITE (UnAD,FmtText        )  'STRING/'//TRIM(Int2LStr( UnADin ))
 WRITE (UnAD,FmtText        )  'STRING/'//TRIM(Flt2LStr( AD_GetConstant('ADunit', Sttus) ))
-!BJJ END OF PROPOSED CHANGE
 WRITE (UnAD,FmtText        )  ', STRING = '//TRIM( ADFile )             ! The name of the AeroDyn input file.
 
 WRITE (UnAD,FmtText        )  '!                             adams_view_name=''RootName_SG'''
@@ -4438,32 +4021,15 @@ IF ( SaveGrphcs )  WRITE (UnAD,FmtText)  ', GRSAVE'   ! Generate the Graphics ou
 
 IF ( MakeLINacf )  THEN
 
-!jmj Start of proposed change.  v6.10d-jmj  13-Aug-2009.
-!jmj Modify the RESULTS statement so that it only contains DISPLACEMENTS and
-!jmj   results from a LINEAR analysis, and format the results into
-!jmj   human-readable format:
-!remove6.10d   WRITE (UnAD,FmtText  )  'RESULTS/'
-!remove6.10d   WRITE (UnAD,FmtText  )  ', NOACCELERATIONS'        ! Only contain results for displacements and from LINEAR ANALYSIS
    WRITE (UnAD,FmtText  )  'RESULTS/FORMATTED'  ! Only contain results from a LINEAR analysis
    WRITE (UnAD,FmtText  )  ', NOACCELERATIONS'
-!jmj End of proposed change.  v6.10d-jmj  13-Aug-2009.
    WRITE (UnAD,FmtText  )  ', NOAPPLIEDFORCES'
    WRITE (UnAD,FmtText  )  ', NODATASTRUCTURES'
    WRITE (UnAD,FmtText  )  ', NOFLOATINGMARKERS'
    WRITE (UnAD,FmtText  )  ', NOREACTIONFORCES'
-!jmj Start of proposed change.  v6.10d-jmj  13-Aug-2009.
-!jmj Modify the RESULTS statement so that it only contains DISPLACEMENTS and
-!jmj   results from a LINEAR analysis, and format the results into
-!jmj   human-readable format:
    WRITE (UnAD,FmtText  )  ', NOREQUESTS'
-!jmj End of proposed change.  v6.10d-jmj  13-Aug-2009.
    WRITE (UnAD,FmtText  )  ', NOSYSTEMELEMENTS'
-!jmj Start of proposed change.  v6.10d-jmj  13-Aug-2009.
-!jmj Modify the RESULTS statement so that it only contains DISPLACEMENTS and
-!jmj   results from a LINEAR analysis, and format the results into
-!jmj   human-readable format:
    WRITE (UnAD,FmtText  )  ', NOTIRES'
-!jmj End of proposed change.  v6.10d-jmj  13-Aug-2009.
    WRITE (UnAD,FmtText  )  ', NOVELOCITIES'
 
 ENDIF
@@ -4485,18 +4051,14 @@ CALL WrScr1(' ADAMS dataset file '''//TRIM( RootName )//'_ADAMS.adm'' created.')
 
 CLOSE ( UnAD )
 
-!bjj start of proposed change V6.02D-BJJ
    ! deallocate arrays
 
 IF ( ALLOCATED( DRNodesGRA ) ) DEALLOCATE ( DRNodesGRA )
 IF ( ALLOCATED( EAVec      ) ) DEALLOCATE ( EAVec      )
-!bjj END of proposed change V6.02D-BJJ
 
 
 
 RETURN
 END SUBROUTINE MakeADM
 !=======================================================================
-!BJJ Start of proposed change vXX NWTC_Lib
 END MODULE FAST2ADAMSSubs
-!bjj end of proposed change

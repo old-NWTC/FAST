@@ -1,30 +1,22 @@
 MODULE Noise
 
-!bjj rm NWTC_Library: USE                             Precision
 USE                             NWTC_Library
 
 !bjj: several subroutines have default FORTRAN typing:
 ! IMPLICIT INTEGER (I-N), REAL (A-H, O-Z)
-! so I'm removing this for now.  The subroutines should be changed
-! to avoid this problem.
-!rm IMPLICIT                        NONE
-!bjj end of proposed change
+! so this module does not have IMPLICIT NONE right now.  
+! The subroutines should be changed to avoid this problem!!!
+! IMPLICIT                        NONE
 
 
-!BJJ START of proposed change
-!rmREAL(ReKi), ALLOCATABLE      :: AlphaNoise  (:,:)                               ! angle of attack for each element used in noise calculation
 REAL(ReKi)                   :: AlphaNoise                                      ! angle of attack for each element used in noise calculation
-!BJJ end of proposed change
 REAL(ReKi)                   :: ALPRAT       = 1.0                              ! TIP LIFT CURVE SLOPE and(Default = 1.0)
 REAL(ReKi), ALLOCATABLE      :: AvePressure (:,:)                               ! average mean square pressure at each frequency relative to observer
 REAL(ReKi), ALLOCATABLE      :: AveSPL      (:,:)                               ! average sound pressure level at observer location
 REAL(ReKi)                   :: C0                                              ! Speed of sound (m/s)
 REAL(ReKi), ALLOCATABLE      :: ChordAngleLE(:,:)                               ! Directivity angle between trailing edge coord sys and observer position relative to chord
 REAL(ReKi), ALLOCATABLE      :: ChordAngleTE(:,:)                               ! Directivity angle between trailing edge coord sys and observer position relative to chord
-!BJJ START of proposed change
-!bjj: this variable replaces the KinVisc that was used from AeroDyn
 REAL(ReKi)                   :: KinViscosity
-!bjj end of proposed change
 REAL(ReKi)                   :: MeanVNoise   = 0.0                              ! mean wind speed (m/s)
 REAL(ReKi), ALLOCATABLE      :: OASPL       (:,:)                               ! overall sound pressure level of each element
 REAL(ReKi), ALLOCATABLE      :: OASPLBlunt  (:,:)                               ! Overall sound pressure level of each element associated with bluntness
@@ -36,22 +28,15 @@ REAL(ReKi), ALLOCATABLE      :: OASPLTBLP   (:,:)                               
 REAL(ReKi), ALLOCATABLE      :: OASPLTBLS   (:,:)                               ! Overall sound pressure level of each element associated with suction side TBL
 REAL(ReKi), ALLOCATABLE      :: OASPLTip    (:,:)                               ! Overall sound pressure level of each element associated with tip noise
 REAL(ReKi), ALLOCATABLE      :: rLEtoObserve(:,:)                               ! Position vector from observer to current point S leading edge on the blade
-!bjj start of proposed change
-!rmREAL(ReKi), ALLOCATABLE      :: RObserve    (:)                                 ! (x,y,z) Observer location in tower-base coordinate system
 REAL(ReKi)                   :: RObserve    (3)                                 ! (x,y,z) Observer location in tower-base coordinate system
-!bjj end of proposed change
 REAL(ReKi), ALLOCATABLE      :: rTEtoObserve(:,:)                               ! Position vector from observer to current point S trailing edge on the blade
 REAL(ReKi), ALLOCATABLE      :: SpanAngleLE (:,:)                               ! Directivity angle between leading edge coord sys and observer position relative to span
 REAL(ReKi), ALLOCATABLE      :: SpanAngleTE (:,:)                               ! Directivity angle between trailing edge coord sys and observer position relative to span
 REAL(ReKi), ALLOCATABLE      :: TEAngle     (:)                                 ! Trailing edge angle of each blade element
 REAL(ReKi), ALLOCATABLE      :: TEThick     (:)                                 ! Trailing edge thickness of each blade element
 REAL(ReKi)                   :: TINoise      = 0.0                              ! longitudinal turbulence intensity used for inflow noise
-!bjj start of proposed change
-!REAL(ReKi), ALLOCATABLE      :: UNoise      (:,:)                               ! chordwise velocity of each element used in noise calculation
 REAL(ReKi)                   :: UNoise = 0.0
-!bjj end of proposed change
 
-!bjj chg: CHANGED NEXT 6 FROM LOGICAL(1) TO LOGICAL
 LOGICAL                      :: ROUND                                           ! LOGICAL INDICATING ROUNDED TIP     ---
 LOGICAL                      :: IBLUNT                                          ! FLAG TO COMPUTE BLUNTNESS NOISE    ---
 LOGICAL                      :: ILAM                                            ! FLAG TO COMPUTE LBL NOISE          ---
@@ -79,25 +64,18 @@ REAL(ReKi), DIMENSION(NFrequency) :: FrequencyCenter = &    ! Center frequency o
                  31500.   ,40000.   /)
 !bjj: should FrequencyCenter be a parameter?
 
-!BJJ Start of proposed change vXX NWTC_Lib
 
 CONTAINS
 !====================================================================================================
-!bjj: the following subroutines were in NoiseSubs
 SUBROUTINE PredictNoise
 
 USE                             AeroElem
 USE                             Blades
-!bjj rm: USE                             Noise
 USE                             Output
-!bjj rm NWTC_Library: USE                             Precision
 USE                             RtHndSid
 USE                             SimCont
 USE                             TurbConf
-!bjj Start of proposed change AD v12.70a-bjj
-!rmUSE                             Wind
 USE                             AeroDyn
-!bjj End of proposed change
 
 
 IMPLICIT                        NONE
@@ -131,12 +109,9 @@ INTEGER(4)                   :: I                                               
 INTEGER(4)                   :: III                                             ! A generic index for DO loops.
 INTEGER(4)                   :: K                                               ! A generic index for DO loops.
 
-!bjj start of proposed change
 INTEGER                       :: ErrStat
-!bjj end of proposed change
 
 ! Calculate observer distance and directivity angles
-!bjj: removed the subscripts from UNoise; now it's a scalar instead of NumBl x NElm array
 
 CALL CalcObserve
 
@@ -150,15 +125,11 @@ DO K = 1, NumBl
 
    DO III=1,BldNodes
 
-!bjj start of proposed change
         UNoise = SQRT( AD_GetCurrentValue('W2',ErrStat, IBlade=K, IElement=III) )
-!bjj end of proposed change
 
         IF (UNoise .GE. C0) CYCLE
 
-!bjj start of proposed change
         AlphaNoise = ABS( R2D * AD_GetCurrentValue('ALPHA',ErrStat, IBlade=K, IElement=III) )
-!bjj end of proposed change
 
         IF ( ILAM .AND. ( ITRIP .EQ. 0 ) )                                     &
          CALL LBLVS(AlphaNoise,Chord(III),UNoise,SPLLBL, &
@@ -261,19 +232,10 @@ ENDDO ! K = 1, NumBl
 NAverage = NAverage + 1 ! The noise spectrum for each time step is averaged into the total
 
 RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
 END SUBROUTINE PredictNoise
 !====================================================================================================
-!bjj End of proposed change
 
       SUBROUTINE LBLVS(ALPSTAR,C,U ,SPLLAM,THETA,PHI,L,R)
-
-!bjj rm: USE   Noise
-!      USE Wind
-!bjj ad v12.70a-bjj?    USE         Wind, ONLY: KinVisc
-
 
 !                  --------------------------------
 !                  ***** VARIABLE DEFINITIONS *****
@@ -334,10 +296,7 @@ END SUBROUTINE PredictNoise
 
       M        = U  / C0
 
-!bjj start of proposed change
-!rm      RC       = U  * C/KinVisc
       RC       = U  * C/KinViscosity
-!bjj end of proposed change
 
 !      COMPUTE BOUNDARY LAYER THICKNESSES
 !      ----------------------------------
@@ -421,17 +380,12 @@ END SUBROUTINE PredictNoise
   100 CONTINUE
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
-END SUBROUTINE LBLVS
+
+   END SUBROUTINE LBLVS
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE TBLTE(ALPSTAR,C,U ,SPLP,SPLS, &
                    SPLALPH,SPLTBL,THETA,PHI,L,R)
 
-!bjj rm: USE                             Noise
-!bjj rm      USE Wind
 !                  --------------------------------
 !                  ***** VARIABLE DEFINITIONS *****
 !                  --------------------------------
@@ -533,7 +487,6 @@ END SUBROUTINE LBLVS
       REAL(ReKi)  :: STP      (NFrequency)
       REAL(ReKi)  :: STS      (NFrequency)
 
-!bjj chg:       LOGICAL(1)  :: SWITCH
       LOGICAL     :: SWITCH
 
       RC       = U  * C / KinViscosity
@@ -718,12 +671,8 @@ END SUBROUTINE LBLVS
   100 CONTINUE
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
-END SUBROUTINE TBLTE
+      END SUBROUTINE TBLTE
 !====================================================================================================
-!bjj End of proposed change
 
       SUBROUTINE AMIN(A,AMINA)
 
@@ -738,12 +687,9 @@ END SUBROUTINE TBLTE
       IF (X1 .GT. .244)AMINA=-142.795*X1**3.+103.656*X1**2.-57.757*X1+6.006
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
-END SUBROUTINE AMIN
+
+      END SUBROUTINE AMIN
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE AMAX(A,AMAXA)
 
 !     THIS SUBROUTINE DEFINES THE CURVE FIT CORRESPONDING
@@ -756,12 +702,9 @@ END SUBROUTINE AMIN
       IF (X1 .GT. .321)AMAXA=-4.669*X1**3.+3.491*X1**2.-16.699*X1+1.149
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
-END SUBROUTINE AMAX
+
+      END SUBROUTINE AMAX
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE BMIN(B,BMINB)
 
 !     THIS SUBROUTINE DEFINES THE CURVE FIT CORRESPONDING
@@ -774,12 +717,9 @@ END SUBROUTINE AMAX
       IF (X1.GT..145)BMINB=-817.81*X1**3.+355.21*X1**2.-135.024*X1+10.619
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
-END SUBROUTINE BMin
+
+      END SUBROUTINE BMin
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE BMAX(B,BMAXB)
 
 !     THIS SUBROUTINE DEFINES THE CURVE FIT CORRESPONDING
@@ -792,12 +732,9 @@ END SUBROUTINE BMin
       IF (X1.GT..187)BMAXB=-80.541*X1**3.+44.174*X1**2.-39.381*X1+2.344
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
-END SUBROUTINE BMax
+
+      END SUBROUTINE BMax
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE A0COMP(RC,A0)
 
 !     THIS SUBROUTINE DETERMINES WHERE THE A-CURVE
@@ -808,18 +745,13 @@ END SUBROUTINE BMax
          A0 = (-9.57E-13)*(RC-8.57E+05)**2. + 1.13
       IF (RC .GE. 8.57E+05) A0 = 1.13
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
-END SUBROUTINE A0COMP
+
+      END SUBROUTINE A0COMP
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE DIRECTH(M,THETA,PHI,DBAR)
 
 !     THIS SUBROUTINE COMPUTES THE HIGH FREQUENCY
 !     DIRECTIVITY FUNCTION FOR THE INPUT OBSERVER LOCATION
-
-!bjj rm NWTC_Library:       USE            Precision
 
 
       REAL(ReKi)  :: M
@@ -834,18 +766,14 @@ END SUBROUTINE A0COMP
       DBAR=2.*SIN(THETAR/2.)**2.*SIN(PHIR)**2./((1.+M*COS(THETAR))* &
            (1.+(M-MC)*COS(THETAR))**2.)
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
+
       END SUBROUTINE DirectH
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE DIRECTL(M,THETA,PHI,DBAR)
 
 !     THIS SUBROUTINE COMPUTES THE LOW FREQUENCY
 !     DIRECTIVITY FUNCTION FOR THE INPUT OBSERVER LOCATION
 
-!bjj rm NWTC_Library:       USE            Precision
 
 
       REAL(ReKi)  :: M
@@ -860,16 +788,11 @@ END SUBROUTINE A0COMP
       DBAR = (SIN(THETAR)*SIN(PHIR))**2/(1.+M*COS(THETAR))**4
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
+
       END SUBROUTINE DirectL
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE BLUNT(ALPSTAR,C,U ,SPLBLNT,THETA,PHI, &
                       L,R,H,PSI)
-!bjj rm: USE                             Noise
-!bjj rm      USE Wind
 
 !                  --------------------------------
 !                  ***** VARIABLE DEFINITIONS *****
@@ -1002,16 +925,10 @@ END SUBROUTINE A0COMP
  1000 CONTINUE
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
+
       END SUBROUTINE Blunt
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE G5COMP(HDSTAR,ETA,G5)
-
-
-!bjj rm NWTC_Library:       USE            Precision
 
 
       REAL(ReKi)  :: K
@@ -1050,17 +967,11 @@ END SUBROUTINE A0COMP
       IF (ETA .GT. ETALIMIT) G5=-155.543 * ETA + 4.375
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
+
       END SUBROUTINE G5Comp
 !====================================================================================================
-!bjj End of proposed change
 
-      SUBROUTINE TIPNOIS(ALPHTIP,ALPRAT2,C,U ,SPLTIP,THETA,PHI, &
-                         R)
-!bjj rm: USE                             Noise
-!rm      USE Wind  !bjj: KinVisc??? not used?
+      SUBROUTINE TIPNOIS(ALPHTIP,ALPRAT2,C,U ,SPLTIP,THETA,PHI, R)
 
 !                  --------------------------------
 !                  ***** VARIABLE DEFINITIONS *****
@@ -1138,15 +1049,10 @@ END SUBROUTINE A0COMP
         SPLTIP(I) = 126.-30.5*(LOG10(STPP)+.3)**2. + SCALE
   100 CONTINUE
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
+
       END SUBROUTINE TipNois
 !====================================================================================================
-!bjj End of proposed change
       SUBROUTINE THICK(C,U ,ALPSTAR,DELTAP,DSTRS,DSTRP)
-      !bjj rm: USE                             Noise
-!bjj rm      USE Wind
 !                  --------------------------------
 !                  ***** VARIABLE DEFINITIONS *****
 !                  --------------------------------
@@ -1227,11 +1133,8 @@ END SUBROUTINE A0COMP
       ENDIF
 
       RETURN
-!bjj Start of proposed change vXX:
-!bjj with the addition of the module interface, the following error was found:
-!rmEND
+
       END SUBROUTINE Thick
-!bjj End of proposed change
 !====================================================================================================
 SUBROUTINE WrNoiseOutHdr
 
@@ -1241,21 +1144,11 @@ SUBROUTINE WrNoiseOutHdr
 
 USE                             Blades
 USE                             General
-!bjj Start of proposed change AD_v12.70a-bjj
-!rmUSE                             Identify
-!bjj End of proposed change AD_v12.70a-bjj
 USE                             Output
-!bjj rm NWTC_Library: USE                             SysSubs
 USE                             TurbConf
-!bjj rm: USE                             Noise
-!bjj Start of proposed change AD_v12.70a-bjj
-!rmUSE                             Wind
 
     ! AeroDyn modules
 USE                             AeroDyn
-!USE                             Identify,   ONLY: AeroProg, AeroVer
-!USE                             Wind,       ONLY: KinVisc
-!bjj End of proposed change
 
 IMPLICIT                        NONE
 
@@ -1269,46 +1162,22 @@ CHARACTER(200)               :: Frmt                                            
 
 
 
-!bjj rm NWTC_Lib:    ! Global functions.
-!bjj rm NWTC_Lib:
-!bjj rm NWTC_Lib: CHARACTER(11)                :: CurDate                                         ! A function that returns the durrent date in the form "dd-mmm-ccyy".
-!bjj rm NWTC_Lib: CHARACTER( 8)                :: CurTime                                         ! A function that returns the durrent date in the form "hh:mm:ss".
-
 
    ! Open the output files.
-!bjj start of proposed change
-!rmIF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
-!rm   CALL OpenFOutFile ( UnNoSpec, TRIM( RootName )//'_SFunc.nos' )
-!rm   CALL OpenFOutFile ( UnNoSPL, TRIM( RootName )//'_SFunc.spl' )
-!rmELSE                       ! FAST has been compiled normally
-!rm   CALL OpenFOutFile ( UnNoSpec, TRIM( RootName )//'.nos' )
-!rm   CALL OpenFOutFile ( UnNoSPL, TRIM( RootName )//'.spl' )
-!rmENDIF
 
 CALL OpenFOutFile ( UnNoSpec, TRIM( RootName )//'.nos' )
 CALL OpenFOutFile ( UnNoSPL, TRIM( RootName )//'.spl' )
 
-!bjj end of proposed change
 
 ! Debug
-!IF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
-!   CALL OpenFOutFile ( 199, TRIM( RootName )//'_SFunc.spa' )
-!   CALL OpenFOutFile ( 299, TRIM( RootName )//'_SFunc.cho' )
-!ELSE                       ! FAST has been compiled normally
 !   CALL OpenFOutFile ( 199, TRIM( RootName )//'.spa' )
 !   CALL OpenFOutFile ( 299, TRIM( RootName )//'.cho' )
-!ENDIF
 
 
    ! Add some file information.
-!BJJ START of proposed change vXX
-!rmWRITE (UnNoSPL,'(/,A)')  'These predictions were generated by '//ProgName//TRIM( ProgVer )// &
-!rm                         ' on '//CurDate()//' at '//CurTime()//'.'
-!rmWRITE (UnNoSPL,'(  A)')  'The aerodynamic calculations were made by '//TRIM(AeroProg)//' '//TRIM(AeroVer)//'.'
 WRITE (UnNoSPL,'(/,A)')  'These predictions were generated by '//TRIM(ProgName)//' '//TRIM( ProgVer )// &
                          ' on '//CurDate()//' at '//CurTime()//'.'
 WRITE (UnNoSPL,'(  A)')  'The aerodynamic calculations were made by '//TRIM(AD_Prog%Name)//' '//TRIM(AD_Prog%Ver)//'.'
-!bjj end of proposed change
 WRITE (UnNoSPL,'(/,1X,A,/)')  TRIM( FTitle )
 
 SELECT CASE (NoiseOutSwitch)
@@ -1342,38 +1211,11 @@ ELSE
    WRITE(UnNoSPL,Frmt)  '    Time', '  Azimuth',(( 'Bl', J,'-Elem', I, I = 1,BldNodes), J = 1,NumBl)
 ENDIF
 
-!BJJ Start of proposed change vXX
-!RMWRITE (UnNoSpec,'(/,A)')  'These predictions were generated by '//ProgName//TRIM( ProgVer )// &
-!RM                          ' on '//CurDate()//' at '//CurTime()//'.'
-!rmWRITE (UnNoSpec,'(  A)')  'The aerodynamic calculations were made by '//TRIM(AeroProg)//' '//TRIM(AeroVer)//'.'
 WRITE (UnNoSpec,'(/,A)')  'These predictions were generated by '//TRIM(ProgName)//' '//TRIM( ProgVer )// &
                           ' on '//CurDate()//' at '//CurTime()//'.'
 WRITE (UnNoSpec,'(  A)')  'The aerodynamic calculations were made by '//TRIM(AD_Prog%Name)//' '//TRIM(AD_Prog%Ver)//'.'
-!bjj end of proposed change
 WRITE (UnNoSpec,'(/,1X,A,/)')  TRIM( FTitle )
 
-
-!bjj start of proposed change
-!rm      WRITE(UnNoSpec,*)
-!rm      WRITE(UnNoSpec,*) BldNodes     , ' NUMBER OF SEGMENTS              ---       '
-!rm      WRITE(UnNoSpec,*) C0           , ' SPEED OF SOUND                  METERS/SEC '
-!rm      WRITE(UnNoSpec,*) KinViscosity , ' KINEMATIC VISCOSITY             M2/SEC     '
-!rm      WRITE(UnNoSpec,*) ALPRAT       , ' TIP LIFT CURVE SLOPE            ---        '
-!rm      WRITE(UnNoSpec,*) ROUND        , ' LOGICAL INDICATING ROUNDED TIP  ---        '
-!rm      WRITE(UnNoSpec,*)
-!rm      WRITE(UnNoSpec,*) IBLUNT       , ' FLAG TO COMPUTE BLUNTNESS NOISE ---     '
-!rm      WRITE(UnNoSpec,*) ILAM         , ' FLAG TO COMPUTE LBL NOISE       ---     '
-!rm      WRITE(UnNoSpec,*) ITIP         , ' FLAG TO COMPUTE TIP NOISE       ---     '
-!rm      WRITE(UnNoSpec,*) ITRIP        , ' FLAG TO TRIP BOUNDARY LAYER     ---     '
-!rm      WRITE(UnNoSpec,*) ITURB        , ' FLAG TO COMPUTE TBLTE NOISE     ---     '
-!rm      WRITE(UnNoSpec,*) IInflow      , ' FLAG TO COMPUTE Turbulent Inflow NOISE     ---     '
-!rm      WRITE(UnNoSpec,*)
-!rm      WRITE(UnNoSpec,*) 'Mean Wind Speed = ' , MeanVNoise,'m/s'
-!rm      WRITE(UnNoSpec,*) 'Turbulence Intensity = ', TINoise,'%'
-!rm      WRITE(UnNoSpec,*)
-!rm      WRITE(UnNoSpec,*) RObserve(1), RObserve(2), RObserve(3), 'Observer location relative to tower base centerline'
-!rm      WRITE (UnNoSpec,*)
-!rm      WRITE (UnNoSpec,*)'Segment#   C  L  H      PSI'
 
       WRITE(UnNoSpec,  '(/I7,5X,3X,A)') BldNodes     , ' NUMBER OF SEGMENTS                         ---     '
       WRITE(UnNoSpec,'(ES12.5e2,3X,A)') C0           , ' SPEED OF SOUND                          METERS/SEC '
@@ -1390,25 +1232,14 @@ WRITE (UnNoSpec,'(/,1X,A,/)')  TRIM( FTitle )
 
       WRITE(UnNoSpec,  '(/1X,A,F11.5,A)') 'Mean Wind Speed =      ', MeanVNoise,' m/s'
       WRITE(UnNoSpec,  '( 1X,A,F11.5,A)') 'Turbulence Intensity = ', TINoise,   ' %'
-!bjj start of proposed change v7.00.01a-bjj
-!this line is too long:
-!rm      WRITE(UnNoSpec,  '(/3(F10.4,1X),A/)') RObserve(1), RObserve(2), RObserve(3), ' (x,y,z) Observer location relative to tower base centerline'
       WRITE(UnNoSpec,  '(/3(F10.4,1X),A/)') RObserve(1), RObserve(2), RObserve(3), & 
                        ' (x,y,z) Observer location relative to tower base centerline'
-!bjj end of proposed change      
 
       WRITE (UnNoSpec,"(A10,4(1X,A9))") " Segment# ", "    C    ", "    L    ", "    H    ", "   PSI   "
       WRITE (UnNoSpec,"(A10,4(1X,A9))") "----------", "---------", "---------", "---------", "---------"
-!bjj end of proposed change
       DO I = 1, BldNodes
-!bjj start of proposed change
-!rm         WRITE(UnNoSpec,10)I,Chord(I),DRNodes(I),TEThick(I),TEAngle(I)
          WRITE(UnNoSpec,"(I10,4(1X,F9.3))") I, Chord(I), DRNodes(I), TEThick(I), TEAngle(I)
-!bjj end of proposed change
       ENDDO
-!bjj start of proposed change
-!rm10    FORMAT (I10,9F9.3)
-!bjj end of proposed change
       WRITE(UnNoSpec,*)
 
 Frmt ='(52X,A,/,50X,A,////,5X,4(A)/,(5X,9(A)/))'
@@ -1423,26 +1254,17 @@ WRITE (UnNoSpec, Frmt)'ONE-THIRD OCTAVE','SOUND PRESSURE LEVELS','              
 RETURN
 END SUBROUTINE WrNoiseOutHdr
 !====================================================================================================
-!bjj start of proposed change
-!SUBROUTINE NoiseInput
 SUBROUTINE NoiseInput(UnIn, NoiseFile)
-!bjj end of proposed change
-!JASON: UPGRADE THE NOISE INTERFACE AND ROUTINES TO YOUR LIKING WHEN YOU GET THE CHANCE!
 
    ! This routine reads the noise input files.
 
 USE                             Blades
-!BJJ REPLACE: USE                             General
-!USE                             General, ONLY: NoiseFile  !bjj: why is this in General... I'd put it the
-!bjj rm: USE                             Noise
 
 IMPLICIT                        NONE
 
 
-!bjj start of proposed change
    INTEGER, INTENT(IN)       :: UnIn
    CHARACTER(*),INTENT(IN)   :: NoiseFile
-!bjj end of proposed change
 
 
    ! Local variables.
@@ -1451,12 +1273,6 @@ INTEGER(4)                   :: I                                               
 INTEGER(4)                   :: Sttus                                           ! Status returned by an attempted allocation.
 
    ! Allocates some of the input arrays
-!bjj start of proposed change   
-!rmALLOCATE ( RObserve(3) , STAT=Sttus )  !BJJ: Why is this allocatable if it has a PARAMETER allocation size (= 3)?????
-!rmIF ( Sttus /= 0 )  THEN
-!rm   CALL ProgAbort ( ' Error allocating memory for the RObserve array.' )
-!rmENDIF
-!bjj end of proposed change
 
 ALLOCATE ( TEThick(BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
@@ -1501,10 +1317,8 @@ SUBROUTINE WriteSPLOut
 
 
 USE                             Blades
-!bjj rm NWTC_Library USE                             Constants
 USE                             DOFs
 USE                             General
-!bjj rm: USE                             Noise
 USE                             Output
 USE                             RtHndSid
 USE                             SimCont
@@ -1567,9 +1381,7 @@ SUBROUTINE CalcObserve
 
 
 USE                             Blades
-!bjj rm NWTC_Lib:USE                             Constant
 USE                             CoordSys
-!bjj rm: USE                             Noise
 USE                             RtHndSid
 USE                             SimCont
 USE                             TurbConf
@@ -1593,11 +1405,6 @@ REAL(ReKi)                   :: UConvect   (3)                                  
 
 INTEGER(4)                   :: I                                               ! A generic index for DO loops.
 INTEGER(4)                   :: J                                               ! A generic index for DO loops.
-
-
-   ! Global functions.
-
-!bjj rm DOT_PRODUCT: REAL(ReKi), EXTERNAL         :: DotProd                                         ! A function returning the dot product of two vectors.
 
 
 ! Transform RObserve to the internal a coordinate system
@@ -1646,21 +1453,13 @@ RObserveInt (3) =-RObserve (2)
           rTEtoObserve(J,I) = SQRT (RTEObserve(1)**2+RTEObserve(2)**2+RTEObserve(3)**2)
           rLEtoObserve(J,I) = SQRT (RLEObserve(1)**2+RLEObserve(2)**2+RLEObserve(3)**2)
 
-!bjj Start of proposed change AeroDyn v12.70
-!rm          ChordAngleTE(J,I) = ACOS (RTEObserve(2)/SQRT(RTEObserve(1)**2+RTEObserve(2)**2+RTEObserve(3)**2))*RtoD
-!rm          SpanAngleTE(J,I) = ACOS (RTEObserve(3)/SQRT(RTEObserve(1)**2+RTEObserve(3)**2))*RtoD
           ChordAngleTE(J,I) = ACOS (RTEObserve(2)/SQRT(RTEObserve(1)**2+RTEObserve(2)**2+RTEObserve(3)**2))*R2D
           SpanAngleTE(J,I) = ACOS (RTEObserve(3)/SQRT(RTEObserve(1)**2+RTEObserve(3)**2))*R2D
-!bjj End of proposed change AeroDyn v12.70
           IF (SpanAngleTE(J,I)< 0) SpanAngleTE(J,I)= 180+SpanAngleTE(J,I)
           IF (ChordAngleTE(J,I)< 0) ChordAngleTE(J,I)= 180+ChordAngleTE(J,I)
 
-!bjj Start of proposed change AeroDyn v12.70
-!rm          ChordAngleLE(J,I) = ACOS (RLEObserve(2)/SQRT(RLEObserve(1)**2+RLEObserve(2)**2+RLEObserve(3)**2))*RtoD
-!rm          SpanAngleLE(J,I) = ACOS (RLEObserve(3)/SQRT(RLEObserve(1)**2+RLEObserve(3)**2))*RtoD
           ChordAngleLE(J,I) = ACOS (RLEObserve(2)/SQRT(RLEObserve(1)**2+RLEObserve(2)**2+RLEObserve(3)**2))*R2D
           SpanAngleLE(J,I) = ACOS (RLEObserve(3)/SQRT(RLEObserve(1)**2+RLEObserve(3)**2))*R2D
-!bjj End of proposed change AeroDyn v12.70
           IF (SpanAngleLE(J,I)< 0) SpanAngleLE(J,I)= 180+SpanAngleLE(J,I)
           IF (ChordAngleLE(J,I)< 0) ChordAngleLE(J,I)= 180+ChordAngleLE(J,I)
 
@@ -1672,7 +1471,6 @@ END SUBROUTINE CalcObserve
 !====================================================================================================
 SUBROUTINE WriteAveSpecOut
 
-!bjj rm: USE                             Noise
 USE           General
 
 IMPLICIT      NONE
@@ -1705,8 +1503,6 @@ END SUBROUTINE WriteAveSpecOut
 SUBROUTINE InflowNoise(U,Chord,d,RObs,THETA,PHI,SPLti)
 
 
-!bjj rm NWTC_Lib:USE                             Constant
-!bjj rm: USE                             Noise
 USE                             EnvCond
 USE                             TurbConf
 
@@ -1778,255 +1574,6 @@ ENDDO
 
 RETURN
 END SUBROUTINE InflowNoise
-
-!bjj start of proposed change AD v12.70w
-!rm!=======================================================================
-!rmSUBROUTINE CalcHHTI
-!rm
-!rm!bjj rm: USE                             Noise
-!rm!BJJ Start of proposed change AD_v12.70a-bjj
-!rm!rmUSE AD_IOParams
-!rmUSE AD_IOParams, ONLY: UnWind
-!rm!BJJ End of proposed change AD_v12.70a-bjj
-!rmUSE Output
-!rm!bjj rm NWTC_Library: USE Precision
-!rmUSE SimCont
-!rm!BJJ Start of proposed change AD_v12.70a-bjj
-!rm!rmUSE Wind
-!rm!BJJ End of proposed change AD_v12.70a-bjj
-!rm
-!rmIMPLICIT NONE
-!rm
-!rmREAL(DbKi)                   :: InterConst                                      ! interpolation constant
-!rmREAL(DbKi)                   :: meanV     = 0.0                                 ! mean velocity
-!rmREAL(DbKi)                   :: stdV      = 0.0                                 ! standard deviation of velocity
-!rm
-!rmREAL(ReKi), ALLOCATABLE      :: DTavg    (:)                                    ! Average time spent at input velocity
-!rmREAL(ReKi)                   :: dum2                                            ! Dummy variable
-!rmREAL(ReKi), ALLOCATABLE      :: TimeIn   (:)                                    ! Time read from input file
-!rmREAL(ReKi)                   :: timedum                                         ! Dummy variable
-!rmREAL(ReKi), ALLOCATABLE      :: Vavg     (:)                                    ! Average Velocity per time interval
-!rmREAL(ReKi), ALLOCATABLE      :: Velocity (:)                                    ! Longitudinal velocity read from input file
-!rmREAL(ReKi)                   :: VEnd                                            ! velocity at the end of the sim
-!rmREAL(ReKi)                   :: VStart                                          ! velocity at the start of the sim
-!rm
-!rm!rmINTEGER(4)                   :: I                                               ! A generic index for DO loops.
-!rm!rm!rmINTEGER(4)                   :: IOS       = 0                                   ! Status returned by read statement
-!rmINTEGER(4)                   :: IStart                                          ! Index to start reading velocity from file
-!rmINTEGER(4)                   :: NVel                                            ! Number of velocity lines in input file
-!rmINTEGER(4)                   :: Sttus                                           ! Status returned by an attempted allocation.
-!rm
-!rmCHARACTER(150)               :: LINE
-!rm
-!rm
-!rmCALL RewindHHFile
-!rmI = 0
-!rmNVel = 0
-!rmDO WHILE( (IOS .GE. 0) .AND. (timedum < TMax) )
-!rm   I=I+1
-!rm   READ(UnWind,*,IOSTAT=IOS) timedum,dum2
-!rm   IF (IOS .GE. 0) THEN
-!rm      IF (timedum <= TStart) IStart = I
-!rm      IF (timedum >= TStart) NVel = NVel + 1
-!rm   ENDIF
-!rmENDDO
-!rmIF (timedum < TMax .AND. NVel > 1) NVel = NVel +1 !if file ends before TMax and there's more than one line add one more velocity point
-!rmIF ((NVel==0) .AND. (timedum < TStart)) NVel = 1 ! single line with t before TStart
-!rm
-!rm   ! Allocate arrays.
-!rmALLOCATE ( Velocity(NVel) , STAT=Sttus )
-!rmIF ( Sttus /= 0 )  THEN
-!rm   CALL ProgAbort(' Error allocating memory for the Velocity array.')
-!rmENDIF
-!rmALLOCATE ( TimeIn (NVel) , STAT=Sttus )
-!rmIF ( Sttus /= 0 )  THEN
-!rm   CALL ProgAbort(' Error allocating memory for the Time array.')
-!rmENDIF
-!rmALLOCATE ( Vavg(NVel-1) , STAT=Sttus )
-!rmIF ( Sttus /= 0 )  THEN
-!rm   CALL ProgAbort(' Error allocating memory for the Velocity array.')
-!rmENDIF
-!rmALLOCATE ( DTavg (NVel-1) , STAT=Sttus )
-!rmIF ( Sttus /= 0 )  THEN
-!rm   CALL ProgAbort(' Error allocating memory for the Time array.')
-!rmENDIF
-!rm
-!rmCALL RewindHHFile
-!rm
-!rmIF (NVel == 1) THEN  !if there is only one line no turbulence
-!rm   READ(UnWind,*,IOSTAT=IOS) TimeIn (1), Velocity(1)
-!rm   TINoise = 0
-!rm   MeanVNoise = Velocity (1)
-!rm   RETURN
-!rmENDIF
-!rm
-!rmDO I = 1,IStart-1
-!rm   READ(UnWind,*,IOSTAT=IOS) timedum,dum2
-!rmENDDO
-!rm
-!rmREAD(UnWind,*,IOSTAT=IOS) TimeIn (1), Velocity(1)
-!rmDO I = 2,NVel
-!rm   READ(UnWind,*,IOSTAT=IOS) TimeIn(I), Velocity(I)
-!rm   IF ( (IOS < 0)) THEN !if file ends before TMax assume constant velocity until TMax
-!rm      TimeIn(I)=TMax
-!rm      Velocity(I)=Velocity(I-1)
-!rm   ENDIF
-!rm   IF ((TimeIn (I-1) < TStart) .AND. (TimeIn(I) <= TMax))  THEN ! time straddles TStart
-!rm      InterConst = (TStart - TimeIn(I-1))/(TimeIn(I)- TimeIn(I-1))
-!rm      VStart = Velocity(I-1)+(Velocity(I)-Velocity(I-1))*InterConst
-!rm      Vavg(I-1) = (Velocity(I)+VStart)/2
-!rm      DTavg(I-1) = (TimeIn(I)- TStart)
-!rm   ELSEIF ((TimeIn (I-1) >= TStart) .AND. (TimeIn(I) > TMax))  THEN ! time straddles TMax
-!rm      InterConst = (TMax - TimeIn(I-1))/(TimeIn(I)- TimeIn(I-1))
-!rm      VEnd = Velocity(I-1)+(Velocity(I)-Velocity(I-1))*InterConst
-!rm      Vavg(I-1) = (VEnd+Velocity(I-1))/2
-!rm      DTavg(I-1) = (TMax- TimeIn(I-1))
-!rm   ELSEIF ((TimeIn (I-1) < TStart) .AND. (TimeIn(I) > TMax))  THEN ! time straddles TStart & TMax
-!rm      InterConst = (TStart - TimeIn(I-1))/(TimeIn(I)- TimeIn(I-1))
-!rm      VStart = Velocity(I-1)+(Velocity(I)-Velocity(I-1))*InterConst
-!rm      InterConst = (TMax - TimeIn(I-1))/(TimeIn(I)- TimeIn(I-1))
-!rm      VEnd = Velocity(I-1)+(Velocity(I)-Velocity(I-1))*InterConst
-!rm      Vavg(I-1) = (VEnd+VStart)/2
-!rm      DTavg(I-1) = (TMax- TStart)
-!rm   ELSE
-!rm      Vavg(I-1) = (Velocity(I)+Velocity(I-1))/2
-!rm      DTavg(I-1) = (TimeIn(I)-TimeIn(I-1))
-!rm   ENDIF
-!rmENDDO
-!rmIF ((TimeIn (NVel) < TMax))  THEN
-!rm      InterConst = (TMax - TimeIn(NVel-1))/(TimeIn(NVel)- TimeIn(NVel-1))
-!rm      VEnd = Velocity(NVel-1)+(Velocity(NVel)-Velocity(NVel-1))*InterConst
-!rm      Vavg(NVel-1) = (Velocity(NVel)+VEnd)/2
-!rm      DTavg(NVel-1) = (TMax-TimeIn(NVel))
-!rmENDIF
-!rm
-!rmDO I = 1,NVel-1
-!rm   meanV = meanV + Vavg(I)*DTAvg(I)
-!rmENDDO
-!rmmeanV = meanV/(TMax-TStart)
-!rm
-!rmDO I = 1,NVel-1
-!rm    stdV = stdV+ (Vavg(I)-meanV)**2*(DTavg(I))
-!rmENDDO
-!rmstdV = SQRT(stdV/(TMax-TStart))
-!rmTINoise = stdV/meanV*100
-!rmMeanVNoise = meanV
-!rm
-!rmCALL RewindHHFile
-!rm
-!rm! Move file pointer back to second velocity line
-!rmREAD(UnWind,*)
-!rmREAD(UnWind,*)
-!rm
-!rmRETURN
-!rmEND SUBROUTINE CalcHHTI
-!rm!=======================================================================
-!rmSUBROUTINE RewindHHFile
-!rm
-!rm!BJJ Start of proposed change AD_v12.70a-bjj
-!rm!rmUSE               AD_IOParams
-!rm!rmUSE               Wind
-!rmUSE               AD_IOParams, ONLY: UnWind
-!rmUSE               Wind, ONLY: HHWindFile
-!rm!bjj end of proposed change ADv12.70a-bjj
-!rm
-!rmIMPLICIT          NONE
-!rm
-!rmINTEGER(4)     :: IOS = 0      ! Status returned by read statement
-!rm
-!rmCHARACTER(150) :: LINE
-!rm
-!rmREWIND (UNIT =UnWind)
-!rmREAD(UnWind,'( A )',IOSTAT=IOS) LINE
-!rmIF ( IOS < 0 ) CALL PremEOF ( TRIM( HHWindFile ) , 'first line' )
-!rmDO WHILE (INDEX( LINE, '!' ) > 0 ) ! Lines containing ! are treated as comment lines
-!rm   READ(UnWind,'( A )',IOSTAT=IOS) LINE
-!rm   IF ( IOS < 0 ) CALL PremEOF ( TRIM( HHWindFile ) , 'first data line' )
-!rmEND DO !WHILE
-!rmBACKSPACE(UNIT =UnWind)
-!rm
-!rmRETURN
-!rmEND SUBROUTINE RewindHHFile
-!rm!=======================================================================
-!rmSUBROUTINE CalcFFTI (Tmax, Delt)
-!rm
-!rm!BJJ Start of proposed change AD_v12.70a-bjj
-!rm!rmUSE AeroTime
-!rm!BJJ End of proposed change AD_v12.70a-bjj
-!rm!bjj rm: USE                             Noise
-!rm!BJJ Start of proposed change AD_v12.70a-bjj
-!rm!rmUSE AD_IOParams
-!rm!rmUSE FF_Wind
-!rm!BJJ End of proposed change AD_v12.70a-bjj
-!rmUSE Output, ONLY:TStart
-!rm!bjj rm NWTC_Library: USE Precision
-!rm
-!rm!BJJ Start of proposed change AD_v12.70a-bjj
-!rm    ! AeroDyn modules (+precision)
-!rm!rmUSE Wind
-!rm!USE                             AD_IOParams,ONLY:
-!rmUSE                             AeroTime,   ONLY: TIME
-!rmUSE                             FF_Wind,    ONLY: FFWind
-!rmUSE                             Wind,       ONLY: XGRND, YGRND, ZGRND
-!rm
-!rmUSE                             AeroSubs
-!rm!BJJ End of proposed change
-!rm
-!rm
-!rmIMPLICIT NONE
-!rm
-!rmREAL(DbKi)                   :: meanV     = 0.0                                 ! mean velocity
-!rmREAL(DbKi)                   :: stdV      = 0.0                                 ! standard deviation of velocity
-!rm
-!rmREAL(ReKi)                   :: Delt                                            ! sim time step
-!rmREAL(ReKi)                   :: timedum                                         ! dummy time variable
-!rmREAL(ReKi)                   :: TMax                                            ! maximum sim time
-!rmREAL(ReKi), ALLOCATABLE      :: Velocity (:)                                    ! Longitudinal velocity read from input file
-!rm
-!rmINTEGER(4)                   :: I                                               ! A generic index for DO loops.
-!rmINTEGER(4)                   :: NVel                                            ! number of velocity inputs
-!rmINTEGER(4)                   :: Sttus                                           ! Status returned by an attempted allocation.
-!rm
-!rm
-!rmNVel = (TMax-TStart)/Delt + 1
-!rm   ! Allocate arrays.
-!rmALLOCATE ( Velocity(NVel) , STAT=Sttus )
-!rmIF ( Sttus /= 0 )  THEN
-!rm   CALL ProgAbort(' Error allocating memory for the Velocity array.')
-!rmENDIF
-!rm
-!rmtimedum = TIME !save current time
-!rm
-!rm   XGRND = 0.0 !hub height velocity
-!rm   YGRND = 0.0
-!rm   ZGRND = 0.0
-!rm
-!rmTIME = Tstart
-!rm
-!rmDO I = 1,NVel
-!rm
-!rm   CALL FF_Interp
-!rm
-!rm   Velocity(I) = FFWind( 1 )
-!rm   meanV = meanV + Velocity(I)
-!rm
-!rm   TIME = TIME + Delt
-!rmENDDO
-!rm
-!rmmeanV = meanV/NVel
-!rm
-!rmDO I = 1,NVel
-!rm    stdV = stdV+ (Velocity(I)-meanV)**2
-!rmENDDO
-!rmstdV = SQRT(stdV/(NVel-1))
-!rm
-!rmTINoise = stdV/meanV*100
-!rmMeanVNoise = meanV
-!rm
-!rmTIME = timedum ! reset time
-!rm
-!rmRETURN
-!rmEND SUBROUTINE CalcFFTI
 !====================================================================================================
 SUBROUTINE Noise_CalcTI (Time_Start, Time_End, delta_time, InputPosition)
 
@@ -2061,10 +1608,8 @@ SUBROUTINE Noise_CalcTI (Time_Start, Time_End, delta_time, InputPosition)
    RETURN
 END SUBROUTINE Noise_CalcTI
 !====================================================================================================
-!bjj end of proposed change v12.70w
 SUBROUTINE AllocNoise
 
-!bjj rm: USE                             Noise
 USE                             TurbConf
 USE                             Blades
 
@@ -2073,18 +1618,6 @@ IMPLICIT                        NONE
 
 INTEGER(4)                   :: Sttus                                           ! Status returned by an attempted allocation.
 
-
-!bjj rmALLOCATE ( AlphaNoise(NumBl,BldNodes) , STAT=Sttus )
-!bjj rmIF ( Sttus /= 0 )  THEN
-!bjj rm   CALL ProgAbort ( ' Error allocating memory for the AlphaNoise array.' )
-!bjj rmENDIF
-!bjj rmAlphaNoise = 0.0
-!bjj rm
-!bjj rmALLOCATE ( UNoise(NumBl,BldNodes) , STAT=Sttus )
-!bjj rmIF ( Sttus /= 0 )  THEN
-!bjj rm   CALL ProgAbort ( ' Error allocating memory for the UNoise array.' )
-!bjj rmENDIF
-!bjj rmUNoise = 0.0
 
 ALLOCATE ( ChordAngleTE(NumBl,BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
@@ -2224,9 +1757,4 @@ SUBROUTINE Noise_Terminate( )
 END SUBROUTINE Noise_Terminate
 !====================================================================================================
 
-!bjj end of proposed change
-
-
 END MODULE Noise
-
-

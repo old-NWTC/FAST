@@ -21,10 +21,7 @@ SUBROUTINE PitchCntrl ( BlPitch, ElecPwr, HSS_Spd, GBRatio, TwrAccel, NB, ZTime,
    !   J. Jonkman.
 
 
-!bjj rm NWTC_Library: USE                             Precision
-!BJJ Start of proposed change vXX
 USE                            NWTC_Library
-!BJJ End of proposed change
 
 
 IMPLICIT                        NONE
@@ -59,7 +56,6 @@ REAL(ReKi), SAVE             :: BC     (0:MSZ,NSZ)
 REAL(ReKi), SAVE             :: CNST   (MSZ)                                    ! Maximum of MSZ constants
 REAL(ReKi)                   :: TFInput                                         ! Input to the transfer function
 REAL(ReKi), SAVE             :: TPCOn                                           ! Time to enable active pitch control.
-!bjj rm NWTC_Library: REAL(ReKi), PARAMETER        :: RPS2RPM  =  9.5492966                           ! Factor to convert radians per second to revolutions per minute.
 REAL(ReKi)                   :: SUM
 
 INTEGER(4), SAVE             :: CntrlRgn                                        ! Control region (CntrlRgn = 2 = power control, CntrlRgn = 3 = speed control)
@@ -70,7 +66,6 @@ INTEGER(4), SAVE             :: NORDER (NSZ)
 INTEGER(4)                   :: NR
 INTEGER(4)                   :: NTEMP
 
-!bjj chg: LOGICAL(1), SAVE             :: INITFLAG = .TRUE.
 LOGICAL, SAVE             :: INITFLAG = .TRUE.
 
 CHARACTER(80)                :: DESCRIP
@@ -92,20 +87,11 @@ IF ( INITFLAG )  THEN
 
    READ(86,FmtText) DESCRIP
 
-!bjj start of proposed change vXX
-!rm   WRITE(*,*      ) ' '
-!rm   WRITE(*,*      ) '***********************************************'
-!rm   WRITE(*,*      ) 'Running with control option using data from:'
-!rm   WRITE(*,FmtText)  DESCRIP
-!rm   WRITE(*,*      ) '***********************************************'
-!rm   WRITE(*,*      ) ' '
-
    CALL WrScr1( '***********************************************' )
    CALL WrScr(  'Running with control option using data from:'    )
    CALL WrScr(  TRIM(DESCRIP)                                     )
    CALL WrScr(  '***********************************************' )
    CALL WrScr(  ' '                                                )
-!bjj end of proposed change
 
    READ(86,*) CntrlRgn
 
@@ -152,23 +138,14 @@ IF ( INITFLAG )  THEN
 
    GOTO 10
 
-!bjj start of proposed change vXX
-!rm20 WRITE(*,*)  'Error while reading constants from pitch.ipt file'
-!rm   WRITE(*,*)  'Encountered end of file while reading constants'
-!rm   WRITE(*,*)  'Number of constants expected:', NCNST
-!rm   WRITE(*,*)  'Number of constants found:   ', I-1
 20 CALL WrScr( 'Error while reading constants from pitch.ipt file'     )
    CALL WrScr( 'Encountered end of file while reading constants'       )
    CALL WrScr( 'Number of constants expected: '//TRIM(Int2LStr(NCNST)) )
    CALL WrScr( 'Number of constants found:    '//TRIM(Int2LStr(I-1  )) )
-!BJJ END of proposed change
    CALL ProgAbort( 'Check your pitch.ipt file.' )
 
 
-!bjj start of proposed change vXX
-!rm30 WRITE(*,*)  'Error in specification of transfer function #',NR
 30 CALL WrScr( 'Error in specification of transfer function #'//TRIM(Int2LStr(NR)) )
-!bjj end of proposed change vXX
    CALL ProgAbort( 'Check your pitch.ipt file.' )
 
 
@@ -179,16 +156,10 @@ IF ( INITFLAG )  THEN
    !   ensure correct input file for this version of code
 
    IF( NR-1 /= NSZ )  THEN
-!bjj start of proposed change vXX
-!rm      WRITE(*,*) 'Error in pitch.ipt file'
-!rm      WRITE(*,*) 'Incorrect number of transfer functions '
-!rm      WRITE(*,*) 'Number that were read:     ', NR-1
-!rm      WRITE(*,*) 'Number that were expected: ', NSZ
       CALL WrScr( 'Error in pitch.ipt file'                           )
       CALL WrScr( 'Incorrect number of transfer functions '           )
       CALL WrScr( 'Number that were read:     '//TRIM(Int2LStr(NR-1)) )
       CALL WrScr( 'Number that were expected: '//TRIM(Int2LStr(NSZ )) )
-!bjj end of proposed change vXX
       CALL ProgAbort( 'Check your pitch.ipt file.' )
    ENDIF
 
@@ -250,12 +221,8 @@ SUBROUTINE CTRL4 ( CNST, AC, BC, NORDER, MSZ, NSZ, &
    !   coresponding to the order in which the transfer functions were
    !   read from the input file.
 
-!bjj rm NWTC_Lib:USE                             Constant
-!bjj rm NWTC_Lib:USE                             Precision
 
-!BJJ Start of proposed change vXX
 USE                            NWTC_Library
-!BJJ End of proposed change
 
 IMPLICIT                        NONE
 
@@ -304,7 +271,6 @@ REAL(ReKi)                   :: X
 INTEGER(4)                   :: DEBUGFLAG
 INTEGER(4)                   :: K                                               ! Blade number
 
-!bjj chg: LOGICAL(1)                   :: TRIMFLAG =  .TRUE.                              ! Initialization flag
 LOGICAL                      :: TRIMFLAG =  .TRUE.                              ! Initialization flag
 
 CHARACTER( 8)                :: Frmt1 = '(20(:A))'
@@ -325,10 +291,7 @@ SAVE  ! mlb - Do we need to save everything?
 IF ( TRIMFLAG )  THEN
 
 
-!bjj Start of proposed change AeroDyn v12.70
-!rm   PHI0        = BlPitch(1)*RtoD    ! Initial pitch angle (deg)
    PHI0        = BlPitch(1)*R2D    ! Initial pitch angle (deg)
-!bjj End of proposed change
    OLDTFOUTPUT = BlPitch(1)
    TRIMFLAG    = .FALSE.
 
@@ -349,12 +312,9 @@ IF ( TRIMFLAG )  THEN
 
    IF( DEBUGFLAG == 1 ) THEN
 
-!bjj Start of proposed change v12.70b-bjj
-!rm      CALL OpenOutFile ( 40, 'pitcntrl.plt' )
       CALL OpenFOutFile (40, 'pitcntrl.plt')
       WRITE (40,"( / 'This file was generated by ' , A , A , ' on ' , A , ' at ' , A , '.' / )")  &
                        TRIM(ProgName), TRIM( ProgVer ), CurDate(), CurTime()
-!bjj End of proposed change
 
       WRITE(40,*)  'Output of PITCH control control subroutine'
       WRITE(40,*)  'Gain schedule coeffs = ', GSCoef, GSExp
@@ -467,10 +427,7 @@ ENDIF
 
 
 DO K=1,NB
-!bjj Start of proposed change AeroDyn v12.70
-!rm   TFOutput(K) = TFOutput(K)*DtoR   ! Pitch angle returned by subroutine, rad
    TFOutput(K) = TFOutput(K)*D2R   ! Pitch angle returned by subroutine, rad
-!bjj End of proposed change
 ENDDO ! K
 
 
@@ -482,10 +439,7 @@ OLDTFOUTPUT = TFOutput(1)           ! Save for use until next control time
 IF ( DEBUGFLAG == 1 )  THEN
    WRITE(40,Frmt2)          &
    ZTime,              TAB, &
-!bjj Start of proposed change AeroDyn v12.70
-!rm   BlPitch(1)*RtoD,    TAB, &
-   BlPitch(1)*R2D,    TAB, &
-!bjj Start of proposed change AeroDyn v12.70
+   BlPitch(1)*R2D,     TAB, &
    TFInput,            TAB, &
    TwrAccel,           TAB, &
    TWROUTPUT,          TAB, &
@@ -493,10 +447,7 @@ IF ( DEBUGFLAG == 1 )  THEN
    PHI0,               TAB, &
    PHI1,               TAB, &
    PHI2,               TAB, &
-!bjj Start of proposed change AeroDyn v12.70
-!rm   TFOutput(1)*RtoD,   TAB, &
-   TFOutput(1)*R2D,   TAB, &
-!bjj Start of proposed change AeroDyn v12.70
+   TFOutput(1)*R2D,    TAB, &
    GAINSCHED,          TAB, &
    AWIND
 ENDIF
@@ -513,10 +464,7 @@ SUBROUTINE TFSISO ( U, Y, NR, AC, BC, DT, NORDER, MSZ, NSZ )
    !   Runge-Kutta method.
 
 
-!bjj rm NWTC_Library: USE                             Precision
-!BJJ Start of proposed change vXX
 USE                            NWTC_Library
-!BJJ End of proposed change
 
 
 IMPLICIT                        NONE
@@ -554,7 +502,6 @@ REAL(ReKi)                   :: XT      (MSZ)
 
 INTEGER(4)                   :: I
 
-!bjj chg: LOGICAL(1)                   :: INITFLAG(N)   = .TRUE.
 LOGICAL                      :: INITFLAG(N)   = .TRUE.
 
 
@@ -615,10 +562,7 @@ SUBROUTINE XDOT ( U, X, AC, BC, DXDT, NORDER, NSZ, MSZ, NR )
    ! This routine calculates derivatives for fourth order Runge-Kutta.
 
 
-!bjj rm NWTC_Library: USE                             Precision
-!BJJ Start of proposed change vXX
 USE                            NWTC_Library
-!BJJ End of proposed change
 
 
 IMPLICIT                        NONE
@@ -673,10 +617,7 @@ SUBROUTINE TFINIT ( U, Y, X, AC, BC, NORDER, NSZ, MSZ, NR )
    ! This routine initialize states for fourth order Runge-Kutta.
 
 
-!bjj rm NWTC_Library: USE                             Precision
-!BJJ Start of proposed change vXX
 USE                            NWTC_Library
-!BJJ End of proposed change
 
 
 IMPLICIT                        NONE
@@ -736,10 +677,7 @@ FUNCTION SAT2 ( X, XMIN, XMAX )
    ! Saturation function.
 
 
-!bjj rm NWTC_Library: USE                             Precision
-!BJJ Start of proposed change vXX
 USE                            NWTC_Library
-!BJJ End of proposed change
 
 
 IMPLICIT                        NONE
@@ -773,10 +711,7 @@ FUNCTION DEADBAND ( X, XMIN, XMAX )
    ! Deadband function.
 
 
-!bjj rm NWTC_Library: USE                             Precision
-!BJJ Start of proposed change vXX
 USE                            NWTC_Library
-!BJJ End of proposed change
 
 
 IMPLICIT                        NONE

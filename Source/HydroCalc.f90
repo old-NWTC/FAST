@@ -1,217 +1,22 @@
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
-!=======================================================================
-!bjj start of proposed change     6.02d-bjj
-!we're linking with NWTC_Library so this is not needed
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rmMODULE InterpSubs
-!rm
-!rm
-!rm   ! This MODULE stores generic routines for interpolation.
-!rm
-!rm
-!rmCONTAINS
-!rm!=======================================================================
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   FUNCTION InterpStp( XVal, XAry, YAry, Ind, AryLen )
-!rm
-!rm
-!rm      ! This funtion returns a y-value that corresponds to an input x-value by interpolating into the arrays.
-!rm      ! It uses the passed index as the starting point and does a stepwise interpolation from there.  This is
-!rm      ! especially useful when the calling routines save the value from the last time this routine was called
-!rm      ! for a given case where XVal does not change much from call to call.  When there is no correlation
-!rm      ! from one interpolation to another, InterpBin() may be a better choice.
-!rm      ! It returns the first or last YAry() value if XVal is outside the limits of XAry().
-!rm      ! NOTE: This FUNCTION is virtually a copy of FUNCTION InterpStp()
-!rm      !       from the NWTC Subroutine Library.  A few unused things have
-!rm      !       been eliminated (indicated by "!remove").
-!rm
-!rm
-!rm   !removedUSE                             NWTC_Gen
-!rm   USE                             Precision
-!rm
-!rm   IMPLICIT                        NONE
-!rm
-!rm
-!rm      ! Function declaration.
-!rm
-!rm   REAL(ReKi)                   :: InterpStp                                       ! This function.
-!rm
-!rm
-!rm      ! Argument declarations.
-!rm
-!rm   INTEGER, INTENT(IN)          :: AryLen                                          ! Length of the arrays.
-!rm   INTEGER, INTENT(INOUT)       :: Ind                                             ! Initial and final index into the arrays.
-!rm
-!rm   REAL(ReKi), INTENT(IN)       :: XAry    (AryLen)                                ! Array of X values to be interpolated.
-!rm   REAL(ReKi), INTENT(IN)       :: XVal                                            ! X value to be interpolated.
-!rm   REAL(ReKi), INTENT(IN)       :: YAry    (AryLen)                                ! Array of Y values to be interpolated.
-!rm
-!rm
-!rm
-!rm      ! Let's check the limits first.
-!rm
-!rm   IF ( XVal <= XAry(1) )  THEN
-!rm      InterpStp = YAry(1)
-!rm      Ind       = 1
-!rm      RETURN
-!rm   ELSEIF ( XVal >= XAry(AryLen) )  THEN
-!rm      InterpStp = YAry(AryLen)
-!rm      Ind       = AryLen - 1
-!rm      RETURN
-!rm   ENDIF
-!rm
-!rm
-!rm     ! Let's interpolate!
-!rm
-!rm   Ind = MAX( MIN( Ind, AryLen-1 ), 1 )
-!rm
-!rm   DO
-!rm
-!rm      IF ( XVal < XAry(Ind) )  THEN
-!rm
-!rm         Ind = Ind - 1
-!rm
-!rm      ELSEIF ( XVal >= XAry(Ind+1) )  THEN
-!rm
-!rm         Ind = Ind + 1
-!rm
-!rm      ELSE
-!rm
-!rm         InterpStp = ( YAry(Ind+1) - YAry(Ind) )*( XVal - XAry(Ind) )/( XAry(Ind+1) - XAry(Ind) ) + YAry(Ind)
-!rm         RETURN
-!rm
-!rm      ENDIF
-!rm
-!rm   ENDDO
-!rm
-!rm
-!rm   RETURN
-!rm   END FUNCTION InterpStp ! ( XVal, XAry, YAry, Ind, AryLen )
-!rm   !=======================================================================
-!rm   FUNCTION InterpStp_CMPLX( XVal, XAry, YAry, Ind, AryLen )
-!rm
-!rm
-!rm      ! This funtion returns a y-value that corresponds to an input x-value by interpolating into the arrays.
-!rm      ! It uses the passed index as the starting point and does a stepwise interpolation from there.  This is
-!rm      ! especially useful when the calling routines save the value from the last time this routine was called
-!rm      ! for a given case where XVal does not change much from call to call.  When there is no correlation
-!rm      ! from one interpolation to another, InterpBin() may be a better choice.
-!rm      ! It returns the first or last YAry() value if XVal is outside the limits of XAry().
-!rm      ! NOTE: This FUNCTION is virtually a copy of FUNCTION InterpStp()
-!rm      !       from the NWTC Subroutine Library.  A few unused things have
-!rm      !       been eliminated (indicated by "!remove").
-!rm
-!rm
-!rm   !removedUSE                             NWTC_Gen
-!rm   USE                             Precision
-!rm
-!rm   IMPLICIT                        NONE
-!rm
-!rm
-!rm      ! Function declaration.
-!rm
-!rm   !removeREAL(ReKi)                   :: InterpStp                                       ! This function.
-!rm   COMPLEX(ReKi)                :: InterpStp_CMPLX                                 ! This function.
-!rm
-!rm
-!rm      ! Argument declarations.
-!rm
-!rm   INTEGER, INTENT(IN)          :: AryLen                                          ! Length of the arrays.
-!rm   INTEGER, INTENT(INOUT)       :: Ind                                             ! Initial and final index into the arrays.
-!rm
-!rm   REAL(ReKi), INTENT(IN)       :: XAry    (AryLen)                                ! Array of X values to be interpolated.
-!rm   REAL(ReKi), INTENT(IN)       :: XVal                                            ! X value to be interpolated.
-!rm   !removeREAL(ReKi), INTENT(IN)       :: YAry    (AryLen)                                ! Array of Y values to be interpolated.
-!rm   COMPLEX(ReKi), INTENT(IN)    :: YAry    (AryLen)                                ! Array of Y values to be interpolated.
-!rm
-!rm
-!rm
-!rm      ! Let's check the limits first.
-!rm
-!rm   IF ( XVal <= XAry(1) )  THEN
-!rm   !remove   InterpStp = YAry(1)
-!rm      InterpStp_CMPLX = YAry(1)
-!rm      Ind       = 1
-!rm      RETURN
-!rm   ELSEIF ( XVal >= XAry(AryLen) )  THEN
-!rm   !remove   InterpStp = YAry(AryLen)
-!rm      InterpStp_CMPLX = YAry(AryLen)
-!rm      Ind       = AryLen - 1
-!rm      RETURN
-!rm   ENDIF
-!rm
-!rm
-!rm     ! Let's interpolate!
-!rm
-!rm   Ind = MAX( MIN( Ind, AryLen-1 ), 1 )
-!rm
-!rm   DO
-!rm
-!rm      IF ( XVal < XAry(Ind) )  THEN
-!rm
-!rm         Ind = Ind - 1
-!rm
-!rm      ELSEIF ( XVal >= XAry(Ind+1) )  THEN
-!rm
-!rm         Ind = Ind + 1
-!rm
-!rm      ELSE
-!rm
-!rm   !remove      InterpStp = ( YAry(Ind+1) - YAry(Ind) )*( XVal - XAry(Ind) )/( XAry(Ind+1) - XAry(Ind) ) + YAry(Ind)
-!rm         InterpStp_CMPLX = ( YAry(Ind+1) - YAry(Ind) )*( XVal - XAry(Ind) )/( XAry(Ind+1) - XAry(Ind) ) + YAry(Ind)
-!rm         RETURN
-!rm
-!rm      ENDIF
-!rm
-!rm   ENDDO
-!rm
-!rm
-!rm   RETURN
-!rm   END FUNCTION InterpStp_CMPLX ! ( XVal, XAry, YAry, Ind, AryLen )
-!rm!=======================================================================
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rmEND MODULE InterpSubs
-!rm!=======================================================================
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!bjj end of proposed change
 MODULE Waves
 
 
    ! This MODULE stores variables and routines associated with incident
    ! waves and current.
 
-!bjj start of proposed change 6.02d-bjj
-!rmUSE                             Precision
 USE                             NWTC_Library
 
 IMPLICIT                        NONE
-!bjj end of proposed change
 
 
 COMPLEX(ReKi), PARAMETER     :: ImagNmbr = (0.0,1.0)                            ! The imaginary number, SQRT(-1.0)
 COMPLEX(ReKi), ALLOCATABLE   :: WaveElevC0(:)                                   ! Fourier transform of the instantaneous elevation of incident waves at the platform reference point (m-s)
 
-!bjj rm NWTC_Library:REAL(ReKi), PARAMETER        :: D2R      =  0.017453293                         ! Factor to convert degrees to radians.
 REAL(ReKi), ALLOCATABLE      :: DZNodes   (:)                                   ! Length of variable-length tower or platform elements for the points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed (meters)
 REAL(ReKi)                   :: Gravity                                         ! Gravitational acceleration (m/s^2)
 REAL(ReKi), PARAMETER        :: Inv2Pi   =  0.15915494                          ! 0.5/Pi.
-!bjj rm NWTC_Library:REAL(ReKi), PARAMETER        :: Pi       =  3.1415927                           ! Ratio of a circle's circumference to its diameter.
 REAL(ReKi), PARAMETER        :: PiOvr4   =  0.78539816                          ! Pi/4.
 REAL(ReKi)                   :: RhoXg                                           ! = WtrDens*Gravity
-!bjj rm NWTC_Library:REAL(ReKi), PARAMETER        :: TwoPi    =  6.2831853                           ! 2*Pi.
 REAL(ReKi), ALLOCATABLE      :: WaveAcc0  (:,:,:)                               ! Instantaneous acceleration of incident waves in the xi- (1), yi- (2), and zi- (3) directions, respectively, accounting for stretching, at each of the NWaveKin0 points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed (m/s^2)
 REAL(ReKi)                   :: WaveDir                                         ! Incident wave propagation heading direction (degrees)
 REAL(ReKi)                   :: WaveDOmega                                      ! Frequency step for incident wave calculations (rad/s)
@@ -229,13 +34,8 @@ INTEGER(4)                   :: NWaveElev                                       
 INTEGER(4)                   :: NWaveKin0                                       ! Number of points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed (-)
 INTEGER(4)                   :: WaveMod                                         ! Incident wave kinematics model {0: none=still water, 1: plane progressive (regular), 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: user-defind spectrum from routine UserWaveSpctrm (irregular)}
 INTEGER(4)                   :: WaveStMod                                       ! Model for stretching incident wave kinematics to instantaneous free surface {0: none=no stretching, 1: vertical stretching, 2: extrapolation stretching, 3: Wheeler stretching}
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 
 CHARACTER(1024)              :: DirRoot                                         ! The name of the root file including the full path to the current working directory.  This may be useful if you want this routine to write a permanent record of what it does to be stored with the simulation results: the results should be stored in a file whose name (including path) is generated by appending any suitable extension to DirRoot.
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
 CONTAINS
@@ -246,13 +46,7 @@ CONTAINS
                           CurrMod    , CurrSSV0    , CurrSSDir, CurrNSRef  , &
                           CurrNSV0   , CurrNSDir   , CurrDIV  , CurrDIDir  , &
                           NWaveKin0In, WaveKinzi0In, DZNodesIn, NWaveElevIn, &
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
-!remove6.02b                          WaveElevxi , WaveElevyi  , GravityIn, DirRoot        )
                           WaveElevxi , WaveElevyi  , GravityIn, DirRootIn      )
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
       ! This routine is used to initialize the variables associated with
@@ -260,16 +54,6 @@ CONTAINS
 
 
    USE                             FFT_Module
-!bjj start of proposed change 6.02d-bjj
-!these are replaced by the NWTC library
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm   USE                             InterpSubs
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   USE                             Precision
-!bjj end of proposed change
 
    IMPLICIT                        NONE
 
@@ -305,17 +89,8 @@ CONTAINS
    INTEGER(4), INTENT(IN )      :: WaveModIn                                       ! Incident wave kinematics model {0: none=still water, 1: plane progressive (regular), 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: user-defind spectrum from routine UserWaveSpctrm (irregular)}
    INTEGER(4), INTENT(IN )      :: WaveSeed    (2)                                 ! Random seeds of incident waves [-2147483648 to 2147483647]
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
-!remove6.02b   CHARACTER(1024), INTENT(IN ) :: DirRoot                                         ! The name of the root file including the full path to the current working directory.  This may be useful if you want this routine to write a permanent record of what it does to be stored with the simulation results: the results should be stored in a file whose name (including path) is generated by appending any suitable extension to DirRoot.
    CHARACTER(1024), INTENT(IN ) :: DirRootIn                                       ! The name of the root file including the full path to the current working directory.  This may be useful if you want this routine to write a permanent record of what it does to be stored with the simulation results: the results should be stored in a file whose name (including path) is generated by appending any suitable extension to DirRoot.
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-!bjj start of proposed change v6.02d-bjj
-!rm   CHARACTER(  99), INTENT(IN ) :: GHWvFile                                        ! The root name of GH Bladed files containing wave data.
    CHARACTER(1024), INTENT(IN ) :: GHWvFile                                        ! The root name of GH Bladed files containing wave data.
-!bjj end of proposed change v6.02d-bjj
 
 
       ! Local Variables:
@@ -405,19 +180,7 @@ CONTAINS
    INTEGER(4)                   :: UnKi     = 32                                   ! I/O unit number for the GH Bladed wave data file containing wave particle kinematics time history.
    INTEGER(4)                   :: UnSu     = 33                                   ! I/O unit number for the GH Bladed wave data file containing surface elevation time history.
 
-!bjj chg:   LOGICAL(1)                   :: Reading  = .TRUE.                               ! Flag to say whether or not we are still reading from the GH Bladed wave data files (files not exhausted).
    LOGICAL                      :: Reading  = .TRUE.                               ! Flag to say whether or not we are still reading from the GH Bladed wave data files (files not exhausted).
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!jmj   top of source file HydroCalc.f90 in support of improved code
-!jmj   optimization:
-!remove6.02c
-!remove6.02c
-!remove6.02c      ! Global functions:
-!remove6.02c
-!remove6.02c   REAL(ReKi), EXTERNAL         :: InterpStp                                       ! A generic function to do the actual interpolation.
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-
 
 
 
@@ -436,12 +199,7 @@ CONTAINS
       CALL ProgAbort(' Error allocating memory for the WaveKinzi0 array.')
    ENDIF
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    DirRoot       = DirRootIn
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    DZNodes   (:) = DZNodesIn   (:)
    Gravity       = GravityIn
    WaveDir       = WaveDirIn
@@ -531,13 +289,7 @@ CONTAINS
 
       ! Tell our nice users what is about to happen that may take a while:
 
-!bjj start of proposed change v6.02d-bjj
-!I'm marking this change, but will just change the other WriteScreen() subroutines to WrScr() from the NWTC_Library
-!rm      CALL WriteScreen ( ' Generating incident wave kinematics and current time history.', '(/,A)' )
       CALL WrScr ( ' Generating incident wave kinematics and current time history.' )
-!bjj end of proposed change
-
-
 
 
       ! Calculate the locations of the points along the wave heading direction
@@ -813,13 +565,7 @@ CONTAINS
 
       NStepWave  = CEILING ( WaveTMax/WaveDT )                             ! Set NStepWave to an even integer
       IF ( MOD(NStepWave,2) == 1 )  NStepWave = NStepWave + 1              !   larger or equal to WaveTMax/WaveDT.
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put a MAX(*,1) in the calculation of NStepWave2 and NStepRdtn2 to ensure
-!jmj   that routine PSF() does not crash when WaveTMax and/or RdtnTMax are very
-!jmj   small:
-!remove6.02b      NStepWave2 = NStepWave/2                                             ! Make sure that NStepWave is an even product of small factors (PSF) that is
       NStepWave2 = MAX( NStepWave/2, 1 )                                   ! Make sure that NStepWave is an even product of small factors (PSF) that is
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
       NStepWave  = 2*PSF ( NStepWave2, 9 )                                 !   greater or equal to WaveTMax/WaveDT to ensure that the FFT is efficient.
 
       NStepWave2 = NStepWave/2                                             ! Update the value of NStepWave2 based on the value needed for NStepWave.
@@ -1544,7 +1290,6 @@ CONTAINS
 
    ENDSELECT
 
-!BJJ START of proposed change
 
       ! deallocate arrays
       
@@ -1575,16 +1320,12 @@ CONTAINS
    IF ( ALLOCATED( WaveVel0Hxi     ) )  DEALLOCATE ( WaveVel0Hxi     )
    IF ( ALLOCATED( WaveVel0Hyi     ) )  DEALLOCATE ( WaveVel0Hyi     )
    IF ( ALLOCATED( WaveVel0V       ) )  DEALLOCATE ( WaveVel0V       )
-!bjj end of proposed change
 
 
    RETURN
    CONTAINS
 !=======================================================================
-!bjj start of proposed change
-!rm      FUNCTION BoxMuller
       FUNCTION BoxMuller( )
-!bjj end of proposed change
 
 
          ! This FUNCTION uses the Box-Muller method to turn two uniformly
@@ -2193,15 +1934,6 @@ CONTAINS
       ! zi- (KDirection=3) direction, respectively, at time ZTime to the
       ! calling program.
 
-!bjj start of proposed change 6.02d-bjj
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm   USE                             InterpSubs
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   USE                             Precision
-!bjj end of propsoed change
 
    IMPLICIT                        NONE
 
@@ -2218,20 +1950,6 @@ CONTAINS
       ! Local Variables:
 
    INTEGER(4), SAVE             :: LastInd  = 1                                    ! Index into the arrays saved from the last call as a starting point for this call.
-
-
-!BJJ START of proposed change v6.02d-bjj
-!rm      ! Global functions:
-!rm
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm!remove6.02c   REAL(ReKi), EXTERNAL         :: InterpStp                                       ! A generic function to do the actual interpolation.
-!rm!remove6.02c
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!bjj end of proposed change
 
 
       ! Abort if the wave kinematics have not been computed yet, if IWaveKin is
@@ -2264,16 +1982,6 @@ CONTAINS
       ! point IWaveElev at time ZTime to the calling program.
 
 
-!bjj start of proposed change 6.02d-bjj
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm   USE                             InterpSubs
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   USE                             Precision
-!bjj end of proposed change 6.02d-bjj
-
 
    IMPLICIT                        NONE
 
@@ -2289,19 +1997,6 @@ CONTAINS
       ! Local Variables:
 
    INTEGER(4), SAVE             :: LastInd  = 1                                    ! Index into the arrays saved from the last call as a starting point for this call.
-
-!bjj start of proposed change v6.02d-bjj
-!rm      ! Global functions:
-!rm
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm!remove6.02c   REAL(ReKi), EXTERNAL         :: InterpStp                                       ! A generic function to do the actual interpolation.
-!rm!remove6.02c
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!bjj end of proposed change
 
 
       ! Abort if the wave elevation has not been computed yet or if IWaveElev is
@@ -2383,15 +2078,6 @@ CONTAINS
       ! calling program.  The values include both the velocity of incident
       ! waves and the velocity of current.
 
-!bjj start of proposed change v6.02d-bjj
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm   USE                             InterpSubs
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   USE                             Precision
-!bjj end of proposed change
 
    IMPLICIT                        NONE
 
@@ -2408,19 +2094,6 @@ CONTAINS
       ! Local Variables:
 
    INTEGER(4), SAVE             :: LastInd  = 1                                    ! Index into the arrays saved from the last call as a starting point for this call.
-
-!bjj start of proposed change v6.02d-bjj
-!rm      ! Global functions:
-!rm
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm!remove6.02c   REAL(ReKi), EXTERNAL         :: InterpStp                                       ! A generic function to do the actual interpolation.
-!rm!remove6.02c
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!bjj end of proposed change
 
 
       ! Abort if the wave kinematics have not been computed yet, if IWaveKin is
@@ -2446,7 +2119,6 @@ CONTAINS
    RETURN
    END FUNCTION WaveVelocity
 !=======================================================================
-!bjj start of proposed change
    SUBROUTINE Wave_Terminate( )
    
       ! Deallocate arrays
@@ -2465,7 +2137,6 @@ CONTAINS
    END SUBROUTINE Wave_Terminate
 
 !=======================================================================
-!bjj end of proposed change
 END MODULE Waves
 !=======================================================================
 MODULE FloatingPlatform
@@ -2475,17 +2146,10 @@ MODULE FloatingPlatform
    !   hydrodynamic loading and mooring system dynamics routines for the
    !   floating platform.
 
-!bjj start of proposed change v6.02d-bjj
-!rmUSE                             Precision
 USE                             NWTC_Library
-!bjj end of propsoed change
 
 REAL(ReKi)                   :: HdroAdMsI (6,6)                                 ! Infinite-frequency limit of the frequency-dependent hydrodynamic added mass matrix from the radiation problem (kg, kg-m, kg-m^2 )
 REAL(ReKi)                   :: HdroSttc  (6,6)                                 ! Linear hydrostatic restoring matrix from waterplane area and the center-of-buoyancy (kg/s^2, kg-m/s^2, kg-m^2/s^2)
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 REAL(ReKi), ALLOCATABLE      :: LAnchHTe  (:)                                   ! Effective horizontal tension at the anchor   of each mooring line (N)
 REAL(ReKi), ALLOCATABLE      :: LAnchVTe  (:)                                   ! Effective vertical   tension at the anchor   of each mooring line (N)
 REAL(ReKi), ALLOCATABLE      :: LAnchxi   (:)                                   ! xi-coordinate of each anchor   in the inertial frame        coordinate system (meters)
@@ -2506,7 +2170,6 @@ REAL(ReKi), ALLOCATABLE      :: LSeabedCD (:)                                   
 REAL(ReKi), ALLOCATABLE      :: LSNodes   (:,:)                                 ! Unstretched arc distance along mooring line from anchor to each node where the line position and tension can be output (meters)
 REAL(ReKi), ALLOCATABLE      :: LTenTol   (:)                                   ! Convergence tolerance within Newton-Raphson iteration of each mooring line specified as a fraction of tension (-)
 REAL(ReKi), ALLOCATABLE      :: LUnstrLen (:)                                   ! Unstretched length of each mooring line (meters)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 REAL(ReKi)                   :: PtfmCD                                          ! Effective platform normalized hydrodynamic viscous drag coefficient in calculation of viscous drag term from Morison's equation (-)
 REAL(ReKi)                   :: PtfmDiam                                        ! Effective platform diameter in calculation of viscous drag term from Morison's equation (meters)
 REAL(ReKi)                   :: PtfmVol0                                        ! Displaced volume of water when the platform is in its undisplaced position (m^3)
@@ -2516,32 +2179,16 @@ REAL(ReKi), ALLOCATABLE      :: RdtnKrnl  (:,:,:)                               
 REAL(ReKi), ALLOCATABLE      :: WaveExctn (:,:)                                 ! Instantaneous values of the total excitation force on the support platfrom from incident waves (N, N-m)
 REAL(ReKi), ALLOCATABLE      :: XDHistory (:,:)                                 ! The time history of the 3 components of the translational velocity        (in m/s)        of the platform reference and the 3 components of the rotational (angular) velocity  (in rad/s)        of the platform relative to the inertial frame
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 INTEGER(4)                   :: LineMod                                         ! Mooring line model switch {0: none, 1: standard quasi-static, 2: user-defined from routine UserLine} (switch)
 INTEGER(4)                   :: LineNodes                                       ! Number of nodes per line where the mooring line position and tension can be output (-)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 INTEGER(4)                   :: NStepRdtn                                       ! Total number of frequency components = total number of time steps in the wave radiation kernel (-)
 INTEGER(4)                   :: NStepRdtn1                                      ! = NStepRdtn + 1 (-)
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
-!jmj Also, put in some logic to ensure that the hydrodynamic loads are time
-!jmj   invariant when linearizing a model:
 INTEGER(4)                   :: NumLines                                        ! Number of mooring lines (-)
 
 LOGICAL                      :: UseRdtn                                         ! Flag for determining whether or not the to model wave radiation damping (flag)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
 CONTAINS
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 !=======================================================================
    SUBROUTINE AnchorTension ( ILine, AnchTe, AnchTeAng )
 
@@ -2550,10 +2197,6 @@ CONTAINS
       ! tension in, and the vertical angle of, the line at the anchor for
       ! mooring line ILine to the calling program.
 
-!bjj start of proposed change 6.02d-bjj
-!this is unnecessary:
-!rm   USE                             Precision
-!bjj end of proposed change
 
    IMPLICIT                        NONE
 
@@ -2564,12 +2207,6 @@ CONTAINS
    REAL(ReKi), INTENT(OUT)      :: AnchTeAng                                       ! Instantaneous vertical angle    of the line at the anchor (rad)
 
    INTEGER(4), INTENT(IN )      :: ILine                                           ! Mooring line number (-)
-
-!bjj start of proposed change v6.02d-bjj
-!rm      ! Global functions:
-!rm
-!rm   CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!bjj end of proposed change
 
 
       ! Abort if the mooring line parameters have not been computed yet or if
@@ -2604,11 +2241,6 @@ CONTAINS
       ! mooring line ILine to the calling program.
 
 
-!bjj start of proposed change 6.02d-bjj
-!this is unnecessary:
-!rm   USE                             Precision
-!bjj end of proposed change
-
 
    IMPLICIT                        NONE
 
@@ -2619,12 +2251,6 @@ CONTAINS
    REAL(ReKi), INTENT(OUT)      :: FairTeAng                                       ! Instantaneous vertical angle    of the line at the fairlead (rad)
 
    INTEGER(4), INTENT(IN )      :: ILine                                           ! Mooring line number (-)
-
-!bjj start of proposed change v6.02d-bjj
-!rm      ! Global functions:
-!rm
-!rm   CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!bjj end of proposed chagne
 
 
       ! Abort if the mooring line parameters have not been computed yet or if
@@ -2650,7 +2276,6 @@ CONTAINS
 
    RETURN
    END SUBROUTINE FairleadTension
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 !=======================================================================
    SUBROUTINE FltngPtfmLd ( X, XD, ZTime, PtfmAM, PtfmFt )
 
@@ -2689,15 +2314,6 @@ CONTAINS
       !       form, are limited in their accuracy in such sea conditions.
 
 
-!bjj start of proposed change v6.02d
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm   USE                             InterpSubs
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   USE                             Precision
-!bjj end of proposed change
    USE                             Waves
 
 
@@ -2715,12 +2331,7 @@ CONTAINS
 
       ! Local Variables:
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    REAL(ReKi)                   :: COSPhi                                          ! Cosine of the angle between the xi-axis of the inertia frame and the X-axis of the local coordinate system of the current mooring line (-)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    REAL(ReKi)                   :: F_HS     (6)                                    ! Total load contribution from hydrostatics, including the effects of waterplane area and the center of buoyancy (N, N-m)
    REAL(ReKi)                   :: F_Lines  (6)                                    ! Total load contribution from all mooring lines (N, N-m)
    REAL(ReKi)                   :: F_Rdtn   (6)                                    ! Total load contribution from wave radiation damping (i.e., the diffraction problem) (N, N-m)
@@ -2730,12 +2341,6 @@ CONTAINS
    REAL(ReKi)                   :: F_Waves  (6)                                    ! Total load contribution from incident waves (i.e., the diffraction problem) (N, N-m)
    REAL(ReKi)                   :: IncrmntXD                                       ! Incremental change in XD over a single radiation time step (m/s, rad/s)
    REAL(ReKi), SAVE             :: LastTime    = 0.0                               ! Last time the values in XDHistory where saved (sec)
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
-!remove6.02b   REAL(ReKi)                   :: Lines    (6,6)                                  ! Linear restoring matrix from all mooring lines (kg/s^2, kg-m/s^2, kg-m^2/s^2)
-!remove6.02b   REAL(ReKi)                   :: Lines0   (6)                                    ! Total mooring line load acting on the support platform in its undisplaced position (N, N-m)
    REAL(ReKi)                   :: LFairxi                                         ! xi-coordinate of the current fairlead in the inertial frame coordinate system (meters)
    REAL(ReKi)                   :: LFairxiRef                                      ! xi-coordinate of the current fairlead relative to the platform reference point in the inertial frame coordinate system (meters)
    REAL(ReKi)                   :: LFairxiTe                                       ! xi-component of the effective tension at the fairlead of the current mooring line (N)
@@ -2745,27 +2350,16 @@ CONTAINS
    REAL(ReKi)                   :: LFairzi                                         ! zi-coordinate of the current fairlead in the inertial frame coordinate system (meters)
    REAL(ReKi)                   :: LFairziRef                                      ! zi-coordinate of the current fairlead relative to the platform reference point in the inertial frame coordinate system (meters)
    REAL(ReKi)                   :: LFairziTe                                       ! zi-component of the effective tension at the fairlead of the current mooring line (N)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    REAL(ReKi)                   :: MagVRel                                         ! The magnitude of the horizontal incident wave velocity relative to the current platform node at the current time (m/s)
    REAL(ReKi), PARAMETER        :: OnePlusEps  = 1.0 + EPSILON(OnePlusEps)         ! The number slighty greater than unity in the precision of ReKi.
    REAL(ReKi)                   :: PtfmVelocity     (2)                            ! Velocity of the current platform node in the xi- (1) and yi- (2) directions, respectively, at the current time (m/s)
    REAL(ReKi)                   :: RdtnRmndr                                       ! ZTime - RdtnTime(IndRdtn)
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    REAL(ReKi)                   :: SINPhi                                          ! Sine   of the angle between the xi-axis of the inertia frame and the X-axis of the local coordinate system of the current mooring line (-)
    REAL(ReKi)                   :: TransMat (3,3)                                  ! Transformation matrix from the inertial frame to the tower base / platform coordinate system (-)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    REAL(ReKi)                   :: ViscousForce     (2)                            ! Viscous drag force in the xi- (1) and yi- (2) directions, respectively, on the current platform element at the current time (N)
    REAL(ReKi)                   :: WaveVelocity0    (2)                            ! Velocity of incident waves in the xi- (1) and yi- (2) directions, respectively, at the current platform node and time (m/s)
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    REAL(ReKi)                   :: XF                                              ! Horizontal distance between anchor and fairlead of the current mooring line (meters)
    REAL(ReKi)                   :: ZF                                              ! Vertical   distance between anchor and fairlead of the current mooring line (meters)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
    INTEGER(4)                   :: I                                               ! Generic index
    INTEGER(4)                   :: IndRdtn                                         ! Generic index for the radiation problem
@@ -2775,17 +2369,6 @@ CONTAINS
    INTEGER(4), SAVE             :: LastIndRdtn                                     ! Index into the radiation     arrays saved from the last call as a starting point for this call.
    INTEGER(4), SAVE             :: LastIndRdtn2                                    ! Index into the radiation     arrays saved from the last call as a starting point for this call.
    INTEGER(4), SAVE             :: LastIndWave = 1                                 ! Index into the incident wave arrays saved from the last call as a starting point for this call.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!jmj   top of source file HydroCalc.f90 in support of improved code
-!jmj   optimization:
-!remove6.02c
-!remove6.02c
-!remove6.02c      ! Global functions:
-!remove6.02c
-!remove6.02c   REAL(ReKi), EXTERNAL         :: InterpStp                                       ! A generic function to do the actual interpolation.
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-
 
 
 
@@ -2820,17 +2403,11 @@ CONTAINS
 
 
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
-!remove6.02b      ! Compute the load contribution from wave radiation damping (i.e., the
-!remove6.02b      !   radiation problem):
       ! If necessary, compute the load contribution from wave radiation damping
       !   (i.e., the radiation problem):
 
    IF ( UseRdtn )  THEN ! .TRUE. when we will be modeling wave radiation damping.
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
       ! Find the index IndRdtn, where RdtnTime(IndRdtn) is the largest value in
       !   RdtnTime(:) that is less than or equal to ZTime and find the amount of
@@ -2917,9 +2494,6 @@ CONTAINS
          F_Rdtn     (I) = ( RdtnDT - RdtnRmndr )*F_RdtnDT(I) + RdtnRmndr*F_RdtnRmndr(I)
 
       ENDDO                      ! I - All wave radiation damping forces and moments
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
 
 
    ELSE                 ! We must not be modeling wave radiation damping.
@@ -2931,7 +2505,6 @@ CONTAINS
 
 
    ENDIF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
 
@@ -3004,30 +2577,6 @@ CONTAINS
 
       ! Compute the load contribution from mooring lines:
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
-!remove6.02b   Lines0(1)   =         0.0
-!remove6.02b   Lines0(2)   =         0.0
-!remove6.02b   Lines0(3)   = -41050000.0
-!remove6.02b   Lines0(4)   =         0.0
-!remove6.02b   Lines0(5)   =         0.0
-!remove6.02b   Lines0(6)   =         0.0
-!remove6.02b
-!remove6.02b   Lines (1,:) = (/    907000.0,        0.0,         0.0,           0.0,   -16100000.0,        0.0 /)
-!remove6.02b   Lines (2,:) = (/         0.0,   907000.0,         0.0,    16100000.0,           0.0,        0.0 /)
-!remove6.02b   Lines (3,:) = (/         0.0,        0.0, 213000000.0,           0.0,           0.0,        0.0 /)
-!remove6.02b   Lines (4,:) = (/         0.0, 15600000.0,         0.0, 10600000000.0,           0.0,        0.0 /)
-!remove6.02b   Lines (5,:) = (/ -15600000.0,        0.0,         0.0,           0.0, 10600000000.0,        0.0 /)
-!remove6.02b   Lines (6,:) = (/         0.0,        0.0,         0.0,           0.0,           0.0, 82900000.0 /)
-!remove6.02b
-!remove6.02b   DO I = 1,6     ! Loop through all mooring line forces and moments
-!remove6.02b         F_Lines(I) = Lines0 (I)
-!remove6.02b      DO J = 1,6  ! Loop through all platform DOFs
-!remove6.02b         F_Lines(I) = F_Lines(I) - Lines(I,J)*X(J)
-!remove6.02b      ENDDO       ! J - All platform DOFs
-!remove6.02b   ENDDO          ! I - All mooring line forces and moments
    SELECT CASE ( LineMod ) ! Which incident wave kinematics model are we using?
 
    CASE ( 0 )              ! None.
@@ -3148,7 +2697,6 @@ CONTAINS
 
 
    ENDSELECT
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
 
@@ -3171,10 +2719,6 @@ CONTAINS
 
 !JASON: USE THIS TO TEST RELATIVE MAGNITUDES:WRITE (*,*) ZTime, F_Waves(5), F_Rdtn(5), F_Viscous(5), F_Lines(5)   !JASON:USE THIS TO TEST RELATIVE MAGNITUDES:
    RETURN
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    CONTAINS
 !=======================================================================
 !JASON: SHOULD THIS ROUTINE (Catenary) BE PLACED IN NWTC_Subs OR IN ITS OWN DLL?
@@ -3560,15 +3104,10 @@ CONTAINS
 
          DO I = 1,N  ! Loop through all nodes where the line position and tension are to be computed
 
-!BJJ START of proposed change v7.00.01a-bjj
-!bjj: line is too long
-!rm            IF ( ( s(I) <  0.0_DbKi ) .OR. ( s(I) >  L ) )  &
-!rm               CALL ProgAbort ( ' All line nodes must be located between the anchor and fairlead (inclusive) in routine Catenary().' )
             IF ( ( s(I) <  0.0_DbKi ) .OR. ( s(I) >  L ) )  THEN
                CALL ProgAbort ( ' All line nodes must be located between the anchor ' &
                               //'and fairlead (inclusive) in routine Catenary().' )
             END IF
-!bjj end of proposed change            
 
             Ws                  = W       *s(I)                                  ! Initialize
             VFMinWLs            = VFMinWL + Ws                                   ! some commonly
@@ -3599,15 +3138,10 @@ CONTAINS
 
          DO I = 1,N  ! Loop through all nodes where the line position and tension are to be computed
 
-!BJJ START of proposed change v7.00.01a-bjj
-!bjj: line is too long
-!rm            IF ( ( s(I) <  0.0_DbKi ) .OR. ( s(I) >  L ) )  &
-!rm               CALL ProgAbort ( ' All line nodes must be located between the anchor and fairlead (inclusive) in routine Catenary().' )
             IF ( ( s(I) <  0.0_DbKi ) .OR. ( s(I) >  L ) )  THEN
                CALL ProgAbort ( ' All line nodes must be located between the anchor ' &
                               //'and fairlead (inclusive) in routine Catenary().' )
             END IF                              
-!bjj end of proposed change
 
             Ws                  = W       *s(I)                                  ! Initialize
             VFMinWLs            = VFMinWL + Ws                                   ! some commonly
@@ -3618,11 +3152,7 @@ CONTAINS
             IF (     s(I) <= LMinVFOvrW             )  THEN ! .TRUE. if this node rests on the seabed and the tension is nonzero
 
                X (I) = s(I)                                                                          &
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Bug fix: the s(I) in this line should not be here:
-!remove6.02c                     + sOvrEA*( HF + CB*VFMinWL + 0.5_DbKi*Ws*CB ) + s(I)
                      + sOvrEA*( HF + CB*VFMinWL + 0.5_DbKi*Ws*CB )
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
                Z (I) = 0.0_DbKi
                Te(I) =       HF    + CB*VFMinWLs
 
@@ -3651,15 +3181,10 @@ CONTAINS
 
          DO I = 1,N  ! Loop through all nodes where the line position and tension are to be computed
 
-!BJJ START of proposed change v7.00.01a-bjj
-!bjj: line is too long
-!RM            IF ( ( s(I) <  0.0_DbKi ) .OR. ( s(I) >  L ) )  &
-!RM               CALL ProgAbort ( ' All line nodes must be located between the anchor and fairlead (inclusive) in routine Catenary().' )
             IF ( ( s(I) <  0.0_DbKi ) .OR. ( s(I) >  L ) )  THEN
                CALL ProgAbort ( ' All line nodes must be located between the anchor ' &
                               //'and fairlead (inclusive) in routine Catenary().' )
             END IF
-!BJJ END OF PROPOSED CHANGE
 
             Ws                  = W       *s(I)                                  ! Initialize
             VFMinWLs            = VFMinWL + Ws                                   ! some commonly
@@ -3873,22 +3398,14 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
       RETURN
       END SUBROUTINE UserLine
 !=======================================================================
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    END SUBROUTINE FltngPtfmLd
 !=======================================================================
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
-!remove6.02b   SUBROUTINE InitFltngPtfmLd ( WAMITFile , PtfmVol0In, PtfmDiamIn, PtfmCDIn, &
-!remove6.02b                                RdtnTMaxIn, RdtnDTIn                            )
    SUBROUTINE InitFltngPtfmLd ( WAMITFile  , PtfmVol0In, PtfmDiamIn , PtfmCDIn , &
                                 RdtnTMaxIn , RdtnDTIn  , NumLinesIn , LineModIn, &
                                 LAnchxiIn  , LAnchyiIn , LAnchziIn  , LFairxtIn, &
                                 LFairytIn  , LFairztIn , LUnstrLenIn, LDiam    , &
                                 LMassDen   , LEAStffIn , LSeabedCDIn, LTenTolIn, &
                                 LineNodesIn, LSNodesIn , X0                        )
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
       ! This routine is used to initialize the variables used in the time
@@ -3897,15 +3414,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
 
 
    USE                             FFT_Module
-!bjj start of proposed change v6.02d
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm   USE                             InterpSubs
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   USE                             Precision
-!bjj end of proposed change
    USE                             Waves
 
 
@@ -3914,10 +3422,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
 
       ! Passed Variables:
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    INTEGER(4), INTENT(IN )      :: LineNodesIn                                     ! Number of nodes per line where the mooring line position and tension can be output (-)
    INTEGER(4), INTENT(IN )      :: NumLinesIn                                      ! Number of mooring lines (-)
 
@@ -3934,25 +3438,16 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    REAL(ReKi), INTENT(IN )      :: LSNodesIn  (NumLinesIn,LineNodesIn)             ! Unstretched arc distance along mooring line from anchor to each node where the line position and tension can be output (meters)
    REAL(ReKi), INTENT(IN )      :: LTenTolIn  (NumLinesIn)                         ! Convergence tolerance within Newton-Raphson iteration of each mooring line specified as a fraction of tension (-)
    REAL(ReKi), INTENT(IN )      :: LUnstrLenIn(NumLinesIn)                         ! Unstretched length of each mooring line (meters)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    REAL(ReKi), INTENT(IN )      :: PtfmCDIn                                        ! Effective platform normalized hydrodynamic viscous drag coefficient in calculation of viscous drag term from Morison's equation (-)
    REAL(ReKi), INTENT(IN )      :: PtfmDiamIn                                      ! Effective platform diameter in calculation of viscous drag term from Morison's equation (meters)
    REAL(ReKi), INTENT(IN )      :: PtfmVol0In                                      ! Displaced volume of water when the platform is in its undisplaced position (m^3)
    REAL(ReKi), INTENT(IN )      :: RdtnDTIn                                        ! Time step for wave radiation kernel calculations (sec)
    REAL(ReKi), INTENT(IN )      :: RdtnTMaxIn                                      ! Analysis time for wave radiation kernel calculations; the actual analysis time may be larger than this value in order for the maintain an effecient (co)sine transform (sec)
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    REAL(ReKi), INTENT(IN )      :: X0         (6)                                  ! The 3 components of the initial translational displacement (in m) of the platform reference and the 3 components of the initial rotational displacement (in rad) of the platform relative to the inertial frame
 
    INTEGER(4), INTENT(IN )      :: LineModIn                                       ! Mooring line model switch {0: none, 1: standard quasi-static, 2: user-defined from routine UserLine} (switch)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
-!bjj start of proposed change
-!rm   CHARACTER(99), INTENT(IN )   :: WAMITFile                                       ! Root name of WAMIT output files containing the linear, nondimensionalized, hydrostatic restoring matrix (.hst extension), frequency-dependent hydrodynamic added mass matrix and damping matrix (.1 extension), and frequency- and direction-dependent wave excitation force vector per unit wave amplitude (.3 extension)
    CHARACTER(1024), INTENT(IN )   :: WAMITFile                                       ! Root name of WAMIT output files containing the linear, nondimensionalized, hydrostatic restoring matrix (.hst extension), frequency-dependent hydrodynamic added mass matrix and damping matrix (.1 extension), and frequency- and direction-dependent wave excitation force vector per unit wave amplitude (.3 extension)
-!bjj end of proposed change
 
 
       ! Local Variables:
@@ -3961,7 +3456,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    COMPLEX(ReKi), ALLOCATABLE   :: WaveExctnC(:,:)                                 ! Fourier transform of the instantaneous value of the total excitation force on the support platfrom from incident waves (N-s, N-m-s)
    COMPLEX(ReKi), ALLOCATABLE   :: X_Diffrctn(:,:)                                 ! Frequency-dependent complex hydrodynamic wave excitation force per unit wave amplitude vector at the chosen wave heading direction, WaveDir (kg/s^2, kg-m/s^2)
 
-!bjj rm not used:   REAL(ReKi)                   :: CHdroWvDir                                      ! COS( a given value of HdroWvDir )
    REAL(ReKi)                   :: DffrctDim (6)                                   ! Matrix used to redimensionalize WAMIT hydrodynamic wave excitation force  output (kg/s^2, kg-m/s^2            )
    REAL(ReKi), ALLOCATABLE      :: HdroAddMs (:,:)                                 ! The upper-triangular portion (diagonal and above) of the frequency-dependent hydrodynamic added mass matrix from the radiation problem (kg  , kg-m  , kg-m^2  )
    REAL(ReKi), ALLOCATABLE      :: HdroDmpng (:,:)                                 ! The upper-triangular portion (diagonal and above) of the frequency-dependent hydrodynamic damping    matrix from the radiation problem (kg/s, kg-m/s, kg-m^2/s)
@@ -3969,15 +3463,10 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    REAL(ReKi), ALLOCATABLE      :: HdroWvDir (:)                                   ! Incident wave propagation heading direction components inherent in the complex wave excitation force per unit wave amplitude vector (degrees)
    REAL(ReKi)                   :: HighFreq    = 0.0                               ! The highest frequency component in the WAMIT file, not counting infinity.
    REAL(ReKi)                   :: Krnl_Fact                                       ! Factor used to scale the magnitude of the RdtnKnrl  as required by the discrete time (co)sine transform (-)
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    REAL(ReKi)                   :: Lamda0                                          ! Catenary parameter used to generate the initial guesses of the horizontal and vertical tensions at the fairlead for the Newton-Raphson iteration (-)
    REAL(ReKi)                   :: LFairxi                                         ! xi-coordinate of the current fairlead in the inertial frame coordinate system (meters)
    REAL(ReKi)                   :: LFairyi                                         ! yi-coordinate of the current fairlead in the inertial frame coordinate system (meters)
    REAL(ReKi)                   :: LFairzi                                         ! zi-coordinate of the current fairlead in the inertial frame coordinate system (meters)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    REAL(ReKi)                   :: Omega                                           ! Wave frequency (rad/s)
    REAL(ReKi), PARAMETER        :: OnePlusEps  = 1.0 + EPSILON(OnePlusEps)         ! The number slighty greater than unity in the precision of ReKi.
    REAL(ReKi)                   :: PrvDir                                          ! The value of TmpDir from the previous line (degrees)
@@ -3987,7 +3476,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    REAL(ReKi)                   :: RdtnDOmega                                      ! Frequency step for wave radiation kernel calculations (rad/s)
    REAL(ReKi)                   :: RdtnOmegaMax                                    ! Maximum frequency used in the (co)sine transform to fine the radiation impulse response functions (rad/s)
    REAL(ReKi), ALLOCATABLE      :: RdtnTime  (:)                                   ! Simulation times at which the instantaneous values of the wave radiation kernel are determined (sec)
-!bjj rm not used:   REAL(ReKi)                   :: SHdroWvDir                                      ! SIN( a given value of HdroWvDir )
    REAL(ReKi)                   :: SttcDim   (6,6)                                 ! Matrix used to redimensionalize WAMIT hydrostatic  restoring              output (kg/s^2, kg-m/s^2, kg-m^2/s^2)
    REAL(ReKi)                   :: TmpData1                                        ! A temporary           value  read in from a WAMIT file (-      )
    REAL(ReKi)                   :: TmpData2                                        ! A temporary           value  read in from a WAMIT file (-      )
@@ -3995,24 +3483,14 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    REAL(ReKi)                   :: TmpIm                                           ! A temporary imaginary value  read in from a WAMIT file (-      ) - stored as a REAL value
    REAL(ReKi)                   :: TmpPer                                          ! A temporary period           read in from a WAMIT file (sec    )
    REAL(ReKi)                   :: TmpRe                                           ! A temporary real      value  read in from a WAMIT file (-      )
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    REAL(ReKi)                   :: TransMat0 (3,3)                                 ! Transformation matrix from the inertial frame to the initial tower base / platform coordinate system (-)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    REAL(ReKi), ALLOCATABLE      :: WAMITFreq (:)                                   ! Frequency      components as ordered in the WAMIT output files (rad/s  )
    REAL(ReKi), ALLOCATABLE      :: WAMITPer  (:)                                   ! Period         components as ordered in the WAMIT output files (sec    )
    REAL(ReKi), ALLOCATABLE      :: WAMITWvDir(:)                                   ! Wave direction components as ordered in the WAMIT output files (degrees)
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    REAL(ReKi)                   :: XF                                              ! Horizontal distance between anchor and fairlead of the current mooring line (meters)
    REAL(ReKi)                   :: XF2                                             ! = XF*XF
    REAL(ReKi)                   :: ZF                                              ! Vertical   distance between anchor and fairlead of the current mooring line (meters)
    REAL(ReKi)                   :: ZF2                                             ! = ZF*ZF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
    INTEGER(4)                   :: I                                               ! Generic index
    INTEGER(4)                   :: Indx                                            ! Cycles through the upper-triangular portion (diagonal and above) of the frequency-dependent hydrodynamic added mass and damping matrices from the radiation problem
@@ -4033,33 +3511,11 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    LOGICAL                      :: FirstFreq                                       ! When .TRUE., indicates we're still looping through the first frequency component.
    LOGICAL                      :: FirstPass                                       ! When .TRUE., indicates we're on the first pass through a loop.
    LOGICAL                      :: InfFreq     = .FALSE.                           ! When .TRUE., indicates that the infinite-frequency limit of added mass is contained within the WAMIT output files.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Bug fix: Add logic to ensure WAMIT data is read in correctly even if
-!jmj   NInpWvDir = 1:
    LOGICAL                      :: NewPer                                          ! When .TRUE., indicates that the period has just changed.
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
    LOGICAL                      :: RdtnFrmAM   = .FALSE.                           ! Determine the wave radiation kernel from the frequency-dependent hydrodynamic added mass matrix? (.TRUE = yes, .FALSE. = determine the wave radiation kernel from the frequency-dependent hydrodynamic damping matrix) !JASON: SHOULD YOU MAKE THIS AN INPUT???<--JASON: IT IS NOT WISE TO COMPUTE THE RADIATION KERNEL FROM THE FREQUENCY-DEPENDENT ADDED MASS MATRIX, UNLESS A CORRECTION IS APPLIED.  THIS IS DESCRIBED IN THE WAMIT USER'S GUIDE!!!!
    LOGICAL                      :: ZeroFreq    = .FALSE.                           ! When .TRUE., indicates that the zero    -frequency limit of added mass is contained within the WAMIT output files.
 
-!bjj start of proposed change
-!rm   CHARACTER(99)                :: Line                                            ! String to temporarily hold the value of a line within a WAMIT output file.
    CHARACTER(1024)                :: Line                                            ! String to temporarily hold the value of a line within a WAMIT output file.
-!bjj end of proposed change   
-
-!bjj start of proposed change v6.02d
-!rm      ! Global functions:
-!rm
-!rm!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm!jmj Move SUBROUTINEs InterpStp() and InterpStp_CMPLX() into a MODULE at the
-!rm!jmj   top of source file HydroCalc.f90 in support of improved code
-!rm!jmj   optimization:
-!rm!remove6.02c   COMPLEX(ReKi), EXTERNAL      :: InterpStp_CMPLX                                 ! A generic function to do the actual interpolation.
-!rm!remove6.02c
-!rm!remove6.02c   REAL(ReKi), EXTERNAL         :: InterpStp                                       ! A generic function to do the actual interpolation.
-!rm!remove6.02c
-!rm!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
-!rm   CHARACTER(15), EXTERNAL      :: Flt2LStr                                        ! A function to convert a real to a left-justified string.
-!bjj end of proposed change
 
 
 
@@ -4069,10 +3525,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    PtfmDiam     = PtfmDiamIn
    PtfmCD       = PtfmCDIn
    RdtnDT       = RdtnDTIn
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
-!remove6.02b   RdtnTMax     = RdtnTMaxIn
    IF ( RdtnTMaxIn == 0.0 )  THEN   ! .TRUE. when we don't want to model wave radiation damping; set RdtnTMax to some minimum value greater than zero to avoid an error in the calculations below.
       RdtnTMax  = RdtnDTIn
       UseRdtn   = .FALSE.
@@ -4080,7 +3532,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
       RdtnTMax  = RdtnTMaxIn
       UseRdtn   = .TRUE.
    ENDIF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
    RdtnOmegaMax = Pi/RdtnDT
 
@@ -4093,12 +3544,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
       CALL ProgAbort ( ' Routine InitWaves() must be called before routine InitFltngPtfmLd().' )
 
 
-
-
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
       ! Initialize the variables associated with the mooring system:
 
    LineMod      = LineModIn
@@ -4291,7 +3736,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
 
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
       ! Tell our nice users what is about to happen that may take a while:
 
    CALL WrScr ( ' Reading in WAMIT output with root name "'//TRIM(WAMITFile)//'".' )
@@ -4718,11 +4162,7 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
             K         = K + 1       ! This is current count of which frequency component we are on
             PrvPer    = TmpPer      ! Store the current period    as the previous period    for the next pass
             FirstFreq = FirstPass   ! Sorry, you can only loop through the first frequency once
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Bug fix: Add logic to ensure WAMIT data is read in correctly even if
-!jmj   NInpWvDir = 1:
             NewPer    = .TRUE.      ! Reset the new period flag
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
             DO WHILE ( WAMITPer(K) <= 0.0 )  ! Periods less than or equal to zero in WAMIT represent infinite period = zero frequency and infinite frequency, respectively.  However, only the added mass is output by WAMIT at these limits.  The damping and wave excitation are left blank, so skip them!
                K = K + 1
@@ -4737,21 +4177,12 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
          ENDIF
 
 
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Bug fix: Add logic to ensure WAMIT data is read in correctly even if
-!jmj   NInpWvDir = 1:
-!remove6.02c         IF ( FirstPass .OR. ( TmpDir /= PrvDir ) )  THEN   ! .TRUE. if we are on the first pass or if the direction currently read in is different than the previous direction read in; thus we found a new direction in the WAMIT file!
          IF ( FirstPass .OR. ( TmpDir /= PrvDir ) .OR. NewPer )  THEN   ! .TRUE. if we are on the first pass, or if this is new period, or if the direction currently read in is different than the previous direction read in; thus we found a new direction in the WAMIT file!
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
             J         = J + 1       ! This is current count of which direction component we are on
             PrvDir    = TmpDir      ! Store the current direction as the previous direction for the next pass
             FirstPass = .FALSE.     ! Sorry, you can only have one first pass
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Bug fix: Add logic to ensure WAMIT data is read in correctly even if
-!jmj   NInpWvDir = 1:
             NewPer    = .FALSE.     ! Disable the new period flag
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
             IF ( FirstFreq )  THEN                    ! .TRUE. while we are still looping through all directions for the first frequency component
                WAMITWvDir(J)   = TmpDir      ! Store the directions in the order they appear in the WAMIT file
@@ -4815,11 +4246,7 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
             K            = K + 1       ! This is current count of which frequency component we are on
             PrvPer       = TmpPer      ! Store the current period    as the previous period    for the next pass
             FirstFreq    = FirstPass   ! Sorry, you can only loop through the first frequency once
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Bug fix: Add logic to ensure WAMIT data is read in correctly even if
-!jmj   NInpWvDir = 1:
             NewPer       = .TRUE.      ! Reset the new period flag
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
             DO WHILE ( WAMITPer(K) <= 0.0 )  ! Periods less than or equal to zero in WAMIT represent infinite period = zero frequency and infinite frequency, respectively.  However, only the added mass is output by WAMIT at these limits.  The damping and wave excitation are left blank, so skip them!
                K = K + 1
@@ -4828,21 +4255,12 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
          ENDIF
 
 
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Bug fix: Add logic to ensure WAMIT data is read in correctly even if
-!jmj   NInpWvDir = 1:
-!remove6.02c         IF ( FirstPass .OR. ( TmpDir /= PrvDir ) )  THEN   ! .TRUE. if we are on the first pass or if the direction currently read in is different than the previous direction read in; thus we found a new direction in the WAMIT file!
          IF ( FirstPass .OR. ( TmpDir /= PrvDir ) .OR. NewPer )  THEN   ! .TRUE. if we are on the first pass, or if this is new period, or if the direction currently read in is different than the previous direction read in; thus we found a new direction in the WAMIT file!
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
             J            = J + 1       ! This is current count of which direction component we are on
             PrvDir       = TmpDir      ! Store the current direction as the previous direction for the next pass
             FirstPass    = .FALSE.     ! Sorry, you can only have one first pass
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Bug fix: Add logic to ensure WAMIT data is read in correctly even if
-!jmj   NInpWvDir = 1:
             NewPer       = .FALSE.     ! Disable the new period flag
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
             IF ( FirstFreq )  THEN  ! .TRUE. while we are still looping through all directions for the first frequency component
                HdroWvDir(SortWvDirInd(J)) = TmpDir ! Store the directions sorted from lowest to highest
@@ -4950,13 +4368,7 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
 
    NStepRdtn  = CEILING ( RdtnTMax/RdtnDT )                 ! Set NStepRdtn to an odd integer
    IF ( MOD(NStepRdtn,2) == 0 )  NStepRdtn = NStepRdtn + 1  !   larger or equal to RdtnTMax/RdtnDT.
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put a MAX(*,1) in the calculation of NStepWave2 and NStepRdtn2 to ensure
-!jmj   that routine PSF() does not crash when WaveTMax and/or RdtnTMax are very
-!jmj   small:
-!remove6.02b   NStepRdtn2 = ( NStepRdtn-1 )/2                           ! Make sure that NStepRdtn-1 is an even product of small factors (PSF) that is greater
    NStepRdtn2 = MAX( ( NStepRdtn-1 )/2, 1 )                 ! Make sure that NStepRdtn-1 is an even product of small factors (PSF) that is greater
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    NStepRdtn  = 2*PSF ( NStepRdtn2, 9 ) + 1                 !   or equal to RdtnTMax/RdtnDT to ensure that the (co)sine transform is efficient.
 
    NStepRdtn1 = NStepRdtn + 1                               ! Save the value of NStepRdtn + 1 for future use.
@@ -5155,15 +4567,10 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
       !   wave excitation force per unit wave amplitude vector at the chosen wave
       !   heading direction:
 
-!BJJ START of proposed change v7.00.01a-bjj
-!bjj: line is too long
-!RM      IF ( ( WaveDir < HdroWvDir(1) ) .OR. ( WaveDir > HdroWvDir(NInpWvDir) ) )  &
-!RM         CALL ProgAbort ( ' WaveDir must be within the wave heading angle range available in "'//TRIM(WAMITFile)//'.3" (inclusive).' )
       IF ( ( WaveDir < HdroWvDir(1) ) .OR. ( WaveDir > HdroWvDir(NInpWvDir) ) )  THEN
          CALL ProgAbort ( ' WaveDir must be within the wave heading angle range available in "' &
                            //TRIM(WAMITFile)//'.3" (inclusive).' )
       END IF
-!BJJ END OF PROPOSED CHANGE
 
       ALLOCATE ( X_Diffrctn(NInpFreq,6) , STAT=Sttus )
       IF ( Sttus /= 0 )  THEN
@@ -5172,10 +4579,7 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
 
       DO J = 1,6           ! Loop through all wave excitation forces and moments
          DO I = 1,NInpFreq ! Loop through all input frequency components inherent in the complex wave excitation force per unit wave amplitude vector
-!bjj start of proposed change v6.02d-bjj
-!rm            X_Diffrctn(I,J) = InterpStp_CMPLX ( WaveDir, HdroWvDir(:), HdroExctn(I,:,J), LastInd, NInpWvDir )
             X_Diffrctn(I,J) = InterpStp( WaveDir, HdroWvDir(:), HdroExctn(I,:,J), LastInd, NInpWvDir )
-!bjj end of proposed change
          ENDDO             ! I - All input frequency components inherent in the complex wave excitation force per unit wave amplitude vector
       ENDDO                ! J - All wave excitation forces and moments
 
@@ -5210,10 +4614,7 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
       !   excitation force on the support platfrom from incident waves:
 
          DO J = 1,6           ! Loop through all wave excitation forces and moments
-!bjj start of proposed change v6.02d-bjj
-!rm            WaveExctnC(I,J) = WaveElevC0(I)*InterpStp_CMPLX ( Omega, HdroFreq(:), X_Diffrctn(:,J), LastInd, NInpFreq )
             WaveExctnC(I,J) = WaveElevC0(I)*InterpStp ( Omega, HdroFreq(:), X_Diffrctn(:,J), LastInd, NInpFreq )
-!bjj end of proposed change v6.02d-bjj
          ENDDO                ! J - All wave excitation forces and moments
 
 
@@ -5247,7 +4648,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    ENDSELECT
 
 
-!bjj start of proposed change
       ! deallocate arrays
          
    IF ( ALLOCATED( HdroExctn    ) ) DEALLOCATE( HdroExctn    )
@@ -5265,14 +4665,9 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    IF ( ALLOCATED( SortWvDirInd ) ) DEALLOCATE( SortWvDirInd )
          
          
-!bjj end of proposed change
 
    RETURN
    END SUBROUTINE InitFltngPtfmLd
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 !=======================================================================
    FUNCTION LinePosition ( ILine, JNode, KDirection )
 
@@ -5296,12 +4691,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    INTEGER(4), INTENT(IN )      :: ILine                                           ! Mooring line number (-)
    INTEGER(4), INTENT(IN )      :: JNode                                           ! The index of the current mooring line node (-)
    INTEGER(4), INTENT(IN )      :: KDirection                                      ! 1, 2, or 3, for the xi-, yi-, or zi-directions, respectively (-)
-
-!bjj start of proposed change v6.02d
-!rm      ! Global functions:
-!rm
-!rm   CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!bjj end of proposed change
 
 
       ! Abort if the mooring line parameters have not been computed yet, if ILine
@@ -5350,13 +4739,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    INTEGER(4), INTENT(IN )      :: JNode                                           ! The index of the current mooring line node (-)
 
 
-!bjj start of proposed change v6.02d
-!rm      ! Global functions:
-!rm
-!rm   CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!bjj end of proposed change
-
-
       ! Abort if the mooring line parameters have not been computed yet, if ILine
       !   is not one of the existing mooring lines, or if JNode is not one of the
       !   existing line nodes:
@@ -5380,149 +4762,7 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    RETURN
    END FUNCTION LineTension
 !=======================================================================
-!bjj start of propsoed chagne
-!subroutine moved to NWTC_Num.f90
-!!JASON: THIS ROUTINE (SmllRotTrans) SHOULD BE MOVED TO NWTC_Subs!!!
-!   SUBROUTINE SmllRotTrans( RotationType, Theta1, Theta2, Theta3, TransMat )
-!
-!
-!      ! This routine computes the 3x3 transformation matrix, TransMat,
-!      !   to a coordinate system x (with orthogonal axes x1, x2, x3)
-!      !   resulting from three rotations (Theta1, Theta2, Theta3) about the
-!      !   orthogonal axes (X1, X2, X3) of coordinate system X.  All angles
-!      !   are assummed to be small, as such, the order of rotations does
-!      !   not matter and Euler angles do not need to be used.  This routine
-!      !   is used to compute the transformation matrix (TransMat) between
-!      !   undeflected (X) and deflected (x) coordinate systems.  In matrix
-!      !   form:
-!      !      {x1}   [TransMat(Theta1, ] {X1}
-!      !      {x2} = [         Theta2, ]*{X2}
-!      !      {x3}   [         Theta3 )] {X3}
-!
-!      ! The transformation matrix, TransMat, is the closest orthonormal
-!      !   matrix to the nonorthonormal, but skew-symmetric, Bernoulli-Euler
-!      !   matrix:
-!      !          [   1.0    Theta3 -Theta2 ]
-!      !      A = [ -Theta3   1.0    Theta1 ]
-!      !          [  Theta2 -Theta1   1.0   ]
-!      !
-!      !   In the Frobenius Norm sense, the closest orthornormal matrix is:
-!      !      TransMat = U*V^T,
-!      !
-!      !   where the columns of U contain the eigenvectors of A*A^T and the
-!      !   columns of V contain the eigenvectors of A^T*A (^T = transpose).
-!      !   This result comes directly from the Singular Value Decomposition
-!      !   (SVD) of A = U*S*V^T where S is a diagonal matrix containing the
-!      !   singular values of A, which are SQRT( eigenvalues of A*A^T ) =
-!      !   SQRT( eigenvalues of A^T*A ).
-!
-!      ! The algebraic form of the transformation matrix, as implemented
-!      !   below, was derived symbolically by J. Jonkman by computing U*V^T
-!      !   by hand with verification in Mathematica.
-!
-!      ! NOTE: This routine is an exact copy of SUBROUTINE SmllRotTrans() given in
-!      !       FAST source file FAST.f90.
-!
-!
-!   USE                             Precision
-!   USE                             SysSubs
-!
-!
-!   IMPLICIT                        NONE
-!
-!
-!      ! Passed Variables:
-!
-!   REAL(ReKi), INTENT(IN )      :: Theta1                                          ! The small rotation about X1, (rad).
-!   REAL(ReKi), INTENT(IN )      :: Theta2                                          ! The small rotation about X2, (rad).
-!   REAL(ReKi), INTENT(IN )      :: Theta3                                          ! The small rotation about X3, (rad).
-!   REAL(ReKi), INTENT(OUT)      :: TransMat (3,3)                                  ! The resulting transformation matrix from X to x, (-).
-!
-!   CHARACTER(*), INTENT(IN)     :: RotationType                                    ! The type of rotation; used to inform the user where a large rotation is occuring upon such an event.
-!
-!
-!      ! Local Variables:
-!
-!   REAL(ReKi)                   :: ComDenom                                        ! = ( Theta1^2 + Theta2^2 + Theta3^2 )*SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 )
-!   REAL(ReKi), PARAMETER        :: LrgAngle  = 0.4                                 ! Threshold for when a small angle becomes large (about 23deg).  This comes from: COS(SmllAngle) ~ 1/SQRT( 1 + SmllAngle^2 ) and SIN(SmllAngle) ~ SmllAngle/SQRT( 1 + SmllAngle^2 ) results in ~5% error when SmllAngle = 0.4rad.
-!   REAL(ReKi)                   :: Theta11                                         ! = Theta1^2
-!   REAL(ReKi)                   :: Theta12S                                        ! = Theta1*Theta2*[ SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 ) - 1.0 ]
-!   REAL(ReKi)                   :: Theta13S                                        ! = Theta1*Theta3*[ SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 ) - 1.0 ]
-!   REAL(ReKi)                   :: Theta22                                         ! = Theta2^2
-!   REAL(ReKi)                   :: Theta23S                                        ! = Theta2*Theta3*[ SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 ) - 1.0 ]
-!   REAL(ReKi)                   :: Theta33                                         ! = Theta3^2
-!   REAL(ReKi)                   :: SqrdSum                                         ! = Theta1^2 + Theta2^2 + Theta3^2
-!   REAL(ReKi)                   :: SQRT1SqrdSum                                    ! = SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 )
-!
-!   LOGICAL,    SAVE             :: FrstWarn  = .TRUE.                              ! When .TRUE., indicates that we're on the first warning.
-!
-!
-!
-!      ! Display a warning message if at least one angle gets too large in
-!      !   magnitude:
-!
-!   IF ( ( ( ABS(Theta1) > LrgAngle ) .OR. ( ABS(Theta2) > LrgAngle ) .OR. ( ABS(Theta3) > LrgAngle ) ) .AND. FrstWarn )  THEN
-!
-!      CALL WrOver(' WARNING:                                                            ')
-!      CALL WrScr ('  Small angle assumption violated in SUBROUTINE SmllRotTrans() due to')
-!      CALL WrScr ('  a large '//TRIM(RotationType)//'.  The solution may be inaccurate. ')
-!      CALL WrScr ('  Future warnings suppressed.  Simulation continuing...              ')
-!      CALL WrScr ('                                                                     ')
-!
-!      CALL UsrAlarm
-!
-!
-!      FrstWarn = .FALSE.   ! Don't enter here again!
-!
-!   ENDIF
-!
-!
-!
-!      ! Compute some intermediate results:
-!
-!   Theta11      = Theta1*Theta1
-!   Theta22      = Theta2*Theta2
-!   Theta33      = Theta3*Theta3
-!
-!   SqrdSum      = Theta11 + Theta22 + Theta33
-!   SQRT1SqrdSum = SQRT( 1.0 + SqrdSum )
-!   ComDenom     = SqrdSum*SQRT1SqrdSum
-!
-!   Theta12S     = Theta1*Theta2*( SQRT1SqrdSum - 1.0 )
-!   Theta13S     = Theta1*Theta3*( SQRT1SqrdSum - 1.0 )
-!   Theta23S     = Theta2*Theta3*( SQRT1SqrdSum - 1.0 )
-!
-!
-!      ! Define the transformation matrix:
-!
-!   IF ( ComDenom == 0.0 )  THEN  ! All angles are zero and matrix is ill-conditioned (the matrix is derived assuming that the angles are not zero); return identity
-!
-!      TransMat(1,:) = (/ 1.0, 0.0, 0.0 /)
-!      TransMat(2,:) = (/ 0.0, 1.0, 0.0 /)
-!      TransMat(3,:) = (/ 0.0, 0.0, 1.0 /)
-!
-!   ELSE                          ! At least one angle is nonzero
-!
-!      TransMat(1,1) = ( Theta11*SQRT1SqrdSum + Theta22              + Theta33              )/ComDenom
-!      TransMat(2,2) = ( Theta11              + Theta22*SQRT1SqrdSum + Theta33              )/ComDenom
-!      TransMat(3,3) = ( Theta11              + Theta22              + Theta33*SQRT1SqrdSum )/ComDenom
-!      TransMat(1,2) = (  Theta3*SqrdSum + Theta12S )/ComDenom
-!      TransMat(2,1) = ( -Theta3*SqrdSum + Theta12S )/ComDenom
-!      TransMat(1,3) = ( -Theta2*SqrdSum + Theta13S )/ComDenom
-!      TransMat(3,1) = (  Theta2*SqrdSum + Theta13S )/ComDenom
-!      TransMat(2,3) = (  Theta1*SqrdSum + Theta23S )/ComDenom
-!      TransMat(3,2) = ( -Theta1*SqrdSum + Theta23S )/ComDenom
-!
-!   ENDIF
-!
-!
-!
-!   RETURN
-!   END SUBROUTINE SmllRotTrans
-!!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-!bjj end of propsoed change
 !=======================================================================
-!bjj start of proposed change
    SUBROUTINE FP_Terminate( )
    
       ! Deallocate arrays
@@ -5559,7 +4799,6 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    END SUBROUTINE FP_Terminate
 
 !=======================================================================
-!bjj end of proposed change
 
 END MODULE FloatingPlatform
 !=======================================================================
@@ -5608,57 +4847,23 @@ CONTAINS
 
       ! Local Variables:
 
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c   REAL(ReKi)                   :: DZFract                                         ! The fraction of the current tower element that is below the free surface of the incident wave and above the seabed (0.0 <= DZFract <= 1.0): 0.0 = the element is entirely above the free surface, 1.0 = element is entirely below the free surface and above the seabed (-)
    REAL(ReKi)                   :: DZFract                                         ! The fraction of the current tower element that is below the free surface of the incident wave and above the seabed (0.0 <= DZFract  <= 1.0): 0.0 = the element is entirely above the free surface, 1.0 = element is entirely below the free surface and above the seabed (-)
    REAL(ReKi)                   :: DZFractS                                        ! The fraction of the current tower element that is                                                 above the seabed (0.0 <= DZFractS <= 1.0): 0.0 = the element is entirely below the seabed      , 1.0 = element is entirely                            above the seabed (-)
    REAL(ReKi)                   :: DZFractW                                        ! The fraction of the current tower element that is below the free surface of the incident wave                      (0.0 <= DZFractW <= 1.0): 0.0 = the element is entirely above the free surface, 1.0 = element is entirely below the free surface                      (-)
    REAL(ReKi)                   :: InertiaForce     (2)                            ! Wave inertia force in the xi- (1) and yi- (2) directions, respectively, on the current tower element at the current time (N)
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
    REAL(ReKi)                   :: MagVRel                                         ! The magnitude of the horizontal incident wave velocity relative to the current tower node at the current time (m/s)
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
    REAL(ReKi)                   :: MomArm                                          ! Moment arm in the vertical direction from the current tower node to the center of pressure of the wave load on the current tower element (meters)
    REAL(ReKi)                   :: TowerAM                                         ! Force -translation                     component of TwrAM (kg    /m)
    REAL(ReKi)                   :: TowerAMM                                        ! Force -rotation and moment-translation component of TwrAM (kg-m  /m)
    REAL(ReKi)                   :: TowerAMM2                                       !                     Moment-rotation    component of TwrAM (kg-m^2/m)
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
    REAL(ReKi)                   :: TwrArea                                         ! Cross-sectional area of current tower element (m^2)
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remove6.02c   REAL(ReKi)                   :: WaveAcceleration0(3)                            ! Acceleration of incident waves in the xi- (1), yi- (2), and zi- (3) directions, respectively, at the current tower node and time (m/s^2)
    REAL(ReKi)                   :: TwrVelocity      (2)                            ! Velocity of the center of pressure of the wave load on the current tower element in the xi- (1) and yi- (2) directions, respectively, at the current time (m/s)
    REAL(ReKi)                   :: ViscousForce     (2)                            ! Viscous drag force in the xi- (1) and yi- (2) directions, respectively, on the current tower element at the current time (N)
    REAL(ReKi)                   :: WaveAcceleration0(2)                            ! Acceleration of incident waves in the xi- (1) and yi- (2) directions, respectively, at the current tower node and time (m/s^2)
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
    REAL(ReKi)                   :: WaveElevation0                                  ! Elevation of incident waves at the platform reference point and current time (meters)
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remove6.02c   REAL(ReKi)                   :: WaveVelocity0    (3)                            ! Velocity     of incident waves in the xi- (1), yi- (2), and zi- (3) directions, respectively, at the current tower node and time (m/s  )
    REAL(ReKi)                   :: WaveVelocity0    (2)                            ! Velocity     of incident waves in the xi- (1) and yi- (2) directions, respectively, at the current tower node and time (m/s  )
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
    INTEGER(4)                   :: K                                               ! Generic index
-
-
-!bjj start of propsoed change v6.02d
-!rm      ! Global functions:
-!rm
-!rm   CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!bjj end of proposed change
 
 
       ! Initialize the added mass matrix per unit length of the current tower
@@ -5688,32 +4893,11 @@ CONTAINS
    IF ( WaveStMod == 0 )  THEN   ! .TRUE. if we have no stretching; therefore, integrate up to the MSL, regardless of the instantaneous free surface elevation.
 
       IF (     ( WaveKinzi0(JNode) - 0.5*DZNodes(JNode) ) >= 0.0            )  THEN ! .TRUE. if the current tower element lies entirely above the MSL.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c         DZFract = 0.0
          DZFractW = 0.0
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
       ELSEIF ( ( WaveKinzi0(JNode) + 0.5*DZNodes(JNode) ) <= 0.0            )  THEN ! .TRUE. if the current tower element lies entirely below the MSL.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c         DZFract = 1.0
          DZFractW = 1.0
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
       ELSE                                                                          ! The free surface of the incident wave must fall somewhere along the current tower element; thus, interpolate.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c         DZFract = ( ( 0.0            - ( WaveKinzi0(JNode) - 0.5*DZNodes(JNode) ) )/DZNodes(JNode) )
          DZFractW = ( ( 0.0            - ( WaveKinzi0(JNode) - 0.5*DZNodes(JNode) ) )/DZNodes(JNode) )
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
       ENDIF
 
    ELSE                          ! We must have some sort of stretching.
@@ -5721,72 +4905,24 @@ CONTAINS
       WaveElevation0 = WaveElevation ( 1, ZTime )
 
       IF (     ( WaveKinzi0(JNode) - 0.5*DZNodes(JNode) ) >= WaveElevation0 )  THEN ! .TRUE. if the current tower element lies entirely above the free surface of the incident wave.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c         DZFract = 0.0
          DZFractW = 0.0
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
       ELSEIF ( ( WaveKinzi0(JNode) + 0.5*DZNodes(JNode) ) <= WaveElevation0 )  THEN ! .TRUE. if the current tower element lies entirely below the free surface of the incident wave.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c         DZFract = 1.0
          DZFractW = 1.0
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
       ELSE                                                                          ! The free surface of the incident wave must fall somewhere along the current tower element; thus, interpolate.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c         DZFract = ( ( WaveElevation0 - ( WaveKinzi0(JNode) - 0.5*DZNodes(JNode) ) )/DZNodes(JNode) )
          DZFractW = ( ( WaveElevation0 - ( WaveKinzi0(JNode) - 0.5*DZNodes(JNode) ) )/DZNodes(JNode) )
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
       ENDIF
 
    ENDIF
 
    IF (        ( WaveKinzi0(JNode) - 0.5*DZNodes(JNode) ) >= -WtrDpth       )  THEN ! .TRUE. if the current tower element lies entirely above the seabed.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c         DZFract = 1.0*DZFract
          DZFractS = 1.0
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
    ELSEIF (    ( WaveKinzi0(JNode) + 0.5*DZNodes(JNode) ) <= -WtrDpth       )  THEN ! .TRUE. if the current tower element lies entirely below the seabed.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c         DZFract = 0.0*DZFract
          DZFractS = 0.0
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
    ELSE                                                                             ! The seabed must fall somewhere along the current tower element; thus, interpolate.
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remmove6.02c         DZFract = ( ( ( WaveKinzi0(JNode) + 0.5*DZNodes(JNode) ) - ( -WtrDpth )   )/DZNodes(JNode) )*DZFract
          DZFractS = ( ( ( WaveKinzi0(JNode) + 0.5*DZNodes(JNode) ) - ( -WtrDpth )   )/DZNodes(JNode) )
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
    ENDIF
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
 
    DZFract = DZFractW*DZFractS
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
 
 
@@ -5797,26 +4933,6 @@ CONTAINS
    IF ( DZFract > 0.0 )  THEN ! .TRUE. if a portion of the current tower element lies below the free surface of the incident wave.
 
 
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remove6.02c      ! Compute the velocity and acceleration of the incident waves in the
-!remove6.02c      !   xi- (1), yi- (2), and zi- (3) directions, respectively, at the current
-!remove6.02c      !   tower node and time:
-!remove6.02c
-!remove6.02c      DO K = 1,3     ! Loop through all xi- (1), yi- (2), and zi- (3) directions
-!remove6.02c         WaveVelocity0    (K) = WaveVelocity     ( JNode, K, ZTime )
-!remove6.02c         WaveAcceleration0(K) = WaveAcceleration ( JNode, K, ZTime )
-!remove6.02c      ENDDO          ! K - All xi- (1), yi- (2), and zi- (3) directions
-!remove6.02c
-!remove6.02c
-!remove6.02c      ! Compute the magnitude of the horizontal incident wave velocity relative to
-!remove6.02c      !   the current tower node at the current time:
-!remove6.02c
-!remove6.02c      MagVRel = SQRT(   ( WaveVelocity0(1) - XD(1) )**2 &
-!remove6.02c                      + ( WaveVelocity0(2) - XD(2) )**2   )
       ! Compute the moment arm in the vertical direction between the current tower
       !   node and the center of pressure of the wave load on the current tower
       !   element:
@@ -5848,7 +4964,6 @@ CONTAINS
 
       MagVRel = SQRT(   ( WaveVelocity0(1) - TwrVelocity(1) )**2 &
                       + ( WaveVelocity0(2) - TwrVelocity(2) )**2   )
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
 
       ! Compute the cross-sectional area of the current tower element:
@@ -5856,33 +4971,6 @@ CONTAINS
       TwrArea = PiOvr4*TwrDiam*TwrDiam
 
 
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Improve the calculations for hydrodynamic loading on a monopile:  If the
-!jmj   current tower element is only partially-covered by fluid, in addition to
-!jmj   the force, compute a moment on the tower element to correct for the fact
-!jmj   that the force is applied only to a portion of the tower element:
-!remove6.02c      DO K = 1,2     ! Loop through the xi- (1) and yi- (2) directions
-!remove6.02c
-!remove6.02c
-!remove6.02c      ! Compute the added mass matrix per unit length of the current tower
-!remove6.02c      !   element:
-!remove6.02c
-!remove6.02c         TwrAM(K,K) = TwrAM(K,K) + TwrCA*WtrDens*TwrArea*DZFract
-!remove6.02c
-!remove6.02c
-!remove6.02c      ! Compute the portion of the current tower element load per unit length
-!remove6.02c      !   associated with the incident wave acceleration:
-!remove6.02c
-!remove6.02c         TwrFt(K  ) = TwrFt(K  ) + ( 1.0 + TwrCA )*WtrDens*TwrArea*WaveAcceleration0(K)*DZFract
-!remove6.02c
-!remove6.02c
-!remove6.02c      ! Compute the portion of the current tower element load per unit length
-!remove6.02c      !   associated with the viscous drag:
-!remove6.02c
-!remove6.02c         TwrFt(K  ) = TwrFt(K  ) + 0.5*TwrCD*WtrDens*TwrDiam*( WaveVelocity0(K) - XD(K) )*MagVRel*DZFract
-!remove6.02c
-!remove6.02c
-!remove6.02c      ENDDO          ! K - The xi- (1) and yi- (2) directions
       ! Compute the added mass matrix per unit length of the current tower
       !   element:
 
@@ -5912,7 +5000,6 @@ CONTAINS
       TwrFt(2  ) = TwrFt(2  ) +   InertiaForce(2) + ViscousForce(2)           ! sway  component
       TwrFt(4  ) = TwrFt(4  ) - ( InertiaForce(2) + ViscousForce(2) )*MomArm  ! roll  component
       TwrFt(5  ) = TwrFt(5  ) + ( InertiaForce(1) + ViscousForce(1) )*MomArm  ! pitch component
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
 
    ENDIF
@@ -5922,7 +5009,6 @@ CONTAINS
    RETURN
    END SUBROUTINE MorisonTwrLd
 !=======================================================================
-!bjj start of proposed change
    SUBROUTINE FB_Terminate( )
    
    ! Deallocate arrays
@@ -5934,10 +5020,8 @@ CONTAINS
    END SUBROUTINE FB_Terminate
 
 !=======================================================================
-!bjj end of proposed change
 END MODULE FixedBottomSupportStructure
 !=======================================================================
-!BJJ start of proposed change
 MODULE HydroDyn
 
    USE NWTC_Library
@@ -5960,7 +5044,6 @@ CONTAINS
    END SUBROUTINE Hydro_Terminate
 
 END MODULE HydroDyn
-!bjj end of proposed change
 !JASON: MOVE THIS USER-DEFINED ROUTINE (UserTwrLd) TO THE UserSubs.f90 OF FAST WHEN THE MONOPILE LOADING FUNCTIONALITY HAS BEEN DOCUMENTED!!!!!
 SUBROUTINE UserTwrLd ( JNode, X, XD, ZTime, DirRoot, TwrAM, TwrFt )
 
@@ -6022,10 +5105,7 @@ SUBROUTINE UserTwrLd ( JNode, X, XD, ZTime, DirRoot, TwrAM, TwrFt )
    !       hydrodynamics.  The effects of body weight are included within FAST
    !       and ADAMS.
 
-!bjj start of proposed change
-!rmUSE                             Precision
 USE                             NWTC_Library
-!bjj end of proposed change
 
 IMPLICIT                        NONE
 
@@ -6092,4 +5172,3 @@ ENDDO
 RETURN
 END SUBROUTINE UserTwrLd
 !=======================================================================
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.

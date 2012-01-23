@@ -46,17 +46,11 @@ OutputRootName     = 'FAST_SFunc';                  % name of the mex file
 % NWTC_Library (NWTC_LIB), AeroDyn (AD_LOC), AeroDyn's wind inflow 
 % routines (WIND_LOC), and FAST (FAST_LOC):
 %--------------------------------------------------------------------------
-NWTC_LIB    = 'D:\JasonJonkman\DesignCodes\NWTC_Subs\Source';
-WIND_LOC    = 'D:\JasonJonkman\DesignCodes\AeroDyn\Source\InflowWind\Source';
-AD_LOC      = 'D:\JasonJonkman\DesignCodes\AeroDyn\Source';
-FAST_LOC    = 'D:\JasonJonkman\DesignCodes\FAST\Source';
-Sim_LOC     = 'D:\JasonJonkman\DesignCodes\FAST\Simulink\Source';
-
-% NWTC_LIB    = 'Y:\Wind\Public\Projects\DesignCodes\miscellaneous\nwtc_subs\Source';
-% WIND_LOC    = 'Y:\Wind\Public\Projects\DesignCodes\AeroDyn\Source\v13.00.00a-bjj\Source\InflowWind\Source';
-% AD_LOC      = 'Y:\Wind\Public\Projects\DesignCodes\AeroDyn\Source\v13.00.00a-bjj\Source';
-% FAST_LOC    = 'Y:\Wind\Public\Projects\DesignCodes\FAST\InProgress\v7.00.01a-bjj\Source';
-% Sim_LOC     = 'Y:\Wind\Public\Projects\DesignCodes\FAST\InProgress\v7.00.01a-bjj\Simulink\Source';
+NWTC_LIB    = 'D:\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\source';
+WIND_LOC    = 'D:\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source\InflowWind\Source';
+AD_LOC      = 'D:\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source';
+FAST_LOC    = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Source';
+Sim_LOC     = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Simulink\Source';
 
 
 %% ------------------------------------------------------------------------

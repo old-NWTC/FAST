@@ -94,9 +94,7 @@ CONTAINS
 
       ! This SUBROUTINE is used to load the DLL.
 
-!bjj start of proposed change
    USE NWTC_LIBRARY, ONLY: ProgAbort
-!bjj end of proposed change
 
 
    IMPLICIT                        NONE
@@ -231,13 +229,8 @@ SUBROUTINE BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTrq, Y
 
 USE                             BladedDLLParameters
 USE                             DLL_Interface
-!bjj Start of proposed change AD_v12.70-bjj
-!rmUSE                             Identify
-!USE                             Identify,   ONLY: DynProg       ! Why not use the FAST ProgName variable instead?
 USE                             NWTC_Library    !ProgName
-!bjj End of proposed change
 USE                             Output
-!bjj rm NWTC_Library: USE                             Precision
 
 
 IMPLICIT                        NONE
@@ -261,16 +254,9 @@ INTEGER(4), PARAMETER        :: R                 = 85                          
 
 REAL(4)                      :: avrSWAP   (R+(2*N)-1)                           ! The swap array, used to pass data to, and receive data from, the DLL controller.
 REAL(ReKi), SAVE,ALLOCATABLE :: BlPitchCom_SAVE(:)                              ! Commanded blade pitch angles (demand pitch angles) (rad).
-!bjj NWTC_LIBRARY:REAL(ReKi), PARAMETER        :: D2R               = 0.017453293                 ! Factor to convert degrees to radians.
 REAL(ReKi), SAVE             :: GenTrq_SAVE       = 0.0                         ! Electrical generator torque (N-m).
 REAL(ReKi), SAVE             :: LastTime          = 0.0                         ! The simulation time at the end of the last DLL call (sec).
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Scale the value of AllOuts(Time) by OnePlusEps to ensure that the
-!jmj   contoller is called at every time step when DTCntrl = DT, even in the
-!jmj    presence of numerical precision errors:
 REAL(ReKi), PARAMETER        :: OnePlusEps        = 1.0 + EPSILON(OnePlusEps)   ! The number slighty greater than unity in the precision of ReKi.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-!bjj NWTC_LIBRARY:REAL(ReKi), PARAMETER        :: RPM2RPS           = 0.10471976                  ! Factor to convert revolutions per minute to radians per second.
 REAL(ReKi), SAVE             :: YawRateCom_SAVE   = 0.0                         ! Commanded nacelle-yaw angular rate (demand yaw rate) (rad/s).
 
 INTEGER(4)                   :: aviFAIL                                         ! A flag used to indicate the success of the DLL call as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message
@@ -291,7 +277,6 @@ CHARACTER( 256)              :: cInFile                                         
 CHARACTER( 256)              :: cMessage                                        ! CHARACTER string giving a message that will be displayed by the calling program if aviFAIL <> 0.
 CHARACTER(1024)              :: cOutName                                        ! CHARACTER string giving the simulation run name without extension.
 
-!bjj chg: LOGICAL(1), SAVE             :: FirstPas          = .TRUE.                      ! When .TRUE., indicates we're on the first pass.
 LOGICAL,    SAVE             :: FirstPas          = .TRUE.                      ! When .TRUE., indicates we're on the first pass.
 
 TYPE (DLL_Type),POINTER,SAVE :: DLL_Pntr                                        ! The DLL pointer.
@@ -331,18 +316,11 @@ ENDIF
    !   sure we don't call the DLL master controller more than once per time
    !   step (all subsequent calls to this routine after the first one will
    !   use the SAVEd values from the first call of the time step):
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Scale the value of AllOuts(Time) by OnePlusEps to ensure that the
-!jmj   contoller is called at every time step when DTCntrl = DT, even in the
-!jmj    presence of numerical precision errors:
-!remove6.02a
-!remove6.02aIF ( ( AllOuts(Time) - LastTime ) >= DTCntrl )  THEN ! Make sure time has incremented a time step.
    ! NOTE: AllOuts(Time) is scaled by OnePlusEps to ensure that the controller
    !       is called at every time step when DTCntrl = DT, even in the presence
    !       of numerical precision errors.
 
 IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure time has incremented a controller time step.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Initialize the avrSWAP array to zero:
@@ -396,12 +374,8 @@ IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure ti
    avrSWAP(11) = BlPitchCom_SAVE(1)                      ! Current demanded pitch angle (rad  ) -- I am sending the value for blade 1, in the absence of any more information provided in Bladed documentation
    avrSWAP(12) = 0.0                                     ! Current demanded pitch rate  (rad/s) -- always zero for FAST
    avrSWAP(13) = GenPwr_Dem                              ! Demanded power (W)
-!bjj start of proposed change - FIX CONVERSION ERROR!
-!rm   avrSWAP(14) = AllOuts(   RotPwr)*0.001                ! Measured shaft power (W)
-!rm   avrSWAP(15) = AllOuts(   GenPwr)*0.001                ! Measured electrical power output (W)
    avrSWAP(14) = AllOuts(   RotPwr)*1000.                ! Measured shaft power (W)
    avrSWAP(15) = AllOuts(   GenPwr)*1000.                ! Measured electrical power output (W)
-!bjj end of proposed change
    IF ( N == 0 )  THEN  ! Torque-speed table look-up not selected
       avrSWAP(16) = Gain_OM                              ! Optimal mode gain (Nm/(rad/s)^2)
    ELSE                 ! Torque-speed table look-up selected
@@ -413,10 +387,7 @@ IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure ti
    avrSWAP(20) = AllOuts(  HSShftV)*RPM2RPS              ! Measured generator speed (rad/s)
    avrSWAP(21) = AllOuts(LSSTipVxa)*RPM2RPS              ! Measured rotor speed (rad/s)
    avrSWAP(22) = GenTrq_Dem                              ! Demanded generator torque (Nm)
-!bjj start of proposed change - FIX CONVERSION ERROR!
-!rm   avrSWAP(23) = AllOuts(    GenTq)*0.001                ! Measured generator torque (Nm)
    avrSWAP(23) = AllOuts(    GenTq)*1000.                ! Measured generator torque (Nm)
-!bjj end of proposed change
    avrSWAP(24) = AllOuts(NacYawErr)*D2R                  ! Measured yaw error (rad)
    IF ( N == 0 )  THEN  ! Torque-speed table look-up not selected
       avrSWAP(25) = 0.0                                  ! Start of below-rated torque-speed look-up table (record no.) -- 0.0 indicates that torque-speed table look-up is not selected
@@ -428,14 +399,9 @@ IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure ti
    avrSWAP(27) = AllOuts( HorWindV)                      ! Hub wind speed (m/s)
    avrSWAP(28) = Ptch_Cntrl                              ! Pitch control: 0 = collective, 1 = individual (-)
    avrSWAP(29) = 0.0                                     ! Yaw control: 0 = yaw rate control, 1 = yaw torque control (-) -- must be 0 for FAST
-!bjj start of proposed change - FIX CONVERSION ERROR!
-!rm   avrSWAP(30) = AllOuts( RootMyc1)*0.001                ! Blade 1 root out-of-plane bending moment (Nm)
-!rm   avrSWAP(31) = AllOuts( RootMyc2)*0.001                ! Blade 2 root out-of-plane bending moment (Nm)
-!rm   avrSWAP(32) = AllOuts( RootMyc3)*0.001                ! Blade 3 root out-of-plane bending moment (Nm)
    avrSWAP(30) = AllOuts( RootMyc1)*1000.                ! Blade 1 root out-of-plane bending moment (Nm)
    avrSWAP(31) = AllOuts( RootMyc2)*1000.                ! Blade 2 root out-of-plane bending moment (Nm)
    avrSWAP(32) = AllOuts( RootMyc3)*1000.                ! Blade 3 root out-of-plane bending moment (Nm)
-!bjj end of proposed change
    avrSWAP(33) = AllOuts(PtchPMzc2)*D2R                  ! Blade 2 pitch angle (rad)
    avrSWAP(34) = AllOuts(PtchPMzc3)*D2R                  ! Blade 3 pitch angle (rad)
    avrSWAP(35) = GenState_SAVE                           ! Generator contactor (-)
@@ -461,17 +427,6 @@ IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure ti
    avrSWAP(64) = 0.0                                     ! Max. number of characters which can be returned in "OUTNAME" (-) -- must be 0 for FAST
 ! Record 65 is the number of variables returned for logging by the DLL [see the lines of code after the CALL to DISCON()]
 ! Records 66-68 are reserved
-!bjj start of proposed change - FIX CONVERSION ERROR!
-!rm   avrSWAP(69) = AllOuts( RootMxc1)*0.001                ! Blade 1 root in-plane bending moment (Nm)
-!rm   avrSWAP(70) = AllOuts( RootMxc2)*0.001                ! Blade 2 root in-plane bending moment (Nm)
-!rm   avrSWAP(71) = AllOuts( RootMxc3)*0.001                ! Blade 3 root in-plane bending moment (Nm)
-!rm! Record 72 is the generator start-up resistance returned by the DLL [see the lines of code after the CALL to DISCON()]
-!rm   avrSWAP(73) = AllOuts(LSSTipMya)*0.001                ! Rotating hub My (GL co-ords) (Nm)
-!rm   avrSWAP(74) = AllOuts(LSSTipMza)*0.001                ! Rotating hub Mz (GL co-ords) (Nm)
-!rm   avrSWAP(75) = AllOuts(LSSTipMys)*0.001                ! Fixed hub My (GL co-ords) (Nm)
-!rm   avrSWAP(76) = AllOuts(LSSTipMzs)*0.001                ! Fixed hub Mz (GL co-ords) (Nm)
-!rm   avrSWAP(77) = AllOuts( YawBrMyn)*0.001                ! Yaw bearing My (GL co-ords) (Nm)
-!rm   avrSWAP(78) = AllOuts( YawBrMzn)*0.001                ! Yaw bearing Mz (GL co-ords) (Nm)
    avrSWAP(69) = AllOuts( RootMxc1)*1000.                ! Blade 1 root in-plane bending moment (Nm)
    avrSWAP(70) = AllOuts( RootMxc2)*1000.                ! Blade 2 root in-plane bending moment (Nm)
    avrSWAP(71) = AllOuts( RootMxc3)*1000.                ! Blade 3 root in-plane bending moment (Nm)
@@ -482,7 +437,6 @@ IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure ti
    avrSWAP(76) = AllOuts(LSSTipMzs)*1000.                ! Fixed hub Mz (GL co-ords) (Nm)
    avrSWAP(77) = AllOuts( YawBrMyn)*1000.                ! Yaw bearing My (GL co-ords) (Nm)
    avrSWAP(78) = AllOuts( YawBrMzn)*1000.                ! Yaw bearing Mz (GL co-ords) (Nm)
-!bjj end of proposed change
 ! Record 79 is the request for loads returned by the DLL [see the lines of code after the CALL to DISCON()]
 ! Records 80-81 are demands returned by the DLL [see the lines of code after the CALL to DISCON()]
    avrSWAP(82) = AllOuts(NcIMURAxs)*D2R                  ! Nacelle roll    acceleration (rad/s^2) -- this is in the shaft (tilted) coordinate system, instead of the nacelle (nontilted) coordinate system
@@ -558,51 +512,28 @@ IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure ti
    ENDDO
 
    IF (     NINT( avrSWAP( 1) ) == -1 )  THEN                           ! DLL-requested termination of the simulation
-!bjj rm/replace NWTC_Library:      CALL WrScr ( ' STOP requested by '//TRIM(DLL_FileName)//': '   , '(A)' )
       CALL WrScr ( 'STOP requested by '//TRIM(DLL_FileName)//': ' )
       CALL ProgAbort       ( cMessage                                                  )
    ELSEIF ( aviFAIL < 0 )  THEN                                         ! Error in DLL; ProgAbort program
-!bjj rm/replace NWTC_Library:      CALL WrScr ( ' ERROR message from '//TRIM(DLL_FileName)//': '  , '(A)' )
       CALL WrScr ( 'ERROR message from '//TRIM(DLL_FileName)//': ' )
       CALL ProgAbort       ( cMessage                                                  )
    ELSEIF ( aviFAIL > 0 )  THEN                                         ! Write warning message to screen
       CALL WrScr ( 'WARNING message from '//TRIM(DLL_FileName)//': ' )
       CALL WrScr ( cMessage                                           )
-!bjj start of proposed change
-!I'm writing a blank line here so that WrOver() in SimStatus doesn't make it look so strange
+!Writing a blank line here so that WrOver() in SimStatus doesn't make it look so strange
    CALL WrScr( ' ' )
-!bjj end of proposed change
    ELSEIF ( ( GenState_SAVE /= 0 ) .AND. ( GenState_SAVE /= 1 ) )  THEN ! Generator contactor indicates something other than off or main; abort program
-!bjj start of proposed change  (removed DynProg and replace with ProgName)
-!rm      CALL ProgAbort ( ' Only off and main generators supported in '//TRIM( DynProg )//'.  Set avrSWAP(35) to 0 or 1 in '//    &
-!rm                                                                                                   TRIM(DLL_FileName)//'.'      )
       CALL ProgAbort ( ' Only off and main generators supported in '//TRIM( ProgName )//'.  Set avrSWAP(35) to 0 or 1 in '//    &
                                                                                                    TRIM(DLL_FileName)//'.'      )
-!bjj end of proposed change
    ELSEIF ( ( BrkState_SAVE /= 0 ) .AND. ( BrkState_SAVE /= 1 ) )  THEN ! Shaft brake status specified incorrectly; abort program
-!bjj start of proposed change  (removed DynProg and replace with ProgName)
-!rm      CALL ProgAbort ( ' Shaft brake status improperly set in '//TRIM( DynProg )//'.  Set avrSWAP(36) to 0 or 1 in '//    &
-!rm                                                                                              TRIM(DLL_FileName)//'.'           )
       CALL ProgAbort ( ' Shaft brake status improperly set in '//TRIM( ProgName )//'.  Set avrSWAP(36) to 0 or 1 in '//    &
                                                                                               TRIM(DLL_FileName)//'.'           )
-!bjj end of proposed change
    ELSEIF ( NINT( avrSWAP(55) ) /=  0 )  THEN                           ! Pitch  override requested by DLL; abort program
-!bjj start of proposed change  (removed DynProg and replace with ProgName)
-!jmj Correct this error message:
-!rm      CALL ProgAbort ( ' Pitch override unsupported in '//TRIM( DynProg )//'.  Set avrSWAP(55) to 0 in '//TRIM(DLL_FileName)//'.'   )
       CALL ProgAbort ( ' Built-in pitch unsupported in '//TRIM( ProgName )//'.  Set avrSWAP(55) to 0 in '//TRIM(DLL_FileName)//'.' )
-!bjj end of proposed change
    ELSEIF ( NINT( avrSWAP(56) ) /=  0 )  THEN                           ! Torque override requested by DLL; abort program
-!bjj start of proposed change  (removed DynProg and replace with ProgName)
-!jmj Correct this error message:
-!rm      CALL ProgAbort ( ' Torque override unsupported in '//TRIM( DynProg )//'.  Set avrSWAP(56) to 0 in '//TRIM(DLL_FileName)//'.'  )
       CALL ProgAbort ( ' Built-in torque unsupported in '//TRIM( ProgName )//'.  Set avrSWAP(56) to 0 in '//TRIM(DLL_FileName)//'.')
-!bjj end of proposed change
    ELSEIF ( NINT( avrSWAP(65) ) /=  0 )  THEN                           ! Return variables for logging requested by DLL; abort program
-!bjj start of proposed change  (removed DynProg and replace with ProgName)
-!rm      CALL ProgAbort ( ' Return variables unsupported in '//TRIM( DynProg )//'.  Set avrSWAP(65) to 0 in '//TRIM(DLL_FileName)//'.' )
       CALL ProgAbort( ' Return variables unsupported in '//TRIM( ProgName )//'.  Set avrSWAP(65) to 0 in '//TRIM(DLL_FileName)//'.')
-!bjj end of proposed change
    ENDIF
 
 
@@ -641,7 +572,6 @@ SUBROUTINE PitchCntrl ( BlPitch, ElecPwr, HSS_Spd, GBRatio, TwrAccel, NumBl, ZTi
    !   turn, contains a call to the Bladed-style DLL.
 
 
-!bjj rm NWTC_Library: USE                             Precision
 USE                           NWTC_Library
 
 
@@ -691,7 +621,6 @@ SUBROUTINE UserHSSBr ( GenTrq, ElecPwr, HSS_Spd, GBRatio, NumBl, ZTime, DT, DirR
    !   turn, contains a call to the Bladed-style DLL.
 
 
-!bjj rm NWTC_Library: USE                             Precision
 USE                           NWTC_Library
 
 
@@ -723,12 +652,7 @@ REAL(ReKi)                   :: YawRateCom                                      
 
    ! Call the DLL interface routine to get HSSBrFrac:
 
-!jmj Start of proposed change.  v6.10d-jmj  13-Aug-2009.
-!jmj Bug fix: We should be using the dummy GenTorq variable here instead of
-!jmj   GenTrq:
-!remove6.10dCALL BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTrq, YawRateCom )
 CALL BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTorq, YawRateCom )
-!jmj End of proposed change.  v6.10d-jmj  13-Aug-2009.
 
 
 
@@ -746,7 +670,6 @@ SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, D
    !   Bladed-style DLL.
 
 
-!bjj rm NWTC_Library: USE                             Precision
 USE                           NWTC_Library
 
 
@@ -813,7 +736,6 @@ SUBROUTINE UserYawCont ( YawPos, YawRate, WindDir, YawError, NumBl, ZTime, DT, D
 
 
 USE                             Output
-!bjj rm NWTC_Library: USE                             Precision
 
 
 IMPLICIT                        NONE
@@ -843,7 +765,6 @@ REAL(ReKi)                   :: HSSBrFrac                                       
 REAL(ReKi), SAVE             :: LastTime                                        ! The simulation time at the end of the last call to this routine, sec.
 REAL(ReKi), SAVE             :: LastYawPosCom                                   ! Commanded nacelle-yaw angular position (demand yaw angle) computed during the lass call to this routine, rad.
 
-!bjj chg: LOGICAL(1), SAVE             :: FirstPas          = .TRUE.                      ! When .TRUE., indicates we're on the first pass.
 LOGICAL,    SAVE             :: FirstPas          = .TRUE.                      ! When .TRUE., indicates we're on the first pass.
 
 

@@ -1,12 +1,9 @@
-!BJJ Start of proposed change vXX NWTC_Lib
 MODULE FASTSubs
 
    USE   NWTC_Library
 
 CONTAINS
-!bjj end of proposed change
 
-!JASON: PUT ALL SUBROUTINES IN A MODULE--ONE MODULE PER SOURCE FILE.
 !=======================================================================
 SUBROUTINE Alloc
 
@@ -28,9 +25,7 @@ USE                             Tower
 USE                             TurbConf
 USE                             TurbCont
 
-!bjj start of proposed change vXX
 USE                             NOISE !AllocNoise
-!bjj end of proposed change
 
 IMPLICIT                        NONE
 
@@ -43,7 +38,6 @@ INTEGER(4)                   :: Sttus                                           
 
    ! Allocate some arrays:
 
-!BJJ CHECK FOR ALLOCATED HERE;  DO WE NEED TO RE-INITIALIZE IF THEY ARE ALLOCATED?
 IF (.NOT. ALLOCATED( BlPitchFrct ) ) THEN
    ALLOCATE ( BlPitchFrct(NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
@@ -397,25 +391,18 @@ IF (.NOT. ALLOCATED( LinAccETt ) ) THEN
    ENDIF
 ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
 ALLOCATE ( AngAccEFt(TwrNodes,3) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the AngAccEFt array.' )
 ENDIF
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
-!bjj start of proposed change - aerodyn loops
 IF (.NOT. ALLOCATED( LinVelESm2 ) ) THEN
    ALLOCATE ( LinVelESm2(NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the LinVelESm2 array.' )
    ENDIF
 ENDIF
-!bjj end of proposed change
 
 IF (.NOT. ALLOCATED( FrcS0B ) ) THEN
    ALLOCATE ( FrcS0B(NumBl,3) , STAT=Sttus )
@@ -1043,46 +1030,25 @@ SUBROUTINE CalcOuts
 
 
 USE                             Blades
-!bjj rm NWTC_Library: USE                             Constants
 USE                             CoordSys
 USE                             DOFs
 USE                             DriveTrain
 USE                             EnvCond
 USE                             Features
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 USE                             FloatingPlatform, ONLY:AnchorTension, FairleadTension
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 USE                             Linear
 USE                             MassInert
 USE                             Output
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 USE                             Platform
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-!bjj rm NWTC_Library: USE                             Precision
 USE                             RtHndSid
 USE                             SimCont
 USE                             TailAero
 USE                             Tower
 USE                             TurbConf
 USE                             TurbCont
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for outputting the incident wave elevation at
-!jmj   the platform reference point and the incident wave kinematics at up to 9
-!jmj   nodes along the undeflected tower [not floating] or undisplaced platform
-!jmj   [floating]:
 USE                             Waves, ONLY:WaveElevation, WaveVelocity, WaveAcceleration
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
-!BJJ Start of proposed change AD_v12.70
 USE                             AeroDyn
-!USE                             AeroSubs, ONLY: GetHubWind
-!BJJ End of proposed change
 
 
 IMPLICIT                        NONE
@@ -1090,31 +1056,20 @@ IMPLICIT                        NONE
 
    ! Local variables:
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 REAL(ReKi)                   :: AnchTe                                          ! Instantaneous effective tension in a mooring line at the anchor   (N  )
 REAL(ReKi)                   :: AnchTeAng                                       ! Instantaneous vertical angle    of a mooring line at the anchor   (rad)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 REAL(ReKi)                   :: AngAccEB  (3)                                   ! Angular acceleration of the base plate                                                (body B) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngAccER  (3)                                   ! Angular acceleration of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngAccEX  (3)                                   ! Angular acceleration of the platform                                                  (body X) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: ComDenom                                        ! Common denominator used in several expressions.
 REAL(ReKi)                   :: CThrstys                                        ! Estimate of the ys-location of the center of thrust.
 REAL(ReKi)                   :: CThrstzs                                        ! Estimate of the zs-location of the center of thrust.
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 REAL(ReKi)                   :: FairTe                                          ! Instantaneous effective tension in a mooring line at the fairlead (N  )
 REAL(ReKi)                   :: FairTeAng                                       ! Instantaneous vertical angle    of a mooring line at the fairlead (rad)
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 REAL(ReKi)                   :: FrcONcRt  (3)                                   ! Total force at the yaw bearing (point O  ) due to the nacelle, generator, and rotor.
 REAL(ReKi)                   :: FrcPRot   (3)                                   ! Total force at the teeter pin  (point P  ) due to the rotor.
 REAL(ReKi)                   :: FrcT0Trb  (3)                                   ! Total force at the base of flexible portion of the tower (point T(0)) due to the entire wind turbine.
 REAL(ReKi)                   :: FZHydro   (3)                                   ! Total platform hydrodynamic force at the platform reference (point Z).
-!bjj rm unused:REAL(ReKi)                   :: HalfLngth                                       ! 1/2 the length of the element with the strain gage.
 REAL(ReKi)                   :: HHWndVec  (3)                                   ! Hub-height wind vector in the AeroDyn coordinate system.
 REAL(ReKi)                   :: LinAccEIMU(3)                                   ! Total linear acceleration of the nacelle IMU (point IMU) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: LinAccEO  (3)                                   ! Total linear acceleration of the base plate (point O) in the inertia frame (body E for earth).
@@ -1139,13 +1094,8 @@ INTEGER(4)                   :: I                                               
 INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
 INTEGER(4)                   :: K                                               ! Loops through blades.
 
-!bjj start of proposed change v13.00b
 INTEGER                      :: ErrStat
-!bjj end of proposed change
 
-   ! Global functions:
-
-!bjj rm, replace with DOT_PRODUCT(): REAL(ReKi), EXTERNAL         :: DotProd                                         ! A function returning the dot product of two vectors.
 
 
 
@@ -1216,23 +1166,6 @@ DO K = 1,NumBl ! Loop through all blades
       MomH0B  (K,        :) = MomH0B  (K,        :) + PMomH0B  (K,        PSE(K,I),  :)*QD2T(PSE(K,I))
    ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
-!remove6.02b
-!remove6.02b   IF ( K == 1 )  THEN  ! If blade 1
-!remove6.02b
-!remove6.02b      DO J = 1,BldNodes ! Loop through the blade nodes / elements
-!remove6.02b
-!remove6.02b         LinAccES(K,J,:) = LinAccESt(K,J,:)
-!remove6.02b
-!remove6.02b         DO I = 1,NPSE(K)  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
-!remove6.02b            LinAccES(K,J,:) = LinAccES(K,J,:) + PLinVelES(K,J,PSE(K,I),0,:)*QD2T(PSE(K,I))
-!remove6.02b         ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
-!remove6.02b
-!remove6.02b      ENDDO             ! J - Blade nodes / elements
-!remove6.02b
-!remove6.02b   ENDIF                ! Blade 1
    DO J = 1,BldNodes ! Loop through the blade nodes / elements
 
       LinAccES(K,J,:) = LinAccESt(K,J,:)
@@ -1242,7 +1175,6 @@ DO K = 1,NumBl ! Loop through all blades
       ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
    ENDDO             ! J - Blade nodes / elements
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 ENDDO          ! K - All blades
 
@@ -1289,10 +1221,7 @@ IF ( CompAero )  THEN   ! AeroDyn has been used
 
    ! Wind Motions:
 
-!bjj start of proposed change ad v13.00b
-!rm   CALL GetHubWind( HHWndVec )
    HHWndVec(:) = AD_GetUndisturbedWind( ZTime, (/REAL(0.0, ReKi), REAL(0.0, ReKi), FASTHH /), ErrStat )
-!bjj end of proposed change
 
    AllOuts(  WindVxi) = HHWndVec(1)
    AllOuts(  WindVyi) = HHWndVec(2)
@@ -1318,11 +1247,6 @@ IF ( CompAero )  THEN   ! AeroDyn has been used
 
 ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for outputting the incident wave elevation at
-!jmj   the platform reference point and the incident wave kinematics at up to 9
-!jmj   nodes along the undeflected tower [not floating] or undisplaced platform
-!jmj   [floating]:
 IF ( CompHydro )  THEN  ! Hydrodynamics have been used
 
 
@@ -1433,7 +1357,6 @@ IF ( CompHydro )  THEN  ! Hydrodynamics have been used
 ENDIF
 
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Blade 1 Tip Motions:
@@ -1441,10 +1364,7 @@ ENDIF
 rSTipPSTip = rS0S(1,TipNode,:) - BldFlexL*j3(1,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
 rOSTip     = rS  (1,TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 1.
 rOSTipxn   =  DOT_PRODUCT( rOSTip, d1 )                ! Component of rOSTip directed along the xn-axis.
-!BJJ START OF PROPOSED CHANGE vXX
-!rmrOSTipyn   = -DodProd( rOSTip, d3 )                ! Component of rOSTip directed along the yn-axis.
 rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, d3 )                ! Component of rOSTip directed along the yn-axis.
-!BJJ End of proposed change
 rOSTipzn   =  DOT_PRODUCT( rOSTip, d2 )                ! Component of rOSTip directed along the zn-axis.
 
 AllOuts(  TipDxc1) = DOT_PRODUCT(            rSTipPSTip, i1(1,         :) )
@@ -1492,21 +1412,11 @@ IF ( NBlGages >= 1 )  THEN
             AllOuts(Spn4ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(4),:), n2(1,BldGagNd(4),:) )
             AllOuts(Spn4ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(4),:), n3(1,BldGagNd(4),:) )
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
-!remove6.02a            IF ( NBlGages == 5 )  THEN
             IF ( NBlGages >= 5 )  THEN
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
                AllOuts(Spn5ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(5),:), n1(1,BldGagNd(5),:) )
                AllOuts(Spn5ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(5),:), n2(1,BldGagNd(5),:) )
                AllOuts(Spn5ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(5),:), n3(1,BldGagNd(5),:) )
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
                IF ( NBlGages >= 6 )  THEN
 
                   AllOuts(Spn6ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(6),:), n1(1,BldGagNd(6),:) )
@@ -1539,7 +1449,6 @@ IF ( NBlGages >= 1 )  THEN
 
                ENDIF
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
             ENDIF
 
          ENDIF
@@ -1556,10 +1465,7 @@ ENDIF
 rSTipPSTip = rS0S(2,TipNode,:) - BldFlexL*j3(2,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 2.
 rOSTip     = rS  (2,TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 2.
 rOSTipxn   =  DOT_PRODUCT( rOSTip, d1 )                ! Component of rOSTip directed along the xn-axis.
-!bjj start of proposed change vXX
-!rmrOSTipyn   = -DodProd( rOSTip, d3 )                ! Component of rOSTip directed along the yn-axis.
 rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, d3 )                ! Component of rOSTip directed along the yn-axis.
-!bjj end of proposed change
 rOSTipzn   =  DOT_PRODUCT( rOSTip, d2 )                ! Component of rOSTip directed along the zn-axis.
 
 AllOuts(  TipDxc2) = DOT_PRODUCT(            rSTipPSTip, i1(2,         :) )
@@ -1580,9 +1486,6 @@ ELSE                          ! Tip of blade 2 is below the yaw bearing.
    AllOuts(TipClrnc2) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 2.
 ENDIF
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
 
 
    ! Blade 2 Local Span Motions:
@@ -1658,7 +1561,6 @@ IF ( NBlGages >= 1 )  THEN
    ENDIF
 
 ENDIF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 IF ( NumBl == 3 )  THEN ! 3-blader
 
@@ -1668,10 +1570,7 @@ IF ( NumBl == 3 )  THEN ! 3-blader
    rSTipPSTip = rS0S(3,TipNode,:) - BldFlexL*j3(3,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 3.
    rOSTip     = rS  (3,TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 3.
    rOSTipxn   =  DOT_PRODUCT( rOSTip, d1 )                ! Component of rOSTip directed along the xn-axis.
-!bjj start of proposed change vXX
-!rm   rOSTipyn   = -DotProd( rOSTip, d3 )                ! Component of rOSTip directed along the yn-axis.
    rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, d3 )                ! Component of rOSTip directed along the yn-axis.
-!bjj end of proposed change vXX
    rOSTipzn   =  DOT_PRODUCT( rOSTip, d2 )                ! Component of rOSTip directed along the zn-axis.
 
    AllOuts(  TipDxc3) = DOT_PRODUCT(            rSTipPSTip, i1(3,         :) )
@@ -1692,9 +1591,6 @@ IF ( NumBl == 3 )  THEN ! 3-blader
       AllOuts(TipClrnc3) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 3.
    ENDIF
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
 
 
    ! Blade 3 Local Span Motions:
@@ -1770,7 +1666,6 @@ IF ( NumBl == 3 )  THEN ! 3-blader
       ENDIF
 
    ENDIF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 ENDIF
 
@@ -1819,30 +1714,18 @@ ENDIF
 
    ! Nacelle IMU Motions:
 
-AllOuts(NcIMUTVxs) =  DOT_PRODUCT( LinVelEIMU, c1 )
-!bjj start of proposed change vXX
-!rmAllOuts(NcIMUTVys) = -DOT_PRODUCT( LinVelEIMU, c3 )
+AllOuts(NcIMUTVxs) =      DOT_PRODUCT( LinVelEIMU, c1 )
 AllOuts(NcIMUTVys) = -1.0*DOT_PRODUCT( LinVelEIMU, c3 )
-!bjj end of proposed change vXX
-AllOuts(NcIMUTVzs) =  DOT_PRODUCT( LinVelEIMU, c2 )
-AllOuts(NcIMUTAxs) =  DOT_PRODUCT( LinAccEIMU, c1 )
-!bjj start of proposed change vXX
-!rmAllOuts(NcIMUTAys) = -DOT_PRODUCT( LinAccEIMU, c3 )
+AllOuts(NcIMUTVzs) =      DOT_PRODUCT( LinVelEIMU, c2 )
+AllOuts(NcIMUTAxs) =      DOT_PRODUCT( LinAccEIMU, c1 )
 AllOuts(NcIMUTAys) = -1.0*DOT_PRODUCT( LinAccEIMU, c3 )
-!bjj end of proposed change vXX
-AllOuts(NcIMUTAzs) =  DOT_PRODUCT( LinAccEIMU, c2 )
-AllOuts(NcIMURVxs) =  DOT_PRODUCT( AngVelER  , c1 )*R2D
-!bjj start of proposed change vXX
-!rmAllOuts(NcIMURVys) = -DOT_PRODUCT( AngVelER  , c3 )*R2D
+AllOuts(NcIMUTAzs) =      DOT_PRODUCT( LinAccEIMU, c2 )
+AllOuts(NcIMURVxs) =      DOT_PRODUCT( AngVelER  , c1 )*R2D
 AllOuts(NcIMURVys) = -1.0*DOT_PRODUCT( AngVelER  , c3 )*R2D
-!bjj end of proposed change vXX
-AllOuts(NcIMURVzs) =  DOT_PRODUCT( AngVelER  , c2 )*R2D
-AllOuts(NcIMURAxs) =  DOT_PRODUCT( AngAccER  , c1 )*R2D
-!bjj start of proposed change vXX
-!rmAllOuts(NcIMURAys) = -DOT_PRODUCT( AngAccER  , c3 )*R2D
+AllOuts(NcIMURVzs) =      DOT_PRODUCT( AngVelER  , c2 )*R2D
+AllOuts(NcIMURAxs) =      DOT_PRODUCT( AngAccER  , c1 )*R2D
 AllOuts(NcIMURAys) = -1.0*DOT_PRODUCT( AngAccER  , c3 )*R2D
-!bjj end of proposed change vXX
-AllOuts(NcIMURAzs) =  DOT_PRODUCT( AngAccER  , c2 )*R2D
+AllOuts(NcIMURAzs) =      DOT_PRODUCT( AngAccER  , c2 )*R2D
 
 
    ! Rotor-Furl Motions:
@@ -1916,21 +1799,11 @@ IF ( NTwGages >= 1 )  THEN
             AllOuts(TwHt4ALyt) = -DOT_PRODUCT( LinAccET(TwrGagNd(4),:), t3(TwrGagNd(4),:) )
             AllOuts(TwHt4ALzt) =  DOT_PRODUCT( LinAccET(TwrGagNd(4),:), t2(TwrGagNd(4),:) )
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
-!remove6.02a            IF ( NTwGages == 5 )  THEN
             IF ( NTwGages >= 5 )  THEN
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
                AllOuts(TwHt5ALxt) =  DOT_PRODUCT( LinAccET(TwrGagNd(5),:), t1(TwrGagNd(5),:) )
                AllOuts(TwHt5ALyt) = -DOT_PRODUCT( LinAccET(TwrGagNd(5),:), t3(TwrGagNd(5),:) )
                AllOuts(TwHt5ALzt) =  DOT_PRODUCT( LinAccET(TwrGagNd(5),:), t2(TwrGagNd(5),:) )
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
                IF ( NTwGages >= 6 )  THEN
 
                   AllOuts(TwHt6ALxt) =     DOT_PRODUCT( LinAccET(TwrGagNd(6),:), t1(TwrGagNd(6),:) )
@@ -1963,7 +1836,6 @@ IF ( NTwGages >= 1 )  THEN
 
                ENDIF
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
             ENDIF
 
          ENDIF
@@ -1995,21 +1867,21 @@ AllOuts( PtfmTAzt) =  DOT_PRODUCT( LinAccEZ, a2 )
 AllOuts( PtfmTAxi) = QD2T(DOF_Sg  )
 AllOuts( PtfmTAyi) = QD2T(DOF_Sw  )
 AllOuts( PtfmTAzi) = QD2T(DOF_Hv  )
-AllOuts( PtfmRDxi) = QT  (DOF_R   )          *R2D
-AllOuts( PtfmRDyi) = QT  (DOF_P   )          *R2D
-AllOuts( PtfmRDzi) = QT  (DOF_Y   )          *R2D
+AllOuts( PtfmRDxi) = QT  (DOF_R   )              *R2D
+AllOuts( PtfmRDyi) = QT  (DOF_P   )              *R2D
+AllOuts( PtfmRDzi) = QT  (DOF_Y   )              *R2D
 AllOuts( PtfmRVxt) =  DOT_PRODUCT( AngVelEX, a1 )*R2D
 AllOuts( PtfmRVyt) = -DOT_PRODUCT( AngVelEX, a3 )*R2D
 AllOuts( PtfmRVzt) =  DOT_PRODUCT( AngVelEX, a2 )*R2D
-AllOuts( PtfmRVxi) = QDT (DOF_R   )          *R2D
-AllOuts( PtfmRVyi) = QDT (DOF_P   )          *R2D
-AllOuts( PtfmRVzi) = QDT (DOF_Y   )          *R2D
+AllOuts( PtfmRVxi) = QDT (DOF_R   )              *R2D
+AllOuts( PtfmRVyi) = QDT (DOF_P   )              *R2D
+AllOuts( PtfmRVzi) = QDT (DOF_Y   )              *R2D
 AllOuts( PtfmRAxt) =  DOT_PRODUCT( AngAccEX, a1 )*R2D
 AllOuts( PtfmRAyt) = -DOT_PRODUCT( AngAccEX, a3 )*R2D
 AllOuts( PtfmRAzt) =  DOT_PRODUCT( AngAccEX, a2 )*R2D
-AllOuts( PtfmRAxi) = QD2T(DOF_R   )          *R2D
-AllOuts( PtfmRAyi) = QD2T(DOF_P   )          *R2D
-AllOuts( PtfmRAzi) = QD2T(DOF_Y   )          *R2D
+AllOuts( PtfmRAxi) = QD2T(DOF_R   )              *R2D
+AllOuts( PtfmRAyi) = QD2T(DOF_P   )              *R2D
+AllOuts( PtfmRAzi) = QD2T(DOF_Y   )              *R2D
 
 
    ! Nacelle Yaw Error Estimate:
@@ -2162,13 +2034,7 @@ IF ( NBlGages >= 1 )  THEN
             AllOuts(Spn4MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(4),:) )
 
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
-!remove6.02a            IF ( NBlGages == 5 )  THEN
             IF ( NBlGages >= 5 )  THEN
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! Initialize MomMGagB using the tip brake effects:
                CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(5),:), &
@@ -2198,10 +2064,6 @@ IF ( NBlGages >= 1 )  THEN
                AllOuts(Spn5MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(5),:) )
                AllOuts(Spn5MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(5),:) )
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
 
                IF ( NBlGages >= 6 )  THEN
 
@@ -2334,7 +2196,6 @@ IF ( NBlGages >= 1 )  THEN
 
                ENDIF
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
             ENDIF
 
@@ -2360,9 +2221,6 @@ AllOuts( RootMzc2) = DOT_PRODUCT( MomH0B(2,:), i3(2,:) )
 AllOuts( RootMxb2) = DOT_PRODUCT( MomH0B(2,:), j1(2,:) )
 AllOuts( RootMyb2) = DOT_PRODUCT( MomH0B(2,:), j2(2,:) )
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
 
 
    ! Blade 2 Local Span Loads:
@@ -2662,7 +2520,6 @@ IF ( NBlGages >= 1 )  THEN
    ENDIF
 
 ENDIF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 IF ( NumBl == 3 )  THEN ! 3-blader
 
@@ -2679,9 +2536,6 @@ IF ( NumBl == 3 )  THEN ! 3-blader
    AllOuts( RootMxb3) = DOT_PRODUCT( MomH0B(3,:), j1(3,:) )
    AllOuts( RootMyb3) = DOT_PRODUCT( MomH0B(3,:), j2(3,:) )
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
 
 
    ! Blade 3 Local Span Loads:
@@ -2981,7 +2835,6 @@ IF ( NumBl == 3 )  THEN ! 3-blader
       ENDIF
 
    ENDIF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
 ENDIF
@@ -3215,13 +3068,7 @@ IF ( NTwGages >= 1 )  THEN
             AllOuts(TwHt4MLyt) = -DOT_PRODUCT( MomFGagT, t3(TwrGagNd(4),:) )
             AllOuts(TwHt4MLzt) =  DOT_PRODUCT( MomFGagT, t2(TwrGagNd(4),:) )
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
-!remove6.02a            IF ( NTwGages == 5 )  THEN
             IF ( NTwGages >= 5 )  THEN
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
                CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(5),:), &
@@ -3251,10 +3098,6 @@ IF ( NTwGages >= 1 )  THEN
                AllOuts(TwHt5MLxt) =  DOT_PRODUCT( MomFGagT, t1(TwrGagNd(5),:) )
                AllOuts(TwHt5MLyt) = -DOT_PRODUCT( MomFGagT, t3(TwrGagNd(5),:) )
                AllOuts(TwHt5MLzt) =  DOT_PRODUCT( MomFGagT, t2(TwrGagNd(5),:) )
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
 
                IF ( NTwGages >= 6 )  THEN
 
@@ -3391,7 +3234,6 @@ IF ( NTwGages >= 1 )  THEN
 
                ENDIF
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
             ENDIF
 
@@ -3419,10 +3261,6 @@ AllOuts(  PtfmMxi) =  DOT_PRODUCT( MXHydro, z1 )
 AllOuts(  PtfmMyi) = -DOT_PRODUCT( MXHydro, z3 )
 AllOuts(  PtfmMzi) =  DOT_PRODUCT( MXHydro, z2 )
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 
 
 IF ( CompHydro )  THEN  ! Hydrodynamics have been used
@@ -3531,7 +3369,6 @@ IF ( CompHydro )  THEN  ! Hydrodynamics have been used
 
 
 ENDIF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
    ! Place the selected output channels into the OutData(:) array with
@@ -3578,7 +3415,6 @@ USE                             Features
 USE                             InitCond
 USE                             MassInert
 USE                             Modes
-!bjj rm NWTC_Library: USE                             Precision
 USE                             Tower
 USE                             TurbConf
 
@@ -3626,7 +3462,6 @@ INTEGER(4)                   :: Sttus                                           
 
 
    ! ALLOCATE some local arrays:
-!BJJ CHECK ALLOCATION:
 Sttus = 0.0
 
 IF (.NOT. ALLOCATED( FMomAbvNd )) ALLOCATE ( FMomAbvNd(NumBl,BldNodes) , STAT=Sttus )
@@ -4242,10 +4077,8 @@ ENDDO
 TurbMass  = TwrTpMass + TwrMass
 TotalMass = TurbMass + PtfmMass
 
-!bjj start of proposed change
    ! deallocate local variables:
 
-!BJJ CHECK ALLOCATION:
 IF (ALLOCATED( FMomAbvNd )) DEALLOCATE ( FMomAbvNd )
 IF (ALLOCATED( KBECent   )) DEALLOCATE ( KBECent   )
 IF (ALLOCATED( KBFCent   )) DEALLOCATE ( KBFCent   )
@@ -4253,7 +4086,6 @@ IF (ALLOCATED( MBE       )) DEALLOCATE ( MBE       )
 IF (ALLOCATED( MBF       )) DEALLOCATE ( MBF       )
 IF (ALLOCATED( TMssAbvNd )) DEALLOCATE ( TMssAbvNd )
 
-!BJJ end of proposed change
 
 RETURN
 END SUBROUTINE Coeff
@@ -4271,17 +4103,13 @@ USE                             Features
 USE                             General
 USE                             InitCond
 USE                             NacelleYaw
-!bjj rm NWTC_Library: USE                             Precision
 USE                             RtHndSid
 USE                             SimCont
 USE                             TurbConf
 USE                             TurbCont
 
 
-!BJJ Start of proposed change AD_v12.70
 USE                             AeroDyn
-!USE                             AeroSubs, ONLY: GetHubWind
-!BJJ End of proposed change
 
 IMPLICIT                        NONE
 
@@ -4299,18 +4127,11 @@ REAL(ReKi)                   :: YawError                                        
 INTEGER(4)                   :: I                                               ! Generic index
 INTEGER(4)                   :: K                                               ! Loops through blades.
 
-!bjj start of proposed change ad v13.00b
 INTEGER                      :: ErrStat
-!bjj end of proposed change
 
 
-!bjj chg: LOGICAL(1), SAVE             :: BegYawMan = .TRUE.                              ! .TRUE. before the override yaw manuever has begun (begin yaw manuever).
 LOGICAL,    SAVE             :: BegYawMan = .TRUE.                              ! .TRUE. before the override yaw manuever has begun (begin yaw manuever).
 
-
-   ! Global functions:
-
-!bjj rm DOT_PROD: REAL(ReKi), EXTERNAL         :: DotProd                                         ! A function returning the dot product of two vectors.
 
 
 
@@ -4349,10 +4170,7 @@ IF ( ZTime >= TYCOn )  THEN   ! Time now to enable active yaw control.
 
       IF ( CompAero )  THEN   ! AeroDyn has been used.
 
-!bjj start of proposed change ad v13.00b
-!rm         CALL GetHubWind( HHWndVec )
          HHWndVec(:) = AD_GetUndisturbedWind( ZTime, (/ REAL(0.0, ReKi), REAL(0.0, ReKi), FASTHH /), ErrStat )
-!bjj end of proposed change
 
          WindDir  = ATAN2( HHWndVec(2), HHWndVec(1) )
          YawError = WindDir - QT(DOF_Yaw) - QT(DOF_Y)
@@ -4564,7 +4382,6 @@ SUBROUTINE CrossProd(VecResult, Vector1, Vector2)
    ! VecResult = Vector1 X Vector2 (resulting in a vector)
 
 
-!bjj rm NWTC_Library: USE                             Precision
 
 IMPLICIT NONE
 
@@ -4584,36 +4401,6 @@ VecResult(3) = Vector1(1)*Vector2(2) - Vector1(2)*Vector2(1)
 RETURN
 END SUBROUTINE CrossProd
 !=======================================================================
-!bjj start of proposed change
-!rmFUNCTION DotProd(Vector1,Vector2)
-!rm!JASON: REPLACE THIS WITH INTRINSIC DOT_PRODUCT()
-!rm
-!rm   ! DotProd = Vector1 Dot Vector2 (resulting in a scalar)
-!rm
-!rm
-!rm!bjj rm NWTC_Library: USE                             Precision
-!rm
-!rm
-!rmIMPLICIT NONE
-!rm
-!rm
-!rm!rm   ! Passed variables:
-!rm
-!rmREAL(ReKi)                   :: DotProd
-!rmREAL(ReKi), INTENT(IN )      :: Vector1   (3)
-!rmREAL(ReKi), INTENT(IN )      :: Vector2   (3)
-!rm
-!rm
-!rmDotProd = Vector1(1)*Vector2(1) + &
-!rm          Vector1(2)*Vector2(2) + &
-!rm          Vector1(3)*Vector2(3)
-!rm
-!rm
-!rm
-!rmRETURN
-!rmEND FUNCTION DotProd
-!bjj end of proposed change
-!=======================================================================
 SUBROUTINE DrvTrTrq ( LSS_Spd, GBoxTrq )
 
 
@@ -4623,7 +4410,6 @@ SUBROUTINE DrvTrTrq ( LSS_Spd, GBoxTrq )
 USE                             DriveTrain
 USE                             General
 USE                             Linear
-!bjj rm NWTC_Library: USE                             Precision
 USE                             SimCont
 USE                             TurbConf
 USE                             TurbCont
@@ -4652,9 +4438,7 @@ REAL(ReKi)                   :: PwrMech                                         
 REAL(ReKi)                   :: Slip                                            ! Generator slip.
 REAL(ReKi)                   :: SlipRat                                         ! Generator slip ratio.
 
-!bjj chg: LOGICAL(1), SAVE             :: GenOnLin = .FALSE.                              ! Is the generator online?
 LOGICAL,    SAVE             :: GenOnLin = .FALSE.                              ! Is the generator online?
-!bjj chg: LOGICAL(1), SAVE             :: Off4Good = .FALSE.                              ! Is the generator offline for good?
 LOGICAL,    SAVE             :: Off4Good = .FALSE.                              ! Is the generator offline for good?
 
 
@@ -4906,13 +4690,8 @@ USE                             Switch
 
 USE                             DOFs
 USE                             DriveTrain
-!bjj rm NWTC_Library: USE                             Precision
 USE                             RtHndSid
 USE                             SimCont
-!bjj Start of proposed change vXX-NWTC_Library
-!rmUSE                             SysSubs
-!USE                             FAST_SysSubs
-!bjj Start of proposed change vXX-NWTC_Library
 
 
 IMPLICIT                        NONE
@@ -4929,7 +4708,6 @@ REAL(ReKi)                   :: RqdFrcGeAz                                      
 REAL(ReKi)                   :: RqdQD2GeAz                                      ! The required QD2T(DOF_GeAz) to cause the HSS to stop rotating.
 
 INTEGER(4)                   :: I                                               ! Loops through all DOFs.
-!bjj rm unused:INTEGER(4)                   :: Sttus                                           ! Status returned from an attempt to allocate an array.
 
 
 
@@ -5118,7 +4896,6 @@ ENDIF
 
 RETURN
 END SUBROUTINE FixHSSBrTq
-!bjj start of proposed change
 !=======================================================================
 SUBROUTINE FAST_Terminate( ErrStat )
 ! This subroutine is called at program termination.  It deallocates variables and closes files.
@@ -5161,9 +4938,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(ADAeroLoads%Tower                  ) ) DEALLOCATE(ADAeroLoads%Tower                  )
    IF ( ALLOCATED(ADAeroLoads%Tail                   ) ) DEALLOCATE(ADAeroLoads%Tail                   )
    
-!   IF ( ALLOCATED(ADCurrentTurbineState%AzimuthAngle ) ) DEALLOCATE(ADCurrentTurbineState%AzimuthAngle )
-!   IF ( ALLOCATED(ADCurrentTurbineState%ElementPitch ) ) DEALLOCATE(ADCurrentTurbineState%ElementPitch )
-!   IF ( ALLOCATED(ADCurrentTurbineState%RLocal       ) ) DEALLOCATE(ADCurrentTurbineState%RLocal       )
    IF ( ALLOCATED(ADIntrfaceOptions%SetMulTabLoc     ) ) DEALLOCATE(ADIntrfaceOptions%SetMulTabLoc     )
    IF ( ALLOCATED(ADIntrfaceOptions%MulTabLoc        ) ) DEALLOCATE(ADIntrfaceOptions%MulTabLoc        )
    
@@ -5487,7 +5261,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
 
 END SUBROUTINE FAST_Terminate
-!bjj end of proposed change
 !=======================================================================
 SUBROUTINE Gauss( AugMatIn, NumEq, SolnVec )
 
@@ -5500,7 +5273,6 @@ SUBROUTINE Gauss( AugMatIn, NumEq, SolnVec )
    !   IS preserved in this call.
 
 
-!bjj rm NWTC_Library: USE                             Precision
 
 IMPLICIT                        NONE
 
@@ -5569,11 +5341,6 @@ SUBROUTINE InitBlDefl ( K, InitQF1, InitQF2, InitQE1 )
 USE                             Blades
 USE                             Features
 USE                             InitCond
-!bjj rm NWTC_Library: USE                             Precision
-!bjj Start of proposed change vXX-NWTC_Library
-!rmUSE                             SysSubs
-!USE                             FAST_SysSubs
-!bjj Start of proposed change vXX-NWTC_Library
 USE                             TurbCont
 
 IMPLICIT                        NONE
@@ -5867,122 +5634,36 @@ SUBROUTINE Initialize
    !       the (L)th DOF acceleration is zero.
 
 
-!bjj rm NWTC_Library: USE                             Constants
 USE                             DOFs
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 USE                             EnvCond
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 USE                             Features
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 USE                             FloatingPlatform, ONLY:InitFltngPtfmLd
 USE                             General
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 USE                             InitCond
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 USE                             Output
 USE                             Platform
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-
-!bjj rm NWTC_Library: USE                             Precision
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 USE                             SimCont
 USE                             Tower
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-
 USE                             TurbConf
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 USE                             Waves, ONLY:InitWaves
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 IMPLICIT                        NONE
 
 
    ! Local variables:
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
 REAL(ReKi), ALLOCATABLE      :: DZNodesPtfm(:)                                  ! Length of variable-length support platform elements (meters)
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 REAL(ReKi)                   :: InitQE1                                         ! Initial value of the 1st blade edge DOF
 REAL(ReKi)                   :: InitQF1                                         ! Initial value of the 1st blade flap DOF
 REAL(ReKi)                   :: InitQF2                                         ! Initial value of the 2nd blade flap DOF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 REAL(ReKi), ALLOCATABLE      :: WaveKinzi0 (:)                                  ! zi-coordinates for points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed; these are relative to the mean see level (meters)
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 INTEGER(4)                   :: I                                               ! Loops through all DOFs.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 INTEGER(4)                   :: K                                               ! Loops through blades.
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 INTEGER(4)                   :: NWaveKin0                                       ! Number of points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed (-)
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-
-
 INTEGER(4)                   :: Sttus                                           ! Status returned by an attempted allocation.
-
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
 
 
 
@@ -6328,14 +6009,6 @@ DOF_FlagInit = DOF_Flag
 
 CALL SetEnabledDOFIndexArrays
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
    ! Initialize the variables associated with the incident waves and
    !   hydrodynamic loading, if necessary:
 
@@ -6426,32 +6099,21 @@ ELSEIF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN   ! .TRUE. if we have floati
                           CurrNSV0  , CurrNSDir , CurrDIV    , CurrDIDir, &
                           NWaveKin0 , WaveKinzi0, DZNodesPtfm, NWaveElev, &
                           WaveElevxi, WaveElevyi, Gravity    , DirRoot      )
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
-!remove6.02b   CALL InitFltngPtfmLd ( WAMITFile , PtfmVol0  , PtfmDiam   , PtfmCD   , &
-!remove6.02b                          RdtnTMax  , RdtnDT                                )
    CALL InitFltngPtfmLd ( WAMITFile , PtfmVol0  , PtfmDiam   , PtfmCD   , &
                           RdtnTMax  , RdtnDT    , NumLines   , LineMod  , &
                           LAnchxi   , LAnchyi   , LAnchzi    , LFairxt  , &
                           LFairyt   , LFairzt   , LUnstrLen  , LDiam    , &
                           LMassDen  , LEAStff   , LSeabedCD  , LTenTol  , &
                           LineNodes , LSNodes   , Q(1:6,1)                  )
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
-!bjj start of proposed change V6.02D-BJJ
    IF (ALLOCATED( DZNodesPtfm ) ) DEALLOCATE( DZNodesPtfm )
    IF (ALLOCATED( WaveKinzi0 ) )  DEALLOCATE( WaveKinzi0 )
-!bjj end of proposed change
 
 
 ENDIF
 
 
 
-
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 RETURN
 END SUBROUTINE Initialize
@@ -6462,22 +6124,9 @@ SUBROUTINE PtfmLoading
    ! This routine computes the platform loading; that is PtfmAM(1:6,1:6)
    !   and PtfmFt(1:6).
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, remove the reference to an unUSEd MODULE:
-!remove6.02aUSE                             DOFs
 USE                             FloatingPlatform, ONLY:FltngPtfmLd
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 USE                             General
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Rename MODULE PlatformLd() to Platform():
-!remove6.02aUSE                             PlatformLd
 USE                             Platform
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-!bjj rm NWTC_Library: USE                             Precision
 USE                             RtHndSid
 USE                             SimCont
 
@@ -6493,44 +6142,6 @@ INTEGER(4)                   :: J                                               
 
 
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!remove6.02aSELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
-!remove6.02a
-!remove6.02aCASE ( 0 )                 ! None!
-!remove6.02a
-!remove6.02a
-!remove6.02a   ! Do nothing here since PtfmAM and PtfmFt are all initialized to zero.
-!remove6.02a
-!remove6.02a
-!remove6.02aCASE ( 1 )                 ! User-defined platform loading.
-!remove6.02a
-!remove6.02a
-!remove6.02a   ! CALL the user-defined platform loading model:
-!remove6.02a
-!remove6.02a   CALL UserPtfmLd ( QT(1:6), QDT(1:6), ZTime, DirRoot, PtfmAM, PtfmFt )
-!remove6.02a
-!remove6.02a
-!remove6.02a   ! Ensure that the platform added mass matrix returned by UserPtfmLd,
-!remove6.02a   !   PtfmAM, is symmetric; Abort if necessary:
-!remove6.02a
-!remove6.02a   DO I = 1,5        ! Loop through the 1st 5 rows (columns) of PtfmAM
-!remove6.02a
-!remove6.02a      DO J = (I+1),6 ! Loop through all columns (rows) passed I
-!remove6.02a
-!remove6.02a         IF ( ABS( PtfmAM(I,J) - PtfmAM(J,I) ) > SymTol )  &
-!remove6.02a            CALL ProgAbort ( ' The user-defined platform added mass matrix is unsymmetric.'// &
-!remove6.02a                             '  Make sure PtfmAM returned by UserPtfmLd() is symmetric.'        )
-!remove6.02a
-!remove6.02a      ENDDO          ! J - All columns (rows) passed I
-!remove6.02a
-!remove6.02a   ENDDO             ! I - The 1st 5 rows (columns) of PtfmAM
-!remove6.02a
-!remove6.02a
-!remove6.02aENDSELECT
 SELECT CASE ( PtfmModel )  ! Which platform model are we using?
 
 CASE ( 0 )                 ! None!
@@ -6663,7 +6274,6 @@ CASE ( 3 )                 ! Floating offshore.
 
 
 ENDSELECT
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 RETURN
 END SUBROUTINE PtfmLoading
@@ -6676,7 +6286,6 @@ SUBROUTINE RFurling( RFrlDef, RFrlRate, RFrlMom )
 
 
 USE                             General
-!bjj rm NWTC_Library: USE                             Precision
 USE                             SimCont
 USE                             RotorFurling
 
@@ -6781,12 +6390,7 @@ USE                             InitCond
 USE                             MassInert
 USE                             NacelleYaw
 USE                             Output
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Rename MODULE PlatformLd() to Platform():
-!remove6.02aUSE                             PlatformLd
 USE                             Platform
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-!bjj rm NWTC_Library: USE                             Precision
 USE                             RtHndSid
 USE                             SimCont
 USE                             TailAero
@@ -6795,38 +6399,23 @@ USE                             Tower
 USE                             TurbConf
 USE                             TurbCont
 
-!bjj start of proposed change - aerodyn loops
 USE                             Constants
 
-!USE                             AeroDyn
-!USE                             AeroTime,     ONLY: DT, DTaero, TimFlag
-!bjj use
 
 IMPLICIT                        NONE
 
 
    ! Local variables:
 
-!bjj rm unused:REAL(ReKi)                   :: AeroForces(3)                                   ! Aerodynamic forces (2) and moment (1) per unit span returned by AeroDyn for the current blade element.
 REAL(ReKi)                   :: AngAccEAt (3)                                   ! Portion of the angular acceleration of the tail                                                      (body A) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: AngAccEGt (3)                                   ! Portion of the angular acceleration of the generator                                                 (body G) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: AngAccEHt (3)                                   ! Portion of the angular acceleration of the hub                                                       (body H) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: AngAccELt (3)                                   ! Portion of the angular acceleration of the low-speed shaft                                           (body L) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: AngAccENt (3)                                   ! Portion of the angular acceleration of the nacelle                                                   (body N) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
 REAL(ReKi)                   :: AngPosEF  (3)                                   ! Angular position of the current point on the tower (body F) in the inertial frame (body E for earth).
 REAL(ReKi)                   :: AngPosEX  (3)                                   ! Angular position of the platform                   (body X) in the inertial frame (body E for earth).
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 REAL(ReKi)                   :: AngVelEA  (3)                                   ! Angular velocity of the tail                                                      (body A) in the inertia frame (body E for earth).
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
 REAL(ReKi)                   :: AngVelEF  (3)                                   ! Angular velocity of the current point on the tower                                (body F) in the inertia frame (body E for earth).
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 REAL(ReKi)                   :: AngVelEG  (3)                                   ! Angular velocity of the generator                                                 (body G) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngVelEH  (3)                                   ! Angular velocity of the hub                                                       (body H) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngVelEL  (3)                                   ! Angular velocity of the low-speed shaft                                           (body L) in the inertia frame (body E for earth).
@@ -6862,15 +6451,11 @@ REAL(ReKi)                   :: LinAccEWt (3)                                   
 REAL(ReKi)                   :: LinAccEYt (3)                                   ! Portion of the linear acceleration of the platform center of mass                                                         (point Y) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: LinVelEK  (3)                                   ! Linear velocity of tail fin center-of-pressure        (point K) in the inertia frame.
 REAL(ReKi)                   :: LinVelES  (3)                                   ! Linear velocity of current point on the current blade (point S) in the inertia frame.
-!bjj move to RtHS mod: REAL(ReKi)                   :: LinVelESm2                                      ! The m2-component (closest to tip) of LinVelES.
 REAL(ReKi)                   :: LinVelET  (3)                                   ! Linear velocity of current point on the tower         (point T) in the inertia frame.
-!bjj start of proposed change - aerodyn loops
 REAL(ReKi)                   :: LinVelEPYaw(3) ! This is the linear velocity of the hub in the inertia frame due solely to yaw and rotor-furl effects
-!bjj end of proposed change
 REAL(ReKi)                   :: LinVelHS  (3)                                   ! Relative linear velocity of the current point on the current blade (point S) in the hub frame (body H)
 REAL(ReKi)                   :: LinVelXO  (3)                                   ! Relative linear velocity of the tower-top / base plate             (point O) in the platform  (body X).
 REAL(ReKi)                   :: LinVelXT  (3)                                   ! Relative linear velocity of the current point on the tower         (point T) in the platform  (body X).
-!bjj rm unused:REAL(ReKi)                   :: MomDrvTr                                        ! Moment resulting from torsion of the drive shaft.
 REAL(ReKi)                   :: MomLPRot  (3)                                   ! The total moment on the low-speed shaft at point P caused by the rotor.
 REAL(ReKi)                   :: PLinVelHS (3,3)                                 ! Partial  linear velocity of the current point on the current blade (point S) in the hub frame (body H) (this is like a relative partial linear velocity).
 REAL(ReKi)                   :: rAerCen   (3)                                   ! Position vector from inertial frame origin to current blade analysis node aerodynamic center.
@@ -6879,18 +6464,14 @@ REAL(ReKi)                   :: rK        (3)                                   
 REAL(ReKi)                   :: rOU       (3)                                   ! Position vector from tower-top / base plate (point O) to nacelle center of mass (point U).
 REAL(ReKi)                   :: rOV       (3)                                   ! Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V).
 REAL(ReKi)                   :: rOW       (3)                                   ! Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W).
-!bjj start of proposed change v6.02d-bjj
 REAL(ReKi)                   :: rP        (3)                                   ! Position vector from inertial frame origin to teeter pin (point P).
-!bjj end of proposed change
 REAL(ReKi)                   :: rPAerCen  (3)                                   ! Position vector from teeter pin (point P) to current blade analysis node aerodynamic center.
 REAL(ReKi)                   :: rPC       (3)                                   ! Position vector from teeter pin (point P) to hub center of mass (point C).
 REAL(ReKi)                   :: rPQ       (3)                                   ! Position vector from teeter pin (point P) to apex of rotation (point Q).
 REAL(ReKi)                   :: rPS0      (3)                                   ! Position vector from teeter pin (point P) to blade root (point S(0)).
 REAL(ReKi)                   :: rQ        (3)                                   ! Position vector from inertial frame origin to apex of rotation (point Q).
 REAL(ReKi)                   :: rQC       (3)                                   ! Position vector from apex of rotation (point Q) to hub center of mass (point C).
-!bjj start of proposed change v6.02d-bjj
 REAL(ReKi)                   :: rV        (3)                                   ! Position vector from inertial frame origin to specified point on rotor-furl axis (point V).
-!bjj end of proposed change v6.02d-bjj
 REAL(ReKi)                   :: rVD       (3)                                   ! Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D).
 REAL(ReKi)                   :: rVIMU     (3)                                   ! Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU).
 REAL(ReKi)                   :: rVP       (3)                                   ! Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P).
@@ -6898,12 +6479,7 @@ REAL(ReKi)                   :: rWI       (3)                                   
 REAL(ReKi)                   :: rWJ       (3)                                   ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J).
 REAL(ReKi)                   :: rWK       (3)                                   ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K).
 REAL(ReKi)                   :: rSAerCen  (3)                                   ! Position vector from a blade analysis node (point S) on the current blade to the aerodynamic center associated with the element.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
 REAL(ReKi)                   :: rT        (3)                                   ! Position vector from inertial frame origin to the current node (point T(HNodes(J)).
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 REAL(ReKi)                   :: rZT0      (3)                                   ! Position vector from platform reference (point Z) to tower base (point T(0)).
 REAL(ReKi)                   :: rZY       (3)                                   ! Position vector from platform reference (point Z) to platform mass center (point Y).
@@ -6923,13 +6499,8 @@ INTEGER(4)                   :: K                                               
 INTEGER(4)                   :: L                                               ! Generic index
 INTEGER(4), SAVE             :: SgnPrvLSTQ = 1                                  ! The sign of the low-speed shaft torque from the previous call to RtHS().  This is calculated at the end of RtHS().  NOTE: The low-speed shaft torque is assumed to be positive at the beginning of the run!
 
-!BJJ START of proposed change
 INTEGER                      :: ErrStat
-!bjj end of proposed change
 
-   ! Global functions:
-
-!bjj rm DOT_PRODUCT: REAL(ReKi), EXTERNAL         :: DotProd                                         ! A function returning the dot product of two vectors.
 
 
 
@@ -7010,24 +6581,15 @@ rWK   =      rWKxn*tf1 +      rWKzn*tf2 -      rWKyn*tf3                ! Positi
 rPC   = rPQ + rQC                                                       ! Position vector from teeter pin (point P) to hub center of mass (point C).
 rT0O  = rZO - rZT0                                                      ! Position vector from the tower base (point T(0)) to tower-top / base plate (point O).
 rO    = rZ  + rZO                                                       ! Position vector from inertial frame origin to tower-top / base plate (point O).
-!bjj start of proposed change v6.02d-bjj
-!rmrQ    = rO  + rOV + rVP + rPQ                                           ! Position vector from inertial frame origin to apex of rotation (point Q).
 rV    = rO  + rOV                                                       ! Position vector from inertial frame origin to specified point on rotor-furl axis (point V)
 !rP    = rO  + rOV + rVP                                                 ! Position vector from inertial frame origin to teeter pin (point P).
 rP    = rV  + rVP                                                       ! Position vector from inertial frame origin to teeter pin (point P).
 rQ    = rP  + rPQ                                                       ! Position vector from inertial frame origin to apex of rotation (point Q).
-!bjj end of proposed change
 rK    = rO  + rOW + rWK                                                 ! Position vector from inertial frame origin to tail fin center of pressure (point K).
 
-!bjj start of proposed change AeroDyn loops
-!JASON can move this to wherever he thinks his brain needs it ;-)
-
-!ADCurrentTurbineState%YawAngle     = ATAN2( c1(3), c1(1) ) ! NOTE: c1(X) = DOT_PRODUCT( c1, zX ) where X = 1,2,3
-!ADCurrentTurbineState%TiltAngle    = ATAN2( c1(2), SQRT( c1(1)*c1(1) + c1(3)*c1(3) ) )  ! NOTE: c1(X) = DOT_PRODUCT( c1, zX ) where X = 1,2,3
 
 DO K = 1,NumBl ! Loop through all blades
 
-!   ADCurrentTurbineState%AzimuthAngle(K) = QT(DOF_DrTr) + QT(DOF_GeAz) + 1.5*Pi + ( K - 1 )*TwoPiNB
 
 
    ! Calculate the position vector of the tip:
@@ -7106,21 +6668,6 @@ END DO !K = 1,NumBl
    ! the hub position should use rQ instead of rP, but the current version of AeroDyn treats
    ! teeter deflections lake blade deflections:
    
-!bjj start of proposed change v7.00.01a-bjj
-!rm ADInterfaceComponents%Hub%Position(:)       = (/ rP(1), -1.*rP(3), rP(2) /)
-!rm 
-!rm 
-!rm    ! Rotor furl position should be rP instead of rV, but AeroDyn needs this for the
-!rm    ! HubVDue2Yaw calculation:
-!rm    
-!rm ADInterfaceComponents%RotorFurl%Position(:) = (/ rV(1), -1.*rV(3), rV(2) /)
-!rm    
-!rm ADInterfaceComponents%Nacelle%Position(:)   = (/ rO(1), -1.*rO(3), rO(2) /)
-!rm    
-!rm    ! Tower base position should be rT(0) instead of rZ, but AeroDyn needs this for
-!rm    ! the HubVDue2Yaw calculation:
-!rm ADInterfaceComponents%Tower%Position(:)     = (/ rZ(1), -1.*rZ(3), rZ(2) /)
-!rm 
 
 ADInterfaceComponents%Hub%Position(:)       = (/ rP(1), -1.*rP(3), rP(2) - PtfmRef /)
 
@@ -7136,7 +6683,6 @@ ADInterfaceComponents%Nacelle%Position(:)   = (/ rO(1), -1.*rO(3), rO(2) - PtfmR
    ! the HubVDue2Yaw calculation:
 ADInterfaceComponents%Tower%Position(:)     = (/ rZ(1), -1.*rZ(3), rZ(2) - PtfmRef /)
 
-!bjj end of proposed change v7.00.01a-bjj
       
    !-------------------------------------------------------------------------------------------------
    ! Orientations - bjj: should this be moved to SetCoordSys ?
@@ -7195,7 +6741,6 @@ ADInterfaceComponents%Nacelle%Orientation(:,1) = (/      d1(1), -1.*d3(1),     d
 ADInterfaceComponents%Nacelle%Orientation(:,2) = (/ -1.* d1(3),     d3(3), -1.*d2(3) /)
 ADInterfaceComponents%Nacelle%Orientation(:,3) = (/      d1(2), -1.*d3(2),     d2(2) /)
 
-!bjj end of proposed change
 
 
    !-------------------------------------------------------------------------------------------------
@@ -7214,14 +6759,9 @@ PAngVelEX(DOF_Y   ,0,:) =  z2
  AngVelEX               =             QDT(DOF_R   )*PAngVelEX(DOF_R   ,0,:) &
                                     + QDT(DOF_P   )*PAngVelEX(DOF_P   ,0,:) &
                                     + QDT(DOF_Y   )*PAngVelEX(DOF_Y   ,0,:)
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
  AngPosEX               =             QT (DOF_R   )*PAngVelEX(DOF_R   ,0,:) &
                                     + QT (DOF_P   )*PAngVelEX(DOF_P   ,0,:) &
                                     + QT (DOF_Y   )*PAngVelEX(DOF_Y   ,0,:)
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 PAngVelEB(       :,0,:) = PAngVelEX(:,0,:)
 PAngVelEB(DOF_TFA1,0,:) = -TwrFASF(1,TTopNode,1)*a3
@@ -7266,7 +6806,6 @@ PAngVelEA(       :,0,:) = PAngVelEN(:,0,:)
 PAngVelEA(DOF_TFrl,0,:) = tfa
  AngVelEA               =  AngVelEN + QDT(DOF_TFrl)*PAngVelEA(DOF_TFrl,0,:)
 
-!bjj start of proposed change v6-02d-bjj
    
    ! Note the hub rotational velocity should be AngVelEH instead AngVelEL, but AeroDyn (13.00.00)
    ! treats teeter deflections like blade deflections:
@@ -7275,7 +6814,6 @@ ADInterfaceComponents%Hub%RotationVel(:)       = (/ AngVelEL(1), -1.*AngVelEL(3)
 ADInterfaceComponents%RotorFurl%RotationVel(:) = (/ AngVelER(1), -1.*AngVelER(3), AngVelER(2) /) 
 ADInterfaceComponents%Nacelle%RotationVel(:)   = (/ AngVelEN(1), -1.*AngVelEN(3), AngVelEN(2) /)
 ADInterfaceComponents%Tower%RotationVel(:)     = (/ AngVelEX(1), -1.*AngVelEX(3), AngVelEX(2) /)
-!bjj end of proposed change
 
    ! Define the 1st derivatives of the partial angular velocities of all
    !   of the rigid bodies in the inertia frame and the portion of the angular
@@ -7325,8 +6863,6 @@ CALL CrossProd( PAngVelEA(DOF_TFrl,1,:),   AngVelEN,                 PAngVelEA(D
                  AngAccEAt              =  AngAccENt + QDT(DOF_TFrl)*PAngVelEA(DOF_TFrl,1,:)
 
 
-!bjj start of proposed change AeroDyn loops
-!JASON can move this to wherever he thinks his brain needs it ;-)
 !ADCurrentTurbineState%RotorSpeed   = ABS( QDT(DOF_DrTr) + QDT(DOF_GeAz) )
 
 DO K = 1,NumBl ! Loop through all blades
@@ -7406,7 +6942,6 @@ DO K = 1,NumBl ! Loop through all blades
 
 END DO !K = 1,NumBl
 
-!bjj end of proposed change
 
    !-------------------------------------------------------------------------------------------------
    ! Partial linear velocities and accelerations
@@ -7613,20 +7148,6 @@ ENDDO          ! I - all DOFs associated with the angular motion of the hub (bod
 
 
 
-!bjj start of proposed change AeroDyn loops
-!JASON can move this to wherever he thinks his brain needs it ;-)
-
-!bjj replaced with new interface
-!!  HubVDue2Yaw is the hub's in-plane, horozontal velocity due to the yaw rate, used in the DiskVel subroutine as YAWVEL
-!!  The nacelle-yaw, platform-yaw, and furl rates contribute to this velocity
-!!  <--This is the velocity of the hub due to nacelle- and platform-yaw and rotor-furling effects projected in the plane of rotation and parallel to xi-yi plane
-!LinVelEPYaw = PLinVelEP(DOF_RFrl,0,:)*QDT(DOF_RFrl) & ! This is the linear velocity of the hub in the inertia frame due solely to nacelle-and platform-yaw and rotor-furl effects
-!            + PLinVelEP(DOF_Yaw ,0,:)*QDT(DOF_Yaw ) &
-!            + PLinVelEP(DOF_Y   ,0,:)*QDT(DOF_Y   )
-!
-!ADCurrentTurbineState%HubVDue2Yaw  = -1.*LinVelEPYaw(1)*SIN( ADCurrentTurbineState%YawAngle ) &
-!                                       + LinVelEPYaw(3)*COS( ADCurrentTurbineState%YawAngle )  !JASON: WITH ROTOR-FURL, THE ROTOR PLANE CAN TRANSLATE AN ANY DIRECTION DUE TO YAW RATES AND ROTOR-FURL RATES; THUS, WE SHOULD REALLY SPECIFY HUB VELOCITIES IN THE PLANE OF THE DISK IN TWO DIRECTIONS (HORIZONTAL AND VERTICAL) AND ADD A HUB VELOCITY NORMAL TO THE DISK.  THE ONLY VELOCITY CURRENTLY TAKEN INTO ACCOUNT IS THE HORIZONTAL COMPONENET WITHIN THE DISK (THROUGH VARIABLE HubVDue2Yaw)
-! bjj end replace
 
 DO K = 1,NumBl ! Loop through all blades
 
@@ -7694,11 +7215,7 @@ DO K = 1,NumBl ! Loop through all blades
 
    ENDDO          ! I - all DOFs associated with the angular motion of the hub (body H)
 
-!bjj start of proposed change - aerodyn loops
-! this is now reordered to use the correct LinVelES calculated from the TipNode
-!JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
    LinVelESm2(K) = DOT_PRODUCT( LinVelES, m2(K,BldNodes,:) )
-!bjj end of proposed change
 
 
    DO J = 1,BldNodes ! Loop through the blade nodes / elements
@@ -7774,7 +7291,6 @@ DO K = 1,NumBl ! Loop through all blades
 
 END DO !K = 1,NumBl
 
-!bjj end of proposed change
 
 
 
@@ -7868,17 +7384,13 @@ FrcPRott  = TmpVec1
 MomLPRott = TmpVec2 + TmpVec3 - Hubg1Iner*g1*DOT_PRODUCT( g1, AngAccEHt ) &
                               - Hubg2Iner*g2*DOT_PRODUCT( g2, AngAccEHt )
 
-!BJJ START of proposed change - aerodyn loops
-!Jason can move this to wherever he thinks it makes sense
 
    !-------------------------------------------------------------------------------------------------
    ! Call AeroDyn to calculate aerodynamic forces
    !-------------------------------------------------------------------------------------------------
 
-!IF ( CompAero ) CALL AeroCalc ( ZTime, ErrStat )
 IF ( CompAero ) ADAeroLoads = AD_CalculateLoads( ZTime, ADAeroMarkers, ADInterfaceComponents, ADIntrfaceOptions, ErrStat )
 
-!BJJ END OF PROPOSED CHANGE
 
 DO K = 1,NumBl ! Loop through all blades
 
@@ -7886,130 +7398,6 @@ DO K = 1,NumBl ! Loop through all blades
 
    rPS0 = rPQ + HubRad*j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
 
-!bjj: start of proposed change - aerodyn loops
-!bjj: now these are calculated above
-!
-!
-!   ! Calculate the position vector of the tip:
-!
-!   rS0S(K,TipNode,:) = (   TwistedSF(K,1,1,TipNode,0)*QT( DOF_BF(K,1) ) &  ! Position vector from the blade root (point S(0)) to the blade tip (point S(BldFlexL)).
-!                         + TwistedSF(K,1,2,TipNode,0)*QT( DOF_BF(K,2) ) &
-!                         + TwistedSF(K,1,3,TipNode,0)*QT( DOF_BE(K,1) )                          )*j1(K,:) &
-!                     + (   TwistedSF(K,2,1,TipNode,0)*QT( DOF_BF(K,1) ) &
-!                         + TwistedSF(K,2,2,TipNode,0)*QT( DOF_BF(K,2) ) &
-!                         + TwistedSF(K,2,3,TipNode,0)*QT( DOF_BE(K,1) )                          )*j2(K,:) &
-!                     + ( BldFlexL - 0.5* &
-!                         (       AxRedBld(K,1,1,TipNode)*QT( DOF_BF(K,1) )*QT( DOF_BF(K,1) ) &
-!                           +     AxRedBld(K,2,2,TipNode)*QT( DOF_BF(K,2) )*QT( DOF_BF(K,2) ) &
-!                           +     AxRedBld(K,3,3,TipNode)*QT( DOF_BE(K,1) )*QT( DOF_BE(K,1) ) &
-!                           + 2.0*AxRedBld(K,1,2,TipNode)*QT( DOF_BF(K,1) )*QT( DOF_BF(K,2) ) &
-!                           + 2.0*AxRedBld(K,2,3,TipNode)*QT( DOF_BF(K,2) )*QT( DOF_BE(K,1) ) &
-!                           + 2.0*AxRedBld(K,1,3,TipNode)*QT( DOF_BF(K,1) )*QT( DOF_BE(K,1) )   ) )*j3(K,:)
-!   rQS (K,TipNode,:) = rS0S(K,TipNode,:) + HubRad*j3(K,:)                  ! Position vector from apex of rotation (point Q) to the blade tip (point S(BldFlexL)).
-!   rS  (K,TipNode,:) = rQS (K,TipNode,:) + rQ                              ! Position vector from inertial frame origin      to the blade tip (point S(BldFlexL)).
-!
-!
-!   ! Define the partial angular velocities of the tip (body M(BldFlexL)) in the
-!   !   inertia frame:
-!   ! NOTE: PAngVelEM(K,J,I,D,:) = the Dth-derivative of the partial angular velocity
-!   !   of DOF I for body M of blade K, element J in body E.
-!
-!   PAngVelEM(K,TipNode,          :,0,:) = PAngVelEH(:,0,:)
-!   PAngVelEM(K,TipNode,DOF_BF(K,1),0,:) = - TwistedSF(K,2,1,TipNode,1)*j1(K,:) &
-!                                          + TwistedSF(K,1,1,TipNode,1)*j2(K,:)
-!   PAngVelEM(K,TipNode,DOF_BF(K,2),0,:) = - TwistedSF(K,2,2,TipNode,1)*j1(K,:) &
-!                                          + TwistedSF(K,1,2,TipNode,1)*j2(K,:)
-!   PAngVelEM(K,TipNode,DOF_BE(K,1),0,:) = - TwistedSF(K,2,3,TipNode,1)*j1(K,:) &
-!                                          + TwistedSF(K,1,3,TipNode,1)*j2(K,:)
-!!    AngVelHM(K,TipNode              ,:) =  AngVelEH + QDT(DOF_BF(K,1))*PAngVelEM(K,TipNode,DOF_BF(K,1),0,:) & ! Currently
-!!                                                    + QDT(DOF_BF(K,2))*PAngVelEM(K,TipNode,DOF_BF(K,2),0,:) & ! unused
-!!                                                    + QDT(DOF_BE(K,1))*PAngVelEM(K,TipNode,DOF_BE(K,1),0,:)   ! calculations
-!    AngPosHM(K,TipNode              ,:) =             QT (DOF_BF(K,1))*PAngVelEM(K,TipNode,DOF_BF(K,1),0,:) &
-!                                                    + QT (DOF_BF(K,2))*PAngVelEM(K,TipNode,DOF_BF(K,2),0,:) &
-!                                                    + QT (DOF_BE(K,1))*PAngVelEM(K,TipNode,DOF_BE(K,1),0,:)
-!
-!   ! Define the 1st derivatives of the partial angular velocities of the tip
-!   !   (body M(BldFlexL)) in the inertia frame:
-!
-!! NOTE: These are currently unused by the code, therefore, they need not
-!!       be calculated.  Thus, they are currently commented out.  If it
-!!       turns out that they are ever needed (i.e., if inertias of the
-!!       blade elements are ever added, etc...) simply uncomment out these
-!!       computations:
-!!                   PAngVelEM(K,TipNode,          :,1,:) = PAngVelEH(:,1,:)
-!!   CALL CrossProd( PAngVelEM(K,TipNode,DOF_BF(K,1),1,:),   AngVelEH, &
-!!                   PAngVelEM(K,TipNode,DOF_BF(K,1),0,:)                )
-!!   CALL CrossProd( PAngVelEM(K,TipNode,DOF_BF(K,2),1,:),   AngVelEH, &
-!!                   PAngVelEM(K,TipNode,DOF_BF(K,2),0,:)                )
-!!   CALL CrossProd( PAngVelEM(K,TipNode,DOF_BE(K,1),1,:),   AngVelEH, &
-!!                   PAngVelEM(K,TipNode,DOF_BE(K,1),0,:)                )
-!
-!
-!   ! Define the partial linear velocities (and their 1st derivatives) of the
-!   !   blade tip (point S(BldFlexL)) in the inertia frame.  Also define the
-!   !   overall linear velocity of the blade tip in the inertia frame.  Also,
-!   !   define the portion of the linear acceleration of the blade tip in the
-!   !   inertia frame associated with everything but the QD2T()'s:
-!
-!   CALL CrossProd( EwHXrQS, AngVelEH, rQS(K,TipNode,:) )
-!
-!   PLinVelES(K,TipNode,          :,:,:) = PLinVelEQ(:,:,:)
-!   PLinVelES(K,TipNode,DOF_BF(K,1),0,:) = TwistedSF(K,1,1,TipNode,0)                        *j1(K,:) &
-!                                        + TwistedSF(K,2,1,TipNode,0)                        *j2(K,:) &
-!                                        - (   AxRedBld(K,1,1,TipNode)*QT ( DOF_BF(K,1) ) &
-!                                            + AxRedBld(K,1,2,TipNode)*QT ( DOF_BF(K,2) ) &
-!                                            + AxRedBld(K,1,3,TipNode)*QT ( DOF_BE(K,1) )   )*j3(K,:)
-!   PLinVelES(K,TipNode,DOF_BE(K,1),0,:) = TwistedSF(K,1,3,TipNode,0)                        *j1(K,:) &
-!                                        + TwistedSF(K,2,3,TipNode,0)                        *j2(K,:) &
-!                                        - (   AxRedBld(K,3,3,TipNode)*QT ( DOF_BE(K,1) ) &
-!                                            + AxRedBld(K,2,3,TipNode)*QT ( DOF_BF(K,2) ) &
-!                                            + AxRedBld(K,1,3,TipNode)*QT ( DOF_BF(K,1) )   )*j3(K,:)
-!   PLinVelES(K,TipNode,DOF_BF(K,2),0,:) = TwistedSF(K,1,2,TipNode,0)                        *j1(K,:) &
-!                                        + TwistedSF(K,2,2,TipNode,0)                        *j2(K,:) &
-!                                        - (   AxRedBld(K,2,2,TipNode)*QT ( DOF_BF(K,2) ) &
-!                                            + AxRedBld(K,1,2,TipNode)*QT ( DOF_BF(K,1) ) &
-!                                            + AxRedBld(K,2,3,TipNode)*QT ( DOF_BE(K,1) )   )*j3(K,:)
-!
-!   CALL CrossProd( TmpVec1, AngVelEH, PLinVelES(K,TipNode,DOF_BF(K,1),0,:) )
-!   CALL CrossProd( TmpVec2, AngVelEH, PLinVelES(K,TipNode,DOF_BE(K,1),0,:) )
-!   CALL CrossProd( TmpVec3, AngVelEH, PLinVelES(K,TipNode,DOF_BF(K,2),0,:) )
-!
-!   PLinVelES(K,TipNode,DOF_BF(K,1),1,:) = TmpVec1 &
-!                                        - (   AxRedBld(K,1,1,TipNode)*QDT( DOF_BF(K,1) ) &
-!                                            + AxRedBld(K,1,2,TipNode)*QDT( DOF_BF(K,2) ) &
-!                                            + AxRedBld(K,1,3,TipNode)*QDT( DOF_BE(K,1) )   )*j3(K,:)
-!   PLinVelES(K,TipNode,DOF_BE(K,1),1,:) = TmpVec2 &
-!                                        - (   AxRedBld(K,3,3,TipNode)*QDT( DOF_BE(K,1) ) &
-!                                            + AxRedBld(K,2,3,TipNode)*QDT( DOF_BF(K,2) ) &
-!                                            + AxRedBld(K,1,3,TipNode)*QDT( DOF_BF(K,1) )   )*j3(K,:)
-!   PLinVelES(K,TipNode,DOF_BF(K,2),1,:) = TmpVec3 &
-!                                        - (   AxRedBld(K,2,2,TipNode)*QDT( DOF_BF(K,2) ) &
-!                                            + AxRedBld(K,1,2,TipNode)*QDT( DOF_BF(K,1) ) &
-!                                            + AxRedBld(K,2,3,TipNode)*QDT( DOF_BE(K,1) )   )*j3(K,:)
-!
-!   LinVelHS               = QDT( DOF_BF(K,1) )*PLinVelES(K,TipNode,DOF_BF(K,1),0,:) &
-!                          + QDT( DOF_BE(K,1) )*PLinVelES(K,TipNode,DOF_BE(K,1),0,:) &
-!                          + QDT( DOF_BF(K,2) )*PLinVelES(K,TipNode,DOF_BF(K,2),0,:)
-!   LinAccESt(K,TipNode,:) = QDT( DOF_BF(K,1) )*PLinVelES(K,TipNode,DOF_BF(K,1),1,:) &
-!                          + QDT( DOF_BE(K,1) )*PLinVelES(K,TipNode,DOF_BE(K,1),1,:) &
-!                          + QDT( DOF_BF(K,2) )*PLinVelES(K,TipNode,DOF_BF(K,2),1,:)
-!
-!   LinVelES               = LinVelHS + LinVelEZ
-!   DO I = 1,NPH   ! Loop through all DOFs associated with the angular motion of the hub (body H)
-!
-!      CALL CrossProd( TmpVec0, PAngVelEH(PH(I),0,:),     rQS(K,TipNode,:)            )
-!      CALL CrossProd( TmpVec1, PAngVelEH(PH(I),0,:), EwHXrQS              + LinVelHS )
-!      CALL CrossProd( TmpVec2, PAngVelEH(PH(I),1,:),     rQS(K,TipNode,:)            )
-!
-!      PLinVelES(K,TipNode,PH(I),0,:) = PLinVelES(K,TipNode,PH(I),0,:) + TmpVec0
-!      PLinVelES(K,TipNode,PH(I),1,:) = PLinVelES(K,TipNode,PH(I),1,:) + TmpVec1 + TmpVec2
-!
-!      LinVelES                       = LinVelES                       + QDT(PH(I))*PLinVelES(K,TipNode,PH(I),0,:)
-!      LinAccESt(K,TipNode,        :) = LinAccESt(K,TipNode,        :) + QDT(PH(I))*PLinVelES(K,TipNode,PH(I),1,:)
-!
-!   ENDDO          ! I - all DOFs associated with the angular motion of the hub (body H)
-!
-!bjj end of proposed change
 
    ! Calculate the tip drag forces if necessary:
 
@@ -8033,15 +7421,8 @@ DO K = 1,NumBl ! Loop through all blades
 
       ENDIF
 
-!bjj start of proposed change - aerodyn loops
-!bjj move this to earlier so we use the correct LinVelES...
-!rm!JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-!rm      LinVelESm2 = DOT_PRODUCT( LinVelES, m2(K,BldNodes,:) )
-!rm
-!rm      FSTipDrag(K,:) = m2(K,BldNodes,:)*SIGN( 0.5*AirDens*LinVelESm2*LinVelESm2*TBDrCon, -LinVelESm2 )
 
       FSTipDrag(K,:) = m2(K,BldNodes,:)*SIGN( 0.5*AirDens*LinVelESm2(K)*LinVelESm2(K)*TBDrCon, -1.*LinVelESm2(K) )
-!bjj end of proposed change
 
    ELSE                    ! Wind turbine in vacuum, no aerodynamic forces.
 
@@ -8099,129 +7480,6 @@ DO K = 1,NumBl ! Loop through all blades
 
 
    DO J = 1,BldNodes ! Loop through the blade nodes / elements
-!bjj start of proposed change - aerodyn loops
-!
-!
-!   ! Calculate the position vector of the current node:
-!
-!      rS0S(K,J,:) = (   TwistedSF(K,1,1,J,0)*QT( DOF_BF(K,1) ) &  ! Position vector from the blade root (point S(0)) to the current node (point S(RNodes(J)).
-!                      + TwistedSF(K,1,2,J,0)*QT( DOF_BF(K,2) ) &
-!                      + TwistedSF(K,1,3,J,0)*QT( DOF_BE(K,1) )                          )*j1(K,:) &
-!                  + (   TwistedSF(K,2,1,J,0)*QT( DOF_BF(K,1) ) &
-!                      + TwistedSF(K,2,2,J,0)*QT( DOF_BF(K,2) ) &
-!                      + TwistedSF(K,2,3,J,0)*QT( DOF_BE(K,1) )                          )*j2(K,:) &
-!                  + ( RNodes(J) - 0.5* &
-!                      (       AxRedBld(K,1,1,J)*QT( DOF_BF(K,1) )*QT( DOF_BF(K,1) ) &
-!                        +     AxRedBld(K,2,2,J)*QT( DOF_BF(K,2) )*QT( DOF_BF(K,2) ) &
-!                        +     AxRedBld(K,3,3,J)*QT( DOF_BE(K,1) )*QT( DOF_BE(K,1) ) &
-!                        + 2.0*AxRedBld(K,1,2,J)*QT( DOF_BF(K,1) )*QT( DOF_BF(K,2) ) &
-!                        + 2.0*AxRedBld(K,2,3,J)*QT( DOF_BF(K,2) )*QT( DOF_BE(K,1) ) &
-!                        + 2.0*AxRedBld(K,1,3,J)*QT( DOF_BF(K,1) )*QT( DOF_BE(K,1) )   ) )*j3(K,:)
-!      rQS (K,J,:) = rS0S(K,J,:) + HubRad*j3(K,:)                  ! Position vector from apex of rotation (point Q) to the current node (point S(RNodes(J)).
-!      rS  (K,J,:) = rQS (K,J,:) + rQ                              ! Position vector from inertial frame origin      to the current node (point S(RNodes(J)).
-!
-!
-!   ! Define the partial angular velocities of the current node (body M(RNodes(J)))
-!   !   in the inertia frame:
-!   ! NOTE: PAngVelEM(K,J,I,D,:) = the Dth-derivative of the partial angular velocity
-!   !   of DOF I for body M of blade K, element J in body E.
-!
-!      PAngVelEM(K,J,          :,0,:) = PAngVelEH(:,0,:)
-!      PAngVelEM(K,J,DOF_BF(K,1),0,:) = - TwistedSF(K,2,1,J,1)*j1(K,:) &
-!                                       + TwistedSF(K,1,1,J,1)*j2(K,:)
-!      PAngVelEM(K,J,DOF_BF(K,2),0,:) = - TwistedSF(K,2,2,J,1)*j1(K,:) &
-!                                       + TwistedSF(K,1,2,J,1)*j2(K,:)
-!      PAngVelEM(K,J,DOF_BE(K,1),0,:) = - TwistedSF(K,2,3,J,1)*j1(K,:) &
-!                                       + TwistedSF(K,1,3,J,1)*j2(K,:)
-!!       AngVelHM(K,J              ,:) =  AngVelEH + QDT(DOF_BF(K,1))*PAngVelEM(K,J,DOF_BF(K,1),0,:) & ! Currently
-!!                                                 + QDT(DOF_BF(K,2))*PAngVelEM(K,J,DOF_BF(K,2),0,:) & ! unused
-!!                                                 + QDT(DOF_BE(K,1))*PAngVelEM(K,J,DOF_BE(K,1),0,:)   ! calculations
-!!       AngPosHM(K,J              ,:) =             QT (DOF_BF(K,1))*PAngVelEM(K,J,DOF_BF(K,1),0,:) & ! Currently
-!!                                                 + QT (DOF_BF(K,2))*PAngVelEM(K,J,DOF_BF(K,2),0,:) & ! unused
-!!                                                 + QT (DOF_BE(K,1))*PAngVelEM(K,J,DOF_BE(K,1),0,:)   ! calculations
-!
-!
-!   ! Define the 1st derivatives of the partial angular velocities of the
-!   !   current node (body M(RNodes(J))) in the inertia frame:
-!
-!! NOTE: These are currently unused by the code, therefore, they need not
-!!       be calculated.  Thus, they are currently commented out.  If it
-!!       turns out that they are ever needed (i.e., if inertias of the
-!!       blade elements are ever added, etc...) simply uncomment out these
-!!       computations:
-!!                      PAngVelEM(K,J,          :,1,:) = PAngVelEH(:,1,:)
-!!      CALL CrossProd( PAngVelEM(K,J,DOF_BF(K,1),1,:),   AngVelEH, &
-!!                      PAngVelEM(K,J,DOF_BF(K,1),0,:)                )
-!!      CALL CrossProd( PAngVelEM(K,J,DOF_BF(K,2),1,:),   AngVelEH, &
-!!                      PAngVelEM(K,J,DOF_BF(K,2),0,:)                )
-!!      CALL CrossProd( PAngVelEM(K,J,DOF_BE(K,1),1,:),   AngVelEH, &
-!!                      PAngVelEM(K,J,DOF_BE(K,1),0,:)                )
-!
-!
-!   ! Define the partial linear velocities (and their 1st derivatives) of the
-!   !   current node (point S(RNodes(J))) in the inertia frame.  Also define
-!   !   the overall linear velocity of the current node in the inertia frame.
-!   !   Also, define the portion of the linear acceleration of the current node
-!   !   in the inertia frame associated with everything but the QD2T()'s:
-!
-!      CALL CrossProd( EwHXrQS, AngVelEH, rQS(K,J,:) )
-!
-!      PLinVelES(K,J,          :,:,:) = PLinVelEQ(:,:,:)
-!      PLinVelES(K,J,DOF_BF(K,1),0,:) = TwistedSF(K,1,1,J,0)                        *j1(K,:) &
-!                                     + TwistedSF(K,2,1,J,0)                        *j2(K,:) &
-!                                     - (   AxRedBld(K,1,1,J)*QT ( DOF_BF(K,1) ) &
-!                                         + AxRedBld(K,1,2,J)*QT ( DOF_BF(K,2) ) &
-!                                         + AxRedBld(K,1,3,J)*QT ( DOF_BE(K,1) )   )*j3(K,:)
-!      PLinVelES(K,J,DOF_BE(K,1),0,:) = TwistedSF(K,1,3,J,0)                        *j1(K,:) &
-!                                     + TwistedSF(K,2,3,J,0)                        *j2(K,:) &
-!                                     - (   AxRedBld(K,3,3,J)*QT ( DOF_BE(K,1) ) &
-!                                         + AxRedBld(K,2,3,J)*QT ( DOF_BF(K,2) ) &
-!                                         + AxRedBld(K,1,3,J)*QT ( DOF_BF(K,1) )   )*j3(K,:)
-!      PLinVelES(K,J,DOF_BF(K,2),0,:) = TwistedSF(K,1,2,J,0)                        *j1(K,:) &
-!                                     + TwistedSF(K,2,2,J,0)                        *j2(K,:) &
-!                                     - (   AxRedBld(K,2,2,J)*QT ( DOF_BF(K,2) ) &
-!                                         + AxRedBld(K,1,2,J)*QT ( DOF_BF(K,1) ) &
-!                                         + AxRedBld(K,2,3,J)*QT ( DOF_BE(K,1) )   )*j3(K,:)
-!
-!      CALL CrossProd( TmpVec1, AngVelEH, PLinVelES(K,J,DOF_BF(K,1),0,:) )
-!      CALL CrossProd( TmpVec2, AngVelEH, PLinVelES(K,J,DOF_BE(K,1),0,:) )
-!      CALL CrossProd( TmpVec3, AngVelEH, PLinVelES(K,J,DOF_BF(K,2),0,:) )
-!
-!      PLinVelES(K,J,DOF_BF(K,1),1,:) = TmpVec1 &
-!                                     - (   AxRedBld(K,1,1,J)*QDT( DOF_BF(K,1) ) &
-!                                         + AxRedBld(K,1,2,J)*QDT( DOF_BF(K,2) ) &
-!                                         + AxRedBld(K,1,3,J)*QDT( DOF_BE(K,1) )   )*j3(K,:)
-!      PLinVelES(K,J,DOF_BE(K,1),1,:) = TmpVec2 &
-!                                     - (   AxRedBld(K,3,3,J)*QDT( DOF_BE(K,1) ) &
-!                                         + AxRedBld(K,2,3,J)*QDT( DOF_BF(K,2) ) &
-!                                         + AxRedBld(K,1,3,J)*QDT( DOF_BF(K,1) )   )*j3(K,:)
-!      PLinVelES(K,J,DOF_BF(K,2),1,:) = TmpVec3 &
-!                                     - (   AxRedBld(K,2,2,J)*QDT( DOF_BF(K,2) ) &
-!                                         + AxRedBld(K,1,2,J)*QDT( DOF_BF(K,1) ) &
-!                                         + AxRedBld(K,2,3,J)*QDT( DOF_BE(K,1) )   )*j3(K,:)
-!
-!      LinVelHS         = QDT( DOF_BF(K,1) )*PLinVelES(K,J,DOF_BF(K,1),0,:) &
-!                       + QDT( DOF_BE(K,1) )*PLinVelES(K,J,DOF_BE(K,1),0,:) &
-!                       + QDT( DOF_BF(K,2) )*PLinVelES(K,J,DOF_BF(K,2),0,:)
-!      LinAccESt(K,J,:) = QDT( DOF_BF(K,1) )*PLinVelES(K,J,DOF_BF(K,1),1,:) &
-!                       + QDT( DOF_BE(K,1) )*PLinVelES(K,J,DOF_BE(K,1),1,:) &
-!                       + QDT( DOF_BF(K,2) )*PLinVelES(K,J,DOF_BF(K,2),1,:)
-!
-!      LinVelES         = LinVelHS + LinVelEZ
-!      DO I = 1,NPH   ! Loop through all DOFs associated with the angular motion of the hub (body H)
-!
-!         CALL CrossProd( TmpVec0, PAngVelEH(PH(I),0,:),     rQS(K,J,:)            )
-!         CALL CrossProd( TmpVec1, PAngVelEH(PH(I),0,:), EwHXrQS        + LinVelHS )
-!         CALL CrossProd( TmpVec2, PAngVelEH(PH(I),1,:),     rQS(K,J,:)            )
-!
-!         PLinVelES(K,J,PH(I),0,:) = PLinVelES(K,J,PH(I),0,:) + TmpVec0
-!         PLinVelES(K,J,PH(I),1,:) = PLinVelES(K,J,PH(I),1,:) + TmpVec1 + TmpVec2
-!
-!         LinVelES                 = LinVelES                 + QDT(PH(I))*PLinVelES(K,J,PH(I),0,:)
-!         LinAccESt(K,J,        :) = LinAccESt(K,J,        :) + QDT(PH(I))*PLinVelES(K,J,PH(I),1,:)
-!
-!      ENDDO          ! I - all DOFs associated with the angular motion of the hub (body H)
-!bjj end of proposed change
 
    ! Calculate the normal and tangential aerodynamic forces and the aerodynamic
    !   pitching moment at the current element per unit span by calling AeroDyn,
@@ -8233,35 +7491,10 @@ DO K = 1,NumBl ! Loop through all blades
    ! Calculate the aerodynamic pitching moment arm (i.e., the position vector
    !   from point S on the blade to the aerodynamic center of the element):
 
-!bjj start of proposed change - aerodyn loops
          rSAerCen = rSAerCenn1(K,J)*n1(K,J,:) + rSAerCenn2(K,J)*n2(K,J,:)        ! bjj this is now re-calculated.
-!
-!!
-!   ! Define ElAeroLoc(:), ElRad, and VES(:), which are stored in
-!   !   FAST_Mods.f90/AeroElem(), and are then USEd by AeroDyn.
-!
-!         rPAerCen     = rPQ + rQS(K,J,:) + rSAerCen         ! Position vector from teeter pin (point P)  to blade analysis node aerodynamic center.
-!         rAerCen      =       rS (K,J,:) + rSAerCen         ! Position vector from inertial frame origin to blade analysis node aerodynamic center.
-!
-!         ElAeroLoc(1) =  rAerCen(1)                         ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the xi ( z1) direction
-!         ElAeroLoc(2) = -rAerCen(3)                         ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the yi (-z3) direction
-!!bjj start of proposed change AD v13.00b
-!!rm         ElAeroLoc(3) =  rAerCen(2) - RefHH                 ! = the distance from the nominal hub position (i.e., the undeflected position of the hub) to the current blade aerodynamic center in the zi ( z2) direction
-!         ElAeroLoc(3) =  rAerCen(2) - PtfmRef               ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
-!!bjj end of proposed change
-!
-!         ElRad = SQRT(   ( DOT_PRODUCT( rPAerCen, e2) )**2 &    ! = the perpendicular distance from the low-speed shaft to the current blade aerodynamic center.
-!                       + ( DOT_PRODUCT( rPAerCen, e3) )**2   )
-!
-!bjj end of proposed change
 
 
 !JASON: WE SHOULD REALLY BE PASSING TO AERODYN THE LINEAR VELOCITIES OF THE AERODYNAMIC CENTER IN THE INERTIA FRAME, NOT SIMPLY THE LINEAR VELOCITIES OF POINT S.  IS THERE ANY WAY OF GETTING THIS VELOCITY?<--DO THIS, WHEN YOU ADD THE COUPLED MODE SHAPES!!!!
-!bjj start of proposed change
-!rm         VES(1) = DOT_PRODUCT( LinVelES, m1(K,J,:) )      ! Absolute velocity of the current node
-!rm         VES(2) = DOT_PRODUCT( LinVelES, m2(K,J,:) )      ! in the inertia frame expressd in the
-!rm         VES(3) = DOT_PRODUCT( LinVelES, m3(K,J,:) )      ! m-vector triad for this blade element.
-!bjj end of proposed change
 
    ! Call AeroDyn through AeroCalc() and fill FSAero() and MMAero() with
    !   the resulting forces (AeroForces(:)):
@@ -8270,33 +7503,11 @@ DO K = 1,NumBl ! Loop through all blades
    !       AeroForces(3) = element pitching moment  per unit span in about the m3-axis (N-m/m).
 
 
-!bjj start of proposed change - aerodyn loops
-
-!rm         CALL AeroCalc( ZTime, K, J, LinVelES, AeroForces )
-!rm
-!rm         FSAero(K,J,:) = AeroForces(1)*m1(K,J,:) - AeroForces(2)*m2(K,J,:)
-!rm
-!rm         CALL CrossProd( MMAero(K,J,:), rSAerCen, FSAero(K,J,:) )
-!rm         MMAero(K,J,:) = MMAero(K,J,:) + AeroForces(3)*m3(K,J,:)
-
-!!      AeroForces = (/ ADCurrentOutputs(J, K)%DFN &
-!!                      ADCurrentOutputs(J, K)%DFT &
-!!                      ADCurrentOutputs(J, K)%PMA   /)
-
-
-!BJJ: Multiply ADCurrentOutputs by te1, te2, and te3, instead of m1, m2 and m3
-!old     FSAero(K,J,:) = ADCurrentOutputs(J, K)%DFN * m1(K,J,:) - ADCurrentOutputs(J, K)%DFT * m2(K,J,:)
          FSAero(K,J,:) = ADAeroLoads%Blade(J, K)%Force(1) * te1(K,J,:) + ADAeroLoads%Blade(J, K)%Force(2) * te2(K,J,:)
 
          CALL CrossProd( MMAero(K,J,:), rSAerCen, FSAero(K,J,:) )
-!bjj:
-!old     MMAero(K,J,:) = MMAero(K,J,:) + ADCurrentOutputs(J, K)%PMA * m3(K,J,:)
          MMAero(K,J,:) = MMAero(K,J,:) + ADAeroLoads%Blade(J, K)%Moment(3) * te3(K,J,:)
 
-!write( *, '(20(G12.5,X))') ZTime, ADAeroMarkers%Blade(J,K)%Position, ADAeroMarkers%Blade(J,K)%TranslationVel, ADAeroMarkers%Blade(J,K)%Orientation, & !FSAero(K,J,:), MMAero(K,J,:)
-!         ADCurrentOutputs(J, K)%DFN, ADCurrentOutputs(J, K)%DFT, ADCurrentOutputs(J, K)%PMA
-
-!bjj end of proposed change
 
       ELSE                    ! Wind turbine in vacuum, no aerodynamic forces.
 
@@ -8656,26 +7867,14 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
              + ( TwrSSSF(1,J,0)*QT(DOF_TSS1) + TwrSSSF(2,J,0)*QT(DOF_TSS2)             )*a3
    rZT (J,:) = rZT0 + rT0T(J,:)                                                                 ! Position vector from platform reference (point Z) to the current node (point T(HNodes(J)).
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
    rT        = rZ   + rZT (J,:)                                                                 ! Position vector from inertial frame origin        to the current node (point T(HNodes(J)).
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
-!remove6.02a   ! Define the partial angular velocities of the current node (body F(HNodes(J))
-!remove6.02a   !   in the inertia frame:
    ! Define the partial angular velocities (and their 1st derivatives) of the
    !   current node (body F(HNodes(J))  in the inertia frame.  Also define
    !   the overall angular velocity of the current node in the inertia frame.
    !   Also, define the portion of the angular acceleration of the current node
    !   in the inertia frame associated with everything but the QD2T()'s:
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! NOTE: PAngVelEF(J,I,D,:) = the Dth-derivative of the partial angular velocity
    !   of DOF I for body F of element J in body E.
@@ -8686,25 +7885,6 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
    PAngVelEF(J,DOF_TFA2,0,:) = -TwrFASF(2,J,1)*a3
    PAngVelEF(J,DOF_TSS2,0,:) =  TwrSSSF(2,J,1)*a1
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
-!remove6.02a
-!remove6.02a   ! Define the 1st derivatives of the partial angular velocities of the
-!remove6.02a   !   current node (body F(HNodes(J)) in the inertia frame:
-!remove6.02a
-!remove6.02a! NOTE: These are currently unused by the code, therefore, they need not
-!remove6.02a!       be calculated.  Thus, they are currently commented out.  If it
-!remove6.02a!       turns out that they are ever needed (i.e., if inertias of the
-!remove6.02a!       tower elements are ever added, etc...) simply uncomment out these
-!remove6.02a!       computations:
-!remove6.02a!                   PAngVelEF(J,       :,1,:) = PAngVelEX(:,1,:)
-!remove6.02a!   CALL CrossProd( PAngVelEF(J,DOF_TFA1,1,:) ,  AngVelEX       , PAngVelEF(J,DOF_TFA1,0,:) )
-!remove6.02a!   CALL CrossProd( PAngVelEF(J,DOF_TSS1,1,:) ,  AngVelEX       , PAngVelEF(J,DOF_TSS1,0,:) )
-!remove6.02a!   CALL CrossProd( PAngVelEF(J,DOF_TFA2,1,:) ,  AngVelEX       , PAngVelEF(J,DOF_TFA2,0,:) )
-!remove6.02a!   CALL CrossProd( PAngVelEF(J,DOF_TSS2,1,:) ,  AngVelEX       , PAngVelEF(J,DOF_TSS2,0,:) )
-!remove6.02a
                    PAngVelEF (J,       :,1,:) = PAngVelEX(:,1,:)
    CALL CrossProd( PAngVelEF (J,DOF_TFA1,1,:) ,  AngVelEX       ,          PAngVelEF(J,DOF_TFA1,0,:) )
    CALL CrossProd( PAngVelEF (J,DOF_TSS1,1,:) ,  AngVelEX       ,          PAngVelEF(J,DOF_TSS1,0,:) )
@@ -8723,7 +7903,6 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
                                                            + QDT(DOF_TSS1)*PAngVelEF(J,DOF_TSS1,1,:) &
                                                            + QDT(DOF_TFA2)*PAngVelEF(J,DOF_TFA2,1,:) &
                                                            + QDT(DOF_TSS2)*PAngVelEF(J,DOF_TSS2,1,:)
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Define the partial linear velocities (and their 1st derivatives) of the
@@ -8799,10 +7978,6 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
 
    ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
    ! Let's compute the tower hydrodynamic loading; that is TwrAM(1:6,1:6) and
    !   TwrFt(1:6).
 
@@ -8810,22 +7985,12 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
                         LinVelET(1), -LinVelET(3),   LinVelET(2)            , AngVelEF(1), -AngVelEF(3), AngVelEF(2)    )
 
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Compute the partial hydrodynamic forces and moments per unit length
    !   (including those associated with the QD2T()'s and those that are not) at
    !   the current tower element (point T) / (body F):
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
-!remove6.02a
-!remove6.02a   PFTHydro(J,:,:) = 0.0
-!remove6.02a   PMFHydro(J,:,:) = 0.0
-!remove6.02a   FTHydrot(J,  :) = 0.0
-!remove6.02a   MFHydrot(J,  :) = 0.0
    ! NOTE: These forces are named PFTHydro, PMFHydro, FTHydrot, and MFHydrot.
    !       However, the names should not imply that the forces are a result of
    !       hydrodynamic contributions only.  These tower forces contain
@@ -8914,7 +8079,6 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
                                       - TwrAM(DOF_Y ,DOF_R )*AngAccEFt(J,1) &
                                       + TwrAM(DOF_Y ,DOF_P )*AngAccEFt(J,3) &
                                       - TwrAM(DOF_Y ,DOF_Y )*AngAccEFt(J,2)   )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! Calculate the mass of the current element:
 
@@ -8959,32 +8123,16 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
 
    DO L = 1,NPTTE    ! Loop through all active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the tower
       DO I = L,NPTTE ! Loop through all active (enabled) tower DOFs greater than or equal to L
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a         AugMat(PTTE(I),PTTE(L)) = AugMat(PTTE(I),PTTE(L)) + ElmntMass*&
-!remove6.02a                                   DOT_PRODUCT( PLinVelET(J,PTTE(I),0,:), &             ! [C(q,t)]T
-!remove6.02a                                                PLinVelET(J,PTTE(L),0,:)    )
          AugMat(PTTE(I),PTTE(L)) = AugMat(PTTE(I),PTTE(L))                                                  &
                                  + ElmntMass *DOT_PRODUCT( PLinVelET(J,PTTE(I),0,:), PLinVelET(J,PTTE(L),0,:) ) &  ! [C(q,t)]T + [C(q,t)]HydroT
                                  - DHNodes(J)*DOT_PRODUCT( PLinVelET(J,PTTE(I),0,:), PFTHydro (J,PTTE(L),  :) ) &
                                  - DHNodes(J)*DOT_PRODUCT( PAngVelEF(J,PTTE(I),0,:), PMFHydro (J,PTTE(L),  :) )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
       ENDDO          ! I - All active (enabled) tower DOFs greater than or equal to L
    ENDDO             ! L - All active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the tower
    DO I = 1,NPTTE    ! Loop through all active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the tower
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a         AugMat(PTTE(I),   NAUG) = AugMat(PTTE(I),   NAUG)                      &   ! {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT
-!remove6.02a                                 + DOT_PRODUCT( PLinVelET(J,PTTE(I),0,:), TmpVec1 ) &   ! NOTE: TmpVec1 is still the portion of FrcT0Trbt associated with tower element J
-!remove6.02a                                 + DOT_PRODUCT( PAngVelEF(J,PTTE(I),0,:), TmpVec3 )     !       and TmpVec3 is still the total external moment to tower element J
          AugMat(PTTE(I),   NAUG) = AugMat(PTTE(I),   NAUG)                                                  &  ! {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT
                                  +            DOT_PRODUCT( PLinVelET(J,PTTE(I),0,:), TmpVec1                  ) &  ! NOTE: TmpVec1 is still the portion of FrcT0Trbt associated with tower element J
                                  +            DOT_PRODUCT( PAngVelEF(J,PTTE(I),0,:), TmpVec3                  )    !       and TmpVec3 is still the total external moment to tower element J
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    ENDDO             ! I - All active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the tower
 
 ENDDO ! J - Tower nodes / elements
@@ -9038,57 +8186,6 @@ CALL PtfmLoading
 
 PFZHydro = 0.0
 PMXHydro = 0.0
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Simplify how the partial platform forces and moments associated with the
-!jmj   QD2T()'s are calculated:
-!remove6.02aIF ( DOF_Flag(DOF_Sg) )  THEN
-!remove6.02a   PFZHydro(  DOF_Sg,:) = - PtfmAM(DOF_Sg,DOF_Sg)*PLinVelEZ(DOF_Sg,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Sw,DOF_Sg)*PLinVelEZ(DOF_Sw,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Hv,DOF_Sg)*PLinVelEZ(DOF_Hv,0,:)
-!remove6.02a   PMXHydro(  DOF_Sg,:) = - PtfmAM(DOF_R ,DOF_Sg)*PAngVelEX(DOF_R ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_P ,DOF_Sg)*PAngVelEX(DOF_P ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Y ,DOF_Sg)*PAngVelEX(DOF_Y ,0,:)
-!remove6.02aENDIF
-!remove6.02aIF ( DOF_Flag(DOF_Sw) )  THEN
-!remove6.02a   PFZHydro(  DOF_Sw,:) = - PtfmAM(DOF_Sg,DOF_Sw)*PLinVelEZ(DOF_Sg,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Sw,DOF_Sw)*PLinVelEZ(DOF_Sw,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Hv,DOF_Sw)*PLinVelEZ(DOF_Hv,0,:)
-!remove6.02a   PMXHydro(  DOF_Sw,:) = - PtfmAM(DOF_R ,DOF_Sw)*PAngVelEX(DOF_R ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_P ,DOF_Sw)*PAngVelEX(DOF_P ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Y ,DOF_Sw)*PAngVelEX(DOF_Y ,0,:)
-!remove6.02aENDIF
-!remove6.02aIF ( DOF_Flag(DOF_Hv) )  THEN
-!remove6.02a   PFZHydro(  DOF_Hv,:) = - PtfmAM(DOF_Sg,DOF_Hv)*PLinVelEZ(DOF_Sg,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Sw,DOF_Hv)*PLinVelEZ(DOF_Sw,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Hv,DOF_Hv)*PLinVelEZ(DOF_Hv,0,:)
-!remove6.02a   PMXHydro(  DOF_Hv,:) = - PtfmAM(DOF_R ,DOF_Hv)*PAngVelEX(DOF_R ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_P ,DOF_Hv)*PAngVelEX(DOF_P ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Y ,DOF_Hv)*PAngVelEX(DOF_Y ,0,:)
-!remove6.02aENDIF
-!remove6.02aIF ( DOF_Flag(DOF_R ) )  THEN
-!remove6.02a   PFZHydro(  DOF_R ,:) = - PtfmAM(DOF_Sg,DOF_R )*PLinVelEZ(DOF_Sg,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Sw,DOF_R )*PLinVelEZ(DOF_Sw,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Hv,DOF_R )*PLinVelEZ(DOF_Hv,0,:)
-!remove6.02a   PMXHydro(  DOF_R ,:) = - PtfmAM(DOF_R ,DOF_R )*PAngVelEX(DOF_R ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_P ,DOF_R )*PAngVelEX(DOF_P ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Y ,DOF_R )*PAngVelEX(DOF_Y ,0,:)
-!remove6.02aENDIF
-!remove6.02aIF ( DOF_Flag(DOF_P ) )  THEN
-!remove6.02a   PFZHydro(  DOF_P ,:) = - PtfmAM(DOF_Sg,DOF_P )*PLinVelEZ(DOF_Sg,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Sw,DOF_P )*PLinVelEZ(DOF_Sw,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Hv,DOF_P )*PLinVelEZ(DOF_Hv,0,:)
-!remove6.02a   PMXHydro(  DOF_P ,:) = - PtfmAM(DOF_R ,DOF_P )*PAngVelEX(DOF_R ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_P ,DOF_P )*PAngVelEX(DOF_P ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Y ,DOF_P )*PAngVelEX(DOF_Y ,0,:)
-!remove6.02aENDIF
-!remove6.02aIF ( DOF_Flag(DOF_Y ) )  THEN
-!remove6.02a   PFZHydro(  DOF_Y ,:) = - PtfmAM(DOF_Sg,DOF_Y )*PLinVelEZ(DOF_Sg,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Sw,DOF_Y )*PLinVelEZ(DOF_Sw,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Hv,DOF_Y )*PLinVelEZ(DOF_Hv,0,:)
-!remove6.02a   PMXHydro(  DOF_Y ,:) = - PtfmAM(DOF_R ,DOF_Y )*PAngVelEX(DOF_R ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_P ,DOF_Y )*PAngVelEX(DOF_P ,0,:) &
-!remove6.02a                          - PtfmAM(DOF_Y ,DOF_Y )*PAngVelEX(DOF_Y ,0,:)
-!remove6.02aENDIF
 DO I = 1,NPYE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
 
    PFZHydro(PYE(I),:) = - PtfmAM(DOF_Sg,PYE(I))*PLinVelEZ(DOF_Sg,0,:) &
@@ -9099,7 +8196,6 @@ DO I = 1,NPYE  ! Loop through all active (enabled) DOFs that contribute to the Q
                         - PtfmAM(DOF_Y ,PYE(I))*PAngVelEX(DOF_Y ,0,:)
 
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 FZHydrot = PtfmFt(DOF_Sg)*PLinVelEZ(DOF_Sg,0,:) &
          + PtfmFt(DOF_Sw)*PLinVelEZ(DOF_Sw,0,:) &
@@ -9174,117 +8270,45 @@ CALL DrvTrTrq(               QDT(DOF_GeAz), GBoxTrq ) ! Compute generator and HS
 
 IF ( DOF_Flag (DOF_Sg  ) )  THEN
    DO I = Diag(DOF_Sg  ),NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(SrtPS(I),DOF_Sg  ) = -DOT_PRODUCT( PLinVelEZ(DOF_Sg  ,0,:), PFrcZAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       AugMat(SrtPS(I),DOF_Sg  ) = -1.*DOT_PRODUCT( PLinVelEZ(DOF_Sg  ,0,:), PFrcZAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(DOF_Sg  ,    NAUG) =  DOT_PRODUCT( PLinVelEZ(DOF_Sg  ,0,:), FrcZAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}N + {-f(qd,q,t)}R + {-f(qd,q,t)}H + {-f(qd,q,t)}B + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}AeroA
       AugMat(DOF_Sg  ,    NAUG) =  DOT_PRODUCT( PLinVelEZ(DOF_Sg  ,0,:), FrcZAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}R + {-f(qd,q,t)}H + {-f(qd,q,t)}B + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}AeroA
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 ENDIF
 
 IF ( DOF_Flag (DOF_Sw  ) )  THEN
    DO I = Diag(DOF_Sw  ),NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(SrtPS(I),DOF_Sw  ) = -DOT_PRODUCT( PLinVelEZ(DOF_Sw  ,0,:), PFrcZAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       AugMat(SrtPS(I),DOF_Sw  ) = -1*DOT_PRODUCT( PLinVelEZ(DOF_Sw  ,0,:), PFrcZAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(DOF_Sw  ,    NAUG) =  DOT_PRODUCT( PLinVelEZ(DOF_Sw  ,0,:), FrcZAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}N + {-f(qd,q,t)}R + {-f(qd,q,t)}H + {-f(qd,q,t)}B + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}AeroA
       AugMat(DOF_Sw  ,    NAUG) =  DOT_PRODUCT( PLinVelEZ(DOF_Sw  ,0,:), FrcZAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}R + {-f(qd,q,t)}H + {-f(qd,q,t)}B + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}AeroA
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 ENDIF
 
 IF ( DOF_Flag (DOF_Hv  ) )  THEN
    DO I = Diag(DOF_Hv  ),NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(SrtPS(I),DOF_Hv  ) = -DOT_PRODUCT( PLinVelEZ(DOF_Hv  ,0,:), PFrcZAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       AugMat(SrtPS(I),DOF_Hv  ) = -1.*DOT_PRODUCT( PLinVelEZ(DOF_Hv  ,0,:), PFrcZAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(DOF_Hv  ,    NAUG) =  DOT_PRODUCT( PLinVelEZ(DOF_Hv  ,0,:), FrcZAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
       AugMat(DOF_Hv  ,    NAUG) =  DOT_PRODUCT( PLinVelEZ(DOF_Hv  ,0,:), FrcZAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 ENDIF
 
 IF ( DOF_Flag (DOF_R   ) )  THEN
    DO I = Diag(DOF_R   ),NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(SrtPS(I),DOF_R   ) = -DOT_PRODUCT( PAngVelEX(DOF_R   ,0,:), PMomXAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       AugMat(SrtPS(I),DOF_R   ) = -1.*DOT_PRODUCT( PAngVelEX(DOF_R   ,0,:), PMomXAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(DOF_R   ,    NAUG) =  DOT_PRODUCT( PAngVelEX(DOF_R   ,0,:), MomXAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
       AugMat(DOF_R   ,    NAUG) =  DOT_PRODUCT( PAngVelEX(DOF_R   ,0,:), MomXAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 ENDIF
 
 IF ( DOF_Flag (DOF_P   ) )  THEN
    DO I = Diag(DOF_P   ),NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(SrtPS(I),DOF_P   ) = -DOT_PRODUCT( PAngVelEX(DOF_P   ,0,:), PMomXAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       AugMat(SrtPS(I),DOF_P   ) = -1.*DOT_PRODUCT( PAngVelEX(DOF_P   ,0,:), PMomXAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(DOF_P   ,    NAUG) =  DOT_PRODUCT( PAngVelEX(DOF_P   ,0,:), MomXAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
       AugMat(DOF_P   ,    NAUG) =  DOT_PRODUCT( PAngVelEX(DOF_P   ,0,:), MomXAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.ENDIF
 END IF
 
 IF ( DOF_Flag (DOF_Y   ) )  THEN
    DO I = Diag(DOF_Y   ),NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(SrtPS(I),DOF_Y   ) = -DOT_PRODUCT( PAngVelEX(DOF_Y   ,0,:), PMomXAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       AugMat(SrtPS(I),DOF_Y   ) = -1.*DOT_PRODUCT( PAngVelEX(DOF_Y   ,0,:), PMomXAll (SrtPS(I),:) )    ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Correct how the undocumented, zero-valued, partial tower hydrodynamic
-!jmj   forces and moments per unit length are integrated into the equations of
-!jmj   motion:
-!remove6.02a      AugMat(DOF_Y   ,    NAUG) =  DotProd( PAngVelEX(DOF_Y   ,0,:), MomXAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
       AugMat(DOF_Y   ,    NAUG) =     DOT_PRODUCT( PAngVelEX(DOF_Y   ,0,:), MomXAllt              )    ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 ENDIF
 
 IF ( DOF_Flag (DOF_TFA1) )  THEN
@@ -9348,10 +8372,8 @@ IF ( DOF_Flag (DOF_RFrl) )  THEN
                                 +  RFrlMom                                                      ! + {-f(qd,q,t)}SpringRF + {-f(qd,q,t)}DampRF
 ENDIF
 
-!bjj start of proposed change: BUG FIX
 !this must be defined for use later, regardless of DOF_Flag (DOF_GeAz)
 TmpVec = GenIner*c1*DOT_PRODUCT( c1, PAngVelEG(DOF_GeAz,0,:) )  ! = ( generator inertia dyadic ) Dot ( partial angular velocity of G in E for DOF_GeAz )
-!bjj end of proposed change
 
 IF ( DOF_Flag (DOF_GeAz) )  THEN
    DO I = Diag(DOF_GeAz),NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
@@ -9365,9 +8387,6 @@ IF ( DOF_Flag (DOF_GeAz) )  THEN
    !   generator inertia-contribution to the mass matrix and forcing function.
    !   Thus, add these in as well:
 
-!bjj start of proposed change: BUG FIX
-!rm      TmpVec = GenIner*c1*DOT_PRODUCT( c1, PAngVelEG(DOF_GeAz,0,:) )  ! = ( generator inertia dyadic ) Dot ( partial angular velocity of G in E for DOF_GeAz )
-!bjj end of proposed change
 
       AugMat(DOF_GeAz,DOF_GeAz) = AugMat(DOF_GeAz,DOF_GeAz)                                  &
                                 +  DOT_PRODUCT( PAngVelEG(DOF_GeAz,0,:), TmpVec                )    ! [C(q,t)]G
@@ -9520,7 +8539,6 @@ CONTAINS
       !   fully deployed operation.
 
 
-!bjj rm NWTC_Library:    USE                             Precision
 
 
    IMPLICIT                        NONE
@@ -9576,7 +8594,6 @@ USE                             Blades
 USE                             Constants
 USE                             CoordSys
 USE                             DOFs
-!bjj rm NWTC_Library: USE                             Precision
 USE                             RtHndSid
 USE                             Tower
 USE                             TurbConf
@@ -9829,7 +8846,6 @@ DO K = 1,NumBl ! Loop through all blades
       CPitPTwstA = CosPitch*CAeroTwst(J) - SinPitch*SAeroTwst(J)  ! = COS( BlPitch(K) + AeroTwst(J) ) found using the sum of angles formulae of cosine.
       SPitPTwstA = CosPitch*SAeroTwst(J) + SinPitch*CAeroTwst(J)  ! = SIN( BlPitch(K) + AeroTwst(J) ) found using the sum of angles formulae of   sine.
 
-!bjj: modified description of te system
       te1(K,J,:) =  CPitPTwstA*m1(K,J,:) - SPitPTwstA*m2(K,J,:)   ! te1(K,J,:) = vector / direction te1 for node J of blade K (used to calc. noise and to calc. and return aerodynamic loads from AeroDyn).
       te2(K,J,:) =  SPitPTwstA*m1(K,J,:) + CPitPTwstA*m2(K,J,:)   ! te2(K,J,:) = vector / direction te2 for node J of blade K (used to calc. noise and to calc. and return aerodynamic loads from AeroDyn).
       te3(K,J,:) =  m3(K,J,:)                                     ! te3(K,J,:) = vector / direction te3 for node J of blade K (used to calc. noise and to calc. and return aerodynamic loads from AeroDyn).
@@ -10309,148 +9325,6 @@ SrtPSNAUG ( NActvDOF + 1 ) = NAUG
 RETURN
 END SUBROUTINE SetEnabledDOFIndexArrays
 !=======================================================================
-!bjj start of proposed change
-!rm!JASON: THIS ROUTINE (SmllRotTrans) SHOULD BE MOVED TO NWTC_Subs!!!
-!rmSUBROUTINE SmllRotTrans( RotationType, Theta1, Theta2, Theta3, TransMat )
-!rm
-!rm
-!rm   ! This routine computes the 3x3 transformation matrix, TransMat,
-!rm   !   to a coordinate system x (with orthogonal axes x1, x2, x3)
-!rm   !   resulting from three rotations (Theta1, Theta2, Theta3) about the
-!rm   !   orthogonal axes (X1, X2, X3) of coordinate system X.  All angles
-!rm   !   are assummed to be small, as such, the order of rotations does
-!rm   !   not matter and Euler angles do not need to be used.  This routine
-!rm   !   is used to compute the transformation matrix (TransMat) between
-!rm   !   undeflected (X) and deflected (x) coordinate systems.  In matrix
-!rm   !   form:
-!rm   !      {x1}   [TransMat(Theta1, ] {X1}
-!rm   !      {x2} = [         Theta2, ]*{X2}
-!rm   !      {x3}   [         Theta3 )] {X3}
-!rm
-!rm   ! The transformation matrix, TransMat, is the closest orthonormal
-!rm   !   matrix to the nonorthonormal, but skew-symmetric, Bernoulli-Euler
-!rm   !   matrix:
-!rm   !          [   1.0    Theta3 -Theta2 ]
-!rm   !      A = [ -Theta3   1.0    Theta1 ]
-!rm   !          [  Theta2 -Theta1   1.0   ]
-!rm   !
-!rm   !   In the Frobenius Norm sense, the closest orthornormal matrix is:
-!rm   !      TransMat = U*V^T,
-!rm   !
-!rm   !   where the columns of U contain the eigenvectors of A*A^T and the
-!rm   !   columns of V contain the eigenvectors of A^T*A (^T = transpose).
-!rm   !   This result comes directly from the Singular Value Decomposition
-!rm   !   (SVD) of A = U*S*V^T where S is a diagonal matrix containing the
-!rm   !   singular values of A, which are SQRT( eigenvalues of A*A^T ) =
-!rm   !   SQRT( eigenvalues of A^T*A ).
-!rm
-!rm   ! The algebraic form of the transformation matrix, as implemented
-!rm   !   below, was derived symbolically by J. Jonkman by computing U*V^T
-!rm   !   by hand with verification in Mathematica.
-!rm
-!rm
-!rm!bjj rm NWTC_Library: USE                             Precision
-!rm!bjj rm NWTC_Library: USE                             SysSubs
-!rm
-!rm
-!rmIMPLICIT                        NONE
-!rm
-!rm
-!rm   ! Passed Variables:
-!rm
-!rmREAL(ReKi), INTENT(IN )      :: Theta1                                          ! The small rotation about X1, (rad).
-!rmREAL(ReKi), INTENT(IN )      :: Theta2                                          ! The small rotation about X2, (rad).
-!rmREAL(ReKi), INTENT(IN )      :: Theta3                                          ! The small rotation about X3, (rad).
-!rmREAL(ReKi), INTENT(OUT)      :: TransMat (3,3)                                  ! The resulting transformation matrix from X to x, (-).
-!rm
-!rmCHARACTER(*), INTENT(IN)     :: RotationType                                    ! The type of rotation; used to inform the user where a large rotation is occuring upon such an event.
-!rm
-!rm
-!rm   ! Local Variables:
-!rm
-!rmREAL(ReKi)                   :: ComDenom                                        ! = ( Theta1^2 + Theta2^2 + Theta3^2 )*SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 )
-!rm!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!rm!jmj Increase this large angle threshold to 0.4 radians:
-!rm!remove6.02aREAL(ReKi), PARAMETER        :: LrgAngle  = 0.3                                 ! Threshold for when a small angle becomes large (about 17deg).  This comes from:  cos(SmllAngle) ~ 1 and:  SmllAngle = 0.3rad results in ~ 5% error.
-!rmREAL(ReKi), PARAMETER        :: LrgAngle  = 0.4                                 ! Threshold for when a small angle becomes large (about 23deg).  This comes from: COS(SmllAngle) ~ 1/SQRT( 1 + SmllAngle^2 ) and SIN(SmllAngle) ~ SmllAngle/SQRT( 1 + SmllAngle^2 ) results in ~5% error when SmllAngle = 0.4rad.
-!rm!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-!rmREAL(ReKi)                   :: Theta11                                         ! = Theta1^2
-!rmREAL(ReKi)                   :: Theta12S                                        ! = Theta1*Theta2*[ SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 ) - 1.0 ]
-!rmREAL(ReKi)                   :: Theta13S                                        ! = Theta1*Theta3*[ SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 ) - 1.0 ]
-!rmREAL(ReKi)                   :: Theta22                                         ! = Theta2^2
-!rmREAL(ReKi)                   :: Theta23S                                        ! = Theta2*Theta3*[ SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 ) - 1.0 ]
-!rmREAL(ReKi)                   :: Theta33                                         ! = Theta3^2
-!rmREAL(ReKi)                   :: SqrdSum                                         ! = Theta1^2 + Theta2^2 + Theta3^2
-!rm!rmREAL(ReKi)                   :: SQRT1SqrdSum                                    ! = SQRT( 1.0 + Theta1^2 + Theta2^2 + Theta3^2 )
-!rm
-!rm!bjj chg: LOGICAL(1), SAVE             :: FrstWarn  = .TRUE.                              ! When .TRUE., indicates that we're on the first warning.
-!rmLOGICAL,    SAVE             :: FrstWarn  = .TRUE.                              ! When .TRUE., indicates that we're on the first warning.
-!rm
-!rm
-!rm
-!rm   ! Display a warning message if at least one angle gets too large in
-!rm   !   magnitude:
-!rm
-!rmIF ( ( ( ABS(Theta1) > LrgAngle ) .OR. ( ABS(Theta2) > LrgAngle ) .OR. ( ABS(Theta3) > LrgAngle ) ) .AND. FrstWarn )  THEN
-!rm
-!rm   CALL WrOver(' WARNING:                                                            ')
-!rm   CALL WrScr ('  Small angle assumption violated in SUBROUTINE SmllRotTrans() due to')
-!rm   CALL WrScr ('  a large '//TRIM(RotationType)//'.  The solution may be inaccurate. ')
-!rm   CALL WrScr ('  Future warnings suppressed.  Simulation continuing...              ')
-!rm   CALL WrScr ('                                                                     ')
-!rm
-!rm   CALL UsrAlarm
-!rm
-!rm
-!rm   FrstWarn = .FALSE.   ! Don't enter here again!
-!rm
-!rmENDIF
-!rm
-!rm
-!rm
-!rm   ! Compute some intermediate results:
-!rm
-!rmTheta11      = Theta1*Theta1
-!rmTheta22      = Theta2*Theta2
-!rmTheta33      = Theta3*Theta3
-!rm
-!rmSqrdSum      = Theta11 + Theta22 + Theta33
-!rmSQRT1SqrdSum = SQRT( 1.0 + SqrdSum )
-!rmComDenom     = SqrdSum*SQRT1SqrdSum
-!rm
-!rmTheta12S     = Theta1*Theta2*( SQRT1SqrdSum - 1.0 )
-!rm!rmTheta13S     = Theta1*Theta3*( SQRT1SqrdSum - 1.0 )
-!rmTheta23S     = Theta2*Theta3*( SQRT1SqrdSum - 1.0 )
-!rm
-!rm
-!rm   ! Define the transformation matrix:
-!rm
-!rmIF ( ComDenom == 0.0 )  THEN  ! All angles are zero and matrix is ill-conditioned (the matrix is derived assuming that the angles are not zero); return identity
-!rm
-!rm   TransMat(1,:) = (/ 1.0, 0.0, 0.0 /)
-!rm   TransMat(2,:) = (/ 0.0, 1.0, 0.0 /)
-!rm   TransMat(3,:) = (/ 0.0, 0.0, 1.0 /)
-!rm
-!rmELSE                          ! At least one angle is nonzero
-!rm
-!rm   TransMat(1,1) = ( Theta11*SQRT1SqrdSum + Theta22              + Theta33              )/ComDenom
-!rm   TransMat(2,2) = ( Theta11              + Theta22*SQRT1SqrdSum + Theta33              )/ComDenom
-!rm   TransMat(3,3) = ( Theta11              + Theta22              + Theta33*SQRT1SqrdSum )/ComDenom
-!rm   TransMat(1,2) = (  Theta3*SqrdSum + Theta12S )/ComDenom
-!rm   TransMat(2,1) = ( -Theta3*SqrdSum + Theta12S )/ComDenom
-!rm   TransMat(1,3) = ( -Theta2*SqrdSum + Theta13S )/ComDenom
-!rm   TransMat(3,1) = (  Theta2*SqrdSum + Theta13S )/ComDenom
-!rm   TransMat(2,3) = (  Theta1*SqrdSum + Theta23S )/ComDenom
-!rm   TransMat(3,2) = ( -Theta1*SqrdSum + Theta23S )/ComDenom
-!rm
-!rmENDIF
-!rm
-!rm
-!rm
-!rmRETURN
-!rmEND SUBROUTINE SmllRotTrans
-!rm!=======================================================================
-!bjj end of proposed change
 SUBROUTINE Solver
 
 
@@ -10460,9 +9334,7 @@ SUBROUTINE Solver
    !   velocities.
 
 
-!bjj rm NWTC_Library: USE                             Constants
 USE                             DOFs
-!bjj rm NWTC_Library: USE                             Precision
 USE                             RtHndSid
 USE                             SimCont
 USE                             TurbCont
@@ -10494,53 +9366,43 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ! Allocate arrays that vary with the number of DOFs..
 
 
-!BJJ START OF PROPOSED CHANGE
    Sttus = 0
-!bjj end of proposed change
 
-   !BJJ REPLACE: ALLOCATE ( ZK1(NDOF) , STAT=Sttus )
    IF (.NOT. ALLOCATED(ZK1)) ALLOCATE ( ZK1(NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK1 array.' )
    ENDIF
 
-   !BJJ REPLACE: ALLOCATE ( ZK1D(NDOF) , STAT=Sttus )
    IF (.NOT. ALLOCATED(ZK1D)) ALLOCATE ( ZK1D(NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK1D array.' )
    ENDIF
 
-   !BJJ REPLACE: ALLOCATE ( ZK2(NDOF) , STAT=Sttus )
    IF (.NOT. ALLOCATED(ZK2)) ALLOCATE ( ZK2(NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK2 array.' )
    ENDIF
 
-   !BJJ REPLACE: ALLOCATE ( ZK2D(NDOF) , STAT=Sttus )
    IF (.NOT. ALLOCATED(ZK2D)) ALLOCATE ( ZK2D(NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK2D array.' )
    ENDIF
 
-   !BJJ REPLACE: ALLOCATE ( ZK3(NDOF) , STAT=Sttus )
    IF (.NOT. ALLOCATED(ZK3)) ALLOCATE ( ZK3(NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK3 array.' )
    ENDIF
 
-   !BJJ REPLACE: ALLOCATE ( ZK3D(NDOF) , STAT=Sttus )
    IF (.NOT. ALLOCATED(ZK3D)) ALLOCATE ( ZK3D(NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK3D array.' )
    ENDIF
 
-   !BJJ REPLACE: ALLOCATE ( ZK4(NDOF) , STAT=Sttus )
    IF (.NOT. ALLOCATED(ZK4)) ALLOCATE ( ZK4(NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK4 array.' )
    ENDIF
 
-   !BJJ REPLACE: ALLOCATE ( ZK4D(NDOF) , STAT=Sttus )
    IF (.NOT. ALLOCATED(ZK4D)) ALLOCATE ( ZK4D(NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK4D array.' )
@@ -10608,7 +9470,6 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-!bjj start of proposed change V6.02D-BJJ
    IF (ALLOCATED(ZK1) ) DEALLOCATE ( ZK1  )
    IF (ALLOCATED(ZK1D)) DEALLOCATE ( ZK1D )
    IF (ALLOCATED(ZK2) ) DEALLOCATE ( ZK2  )
@@ -10617,7 +9478,6 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    IF (ALLOCATED(ZK3D)) DEALLOCATE ( ZK3D )
    IF (ALLOCATED(ZK4) ) DEALLOCATE ( ZK4  )
    IF (ALLOCATED(ZK4D)) DEALLOCATE ( ZK4D )
-!bjj end of proposed change V6.02D-BJJ
 
 
 ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corrector integration scheme for all other time steps.
@@ -10710,7 +9570,6 @@ SUBROUTINE Teeter( TeetDef, TeetRate, TeetMom )
 
 
 USE                             General
-!bjj rm NWTC_Library: USE                             Precision
 USE                             SimCont
 USE                             TeeterVars
 
@@ -10728,15 +9587,6 @@ REAL(ReKi), INTENT(IN )      :: TeetRate                                        
    ! Local variables:
 
 REAL(ReKi)                   :: AbsDef                                          ! Absolute value of the teeter deflection.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Remove reference to these unused variables:
-!remove6.02aREAL(ReKi)                   :: DampDef                                         ! Deflection past the damper.
-!remove6.02aREAL(ReKi)                   :: DmpDef                                          ! Limited deflection past the damper.
-!remove6.02aREAL(ReKi)                   :: FDamp                                           ! Some sort of damping function.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-!bjj rm unused:REAL(ReKi)                   :: DampDef                                         ! Deflection past the damper.
-!bjj rm unused:REAL(ReKi)                   :: DmpDef                                          ! Limited deflection past the damper.
-!bjj rm unused:REAL(ReKi)                   :: FDamp                                           ! Some sort of damping function.
 REAL(ReKi)                   :: SprgDef                                         ! Deflection past the spring.
 REAL(ReKi)                   :: StopDef                                         ! Deflection past the stop.
 REAL(ReKi)                   :: TeetDMom                                        ! The moment supplied by the damper.
@@ -10824,7 +9674,6 @@ SUBROUTINE TFurling( TFrlDef, TFrlRate, TFrlMom )
 
 
 USE                             General
-!bjj rm NWTC_Library: USE                             Precision
 USE                             SimCont
 USE                             TailFurling
 
@@ -10917,17 +9766,12 @@ SUBROUTINE TimeMarch
    !   simulation of the FAST code.
 
 
-!bjj rm NWTC_Library: USE                             Constants
 USE                             DOFs
 USE                             Features
 USE                             Output
-!bjj rm NWTC_Library: USE                             Precision
 USE                             SimCont
-!bjj rm NWTC_Library: USE                             SysSubs
-!bjj start of proposed change vXX
 USE                             FAST_IO_Subs       ! WrOutHdr(),  SimStatus(), WrOutput()
 USE                             NOISE              ! PredictNoise(), WriteAveSpecOut()
-!bjj end of proposed change
 
 
 IMPLICIT                        NONE
@@ -11016,10 +9860,6 @@ IF ( CompNoise )  CALL WriteAveSpecOut
 RETURN
 END SUBROUTINE TimeMarch
 !=======================================================================
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
 SUBROUTINE TwrLoading ( JNode, X1 , X2 , X3 , X4 , X5 , X6 , &
                                XD1, XD2, XD3, XD4, XD5, XD6    )
 
@@ -11030,7 +9870,6 @@ SUBROUTINE TwrLoading ( JNode, X1 , X2 , X3 , X4 , X5 , X6 , &
 
 USE                             General
 USE                             FixedBottomSupportStructure, ONLY:MorisonTwrLd
-!bjj rm:USE                             Precision
 USE                             SimCont
 USE                             Tower
 
@@ -11160,6 +9999,4 @@ ENDSELECT
 RETURN
 END SUBROUTINE TwrLoading
 !=======================================================================
-!BJJ Start of proposed change vXX NWTC_Lib
 END MODULE FASTSubs
-!bjj end of proposed change

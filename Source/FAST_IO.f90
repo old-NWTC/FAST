@@ -1,4 +1,3 @@
-!BJJ Start of proposed change vXX NWTC_Lib
 MODULE FAST_IO_Subs
 
    USE   NWTC_Library
@@ -72,7 +71,6 @@ SUBROUTINE AeroInput()
    
    ADInterfaceComponents%BladeLength = TipRad - HubRad
    
-!print *, HubRad, TipRad, ACOS(CosPreC(1))   
      
       ! Initialize AeroDyn
 
@@ -110,7 +108,6 @@ SUBROUTINE AeroInput()
    RETURN
 END SUBROUTINE AeroInput
 !====================================================================================================
-!bjj end of proposed change
 SUBROUTINE Begin
 
 
@@ -119,82 +116,39 @@ SUBROUTINE Begin
 
 
 USE                             General
-!bjj rm NWTC_Library: USE                             SysSubs
 USE                             TurbConf
 
-!bjj start of proposed change vXX
-!USE                             FAST_SysSubs !Get_CWD
-!bjj end of proposed change
 
 IMPLICIT                        NONE
 
 
    ! Local variables.
 
-!bjj rm unused:INTEGER(4)                   :: I                                               ! A generic index for DO loops.
-!bjj rm unused:INTEGER(4)                   :: LastChar                                        ! The location of the last non-blank character in the primary file name.
-!bjj start of proposed change vXX
 INTEGER                      :: Stat                                            ! The status of the call to GET_CWD
-!bjj end of proposed change vXX
-
 
 CHARACTER(1024)              :: DirName                                         ! A CHARACTER string containing the path of the current working directory.
-
-
-   ! User-defined functions.
-
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
 
 
 
    ! Check for command line arguments.  Maybe the user specified an input file name.
    ! Don't perform this check when interfaced with Simulink:
 
-!bjj Start of proposed change vXX
-!rmIF ( .NOT. Cmpl4SFun )  CALL CheckArgs
 IF ( .NOT. Cmpl4SFun )  CALL CheckArgs( PriFile )
-!bjj End of proposed change
-
-!bjj start of proposed change
-!rm   ! Let's parse the root file name from the name of the primary input file.
-!rm   ! We'll count everything after the last period as the extension.
-!rm
-!rmLastChar = LEN_TRIM( PriFile )
-!rm
-!rmDO I=LastChar,1,-1
-!rm   IF ( PriFile(I:I) == '.' )  THEN
-!rm      RootName = PriFile(:I-1)
-!rm   ENDIF
-!rmENDDO ! I
-!rm
-!rmIF ( LEN_TRIM( RootName ) == 0 )  RootName = PriFile
 
 CALL GetRoot( PriFile, RootName )
-!bjj end of proposed change
 
 
    ! Let's create a root file name variable, DirRoot, which includes the full
    !   path to the current working directory.
 
-!bjj start of proposed change vXX
-!rm CALL Get_CWD  ( DirName )
-!rmDirRoot = TRIM( DirName )//'\'//TRIM( RootName )
 CALL Get_CWD  ( DirName, Stat )
 IF (Stat /= 0) CALL ProgAbort('Error retreiving current working directory.')
 
 DirRoot = TRIM( DirName )//PathSep//TRIM( RootName )
-!bjj end of proposed change vXX
 
    ! Let's create the name of the output file.
-!bjj start of proposed change
-!rmIF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
-!rm   OutFile = TRIM( RootName )//'_SFunc.out'
-!rmELSE                       ! FAST has been compiled normally
-!rm   OutFile = TRIM( RootName )//'.out'
-!rmENDIF
 
 IF ( Cmpl4SFun )  RootName = TRIM( RootName )//'_SFunc'
-!bjj end of proposed change
 
 RETURN
 END SUBROUTINE Begin
@@ -211,12 +165,7 @@ SUBROUTINE ChckOutLst
 USE                             Features
 USE                             General
 USE                             Output
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 USE                             Platform
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 USE                             TurbConf
 
 IMPLICIT                        NONE
@@ -348,156 +297,92 @@ DO I = 1,NumOuts
       OutInd  (I)       = Spn1ALxb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN1ALYB1' )
       OutInd  (I)       = Spn1ALyb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN1ALZB1' )
       OutInd  (I)       = Spn1ALzb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN2ALXB1' )
       OutInd  (I)       = Spn2ALxb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN2ALYB1' )
       OutInd  (I)       = Spn2ALyb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN2ALZB1' )
       OutInd  (I)       = Spn2ALzb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN3ALXB1' )
       OutInd  (I)       = Spn3ALxb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN3ALYB1' )
       OutInd  (I)       = Spn3ALyb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN3ALZB1' )
       OutInd  (I)       = Spn3ALzb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN4ALXB1' )
       OutInd  (I)       = Spn4ALxb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN4ALYB1' )
       OutInd  (I)       = Spn4ALyb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN4ALZB1' )
       OutInd  (I)       = Spn4ALzb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN5ALXB1' )
       OutInd  (I)       = Spn5ALxb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN5ALYB1' )
       OutInd  (I)       = Spn5ALyb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN5ALZB1' )
       OutInd  (I)       = Spn5ALzb1
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NBlGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
    CASE ( 'SPN6ALXB1' )
       OutInd  (I)       = Spn6ALxb1
       OutParam(I)%Units = '(m/sec^2)'
@@ -570,7 +455,6 @@ DO I = 1,NumOuts
       IF ( NBlGages < 9 )  THEN
          OutParam(I)%Units = 'INVALID'
       ENDIF
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Blade 2 Tip Motions:
@@ -612,9 +496,6 @@ DO I = 1,NumOuts
       OutInd  (I)       = TipClrnc2
       OutParam(I)%Units = '(m)'
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
    ! Blade 2 Local Span Motions:
 
    CASE ( 'SPN1ALXB2' )
@@ -781,134 +662,81 @@ DO I = 1,NumOuts
       ENDIF
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-
    ! Blade 3 Tip Motions:
 
    CASE ( 'TIPDXC3', 'OOPDEFL3' )
       OutInd  (I)       = TipDxc3
       OutParam(I)%Units = '(m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TIPDYC3', 'IPDEFL3' )
       OutInd  (I)       = TipDyc3
       OutParam(I)%Units = '(m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TIPDZC3', 'TIPDZB3' )
       OutInd  (I)       = TipDzc3
       OutParam(I)%Units = '(m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TIPDXB3' )
       OutInd  (I)       = TipDxb3
       OutParam(I)%Units = '(m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TIPDYB3' )
       OutInd  (I)       = TipDyb3
       OutParam(I)%Units = '(m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TIPALXB3' )
       OutInd  (I)       = TipALxb3
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
      ENDIF
    CASE ( 'TIPALYB3' )
       OutInd  (I)       = TipALyb3
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
      ENDIF
    CASE ( 'TIPALZB3' )
       OutInd  (I)       = TipALzb3
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
      ENDIF
    CASE ( 'TIPRDXB3', 'ROLLDEFL3' )
       OutInd  (I)       = TipRDxb3
       OutParam(I)%Units = '(deg)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TIPRDYB3', 'PTCHDEFL3' )
       OutInd  (I)       = TipRDyb3
       OutParam(I)%Units = '(deg)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TIPRDZC3', 'TIPRDZB3', 'TWSTDEFL3' )
       OutInd  (I)       = TipRDzc3
       OutParam(I)%Units = '(deg)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TIPCLRNC3', 'TWRCLRNC3', 'TIP2TWR3' )
       OutInd  (I)       = TipClrnc3
       OutParam(I)%Units = '(m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
    ! Blade 3 Local Span Motions:
 
    CASE ( 'SPN1ALXB3' )
@@ -1076,7 +904,6 @@ DO I = 1,NumOuts
       ENDIF
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    ! Blade Pitch Motions:
 
    CASE ( 'PTCHPMZC1', 'PTCHPMZB1', 'BLDPITCH1', 'BLPITCH1' )
@@ -1089,11 +916,7 @@ DO I = 1,NumOuts
       OutInd  (I)       = PtchPMzc3
       OutParam(I)%Units = '(deg)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
 
@@ -1103,31 +926,19 @@ DO I = 1,NumOuts
       OutInd  (I)       = TeetPya
       OutParam(I)%Units = '(deg)'
       IF ( NumBl == 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TEETVYA', 'ROTTEETV' )
       OutInd  (I)       = TeetVya
       OutParam(I)%Units = '(deg/sec)'
       IF ( NumBl == 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TEETAYA', 'ROTTEETA' )
       OutInd  (I)       = TeetAya
       OutParam(I)%Units = '(deg/sec2)'
       IF ( NumBl == 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
 
@@ -1161,11 +972,7 @@ DO I = 1,NumOuts
       OutInd  (I)       = TipSpdRat
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
 
@@ -1237,11 +1044,7 @@ DO I = 1,NumOuts
       OutInd  (I)       = NacYawErr
       OutParam(I)%Units = '(deg)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
 
@@ -1322,157 +1125,92 @@ DO I = 1,NumOuts
       OutInd  (I)       = TwHt1ALxt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT1ALYT' )
       OutInd  (I)       = TwHt1ALyt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT1ALZT' )
       OutInd  (I)       = TwHt1ALzt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT2ALXT' )
       OutInd  (I)       = TwHt2ALxt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT2ALYT' )
       OutInd  (I)       = TwHt2ALyt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT2ALZT' )
       OutInd  (I)       = TwHt2ALzt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT3ALXT' )
       OutInd  (I)       = TwHt3ALxt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT3ALYT' )
       OutInd  (I)       = TwHt3ALyt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT3ALZT' )
       OutInd  (I)       = TwHt3ALzt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT4ALXT' )
       OutInd  (I)       = TwHt4ALxt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT4ALYT' )
       OutInd  (I)       = TwHt4ALyt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT4ALZT' )
       OutInd  (I)       = TwHt4ALzt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT5ALXT' )
       OutInd  (I)       = TwHt5ALxt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT5ALYT' )
       OutInd  (I)       = TwHt5ALyt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT5ALZT' )
       OutInd  (I)       = TwHt5ALzt
       OutParam(I)%Units = '(m/sec^2)'
       IF ( NTwGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
-
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
    CASE ( 'TWHT6ALXT' )
       OutInd  (I)       = TwHt6ALxt
       OutParam(I)%Units = '(m/sec^2)'
@@ -1545,7 +1283,6 @@ DO I = 1,NumOuts
       IF ( NTwGages < 9 )  THEN
          OutParam(I)%Units = 'INVALID'
       ENDIF
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Platform Motions:
@@ -1692,157 +1429,92 @@ DO I = 1,NumOuts
       OutInd  (I)       = Spn1MLxb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN1MLYB1' )
       OutInd  (I)       = Spn1MLyb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN1MLZB1' )
       OutInd  (I)       = Spn1MLzb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN2MLXB1' )
       OutInd  (I)       = Spn2MLxb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN2MLYB1' )
       OutInd  (I)       = Spn2MLyb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN2MLZB1' )
       OutInd  (I)       = Spn2MLzb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN3MLXB1' )
       OutInd  (I)       = Spn3MLxb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN3MLYB1' )
       OutInd  (I)       = Spn3MLyb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN3MLZB1' )
       OutInd  (I)       = Spn3MLzb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN4MLXB1' )
       OutInd  (I)       = Spn4MLxb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN4MLYB1' )
       OutInd  (I)       = Spn4MLyb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN4MLZB1' )
       OutInd  (I)       = Spn4MLzb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN5MLXB1' )
       OutInd  (I)       = Spn5MLxb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN5MLYB1' )
       OutInd  (I)       = Spn5MLyb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'SPN5MLZB1' )
       OutInd  (I)       = Spn5MLzb1
       OutParam(I)%Units = '(kN·m)'
       IF ( NBlGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
-
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
    CASE ( 'SPN6MLXB1' )
       OutInd  (I)       = Spn6MLxb1
       OutParam(I)%Units = '(kN·m)'
@@ -1915,7 +1587,6 @@ DO I = 1,NumOuts
       IF ( NBlGages < 9 )  THEN
          OutParam(I)%Units = 'INVALID'
       ENDIF
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Blade 2 Root Loads
@@ -1951,9 +1622,6 @@ DO I = 1,NumOuts
       OutInd  (I)       = RootMyb2
       OutParam(I)%Units = '(kN·m)'
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
    ! Blade 2 Local Span Loads:
 
    CASE ( 'SPN1MLXB2' )
@@ -2120,112 +1788,69 @@ DO I = 1,NumOuts
       ENDIF
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
    ! Blade 3 Root Loads
 
    CASE ( 'ROOTFXC3' )
       OutInd  (I)       = RootFxc3
       OutParam(I)%Units = '(kN)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROOTFYC3' )
       OutInd  (I)       = RootFyc3
       OutParam(I)%Units = '(kN)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROOTFZC3', 'ROOTFZB3' )
       OutInd  (I)       = RootFzc3
       OutParam(I)%Units = '(kN)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROOTFXB3' )
       OutInd  (I)       = RootFxb3
       OutParam(I)%Units = '(kN)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROOTFYB3' )
       OutInd  (I)       = RootFyb3
       OutParam(I)%Units = '(kN)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROOTMXC3', 'ROOTMIP3' )
       OutInd  (I)       = RootMxc3
       OutParam(I)%Units = '(kN·m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROOTMYC3', 'ROOTMOOP3' )
       OutInd  (I)       = RootMyc3
       OutParam(I)%Units = '(kN·m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROOTMZC3', 'ROOTMZB3' )
       OutInd  (I)       = RootMzc3
       OutParam(I)%Units = '(kN·m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROOTMXB3', 'ROOTMEDG3' )
       OutInd  (I)       = RootMxb3
       OutParam(I)%Units = '(kN·m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROOTMYB3', 'ROOTMFLP3' )
       OutInd  (I)       = RootMyb3
       OutParam(I)%Units = '(kN·m)'
       IF ( NumBl == 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Add blade strain gage output parameters for the local loads and motions of
-!jmj   blades 2 and 3:
+
    ! Blade 3 Local Span Loads:
 
    CASE ( 'SPN1MLXB3' )
@@ -2392,8 +2017,6 @@ DO I = 1,NumOuts
       ENDIF
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-
    ! Hub and Rotor Loads:
 
    CASE ( 'LSSHFTFXA', 'LSSHFTFXS', 'LSSGAGFXA', 'LSSGAGFXS', 'ROTTHRUST' )
@@ -2439,31 +2062,19 @@ DO I = 1,NumOuts
       OutInd  (I)       = RotCq
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROTCP', 'LSSHFTCP' )
       OutInd  (I)       = RotCp
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'ROTCT', 'LSSHFTCT' )
       OutInd  (I)       = RotCt
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
 
@@ -2495,21 +2106,13 @@ DO I = 1,NumOuts
       OutInd  (I)       = HSShftCq
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'HSSHFTCP' )
       OutInd  (I)       = HSShftCp
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'HSSBRTQ' )
       OutInd  (I)       = HSSBrTq
@@ -2524,21 +2127,13 @@ DO I = 1,NumOuts
       OutInd  (I)       = GenCq
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'GENCP' )
       OutInd  (I)       = GenCp
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
 
@@ -2618,157 +2213,93 @@ DO I = 1,NumOuts
       OutInd  (I)       = TwHt1MLxt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT1MLYT' )
       OutInd  (I)       = TwHt1MLyt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT1MLZT' )
       OutInd  (I)       = TwHt1MLzt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 1 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT2MLXT' )
       OutInd  (I)       = TwHt2MLxt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT2MLYT' )
       OutInd  (I)       = TwHt2MLyt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT2MLZT' )
       OutInd  (I)       = TwHt2MLzt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 2 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT3MLXT' )
       OutInd  (I)       = TwHt3MLxt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT3MLYT' )
       OutInd  (I)       = TwHt3MLyt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT3MLZT' )
       OutInd  (I)       = TwHt3MLzt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 3 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT4MLXT' )
       OutInd  (I)       = TwHt4MLxt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT4MLYT' )
       OutInd  (I)       = TwHt4MLyt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT4MLZT' )
       OutInd  (I)       = TwHt4MLzt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 4 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT5MLXT' )
       OutInd  (I)       = TwHt5MLxt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT5MLYT' )
       OutInd  (I)       = TwHt5MLyt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TWHT5MLZT' )
       OutInd  (I)       = TwHt5MLzt
       OutParam(I)%Units = '(kN·m)'
       IF ( NTwGages < 5 )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
    CASE ( 'TWHT6MLXT' )
       OutInd  (I)       = TwHt6MLxt
       OutParam(I)%Units = '(kN·m)'
@@ -2841,7 +2372,6 @@ DO I = 1,NumOuts
       IF ( NTwGages < 9 )  THEN
          OutParam(I)%Units = 'INVALID'
       ENDIF
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! Platform Loads:
 
@@ -2881,10 +2411,6 @@ DO I = 1,NumOuts
    CASE ( 'PTFMMZI' )
       OutInd  (I)       = PtfmMzi
       OutParam(I)%Units = '(kN·m)'
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
    ! Mooring Line Loads:
 
    CASE ( 'FAIR1TEN' )
@@ -3105,8 +2631,6 @@ DO I = 1,NumOuts
       ENDIF
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-
 
 
    ! Wind Motions:
@@ -3115,71 +2639,43 @@ DO I = 1,NumOuts
       OutInd  (I)       = WindVxi
       OutParam(I)%Units = '(m/sec)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'WINDVYI', 'VWIND' )
       OutInd  (I)       = WindVyi
       OutParam(I)%Units = '(m/sec)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'WINDVZI', 'WWIND' )
       OutInd  (I)       = WindVzi
       OutParam(I)%Units = '(m/sec)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TOTWINDV' )
       OutInd  (I)       = TotWindV
       OutParam(I)%Units = '(m/sec)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'HORWINDV' )
       OutInd  (I)       = HorWindV
       OutParam(I)%Units = '(m/sec)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'HORWNDDIR' )
       OutInd  (I)       = HorWndDir
       OutParam(I)%Units = '(deg)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'VERWNDDIR' )
       OutInd  (I)       = VerWndDir
       OutParam(I)%Units = '(deg)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
 
@@ -3189,68 +2685,39 @@ DO I = 1,NumOuts
       OutInd  (I)       = TFinAlpha
       OutParam(I)%Units = '(deg)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TFINCLIFT' )
       OutInd  (I)       = TFinCLift
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TFINCDRAG' )
       OutInd  (I)       = TFinCDrag
       OutParam(I)%Units = '(-)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TFINDNPRS' )
       OutInd  (I)       = TFinDnPrs
       OutParam(I)%Units = '(Pa)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TFINCPFX' )
       OutInd  (I)       = TFinCPFx
       OutParam(I)%Units = '(kN)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
    CASE ( 'TFINCPFY' )
       OutInd  (I)       = TFinCPFy
       OutParam(I)%Units = '(kN)'
       IF ( .NOT. CompAero )  THEN
-!bjj start of proposed change: CRUNCH CHANNELS
-!rm         OutParam(I)%Name  = 'INVALID'
-!rm         OutParam(I)%Units = 'CHANNEL'
          OutParam(I)%Units = 'INVALID'
-!bjj end of proposed change
       ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for outputting the incident wave elevation at
-!jmj   the platform reference point and the incident wave kinematics at up to 9
-!jmj   nodes along the undeflected tower [not floating] or undisplaced platform
-!jmj   [floating]:
    ! Wave Motions:
 
    CASE ( 'WAVEELEV' )
@@ -3588,7 +3055,6 @@ DO I = 1,NumOuts
 
 
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! The selected channel does not match any of of the available output channels.
 
@@ -3606,188 +3072,6 @@ ENDDO
 
 RETURN
 END SUBROUTINE ChckOutLst
-!=======================================================================
-!bjj Start of proposed change vXX NWTC_Lib
-!rmSUBROUTINE CheckArgs
-!rm
-!rm
-!rm   ! This subroutine is used to check for command-line arguments.
-!rm
-!rm
-!rmUSE                             General
-!rm!bjj rm NWTC_Library: USE                             SysSubs
-!rmUSE                             System
-!rm
-!rmIMPLICIT                        NONE
-!rm
-!rm
-!rm   ! Local variables.
-!rm
-!rmINTEGER(4)                   :: IArg                                            ! The argument number.
-!rmINTEGER(4)                   :: NumArg                                          ! The number of arguments on the command line.
-!rm
-!rmLOGICAL(1)                   :: Error                                           ! Flag indicating if there was an error getting an argument.
-!rm
-!rmCHARACTER(99)                :: Arg                                             ! A command-line argument.
-!rm
-!rm
-!rm   ! User-defined functions.
-!rm
-!rm!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!rm
-!rm
-!rm
-!rm
-!rm   ! Find out how many arguments were entered on the command line.
-!rm
-!rmCALL Get_Arg_Num ( NumArg )
-!rm
-!rm
-!rm   ! Parse them.
-!rm
-!rmIF ( NumArg .GT. 0 )  THEN
-!rm
-!rm   DO IArg=1,NumArg
-!rm
-!rm      CALL Get_Arg ( IArg , Arg , Error )
-!rm
-!rm      IF ( Error )  THEN
-!rm         CALL ProgAbort ( ' Error getting command-line argument #'//TRIM( Int2LStr( IArg ) )//'.' )
-!rm      ENDIF
-!rm
-!rm      IF (Arg(1:1) == SwChar )  THEN
-!rm
-!rm         IF ( ( Arg(2:2) .EQ. 'H' ) .OR. ( Arg(2:2) .EQ. 'h' ) .OR. ( Arg(2:2) .EQ. '?' ) )  THEN
-!rm            CALL WrScr1 ( ' Syntax is:' )
-!rm            CALL WrScr1 ( '    '//ProgName//' ['//SwChar//'h] [<PriFile>]' )
-!rm            CALL WrScr1 ( ' where:' )
-!rm            CALL WrScr1 ( '    '//SwChar//'h generates this help message.' )
-!rm            CALL WrScr  ( '    <PriFile> is the name of the primary input file ['//TRIM( PriFile )//'].' )
-!rm!JASON: Link NWTC_Subs.f90 and NWTC_Mods.f90 after AeroDyn is fully interfaced to these routines.  When you do this, replace all CALLs to EXIT() with CALLs to ProgExit() in order to get rid of the /stand Warnings.
-!rm            CALL EXIT ( 1 )
-!rm         ELSE
-!rm            CALL ProgAbort ( ' Invalid command-line switch "'//SwChar//TRIM( Arg(2:) )//'".' )
-!rm         ENDIF
-!rm
-!rm      ELSE
-!rm         PriFile = Arg
-!rm      ENDIF
-!rm
-!rm   ENDDO
-!rm
-!rmENDIF
-!rm
-!rm
-!rmRETURN
-!rmEND SUBROUTINE CheckArgs
-!bjj End of proposed change
-!=======================================================================
-!bjj start of proposed change
-!this should be checked in AeroDyn
-!SUBROUTINE CheckRComp
-!
-!
-!   ! This routine checks to see if RNodes(:) and DRNodes(:) are compatible w/n
-!   ! a millimeter; if not, FAST aborts.
-!
-!
-!USE                             Blades
-!USE                             General
-!!bjj rm NWTC_Library: USE                             Precision
-!!bjj rm NWTC_Library: USE                             SysSubs
-!USE                             TurbConf
-!
-!
-!IMPLICIT                        NONE
-!
-!
-!   ! Local variables.
-!
-!REAL(ReKi)                   :: DRNodesNew(BldNodes)  ! Length of variable-spaced blade elements--calculated from input RNodes(:).
-!REAL(ReKi)                   :: DRSum                 ! Sum of DRs--should be close to BldFlexL
-!
-!INTEGER(4)                   :: I                     ! Generic index.
-!
-!!bjj chg: LOGICAL(1)                   :: DRMatch               ! Flag indicating whether or not DRNodes(:) and DRNodesNew(:) match.
-!LOGICAL                   :: DRMatch               ! Flag indicating whether or not DRNodes(:) and DRNodesNew(:) match.
-!
-!CHARACTER(33)                :: DRChange              ! A string showing how to change DRNodes to get campatibility
-!
-!
-!   ! User-defined functions.
-!
-!!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr              ! A function to convert an interger to a left-justified string.
-!
-!
-!
-!   ! Initialize DRMatch to .TRUE.:
-!
-!DRMatch = .TRUE.
-!
-!
-!   ! Calculate DRNodesNew(:) based on inputted RNodes(:) and compare to inputted DRNodes(:):
-!
-!DRNodesNew(1) = 2.0*( RNodes(1) - HubRad )
-!DRSum         = DRNodesNew(1)
-!
-!IF ( DRNodesNew(1) <= 0.0 )  THEN                              ! Check to see if RNodes(1) > HubRad; if not, ProgAbort program
-!   CALL ProgAbort(' RNodes(1) must be > HubRad. ')
-!ELSEIF ( ABS( DRNodesNew(1) - DRNodes(1) ) > 0.001 )  THEN     ! Check to see if the calculated DRNodes(1) is close to the inputted DRNodes(1); if not, set flag--this will cause the program to ProgAbort later.
-!   DRMatch = .FALSE.
-!ENDIF
-!
-!DO I = 2,BldNodes ! Loop through all but the innermost blade element
-!
-!   DRNodesNew(I) = 2.0*( RNodes(I) - RNodes(I-1) ) - DRNodesNew(I-1)
-!   DRSum         = DRSum + DRNodesNew(I)
-!
-!   IF ( DRNodesNew(I) <= 0.0 )  THEN                           ! Check to see if it is possible to have compatible DRNodes(:) with the given, inputted RNodes(:); if not, ProgAbort program
-!      CALL ProgAbort( 'RNodes('//TRIM( Int2LStr(I) )//') produces ill-conditioned DRNodes(:)' )
-!   ELSEIF ( ABS( DRNodesNew(I) - DRNodes(I) ) > 0.001 )  THEN  ! Check to see if the calculated DRNodes(I) is close to the inputted DRNodes(I); if not, set flag--this will cause the program to Abort later.
-!      DRMatch = .FALSE.
-!   ENDIF
-!
-!ENDDO             ! I - all but the innermost blade element
-!
-!
-!   ! Abort program if necessary
-!
-!IF ( .NOT. DRMatch )  THEN
-!
-!   ! Abort program since the inputted DRNodes(:) are not close to the calculated DRNodes(:)
-!
-!   CALL WrScr1(' Inputted DRNodes(:) are not compatible with inputted RNodes(:). ')
-!   CALL WrScr (' To make them compatible, please modify DRNodes in '// TRIM( ADFile ) //' as follows:')
-!   CALL WrScr1(' DRNodes (Old) --> DRNodes (New) ')
-!
-!   DO I = 1,BldNodes
-!      WRITE( DRChange, "(' ', F13.4, ' --> ', F13.4, ' ')" ) DRNodes(I), DRNodesNew(I)
-!      CALL WrScr( DRChange )
-!   ENDDO !I
-!
-!   CALL ProgAbort(' ')
-!
-!
-!ELSEIF ( ABS( DRSum - BldFlexL ) > 0.001 )  THEN
-!
-!   ! Abort program since SUM( DRNodes(:) ) /= BldFlexL
-!
-!   CALL ProgAbort(' HubRad + SUM( DRNodes(:) ) is not equal to TipRad. ')
-!
-!
-!ENDIF
-!
-!
-!   ! Inputted RNodes(:) and DRNodes(:) are compatible.
-!   ! Use the more precise (calculated values) throughout the rest of the code:
-!
-!DRNodes = DRNodesNew
-!
-!
-!
-!RETURN
-!END SUBROUTINE CheckRComp
-!bjj end of proposed change
 !=======================================================================
 SUBROUTINE GetADAMS
 
@@ -3813,7 +3097,6 @@ INTEGER(4)                   :: IOS                                             
 
    ! Open the ADAMS input file:
 
-!BJJ:
 CALL OpenFInpFile ( UnIn, ADAMSFile )
 
 
@@ -3840,10 +3123,7 @@ ENDIF
 
 
    ! Skip the comment line.
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, ADAMSFile, 'feature switches', Echo  )
 CALL ReadCom ( UnIn, ADAMSFile, 'feature switches'  )
-!bjj End of proposed change
 
    ! SaveGrphcs - Save GRAPHICS output.
 
@@ -3864,10 +3144,7 @@ IF ( MakeLINacf .AND. ( .NOT. SaveGrphcs ) )  &
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL CALL SkipComment ( UnIn, ADAMSFile, 'damping parameters', Echo  )
 CALL ReadCom ( UnIn, ADAMSFile, 'damping parameters'  )
-!bjj End of proposed change
 
 
    ! CRatioTGJ - Tower torsional damping ratio.
@@ -3904,10 +3181,7 @@ IF ( CRatioBEA < 0.0 )  CALL ProgAbort ( ' CRatioBEA must not be less than zero.
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, ADAMSFile, 'blade pitch actuator parameters', Echo  )
 CALL ReadCom ( UnIn, ADAMSFile, 'blade pitch actuator parameters'  )
-!bjj End of proposed change
 
    ! BPActrSpr - Blade pitch actuator spring constant.
 
@@ -3929,10 +3203,7 @@ IF ( BPActrDmp < 0.0 )  CALL ProgAbort ( ' BPActrSpr must not be less than zero.
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, ADAMSFile, 'GRAPHICS parameters', Echo  )
 CALL ReadCom ( UnIn, ADAMSFile, 'GRAPHICS parameters'  )
-!bjj End of proposed change
 
    ! NSides - Number of sides.
 
@@ -3956,39 +3227,24 @@ CALL ReadRVar ( UnIn, ADAMSFile, TwrTopRad, 'TwrTopRad', 'Tower top radius' )
 IF ( TwrTopRad < 0.0 )  CALL ProgAbort ( ' TwrTopRad must not be less than zero.' )
 
 
-!bjj start of proposed change - spelling Nacelle correctly
-!rm   ! NacLength - Nacalle length.
-!rm
-!rmCALL ReadRVar ( UnIn, ADAMSFile, NacLength, 'NacLength', 'Nacalle length' )
    ! NacLength - Nacelle length.
 
 CALL ReadRVar ( UnIn, ADAMSFile, NacLength, 'NacLength', 'Nacelle length' )
-!bjj end of proposed change - spelling Nacelle correctly
 
 IF ( ( NacLength < 0.0 ) .OR. ( NacLength > 2.0*ABS(OverHang) ) )  &
    CALL ProgAbort ( ' NacLength must be between zero and 2*ABS(OverHang) (inclusive).' )
 
 
-!bjj start of proposed change - spelling Nacelle correctly
-!rm   ! NacRadBot - Bottom radius of nacalle.
-!rm
-!rmCALL ReadRVar ( UnIn, ADAMSFile, NacRadBot, 'NacRadBot', 'Bottom radius of nacalle' )
    ! NacRadBot - Bottom radius of nacelle.
 
 CALL ReadRVar ( UnIn, ADAMSFile, NacRadBot, 'NacRadBot', 'Bottom radius of nacelle' )
-!bjj end of proposed change - spelling Nacelle correctly
 
 IF ( NacRadBot < 0.0 )  CALL ProgAbort ( ' NacRadBot must not be less than zero.' )
 
 
-!bjj start of proposed change - spelling Nacelle correctly
-!rm   ! NacRadTop - Top radius of nacalle.
-!rm
-!rmCALL ReadRVar ( UnIn, ADAMSFile, NacRadTop, 'NacRadTop', 'Top radius of nacalle' )
    ! NacRadTop - Top radius of nacelle.
 
 CALL ReadRVar ( UnIn, ADAMSFile, NacRadTop, 'NacRadTop', 'Top radius of nacelle' )
-!bjj end of proposed change - spelling Nacelle correctly
 
 IF ( NacRadTop < 0.0 )  CALL ProgAbort ( ' NacRadTop must not be less than zero.' )
 
@@ -4089,11 +3345,9 @@ SUBROUTINE GetBlade ( K )
 
 
 USE                             Blades
-!bjj rm NWTC_Library: USE                             Constants
 USE                             General
 USE                             Modes
 USE                             Output
-!bjj rm NWTC_Library: USE                             Precision
 
 
 IMPLICIT                        NONE
@@ -4115,12 +3369,6 @@ INTEGER(4)                   :: Sttus                                           
 CHARACTER(198)               :: Frmt                                            ! Format for element data.
 
 
-   ! Global functions.
-
-!bjj rm AD 12.70b CHARACTER(15), EXTERNAL      :: Flt2LStr                                        ! A function to convert a floating-point number to a left-justified string.
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-
-
 
 
    ! Add a separator to the echo file if appropriate.
@@ -4130,7 +3378,6 @@ IF ( Echo )  WRITE (UnEc,'(//,A,/)')  'Blade '//TRIM( Int2LStr( K ) )//' input d
 
    ! Open the input file for blade K.
 
-!BJJ:
 CALL OpenFInpFile ( UnIn, BldFile(K) )
 
 
@@ -4152,10 +3399,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, BldFile(K), 'blade parameters', Echo  )
 CALL ReadCom ( UnIn, BldFile(K), 'blade parameters'  )
-!bjj End of proposed change
 
    ! NBlInpSt - Number of blade input stations.
 
@@ -4168,10 +3412,7 @@ IF ( NBlInpSt < 1 )  CALL ProgAbort ( ' NBlInpSt must be at least 1.' )
 
 !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
 !JASON:CALL ReadLVar ( UnIn, BldFile(K), CalcBMode, 'CalcBMode', 'Calculate blade mode shapes' )
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, BldFile(K), 'currently ignored CalcBMode', Echo  )   !JASON:
 CALL ReadCom ( UnIn, BldFile(K), 'currently ignored CalcBMode'  )
-!bjj End of proposed change
 
 
    ! BldFlDmp - Blade structural damping ratios in flapwise direction.
@@ -4195,10 +3436,7 @@ IF ( BldEdDmp(1) < 0.0 )    CALL ProgAbort ( ' BldEdDmp(1) for blade '//TRIM( In
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, BldFile(K), 'blade adjustment factors', Echo )
 CALL ReadCom ( UnIn, BldFile(K), 'blade adjustment factors'  )
-!bjj End of proposed change
 
    ! FlStTunr(1) - Blade flapwise modal stiffness tuners.
 
@@ -4235,14 +3473,9 @@ IF ( AdjEdSt <= 0.0 )  CALL ProgAbort ( ' AdjEdSt must be greater than zero.' )
 
    ! Skip the comment lines.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, BldFile(K), 'distributed blade parameters'     , Echo )
-!rmCALL SkipComment ( UnIn, BldFile(K), 'distributed-blade-parameter names', .FALSE. )
-!rmCALL SkipComment ( UnIn, BldFile(K), 'distributed-blade-parameter units', .FALSE. )
 CALL ReadCom ( UnIn, BldFile(K), 'distributed blade parameters'  )
 CALL ReadCom ( UnIn, BldFile(K), 'distributed-blade-parameter names' )
 CALL ReadCom ( UnIn, BldFile(K), 'distributed-blade-parameter units'  )
-!bjj End of proposed change
 
 
    ! Allocate the arrays.
@@ -4371,7 +3604,6 @@ DO I=1,NBlInpSt
 
    CALL CheckIOS ( IOS, BldFile(K), 'line '//TRIM( Int2LStr( I ) )//' of the blade distributed properties for blade ' &
                                            //TRIM( Int2LStr( K ) ), NumType )
-!bjj replace with above:                   //TRIM( Int2LStr( K ) ), Numeric )
 
    IF ( Echo )  THEN
       IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
@@ -4446,30 +3678,17 @@ ENDDO ! I
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, BldFile(K), 'blade mode shapes', Echo  )
 CALL ReadCom ( UnIn, BldFile(K), 'blade mode shapes'  )
-!bjj End of proposed change
 
 
    ! BldFl1Sh - Blade-flap mode-1 shape coefficients.
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow the mode shape to be described by a polynomial greater than sixth
-!eab   order. Do this by setting the length of the mode shape coefficient array
-!eab   to one less than the order of the polynomial.
-!remove6.10bCALL ReadAryLines ( UnIn, BldFile(K), BldFl1Sh(:,K), 5, 'BldFl1Sh', 'Blade-flap mode-1 shape coefficients' )
 CALL ReadAryLines ( UnIn, BldFile(K), BldFl1Sh(:,K), PolyOrd-1, 'BldFl1Sh', 'Blade-flap mode-1 shape coefficients' )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 
 
 
 TipDispl = 0.0
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Loop through all mode shape coefficients.
-!remove6.10bDO I=2,6
 DO I=2,PolyOrd
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
    TipDispl = TipDispl + BldFl1Sh(I,K)
 ENDDO ! I
 
@@ -4478,21 +3697,11 @@ IF ( ABS( TipDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Blade-flap mode-1 shape
 
    ! BldFl2Sh - Blade-flap mode-2 shape coefficients.
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow the mode shape to be described by a polynomial greater than sixth
-!eab   order. Do this by setting the length of the mode shape coefficient array
-!eab   to one less than the order of the polynomial.
-!remove6.10bCALL ReadAryLines ( UnIn, BldFile(K), BldFl2Sh(:,K), 5, 'BldFl2Sh', 'Blade-flap mode-2 shape coefficients' )
 CALL ReadAryLines ( UnIn, BldFile(K), BldFl2Sh(:,K), PolyOrd-1, 'BldFl2Sh', 'Blade-flap mode-2 shape coefficients' )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 
 TipDispl = 0.0
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Loop through all mode shape coefficients.
-!remove6.10bDO I=2,6
 DO I=2,PolyOrd
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
    TipDispl = TipDispl + BldFl2Sh(I,K)
 ENDDO ! I
 
@@ -4501,22 +3710,12 @@ IF ( ABS( TipDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Blade-flap mode-2 shape
 
    ! BldEdgSh - Blade-edge mode shape coefficients.
    
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow the mode shape to be described by a polynomial greater than sixth
-!eab   order. Do this by setting the length of the mode shape coefficient array
-!eab   to one less than the order of the polynomial.
-!remove6.10bCALL ReadAryLines ( UnIn, BldFile(K), BldEdgSh(:,K), 5, 'BldEdgSh', 'Blade-edge mode shape coefficients' )
 CALL ReadAryLines ( UnIn, BldFile(K), BldEdgSh(:,K), PolyOrd-1, 'BldEdgSh', 'Blade-edge mode shape coefficients' )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 
 
 TipDispl = 0.0
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Loop through all mode shape coefficients.
-!remove6.10bDO I=2,6
 DO I=2,PolyOrd
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
    TipDispl = TipDispl + BldEdgSh(I,K)
 ENDDO ! I
 
@@ -4546,7 +3745,6 @@ USE                             InitCond
 USE                             MassInert
 USE                             Output
 USE                             RotorFurling
-!bjj rm NWTC_Library: USE                             SysSubs
 USE                             TailAero
 USE                             TailFurling
 USE                             TurbConf
@@ -4563,7 +3761,6 @@ INTEGER(4)                   :: IOS                                             
 
    ! Open the FAST furling input file:
 
-!BJJ:
 CALL OpenFInpFile ( UnIn, FurlFile )
 
 
@@ -4591,10 +3788,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, FurlFile, 'degree of freedom switches (cont)', Echo  )
 CALL ReadCom ( UnIn, FurlFile, 'degree of freedom switches (cont)'  )
-!bjj End of proposed change
 
 
    ! RFrlDOF - Rotor-furl DOF.
@@ -4613,10 +3807,7 @@ CALL ReadLVar ( UnIn, FurlFile, TFrlDOF, 'TFrlDOF', 'Tail-furl DOF' )
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, FurlFile, 'initial conditions (cont)', Echo  )
 CALL ReadCom ( UnIn, FurlFile, 'initial conditions (cont)'  )
-!bjj End of proposed change
 
 
    ! RotFurl - Initial or fixed rotor-furl angle.
@@ -4641,10 +3832,7 @@ IF ( ( TailFurl <= -180.0 ) .OR. ( TailFurl > 180.0 ) )  &
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, FurlFile, 'turbine configuration (cont)', Echo  )
 CALL ReadCom ( UnIn, FurlFile, 'turbine configuration (cont)'  )
-!bjj End of proposed change
 
 
    ! Yaw2Shft - Lateral distance from yaw axis to rotor shaft.
@@ -4834,10 +4022,7 @@ IF ( ( TFrlTilt < -90.0 ) .OR. ( TFrlTilt > 90.0 ) )  CALL ProgAbort ( ' TFrlTil
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, FurlFile, 'mass and inertia (cont)', Echo  )
 CALL ReadCom ( UnIn, FurlFile, 'mass and inertia (cont)'  )
-!bjj End of proposed change
 
    ! RFrlMass - Mass of structure that furls with the rotor (not including rotor).
 
@@ -4880,10 +4065,7 @@ IF ( TFrlIner < 0.0 )  CALL ProgAbort ( ' TFrlIner must not be negative.' )
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, FurlFile, 'rotor-furl', Echo  )
 CALL ReadCom ( UnIn, FurlFile, 'rotor-furl' )
-!bjj End of proposed change
 
 
    ! RFrlMod - Rotor-furl spring/damper model switch.
@@ -4980,10 +4162,7 @@ IF ( RFrlDSDmp < 0.0 )  CALL ProgAbort ( ' RFrlDSDmp must not be negative.' )
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, FurlFile, 'tail-furl', Echo  )
 CALL ReadCom ( UnIn, FurlFile, 'tail-furl' )
-!bjj End of proposed change
 
 
    ! TFrlMod - Tail-furl spring/damper model switch.
@@ -5080,10 +4259,7 @@ IF ( TFrlDSDmp < 0.0 )  CALL ProgAbort ( ' TFrlDSDmp must not be negative.' )
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, FurlFile, 'tail fin aerodynamics', Echo  )
 CALL ReadCom ( UnIn, FurlFile, 'tail fin aerodynamics' )
-!bjj End of proposed change
 
 
    ! TFinMod - Tail fin aerodynamics model switch.
@@ -5145,15 +4321,10 @@ INTEGER(4)                   :: IOS                                             
 INTEGER(4)                   :: L                                               ! A generic index.
 
 
-   ! Global functions:
-
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-
 
 
    ! Open the FAST linearization input file:
 
-!BJJ:
 CALL OpenFInpFile ( UnIn, LinFile )
 
 
@@ -5181,10 +4352,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, LinFile, 'Periodic steady state solution', Echo  )
 CALL ReadCom ( UnIn, LinFile, 'Periodic steady state solution' )
-!bjj End of proposed change
 
 
    ! CalcStdy - Calculate periodic steady state condition.
@@ -5215,10 +4383,7 @@ IF ( CalcStdy )  THEN   ! Only read in these variables if we will be computing a
 
    ELSE                 ! Don't read in TrimCase since we wont be computing a steady state solution with a variable speed generator
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rmCALL SkipComment ( UnIn, LinFile, 'unused TrimCase', .FALSE. )
-         CALL ReadCom ( UnIn, LinFile, 'unused TrimCase' )
-!bjj End of proposed change
+      CALL ReadCom ( UnIn, LinFile, 'unused TrimCase' )
 
    ENDIF
 
@@ -5240,14 +4405,9 @@ IF ( CalcStdy )  THEN   ! Only read in these variables if we will be computing a
 ELSE                    ! Don't read in these variables since we wont be computing a steady state solution
 
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, LinFile, 'unused TrimCase', .FALSE. )
-!rm   CALL SkipComment ( UnIn, LinFile, 'unused DispTol', .FALSE. )
-!rm   CALL SkipComment ( UnIn, LinFile, 'unused VelTol', .FALSE. )
    CALL ReadCom ( UnIn, LinFile, 'unused TrimCase' )
    CALL ReadCom ( UnIn, LinFile, 'unused DispTol' )
    CALL ReadCom ( UnIn, LinFile, 'unused VelTol' )
-!bjj End of proposed change
 
 
 ENDIF
@@ -5259,10 +4419,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, LinFile, 'Model linearization', Echo  )
    CALL ReadCom ( UnIn, LinFile, 'Model linearization' )
-!bjj End of proposed change
 
 
    ! NAzimStep - Number of azimuth steps in periodic linearized model.
@@ -5285,10 +4442,7 @@ IF ( ( MdlOrder < 1 ) .OR. ( MdlOrder > 2 ) )  CALL ProgAbort ( ' MdlOrder must 
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, LinFile, 'Inputs and disturbances', Echo  )
    CALL ReadCom ( UnIn, LinFile, 'Inputs and disturbances' )
-!bjj End of proposed change
 
 
    ! NInputs - Number of control inputs.
@@ -5421,7 +4575,6 @@ SUBROUTINE GetPrimary
 
 
 USE                             Blades
-!bjj rm NWTC_Library: USE                             Constants
 USE                             Drivetrain
 USE                             EnvCond
 USE                             Features
@@ -5432,7 +4585,6 @@ USE                             MassInert
 USE                             NacelleYaw
 USE                             Output
 USE                             SimCont
-!bjj rm NWTC_Library: USE                             SysSubs
 USE                             TeeterVars
 USE                             TipBrakes
 USE                             Tower
@@ -5450,31 +4602,16 @@ INTEGER(4)                   :: K                                               
 INTEGER(4)                   :: NumWords                                        ! The number of words w/n a read in line.
 INTEGER(4)                   :: Sttus                                           ! Status returned from an allocation request.
 
-!bjj start of proposed change
-!rmCHARACTER( 100)              :: Comment                                         ! String to temporarily hold the comment line.
 CHARACTER( 1024)             :: Comment                                         ! String to temporarily hold the comment line.
-!bjj end of prposed change
 CHARACTER(   3)              :: EndOfFile                                       ! String read in at the end of the input file.
-!bjj start of proposed change
-!change to match NWTC_Library formats
-!bjj rmCHARACTER(  31)              :: Frmt      = "( L13, 2X, A, T27, ' - ', A )"     ! Output format for logical parameters.
-CHARACTER(  35)              :: Frmt      = "( 2X, L11, 2X, A, T30, ' - ', A )" ! Output format for logical parameters.
-!bjj end of proposed change
+CHARACTER(  35)              :: Frmt      = "( 2X, L11, 2X, A, T30, ' - ', A )" ! Output format for logical parameters. (matches NWTC Subroutine Library format)
 CHARACTER(1000)              :: OutLine                                         ! String to temporarily hold the output parameter list.
 
-
-   ! Global functions.
-
-!bjj rm NWTC_LIB: INTEGER(4), EXTERNAL         :: CountWords                                      ! A function that returns the number of words within a string of text.
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: CurDate                                         ! A function that returns the current date in the form "dd-mmm-ccyy".
-!bjj rm AD 12.70b CHARACTER( 8), EXTERNAL      :: CurTime                                         ! A function that returns the current date in the form "hh:mm:ss".
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
 
 
 
    ! Open the primary input file.
 
-!BJJ:
 CALL OpenFInpFile ( UnIn, PriFile )
 
 
@@ -5482,22 +4619,9 @@ CALL OpenFInpFile ( UnIn, PriFile )
 !-------------------------- HEADER ---------------------------------------------
 
 READ (UnIn,'(//,A,/)',IOSTAT=IOS)  FTitle
-
-!bjj start of proposed change
 CALL CheckIOS( IOS, PriFile, 'file title', StrType )
-!bjj end of proposed change
 
-
-!bjj start of proposed change 6.02d-bjj
-!rmCALL WrScr1( ' '//TRIM( FTitle ) )
 CALL WrScr1( ' Heading of the FAST input file: '//TRIM( FTitle ) )
-!bjj end of proposed change
-
-!bjj start of proposed change
-!rmIF ( IOS < 0 )  THEN
-!rm   CALL PremEOF ( PriFile , 'FTitle' )
-!rmENDIF
-!bjj end of proposed change
 
 
 
@@ -5508,33 +4632,17 @@ CALL WrScr1( ' Heading of the FAST input file: '//TRIM( FTitle ) )
 
 READ (UnIn,'(A)',IOSTAT=IOS)  Comment
 
-!bjj start of proposed change
-!rmIF ( IOS < 0 )  THEN
-!rm   CALL WrScr1 ( ' Premature EOF for file "'//TRIM( PriFile )//'.' )
-!rm   CALL ProgAbort  ( ' The error occurred while trying to skip the simulation control parameters comment.' )
-!rmENDIF
 CALL CheckIOS( IOS, PriFile, 'simulation control parameters comment', StrType )
-!bjj end of proposed change
 
 
    ! Echo - Echo input to "echo.out".
 
-!bjj start of proposed change
-!rmREAD (UnIn,*,IOSTAT=IOS)  Echo
-!rmCALL CheckIOS ( IOS, PriFile, 'Echo', FlagType )
 READ (UnIn,*,IOSTAT=IOS)  WrEcho
 CALL CheckIOS ( IOS, PriFile, 'Echo', FlgType )
 Echo = WrEcho
-!bjj end of proposed change
 
 IF ( Echo )  THEN
-!bjj start of proposed change
-!rm   CALL OpenFOutFile ( UnEc, 'echo.out' ) !bjj: is there a conflict with NWTC Echo file here?
    CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech' )
-!bjj end of proposed change
-!bjj start of proposed change vXX
-!rm   WRITE (UnEc,'(/,A)'   )  'This file of echoed input was generated by '//ProgName//ProgVer// &
-!rm                            ' on '//CurDate()//' at '//CurTime()//'.'
    WRITE (UnEc,'(/,A)'   )  'This file of echoed input was generated by '//TRIM(ProgName)//' '//TRIM(ProgVer)// &
                             ' on '//CurDate()//' at '//CurTime()//'.'
    WRITE (UnEc,'(/,A,/)' )  'Turbine input data from file "'//TRIM( PriFile )//'":'
@@ -5549,12 +4657,8 @@ ENDIF
 CALL ReadIVar ( UnIn, PriFile, ADAMSPrep, 'ADAMSPrep', 'ADAMS preprocessor mode' )
 
 IF ( Cmpl4SFun .AND. ( ADAMSPrep /= 1 ) )  THEN
-!bjj start of proposed change for Simulink
-!rm   CALL ProgAbort ( ' An ADAMS dataset can''t be built when FAST is interfaced with Simulink.'// &
-!rm                '  Set ADAMSPrep to 1 or use the standard version of FAST.'                    )
    CALL ProgWarn ( ' An ADAMS dataset can''t be built when FAST is interfaced with Simulink. ADAMSPrep is being set to 1.')
    ADAMSPrep = 1
-!bjj end of proposed change
 ELSEIF ( ( ADAMSPrep < 1 ) .OR. ( ADAMSPrep > 3 ) )  THEN
    CALL ProgAbort ( ' ADAMSPrep must be 1, 2, or 3.' )
 ENDIF
@@ -5583,22 +4687,14 @@ IF ( ( NumBl < 2 ) .OR. ( NumBl > 3 ) )  CALL ProgAbort ( ' NumBl must be either
 
 CALL ReadRVar ( UnIn, PriFile, TMax, 'TMax', 'Total run time' )
 
-!jmj Start of proposed change.  v6.02c-jmj  02-Feb-2007.
-!jmj Add an upper limit of 9999.999 to the input parameter TMax in order to
-!jmj   avoid an overflow problem in the output file:
-!remove6.02cIF ( TMax < 0.0    )  CALL ProgAbort ( ' TMax must not be less than 0.' )
 IF ( ( TMax < 0.0 ) .OR. ( TMax > 9999.999 ) )  CALL ProgAbort ( ' TMax must be between 0.0 and 9999.999 (inclusive).' )
-!jmj End of proposed change.  v6.02c-jmj  02-Feb-2007.
 
    ! DT - Integration time step.
 
 CALL ReadRVar ( UnIn, PriFile, DT, 'DT', 'Integration time step' )
 
 IF ( DT <= 0.0 )  CALL ProgAbort ( ' DT must be greater than 0.' )
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Test DT and TMax to ensure numerical stability:
 IF ( DT <= TMax*EPSILON(DT) )  CALL ProgAbort ( ' DT must be greater than '//TRIM ( Flt2Lstr( TMax*EPSILON(DT) ) )//' seconds.' ) ! Test DT and TMax to ensure numerical stability -- HINT: see the use of OnePlusEps.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
 !-------------------------- TURBINE CONTROL PARAMETERS -------------------------
@@ -5606,10 +4702,7 @@ IF ( DT <= TMax*EPSILON(DT) )  CALL ProgAbort ( ' DT must be greater than '//TRI
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'Turbine control parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'Turbine control parameters' )
-!bjj End of proposed change
 
 
    ! YCMode - Yaw control mode.
@@ -5676,13 +4769,7 @@ ENDIF
 
 CALL ReadRVar ( UnIn, PriFile, VS_RtGnSp, 'VS_RtGnSp', 'Rated generator speed for simple variable-speed generator control' )
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Modify the simple variable speed control parameters to ensure that:
-!jmj    (1) VS_RtGnSp cannot equal zero and
-!jmj    (2) VS_TrGnSp equals VS_SySp when VS_Rgn2K equals zero.
-!remove6.02aIF ( ( VSContrl == 1 ) .AND. ( VS_RtGnSp < 0.0 ) )  CALL Abort ( ' VS_RtGnSp must not be negative.' )
 IF ( ( VSContrl == 1 ) .AND. ( VS_RtGnSp <= 0.0 ) )  CALL ProgAbort ( ' VS_RtGnSp must be greater than zero.' )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! VS_RtTq - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control.
@@ -5793,10 +4880,7 @@ ENDIF
 !JASON:CALL ReadRVar ( UnIn, PriFile, TiDynBrk, 'TiDynBrk', 'Time to initiate deployment of the dynamic generator brake' )
 !JASON:
 !JASON:IF ( TiDynBrk < 0.0 )  CALL ProgAbort ( ' TiDynBrk must not be negative.' )
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'currently ignored TiDynBrk', Echo  ) !JASON:
    CALL ReadCom ( UnIn, PriFile, 'currently ignored TiDynBrk' )
-!bjj End of proposed change
 
 
    ! TTpBrDp - Time to initiate deployment of tip brakes.
@@ -5815,10 +4899,7 @@ DO K=1,NumBl
 ENDDO ! K
 
 IF ( NumBl == 2 )  THEN
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TTpBrDp(3)', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused TTpBrDp(3)' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -5838,10 +4919,7 @@ DO K=1,NumBl
 ENDDO ! K
 
 IF ( NumBl == 2 )  THEN
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TBDepISp(3)', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused TBDepISp(3)' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -5878,10 +4956,7 @@ DO K=1,NumBl
 ENDDO ! K
 
 IF ( NumBl == 2 )  THEN
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TPitManS(3)', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused TPitManS(3)' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -5900,10 +4975,7 @@ DO K=1,NumBl
 ENDDO ! K
 
 IF ( NumBl == 2 )  THEN
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TPitManE(3)', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused TPitManE(3)' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -5923,10 +4995,7 @@ DO K=1,NumBl
 ENDDO ! K
 
 IF ( NumBl == 2 )  THEN
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused BlPitch(3)', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused BlPitch(3)' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -5940,10 +5009,7 @@ ENDIF
 CALL ReadAryLines ( UnIn, PriFile, BlPitchF, NumBl, 'BlPitchF', 'Final pitch angle for maneuvers' )
 
 IF ( NumBl == 2 )  THEN
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused BlPitchF(3)', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused BlPitchF(3)' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -5953,10 +5019,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'environmental conditions', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'environmental conditions' )
-!bjj End of proposed change
 
 
    ! Gravity - Gravitational acceleration.
@@ -5972,10 +5035,7 @@ IF ( Gravity < 0.0 )  CALL ProgAbort ( ' Gravity must not be negative.' )
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm  CALL SkipComment ( UnIn, PriFile, 'degree of freedom switches', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'degree of freedom switches' )
-!bjj End of proposed change
 
 
    ! FlapDOF1 - First flapwise blade mode DOF.
@@ -6006,10 +5066,7 @@ CALL ReadLVar ( UnIn, PriFile, EdgeDOF, 'EdgeDOF', 'First edgewise blade mode DO
 IF ( NumBl == 2 )  THEN
    CALL ReadLVar ( UnIn, PriFile, TeetDOF, 'TeetDOF', 'Teeter DOF' )
 ELSE
-!bjj Start of proposed change vXX NWTC_Lib
-!rm  CALL SkipComment ( UnIn, PriFile, 'unused TeetDOF', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused TeetDOF' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -6087,10 +5144,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm  CALL SkipComment ( UnIn, PriFile, 'initial conditions', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'initial conditions' )
-!bjj End of proposed change
 
 
    ! OoPDefl - Initial out-of-plane blade-tip deflection.
@@ -6118,10 +5172,7 @@ IF ( NumBl == 2 )  THEN
    IF ( ( TeetDefl <= -180.0 ) .OR. ( TeetDefl > 180.0 ) )  &
       CALL ProgAbort ( ' TeetDefl must be greater than -180 and less than or equal to 180.' )
 ELSE
-!bjj Start of proposed change vXX NWTC_Lib
-!rm  CALL SkipComment ( UnIn, PriFile, 'unused Teeter', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused Teeter' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -6172,10 +5223,7 @@ IF ( Cmpl4SFun .AND. ( TTDspSS /= 0.0 ) )  &
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm  CALL SkipComment ( UnIn, PriFile, 'turbine configuration', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'turbine configuration' )
-!bjj End of proposed change
 
 
    ! TipRad - Preconed blade-tip radius.
@@ -6189,33 +5237,23 @@ IF ( TipRad < 0.0 )  CALL ProgAbort ( ' TipRad must be greater than 0.' )
 
 CALL ReadRVar ( UnIn, PriFile, HubRad, 'HubRad', 'Preconed hub radius' )
 
-!BJJ start of proposed change v7.00.01a-bjj
-!bjj this line is too long:
-!rmIF ( ( HubRad < 0.0 ) .OR. ( HubRad >= TipRad ) )  CALL ProgAbort ( ' HubRad must be between 0 (inclusive) and TipRad (exclusive).' )
 IF ( ( HubRad < 0.0 ) .OR. ( HubRad >= TipRad ) ) THEN
    CALL ProgAbort ( ' HubRad must be between 0 (inclusive) and TipRad (exclusive).' )
 END IF
-!bjj end of proposed change
 
 
    ! PSpnElN - Number of the innermost blade element which is still part of the pitchable portion of the blade for partial-span pitch control.
 
 !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
 !JASON:CALL ReadIVar ( UnIn, PriFile, PSpnElN, 'PSpnElN', 'Partial-span pitch control element number' )
-!bjj Start of proposed change vXX NWTC_Lib
-!rm  CALL SkipComment ( UnIn, PriFile, 'currently ignored PSpnElN', Echo  )  !JASON:
    CALL ReadCom ( UnIn, PriFile, 'currently ignored PSpnElN' )
-!bjj End of proposed change
 
    ! UndSling - Undersling length.
 
 IF ( NumBl == 2 )  THEN
    CALL ReadRVar ( UnIn, PriFile, UndSling, 'UndSling', 'Undersling length' )
 ELSE
-!bjj Start of proposed change vXX NWTC_Lib
-!rm  CALL SkipComment ( UnIn, PriFile, 'unused UndSling', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused UndSling' )
-!bjj End of proposed change
    UndSling = 0.0
 ENDIF
 
@@ -6262,12 +5300,8 @@ IF ( Twr2Shft < 0.0 )  CALL ProgAbort ( ' Twr2Shft cannot be negative.' )
    ! TwrRBHt - Tower rigid base height.
 
 CALL ReadRVar ( UnIn, PriFile, TwrRBHt, 'TwrRBHt', 'Tower rigid base height' )
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Check the value of TwrRBHt in routines GetPtfm() and GetPrimary() instead
-!jmj   of in routine Input():
 
 IF ( TwrRBHt < 0.0 )  CALL ProgAbort ( ' TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.' )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! ShftTilt - Rotor shaft tilt angle.
@@ -6286,10 +5320,7 @@ IF ( NumBl == 2 )  THEN
    CALL ReadRVar ( UnIn, PriFile, Delta3, 'Delta3', 'Delta-3 angle for teetering rotors' )
    IF ( ( Delta3 <= -90.0 ) .OR. ( Delta3 >= 90.0 ) )  CALL ProgAbort ( ' Delta3 must be between -90 and 90 (exclusive).' )
 ELSE
-!bjj Start of proposed change vXX NWTC_Lib
-!rm  CALL SkipComment ( UnIn, PriFile, 'unused Delta3', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused Delta3' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -6303,21 +5334,13 @@ ENDIF
 CALL ReadAryLines ( UnIn, PriFile, PreCone, NumBl, 'PreCone', 'Blade coning angle' )
 
 DO K=1,NumBl
-!bjj start of proposed change v6.02d-bjj
-!rm   IF ( ( PreCone(K) <= -180.0 ) .OR. ( PreCone(K) > 180.0 ) )  THEN
-!rm      CALL ProgAbort ( ' PreCone('//TRIM( Int2LStr( K ) )//') must be greater than -180 and less than or equal to 180.' )
-!rm   ENDIF
    IF ( ( PreCone(K) <= -90.0 ) .OR. ( PreCone(K) >= 90.0 ) )  THEN
       CALL ProgAbort ( ' PreCone('//TRIM( Int2LStr( K ) )//') must be between -90 and 90 degrees (exclusive).' )
    ENDIF
-!bjj end of proposed change
 ENDDO ! K
 
 IF ( NumBl == 2 )  THEN
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused Beta(3)', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused Beta(3)' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -6334,10 +5357,7 @@ IF ( ( AzimB1Up < 0.0 ) .OR. ( AzimB1Up > 360.0 ) )  CALL ProgAbort ( ' AzimB1Up
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'mass and inertia', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'mass and inertia' )
-!bjj End of proposed change
 
 
    ! YawBrMass - Yaw bearing mass.
@@ -6377,10 +5397,7 @@ DO K=1,NumBl
 ENDDO ! K
 
 IF ( NumBl == 2 )  THEN
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TipMass(3)', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused TipMass(3)' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -6415,29 +5432,16 @@ IF ( HubIner < 0.0 )  CALL ProgAbort ( ' HubIner must not be negative.' )
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'drivetrain parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'drivetrain parameters' )
-!bjj End of proposed change
 
 
    ! GBoxEff - Gearbox efficiency.
 
 CALL ReadRVar ( UnIn, PriFile, GBoxEff, 'GBoxEff', 'Gearbox efficiency' )
 
-!jmj Start of proposed change.  v6.10d-jmj  13-Aug-2009.
-!jmj Abort() when GBoxEff also equals 0.0 because GBoxEff can appear in the
-!jmj   denominator:
-!remove6.10dIF ( ( GBoxEff < 0.0 ) .OR. ( GBoxEff > 100.0 ) )  CALL Abort ( ' GBoxEff must be between 0 and 100 (inclusive).' )
-!bjj start of proposed change v7.00.01a-bjj
-!bjj this line is too long
-!rmIF ( ( GBoxEff <= 0.0 ) .OR. ( GBoxEff > 100.0 ) )  CALL Abort ( ' GBoxEff must be greater than 0 and less than or equal to 100.' )
-!rmIF ( ( GBoxEff <= 0.0 ) .OR. ( GBoxEff > 100.0 ) )  CALL ProgAbort ( ' GBoxEff must be greater than 0 and less than or equal to 100.' )
 IF ( ( GBoxEff <= 0.0 ) .OR. ( GBoxEff > 100.0 ) ) THEN
    CALL ProgAbort ( ' GBoxEff must be greater than 0 and less than or equal to 100.' )
 END IF   
-!bjj end of proposed change v7.00.01a-bjj
-!jmj End of proposed change.  v6.10d-jmj  13-Aug-2009.
 
 
 
@@ -6483,10 +5487,7 @@ IF ( HSSBrDT < 0.0 )  CALL ProgAbort ( ' HSSBrDT must not be negative.' )
 !JASON:
 !JASON:IF ( LEN_TRIM( DynBrkFi ) == 0 )  CALL ProgAbort ( ' DynBrkFi must not be an empty string.' )
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'currently ignored DynBrkFi', Echo  ) !JASON:
    CALL ReadCom ( UnIn, PriFile, 'currently ignored DynBrkFi' )
-!bjj End of proposed change
 
 
    ! DTTorSpr - Drivetrain torsional spring.
@@ -6509,10 +5510,7 @@ IF ( DTTorDmp < 0.0 )  CALL ProgAbort ( ' DTTorDmp must not be negative.' )
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'simple-induction-generator parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'simple-induction-generator parameters' )
-!bjj End of proposed change
 
 
    ! SIG_SlPc - Rated generator slip percentage.
@@ -6549,10 +5547,7 @@ IF ( ( GenModel == 1 )  .AND. ( SIG_PORt < 1.0 ) )  CALL ProgAbort ( ' SIG_PORt 
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'Thevenin-equivalent induction-generator parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'Thevenin-equivalent induction-generator parameters' )
-!bjj End of proposed change
 
 
    ! TEC_Freq - Line frequency.
@@ -6612,23 +5607,12 @@ CALL ReadRVar ( UnIn, PriFile, TEC_MR, 'TEC_MR', 'Magnetizing reactance' )
 IF ( ( GenModel == 2 )  .AND. ( TEC_MR <= 0.0 ) )  CALL ProgAbort ( ' TEC_MR must be greater than zero.' )
 
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Rename both the "PLATFORM MODEL" and "PLATFORM LOADING" sections of the
-!jmj   input files to "PLATFORM":
-!remove6.02a!  -------------- PLATFORM MODEL PARAMETERS ------------------------------------
 !  -------------- PLATFORM PARAMETERS ------------------------------------------
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Skip the comment line.
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Rename both the "PLATFORM MODEL" and "PLATFORM LOADING" sections of the
-!jmj   input files to "PLATFORM":
-!remove6.02aCALL SkipComment ( UnIn, PriFile, 'platform model parameters', Echo  )
-!rm bjj:        CALL ReadCom ( UnIn, PriFile, 'platform model parameters' )
 CALL ReadCom ( UnIn, PriFile, 'platform parameters'  )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! PtfmModel - Platform model switch.
 
@@ -6641,10 +5625,7 @@ IF ( ( PtfmModel < 0 ) .OR. ( PtfmModel > 3 ) )  CALL ProgAbort ( ' PtfmModel mu
 
 CALL ReadCVar ( UnIn, PriFile, PtfmFile, 'PtfmFile', 'Name of file containing platform properties' )
 
-!bjj start of proposed change v6.02d-bjj
-!rmIF ( LEN_TRIM( PtfmFile ) == 0 )  CALL ProgAbort ( ' PtfmFile must not be an empty string.' ) 
 IF ( LEN_TRIM( PtfmFile ) == 0 .AND. PtfmModel /= 0 )  CALL ProgAbort ( ' PtfmFile must not be an empty string.' ) 
-!bjj end of proposed change
 
 
 
@@ -6653,10 +5634,7 @@ IF ( LEN_TRIM( PtfmFile ) == 0 .AND. PtfmModel /= 0 )  CALL ProgAbort ( ' PtfmFi
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'tower parameters', Echo  )
-   CALL ReadCom ( UnIn, PriFile, 'tower parameters' )
-!bjj End of proposed change
+CALL ReadCom ( UnIn, PriFile, 'tower parameters' )
 
    ! TwrNodes - Number of tower nodes used for analysis.
 
@@ -6678,10 +5656,7 @@ IF ( LEN_TRIM( TwrFile ) == 0 )  CALL ProgAbort ( ' TwrFile must not be an empty
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'nacelle-yaw parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'nacelle-yaw parameters' )
-!bjj End of proposed change
 
 
    ! YawSpr - Yaw spring constant.
@@ -6712,10 +5687,7 @@ IF ( ( YawNeut <= -180.0 ) .OR. ( YawNeut > 180.0 ) )  &
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'furling parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'furling parameters' )
-!bjj End of proposed change
 
    ! Furling - Read in additional model properties for furling turbine.
 
@@ -6734,10 +5706,7 @@ ENDIF
 
 CALL ReadCVar ( UnIn, PriFile, FurlFile, 'FurlFile', 'Name of file containing furling properties' )
 
-!BJJ start of proposed change v6.02d-bjj
-!rmIF ( LEN_TRIM( FurlFile ) == 0 )  CALL ProgAbort ( ' FurlFile must not be an empty string.' )
 IF ( LEN_TRIM( FurlFile ) == 0 .AND. Furling )  CALL ProgAbort ( ' FurlFile must not be an empty string.' )
-!bjj end of proposed change
 
 
 !  -------------- ROTOR-TEETER PARAMETERS --------------------------------------
@@ -6745,10 +5714,7 @@ IF ( LEN_TRIM( FurlFile ) == 0 .AND. Furling )  CALL ProgAbort ( ' FurlFile must
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'rotor-teeter parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'rotor-teeter parameters' )
-!bjj End of proposed change
 
 
 IF ( NumBl == 2 )  THEN
@@ -6814,15 +5780,6 @@ ELSE
 
       ! Three-bladed turbines don't use these parameters, so skip them.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TeetMod' , .FALSE. )
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TeetDmpP', .FALSE. )
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TeetDmp' , .FALSE. )
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TeetCDmp', .FALSE. )
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TeetSStP', .FALSE. )
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TeetHStP', .FALSE. )
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TeetSSSp', .FALSE. )
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused TeetHSSp', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused TeetMod'  )
    CALL ReadCom ( UnIn, PriFile, 'unused TeetDmpP' )
    CALL ReadCom ( UnIn, PriFile, 'unused TeetDmp'  )
@@ -6831,7 +5788,6 @@ ELSE
    CALL ReadCom ( UnIn, PriFile, 'unused TeetHStP' )
    CALL ReadCom ( UnIn, PriFile, 'unused TeetSSSp' )
    CALL ReadCom ( UnIn, PriFile, 'unused TeetHSSp' )
-!bjj End of proposed change
 
 ENDIF
 
@@ -6842,10 +5798,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'tower parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'tip-brake parameters' )
-!bjj End of proposed change
 
 
    ! TBDrConN - Tip-brake drag constant during normal operation.
@@ -6874,10 +5827,7 @@ IF ( TpBrDT < 0.0 )  CALL ProgAbort ( ' TpBrDT must not be negative.' )
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'blade parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'blade parameters' )
-!bjj End of proposed change
 
 
    ! BldFile - Names of files containing blade properties.
@@ -6887,10 +5837,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldFile array.' )
 ENDIF
 
-!bjj start of proposed change vXX NWTC_Library
-!rmCALL ReadCAry( UnIn, PriFile, BldFile, NumBl, 'BldFile', 'Names of files containing blade properties' )
 CALL ReadAryLines( UnIn, PriFile, BldFile, NumBl, 'BldFile', 'Names of files containing blade properties' )
-!bjj end of proposed change
 
 DO K=1,NumBl
    IF ( LEN_TRIM( BldFile(K) ) == 0 )  THEN
@@ -6899,10 +5846,7 @@ DO K=1,NumBl
 ENDDO ! K
 
 IF ( NumBl == 2 )  THEN
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'unused BldFile(3)', .FALSE. )
    CALL ReadCom ( UnIn, PriFile, 'unused BldFile(3)' )
-!bjj End of proposed change
 ENDIF
 
 
@@ -6912,10 +5856,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'AeroDyn parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'AeroDyn parameters' )
-!bjj End of proposed change
 
 
    ! ADFile - Name of file containing AeroDyn parameters.
@@ -6931,20 +5872,14 @@ IF ( LEN_TRIM( ADFile ) == 0 )  CALL ProgAbort ( 'ADFile must not be an empty st
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'Noise parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'Noise parameters' )
-!bjj End of proposed change
 
 
    ! NoiseFile - Name of file containing aerodynamic noise parameters.
 
 CALL ReadCVar ( UnIn, PriFile, NoiseFile, 'NoiseFile', 'Name of file containing aerodynamic noise parameters' )
 
-!BJJ start of proposed change v6.02d-bjj
-!rmIF ( LEN_TRIM( NoiseFile ) == 0 )  CALL ProgAbort ( ' NoiseFile must not be an empty string.' )
 IF ( LEN_TRIM( NoiseFile ) == 0 .AND. CompNoise)  CALL ProgAbort ( ' NoiseFile must not be an empty string.' )
-!bjj end of proposed change
 
 
 !  -------------- ADAMS INPUT FILE PARAMETERS ----------------------------------
@@ -6952,19 +5887,13 @@ IF ( LEN_TRIM( NoiseFile ) == 0 .AND. CompNoise)  CALL ProgAbort ( ' NoiseFile m
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'ADAMS parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'ADAMS parameters' )
-!bjj End of proposed change
 
    ! ADAMSFile - Name of file containing ADAMS-specific parameters.
 
 CALL ReadCVar ( UnIn, PriFile, ADAMSFile, 'ADAMSFile', 'Name of file containing ADAMS-specific properties' )
 
-!BJJ start of proposed change v6.02d-bjj
-!RMIF ( LEN_TRIM( ADAMSFile ) == 0 )  CALL ProgAbort ( ' ADAMSFile must not be an empty string.' )
 IF ( LEN_TRIM( ADAMSFile ) == 0 .AND. ADAMSPrep /= 1)  CALL ProgAbort ( ' ADAMSFile must not be an empty string.' )
-!END start of proposed change v6.02d-bjj
 
 
 
@@ -6973,20 +5902,14 @@ IF ( LEN_TRIM( ADAMSFile ) == 0 .AND. ADAMSPrep /= 1)  CALL ProgAbort ( ' ADAMSF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'Linearization parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'Linearization parameters' )
-!bjj End of proposed change
 
 
    ! LinFile - Name of file containing FAST linearization parameters.
 
 CALL ReadCVar ( UnIn, PriFile, LinFile, 'LinFile', 'Name of file containing FAST linearization parameters' )
 
-!BJJ start of proposed change v6.02d-bjj
-!rmIF ( LEN_TRIM( LinFile ) == 0 )  CALL ProgAbort ( ' LinFile must not be an empty string.' )
 IF ( LEN_TRIM( LinFile ) == 0 .AND. AnalMode /= 1)  CALL ProgAbort ( ' LinFile must not be an empty string.' )
-!end of proposed change v6.02d-bjj
 
 
 
@@ -6995,10 +5918,7 @@ IF ( LEN_TRIM( LinFile ) == 0 .AND. AnalMode /= 1)  CALL ProgAbort ( ' LinFile m
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile,  'output-parameters', Echo  )
    CALL ReadCom ( UnIn, PriFile, 'output parameters' )
-!bjj End of proposed change
 
 
    ! SumPrint - Print summary data to "*.fsm".
@@ -7064,13 +5984,7 @@ CALL ReadRVar ( UnIn, PriFile, ShftGagL, 'ShftGagL', 'Distance from hub or teete
 
 CALL ReadIVar ( UnIn, PriFile, NTwGages, 'NTwGages', 'Number of tower "strain-gage" output stations' )
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
-!remove6.02aIF ( ( NTwGages < 0 ) .OR. ( NTwGages > 5 ) )  CALL ProgAbort ( ' NTwGages must be between 0 and 5 (inclusive).' )
 IF ( ( NTwGages < 0 ) .OR. ( NTwGages > 9 ) )  CALL ProgAbort ( ' NTwGages must be between 0 and 9 (inclusive).' )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! TwrGagNd - List of tower nodes that have strain gages.
@@ -7086,13 +6000,7 @@ ENDIF
 
 IF ( Echo )  THEN
    WRITE (UnEc,"(15X,A,T27,' - ',A)")  'TwrGagNd', 'List of tower nodes that have strain gages'
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
-!remove6.02a   WRITE (UnEc,'(5(I4,:))')  ( TwrGagNd(I), I=1,NTwGages )
    WRITE (UnEc,'(9(I4,:))')  ( TwrGagNd(I), I=1,NTwGages )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 ENDIF
 
 
@@ -7100,13 +6008,7 @@ ENDIF
 
 CALL ReadIVar ( UnIn, PriFile, NBlGages, 'NBlGages', 'Number of blade "strain-gage" output stations' )
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
-!remove6.02aIF ( ( NBlGages < 0 ) .OR. ( NBlGages > 5 ) )  CALL ProgAbort ( ' NBlGages must be between 0 and 5 (inclusive).' )
 IF ( ( NBlGages < 0 ) .OR. ( NBlGages > 9 ) )  CALL ProgAbort ( ' NBlGages must be between 0 and 9 (inclusive).' )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! BldGagNd - List of blade nodes that have strain gages.
@@ -7122,22 +6024,13 @@ ENDIF
 
 IF ( Echo )  THEN
    WRITE (UnEc,"(15X,A,T27,' - ',A)")  'BldGagNd', 'List of blade nodes that have strain gages'
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Increase the upper limit for the number of blade and tower strain gage
-!jmj   locations from 5 to 9 and add new output parameters for the local loads
-!jmj   and motions at the additional strain gage locations:
-!remove6.02a   WRITE (UnEc,'(5(I4,:))')  ( BldGagNd(I), I=1,NBlGages )
    WRITE (UnEc,'(9(I4,:))')  ( BldGagNd(I), I=1,NBlGages )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 ENDIF
 
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PriFile, 'output-parameters-list', .FALSE.  )
    CALL ReadCom ( UnIn, PriFile, 'output-parameters list' )
-!bjj End of proposed change
 
 
    ! OutList - Output parameter list.
@@ -7177,15 +6070,6 @@ IF ( ( NumOuts == 0 ) .AND. ( AnalMode == 1 ) )  THEN
    CALL ProgAbort ( ' No output channels specified!' )
 ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Move the CALL to SUBROUTINE FAST_IO.f90/ChckOutLst() from
-!jmj   FAST_IO.f90/GetPrimary() to FAST_IO.f90/Input():
-!remove6.02a
-!remove6.02a   ! Check to see if any inputted output channels are ill-conditioned (and if so, Abort)
-!remove6.02a   !    and set values for OutInd(:) and OutParam(:):
-!remove6.02a
-!remove6.02aCALL ChckOutLst
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Close primary input file.
@@ -7201,70 +6085,24 @@ SUBROUTINE GetPtfm
    ! This routine reads in the FAST platform input parameters from
    !   PtfmFile and validates the input.
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 USE                             Constants
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 USE                             EnvCond
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 USE                             Features
 USE                             General
 USE                             InitCond
 USE                             MassInert
 USE                             Output
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
-!jmj Also, rename MODULE PlatformLd() to Platform():
-!remove6.02aUSE                             PlatformLd
 USE                             Platform
 USE                             SimCont
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-!bjj rm NWTC_Library: USE                             SysSubs
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Check the value of TwrRBHt in routines GetPtfm() and GetPrimary() instead
-!jmj   of in routine Input():
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 USE                             Tower
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 USE                             TurbConf
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 USE                             Waves, ONLY:WavePkShpDefault
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
 IMPLICIT                        NONE
 
 
    ! Local variables:
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 REAL(ReKi)                   :: LAngAnch                                        ! Azimuth angle   of the current anchor   relative to the positive xi-axis of the inertial frame.
 REAL(ReKi)                   :: LAngFair                                        ! Azimuth angle   of the current fairlead relative to the positive xt-axis of the platform.
 REAL(ReKi)                   :: LDpthAnch                                       ! Depth           of the current anchor   relative to the origin           of the inertial frame.
@@ -7272,48 +6110,18 @@ REAL(ReKi)                   :: LDrftFair                                       
 REAL(ReKi)                   :: LRadAnch                                        ! Radial distance of the current anchor   relative to the origin           of the inertial frame.
 REAL(ReKi)                   :: LRadFair                                        ! Radial distance of the current fairlead relative to the platform reference point.
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 INTEGER(4)                   :: I                                               ! A generic index.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 INTEGER(4)                   :: Sttus                                           ! Status returned by an attempted allocation.
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 CHARACTER(80)                :: Line                                            ! String to temporarily hold the value of PtfmLdMod.
 CHARACTER(80)                :: LineUC                                          ! String to temporarily hold the value of PtfmLdMod in upper case.
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 CHARACTER(156)               :: Frmt                                            ! Format for element data.
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
    ! Open the FAST platform input file:
 
-!BJJ:
 CALL OpenFInpFile ( UnIn, PtfmFile )
 
 
@@ -7341,10 +6149,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PtfmFile, 'degree of freedom switches (cont)', Echo  )
    CALL ReadCom ( UnIn, PtfmFile, 'degree of freedom switches (cont)' )
-!bjj End of proposed change
 
 
 
@@ -7384,10 +6189,7 @@ CALL ReadLVar ( UnIn, PtfmFile, PtfmYDOF, 'PtfmYDOF', 'Platform yaw DOF' )
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PtfmFile, 'initial conditions (cont)', Echo  )
    CALL ReadCom ( UnIn, PtfmFile, 'initial conditions (cont)' )
-!bjj End of proposed change
 
 
    ! PtfmSurge - Initial or fixed horizontal surge translational displacement of platform.
@@ -7435,10 +6237,7 @@ IF ( ( PtfmYaw < -15.0 ) .OR. ( PtfmYaw > 15.0 ) )  &
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PtfmFile, 'turbine configuration (cont)', Echo  )
    CALL ReadCom ( UnIn, PtfmFile, 'turbine configuration (cont)' )
-!bjj End of proposed change
 
 
    ! TwrDraft - Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection.
@@ -7447,13 +6246,9 @@ CALL ReadRVar ( UnIn, PtfmFile, TwrDraft, 'TwrDraft', &
    'Downward distance from ground [onshore] or MSL [offshore] to tower base platform connection' )
 
 IF ( TwrDraft <= -TowerHt )  CALL ProgAbort ( ' TwrDraft must be greater than -TowerHt.' )
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Check the value of TwrRBHt in routines GetPtfm() and GetPrimary() instead
-!jmj   of in routine Input():
 
 IF ( TwrRBHt >= ( TowerHt + TwrDraft ) )  &
          CALL ProgAbort ( ' TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.' )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! PtfmCM - Downward distance from the ground [onshore] or MSL [offshore] to the platform CM.
@@ -7478,10 +6273,7 @@ IF ( PtfmRef < TwrDraft )  CALL ProgAbort ( ' PtfmRef must not be less than TwrD
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, PtfmFile, 'mass and inertia (cont)', Echo  )
    CALL ReadCom ( UnIn, PtfmFile, 'mass and inertia (cont)' )
-!bjj End of proposed change
 
 
 
@@ -7513,40 +6305,16 @@ CALL ReadRVar ( UnIn, PtfmFile, PtfmYIner, 'PtfmYIner', 'Platform inertia for ya
 IF ( PtfmYIner < 0.0 )  CALL ProgAbort ( ' PtfmYIner must not be negative.' )
 
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Rename both the "PLATFORM MODEL" and "PLATFORM LOADING" sections of the
-!jmj   input files to "PLATFORM":
-!remove6.02a!  -------------- PLATFORM LOADING ---------------------------------------------
 !  -------------- PLATFORM (CONT) ----------------------------------------------
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Skip the comment line.
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Rename both the "PLATFORM MODEL" and "PLATFORM LOADING" sections of the
-!jmj   input files to "PLATFORM":
-!remove6.02aCALL SkipComment ( UnIn, PtfmFile, 'platform loading', Echo  )
-!rm bjj:   CALL ReadCom ( UnIn, PtfmFile, 'platform loading' )
 CALL ReadCom ( UnIn, PtfmFile, 'platform (cont)'  )
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
 !JASON: MARSHALL WANTS PLATFORM/TOWER HYDRODYNAMICS TO WORK LIKE AERODYNAMICS IN AeroDyn.  THIS MEANS HAVING A COMPLETELY SEPARATE CODE FOR DOING THE HYDRODYNAMICS CALCULATIONS (CALL IT HydroDyn).  THIS MEANS THAT THE REST OF THESE PARAMETERS (EXCLUDING THE KINEMATICS/KINETICS PARAMERERS NEEDED BY FAST / ADAMS) SHOULD BE IN THEIR OWN FILE AND SOURCE CODE.  MAKE THIS CHANGE BEFORE YOU DOCUMENT THESE ROUTINES!!!!  DO THE SAME THING WITH THE MOORING SYSTEM (CALL IT LineDyn!)
 !JASON: ONCE CompHydro BECOMES AN INPUT TO THE PROGRAM, USE CompHydro THROUGHOUT RtHS() LIKE CompAero!!!!
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
-!remove6.02a   ! PtfmLdMod - Platform loading model switch.
-!remove6.02a
-!remove6.02aCALL ReadIVar ( UnIn, PtfmFile, PtfmLdMod, 'PtfmLdMod', 'Platform loading model switch' )
-!remove6.02a
-!remove6.02aIF ( ( PtfmLdMod /= 0 ) .AND. ( PtfmLdMod /= 1 ) )  CALL ProgAbort ( ' PtfmLdMod must be 0 or 1.' )
 SELECT CASE ( PtfmModel )  ! Which platform model are we using?
 
 CASE ( 1 )                 ! Onshore.
@@ -7966,7 +6734,6 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 !         ENDIF
 
          IF ( Echo )  THEN
-!bjj chg:    WRITE (UnEc,"(15X,A,T27,' - ',A)")  'WaveKinNd', 'List of tower nodes that have wave kinematics sensors'
             WRITE (UnEc,"( 2X, ES11.4e2, 2X, A, T30, ' - ', A )")  'WaveKinNd', &
                             'List of tower nodes that have wave kinematics sensors'
 
@@ -8084,20 +6851,11 @@ CASE ( 3 )                 ! Floating offshore.
 
 
    ! RdtnTMax - Analysis time for wave radiation kernel calculations.
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
    ! NOTE: Use RdtnTMax = 0.0 to eliminate wave radiation damping.
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
       CALL ReadRVar ( UnIn, PtfmFile, RdtnTMax, 'RdtnTMax', 'Analysis time for wave radiation kernel calculations' )
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
-!remove6.02b      IF ( RdtnTMax <= 0.0 )  CALL ProgAbort ( ' RdtnTMax must be greater than zero.' )
       IF ( RdtnTMax < 0.0 )  CALL ProgAbort ( ' RdtnTMax must not be negative.' )
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
    ! RdtnDT - Time step for wave radiation kernel calculations.
@@ -8108,10 +6866,6 @@ CASE ( 3 )                 ! Floating offshore.
 
 
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
 !  -------------- MOORING LINES ------------------------------------------------
 
 
@@ -8302,12 +7056,8 @@ CASE ( 3 )                 ! Floating offshore.
                   CALL ProgAbort ( ' LTenTol('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
 
 
-!jmj Start of proposed change.  v6.10a-jmj  21-Feb-2007.
-!jmj Make sure the seabed GRAPHICS in FAST-to-ADAMS has a radius at least as
-!jmj   large as the maximum mooring line anchor radius:
                MaxLRadAnch = MAX( MaxLRadAnch, LRadAnch )   ! Find the maximum value of the input array LRadAnch
 
-!jmj End of proposed change.  v6.10a-jmj  21-Feb-2007.
                LAngAnch   =  LAngAnch*D2R             ! Convert the azimuth angle of the current
                LAngFair   =  LAngFair*D2R             ! anchor and fairlead from degrees to radians.
 
@@ -8338,7 +7088,6 @@ CASE ( 3 )                 ! Floating offshore.
 
 
 
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 !  -------------- WAVES --------------------------------------------------------
 
 
@@ -8359,11 +7108,6 @@ CASE ( 3 )                 ! Floating offshore.
 
       CALL ReadRVar ( UnIn, PtfmFile, WtrDpth, 'WtrDpth', 'Water depth' )
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Replace the hard-coded mooring line restoring calculation with a general
-!jmj   purpose, quasi-static solution based on the analytical catenary cable
-!jmj   equations with seabed interaction:
-!remove6.02b      IF ( WtrDpth <= PtfmDraft )  CALL ProgAbort ( ' WtrDpth must be greater than PtfmDraft.' )
       IF (       WtrDpth <= PtfmDraft  )  CALL ProgAbort ( ' WtrDpth must be greater than PtfmDraft.' )
       IF ( LineMod == 1 )  THEN  ! .TRUE if we have standard quasi-static mooring lines.
          DO I = 1,NumLines ! Loop through all mooring lines
@@ -8371,7 +7115,6 @@ CASE ( 3 )                 ! Floating offshore.
                   CALL ProgAbort ( ' WtrDpth must not be less than LDpthAnch('//TRIM( Int2LStr( I ) )//').' )
          ENDDO             ! I - All mooring lines
       ENDIF
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
 
    ! WaveMod - Wave kinematics model switch.
@@ -8622,21 +7365,10 @@ CASE ( 3 )                 ! Floating offshore.
       READ (UnIn,*,IOSTAT=IOS)  ( WaveKinNd(I), I=1,NWaveKin )
 
       CALL CheckIOS( IOS, PtfmFile, 'WaveKinNd', NumType )
-!      IF ( IOS < 0 )  THEN
-!         CALL PremEOF ( PtfmFile , 'WaveKinNd' )
-!      ELSEIF ( IOS > 0 )  THEN
-!         CALL WrScr1 ( ' Invalid numerical input for file "'//TRIM( PtfmFile )//'.' )
-!         CALL ProgAbort  ( ' The error occurred while trying to read the WaveKinNd array.' )
-!      ENDIF
 
       IF ( Echo )  THEN
-!bjj rm         WRITE (UnEc,"(15X,A,T27,' - ',A)")  'WaveKinNd', 'List of platform nodes that have wave kinematics sensors'
-!BJJ START OF PROPOSED CHANGE V7.00.01a-bjj
-!bjj this line is too long:
-!rm         WRITE (UnEc,"( 2X, ES11.4e2, 2X, A, T30, ' - ', A )")  'WaveKinNd', 'List of platform nodes that have wave kinematics sensors'
          WRITE (UnEc,"( 2X, ES11.4e2, 2X, A, T30, ' - ', A )")  'WaveKinNd', &
                         'List of platform nodes that have wave kinematics sensors'
-!bjj end of proposed change
          WRITE (UnEc,'(9(I4,:))')  ( WaveKinNd(I), I=1,NWaveKin )
       ENDIF
 
@@ -8655,7 +7387,6 @@ CASE ( 3 )                 ! Floating offshore.
 
 
 ENDSELECT
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
    ! Close the FAST platform file:
@@ -8676,7 +7407,6 @@ SUBROUTINE GetTower
 USE                             General
 USE                             Modes
 USE                             Output
-!bjj rm NWTC_Library: USE                             Precision
 USE                             Tower
 
 
@@ -8690,22 +7420,14 @@ REAL(ReKi)                   :: TopDispl                                        
 
 INTEGER(4)                   :: I                                               ! A generic index.
 INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-!bjj rm unused:INTEGER(4)                   :: K                                               ! Blade number.
 INTEGER(4)                   :: Sttus                                           ! Status returned from an allocation request.
 
 CHARACTER(132)               :: Frmt                                            ! Format for element data.
 
 
-   ! Global functions.
-
-!bjj rm AD 12.70b CHARACTER(15), EXTERNAL      :: Flt2LStr                                        ! A function to convert a floating-point number to a left-justified string.
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-
-
 
    ! Open the tower input file.
 
-!BJJ:
 CALL OpenFInpFile ( UnIn, TwrFile )
 
 
@@ -8733,10 +7455,7 @@ ENDIF
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, TwrFile, 'tower parameters', Echo  )
    CALL ReadCom ( UnIn, PtfmFile, 'tower parameters' )
-!bjj End of proposed change
 
 
    ! NTwInpSt - Number of tower input stations.
@@ -8750,10 +7469,7 @@ IF ( NTwInpSt < 1 )  CALL ProgAbort ( ' NTwInpSt must be at least 1.' )
 
 !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
 !JASON:CALL ReadLVar ( UnIn, TwrFile, CalcTMode, 'CalcTMode', 'Calculate tower mode shapes' )
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, TwrFile, 'currently ignored CalcTMode', Echo  )   !JASON:
    CALL ReadCom ( UnIn, TwrFile, 'currently ignored CalcTMode' )
-!bjj End of proposed change
 
 
    ! TwrFADmp - Tower fore-aft structural damping ratios.
@@ -8778,10 +7494,7 @@ IF ( ( TwrSSDmp(2) < 0.0 ) .OR. ( TwrSSDmp(2) > 100.0 ) )  CALL ProgAbort ( ' Tw
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, TwrFile, 'tower adjustment factors', Echo  )
    CALL ReadCom ( UnIn, TwrFile, 'tower adjustment factors' )
-!bjj End of proposed change
 
 
 
@@ -8828,14 +7541,9 @@ IF ( AdjSSSt <= 0.0 )  CALL ProgAbort ( ' AdjSSSt must be greater than zero.' )
 
    ! Skip the comment lines.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm   CALL SkipComment ( UnIn, TwrFile, 'distributed tower parameters', Echo  )
-!rm CALL SkipComment ( UnIn, TwrFile, 'distributed-tower-parameter names', .FALSE. )
-!rm CALL SkipComment ( UnIn, TwrFile, 'distributed-tower-parameter units', .FALSE. )
    CALL ReadCom ( UnIn, TwrFile, 'distributed tower parameters' )
    CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter names' )
    CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter units' )
-!bjj End of proposed change
 
 
    ! Allocate the input arrays.
@@ -8925,10 +7633,7 @@ DO I=1,NTwInpSt
       READ (UnIn,*,IOSTAT=IOS)  HtFract(I), TMassDen(I), TwFAStif(I), TwSSStif(I)
    ENDIF
 
-!bjj start of proposed change
-!rm   CALL CheckIOS ( IOS, TwrFile, 'line '//TRIM( Int2LStr( I ) )//' of the tower distributed properties', Numeric )
    CALL CheckIOS ( IOS, TwrFile, 'line '//TRIM( Int2LStr( I ) )//' of the tower distributed properties', NumType )
-!bjj end of proposed change
 
    IF ( Echo )  THEN
       IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
@@ -8989,30 +7694,17 @@ ENDDO ! I
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm CALL SkipComment ( UnIn, TwrFile, '', Echo  )
    CALL ReadCom ( UnIn, TwrFile, 'tower fore-aft mode shapes' )
-!bjj End of proposed change
 
 
    ! TwFAM1Sh - Tower fore-aft mode-1 shape coefficients.
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow the mode shape to be described by a polynomial greater than sixth
-!eab   order. Do this by setting the length of the mode shape coefficient array
-!eab   to one less than the order of the polynomial.
-!remove6.10bCALL ReadAryLines ( UnIn, TwrFile, TwFAM1Sh, 5, 'TwFAM1Sh', 'Tower fore-aft mode-1 shape coefficients' )
 CALL ReadAryLines ( UnIn, TwrFile, TwFAM1Sh, PolyOrd-1, 'TwFAM1Sh', 'Tower fore-aft mode-1 shape coefficients' )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 
 
 TopDispl = 0.0
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Loop through all mode shape coefficients.
-!remove6.10bDO I=2,6
 DO I=2,PolyOrd
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
    TopDispl = TopDispl + TwFAM1Sh(I)
 ENDDO ! I
 
@@ -9021,21 +7713,11 @@ IF ( ABS( TopDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Tower fore-aft mode-1 s
 
    ! TwFAM2Sh - Tower fore-aft mode-2 shape coefficients.
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow the mode shape to be described by a polynomial greater than sixth
-!eab   order. Do this by setting the length of the mode shape coefficient array
-!eab   to one less than the order of the polynomial.
-!remove6.10bCALL ReadAryLines ( UnIn, TwrFile, TwFAM2Sh, 5, 'TwFAM2Sh', 'Tower fore-aft mode-2 shape coefficients' )
 CALL ReadAryLines ( UnIn, TwrFile, TwFAM2Sh, PolyOrd-1, 'TwFAM2Sh', 'Tower fore-aft mode-2 shape coefficients' )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 
 TopDispl = 0.0
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Loop through all mode shape coefficients.
-!remove6.10bDO I=2,6
 DO I=2,PolyOrd
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
    TopDispl = TopDispl + TwFAM2Sh(I)
 ENDDO ! I
 
@@ -9048,31 +7730,18 @@ IF ( ABS( TopDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Tower fore-aft mode-2 s
 
    ! Skip the comment line.
 
-!bjj Start of proposed change vXX NWTC_Lib
-!rm CALL SkipComment ( UnIn, TwrFile, 'tower side-to-side mode shapes', Echo  )
    CALL ReadCom ( UnIn, TwrFile, 'tower side-to-side mode shapes' )
-!bjj End of proposed change
 
 
 
    ! TwSSM1Sh - Tower side-to-side mode-1 shape coefficients.
 
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow the mode shape to be described by a polynomial greater than sixth
-!eab   order. Do this by setting the length of the mode shape coefficient array
-!eab   to one less than the order of the polynomial.
-!remove6.10bCALL ReadAryLines ( UnIn, TwrFile, TwSSM1Sh, 5, 'TwSSM1Sh', 'Tower side-to-side mode-1 shape coefficients' )
 CALL ReadAryLines ( UnIn, TwrFile, TwSSM1Sh, PolyOrd-1, 'TwSSM1Sh', 'Tower side-to-side mode-1 shape coefficients' )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 
 TopDispl = 0.0
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Loop through all mode shape coefficients.
-!remove6.10bDO I=2,6
 DO I=2,PolyOrd
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
    TopDispl = TopDispl + TwSSM1Sh(I)
 ENDDO ! I
 
@@ -9081,21 +7750,11 @@ IF ( ABS( TopDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Tower side-to-side mode
 
    ! TwSSM2Sh - Tower side-to-side mode-2 shape coefficients.
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow the mode shape to be described by a polynomial greater than sixth
-!eab   order. Do this by setting the length of the mode shape coefficient array
-!eab   to one less than the order of the polynomial.
-!remove6.10bCALL ReadAryLines ( UnIn, TwrFile, TwSSM2Sh, 5, 'TwSSM2Sh', 'Tower side-to-side mode-2 shape coefficients' )
 CALL ReadAryLines ( UnIn, TwrFile, TwSSM2Sh, PolyOrd-1, 'TwSSM2Sh', 'Tower side-to-side mode-2 shape coefficients' )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 
 TopDispl = 0.0
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Loop through all mode shape coefficients.
-!remove6.10bDO I=2,6
 DO I=2,PolyOrd
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
    TopDispl = TopDispl + TwSSM2Sh(I)
 ENDDO ! I
 
@@ -9122,11 +7781,7 @@ USE                             Blades
 USE                             Constants
 USE                             DOFs
 USE                             DriveTrain
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
 USE                             EnvCond
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 USE                             Features
 USE                             General
 USE                             InitCond
@@ -9134,12 +7789,7 @@ USE                             Linear
 USE                             Modes
 USE                             NacelleYaw
 USE                             Output
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
 USE                             Platform
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
-!bjj rm NWTC_Library: USE                             Precision
 USE                             RotorFurling
 USE                             SimCont
 USE                             TailAero
@@ -9152,25 +7802,11 @@ USE                             TurbCont
 
 
    ! AeroDyn Modules:
-!bjj STart of proposed change AD_v12.70a-bjj
-!rmUSE                             Airfoil
-!rmUSE                             InducedVel
-!rmUSE                             Precision
-!rmUSE                             Switch
 USE                             Airfoil,        ONLY: NumFoil
 USE                             InducedVel,     ONLY: AToler
-!bjj rm NWTC_Library: USE                             Precision
-!USE                             Switch,         ONLY: DSTALL, DYNINFL, DYNINIT, FFWindFlag, FDWindFlag, CTWindFlag, UsrWndFlag
 USE                             Switch,         ONLY: DSTALL, DYNINFL, DYNINIT
-!bjj End of proposed change
 
-!bjj start of proposed change ad v12.70w
-!USE                             InflowWind !accessed through aerodyn?
-!bjj end of proposed change
-
-!bjj STart of proposed change vXX
 USE                             Noise  !NoiseInput()
-!bjj end of proposed change
 
 IMPLICIT                        NONE
 
@@ -9183,19 +7819,6 @@ REAL(ReKi)                   :: SumCosPreC                                      
 INTEGER(4)                   :: I                                               ! A generic index for DO loops.
 INTEGER(4)                   :: K                                               ! Index for blade number.
 INTEGER(4)                   :: Sttus                                           ! Status of an attempted array allocation.
-
-!bjj start of proposed change AD v12.70w
-!these were going to be used, but I replaced them with another function
-!REAL(ReKi)                   :: InputPosition(3)
-!REAL(ReKi)                   :: WindStDev(3)
-!INTEGER                      :: ErrStat
-!REAL(ReKi), PARAMETER        :: TOL = 1E-5                                       ! The maximum amount of standard deviation allowed before wind is "non-constant"
-!bjj end of proposed change
-
-   ! User-defined functions.
-
-!bjj rm AD 12.70b CHARACTER(15), EXTERNAL      :: Flt2LStr                                        ! A function to convert a floating-point number to a left-justified string.
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
 
 
 
@@ -9345,19 +7968,6 @@ IF ( VSContrl == 1 )  THEN       ! Simple variable-speed control
    VS_RtGnSp = VS_RtGnSp*  RPM2RPS                                                                    ! Convert rated speed to rad/sec.
    VS_Rgn2K  = VS_Rgn2K /( RPM2RPS*RPM2RPS )                                                          ! Convert Region 2 torque constant to Nm/(rad/sec)^2.
    VS_SySp   = VS_RtGnSp/( 1.0 +  0.01*VS_SlPc )                                                      ! Synchronous speed of region 2 1/2 induction generator.
-!BJJ START OF PROPOSED CHANGE: CERTTEST DEBUG FAIL
-!RM   VS_Slope  = VS_RtTq  /( VS_RtGnSp - VS_SySp )                                                      ! Torque/speed slope of region 2 1/2 induction generator.
-!RM!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!RM!jmj Modify the simple variable speed control parameters to ensure that:
-!RM!jmj    (1) VS_RtGnSp cannot equal zero and
-!RM!jmj    (2) VS_TrGnSp equals VS_SySp when VS_Rgn2K equals zero.
-!RM!remove6.02a   VS_TrGnSp = ( VS_Slope - SQRT( VS_Slope*( VS_Slope - 4.0*VS_Rgn2K*VS_SySp ) ) )/( 2.0*VS_Rgn2K )      ! Transitional generator speed between regions 2 and 2 1/2.
-!RM   IF ( VS_Rgn2K == 0.0 )  THEN  ! .TRUE. if the Region 2 torque is flat, and thus, the denominator in the ELSE condition is zero
-!RM      VS_TrGnSp = VS_SySp                                                                                ! Transitional generator speed between regions 2 and 2 1/2.
-!RM   ELSE                          ! .TRUE. if the Region 2 torque is quadratic with speed
-!RM      VS_TrGnSp = ( VS_Slope - SQRT( VS_Slope*( VS_Slope - 4.0*VS_Rgn2K*VS_SySp ) ) )/( 2.0*VS_Rgn2K )   ! Transitional generator speed between regions 2 and 2 1/2.
-!RM   ENDIF
-!RM!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
    IF ( VS_SlPc < SQRT(EPSILON(VS_SlPc) ) ) THEN                                                      ! We don't have a region 2 so we'll use VS_TrGnSp = VS_RtGnSp
       VS_Slope = 9999.9
       VS_TrGnSp = VS_RtGnSp
@@ -9369,8 +7979,6 @@ IF ( VSContrl == 1 )  THEN       ! Simple variable-speed control
          VS_TrGnSp = ( VS_Slope - SQRT( VS_Slope*( VS_Slope - 4.0*VS_Rgn2K*VS_SySp ) ) )/( 2.0*VS_Rgn2K )   ! Transitional generator speed between regions 2 and 2 1/2.
       ENDIF
    END IF
-!write(*,'("VS_Slope: ",i2,1x,700(G15.7,1X))') 2, VS_Slope, SQRT( VS_Slope*( VS_Slope - 4.0*VS_Rgn2K*VS_SySp ) ) , VS_Slope - 4.0*VS_Rgn2K*VS_SySp, 2.0*VS_Rgn2K
-!BJJ END OF PROPOSED CHANGE: CERTTEST DEBUG FAIL
 
 
 ELSEIF ( GenModel == 1 )  THEN   ! Simple induction generator
@@ -9491,16 +8099,6 @@ DO I=1,NTwGages
 ENDDO ! I
 
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Check the value of TwrRBHt in routines GetPtfm() and GetPrimary() instead
-!jmj   of in routine Input():
-!remove6.02a   ! Check value of TwrRBHt against TowerHt and TwrDraft:
-!remove6.02a
-!remove6.02aIF ( ( TwrRBHt < 0.0 ) .OR. ( TwrRBHt >= ( TowerHt + TwrDraft ) ) )  &
-!remove6.02a   CALL ProgAbort ( ' TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.' )
-!remove6.02a
-!remove6.02a
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! Allocate arrays to hold tower data at the analysis nodes.
 
@@ -9564,10 +8162,6 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the cgOffTSS array.' )
 ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading on a
-!jmj   monopile.  Do this by reading in addition inputs from the platform file
-!jmj   if they exist:
 
 ALLOCATE ( DiamT(TwrNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
@@ -9586,7 +8180,6 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the CDT array.' )
 ENDIF
 CDT(:) = TwrCD
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
    ! Interpolate tower data for analysis nodes.
 
@@ -9621,10 +8214,6 @@ ENDDO ! I
 IF ( ( PSpnElN < 1 ) .OR. ( PSpnElN > BldNodes ) )  &
    CALL ProgAbort(' PSpnElN must be between 1 and '//TRIM( Int2LStr( BldNodes ) )//' (inclusive).' )
 
-!bjj start of proposed change v6.02d-bjj
-!this check has been moved to AeroDYn
-!rmCALL CheckRComp            ! Check to see if RNodes and DRNodes are compatible
-!bjj end of proposedchange
 
 
    ! Convert RNodes to be relative to the hub:
@@ -9759,32 +8348,17 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the FStTunr array.' )
 ENDIF
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow shape coefficient arrays to exceed the sixth position so as to
-!eab   accommodate all coefficients of a polynomial of any order.
-!remove6.10bALLOCATE ( BldEdgSh(2:6,NumBl) , STAT=Sttus )
 ALLOCATE ( BldEdgSh(2:PolyOrd,NumBl) , STAT=Sttus )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldEdgSh array.' )
 ENDIF
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow shape coefficient arrays to exceed the sixth position so as to
-!eab   accommodate all coefficients of a polynomial of any order.
-!remove6.10bALLOCATE ( BldFl1Sh(2:6,NumBl) , STAT=Sttus )
 ALLOCATE ( BldFl1Sh(2:PolyOrd,NumBl) , STAT=Sttus )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldFl1Sh array.' )
 ENDIF
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Allow shape coefficient arrays to exceed the sixth position so as to
-!eab   accommodate all coefficients of a polynomial of any order.
-!remove6.10bALLOCATE ( BldFl2Sh(2:6,NumBl) , STAT=Sttus )
 ALLOCATE ( BldFl2Sh(2:PolyOrd,NumBl) , STAT=Sttus )
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldFl2Sh array.' )
 ENDIF
@@ -9848,11 +8422,7 @@ DO K=1,NumBl
       FStTunr (K,1) = FStTunr (K-1,1)
       FStTunr (K,2) = FStTunr (K-1,2)
 
-!eab Start of proposed change.  v6.10b-eab  24-Jul-2008.
-!eab Loop through all mode shape coefficients.
-!remove6.10b      DO I=2,6
       DO I=2,PolyOrd
-!eab End of proposed change.  v6.10b-eab  24-Jul-2008.
          BldEdgSh(I,K) = BldEdgSh(I,K-1)
          BldFl1Sh(I,K) = BldFl1Sh(I,K-1)
          BldFl2Sh(I,K) = BldFl2Sh(I,K-1)
@@ -9896,10 +8466,7 @@ ENDDO ! K
 IF ( CompNoise .AND. ( AnalMode == 1 ) .AND. ( ADAMSPrep /= 2 ) )  THEN ! We will be computing aerodynamic noise.
 !JASON: Change this to "IF ( CompAero .AND. ( AnalMode == 1 ) )  THEN" if you can get ADAMS to compute noise as well as FAST.
 
-!bjj start of proposed change
-!rm   CALL NoiseInput                                       ! Read in the noise parameters from NoiseFile.
    CALL NoiseInput(UnIn, NoiseFile)                         ! Read in the noise parameters from NoiseFile.
-!bjj end of proposed change
 
 ENDIF
 
@@ -9958,14 +8525,10 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
    IF ( CompNoise                           )  &
       CALL ProgAbort ( ' FAST can''t linearize a model and compute noise at the same time.  Set CompNoise to False.' )
 
-!jmj Start of proposed change.  v6.02b-jmj  15-Nov-2006.
-!jmj Put in some logic to ensure that the hydrodynamic loads are time invariant
-!jmj   when linearizing a model:
    IF ( ( WaveMod  /= 0   ) .AND. CompHydro )  &
       CALL ProgAbort ( ' FAST can''t linearize a model with incident wave kinematics.  Set WaveMod to 0.'  )
    IF ( ( RdtnTMax /= 0.0 ) .AND. CompHydro )  &
       CALL ProgAbort ( ' FAST can''t linearize a model with wave radiation damping.  Set RdtnTMax to 0.0.' )
-!jmj End of proposed change.  v6.02b-jmj  15-Nov-2006.
 
    ! NOTE: There is one additional requirement, which is that there must be at
    !       least one DOF enabled in order to run a linearization analysis.
@@ -9992,15 +8555,6 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
                    ' to 1E-6 in order to reduce numerical errors during FAST linearization.'   )
       AToler = 1.0E-6
    ENDIF
-!bjj start of proposed change v12.70w
-!rm   IF ( FFWindFlag .AND. CompAero               )  &
-!rm      CALL ProgAbort ( ' FAST can''t linearize a model using full-field wind input.  Use a steady hub-height wind input instead.' )
-!rm   IF ( FDWindFlag .AND. CompAero               )  &
-!rm      CALL ProgAbort ( ' FAST can''t linearize a model using 4-D wind input.  Use a steady hub-height wind input instead.' )
-!rm   IF ( CTWindFlag .AND. CompAero               )  &
-!rm      CALL ProgAbort ( ' FAST can''t linearize a model using coherent turbulent winds.  Use a steady hub-height wind input instead.' )
-!rm   IF ( UsrWndFlag .AND. CompAero               )  &
-!rm      CALL ProgAbort ( ' FAST can''t linearize a model using user-defined wind input.  Use a steady hub-height wind input instead.' )
 
 !   IF ( CompAero ) THEN ! check that the wind speed is not varying -- this is checked elsewhere so this is redundant
 !      InputPosition = (/ 0.0, 0.0, FASTHH /)
@@ -10009,7 +8563,6 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
 !      IF ( ANY(ABS(WindStDev(:)) > TOL) ) CALL ProgAbort( ' Steady winds must be used for linearization, but the wind file has non-zero standard deviation.')
 !   END IF
 
-!bjj end of proposed change
 
    ! Determine whether we will try to find a periodic steady state solution
    !   (rotor spinning) or a static equilibrium solution (rotor parked).  If
@@ -10060,9 +8613,6 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
 
 ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Move the CALL to SUBROUTINE FAST_IO.f90/ChckOutLst() from
-!jmj   FAST_IO.f90/GetPrimary() to FAST_IO.f90/Input():
    ! Check to see if any inputted output channels are ill-conditioned (and if so, Abort)
    !    and set values for OutInd(:) and OutParam(:):
 
@@ -10070,7 +8620,6 @@ CALL ChckOutLst
 
 
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 
 !  -------------- FINISHING UP -------------------------------------------------
@@ -10094,11 +8643,7 @@ SUBROUTINE InterpBld ( K )
 
 USE                             Blades
 USE                             General
-!bjj rm NWTC_Library: USE                             Precision
 USE                             TurbConf
-!bjj start of proposed change vXX
-!USE                             FASTGenSubs  !Interp()
-!bjj end of proposed change vXX
 
 IMPLICIT                        NONE
 
@@ -10112,13 +8657,7 @@ INTEGER(4), INTENT(IN )      :: K                                               
 
 INTEGER(4)                   :: Ind                                             ! Index for the node arrays.
 INTEGER(4)                   :: Sttus                                           ! Status of an attempted array allocation.
-!bjj Start of proposed change vXX
 INTEGER                      :: InterpInd                                       ! Index for the interpolated array
-!bjj end of proposed change
-
-   ! Global functions:
-
-!bjj rm VXX: REAL(ReKi), EXTERNAL         :: Interp                                          ! A generic function to do the actual interpolation.
 
 
 
@@ -10184,33 +8723,15 @@ ELSE
       ! We have more than one input station, so we're just going to have to
       !  interpolate the data.
 
-!bjj Start of proposed change vXX
 InterpInd = 1
-!bjj End of proposed change vXX
 
    DO Ind=1,BldNodes
-!bjj Start of proposed change vXX
-!bjj: it would probably be faster--since they all use the same InterpInd, xVal, and xAry--to interpolate differently
-!rm      AeroCent(K,Ind) = Interp( RNodesNorm(Ind), BlFract, AerCen  , NBlInpSt )
-!rm      ThetaS  (K,Ind) = Interp( RNodesNorm(Ind), BlFract, StrcTwst, NBlInpSt )
-!rm      MassB   (K,Ind) = Interp( RNodesNorm(Ind), BlFract, BMassDen, NBlInpSt )
-!rm      StiffBF (K,Ind) = Interp( RNodesNorm(Ind), BlFract, FlpStff , NBlInpSt )
-!rm      StiffBE (K,Ind) = Interp( RNodesNorm(Ind), BlFract, EdgStff , NBlInpSt )
       AeroCent(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, AerCen  , InterpInd, NBlInpSt )
       ThetaS  (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, StrcTwst, InterpInd, NBlInpSt )
       MassB   (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, BMassDen, InterpInd, NBlInpSt )
       StiffBF (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, FlpStff , InterpInd, NBlInpSt )
       StiffBE (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EdgStff , InterpInd, NBlInpSt )
-!bjj End of proposed change vXX
       IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-!bjj Start of proposed change vXX
-!rm         StiffBGJ (K,Ind) = Interp( RNodesNorm(Ind), BlFract, GJStff   , NBlInpSt )
-!rm         StiffBEA (K,Ind) = Interp( RNodesNorm(Ind), BlFract, EAStff   , NBlInpSt )
-!rm         BAlpha   (K,Ind) = Interp( RNodesNorm(Ind), BlFract, Alpha    , NBlInpSt )
-!rm         InerBFlp (K,Ind) = Interp( RNodesNorm(Ind), BlFract, FlpIner  , NBlInpSt )
-!rm         InerBEdg (K,Ind) = Interp( RNodesNorm(Ind), BlFract, EdgIner  , NBlInpSt )
-!rm         RefAxisxb(K,Ind) = Interp( RNodesNorm(Ind), BlFract, PrecrvRef, NBlInpSt )
-!rm         RefAxisyb(K,Ind) = Interp( RNodesNorm(Ind), BlFract, PreswpRef, NBlInpSt )
          StiffBGJ (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, GJStff   , InterpInd, NBlInpSt )
          StiffBEA (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EAStff   , InterpInd, NBlInpSt )
          BAlpha   (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, Alpha    , InterpInd, NBlInpSt )
@@ -10218,21 +8739,14 @@ InterpInd = 1
          InerBEdg (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EdgIner  , InterpInd, NBlInpSt )
          RefAxisxb(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, PrecrvRef, InterpInd, NBlInpSt )
          RefAxisyb(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, PreswpRef, InterpInd, NBlInpSt )
-!bjj End of proposed change vXX
          IF ( Ind == BldNodes )  THEN  ! Copy data for the tip also (I know this code is inefficient, but it is only computed once, so who cares!)
             RefAxisxb(K,TipNode) = PrecrvRef(NBlInpSt)
             RefAxisyb(K,TipNode) = PreswpRef(NBlInpSt)
          ENDIF
-!bjj Start of proposed change vXX
-!rm         cgOffBFlp(K,Ind) = Interp( RNodesNorm(Ind), BlFract, FlpcgOf  , NBlInpSt )
-!rm         cgOffBEdg(K,Ind) = Interp( RNodesNorm(Ind), BlFract, EdgcgOf  , NBlInpSt )
-!rm         EAOffBFlp(K,Ind) = Interp( RNodesNorm(Ind), BlFract, FlpEAOf  , NBlInpSt )
-!rm         EAOffBEdg(K,Ind) = Interp( RNodesNorm(Ind), BlFract, EdgEAOf  , NBlInpSt )
          cgOffBFlp(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, FlpcgOf  , InterpInd, NBlInpSt )
          cgOffBEdg(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EdgcgOf  , InterpInd, NBlInpSt )
          EAOffBFlp(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, FlpEAOf  , InterpInd, NBlInpSt )
          EAOffBEdg(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EdgEAOf  , InterpInd, NBlInpSt )
-!bjj End of proposed change vXX
       ENDIF
    ENDDO ! Ind
 
@@ -10338,13 +8852,9 @@ SUBROUTINE InterpTwr
 
 
 USE                             General
-!bjj rm NWTC_Library: USE                             Precision
 USE                             Tower
 USE                             TurbConf
 
-!bjj start of proposed change vXX
-!USE                             FASTGenSubs  !Interp()
-!bjj end of proposed change vXX
 
 IMPLICIT                        NONE
 
@@ -10353,14 +8863,7 @@ IMPLICIT                        NONE
 
 INTEGER(4)                   :: Ind                                             ! Index for the node arrays.
 INTEGER(4)                   :: Sttus                                           ! Status of an attempted array allocation.
-!bjj Start of proposed change vXX
 INTEGER                      :: InterpInd                                       ! Index for the interpolated array
-!bjj end of proposed change
-
-
-   ! Global functions:
-
-!bjj rm vXX: REAL(ReKi), EXTERNAL         :: Interp                                          ! A generic function to do the actual interpolation.
 
 
 
@@ -10415,9 +8918,7 @@ ELSE
 
       ! We have more than one input station, so we're just going to have to
       !  interpolate the data.
-!bjj Start of proposed change vXX
    InterpInd = 1
-!bjj End of proposed change vXX
 
    DO Ind=1,TwrNodes
       DHNodes   (Ind) = TwrFlexL/TwrNodes   !Lets used constant-spaced nodes for now, but the rest of the code is written to handle variable-spaced nodes--this will be a future input!
@@ -10428,30 +8929,17 @@ ELSE
       ENDIF
       HNodesNorm(Ind) = HNodes(Ind)/TwrFlexL
 
-!bjj Start of proposed change vXX
 !bjj: it would probably be faster, since they all use the same InterpInd xVal, and xAry, to interpolate differently
-!rm      MassT     (Ind) = Interp( HNodesNorm(Ind), HtFract, TMassDen, NTwInpSt )
-!rm      StiffTFA  (Ind) = Interp( HNodesNorm(Ind), HtFract, TwFAStif, NTwInpSt )
-!rm      StiffTSS  (Ind) = Interp( HNodesNorm(Ind), HtFract, TwSSStif, NTwInpSt )
       MassT     (Ind) = InterpStp( HNodesNorm(Ind), HtFract, TMassDen, InterpInd, NTwInpSt )
       StiffTFA  (Ind) = InterpStp( HNodesNorm(Ind), HtFract, TwFAStif, InterpInd, NTwInpSt )
       StiffTSS  (Ind) = InterpStp( HNodesNorm(Ind), HtFract, TwSSStif, InterpInd, NTwInpSt )
-!bjj End of proposed change vXX
       IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-!bjj Start of proposed change vXX
-!rm         StiffTGJ (Ind) = Interp( HNodesNorm(Ind), HtFract, TwGJStif, NTwInpSt )
-!rm         StiffTEA (Ind) = Interp( HNodesNorm(Ind), HtFract, TwEAStif, NTwInpSt )
-!rm         InerTFA  (Ind) = Interp( HNodesNorm(Ind), HtFract, TwFAIner, NTwInpSt )
-!rm         InerTSS  (Ind) = Interp( HNodesNorm(Ind), HtFract, TwSSIner, NTwInpSt )
-!rm         cgOffTFA (Ind) = Interp( HNodesNorm(Ind), HtFract, TwFAcgOf, NTwInpSt )
-!rm         cgOffTSS (Ind) = Interp( HNodesNorm(Ind), HtFract, TwSScgOf, NTwInpSt )
          StiffTGJ (Ind) = InterpStp( HNodesNorm(Ind), HtFract, TwGJStif, InterpInd, NTwInpSt )
          StiffTEA (Ind) = InterpStp( HNodesNorm(Ind), HtFract, TwEAStif, InterpInd, NTwInpSt )
          InerTFA  (Ind) = InterpStp( HNodesNorm(Ind), HtFract, TwFAIner, InterpInd, NTwInpSt )
          InerTSS  (Ind) = InterpStp( HNodesNorm(Ind), HtFract, TwSSIner, InterpInd, NTwInpSt )
          cgOffTFA (Ind) = InterpStp( HNodesNorm(Ind), HtFract, TwFAcgOf, InterpInd, NTwInpSt )
          cgOffTSS (Ind) = InterpStp( HNodesNorm(Ind), HtFract, TwSScgOf, InterpInd, NTwInpSt )
-!bjj End of proposed change vXX
       ENDIF
    ENDDO ! Ind
 
@@ -10520,12 +9008,8 @@ SUBROUTINE PrintSum
    ! This routine generates the summary file, which contains a regurgitation of
    !  the input data and interpolated flexible body data.
 
-!bjj start of proposed change
-!bjj rm:USE                             AeroTime, ONLY:DTAero                           ! Use the ONLY attribute to avoid naming conflict with variable DT
 USE                             AeroDyn
-!bjj end of proposed change
 USE                             Blades
-!bjj rm NWTC_Library: USE                             Constants
 USE                             DOFs
 USE                             Features
 USE                             General
@@ -10543,9 +9027,7 @@ IMPLICIT                        NONE
 INTEGER(4)                   :: I                                               ! Index for the nodes.
 INTEGER(4)                   :: K                                               ! Index for the blade number.
 
-!bjj start of proposed change
 INTEGER                      :: ErrStat
-!bjj end of proposed change
 
 CHARACTER(24)                :: Fmt1      = "(34X,3(6X,'Blade',I2,:))"          ! Format for outputting blade headings.
 CHARACTER(15)                :: Fmt2      = "(34X,3(6X,A,:))"                   ! Format for outputting blade headings.
@@ -10557,31 +9039,13 @@ CHARACTER( 3)                :: FmtTxt    = '(A)'                               
 CHARACTER(99)                :: RotorType                                       ! Text description of rotor.
 
 
-   ! Global functions.
-
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: CurDate                                         ! A function that returns the durrent date in the form "dd-mmm-ccyy".
-!bjj rm AD 12.70b CHARACTER( 8), EXTERNAL      :: CurTime                                         ! A function that returns the durrent date in the form "hh:mm:ss".
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-
-
 
    ! Open the summary file and give it a heading.
 
-!bjj start of proposed change
-!rmIF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
-!rm   CALL OpenFOutFile ( UnSu, TRIM( RootName )//'_SFunc.fsm' )
-!rmELSE                       ! FAST has been compiled normally
-!rm   CALL OpenFOutFile ( UnSu, TRIM( RootName )//'.fsm' )
-!rmENDIF
 CALL OpenFOutFile ( UnSu, TRIM( RootName )//'.fsm' )
-!bjj end of proposed change
 
-!bjj start of proposed change vxx
-!rmWRITE (UnSu,'(/,A)')  'This summary information was generated by '//ProgName//TRIM( ProgVer )// &
-!rm                      ' on '//CurDate()//' at '//CurTime()//'.'
 WRITE (UnSu,'(/,A)')  'This summary information was generated by '//TRIM(ProgName)//' '//TRIM( ProgVer )// &
                       ' on '//CurDate()//' at '//CurTime()//'.'
-!bjj end of proposed change
 WRITE (UnSu,FmtTitl)  TRIM( FTitle )
 
 
@@ -10740,21 +9204,12 @@ ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Computation of aerodynamic loads.'
 ENDIF
 
-!jmj Start of proposed change.  v6.02a-jmj  25-Aug-2006.
-!jmj Add an undocumented feature for modeling the hydrodynamic loading and
-!jmj   mooring system dynamics for floating wind turbines.  Do this by allowing
-!jmj   a keyword in place of the integers 0 or 1 in input PtfmLdMod when
-!jmj   PtfmModel = 3:
-!jmj Also, add an undocumented feature for modeling the hydrodynamic loading on
-!jmj   a monopile.  Do this by reading in addition inputs from the platform
-!jmj   file if they exist:
 IF ( CompHydro )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Computation of hydrodynamic loads.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Computation of hydrodynamic loads.'
 ENDIF
 
-!jmj End of proposed change.  v6.02a-jmj  25-Aug-2006.
 
 IF ( CompNoise )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Computation of aeroacoustics.'
@@ -10768,11 +9223,8 @@ ENDIF
 WRITE (UnSu,FmtHead)  'Time steps:'
 
 WRITE (UnSu,FmtDatT) '    Structural            (s)     ', DT
-!bjj start of proposed change
 !bjj: does this really belong in this file????
-!rmWRITE (UnSu,FmtDatT) '    Aerodynamic           (s)     ', DT*CEILING(DTAero/DT) ! AeroDyn will be called at integer multiples of DT that are greater than or equal to DTAero, since FAST's integration scheme marches with a constant time step of DT.
 WRITE (UnSu,FmtDatT) '    Aerodynamic           (s)     ', DT*CEILING( AD_GetConstant('dtAero',ErrStat) / DT) ! AeroDyn will be called at integer multiples of DT that are greater than or equal to DTAero, since FAST's integration scheme marches with a constant time step of DT.
-!bjj end of proposed change
 
    ! Some calculated parameters.
 
@@ -10820,15 +9272,9 @@ IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will b
                         '     (Nm^2)        (N)    (kg m)    (kg m)      (m)      (m)'
 
    DO I=1,TwrNodes
-!bjj start of proposed change v6.02d-bjj
-! parentheses around an I/O list is an extension to Standard F2003
-!rm      WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, HNodesNorm(I), ( HNodes(I) + TwrRBHt ), DHNodes(I), MassT(I), &
-!rm                                                              StiffTFA(I), StiffTSS(I), StiffTGJ(I), StiffTEA(I),           &
-!rm                                                              InerTFA(I), InerTSS(I), cgOffTFA(I), cgOffTSS(I)
       WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, HNodesNorm(I), HNodes(I)+TwrRBHt, DHNodes(I), MassT(I), &
                                                               StiffTFA(I), StiffTSS(I), StiffTGJ(I), StiffTEA(I),           &
                                                               InerTFA(I), InerTSS(I), cgOffTFA(I), cgOffTSS(I)
-!bjj end of proposed change
    ENDDO ! I
 
 ELSE                                                     ! Only FAST will be run; thus, only print out the necessary cols.
@@ -10837,13 +9283,8 @@ ELSE                                                     ! Only FAST will be run
    WRITE (UnSu,FmtTxt)  ' (-)      (-)      (m)      (m)    (kg/m)     (Nm^2)     (Nm^2)'
 
    DO I=1,TwrNodes
-!bjj start of proposed change v6.02d-bjj
-! parentheses around an I/O list is an extension to Standard F2003
-!rm      WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, HNodesNorm(I), ( HNodes(I) + TwrRBHt ), DHNodes(I), MassT(I), &
-!rm                                                 StiffTFA(I), StiffTSS(I)
       WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, HNodesNorm(I), HNodes(I) + TwrRBHt, DHNodes(I), MassT(I), &
                                                  StiffTFA(I), StiffTSS(I)
-!bjj end of proposed change
    ENDDO ! I
 
 ENDIF
@@ -10864,15 +9305,6 @@ DO K=1,NumBl
                            '      (m)      (m)'
 
       DO I=1,BldNodes
-!bjj start of proposed change v6.02d-bjj
-! parentheses around an I/O list is an extension to Standard F2003
-!rm         WRITE(UnSu,'(I4,3F9.3,3F10.3,4ES11.3,F9.3,4F10.3,4F9.3)')  I, RNodesNorm(I), ( RNodes(I) + HubRad ), DRNodes(I),        &
-!rm                                                                       AeroCent(K,I), ThetaS(K,I)*R2D, MassB(K,I),               &
-!rm                                                                       StiffBF(K,I), StiffBE(K,I), StiffBGJ(K,I), StiffBEA(K,I), &
-!rm                                                                       BAlpha(K,I), InerBFlp(K,I), InerBEdg(K,I),                &
-!rm                                                                       RefAxisxb(K,I), RefAxisyb(K,I),                           &
-!rm                                                                       cgOffBFlp(K,I), cgOffBEdg(K,I),                           &
-!rm                                                                       EAOffBFlp(K,I), EAOffBEdg(K,I)
 
          WRITE(UnSu,'(I4,3F9.3,3F10.3,4ES11.3,F9.3,4F10.3,4F9.3)')  I, RNodesNorm(I), RNodes(I) + HubRad, DRNodes(I),            &
                                                                        AeroCent(K,I), ThetaS(K,I)*R2D, MassB(K,I),               &
@@ -10881,7 +9313,6 @@ DO K=1,NumBl
                                                                        RefAxisxb(K,I), RefAxisyb(K,I),                           &
                                                                        cgOffBFlp(K,I), cgOffBEdg(K,I),                           &
                                                                        EAOffBFlp(K,I), EAOffBEdg(K,I)
-!bjj end of proposed change
       ENDDO ! I
 
    ELSE                                                     ! Only FAST will be run; thus, only print out the necessary cols.
@@ -10890,13 +9321,8 @@ DO K=1,NumBl
       WRITE (UnSu,FmtTxt)  ' (-)      (-)      (m)      (m)       (-)     (deg)    (kg/m)     (Nm^2)     (Nm^2)'
 
       DO I=1,BldNodes
-!bjj start of proposed change v6.02d-bjj
-! parentheses around an I/O list is an extension to Standard F2003
-!rm         WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, RNodesNorm(I), ( RNodes(I) + HubRad ), DRNodes(I), AeroCent(K,I), &
-!rm                                                     ThetaS(K,I)*R2D, MassB(K,I), StiffBF(K,I), StiffBE(K,I)
          WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, RNodesNorm(I), RNodes(I) + HubRad, DRNodes(I), AeroCent(K,I), &
                                                      ThetaS(K,I)*R2D, MassB(K,I), StiffBF(K,I), StiffBE(K,I)
-!bjj end of proposed change
       ENDDO ! I
 
    ENDIF
@@ -10907,292 +9333,6 @@ ENDDO ! K
 RETURN
 END SUBROUTINE PrintSum
 !=======================================================================
-!bjj Start of proposed change vXX NWTC_Lib
-!rmSUBROUTINE ReadCAry ( Un, Fil, CharAry, AryLen, AryName, AryDescr )
-!rm
-!rm
-!rm   ! This routine reads a AryLen values into a character array from the next AryLen lines of the input file.
-!rm
-!rm
-!rmUSE                             General
-!rmUSE                             Output
-!rm
-!rmIMPLICIT                        NONE
-!rm
-!rm
-!rm   ! Passed variables:
-!rm
-!rmINTEGER(4)                   :: AryLen                                          ! Length of the array.
-!rmINTEGER(4)                   :: Un                                              ! I/O unit for input file.
-!rm
-!rmCHARACTER(*)                 :: CharAry(AryLen)                                 ! Real variable being read.
-!rm
-!rmCHARACTER(*)                 :: AryDescr                                        ! Text string describing the variable.
-!rmCHARACTER(*)                 :: AryName                                         ! Text string containing the variable name.
-!rmCHARACTER(*)                 :: Fil                                             ! Name of the input file.
-!rm
-!rm
-!rm   ! Local variables:
-!rm
-!rmINTEGER(4)                   :: Ind                                             ! Index into the string array.  Assumed to be one digit.
-!rmINTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-!rm
-!rmCHARACTER(35)                :: Frmt = "( 15X, A, T27, ' - ', A, /, 2X, A )"    ! Output format for string parameters.
-!rm
-!rm
-!rm!rm   ! Global functions.
-!rm
-!rm!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!rm
-!rm
-!rm
-!rmDO Ind=1,AryLen
-!rm
-!rm   READ (UnIn,*,IOSTAT=IOS)  CharAry(Ind)
-!rm
-!rm   CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Int2LStr( Ind ) )//')', String )
-!rm
-!rm   IF ( Echo )  THEN
-!rm      WRITE (UnEc,Frmt)  TRIM( AryName )//'('//TRIM( Int2LStr( Ind ) )//')', AryDescr, CharAry(Ind)
-!rm   ENDIF
-!rm
-!rmENDDO ! Ind
-!rm
-!rm
-!rmRETURN
-!rmEND SUBROUTINE ReadCAry
-!rm!=======================================================================
-!rmSUBROUTINE ReadCVar ( Un, Fil, CharVar, VarName, VarDescr )
-!rm
-!rm
-!rm   ! This routine reads a single character variable from the next line of the input file.
-!rm
-!rm
-!rmUSE                             General
-!rmUSE                             Output
-!rm
-!rmIMPLICIT                        NONE
-!rm
-!rm
-!rm   ! Passed variables:
-!rm
-!rmINTEGER(4)                   :: Un                                              ! I/O unit for input file.
-!rm
-!rmCHARACTER(*)                 :: CharVar                                         ! Integer variable being read.
-!rmCHARACTER(*)                 :: Fil                                             ! Name of the input file.
-!rmCHARACTER(*)                 :: VarDescr                                        ! Text string describing the variable.
-!rmCHARACTER(*)                 :: VarName                                         ! Text string containing the variable name.
-!rm
-!rm
-!rm   ! Local variables:
-!rm
-!rmINTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-!rm
-!rmCHARACTER(35)                :: Frmt = "( 15X, A, T27, ' - ', A, /, 2X, A )"    ! Output format for string parameters.
-!rm
-!rm
-!rm
-!rm
-!rmREAD (UnIn,*,IOSTAT=IOS)  CharVar
-!rm
-!rmCALL CheckIOS ( IOS, Fil, VarName, String )
-!rm
-!rmIF ( Echo )  THEN
-!rm   WRITE (UnEc,Frmt)  VarName, VarDescr, CharVar
-!rmENDIF
-!rm
-!rm
-!rmRETURN
-!rmEND SUBROUTINE ReadCVar
-!rm!=======================================================================
-!rmSUBROUTINE ReadIVar ( Un, Fil, IntVar, VarName, VarDescr )
-!rm
-!rm
-!rm   ! This routine reads a single integer variable from the next line of the input file.
-!rm
-!rm
-!rmUSE                             General
-!rmUSE                             Output
-!rm
-!rmIMPLICIT                        NONE
-!rm
-!rm
-!rm   ! Passed variables:
-!rm
-!rmINTEGER(4)                   :: IntVar                                          ! Integer variable being read.
-!rmINTEGER(4)                   :: Un                                              ! I/O unit for input file.
-!rm
-!rmCHARACTER(*)                 :: Fil                                             ! Name of the input file.
-!rmCHARACTER(*)                 :: VarDescr                                        ! Text string describing the variable.
-!rmCHARACTER(*)                 :: VarName                                         ! Text string containing the variable name.
-!rm
-!rm
-!rm   ! Local variables:
-!rm
-!rmINTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-!rm
-!rmCHARACTER(33)                :: Frmt = "( 2X, I11, 2X, A, T27, ' - ', A )"      ! Output format for integer parameters.
-!rm
-!rm
-!rm
-!rm
-!rmREAD (UnIn,*,IOSTAT=IOS)  IntVar
-!rm
-!rmCALL CheckIOS ( IOS, Fil, VarName, Numeric )
-!rm
-!rmIF ( Echo )  THEN
-!rm   WRITE (UnEc,Frmt)  IntVar, VarName, VarDescr
-!rmENDIF
-!rm
-!rm
-!rmRETURN
-!rmEND SUBROUTINE ReadIVar
-!rm!=======================================================================
-!rmSUBROUTINE ReadLVar ( Un, Fil, LogVar, VarName, VarDescr )
-!rm
-!rm
-!rm   ! This routine reads a single logical variable from the next line of the input file.
-!rm
-!rm
-!rmUSE                             General
-!rmUSE                             Output
-!rm
-!rmIMPLICIT                        NONE
-!rm
-!rm
-!rm   ! Passed variables:
-!rm
-!rmINTEGER(4)                   :: Un                                              ! I/O unit for input file.
-!rm
-!rmLOGICAL(1)                   :: LogVar                                          ! Integer variable being read.
-!rm
-!rmCHARACTER(*)                 :: Fil                                             ! Name of the input file.
-!rmCHARACTER(*)                 :: VarDescr                                        ! Text string describing the variable.
-!rmCHARACTER(*)                 :: VarName                                         ! Text string containing the variable name.
-!rm
-!rm
-!rm   ! Local variables:
-!rm
-!rmINTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-!rm
-!rmCHARACTER(33)                :: Frmt = "( 2X, L11, 2X, A, T27, ' - ', A )"      ! Output format for logical parameters.
-!rm
-!rm
-!rm
-!rm
-!rmREAD (UnIn,*,IOSTAT=IOS)  LogVar
-!rm
-!rmCALL CheckIOS ( IOS, Fil, VarName, FlagType )
-!rm
-!rmIF ( Echo )  THEN
-!rm   WRITE (UnEc,Frmt)  LogVar, VarName, VarDescr
-!rmENDIF
-!rm
-!rm
-!rmRETURN
-!rmEND SUBROUTINE ReadLVar
-!rm!=======================================================================
-!rmSUBROUTINE ReadRAry ( Un, Fil, RealAry, AryLen, AryName, AryDescr )
-!rm
-!rm
-!rm   ! This routine reads a AryLen values into a real array from the next AryLen lines of the input file.
-!rm
-!rm
-!rmUSE                             General
-!rmUSE                             Output
-!rm!bjj rm NWTC_Library: USE                             Precision
-!rm
-!rmIMPLICIT                        NONE
-!rm
-!rm
-!rm   ! Passed variables:
-!rm
-!rmINTEGER(4)                   :: AryLen                                          ! Length of the array.
-!rmINTEGER(4)                   :: Un                                              ! I/O unit for input file.
-!rm
-!rmREAL(ReKi)                   :: RealAry(AryLen)                                 ! Real variable being read.
-!rm
-!rmCHARACTER(*)                 :: Fil                                             ! Name of the input file.
-!rmCHARACTER(*)                 :: AryDescr                                        ! Text string describing the variable.
-!rmCHARACTER(*)                 :: AryName                                         ! Text string containing the variable name.
-!rm
-!rm
-!rm   ! Local variables:
-!rm
-!rmINTEGER(4)                   :: Ind                                             ! Index into the real array.  Assumed to be one digit.
-!rmINTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-!rm
-!rmCHARACTER(38)                :: Frmt = "( 2X, ES11.4e2, 2X, A, T27, ' - ', A )" ! Output format for real array parameters
-!rm
-!rm
-!rm   ! Global functions.
-!rm
-!rm!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
-!rm
-!rm
-!rm
-!rmDO Ind=1,AryLen
-!rm
-!rm   READ (UnIn,*,IOSTAT=IOS)  RealAry(Ind)
-!rm!JASON: THE UnIn above should be Un! (TYP for all of these READ* routines)<--Don't worry about fixing this: Instead, wait until we merge Marshall's NWTC_Subs.f90 source file to the code.
-!rm
-!rm   CALL CheckIOS ( IOS, Fil, TRIM( AryName )//'('//TRIM( Int2LStr( Ind ) )//')', Numeric )
-!rm
-!rm   IF ( Echo )  THEN
-!rm      WRITE (UnEc,Frmt)  RealAry(Ind), TRIM( AryName )//'('//TRIM( Int2LStr( Ind ) )//')', AryDescr
-!rm   ENDIF
-!rm
-!rmENDDO ! Ind
-!rm
-!rm
-!rmRETURN
-!rmEND SUBROUTINE ReadRAry
-!rm!=======================================================================
-!rmSUBROUTINE ReadRVar ( Un, Fil, RealVar, VarName, VarDescr )
-!rm
-!rm
-!rm   ! This routine reads a single real variable from the next line of the input file.
-!rm
-!rm
-!rmUSE                             General
-!rmUSE                             Output
-!rm!bjj rm NWTC_Library: USE                             Precision
-!rm
-!rmIMPLICIT                        NONE
-!rm
-!rm
-!rm   ! Passed variables:
-!rm
-!rmREAL(ReKi)                   :: RealVar                                         ! Real variable being read.
-!rm
-!rmINTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-!rmINTEGER(4)                   :: Un                                              ! I/O unit for input file.
-!rm
-!rmCHARACTER( *)                :: Fil                                             ! Name of the input file.
-!rmCHARACTER(38)                :: Frmt = "( 2X, ES11.4e2, 2X, A, T27, ' - ', A )" ! Output format for real parameters
-!rmCHARACTER( *)                :: VarDescr                                        ! Text string describing the variable.
-!rmCHARACTER( *)                :: VarName                                         ! Text string containing the variable name.
-!rm
-!rm
-!rm   ! Local variables:
-!rm
-!rm
-!rm
-!rm
-!rm
-!rmREAD (UnIn,*,IOSTAT=IOS)  RealVar
-!rm
-!rmCALL CheckIOS ( IOS, Fil, VarName, Numeric )
-!rm
-!rmIF ( Echo )  THEN
-!rm   WRITE (UnEc,Frmt)  RealVar, VarName, VarDescr
-!rmENDIF
-!rm
-!rm
-!rmRETURN
-!rmEND SUBROUTINE ReadRVar
-!rm!=======================================================================
-!bjj End of proposed change
 SUBROUTINE RunTimes()
 
 
@@ -11201,12 +9341,7 @@ SUBROUTINE RunTimes()
 
 
 USE                             General
-!bjj rm NWTC_Library: USE                             Precision
 USE                             SimCont
-!bjj start of proposed change
-!rm: USE                             SysSubs
-!USE                              FAST_SysSubs
-!bjj end of proposed change
 
 IMPLICIT                        NONE
 
@@ -11214,51 +9349,21 @@ IMPLICIT                        NONE
    ! Local variables.
 
 REAL(ReKi)                   :: ClckTime                                        ! Elapsed clock time for the simulation phase of the run.
-!bjj rm unused:REAL(ReKi)                   :: CurrTime                                        ! Current time in seconds past midnight.
-!bjj rm unused:REAL(ReKi)                   :: DeltTime                                        ! The amount of time elapsed since the lst call.
-!bjj rm unused:REAL(ReKi)                   :: EndTime                                         ! Approximate time of day when simulation will complete.
 REAL(ReKi)                   :: Factor                                          ! Ratio of seconds to a specified time period.
-!bjj rm unused:REAL(ReKi)                   :: InSecHr   = 1.0/3600.0                          ! Inverse of the number of seconds in an hour.
-!bjj rm unused:REAL(ReKi)                   :: InSecMn   = 1.0/  60.0                          ! Inverse of the number of seconds in a minute.
-!bjj rm unused:REAL(ReKi), SAVE             :: PrevTime                                        ! Previous time in seconds past midnight.
-!bjj rm unused:REAL(ReKi)                   :: TimeLeft                                        ! Approximate clock time remaining before simulation completes.
 REAL(ReKi)                   :: TRatio                                          ! Ration of simulation time to elapsed clock time.
 
 REAL(4)                      :: UsrTime                                         ! User CPU time for entire run.
-!bjj rm: REAL(4)                      :: UsrTime2                                        ! User CPU time for time-marching part of simulation.
 
-!bjj rm unused:INTEGER(4)                   :: EndHour                                         ! The hour when the simulations is expected to complete.
-!bjj rm unused:INTEGER(4)                   :: EndMin                                          ! The minute when the simulations is expected to complete.
-!bjj rm unused:INTEGER(4)                   :: EndSec                                          ! The second when the simulations is expected to complete.
 INTEGER(4)                   :: EndTimes (8)                                    ! An array holding the ending clock time of the simulation.
-!bjj rm unused:INTEGER(4)                   :: TimeAry  (8)                                    ! An array containing the elements of the start time.
 
-!bjj rm unused:CHARACTER( 8)                :: Date                                            ! String containing the current date.
-!bjj rmCHARACTER( 8)                :: DumDate                                         ! A dummy variable to hold the date string.
-!bjj rmCHARACTER(10)                :: DumTime                                         ! A dummy variable to hold the time string.
 CHARACTER( 8)                :: TimePer
-!bjj rmCHARACTER( 5)                :: Zone                                            ! String containing the name of the time zone.
-
-   ! Global functions.
-
-!bjj rm AD 12.70b CHARACTER(15), EXTERNAL      :: Flt2LStr                                        ! A function to convert a floating-point number to a left-justified string.
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
 
 
    ! Get the end times to compare with start times.
 
-!bjj Start of proposed change
-!rmCALL DATE_AND_TIME ( DumDate, DumTime, Zone, EndTimes )
 CALL DATE_AND_TIME ( VALUES=EndTimes )
 CALL CPU_TIME ( UsrTime )
 
-!write( tmpchar, '( A,I4,5(1X,I2),1X,I3 )' ) "Start: ", StrtTime(1:3), StrtTime(5:8)
-!call wrscr1(tmpchar)
-!write( tmpchar, '( A,I4,5(1X,I2),1X,I3 )' ) "End  : ", EndTimes(1:3), EndTimes(5:8)
-!call wrscr(tmpchar)
-!call wrscr(' ')
-
-!bjj end of proposed change
 
    ! Calculate the elapsed wall-clock time in seconds.
    
@@ -11271,39 +9376,8 @@ ClckTime =  0.001*( EndTimes(8) - StrtTime(8) ) + ( EndTimes(7) - StrtTime(7) ) 
 
    ! Calculate CPU times.
 
-!bjj start of proposed change
-!rm UsrTime2 = UserTime()
-!rm UsrTime  = UsrTime1 + UsrTime2
-!CALL CPU_TIME ( UsrTime )
-!UsrTime2 = UsrTime - UsrTime1
-!UsrTime  = UsrTime - UsrTime0
 UsrTime  = UsrTime - UsrTime1
-!bjj end of proposed change
 
-!bjj start of proposed change v6.02d-bjj
-!rmIF ( UsrTime2 /= 0.0 )  THEN
-!rm   TRatio = ZTime/UsrTime2
-!rm
-!rm   IF     ( UsrTime2 > 86400.0 )  THEN
-!rm      Factor = 1.0/86400.0
-!rm      TimePer = ' days'
-!rm   ELSEIF ( UsrTime2 >  3600.0 )  THEN
-!rm      Factor = 1.0/3600.0
-!rm      TimePer = ' hours'
-!rm   ELSEIF ( UsrTime2 >    60.0 )  THEN
-!rm      Factor = 1.0/60.0
-!rm      TimePer = ' minutes'
-!rm   ELSE
-!rm      Factor = 1.0
-!rm      TimePer = ' seconds'
-!rm   ENDIF
-!rm
-!rm   CALL WrOver( ' Total Real Time:       '//TRIM( Flt2LStr( Factor*ClckTime      ) )//TRIM( TimePer )// &
-!rm                '                                            '                                            ) !bjj: this is actually "Simulation Real Time"
-!rm   CALL WrScr ( ' Total CPU Time:        '//TRIM( Flt2LStr( Factor*UsrTime       ) )//TRIM( TimePer ) )
-!rm   CALL WrScr ( ' Simulation Time:       '//TRIM( Flt2LStr( Factor*REAL( ZTime ) ) )//TRIM( TimePer ) )
-!rm   CALL WrScr ( ' Simulation CPU Time:   '//TRIM( Flt2LStr( Factor*UsrTime2      ) )//TRIM( TimePer ) )
-!rm   CALL WrScr ( ' Simulation Time Ratio: '//TRIM( Flt2LStr( TRatio ) ) )
 
 IF ( UsrTime /= 0.0 )  THEN
 
@@ -11327,12 +9401,7 @@ IF ( UsrTime /= 0.0 )  THEN
                 '                                                 '                                   )
    CALL WrScr ( ' Total CPU Time:        '//TRIM( Flt2LStr( Factor*UsrTime       ) )//TRIM( TimePer ) )
    CALL WrScr ( ' Simulated Time:        '//TRIM( Flt2LStr( Factor*REAL( ZTime ) ) )//TRIM( TimePer ) )
-!bjj start of proposed change v7.00.01a-bjj
-!rm   CALL WrScr ( ' Time Ratio (Sim/Real): '//TRIM( Flt2LStr( TRatio ) ) )
    CALL WrScr ( ' Time Ratio (Sim/CPU):  '//TRIM( Flt2LStr( TRatio ) ) )
-!bjj end of proposed change   
-
-!bjj end of proposed change v6.02d-bjj
 
 
 ENDIF
@@ -11348,9 +9417,7 @@ SUBROUTINE SimStatus
    !  and the predicted end time of day.
 
 
-!bjj rm NWTC_Library: USE                             Precision
 USE                             SimCont
-!bjj rm NWTC_Library: USE                             SysSubs
 
 IMPLICIT                        NONE
 
@@ -11370,19 +9437,9 @@ INTEGER(4)                   :: EndMin                                          
 INTEGER(4)                   :: EndSec                                          ! The second when the simulations is expected to complete.
 INTEGER(4)                   :: TimeAry  (8)                                    ! An array containing the elements of the start time.
 
-!bjj chg: LOGICAL(1), SAVE             :: FirstPas = .TRUE.                               ! When true, indicates we're on the first pass of sim.
 LOGICAL,    SAVE             :: FirstPas = .TRUE.                               ! When true, indicates we're on the first pass of sim.
 
-!bjj rm CHARACTER( 8)                :: Date                                            ! String containing the current date.
 CHARACTER( 8)                :: ETimeStr                                        ! String containing the end time.
-!bjj rmCHARACTER(10)                :: Time                                            ! String containing the current time.
-!bjj rmCHARACTER( 5)                :: Zone                                            ! String containing the name of the time zone.
-
-
-   ! Global functions.
-
-!bjj rm AD 12.70b CHARACTER(15), EXTERNAL      :: Flt2LStr                                        ! A function to convert a floating-point number to a left-justified string.
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: Int2LStr                                        ! A function to convert an interger to a left-justified string.
 
 
 
@@ -11390,10 +9447,7 @@ CHARACTER( 8)                :: ETimeStr                                        
 
 IF ( FirstPas )  THEN
 
-!bjj Start of proposed change
-!rm   CALL DATE_AND_TIME ( Date , Time , Zone , TimeAry )
    CALL DATE_AND_TIME ( Values=TimeAry )
-!bjj end of proposed change
 
    PrevTime = 60.0*( 60.0*TimeAry(5) + TimeAry(6) ) + TimeAry(7) + 0.001*TimeAry(8)
 
@@ -11406,10 +9460,7 @@ ENDIF
 
    ! How many seconds past midnight?
 
-!bjj Start of proposed change
-!rmCALL DATE_AND_TIME ( Date , Time , Zone , TimeAry )
 CALL DATE_AND_TIME ( Values=TimeAry )
-!bjj end of proposed change
 
 CurrTime = 60.0*( 60.0*TimeAry(5) + TimeAry(6) ) + TimeAry(7) + 0.001*TimeAry(8)
 
@@ -11449,55 +9500,6 @@ PrevTime = CurrTime
 RETURN
 END SUBROUTINE SimStatus
 !=======================================================================
-!bjj Start of proposed change vXX NWTC_Lib
-!rmSUBROUTINE SkipComment ( Un, Fil, Label, Echo )
-!rm
-!rm
-!rm   ! This routine prints out an invalid-numeric-input message and aborts the program.
-!rm
-!rm
-!rmUSE                             General
-!rm
-!rmIMPLICIT                        NONE
-!rm
-!rm
-!rm   ! Passed variables:
-!rm
-!rmINTEGER(4)                   :: Un                                              ! I/O unit for input file.
-!rm
-!rm!bjj chg: LOGICAL(1)                   :: Echo                                            ! Flag to specify whether or not to echo the comment.
-!rmLOGICAL                      :: Echo                                            ! Flag to specify whether or not to echo the comment.
-!rm
-!rmCHARACTER(*)                 :: Fil                                             ! Name of the input file.
-!rmCHARACTER(*)                 :: Label                                           ! String containing a description of the comment.
-!rm
-!rm
-!rm   ! Local variables:
-!rm
-!rmINTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-!rm
-!rmCHARACTER(100)               :: Comment                                        ! String to temporarily hold the comment line.
-!rm
-!rm
-!rm
-!rm   ! Read the comment line.
-!rm
-!rmREAD (Un,'(A)',IOSTAT=IOS)  Comment
-!rm
-!rmIF ( IOS < 0 )  THEN
-!rm   CALL WrScr1 ( ' Premature EOF for file "'//TRIM( Fil )//'.' )
-!rm   CALL ProgAbort  ( ' The error occurred while trying to skip the '//TRIM( Label )//' comment.' )
-!rmENDIF
-!rm
-!rmIF ( Echo )  THEN
-!rm   WRITE (UnEc,'(2X,A)')  Comment
-!rmENDIF
-!rm
-!rm
-!rmRETURN
-!rmEND SUBROUTINE SkipComment
-!bjj End of proposed change
-!=======================================================================
 SUBROUTINE WrOutHdr
 
 
@@ -11506,17 +9508,10 @@ SUBROUTINE WrOutHdr
 
 USE                             Features
 USE                             General
-!bjj Start of propsoed change v12.70a-bjj
-!rmUSE                             Identify
-!USE                             Identify, ONLY: AeroProg, AeroVer
 USE                             AeroDyn
-!bjj End of proposed change
 USE                             Output
-!bjj rm NWTC_Library: USE                             SysSubs
 
-!bjj Start of proposed change vXX
 USE                             Noise     !WrNoiseOutHdr
-!bjj end of proposed change
 
 IMPLICIT                        NONE
 
@@ -11526,29 +9521,17 @@ IMPLICIT                        NONE
 INTEGER(4)                   :: I                                               ! A generic index for DO loops.
 
 
-   ! Global functions.
-
-!bjj rm AD 12.70b CHARACTER(11), EXTERNAL      :: CurDate                                         ! A function that returns the durrent date in the form "dd-mmm-ccyy".
-!bjj rm AD 12.70b CHARACTER( 8), EXTERNAL      :: CurTime                                         ! A function that returns the durrent date in the form "hh:mm:ss".
-
-
 
    ! Open the output file:
 
-!bjj start of proposed change
-!rmCALL OpenFOutFile ( UnOu, OutFile )
 CALL OpenFOutFile ( UnOu, TRIM(RootName)//'.out' )
 
 
    ! Add some file information:
 
-!bjj start of proposed change VXX
-!rmWRITE (UnOu,'(/,A)')  'These predictions were generated by '//ProgName//TRIM( ProgVer )//' on '//CurDate()//' at '//CurTime()//'.'
-!rmWRITE (UnOu,'(  A)')  'The aerodynamic calculations were made by '//TRIM(AeroProg)//' '//TRIM(AeroVer)//'.'
 WRITE (UnOu,'(/,A)')  'These predictions were generated by '//TRIM(ProgName)//' '//TRIM( ProgVer )//&
                       ' on '//CurDate()//' at '//CurTime()//'.'
 WRITE (UnOu,'(  A)')  'The aerodynamic calculations were made by '//TRIM(AD_Prog%Name)//' '//TRIM(AD_Prog%Ver)//'.'
-!bjj end of proposed change
 WRITE (UnOu,'(/,1X,A,/)')  TRIM( FTitle )
 
 
@@ -11609,12 +9592,8 @@ USE                             Features
 USE                             General
 USE                             Output
 
-!BJJ Start of proposed change AD_v12.70
 USE                             AeroGenSubs, ONLY: ElemOut
-!BJJ End of proposed change
-!bjj start of proposed change vXX
 USE                             NOISE  !WriteSPLOut()
-!bjj end of proposed change
 
 IMPLICIT                        NONE
 
@@ -11654,6 +9633,4 @@ IF ( CompNoise )  CALL WriteSPLOut
 RETURN
 END SUBROUTINE WrOutput
 !=======================================================================
-!BJJ Start of proposed change vXX NWTC_Lib
 END MODULE FAST_IO_Subs
-!bjj end of proposed change
