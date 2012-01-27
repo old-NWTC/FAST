@@ -78,8 +78,8 @@ IMPLICIT                        NONE
 
 TYPE DLL_Type
 
-   INTEGER(4)                :: FileAddr                                        ! The address of file FileName.
-   INTEGER(4)                :: ProcAddr                                        ! The address of procedure ProcName.
+   INTEGER(HANDLE)           :: FileAddr                                        ! The address of file FileName.         HANDLE is defined in the kernel32.f90 interface
+   INTEGER(LPVOID)           :: ProcAddr                                        ! The address of procedure ProcName.    LPVOID is defined in the kernel32.f90 interface
 
    CHARACTER(1024)           :: FileName                                        ! The name of the DLL file including the full path to the current working directory.
    CHARACTER(1024)           :: ProcName                                        ! The name of the procedure in the DLL that will be called.
@@ -110,14 +110,14 @@ CONTAINS
 
    DLL%FileAddr = LoadLibrary( TRIM(DLL%FileName)//CHAR(0) )
 
-   IF ( DLL%FileAddr == 0 )  CALL ProgAbort ( ' The DLL '//TRIM(DLL%FileName)//' could not be loaded.' )
+   IF ( DLL%FileAddr == INT(0,HANDLE) )  CALL ProgAbort ( ' The DLL '//TRIM(DLL%FileName)//' could not be loaded.' )
 
 
       ! Get the procedure address:
 
    DLL%ProcAddr = GetProcAddress( DLL%FileAddr, TRIM(DLL%ProcName)//CHAR(0) )
 
-   IF ( DLL%ProcAddr == 0 )  CALL ProgAbort ( ' The procedure '//TRIM(DLL%ProcName)//' could not be loaded.' )
+   IF ( DLL%ProcAddr == INT(0,LPVOID) )  CALL ProgAbort ( ' The procedure '//TRIM(DLL%ProcName)//' could not be loaded.' )
 
 
 
@@ -412,8 +412,8 @@ IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure ti
 ! Records 38-40 are reserved
 ! Records 41-48 are demands returned by the DLL [see the lines of code after the CALL to DISCON()]
    avrSWAP(49) = 256.0                                   ! Maximum no. of characters allowed in the returned message (-)
-   avrSWAP(50) = 256.0                                   ! No. of characters in the "INFILE"  argument (-)
-   avrSWAP(51) = 1024.0                                  ! No. of characters in the "OUTNAME" argument (-)
+   avrSWAP(50) = REAL( LEN_TRIM(cInFile)  )              ! No. of characters in the "INFILE"  argument (-)
+   avrSWAP(51) = REAL( LEN_TRIM(cOutName) )              ! No. of characters in the "OUTNAME" argument (-)
 ! Record 52 is reserved for future use                   ! DLL interface version number (-)
    avrSWAP(53) = AllOuts(YawBrTAxp)                      ! Tower top fore-aft     acceleration (m/s^2)
    avrSWAP(54) = AllOuts(YawBrTAyp)                      ! Tower top side-to-side acceleration (m/s^2)

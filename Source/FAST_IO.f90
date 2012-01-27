@@ -4606,7 +4606,7 @@ CHARACTER( 1024)             :: Comment                                         
 CHARACTER(   3)              :: EndOfFile                                       ! String read in at the end of the input file.
 CHARACTER(  35)              :: Frmt      = "( 2X, L11, 2X, A, T30, ' - ', A )" ! Output format for logical parameters. (matches NWTC Subroutine Library format)
 CHARACTER(1000)              :: OutLine                                         ! String to temporarily hold the output parameter list.
-
+CHARACTER(1024)              :: PriPath                                         ! The path to the primary input file
 
 
 
@@ -4614,7 +4614,7 @@ CHARACTER(1000)              :: OutLine                                         
 
 CALL OpenFInpFile ( UnIn, PriFile )
 
-
+CALL GetPath( PriFile, PriPath )    ! Input files will be relative to the path where the primary input file is located.
 
 !-------------------------- HEADER ---------------------------------------------
 
@@ -5626,6 +5626,7 @@ IF ( ( PtfmModel < 0 ) .OR. ( PtfmModel > 3 ) )  CALL ProgAbort ( ' PtfmModel mu
 CALL ReadCVar ( UnIn, PriFile, PtfmFile, 'PtfmFile', 'Name of file containing platform properties' )
 
 IF ( LEN_TRIM( PtfmFile ) == 0 .AND. PtfmModel /= 0 )  CALL ProgAbort ( ' PtfmFile must not be an empty string.' ) 
+IF ( PathIsRelative( PtfmFile ) ) PtfmFile = TRIM(PriPath)//TRIM(PtfmFile)
 
 
 
@@ -5648,6 +5649,7 @@ IF ( TwrNodes < 1 )  CALL ProgAbort ( ' TwrNodes must not be less than 1.' )
 CALL ReadCVar ( UnIn, PriFile, TwrFile, 'TwrFile', 'Name of file containing tower properties' )
 
 IF ( LEN_TRIM( TwrFile ) == 0 )  CALL ProgAbort ( ' TwrFile must not be an empty string.' )
+IF ( PathIsRelative( TwrFile ) ) TwrFile = TRIM(PriPath)//TRIM(TwrFile)
 
 
 
@@ -5707,6 +5709,7 @@ ENDIF
 CALL ReadCVar ( UnIn, PriFile, FurlFile, 'FurlFile', 'Name of file containing furling properties' )
 
 IF ( LEN_TRIM( FurlFile ) == 0 .AND. Furling )  CALL ProgAbort ( ' FurlFile must not be an empty string.' )
+IF ( PathIsRelative( FurlFile ) ) FurlFile = TRIM(PriPath)//TRIM(FurlFile)
 
 
 !  -------------- ROTOR-TEETER PARAMETERS --------------------------------------
@@ -5843,6 +5846,7 @@ DO K=1,NumBl
    IF ( LEN_TRIM( BldFile(K) ) == 0 )  THEN
       CALL ProgAbort ( 'BldFile('//TRIM( Int2LStr( K ) )//') must not be an empty string.' )
    ENDIF
+   IF ( PathIsRelative( BldFile(K) ) ) BldFile(K) = TRIM(PriPath)//TRIM(BldFile(K))
 ENDDO ! K
 
 IF ( NumBl == 2 )  THEN
@@ -5864,6 +5868,7 @@ ENDIF
 CALL ReadCVar( UnIn, PriFile, ADFile, 'ADFile', 'Name of file containing AeroDyn parameters' )
 
 IF ( LEN_TRIM( ADFile ) == 0 )  CALL ProgAbort ( 'ADFile must not be an empty string.' )
+IF ( PathIsRelative( ADFile ) ) ADFile = TRIM(PriPath)//TRIM(ADFile)
 
 
 
@@ -5880,6 +5885,7 @@ IF ( LEN_TRIM( ADFile ) == 0 )  CALL ProgAbort ( 'ADFile must not be an empty st
 CALL ReadCVar ( UnIn, PriFile, NoiseFile, 'NoiseFile', 'Name of file containing aerodynamic noise parameters' )
 
 IF ( LEN_TRIM( NoiseFile ) == 0 .AND. CompNoise)  CALL ProgAbort ( ' NoiseFile must not be an empty string.' )
+IF ( PathIsRelative( NoiseFile ) ) NoiseFile = TRIM(PriPath)//TRIM(NoiseFile)
 
 
 !  -------------- ADAMS INPUT FILE PARAMETERS ----------------------------------
@@ -5894,7 +5900,7 @@ IF ( LEN_TRIM( NoiseFile ) == 0 .AND. CompNoise)  CALL ProgAbort ( ' NoiseFile m
 CALL ReadCVar ( UnIn, PriFile, ADAMSFile, 'ADAMSFile', 'Name of file containing ADAMS-specific properties' )
 
 IF ( LEN_TRIM( ADAMSFile ) == 0 .AND. ADAMSPrep /= 1)  CALL ProgAbort ( ' ADAMSFile must not be an empty string.' )
-
+IF ( PathIsRelative( ADAMSFile ) ) ADAMSFile = TRIM(PriPath)//TRIM(ADAMSFile)
 
 
 !  -------------- FAST LINEARIZATION CONTROL PARAMETERS ------------------------
@@ -5910,7 +5916,7 @@ IF ( LEN_TRIM( ADAMSFile ) == 0 .AND. ADAMSPrep /= 1)  CALL ProgAbort ( ' ADAMSF
 CALL ReadCVar ( UnIn, PriFile, LinFile, 'LinFile', 'Name of file containing FAST linearization parameters' )
 
 IF ( LEN_TRIM( LinFile ) == 0 .AND. AnalMode /= 1)  CALL ProgAbort ( ' LinFile must not be an empty string.' )
-
+IF ( PathIsRelative( LinFile ) ) LinFile = TRIM(PriPath)//TRIM(LinFile)
 
 
 !  -------------- OUTPUT PARAMETERS --------------------------------------------
@@ -6734,9 +6740,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 !         ENDIF
 
          IF ( Echo )  THEN
-            WRITE (UnEc,"( 2X, ES11.4e2, 2X, A, T30, ' - ', A )")  'WaveKinNd', &
-                            'List of tower nodes that have wave kinematics sensors'
-
+            WRITE (UnEc,"( 15X, A, T30, ' - ', A )")  'WaveKinNd', 'List of tower nodes that have wave kinematics sensors'
             WRITE (UnEc,'(9(I4,:))')  ( WaveKinNd(I), I=1,NWaveKin )
          ENDIF
 
@@ -7367,8 +7371,7 @@ CASE ( 3 )                 ! Floating offshore.
       CALL CheckIOS( IOS, PtfmFile, 'WaveKinNd', NumType )
 
       IF ( Echo )  THEN
-         WRITE (UnEc,"( 2X, ES11.4e2, 2X, A, T30, ' - ', A )")  'WaveKinNd', &
-                        'List of platform nodes that have wave kinematics sensors'
+         WRITE (UnEc,"( 15X, A, T30, ' - ', A )")  'WaveKinNd', 'List of platform nodes that have wave kinematics sensors'
          WRITE (UnEc,'(9(I4,:))')  ( WaveKinNd(I), I=1,NWaveKin )
       ENDIF
 

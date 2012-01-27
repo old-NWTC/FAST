@@ -3953,7 +3953,7 @@ ENDIF
    !   user-written subroutines:
 WRITE (UnAD,FmtText        )  '!                             adams_view_name=''ProgVerOfA2AD_SG'''
 WRITE (UnAD,FmtText        )  'STRING/1'
-WRITE (UnAD,FmtText        )  ', STRING = v13.00.00a-bjj'
+WRITE (UnAD,FmtText        )  ', STRING = v13.00.'
 
 
 WRITE (UnAD,FmtText        )  '!                             adams_view_name=''FTitle_SG'''

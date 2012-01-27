@@ -21,12 +21,13 @@ CHARACTER(6)                 :: Prcsn                                           
 
 ProgName = 'FAST'
 
-ProgVer = '(v7.00.01, 20-Jan-2012)'
+ProgVer = '(v7.00.02a-bjj, 26-Jan-2012)'
 
 
 
-IF ( ReKi == 4 )  THEN     ! Single precision
+IF ( ReKi == SiKi )  THEN     ! Single precision
    Prcsn = 'SINGLE'
+!bjj: this is system specific (update NWTC_Library to fix this):
 ELSEIF ( ReKi == 8 )  THEN ! Double precision
    Prcsn = 'DOUBLE'
 ELSE                       ! Unknown precision - it should be impossible to compile using a KIND that is not 4 or 8, but I'll put this check here just in case.

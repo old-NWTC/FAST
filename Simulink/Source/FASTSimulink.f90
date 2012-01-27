@@ -4,8 +4,11 @@ MODULE FAST_Simulink_Mod
 
    IMPLICIT NONE
 
-   INTEGER, PARAMETER      :: mxDB = 8          ! Matlab requires double-precision reals
-   LOGICAL, SAVE, PRIVATE  :: InitializedFlag = .FALSE.
+   INTEGER, PARAMETER         :: mxDB = 8                   ! Matlab requires double-precision reals
+
+    REAL(ReKi), SAVE, PRIVATE :: TiLstPrn  = 0.0            ! from TimeMarch  The time of the last print.
+  LOGICAL,      SAVE, PRIVATE :: InitializedFlag = .FALSE.
+
 
 
 CONTAINS
@@ -124,6 +127,7 @@ SUBROUTINE FAST_End
 
 
    InitializedFlag = .FALSE.
+   TiLstPrn        = 0.0      
    CALL WrScr ( ' ' )
 
    RETURN
@@ -179,8 +183,6 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
    REAL(ReKi), INTENT(IN)          :: BlPitchCom_s  (*)
    REAL(ReKi), INTENT(OUT)         :: QD2T_s(*)                         ! The output (QD2T)
    REAL(ReKi), INTENT(OUT)         :: OutData_s(*)                      ! The output (OutData)
-
-   REAL(ReKi), SAVE                :: TiLstPrn  = 0.0                   ! from TimeMarch  The time of the last print.
 
 
       !----------------------------------------------------------------------------------------------
