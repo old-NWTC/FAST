@@ -2,11 +2,11 @@
 clear all
 
 
-    % the FAST CertTest folder must be the current directory
-% CertTest_Dir = 'D:\DATA\Fortran\IVF Projects\FAST\Release\CertTest';
-CertTest_Dir = '.';
+    % the FAST CertTest folder must be entered below:
+CertTest_Dir = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
+% CertTest_Dir = '.';
 
-cd( CertTest_Dir )
+% cd( CertTest_Dir )
 
 % This script needs the files OpenLoop.mdl, FAST_Sfunc.mexw32, 
 % and Read_FAST_Input.m located somewhere on the Matlab path so I'll
@@ -31,7 +31,7 @@ for iTest = [1 3:13 15:17]
     disp( ['FAST_SFunc certification test for ' FileRoot] );
     disp('***********************************************');
     
-    input_fast = [FileRoot '.fst'];
+    input_fast = [CertTest_Dir filesep FileRoot '.fst'];
     
         % Read FAST input file and set initial conditions
     Read_FAST_Input

@@ -2,6 +2,66 @@ MODULE FAST2ADAMSSubs
 
    USE   NWTC_Library
 
+   IMPLICIT NONE
+   
+!------------------------------------------------------------------------------
+! The following parameters must agree with the values defined in the Adams
+! dataset. See FAST2ADAMSStatements.xls for definitions.
+!------------------------------------------------------------------------------
+   INTEGER, PARAMETER            :: AdamsIntKi        = 4         ! The ADAMS integer type
+
+      ! STRING PARAMETERS (ID numbers)
+
+   INTEGER(AdamsIntKi), PARAMETER :: ADIptFile_SG     = 90
+   INTEGER(AdamsIntKi), PARAMETER :: FTitle_SG        = 21
+   INTEGER(AdamsIntKi), PARAMETER :: HDIptFile_SG     = 31
+   INTEGER(AdamsIntKi), PARAMETER :: OutFmt_SG        = 22
+   INTEGER(AdamsIntKi), PARAMETER :: OutNamesI_SG     = 1000      ! OutNamesI_SG = 1000 + I, I=0:NumOuts
+   INTEGER(AdamsIntKi), PARAMETER :: OutUnitsI_SG     = 2000      ! OutUnitsI_SG = 2000 + I, I=0:NumOuts
+   INTEGER(AdamsIntKi), PARAMETER :: RootName_SG      = 95
+   INTEGER(AdamsIntKi), PARAMETER :: ProgVerOfA2AD_SG = 1
+
+
+      ! MARKER PARAMETERS (ID numbers)
+      
+   INTEGER(AdamsIntKi), PARAMETER :: AeroDynGround_M  = 1
+   INTEGER(AdamsIntKi), PARAMETER :: HubCS_M          = 4000      ! FAST hub coordinate system
+   INTEGER(AdamsIntKi), PARAMETER :: NacelleCS_M      = 2000      ! Nacelle origin - Bed plate center of mass / FAST Nacelle coordinate system
+   INTEGER(AdamsIntKi), PARAMETER :: NacelleHubRef_M  = 2050      ! Nacelle/hub reference MARKER
+   INTEGER(AdamsIntKi), PARAMETER :: PlatformRef_M    = 1000
+   INTEGER(AdamsIntKi), PARAMETER :: TailFinAero_M    = 5110
+   INTEGER(AdamsIntKi), PARAMETER :: YawBrBottom_M    = 1010      ! Portion of the yaw bearing attached to the tower-top.
+   INTEGER(AdamsIntKi), PARAMETER :: YawBrTop_M       = 2010      ! Portion of yaw bearing attached to the bed plate / nacelle
+   
+    
+      ! ARRAY PARAMETERS (ID numbers)
+      
+   INTEGER(AdamsIntKi), PARAMETER :: BldGagNd_A       = 2
+   INTEGER(AdamsIntKi), PARAMETER :: IDCntrl_A(3)     = (/6, 7, 8/)
+   INTEGER(AdamsIntKi), PARAMETER :: ModelConstants_A = 5
+   INTEGER(AdamsIntKi), PARAMETER :: OutIndSign_A     = 1      
+   INTEGER(AdamsIntKi), PARAMETER :: TwrGagNd_A       = 3
+   
+   INTEGER(AdamsIntKi), PARAMETER :: DGSEdummyU_A     = 20
+   INTEGER(AdamsIntKi), PARAMETER :: DGSEdummyX_A     = 21
+   INTEGER(AdamsIntKi), PARAMETER :: DGSEdummyY_A     = 22
+   INTEGER(AdamsIntKi), PARAMETER :: DGSEdummyIC_A    = 23
+   
+      ! GSE PARAMETERS (ID Numbers)
+      
+   INTEGER(AdamsIntKi), PARAMETER :: A2AD_GSE         = 1      
+   
+      ! VARIABLE PARAMETERS (ID numbers)
+      
+   INTEGER(AdamsIntKi), PARAMETER :: CalcOuts_V       = 1
+   INTEGER(AdamsIntKi), PARAMETER :: DGSEdummy_V      = 2
+   
+!------------------------------------------------------------------------------
+
+   CHARACTER(7), PARAMETER :: ProgVerOfA2AD = "v13.01."  ! version of A2AD that is required to run this dataset
+   CHARACTER(6)            :: OutNameID                  ! temporary string to hold the integer name for output names and units (this should be a local variable)
+   
+
 CONTAINS
 !=======================================================================
 SUBROUTINE MakeACF
@@ -38,7 +98,6 @@ CHARACTER(19)                :: FmtTRTR   = '(A,ES13.6,A,ES13.6)'               
 
 
 
-
    ! Open the ADAMS control file and give it a heading:
 
 CALL OpenFOutFile ( UnAC, TRIM( RootName )//'_ADAMS.acf' )
@@ -55,8 +114,13 @@ WRITE (UnAC,FmtText  )  TRIM( RootName )//'_ADAMS'
 
 
    ! Specify the INTEGRATOR properties:
+!bjj: JMJ wants this removed for release!!!!   
+!IF ( CompHydro ) THEN !ALLOW error an order of magnitude greater for this case 
+!   WRITE (UnAC,FmtTRT   )  'INTEGRATOR/GSTIFF, ERROR = 0.010, HMAX = ', DT, ', INTERPOLATE = ON'
+!ELSE
+   WRITE (UnAC,FmtTRT   )  'INTEGRATOR/GSTIFF, ERROR = 0.001, HMAX = ', DT, ', INTERPOLATE = ON'
+!END IF
 
-WRITE (UnAC,FmtTRT   )  'INTEGRATOR/GSTIFF, ERROR = 0.001, HMAX = ', DT, ', INTERPOLATE = ON'
 !JASON: Make ERROR an input!--Do this when you add variable-step size integration in FAST!
 
 
@@ -239,6 +303,7 @@ WRITE (UnAL,FmtText  )  TRIM( RootName )//'_ADAMS'
 WRITE (UnAL,FmtText  )  TRIM( RootName )//'_ADAMS_LIN'
 
 
+
    ! Make sure generator and rotor are not spinning by switching
    !   MOTION/3150 from a VELOCITY statement to a DISPLACEMENT
    !   statement (since a VELOCITY statement will give an error
@@ -271,7 +336,7 @@ IF ( ( TBDrConN /= 0.0 ) .OR. ( TBDrConD /= 0.0 ) )  THEN   ! Only removed when 
 
    DO K = 1,NumBl       ! Loop through all blades
 
-      WRITE (UnAL,FmtText  )  'VFORCE/'//TRIM(Int2LStr( 10000*K + 5100 ))//', FX = 0\ FY = 0\ FZ = 0\'
+      WRITE (UnAL,FmtText  )  'VFORCE/'//TRIM(Int2LStr( 10000*K + 7100 ))//', FX = 0\ FY = 0\ FZ = 0\'
 
    ENDDO                ! K - Blades
 
@@ -462,6 +527,7 @@ INTEGER(4)                   :: CompAeroI                                       
 INTEGER(4)                   :: CompHydroI                                      ! An INTEGER representing what is in CompHydro: = 0 if CompHydro = .FALSE., 1 if CompHydro = .TRUE.
 INTEGER(4)                   :: GenTiStrp                                       ! An INTEGER representing what is in GenTiStr and GenTiStp = (1 if GenTiStr = .TRUE.) (+ 10 if GenTiStp = .TRUE.).
 INTEGER(4)                   :: I                                               ! Generic Index
+INTEGER, ALLOCATABLE         :: IDCntrl (:,:)                                   ! Array for MulTabLoc functionality in Adams
 INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
 INTEGER(4)                   :: K                                               ! Loops through blades.
 INTEGER                      :: Sttus                                           ! Status of an attempted array allocation.
@@ -474,7 +540,6 @@ CHARACTER( 3)                :: FmtText   = '(A)'                               
 CHARACTER(10)                :: FmtTR     = '(A,ES13.6)'                        ! Format for outputting text then a real value.
 CHARACTER(28)                :: FmtTRTRTR = '(A,ES13.6,A,ES13.6,A,ES13.6)'      ! Format for outputting text, a real value, text, a real value, text, and (you guessed it!) a real value.
 CHARACTER(55)                :: FmtTRTRTRTRTRTR = '(A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4)' ! Format for outputting text, a real value, text, a real value, text, a real value, text, a real value, text, a real value, text, and (you guessed it!) a real value.
-
 
 
 
@@ -557,6 +622,12 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the EAVec array.' )
 ENDIF
 
+ALLOCATE ( IDCntrl(NumBl,BldNodes) , STAT=Sttus )
+IF ( Sttus /= 0 )  THEN
+   CALL ProgAbort ( ' Error allocating memory for the IDCntrl array.' )
+ENDIF
+IDCntrl = 0.0
+
 
    ! Lets define the coordinate systems that will be used throughout this
    !   routine to orient PARTs and MARKERs:
@@ -601,13 +672,14 @@ ENDIF
 
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''CalcOuts_V'''
-WRITE (UnAD,FmtText  )  'VARIABLE/1'
-WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Flt2LStr( AzimB1Up ))//', '//TRIM(Flt2LStr( GBRatio ))// &
-                        ', '//TRIM(Flt2LStr( AvgNrmTpRd ))//', '//TRIM(Flt2LStr( ProjArea ))//               &
-                        ', '//TRIM(Int2LStr( CompAeroI  ))//', '//TRIM(Int2LStr( CompHydroI ))//             &
-                        ', '//TRIM(Int2LStr( TabDelimI  ))//', '//TRIM(Int2LStr( NumBl      ))//','
-WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( BldNodes   ))//', '//TRIM(Int2LStr( TwrNodes   ))//             &
-                        ', '//TRIM(Flt2LStr( TipRad     ))//', '//TRIM(Flt2LStr( GenIner    ))//' )'
+WRITE (UnAD,FmtText  )  'VARIABLE/'//TRIM(Int2LStr(CalcOuts_V))//', FUNCTION = USER(1)'
+!WRITE (UnAD,FmtText  )  'VARIABLE/1'
+!WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Flt2LStr( AzimB1Up ))//', '//TRIM(Flt2LStr( GBRatio ))// &
+!                        ', '//TRIM(Flt2LStr( AvgNrmTpRd ))//', '//TRIM(Flt2LStr( ProjArea ))//               &
+!                        ', '//TRIM(Int2LStr( CompAeroI  ))//', '//TRIM(Int2LStr( CompHydroI ))//             &
+!                        ', '//TRIM(Int2LStr( TabDelimI  ))//', '//TRIM(Int2LStr( NumBl      ))//','
+!WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( BldNodes   ))//', '//TRIM(Int2LStr( TwrNodes   ))//             &
+!                        ', '//TRIM(Flt2LStr( TipRad     ))//', '//TRIM(Flt2LStr( GenIner    ))//' )'
 
 
 
@@ -1109,6 +1181,13 @@ DO J = 1,TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,'(A,I2.2,A)')  '!--------------------------- Tower: Tower Section ', J, ' ---------------------------'
 
 
+      ! same orientation as 1100 (which is the same as 1000 orientation), but in platform (reference point)      
+   TmpID2  = 1900 + J      
+   WRITE (UnAD,'(A,I2.2,A)') "!                             adams_view_name='UndeflTowerSec", J, "_M'"
+   WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( 1000 )) !PlatformRef_M
+   WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', rZT0zt + HNodes(J) 
+   WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
    ! PART and elastic axis:
 
    TmpID = 1100 + J
@@ -1962,23 +2041,6 @@ DO K = 1,NumBl ! Loop through all blades
                                        DOT_PRODUCT( TmpVec2, g3 )  ! 3-point method
 
 
-   ! Undeflected location of blade tip  (fixed in hub):
-
-   TmpID = 4030 + K
-   TmpVec  = TipRad*i3(K,:)   ! rQS = Position vector from apex of rotation (point Q) to the blade tip (point S(BldFlexL)).
-   TmpVec1 = TmpVec + i3(K,:)
-   TmpVec2 = TmpVec + i1(K,:)
-   WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''UndeflBld', K, 'Tip_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID ))
-   WRITE (UnAD,FmtText   )  ', PART = 4000'
-   WRITE (UnAD,FmtTRTRTR )  ', QP = ', DOT_PRODUCT( TmpVec , g1 ), ', ', DOT_PRODUCT( TmpVec , g2 ), ', ', &
-                                       DOT_PRODUCT( TmpVec , g3 )  ! Orient the undeflected
-   WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( TmpVec1, g1 ), ', ', DOT_PRODUCT( TmpVec1, g2 ), ', ', &
-                                       DOT_PRODUCT( TmpVec1, g3 )  ! blade tip using the
-   WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( TmpVec2, g1 ), ', ', DOT_PRODUCT( TmpVec2, g2 ), ', ', &
-                                       DOT_PRODUCT( TmpVec2, g3 )  ! 3-point method
-
-
    ! Pitch reference MARKERS (fixed in hub):
 
    TmpID = 4091 + K*100
@@ -2057,6 +2119,15 @@ DO K = 1,NumBl       ! Loop through all blades
    WRITE (UnAD,FmtTRTRTR )  ', REULER = ', -ThetaS(K,1), ', ', PiBy2, ', ', PiBy2
 
 
+   ! Undeflected location of blade tip  (fixed in blade pitch plate):
+
+      TmpID2  = 10000*K + 9100 ! was 4030 + K
+      WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''UndeflBld', K, 'Tip_M'''
+      WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', TipRad-HubRad
+      WRITE (UnAD,FmtText   )  ', REULER = 0D, 0D, 0D'
+
 
 
    DO J = 1,BldNodes ! Loop through the blade nodes/elements
@@ -2078,7 +2149,7 @@ DO K = 1,NumBl       ! Loop through all blades
          Slopeyb =  ( RefAxisxb(K,J+1) - RefAxisxb(K,J-1) )/( RNodes(J+1) - RNodes(J-1) ) ! Slope of the reference axis about the yb-axis using central difference differentation
       ENDIF
 
-      CALL SmllRotTrans( 'blade prebend', Slopexb, Slopeyb, 0.0, TransMat )   ! Get the transformation matrix, TransMat, from the pitch axis to the reference axis coordinate system.
+      CALL SmllRotTrans( 'blade prebend', Slopexb, Slopeyb, 0.0, TransMat, TRIM(Num2LStr(ZTime))//' s' )   ! Get the transformation matrix, TransMat, from the pitch axis to the reference axis coordinate system.
 
       Ref1 = TransMat(1,1)*j1(K,:) + TransMat(1,2)*j2(K,:) + TransMat(1,3)*j3(K,:)  ! Vector / direction Ref1 for node J of blade K (= j1 if precurve and presweep are zero).
       Ref2 = TransMat(2,1)*j1(K,:) + TransMat(2,2)*j2(K,:) + TransMat(2,3)*j3(K,:)  ! Vector / direction Ref2 for node J of blade K (= j2 if precurve and presweep are zero).
@@ -2115,6 +2186,19 @@ DO K = 1,NumBl       ! Loop through all blades
                       + EAOffBFlp(K,J  )*te1(K,J  ,:) + EAOffBEdg(K,J  )*te2(K,J  ,:) &
                       - EAOffBFlp(K,J-1)*te1(K,J-1,:) - EAOffBEdg(K,J-1)*te2(K,J-1,:)
       ENDIF
+
+
+   ! Undeflected location of the blade nodes
+      WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!------------------- Blade ', K, ': Blade Section ', J, ': Undeflected --------------------'
+
+      TmpID2  = 10000*K + 9000 + J 
+      WRITE (UnAD,'(A,I1,A,I2.2,A)') "!                             adams_view_name='UndeflBld", K, "Sec", J, "_M'"
+      WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( 10000*K ))
+      WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', RNodes(J)
+      WRITE (UnAD,FmtText   )  ', REULER = 0D, 0D, 0D'
+
+
 
 
    ENDDO             ! J - Blade nodes/elements
@@ -2280,6 +2364,20 @@ DO K = 1,NumBl       ! Loop through all blades
                                                  -EAOffBEdg(K,J) + DOT_PRODUCT(  n3(K,J,:), -te2(K,J,:) )          ! 3-point method
 
 
+   ! same orientation as 10000*K
+      TmpID2  = 10000*K + 7000 + J      
+      TmpVec1 = j3(K,:)
+      TmpVec2 = j1(K,:)
+      WRITE (UnAD,'(A,I1,A,I2.2,A)') "!                             adams_view_name='Bld", K, "Sec", J, "ZeroTwist_M'"
+      WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( TmpID )) !10000*K+J
+      WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', 0.0
+      WRITE (UnAD,FmtTRTRTR )      ', ZP = ', DOT_PRODUCT( TmpVec1,  te3(K,J,:) ), ', ', DOT_PRODUCT( TmpVec1, -te1(K,J,:) ), ', ', &
+                                              DOT_PRODUCT( TmpVec1, -te2(K,J,:) )  ! Orient the undeflected blade element using the
+      WRITE (UnAD,FmtTRTRTR )      ', XP = ', DOT_PRODUCT( TmpVec2,  te3(K,J,:) ), ', ', DOT_PRODUCT( TmpVec2, -te1(K,J,:) ), ', ', &
+                                              DOT_PRODUCT( TmpVec2, -te2(K,J,:) )  ! 3-point method
+                                              
+
    ENDDO             ! J - Blade nodes/elements
 
 
@@ -2311,7 +2409,7 @@ DO K = 1,NumBl       ! Loop through all blades
 
    ! Tip brake, zero-twist MARKER (i.e., the FAST blade K coordinate system originating at the tip):
 
-   TmpID2 = 10000*K + 5100
+   TmpID2 = 10000*K + 7100
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, 'ZeroTwist_M'''
    WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
    WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Int2LStr( TmpID ))
@@ -3026,7 +3124,8 @@ CASE ( 2 )                 ! Fixed bottom offshore.
          WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID2 ))
          WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Int2LStr( TmpID  ))
          WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( TwrLdMod ))// &
+!         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( TwrLdMod ))// &
+         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', 0'// &
                                     ', '//TRIM(Int2LStr( TwrNodes    ))//', '//TRIM(Flt2LStr( TwrDraft    ))//             &
                                     ', '//TRIM(Flt2LStr( WtrDens     ))//', '//TRIM(Flt2LStr( WtrDpth     ))//','
          WRITE (UnAD,FmtText     )  ', '//TRIM(Int2LStr( WaveMod     ))//', '//TRIM(Int2LStr( WaveStMod   ))//             &
@@ -3094,16 +3193,18 @@ WRITE (UnAD,FmtText  )  'VARIABLE/2011'
 WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( YCMode ))//', '//TRIM(Flt2LStr( TYCOn ))// &
                         ', '//TRIM(Flt2LStr( DT        ))//', '//TRIM(Flt2LStr( TYawManS ))//            &
                         ', '//TRIM(Flt2LStr( TYawManE  ))//', '//TRIM(Flt2LStr( NacYawF  ))//            &
-                        ', '//TRIM(Flt2LStr( YawNeut   ))//', '//TRIM(Int2LStr( NumBl    ))//            &
-                        ', '//TRIM(Int2LStr( CompAeroI ))//' )'
+                        ', '//TRIM(Flt2LStr( YawNeut ))//' )'
+!                        ', '//TRIM(Flt2LStr( YawNeut   ))//', '//TRIM(Int2LStr( NumBl    ))//            &
+!                        ', '//TRIM(Int2LStr( CompAeroI ))//' )'
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''YawRateDemand_V'''
 WRITE (UnAD,FmtText  )  'VARIABLE/2012'
 WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( YCMode ))//', '//TRIM(Flt2LStr( TYCOn ))// &
                         ', '//TRIM(Flt2LStr( DT        ))//', '//TRIM(Flt2LStr( TYawManS ))//            &
                         ', '//TRIM(Flt2LStr( TYawManE  ))//', '//TRIM(Flt2LStr( NacYawF  ))//            &
-                        ', '//TRIM(Flt2LStr( YawNeut   ))//', '//TRIM(Int2LStr( NumBl    ))//            &
-                        ', '//TRIM(Int2LStr( CompAeroI ))//' )'
+                        ', '//TRIM(Flt2LStr( YawNeut ))//' )'
+!                        ', '//TRIM(Flt2LStr( YawNeut   ))//', '//TRIM(Int2LStr( NumBl    ))//            &
+!                        ', '//TRIM(Int2LStr( CompAeroI ))//' )'
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''YawPosError_V'''
 WRITE (UnAD,FmtText  )  'VARIABLE/2013'
@@ -3366,8 +3467,9 @@ IF ( GenDOF )  THEN  ! Only include the generator models if the generator is var
    WRITE (UnAD,FmtText        )  ', J = 2050'
    WRITE (UnAD,FmtText        )  ', FUNCTION = USER( '//TRIM(Int2LStr( GenTiStrp ))//', '//TRIM(Flt2LStr( SpdGenOn ))// &
                                  ', '//TRIM(Flt2LStr( TimGenOn ))//', '//TRIM(Flt2LStr( TimGenOf ))//                   &
-                                 ', '//TRIM(Int2LStr( VSContrl ))//', '//TRIM(Flt2LStr( GBRatio  ))//                   &
-                                 ', '//TRIM(Int2LStr( NumBl    ))//','
+                                 ', '//TRIM(Int2LStr( VSContrl ))//', 0, 0, '                                               !GBRatio & NumBl no longer necessary to send, but I'm not going to renumber the rest of the parameters
+!                                 ', '//TRIM(Int2LStr( VSContrl ))//', '//TRIM(Flt2LStr( GBRatio  ))//                   &
+!                                 ', '//TRIM(Int2LStr( NumBl    ))//','
    SELECT CASE ( VSContrl )               ! Are we using variable-speed control?
    CASE ( 0 )                             ! No variable-speed control.  Using a generator model.
       SELECT CASE ( GenModel )            ! Which generator model are we using?
@@ -3420,8 +3522,9 @@ IF ( ( GenDOF ) .AND. ( TMax > THSSBrDp ) )  THEN  ! .TRUE. if the HSS brake dep
    WRITE (UnAD,FmtText  )  ', J = 2050'
    WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( HSSBrMode ))//', '//TRIM(Flt2LStr( THSSBrDp ))// &
                            ', '//TRIM(Flt2LStr( HSSBrTqF ))//', '//TRIM(Flt2LStr( HSSBrDT ))//                    &
-                           ', '//TRIM(Flt2LStr( DT       ))//', '//TRIM(Flt2LStr( GBRatio ))//                    &
-                           ', '//TRIM(Int2LStr( NumBl    ))//' )'
+                           ', '//TRIM(Flt2LStr( DT       ))//' )'
+!                           ', '//TRIM(Flt2LStr( DT       ))//', '//TRIM(Flt2LStr( GBRatio ))//                    &
+!                           ', '//TRIM(Int2LStr( NumBl    ))//' )'
 
 ENDIF
 
@@ -3501,8 +3604,10 @@ DO K = 1,NumBl ! Loop through all blades
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''Pitch', K, 'Demand_V'''
    WRITE (UnAD,FmtText   )  'VARIABLE/'//TRIM(Int2LStr( TmpID     ))
    WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Int2LStr( PCMode ))//', '//TRIM(Flt2LStr( TPCOn ))// &
-                            ', '//TRIM(Flt2LStr( DT          ))//', '//TRIM(Flt2LStr( GBRatio     ))//       &
-                            ', '//TRIM(Int2LStr( NumBl       ))//','
+                            ', '//TRIM(Flt2LStr( DT ))//','
+!                            ', '//TRIM(Flt2LStr( DT          ))//', '//TRIM(Flt2LStr( GBRatio     ))//       &
+!                            ', '//TRIM(Int2LStr( NumBl       ))//','
+                            
    WRITE (UnAD,FmtText   )  ', '//TRIM(Flt2LStr( TPitManS(K) ))//                                            &
                             ', '//TRIM(Flt2LStr( TPitManE(K) ))//', '//TRIM(Flt2LStr( BlPitchF(K) ))//' )'
 
@@ -3767,14 +3872,7 @@ IF ( CompAero )  THEN   ! AeroDyn will be used; therefore, add GFORCE statements
          WRITE (UnAD,FmtText          )  ', I = '//TRIM(Int2LStr( TmpID2 ))
          WRITE (UnAD,FmtText          )  ', JFLOAT = '//TRIM(Int2LStr( TmpID  ))
          WRITE (UnAD,FmtText          )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
-   ! NOTE: The third PARameter in this argument list should be the ID of the
-   !       VARIABLE containing MulTabLoc for USER-defined multiple airfoil
-   !       tables.  A user will have to add a VARIABLE statement and change
-   !       this value to the VARIABLE ID if they want to incorporate USER-
-   !       defined multiple airfoil table interpolations.  If the user wants
-   !       to use Reynolds Number interpolation (RENUM), then this value
-   !       should remain at zero!
-         WRITE (UnAD,'(A,I1,A,I2,A)'  )  ', FUNCTION = USER( ', K, ', ', J, ', 0, '//TRIM(Int2LStr( TmpID2 ))//' )'
+         WRITE (UnAD,'(A,I1,A,I2,A)'  )  ', FUNCTION = USER( ', K, ', ', J, ' )'
 
       ENDDO             ! J - Blade nodes/elements
 
@@ -3795,17 +3893,20 @@ IF ( ( TBDrConN /= 0.0 ) .OR. ( TBDrConD /= 0.0 ) )  THEN   ! Only added when TB
       WRITE (UnAD,'(A,I1,A)')  '!------------------------------------ Blade ', K, ' ----------------------------------'
 
       TmpID  = 500 + K           ! ID of the FLOATING  MARKER of the current blade tip brake.
-      TmpID2 = 10000*K + 5100    ! ID of the untwisted MARKER of the current blade tip brake.
+      TmpID2 = 10000*K + 7100    ! ID of the untwisted MARKER of the current blade tip brake.
 
       WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, 'Drag_VF'''
       WRITE (UnAD,FmtText   )  'VFORCE/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText   )  ', I = '//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText   )  ', JFLOAT = '//TRIM(Int2LStr( TmpID ))
       WRITE (UnAD,FmtText   )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Int2LStr( NumBl ))//', '//TRIM(Flt2LStr( TBDrConN ))// &
-                               ', '//TRIM(Flt2LStr( TBDrConD ))//', '//TRIM(Flt2LStr( TpBrDT ))//                 &
-                               ', '//TRIM(Int2LStr( CompAeroI   ))//', '//TRIM(Flt2LStr( TTpBrDp(K) ))//          &
+      WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Flt2LStr( TBDrConN ))//', '//TRIM(Flt2LStr( TBDrConD ))// &
+                               ', '//TRIM(Flt2LStr( TpBrDT      ))//', '//TRIM(Flt2LStr( TTpBrDp(K) ))//             &
                                ', '//TRIM(Flt2LStr( TBDepISp(K) ))//' )'
+!      WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Int2LStr( NumBl ))//', '//TRIM(Flt2LStr( TBDrConN ))// &
+!                               ', '//TRIM(Flt2LStr( TBDrConD ))//', '//TRIM(Flt2LStr( TpBrDT ))//                 &
+!                               ', '//TRIM(Int2LStr( CompAeroI   ))//', '//TRIM(Flt2LStr( TTpBrDp(K) ))//          &
+!                               ', '//TRIM(Flt2LStr( TBDepISp(K) ))//' )'
 
    ENDDO                ! K - Blades
 
@@ -3862,69 +3963,30 @@ WRITE (UnAD,FmtText  )  '!========================= ANALYSIS SETTINGS / OUTPUT =
 
 
    ! The ARRAY statement for constants:
+!---------------
+CALL MakeADM_WrICArraysR( (/ REAL(NumBl,ReKi),     REAL(BldNodes,ReKi),   REAL(TwrNodes,ReKi),   REAL(NBlGages,ReKi),  & 
+                             REAL(NTwGages,ReKi),  REAL(NumOuts,ReKi),   &    ! bjj if linearizing, set NumOuts = 0 here ???
+                             REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  AzimB1Up,             GBRatio,   &
+                             TipRad,               TStart               , REAL(PtfmLdMod),       REAL(TwrLdMod),       ProjArea,  &
+                             AvgNrmTpRd,           GenIner /), &
+                                     ModelConstants_A, 18       , UnAD, "ModelConstants_A" )             
+                                                                                                      
+CALL MakeADM_WrICArrays (OutParam(1:NumOuts)%Indx + 500*( 1 - OutParam(1:NumOuts)%SignM), & !ADD 1000 if SignM is negative (this implies that SignM should only be +1 or -1!!!!!)
+                                     OutIndSign_A    , NumOuts,  UnAD, "OutIndSign_A"     ) ! note that OutParam has a 0 element so we need to specify (1:NumOuts) here
+CALL MakeADM_WrICArrays (BldGagNd,   BldGagNd_A      , NBlGages, UnAD, "BldGagNd_A"       )
+CALL MakeADM_WrICArrays (TwrGagNd,   TwrGagNd_A      , NTwGages, UnAD, "TwrGagNd_A"       )
 
-IF ( NumOuts /= 0 )  THEN
 
-   WRITE (UnAD,FmtText  )  '!                             adams_view_name=''OutIndSign_A'''
-   WRITE (UnAD,FmtText  )  'ARRAY/1'
-   WRITE (UnAD,FmtText  )  ', IC, SIZE = '//TRIM(Int2LStr( NumOuts ))   ! Specify a list of constants.  The number of elements in the ARRAY is NumOuts
-   IF ( NumOuts == 1 )  THEN  ! Only one output channel  selected
-      WRITE (      UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( OutInd(1) + 500*( 1 - OutSign(1) ) ))
-   ELSE                       ! Multiple output channels selected
-      DO I = 1,NumOuts  ! Loop through all selected output channels
-         IF ( I == NumOuts )  THEN  ! Last output channel
-            WRITE (UnAD,FmtText  )  ', '          //TRIM(Int2LStr( OutInd(I) + 500*( 1 - OutSign(I) ) ))
-         ELSEIF ( I == 1   )  THEN  ! First output channel
-            WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( OutInd(I) + 500*( 1 - OutSign(I) ) ))//','
-         ELSE                       ! All other output channels
-            WRITE (UnAD,FmtText  )  ', '          //TRIM(Int2LStr( OutInd(I) + 500*( 1 - OutSign(I) ) ))//','  ! Each element of the list is OutInd() ( + 1000 if the corresponding OutSign() = -1 ).
-         ENDIF
-      ENDDO             ! I - all selected output channels
-   ENDIF
+DO K = 1,NumBl       ! Loop through all blades
+   ! NOTE: IDCntrl(J,K) should be the ID of the VARIABLE containing MulTabLoc for USER-defined 
+   !       multiple airfoil tables of Blade K, Element J. A user will have to add a VARIABLE 
+   !       statement and change this value to the VARIABLE ID if they want to incorporate 
+   !       USER-defined multiple airfoil table interpolations.  If the user wants to use   
+   !       Reynolds Number interpolation (RENUM), then this value should remain at zero!
 
-ENDIF
-
-IF ( NBlGages /= 0 )  THEN
-
-   WRITE (UnAD,FmtText  )  '!                             adams_view_name=''BldGagNd_A'''
-   WRITE (UnAD,FmtText  )  'ARRAY/2'
-   WRITE (UnAD,FmtText  )  ', IC, SIZE = '//TRIM(Int2LStr( NBlGages ))   ! Specify a list of constants.  The number of elements in the ARRAY is NBlGages
-   IF ( NBlGages == 1 )  THEN ! Only one blade gage  selected
-      WRITE (      UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( BldGagNd(1) ))
-   ELSE                       ! Multiple blade gages selected
-      DO I = 1,NBlGages ! Loop through all blade nodes with strain gages for output.
-         IF ( I == NBlGages )  THEN ! Last blade gage node
-            WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( BldGagNd(I) ))
-         ELSEIF ( I == 1   )  THEN  ! First blade gage node
-            WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( BldGagNd(I) ))//','
-         ELSE                       ! All other blade gage nodes
-            WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( BldGagNd(I) ))//','
-         ENDIF
-      ENDDO             ! All blade nodes with strain gages for output.
-   ENDIF
-
-ENDIF
-
-IF ( NTwGages /= 0 )  THEN
-
-   WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TwrGagNd_A'''
-   WRITE (UnAD,FmtText  )  'ARRAY/3'
-   WRITE (UnAD,FmtText  )  ', IC, SIZE = '//TRIM(Int2LStr( NTwGages ))   ! Specify a list of constants.  The number of elements in the ARRAY is NTwGages
-   IF ( NTwGages == 1 )  THEN ! Only one tower gage  selected
-      WRITE (      UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( TwrGagNd(1) ))
-   ELSE                       ! Multiple tower gages selected
-      DO I = 1,NTwGages ! Loop through all tower nodes with strain gages for output.
-         IF ( I == NTwGages )  THEN ! Last tower gage node
-            WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( TwrGagNd(I) ))
-         ELSEIF ( I == 1   )  THEN  ! First tower gage node
-            WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( TwrGagNd(I) ))//','
-         ELSE                       ! All other tower gage nodes
-            WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( TwrGagNd(I) ))//','
-         ENDIF
-      ENDDO             ! All tower nodes with strain gages for output.
-   ENDIF
-
-ENDIF
+   CALL MakeADM_WrICArrays ( IDCntrl(:,K),                          IDCntrl_A(K)     , BldNodes, UnAD,  "IDCntrl_A"//TRIM(Int2LStr(K)) )
+END DO   
+!------------
 
 IF ( ( NWaveKin /= 0 ) .AND. CompHydro )  THEN  ! .TRUE. if we are using the undocumented monopile or platform features
 
@@ -3949,20 +4011,16 @@ ENDIF
 
 
 
+
    ! The STRING statements for passing constant STRING expressions to the
    !   user-written subroutines:
-WRITE (UnAD,FmtText        )  '!                             adams_view_name=''ProgVerOfA2AD_SG'''
-WRITE (UnAD,FmtText        )  'STRING/1'
-WRITE (UnAD,FmtText        )  ', STRING = v13.00.'
+
+CALL MakeADM_WrString( TRIM(ProgVerOfA2AD),        ProgVerOfA2AD_SG, UnAD, "ProgVerOfA2AD_SG"   )
+CALL MakeADM_WrString( TRIM( FTitle ),             FTitle_SG,        UnAD, "FTitle_SG"          )
+CALL MakeADM_WrString( TRIM( OutFmt ),             OutFmt_SG,        UnAD, "OutFmt_SG"          )
+!CALL MakeADM_WrString( TRIM( HDFile ),             HDIptFile_SG,     UnAD, "HDIptFile_SG"       )
 
 
-WRITE (UnAD,FmtText        )  '!                             adams_view_name=''FTitle_SG'''
-WRITE (UnAD,FmtText        )  'STRING/21'
-WRITE (UnAD,FmtText        )  ', STRING = '//TRIM( FTitle )             ! The title line from the primary input file.
-
-WRITE (UnAD,FmtText        )  '!                             adams_view_name=''OutFmt_SG'''
-WRITE (UnAD,FmtText        )  'STRING/22'
-WRITE (UnAD,FmtText        )  ', STRING = '//TRIM( OutFmt )             ! Output format for tabular data.
 IF ( ( WaveMod   == 4 ) .AND. CompHydro )  THEN ! .TRUE if we are to use GH Bladed wave data.
    WRITE (UnAD,FmtText     )  '!                             adams_view_name=''GHWvFile_SG'''
    WRITE (UnAD,FmtText     )  'STRING/31'
@@ -3975,26 +4033,15 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
    WRITE (UnAD,FmtText     )  ', STRING = '//TRIM( WAMITFile )          ! Root name of WAMIT output files.
 ENDIF
 
-WRITE (UnAD,FmtText        )  '!                             adams_view_name=''ADIptFile_SG'''
-WRITE (UnAD,FmtText        )  'STRING/'//TRIM(Flt2LStr( AD_GetConstant('ADunit', Sttus) ))
-WRITE (UnAD,FmtText        )  ', STRING = '//TRIM( ADFile )             ! The name of the AeroDyn input file.
 
-WRITE (UnAD,FmtText        )  '!                             adams_view_name=''RootName_SG'''
-WRITE (UnAD,FmtText        )  'STRING/95'
-WRITE (UnAD,FmtText        )  ', STRING = '//TRIM( RootName )//'_ADAMS' ! The root name of the output file containing time-series output.
+CALL MakeADM_WrString( TRIM( ADFile ),             ADIptFile_SG,     UnAD, "ADIptFile_SG"       )
+CALL MakeADM_WrString( TRIM( RootName )//'_ADAMS', RootName_SG,      UnAD, "RootName_SG"        )
 
 DO I = 0,NumOuts  ! Loop through all selected output channels (plus time)
 
-   TmpID  = 1000 + I
-   TmpID2 = 2000 + I
-
-   WRITE (UnAD,'(A,I3.3,A)')  '!                             adams_view_name=''OutNames', I, '_SG'''
-   WRITE (UnAD,FmtText     )  'STRING/'//TRIM(Int2LStr( TmpID  ))
-   WRITE (UnAD,FmtText     )  ', STRING = '//TRIM( OutParam(I)%Name  )  ! The names of the output channels.
-
-   WRITE (UnAD,'(A,I3.3,A)')  '!                             adams_view_name=''OutUnits', I, '_SG'''
-   WRITE (UnAD,FmtText     )  'STRING/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText     )  ', STRING = '//TRIM( OutParam(I)%Units )  ! The units of the output channels.
+   WRITE( OutNameID, '(I3.3,A)') I, "_SG"
+   CALL MakeADM_WrString( TRIM(OutParam(I)%Name ),  OutNamesI_SG + I,  UnAD, "OutNames"//TRIM(OutNameID)   )
+   CALL MakeADM_WrString( TRIM(OutParam(I)%Units),  OutUnitsI_SG + I,  UnAD, "OutUnits"//TRIM(OutNameID)   )
 
 ENDDO             ! I - All selected output channels (plus time)
 
@@ -4004,7 +4051,7 @@ ENDDO             ! I - All selected output channels (plus time)
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''UserRequest_R'''
 WRITE (UnAD,FmtText  )  'REQUEST/1'
-WRITE (UnAD,FmtText  )  ', FUNCTION = USER( 1, '//TRIM(Flt2LStr( TStart ))//' )'
+WRITE (UnAD,FmtText  )  ', FUNCTION = USER( 1 )'
 
 
 
@@ -4055,10 +4102,118 @@ CLOSE ( UnAD )
 
 IF ( ALLOCATED( DRNodesGRA ) ) DEALLOCATE ( DRNodesGRA )
 IF ( ALLOCATED( EAVec      ) ) DEALLOCATE ( EAVec      )
-
+IF ( ALLOCATED( IDCntrl    ) ) DEALLOCATE ( IDCntrl    )
 
 
 RETURN
 END SUBROUTINE MakeADM
+!=======================================================================
+SUBROUTINE MakeADM_WrICArrays(Ary, AryID, AryLen, Un, AryName)
+
+      ! Passed variables
+
+   INTEGER,       INTENT(IN)        :: Ary(:)            ! THE array of values to write to the ADAMS file
+   INTEGER,       INTENT(IN)        :: AryID             ! THE ADAMS ID of the array
+   INTEGER,       INTENT(IN)        :: AryLen            ! the length of the array
+   INTEGER,       INTENT(IN)        :: Un                ! unit number of file previously opened
+   
+   CHARACTER(*),  INTENT(IN)        :: AryName           ! the adams_view_name of the array
+
+
+      ! Local variables
+   
+   INTEGER                          ::  I
+      
+   CHARACTER(99)                    ::  TmpEndTxt    
+   CHARACTER(99)                    ::  TmpStartTxt    
+   
+   
+   
+      ! Write the non-blank arrays in ADAMS format
+      
+   IF ( AryLen /= 0 )  THEN
+
+      WRITE (Un,'(A)'  )  "!                             adams_view_name='"//TRIM(AryName)//"'"
+      WRITE (Un,'(A)'  )  'ARRAY/'//TRIM(Int2LStr(AryID))
+      WRITE (Un,'(A)'  )  ', IC, SIZE = '//TRIM(Int2LStr( AryLen ))   ! Specify a list of constants.  The number of elements in the ARRAY is AryLen
+
+      TmpStartTxt = ', NUMBERS = '                    ! write this for the first element
+      TmpEndTxt   = ','                               ! write this for all but the last element
+      
+      DO I = 1,AryLen                                 ! Loop through all elements
+         IF ( I == AryLen )  TmpEndTxt = ''           ! write this for the last element
+
+         WRITE (Un,'(A)')  TRIM(TmpStartTxt)//TRIM(Int2LStr( Ary(I) ))//TRIM(TmpEndTxt) 
+         
+         TmpStartTxt = ', '                           ! write this for all but the first element
+      END DO
+
+   ENDIF
+
+
+END SUBROUTINE MakeADM_WrICArrays
+!=======================================================================
+SUBROUTINE MakeADM_WrICArraysR(Ary, AryID, AryLen, Un, AryName)
+
+      ! Passed variables
+
+   REAL(ReKi),    INTENT(IN)        :: Ary(:)            ! THE array of values to write to the ADAMS file
+   INTEGER,       INTENT(IN)        :: AryID             ! THE ADAMS ID of the array
+   INTEGER,       INTENT(IN)        :: AryLen            ! the length of the array
+   INTEGER,       INTENT(IN)        :: Un                ! unit number of file previously opened
+   
+   CHARACTER(*),  INTENT(IN)        :: AryName           ! the adams_view_name of the array
+
+
+      ! Local variables
+   
+   INTEGER                          ::  I
+      
+   CHARACTER(99)                    ::  TmpEndTxt    
+   CHARACTER(99)                    ::  TmpStartTxt    
+   
+   
+   
+      ! Write the non-blank arrays in ADAMS format
+      
+   IF ( AryLen /= 0 )  THEN
+
+      WRITE (Un,'(A)'  )  "!                             adams_view_name='"//TRIM(AryName)//"'"
+      WRITE (Un,'(A)'  )  'ARRAY/'//TRIM(Int2LStr(AryID))
+      WRITE (Un,'(A)'  )  ', IC, SIZE = '//TRIM(Int2LStr( AryLen ))   ! Specify a list of constants.  The number of elements in the ARRAY is AryLen
+
+      TmpStartTxt = ', NUMBERS = '                    ! write this for the first element
+      TmpEndTxt   = ','                               ! write this for all but the last element
+      
+      DO I = 1,AryLen                                 ! Loop through all elements
+         IF ( I == AryLen )  TmpEndTxt = ''           ! write this for the last element
+
+         WRITE (Un,'(A,ES13.6,A)')  TRIM(TmpStartTxt), Ary(I), TRIM(TmpEndTxt) 
+         
+         TmpStartTxt = ', '                           ! write this for all but the first element
+      END DO
+
+   ENDIF
+
+
+END SUBROUTINE MakeADM_WrICArraysR
+!=======================================================================
+SUBROUTINE MakeADM_WrString(Str, StrID, Un, StrName)
+
+      ! Passed variables
+
+   INTEGER,       INTENT(IN)        :: StrID             ! THE ADAMS ID of the string
+   INTEGER,       INTENT(IN)        :: Un                ! unit number of file previously opened
+   
+   CHARACTER(*),  INTENT(IN)        :: Str               ! The string to write to the ADAMS file
+   CHARACTER(*),  INTENT(IN)        :: StrName           ! the adams_view_name of the string
+
+
+
+   WRITE (Un,'(A)'    ) "!                             adams_view_name='"//TRIM(StrName)//"'"
+   WRITE (Un,'(A,A)' ) "STRING/", TRIM(Int2LStr(StrID))
+   WRITE (Un,'(A)'    ) ", STRING = "//TRIM( Str )
+
+END SUBROUTINE MakeADM_WrString
 !=======================================================================
 END MODULE FAST2ADAMSSubs

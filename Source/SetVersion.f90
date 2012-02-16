@@ -21,16 +21,15 @@ CHARACTER(6)                 :: Prcsn                                           
 
 ProgName = 'FAST'
 
-ProgVer = '(v7.00.02a-bjj, 26-Jan-2012)'
+ProgVer = '(v7.01.00a-bjj, 15-Feb-2012)'
 
 
 
 IF ( ReKi == SiKi )  THEN     ! Single precision
    Prcsn = 'SINGLE'
-!bjj: this is system specific (update NWTC_Library to fix this):
-ELSEIF ( ReKi == 8 )  THEN ! Double precision
+ELSEIF ( ReKi == R8Ki )  THEN ! Double precision
    Prcsn = 'DOUBLE'
-ELSE                       ! Unknown precision - it should be impossible to compile using a KIND that is not 4 or 8, but I'll put this check here just in case.
+ELSE                          ! Unknown precision
    Prcsn = 'UNKNWN'
 ENDIF
 
@@ -39,7 +38,7 @@ IF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulin
 
    ProgVer = TRIM(ProgVer)//'-Compiled as S-Function for Simulink'
 
-ELSEIF( ReKi /= 4 )  THEN  ! Compiled using something other than single precision
+ELSEIF( ReKi /= SiKi )  THEN  ! Compiled using something other than single precision
 
    ProgVer = TRIM(ProgVer)//'-Compiled using '//Prcsn//' precision'
 

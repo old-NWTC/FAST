@@ -174,8 +174,10 @@ CONTAINS
    INTEGER(4)                   :: J_Min                                           ! The minimum value of index J such that WaveKinzi0(J) >= -WtrDpth
    INTEGER(4)                   :: K                                               ! Generic index
    INTEGER(4)                   :: LastInd  = 1                                    ! Index into the arrays saved from the last call as a starting point for this call
+   INTEGER                      :: nSeeds                                          ! number of seeds required to initialize the intrinsic random number generator
    INTEGER(4)                   :: NWaveKin0Prime                                  ! Number of points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed before applying stretching to the instantaneous free surface (-)
    INTEGER(4)                   :: Sttus                                           ! Status returned by an attempted allocation or READ.
+   INTEGER,    ALLOCATABLE      :: TmpWaveSeeds   (:)                              ! A temporary array used for portability. IVF/CVF use a random number generator initialized with 2 seeds; other platforms can use different implementations (e.g. gfortran needs 8 or 12 seeds)
    INTEGER(4)                   :: UnFA     = 31                                   ! I/O unit number for the file needed for the GH Bladed wave data by FAST.
    INTEGER(4)                   :: UnKi     = 32                                   ! I/O unit number for the GH Bladed wave data file containing wave particle kinematics time history.
    INTEGER(4)                   :: UnSu     = 33                                   ! I/O unit number for the GH Bladed wave data file containing surface elevation time history.
@@ -561,7 +563,34 @@ CONTAINS
       !          WaveDOmega = 2*Pi/(NStepWave*WaveDT)
       !                     = 2*Pi/WaveTMax
 
-      CALL RANDOM_SEED ( PUT=WaveSeed(1:2) )
+      CALL RANDOM_SEED ( SIZE = nSeeds )
+      
+      IF ( nSeeds /= 2 ) THEN
+         CALL ProgWarn( ' The random number generator in use differs from the original code provided by NREL. This pRNG uses ' &
+                                  //TRIM(Int2LStr(nSeeds))//' seeds instead of the 2 in the HydroDyn input file.')
+      END IF
+
+      ALLOCATE ( TmpWaveSeeds ( nSeeds ), STAT=Sttus)
+      IF (Sttus/= 0 ) THEN
+         CALL ProgAbort( ' Error allocating space for TmpWaveSeeds array.' )
+         RETURN
+      END IF   
+
+         ! We'll just populate this with odd seeds = Seed(1) and even seeds = Seed(2)
+      DO I = 1,nSeeds,2
+         TmpWaveSeeds(I) = WaveSeed(1)
+      END DO
+      DO I = 2,nSeeds,2
+         TmpWaveSeeds(I) = WaveSeed(2)
+      END DO
+                     
+                  
+      CALL RANDOM_SEED ( PUT=TmpWaveSeeds )
+      DEALLOCATE(TmpWaveSeeds, STAT=Sttus)
+      IF (Sttus/= 0 ) THEN
+         CALL ProgWarn( ' Error deallocating space for TmpWaveSeeds array.' )
+      END IF                            
+
 
       NStepWave  = CEILING ( WaveTMax/WaveDT )                             ! Set NStepWave to an even integer
       IF ( MOD(NStepWave,2) == 1 )  NStepWave = NStepWave + 1              !   larger or equal to WaveTMax/WaveDT.
@@ -2600,7 +2629,7 @@ CONTAINS
       ! Get the transformation matrix, TransMat, from the inertial frame to the
       !   tower base / platform coordinate system:
 
-      CALL SmllRotTrans ( 'platform displacement', X(4), X(5), X(6), TransMat )
+      CALL SmllRotTrans ( 'platform displacement', X(4), X(5), X(6), TransMat, TRIM(Num2LStr(ZTime))//' s' )
 
 
       DO I = 1,NumLines ! Loop through all mooring lines
@@ -3675,7 +3704,7 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
       ! Get the transformation matrix, TransMat0, from the inertial frame to the
       !   initial tower base / platform coordinate system:
 
-      CALL SmllRotTrans ( 'platform displacement', X0(4), X0(5), X0(6), TransMat0 )
+      CALL SmllRotTrans ( 'platform displacement', X0(4), X0(5), X0(6), TransMat0, 'HydroDyn initialization' )
 
 
       DO I = 1,NumLines ! Loop through all mooring lines

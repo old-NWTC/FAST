@@ -3,7 +3,6 @@ MODULE FASTSubs
    USE   NWTC_Library
 
 CONTAINS
-
 !=======================================================================
 SUBROUTINE Alloc
 
@@ -356,6 +355,28 @@ ENDIF
 
    ! Allocate RtHS arrays:
 
+IF (.NOT. ALLOCATED( AngPosEF ) ) THEN
+   ALLOCATE ( AngPosEF(TwrNodes,3) , STAT=Sttus )
+   IF ( Sttus /= 0 )  THEN
+      CALL ProgAbort ( ' Error allocating memory for the AngPosEF array.' )
+   ENDIF
+ENDIF
+
+IF (.NOT. ALLOCATED( AngPosXF ) ) THEN
+   ALLOCATE ( AngPosXF(TwrNodes,3) , STAT=Sttus )
+   IF ( Sttus /= 0 )  THEN
+      CALL ProgAbort ( ' Error allocating memory for the AngPosXF array.' )
+   ENDIF
+ENDIF
+
+IF (.NOT. ALLOCATED( AngVelEF ) ) THEN
+   ALLOCATE ( AngVelEF(TwrNodes,3) , STAT=Sttus )
+   IF ( Sttus /= 0 )  THEN
+      CALL ProgAbort ( ' Error allocating memory for the AngVelEF array.' )
+   ENDIF
+ENDIF
+
+
 IF (.NOT. ALLOCATED( AugMat ) ) THEN
    ALLOCATE ( AugMat(NDOF,NAUG) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
@@ -390,6 +411,14 @@ IF (.NOT. ALLOCATED( LinAccETt ) ) THEN
       CALL ProgAbort ( ' Error allocating memory for the LinAccETt array.' )
    ENDIF
 ENDIF
+
+IF (.NOT. ALLOCATED( LinVelET ) ) THEN
+   ALLOCATE ( LinVelET(TwrNodes,3) , STAT=Sttus )
+   IF ( Sttus /= 0 )  THEN
+      CALL ProgAbort ( ' Error allocating memory for the LinVelET array.' )
+   ENDIF
+ENDIF
+
 
 ALLOCATE ( AngAccEFt(TwrNodes,3) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
@@ -639,6 +668,13 @@ IF (.NOT. ALLOCATED( rZT ) ) THEN
    ALLOCATE ( rZT(TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the rZT array.' )
+   ENDIF
+ENDIF
+
+IF (.NOT. ALLOCATED( rT ) ) THEN
+   ALLOCATE ( rT(TwrNodes,3) , STAT=Sttus )
+   IF ( Sttus /= 0 )  THEN
+      CALL ProgAbort ( ' Error allocating memory for the rT array.' )
    ENDIF
 ENDIF
 
@@ -1020,9 +1056,9 @@ SUBROUTINE CalcOuts
    !   Please see the FAST User's Guide for a complete description of
    !   each output parameter.
    ! NOTE: no matter how many output channels are selected, all of the
-   !   outputs are calcalated since it would be more time consuming to
+   !   outputs are calcalated (it could be more time consuming to
    !   check to see if an output need be calculated than to actually
-   !   calculate it.  This is also important since some users may want to
+   !   calculate it).  This is also important since some users may want to
    !   access any of of the output channels in their user-defined routines
    !   without actually outputting those values to the output file.  All
    !   of the calculated output channels are placed into the AllOuts(:)
@@ -1066,6 +1102,8 @@ REAL(ReKi)                   :: CThrstys                                        
 REAL(ReKi)                   :: CThrstzs                                        ! Estimate of the zs-location of the center of thrust.
 REAL(ReKi)                   :: FairTe                                          ! Instantaneous effective tension in a mooring line at the fairlead (N  )
 REAL(ReKi)                   :: FairTeAng                                       ! Instantaneous vertical angle    of a mooring line at the fairlead (rad)
+REAL(ReKi)                   :: FrcMGagB  (3)                                   ! Total force at the blade element   (body M) / blade strain gage location            (point S) due to the blade above the strain gage.
+REAL(ReKi)                   :: FrcFGagT  (3)                                   ! Total force at the tower element   (body F) / tower strain gage location            (point T) due to the nacelle and rotor and tower above the strain gage.
 REAL(ReKi)                   :: FrcONcRt  (3)                                   ! Total force at the yaw bearing (point O  ) due to the nacelle, generator, and rotor.
 REAL(ReKi)                   :: FrcPRot   (3)                                   ! Total force at the teeter pin  (point P  ) due to the rotor.
 REAL(ReKi)                   :: FrcT0Trb  (3)                                   ! Total force at the base of flexible portion of the tower (point T(0)) due to the entire wind turbine.
@@ -1087,23 +1125,22 @@ REAL(ReKi)                   :: rOSTip    (3)                                   
 REAL(ReKi)                   :: rOSTipxn                                        ! Component of rOSTip directed along the xn-axis.
 REAL(ReKi)                   :: rOSTipyn                                        ! Component of rOSTip directed along the yn-axis.
 REAL(ReKi)                   :: rOSTipzn                                        ! Component of rOSTip directed along the zn-axis.
+REAL(ReKi)                   :: rTPT      (3)                                   ! Position vector from the undeflected tower node (point T prime) to the deflected node (point T)
+REAL(ReKi)                   :: rSPS      (3)                                   ! Position vector from the undeflected blade node (point S prime) to the deflected node (point S)
 REAL(ReKi)                   :: rSTipPSTip(3)                                   ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip).
 REAL(ReKi)                   :: TmpVec    (3)                                   ! A temporary vector used in various computations.
+REAL(ReKi)                   :: TmpVec2   (3)                                   ! A temporary vector.
 
-INTEGER(4)                   :: I                                               ! Generic index
-INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
-INTEGER(4)                   :: K                                               ! Loops through blades.
+INTEGER                      :: I                                               ! Generic index
+INTEGER                      :: J                                               ! Loops through nodes / elements.
+INTEGER                      :: K                                               ! Loops through blades.
 
 INTEGER                      :: ErrStat
 
 
 
 
-   ! Initialize AllOuts() to zero.  Doing this will ensure that all
-   !   "INVALID CHANNEL"s (channels that can't be calculated for a
-   !   given turbine configuration) are output as zero.
-
-AllOuts = 0.0
+!Array AllOuts() is initialized to 0.0 in subroutine ChckOutLst(), so we are not going to reinitialize it here.
 
 
    ! Calculate all of the total forces and moments using all of the
@@ -1254,420 +1291,71 @@ IF ( CompHydro )  THEN  ! Hydrodynamics have been used
 
    AllOuts(WaveElev ) = WaveElevation ( 1, ZTime )
 
-   IF ( NWaveKin >= 1 )  THEN
+   DO I = 1, NWaveKin
 
-      AllOuts(Wave1Vxi ) = WaveVelocity     ( WaveKinNd(1), 1, ZTime )
-      AllOuts(Wave1Vyi ) = WaveVelocity     ( WaveKinNd(1), 2, ZTime )
-      AllOuts(Wave1Vzi ) = WaveVelocity     ( WaveKinNd(1), 3, ZTime )
-      AllOuts(Wave1Axi ) = WaveAcceleration ( WaveKinNd(1), 1, ZTime )
-      AllOuts(Wave1Ayi ) = WaveAcceleration ( WaveKinNd(1), 2, ZTime )
-      AllOuts(Wave1Azi ) = WaveAcceleration ( WaveKinNd(1), 3, ZTime )
+         AllOuts( WaveVxi(I) ) = WaveVelocity     ( WaveKinNd(I), 1, ZTime )
+         AllOuts( WaveVyi(I) ) = WaveVelocity     ( WaveKinNd(I), 2, ZTime )
+         AllOuts( WaveVzi(I) ) = WaveVelocity     ( WaveKinNd(I), 3, ZTime )
+         AllOuts( WaveAxi(I) ) = WaveAcceleration ( WaveKinNd(I), 1, ZTime )
+         AllOuts( WaveAyi(I) ) = WaveAcceleration ( WaveKinNd(I), 2, ZTime )
+         AllOuts( WaveAzi(I) ) = WaveAcceleration ( WaveKinNd(I), 3, ZTime )
 
-      IF ( NWaveKin >= 2 )  THEN
+   END DO
 
-         AllOuts(Wave2Vxi ) = WaveVelocity     ( WaveKinNd(2), 1, ZTime )
-         AllOuts(Wave2Vyi ) = WaveVelocity     ( WaveKinNd(2), 2, ZTime )
-         AllOuts(Wave2Vzi ) = WaveVelocity     ( WaveKinNd(2), 3, ZTime )
-         AllOuts(Wave2Axi ) = WaveAcceleration ( WaveKinNd(2), 1, ZTime )
-         AllOuts(Wave2Ayi ) = WaveAcceleration ( WaveKinNd(2), 2, ZTime )
-         AllOuts(Wave2Azi ) = WaveAcceleration ( WaveKinNd(2), 3, ZTime )
+END IF
 
-         IF ( NWaveKin >= 3 )  THEN
 
-            AllOuts(Wave3Vxi ) = WaveVelocity     ( WaveKinNd(3), 1, ZTime )
-            AllOuts(Wave3Vyi ) = WaveVelocity     ( WaveKinNd(3), 2, ZTime )
-            AllOuts(Wave3Vzi ) = WaveVelocity     ( WaveKinNd(3), 3, ZTime )
-            AllOuts(Wave3Axi ) = WaveAcceleration ( WaveKinNd(3), 1, ZTime )
-            AllOuts(Wave3Ayi ) = WaveAcceleration ( WaveKinNd(3), 2, ZTime )
-            AllOuts(Wave3Azi ) = WaveAcceleration ( WaveKinNd(3), 3, ZTime )
+   ! Blade (1-3) Tip Motions:
 
-            IF ( NWaveKin >= 4 )  THEN
-
-               AllOuts(Wave4Vxi ) = WaveVelocity     ( WaveKinNd(4), 1, ZTime )
-               AllOuts(Wave4Vyi ) = WaveVelocity     ( WaveKinNd(4), 2, ZTime )
-               AllOuts(Wave4Vzi ) = WaveVelocity     ( WaveKinNd(4), 3, ZTime )
-               AllOuts(Wave4Axi ) = WaveAcceleration ( WaveKinNd(4), 1, ZTime )
-               AllOuts(Wave4Ayi ) = WaveAcceleration ( WaveKinNd(4), 2, ZTime )
-               AllOuts(Wave4Azi ) = WaveAcceleration ( WaveKinNd(4), 3, ZTime )
-
-               IF ( NWaveKin >= 5 )  THEN
-
-                  AllOuts(Wave5Vxi ) = WaveVelocity     ( WaveKinNd(5), 1, ZTime )
-                  AllOuts(Wave5Vyi ) = WaveVelocity     ( WaveKinNd(5), 2, ZTime )
-                  AllOuts(Wave5Vzi ) = WaveVelocity     ( WaveKinNd(5), 3, ZTime )
-                  AllOuts(Wave5Axi ) = WaveAcceleration ( WaveKinNd(5), 1, ZTime )
-                  AllOuts(Wave5Ayi ) = WaveAcceleration ( WaveKinNd(5), 2, ZTime )
-                  AllOuts(Wave5Azi ) = WaveAcceleration ( WaveKinNd(5), 3, ZTime )
-
-                  IF ( NWaveKin >= 6 )  THEN
-
-                     AllOuts(Wave6Vxi ) = WaveVelocity     ( WaveKinNd(6), 1, ZTime )
-                     AllOuts(Wave6Vyi ) = WaveVelocity     ( WaveKinNd(6), 2, ZTime )
-                     AllOuts(Wave6Vzi ) = WaveVelocity     ( WaveKinNd(6), 3, ZTime )
-                     AllOuts(Wave6Axi ) = WaveAcceleration ( WaveKinNd(6), 1, ZTime )
-                     AllOuts(Wave6Ayi ) = WaveAcceleration ( WaveKinNd(6), 2, ZTime )
-                     AllOuts(Wave6Azi ) = WaveAcceleration ( WaveKinNd(6), 3, ZTime )
-
-                     IF ( NWaveKin >= 7 )  THEN
-
-                        AllOuts(Wave7Vxi ) = WaveVelocity     ( WaveKinNd(7), 1, ZTime )
-                        AllOuts(Wave7Vyi ) = WaveVelocity     ( WaveKinNd(7), 2, ZTime )
-                        AllOuts(Wave7Vzi ) = WaveVelocity     ( WaveKinNd(7), 3, ZTime )
-                        AllOuts(Wave7Axi ) = WaveAcceleration ( WaveKinNd(7), 1, ZTime )
-                        AllOuts(Wave7Ayi ) = WaveAcceleration ( WaveKinNd(7), 2, ZTime )
-                        AllOuts(Wave7Azi ) = WaveAcceleration ( WaveKinNd(7), 3, ZTime )
-
-                        IF ( NWaveKin >= 8 )  THEN
-
-                           AllOuts(Wave8Vxi ) = WaveVelocity     ( WaveKinNd(8), 1, ZTime )
-                           AllOuts(Wave8Vyi ) = WaveVelocity     ( WaveKinNd(8), 2, ZTime )
-                           AllOuts(Wave8Vzi ) = WaveVelocity     ( WaveKinNd(8), 3, ZTime )
-                           AllOuts(Wave8Axi ) = WaveAcceleration ( WaveKinNd(8), 1, ZTime )
-                           AllOuts(Wave8Ayi ) = WaveAcceleration ( WaveKinNd(8), 2, ZTime )
-                           AllOuts(Wave8Azi ) = WaveAcceleration ( WaveKinNd(8), 3, ZTime )
-
-                           IF ( NWaveKin == 9 )  THEN
-
-                              AllOuts(Wave9Vxi ) = WaveVelocity     ( WaveKinNd(9), 1, ZTime )
-                              AllOuts(Wave9Vyi ) = WaveVelocity     ( WaveKinNd(9), 2, ZTime )
-                              AllOuts(Wave9Vzi ) = WaveVelocity     ( WaveKinNd(9), 3, ZTime )
-                              AllOuts(Wave9Axi ) = WaveAcceleration ( WaveKinNd(9), 1, ZTime )
-                              AllOuts(Wave9Ayi ) = WaveAcceleration ( WaveKinNd(9), 2, ZTime )
-                              AllOuts(Wave9Azi ) = WaveAcceleration ( WaveKinNd(9), 3, ZTime )
-
-                           ENDIF
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-
-ENDIF
-
-
-
-
-   ! Blade 1 Tip Motions:
-
-rSTipPSTip = rS0S(1,TipNode,:) - BldFlexL*j3(1,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
-rOSTip     = rS  (1,TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 1.
-rOSTipxn   =  DOT_PRODUCT( rOSTip, d1 )                ! Component of rOSTip directed along the xn-axis.
-rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, d3 )                ! Component of rOSTip directed along the yn-axis.
-rOSTipzn   =  DOT_PRODUCT( rOSTip, d2 )                ! Component of rOSTip directed along the zn-axis.
-
-AllOuts(  TipDxc1) = DOT_PRODUCT(            rSTipPSTip, i1(1,         :) )
-AllOuts(  TipDyc1) = DOT_PRODUCT(            rSTipPSTip, i2(1,         :) )
-AllOuts(  TipDzc1) = DOT_PRODUCT(            rSTipPSTip, i3(1,         :) )
-AllOuts(  TipDxb1) = DOT_PRODUCT(            rSTipPSTip, j1(1,         :) )
-AllOuts(  TipDyb1) = DOT_PRODUCT(            rSTipPSTip, j2(1,         :) )
-!JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-AllOuts( TipALxb1) = DOT_PRODUCT( LinAccES(1,TipNode,:), n1(1,BldNodes,:) )
-AllOuts( TipALyb1) = DOT_PRODUCT( LinAccES(1,TipNode,:), n2(1,BldNodes,:) )
-AllOuts( TipALzb1) = DOT_PRODUCT( LinAccES(1,TipNode,:), n3(1,BldNodes,:) )
-AllOuts( TipRDxb1) = DOT_PRODUCT( AngPosHM(1,TipNode,:), j1(1,         :) )*R2D
-AllOuts( TipRDyb1) = DOT_PRODUCT( AngPosHM(1,TipNode,:), j2(1,         :) )*R2D
-! There is no sense computing AllOuts( TipRDzc1) here since it is always zero for FAST simulation results.
-IF ( rOSTipzn > 0.0 )  THEN   ! Tip of blade 1 is above the yaw bearing.
-   AllOuts(TipClrnc1) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 1.
-ELSE                          ! Tip of blade 1 is below the yaw bearing.
-   AllOuts(TipClrnc1) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 1.
-ENDIF
-
-
-   ! Blade 1 Local Span Motions:
-
-IF ( NBlGages >= 1 )  THEN
-
-   AllOuts(Spn1ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(1),:), n1(1,BldGagNd(1),:) )
-   AllOuts(Spn1ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(1),:), n2(1,BldGagNd(1),:) )
-   AllOuts(Spn1ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(1),:), n3(1,BldGagNd(1),:) )
-
-   IF ( NBlGages >= 2 )  THEN
-
-      AllOuts(Spn2ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(2),:), n1(1,BldGagNd(2),:) )
-      AllOuts(Spn2ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(2),:), n2(1,BldGagNd(2),:) )
-      AllOuts(Spn2ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(2),:), n3(1,BldGagNd(2),:) )
-
-      IF ( NBlGages >= 3 )  THEN
-
-         AllOuts(Spn3ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(3),:), n1(1,BldGagNd(3),:) )
-         AllOuts(Spn3ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(3),:), n2(1,BldGagNd(3),:) )
-         AllOuts(Spn3ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(3),:), n3(1,BldGagNd(3),:) )
-
-         IF ( NBlGages >= 4 )  THEN
-
-            AllOuts(Spn4ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(4),:), n1(1,BldGagNd(4),:) )
-            AllOuts(Spn4ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(4),:), n2(1,BldGagNd(4),:) )
-            AllOuts(Spn4ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(4),:), n3(1,BldGagNd(4),:) )
-
-            IF ( NBlGages >= 5 )  THEN
-
-               AllOuts(Spn5ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(5),:), n1(1,BldGagNd(5),:) )
-               AllOuts(Spn5ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(5),:), n2(1,BldGagNd(5),:) )
-               AllOuts(Spn5ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(5),:), n3(1,BldGagNd(5),:) )
-               IF ( NBlGages >= 6 )  THEN
-
-                  AllOuts(Spn6ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(6),:), n1(1,BldGagNd(6),:) )
-                  AllOuts(Spn6ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(6),:), n2(1,BldGagNd(6),:) )
-                  AllOuts(Spn6ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(6),:), n3(1,BldGagNd(6),:) )
-
-                  IF ( NBlGages >= 7 )  THEN
-
-                     AllOuts(Spn7ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(7),:), n1(1,BldGagNd(7),:) )
-                     AllOuts(Spn7ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(7),:), n2(1,BldGagNd(7),:) )
-                     AllOuts(Spn7ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(7),:), n3(1,BldGagNd(7),:) )
-
-                     IF ( NBlGages >= 8 )  THEN
-
-                        AllOuts(Spn8ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(8),:), n1(1,BldGagNd(8),:) )
-                        AllOuts(Spn8ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(8),:), n2(1,BldGagNd(8),:) )
-                        AllOuts(Spn8ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(8),:), n3(1,BldGagNd(8),:) )
-
-                        IF ( NBlGages == 9 )  THEN
-
-                           AllOuts(Spn9ALxb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(9),:), n1(1,BldGagNd(9),:) )
-                           AllOuts(Spn9ALyb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(9),:), n2(1,BldGagNd(9),:) )
-                           AllOuts(Spn9ALzb1) = DOT_PRODUCT( LinAccES(1,BldGagNd(9),:), n3(1,BldGagNd(9),:) )
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-ENDIF
-
-
-   ! Blade 2 Tip Motions:
-
-rSTipPSTip = rS0S(2,TipNode,:) - BldFlexL*j3(2,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 2.
-rOSTip     = rS  (2,TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 2.
-rOSTipxn   =  DOT_PRODUCT( rOSTip, d1 )                ! Component of rOSTip directed along the xn-axis.
-rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, d3 )                ! Component of rOSTip directed along the yn-axis.
-rOSTipzn   =  DOT_PRODUCT( rOSTip, d2 )                ! Component of rOSTip directed along the zn-axis.
-
-AllOuts(  TipDxc2) = DOT_PRODUCT(            rSTipPSTip, i1(2,         :) )
-AllOuts(  TipDyc2) = DOT_PRODUCT(            rSTipPSTip, i2(2,         :) )
-AllOuts(  TipDzc2) = DOT_PRODUCT(            rSTipPSTip, i3(2,         :) )
-AllOuts(  TipDxb2) = DOT_PRODUCT(            rSTipPSTip, j1(2,         :) )
-AllOuts(  TipDyb2) = DOT_PRODUCT(            rSTipPSTip, j2(2,         :) )
-!JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-AllOuts( TipALxb2) = DOT_PRODUCT( LinAccES(2,TipNode,:), n1(2,BldNodes,:) )
-AllOuts( TipALyb2) = DOT_PRODUCT( LinAccES(2,TipNode,:), n2(2,BldNodes,:) )
-AllOuts( TipALzb2) = DOT_PRODUCT( LinAccES(2,TipNode,:), n3(2,BldNodes,:) )
-AllOuts( TipRDxb2) = DOT_PRODUCT( AngPosHM(2,TipNode,:), j1(2,         :) )*R2D
-AllOuts( TipRDyb2) = DOT_PRODUCT( AngPosHM(2,TipNode,:), j2(2,         :) )*R2D
-! There is no sense computing AllOuts( TipRDzc2) here since it is always zero for FAST simulation results.
-IF ( rOSTipzn > 0.0 )  THEN   ! Tip of blade 2 is above the yaw bearing.
-   AllOuts(TipClrnc2) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 2.
-ELSE                          ! Tip of blade 2 is below the yaw bearing.
-   AllOuts(TipClrnc2) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 2.
-ENDIF
-
-
-
-   ! Blade 2 Local Span Motions:
-
-IF ( NBlGages >= 1 )  THEN
-
-   AllOuts(Spn1ALxb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(1),:), n1(2,BldGagNd(1),:) )
-   AllOuts(Spn1ALyb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(1),:), n2(2,BldGagNd(1),:) )
-   AllOuts(Spn1ALzb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(1),:), n3(2,BldGagNd(1),:) )
-
-   IF ( NBlGages >= 2 )  THEN
-
-      AllOuts(Spn2ALxb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(2),:), n1(2,BldGagNd(2),:) )
-      AllOuts(Spn2ALyb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(2),:), n2(2,BldGagNd(2),:) )
-      AllOuts(Spn2ALzb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(2),:), n3(2,BldGagNd(2),:) )
-
-      IF ( NBlGages >= 3 )  THEN
-
-         AllOuts(Spn3ALxb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(3),:), n1(2,BldGagNd(3),:) )
-         AllOuts(Spn3ALyb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(3),:), n2(2,BldGagNd(3),:) )
-         AllOuts(Spn3ALzb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(3),:), n3(2,BldGagNd(3),:) )
-
-         IF ( NBlGages >= 4 )  THEN
-
-            AllOuts(Spn4ALxb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(4),:), n1(2,BldGagNd(4),:) )
-            AllOuts(Spn4ALyb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(4),:), n2(2,BldGagNd(4),:) )
-            AllOuts(Spn4ALzb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(4),:), n3(2,BldGagNd(4),:) )
-
-            IF ( NBlGages >= 5 )  THEN
-
-               AllOuts(Spn5ALxb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(5),:), n1(2,BldGagNd(5),:) )
-               AllOuts(Spn5ALyb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(5),:), n2(2,BldGagNd(5),:) )
-               AllOuts(Spn5ALzb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(5),:), n3(2,BldGagNd(5),:) )
-
-               IF ( NBlGages >= 6 )  THEN
-
-                  AllOuts(Spn6ALxb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(6),:), n1(2,BldGagNd(6),:) )
-                  AllOuts(Spn6ALyb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(6),:), n2(2,BldGagNd(6),:) )
-                  AllOuts(Spn6ALzb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(6),:), n3(2,BldGagNd(6),:) )
-
-                  IF ( NBlGages >= 7 )  THEN
-
-                     AllOuts(Spn7ALxb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(7),:), n1(2,BldGagNd(7),:) )
-                     AllOuts(Spn7ALyb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(7),:), n2(2,BldGagNd(7),:) )
-                     AllOuts(Spn7ALzb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(7),:), n3(2,BldGagNd(7),:) )
-
-                     IF ( NBlGages >= 8 )  THEN
-
-                        AllOuts(Spn8ALxb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(8),:), n1(2,BldGagNd(8),:) )
-                        AllOuts(Spn8ALyb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(8),:), n2(2,BldGagNd(8),:) )
-                        AllOuts(Spn8ALzb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(8),:), n3(2,BldGagNd(8),:) )
-
-                        IF ( NBlGages == 9 )  THEN
-
-                           AllOuts(Spn9ALxb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(9),:), n1(2,BldGagNd(9),:) )
-                           AllOuts(Spn9ALyb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(9),:), n2(2,BldGagNd(9),:) )
-                           AllOuts(Spn9ALzb2) = DOT_PRODUCT( LinAccES(2,BldGagNd(9),:), n3(2,BldGagNd(9),:) )
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-ENDIF
-
-IF ( NumBl == 3 )  THEN ! 3-blader
-
-
-   ! Blade 3 Tip Motions:
-
-   rSTipPSTip = rS0S(3,TipNode,:) - BldFlexL*j3(3,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 3.
-   rOSTip     = rS  (3,TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 3.
-   rOSTipxn   =  DOT_PRODUCT( rOSTip, d1 )                ! Component of rOSTip directed along the xn-axis.
+DO K = 1,NumBl
+   rSTipPSTip = rS0S(K,TipNode,:) - BldFlexL*j3(K,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
+   rOSTip     = rS  (K,TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 1.
+   rOSTipxn   =      DOT_PRODUCT( rOSTip, d1 )                ! Component of rOSTip directed along the xn-axis.
    rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, d3 )                ! Component of rOSTip directed along the yn-axis.
-   rOSTipzn   =  DOT_PRODUCT( rOSTip, d2 )                ! Component of rOSTip directed along the zn-axis.
+   rOSTipzn   =      DOT_PRODUCT( rOSTip, d2 )                ! Component of rOSTip directed along the zn-axis.
 
-   AllOuts(  TipDxc3) = DOT_PRODUCT(            rSTipPSTip, i1(3,         :) )
-   AllOuts(  TipDyc3) = DOT_PRODUCT(            rSTipPSTip, i2(3,         :) )
-   AllOuts(  TipDzc3) = DOT_PRODUCT(            rSTipPSTip, i3(3,         :) )
-   AllOuts(  TipDxb3) = DOT_PRODUCT(            rSTipPSTip, j1(3,         :) )
-   AllOuts(  TipDyb3) = DOT_PRODUCT(            rSTipPSTip, j2(3,         :) )
-!JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-   AllOuts( TipALxb3) = DOT_PRODUCT( LinAccES(3,TipNode,:), n1(3,BldNodes,:) )
-   AllOuts( TipALyb3) = DOT_PRODUCT( LinAccES(3,TipNode,:), n2(3,BldNodes,:) )
-   AllOuts( TipALzb3) = DOT_PRODUCT( LinAccES(3,TipNode,:), n3(3,BldNodes,:) )
-   AllOuts( TipRDxb3) = DOT_PRODUCT( AngPosHM(3,TipNode,:), j1(3,         :) )*R2D
-   AllOuts( TipRDyb3) = DOT_PRODUCT( AngPosHM(3,TipNode,:), j2(3,         :) )*R2D
-   ! There is no sense computing AllOuts( TipRDzc3) here since it is always zero for FAST simulation results.
-   IF ( rOSTipzn > 0.0 )  THEN   ! Tip of blade 3 is above the yaw bearing.
-      AllOuts(TipClrnc3) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 3.
-   ELSE                          ! Tip of blade 3 is below the yaw bearing.
-      AllOuts(TipClrnc3) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 3.
+   AllOuts(  TipDxc(K) ) = DOT_PRODUCT(            rSTipPSTip, i1(K,         :) )
+   AllOuts(  TipDyc(K) ) = DOT_PRODUCT(            rSTipPSTip, i2(K,         :) )
+   AllOuts(  TipDzc(K) ) = DOT_PRODUCT(            rSTipPSTip, i3(K,         :) )
+   AllOuts(  TipDxb(K) ) = DOT_PRODUCT(            rSTipPSTip, j1(K,         :) )
+   AllOuts(  TipDyb(K) ) = DOT_PRODUCT(            rSTipPSTip, j2(K,         :) )
+   !JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
+   AllOuts( TipALxb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), n1(K,BldNodes,:) )
+   AllOuts( TipALyb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), n2(K,BldNodes,:) )
+   AllOuts( TipALzb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), n3(K,BldNodes,:) )
+   AllOuts( TipRDxb(K) ) = DOT_PRODUCT( AngPosHM(K,TipNode,:), j1(K,         :) )*R2D
+   AllOuts( TipRDyb(K) ) = DOT_PRODUCT( AngPosHM(K,TipNode,:), j2(K,         :) )*R2D
+   ! There is no sense computing AllOuts( TipRDzc(K) ) here since it is always zero for FAST simulation results.
+   IF ( rOSTipzn > 0.0 )  THEN   ! Tip of blade K is above the yaw bearing.
+      AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 1.
+   ELSE                          ! Tip of blade K is below the yaw bearing.
+      AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 1.
    ENDIF
 
+END DO !K
 
+   ! Blade (1-3) Local Span Motions:
 
-   ! Blade 3 Local Span Motions:
+DO K = 1,NumBl
+   DO I = 1, NBlGages
 
-   IF ( NBlGages >= 1 )  THEN
+      AllOuts( SpnALxb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), n1(K,BldGagNd(I),:) )
+      AllOuts( SpnALyb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), n2(K,BldGagNd(I),:) )
+      AllOuts( SpnALzb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), n3(K,BldGagNd(I),:) )
 
-      AllOuts(Spn1ALxb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(1),:), n1(3,BldGagNd(1),:) )
-      AllOuts(Spn1ALyb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(1),:), n2(3,BldGagNd(1),:) )
-      AllOuts(Spn1ALzb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(1),:), n3(3,BldGagNd(1),:) )
+      rSPS                    = rS0S(K,BldGagNd(I),:) - RNodes(BldGagNd(I))*j3(K,:)
 
-      IF ( NBlGages >= 2 )  THEN
+      AllOuts( SpnTDxb(I,K) ) = DOT_PRODUCT( rSPS, j1(K,:) )
+      AllOuts( SpnTDyb(I,K) ) = DOT_PRODUCT( rSPS, j2(K,:) )
+      AllOuts( SpnTDzb(I,K) ) = DOT_PRODUCT( rSPS, j3(K,:) )
 
-         AllOuts(Spn2ALxb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(2),:), n1(3,BldGagNd(2),:) )
-         AllOuts(Spn2ALyb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(2),:), n2(3,BldGagNd(2),:) )
-         AllOuts(Spn2ALzb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(2),:), n3(3,BldGagNd(2),:) )
+      AllOuts( SpnRDxb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), j1(K,:) )*R2D
+      AllOuts( SpnRDyb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), j2(K,:) )*R2D
+     !AllOuts( SpnRDzb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), j3(K,:) )*R2D           ! this is always zero for FAST
 
-         IF ( NBlGages >= 3 )  THEN
+   END DO !I
+END DO !K
 
-            AllOuts(Spn3ALxb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(3),:), n1(3,BldGagNd(3),:) )
-            AllOuts(Spn3ALyb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(3),:), n2(3,BldGagNd(3),:) )
-            AllOuts(Spn3ALzb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(3),:), n3(3,BldGagNd(3),:) )
-
-            IF ( NBlGages >= 4 )  THEN
-
-               AllOuts(Spn4ALxb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(4),:), n1(3,BldGagNd(4),:) )
-               AllOuts(Spn4ALyb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(4),:), n2(3,BldGagNd(4),:) )
-               AllOuts(Spn4ALzb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(4),:), n3(3,BldGagNd(4),:) )
-
-               IF ( NBlGages >= 5 )  THEN
-
-                  AllOuts(Spn5ALxb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(5),:), n1(3,BldGagNd(5),:) )
-                  AllOuts(Spn5ALyb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(5),:), n2(3,BldGagNd(5),:) )
-                  AllOuts(Spn5ALzb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(5),:), n3(3,BldGagNd(5),:) )
-
-                  IF ( NBlGages >= 6 )  THEN
-
-                     AllOuts(Spn6ALxb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(6),:), n1(3,BldGagNd(6),:) )
-                     AllOuts(Spn6ALyb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(6),:), n2(3,BldGagNd(6),:) )
-                     AllOuts(Spn6ALzb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(6),:), n3(3,BldGagNd(6),:) )
-
-                     IF ( NBlGages >= 7 )  THEN
-
-                        AllOuts(Spn7ALxb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(7),:), n1(3,BldGagNd(7),:) )
-                        AllOuts(Spn7ALyb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(7),:), n2(3,BldGagNd(7),:) )
-                        AllOuts(Spn7ALzb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(7),:), n3(3,BldGagNd(7),:) )
-
-                        IF ( NBlGages >= 8 )  THEN
-
-                           AllOuts(Spn8ALxb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(8),:), n1(3,BldGagNd(8),:) )
-                           AllOuts(Spn8ALyb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(8),:), n2(3,BldGagNd(8),:) )
-                           AllOuts(Spn8ALzb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(8),:), n3(3,BldGagNd(8),:) )
-
-                           IF ( NBlGages == 9 )  THEN
-
-                              AllOuts(Spn9ALxb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(9),:), n1(3,BldGagNd(9),:) )
-                              AllOuts(Spn9ALyb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(9),:), n2(3,BldGagNd(9),:) )
-                              AllOuts(Spn9ALzb3) = DOT_PRODUCT( LinAccES(3,BldGagNd(9),:), n3(3,BldGagNd(9),:) )
-
-                           ENDIF
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-ENDIF
 
 
    ! Blade Pitch Motions:
@@ -1708,6 +1396,10 @@ AllOuts(     HSShftA) = GBRatio*AllOuts(LSSGagAxa)
 IF ( AllOuts(  WindVxi) /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equation is not zero.
 
    AllOuts(TipSpdRat) =      ( QDT (DOF_GeAz) + QDT (DOF_DrTr) )*AvgNrmTpRd / AllOuts(  WindVxi)
+
+ELSE
+
+   AllOuts(TipSpdRat) = 0.0
 
 ENDIF
 
@@ -1775,77 +1467,32 @@ AllOuts(YawBrRAzp) =  DOT_PRODUCT( AngAccEB, b2 )*R2D
 
    ! Local Tower Motions:
 
-IF ( NTwGages >= 1 )  THEN
+DO I = 1, NTwGages
 
-   AllOuts(TwHt1ALxt) =  DOT_PRODUCT( LinAccET(TwrGagNd(1),:), t1(TwrGagNd(1),:) )
-   AllOuts(TwHt1ALyt) = -DOT_PRODUCT( LinAccET(TwrGagNd(1),:), t3(TwrGagNd(1),:) )
-   AllOuts(TwHt1ALzt) =  DOT_PRODUCT( LinAccET(TwrGagNd(1),:), t2(TwrGagNd(1),:) )
+   AllOuts( TwHtALxt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), t1(TwrGagNd(I),:) )
+   AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(TwrGagNd(I),:), t3(TwrGagNd(I),:) )
+   AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), t2(TwrGagNd(I),:) )
 
-   IF ( NTwGages >= 2 )  THEN
+   rTPT                   = rT0T(TwrGagNd(I),:) - HNodes(TwrGagNd(I))*a2(:)
 
-      AllOuts(TwHt2ALxt) =  DOT_PRODUCT( LinAccET(TwrGagNd(2),:), t1(TwrGagNd(2),:) )
-      AllOuts(TwHt2ALyt) = -DOT_PRODUCT( LinAccET(TwrGagNd(2),:), t3(TwrGagNd(2),:) )
-      AllOuts(TwHt2ALzt) =  DOT_PRODUCT( LinAccET(TwrGagNd(2),:), t2(TwrGagNd(2),:) )
+   AllOuts( TwHtTDxt(I) ) =      DOT_PRODUCT( rTPT,     a1 )
+   AllOuts( TwHtTDyt(I) ) = -1.0*DOT_PRODUCT( rTPT,     a3 )
+   AllOuts( TwHtTDzt(I) ) =      DOT_PRODUCT( rTPT,     a2 )   
+   
+   AllOuts( TwHtRDxt(I) ) =      DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), a1 )*R2D  !why is this zero???
+   AllOuts( TwHtRDyt(I) ) = -1.0*DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), a3 )*R2D
+!   AllOuts( TwHtRDzt(I) ) =     DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), a2 )*R2D  !this will always be 0 in FAST, so no need to calculate
 
-      IF ( NTwGages >= 3 )  THEN
 
-         AllOuts(TwHt3ALxt) =  DOT_PRODUCT( LinAccET(TwrGagNd(3),:), t1(TwrGagNd(3),:) )
-         AllOuts(TwHt3ALyt) = -DOT_PRODUCT( LinAccET(TwrGagNd(3),:), t3(TwrGagNd(3),:) )
-         AllOuts(TwHt3ALzt) =  DOT_PRODUCT( LinAccET(TwrGagNd(3),:), t2(TwrGagNd(3),:) )
+   AllOuts( TwHtTPxi(I) ) =      rT(TwrGagNd(I),1)
+   AllOuts( TwHtTPyi(I) ) = -1.0*rT(TwrGagNd(I),3)
+   AllOuts( TwHtTPzi(I) ) =      rT(TwrGagNd(I),2) - PtfmRef
+   
+   AllOuts( TwHtRPxi(I) ) =  AngPosEF(TwrGagNd(I),1)*R2D
+   AllOuts( TwHtRPyi(I) ) = -AngPosEF(TwrGagNd(I),3)*R2D
+   AllOuts( TwHtRPzi(I) ) =  AngPosEF(TwrGagNd(I),2)*R2D      
 
-         IF ( NTwGages >= 4 )  THEN
-
-            AllOuts(TwHt4ALxt) =  DOT_PRODUCT( LinAccET(TwrGagNd(4),:), t1(TwrGagNd(4),:) )
-            AllOuts(TwHt4ALyt) = -DOT_PRODUCT( LinAccET(TwrGagNd(4),:), t3(TwrGagNd(4),:) )
-            AllOuts(TwHt4ALzt) =  DOT_PRODUCT( LinAccET(TwrGagNd(4),:), t2(TwrGagNd(4),:) )
-
-            IF ( NTwGages >= 5 )  THEN
-
-               AllOuts(TwHt5ALxt) =  DOT_PRODUCT( LinAccET(TwrGagNd(5),:), t1(TwrGagNd(5),:) )
-               AllOuts(TwHt5ALyt) = -DOT_PRODUCT( LinAccET(TwrGagNd(5),:), t3(TwrGagNd(5),:) )
-               AllOuts(TwHt5ALzt) =  DOT_PRODUCT( LinAccET(TwrGagNd(5),:), t2(TwrGagNd(5),:) )
-               IF ( NTwGages >= 6 )  THEN
-
-                  AllOuts(TwHt6ALxt) =     DOT_PRODUCT( LinAccET(TwrGagNd(6),:), t1(TwrGagNd(6),:) )
-                  AllOuts(TwHt6ALyt) = -1.*DOT_PRODUCT( LinAccET(TwrGagNd(6),:), t3(TwrGagNd(6),:) )
-                  AllOuts(TwHt6ALzt) =     DOT_PRODUCT( LinAccET(TwrGagNd(6),:), t2(TwrGagNd(6),:) )
-
-                  IF ( NTwGages >= 7 )  THEN
-
-                     AllOuts(TwHt7ALxt) =     DOT_PRODUCT( LinAccET(TwrGagNd(7),:), t1(TwrGagNd(7),:) )
-                     AllOuts(TwHt7ALyt) = -1.*DOT_PRODUCT( LinAccET(TwrGagNd(7),:), t3(TwrGagNd(7),:) )
-                     AllOuts(TwHt7ALzt) =     DOT_PRODUCT( LinAccET(TwrGagNd(7),:), t2(TwrGagNd(7),:) )
-
-                     IF ( NTwGages >= 8 )  THEN
-
-                        AllOuts(TwHt8ALxt) =     DOT_PRODUCT( LinAccET(TwrGagNd(8),:), t1(TwrGagNd(8),:) )
-                        AllOuts(TwHt8ALyt) = -1.*DOT_PRODUCT( LinAccET(TwrGagNd(8),:), t3(TwrGagNd(8),:) )
-                        AllOuts(TwHt8ALzt) =     DOT_PRODUCT( LinAccET(TwrGagNd(8),:), t2(TwrGagNd(8),:) )
-
-                        IF ( NTwGages == 9 )  THEN
-
-                           AllOuts(TwHt9ALxt) =     DOT_PRODUCT( LinAccET(TwrGagNd(9),:), t1(TwrGagNd(9),:) )
-                           AllOuts(TwHt9ALyt) = -1.*DOT_PRODUCT( LinAccET(TwrGagNd(9),:), t3(TwrGagNd(9),:) )
-                           AllOuts(TwHt9ALzt) =     DOT_PRODUCT( LinAccET(TwrGagNd(9),:), t2(TwrGagNd(9),:) )
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-ENDIF
-
+END DO !I
 
    ! Platform Motions:
 
@@ -1894,950 +1541,71 @@ ENDIF
 
 
 
-   ! Blade 1 Root Loads:
+   ! Blade Root Loads:
 
-AllOuts( RootFxc1) = DOT_PRODUCT( FrcS0B(1,:), i1(1,:) )
-AllOuts( RootFyc1) = DOT_PRODUCT( FrcS0B(1,:), i2(1,:) )
-AllOuts( RootFzc1) = DOT_PRODUCT( FrcS0B(1,:), i3(1,:) )
-AllOuts( RootFxb1) = DOT_PRODUCT( FrcS0B(1,:), j1(1,:) )
-AllOuts( RootFyb1) = DOT_PRODUCT( FrcS0B(1,:), j2(1,:) )
-AllOuts( RootMxc1) = DOT_PRODUCT( MomH0B(1,:), i1(1,:) )
-AllOuts( RootMyc1) = DOT_PRODUCT( MomH0B(1,:), i2(1,:) )
-AllOuts( RootMzc1) = DOT_PRODUCT( MomH0B(1,:), i3(1,:) )
-AllOuts( RootMxb1) = DOT_PRODUCT( MomH0B(1,:), j1(1,:) )
-AllOuts( RootMyb1) = DOT_PRODUCT( MomH0B(1,:), j2(1,:) )
-
-
-   ! Blade 1 Local Span Loads:
-
-IF ( NBlGages >= 1 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-   CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(1),:), &
-                   FSTipDrag(1,:) - TipMass(1)*( Gravity*z2 + LinAccES(1,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-   DO J = ( BldGagNd(1) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-      CALL CrossProd( TmpVec, rS0S(1,J,:) - rS0S(1,BldGagNd(1),:), &                ! Portion of MomMGagB associated with element J
-                      FSAero(1,J,:) - MassB(1,J)*( Gravity*z2 + LinAccES(1,J,:) ) )
-      MomMGagB = MomMGagB + ( TmpVec + MMAero(1,J,:) )*DRNodes(J)
-   ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-   CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(1)) )*j3(1,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                   FSAero(1,BldGagNd(1),:) - MassB(1,BldGagNd(1))* &
-                      ( Gravity*z2 + LinAccES(1,BldGagNd(1),:) )     )
-   MomMGagB = MomMGagB + ( TmpVec + MMAero(1,BldGagNd(1),:) )* &
-                            ( 0.5 *DRNodes(BldGagNd(1)) )
-   MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-   AllOuts(Spn1MLxb1) = DOT_PRODUCT( MomMGagB, n1(1,BldGagNd(1),:) )
-   AllOuts(Spn1MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(1),:) )
-   AllOuts(Spn1MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(1),:) )
+DO K=1,NumBl
+   AllOuts( RootFxc(K) ) = DOT_PRODUCT( FrcS0B(K,:), i1(K,:) )
+   AllOuts( RootFyc(K) ) = DOT_PRODUCT( FrcS0B(K,:), i2(K,:) )
+   AllOuts( RootFzc(K) ) = DOT_PRODUCT( FrcS0B(K,:), i3(K,:) )
+   AllOuts( RootFxb(K) ) = DOT_PRODUCT( FrcS0B(K,:), j1(K,:) )
+   AllOuts( RootFyb(K) ) = DOT_PRODUCT( FrcS0B(K,:), j2(K,:) )
+   AllOuts( RootMxc(K) ) = DOT_PRODUCT( MomH0B(K,:), i1(K,:) )
+   AllOuts( RootMyc(K) ) = DOT_PRODUCT( MomH0B(K,:), i2(K,:) )
+   AllOuts( RootMzc(K) ) = DOT_PRODUCT( MomH0B(K,:), i3(K,:) )
+   AllOuts( RootMxb(K) ) = DOT_PRODUCT( MomH0B(K,:), j1(K,:) )
+   AllOuts( RootMyb(K) ) = DOT_PRODUCT( MomH0B(K,:), j2(K,:) )
+END DO !K
 
 
-   IF ( NBlGages >= 2 )  THEN
+   ! Blade Local Span Loads:
 
-   ! Initialize MomMGagB using the tip brake effects:
-      CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(2),:), &
-                      FSTipDrag(1,:) - TipMass(1)*( Gravity*z2 + LinAccES(1,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-      DO J = ( BldGagNd(2) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-         CALL CrossProd( TmpVec, rS0S(1,J,:) - rS0S(1,BldGagNd(2),:), &                ! Portion of MomMGagB associated with element J
-                         FSAero(1,J,:) - MassB(1,J)*( Gravity*z2 + LinAccES(1,J,:) ) )
-         MomMGagB = MomMGagB + ( TmpVec + MMAero(1,J,:) )*DRNodes(J)
-      ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-      CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(2)) )*j3(1,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                      FSAero(1,BldGagNd(2),:) - MassB(1,BldGagNd(2))* &
-                         ( Gravity*z2 + LinAccES(1,BldGagNd(2),:) )     )
-      MomMGagB = MomMGagB + ( TmpVec + MMAero(1,BldGagNd(2),:) )* &
-                               ( 0.5 *DRNodes(BldGagNd(2)) )
-      MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-      AllOuts(Spn2MLxb1) = DOT_PRODUCT( MomMGagB, n1(1,BldGagNd(2),:) )
-      AllOuts(Spn2MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(2),:) )
-      AllOuts(Spn2MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(2),:) )
+DO K = 1,NumBl
+   DO I = 1,NBlGages
+   
+      ! Initialize FrcMGagB and MomMGagB using the tip brake effects:
+      
+         FrcMGagB = FSTipDrag(K,:) - TipMass(K)*( Gravity*z2 + LinAccES(K,TipNode,:) )
+         CALL CrossProd( MomMGagB, rS0S(K,TipNode,:) - rS0S(K,BldGagNd(I),:), FrcMGagB )
 
 
-      IF ( NBlGages >= 3 )  THEN
+      ! Integrate to find FrcMGagB and MomMGagB using all of the nodes / elements above the current strain gage location:
+         DO J = ( BldGagNd(I) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
 
-   ! Initialize MomMGagB using the tip brake effects:
-         CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(3),:), &
-                         FSTipDrag(1,:) - TipMass(1)*( Gravity*z2 + LinAccES(1,TipNode,:) ) )
+            TmpVec2  = FSAero(K,J,:) - MassB(K,J)*( Gravity*z2 + LinAccES(K,J,:) )           ! Portion of FrcMGagB associated with element J
+            FrcMGagB = FrcMGagB + TmpVec2*DRNodes(J)
 
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-         DO J = ( BldGagNd(3) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-            CALL CrossProd( TmpVec, rS0S(1,J,:) - rS0S(1,BldGagNd(3),:), &                ! Portion of MomMGagB associated with element J
-                            FSAero(1,J,:) - MassB(1,J)*( Gravity*z2 + LinAccES(1,J,:) ) )
-            MomMGagB = MomMGagB + ( TmpVec + MMAero(1,J,:) )*DRNodes(J)
+            CALL CrossProd( TmpVec, rS0S(K,J,:) - rS0S(K,BldGagNd(I),:), TmpVec2 )           ! Portion of MomMGagB associated with element J                             
+            MomMGagB = MomMGagB + ( TmpVec + MMAero(K,J,:) )*DRNodes(J)
+
          ENDDO ! J - Blade nodes / elements above strain gage node
 
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-         CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(3)) )*j3(1,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                         FSAero(1,BldGagNd(3),:) - MassB(1,BldGagNd(3))* &
-                            ( Gravity*z2 + LinAccES(1,BldGagNd(3),:) )     )
-         MomMGagB = MomMGagB + ( TmpVec + MMAero(1,BldGagNd(3),:) )* &
-                                  ( 0.5 *DRNodes(BldGagNd(3)) )
-         MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
+      ! Add the effects of 1/2 the strain gage element:
+      ! NOTE: for the radius in this calculation, assume that there is no
+      !   shortening effect (due to blade bending) within the element.  Thus,
+      !   the moment arm for the force is 1/4 of DRNodes() and the element
+      !   length is 1/2 of DRNodes().
+
+         TmpVec2  = FSAero(K,BldGagNd(I),:) - MassB(K,BldGagNd(I))* ( Gravity*z2 + LinAccES(K,BldGagNd(I),:) ) ! Portion of FrcMGagB associated with 1/2 of the strain gage element
+         FrcMGagB = FrcMGagB + TmpVec2 * 0.5 * DRNodes(BldGagNd(I))                                            ! Portion of FrcMGagB associated with 1/2 of the strain gage element
+         FrcMGagB = 0.001*FrcMGagB           ! Convert the local force to kN
+         
+         
+         CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(I)) )*j3(K,:), TmpVec2 )                              ! Portion of MomMGagB associated with 1/2 of the strain gage element
+
+         MomMGagB = MomMGagB + ( TmpVec + MMAero(K,BldGagNd(I),:) )* ( 0.5 *DRNodes(BldGagNd(I)) )
+         MomMGagB = 0.001*MomMGagB           ! Convert the local moment to kN-m
+
+
+         AllOuts(SpnFLxb(I,K)) = DOT_PRODUCT( FrcMGagB, n1(K,BldGagNd(I),:) )
+         AllOuts(SpnFLyb(I,K)) = DOT_PRODUCT( FrcMGagB, n2(K,BldGagNd(I),:) )
+         AllOuts(SpnFLzb(I,K)) = DOT_PRODUCT( FrcMGagB, n3(K,BldGagNd(I),:) )
+
+         AllOuts(SpnMLxb(I,K)) = DOT_PRODUCT( MomMGagB, n1(K,BldGagNd(I),:) )
+         AllOuts(SpnMLyb(I,K)) = DOT_PRODUCT( MomMGagB, n2(K,BldGagNd(I),:) )
+         AllOuts(SpnMLzb(I,K)) = DOT_PRODUCT( MomMGagB, n3(K,BldGagNd(I),:) )
+   END DO ! I
+END DO ! K
 
-         AllOuts(Spn3MLxb1) = DOT_PRODUCT( MomMGagB, n1(1,BldGagNd(3),:) )
-         AllOuts(Spn3MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(3),:) )
-         AllOuts(Spn3MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(3),:) )
-
-
-         IF ( NBlGages >= 4 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-            CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(4),:), &
-                            FSTipDrag(1,:) - TipMass(1)*( Gravity*z2 + LinAccES(1,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-            DO J = ( BldGagNd(4) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-               CALL CrossProd( TmpVec, rS0S(1,J,:) - rS0S(1,BldGagNd(4),:), &                ! Portion of MomMGagB associated with element J
-                               FSAero(1,J,:) - MassB(1,J)*( Gravity*z2 + LinAccES(1,J,:) ) )
-               MomMGagB = MomMGagB + ( TmpVec + MMAero(1,J,:) )*DRNodes(J)
-            ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-            CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(4)) )*j3(1,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                            FSAero(1,BldGagNd(4),:) - MassB(1,BldGagNd(4))* &
-                               ( Gravity*z2 + LinAccES(1,BldGagNd(4),:) )     )
-            MomMGagB = MomMGagB + ( TmpVec + MMAero(1,BldGagNd(4),:) )* &
-                                     ( 0.5 *DRNodes(BldGagNd(4)) )
-            MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-            AllOuts(Spn4MLxb1) = DOT_PRODUCT( MomMGagB, n1(1,BldGagNd(4),:) )
-            AllOuts(Spn4MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(4),:) )
-            AllOuts(Spn4MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(4),:) )
-
-
-            IF ( NBlGages >= 5 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-               CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(5),:), &
-                               FSTipDrag(1,:) - TipMass(1)*( Gravity*z2 + LinAccES(1,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-               DO J = ( BldGagNd(5) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                  CALL CrossProd( TmpVec, rS0S(1,J,:) - rS0S(1,BldGagNd(5),:), &                ! Portion of MomMGagB associated with element J
-                                  FSAero(1,J,:) - MassB(1,J)*( Gravity*z2 + LinAccES(1,J,:) ) )
-                  MomMGagB = MomMGagB + ( TmpVec + MMAero(1,J,:) )*DRNodes(J)
-               ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-               CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(5)) )*j3(1,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                               FSAero(1,BldGagNd(5),:) - MassB(1,BldGagNd(5))* &
-                                  ( Gravity*z2 + LinAccES(1,BldGagNd(5),:) )     )
-               MomMGagB = MomMGagB + ( TmpVec + MMAero(1,BldGagNd(5),:) )* &
-                                        ( 0.5 *DRNodes(BldGagNd(5)) )
-               MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-               AllOuts(Spn5MLxb1) = DOT_PRODUCT( MomMGagB, n1(1,BldGagNd(5),:) )
-               AllOuts(Spn5MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(5),:) )
-               AllOuts(Spn5MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(5),:) )
-
-
-               IF ( NBlGages >= 6 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                  CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(6),:), &
-                                  FSTipDrag(1,:) - TipMass(1)*( Gravity*z2 + LinAccES(1,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                  DO J = ( BldGagNd(6) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                     CALL CrossProd( TmpVec, rS0S(1,J,:) - rS0S(1,BldGagNd(6),:), &                ! Portion of MomMGagB associated with element J
-                                     FSAero(1,J,:) - MassB(1,J)*( Gravity*z2 + LinAccES(1,J,:) ) )
-                     MomMGagB = MomMGagB + ( TmpVec + MMAero(1,J,:) )*DRNodes(J)
-                  ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                  CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(6)) )*j3(1,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                  FSAero(1,BldGagNd(6),:) - MassB(1,BldGagNd(6))* &
-                                     ( Gravity*z2 + LinAccES(1,BldGagNd(6),:) )     )
-                  MomMGagB = MomMGagB + ( TmpVec + MMAero(1,BldGagNd(6),:) )* &
-                                           ( 0.5 *DRNodes(BldGagNd(6)) )
-                  MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                  AllOuts(Spn6MLxb1) = DOT_PRODUCT( MomMGagB, n1(1,BldGagNd(6),:) )
-                  AllOuts(Spn6MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(6),:) )
-                  AllOuts(Spn6MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(6),:) )
-
-
-                  IF ( NBlGages >= 7 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                     CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(7),:), &
-                                     FSTipDrag(1,:) - TipMass(1)*( Gravity*z2 + LinAccES(1,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                     DO J = ( BldGagNd(7) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                        CALL CrossProd( TmpVec, rS0S(1,J,:) - rS0S(1,BldGagNd(7),:), &                ! Portion of MomMGagB associated with element J
-                                        FSAero(1,J,:) - MassB(1,J)*( Gravity*z2 + LinAccES(1,J,:) ) )
-                        MomMGagB = MomMGagB + ( TmpVec + MMAero(1,J,:) )*DRNodes(J)
-                     ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                     CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(7)) )*j3(1,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                     FSAero(1,BldGagNd(7),:) - MassB(1,BldGagNd(7))* &
-                                        ( Gravity*z2 + LinAccES(1,BldGagNd(7),:) )     )
-                     MomMGagB = MomMGagB + ( TmpVec + MMAero(1,BldGagNd(7),:) )* &
-                                              ( 0.5 *DRNodes(BldGagNd(7)) )
-                     MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                     AllOuts(Spn7MLxb1) = DOT_PRODUCT( MomMGagB, n1(1,BldGagNd(7),:) )
-                     AllOuts(Spn7MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(7),:) )
-                     AllOuts(Spn7MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(7),:) )
-
-
-                     IF ( NBlGages >= 8 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                        CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(8),:), &
-                                        FSTipDrag(1,:) - TipMass(1)*( Gravity*z2 + LinAccES(1,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                        DO J = ( BldGagNd(8) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                           CALL CrossProd( TmpVec, rS0S(1,J,:) - rS0S(1,BldGagNd(8),:), &                ! Portion of MomMGagB associated with element J
-                                           FSAero(1,J,:) - MassB(1,J)*( Gravity*z2 + LinAccES(1,J,:) ) )
-                           MomMGagB = MomMGagB + ( TmpVec + MMAero(1,J,:) )*DRNodes(J)
-                        ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                        CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(8)) )*j3(1,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                        FSAero(1,BldGagNd(8),:) - MassB(1,BldGagNd(8))* &
-                                           ( Gravity*z2 + LinAccES(1,BldGagNd(8),:) )     )
-                        MomMGagB = MomMGagB + ( TmpVec + MMAero(1,BldGagNd(8),:) )* &
-                                                 ( 0.5 *DRNodes(BldGagNd(8)) )
-                        MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                        AllOuts(Spn8MLxb1) = DOT_PRODUCT( MomMGagB, n1(1,BldGagNd(8),:) )
-                        AllOuts(Spn8MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(8),:) )
-                        AllOuts(Spn8MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(8),:) )
-
-
-                        IF ( NBlGages == 9 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                           CALL CrossProd( MomMGagB, rS0S(1,TipNode,:) - rS0S(1,BldGagNd(9),:), &
-                                           FSTipDrag(1,:) - TipMass(1)*( Gravity*z2 + LinAccES(1,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                           DO J = ( BldGagNd(9) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                              CALL CrossProd( TmpVec, rS0S(1,J,:) - rS0S(1,BldGagNd(9),:), &                ! Portion of MomMGagB associated with element J
-                                              FSAero(1,J,:) - MassB(1,J)*( Gravity*z2 + LinAccES(1,J,:) ) )
-                              MomMGagB = MomMGagB + ( TmpVec + MMAero(1,J,:) )*DRNodes(J)
-                           ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                           CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(9)) )*j3(1,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                           FSAero(1,BldGagNd(9),:) - MassB(1,BldGagNd(9))* &
-                                              ( Gravity*z2 + LinAccES(1,BldGagNd(9),:) )     )
-                           MomMGagB = MomMGagB + ( TmpVec + MMAero(1,BldGagNd(9),:) )* &
-                                                    ( 0.5 *DRNodes(BldGagNd(9)) )
-                           MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                           AllOuts(Spn9MLxb1) = DOT_PRODUCT( MomMGagB, n1(1,BldGagNd(9),:) )
-                           AllOuts(Spn9MLyb1) = DOT_PRODUCT( MomMGagB, n2(1,BldGagNd(9),:) )
-                           AllOuts(Spn9MLzb1) = DOT_PRODUCT( MomMGagB, n3(1,BldGagNd(9),:) )
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-ENDIF
-
-
-   ! Blade 2 Root Loads:
-
-AllOuts( RootFxc2) = DOT_PRODUCT( FrcS0B(2,:), i1(2,:) )
-AllOuts( RootFyc2) = DOT_PRODUCT( FrcS0B(2,:), i2(2,:) )
-AllOuts( RootFzc2) = DOT_PRODUCT( FrcS0B(2,:), i3(2,:) )
-AllOuts( RootFxb2) = DOT_PRODUCT( FrcS0B(2,:), j1(2,:) )
-AllOuts( RootFyb2) = DOT_PRODUCT( FrcS0B(2,:), j2(2,:) )
-AllOuts( RootMxc2) = DOT_PRODUCT( MomH0B(2,:), i1(2,:) )
-AllOuts( RootMyc2) = DOT_PRODUCT( MomH0B(2,:), i2(2,:) )
-AllOuts( RootMzc2) = DOT_PRODUCT( MomH0B(2,:), i3(2,:) )
-AllOuts( RootMxb2) = DOT_PRODUCT( MomH0B(2,:), j1(2,:) )
-AllOuts( RootMyb2) = DOT_PRODUCT( MomH0B(2,:), j2(2,:) )
-
-
-
-   ! Blade 2 Local Span Loads:
-
-IF ( NBlGages >= 1 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-   CALL CrossProd( MomMGagB, rS0S(2,TipNode,:) - rS0S(2,BldGagNd(1),:), &
-                   FSTipDrag(2,:) - TipMass(2)*( Gravity*z2 + LinAccES(2,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-   DO J = ( BldGagNd(1) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-      CALL CrossProd( TmpVec, rS0S(2,J,:) - rS0S(2,BldGagNd(1),:), &                ! Portion of MomMGagB associated with element J
-                      FSAero(2,J,:) - MassB(2,J)*( Gravity*z2 + LinAccES(2,J,:) ) )
-      MomMGagB = MomMGagB + ( TmpVec + MMAero(2,J,:) )*DRNodes(J)
-   ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-   CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(1)) )*j3(2,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                   FSAero(2,BldGagNd(1),:) - MassB(2,BldGagNd(1))* &
-                      ( Gravity*z2 + LinAccES(2,BldGagNd(1),:) )     )
-   MomMGagB = MomMGagB + ( TmpVec + MMAero(2,BldGagNd(1),:) )* &
-                            ( 0.5 *DRNodes(BldGagNd(1)) )
-   MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-   AllOuts(Spn1MLxb2) = DOT_PRODUCT( MomMGagB, n1(2,BldGagNd(1),:) )
-   AllOuts(Spn1MLyb2) = DOT_PRODUCT( MomMGagB, n2(2,BldGagNd(1),:) )
-   AllOuts(Spn1MLzb2) = DOT_PRODUCT( MomMGagB, n3(2,BldGagNd(1),:) )
-
-
-   IF ( NBlGages >= 2 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-      CALL CrossProd( MomMGagB, rS0S(2,TipNode,:) - rS0S(2,BldGagNd(2),:), &
-                      FSTipDrag(2,:) - TipMass(2)*( Gravity*z2 + LinAccES(2,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-      DO J = ( BldGagNd(2) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-         CALL CrossProd( TmpVec, rS0S(2,J,:) - rS0S(2,BldGagNd(2),:), &                ! Portion of MomMGagB associated with element J
-                         FSAero(2,J,:) - MassB(2,J)*( Gravity*z2 + LinAccES(2,J,:) ) )
-         MomMGagB = MomMGagB + ( TmpVec + MMAero(2,J,:) )*DRNodes(J)
-      ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-      CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(2)) )*j3(2,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                      FSAero(2,BldGagNd(2),:) - MassB(2,BldGagNd(2))* &
-                         ( Gravity*z2 + LinAccES(2,BldGagNd(2),:) )     )
-      MomMGagB = MomMGagB + ( TmpVec + MMAero(2,BldGagNd(2),:) )* &
-                               ( 0.5 *DRNodes(BldGagNd(2)) )
-      MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-      AllOuts(Spn2MLxb2) = DOT_PRODUCT( MomMGagB, n1(2,BldGagNd(2),:) )
-      AllOuts(Spn2MLyb2) = DOT_PRODUCT( MomMGagB, n2(2,BldGagNd(2),:) )
-      AllOuts(Spn2MLzb2) = DOT_PRODUCT( MomMGagB, n3(2,BldGagNd(2),:) )
-
-
-      IF ( NBlGages >= 3 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-         CALL CrossProd( MomMGagB, rS0S(2,TipNode,:) - rS0S(2,BldGagNd(3),:), &
-                         FSTipDrag(2,:) - TipMass(2)*( Gravity*z2 + LinAccES(2,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-         DO J = ( BldGagNd(3) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-            CALL CrossProd( TmpVec, rS0S(2,J,:) - rS0S(2,BldGagNd(3),:), &                ! Portion of MomMGagB associated with element J
-                            FSAero(2,J,:) - MassB(2,J)*( Gravity*z2 + LinAccES(2,J,:) ) )
-            MomMGagB = MomMGagB + ( TmpVec + MMAero(2,J,:) )*DRNodes(J)
-         ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-         CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(3)) )*j3(2,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                         FSAero(2,BldGagNd(3),:) - MassB(2,BldGagNd(3))* &
-                            ( Gravity*z2 + LinAccES(2,BldGagNd(3),:) )     )
-         MomMGagB = MomMGagB + ( TmpVec + MMAero(2,BldGagNd(3),:) )* &
-                                  ( 0.5 *DRNodes(BldGagNd(3)) )
-         MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-         AllOuts(Spn3MLxb2) = DOT_PRODUCT( MomMGagB, n1(2,BldGagNd(3),:) )
-         AllOuts(Spn3MLyb2) = DOT_PRODUCT( MomMGagB, n2(2,BldGagNd(3),:) )
-         AllOuts(Spn3MLzb2) = DOT_PRODUCT( MomMGagB, n3(2,BldGagNd(3),:) )
-
-
-         IF ( NBlGages >= 4 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-            CALL CrossProd( MomMGagB, rS0S(2,TipNode,:) - rS0S(2,BldGagNd(4),:), &
-                            FSTipDrag(2,:) - TipMass(2)*( Gravity*z2 + LinAccES(2,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-            DO J = ( BldGagNd(4) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-               CALL CrossProd( TmpVec, rS0S(2,J,:) - rS0S(2,BldGagNd(4),:), &                ! Portion of MomMGagB associated with element J
-                               FSAero(2,J,:) - MassB(2,J)*( Gravity*z2 + LinAccES(2,J,:) ) )
-               MomMGagB = MomMGagB + ( TmpVec + MMAero(2,J,:) )*DRNodes(J)
-            ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-            CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(4)) )*j3(2,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                            FSAero(2,BldGagNd(4),:) - MassB(2,BldGagNd(4))* &
-                               ( Gravity*z2 + LinAccES(2,BldGagNd(4),:) )     )
-            MomMGagB = MomMGagB + ( TmpVec + MMAero(2,BldGagNd(4),:) )* &
-                                     ( 0.5 *DRNodes(BldGagNd(4)) )
-            MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-            AllOuts(Spn4MLxb2) = DOT_PRODUCT( MomMGagB, n1(2,BldGagNd(4),:) )
-            AllOuts(Spn4MLyb2) = DOT_PRODUCT( MomMGagB, n2(2,BldGagNd(4),:) )
-            AllOuts(Spn4MLzb2) = DOT_PRODUCT( MomMGagB, n3(2,BldGagNd(4),:) )
-
-
-            IF ( NBlGages >= 5 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-               CALL CrossProd( MomMGagB, rS0S(2,TipNode,:) - rS0S(2,BldGagNd(5),:), &
-                               FSTipDrag(2,:) - TipMass(2)*( Gravity*z2 + LinAccES(2,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-               DO J = ( BldGagNd(5) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                  CALL CrossProd( TmpVec, rS0S(2,J,:) - rS0S(2,BldGagNd(5),:), &                ! Portion of MomMGagB associated with element J
-                                  FSAero(2,J,:) - MassB(2,J)*( Gravity*z2 + LinAccES(2,J,:) ) )
-                  MomMGagB = MomMGagB + ( TmpVec + MMAero(2,J,:) )*DRNodes(J)
-               ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-               CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(5)) )*j3(2,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                               FSAero(2,BldGagNd(5),:) - MassB(2,BldGagNd(5))* &
-                                  ( Gravity*z2 + LinAccES(2,BldGagNd(5),:) )     )
-               MomMGagB = MomMGagB + ( TmpVec + MMAero(2,BldGagNd(5),:) )* &
-                                        ( 0.5 *DRNodes(BldGagNd(5)) )
-               MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-               AllOuts(Spn5MLxb2) = DOT_PRODUCT( MomMGagB, n1(2,BldGagNd(5),:) )
-               AllOuts(Spn5MLyb2) = DOT_PRODUCT( MomMGagB, n2(2,BldGagNd(5),:) )
-               AllOuts(Spn5MLzb2) = DOT_PRODUCT( MomMGagB, n3(2,BldGagNd(5),:) )
-
-
-               IF ( NBlGages >= 6 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                  CALL CrossProd( MomMGagB, rS0S(2,TipNode,:) - rS0S(2,BldGagNd(6),:), &
-                                  FSTipDrag(2,:) - TipMass(2)*( Gravity*z2 + LinAccES(2,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                  DO J = ( BldGagNd(6) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                     CALL CrossProd( TmpVec, rS0S(2,J,:) - rS0S(2,BldGagNd(6),:), &                ! Portion of MomMGagB associated with element J
-                                     FSAero(2,J,:) - MassB(2,J)*( Gravity*z2 + LinAccES(2,J,:) ) )
-                     MomMGagB = MomMGagB + ( TmpVec + MMAero(2,J,:) )*DRNodes(J)
-                  ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                  CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(6)) )*j3(2,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                  FSAero(2,BldGagNd(6),:) - MassB(2,BldGagNd(6))* &
-                                     ( Gravity*z2 + LinAccES(2,BldGagNd(6),:) )     )
-                  MomMGagB = MomMGagB + ( TmpVec + MMAero(2,BldGagNd(6),:) )* &
-                                           ( 0.5 *DRNodes(BldGagNd(6)) )
-                  MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                  AllOuts(Spn6MLxb2) = DOT_PRODUCT( MomMGagB, n1(2,BldGagNd(6),:) )
-                  AllOuts(Spn6MLyb2) = DOT_PRODUCT( MomMGagB, n2(2,BldGagNd(6),:) )
-                  AllOuts(Spn6MLzb2) = DOT_PRODUCT( MomMGagB, n3(2,BldGagNd(6),:) )
-
-
-                  IF ( NBlGages >= 7 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                     CALL CrossProd( MomMGagB, rS0S(2,TipNode,:) - rS0S(2,BldGagNd(7),:), &
-                                     FSTipDrag(2,:) - TipMass(2)*( Gravity*z2 + LinAccES(2,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                     DO J = ( BldGagNd(7) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                        CALL CrossProd( TmpVec, rS0S(2,J,:) - rS0S(2,BldGagNd(7),:), &                ! Portion of MomMGagB associated with element J
-                                        FSAero(2,J,:) - MassB(2,J)*( Gravity*z2 + LinAccES(2,J,:) ) )
-                        MomMGagB = MomMGagB + ( TmpVec + MMAero(2,J,:) )*DRNodes(J)
-                     ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                     CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(7)) )*j3(2,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                     FSAero(2,BldGagNd(7),:) - MassB(2,BldGagNd(7))* &
-                                        ( Gravity*z2 + LinAccES(2,BldGagNd(7),:) )     )
-                     MomMGagB = MomMGagB + ( TmpVec + MMAero(2,BldGagNd(7),:) )* &
-                                              ( 0.5 *DRNodes(BldGagNd(7)) )
-                     MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                     AllOuts(Spn7MLxb2) = DOT_PRODUCT( MomMGagB, n1(2,BldGagNd(7),:) )
-                     AllOuts(Spn7MLyb2) = DOT_PRODUCT( MomMGagB, n2(2,BldGagNd(7),:) )
-                     AllOuts(Spn7MLzb2) = DOT_PRODUCT( MomMGagB, n3(2,BldGagNd(7),:) )
-
-
-                     IF ( NBlGages >= 8 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                        CALL CrossProd( MomMGagB, rS0S(2,TipNode,:) - rS0S(2,BldGagNd(8),:), &
-                                        FSTipDrag(2,:) - TipMass(2)*( Gravity*z2 + LinAccES(2,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                        DO J = ( BldGagNd(8) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                           CALL CrossProd( TmpVec, rS0S(2,J,:) - rS0S(2,BldGagNd(8),:), &                ! Portion of MomMGagB associated with element J
-                                           FSAero(2,J,:) - MassB(2,J)*( Gravity*z2 + LinAccES(2,J,:) ) )
-                           MomMGagB = MomMGagB + ( TmpVec + MMAero(2,J,:) )*DRNodes(J)
-                        ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                        CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(8)) )*j3(2,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                        FSAero(2,BldGagNd(8),:) - MassB(2,BldGagNd(8))* &
-                                           ( Gravity*z2 + LinAccES(2,BldGagNd(8),:) )     )
-                        MomMGagB = MomMGagB + ( TmpVec + MMAero(2,BldGagNd(8),:) )* &
-                                                 ( 0.5 *DRNodes(BldGagNd(8)) )
-                        MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                        AllOuts(Spn8MLxb2) = DOT_PRODUCT( MomMGagB, n1(2,BldGagNd(8),:) )
-                        AllOuts(Spn8MLyb2) = DOT_PRODUCT( MomMGagB, n2(2,BldGagNd(8),:) )
-                        AllOuts(Spn8MLzb2) = DOT_PRODUCT( MomMGagB, n3(2,BldGagNd(8),:) )
-
-
-                        IF ( NBlGages == 9 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                           CALL CrossProd( MomMGagB, rS0S(2,TipNode,:) - rS0S(2,BldGagNd(9),:), &
-                                           FSTipDrag(2,:) - TipMass(2)*( Gravity*z2 + LinAccES(2,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                           DO J = ( BldGagNd(9) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                              CALL CrossProd( TmpVec, rS0S(2,J,:) - rS0S(2,BldGagNd(9),:), &                ! Portion of MomMGagB associated with element J
-                                              FSAero(2,J,:) - MassB(2,J)*( Gravity*z2 + LinAccES(2,J,:) ) )
-                              MomMGagB = MomMGagB + ( TmpVec + MMAero(2,J,:) )*DRNodes(J)
-                           ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                           CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(9)) )*j3(2,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                           FSAero(2,BldGagNd(9),:) - MassB(2,BldGagNd(9))* &
-                                              ( Gravity*z2 + LinAccES(2,BldGagNd(9),:) )     )
-                           MomMGagB = MomMGagB + ( TmpVec + MMAero(2,BldGagNd(9),:) )* &
-                                                    ( 0.5 *DRNodes(BldGagNd(9)) )
-                           MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                           AllOuts(Spn9MLxb2) = DOT_PRODUCT( MomMGagB, n1(2,BldGagNd(9),:) )
-                           AllOuts(Spn9MLyb2) = DOT_PRODUCT( MomMGagB, n2(2,BldGagNd(9),:) )
-                           AllOuts(Spn9MLzb2) = DOT_PRODUCT( MomMGagB, n3(2,BldGagNd(9),:) )
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-ENDIF
-
-IF ( NumBl == 3 )  THEN ! 3-blader
-
-   ! Blade 3 Root Loads:
-
-   AllOuts( RootFxc3) = DOT_PRODUCT( FrcS0B(3,:), i1(3,:) )
-   AllOuts( RootFyc3) = DOT_PRODUCT( FrcS0B(3,:), i2(3,:) )
-   AllOuts( RootFzc3) = DOT_PRODUCT( FrcS0B(3,:), i3(3,:) )
-   AllOuts( RootFxb3) = DOT_PRODUCT( FrcS0B(3,:), j1(3,:) )
-   AllOuts( RootFyb3) = DOT_PRODUCT( FrcS0B(3,:), j2(3,:) )
-   AllOuts( RootMxc3) = DOT_PRODUCT( MomH0B(3,:), i1(3,:) )
-   AllOuts( RootMyc3) = DOT_PRODUCT( MomH0B(3,:), i2(3,:) )
-   AllOuts( RootMzc3) = DOT_PRODUCT( MomH0B(3,:), i3(3,:) )
-   AllOuts( RootMxb3) = DOT_PRODUCT( MomH0B(3,:), j1(3,:) )
-   AllOuts( RootMyb3) = DOT_PRODUCT( MomH0B(3,:), j2(3,:) )
-
-
-
-   ! Blade 3 Local Span Loads:
-
-   IF ( NBlGages >= 1 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-      CALL CrossProd( MomMGagB, rS0S(3,TipNode,:) - rS0S(3,BldGagNd(1),:), &
-                      FSTipDrag(3,:) - TipMass(3)*( Gravity*z2 + LinAccES(3,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-      DO J = ( BldGagNd(1) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-         CALL CrossProd( TmpVec, rS0S(3,J,:) - rS0S(3,BldGagNd(1),:), &                ! Portion of MomMGagB associated with element J
-                         FSAero(3,J,:) - MassB(3,J)*( Gravity*z2 + LinAccES(3,J,:) ) )
-         MomMGagB = MomMGagB + ( TmpVec + MMAero(3,J,:) )*DRNodes(J)
-      ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-      CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(1)) )*j3(3,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                      FSAero(3,BldGagNd(1),:) - MassB(3,BldGagNd(1))* &
-                         ( Gravity*z2 + LinAccES(3,BldGagNd(1),:) )     )
-      MomMGagB = MomMGagB + ( TmpVec + MMAero(3,BldGagNd(1),:) )* &
-                               ( 0.5 *DRNodes(BldGagNd(1)) )
-      MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-      AllOuts(Spn1MLxb3) = DOT_PRODUCT( MomMGagB, n1(3,BldGagNd(1),:) )
-      AllOuts(Spn1MLyb3) = DOT_PRODUCT( MomMGagB, n2(3,BldGagNd(1),:) )
-      AllOuts(Spn1MLzb3) = DOT_PRODUCT( MomMGagB, n3(3,BldGagNd(1),:) )
-
-
-      IF ( NBlGages >= 2 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-         CALL CrossProd( MomMGagB, rS0S(3,TipNode,:) - rS0S(3,BldGagNd(2),:), &
-                         FSTipDrag(3,:) - TipMass(3)*( Gravity*z2 + LinAccES(3,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-         DO J = ( BldGagNd(2) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-            CALL CrossProd( TmpVec, rS0S(3,J,:) - rS0S(3,BldGagNd(2),:), &                ! Portion of MomMGagB associated with element J
-                            FSAero(3,J,:) - MassB(3,J)*( Gravity*z2 + LinAccES(3,J,:) ) )
-            MomMGagB = MomMGagB + ( TmpVec + MMAero(3,J,:) )*DRNodes(J)
-         ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-         CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(2)) )*j3(3,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                         FSAero(3,BldGagNd(2),:) - MassB(3,BldGagNd(2))* &
-                            ( Gravity*z2 + LinAccES(3,BldGagNd(2),:) )     )
-         MomMGagB = MomMGagB + ( TmpVec + MMAero(3,BldGagNd(2),:) )* &
-                                  ( 0.5 *DRNodes(BldGagNd(2)) )
-         MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-         AllOuts(Spn2MLxb3) = DOT_PRODUCT( MomMGagB, n1(3,BldGagNd(2),:) )
-         AllOuts(Spn2MLyb3) = DOT_PRODUCT( MomMGagB, n2(3,BldGagNd(2),:) )
-         AllOuts(Spn2MLzb3) = DOT_PRODUCT( MomMGagB, n3(3,BldGagNd(2),:) )
-
-
-         IF ( NBlGages >= 3 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-            CALL CrossProd( MomMGagB, rS0S(3,TipNode,:) - rS0S(3,BldGagNd(3),:), &
-                            FSTipDrag(3,:) - TipMass(3)*( Gravity*z2 + LinAccES(3,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-            DO J = ( BldGagNd(3) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-               CALL CrossProd( TmpVec, rS0S(3,J,:) - rS0S(3,BldGagNd(3),:), &                ! Portion of MomMGagB associated with element J
-                               FSAero(3,J,:) - MassB(3,J)*( Gravity*z2 + LinAccES(3,J,:) ) )
-               MomMGagB = MomMGagB + ( TmpVec + MMAero(3,J,:) )*DRNodes(J)
-            ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-            CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(3)) )*j3(3,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                            FSAero(3,BldGagNd(3),:) - MassB(3,BldGagNd(3))* &
-                               ( Gravity*z2 + LinAccES(3,BldGagNd(3),:) )     )
-            MomMGagB = MomMGagB + ( TmpVec + MMAero(3,BldGagNd(3),:) )* &
-                                     ( 0.5 *DRNodes(BldGagNd(3)) )
-            MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-            AllOuts(Spn3MLxb3) = DOT_PRODUCT( MomMGagB, n1(3,BldGagNd(3),:) )
-            AllOuts(Spn3MLyb3) = DOT_PRODUCT( MomMGagB, n2(3,BldGagNd(3),:) )
-            AllOuts(Spn3MLzb3) = DOT_PRODUCT( MomMGagB, n3(3,BldGagNd(3),:) )
-
-
-            IF ( NBlGages >= 4 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-               CALL CrossProd( MomMGagB, rS0S(3,TipNode,:) - rS0S(3,BldGagNd(4),:), &
-                               FSTipDrag(3,:) - TipMass(3)*( Gravity*z2 + LinAccES(3,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-               DO J = ( BldGagNd(4) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                  CALL CrossProd( TmpVec, rS0S(3,J,:) - rS0S(3,BldGagNd(4),:), &                ! Portion of MomMGagB associated with element J
-                                  FSAero(3,J,:) - MassB(3,J)*( Gravity*z2 + LinAccES(3,J,:) ) )
-                  MomMGagB = MomMGagB + ( TmpVec + MMAero(3,J,:) )*DRNodes(J)
-               ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-               CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(4)) )*j3(3,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                               FSAero(3,BldGagNd(4),:) - MassB(3,BldGagNd(4))* &
-                                  ( Gravity*z2 + LinAccES(3,BldGagNd(4),:) )     )
-               MomMGagB = MomMGagB + ( TmpVec + MMAero(3,BldGagNd(4),:) )* &
-                                        ( 0.5 *DRNodes(BldGagNd(4)) )
-               MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-               AllOuts(Spn4MLxb3) = DOT_PRODUCT( MomMGagB, n1(3,BldGagNd(4),:) )
-               AllOuts(Spn4MLyb3) = DOT_PRODUCT( MomMGagB, n2(3,BldGagNd(4),:) )
-               AllOuts(Spn4MLzb3) = DOT_PRODUCT( MomMGagB, n3(3,BldGagNd(4),:) )
-
-
-               IF ( NBlGages >= 5 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                  CALL CrossProd( MomMGagB, rS0S(3,TipNode,:) - rS0S(3,BldGagNd(5),:), &
-                                  FSTipDrag(3,:) - TipMass(3)*( Gravity*z2 + LinAccES(3,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                  DO J = ( BldGagNd(5) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                     CALL CrossProd( TmpVec, rS0S(3,J,:) - rS0S(3,BldGagNd(5),:), &                ! Portion of MomMGagB associated with element J
-                                     FSAero(3,J,:) - MassB(3,J)*( Gravity*z2 + LinAccES(3,J,:) ) )
-                     MomMGagB = MomMGagB + ( TmpVec + MMAero(3,J,:) )*DRNodes(J)
-                  ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                  CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(5)) )*j3(3,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                  FSAero(3,BldGagNd(5),:) - MassB(3,BldGagNd(5))* &
-                                     ( Gravity*z2 + LinAccES(3,BldGagNd(5),:) )     )
-                  MomMGagB = MomMGagB + ( TmpVec + MMAero(3,BldGagNd(5),:) )* &
-                                           ( 0.5 *DRNodes(BldGagNd(5)) )
-                  MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                  AllOuts(Spn5MLxb3) = DOT_PRODUCT( MomMGagB, n1(3,BldGagNd(5),:) )
-                  AllOuts(Spn5MLyb3) = DOT_PRODUCT( MomMGagB, n2(3,BldGagNd(5),:) )
-                  AllOuts(Spn5MLzb3) = DOT_PRODUCT( MomMGagB, n3(3,BldGagNd(5),:) )
-
-
-                  IF ( NBlGages >= 6 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                     CALL CrossProd( MomMGagB, rS0S(3,TipNode,:) - rS0S(3,BldGagNd(6),:), &
-                                     FSTipDrag(3,:) - TipMass(3)*( Gravity*z2 + LinAccES(3,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                     DO J = ( BldGagNd(6) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                        CALL CrossProd( TmpVec, rS0S(3,J,:) - rS0S(3,BldGagNd(6),:), &                ! Portion of MomMGagB associated with element J
-                                        FSAero(3,J,:) - MassB(3,J)*( Gravity*z2 + LinAccES(3,J,:) ) )
-                        MomMGagB = MomMGagB + ( TmpVec + MMAero(3,J,:) )*DRNodes(J)
-                     ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                     CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(6)) )*j3(3,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                     FSAero(3,BldGagNd(6),:) - MassB(3,BldGagNd(6))* &
-                                        ( Gravity*z2 + LinAccES(3,BldGagNd(6),:) )     )
-                     MomMGagB = MomMGagB + ( TmpVec + MMAero(3,BldGagNd(6),:) )* &
-                                              ( 0.5 *DRNodes(BldGagNd(6)) )
-                     MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                     AllOuts(Spn6MLxb3) = DOT_PRODUCT( MomMGagB, n1(3,BldGagNd(6),:) )
-                     AllOuts(Spn6MLyb3) = DOT_PRODUCT( MomMGagB, n2(3,BldGagNd(6),:) )
-                     AllOuts(Spn6MLzb3) = DOT_PRODUCT( MomMGagB, n3(3,BldGagNd(6),:) )
-
-
-                     IF ( NBlGages >= 7 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                        CALL CrossProd( MomMGagB, rS0S(3,TipNode,:) - rS0S(3,BldGagNd(7),:), &
-                                        FSTipDrag(3,:) - TipMass(3)*( Gravity*z2 + LinAccES(3,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                        DO J = ( BldGagNd(7) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                           CALL CrossProd( TmpVec, rS0S(3,J,:) - rS0S(3,BldGagNd(7),:), &                ! Portion of MomMGagB associated with element J
-                                           FSAero(3,J,:) - MassB(3,J)*( Gravity*z2 + LinAccES(3,J,:) ) )
-                           MomMGagB = MomMGagB + ( TmpVec + MMAero(3,J,:) )*DRNodes(J)
-                        ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                        CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(7)) )*j3(3,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                        FSAero(3,BldGagNd(7),:) - MassB(3,BldGagNd(7))* &
-                                           ( Gravity*z2 + LinAccES(3,BldGagNd(7),:) )     )
-                        MomMGagB = MomMGagB + ( TmpVec + MMAero(3,BldGagNd(7),:) )* &
-                                                 ( 0.5 *DRNodes(BldGagNd(7)) )
-                        MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                        AllOuts(Spn7MLxb3) = DOT_PRODUCT( MomMGagB, n1(3,BldGagNd(7),:) )
-                        AllOuts(Spn7MLyb3) = DOT_PRODUCT( MomMGagB, n2(3,BldGagNd(7),:) )
-                        AllOuts(Spn7MLzb3) = DOT_PRODUCT( MomMGagB, n3(3,BldGagNd(7),:) )
-
-
-                        IF ( NBlGages >= 8 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                           CALL CrossProd( MomMGagB, rS0S(3,TipNode,:) - rS0S(3,BldGagNd(8),:), &
-                                           FSTipDrag(3,:) - TipMass(3)*( Gravity*z2 + LinAccES(3,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                           DO J = ( BldGagNd(8) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                              CALL CrossProd( TmpVec, rS0S(3,J,:) - rS0S(3,BldGagNd(8),:), &                ! Portion of MomMGagB associated with element J
-                                              FSAero(3,J,:) - MassB(3,J)*( Gravity*z2 + LinAccES(3,J,:) ) )
-                              MomMGagB = MomMGagB + ( TmpVec + MMAero(3,J,:) )*DRNodes(J)
-                           ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                           CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(8)) )*j3(3,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                           FSAero(3,BldGagNd(8),:) - MassB(3,BldGagNd(8))* &
-                                              ( Gravity*z2 + LinAccES(3,BldGagNd(8),:) )     )
-                           MomMGagB = MomMGagB + ( TmpVec + MMAero(3,BldGagNd(8),:) )* &
-                                                    ( 0.5 *DRNodes(BldGagNd(8)) )
-                           MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                           AllOuts(Spn8MLxb3) = DOT_PRODUCT( MomMGagB, n1(3,BldGagNd(8),:) )
-                           AllOuts(Spn8MLyb3) = DOT_PRODUCT( MomMGagB, n2(3,BldGagNd(8),:) )
-                           AllOuts(Spn8MLzb3) = DOT_PRODUCT( MomMGagB, n3(3,BldGagNd(8),:) )
-
-
-                           IF ( NBlGages == 9 )  THEN
-
-   ! Initialize MomMGagB using the tip brake effects:
-                              CALL CrossProd( MomMGagB, rS0S(3,TipNode,:) - rS0S(3,BldGagNd(9),:), &
-                                              FSTipDrag(3,:) - TipMass(3)*( Gravity*z2 + LinAccES(3,TipNode,:) ) )
-
-   ! Integrate to find MomMGagB using all of the nodes / elements above
-   !   the current strain gage location:
-                              DO J = ( BldGagNd(9) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
-                                 CALL CrossProd( TmpVec, rS0S(3,J,:) - rS0S(3,BldGagNd(9),:), &                ! Portion of MomMGagB associated with element J
-                                                 FSAero(3,J,:) - MassB(3,J)*( Gravity*z2 + LinAccES(3,J,:) ) )
-                                 MomMGagB = MomMGagB + ( TmpVec + MMAero(3,J,:) )*DRNodes(J)
-                              ENDDO ! J - Blade nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to blade bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DRNodes() and the element
-   !   length is 1/2 of DRNodes().
-                              CALL CrossProd( TmpVec, ( 0.25*DRNodes(BldGagNd(9)) )*j3(3,:),  &    ! Portion of MomMGagB associated with 1/2 of the strain gage element
-                                              FSAero(3,BldGagNd(9),:) - MassB(3,BldGagNd(9))* &
-                                                 ( Gravity*z2 + LinAccES(3,BldGagNd(9),:) )     )
-                              MomMGagB = MomMGagB + ( TmpVec + MMAero(3,BldGagNd(9),:) )* &
-                                                       ( 0.5 *DRNodes(BldGagNd(9)) )
-                              MomMGagB = 0.001*MomMGagB  ! Convert the local moment to kN-m
-
-                              AllOuts(Spn9MLxb3) = DOT_PRODUCT( MomMGagB, n1(3,BldGagNd(9),:) )
-                              AllOuts(Spn9MLyb3) = DOT_PRODUCT( MomMGagB, n2(3,BldGagNd(9),:) )
-                              AllOuts(Spn9MLzb3) = DOT_PRODUCT( MomMGagB, n3(3,BldGagNd(9),:) )
-
-                           ENDIF
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-
-ENDIF
 
 
    ! Hub and Rotor Loads:
@@ -2866,6 +1634,11 @@ IF ( AllOuts(LSShftFxa) /= 0.0 )  THEN ! .TRUE. if the denominator in the follow
    ENDIF
    AllOuts(   CThrstRad) = MIN( 1.0, SQRT( CThrstys*CThrstys + CThrstzs*CThrstzs )/AvgNrmTpRd )
 
+ELSE
+
+   AllOuts(CThrstAzm) = 0.0
+   AllOuts(CThrstRad) = 0.0
+
 ENDIF
 AllOuts(   RotPwr) = ( QDT(DOF_GeAz) + QDT(DOF_DrTr) )*AllOuts(LSShftMxa)
 IF ( ComDenom /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equations is not zero.
@@ -2873,6 +1646,12 @@ IF ( ComDenom /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equat
    AllOuts( RotCq) = 1000.0*AllOuts(LSShftMxa) / ( ComDenom*TipRad )
    AllOuts( RotCp) = 1000.0*AllOuts(   RotPwr) / ( ComDenom*AllOuts(  WindVxi) )
    AllOuts( RotCt) = 1000.0*AllOuts(LSShftFxa) /   ComDenom
+
+ELSE
+
+   AllOuts( RotCq) = 0.0
+   AllOuts( RotCp) = 0.0
+   AllOuts( RotCt) = 0.0
 
 ENDIF
 
@@ -2898,6 +1677,13 @@ IF ( ComDenom /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equat
    AllOuts( HSShftCp) = 1000.0*AllOuts(HSShftPwr) / ( ComDenom*AllOuts(  WindVxi) )
    AllOuts(    GenCq) = 1000.0*AllOuts(    GenTq) / ( ComDenom*TipRad )
    AllOuts(    GenCp) = 1000.0*AllOuts(   GenPwr) / ( ComDenom*AllOuts(  WindVxi) )
+
+ELSE
+
+   AllOuts( HSShftCq) = 0.0
+   AllOuts( HSShftCp) = 0.0
+   AllOuts(    GenCq) = 0.0
+   AllOuts(    GenCp) = 0.0
 
 ENDIF
 
@@ -2941,309 +1727,46 @@ AllOuts( TwrBsMzt) =  DOT_PRODUCT( MomX0Trb, a2 )
 FrcONcRt = 1000.0*FrcONcRt ! Convert the units of these forces and moments
 MomBNcRt = 1000.0*MomBNcRt ! from kN and kN-m back to N and N-m, respectively.
 
-IF ( NTwGages >= 1 )  THEN
+DO I=1,NTwGages
 
-   ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
-   CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(1),:), &
-                   FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO ) )
+   ! Initialize FrcFGagT and MomFGagT using the tower-top and yaw bearing mass effects:
+   FrcFGagT = FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO )
+   CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(I),:), FrcFGagT )
    MomFGagT = MomFGagT + MomBNcRt
 
-   ! Integrate to find MomFGagT using all of the nodes / elements above
-   !   the current strain gage location:
-   DO J = ( TwrGagNd(1) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-      CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(1),:), &                               ! Portion of MomFGagT associated with element J
-                      FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) ) )
+   ! Integrate to find FrcFGagT and MomFGagT using all of the nodes / elements above the current strain gage location:
+   DO J = ( TwrGagNd(I) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
+      TmpVec2  = FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) )           ! Portion of FrcFGagT associated with element J       
+      FrcFGagT = FrcFGagT + TmpVec2*DHNodes(J)
+      
+      CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(I),:), TmpVec2 )                          ! Portion of MomFGagT associated with element J
       MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
    ENDDO ! J -Tower nodes / elements above strain gage node
 
    ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to tower bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DHNodes() and the element
-   !   length is 1/2 of DHNodes().
-   CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(1)) )*a2,      &                ! Portion of MomFGagT associated with 1/2 of the strain gage element
-                   FTAero( TwrGagNd(1),:) + FTHydro(TwrGagNd(1),:) &
-                   - MassT(TwrGagNd(1))*( Gravity*z2 + LinAccET(TwrGagNd(1),:) ) )
-   MomFGagT = MomFGagT + ( TmpVec + MFAero(TwrGagNd(1),:) + MFHydro(TwrGagNd(1),:) )*&
-                           ( 0.5 *DHNodes( TwrGagNd(1)) )
+   ! NOTE: for the radius in this calculation, assume that there is no shortening
+   !   effect (due to tower bending) within the element.  Thus, the moment arm
+   !   for the force is 1/4 of DHNodes() and the element length is 1/2 of DHNodes().
+   
+   TmpVec2  = FTAero(TwrGagNd(I),:) + FTHydro(TwrGagNd(I),:) - MassT(TwrGagNd(I))*( Gravity*z2 + LinAccET(TwrGagNd(I),:) )
+   
+   FrcFGagT = FrcFGagT + TmpVec2 * 0.5 * DHNodes(TwrGagNd(I))
+   FrcFGagT = 0.001*FrcFGagT  ! Convert the local force to kN
+   
+   CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(I)) )*a2, TmpVec2 )              ! Portion of MomFGagT associated with 1/2 of the strain gage element
+   TmpVec   = TmpVec   + MFAero(TwrGagNd(I),:) + MFHydro(TwrGagNd(I),:) 
+   MomFGagT = MomFGagT + TmpVec * 0.5 * DHNodes(TwrGagNd(I)) 
    MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
 
-   AllOuts(TwHt1MLxt) =  DOT_PRODUCT( MomFGagT, t1(TwrGagNd(1),:) )
-   AllOuts(TwHt1MLyt) = -DOT_PRODUCT( MomFGagT, t3(TwrGagNd(1),:) )
-   AllOuts(TwHt1MLzt) =  DOT_PRODUCT( MomFGagT, t2(TwrGagNd(1),:) )
+   AllOuts( TwHtFLxt(I) ) =     DOT_PRODUCT( FrcFGagT, t1(TwrGagNd(I),:) )
+   AllOuts( TwHtFLyt(I) ) = -1.*DOT_PRODUCT( FrcFGagT, t3(TwrGagNd(I),:) )
+   AllOuts( TwHtFLzt(I) ) =     DOT_PRODUCT( FrcFGagT, t2(TwrGagNd(I),:) )
 
+   AllOuts( TwHtMLxt(I) ) =     DOT_PRODUCT( MomFGagT, t1(TwrGagNd(I),:) )
+   AllOuts( TwHtMLyt(I) ) = -1.*DOT_PRODUCT( MomFGagT, t3(TwrGagNd(I),:) )
+   AllOuts( TwHtMLzt(I) ) =     DOT_PRODUCT( MomFGagT, t2(TwrGagNd(I),:) )
 
-   IF ( NTwGages >= 2 )  THEN
-
-   ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
-      CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(2),:), &
-                      FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO ) )
-      MomFGagT = MomFGagT + MomBNcRt
-
-   ! Integrate to find MomFGagT using all of the nodes / elements above
-   !   the current strain gage location:
-      DO J = ( TwrGagNd(2) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-         CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(2),:), &                               ! Portion of MomFGagT associated with element J
-                         FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) ) )
-         MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
-      ENDDO ! J -Tower nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to tower bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DHNodes() and the element
-   !   length is 1/2 of DHNodes().
-      CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(2)) )*a2,      &                ! Portion of MomFGagT associated with 1/2 of the strain gage element
-                      FTAero( TwrGagNd(2),:) + FTHydro(TwrGagNd(2),:) &
-                      - MassT(TwrGagNd(2))*( Gravity*z2 + LinAccET(TwrGagNd(2),:) ) )
-      MomFGagT = MomFGagT + ( TmpVec + MFAero(TwrGagNd(2),:) + MFHydro(TwrGagNd(2),:) )*&
-                              ( 0.5 *DHNodes( TwrGagNd(2)) )
-      MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
-
-      AllOuts(TwHt2MLxt) =  DOT_PRODUCT( MomFGagT, t1(TwrGagNd(2),:) )
-      AllOuts(TwHt2MLyt) = -DOT_PRODUCT( MomFGagT, t3(TwrGagNd(2),:) )
-      AllOuts(TwHt2MLzt) =  DOT_PRODUCT( MomFGagT, t2(TwrGagNd(2),:) )
-
-
-      IF ( NTwGages >= 3 )  THEN
-
-   ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
-         CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(3),:), &
-                         FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO ) )
-         MomFGagT = MomFGagT + MomBNcRt
-
-   ! Integrate to find MomFGagT using all of the nodes / elements above
-   !   the current strain gage location:
-         DO J = ( TwrGagNd(3) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-            CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(3),:), &                               ! Portion of MomFGagT associated with element J
-                            FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) ) )
-            MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
-         ENDDO ! J -Tower nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to tower bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DHNodes() and the element
-   !   length is 1/2 of DHNodes().
-         CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(3)) )*a2,      &                ! Portion of MomFGagT associated with 1/2 of the strain gage element
-                         FTAero( TwrGagNd(3),:) + FTHydro(TwrGagNd(3),:) &
-                         - MassT(TwrGagNd(3))*( Gravity*z2 + LinAccET(TwrGagNd(3),:) ) )
-         MomFGagT = MomFGagT + ( TmpVec + MFAero(TwrGagNd(3),:) + MFHydro(TwrGagNd(3),:) )*&
-                                 ( 0.5 *DHNodes( TwrGagNd(3)) )
-         MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
-
-         AllOuts(TwHt3MLxt) =  DOT_PRODUCT( MomFGagT, t1(TwrGagNd(3),:) )
-         AllOuts(TwHt3MLyt) = -DOT_PRODUCT( MomFGagT, t3(TwrGagNd(3),:) )
-         AllOuts(TwHt3MLzt) =  DOT_PRODUCT( MomFGagT, t2(TwrGagNd(3),:) )
-
-
-         IF ( NTwGages >= 4 )  THEN
-
-   ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
-            CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(4),:), &
-                            FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO ) )
-            MomFGagT = MomFGagT + MomBNcRt
-
-   ! Integrate to find MomFGagT using all of the nodes / elements above
-   !   the current strain gage location:
-            DO J = ( TwrGagNd(4) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-               CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(4),:), &                               ! Portion of MomFGagT associated with element J
-                               FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) ) )
-               MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
-            ENDDO ! J -Tower nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to tower bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DHNodes() and the element
-   !   length is 1/2 of DHNodes().
-            CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(4)) )*a2,      &                ! Portion of MomFGagT associated with 1/2 of the strain gage element
-                            FTAero( TwrGagNd(4),:) + FTHydro(TwrGagNd(4),:) &
-                            - MassT(TwrGagNd(4))*( Gravity*z2 + LinAccET(TwrGagNd(4),:) ) )
-            MomFGagT = MomFGagT + ( TmpVec + MFAero(TwrGagNd(4),:) + MFHydro(TwrGagNd(4),:) )*&
-                                    ( 0.5 *DHNodes( TwrGagNd(4)) )
-            MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
-
-            AllOuts(TwHt4MLxt) =  DOT_PRODUCT( MomFGagT, t1(TwrGagNd(4),:) )
-            AllOuts(TwHt4MLyt) = -DOT_PRODUCT( MomFGagT, t3(TwrGagNd(4),:) )
-            AllOuts(TwHt4MLzt) =  DOT_PRODUCT( MomFGagT, t2(TwrGagNd(4),:) )
-
-            IF ( NTwGages >= 5 )  THEN
-
-   ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
-               CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(5),:), &
-                               FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO ) )
-               MomFGagT = MomFGagT + MomBNcRt
-
-   ! Integrate to find MomFGagT using all of the nodes / elements above
-   !   the current strain gage location:
-               DO J = ( TwrGagNd(5) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-                  CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(5),:), &                               ! Portion of MomFGagT associated with element J
-                                  FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) ) )
-                  MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
-               ENDDO ! J -Tower nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to tower bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DHNodes() and the element
-   !   length is 1/2 of DHNodes().
-               CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(5)) )*a2,      &                ! Portion of MomFGagT associated with 1/2 of the strain gage element
-                               FTAero( TwrGagNd(5),:) + FTHydro(TwrGagNd(5),:) &
-                               - MassT(TwrGagNd(5))*( Gravity*z2 + LinAccET(TwrGagNd(5),:) ) )
-               MomFGagT = MomFGagT + ( TmpVec + MFAero(TwrGagNd(5),:) + MFHydro(TwrGagNd(5),:) )*&
-                                       ( 0.5 *DHNodes( TwrGagNd(5)) )
-               MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
-
-               AllOuts(TwHt5MLxt) =  DOT_PRODUCT( MomFGagT, t1(TwrGagNd(5),:) )
-               AllOuts(TwHt5MLyt) = -DOT_PRODUCT( MomFGagT, t3(TwrGagNd(5),:) )
-               AllOuts(TwHt5MLzt) =  DOT_PRODUCT( MomFGagT, t2(TwrGagNd(5),:) )
-
-               IF ( NTwGages >= 6 )  THEN
-
-   ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
-                  CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(6),:), &
-                                  FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO ) )
-                  MomFGagT = MomFGagT + MomBNcRt
-
-   ! Integrate to find MomFGagT using all of the nodes / elements above
-   !   the current strain gage location:
-                  DO J = ( TwrGagNd(6) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-                     CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(6),:), &                               ! Portion of MomFGagT associated with element J
-                                     FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) ) )
-                     MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
-                  ENDDO ! J -Tower nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to tower bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DHNodes() and the element
-   !   length is 1/2 of DHNodes().
-                  CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(6)) )*a2,      &                ! Portion of MomFGagT associated with 1/2 of the strain gage element
-                                  FTAero( TwrGagNd(6),:) + FTHydro(TwrGagNd(6),:) &
-                                  - MassT(TwrGagNd(6))*( Gravity*z2 + LinAccET(TwrGagNd(6),:) ) )
-                  MomFGagT = MomFGagT + ( TmpVec + MFAero(TwrGagNd(6),:) + MFHydro(TwrGagNd(6),:) )*&
-                                          ( 0.5 *DHNodes( TwrGagNd(6)) )
-                  MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
-
-                  AllOuts(TwHt6MLxt) =     DOT_PRODUCT( MomFGagT, t1(TwrGagNd(6),:) )
-                  AllOuts(TwHt6MLyt) = -1.*DOT_PRODUCT( MomFGagT, t3(TwrGagNd(6),:) )
-                  AllOuts(TwHt6MLzt) =     DOT_PRODUCT( MomFGagT, t2(TwrGagNd(6),:) )
-
-
-                  IF ( NTwGages >= 7 )  THEN
-
-   ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
-                     CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(7),:), &
-                                     FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO ) )
-                     MomFGagT = MomFGagT + MomBNcRt
-
-   ! Integrate to find MomFGagT using all of the nodes / elements above
-   !   the current strain gage location:
-                     DO J = ( TwrGagNd(7) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-                        CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(7),:), &                               ! Portion of MomFGagT associated with element J
-                                        FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) ) )
-                        MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
-                     ENDDO ! J -Tower nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to tower bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DHNodes() and the element
-   !   length is 1/2 of DHNodes().
-                     CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(7)) )*a2,      &                ! Portion of MomFGagT associated with 1/2 of the strain gage element
-                                     FTAero( TwrGagNd(7),:) + FTHydro(TwrGagNd(7),:) &
-                                     - MassT(TwrGagNd(7))*( Gravity*z2 + LinAccET(TwrGagNd(7),:) ) )
-                     MomFGagT = MomFGagT + ( TmpVec + MFAero(TwrGagNd(7),:) + MFHydro(TwrGagNd(7),:) )*&
-                                             ( 0.5 *DHNodes( TwrGagNd(7)) )
-                     MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
-
-                     AllOuts(TwHt7MLxt) =     DOT_PRODUCT( MomFGagT, t1(TwrGagNd(7),:) )
-                     AllOuts(TwHt7MLyt) = -1.*DOT_PRODUCT( MomFGagT, t3(TwrGagNd(7),:) )
-                     AllOuts(TwHt7MLzt) =     DOT_PRODUCT( MomFGagT, t2(TwrGagNd(7),:) )
-
-
-                     IF ( NTwGages >= 8 )  THEN
-
-   ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
-                        CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(8),:), &
-                                        FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO ) )
-                        MomFGagT = MomFGagT + MomBNcRt
-
-   ! Integrate to find MomFGagT using all of the nodes / elements above
-   !   the current strain gage location:
-                        DO J = ( TwrGagNd(8) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-                           CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(8),:), &                               ! Portion of MomFGagT associated with element J
-                                           FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) ) )
-                           MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
-                        ENDDO ! J -Tower nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to tower bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DHNodes() and the element
-   !   length is 1/2 of DHNodes().
-                        CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(8)) )*a2,      &                ! Portion of MomFGagT associated with 1/2 of the strain gage element
-                                        FTAero( TwrGagNd(8),:) + FTHydro(TwrGagNd(8),:) &
-                                        - MassT(TwrGagNd(8))*( Gravity*z2 + LinAccET(TwrGagNd(8),:) ) )
-                        MomFGagT = MomFGagT + ( TmpVec + MFAero(TwrGagNd(8),:) + MFHydro(TwrGagNd(8),:) )*&
-                                                ( 0.5 *DHNodes( TwrGagNd(8)) )
-                        MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
-
-                        AllOuts(TwHt8MLxt) =     DOT_PRODUCT( MomFGagT, t1(TwrGagNd(8),:) )
-                        AllOuts(TwHt8MLyt) = -1.*DOT_PRODUCT( MomFGagT, t3(TwrGagNd(8),:) )
-                        AllOuts(TwHt8MLzt) =     DOT_PRODUCT( MomFGagT, t2(TwrGagNd(8),:) )
-
-
-                        IF ( NTwGages == 9 )  THEN
-
-   ! Initialize MomFGagT using the tower-top and yaw bearing mass effects:
-                           CALL CrossProd( MomFGagT, rZO - rZT(TwrGagNd(9),:), &
-                                           FrcONcRt - YawBrMass*( Gravity*z2 + LinAccEO ) )
-                           MomFGagT = MomFGagT + MomBNcRt
-
-   ! Integrate to find MomFGagT using all of the nodes / elements above
-   !   the current strain gage location:
-                           DO J = ( TwrGagNd(9) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-                              CALL CrossProd( TmpVec, rZT(J,:) - rZT(TwrGagNd(9),:), &                               ! Portion of MomFGagT associated with element J
-                                              FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*z2 + LinAccET(J,:) ) )
-                              MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
-                           ENDDO ! J -Tower nodes / elements above strain gage node
-
-   ! Add the effects of 1/2 the strain gage element:
-   ! NOTE: for the radius in this calculation, assume that there is no
-   !   shortening effect (due to tower bending) within the element.  Thus,
-   !   the moment arm for the force is 1/4 of DHNodes() and the element
-   !   length is 1/2 of DHNodes().
-                           CALL CrossProd( TmpVec, ( 0.25*DHNodes( TwrGagNd(9)) )*a2,      &                ! Portion of MomFGagT associated with 1/2 of the strain gage element
-                                           FTAero( TwrGagNd(9),:) + FTHydro(TwrGagNd(9),:) &
-                                           - MassT(TwrGagNd(9))*( Gravity*z2 + LinAccET(TwrGagNd(9),:) ) )
-                           MomFGagT = MomFGagT + ( TmpVec + MFAero(TwrGagNd(9),:) + MFHydro(TwrGagNd(9),:) )*&
-                                                   ( 0.5 *DHNodes( TwrGagNd(9)) )
-                           MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
-
-                           AllOuts(TwHt9MLxt) =     DOT_PRODUCT( MomFGagT, t1(TwrGagNd(9),:) )
-                           AllOuts(TwHt9MLyt) = -1.*DOT_PRODUCT( MomFGagT, t3(TwrGagNd(9),:) )
-                           AllOuts(TwHt9MLzt) =     DOT_PRODUCT( MomFGagT, t2(TwrGagNd(9),:) )
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-ENDIF
+END DO
 
 
    ! Platform Loads:
@@ -3262,113 +1785,110 @@ AllOuts(  PtfmMyi) = -DOT_PRODUCT( MXHydro, z3 )
 AllOuts(  PtfmMzi) =  DOT_PRODUCT( MXHydro, z2 )
 
 
-
 IF ( CompHydro )  THEN  ! Hydrodynamics have been used
 
 
    ! Mooring Line Loads:
+   DO I = 1,NumLines
+      CALL FairleadTension ( I, FairTe, FairTeAng )
+      CALL AnchorTension   ( I, AnchTe, AnchTeAng )
+      AllOuts( FairTen(I) ) = FairTe   *0.001   ! Convert to kN
+      AllOuts( FairAng(I) ) = FairTeAng*R2D     ! Convert to degrees
+      AllOuts( AnchTen(I) ) = AnchTe   *0.001   ! Convert to kN
+      AllOuts( AnchAng(I) ) = AnchTeAng*R2D     ! Convert to degrees
+   END DO
 
-   IF ( NumLines >= 1 )  THEN
-
-      CALL FairleadTension ( 1, FairTe, FairTeAng )
-      CALL AnchorTension   ( 1, AnchTe, AnchTeAng )
-      AllOuts(Fair1Ten ) = FairTe   *0.001   ! Convert to kN
-      AllOuts(Fair1Ang ) = FairTeAng*R2D     ! Convert to degrees
-      AllOuts(Anch1Ten ) = AnchTe   *0.001   ! Convert to kN
-      AllOuts(Anch1Ang ) = AnchTeAng*R2D     ! Convert to degrees
-
-      IF ( NumLines >= 2 )  THEN
-
-         CALL FairleadTension ( 2, FairTe, FairTeAng )
-         CALL AnchorTension   ( 2, AnchTe, AnchTeAng )
-         AllOuts(Fair2Ten ) = FairTe   *0.001   ! Convert to kN
-         AllOuts(Fair2Ang ) = FairTeAng*R2D     ! Convert to degrees
-         AllOuts(Anch2Ten ) = AnchTe   *0.001   ! Convert to kN
-         AllOuts(Anch2Ang ) = AnchTeAng*R2D     ! Convert to degrees
-
-         IF ( NumLines >= 3 )  THEN
-
-            CALL FairleadTension ( 3, FairTe, FairTeAng )
-            CALL AnchorTension   ( 3, AnchTe, AnchTeAng )
-            AllOuts(Fair3Ten ) = FairTe   *0.001   ! Convert to kN
-            AllOuts(Fair3Ang ) = FairTeAng*R2D     ! Convert to degrees
-            AllOuts(Anch3Ten ) = AnchTe   *0.001   ! Convert to kN
-            AllOuts(Anch3Ang ) = AnchTeAng*R2D     ! Convert to degrees
-
-            IF ( NumLines >= 4 )  THEN
-
-               CALL FairleadTension ( 4, FairTe, FairTeAng )
-               CALL AnchorTension   ( 4, AnchTe, AnchTeAng )
-               AllOuts(Fair4Ten ) = FairTe   *0.001   ! Convert to kN
-               AllOuts(Fair4Ang ) = FairTeAng*R2D     ! Convert to degrees
-               AllOuts(Anch4Ten ) = AnchTe   *0.001   ! Convert to kN
-               AllOuts(Anch4Ang ) = AnchTeAng*R2D     ! Convert to degrees
-
-               IF ( NumLines >= 5 )  THEN
-
-                  CALL FairleadTension ( 5, FairTe, FairTeAng )
-                  CALL AnchorTension   ( 5, AnchTe, AnchTeAng )
-                  AllOuts(Fair5Ten ) = FairTe   *0.001   ! Convert to kN
-                  AllOuts(Fair5Ang ) = FairTeAng*R2D     ! Convert to degrees
-                  AllOuts(Anch5Ten ) = AnchTe   *0.001   ! Convert to kN
-                  AllOuts(Anch5Ang ) = AnchTeAng*R2D     ! Convert to degrees
-
-                  IF ( NumLines >= 6 )  THEN
-
-                     CALL FairleadTension ( 6, FairTe, FairTeAng )
-                     CALL AnchorTension   ( 6, AnchTe, AnchTeAng )
-                     AllOuts(Fair6Ten ) = FairTe   *0.001   ! Convert to kN
-                     AllOuts(Fair6Ang ) = FairTeAng*R2D     ! Convert to degrees
-                     AllOuts(Anch6Ten ) = AnchTe   *0.001   ! Convert to kN
-                     AllOuts(Anch6Ang ) = AnchTeAng*R2D     ! Convert to degrees
-
-                     IF ( NumLines >= 7 )  THEN
-
-                        CALL FairleadTension ( 7, FairTe, FairTeAng )
-                        CALL AnchorTension   ( 7, AnchTe, AnchTeAng )
-                        AllOuts(Fair7Ten ) = FairTe   *0.001   ! Convert to kN
-                        AllOuts(Fair7Ang ) = FairTeAng*R2D     ! Convert to degrees
-                        AllOuts(Anch7Ten ) = AnchTe   *0.001   ! Convert to kN
-                        AllOuts(Anch7Ang ) = AnchTeAng*R2D     ! Convert to degrees
-
-                        IF ( NumLines >= 8 )  THEN
-
-                           CALL FairleadTension ( 8, FairTe, FairTeAng )
-                           CALL AnchorTension   ( 8, AnchTe, AnchTeAng )
-                           AllOuts(Fair8Ten ) = FairTe   *0.001   ! Convert to kN
-                           AllOuts(Fair8Ang ) = FairTeAng*R2D     ! Convert to degrees
-                           AllOuts(Anch8Ten ) = AnchTe   *0.001   ! Convert to kN
-                           AllOuts(Anch8Ang ) = AnchTeAng*R2D     ! Convert to degrees
-
-                           IF ( NumLines >= 9 )  THEN
-
-                              CALL FairleadTension ( 9, FairTe, FairTeAng )
-                              CALL AnchorTension   ( 9, AnchTe, AnchTeAng )
-                              AllOuts(Fair9Ten ) = FairTe   *0.001   ! Convert to kN
-                              AllOuts(Fair9Ang ) = FairTeAng*R2D     ! Convert to degrees
-                              AllOuts(Anch9Ten ) = AnchTe   *0.001   ! Convert to kN
-                              AllOuts(Anch9Ang ) = AnchTeAng*R2D     ! Convert to degrees
-
-                           ENDIF
-
-                        ENDIF
-
-                     ENDIF
-
-                  ENDIF
-
-               ENDIF
-
-            ENDIF
-
-         ENDIF
-
-      ENDIF
-
-   ENDIF
+END IF
 
 
-ENDIF
+   ! Internal DOF outputs:
+
+AllOuts( Q_B1E1   ) = QT(   DOF_BE(1,1) )
+AllOuts( Q_B2E1   ) = QT(   DOF_BE(2,1) )
+AllOuts( Q_B1F1   ) = QT(   DOF_BF(1,1) )
+AllOuts( Q_B2F1   ) = QT(   DOF_BF(2,1) )
+AllOuts( Q_B1F2   ) = QT(   DOF_BF(1,2) )
+AllOuts( Q_B2F2   ) = QT(   DOF_BF(2,2) )
+AllOuts( Q_DrTr   ) = QT(   DOF_DrTr    )
+AllOuts( Q_GeAz   ) = QT(   DOF_GeAz    )
+AllOuts( Q_RFrl   ) = QT(   DOF_RFrl    )
+AllOuts( Q_TFrl   ) = QT(   DOF_TFrl    )
+AllOuts( Q_Yaw    ) = QT(   DOF_Yaw     )
+AllOuts( Q_TFA1   ) = QT(   DOF_TFA1    )
+AllOuts( Q_TSS1   ) = QT(   DOF_TSS1    )
+AllOuts( Q_TFA2   ) = QT(   DOF_TFA2    )
+AllOuts( Q_TSS2   ) = QT(   DOF_TSS2    )
+AllOuts( Q_Sg     ) = QT(   DOF_Sg      )
+AllOuts( Q_Sw     ) = QT(   DOF_Sw      )
+AllOuts( Q_Hv     ) = QT(   DOF_Hv      )
+AllOuts( Q_R      ) = QT(   DOF_R       )
+AllOuts( Q_P      ) = QT(   DOF_P       )
+AllOuts( Q_Y      ) = QT(   DOF_Y       )
+
+AllOuts( QD_B1E1  ) = QDT(  DOF_BE(1,1) )
+AllOuts( QD_B2E1  ) = QDT(  DOF_BE(2,1) )
+AllOuts( QD_B1F1  ) = QDT(  DOF_BF(1,1) )
+AllOuts( QD_B2F1  ) = QDT(  DOF_BF(2,1) )
+AllOuts( QD_B1F2  ) = QDT(  DOF_BF(1,2) )
+AllOuts( QD_B2F2  ) = QDT(  DOF_BF(2,2) )
+AllOuts( QD_DrTr  ) = QDT(  DOF_DrTr    )
+AllOuts( QD_GeAz  ) = QDT(  DOF_GeAz    )
+AllOuts( QD_RFrl  ) = QDT(  DOF_RFrl    )
+AllOuts( QD_TFrl  ) = QDT(  DOF_TFrl    )
+AllOuts( QD_Yaw   ) = QDT(  DOF_Yaw     )
+AllOuts( QD_TFA1  ) = QDT(  DOF_TFA1    )
+AllOuts( QD_TSS1  ) = QDT(  DOF_TSS1    )
+AllOuts( QD_TFA2  ) = QDT(  DOF_TFA2    )
+AllOuts( QD_TSS2  ) = QDT(  DOF_TSS2    )
+AllOuts( QD_Sg    ) = QDT(  DOF_Sg      )
+AllOuts( QD_Sw    ) = QDT(  DOF_Sw      )
+AllOuts( QD_Hv    ) = QDT(  DOF_Hv      )
+AllOuts( QD_R     ) = QDT(  DOF_R       )
+AllOuts( QD_P     ) = QDT(  DOF_P       )
+AllOuts( QD_Y     ) = QDT(  DOF_Y       )
+
+AllOuts( QD2_B1E1 ) = QD2T( DOF_BE(1,1) )
+AllOuts( QD2_B2E1 ) = QD2T( DOF_BE(2,1) )
+AllOuts( QD2_B1F1 ) = QD2T( DOF_BF(1,1) )
+AllOuts( QD2_B2F1 ) = QD2T( DOF_BF(2,1) )
+AllOuts( QD2_B1F2 ) = QD2T( DOF_BF(1,2) )
+AllOuts( QD2_B2F2 ) = QD2T( DOF_BF(2,2) )
+AllOuts( QD2_DrTr ) = QD2T( DOF_DrTr    )
+AllOuts( QD2_GeAz ) = QD2T( DOF_GeAz    )
+AllOuts( QD2_RFrl ) = QD2T( DOF_RFrl    )
+AllOuts( QD2_TFrl ) = QD2T( DOF_TFrl    )
+AllOuts( QD2_Yaw  ) = QD2T( DOF_Yaw     )
+AllOuts( QD2_TFA1 ) = QD2T( DOF_TFA1    )
+AllOuts( QD2_TSS1 ) = QD2T( DOF_TSS1    )
+AllOuts( QD2_TFA2 ) = QD2T( DOF_TFA2    )
+AllOuts( QD2_TSS2 ) = QD2T( DOF_TSS2    )
+AllOuts( QD2_Sg   ) = QD2T( DOF_Sg      )
+AllOuts( QD2_Sw   ) = QD2T( DOF_Sw      )
+AllOuts( QD2_Hv   ) = QD2T( DOF_Hv      )
+AllOuts( QD2_R    ) = QD2T( DOF_R       )
+AllOuts( QD2_P    ) = QD2T( DOF_P       )
+AllOuts( QD2_Y    ) = QD2T( DOF_Y       )
+
+IF ( NumBl > 2 ) THEN
+   AllOuts( Q_B3E1   ) = QT(   DOF_BE(3,1) )
+   AllOuts( Q_B3F1   ) = QT(   DOF_BF(3,1) )
+   AllOuts( Q_B3F2   ) = QT(   DOF_BF(3,2) )
+   
+   AllOuts( QD_B3E1  ) = QDT(  DOF_BE(3,1) )
+   AllOuts( QD_B3F1  ) = QDT(  DOF_BF(3,1) )
+   AllOuts( QD_B3F2  ) = QDT(  DOF_BF(3,2) )
+
+   AllOuts( QD2_B3E1 ) = QD2T( DOF_BE(3,1) )
+   AllOuts( QD2_B3F1 ) = QD2T( DOF_BF(3,1) )
+   AllOuts( QD2_B3F2 ) = QD2T( DOF_BF(3,2) )
+   
+ELSE
+   AllOuts( Q_Teet   ) = QT(   DOF_Teet    )
+   AllOuts( QD_Teet  ) = QDT(  DOF_Teet    )
+   AllOuts( QD2_Teet ) = QD2T( DOF_Teet    )
+END IF
+
+
 
 
    ! Place the selected output channels into the OutData(:) array with
@@ -3376,7 +1896,7 @@ ENDIF
 
 DO I = 0,NumOuts  ! Loop through all selected output channels
 
-   OutData(I) = OutSign(I)*AllOuts( OutInd(I) )
+   OutData(I) = OutParam(I)%SignM * AllOuts( OutParam(I)%Indx )
 
 ENDDO             ! I - All selected output channels
 
@@ -4359,7 +2879,7 @@ DO K = 1,NumBl ! Loop through all blades
 
       BlPitchCom    (K) = BlPitchI(K) + BlPitchFrct(K)*( ZTime - TPitManS(K) )   ! Increment the blade pitch using BlPitchFrct
 
-
+!bjj: check that BlPitchI and BlPitchFrct are explicitly initialized...
    ENDIF
 
 
@@ -5106,15 +3626,16 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(MFHydro                            ) ) DEALLOCATE(MFHydro                            )
    IF ( ALLOCATED(MomH0B                             ) ) DEALLOCATE(MomH0B                             )
    IF ( ALLOCATED(OutData                            ) ) DEALLOCATE(OutData                            )
-   IF ( ALLOCATED(OutInd                             ) ) DEALLOCATE(OutInd                             )
-   IF ( ALLOCATED(OutSign                            ) ) DEALLOCATE(OutSign                            )
    IF ( ALLOCATED(OutParam                           ) ) DEALLOCATE(OutParam                           )
 
 
       ! MODULE RtHndSid
 
    IF ( ALLOCATED(AngAccEFt                          ) ) DEALLOCATE(AngAccEFt                          )
+   IF ( ALLOCATED(AngPosEF                           ) ) DEALLOCATE(AngPosEF                           )
+   IF ( ALLOCATED(AngPosXF                           ) ) DEALLOCATE(AngPosXF                           )
    IF ( ALLOCATED(AngPosHM                           ) ) DEALLOCATE(AngPosHM                           )
+   IF ( ALLOCATED(AngVelEF                           ) ) DEALLOCATE(AngVelEF                           )
    IF ( ALLOCATED(AugMat                             ) ) DEALLOCATE(AugMat                             )
    IF ( ALLOCATED(FrcS0Bt                            ) ) DEALLOCATE(FrcS0Bt                            )
    IF ( ALLOCATED(FSAero                             ) ) DEALLOCATE(FSAero                             )
@@ -5124,6 +3645,7 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(LinAccESt                          ) ) DEALLOCATE(LinAccESt                          )
    IF ( ALLOCATED(LinAccETt                          ) ) DEALLOCATE(LinAccETt                          )
    IF ( ALLOCATED(LinVelESm2                         ) ) DEALLOCATE(LinVelESm2                         )
+   IF ( ALLOCATED(LinVelET                           ) ) DEALLOCATE(LinVelET                           )
    IF ( ALLOCATED(MFAero                             ) ) DEALLOCATE(MFAero                             )
    IF ( ALLOCATED(MFHydrot                           ) ) DEALLOCATE(MFHydrot                           )
    IF ( ALLOCATED(MomH0Bt                            ) ) DEALLOCATE(MomH0Bt                            )
@@ -5178,6 +3700,7 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(rQS                                ) ) DEALLOCATE(rQS                                )
    IF ( ALLOCATED(rS                                 ) ) DEALLOCATE(rS                                 )
    IF ( ALLOCATED(rS0S                               ) ) DEALLOCATE(rS0S                               )
+   IF ( ALLOCATED(rT                                 ) ) DEALLOCATE(rT                                 )
    IF ( ALLOCATED(rT0T                               ) ) DEALLOCATE(rT0T                               )
    IF ( ALLOCATED(rZT                                ) ) DEALLOCATE(rZT                                )
    IF ( ALLOCATED(SolnVec                            ) ) DEALLOCATE(SolnVec                            )
@@ -6412,10 +4935,9 @@ REAL(ReKi)                   :: AngAccEGt (3)                                   
 REAL(ReKi)                   :: AngAccEHt (3)                                   ! Portion of the angular acceleration of the hub                                                       (body H) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: AngAccELt (3)                                   ! Portion of the angular acceleration of the low-speed shaft                                           (body L) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: AngAccENt (3)                                   ! Portion of the angular acceleration of the nacelle                                                   (body N) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
-REAL(ReKi)                   :: AngPosEF  (3)                                   ! Angular position of the current point on the tower (body F) in the inertial frame (body E for earth).
+
 REAL(ReKi)                   :: AngPosEX  (3)                                   ! Angular position of the platform                   (body X) in the inertial frame (body E for earth).
 REAL(ReKi)                   :: AngVelEA  (3)                                   ! Angular velocity of the tail                                                      (body A) in the inertia frame (body E for earth).
-REAL(ReKi)                   :: AngVelEF  (3)                                   ! Angular velocity of the current point on the tower                                (body F) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngVelEG  (3)                                   ! Angular velocity of the generator                                                 (body G) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngVelEH  (3)                                   ! Angular velocity of the hub                                                       (body H) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngVelEL  (3)                                   ! Angular velocity of the low-speed shaft                                           (body L) in the inertia frame (body E for earth).
@@ -6451,7 +4973,6 @@ REAL(ReKi)                   :: LinAccEWt (3)                                   
 REAL(ReKi)                   :: LinAccEYt (3)                                   ! Portion of the linear acceleration of the platform center of mass                                                         (point Y) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: LinVelEK  (3)                                   ! Linear velocity of tail fin center-of-pressure        (point K) in the inertia frame.
 REAL(ReKi)                   :: LinVelES  (3)                                   ! Linear velocity of current point on the current blade (point S) in the inertia frame.
-REAL(ReKi)                   :: LinVelET  (3)                                   ! Linear velocity of current point on the tower         (point T) in the inertia frame.
 REAL(ReKi)                   :: LinVelEPYaw(3) ! This is the linear velocity of the hub in the inertia frame due solely to yaw and rotor-furl effects
 REAL(ReKi)                   :: LinVelHS  (3)                                   ! Relative linear velocity of the current point on the current blade (point S) in the hub frame (body H)
 REAL(ReKi)                   :: LinVelXO  (3)                                   ! Relative linear velocity of the tower-top / base plate             (point O) in the platform  (body X).
@@ -6479,7 +5000,6 @@ REAL(ReKi)                   :: rWI       (3)                                   
 REAL(ReKi)                   :: rWJ       (3)                                   ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J).
 REAL(ReKi)                   :: rWK       (3)                                   ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K).
 REAL(ReKi)                   :: rSAerCen  (3)                                   ! Position vector from a blade analysis node (point S) on the current blade to the aerodynamic center associated with the element.
-REAL(ReKi)                   :: rT        (3)                                   ! Position vector from inertial frame origin to the current node (point T(HNodes(J)).
 
 REAL(ReKi)                   :: rZT0      (3)                                   ! Position vector from platform reference (point Z) to tower base (point T(0)).
 REAL(ReKi)                   :: rZY       (3)                                   ! Position vector from platform reference (point Z) to platform mass center (point Y).
@@ -6652,12 +5172,6 @@ DO K = 1,NumBl ! Loop through all blades
 
 
 !JASON: WE SHOULD REALLY BE PASSING TO AERODYN THE LINEAR VELOCITIES OF THE AERODYNAMIC CENTER IN THE INERTIA FRAME, NOT SIMPLY THE LINEAR VELOCITIES OF POINT S.  IS THERE ANY WAY OF GETTING THIS VELOCITY?<--DO THIS, WHEN YOU ADD THE COUPLED MODE SHAPES!!!!
-!         ADAeroMarkers%Blade(J,K)%TranslationVel(:)= (/ LinVelES(1), -1.*LinVelES(3),  LinVelES(2)  /)  !AeroDyn's coordinates
-
-!         ADCurrentTurbineState%RLocal(J,K)          = SQRT(   ( DOT_PRODUCT( rPAerCen, e2) )**2 &    ! = the perpendicular distance from the low-speed shaft to the current blade aerodynamic center.
-!                                                            + ( DOT_PRODUCT( rPAerCen, e3) )**2   )
-!
-!         ADCurrentTurbineState%ElementPitch(J,K)    = BlPitch( K ) + AeroTwst( J )
       END IF  ! CompAero
 
    END DO !J = 1,BldNodes ! Loop through the blade nodes / elements
@@ -6666,7 +5180,7 @@ END DO !K = 1,NumBl
 
 
    ! the hub position should use rQ instead of rP, but the current version of AeroDyn treats
-   ! teeter deflections lake blade deflections:
+   ! teeter deflections like blade deflections:
    
 
 ADInterfaceComponents%Hub%Position(:)       = (/ rP(1), -1.*rP(3), rP(2) - PtfmRef /)
@@ -6704,9 +5218,6 @@ DO K = 1,NumBl
    END DO !J = 1,BldNodes ! Loop through the blade nodes / elements
 END DO !K = 1,NumBl
 
-! ADAeroMarkers%Blade(J,K)%Orientation(1,:) = (/ m1(K,J,1),   -1.*m1(K,J,3),    m1(K,J,2) /)  !BJJ: if FAST's arrays are stored with J on the left (inner loop), these loops would probably be faster!
-! ADAeroMarkers%Blade(J,K)%Orientation(2,:) = (/ m2(K,J,1),   -1.*m2(K,J,3),    m2(K,J,2) /)
-! ADAeroMarkers%Blade(J,K)%Orientation(3,:) = (/ m3(K,J,1),   -1.*m3(K,J,3),    m3(K,J,2) /)
    
    
       ! Blade root orientations should use the j instead of i system, but the current version
@@ -6863,7 +5374,6 @@ CALL CrossProd( PAngVelEA(DOF_TFrl,1,:),   AngVelEN,                 PAngVelEA(D
                  AngAccEAt              =  AngAccENt + QDT(DOF_TFrl)*PAngVelEA(DOF_TFrl,1,:)
 
 
-!ADCurrentTurbineState%RotorSpeed   = ABS( QDT(DOF_DrTr) + QDT(DOF_GeAz) )
 
 DO K = 1,NumBl ! Loop through all blades
 
@@ -6917,9 +5427,9 @@ DO K = 1,NumBl ! Loop through all blades
 !       AngVelHM(K,J              ,:) =  AngVelEH + QDT(DOF_BF(K,1))*PAngVelEM(K,J,DOF_BF(K,1),0,:) & ! Currently
 !                                                 + QDT(DOF_BF(K,2))*PAngVelEM(K,J,DOF_BF(K,2),0,:) & ! unused
 !                                                 + QDT(DOF_BE(K,1))*PAngVelEM(K,J,DOF_BE(K,1),0,:)   ! calculations
-!       AngPosHM(K,J              ,:) =             QT (DOF_BF(K,1))*PAngVelEM(K,J,DOF_BF(K,1),0,:) & ! Currently
-!                                                 + QT (DOF_BF(K,2))*PAngVelEM(K,J,DOF_BF(K,2),0,:) & ! unused
-!                                                 + QT (DOF_BE(K,1))*PAngVelEM(K,J,DOF_BE(K,1),0,:)   ! calculations
+       AngPosHM(K,J              ,:) =             QT (DOF_BF(K,1))*PAngVelEM(K,J,DOF_BF(K,1),0,:) &
+                                                 + QT (DOF_BF(K,2))*PAngVelEM(K,J,DOF_BF(K,2),0,:) &
+                                                 + QT (DOF_BE(K,1))*PAngVelEM(K,J,DOF_BE(K,1),0,:)  
 
 
    ! Define the 1st derivatives of the partial angular velocities of the current node (body M(RNodes(J))) in the inertia frame:
@@ -7215,6 +5725,7 @@ DO K = 1,NumBl ! Loop through all blades
 
    ENDDO          ! I - all DOFs associated with the angular motion of the hub (body H)
 
+!JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
    LinVelESm2(K) = DOT_PRODUCT( LinVelES, m2(K,BldNodes,:) )
 
 
@@ -7850,6 +6361,9 @@ DO I = 1,NPTTE    ! Loop through all active (enabled) tower DOFs that contribute
                                                    TmpVec1                   )   ! NOTE: TmpVec1 is still the portion of FrcT0Trbt associated with YawBrMass
 ENDDO             ! I - All active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing (point O)
 
+!----------------------------------------------------------------------------------------------------
+! Get the tower element positions, velocities, and partial velocities
+!----------------------------------------------------------------------------------------------------
 
 
 DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
@@ -7867,7 +6381,8 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
              + ( TwrSSSF(1,J,0)*QT(DOF_TSS1) + TwrSSSF(2,J,0)*QT(DOF_TSS2)             )*a3
    rZT (J,:) = rZT0 + rT0T(J,:)                                                                 ! Position vector from platform reference (point Z) to the current node (point T(HNodes(J)).
 
-   rT        = rZ   + rZT (J,:)                                                                 ! Position vector from inertial frame origin        to the current node (point T(HNodes(J)).
+
+   rT(J,:)      = rZ   + rZT (J,:)                                                                 ! Position vector from inertial frame origin        to the current node (point T(HNodes(J)).
 
 
    ! Define the partial angular velocities (and their 1st derivatives) of the
@@ -7891,14 +6406,17 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
    CALL CrossProd( PAngVelEF (J,DOF_TFA2,1,:) ,  AngVelEX       ,          PAngVelEF(J,DOF_TFA2,0,:) )
    CALL CrossProd( PAngVelEF (J,DOF_TSS2,1,:) ,  AngVelEX       ,          PAngVelEF(J,DOF_TSS2,0,:) )
 
-                    AngVelEF       =             AngVelEX  + QDT(DOF_TFA1)*PAngVelEF(J,DOF_TFA1,0,:) &
+
+                    AngVelEF(J,:)  =             AngVelEX  + QDT(DOF_TFA1)*PAngVelEF(J,DOF_TFA1,0,:) &
                                                            + QDT(DOF_TSS1)*PAngVelEF(J,DOF_TSS1,0,:) &
                                                            + QDT(DOF_TFA2)*PAngVelEF(J,DOF_TFA2,0,:) &
                                                            + QDT(DOF_TSS2)*PAngVelEF(J,DOF_TSS2,0,:)
-                    AngPosEF       =             AngPosEX  + QT (DOF_TFA1)*PAngVelEF(J,DOF_TFA1,0,:) &
+
+                    AngPosXF(J,:)  =                         QT (DOF_TFA1)*PAngVelEF(J,DOF_TFA1,0,:) &
                                                            + QT (DOF_TSS1)*PAngVelEF(J,DOF_TSS1,0,:) &
                                                            + QT (DOF_TFA2)*PAngVelEF(J,DOF_TFA2,0,:) &
                                                            + QT (DOF_TSS2)*PAngVelEF(J,DOF_TSS2,0,:)
+                    AngPosEF(J,:)  =             AngPosEX  + AngPosXF(J,:)
                     AngAccEFt(J,:) =             AngAccEXt + QDT(DOF_TFA1)*PAngVelEF(J,DOF_TFA1,1,:) &
                                                            + QDT(DOF_TSS1)*PAngVelEF(J,DOF_TSS1,1,:) &
                                                            + QDT(DOF_TFA2)*PAngVelEF(J,DOF_TFA2,1,:) &
@@ -7946,7 +6464,7 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
                   + QDT(DOF_TFA2)*PLinVelET(J,DOF_TFA2,1,:) &
                   + QDT(DOF_TSS2)*PLinVelET(J,DOF_TSS2,1,:)
 
-   LinVelET       = LinVelXT + LinVelEZ
+   LinVelET(J,:)  = LinVelXT + LinVelEZ
    DO I = 1,NPX   ! Loop through all DOFs associated with the angular motion of the platform (body X)
 
       CALL CrossProd( TmpVec0, PAngVelEX(PX(I),0,:),     rZT(J,:)            )
@@ -7955,12 +6473,15 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
       PLinVelET(J,PX(I),0,:) = PLinVelET(J,PX(I),0,:) + TmpVec0
       PLinVelET(J,PX(I),1,:) = PLinVelET(J,PX(I),1,:) + TmpVec1
 
-      LinVelET               = LinVelET               + QDT(PX(I))*PLinVelET(J,PX(I),0,:)
+      LinVelET( J,        :) = LinVelET( J,        :) + QDT(PX(I))*PLinVelET(J,PX(I),0,:)
       LinAccETt(J,        :) = LinAccETt(J,        :) + QDT(PX(I))*PLinVelET(J,PX(I),1,:)
 
    ENDDO          ! I - all DOFs associated with the angular motion of the platform (body X)
 
 
+!----------------------------------------------------------------------------------------------------
+! Calculate tower loads (aerodynamic and hydrodynamic)
+!----------------------------------------------------------------------------------------------------
    ! Calculate the aerodynamic forces and moments per unit length at the
    !   current tower element:
    ! NOTE: FTAero(J,:) = aerodynamic force per unit length acting on tower node J.
@@ -7981,8 +6502,9 @@ DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
    ! Let's compute the tower hydrodynamic loading; that is TwrAM(1:6,1:6) and
    !   TwrFt(1:6).
 
-   CALL TwrLoading ( J, rT      (1), -rT      (3), ( rT      (2) - PtfmRef ), AngPosEF(1), -AngPosEF(3), AngPosEF(2), &
-                        LinVelET(1), -LinVelET(3),   LinVelET(2)            , AngVelEF(1), -AngVelEF(3), AngVelEF(2)    )
+
+   CALL TwrLoading ( J, rT(   J,1), -rT(      J,3), ( rT(      J,2) - PtfmRef ), AngPosEF(J,1), -AngPosEF(J,3), AngPosEF(J,2), &
+                     LinVelET(J,1), -LinVelET(J,3),   LinVelET(J,2)            , AngVelEF(J,1), -AngVelEF(J,3), AngVelEF(J,2)  )
 
 
 
@@ -8372,7 +6894,6 @@ IF ( DOF_Flag (DOF_RFrl) )  THEN
                                 +  RFrlMom                                                      ! + {-f(qd,q,t)}SpringRF + {-f(qd,q,t)}DampRF
 ENDIF
 
-!this must be defined for use later, regardless of DOF_Flag (DOF_GeAz)
 TmpVec = GenIner*c1*DOT_PRODUCT( c1, PAngVelEG(DOF_GeAz,0,:) )  ! = ( generator inertia dyadic ) Dot ( partial angular velocity of G in E for DOF_GeAz )
 
 IF ( DOF_Flag (DOF_GeAz) )  THEN
@@ -8596,6 +7117,7 @@ USE                             CoordSys
 USE                             DOFs
 USE                             RtHndSid
 USE                             Tower
+USE                             SimCont, ONLY: ZTime
 USE                             TurbConf
 USE                             TurbCont
 
@@ -8652,7 +7174,7 @@ z3 = (/ 0.0, 0.0, 1.0 /)   ! Vector / direction z3 (= -yi from the IEC coord. sy
 
    ! Tower base / platform coordinate system:
 
-CALL SmllRotTrans( 'platform displacement', QT(DOF_R), QT(DOF_Y), -QT(DOF_P), TransMat )  ! Get the transformation matrix, TransMat, from inertial frame to tower base / platform coordinate systems.
+CALL SmllRotTrans( 'platform displacement', QT(DOF_R), QT(DOF_Y), -QT(DOF_P), TransMat, TRIM(Num2LStr(ZTime))//' s' )  ! Get the transformation matrix, TransMat, from inertial frame to tower base / platform coordinate systems.
 
 a1 = TransMat(1,1)*z1 + TransMat(1,2)*z2 + TransMat(1,3)*z3 ! Vector / direction a1 (=  xt from the IEC coord. system).
 a2 = TransMat(2,1)*z1 + TransMat(2,2)*z2 + TransMat(2,3)*z3 ! Vector / direction a2 (=  zt from the IEC coord. system).
@@ -8667,7 +7189,7 @@ DO J = 1,TwrNodes ! Loop through the tower nodes / elements
    ThetaFA = -TwrFASF(1,J       ,1)*QT(DOF_TFA1) - TwrFASF(2,J       ,1)*QT(DOF_TFA2)
    ThetaSS =  TwrSSSF(1,J       ,1)*QT(DOF_TSS1) + TwrSSSF(2,J       ,1)*QT(DOF_TSS2)
 
-   CALL SmllRotTrans( 'tower deflection', ThetaSS, 0.0, ThetaFA, TransMat )   ! Get the transformation matrix, TransMat, from tower-base to tower element-fixed coordinate systems.
+   CALL SmllRotTrans( 'tower deflection', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(ZTime))//' s' )   ! Get the transformation matrix, TransMat, from tower-base to tower element-fixed coordinate systems.
 
    t1(J,:) = TransMat(1,1)*a1 + TransMat(1,2)*a2 + TransMat(1,3)*a3  ! Vector / direction t1 for tower node J (=  Lxt from the IEC coord. system).
    t2(J,:) = TransMat(2,1)*a1 + TransMat(2,2)*a2 + TransMat(2,3)*a3  ! Vector / direction t2 for tower node J (=  Lzt from the IEC coord. system).
@@ -8682,7 +7204,7 @@ ENDDO ! J - Tower nodes / elements
 ThetaFA    = -TwrFASF(1,TTopNode,1)*QT(DOF_TFA1) - TwrFASF(2,TTopNode,1)*QT(DOF_TFA2)
 ThetaSS    =  TwrSSSF(1,TTopNode,1)*QT(DOF_TSS1) + TwrSSSF(2,TTopNode,1)*QT(DOF_TSS2)
 
-CALL SmllRotTrans( 'tower deflection', ThetaSS, 0.0, ThetaFA, TransMat )   ! Get the transformation matrix, TransMat, from tower-base to tower-top/base-plate coordinate systems.
+CALL SmllRotTrans( 'tower deflection', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(ZTime))//' s' )   ! Get the transformation matrix, TransMat, from tower-base to tower-top/base-plate coordinate systems.
 
 b1 = TransMat(1,1)*a1 + TransMat(1,2)*a2 + TransMat(1,3)*a3 ! Vector / direction b1 (=  xp from the IEC coord. system).
 b2 = TransMat(2,1)*a1 + TransMat(2,2)*a2 + TransMat(2,3)*a3 ! Vector / direction b2 (=  zp from the IEC coord. system).
@@ -8817,7 +7339,7 @@ DO K = 1,NumBl ! Loop through all blades
       ThetaLxb = CThetaS(K,J)*ThetaIP - SThetaS(K,J)*ThetaOoP
       ThetaLyb = SThetaS(K,J)*ThetaIP + CThetaS(K,J)*ThetaOoP
 
-      CALL SmllRotTrans( 'blade deflection', ThetaLxb, ThetaLyb, 0.0, TransMat ) ! Get the transformation matrix, TransMat, from blade coordinate system aligned with local structural axes (not element fixed) to blade element-fixed coordinate system aligned with local structural axes.
+      CALL SmllRotTrans( 'blade deflection', ThetaLxb, ThetaLyb, 0.0, TransMat, TRIM(Num2LStr(ZTime))//' s' ) ! Get the transformation matrix, TransMat, from blade coordinate system aligned with local structural axes (not element fixed) to blade element-fixed coordinate system aligned with local structural axes.
 
       n1(K,J,:) = TransMat(1,1)*Lj1 + TransMat(1,2)*Lj2 + TransMat(1,3)*Lj3   ! Vector / direction n1 for node J of blade K (= LxbK from the IEC coord. system).
       n2(K,J,:) = TransMat(2,1)*Lj1 + TransMat(2,2)*Lj2 + TransMat(2,3)*Lj3   ! Vector / direction n2 for node J of blade K (= LybK from the IEC coord. system).

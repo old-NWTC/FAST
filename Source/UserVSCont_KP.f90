@@ -112,6 +112,7 @@ INTEGER, PARAMETER          :: UnCont = 99                                   ! U
 LOGICAL,    SAVE            :: SFLAG  = .TRUE.
 
 CHARACTER(1024)             :: TITLE
+CHARACTER(1024)             :: inFileName                                     ! name of the input file
 
 
   ! Abort if GBRatio is not unity; since this example routine returns the
@@ -127,7 +128,15 @@ OMEGA = HSS_Spd
 
 IF ( SFLAG )  THEN
 
-   CALL OpenFInpFile ( UnCont, 'spd_trq.dat' )
+   I = INDEX( DirRoot, PathSep, BACK=.TRUE. )
+   IF ( I < LEN_TRIM(DirRoot) .OR. I > 0 ) THEN
+      inFileName = DirRoot(1:I)//'spd_trq.dat'
+   ELSE
+      inFileName = 'spd_trq.dat'
+   END IF
+
+
+   CALL OpenFInpFile ( UnCont, TRIM(inFileName) )
 
    READ (UnCont,'(A)') TITLE
 

@@ -71,6 +71,8 @@ LOGICAL, SAVE             :: INITFLAG = .TRUE.
 CHARACTER(80)                :: DESCRIP
 CHARACTER( 3)                :: FmtText   = '(A)'                               ! Format for outputting pure text.
 
+CHARACTER(1024)              :: PitchFileName                                   ! the name of the input control file
+
 
 IF ( INITFLAG )  THEN
 
@@ -81,8 +83,15 @@ IF ( INITFLAG )  THEN
 
 
    ! Read control parameters from 'pitch.ipt' if control is employed
-
-   CALL OpenFInpFile ( 86, 'pitch.ipt' )
+   I = INDEX( DirRoot, PathSep, BACK=.TRUE. )
+   IF ( I < LEN_TRIM(DirRoot) .OR. I > 0 ) THEN
+      PitchFileName = DirRoot(1:I)//'pitch.ipt'
+   ELSE
+      PitchFileName = 'pitch.ipt'
+   END IF
+      
+      
+   CALL OpenFInpFile ( 86, TRIM(PitchFileName) )
 
 
    READ(86,FmtText) DESCRIP

@@ -22,42 +22,26 @@ if nargin < 3
     PlotFAST     = true;
 end
 
-% PlotFAST     = true;
-% oldPath = 'D:\DATA\Fortran\IVF Projects\FAST\Release\CertTest\TstFiles';
-% newPath = 'D:\DATA\Fortran\IVF Projects\FAST\Release\CertTest';
-
-% RunSimulink = false
-% 
-%     if RunSimulink
-%         %------------------------------------------------------------------       
-%         % Set up and run the Simulink OpenLoop model
-%         %------------------------------------------------------------------       
-%         
-%         for iTest = [1 3:13 15:17]
-%     
-%             clear FAST_Sfunc;       %perhaps this requirement could be removed in the future, after we've cleaned up all the SAVEd variables and INITIALIZATION of variables in modules.
-%     
-%             FileRoot   = sprintf( 'Test%02.0f', iTest );
-%             input_fast = [FileRoot '.fst'];  %used in Read_FAST_Input -- this needs to be defined in the main workspace, not the function space
-% 
-%             % Read FAST input file and set initial conditions
-%             Read_FAST_Input
-% 
-% 
-%             sim('OpenLoop.mdl',[0,TMax]);
-%         end %iTest
-% 
-%     end %RunSimulink
 
 
     descFiles = {'SFunc', 'Adams',   'FAST'};
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
-%     aziFiles  = [false,        PlotAdams, PlotFAST];
 
-    for i= 1:17
+    BslnTests = {'NRELOffshrBsline5MW_Floating_OC3Hywind',...
+                 'NRELOffshrBsline5MW_Floating_TLP_Original',...
+                 'NRELOffshrBsline5MW_ITIBarge4_Original',...
+                 'NRELOffshrBsline5MW_Monopile_RF',...
+                 'NRELOffshrBsline5MW_Onshore' };
+             
+
+    for i= 1:17 %17+(2:5) 
         
-        
-        fileRoot = ['Test' num2str(i,'%02.0f')];
+        if i > 17
+            fileRoot = BslnTests{i-17};
+            newPath = ['5MWTestCases\' strrep(fileRoot,'_Original','')];
+        else
+            fileRoot = ['Test' num2str(i,'%02.0f')];
+        end
         
         oldRoot  = strcat( oldPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
         newRoot  = strcat( newPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );

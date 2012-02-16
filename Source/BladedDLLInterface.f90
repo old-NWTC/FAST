@@ -165,6 +165,9 @@ CONTAINS
 
 
 
+      ! initialize aviFAIL
+   aviFAIL = 0                ! bjj, this won't necessarially work if aviFAIL is INTENT(OUT) in DLL_Procedure()--could be undefined???
+
       ! Call the DLL through a POINTER:
 
    DLL_ProcAddr = DLL%ProcAddr
@@ -209,7 +212,7 @@ REAL(ReKi), PARAMETER        :: NacYaw_North      = 0.0                         
 
 CHARACTER(1024), PARAMETER   :: DLL_FileName      = 'DISCON.dll'                ! The name of the DLL file including the full path to the current working directory.
 CHARACTER(1024), PARAMETER   :: DLL_ProcName      = 'DISCON'                    ! The name of the procedure in the DLL that will be called.
-
+CHARACTER(1024), PARAMETER   :: DLL_InFile        = 'DISCON.IN'
 
 END MODULE BladedDLLParameters
 !=======================================================================
@@ -452,7 +455,7 @@ IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure ti
    ! Create the input file and outname file arguments to the DLL (this requires
    !   the CHARACTER strings to be converted to byte arrays):
 
-   cInFile = 'DISCON.IN'
+   cInFile = DLL_InFile
    cOutName = TRIM( DirRoot )
 
    DO I = 1,MIN(  256, NINT( avrSWAP(50) ) )
