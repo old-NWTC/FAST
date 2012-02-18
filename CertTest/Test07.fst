@@ -194,7 +194,7 @@ True        TabDelim    - Generate a tab-delimited tabular output file. (flag)
 "LSSTipMya,LSSTipMza"   - Rotating LSS tip bending moments
 "LSSGagMys,LSSGagMzs"   - Non-rotating LSS gage bending moments
 "TwrBsMxt,TwrBsMyt"     - Tower-base roll and pitch moments
-"Spn1RDxb3","Spn2RDyb3","Spn3RDzb3" - local rotational deflections
+"Spn1RDxb3,Spn2RDyb3,Spn3RDzb3" - local rotational deflections
 END of FAST input file (the word "END" must appear in the first 3 columns of this last line).
 --------------------------------------------------------------------------------
 

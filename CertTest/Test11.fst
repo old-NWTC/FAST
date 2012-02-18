@@ -191,8 +191,8 @@ True        TabDelim    - Generate a tab-delimited tabular output file. (flag)
 "RotTorq, RotPwr, GenPwr"           - Rotor (mechanical) torque & power and generator (electrical) power
 "TTDspFA, TTDspSS"                  - FA and SS tower-top deflections
 "TwHt1MLxt,TwHt1MLyt,TwHt1MLzt"     - Tower, Gage-1 (Node 4) roll, pitch, and yaw moments
-"TwHt2FLxt","TwHt2FLyt","TwHt2FLzt" - local tower forces
-"TwHt1RPxi","TwHt1TPxi","TwHt1RDxt","TwHt1TDxt"
+"TwHt2FLxt,TwHt2FLyt,TwHt2FLzt"     - local tower forces
+"TwHt1RPxi,TwHt1TPxi,TwHt1RDxt,TwHt1TDxt"
 END of FAST input file (the word "END" must appear in the first 3 columns of this last line).
 --------------------------------------------------------------------------------
 

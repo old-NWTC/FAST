@@ -5,15 +5,14 @@
 REM  Set up environment variables.  You will probably have to change these.
 
 @SET Compare=FC
-rem @SET CRUNCH=Call Crunch
-@SET CRUNCH=Call C:\Users\bjonkman\Data\DesignCodes\Crunch\Crunch.exe
+@SET CRUNCH=Call Crunch
+rem @SET CRUNCH=Call C:\Users\bjonkman\Data\DesignCodes\Crunch\Crunch.exe
 
 rem @SET MATLAB="C:\Program Files\MATLAB\R2009a\bin\matlab.exe"
-rem @SET MBC_SOURCE=D:\JasonJonkman\DesignCodes\MBC3\Source
 
 @SET MATLAB=matlab
-rem @SET MBC_SOURCE=D:\DATA\Downloads\MBC\Source
-@SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
+@SET MBC_SOURCE=D:\DATA\Downloads\MBC\Source
+rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
 
 @SET FAST=..\FAST.exe
 rem @SET FAST=CALL FAST
