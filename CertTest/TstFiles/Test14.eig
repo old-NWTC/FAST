@@ -1,3 +1,9 @@
+{Warning: Name is nonexistent or not a directory:
+C:\Users\bjonkman\Data\DesignCodes\TurbSim\Test.} 
+> In <a href="matlab: opentoline('C:\Program Files (x86)\MATLAB\R2011a\toolbox\matlab\general\path.m',110,1)">path at 110</a>
+  In <a href="matlab: opentoline('C:\Program Files (x86)\MATLAB\R2011a\toolbox\matlab\general\addpath.m',87,1)">addpath at 87</a>
+  In <a href="matlab: opentoline('C:\Users\bjonkman\Documents\MATLAB\startup.m',3,1)">startup at 3</a>
+  In <a href="matlab: opentoline('C:\Program Files (x86)\MATLAB\R2011a\toolbox\local\matlabrc.m',222,1)">matlabrc at 222</a>
  
 Running Eigenanalysis.m using "Test14.lin"
 Please wait...

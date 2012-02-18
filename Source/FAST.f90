@@ -4148,7 +4148,7 @@ ENDIF
 RETURN
 END SUBROUTINE InitBlDefl
 !=======================================================================
-SUBROUTINE Initialize
+SUBROUTINE FAST_Initialize()
 
 
    ! Initialize sets up starting values for each degree of freedom.
@@ -4639,7 +4639,7 @@ ENDIF
 
 
 RETURN
-END SUBROUTINE Initialize
+END SUBROUTINE FAST_Initialize
 !=======================================================================
 SUBROUTINE PtfmLoading
 

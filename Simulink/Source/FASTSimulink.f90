@@ -252,8 +252,8 @@ SUBROUTINE FAST_Init(InpFile)
    USE                             TurbCont,       ONLY: VSContrl, PCMode, YCMode
    USE                             SimCont,        ONLY: UsrTime1
 !rm   USE                             SimCont,        ONLY: UsrTime1, UsrTime0
-   USE                             FAST_IO_Subs,   ONLY: Begin, Input, PrintSum, WrOutHdr, SimStatus
-   USE                             FASTSubs,       ONLY: Initialize
+   USE                             FAST_IO_Subs,   ONLY: FAST_Begin, FAST_Input, PrintSum, WrOutHdr, SimStatus
+   USE                             FASTSubs,       ONLY: FAST_Initialize
 
    IMPLICIT NONE
 
@@ -282,13 +282,13 @@ SUBROUTINE FAST_Init(InpFile)
 
    PriFile = InpFile
 
-   CALL Begin()
+   CALL FAST_Begin()
 
-   CALL Input()
+   CALL FAST_Input()
 
       !----------------------------------------------------------------------------------------------
       ! Logic to assure input file requests are suitable for Simulink environment
-      !----------------------------------------------------------------------------------------------
+      !---------_-------------------------------------------------------------------------------------
 
    IF (YCMode   /= 2) CALL ProgWarn ('Yaw angle and rate are not commanded from Simulink model.')
    IF (PCMode   /= 2) CALL ProgWarn ('Pitch angles are not commanded from Simulink model.')
@@ -302,7 +302,7 @@ SUBROUTINE FAST_Init(InpFile)
       !----------------------------------------------------------------------------------------------
 !call wrscr('Initialize ')
 
-   CALL Initialize()
+   CALL FAST_Initialize()
 
       !----------------------------------------------------------------------------------------------
       ! Print summary information to "*.fsm"?                                    [ see FASTProg.f90 ]

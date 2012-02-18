@@ -189,6 +189,8 @@ True        TabDelim    - Generate a tab-delimited tabular output file. (flag)
 "YawBrMxp,YawBrMyp"                - Yaw-bearing roll and pitch moments
 "TTDspFA, TTDspSS"                 - Fore-aft and side-to-side tower-top displacements
 "TwrBsFxt,TwrBsFyt"                - Tower base fore-aft and side-to-side shear forces.
+"Spn3TDxb2","Spn4TDyb2","Spn5TDzb2" - Local translational deflections
+"Spn2FLxb1","Spn2FLyb1","Spn2FLzb1" - local forces
 END of FAST input file (the word "END" must appear in the first 3 columns of this last line).
 --------------------------------------------------------------------------------
 

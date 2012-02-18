@@ -515,16 +515,21 @@ IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure ti
    ENDDO
 
    IF (     NINT( avrSWAP( 1) ) == -1 )  THEN                           ! DLL-requested termination of the simulation
-      CALL WrScr ( 'STOP requested by '//TRIM(DLL_FileName)//': ' )
+!bjj: IVF12 bug requires this change:
+!      CALL WrScr ( 'STOP requested by '//TRIM(DLL_FileName)//': ' )
+      CALL WrScr ( 'STOP requested by DISCON.DLL: ' )
       CALL ProgAbort       ( cMessage                                                  )
    ELSEIF ( aviFAIL < 0 )  THEN                                         ! Error in DLL; ProgAbort program
-      CALL WrScr ( 'ERROR message from '//TRIM(DLL_FileName)//': ' )
+!bjj: IVF12 bug requires this change:
+!      CALL WrScr ( 'ERROR message from '//TRIM(DLL_FileName)//': ' )
+      CALL WrScr ( 'ERROR message from DISCON.DLL: ' )
       CALL ProgAbort       ( cMessage                                                  )
    ELSEIF ( aviFAIL > 0 )  THEN                                         ! Write warning message to screen
-      CALL WrScr ( 'WARNING message from '//TRIM(DLL_FileName)//': ' )
+!bjj: IVF12 bug requires this change (it crashes with string concatenation here for some reason-only in Release mode, not Debug):
+!      CALL WrScr ( 'WARNING message from '//TRIM(DLL_FileName)//': ' )
+      CALL WrScr ( 'WARNING message from DISCON.DLL: ' )
       CALL WrScr ( cMessage                                           )
-!Writing a blank line here so that WrOver() in SimStatus doesn't make it look so strange
-   CALL WrScr( ' ' )
+      CALL WrScr ( ' ' )                                                ! Writing a blank line here so that WrOver() in SimStatus doesn't make it look so strange
    ELSEIF ( ( GenState_SAVE /= 0 ) .AND. ( GenState_SAVE /= 1 ) )  THEN ! Generator contactor indicates something other than off or main; abort program
       CALL ProgAbort ( ' Only off and main generators supported in '//TRIM( ProgName )//'.  Set avrSWAP(35) to 0 or 1 in '//    &
                                                                                                    TRIM(DLL_FileName)//'.'      )

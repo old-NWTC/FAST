@@ -19,7 +19,12 @@
 % (2) Verify that the general parameters in the new batch file point to  
 %     the correct paths for your compiler and linker. Modify if necessary.
 %     (If you are using IVF, you should make sure that the paths in the
-%     compiler's IFORTVARS.bat file are listed in your new .bat file.)
+%     compiler's IFORTVARS.bat file are listed in your new .bat file.
+%     If all else fails, open the IVF command prompt window and copy the 
+%     %PATH%, %LIB%, and %INCLUDE% environment variables it has set [type 
+%          echo PATH=%PATH%; LIB=%LIB%; INCLUDE=%INCLUDE%;
+%     and then copy the text into your .bat file on the 3 lines for those 
+%     variables ])    
 % (3) Change COMPFLAGS in this new .bat file: 
 %     add these flags if they aren't there already:
 %             /assume:byterecl /traceback /real_size:64 /Qzero /Qsave 

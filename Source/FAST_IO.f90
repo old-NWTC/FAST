@@ -108,7 +108,7 @@ SUBROUTINE AeroInput()
    RETURN
 END SUBROUTINE AeroInput
 !====================================================================================================
-SUBROUTINE Begin
+SUBROUTINE FAST_Begin()
 
 
    ! This subroutine Prints out the name and version of the program, checks for
@@ -155,7 +155,7 @@ END IF
 IF ( Cmpl4SFun )  RootName = TRIM( RootName )//'_SFunc'
 
 RETURN
-END SUBROUTINE Begin
+END SUBROUTINE FAST_Begin
 !=======================================================================
 SUBROUTINE ChckOutLst
 
@@ -5737,7 +5737,7 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetTower
 !=======================================================================
-SUBROUTINE Input
+SUBROUTINE FAST_Input
 
 
    ! This routine reads the input files and does some preliminary processing.
@@ -6600,7 +6600,7 @@ IF ( Echo )  CLOSE ( UnEc )
 
 
 RETURN
-END SUBROUTINE Input
+END SUBROUTINE FAST_Input
 !=======================================================================
 SUBROUTINE InterpBld ( K )
 

@@ -3,7 +3,8 @@ clear all
 
 
     % the FAST CertTest folder must be entered below:
-CertTest_Dir = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
+% CertTest_Dir = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
+CertTest_Dir = 'C:\Users\bjonkman\DATA\DesignCodes\FAST\CertTest';
 % CertTest_Dir = '.';
 
 % cd( CertTest_Dir )

@@ -21,7 +21,7 @@ CHARACTER(6)                 :: Prcsn                                           
 
 ProgName = 'FAST'
 
-ProgVer = '(v7.01.00a-bjj, 15-Feb-2012)'
+ProgVer = '(v7.01.00a-bjj, 16-Feb-2012)'
 
 
 
