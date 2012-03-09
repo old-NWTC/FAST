@@ -10,6 +10,7 @@ SUBROUTINE SetVersion
 USE                             General
 USE                             NWTC_Library
 
+USE                             FloatingPlatform, ONLY: OC3HywindMods
 
 IMPLICIT                        NONE
 
@@ -21,7 +22,7 @@ CHARACTER(6)                 :: Prcsn                                           
 
 ProgName = 'FAST'
 
-ProgVer = '(v7.01.00a-bjj, 16-Feb-2012)'
+ProgVer = '(v7.01.01a-bjj, 06-Mar-2012)'
 
 
 
@@ -43,6 +44,12 @@ ELSEIF( ReKi /= SiKi )  THEN  ! Compiled using something other than single preci
    ProgVer = TRIM(ProgVer)//'-Compiled using '//Prcsn//' precision'
 
 ENDIF
+
+
+
+IF ( OC3HywindMods ) THEN
+   ProgVer = TRIM(ProgVer)//' with OC3 Hywind Modifications'
+END IF
 
 
 

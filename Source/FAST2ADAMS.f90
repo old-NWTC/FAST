@@ -622,7 +622,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the EAVec array.' )
 ENDIF
 
-ALLOCATE ( IDCntrl(NumBl,BldNodes) , STAT=Sttus )
+ALLOCATE ( IDCntrl(BldNodes,NumBl) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the IDCntrl array.' )
 ENDIF
@@ -2372,11 +2372,10 @@ DO K = 1,NumBl       ! Loop through all blades
       WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( TmpID )) !10000*K+J
       WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', 0.0
-      WRITE (UnAD,FmtTRTRTR )      ', ZP = ', DOT_PRODUCT( TmpVec1,  te3(K,J,:) ), ', ', DOT_PRODUCT( TmpVec1, -te1(K,J,:) ), ', ', &
-                                              DOT_PRODUCT( TmpVec1, -te2(K,J,:) )  ! Orient the undeflected blade element using the
-      WRITE (UnAD,FmtTRTRTR )      ', XP = ', DOT_PRODUCT( TmpVec2,  te3(K,J,:) ), ', ', DOT_PRODUCT( TmpVec2, -te1(K,J,:) ), ', ', &
-                                              DOT_PRODUCT( TmpVec2, -te2(K,J,:) )  ! 3-point method
-                                              
+      WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( TmpVec1,  te3(K,J,:) ), ', ', DOT_PRODUCT( TmpVec1, -te1(K,J,:) ), ', ', &
+                                          DOT_PRODUCT( TmpVec1, -te2(K,J,:) )  ! Orient the undeflected blade element using the
+      WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( TmpVec2,  te3(K,J,:) ), ', ', DOT_PRODUCT( TmpVec2, -te1(K,J,:) ), ', ', &
+                                          DOT_PRODUCT( TmpVec2, -te2(K,J,:) )  ! 3-point method                                              
 
    ENDDO             ! J - Blade nodes/elements
 
@@ -3984,7 +3983,7 @@ DO K = 1,NumBl       ! Loop through all blades
    !       USER-defined multiple airfoil table interpolations.  If the user wants to use   
    !       Reynolds Number interpolation (RENUM), then this value should remain at zero!
 
-   CALL MakeADM_WrICArrays ( IDCntrl(:,K),                          IDCntrl_A(K)     , BldNodes, UnAD,  "IDCntrl_A"//TRIM(Int2LStr(K)) )
+   CALL MakeADM_WrICArrays ( IDCntrl(:,K), IDCntrl_A(K), BldNodes, UnAD,  "IDCntrl_A"//TRIM(Int2LStr(K)) )
 END DO   
 !------------
 

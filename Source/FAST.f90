@@ -4973,7 +4973,7 @@ REAL(ReKi)                   :: LinAccEWt (3)                                   
 REAL(ReKi)                   :: LinAccEYt (3)                                   ! Portion of the linear acceleration of the platform center of mass                                                         (point Y) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: LinVelEK  (3)                                   ! Linear velocity of tail fin center-of-pressure        (point K) in the inertia frame.
 REAL(ReKi)                   :: LinVelES  (3)                                   ! Linear velocity of current point on the current blade (point S) in the inertia frame.
-REAL(ReKi)                   :: LinVelEPYaw(3) ! This is the linear velocity of the hub in the inertia frame due solely to yaw and rotor-furl effects
+REAL(ReKi)                   :: LinVelEPYaw(3)                                  ! This is the linear velocity of the hub in the inertia frame due solely to yaw and rotor-furl effects
 REAL(ReKi)                   :: LinVelHS  (3)                                   ! Relative linear velocity of the current point on the current blade (point S) in the hub frame (body H)
 REAL(ReKi)                   :: LinVelXO  (3)                                   ! Relative linear velocity of the tower-top / base plate             (point O) in the platform  (body X).
 REAL(ReKi)                   :: LinVelXT  (3)                                   ! Relative linear velocity of the current point on the tower         (point T) in the platform  (body X).

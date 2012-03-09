@@ -2216,6 +2216,8 @@ INTEGER(4)                   :: NumLines                                        
 
 LOGICAL                      :: UseRdtn                                         ! Flag for determining whether or not the to model wave radiation damping (flag)
 
+LOGICAL, PARAMETER           :: OC3HywindMods  = .FALSE. !.TRUE.                ! Model specific changes for the OC3 Hywind Spar Bouy
+
 
 CONTAINS
 !=======================================================================
@@ -2582,6 +2584,17 @@ CONTAINS
                       + ( WaveVelocity0(2) - PtfmVelocity(2) )**2   )
 
 
+      IF ( OC3HywindMods ) THEN
+         IF (     WaveKinzi0(JNode) > - 4.0 )  THEN
+            PtfmDiam = 6.5
+         ELSEIF ( WaveKinzi0(JNode) < -12.0 )  THEN
+            PtfmDiam = 9.4
+         ELSE
+            PtfmDiam = 9.4 + ( 6.5 - 9.4 )*( WaveKinzi0(JNode) + 12.0 )/( -4.0 + 12.0 )
+         ENDIF
+      END IF ! OC3HywindMods      
+      
+
       ! Compute the viscous drag force in the xi- (1) and yi- (2) directions,
       !   respectively, on the current platform element at the current time:
 
@@ -2735,6 +2748,12 @@ CONTAINS
    PtfmFt = F_Waves + F_HS + F_Rdtn + F_Viscous + F_Lines   ! This is an array operation.
 
 
+   IF ( OC3HywindMods ) THEN
+      PtfmFt(1) = PtfmFt(1) -   100000.0*XD(1)
+      PtfmFt(2) = PtfmFt(2) -   100000.0*XD(2)
+      PtfmFt(3) = PtfmFt(3) -   130000.0*XD(3)
+      PtfmFt(6) = PtfmFt(6) - 13000000.0*XD(6)
+   END IF !OC3HywindMods
 
 
       ! Set the platform added mass matrix, PtfmAM, to be the infinite-frequency
