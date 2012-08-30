@@ -52,7 +52,7 @@ OutputRootName     = 'FAST_SFunc';                  % name of the mex file
 % routines (WIND_LOC), and FAST (FAST_LOC):
 %--------------------------------------------------------------------------
 NWTC_LIB    = 'D:\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\source';
-WIND_LOC    = 'D:\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source\InflowWind\Source';
+WIND_LOC    = 'D:\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\trunk\Source';
 AD_LOC      = 'D:\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source';
 FAST_LOC    = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Source';
 Sim_LOC     = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Simulink\Source';

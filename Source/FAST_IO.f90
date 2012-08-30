@@ -162,7 +162,7 @@ SUBROUTINE ChckOutLst
 
    ! This routine checks to see if any inputted output channels (stored
    !    in the OutList(:)) are ill-conditioned (and if so, FAST Aborts)
-   !    and assigns the settings for OutInd(:) and OutParam(:) (i.e, the
+   !    and assigns the settings for OutParam(:) (i.e, the
    !    index, name, and units of the output channels, OutData(:)).
 
 
@@ -798,7 +798,7 @@ SUBROUTINE ChckOutLst
       InvalidOutput( TFinCPFy) = .TRUE.
    END IF
                             
-   DO I = NumBl+1,3  ! invalid blades
+   DO I = NumBl+1,3  ! Invalid blades
       
          ! motions
       
@@ -858,7 +858,7 @@ SUBROUTINE ChckOutLst
                                      
    DO I = 1,NumBl    
       
-      DO J = NBlGages+1,9 ! valid blade gages
+      DO J = NBlGages+1,9 ! Invalid blade gages
 
          InvalidOutput(  SpnALxb(J,I) ) = .TRUE.
          InvalidOutput(  SpnALyb(J,I) ) = .TRUE.
@@ -872,7 +872,7 @@ SUBROUTINE ChckOutLst
          InvalidOutput(  SpnRDyb(J,I) ) = .TRUE.
          InvalidOutput(  SpnRDzb(J,I) ) = .TRUE.
 
-            !loads
+            ! Loads
             
          InvalidOutput(  SpnMLxb(J,I) ) = .TRUE.
          InvalidOutput(  SpnMLyb(J,I) ) = .TRUE.
@@ -954,7 +954,7 @@ SUBROUTINE ChckOutLst
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the OutData array.' )
    ENDIF
-      
+            
    ALLOCATE ( OutParam(0:NumOuts) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the OutParam array.' )
@@ -2564,13 +2564,11 @@ IMPLICIT                        NONE
 INTEGER(4)                   :: I                                               ! A generic index.
 INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
 INTEGER(4)                   :: K                                               ! Blade number.
-INTEGER(4)                   :: NumWords                                        ! The number of words w/n a read in line.
 INTEGER(4)                   :: Sttus                                           ! Status returned from an allocation request.
+INTEGER(IntKi)               :: OutFileFmt                                      ! The switch indicating the format (text/binary) for the tabular output file(s)
 
-CHARACTER( 1024)             :: Comment                                         ! String to temporarily hold the comment line.
-CHARACTER(   3)              :: EndOfFile                                       ! String read in at the end of the input file.
+CHARACTER(1024)              :: Comment                                         ! String to temporarily hold the comment line.
 CHARACTER(  35)              :: Frmt      = "( 2X, L11, 2X, A, T30, ' - ', A )" ! Output format for logical parameters. (matches NWTC Subroutine Library format)
-CHARACTER(1000)              :: OutLine                                         ! String to temporarily hold the output parameter list.
 CHARACTER(1024)              :: PriPath                                         ! The path to the primary input file
 
 
@@ -2652,7 +2650,8 @@ IF ( ( NumBl < 2 ) .OR. ( NumBl > 3 ) )  CALL ProgAbort ( ' NumBl must be either
 
 CALL ReadRVar ( UnIn, PriFile, TMax, 'TMax', 'Total run time' )
 
-IF ( ( TMax < 0.0 ) .OR. ( TMax > 9999.999 ) )  CALL ProgAbort ( ' TMax must be between 0.0 and 9999.999 (inclusive).' )
+!IF ( ( TMax < 0.0 ) .OR. ( TMax > 9999.999 ) )  CALL ProgAbort ( ' TMax must be between 0.0 and 9999.999 (inclusive).' )
+IF ( TMax < 0.0  )  CALL ProgAbort ( ' TMax must not be a negative number.' )
 
    ! DT - Integration time step.
 
@@ -3309,9 +3308,9 @@ IF ( NumBl == 2 )  THEN
 ENDIF
 
 
-   ! AzimB1Up - Blade-tip radius.
+   ! AzimB1Up - Azimuth value to use for I/O when blade 1 points up.
 
-CALL ReadRVar ( UnIn, PriFile, AzimB1Up, 'AzimB1Up', 'Blade-tip radius' )
+CALL ReadRVar ( UnIn, PriFile, AzimB1Up, 'AzimB1Up', 'Azimuth value to use for I/O when blade 1 points up' )
 
 IF ( ( AzimB1Up < 0.0 ) .OR. ( AzimB1Up > 360.0 ) )  CALL ProgAbort ( ' AzimB1Up must be between 0 and 360 (inclusive).' )
 
@@ -3897,14 +3896,36 @@ IF ( PathIsRelative( LinFile ) ) LinFile = TRIM(PriPath)//TRIM(LinFile)
 CALL ReadLVar ( UnIn, PriFile, SumPrint, 'SumPrint', 'Print summary data to "*.fsm"' )
 
 
+   ! OutFileFmt - Format for output file(s).
+
+CALL ReadVar ( UnIn, PriFile, OutFileFmt, 'OutFileFmt', 'Format for output file(s)' )
+SELECT CASE (OutFileFmt)
+   CASE (1_IntKi)
+      WrBinOutFile = .FALSE.
+      WrTxtOutFile = .TRUE.
+   CASE (2_IntKi)
+      WrBinOutFile = .TRUE.
+      WrTxtOutFile = .FALSE.
+   CASE (3_IntKi)
+      WrBinOutFile = .TRUE.
+      WrTxtOutFile = .TRUE.
+   CASE DEFAULT
+     CALL ProgAbort ( ' OutFileFmt must be 1, 2, or 3.' )
+END SELECT
+
+IF ( WrTxtOutFile .AND. ( TMax > 9999.999 ) )  THEN
+   CALL ProgAbort ( ' TMax must not exceed 9999.999 seconds with text tabular (time-marching) output files.' )
+END IF   
+
+
    ! TabDelim - Generate a tab-delimited output file.
 
-CALL ReadLVar ( UnIn, PriFile, TabDelim, 'TabDelim', 'Generate a tab-delimited output file' )
+CALL ReadLVar ( UnIn, PriFile, TabDelim, 'TabDelim', 'Use tab delimiters in text output file' )
 
 
    ! OutFmt - Output format for tabular data.
 
-CALL ReadCVar ( UnIn, PriFile, OutFmt, 'OutFmt', 'Output format for tabular data' )
+CALL ReadCVar ( UnIn, PriFile, OutFmt, 'OutFmt', 'Output format for text tabular data' )
 
 IF ( LEN_TRIM( OutFmt ) == 0 )  CALL ProgAbort ( ' OutFmt must not be an empty string.' )
 
@@ -4014,27 +4035,10 @@ NumOuts = 0    ! Initialize NumOuts to zero.
    ! The end of this list (and the end of the output file) is specified with the line
    !    beginning with END.
 
-DO
-
-   CALL ReadCVar ( UnIn, PriFile, OutLine, 'OutList', 'Output list' )
-
-   EndOfFile = OutLine(1:3)            ! EndOfFile is the 1st 3 characters of OutLine
-   CALL Conv2UC( EndOfFile )           ! Convert EndOfFile to upper case
-   IF ( EndOfFile == 'END' )  EXIT     ! End of OutList has been reached; therefore, exit this DO
-
-   NumWords = CountWords( OutLine )    ! The number of words in OutLine.
-
-   NumOuts = NumOuts + NumWords        ! The total number of output channels read in so far.
-   IF ( NumOuts > MaxOutPts )  &       ! Check to see if the maximum # of allowable outputs has been reached.
-      CALL ProgAbort ( ' The maximum number of output channels allowed is ' &
-                   //TRIM( Int2LStr(MaxOutPts) )//'.'                     )
-
-   CALL GetWords ( OutLine, OutList(NumOuts - NumWords + 1), NumWords )
-
-ENDDO
+CALL ReadOutputList ( UnIn, PriFile, OutList, NumOuts, 'OutList', 'Output list'  )     ! Routine in NWTC Subroutine Library
 
 
-   ! Check to make sure some outputs have been entered when time-marhcing;
+   ! Check to make sure some outputs have been entered when time-marching;
    !   if not, ProgAbort:
 
 IF ( ( NumOuts == 0 ) .AND. ( AnalMode == 1 ) )  THEN
@@ -4089,11 +4093,18 @@ INTEGER(4)                   :: Sttus                                           
 CHARACTER(80)                :: Line                                            ! String to temporarily hold the value of PtfmLdMod.
 CHARACTER(80)                :: LineUC                                          ! String to temporarily hold the value of PtfmLdMod in upper case.
 CHARACTER(156)               :: Frmt                                            ! Format for element data.
+CHARACTER(1024)              :: FilePath                                        ! Path name of the PtfmFile
+
+
+
+   ! Get the path name from the file so we can assume file names contained in this file are relative to this path
+CALL GetPath( PtfmFile, FilePath )
 
 
    ! Open the FAST platform input file:
 
 CALL OpenFInpFile ( UnIn, PtfmFile )
+
 
 
    ! Add a separator to the echo file if appropriate.
@@ -4561,6 +4572,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
             CALL ReadCVar ( UnIn, PtfmFile, GHWvFile, 'GHWvFile', 'Root name of GH Bladed files containing wave data' )
 
             IF ( LEN_TRIM( GHWvFile ) == 0 )  CALL ProgAbort ( ' GHWvFile must not be an empty string.' )
+            IF ( PathIsRelative( GHWvFile ) ) GHWvFile = TRIM(FilePath)//TRIM(GHWvFile)
 
          ELSE                       ! We must not have GH Bladed wave data.
 
@@ -4777,7 +4789,7 @@ CASE ( 3 )                 ! Floating offshore.
       CALL ReadCVar ( UnIn, PtfmFile, WAMITFile, 'WAMITFile', 'Root name of WAMIT output files' )
 
       IF ( LEN_TRIM( WAMITFile ) == 0 )  CALL ProgAbort ( ' WAMITFile must not be an empty string.' )
-
+      IF ( PathIsRelative( WAMITFile ) ) WAMITFile = TRIM(FilePath)//TRIM(WAMITFile)
 
    ! PtfmVol0 - Displaced volume of water when the platform is in its undisplaced position.
 
@@ -6582,7 +6594,7 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
 ENDIF
 
    ! Check to see if any inputted output channels are ill-conditioned (and if so, Abort)
-   !    and set values for OutInd(:) and OutParam(:):
+   !    and set values for OutParam(:):
 
 CALL ChckOutLst
 
@@ -7469,6 +7481,425 @@ PrevTime = CurrTime
 RETURN
 END SUBROUTINE SimStatus
 !=======================================================================
+SUBROUTINE WrBinOutput(UnIn,FileID, DescStr,ChanName,ChanUnit,TimeData,AllOutData,ErrStat,ErrMsg)
+! This subroutine takes the previously-opened binary file specified by UnIn, and writes a the AllOutData Matrix to a 16-bit packed
+! binary file. A text DescStr is written to the file as well as the text in the ChanName and ChanUnit arrays. The file is closed 
+! at the end of this subroutine call.
+! Note that the file is opened at the start of the simulation to ensure that it's available before starting the simulation.
+!..................................................................................................................................
+
+USE                          Output, ONLY: FileFmtID_WithTime, FileFmtID_WithoutTime
+
+IMPLICIT                     NONE
+
+INTEGER(IntKi), PARAMETER     :: LenName     = 10                 ! Number of characters allowed in a channel name
+INTEGER(IntKi), PARAMETER     :: LenUnit     = 10                 ! Number of characters allowed in a channel unit
+
+
+INTEGER,           INTENT(IN) :: UnIn                             ! Unit number of the file being written
+INTEGER(B2Ki),     INTENT(IN) :: FileID                           ! File ID, used to determine format of output file
+CHARACTER(*),      INTENT(IN) :: DescStr                          ! Description to write to the binary file (e.g., program version, date, & time)
+CHARACTER(LenName),INTENT(IN) :: ChanName(:)                      ! The output channel names (including Time)
+CHARACTER(LenUnit),INTENT(IN) :: ChanUnit(:)                      ! The output channel units (including Time)
+REAL(DbKi),        INTENT(IN) :: TimeData(:)                      ! The time being output to the file (element 1 is the first output time, element 2 is the delta t)
+REAL(ReKi),        INTENT(IN) :: AllOutData(:,:)                  ! All of the data being written to the file (except time; note that the channels are the rows and time is the column--this is done for speed of saving the array)
+INTEGER(IntKi),    INTENT(OUT):: ErrStat                          ! Indicates whether an error occurred (see NWTC_Library)
+CHARACTER(*),      INTENT(OUT):: ErrMsg                           ! Error message associated with the ErrStat
+
+
+      ! Parameters required for scaling Real data to 16-bit integers 
+      
+REAL(R8Ki), PARAMETER         :: Int32Max =  65535.0              ! Largest integer represented in 4 bytes
+REAL(R8Ki), PARAMETER         :: Int32Min = -65536.0              ! Smallest integer represented in 4 bytes
+REAL(R8Ki), PARAMETER         :: Int32Rng = Int32Max - Int32Min   ! Max Range of 4-byte integer
+
+REAL(SiKi), PARAMETER         :: IntMax   =  32767.0              ! Largest integer represented in 2 bytes
+REAL(SiKi), PARAMETER         :: IntMin   = -32768.0              ! Smallest integer represented in 2 bytes
+REAL(SiKi), PARAMETER         :: IntRng   = IntMax - IntMin       ! Max Range of 2 byte integer
+
+
+      ! Local variables
+
+REAL(DbKi)                    :: TimeMax                          ! Maximum value of the time data
+REAL(DbKi)                    :: TimeMin                          ! Minimum value of the time data   
+REAL(R8Ki)                    :: TimeOff                          ! Offset for the time data
+REAL(R8Ki)                    :: TimeScl                          ! Slope for the time data   
+REAL(R8Ki)                    :: TimeOut1                         ! The first output time
+REAL(R8Ki)                    :: TimeIncrement                    ! The delta t
+
+REAL(ReKi), ALLOCATABLE       :: ColMax(:)                        ! Maximum value of the column data
+REAL(ReKi), ALLOCATABLE       :: ColMin(:)                        ! Minimum value of the column data   
+REAL(SiKi), ALLOCATABLE       :: ColOff(:)                        ! Offset for the column data
+REAL(SiKi), ALLOCATABLE       :: ColScl(:)                        ! Slope for the column data
+
+
+INTEGER(IntKi)                :: I                                ! Generic loop counter
+INTEGER(IntKi)                :: IC                               ! Loop counter for the output channel
+INTEGER(IntKi)                :: IT                               ! Loop counter for the timestep
+INTEGER(IntKi)                :: J                                ! Generic counter
+INTEGER(IntKi)                :: LenDesc                          ! Length of the description string, DescStr
+INTEGER(IntKi)                :: NT                               ! Number of time steps
+INTEGER(IntKi)                :: NumOutChans                      ! Number of output channels
+
+
+INTEGER(B2Ki), ALLOCATABLE    :: TmpOutArray(:)                   ! This array holds the normalized output channels before being written to the binary file
+INTEGER(B4Ki), ALLOCATABLE    :: TmpTimeArray(:)                  ! This array holds the normalized output time channel before being written to the binary file
+INTEGER(B1Ki), ALLOCATABLE    :: DescStrASCII(:)                  ! The ASCII equivalent of DescStr 
+INTEGER(B1Ki), ALLOCATABLE    :: ChanNameASCII(:)                 ! The ASCII equivalent of ChanName 
+INTEGER(B1Ki), ALLOCATABLE    :: ChanUnitASCII(:)                 ! The ASCII equivalent of ChanUnit 
+
+
+   !...............................................................................................................................
+   ! Initialize some values
+   !...............................................................................................................................
+      
+   ErrStat     = ErrID_None             ! No error has yet occurred
+   ErrMsg      = ''                     ! No error has yet occurred
+   NumOutChans = SIZE(AllOutData,1)     ! The number of output channels
+   NT          = SIZE(AllOutData,2)     ! The number of time steps to be written
+   LenDesc     = LEN_TRIM( DescStr )    ! Length of the string that contains program name, version, date, and time
+
+
+   !...............................................................................................................................
+   ! Allocate arrays
+   !...............................................................................................................................
+
+   ALLOCATE ( ColMax( NumOutChans ) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for ColMax array.')
+      RETURN
+   ENDIF
+   
+   
+   ALLOCATE ( ColMin( NumOutChans ) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for ColMin array.')
+      RETURN
+   ENDIF
+   
+   
+   ALLOCATE ( ColOff( NumOutChans ) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for ColOff array.')
+      RETURN
+   ENDIF
+
+
+   ALLOCATE ( ColScl( NumOutChans ) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for ColScl array.')
+      RETURN
+   ENDIF
+   
+
+   ALLOCATE ( TmpOutArray( NumOutChans*NT ) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary output array.')
+      RETURN
+   ENDIF
+   
+   IF ( FileID == 1 ) THEN
+      ALLOCATE ( TmpTimeArray( NT ) , STAT=ErrStat )
+      IF ( ErrStat /= 0 )  THEN
+         CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary output time array.')
+         RETURN
+      ENDIF
+   END IF 
+   
+   ALLOCATE ( ChanNameASCII( (1+NumOutChans)*LenName ) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary FAST channel names.')
+      RETURN
+   ENDIF
+
+
+   ALLOCATE ( ChanUnitASCII( (1+NumOutChans)*LenUnit ) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary FAST channel unit names.')
+      RETURN
+   ENDIF
+
+
+   ALLOCATE ( DescStrASCII( LenDesc ) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary FAST file description.')
+      RETURN
+   ENDIF      
+   
+   !...............................................................................................................................
+   ! Convert character strings to ASCII
+   !...............................................................................................................................
+      
+      ! Description string (DescStr)
+      
+   DO I=1,LenDesc
+      DescStrASCII(I) = IACHAR( DescStr(I:I) )
+   END DO
+   
+      ! Channel names (ChanName)      
+   J = 1
+   DO IC = 1,SIZE(ChanName)
+      DO I=1,LenName
+         ChanNameASCII(J) = IACHAR( ChanName(IC)(I:I) )
+         J = J + 1
+      END DO
+   END DO
+
+      ! Channel units (ChanUnit)
+   J = 1
+   DO IC = 1,SIZE(ChanUnit)
+      DO I=1,LenUnit
+         ChanUnitASCII(J) = IACHAR( ChanUnit(IC)(I:I) )
+         J = J + 1
+      END DO
+   END DO
+   
+   !...............................................................................................................................
+   ! Find the range of our output channels
+   !...............................................................................................................................     
+   ColMin(:) = AllOutData(:,1_IntKi)         ! Initialize the Min values for each channel
+   ColMax(:) = AllOutData(:,1_IntKi)         ! Initialize the Max values for each channel
+
+   DO IT=2,NT                                ! Loop through the remaining time steps 
+      
+      DO IC=1,NumOutChans                    ! Loop through the output channels
+      
+         IF ( AllOutData(IC,IT) > ColMax(IC) ) THEN
+            ColMax(IC) = AllOutData(IC,IT)
+         ELSEIF ( AllOutData(IC,IT) < ColMin(IC) ) THEN
+            ColMin(IC) = AllOutData(IC,IT)
+         ENDIF
+
+      ENDDO !IC
+
+   ENDDO !IT
+
+
+   IF ( FileID == FileFmtID_WithTime ) THEN
+      TimeMin   = TimeData(1)                   ! Initialize the Min time value
+      TimeMax   = MAX(TimeData(1),TimeData(NT)) ! Initialize the Max time value
+   
+      DO IT=2,NT                                ! Loop through the remaining time steps    
+         IF ( TimeData(IT) > TimeMax ) THEN
+            TimeMax = TimeData(IT)
+         ELSEIF ( TimeData(IT) < TimeMin ) THEN
+            TimeMin = TimeData(IT)
+         ENDIF
+      ENDDO !IT
+      
+   ELSE ! FileFmtID_WithoutTime
+         ! Convert DbKi to R8Ki, if necessary
+      TimeOut1      = TimeData(1)                ! The first output time
+      TimeIncrement = TimeData(2)                ! The time increment
+   END IF ! FileID
+   
+   !...............................................................................................................................
+   ! Calculate the scaling parameters for each channel
+   !...............................................................................................................................   
+   DO IC=1,NumOutChans                    ! Loop through the output channels
+   
+      IF ( ColMax(IC) == ColMin(IC) ) THEN
+         ColScl(IC) = 1
+      ELSE
+         ColScl(IC) = IntRng/REAL( ColMax(IC) - ColMin(IC), SiKi )
+      ENDIF
+      
+      ColOff(IC) = IntMin - ColScl(IC)*REAL( ColMin(IC), SiKi )
+      
+   ENDDO !IC
+
+
+   IF ( FileID == FileFmtID_WithTime ) THEN
+      IF ( TimeMax == TimeMin ) THEN
+         TimeScl = 1
+      ELSE
+         TimeScl = Int32Rng/REAL( TimeMax - TimeMin, R8Ki )
+      ENDIF
+      
+      TimeOff = Int32Min - TimeScl*REAL( TimeMin, R8Ki )
+
+   END IF ! FileID
+   
+   !...............................................................................................................................
+   ! Convert channels to 16-bit integers (packed binary)
+   !...............................................................................................................................     
+   J = 1
+   DO IT=1,NT                                ! Loop through the time steps 
+      DO IC=1,NumOutChans                    ! Loop through the output channels
+      
+         TmpOutArray(J) =  NINT( Max( Min( REAL( ColScl(IC)*AllOutData(IC,IT) + ColOff(IC), SiKi), IntMax ), IntMin) , B2Ki )        
+         J = J + 1
+
+      ENDDO !IC
+            
+   ENDDO !IT
+
+
+   IF ( FileID == FileFmtID_WithTime ) THEN  ! Pack the time into 32-bit integers
+      DO IT=1,NT                             ! Loop through the time steps 
+         TmpTimeArray(IT) = NINT( Max( Min( REAL( TimeScl*TimeData(IT) + TimeOff, R8Ki), Int32Max ), Int32Min) , B4Ki )      
+      ENDDO !IT
+   END IF ! FileID
+
+   !...............................................................................................................................
+   ! Write the output file header   
+   !...............................................................................................................................
+
+   WRITE (UnIn, IOSTAT=ErrStat)   INT( FileID             , B2Ki )            ! FAST output file format
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing FileID to the FAST binary file.')
+      RETURN
+   ENDIF
+
+   WRITE (UnIn, IOSTAT=ErrStat)   INT( NumOutChans        , B4Ki )            ! The number of output channels
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing NumOutChans to the FAST binary file.')
+      RETURN
+   ENDIF
+
+   WRITE (UnIn, IOSTAT=ErrStat)   INT( NT                 , B4Ki )            ! The number of time steps
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing NT to the FAST binary file.')
+      RETURN
+   ENDIF
+
+
+   IF ( FileID == FileFmtID_WithTime ) THEN  
+         ! Write the slope and offset for the time channel
+
+      WRITE (UnIn, IOSTAT=ErrStat)  TimeScl                                  ! The time slope for scaling
+      IF ( ErrStat /= 0 )  THEN
+         CALL ExitThisRoutine(ErrID_Fatal,'Error writing TimeScl to the FAST binary file.')
+         RETURN
+      ENDIF
+
+      WRITE (UnIn, IOSTAT=ErrStat)  TimeOff                                  ! The time offset for scaling
+      IF ( ErrStat /= 0 )  THEN
+         CALL ExitThisRoutine(ErrID_Fatal,'Error writing TimeOff to the FAST binary file.')
+         RETURN
+      ENDIF
+
+   ELSE ! FileFmtID_WithoutTime
+         ! Write the first output time and the time step
+         
+      WRITE (UnIn, IOSTAT=ErrStat)  TimeOut1                                  ! The first output time 
+      IF ( ErrStat /= 0 )  THEN
+         CALL ExitThisRoutine(ErrID_Fatal,'Error writing TimeOut1 to the FAST binary file.')
+         RETURN
+      ENDIF
+      
+      WRITE (UnIn, IOSTAT=ErrStat)  TimeIncrement                             ! The time increment (between subsequent outputs)
+      IF ( ErrStat /= 0 )  THEN
+         CALL ExitThisRoutine(ErrID_Fatal,'Error writing TimeIncrement to the FAST binary file.')
+         RETURN
+      ENDIF            
+      
+   END IF
+
+   WRITE (UnIn, IOSTAT=ErrStat)  ColScl(:)                                    ! The channel slopes for scaling
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing ColScl to the FAST binary file.')
+      RETURN
+   ENDIF
+
+   WRITE (UnIn, IOSTAT=ErrStat)  ColOff(:)                                    ! The channel offsets for scaling
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing ColOff to the FAST binary file.')
+      RETURN
+   ENDIF
+
+   WRITE (UnIn, IOSTAT=ErrStat)   INT( LenDesc            , B4Ki )            ! The number of characters in the string
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing LenDesc to the FAST binary file.')
+      RETURN
+   ENDIF
+
+   WRITE (UnIn, IOSTAT=ErrStat)  DescStrASCII                                 ! DescStr converted to ASCII
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing file description to the FAST binary file.')
+      RETURN
+   ENDIF
+
+
+   WRITE (UnIn, IOSTAT=ErrStat)  ChanNameASCII                                 ! ChanName converted to ASCII
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing channel names to the FAST binary file.')
+      RETURN
+   ENDIF
+
+
+   WRITE (UnIn, IOSTAT=ErrStat)  ChanUnitASCII                                 ! ChanUnit converted to ASCII
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing channel units to the FAST binary file.')
+      RETURN
+   ENDIF
+
+   !...............................................................................................................................
+   ! Write the channel data   
+   !...............................................................................................................................
+   IF ( FileID == FileFmtID_WithTime ) THEN  
+      WRITE (UnIn, IOSTAT=ErrStat)  TmpTimeArray                               ! TimeData converted to packed binary (32-bit)
+      IF ( ErrStat /= 0 )  THEN
+         CALL ExitThisRoutine(ErrID_Fatal,'Error writing time data to the FAST binary file.')
+         RETURN
+      ENDIF
+   END IF ! FileID
+
+
+   WRITE (UnIn, IOSTAT=ErrStat)  TmpOutArray                                  ! AllOutData converted to packed binary (16-bit)
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine(ErrID_Fatal,'Error writing channel data to the FAST binary file.')
+      RETURN
+   ENDIF
+
+   !...............................................................................................................................
+   ! We're finished: clean up ALLOCATABLE arrays and close the file
+   !...............................................................................................................................
+
+   CALL ExitThisRoutine(ErrID_None,'')
+   RETURN
+
+!..................................................................................................................................
+CONTAINS 
+!..................................................................................................................................
+   SUBROUTINE ExitThisRoutine(ErrID,Msg)
+   ! This subroutine cleans up all the allocatable arrays, sets the error status/message and closes the binary file
+   !...............................................................................................................................
+   
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+      
+      
+      !............................................................................................................................
+      ! Set error status/message
+      !............................................................................................................................
+   
+      ErrStat = ErrID
+      ErrMsg  = Msg
+      
+      !............................................................................................................................
+      ! Deallocate arrays
+      !............................................................................................................................
+      IF ( ALLOCATED( ColMax        ) ) DEALLOCATE( ColMax )
+      IF ( ALLOCATED( ColMin        ) ) DEALLOCATE( ColMin )
+      IF ( ALLOCATED( ColOff        ) ) DEALLOCATE( ColOff )
+      IF ( ALLOCATED( ColScl        ) ) DEALLOCATE( ColScl )
+      IF ( ALLOCATED( TmpTimeArray  ) ) DEALLOCATE( TmpTimeArray )
+      IF ( ALLOCATED( TmpOutArray   ) ) DEALLOCATE( TmpOutArray )
+      IF ( ALLOCATED( DescStrASCII  ) ) DEALLOCATE( DescStrASCII )
+      IF ( ALLOCATED( ChanNameASCII ) ) DEALLOCATE( ChanNameASCII )
+      IF ( ALLOCATED( ChanUnitASCII ) ) DEALLOCATE( ChanUnitASCII )
+            
+      !............................................................................................................................
+      ! Close file
+      !............................................................................................................................
+      CLOSE ( UnIn )
+         
+   END SUBROUTINE ExitThisRoutine
+   !...............................................................................................................................
+END SUBROUTINE WrBinOutput
+!==================================================================================================================================
 SUBROUTINE WrOutHdr
 
 
@@ -7479,6 +7910,7 @@ USE                             Features
 USE                             General
 USE                             AeroDyn
 USE                             Output
+USE                             SimCont, ONLY: TMax,DT !BJJ perhaps we should do this a better way
 
 USE                             Noise     !WrNoiseOutHdr
 
@@ -7486,6 +7918,7 @@ IMPLICIT                        NONE
 
 
    ! Local variables.
+INTEGER                      :: ErrStat
 
 INTEGER(4)                   :: I                                               ! A generic index for DO loops.
 CHARACTER(1)                 :: Delim                                           ! The delimiter character
@@ -7499,36 +7932,78 @@ ELSE
    Delim = ' '
 END IF      
 
-
-   ! Open the output file:
-
-CALL OpenFOutFile ( UnOu, TRIM(RootName)//'.out' )
+FileDesc = 'These predictions were generated by '//TRIM(ProgName)//' '//TRIM(ProgVer)//' on '//CurDate()//' at '//CurTime()//'.'
 
 
-   ! Add some file information:
+   ! Open the output file(s):
 
-WRITE (UnOu,'(/,A)')  'These predictions were generated by '//TRIM(ProgName)//' '//TRIM( ProgVer )//&
-                      ' on '//CurDate()//' at '//CurTime()//'.'
-WRITE (UnOu,'(  A)')  'The aerodynamic calculations were made by '//TRIM(AD_Prog%Name)//' '//TRIM(AD_Prog%Ver)//'.'
-WRITE (UnOu,'(/,1X,A,/)')  TRIM( FTitle )
+IF (WrTxtOutFile) THEN      
+
+   CALL OpenFOutFile ( UnOu, TRIM(RootName)//'.out' )
+                      
+      ! Add some file information:
+
+   WRITE (UnOu,'(/,A)') TRIM(FileDesc)  
+   WRITE (UnOu,'(  A)')  'The aerodynamic calculations were made by '//TRIM(AD_Prog%Name)//' '//TRIM(AD_Prog%Ver)//'.'
+   WRITE (UnOu,'(/,1X,A,/)')  TRIM( FTitle )
 
 
-   ! Write the names of the output parameters:
+      ! Write the names of the output parameters:
+      
+         ! names
+   CALL WrFileNR ( UnOu, TRIM( OutParam(0)%Name ) )
+   DO I=1,NumOuts
+      CALL WrFileNR ( UnOu, Delim//TRIM( OutParam(I)%Name ) )
+   ENDDO ! I
+
+         ! units
+   WRITE (UnOu,'()')
+   CALL WrFileNR ( UnOu, TRIM( OutParam(0)%Units ) )
+   DO I=1,NumOuts
+      CALL WrFileNR ( UnOu, Delim//TRIM( OutParam(I)%Units ) )
+   ENDDO ! I
+      
+   WRITE (UnOu,'()')
+
+END IF   
+
+IF (WrBinOutFile) THEN      
+   CALL OpenBin ( UnOuBin,   TRIM(RootName)//'.outb', 2, ErrStat )
    
-      ! names
-CALL WrFileNR ( UnOu, TRIM( OutParam(0)%Name ) )
-DO I=1,NumOuts
-   CALL WrFileNR ( UnOu, Delim//TRIM( OutParam(I)%Name ) )
-ENDDO ! I
-
-      ! units
-WRITE (UnOu,'()')
-CALL WrFileNR ( UnOu, TRIM( OutParam(0)%Units ) )
-DO I=1,NumOuts
-   CALL WrFileNR ( UnOu, Delim//TRIM( OutParam(I)%Units ) )
-ENDDO ! I
+   NOutSteps = NINT ( (TMax - TStart) / (DT*DecFact) ) + 1
+   IF (.NOT. ALLOCATED(AllOutData) ) THEN
+      ALLOCATE ( AllOutData(1:NumOuts,NOutSteps) , STAT=ErrStat )
+      IF ( ErrStat /= 0 )  THEN
+         CALL ProgAbort ( ' Error allocating memory for the AllOutData array.' )
+      END IF
+   END IF
    
-WRITE (UnOu,'()')
+   IF ( ALLOCATED(TimeData) ) DEALLOCATE(TimeData)
+   
+   IF ( OutputFileFmtID == FileFmtID_WithoutTime ) THEN
+   
+      ALLOCATE ( TimeData(2) , STAT=ErrStat )
+      IF ( ErrStat /= 0 )  THEN
+         CALL ProgAbort ( ' Error allocating memory for the TimeData array.' )
+      END IF
+
+      TimeData(1) = 0                  ! This is the first output time, which we will set later
+      TimeData(2) = DT*DecFact         ! This
+   
+   ELSE
+   
+      ALLOCATE ( TimeData( SIZE(AllOutData) ) , STAT=ErrStat )
+      IF ( ErrStat /= 0 )  THEN
+         CALL ProgAbort ( ' Error allocating memory for the TimeData array.' )
+      END IF
+   
+   END IF
+   
+   CurrOutStep = 0
+   FileDesc = TRIM(FileDesc)//' The aerodynamic calculations were made by '//TRIM(AD_Prog%Name)//' '//TRIM(AD_Prog%Ver)//'.'
+   
+END IF
+
 
 
 
@@ -7566,21 +8041,43 @@ CHARACTER(1)                 :: Delim                                           
 
 
 
-   ! Write normal tabular output:
+IF (WrTxtOutFile) THEN      
 
-Frmt = '(F8.3,'//TRIM(Int2LStr(NumOuts))//'(:,A,'//TRIM( OutFmt )//'))'
+      ! Write normal tabular output:
 
-IF ( TabDelim ) THEN
-   Delim = TAB
-ELSE
-   Delim = ' '
-END IF      
-WRITE(UnOu,Frmt)  OutData(Time), ( Delim, OutData(I), I=1,NumOuts )
+   Frmt = '(F8.3,'//TRIM(Int2LStr(NumOuts))//'(:,A,'//TRIM( OutFmt )//'))'
+
+   IF ( TabDelim ) THEN
+      Delim = TAB
+   ELSE
+      Delim = ' '
+   END IF      
+   WRITE(UnOu,Frmt)  OutData(Time), ( Delim, OutData(I), I=1,NumOuts )
+   
+END IF
+
+IF (WrBinOutFile) THEN               
+   
+      ! Write data to array for binary output file
+      
+   IF ( CurrOutStep == NOutSteps ) THEN
+      CALL ProgWarn( 'Not all data could be written to the binary output file.' )
+   ELSE      
+      CurrOutStep = CurrOutStep + 1
+      AllOutData(:,CurrOutStep) = OutData(1:NumOuts)
+      
+      IF ( CurrOutStep == 1_IntKi .OR. OutputFileFmtID == FileFmtID_WithTime ) THEN
+         TimeData(CurrOutStep) = OutData(Time)   ! Time associated with these outputs (bjj: fix this when we convert time to double precision)         
+      END IF
+               
+   END IF
+   
+END IF
 
 
    ! Generate AeroDyn's element data if desired:
 
-CALL ElemOut
+CALL ElemOut()
 
 
 

@@ -325,7 +325,8 @@ ENDIF
 
 IF ( ( AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure time has incremented a controller time step.
 
-
+!!bjj: remove this!!!
+!write(71,'(4(f20.10,2x))'), AllOuts(Time), LastTime, AllOuts(Time)*OnePlusEps  - LastTime, DTCntrl
    ! Initialize the avrSWAP array to zero:
 
    avrSWAP     = 0.0

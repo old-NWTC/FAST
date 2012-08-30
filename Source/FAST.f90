@@ -3626,6 +3626,8 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(MFHydro                            ) ) DEALLOCATE(MFHydro                            )
    IF ( ALLOCATED(MomH0B                             ) ) DEALLOCATE(MomH0B                             )
    IF ( ALLOCATED(OutData                            ) ) DEALLOCATE(OutData                            )
+   IF ( ALLOCATED(AllOutData                         ) ) DEALLOCATE(AllOutData                         )
+   IF ( ALLOCATED(TimeData                           ) ) DEALLOCATE(TimeData                           )
    IF ( ALLOCATED(OutParam                           ) ) DEALLOCATE(OutParam                           )
 
 
@@ -3775,6 +3777,7 @@ SUBROUTINE FAST_Terminate( ErrStat )
    CLOSE( UnLn )     !26      ! I/O unit number for the FAST linear output file (.lin).
    CLOSE( UnNoSpec ) !27      ! I/O unit number for the noise spectr output file.
    CLOSE( UnNoSPL )  !28      ! I/O unit number for the noise SPL output file.
+   CLOSE( UnOuBin )  !29      ! I/O unit number for the binary output file.
 
    !-------------------------------------------------------------------------------------------------
    ! Reset the initialization flag
@@ -8290,6 +8293,7 @@ SUBROUTINE TimeMarch
 
 USE                             DOFs
 USE                             Features
+USE                             General, ONLY : UnOuBin
 USE                             Output
 USE                             SimCont
 USE                             FAST_IO_Subs       ! WrOutHdr(),  SimStatus(), WrOutput()
@@ -8302,6 +8306,8 @@ IMPLICIT                        NONE
    ! Local variables.
 
 REAL(ReKi)                   :: TiLstPrn  = 0.0                                 ! The time of the last print.
+INTEGER(IntKi)               :: ErrStat  ! Error status
+CHARACTER(1024)              :: ErrMsg   ! Error message
 
 
 
@@ -8372,6 +8378,16 @@ ENDDO
 
    ! We're done!
 
+   ! Output the binary file if requested
+
+IF (WrBinOutFile) THEN
+   CALL WrBinOutput(UnOuBin, OutputFileFmtID, FileDesc, OutParam(:)%Name, OutParam(:)%Units, TimeData, &
+                     AllOutData(:,1:CurrOutStep), ErrStat, ErrMsg)
+
+   IF ( ErrStat /= ErrID_None ) THEN
+      CALL WrScr( 'Error '//Num2LStr(ErrStat)//' writing binary output file: '//TRIM(ErrMsg) )
+   END IF      
+END IF
 
    ! Output noise if desired:
 

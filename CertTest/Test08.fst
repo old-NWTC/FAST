@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 ------- FAST INPUT FILE --------------------------------------------------------
 FAST certification Test #08: AOC 15/50 with many DOFs with fixed yaw error and steady wind.
-Many parameters are pure fiction.  Compatible with FAST v7.00.00.
+Many parameters are pure fiction.  Compatible with FAST v7.02.00.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False       Echo        - Echo input data to "echo.out" (flag)
    3        ADAMSPrep   - ADAMS preprocessor mode {1: Run FAST, 2: use FAST as a preprocessor to create an ADAMS model, 3: do both} (switch)
@@ -167,8 +167,9 @@ False       Furling     - Read in additional model properties for furling turbin
 "AOC_Linear.dat"        LinFile    - Name of file containing FAST linearization parameters (quoted string) [unused when AnalMode=1]
 ---------------------- OUTPUT --------------------------------------------------
 True        SumPrint    - Print summary data to "<RootName>.fsm" (flag)
-True        TabDelim    - Generate a tab-delimited tabular output file. (flag)
-"ES10.3E2"  OutFmt      - Format used for tabular output except time.  Resulting field should be 10 characters. (quoted string)  [not checked for validity!]
+1           OutFileFmt  - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)
+True        TabDelim    - Use tab delimiters in text tabular output file? (flag)
+"ES10.3E2"  OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!]
   10.0      TStart      - Time to begin tabular output (s)
   10        DecFact     - Decimation factor for tabular output {1: output every time step} (-)
    5.0      SttsTime    - Amount of time between screen status messages (sec)
@@ -180,7 +181,7 @@ True        TabDelim    - Generate a tab-delimited tabular output file. (flag)
    0        TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
    2        NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
   2,6       BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
-            OutList     - The next line(s) contains a list of output parameters.  See OutList.txt for a listing of available output channels, (-)
+            OutList     - The next line(s) contains a list of output parameters.  See OutList.xlsx for a listing of available output channels, (-)
 "LSSGagPxa"             - LSS gage azimuth
 "TipDxb1,TipDxb2"       - Blade flapwise tip deflections
 "TipDyb1,TipDyb2"       - Blade edgewise tip deflections

@@ -530,6 +530,7 @@ INTEGER(4)                   :: I                                               
 INTEGER, ALLOCATABLE         :: IDCntrl (:,:)                                   ! Array for MulTabLoc functionality in Adams
 INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
 INTEGER(4)                   :: K                                               ! Loops through blades.
+INTEGER                      :: OutFileFmt                                      ! An integer that indicates what kind of tabular output should be generated (1=text, 2=binary, 3=both)
 INTEGER                      :: Sttus                                           ! Status of an attempted array allocation.
 INTEGER(4)                   :: SubAxI                                          ! An INTEGER representing what is in SubAxInd = (1 if SubAxInd = .TRUE.; 0 otherwise).
 INTEGER(4)                   :: TabDelimI                                       ! An INTEGER representing what is in TabDelim : = 0 if TabDelim  = .FALSE., 1 if TabDelim  = .TRUE.
@@ -668,6 +669,16 @@ IF ( TabDelim  )  THEN
    TabDelimI  = 1
 ELSE
    TabDelimI  = 0
+ENDIF
+
+IF ( WrBinOutFile ) THEN
+   IF ( WrTxtOutFile ) THEN
+      OutFileFmt  = 3
+   ELSE
+      OutFileFmt  = 2
+   END IF
+ELSE
+   OutFileFmt  = 1
 ENDIF
 
 
@@ -3967,8 +3978,8 @@ CALL MakeADM_WrICArraysR( (/ REAL(NumBl,ReKi),     REAL(BldNodes,ReKi),   REAL(T
                              REAL(NTwGages,ReKi),  REAL(NumOuts,ReKi),   &    ! bjj if linearizing, set NumOuts = 0 here ???
                              REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  AzimB1Up,             GBRatio,   &
                              TipRad,               TStart               , REAL(PtfmLdMod),       REAL(TwrLdMod),       ProjArea,  &
-                             AvgNrmTpRd,           GenIner /), &
-                                     ModelConstants_A, 18       , UnAD, "ModelConstants_A" )             
+                             AvgNrmTpRd,           GenIner              , REAL(OutFileFmt,ReKi)             /), &
+                                     ModelConstants_A, 19       , UnAD, "ModelConstants_A" )             
                                                                                                       
 CALL MakeADM_WrICArrays (OutParam(1:NumOuts)%Indx + 500*( 1 - OutParam(1:NumOuts)%SignM), & !ADD 1000 if SignM is negative (this implies that SignM should only be +1 or -1!!!!!)
                                      OutIndSign_A    , NumOuts,  UnAD, "OutIndSign_A"     ) ! note that OutParam has a 0 element so we need to specify (1:NumOuts) here

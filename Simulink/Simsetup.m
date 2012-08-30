@@ -42,7 +42,7 @@ Read_FAST_Input
 %
 %% ========================================================================
 
-% If your there is an error that requires you to restart the Simulink 
+% If there is an error that requires you to restart the Simulink 
 % simulation before FAST terminates properly (you should see the Simulation
 % Time Ratio statistics printed to the Matlab command window when it 
 % terminates properly), call the FAST_SFunc routine with FLAG=9, like this:

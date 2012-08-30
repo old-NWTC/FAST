@@ -1672,6 +1672,9 @@ CONTAINS
 !=======================================================================
       FUNCTION SINHNumOvrSIHNDen ( k, h, z )
 
+!bjj: note, MLB had issues with the IVF 12 compiler inline function expansion
+! and causing "unexpected results" (NaN) here. possible error in optimazations.
+!MLB: I turned off in-line function expansion to eliminate the NaN issue with the COSH/SUNH
 
          ! This FUNCTION computes the shallow water hyperbolic numerator
          ! over denominator term in the wave kinematics expressions:
@@ -2216,7 +2219,7 @@ INTEGER(4)                   :: NumLines                                        
 
 LOGICAL                      :: UseRdtn                                         ! Flag for determining whether or not the to model wave radiation damping (flag)
 
-LOGICAL, PARAMETER           :: OC3HywindMods  = .FALSE. !.TRUE.                ! Model specific changes for the OC3 Hywind Spar Bouy
+LOGICAL, PARAMETER           :: OC3HywindMods  =  .FALSE. !  .TRUE.!            ! Model specific changes for the OC3 Hywind Spar Bouy
 
 
 CONTAINS

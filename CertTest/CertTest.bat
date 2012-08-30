@@ -15,6 +15,8 @@ rem @SET MATLAB="C:\Program Files\MATLAB\R2009a\bin\matlab.exe"
 rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
 
 @SET FAST=..\FAST.exe
+rem @SET FAST="D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Archive\New Folder\FAST.exe"
+rem @SET FAST=..\FAST_Debug.exe
 rem @SET FAST=CALL FAST
 @SET DateTime=DateTime.exe
 @SET Editor=NotePad.EXE

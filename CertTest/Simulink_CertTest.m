@@ -19,7 +19,7 @@ addpath( [CertTest_Dir '\..\Simulink'], ...         % FAST_Sfunc.mexw32 and Read
 %test 2 has a high-speed shaft brake shutdown event, invalid in FAST_SFunc
 %test 14 is a linearization test; invalid in FAST_SFunc
 
-for iTest = [1 3:13 15:17]
+for iTest =  [1 3:13 15:17]
     
         %------------------------------------------------------------------       
         % Set up and run the Simulink OpenLoop model

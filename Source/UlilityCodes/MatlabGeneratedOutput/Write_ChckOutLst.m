@@ -5,7 +5,7 @@
 
 clear all
 
-ProgName = input('Enter the program for which the output module will be generated:','s');
+ProgName = input('Enter the program for which the output module will be generated: ','s');
 
 if strcmpi(ProgName,'FAST')
     OutListSheet = 'OutList';

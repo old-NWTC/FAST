@@ -34,11 +34,11 @@ end
                  'NRELOffshrBsline5MW_Onshore' };
              
 
-    for i= 1:17 %17+(2:5) 
+    for i= 20 %1:17 %17+(2:5) 
         
         if i > 17
             fileRoot = BslnTests{i-17};
-            newPath = ['5MWTestCases\' strrep(fileRoot,'_Original','')];
+            newPath = ['5MWTestCases\' strrep( strrep(fileRoot,'_Original',''), '_Floating_OC3Hywind','_OC3Hywind') ];
         else
             fileRoot = ['Test' num2str(i,'%02.0f')];
         end
@@ -310,6 +310,8 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
                 h1(2) = plot(newData{iFile}(:,xCol), newData{iFile}(:,iPlot) );
                 set(h1(2),'LineStyle','--','DisplayName',[descFiles{iFile} ', new'],'Color',LineColors{iFile}*0.75, 'LineWidth',LineWidthConst+1);       
             end            
+            currXLim = xlim;
+
 
             if NoDiff(iFile)
                 anyDiffPlot = true;
@@ -319,12 +321,14 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
                 plot(oldData{iFile}(:,xCol) ,   AbsDiff, ...
                       'Displayname',descFiles{iFile},'Color',LineColors{iFile}, 'LineWidth',LineWidthConst);
                 hold on;
+                xlim(currXLim);
 
                     % relative difference (% of old)
                 subplot(6,1,6);
                 plot(oldData{iFile}(:,xCol) ,   100*AbsDiff./ oldData{iFile}(:,iPlot), ...
                       'Displayname',descFiles{iFile},'Color',LineColors{iFile}, 'LineWidth',LineWidthConst);
                 hold on;
+                xlim(currXLim);
             end
 
         end %iFile

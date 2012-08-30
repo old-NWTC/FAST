@@ -100,17 +100,18 @@ SUBROUTINE FAST_End
 
    USE             AeroDyn,      ONLY: AD_Terminate
 
-   USE             FAST_IO_Subs, ONLY: RunTimes
+   USE             FAST_IO_Subs, ONLY: RunTimes, WrBinOutput
    USE             FASTSubs,     ONLY: FAST_Terminate
    USE             Features,     ONLY: CompNoise
    USE             General
    USE             HydroDyn
    USE             Noise,        ONLY: WriteAveSpecOut, Noise_Terminate
-
+   USE             Output
 
    IMPLICIT NONE
 
    INTEGER                          :: ErrStat
+   CHARACTER(1024)                  :: ErrMsg
    
    
 
@@ -118,6 +119,19 @@ SUBROUTINE FAST_End
       IF ( CompNoise )  CALL WriteAveSpecOut()  ! [  FAST.f90\TimeMarch() ]
 
       CALL RunTimes( )                          ! [  FAST_Prog.f90 ] !If not initialized, these numbers don't mean anything
+      
+         ! Output the binary file if requested
+      
+      IF (WrBinOutFile) THEN
+         CALL WrBinOutput(UnOuBin, OutputFileFmtID, FileDesc, OutParam(:)%Name, OutParam(:)%Units, TimeData, & 
+                           AllOutData(:,1:CurrOutStep), ErrStat, ErrMsg)
+
+         IF ( ErrStat /= ErrID_None ) THEN
+            CALL WrScr( 'Error '//Num2LStr(ErrStat)//' writing binary output file: '//TRIM(ErrMsg) )
+         END IF      
+      END IF
+      
+      
    END IF
    
    CALL FAST_Terminate(ErrStat)                 ! [  FAST_Prog.f90 ]
@@ -254,6 +268,7 @@ SUBROUTINE FAST_Init(InpFile)
 !rm   USE                             SimCont,        ONLY: UsrTime1, UsrTime0
    USE                             FAST_IO_Subs,   ONLY: FAST_Begin, FAST_Input, PrintSum, WrOutHdr, SimStatus
    USE                             FASTSubs,       ONLY: FAST_Initialize
+   USE                             Output,         ONLY: OutputFileFmtID, FileFmtID_WithTime
 
    IMPLICIT NONE
 
@@ -272,7 +287,8 @@ SUBROUTINE FAST_Init(InpFile)
       !  Initialize some FAST variables                                          [ see FASTProg.f90 ]
       !----------------------------------------------------------------------------------------------
 
-   Cmpl4SFun = .TRUE.
+   Cmpl4SFun       = .TRUE.
+   OutputFileFmtID = FileFmtID_WithTime      ! We cannot guarantee the output time step is constant in binary files
 
    CALL SetVersion
    CALL NWTC_Init()                          ! sets the pi constants and open the console for writing
