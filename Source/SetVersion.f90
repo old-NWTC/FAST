@@ -22,7 +22,7 @@ CHARACTER(6)                 :: Prcsn                                           
 
 ProgName = 'FAST'
 
-ProgVer = '(v7.02.00a-bjj, 28-Aug-2012)'
+ProgVer = '(v7.02.00b-bjj, 29-Oct-2012)'
 
 
 
@@ -38,7 +38,11 @@ ENDIF
 IF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
 
    ProgVer = TRIM(ProgVer)//'-Compiled as S-Function for Simulink'
-
+   
+ELSEIF ( Cmpl4LV )  THEN     ! FAST has been compiled as a DLL for Labview
+   
+   ProgVer = TRIM(ProgVer)//'-Compiled as a DLL for Labview'
+   
 ELSEIF( ReKi /= SiKi )  THEN  ! Compiled using something other than single precision
 
    ProgVer = TRIM(ProgVer)//'-Compiled using '//Prcsn//' precision'

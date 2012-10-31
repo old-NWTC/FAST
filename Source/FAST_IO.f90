@@ -131,9 +131,9 @@ CHARACTER(1024)              :: DirName                                         
 
 
    ! Check for command line arguments.  Maybe the user specified an input file name.
-   ! Don't perform this check when interfaced with Simulink:
+   ! Don't perform this check when interfaced with Simulink or Labview:
 
-IF ( .NOT. Cmpl4SFun )  CALL CheckArgs( PriFile )
+IF ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV  )  CALL CheckArgs( PriFile )
 
 CALL GetRoot( PriFile, RootName )
 
@@ -153,6 +153,7 @@ END IF
    ! Let's create the name of the output file.
 
 IF ( Cmpl4SFun )  RootName = TRIM( RootName )//'_SFunc'
+
 
 RETURN
 END SUBROUTINE FAST_Begin
@@ -2619,8 +2620,9 @@ ENDIF
 
 CALL ReadIVar ( UnIn, PriFile, ADAMSPrep, 'ADAMSPrep', 'ADAMS preprocessor mode' )
 
-IF ( Cmpl4SFun .AND. ( ADAMSPrep /= 1 ) )  THEN
-   CALL ProgWarn ( ' An ADAMS dataset can''t be built when FAST is interfaced with Simulink. ADAMSPrep is being set to 1.')
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( ADAMSPrep /= 1 ) )  THEN
+   CALL ProgWarn ( ' An ADAMS dataset can''t be built when FAST is interfaced with Simulink or Labview.'// & 
+      'ADAMSPrep is being set to 1.')
    ADAMSPrep = 1
 ELSEIF ( ( ADAMSPrep < 1 ) .OR. ( ADAMSPrep > 3 ) )  THEN
    CALL ProgAbort ( ' ADAMSPrep must be 1, 2, or 3.' )
@@ -2631,8 +2633,8 @@ ENDIF
 
 CALL ReadIVar ( UnIn, PriFile, AnalMode, 'AnalMode', 'Analysis mode' )
 
-IF ( Cmpl4SFun .AND. ( AnalMode /= 1 ) )  THEN
-   CALL ProgAbort ( ' FAST can''t linearize the model when interfaced with Simulink.'// &
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( AnalMode /= 1 ) )  THEN
+   CALL ProgAbort ( ' FAST can''t linearize the model when interfaced with Simulink or Labview.'// &
                 '  Set AnalMode to 1 or use the standard version of FAST.'            )
 ELSEIF ( ( AnalMode < 1 ) .OR. ( AnalMode > 2 ) )  THEN
    CALL ProgAbort ( ' AnalMode must be 1 or 2.' )
@@ -2673,9 +2675,9 @@ IF ( DT <= TMax*EPSILON(DT) )  CALL ProgAbort ( ' DT must be greater than '//TRI
 
 CALL ReadIVar ( UnIn, PriFile, YCMode, 'YCMode', 'Yaw control mode' )
 
-IF ( ( .NOT. Cmpl4SFun ) .AND. ( YCMode == 2 ) )  THEN
-   CALL ProgAbort ( ' YCMode can only equal 2 when FAST is interfaced with Simulink.'// &
-                '  Set YCMode to 0 or 1 or interface FAST with Simulink.'             )
+IF ( ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV ) .AND. ( YCMode == 2 ) )  THEN
+   CALL ProgAbort ( ' YCMode can only equal 2 when FAST is interfaced with Simulink or Labview.'// &
+                '  Set YCMode to 0 or 1 or interface FAST with Simulink or Labview.'             )
 ELSEIF ( ( YCMode < 0 ) .OR. ( YCMode > 2 ) )  THEN
    CALL ProgAbort ( ' YCMode must be 0, 1, or 2.' )
 ENDIF
@@ -2685,8 +2687,8 @@ ENDIF
 
 CALL ReadRVar ( UnIn, PriFile, TYCOn, 'TYCOn', 'Time to enable yaw control' )
 
-IF ( Cmpl4SFun .AND. ( YCMode == 2 ) .AND. ( TYCOn /= 0.0 ) )  THEN
-   CALL ProgAbort ( ' Yaw control must be enabled at time zero when implemented in Simulink.'//      &
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( YCMode == 2 ) .AND. ( TYCOn /= 0.0 ) )  THEN
+   CALL ProgAbort ( ' Yaw control must be enabled at time zero when implemented in Simulink or Labview.'//      &
                 '  Set TYCon to 0.0, set YCMode to 0 or 1, or use the standard version of FAST.'   )
 ELSEIF ( TYCOn < 0.0 )  THEN
    CALL ProgAbort ( ' TYCOn must not be negative.' )
@@ -2697,9 +2699,9 @@ ENDIF
 
 CALL ReadIVar ( UnIn, PriFile, PCMode, 'PCMode', 'Pitch control mode' )
 
-IF ( ( .NOT. Cmpl4SFun ) .AND. ( PCMode == 2 ) )  THEN
-   CALL ProgAbort ( ' PCMode can only equal 2 when FAST is interfaced with Simulink.'// &
-                '  Set PCMode to 0 or 1 or interface FAST with Simulink.'             )
+IF ( ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV ) .AND. ( PCMode == 2 ) )  THEN
+   CALL ProgAbort ( ' PCMode can only equal 2 when FAST is interfaced with Simulink or Labview.'// &
+                '  Set PCMode to 0 or 1 or interface FAST with Simulink or Labview.'             )
 ELSEIF ( ( PCMode < 0 ) .OR. ( PCMode > 2 ) )  THEN
    CALL ProgAbort ( ' PCMode must be 0, 1, or 2.' )
 ENDIF
@@ -2709,8 +2711,8 @@ ENDIF
 
 CALL ReadRVar ( UnIn, PriFile, TPCOn, 'TPCOn', 'Time to enable pitch control' )
 
-IF ( Cmpl4SFun .AND. ( PCMode == 2 ) .AND. ( TPCOn /= 0.0 ) )  THEN
-   CALL ProgAbort ( ' Pitch control must be enabled at time zero when implemented in Simulink.'//    &
+IF ( (Cmpl4SFun .OR. Cmpl4LV)  .AND. ( PCMode == 2 ) .AND. ( TPCOn /= 0.0 ) )  THEN
+   CALL ProgAbort ( ' Pitch control must be enabled at time zero when implemented in Simulink or Labview.'//    &
                 '  Set TPCon to 0.0, set PCMode to 0 or 1, or use the standard version of FAST.'   )
 ELSEIF ( TPCOn < 0.0 )  THEN
    CALL ProgAbort ( ' TPCOn must not be negative.' )
@@ -2721,9 +2723,9 @@ ENDIF
 
 CALL ReadIVar ( UnIn, PriFile, VSContrl, 'VSContrl', 'Variable-speed-generator control switch' )
 
-IF ( ( .NOT. Cmpl4SFun ) .AND. ( VSContrl == 3 ) )  THEN
-   CALL ProgAbort ( ' VSContrl can only equal 3 when FAST is interfaced with Simulink.'// &
-                '  Set VSContrl to 0, 1, or 2 or interface FAST with Simulink.'         )
+IF ( ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV ) .AND. ( VSContrl == 3 ) )  THEN
+   CALL ProgAbort ( ' VSContrl can only equal 3 when FAST is interfaced with Simulink or Labview.'// &
+                '  Set VSContrl to 0, 1, or 2 or interface FAST with Simulink or Labview.'         )
 ELSEIF ( ( VSContrl < 0 ) .OR. ( VSContrl > 3 ) )  THEN
    CALL ProgAbort ( ' VSContrl must be either 0, 1, 2, or 3.' )
 ENDIF
@@ -2772,18 +2774,18 @@ IF ( ( GenModel < 1 ) .OR. ( GenModel > 3 ) )  CALL ProgAbort ( ' GenModel must 
 
 CALL ReadLVar ( UnIn, PriFile, GenTiStr, 'GenTiStr', 'Start generator based upon T: time or F: generator speed' )
 
-IF ( Cmpl4SFun .AND. ( VSContrl == 3 ) .AND. ( .NOT. GenTiStr ) )  &
-   CALL ProgAbort ( ' Variable-speed, generator torque control must be enabled at time zero when implemented in Simulink.'//       &
-                '  Set GenTiStr to True and TimGenOn to 0.0, set VSContrl to 0, 1, or 2, or use the standard version of FAST.'   )
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( .NOT. GenTiStr ) )  &
+   CALL ProgAbort ( ' Variable-speed, generator torque control must be enabled at time zero when implemented in Simulink'//&
+      'or Labview. Set GenTiStr to True and TimGenOn to 0.0, set VSContrl to 0, 1, or 2, or use the standard version of FAST.' )
 
 
    ! GenTiStp - Stop generator based upon T: time or F: generator power = 0.
 
 CALL ReadLVar ( UnIn, PriFile, GenTiStp, 'GenTiStp', 'Stop generator based upon T: time or F: generator power = 0' )
 
-IF ( Cmpl4SFun .AND. ( VSContrl == 3 ) .AND. ( .NOT. GenTiStp ) )  &
-   CALL ProgAbort ( ' Variable-speed, generator torque control must not be disabled during simulation when'//                      &
-                ' implemented in Simulink.'//                                                                                  &
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( .NOT. GenTiStp ) )  &
+   CALL ProgAbort ( ' Variable-speed, generator torque control must not be disabled during simulation when'//   &
+                ' implemented in Simulink or Labview.'//                             &
                 '  Set GenTiStp to True and TimGenOf > TMax, set VSContrl to 0, 1, or 2, or use the standard version of FAST.'   )
 
 
@@ -2798,9 +2800,9 @@ IF ( SpdGenOn < 0.0 )  CALL ProgAbort ( ' SpdGenOn must not be negative.' )
 
 CALL ReadRVar ( UnIn, PriFile, TimGenOn, 'TimGenOn', 'Time to turn on generator' )
 
-IF ( Cmpl4SFun .AND. ( VSContrl == 3 ) .AND. ( TimGenOn /= 0.0 ) )  THEN
-   CALL ProgAbort ( ' Variable-speed, generator torque control must be enabled at time zero when implemented in Simulink.'//       &
-                '  Set GenTiStr to True and TimGenOn to 0.0, set VSContrl to 0, 1, or 2, or use the standard version of FAST.'   )
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( TimGenOn /= 0.0 ) )  THEN
+   CALL ProgAbort ( ' Variable-speed, generator torque control must be enabled at time zero when implemented in Simulink'//&
+   ' or Labview. Set GenTiStr to True and TimGenOn to 0.0, set VSContrl to 0, 1, or 2, or use the standard version of FAST.' )
 ELSEIF ( TimGenOn < 0.0 )  THEN
    CALL ProgAbort ( ' TimGenOn must not be negative.' )
 ENDIF
@@ -2810,10 +2812,10 @@ ENDIF
 
 CALL ReadRVar ( UnIn, PriFile, TimGenOf, 'TimGenOf', 'Time to turn off generator' )
 
-IF ( Cmpl4SFun .AND. ( VSContrl == 3 ) .AND. ( TimGenOf <= TMax ) )  THEN
-   CALL ProgAbort ( ' Variable-speed, generator torque control must not be disabled during simulation when'//                      &
-                ' implemented in Simulink.'//                                                                                  &
-                '  Set GenTiStp to True and TimGenOf > TMax, set VSContrl to 0, 1, or 2, or use the standard version of FAST.'   )
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( TimGenOf <= TMax ) )  THEN
+   CALL ProgAbort ( ' Variable-speed, generator torque control must not be disabled during simulation when'//         &
+                ' implemented in Simulink or Labview.'//                                                              &
+                '  Set GenTiStp to True and TimGenOf > TMax, set VSContrl to 0, 1, or 2, or use the standard version of FAST.' )
 ELSEIF ( TimGenOf < 0.0 )  THEN
    CALL ProgAbort ( ' TimGenOf must not be negative.' )
 ENDIF
@@ -2823,7 +2825,12 @@ ENDIF
 
 CALL ReadIVar ( UnIn, PriFile, HSSBrMode, 'HSSBrMode', 'HSS brake model' )
 
-IF ( ( HSSBrMode < 1 ) .OR. ( HSSBrMode > 2 ) )  CALL ProgAbort ( ' HSSBrMode must be 1 or 2.' )
+IF ( ( HSSBrMode < 1 ) .OR. ( HSSBrMode > 3 ) )  CALL Abort ( ' HSSBrMode must be 1, 2 or 3.' )
+
+IF ( ( .NOT. Cmpl4LV) .AND. ( HSSBrMode == 3 ) )  THEN
+   CALL ProgAbort ( ' HSSBrMode can be 3 only when when implemented in Labview.' )
+ENDIF
+
 
 
    ! THSSBrDp - Time to initiate deployment of the HSS brake.
@@ -2831,8 +2838,8 @@ IF ( ( HSSBrMode < 1 ) .OR. ( HSSBrMode > 2 ) )  CALL ProgAbort ( ' HSSBrMode mu
 CALL ReadRVar ( UnIn, PriFile, THSSBrDp, 'THSSBrDp', 'Time to initiate deployment of the HSS brake' )
 
 IF ( Cmpl4SFun .AND. ( THSSBrDp <= TMax ) )  THEN
-   CALL ProgAbort ( ' A high-speed shaft brake shutdown event can''t be initiated when FAST is interfaced with Simulink.'// &
-                '  Set THSSBrDp > TMax or use the standard version of FAST.'                                              )
+   CALL ProgAbort ( ' A high-speed shaft brake shutdown event can''t be initiated when FAST is interfaced with Simulink'// &
+                ' or Labview.  Set THSSBrDp > TMax or use the standard version of FAST.'        )
 ELSEIF ( THSSBrDp < 0.0 )  THEN
    CALL ProgAbort ( ' THSSBrDp must not be negative.' )
 ENDIF
@@ -3115,18 +3122,18 @@ ENDIF
 
 CALL ReadRVar ( UnIn, PriFile, OoPDefl, 'OoPDefl', 'Initial out-of-plane blade-tip deflection' )
 
-IF ( Cmpl4SFun .AND. ( OoPDefl /= 0.0 ) )  &
-   CALL ProgAbort ( ' Initial out-of-plane blade-tip displacements must be zero when FAST is interfaced with Simulink.'// &
-                '  Set OoPDefl to 0.0 or use the standard version of FAST.'                                             )
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( OoPDefl /= 0.0 ) )  &
+   CALL ProgAbort ( ' Initial out-of-plane blade-tip displacements must be zero when FAST is interfaced with Simulink'// &
+                ' or Labview. Set OoPDefl to 0.0 or use the standard version of FAST.'                )
 
 
    ! IPDefl - Initial in-plane blade-tip deflection.
 
 CALL ReadRVar ( UnIn, PriFile, IPDefl, 'IPDefl', 'Initial in-plane blade-tip deflection' )
 
-IF ( Cmpl4SFun .AND. ( IPDefl  /= 0.0 ) )  &
-   CALL ProgAbort ( ' Initial in-plane blade-tip displacements must be zero when FAST is interfaced with Simulink.'// &
-                '  Set IPDefl to 0.0 or use the standard version of FAST.'                                          )
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( IPDefl  /= 0.0 ) )  &
+   CALL ProgAbort ( ' Initial in-plane blade-tip displacements must be zero when FAST is interfaced with Simulink'// &
+                ' or Labview. Set IPDefl to 0.0 or use the standard version of FAST.'                 )
 
 
    ! TeetDefl - Initial or fixed teeter angle.
@@ -3167,18 +3174,18 @@ IF ( ( NacYaw <= -180.0 ) .OR. ( NacYaw > 180.0 ) )  &
 
 CALL ReadRVar ( UnIn, PriFile, TTDspFA, 'TTDspFA', 'Initial fore-aft tower-top displacement' )
 
-IF ( Cmpl4SFun .AND. ( TTDspFA /= 0.0 ) )  &
-   CALL ProgAbort ( ' Initial fore-aft tower-top displacements must be zero when FAST is interfaced with Simulink.'// &
-                '  Set TTDspFA to 0.0 or use the standard version of FAST.'                                         )
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( TTDspFA /= 0.0 ) )  &
+   CALL ProgAbort ( ' Initial fore-aft tower-top displacements must be zero when FAST is interfaced with Simulink'// &
+                ' or Labview. Set TTDspFA to 0.0 or use the standard version of FAST.'               )
 
 
    ! TTDspSS - Initial side-to-side tower-top displacement.
 
 CALL ReadRVar ( UnIn, PriFile, TTDspSS, 'TTDspSS', 'Initial side-to-side tower-top displacement' )
 
-IF ( Cmpl4SFun .AND. ( TTDspSS /= 0.0 ) )  &
-   CALL ProgAbort ( ' Initial side-to-side tower-top displacements must be zero when FAST is interfaced with Simulink.'// &
-                '  Set TTDspSS to 0.0 or use the standard version of FAST.'                                             )
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( TTDspSS /= 0.0 ) )  &
+   CALL ProgAbort ( ' Initial side-to-side tower-top displacements must be zero when FAST is interfaced with Simulink'// &
+                ' or Labview. Set TTDspSS to 0.0 or use the standard version of FAST.'                      )
 
 
 

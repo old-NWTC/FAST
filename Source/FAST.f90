@@ -2708,10 +2708,10 @@ IF ( ZTime >= TYCOn )  THEN   ! Time now to enable active yaw control.
       CALL UserYawCont ( QT(DOF_Yaw), QDT(DOF_Yaw), WindDir, YawError, NumBl, ZTime, DT, DirRoot, YawPosCom, YawRateCom )
 
 
-   CASE ( 2 )              ! User-defined from Simulink.
+   CASE ( 2 )              ! User-defined from Simulink or Labview.
 
 
-   ! Do nothing here since yaw angle and yaw rate are defined externally from Simulink.
+   ! Do nothing here since yaw angle and yaw rate are defined externally from Simulink or Labview.
 
 
    ENDSELECT
@@ -2830,10 +2830,10 @@ IF ( ZTime >= TPCOn )  THEN   ! Time now to enable active pitch control.
       CALL PitchCntrl ( BlPitch, ElecPwr, GBRatio*QDT(DOF_GeAz), GBRatio, TwrAccel, NumBl, ZTime, DT, DirRoot, BlPitchCom )
 
 
-   CASE ( 2 )              ! User-defined from Simulink.
+   CASE ( 2 )              ! User-defined from Simulink or Labview.
 
 
-   ! Do nothing here since blade pitch is defined externally from Simulink.
+   ! Do nothing here since blade pitch is defined externally from Simulink or Labview.
 
 
    ENDSELECT
@@ -2951,7 +2951,6 @@ COMPLEX(ReKi)                :: Currentm                                        
 
 REAL(ReKi)                   :: ComDenom                                        ! Common denominator of variables used in the TEC model
 REAL(ReKi)                   :: HSS_Spd                                         ! HSS speed in rad/sec.
-REAL(ReKi)                   :: HSSBrFrac                                       ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-).
 REAL(ReKi)                   :: PwrLossS                                        ! Power loss in the stator (watts)
 REAL(ReKi)                   :: PwrLossR                                        ! Power loss in the rotor (watts)
 REAL(ReKi)                   :: PwrMech                                         ! Mechanical power (watts)
@@ -3085,12 +3084,12 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
       CALL UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
 
 
-   CASE ( 3 )                             ! User-defined variable-speed control from Simulink.
+   CASE ( 3 )                             ! User-defined variable-speed control from Simulink or Labview.
 
 
    ! No need to define GenTrq or ElecPwr here since this is defined externally
-   !   by Simulink.  Also, no reason to perturb generator torque here either,
-   !   since linearization does not work with Simulink.
+   !   by Simulink or Labview.  Also, no reason to perturb generator torque here either,
+   !   since linearization does not work with Simulink or Labview.
 
 
    CASE ( 9999 )                          ! Overridden generator torque caused by trimming generator torque during a FAST linearization analysis (TrimCase == 2)
@@ -3393,10 +3392,9 @@ ELSE
    ! Inform the user of this switch!
 
       CALL WrOver(' WARNING:                                           ')
-      CALL WrScr ('  "DYNIN" InfModel switched to "EQUIL" by FAST to   ')
-      CALL WrScr ('    prevent instability of AeroDyn.                 ')
-      CALL WrScr ('  This happened since the rotor has nearly stopped. ')
-      CALL WrScr ('                                                    ')
+      CALL WrScr ('  "DYNIN" InfModel switched to "EQUIL" by FAST to prevent instability ')
+      CALL WrScr ('     of AeroDyn. This happened because the rotor has nearly stopped.  ')
+      CALL WrScr ('                                                                      ')
 
       CALL UsrAlarm
 
@@ -8293,7 +8291,7 @@ SUBROUTINE TimeMarch
 
 USE                             DOFs
 USE                             Features
-USE                             General, ONLY : UnOuBin
+USE                             General, ONLY : UnOuBin, Cmpl4LV
 USE                             Output
 USE                             SimCont
 USE                             FAST_IO_Subs       ! WrOutHdr(),  SimStatus(), WrOutput()
@@ -8371,7 +8369,7 @@ DO
 
    ! If we've reached TMax, exit the DO loop:
 
-   IF ( ZTime > TMax )  EXIT
+   IF ( ZTime > TMax .OR. Cmpl4LV )  EXIT
 
 ENDDO
 

@@ -11,11 +11,10 @@ rem @SET CRUNCH=Call C:\Users\bjonkman\Data\DesignCodes\Crunch\Crunch.exe
 rem @SET MATLAB="C:\Program Files\MATLAB\R2009a\bin\matlab.exe"
 
 @SET MATLAB=matlab
-@SET MBC_SOURCE=D:\DATA\Downloads\MBC\Source
+@SET MBC_SOURCE=C:\Users\bjonkman\Documents\DATA\Downloads\MBC\Source
 rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
 
 @SET FAST=..\FAST.exe
-rem @SET FAST="D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Archive\New Folder\FAST.exe"
 rem @SET FAST=..\FAST_Debug.exe
 rem @SET FAST=CALL FAST
 @SET DateTime=DateTime.exe
