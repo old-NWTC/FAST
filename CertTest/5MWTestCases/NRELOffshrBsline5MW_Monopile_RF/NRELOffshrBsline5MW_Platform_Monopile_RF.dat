@@ -44,7 +44,7 @@ DEFAULT     WavePkShp   - Peak shape parameter of incident wave spectrum (-) or 
    0.0      WaveDir     - Incident wave propagation heading direction (degrees) [unused when WaveMod=0 or 4]
 123456789   WaveSeed(1) - First  random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
 1011121314  WaveSeed(2) - Second random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
-            GHWvFile    - Root name of GH Bladed files containing wave data (quoted string) [used only when WaveMod=4]
+"unused"    GHWvFile    - Root name of GH Bladed files containing wave data (quoted string) [used only when WaveMod=4]
 ---------------------- CURRENT -------------------------------------------------
    0        CurrMod     - Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)
    0.0      CurrSSV0    - Sub-surface current velocity at still water level (m/s) [used only when CurrMod=1]
@@ -56,6 +56,6 @@ DEFAULT     CurrSSDir   - Sub-surface current heading direction (degrees) or DEF
    0.0      CurrDIDir   - Depth-independent current heading direction (degrees) [used only when CurrMod=1]
 ---------------------- OUTPUT (CONT) -------------------------------------------
    0        NWaveKin    - Number of points where the wave kinematics can be output [0 to 9] (-)
-            WaveKinNd   - List of tower nodes that have wave kinematics sensors [1 to TwrNodes] (-) [unused if NWaveKin=0]
+   0        WaveKinNd   - List of tower nodes that have wave kinematics sensors [1 to TwrNodes] (-) [unused if NWaveKin=0]
 
 

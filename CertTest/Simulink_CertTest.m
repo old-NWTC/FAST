@@ -3,7 +3,7 @@ clear all
 
 
     % the FAST CertTest folder must be entered below:
-CertTest_Dir = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
+CertTest_Dir = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
 % CertTest_Dir = 'C:\Users\bjonkman\DATA\DesignCodes\FAST\CertTest';
 % CertTest_Dir = '.';
 
@@ -14,6 +14,7 @@ CertTest_Dir = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest'
 % add the Simulink directories in the FAST archive:
 
 addpath( [CertTest_Dir '\..\Simulink'], ...         % FAST_Sfunc.mexw32 and Read_FAST_Input.m
+         [CertTest_Dir '\..\Simulink\Source'], ...  % FAST_Sfunc.mexw32 %BJJ REMOVE THIS
          [CertTest_Dir '\..\Simulink\Samples'] )    % OpenLoop.mdl
 
 %test 2 has a high-speed shaft brake shutdown event, invalid in FAST_SFunc

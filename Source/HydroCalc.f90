@@ -2696,7 +2696,7 @@ CONTAINS
          CALL Catenary ( XF           , ZF          , LUnstrLen(I), LEAStff  (I)  , &
                          LFldWght(I)  , LSeabedCD(I), LTenTol  (I), LFairHTe (I)  , &
                          LFairVTe(I)  , LAnchHTe (I), LAnchVTe (I), LineNodes     , &
-                         LSNodes (I,:), LNodesX  (:), LNodesZ  (:), LNodesTe (I,:)    )
+                         LSNodes (I,:), LNodesX     , LNodesZ     , LNodesTe (I,:)    )
 
 
       ! Transform the positions of each node on the current line from the local

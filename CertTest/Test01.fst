@@ -110,7 +110,7 @@ False       CompNoise   - Compute aerodynamic noise (flag)
 False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in opposite directions} (flag)
 6000.0      HSSBrTqF    - Fully deployed HSS-brake torque (N-m)
    0.5      HSSBrDT     - Time for HSS-brake to reach full deployment once initiated (sec) [used only when HSSBrMode=1]
-""          DynBrkFi    - File containing a mech-gen-torque vs HSS-speed curve for a dynamic brake [CURRENTLY IGNORED] (quoted string)
+"unused"    DynBrkFi    - File containing a mech-gen-torque vs HSS-speed curve for a dynamic brake [CURRENTLY IGNORED] (quoted string)
   50.0E6    DTTorSpr    - Drivetrain torsional spring (N-m/rad)
    1.0E6    DTTorDmp    - Drivetrain torsional damper (N-m/(rad/s))
 ---------------------- SIMPLE INDUCTION GENERATOR ------------------------------
@@ -129,7 +129,7 @@ False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in 
    0.7750   TEC_MR      - Magnetizing reactance (ohms) [used only when VSContrl=0 and GenModel=2]
 ---------------------- PLATFORM ------------------------------------------------
    0        PtfmModel   - Platform model {0: none, 1: onshore, 2: fixed bottom offshore, 3: floating offshore} (switch)
-""          PtfmFile    - Name of file containing platform properties (quoted string) [unused when PtfmModel=0]
+"unused"    PtfmFile    - Name of file containing platform properties (quoted string) [unused when PtfmModel=0]
 ---------------------- TOWER ---------------------------------------------------
   21        TwrNodes    - Number of tower nodes used for analysis (-)
 "AWT_Tower.dat" TwrFile - Name of file containing tower properties (quoted string)
@@ -139,7 +139,7 @@ False       GBRevers    - Gearbox reversal {T: if rotor and generator rotate in 
    0.0      YawNeut     - Neutral yaw position--yaw spring force is zero at this yaw (degrees)
 ---------------------- FURLING -------------------------------------------------
 False       Furling     - Read in additional model properties for furling turbine (flag)
-""          FurlFile    - Name of file containing furling properties (quoted string) [unused when Furling=False]
+"unused"    FurlFile    - Name of file containing furling properties (quoted string) [unused when Furling=False]
 ---------------------- ROTOR-TEETER --------------------------------------------
    1        TeetMod     - Rotor-teeter spring/damper model {0: none, 1: standard, 2: user-defined from routine UserTeet} (switch) [unused for 3 blades]
    0.0      TeetDmpP    - Rotor-teeter damper position (degrees) [used only for 2 blades and when TeetMod=1]
@@ -160,7 +160,7 @@ False       Furling     - Read in additional model properties for furling turbin
 ---------------------- AERODYN -------------------------------------------------
 "Test01_AD.ipt"         ADFile     - Name of file containing AeroDyn input parameters (quoted string)
 ---------------------- NOISE ---------------------------------------------------
-""          NoiseFile   - Name of file containing aerodynamic noise input parameters (quoted string) [used only when CompNoise=True]
+"unused"    NoiseFile   - Name of file containing aerodynamic noise input parameters (quoted string) [used only when CompNoise=True]
 ---------------------- ADAMS ---------------------------------------------------
 "AWT_ADAMS.dat"         ADAMSFile  - Name of file containing ADAMS-specific input parameters (quoted string) [unused when ADAMSPrep=1]
 ---------------------- LINEARIZATION CONTROL -----------------------------------

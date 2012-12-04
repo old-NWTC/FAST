@@ -46,9 +46,9 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
    0.0      BlPitch(1)  - Blade 1 initial pitch (degrees)
    0.0      BlPitch(2)  - Blade 2 initial pitch (degrees)
    0.0      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
-   0.0      B1PitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
-   0.0      B1PitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
-   0.0      B1PitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
+   0.0      BlPitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
+   0.0      BlPitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
+   0.0      BlPitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
 ---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
    9.80665  Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- FEATURE FLAGS -------------------------------------------

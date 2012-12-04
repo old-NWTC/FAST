@@ -2,10 +2,13 @@
 % Output module and writes some Fortran code containing appropriate
 % parameters (which can be imported into the output module).
  
+% Users will need to modify the XLS_file variable to point to the location
+% of the OutListParameters.xlsx code
+
 
 clear all
 
-ProgName = input('Enter the program for which the output module will be generated: ','s');
+ProgName = input('Enter the program for which the output module will be generated (FAST or HydroDyn): ','s');
 
 if strcmpi(ProgName,'FAST')
     OutListSheet = 'OutList';

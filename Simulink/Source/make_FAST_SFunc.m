@@ -3,6 +3,8 @@
 %
 % National Renewable Energy Laboratory's 
 % National Wind Technology Center                             31 March 2010
+%  edited: 
+%  + 26 November 2012 B. Jonkman to use NWTC Subroutine Library 1.05.00                                                            
 %
 % NOTE: We assume that the user of this script has some knowlege about 
 % compiling Fortran and can access the Matlab documentation files for 
@@ -37,7 +39,7 @@
 % Set the name of the batch file containing the locations of the compiler 
 % and linker, along with the correct compiler and linker flags for FAST.
 %--------------------------------------------------------------------------
-FortranOptionsFile = 'intelf10msvs2003opts.bat';
+FortranOptionsFile = 'intelf12msvs2010shellopts.bat';
 %
 %'COMPFLAGS#"$COMPFLAGS /assume:byterecl /traceback /Qsave /Qzero /real_size:64"',
 
@@ -48,20 +50,21 @@ OutputRootName     = 'FAST_SFunc';                  % name of the mex file
 
 %--------------------------------------------------------------------------
 % Set the paths pointing to the Fortran source code for
-% NWTC_Library (NWTC_LIB), AeroDyn (AD_LOC), AeroDyn's wind inflow 
+% NWTC_Library (NWTC_LIB), AeroDyn (AD_LOC), InflowWind 
 % routines (WIND_LOC), and FAST (FAST_LOC):
 %--------------------------------------------------------------------------
-NWTC_LIB    = 'D:\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\source';
-WIND_LOC    = 'D:\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\trunk\Source';
-AD_LOC      = 'D:\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source';
-FAST_LOC    = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Source';
-Sim_LOC     = 'D:\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Simulink\Source';
+NWTC_LIB    = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\trunk\source';
+WIND_LOC    = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\trunk\Source';
+AD_LOC      = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source';
+FAST_LOC    = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Source';
+Sim_LOC     = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\Simulink\Source';
 
 
 %% ------------------------------------------------------------------------
 % Compile the mex function
 %--------------------------------------------------------------------------
 mex('-v'                                             , ... %verbose
+    '-compatibleArrayDims'                           , ... %use limited array handling (not large array dims)
     '-f',      FortranOptionsFile                    , ... %file containing fortran options
     '-output', OutputRootName                        , ... %name of the resulting mex function
     fullfile(NWTC_LIB, 'DoubPrec.f90'               ), ...
@@ -69,6 +72,7 @@ mex('-v'                                             , ... %verbose
     fullfile(NWTC_LIB, 'NWTC_IO.f90'                ), ...
     fullfile(NWTC_LIB, 'NWTC_Num.f90'               ), ...
     fullfile(NWTC_LIB, 'NWTC_Aero.f90'              ), ...
+    fullfile(NWTC_LIB, 'ModMesh.f90'                ), ...
     fullfile(NWTC_LIB, 'NWTC_Library.f90'           ), ...
     fullfile(WIND_LOC, 'SharedInflowDefs.f90'       ), ...
     fullfile(WIND_LOC, 'HHWind.f90'                 ), ...

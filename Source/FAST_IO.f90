@@ -2621,8 +2621,8 @@ ENDIF
 CALL ReadIVar ( UnIn, PriFile, ADAMSPrep, 'ADAMSPrep', 'ADAMS preprocessor mode' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( ADAMSPrep /= 1 ) )  THEN
-   CALL ProgWarn ( ' An ADAMS dataset can''t be built when FAST is interfaced with Simulink or Labview.'// & 
-      'ADAMSPrep is being set to 1.')
+   CALL ProgWarn ( " An ADAMS dataset can't be built when FAST is interfaced with Simulink or Labview."// & 
+      "ADAMSPrep is being set to 1.")
    ADAMSPrep = 1
 ELSEIF ( ( ADAMSPrep < 1 ) .OR. ( ADAMSPrep > 3 ) )  THEN
    CALL ProgAbort ( ' ADAMSPrep must be 1, 2, or 3.' )
@@ -2785,7 +2785,7 @@ CALL ReadLVar ( UnIn, PriFile, GenTiStp, 'GenTiStp', 'Stop generator based upon 
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( .NOT. GenTiStp ) )  &
    CALL ProgAbort ( ' Variable-speed, generator torque control must not be disabled during simulation when'//   &
-                ' implemented in Simulink or Labview.'//                             &
+                ' implemented in Simulink or Labview.'//                          &
                 '  Set GenTiStp to True and TimGenOf > TMax, set VSContrl to 0, 1, or 2, or use the standard version of FAST.'   )
 
 
@@ -2825,7 +2825,7 @@ ENDIF
 
 CALL ReadIVar ( UnIn, PriFile, HSSBrMode, 'HSSBrMode', 'HSS brake model' )
 
-IF ( ( HSSBrMode < 1 ) .OR. ( HSSBrMode > 3 ) )  CALL Abort ( ' HSSBrMode must be 1, 2 or 3.' )
+IF ( ( HSSBrMode < 1 ) .OR. ( HSSBrMode > 3 ) )  CALL ProgAbort ( ' HSSBrMode must be 1, 2 or 3.' )
 
 IF ( ( .NOT. Cmpl4LV) .AND. ( HSSBrMode == 3 ) )  THEN
    CALL ProgAbort ( ' HSSBrMode can be 3 only when when implemented in Labview.' )
@@ -7605,7 +7605,7 @@ INTEGER(B1Ki), ALLOCATABLE    :: ChanUnitASCII(:)                 ! The ASCII eq
       RETURN
    ENDIF
    
-   IF ( FileID == 1 ) THEN
+   IF ( FileID == FileFmtID_WithTime ) THEN
       ALLOCATE ( TmpTimeArray( NT ) , STAT=ErrStat )
       IF ( ErrStat /= 0 )  THEN
          CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary output time array.')

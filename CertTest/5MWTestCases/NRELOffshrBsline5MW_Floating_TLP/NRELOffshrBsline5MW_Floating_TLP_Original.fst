@@ -7,7 +7,7 @@ False       Echo        - Echo input data to "echo.out" (flag)
    3        ADAMSPrep   - ADAMS preprocessor mode {1: Run FAST, 2: use FAST as a preprocessor to create an ADAMS model, 3: do both} (switch)
    1        AnalMode    - Analysis mode {1: Run a time-marching simulation, 2: create a periodic linearized model} (switch)
    3        NumBl       - Number of blades (-)
- 630.0      TMax        - Total run time (s)
+ 299.99     TMax        - Total run time (s)
    0.0125   DT          - Integration time step (s)
 ---------------------- TURBINE CONTROL -----------------------------------------
    0        YCMode      - Yaw control mode {0: none, 1: user-defined from routine UserYawCont, 2: user-defined from Simulink} (switch)
@@ -46,9 +46,9 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
    0.0      BlPitch(1)  - Blade 1 initial pitch (degrees)
    0.0      BlPitch(2)  - Blade 2 initial pitch (degrees)
    0.0      BlPitch(3)  - Blade 3 initial pitch (degrees) [unused for 2 blades]
-   0.0      B1PitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
-   0.0      B1PitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
-   0.0      B1PitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
+   0.0      BlPitchF(1) - Blade 1 final pitch for pitch maneuvers (degrees)
+   0.0      BlPitchF(2) - Blade 2 final pitch for pitch maneuvers (degrees)
+   0.0      BlPitchF(3) - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
 ---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
    9.80665  Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- FEATURE FLAGS -------------------------------------------

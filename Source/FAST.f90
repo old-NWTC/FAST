@@ -3162,6 +3162,11 @@ ELSE                             ! HSS brake deployed.
       IF ( ( HSSBrFrac < 0.0 ) .OR. ( HSSBrFrac > 1.0 ) )  &   ! 0 (off) <= HSSBrFrac <= 1 (full); else Abort.
          CALL ProgAbort ( ' HSSBrFrac must be between 0.0 (off) and 1.0 (full) (inclusive).  Fix logic in routine UserHSSBr().' )
 
+   CASE ( 3 )                                ! HSS brake model from Labview.
+
+   ! No need to define HSSBrFrac here because this is defined externally by Labview.
+      
+   
    ENDSELECT
 
 

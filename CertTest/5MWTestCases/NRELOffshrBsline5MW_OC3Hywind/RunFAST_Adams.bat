@@ -4,7 +4,7 @@ SET Compare=FC
 rem set FAST=Y:\Wind\WindWeb\public\jjonkman\FAST\FAST_v7.00.00a-bjj_AeroDyn_v13.00.00a-bjj_BladedDLLInterface_OC3Hywind.exe
 rem set FAST=Y:\Wind\WindWeb\public\jjonkman\FAST\FAST_v7.00.01a-bjj_AeroDyn_v13.00.00a-bjj_BladedDLLInterface.exe
 SET FAST=..\..\..\FAST_forBladedDLL_OC3Hywind.exe
-SET ADAMS=Call ADAMS08DLL
+SET ADAMS=Call ADAMS08
 
 
 SET Editor=NotePad.EXE
@@ -13,6 +13,8 @@ SET TEST01=NRELOffshrBsline5MW_Floating_OC3Hywind
 SET DASHES=---------------------------------------------------------------------------------------------
 SET TESTDIR=..\..\TstFiles
 
+
+
 echo FAST %TEST01%
 
 
@@ -20,6 +22,8 @@ rem --------------------------------------------------------------------
 rem ------------- Run FAST ---------------------------------------------
 rem --------------------------------------------------------------------
 
+rem : running 32-bit FAST:
+copy DISCON_win32.dll DISCON.dll
 
 %FAST% %TEST01%.fst
 
@@ -42,7 +46,11 @@ rem --------------------------------------------------------------------
 rem ------------- Run ADAMS --------------------------------------------
 rem --------------------------------------------------------------------
 
-%ADAMS% %TEST01%_ADAMS
+rem : running 64-bit ADAMS:
+copy DISCON_win64.dll DISCON.dll
+
+
+%ADAMS% %TEST01%_ADAMS OC3
 
 IF NOT EXIST %TEST01%_ADAMS.plt  GOTO ERROR
 
