@@ -132,7 +132,7 @@ ENDIF
 RETURN
 END SUBROUTINE Set_FAST_Params
 !=======================================================================
-SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz )
+SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz, CoordSys )
 
 
    ! This routine computes the tail fin aerodynamic loads TFinKFx, TFinKFy,
@@ -140,8 +140,8 @@ SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz 
 
 
    ! FAST Modules:
-
-USE                             CoordSys
+USE                             StructDyn_Types
+   
 USE                             DOFs
 USE                             General
 USE                             RtHndSid
@@ -170,6 +170,7 @@ REAL(ReKi), INTENT(IN )      :: TFinCPxi                                        
 REAL(ReKi), INTENT(IN )      :: TFinCPyi                                        ! Lateral  distance from the inertial frame origin to the tail fin center-of-pressure (m)
 REAL(ReKi), INTENT(IN )      :: TFinCPzi                                        ! Vertical distance from the inertial frame origin to the tail fin center-of-pressure (m)
 
+TYPE(StrD_CoordSys), INTENT(IN) :: CoordSys                                     ! Coordinate systems
 
    ! Local variables:
 
@@ -218,15 +219,15 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
 !JASON: IS THERE ANY WAY OF DETERMINING WHETHER OR NOT THE TAIL FIN IS ACTUALLY IN THE WAKE?
 
    IF ( SubAxInd )  THEN
-      WindVelEK = WindVelEK - AD_GetCurrentValue('AvgInfl',ErrStat)*c1
+      WindVelEK = WindVelEK - AD_GetCurrentValue('AvgInfl',ErrStat)*CoordSys%c1
       IF (ErrStat /= 0) WindVelEK = 0.0
    END IF
 
    ! Convert the wind velocity at tail fin center-of-pressure to tail fin
    !   coordinate system:
-   TFinWndVx    =      DOT_PRODUCT( WindVelEK, p1 )   ! Tail fin wind velocity along tail fin chordline pointing toward tail fin trailing edge
-   TFinWndVy    = -1.0*DOT_PRODUCT( WindVelEK, p3 )   ! Tail fin wind velocity normal to plane of tail fin pointing towards suction surface
-   TFinWndVz    =      DOT_PRODUCT( WindVelEK, p2 )   ! Tail fin wind velocity in plane of tail fin normal to chordline and nominally upward
+   TFinWndVx    =      DOT_PRODUCT( WindVelEK, CoordSys%p1 )   ! Tail fin wind velocity along tail fin chordline pointing toward tail fin trailing edge
+   TFinWndVy    = -1.0*DOT_PRODUCT( WindVelEK, CoordSys%p3 )   ! Tail fin wind velocity normal to plane of tail fin pointing towards suction surface
+   TFinWndVz    =      DOT_PRODUCT( WindVelEK, CoordSys%p2 )   ! Tail fin wind velocity in plane of tail fin normal to chordline and nominally upward
 
 
    ! Compute the wind velocity relative to the tail fin at the tail fin

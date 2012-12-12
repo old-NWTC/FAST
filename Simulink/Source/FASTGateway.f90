@@ -58,6 +58,10 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
    INTEGER,    PARAMETER        :: MaxOutputs  = MaxOutPts + MaxDOFs
    INTEGER,    PARAMETER        :: MaxWinds    = MIN( MaxInputs, MaxOutputs )
    
+   
+!   INTEGER(4) mexAtExit(ExitFcn)
+!   subroutine ExitFcn()
+   
       !----------------------------------------------------------------------------------------------
       ! define right- and left-hand side arguments of the MATLAB function we're creating
       !----------------------------------------------------------------------------------------------
@@ -88,9 +92,9 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
    INTEGER(mwPointer)           :: ptr_retrn               ! pointer to Matlab workspace variable
    REAL(mxDB)                   :: retrn_dp                ! real array created from pointer ptr_retrn
 
-   INTEGER                      :: NumBl                   !! Added by M. Hand
-   INTEGER                      :: NDOF                    !! Added by M. Hand
-   INTEGER                      :: NumOuts                 !! Added by M. Hand
+   INTEGER, SAVE                :: NumBl                   !! Added by M. Hand
+   INTEGER, SAVE                :: NDOF                    !! Added by M. Hand
+   INTEGER, SAVE                :: NumOuts                 !! Added by M. Hand
    REAL(mxDB)                   :: Initialized             ! Prevents running Simulink model with old FAST input file
    CHARACTER(1024)              :: InpFile                 ! Name of the FAST input file, from the MATLAB workspace (dimensioned the same as FAST's PriFile)
 
@@ -102,7 +106,7 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
    INTEGER(mwSize)              :: N                       ! Number of columns in array
    INTEGER                      :: Stat                    ! Return status
 
-   INTEGER(mwSize)              :: MDLsizes(NSIZES)        ! Local array, containing the SimuLink SIZE array that is required as input/output
+   INTEGER(mwSize), SAVE        :: MDLsizes(NSIZES)        ! Local array, containing the SimuLink SIZE array that is required as input/output
    REAL(mxDB)                   :: DSIZE   (NSIZES)        ! Local array = DOUBLE(MDLsizes), used to output the MDLsizes array
    REAL(mxDB)                   :: NXTHIT                  ! return value for next time (not used)
 
@@ -114,6 +118,7 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
       !----------------------------------------------------------------------------------------------
 
    INTEGER(mwPointer), EXTERNAL :: mexGetVariablePtr       ! MATLAB routine
+   INTEGER(4), EXTERNAL         :: mexPutVariable          ! MATLAB routine
    EXTERNAL                     :: mxCopyPtrToReal8        ! MATLAB mex function to create REAL(8) array from pointer to an array
    EXTERNAL                     :: mxCopyReal8ToPtr        ! MATLAB mex function to create pointer to copy of a REAL(8) array
    INTEGER(mwPointer), EXTERNAL :: mxCreateDoubleMatrix    ! pointer [Replace integer by integer*8 on the DE! Alpha and the SGI 64-bit platforms]
@@ -124,72 +129,19 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
    INTEGER(mwPointer), EXTERNAL :: mxGetString             ! MATLAB mex function to get string from its pointer
 
 
-
-   !=================================================================================================
-   ! Get variables from the Matlab workspace (added by M. Hand)
-   !=================================================================================================
-
-   !bjj: these variables can be returned from FAST_Init() rather than the Matlab workspace! 
-   !     these checks would not only be done on initialization instead of each call to FAST_SFunc.
-   !     We could also pass this function the name of the FAST input file and perhaps return the
-   !     values obtained from the input file instead of using Read_FAST_Input.m.
-
-      ! Get NumBl from workspace
-   ptr_retrn = mexGetVariablePtr('base', 'NumBl')
-   IF ( ptr_retrn == 0 ) THEN
-      CALL ProgAbort('ERROR: Variable "NumBl" does not exist in the MATLAB workspace.')
-   ELSE
-      CALL mxCopyPtrToReal8(mxGetPr(ptr_retrn), retrn_dp, 1)
-      NumBl = INT(retrn_dp)
-   ENDIF
-
-      ! Get NDOF from workspace
-   ptr_retrn = mexGetVariablePtr('base', 'NDOF')
-   IF ( ptr_retrn == 0 ) THEN
-      CALL ProgAbort('ERROR: Variable "NDOF" does not exist in the MATLAB workspace.')
-   ELSE
-      CALL mxCopyPtrToReal8(mxGetPr(ptr_retrn), retrn_dp, 1)
-      NDOF = INT(retrn_dp)
-   ENDIF
-
-      ! Get NumOuts from workspace
-   ptr_retrn = mexGetVariablePtr('base', 'NumOuts')
-   IF ( ptr_retrn == 0 ) THEN
-      CALL ProgAbort('ERROR: Variable "NumOuts" does not exist in the MATLAB workspace.')
-   ELSE
-      CALL mxCopyPtrToReal8(mxGetPr(ptr_retrn), retrn_dp, 1)
-      NumOuts = INT(retrn_dp)
-   ENDIF
-
-
-   !=================================================================================================
-   ! Set the MDLsizes vector, which determines Simulink model characteristics
-   !=================================================================================================
-
-      MDLsizes(1) = 0                        ! number of continuous states
-      MDLsizes(2) = 0                        ! number of discrete states
-      MDLsizes(3) = NDOF + NumOuts           ! number of outputs: qdotdot + NumOuts
-      MDLsizes(4) = 2 + 2 + NumBl + NDOF*2   ! number of inputs:  Gen(2), Yaw(2), BlPitch, q, qdot
-      MDLsizes(5) = 0                        ! number of discontinuous roots in the system
-      MDLsizes(6) = 1                        ! Direct feedthrough of U
-
-
-      IF ( MDLsizes(3) > SIZE(Y,1) ) THEN
-         CALL ProgAbort( ' Output array cannot hold the number of outputs.' )
-      ELSEIF ( MDLsizes(4) > SIZE(U,1) ) THEN
-         CALL ProgAbort( ' Input array cannot hold the number of inputs.' )
-      END IF
-
    !=================================================================================================
    ! Check the function input arguments to determine if this is an initialization step.
    ! Initialization occurs when there are no input arguments or when the last input
    ! argument (#4), FLAG, is 0.
    !=================================================================================================
 
+   
    IF (NRHS == 0) THEN
       InitStep = .TRUE.
+      FLAG     = 0
+      call WrScr( ' Initialize without arguments.' )
    ELSE
-      IF (NRHS /= 4) THEN
+      IF (NRHS /= 4) THEN !bjj: we could add parameters here... like the input file name
          CALL ProgAbort('Wrong number of input arguments.')
          InitStep = .TRUE.  ! This line should not be reached (mexErrMsgTxt in ProgAbort() returns to the MATLAB prompt)
       ELSE
@@ -202,20 +154,17 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
 
          FLAG = INT(mxGetScalar(PRHS(4)))    ! Special case FLAG=0, return sizes and initial conditions
 
-         IF (FLAG .EQ. 0) THEN
-            InitStep = .TRUE.
-         ELSE
-            InitStep = .FALSE.
-         ENDIF
+         InitStep = (FLAG .EQ. 0) 
+
       ENDIF
    ENDIF
 
-
+   
    !=================================================================================================
 
    IF ( InitStep ) THEN  ! mdlInitializeSizes(), mdlStart()
 
-!      CALL WrScr('Initializing the S-Function.') !BJJ: this is called 2x per simulation.  Why?
+!      CALL WrScr('Initializing the S-Function. '//Num2LStr(NRHS)//' '//Num2LStr(NLHS)) !BJJ: this is called 2x per simulation.  One time with one output argument, another with two output arguments.
 
       !-----------------------------------------------------------------------------------------------
       ! S-Function Initialization
@@ -225,31 +174,6 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
       !     [y1]=FAST_SFunc(t,x,u,FLAG=0);
       ! [y1, y2]=FAST_SFunc(t,x,u,FLAG=0);
       !-----------------------------------------------------------------------------------------------
-
-      IF (NLHS < 1 ) THEN
-         CALL ProgAbort('Not enough output arguments.')
-      ELSEIF (NLHS > 2) THEN
-         CALL ProgAbort('Too many output arguments.')
-      ENDIF
-
-         ! *** Output argument y1 contains the size vector (MDLsizes) ***
-
-      !bjj: this should be done after the call to FAST_Init to allow NDOF and other parameters stored in MDLsizes() to be
-      !     retreived from Fortran, rather than a variable in the Matlab workspace!
-      
-      PLHS(1)     = mxCreateDoubleMatrix(NSIZES, 1, mxREAL)                       ! Create NSIZES x 1 REAL array for the first output, y1
-      ptr_Y       = mxGetPr(PLHS(1))                                              ! Get the address of the first element of the data
-      DSIZE(:)    = REAL( MDLsizes(:), mxDB )                                     ! Integer(4) to Real(8)
-      CALL mxCopyReal8ToPtr(DSIZE, ptr_Y, NSizes)                                 ! Copy the SIZE vector (DSize) to the output array pointed to by PLHS(1)
-
-
-         ! *** Output argument y2 contains the initial states (ptr_X0) ***
-
-      IF (NLHS > 1) THEN  ! [y1, y2]=FAST_SFunc();                                ! bjj: Since we have no states, this creates an empty array
-         PLHS(2) = mxCreateDoubleMatrix(MDLsizes(1)+MDLsizes(2), 1, mxREAL)
-      ENDIF
-
-      NXTHIT =  HUGE
 
       IF (FirstStep) THEN
 
@@ -286,17 +210,76 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
          ENDIF
 
          !............................................................................................
-         !  Run FAST initialization
+         !  Run FAST initialization, find out values of NumBl, NDOF, and NumOuts
          !............................................................................................
 
-         CALL FAST_Init(InpFile)
+         CALL FAST_Init(InpFile, NumBl, NDOF, NumOuts)
 
+         !............................................................................................
+         ! Set the OutList array in the Matlab workspace ... (and anything else we can set here)
+         !............................................................................................
+                  
+         !CALL mxCopyCharacterToPtr(OutList, ptr_C, NSizes)                             ! Copy the OutList vector to the array pointed to by ptr_C
+         !
+         !Stat = mexPutVariable('base', 'OutList', ptr_C)
+         !IF (Stat /= 0) CALL mexErrMsgTxt('Error getting placing OutList into the MATLAB workspace.')
+                  
+         
+         !............................................................................................
+         ! Set the MDLsizes vector, which determines Simulink model characteristics
+         !............................................................................................
+         
+         MDLsizes(1) = 0                        ! number of continuous states
+         MDLsizes(2) = 0                        ! number of discrete states
+         MDLsizes(3) = NDOF + NumOuts           ! number of outputs: qdotdot + NumOuts
+         MDLsizes(4) = 2 + 2 + NumBl + NDOF*2   ! number of inputs:  Gen(2), Yaw(2), BlPitch, q, qdot
+         MDLsizes(5) = 0                        ! number of discontinuous roots in the system
+         MDLsizes(6) = 1                        ! Direct feedthrough of U
+         
+         IF ( MDLsizes(3) > SIZE(Y,1) ) THEN
+            CALL ProgAbort( ' Output array cannot hold the number of outputs.' )
+         ELSEIF ( MDLsizes(4) > SIZE(U,1) ) THEN
+            CALL ProgAbort( ' Input array cannot hold the number of inputs.' )
+         END IF
+         
+            ! Mark this step completed and tell the users
+            
          FirstStep = .FALSE.
       
-         CALL WrScr(' FAST_SFunc initialized with '//TRIM(Int2LStr( MDLsizes(4) ))// &
-                        ' inputs and '//TRIM(Int2LStr( MDLsizes(3) ))//' outputs.')
+         CALL WrScr(' FAST_SFunc initialized with '//TRIM(Num2LStr( MDLsizes(4) ))// &
+                        ' inputs and '//TRIM(Num2LStr( MDLsizes(3) ))//' outputs.')
 
+         
       ENDIF
+      
+      
+      !-----------------------------------------------------------------------------------------------
+      ! Set up output arguments
+      !-----------------------------------------------------------------------------------------------
+      
+      IF (NLHS < 1 ) THEN
+         CALL ProgAbort('Not enough output arguments.')
+      ELSEIF (NLHS > 2) THEN
+         CALL ProgAbort('Too many output arguments.')
+      ENDIF
+      
+      
+         ! *** Output argument y1 contains the size vector (MDLsizes) ***
+      
+      PLHS(1)     = mxCreateDoubleMatrix(NSIZES, 1, mxREAL)                       ! Create NSIZES x 1 REAL array for the first output, y1
+      ptr_Y       = mxGetPr(PLHS(1))                                              ! Get the address of the first element of the data
+      DSIZE(:)    = REAL( MDLsizes(:), mxDB )                                     ! Integer(4) to Real(8)
+      CALL mxCopyReal8ToPtr(DSIZE, ptr_Y, NSizes)                                 ! Copy the SIZE vector (DSize) to the output array pointed to by PLHS(1)
+
+
+         ! *** Output argument y2 contains the initial states (ptr_X0) ***
+
+      IF (NLHS > 1) THEN  ! [y1, y2]=FAST_SFunc();                                ! bjj: Since we have no states, this creates an empty array
+         PLHS(2) = mxCreateDoubleMatrix(MDLsizes(1)+MDLsizes(2), 1, mxREAL)
+      ENDIF
+
+      NXTHIT =  HUGE      
+      
 
    ELSE
 
@@ -333,7 +316,12 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
       ptr_X = mxGetPr(PRHS(2))
 
 
+         !............................................................................................
+         !      *******    The INPUT VECTOR (u) input parameter, argument #3    *******
+         !............................................................................................
 
+         
+      
          !............................................................................................
          !      *******    The FLAG input parameter, argument #4    *******
          ! This flag determines what the function outputs. Its value was processed
@@ -348,7 +336,8 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
             !     Define basic S-Function block characteristics; Return SIZES array: setup()
             !-----------------------------------------------------------------------------------------
 
-               ! This was done in the InitStep logic above
+               ! This output is done in the IF statement above (we don't know the size of the state
+               ! input vector, so we do this separately)
 
          CASE (1, -1)
 

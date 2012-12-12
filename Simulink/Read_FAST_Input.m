@@ -155,7 +155,7 @@ if ( strcmpi(Furling(1), 't') )
    fclose(fid2);
 end
 
-for iLine=1:41                                      % skip 41 lines (143-183) of the FAST file
+for iLine=1:42                                      % skip 42 lines (143-184) of the FAST file
     fgetl(fid);                                     % (Rotor-Teeter to beginning of OutList)
 end
 

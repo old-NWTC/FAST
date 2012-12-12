@@ -2622,7 +2622,7 @@ CALL ReadIVar ( UnIn, PriFile, ADAMSPrep, 'ADAMSPrep', 'ADAMS preprocessor mode'
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( ADAMSPrep /= 1 ) )  THEN
    CALL ProgWarn ( " An ADAMS dataset can't be built when FAST is interfaced with Simulink or Labview."// & 
-      "ADAMSPrep is being set to 1.")
+      " ADAMSPrep is being set to 1.")
    ADAMSPrep = 1
 ELSEIF ( ( ADAMSPrep < 1 ) .OR. ( ADAMSPrep > 3 ) )  THEN
    CALL ProgAbort ( ' ADAMSPrep must be 1, 2, or 3.' )
@@ -7951,7 +7951,7 @@ IF (WrTxtOutFile) THEN
       ! Add some file information:
 
    WRITE (UnOu,'(/,A)') TRIM(FileDesc)  
-   WRITE (UnOu,'(  A)')  'The aerodynamic calculations were made by '//TRIM(AD_Prog%Name)//' '//TRIM(AD_Prog%Ver)//'.'
+   WRITE (UnOu,'(  A)')  'The aerodynamic calculations were made by '//TRIM(GetNVD(AD_Prog))//'.'
    WRITE (UnOu,'(/,1X,A,/)')  TRIM( FTitle )
 
 
@@ -8007,7 +8007,7 @@ IF (WrBinOutFile) THEN
    END IF
    
    CurrOutStep = 0
-   FileDesc = TRIM(FileDesc)//' The aerodynamic calculations were made by '//TRIM(AD_Prog%Name)//' '//TRIM(AD_Prog%Ver)//'.'
+   FileDesc = TRIM(FileDesc)//' The aerodynamic calculations were made by '//TRIM(GetNVD(AD_Prog))//'.'
    
 END IF
 

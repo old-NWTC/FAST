@@ -34,7 +34,7 @@ end
                  'NRELOffshrBsline5MW_Onshore' };
              
 
-    for i=  1:(17+5) %17+(1:5) %1:17 %
+    for i=  1:17 %1:(17+5) %17+(1:5) %1:17 %
         
         if i > 17
             fileRoot = BslnTests{i-17};

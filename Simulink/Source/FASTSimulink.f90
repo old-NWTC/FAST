@@ -1,13 +1,15 @@
 MODULE FAST_Simulink_Mod
 
    USE      NWTC_Library
+   USE      StructDyn_Types
 
    IMPLICIT NONE
 
-   INTEGER, PARAMETER         :: mxDB = 8                   ! Matlab requires double-precision reals
+   INTEGER, PARAMETER                  :: mxDB = 8                   ! Matlab requires double-precision reals
 
-    REAL(ReKi), SAVE, PRIVATE :: TiLstPrn  = 0.0            ! from TimeMarch  The time of the last print.
-  LOGICAL,      SAVE, PRIVATE :: InitializedFlag = .FALSE.
+   REAL(ReKi),          SAVE, PRIVATE  :: TiLstPrn  = 0.0            ! from TimeMarch  The time of the last print.
+   LOGICAL,             SAVE, PRIVATE  :: InitializedFlag = .FALSE.
+   TYPE(StrD_CoordSys), SAVE, PRIVATE  :: CoordSys
 
 
 
@@ -101,7 +103,7 @@ SUBROUTINE FAST_End
    USE             AeroDyn,      ONLY: AD_Terminate
 
    USE             FAST_IO_Subs, ONLY: RunTimes, WrBinOutput
-   USE             FASTSubs,     ONLY: FAST_Terminate
+   USE             FASTSubs,     ONLY: FAST_Terminate, CoordSys_Dealloc
    USE             Features,     ONLY: CompNoise
    USE             General
    USE             HydroDyn
@@ -132,6 +134,11 @@ SUBROUTINE FAST_End
       END IF
       
       
+   END IF
+   
+   CALL CoordSys_Dealloc( CoordSys, ErrStat, ErrMsg )
+   IF (ErrStat /= ErrID_none) THEN
+      CALL WrScr( ErrMsg )
    END IF
    
    CALL FAST_Terminate(ErrStat)                 ! [  FAST_Prog.f90 ]
@@ -221,8 +228,8 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
   ! call these routines if DT has passed?  Perhaps, we should upgrade to
   ! a "Level-2" S-Function so that we can use discrete time?
 
-   CALL RtHS()
-   CALL CalcOuts()
+   CALL RtHS( CoordSys )
+   CALL CalcOuts( CoordSys )
 
 
       !----------------------------------------------------------------------------------------------
@@ -238,7 +245,7 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
          ! Check to see if we should output data this time step:
 
       IF ( ZTime >= TStart )  THEN
-         IF ( CompNoise                 )  CALL PredictNoise
+         IF ( CompNoise                 )  CALL PredictNoise( CoordSys%te1, CoordSys%te2, CoordSys%te3 )
          IF ( MOD( Step, DecFact ) == 0 )  CALL WrOutput
       ENDIF
 
@@ -257,7 +264,7 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
 END SUBROUTINE FASTDynamics
 
 !====================================================================================================
-SUBROUTINE FAST_Init(InpFile)
+SUBROUTINE FAST_Init(InpFile, NumBl_S, NDOF_S, NumOuts_S)
 !----------------------------------------------------------------------------------------------------
 !   This subroutine reads the input files and initializes the FAST variables
 !----------------------------------------------------------------------------------------------------
@@ -267,14 +274,33 @@ SUBROUTINE FAST_Init(InpFile)
    USE                             SimCont,        ONLY: UsrTime1
 !rm   USE                             SimCont,        ONLY: UsrTime1, UsrTime0
    USE                             FAST_IO_Subs,   ONLY: FAST_Begin, FAST_Input, PrintSum, WrOutHdr, SimStatus
-   USE                             FASTSubs,       ONLY: FAST_Initialize
-   USE                             Output,         ONLY: OutputFileFmtID, FileFmtID_WithTime
+   USE                             FASTSubs,       ONLY: FAST_Initialize, CoordSys_Alloc
+   USE                             Output,         ONLY: OutputFileFmtID, FileFmtID_WithTime, NumOuts
 
+   USE                             TurbConf,       ONLY: NumBL
+   USE                             Blades,         ONLY: BldNodes
+   USE                             Tower,          ONLY: TwrNodes
+   USE                             DOFs,           ONLY: NDOF
+
+   
    IMPLICIT NONE
 
 
+      ! passed variables
+      
    CHARACTER(*), INTENT(IN)      :: InpFile              ! Name of the FAST input file, retreived from the MATLAB workspace
+   INTEGER,      INTENT(OUT)     :: NumBl_S              ! Number of blades, from the FAST input file   
+   INTEGER,      INTENT(OUT)     :: NDOF_S               ! Number of DOFs, from the FAST input file   
+   INTEGER,      INTENT(OUT)     :: NumOuts_S            ! Number of outputs, from the FAST input file   
+   
+   
+      ! local variables
+      
+   INTEGER(IntKi)                :: ErrStat              ! error status code
+   CHARACTER(1024)               :: ErrMsg               ! message if error occurred
+   
 
+   
       !----------------------------------------------------------------------------------------------
       !  Get the first time                                                      [ see FASTProg.f90 ]
       !----------------------------------------------------------------------------------------------
@@ -308,10 +334,7 @@ SUBROUTINE FAST_Init(InpFile)
 
    IF (YCMode   /= 2) CALL ProgWarn ('Yaw angle and rate are not commanded from Simulink model.')
    IF (PCMode   /= 2) CALL ProgWarn ('Pitch angles are not commanded from Simulink model.')
-!bjj start of proposed change FAST v6.20d-bjj
-!rm   IF (VSContrl /= 3) CALL ProgWarn ('Generator torque are not commanded from Simulink model.')
    IF (VSContrl /= 3) CALL ProgWarn ('Generator torque and power are not commanded from Simulink model.')
-!bjj end of proposed change   
 
       !----------------------------------------------------------------------------------------------
       ! Set up initial values for all degrees of freedom.                        [ see FASTProg.f90 ]
@@ -326,28 +349,43 @@ SUBROUTINE FAST_Init(InpFile)
 
    IF ( SumPrint )  CALL PrintSum()
 
-!bjj start
-!rm      !----------------------------------------------------------------------------------------------
-!rm      ! Get the current time.                                                    [ see FASTProg.f90 ]
-!rm      !----------------------------------------------------------------------------------------------
-!rm
-!rm   CALL DATE_AND_TIME ( Values=StrtTime )
-!rm   CALL CPU_TIME ( UsrTime1 )
-!bjj end   
+
+      !----------------------------------------------------------------------------------------------
+      ! Allocate space for coordinate systems.                           [ see FAST.f90/TimeMarch() ]
+      !----------------------------------------------------------------------------------------------
+      
+   CALL CoordSys_Alloc( CoordSys, NumBl, BldNodes, TwrNodes, ErrStat, ErrMsg )
+            
+   IF (ErrStat /= ErrID_none) THEN
+      CALL WrScr( ' Error in SUBROUTINE TimeMarch: ' )
+      CALL WrScr( '   '//TRIM(ErrMsg) )
+      IF ( ErrStat >= AbortErrLev ) THEN
+         CALL ProgAbort( "" )
+      END IF
+   END IF
 
       !----------------------------------------------------------------------------------------------
       ! Set up output file format.                                       [ see FAST.f90/TimeMarch() ]
-      !----------------------------------------------------------------------------------------------
+      !----------------------------------------------------------------------------------------------      
 
    CALL WrOutHdr()
 
+   
       !----------------------------------------------------------------------------------------------
       ! Initialize the simulation status.                                [ see FAST.f90/TimeMarch() ]
       !----------------------------------------------------------------------------------------------
-
+      
    CALL WrScr ( ' ' )
    CALL SimStatus()
 
+      !----------------------------------------------------------------------------------------------
+      ! Initialize the output values for Simulink                              
+      !----------------------------------------------------------------------------------------------
+   NumBl_S   = NumBl
+   NDOF_S    = NDOF
+   NumOuts_S = NumOuts
+   
+   
    InitializedFlag = .TRUE.
 
    RETURN

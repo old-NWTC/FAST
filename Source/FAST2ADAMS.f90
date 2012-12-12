@@ -1,6 +1,7 @@
 MODULE FAST2ADAMSSubs
 
    USE   NWTC_Library
+   USE   StructDyn_Types
 
    IMPLICIT NONE
    
@@ -468,7 +469,6 @@ USE                             AeroDyn  !to get the unit number for AeroDyn... 
 USE                             ADAMSInput
 USE                             Blades
 USE                             Constants
-USE                             CoordSys
 USE                             DOFs
 USE                             DriveTrain
 USE                             EnvCond
@@ -542,6 +542,11 @@ CHARACTER(10)                :: FmtTR     = '(A,ES13.6)'                        
 CHARACTER(28)                :: FmtTRTRTR = '(A,ES13.6,A,ES13.6,A,ES13.6)'      ! Format for outputting text, a real value, text, a real value, text, and (you guessed it!) a real value.
 CHARACTER(55)                :: FmtTRTRTRTRTRTR = '(A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4)' ! Format for outputting text, a real value, text, a real value, text, a real value, text, a real value, text, a real value, text, and (you guessed it!) a real value.
 
+
+TYPE(StrD_CoordSys)          :: CoordSys                                         ! coordinate systems
+
+INTEGER(IntKi)               :: ErrStat                                          ! Error status flag
+CHARACTER(1024)              :: ErrMsg                                           ! Error message
 
 
    ! An equivalent ADAMS model can't be built for all possible FAST models.
@@ -634,7 +639,8 @@ IDCntrl = 0.0
    !   routine to orient PARTs and MARKERs:
 
 QT  = Q (:,1) ! Transfer the initial conditions of the DOFs to the QT array, which is used throughout SetCoordSy().
-CALL SetCoordSy
+CALL CoordSys_Alloc( CoordSys, NumBl, BldNodes, TwrNodes, ErrStat, ErrMsg )
+CALL SetCoordSy( CoordSys )
 
 
 
@@ -733,9 +739,9 @@ WRITE (UnAD,FmtText  )  ', PART = 1'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''InitPtfmOrientation_M'''
 WRITE (UnAD,FmtText  )  'MARKER/11'
 WRITE (UnAD,FmtText  )  ', PART = 1'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0  , ', ', 0.0   , ', ', 0.0    ! Orient the initial platform
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', a2(1), ', ', -a2(3), ', ', a2(2)  ! orientation MARKER
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', a1(1), ', ', -a1(3), ', ', a1(2)  ! using the 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0           , ', ', 0.0            , ', ', 0.0             ! Orient the initial platform
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', CoordSys%a2(1), ', ', -CoordSys%a2(3), ', ', CoordSys%a2(2)  ! orientation MARKER
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', CoordSys%a1(1), ', ', -CoordSys%a1(3), ', ', CoordSys%a1(2)  ! using the 3-point method
 
 IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
    IF ( LineMod == 1 )  THEN                    ! .TRUE if we have standard quasi-static mooring lines; store the mooring line data into the ARRAY
@@ -966,9 +972,9 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro .AND. SaveGrphcs )  THEN  ! .TRUE. if we
 
       DO I = 1,NumLines ! Loop through all mooring lines
 
-         TmpVec = PtfmSurge *z1 + PtfmHeave *z2 - PtfmSway  *z3 &
-                + LFairxt(I)*a1 + LFairzt(I)*a2 - LFairyt(I)*a3 &
-                - LAnchxi(I)*z1 - LAnchzi(I)*z2 + LAnchyi(I)*z3   ! = Position vector directed from the anchor to the fairlead of the current mooring line at simulation initialization
+         TmpVec = PtfmSurge *CoordSys%z1 + PtfmHeave *CoordSys%z2 - PtfmSway  *CoordSys%z3 &
+                + LFairxt(I)*CoordSys%a1 + LFairzt(I)*CoordSys%a2 - LFairyt(I)*CoordSys%a3 &
+                - LAnchxi(I)*CoordSys%z1 - LAnchzi(I)*CoordSys%z2 + LAnchyi(I)*CoordSys%z3   ! = Position vector directed from the anchor to the fairlead of the current mooring line at simulation initialization
 
          DO J = 1,NLnNodes ! Loop through all the nodes per line for mooring line GRAPHICS
 
@@ -1078,9 +1084,9 @@ WRITE (UnAD,FmtText  )  '!------------------------------ Support Platform ------
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Platform_P'''
 WRITE (UnAD,FmtText  )  'PART/1000'
-WRITE (UnAD,FmtTRTRTR)  ', QG = ', PtfmSurge        , ', ', PtfmSway        , ', ', PtfmHeave         ! Orient the
-WRITE (UnAD,FmtTRTRTR)  ', ZG = ', PtfmSurge + a2(1), ', ', PtfmSway - a2(3), ', ', PtfmHeave + a2(2) ! platform using the
-WRITE (UnAD,FmtTRTRTR)  ', XG = ', PtfmSurge + a1(1), ', ', PtfmSway - a1(3), ', ', PtfmHeave + a1(2) ! 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', QG = ', PtfmSurge                 , ', ', PtfmSway                 , ', ', PtfmHeave         ! Orient the
+WRITE (UnAD,FmtTRTRTR)  ', ZG = ', PtfmSurge + CoordSys%a2(1), ', ', PtfmSway - CoordSys%a2(3), ', ', PtfmHeave + CoordSys%a2(2) ! platform using the
+WRITE (UnAD,FmtTRTRTR)  ', XG = ', PtfmSurge + CoordSys%a1(1), ', ', PtfmSway - CoordSys%a1(3), ', ', PtfmHeave + CoordSys%a1(2) ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 1005'
 WRITE (UnAD,FmtTR    )  ', MASS = ', PtfmMass + SmllNmbr
 WRITE (UnAD,FmtTRTRTR)  ', IP = ', PtfmRIner + SmllNmbr, ', ', PtfmPIner + SmllNmbr, ', ', PtfmYIner + SmllNmbr
@@ -1203,9 +1209,9 @@ DO J = 1,TwrNodes ! Loop through the tower nodes/elements
 
    TmpID = 1100 + J
    ThnBarI = MassT(J)*( DHNodes(J)**3 )/12.0 ! Define the transverse inertias of the tower element (both identical) to be that of a thin uniform bar.
-   TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + ( rZT0zt + HNodes(J) )*a2 ! rT = Position vector from ground to current tower node (point T(J))
-   TmpVec1 = TmpVec + t1(J,:)
-   TmpVec2 = TmpVec + t2(J,:)
+   TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + ( rZT0zt + HNodes(J) )*CoordSys%a2 ! rT = Position vector from ground to current tower node (point T(J))
+   TmpVec1 = TmpVec + CoordSys%t1(J,:)
+   TmpVec2 = TmpVec + CoordSys%t2(J,:)
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, '_P'''
    WRITE (UnAD,FmtText     )  'PART/'//TRIM(Int2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR   )  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the tower
@@ -1285,9 +1291,9 @@ ENDDO             ! J - Tower nodes/elements
 
    ! Tower-top:
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2   ! rO = Position vector from ground to tower-top / base plate (point O)
-TmpVec1 = TmpVec + b2
-TmpVec2 = TmpVec + b1
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
+TmpVec1 = TmpVec + CoordSys%b2
+TmpVec2 = TmpVec + CoordSys%b1
 WRITE (UnAD,FmtText  )  '!------------------------------ Tower: Tower-Top -------------------------------'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TowerTop_P'''
 WRITE (UnAD,FmtText  )  'PART/1600'
@@ -1332,9 +1338,9 @@ WRITE (UnAD,FmtText  )  '!----------------------------------- Nacelle ----------
 
    ! Nacelle:
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2   ! rO = Position vector from ground to tower-top / base plate (point O)
-TmpVec1 = TmpVec + d2
-TmpVec2 = TmpVec + d1
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
+TmpVec1 = TmpVec + CoordSys%d2
+TmpVec2 = TmpVec + CoordSys%d1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Nacelle_P'''
 WRITE (UnAD,FmtText  )  'PART/2000'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the
@@ -1427,10 +1433,10 @@ WRITE (UnAD,FmtText  )  '!------------------------------------ Tail ------------
 
    ! Tail boom:
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2 &
-        + TFrlPntxn*d1 + TFrlPntzn*d2 - TFrlPntyn*d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
-TmpVec1 = TmpVec + tf2
-TmpVec2 = TmpVec + tf1
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
+        + TFrlPntxn*CoordSys%d1 + TFrlPntzn*CoordSys%d2 - TFrlPntyn*CoordSys%d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
+TmpVec1 = TmpVec + CoordSys%tf2
+TmpVec2 = TmpVec + CoordSys%tf1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailBoom_P'''
 WRITE (UnAD,FmtText  )  'PART/5000'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the tail
@@ -1470,18 +1476,18 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', -CTFrlSkew*STFrlTilt, ', ', -STFrlSkew*STFrlT
 
    ! Tail boom graphics:
 
-TmpVec1 = rWKxn*tf1 + rWKzn*tf2 - rWKyn*tf3 - 0.25*SQRTTFinA*p2                           ! z-axis along the boom - directed from the specified point on the tail-furl axis to a point just below the tail fin CM and just downwind (along p1) of TailFinOutline5_M
-TmpVec2 = tfa                                                                             ! This is chosen somewhat arbitrarily (only the z-axis matters) - I chose tfa since it is very unlikely that the the boom-axis will lie along the tail-furl axis
-TmpLength = SQRT( TmpVec1(1)*TmpVec1(1) + TmpVec1(2)*TmpVec1(2) + TmpVec1(3)*TmpVec1(3) ) ! Length of tail boom
-IF ( TmpLength /= 0.0 )  THEN                                                             ! Only add the tail boom graphics if the specified point on the z-axis (via TmpVec1) is different from the origin.
+TmpVec1 = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 - 0.25*SQRTTFinA*CoordSys%p2   ! z-axis along the boom - directed from the specified point on the tail-furl axis to a point just below the tail fin CM and just downwind (along p1) of TailFinOutline5_M
+TmpVec2 = CoordSys%tfa                                                                                ! This is chosen somewhat arbitrarily (only the z-axis matters) - I chose tfa since it is very unlikely that the the boom-axis will lie along the tail-furl axis
+TmpLength = SQRT( TmpVec1(1)*TmpVec1(1) + TmpVec1(2)*TmpVec1(2) + TmpVec1(3)*TmpVec1(3) )             ! Length of tail boom
+IF ( TmpLength /= 0.0 )  THEN                                                                         ! Only add the tail boom graphics if the specified point on the z-axis (via TmpVec1) is different from the origin.
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailBoomGraphics_M'''
    WRITE (UnAD,FmtText  )  'MARKER/5020'
    WRITE (UnAD,FmtText  )  ', PART = 5000'
    WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0                    , ', ',  0.0                    , ', ', 0.0
-   WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
-                                      DOT_PRODUCT( TmpVec1, tf2 )
-   WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, tf1 ), ', ', -DOT_PRODUCT( TmpVec2, tf3 ), ', ', &
-                                      DOT_PRODUCT( TmpVec2, tf2 )
+   WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%tf3 ), ', ', & 
+                                      DOT_PRODUCT( TmpVec1, CoordSys%tf2 )
+   WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', &
+                                      DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailBoom_G'''
    WRITE (UnAD,FmtText  )  'GRAPHICS/5000'
@@ -1496,10 +1502,10 @@ ENDIF
 
    ! Tail fin:
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2 &
-        + TFrlPntxn*d1 + TFrlPntzn*d2 - TFrlPntyn*d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
-TmpVec1 = TmpVec + tf2
-TmpVec2 = TmpVec + tf1
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
+        + TFrlPntxn*CoordSys%d1 + TFrlPntzn*CoordSys%d2 - TFrlPntyn*CoordSys%d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
+TmpVec1 = TmpVec + CoordSys%tf2
+TmpVec2 = TmpVec + CoordSys%tf1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFin_P'''
 WRITE (UnAD,FmtText  )  'PART/5100'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the tail
@@ -1528,86 +1534,86 @@ WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
    ! Tail fin center of pressure / tail fin coordinate system:
 
-TmpVec  = rWKxn*tf1 + rWKzn*tf2 - rWKyn*tf3  ! rWK = Position vector from specified point on tail-furl axis (point W) to tail fin center-of-pressure (point K)
-TmpVec1 = TmpVec + p2
-TmpVec2 = TmpVec + p1
+TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3  ! rWK = Position vector from specified point on tail-furl axis (point W) to tail fin center-of-pressure (point K)
+TmpVec1 = TmpVec + CoordSys%p2
+TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinAero_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5110'  ! MARKER/5110 is equivalent to the tail fin coordinate system: X = tail fin x, Y = tail fin y, Z = tail fin z
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec , tf2 )  ! Orient the tail
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec1, tf2 )  ! fin CS using the
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, tf1 ), ', ', -DOT_PRODUCT( TmpVec2, tf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec2, tf2 )  ! 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%tf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec , CoordSys%tf2 )  ! Orient the tail
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%tf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec1, CoordSys%tf2 )  ! fin CS using the
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec2, CoordSys%tf2 )  ! 3-point method
 
 
    ! Tail fin graphics:
 
-TmpVec  = rWKxn*tf1 + rWKzn*tf2 - rWKyn*tf3 - 0.75*SQRTTFinA*p2
-TmpVec1 = TmpVec + p2
-TmpVec2 = TmpVec + p1
+TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 - 0.75*SQRTTFinA*CoordSys%p2
+TmpVec1 = TmpVec + CoordSys%p2
+TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline1_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5121'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec , tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec1, tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, tf1 ), ', ', -DOT_PRODUCT( TmpVec2, tf3 ), ', ', &    
-                                   DOT_PRODUCT( TmpVec2, tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec , CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec1, CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', &    
+                                   DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
-TmpVec  = rWKxn*tf1 + rWKzn*tf2 - rWKyn*tf3 + 0.4166667*SQRTTFinA*p1 - 0.75*SQRTTFinA*p2
-TmpVec1 = TmpVec + p2
-TmpVec2 = TmpVec + p1
+TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 + 0.4166667*SQRTTFinA*CoordSys%p1 - 0.75*SQRTTFinA*CoordSys%p2
+TmpVec1 = TmpVec + CoordSys%p2
+TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline2_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5122'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec , tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec1, tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, tf1 ), ', ', -DOT_PRODUCT( TmpVec2, tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec2, tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec , CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec1, CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
-TmpVec  = rWKxn*tf1 + rWKzn*tf2 - rWKyn*tf3 + 0.4166667*SQRTTFinA*p1 + 0.75*SQRTTFinA*p2
-TmpVec1 = TmpVec + p2
-TmpVec2 = TmpVec + p1
+TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 + 0.4166667*SQRTTFinA*CoordSys%p1 + 0.75*SQRTTFinA*CoordSys%p2
+TmpVec1 = TmpVec + CoordSys%p2
+TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline3_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5123'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec , tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec1, tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, tf1 ), ', ', -DOT_PRODUCT( TmpVec2, tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec2, tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec , CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec1, CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
-TmpVec  = rWKxn*tf1 + rWKzn*tf2 - rWKyn*tf3 + 0.75*SQRTTFinA*p2
-TmpVec1 = TmpVec + p2
-TmpVec2 = TmpVec + p1
+TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 + 0.75*SQRTTFinA*CoordSys%p2
+TmpVec1 = TmpVec + CoordSys%p2
+TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline4_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5124'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec , tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec1, tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, tf1 ), ', ', -DOT_PRODUCT( TmpVec2, tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec2, tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec , CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec1, CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
-TmpVec  = rWKxn*tf1 + rWKzn*tf2 - rWKyn*tf3 - 0.5*SQRTTFinA*p1 - 0.25*SQRTTFinA*p2
-TmpVec1 = TmpVec + p2
-TmpVec2 = TmpVec + p1
+TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 - 0.5*SQRTTFinA*CoordSys%p1 - 0.25*SQRTTFinA*CoordSys%p2
+TmpVec1 = TmpVec + CoordSys%p2
+TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline5_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5125'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , tf1 ), ', ', -DOT_PRODUCT( TmpVec , tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec , tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, tf1 ), ', ', -DOT_PRODUCT( TmpVec1, tf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec1, tf2 )
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, tf1 ), ', ', -DOT_PRODUCT( TmpVec2, tf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec2, tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec , CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%tf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec1, CoordSys%tf2 )
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFin_G'''
 WRITE (UnAD,FmtText  )  'GRAPHICS/5100'
@@ -1622,10 +1628,10 @@ WRITE (UnAD,FmtText  )  '!--------------------- Structure that Furls with the Ro
 
    ! Structure that furls with the rotor (not including rotor):
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2 &
-        + RFrlPntxn*d1 + RFrlPntzn*d2 - RFrlPntyn*d3                 ! rV = Position vector from ground to specified point on rotor-furl axis (point V)
-TmpVec1 = TmpVec + rf2
-TmpVec2 = TmpVec + rf1
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
+        + RFrlPntxn*CoordSys%d1 + RFrlPntzn*CoordSys%d2 - RFrlPntyn*CoordSys%d3                 ! rV = Position vector from ground to specified point on rotor-furl axis (point V)
+TmpVec1 = TmpVec + CoordSys%rf2
+TmpVec2 = TmpVec + CoordSys%rf1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RotorFurl_P'''
 WRITE (UnAD,FmtText  )  'PART/2100'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the structure that
@@ -1665,67 +1671,68 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', -CRFrlSkew*SRFrlTilt, ', ', -SRFrlSkew*SRFrlT
 
    ! Nacelle IMU location (fixed in structure that furls with the rotor):
 
-TmpVec  = rVIMUxn*rf1 + rVIMUzn*rf2 - rVIMUyn*rf3  ! = Position vector from specified point on rotor-furl axis (point V) to nacelle IMU  (point IMU)
-TmpVec1 = TmpVec + c2
-TmpVec2 = TmpVec + c1
+TmpVec  = rVIMUxn*CoordSys%rf1 + rVIMUzn*CoordSys%rf2 - rVIMUyn*CoordSys%rf3  ! = Position vector from specified point on rotor-furl axis (point V) to nacelle IMU  (point IMU)
+TmpVec1 = TmpVec + CoordSys%c2
+TmpVec2 = TmpVec + CoordSys%c1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacelleIMU_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2140'
 WRITE (UnAD,FmtText  )  ', PART = 2100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , rf1 ), ', ', -DOT_PRODUCT( TmpVec , rf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec , rf2 )  ! Orient the nacelle
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, rf1 ), ', ', -DOT_PRODUCT( TmpVec1, rf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec1, rf2 )  ! IMU MARKER using
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, rf1 ), ', ', -DOT_PRODUCT( TmpVec2, rf3 ), ', ', & 
-                                   DOT_PRODUCT( TmpVec2, rf2 )  ! the 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%rf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec , CoordSys%rf2 )  ! Orient the nacelle
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%rf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec1, CoordSys%rf2 )  ! IMU MARKER using
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%rf3 ), ', ', & 
+                                   DOT_PRODUCT( TmpVec2, CoordSys%rf2 )  ! the 3-point method
 
 
    ! Shaft coordinate system (fixed in structure that furls with the rotor):
 
-TmpVec  = rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3  ! = Position vector from specified point on rotor-furl axis (point V) to origin of shaft CS
-TmpVec1 = TmpVec + c2
-TmpVec2 = TmpVec + c1
+TmpVec  = rVPxn*CoordSys%rf1 + rVPzn*CoordSys%rf2 - rVPyn*CoordSys%rf3  ! = Position vector from specified point on rotor-furl axis (point V) to origin of shaft CS
+TmpVec1 = TmpVec + CoordSys%c2
+TmpVec2 = TmpVec + CoordSys%c1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''ShaftCS_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2150'  ! MARKER/2150 is equivalent to the shaft coordinate system: X = Xs, Y = Ys, Z = Zs
 WRITE (UnAD,FmtText  )  ', PART = 2100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , rf1 ), ', ', -DOT_PRODUCT( TmpVec , rf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec , rf2 )  ! Orient the shaft
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, rf1 ), ', ', -DOT_PRODUCT( TmpVec1, rf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec1, rf2 )  ! CS using the
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, rf1 ), ', ', -DOT_PRODUCT( TmpVec2, rf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec2, rf2 )  ! 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%rf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec , CoordSys%rf2 )  ! Orient the shaft
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%rf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec1, CoordSys%rf2 )  ! CS using the
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%rf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec2, CoordSys%rf2 )  ! 3-point method
 
 
    ! Nacelle/hub reference:
 
-TmpVec  = rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3  ! = Position vector from specified point on rotor-furl axis (point V) to origin of shaft CS
-TmpVec1 = TmpVec + c1
-TmpVec2 = TmpVec - c2
+TmpVec  = rVPxn*CoordSys%rf1 + rVPzn*CoordSys%rf2 - rVPyn*CoordSys%rf3  ! = Position vector from specified point on rotor-furl axis (point V) to origin of shaft CS
+TmpVec1 = TmpVec + CoordSys%c1
+TmpVec2 = TmpVec - CoordSys%c2
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacelleHubRef_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2050'
 WRITE (UnAD,FmtText  )  ', PART = 2100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , rf1 ), ', ', -DOT_PRODUCT( TmpVec , rf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec , rf2 )  ! Orient the nacelle/hub
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, rf1 ), ', ', -DOT_PRODUCT( TmpVec1, rf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec1, rf2 )  ! reference MARKER using
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, rf1 ), ', ', -DOT_PRODUCT( TmpVec2, rf3 ), ', ', &
-                                   DOT_PRODUCT( TmpVec2, rf2 )  ! the 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%rf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec , CoordSys%rf2 )  ! Orient the nacelle/hub
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%rf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec1, CoordSys%rf2 )  ! reference MARKER using
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%rf3 ), ', ', &
+                                   DOT_PRODUCT( TmpVec2, CoordSys%rf2 )  ! the 3-point method
 
 
    ! Gearbox graphics:
 
 IF ( GBoxLength > 0.0 )  THEN ! Only include these statements in the dataset if GBoxLength > 0.0:
-   TmpVec  = rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3 + (OverHang-LSSLength-0.5*GBoxLength)*c1 - 0.5*GBoxLength*c2 + 0.5*GBoxLength*c3  ! = Position vector from specified point on rotor-furl axis (point V) to origin gearbox graphics MARKER
-   TmpVec1 = TmpVec + c2
-   TmpVec2 = TmpVec + c1
+   TmpVec  = rVPxn*CoordSys%rf1 + rVPzn*CoordSys%rf2 - rVPyn*CoordSys%rf3 + &
+             (OverHang-LSSLength-0.5*GBoxLength)*CoordSys%c1 - 0.5*GBoxLength*CoordSys%c2 + 0.5*GBoxLength*CoordSys%c3  ! = Position vector from specified point on rotor-furl axis (point V) to origin gearbox graphics MARKER
+   TmpVec1 = TmpVec + CoordSys%c2
+   TmpVec2 = TmpVec + CoordSys%c1
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''GBoxGraphics_M'''
    WRITE (UnAD,FmtText  )  'MARKER/2120'
    WRITE (UnAD,FmtText  )  ', PART = 2100'
-   WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , rf1 ), ', ', -DOT_PRODUCT( TmpVec , rf3 ), ', ', &
-                                      DOT_PRODUCT( TmpVec , rf2 )  ! Orient the gearbox
-   WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, rf1 ), ', ', -DOT_PRODUCT( TmpVec1, rf3 ), ', ', &
-                                      DOT_PRODUCT( TmpVec1, rf2 )  ! graphics MARKER using
-   WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, rf1 ), ', ', -DOT_PRODUCT( TmpVec2, rf3 ), ', ', &
-                                      DOT_PRODUCT( TmpVec2, rf2 )  ! the 3-point method
+   WRITE (UnAD,FmtTRTRTR)  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec , CoordSys%rf3 ), ', ', &
+                                      DOT_PRODUCT( TmpVec , CoordSys%rf2 )  ! Orient the gearbox
+   WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec1, CoordSys%rf3 ), ', ', &
+                                      DOT_PRODUCT( TmpVec1, CoordSys%rf2 )  ! graphics MARKER using
+   WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%rf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%rf3 ), ', ', &
+                                      DOT_PRODUCT( TmpVec2, CoordSys%rf2 )  ! the 3-point method
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''GBox_G'''
    WRITE (UnAD,FmtText  )  'GRAPHICS/2120'
@@ -1745,10 +1752,11 @@ WRITE (UnAD,FmtText  )  '!------------------------------------ Shaft -----------
 
    ! Low-speed shaft:
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2 &
-        + RFrlPntxn*d1 + RFrlPntzn*d2 - RFrlPntyn*d3 + rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3  ! Position vector from ground to origin of shaft CS
-TmpVec1 = TmpVec + e3
-TmpVec2 = TmpVec + e1
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
+        + RFrlPntxn*CoordSys%d1 + RFrlPntzn*CoordSys%d2 - RFrlPntyn*CoordSys%d3                        &
+        + rVPxn*CoordSys%rf1    + rVPzn*CoordSys%rf2    - rVPyn*CoordSys%rf3  ! Position vector from ground to origin of shaft CS
+TmpVec1 = TmpVec + CoordSys%e3
+TmpVec2 = TmpVec + CoordSys%e1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''LSS_P'''
 WRITE (UnAD,FmtText  )  'PART/3000'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the
@@ -1831,10 +1839,11 @@ WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
    ! High-speed shaft:
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2 &
-        + RFrlPntxn*d1 + RFrlPntzn*d2 - RFrlPntyn*d3 + rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3  ! Position vector from ground to origin of shaft CS
-TmpVec1 = TmpVec + e3
-TmpVec2 = TmpVec + e1
+TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
+        + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3                        &
+        + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3  ! Position vector from ground to origin of shaft CS
+TmpVec1 = TmpVec + CoordSys%e3
+TmpVec2 = TmpVec + CoordSys%e1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''HSS_P'''
 WRITE (UnAD,FmtText  )  'PART/3100'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the
@@ -1890,10 +1899,11 @@ WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
    ! Generator:
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2 &
-        + RFrlPntxn*d1 + RFrlPntzn*d2 - RFrlPntyn*d3 + rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3  ! Position vector from ground to origin of shaft CS
-TmpVec1 = TmpVec + e3
-TmpVec2 = TmpVec + e1
+TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
+        + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3                        &
+        + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3  ! Position vector from ground to origin of shaft CS
+TmpVec1 = TmpVec + CoordSys%e3
+TmpVec2 = TmpVec + CoordSys%e1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Generator_P'''
 WRITE (UnAD,FmtText  )  'PART/3200'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the
@@ -1940,10 +1950,11 @@ WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
    ! Teeter pin:
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2 &
-        + RFrlPntxn*d1 + RFrlPntzn*d2 - RFrlPntyn*d3 + rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3 + OverHang*c1   ! rP = Position vector from ground to teeter pin (point P).
-TmpVec1 = TmpVec + e3
-TmpVec2 = TmpVec + e1
+TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3  + RefTwrHt*CoordSys%a2 &
+        + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3                        &
+        + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3 + OverHang*CoordSys%c1   ! rP = Position vector from ground to teeter pin (point P).
+TmpVec1 = TmpVec + CoordSys%e3
+TmpVec2 = TmpVec + CoordSys%e1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TeeterPin_P'''
 WRITE (UnAD,FmtText  )  'PART/3300'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the teeter
@@ -1978,11 +1989,12 @@ WRITE (UnAD,FmtText  )  '!------------------------------------- Hub ------------
 
    ! Hub:
 
-TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2                       &
-        + RFrlPntxn*d1 + RFrlPntzn*d2 - RFrlPntyn*d3 + rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3 &
-        + OverHang*c1 - UndSling*g1                                                          ! rP = Position vector from ground to apex of rotation (point Q).
-TmpVec1 = TmpVec + g3
-TmpVec2 = TmpVec + g1
+TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2                       &
+        + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3  &
+        + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3 &
+        + OverHang* CoordSys%c1  - UndSling *CoordSys%g1                                                          ! rP = Position vector from ground to apex of rotation (point Q).
+TmpVec1 = TmpVec + CoordSys%g3
+TmpVec2 = TmpVec + CoordSys%g1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Hub_P'''
 WRITE (UnAD,FmtText  )  'PART/4000'
 WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the apex of
@@ -2029,44 +2041,49 @@ DO K = 1,NumBl ! Loop through all blades
    WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID )) ! MARKER/400K is equivalent to the coned coordinate system for blade K: X = XcK, Y = YcK, Z = ZcK
    WRITE (UnAD,FmtText   )  ', PART = 4000'
    WRITE (UnAD,FmtText   )  ', QP = 0, 0, 0'                                                                               ! Orient the coned
-   WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( i3(K,:), g1 ), ', ', DOT_PRODUCT( i3(K,:), g2 ), ', ', &
-                                       DOT_PRODUCT( i3(K,:), g3 )                                                          ! CS using the
-   WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( i1(K,:), g1 ), ', ', DOT_PRODUCT( i1(K,:), g2 ), ', ', &
-                                       DOT_PRODUCT( i1(K,:), g3 )                                                          ! 3-point method
+   WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( CoordSys%i3(K,:), CoordSys%g1 ), ', ', &
+                                       DOT_PRODUCT( CoordSys%i3(K,:), CoordSys%g2 ), ', ', &
+                                       DOT_PRODUCT( CoordSys%i3(K,:), CoordSys%g3 )                                                          ! CS using the
+   WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( CoordSys%i1(K,:), CoordSys%g1 ), ', ', &
+                                       DOT_PRODUCT( CoordSys%i1(K,:), CoordSys%g2 ), ', ', &
+                                       DOT_PRODUCT( CoordSys%i1(K,:), CoordSys%g3 )                                                          ! 3-point method
 
 
    ! Pitch bearing (fixed in hub):
 
    TmpID = 4010 + K
-   TmpVec  = HubRad*i3(K,:)   ! rQS0 = Position vector from apex of rotation (point Q) to the blade root (point S(0)).
-   TmpVec1 = TmpVec + i3(K,:)
-   TmpVec2 = TmpVec + i1(K,:)
+   TmpVec  = HubRad*CoordSys%i3(K,:)   ! rQS0 = Position vector from apex of rotation (point Q) to the blade root (point S(0)).
+   TmpVec1 = TmpVec + CoordSys%i3(K,:)
+   TmpVec2 = TmpVec + CoordSys%i1(K,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchBr', K, 'Bottom_M'''
    WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', PART = 4000'
-   WRITE (UnAD,FmtTRTRTR )  ', QP = ', DOT_PRODUCT( TmpVec , g1 ), ', ', DOT_PRODUCT( TmpVec , g2 ), ', ', &
-                                       DOT_PRODUCT( TmpVec , g3 )  ! Orient the pitch
-   WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( TmpVec1, g1 ), ', ', DOT_PRODUCT( TmpVec1, g2 ), ', ', &
-                                       DOT_PRODUCT( TmpVec1, g3 )  ! bearing using the
-   WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( TmpVec2, g1 ), ', ', DOT_PRODUCT( TmpVec2, g2 ), ', ', &
-                                       DOT_PRODUCT( TmpVec2, g3 )  ! 3-point method
+   WRITE (UnAD,FmtTRTRTR )  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%g1 ), ', ', DOT_PRODUCT( TmpVec , CoordSys%g2 ), ', ', &
+                                       DOT_PRODUCT( TmpVec , CoordSys%g3 )  ! Orient the pitch
+   WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%g1 ), ', ', DOT_PRODUCT( TmpVec1, CoordSys%g2 ), ', ', &
+                                       DOT_PRODUCT( TmpVec1, CoordSys%g3 )  ! bearing using the
+   WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%g1 ), ', ', DOT_PRODUCT( TmpVec2, CoordSys%g2 ), ', ', &
+                                       DOT_PRODUCT( TmpVec2, CoordSys%g3 )  ! 3-point method
 
 
    ! Pitch reference MARKERS (fixed in hub):
 
    TmpID = 4091 + K*100
-   TmpVec  = HubRad*i3(K,:)   ! rQS0 = Position vector from apex of rotation (point Q) to the blade root (point S(0)).
-   TmpVec1 = TmpVec - i2(K,:)
-   TmpVec2 = TmpVec + i3(K,:)
+   TmpVec  = HubRad*CoordSys%i3(K,:)   ! rQS0 = Position vector from apex of rotation (point Q) to the blade root (point S(0)).
+   TmpVec1 = TmpVec - CoordSys%i2(K,:)
+   TmpVec2 = TmpVec + CoordSys%i3(K,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchRef', K, '_M'''
    WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', PART = 4000'
-   WRITE (UnAD,FmtTRTRTR )  ', QP = ', DOT_PRODUCT( TmpVec , g1 ), ', ', DOT_PRODUCT( TmpVec , g2 ), ', ', &
-                                       DOT_PRODUCT( TmpVec , g3 )  ! Orient the pitch ref.
-   WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( TmpVec1, g1 ), ', ', DOT_PRODUCT( TmpVec1, g2 ), ', ', &
-                                       DOT_PRODUCT( TmpVec1, g3 )  ! MARKERS using the
-   WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( TmpVec2, g1 ), ', ', DOT_PRODUCT( TmpVec2, g2 ), ', ', &
-                                       DOT_PRODUCT( TmpVec2, g3 )  ! 3-point method
+   WRITE (UnAD,FmtTRTRTR )  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%g1 ), ', ', &
+                                       DOT_PRODUCT( TmpVec , CoordSys%g2 ), ', ', &
+                                       DOT_PRODUCT( TmpVec , CoordSys%g3 )  ! Orient the pitch ref.
+   WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%g1 ), ', ', &
+                                       DOT_PRODUCT( TmpVec1, CoordSys%g2 ), ', ', &
+                                       DOT_PRODUCT( TmpVec1, CoordSys%g3 )  ! MARKERS using the
+   WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%g1 ), ', ', &
+                                       DOT_PRODUCT( TmpVec2, CoordSys%g2 ), ', ', &
+                                       DOT_PRODUCT( TmpVec2, CoordSys%g3 )  ! 3-point method
 
 
    ! Hub graphics:
@@ -2098,11 +2115,12 @@ DO K = 1,NumBl       ! Loop through all blades
 
    WRITE (UnAD,'(A,I1,A)')  '!---------------------------- Blade ', K, ': Pitch Plate -----------------------------'
    TmpID = 10000*K
-   TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2                       &
-           + RFrlPntxn*d1 + RFrlPntzn*d2 - RFrlPntyn*d3 + rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3 &
-           + OverHang*c1 - UndSling*g1 + HubRad*i3(K,:)                                         ! rS0 = Position vector from ground to the blade root (point S(0)).
-   TmpVec1 = TmpVec + j3(K,:)
-   TmpVec2 = TmpVec + j1(K,:)
+   TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2                       &
+           + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3 &
+           + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3 &
+           + OverHang*CoordSys%c1   - UndSling *CoordSys%g1  + HubRad*CoordSys%i3(K,:)                                         ! rS0 = Position vector from ground to the blade root (point S(0)).
+   TmpVec1 = TmpVec + CoordSys%j3(K,:)
+   TmpVec2 = TmpVec + CoordSys%j1(K,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchPlate', K, '_P'''
    WRITE (UnAD,FmtText   )  'PART/'//TRIM(Int2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR )  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the pitch
@@ -2162,9 +2180,9 @@ DO K = 1,NumBl       ! Loop through all blades
 
       CALL SmllRotTrans( 'blade prebend', Slopexb, Slopeyb, 0.0, TransMat, TRIM(Num2LStr(ZTime))//' s' )   ! Get the transformation matrix, TransMat, from the pitch axis to the reference axis coordinate system.
 
-      Ref1 = TransMat(1,1)*j1(K,:) + TransMat(1,2)*j2(K,:) + TransMat(1,3)*j3(K,:)  ! Vector / direction Ref1 for node J of blade K (= j1 if precurve and presweep are zero).
-      Ref2 = TransMat(2,1)*j1(K,:) + TransMat(2,2)*j2(K,:) + TransMat(2,3)*j3(K,:)  ! Vector / direction Ref2 for node J of blade K (= j2 if precurve and presweep are zero).
-      Ref3 = TransMat(3,1)*j1(K,:) + TransMat(3,2)*j2(K,:) + TransMat(3,3)*j3(K,:)  ! Vector / direction Ref3 for node J of blade K (= j3 if precurve and presweep are zero).
+      Ref1 = TransMat(1,1)*CoordSys%j1(K,:) + TransMat(1,2)*CoordSys%j2(K,:) + TransMat(1,3)*CoordSys%j3(K,:)  ! Vector / direction Ref1 for node J of blade K (= j1 if precurve and presweep are zero).
+      Ref2 = TransMat(2,1)*CoordSys%j1(K,:) + TransMat(2,2)*CoordSys%j2(K,:) + TransMat(2,3)*CoordSys%j3(K,:)  ! Vector / direction Ref2 for node J of blade K (= j2 if precurve and presweep are zero).
+      Ref3 = TransMat(3,1)*CoordSys%j1(K,:) + TransMat(3,2)*CoordSys%j2(K,:) + TransMat(3,3)*CoordSys%j3(K,:)  ! Vector / direction Ref3 for node J of blade K (= j3 if precurve and presweep are zero).
 
 
    ! Let's define the lengths of the blade elements used in blade graphics:
@@ -2178,24 +2196,24 @@ DO K = 1,NumBl       ! Loop through all blades
    !   aerodynamic axes (te2 points toward trailing edge, te1 points toward
    !   suction surface):
 
-      te1(K,J,:) = Ref1*CAeroTwst(J) - Ref2*SAeroTwst(J)
-      te2(K,J,:) = Ref1*SAeroTwst(J) + Ref2*CAeroTwst(J)
-      te3(K,J,:) = Ref3
+      CoordSys%te1(K,J,:) = Ref1*CAeroTwst(J) - Ref2*SAeroTwst(J)
+      CoordSys%te2(K,J,:) = Ref1*SAeroTwst(J) + Ref2*CAeroTwst(J)
+      CoordSys%te3(K,J,:) = Ref3
 
 
    ! Let's store the location of the structural axes of blade K, element J
    !   relative to the structural axes of blade K, element J-1:
 
       IF ( J == 1 )  THEN  ! Innermost blade element
-         EAVec(K,J,:) = RNodes   (  J  )*i3 (K,    :)                                 &
-                      + RefAxisxb(K,J  )*j1 (K,    :) + RefAxisyb(K,J  )*j2 (K,    :) &
-                      + EAOffBFlp(K,J  )*te1(K,J  ,:) + EAOffBEdg(K,J  )*te2(K,J  ,:)
+         EAVec(K,J,:) = RNodes   (  J  )*CoordSys%i3 (K,    :)                                          &
+                      + RefAxisxb(K,J  )*CoordSys%j1 (K,    :) + RefAxisyb(K,J  )*CoordSys%j2 (K,    :) &
+                      + EAOffBFlp(K,J  )*CoordSys%te1(K,J  ,:) + EAOffBEdg(K,J  )*CoordSys%te2(K,J  ,:)
       ELSE                 ! All other blade elements
-         EAVec(K,J,:) = RNodes   (  J  )*i3 (K,    :) - RNodes   (  J-1)*i3 (K,    :) &
-                      + RefAxisxb(K,J  )*j1 (K,    :) + RefAxisyb(K,J  )*j2 (K,    :) &
-                      - RefAxisxb(K,J-1)*j1 (K,    :) - RefAxisyb(K,J-1)*j2 (K,    :) &
-                      + EAOffBFlp(K,J  )*te1(K,J  ,:) + EAOffBEdg(K,J  )*te2(K,J  ,:) &
-                      - EAOffBFlp(K,J-1)*te1(K,J-1,:) - EAOffBEdg(K,J-1)*te2(K,J-1,:)
+         EAVec(K,J,:) = RNodes   (  J  )*CoordSys%i3 (K,    :) - RNodes   (  J-1)*CoordSys%i3 (K,    :) &
+                      + RefAxisxb(K,J  )*CoordSys%j1 (K,    :) + RefAxisyb(K,J  )*CoordSys%j2 (K,    :) &
+                      - RefAxisxb(K,J-1)*CoordSys%j1 (K,    :) - RefAxisyb(K,J-1)*CoordSys%j2 (K,    :) &
+                      + EAOffBFlp(K,J  )*CoordSys%te1(K,J  ,:) + EAOffBEdg(K,J  )*CoordSys%te2(K,J  ,:) &
+                      - EAOffBFlp(K,J-1)*CoordSys%te1(K,J-1,:) - EAOffBEdg(K,J-1)*CoordSys%te2(K,J-1,:)
       ENDIF
 
 
@@ -2218,10 +2236,10 @@ DO K = 1,NumBl       ! Loop through all blades
    ! Let's store the location of the blade tip relative to the outermost blade
    !   element structural axes:
 
-   EAVec(K,TipNode,:) = BldFlexL             *i3 (K,         :) - RNodes   (  BldNodes)*i3 (K,         :) &
-                      + RefAxisxb(K,TipNode )*j1 (K,         :) + RefAxisyb(K,TipNode )*j2 (K,         :) &
-                      - RefAxisxb(K,BldNodes)*j1 (K,         :) - RefAxisyb(K,BldNodes)*j2 (K,         :) &
-                      - EAOffBFlp(K,BldNodes)*te1(K,BldNodes,:) - EAOffBEdg(K,BldNodes)*te2(K,BldNodes,:)
+   EAVec(K,TipNode,:) = BldFlexL             *CoordSys%i3 (K,         :) - RNodes   (  BldNodes)*CoordSys%i3 (K,         :) &
+                      + RefAxisxb(K,TipNode )*CoordSys%j1 (K,         :) + RefAxisyb(K,TipNode )*CoordSys%j2 (K,         :) &
+                      - RefAxisxb(K,BldNodes)*CoordSys%j1 (K,         :) - RefAxisyb(K,BldNodes)*CoordSys%j2 (K,         :) &
+                      - EAOffBFlp(K,BldNodes)*CoordSys%te1(K,BldNodes,:) - EAOffBEdg(K,BldNodes)*CoordSys%te2(K,BldNodes,:)
 
 
 
@@ -2236,11 +2254,13 @@ DO K = 1,NumBl       ! Loop through all blades
 
       TmpID  = 10000*K + J
       ThnBarI = MassB(K,J)*( DRNodes(J)**3 )/12.0  ! Define the transverse inertias of the blade element (both identical) to be that of a thin uniform bar.
-      TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2                       &
-              + RFrlPntxn*d1 + RFrlPntzn*d2 - RFrlPntyn*d3 + rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3 &
-              + OverHang*c1 - UndSling*g1 + ( HubRad + RNodes(J) )*i3(K,:) + RefAxisxb(K,J)*j1(K,:) + RefAxisyb(K,J)*j2(K,:)  ! rS = Position vector from ground to the current blade point (point S).
-      TmpVec1 = TmpVec - te2(K,J,:)
-      TmpVec2 = TmpVec + te3(K,J,:)
+      TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2   &
+              + RFrlPntxn*CoordSys%d1 + RFrlPntzn*CoordSys%d2 - RFrlPntyn*CoordSys%d3                          &
+              + rVPxn*CoordSys%rf1    + rVPzn*CoordSys%rf2    - rVPyn*CoordSys%rf3                             &
+              + OverHang*CoordSys%c1  - UndSling*CoordSys%g1  + ( HubRad + RNodes(J) )*CoordSys%i3(K,:)        &
+              + RefAxisxb(K,J)*CoordSys%j1(K,:)               + RefAxisyb(K,J)*CoordSys%j2(K,:)  ! rS = Position vector from ground to the current blade point (point S).
+      TmpVec1 = TmpVec - CoordSys%te2(K,J,:)
+      TmpVec2 = TmpVec + CoordSys%te3(K,J,:)
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, '_P'''
       WRITE (UnAD,FmtText          )  'PART/'//TRIM(Int2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR        )  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)   ! Orient the blade
@@ -2293,25 +2313,25 @@ DO K = 1,NumBl       ! Loop through all blades
       WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
       IF ( J == 1 )  THEN        ! Innermost blade element
-         WRITE (UnAD,FmtTRTRTR     )  ', QP = ', DOT_PRODUCT( -    EAVec(K,J,:)            ,  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                               + DOT_PRODUCT( -    EAVec(K,J,:)            , -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                               + DOT_PRODUCT( -    EAVec(K,J,:)            , -te2(K,J,:) )                         ! Orient the MARKER
-         WRITE (UnAD,FmtTRTRTR     )  ', ZP = ', DOT_PRODUCT( -    EAVec(K,J,:) - n2(K,J,:),  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                               + DOT_PRODUCT( -    EAVec(K,J,:) - n2(K,J,:), -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                               + DOT_PRODUCT( -    EAVec(K,J,:) - n2(K,J,:), -te2(K,J,:) )                         ! using the
-         WRITE (UnAD,FmtTRTRTR     )  ', XP = ', DOT_PRODUCT( -    EAVec(K,J,:) + n3(K,J,:),  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                               + DOT_PRODUCT( -    EAVec(K,J,:) + n3(K,J,:), -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                               + DOT_PRODUCT( -    EAVec(K,J,:) + n3(K,J,:), -te2(K,J,:) )                         ! 3-point method
+         WRITE (UnAD,FmtTRTRTR     )  ', QP = ', DOT_PRODUCT( -    EAVec(K,J,:)                     ,  CoordSys%te3(K,J,:) ), &
+                       ', ', -EAOffBFlp(K,J)   + DOT_PRODUCT( -    EAVec(K,J,:)                     , -CoordSys%te1(K,J,:) ), &
+                       ', ', -EAOffBEdg(K,J)   + DOT_PRODUCT( -    EAVec(K,J,:)                     , -CoordSys%te2(K,J,:) )                         ! Orient the MARKER
+         WRITE (UnAD,FmtTRTRTR     )  ', ZP = ', DOT_PRODUCT( -    EAVec(K,J,:) - CoordSys%n2(K,J,:),  CoordSys%te3(K,J,:) ), &
+                       ', ', -EAOffBFlp(K,J)   + DOT_PRODUCT( -    EAVec(K,J,:) - CoordSys%n2(K,J,:), -CoordSys%te1(K,J,:) ), &
+                       ', ', -EAOffBEdg(K,J)   + DOT_PRODUCT( -    EAVec(K,J,:) - CoordSys%n2(K,J,:), -CoordSys%te2(K,J,:) )                         ! using the
+         WRITE (UnAD,FmtTRTRTR     )  ', XP = ', DOT_PRODUCT( -    EAVec(K,J,:) + CoordSys%n3(K,J,:),  CoordSys%te3(K,J,:) ), &
+                       ', ', -EAOffBFlp(K,J)   + DOT_PRODUCT( -    EAVec(K,J,:) + CoordSys%n3(K,J,:), -CoordSys%te1(K,J,:) ), &
+                       ', ', -EAOffBEdg(K,J)   + DOT_PRODUCT( -    EAVec(K,J,:) + CoordSys%n3(K,J,:), -CoordSys%te2(K,J,:) )                         ! 3-point method
       ELSE                       ! All other blade elements
-         WRITE (UnAD,FmtTRTRTR     )  ', QP = ', DOT_PRODUCT( -0.5*EAVec(K,J,:)            ,  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                               + DOT_PRODUCT( -0.5*EAVec(K,J,:)            , -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                               + DOT_PRODUCT( -0.5*EAVec(K,J,:)            , -te2(K,J,:) )                         ! Orient the MARKER
-         WRITE (UnAD,FmtTRTRTR     )  ', ZP = ', DOT_PRODUCT( -0.5*EAVec(K,J,:) - n2(K,J,:),  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                               + DOT_PRODUCT( -0.5*EAVec(K,J,:) - n2(K,J,:), -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                               + DOT_PRODUCT( -0.5*EAVec(K,J,:) - n2(K,J,:), -te2(K,J,:) )                         ! using the
-         WRITE (UnAD,FmtTRTRTR     )  ', XP = ', DOT_PRODUCT( -0.5*EAVec(K,J,:) + n3(K,J,:),  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                               + DOT_PRODUCT( -0.5*EAVec(K,J,:) + n3(K,J,:), -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                               + DOT_PRODUCT( -0.5*EAVec(K,J,:) + n3(K,J,:), -te2(K,J,:) )                         ! 3-point method
+         WRITE (UnAD,FmtTRTRTR     )  ', QP = ', DOT_PRODUCT( -0.5*EAVec(K,J,:)                     ,  CoordSys%te3(K,J,:) ), &
+                       ', ', -EAOffBFlp(K,J)   + DOT_PRODUCT( -0.5*EAVec(K,J,:)                     , -CoordSys%te1(K,J,:) ), &
+                       ', ', -EAOffBEdg(K,J)   + DOT_PRODUCT( -0.5*EAVec(K,J,:)                     , -CoordSys%te2(K,J,:) )                         ! Orient the MARKER
+         WRITE (UnAD,FmtTRTRTR     )  ', ZP = ', DOT_PRODUCT( -0.5*EAVec(K,J,:) - CoordSys%n2(K,J,:),  CoordSys%te3(K,J,:) ), &
+                       ', ', -EAOffBFlp(K,J)   + DOT_PRODUCT( -0.5*EAVec(K,J,:) - CoordSys%n2(K,J,:), -CoordSys%te1(K,J,:) ), &
+                       ', ', -EAOffBEdg(K,J)   + DOT_PRODUCT( -0.5*EAVec(K,J,:) - CoordSys%n2(K,J,:), -CoordSys%te2(K,J,:) )                         ! using the
+         WRITE (UnAD,FmtTRTRTR     )  ', XP = ', DOT_PRODUCT( -0.5*EAVec(K,J,:) + CoordSys%n3(K,J,:),  CoordSys%te3(K,J,:) ), &
+                       ', ', -EAOffBFlp(K,J)   + DOT_PRODUCT( -0.5*EAVec(K,J,:) + CoordSys%n3(K,J,:), -CoordSys%te1(K,J,:) ), &
+                       ', ', -EAOffBEdg(K,J)   + DOT_PRODUCT( -0.5*EAVec(K,J,:) + CoordSys%n3(K,J,:), -CoordSys%te2(K,J,:) )                         ! 3-point method
       ENDIF
 
 
@@ -2322,25 +2342,25 @@ DO K = 1,NumBl       ! Loop through all blades
       WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
       IF ( J == BldNodes )  THEN ! Outermost blade element
-         WRITE (UnAD,FmtTRTRTR   )  ', QP = ', DOT_PRODUCT(     EAVec(K,J+1,:)              ,  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                             + DOT_PRODUCT(     EAVec(K,J+1,:)              , -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                             + DOT_PRODUCT(     EAVec(K,J+1,:)              , -te2(K,J,:) )                        ! Orient the MARKER
-         WRITE (UnAD,FmtTRTRTR   )  ', ZP = ', DOT_PRODUCT(     EAVec(K,J+1,:) - n2(K,J  ,:),  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                             + DOT_PRODUCT(     EAVec(K,J+1,:) - n2(K,J  ,:), -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                             + DOT_PRODUCT(     EAVec(K,J+1,:) - n2(K,J  ,:), -te2(K,J,:) )                        ! using the
-         WRITE (UnAD,FmtTRTRTR   )  ', XP = ', DOT_PRODUCT(     EAVec(K,J+1,:) + n3(K,J  ,:),  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                             + DOT_PRODUCT(     EAVec(K,J+1,:) + n3(K,J  ,:), -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                             + DOT_PRODUCT(     EAVec(K,J+1,:) + n3(K,J  ,:), -te2(K,J,:) )                        ! 3-point method
+         WRITE (UnAD,FmtTRTRTR   )  ', QP = ', DOT_PRODUCT(     EAVec(K,J+1,:)                       ,  CoordSys%te3(K,J,:) ), &
+                      ', ', -EAOffBFlp(K,J)  + DOT_PRODUCT(     EAVec(K,J+1,:)                       , -CoordSys%te1(K,J,:) ), &
+                      ', ', -EAOffBEdg(K,J)  + DOT_PRODUCT(     EAVec(K,J+1,:)                       , -CoordSys%te2(K,J,:) )                        ! Orient the MARKER
+         WRITE (UnAD,FmtTRTRTR   )  ', ZP = ', DOT_PRODUCT(     EAVec(K,J+1,:) - CoordSys%n2(K,J  ,:),  CoordSys%te3(K,J,:) ), &
+                      ', ', -EAOffBFlp(K,J)  + DOT_PRODUCT(     EAVec(K,J+1,:) - CoordSys%n2(K,J  ,:), -CoordSys%te1(K,J,:) ), &
+                      ', ', -EAOffBEdg(K,J)  + DOT_PRODUCT(     EAVec(K,J+1,:) - CoordSys%n2(K,J  ,:), -CoordSys%te2(K,J,:) )                        ! using the
+         WRITE (UnAD,FmtTRTRTR   )  ', XP = ', DOT_PRODUCT(     EAVec(K,J+1,:) + CoordSys%n3(K,J  ,:),  CoordSys%te3(K,J,:) ), &
+                      ', ', -EAOffBFlp(K,J)  + DOT_PRODUCT(     EAVec(K,J+1,:) + CoordSys%n3(K,J  ,:), -CoordSys%te1(K,J,:) ), &
+                      ', ', -EAOffBEdg(K,J)  + DOT_PRODUCT(     EAVec(K,J+1,:) + CoordSys%n3(K,J  ,:), -CoordSys%te2(K,J,:) )                        ! 3-point method
       ELSE                     ! All other blade elements
-         WRITE (UnAD,FmtTRTRTR   )  ', QP = ', DOT_PRODUCT( 0.5*EAVec(K,J+1,:)              ,  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                             + DOT_PRODUCT( 0.5*EAVec(K,J+1,:)              , -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                             + DOT_PRODUCT( 0.5*EAVec(K,J+1,:)              , -te2(K,J,:) )                        ! Orient the MARKER
-         WRITE (UnAD,FmtTRTRTR   )  ', ZP = ', DOT_PRODUCT( 0.5*EAVec(K,J+1,:) - n2(K,J+1,:),  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                             + DOT_PRODUCT( 0.5*EAVec(K,J+1,:) - n2(K,J+1,:), -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                             + DOT_PRODUCT( 0.5*EAVec(K,J+1,:) - n2(K,J+1,:), -te2(K,J,:) )                        ! using the
-         WRITE (UnAD,FmtTRTRTR   )  ', XP = ', DOT_PRODUCT( 0.5*EAVec(K,J+1,:) + n3(K,J+1,:),  te3(K,J,:) ), ', ', -EAOffBFlp(K,J) &
-                                             + DOT_PRODUCT( 0.5*EAVec(K,J+1,:) + n3(K,J+1,:), -te1(K,J,:) ), ', ', -EAOffBEdg(K,J) &
-                                             + DOT_PRODUCT( 0.5*EAVec(K,J+1,:) + n3(K,J+1,:), -te2(K,J,:) )                        ! 3-point method
+         WRITE (UnAD,FmtTRTRTR   )  ', QP = ', DOT_PRODUCT( 0.5*EAVec(K,J+1,:)                       ,  CoordSys%te3(K,J,:) ), &
+                      ', ', -EAOffBFlp(K,J)  + DOT_PRODUCT( 0.5*EAVec(K,J+1,:)                       , -CoordSys%te1(K,J,:) ), &
+                      ', ', -EAOffBEdg(K,J)  + DOT_PRODUCT( 0.5*EAVec(K,J+1,:)                       , -CoordSys%te2(K,J,:) )                        ! Orient the MARKER
+         WRITE (UnAD,FmtTRTRTR   )  ', ZP = ', DOT_PRODUCT( 0.5*EAVec(K,J+1,:) - CoordSys%n2(K,J+1,:),  CoordSys%te3(K,J,:) ), &
+                      ', ', -EAOffBFlp(K,J)  + DOT_PRODUCT( 0.5*EAVec(K,J+1,:) - CoordSys%n2(K,J+1,:), -CoordSys%te1(K,J,:) ), &
+                      ', ', -EAOffBEdg(K,J)  + DOT_PRODUCT( 0.5*EAVec(K,J+1,:) - CoordSys%n2(K,J+1,:), -CoordSys%te2(K,J,:) )                        ! using the
+         WRITE (UnAD,FmtTRTRTR   )  ', XP = ', DOT_PRODUCT( 0.5*EAVec(K,J+1,:) + CoordSys%n3(K,J+1,:),  CoordSys%te3(K,J,:) ), &
+                      ', ', -EAOffBFlp(K,J)  + DOT_PRODUCT( 0.5*EAVec(K,J+1,:) + CoordSys%n3(K,J+1,:), -CoordSys%te1(K,J,:) ), &
+                      ', ', -EAOffBEdg(K,J)  + DOT_PRODUCT( 0.5*EAVec(K,J+1,:) + CoordSys%n3(K,J+1,:), -CoordSys%te2(K,J,:) )                        ! 3-point method
       ENDIF
 
 
@@ -2364,29 +2384,31 @@ DO K = 1,NumBl       ! Loop through all blades
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'EA_M'''
       WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0                                                 , ', ', &
-                                                 -EAOffBFlp(K,J)                                     , ', ', &
-                                                 -EAOffBEdg(K,J)                                                   ! Orient the EA
-      WRITE (UnAD,FmtTRTRTR        )  ', ZP = ', 0.0             + DOT_PRODUCT( -n2(K,J,:),  te3(K,J,:) ), ', ', &
-                                                 -EAOffBFlp(K,J) + DOT_PRODUCT( -n2(K,J,:), -te1(K,J,:) ), ', ', &
-                                                 -EAOffBEdg(K,J) + DOT_PRODUCT( -n2(K,J,:), -te2(K,J,:) )          ! MARKER using the
-      WRITE (UnAD,FmtTRTRTR        )  ', XP = ', 0.0             + DOT_PRODUCT(  n3(K,J,:),  te3(K,J,:) ), ', ', &
-                                                 -EAOffBFlp(K,J) + DOT_PRODUCT(  n3(K,J,:), -te1(K,J,:) ), ', ', &
-                                                 -EAOffBEdg(K,J) + DOT_PRODUCT(  n3(K,J,:), -te2(K,J,:) )          ! 3-point method
+      WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0                                                                , ', ', &
+                                          -EAOffBFlp(K,J)                                                           , ', ', &
+                                          -EAOffBEdg(K,J)                                                                     ! Orient the EA
+      WRITE (UnAD,FmtTRTRTR        )  ', ZP = ', 0.0      + DOT_PRODUCT( -CoordSys%n2(K,J,:),  CoordSys%te3(K,J,:) ), ', ', &
+                                          -EAOffBFlp(K,J) + DOT_PRODUCT( -CoordSys%n2(K,J,:), -CoordSys%te1(K,J,:) ), ', ', &
+                                          -EAOffBEdg(K,J) + DOT_PRODUCT( -CoordSys%n2(K,J,:), -CoordSys%te2(K,J,:) )          ! MARKER using the
+      WRITE (UnAD,FmtTRTRTR        )  ', XP = ', 0.0      + DOT_PRODUCT(  CoordSys%n3(K,J,:),  CoordSys%te3(K,J,:) ), ', ', &
+                                          -EAOffBFlp(K,J) + DOT_PRODUCT(  CoordSys%n3(K,J,:), -CoordSys%te1(K,J,:) ), ', ', &
+                                          -EAOffBEdg(K,J) + DOT_PRODUCT(  CoordSys%n3(K,J,:), -CoordSys%te2(K,J,:) )          ! 3-point method
 
 
    ! same orientation as 10000*K
       TmpID2  = 10000*K + 7000 + J      
-      TmpVec1 = j3(K,:)
-      TmpVec2 = j1(K,:)
+      TmpVec1 = CoordSys%j3(K,:)
+      TmpVec2 = CoordSys%j1(K,:)
       WRITE (UnAD,'(A,I1,A,I2.2,A)') "!                             adams_view_name='Bld", K, "Sec", J, "ZeroTwist_M'"
       WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( TmpID )) !10000*K+J
       WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', 0.0
-      WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( TmpVec1,  te3(K,J,:) ), ', ', DOT_PRODUCT( TmpVec1, -te1(K,J,:) ), ', ', &
-                                          DOT_PRODUCT( TmpVec1, -te2(K,J,:) )  ! Orient the undeflected blade element using the
-      WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( TmpVec2,  te3(K,J,:) ), ', ', DOT_PRODUCT( TmpVec2, -te1(K,J,:) ), ', ', &
-                                          DOT_PRODUCT( TmpVec2, -te2(K,J,:) )  ! 3-point method                                              
+      WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( TmpVec1,  CoordSys%te3(K,J,:) ), ', ', &
+                                          DOT_PRODUCT( TmpVec1, -CoordSys%te1(K,J,:) ), ', ', &
+                                          DOT_PRODUCT( TmpVec1, -CoordSys%te2(K,J,:) )       ! Orient the undeflected blade element using the
+      WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( TmpVec2,  CoordSys%te3(K,J,:) ), ', ', &
+                                          DOT_PRODUCT( TmpVec2, -CoordSys%te1(K,J,:) ), ', ', &
+                                          DOT_PRODUCT( TmpVec2, -CoordSys%te2(K,J,:) )  ! 3-point method                                              
 
    ENDDO             ! J - Blade nodes/elements
 
@@ -2395,11 +2417,13 @@ DO K = 1,NumBl       ! Loop through all blades
 
    WRITE (UnAD,'(A,I1,A)')  '!----------------------------- Blade ', K, ': Tip Brake ------------------------------'
    TmpID = 10000*K + 5000
-   TmpVec  = PtfmSurge*z1 + PtfmHeave*z2 - PtfmSway *z3 + RefTwrHt*a2                       &
-           + RFrlPntxn*d1 + RFrlPntzn*d2 - RFrlPntyn*d3 + rVPxn*rf1 + rVPzn*rf2 - rVPyn*rf3 &
-           + OverHang*c1 - UndSling*g1 + TipRad*i3(K,:) + RefAxisxb(K,TipNode)*j1(K,:) + RefAxisyb(K,TipNode)*j2(K,:)   ! rS(BldFlexL) = Position vector from ground to the blade tip (point S(BldFlexL)).
-   TmpVec1 = TmpVec - n2(K,BldNodes,:)
-   TmpVec2 = TmpVec + n3(K,BldNodes,:)
+   TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2   &
+           + RFrlPntxn*CoordSys%d1 + RFrlPntzn*CoordSys%d2 - RFrlPntyn*CoordSys%d3                          &
+           + rVPxn*CoordSys%rf1    + rVPzn*CoordSys%rf2    - rVPyn*CoordSys%rf3                             &
+           + OverHang*CoordSys%c1  - UndSling*CoordSys%g1  + TipRad*CoordSys%i3(K,:)                        &
+           + RefAxisxb(K,TipNode)*CoordSys%j1(K,:) + RefAxisyb(K,TipNode)*CoordSys%j2(K,:)   ! rS(BldFlexL) = Position vector from ground to the blade tip (point S(BldFlexL)).
+   TmpVec1 = TmpVec - CoordSys%n2(K,BldNodes,:)
+   TmpVec2 = TmpVec + CoordSys%n3(K,BldNodes,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, '_P'''
    WRITE (UnAD,FmtText   )  'PART/'//TRIM(Int2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR )  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2) ! Orient the tip brake using the
@@ -3714,8 +3738,9 @@ DO K = 1,NumBl       ! Loop through all blades
    WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', KMatrix(1,6), ', ', KMatrix(2,6), ', ', KMatrix(3,6), &
                                    ', ', KMatrix(4,6), ', ', KMatrix(5,6), ', ', KMatrix(6,6)
    WRITE (UnAD,FmtText          )  ', LENGTH = '
-   WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', TmpLength, ', ', DOT_PRODUCT( EAVec(K,1,:), -n1(K,1,:) ), &
-                                   ', ', DOT_PRODUCT( EAVec(K,1,:), -n2(K,1,:) ), ', ', 0.0, ', ', 0.0, ', ', 0.0
+   WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', TmpLength, ', ', DOT_PRODUCT( EAVec(K,1,:), -CoordSys%n1(K,1,:) ), &
+                                                    ', ', DOT_PRODUCT( EAVec(K,1,:), -CoordSys%n2(K,1,:) ), &
+                                                    ', ', 0.0, ', ', 0.0, ', ', 0.0
 
 
    DO J = 2,BldNodes ! Loop through all but the innermost blade nodes/elements
@@ -3786,8 +3811,8 @@ DO K = 1,NumBl       ! Loop through all blades
                                       ', ', KMatrix(4,6), ', ', KMatrix(5,6), ', ', KMatrix(6,6)
       WRITE (UnAD,FmtText          )  ', LENGTH = '
 
-      WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', TmpLength, ', ', DOT_PRODUCT( EAVec(K,J,:), -n1(K,J-1,:) ), &
-                                      ', ', DOT_PRODUCT( EAVec(K,J,:), -n2(K,J-1,:) ),                  &
+      WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', TmpLength, ', ', DOT_PRODUCT( EAVec(K,J,:), -CoordSys%n1(K,J-1,:) ), &
+                                      ', ', DOT_PRODUCT( EAVec(K,J,:), -CoordSys%n2(K,J-1,:) ),                  &
                                       ', ', ThetaS(K,J-1) - ThetaS(K,J), ', ', 0.0, ', ', 0.0
 
    ENDDO             ! J - Blade nodes/elements
@@ -3856,8 +3881,9 @@ DO K = 1,NumBl       ! Loop through all blades
    WRITE (UnAD,FmtTRTRTRTRTRTR)  ', ', KMatrix(1,6), ', ', KMatrix(2,6), ', ', KMatrix(3,6), &
                                  ', ', KMatrix(4,6), ', ', KMatrix(5,6), ', ', KMatrix(6,6)
    WRITE (UnAD,FmtText        )  ', LENGTH = '
-   WRITE (UnAD,FmtTRTRTRTRTRTR)  ', ', TmpLength, ', ', DOT_PRODUCT( EAVec(K,TipNode,:), -n1(K,BldNodes,:) ), &
-                                 ', ', DOT_PRODUCT( EAVec(K,TipNode,:), -n2(K,BldNodes,:) ), ', ', 0.0, ', ', 0.0, ', ', 0.0
+   WRITE (UnAD,FmtTRTRTRTRTRTR)  ', ', TmpLength, ', ', DOT_PRODUCT( EAVec(K,TipNode,:), -CoordSys%n1(K,BldNodes,:) ), &
+                                                  ', ', DOT_PRODUCT( EAVec(K,TipNode,:), -CoordSys%n2(K,BldNodes,:) ), &
+                                                  ', ', 0.0, ', ', 0.0, ', ', 0.0
 
 
 ENDDO                ! K - Blades
