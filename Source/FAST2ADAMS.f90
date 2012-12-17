@@ -4015,7 +4015,7 @@ CALL MakeADM_WrICArrays (TwrGagNd,   TwrGagNd_A      , NTwGages, UnAD, "TwrGagNd
 
 DO K = 1,NumBl       ! Loop through all blades
    ! NOTE: IDCntrl(J,K) should be the ID of the VARIABLE containing MulTabLoc for USER-defined 
-   !       multiple airfoil tables of Blade K, Element J. A user will have to add a VARIABLE 
+   !       multiple airfoil tables of Element J, Blade K. A user will have to add a VARIABLE 
    !       statement and change this value to the VARIABLE ID if they want to incorporate 
    !       USER-defined multiple airfoil table interpolations.  If the user wants to use   
    !       Reynolds Number interpolation (RENUM), then this value should remain at zero!

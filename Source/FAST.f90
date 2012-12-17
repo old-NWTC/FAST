@@ -8306,7 +8306,7 @@ ENDSELECT
 RETURN
 END SUBROUTINE TFurling
 !=======================================================================
-SUBROUTINE TimeMarch(  )
+SUBROUTINE TimeMarch( p_StrD, OtherSt_StrD, ErrStat, ErrMsg  )
 
 
    ! TimeMarch controls the execution of the typical time-marching
@@ -8329,17 +8329,17 @@ IMPLICIT                        NONE
 
    ! Local variables.
 
-REAL(ReKi)                   :: TiLstPrn  = 0.0                            ! The time of the last print.
-INTEGER(IntKi)               :: ErrStat                                    ! Error status
-CHARACTER(1024)              :: ErrMsg                                     ! Error message
+REAL(ReKi)                               :: TiLstPrn  = 0.0                            ! The time of the last print.
+INTEGER(IntKi),             INTENT(OUT)  :: ErrStat                                    ! Error status
+CHARACTER(1024),            INTENT(OUT)  :: ErrMsg                                     ! Error message
 
-TYPE(StrD_CoordSys)          :: CoordSys                                   ! The coordinate systems to be set
-
+TYPE(StrD_OtherStateType), INTENT(INOUT) :: OtherSt_StrD                   ! The structural dynamics "other" states (including CoordSys coordinate systems) 
+TYPE(StrD_ParameterType),  INTENT(IN)    :: p_StrD                         ! The parameters of the structural dynamics module
 
 
    ! Allocate space for coordinate systems
 
-CALL CoordSys_Alloc( CoordSys, NumBl, BldNodes, TwrNodes, ErrStat, ErrMsg )
+CALL CoordSys_Alloc( OtherSt_StrD%CoordSys, NumBl, BldNodes, TwrNodes, ErrStat, ErrMsg )
             
 IF (ErrStat /= ErrID_none) THEN
    CALL WrScr( ' Error in SUBROUTINE TimeMarch: ' )
@@ -8370,7 +8370,7 @@ DO
 
    ! Call predictor-corrector routine:
 
-   CALL Solver( CoordSys )
+   CALL Solver( OtherSt_StrD%CoordSys )
 
 
    ! Make sure the rotor azimuth is not greater or equal to 360 degrees:
@@ -8388,13 +8388,14 @@ DO
 
    ! Compute all of the output channels and fill in the OutData() array:
 
-   CALL CalcOuts( CoordSys )
+   CALL CalcOuts( OtherSt_StrD%CoordSys )
 
 
    ! Check to see if we should output data this time step:
 
    IF ( ZTime >= TStart )  THEN
-      IF ( CompNoise                 )  CALL PredictNoise( CoordSys%te1, CoordSys%te2, CoordSys%te3 )
+      IF ( CompNoise                 )  CALL PredictNoise( OtherSt_StrD%CoordSys%te1, &
+                                                           OtherSt_StrD%CoordSys%te2, OtherSt_StrD%CoordSys%te3 )
       IF ( MOD( Step, DecFact ) == 0 )  CALL WrOutput
    ENDIF
 
@@ -8419,7 +8420,7 @@ ENDDO
 
    ! We're done!
    
-CALL CoordSys_Dealloc( CoordSys, ErrStat, ErrMsg )
+CALL CoordSys_Dealloc( OtherSt_StrD%CoordSys, ErrStat, ErrMsg )
 IF (ErrStat /= ErrID_none) THEN
    CALL WrScr( ' Error in SUBROUTINE TimeMarch: ' )
    CALL WrScr( '  '//TRIM(ErrMsg) )
