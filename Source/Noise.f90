@@ -1321,7 +1321,7 @@ CLOSE (UnIn)
 RETURN
 END SUBROUTINE NoiseInput
 !====================================================================================================
-SUBROUTINE WriteSPLOut
+SUBROUTINE WriteSPLOut(p_StrD,x_StrD)
 
 
 USE                             Blades
@@ -1334,8 +1334,12 @@ USE                             TurbConf
 
 IMPLICIT                        NONE
 
+   ! passed variables
 
-   ! Local variables.
+TYPE(StrD_ParameterType),INTENT(IN)      :: p_StrD                                          ! The parameters of the structural dynamics module
+TYPE(StrD_ContinuousStateType),INTENT(IN):: x_StrD                                          ! The structural dynamics continuous states
+
+   ! Local variables
 
 REAL(ReKi)                   :: AzimuthOut                                      ! Azimuth angle
 REAL(ReKi)                   :: OASPLout (NumBl,BldNodes)                       ! Overall sound pressure level to output
@@ -1367,7 +1371,7 @@ CASE DEFAULT
    OASPLout = OASPL
 END SELECT
 
-AzimuthOut =MOD( ( QT(DOF_GeAz) + QT(DOF_DrTr) )*R2D + AzimB1Up + 90.0, 360.0 )
+AzimuthOut =MOD( ( x_StrD%QT(DOF_GeAz) + x_StrD%QT(DOF_DrTr) )*R2D + AzimB1Up + 90.0, 360.0 )
 
 IF ( TabDelim )  THEN
    Frmt = '(F8.3,A,F8.3,200(:,A ,F8.3))'

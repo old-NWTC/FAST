@@ -271,12 +271,12 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
 CASE ( 2 )              ! User-defined tail fin aerodynamics model.
 
 
-   CALL UserTFin ( QT(DOF_TFrl), QDT(DOF_TFrl), ZTime, DirRoot, &
-                   TFinCPxi, TFinCPyi, ( TFinCPzi - PtfmRef ),  &
-                   TFinCPVx, TFinCPVy,   TFinCPVz,              &
-                   TFinAOA , TFinQ   ,                          &
-                   TFinCL  , TFinCD  ,                          &
-                   TFinKFx , TFinKFy                              )
+   CALL UserTFin ( x%QT(DOF_TFrl), x%QDT(DOF_TFrl), ZTime, DirRoot, &
+                   TFinCPxi, TFinCPyi, ( TFinCPzi - PtfmRef ),      &
+                   TFinCPVx, TFinCPVy,   TFinCPVz,                  &
+                   TFinAOA , TFinQ   ,                              &
+                   TFinCL  , TFinCD  ,                              &
+                   TFinKFx , TFinKFy                                  )
 
 
 ENDSELECT

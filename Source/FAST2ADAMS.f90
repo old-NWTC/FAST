@@ -638,7 +638,7 @@ IDCntrl = 0.0
    ! Lets define the coordinate systems that will be used throughout this
    !   routine to orient PARTs and MARKERs:
 
-QT  = Q (:,1) ! Transfer the initial conditions of the DOFs to the QT array, which is used throughout SetCoordSy().
+x%QT  = Q (:,1) ! Transfer the initial conditions of the DOFs to the QT array, which is used throughout SetCoordSy().
 CALL CoordSys_Alloc( CoordSys, NumBl, BldNodes, TwrNodes, ErrStat, ErrMsg )
 CALL SetCoordSy( CoordSys )
 

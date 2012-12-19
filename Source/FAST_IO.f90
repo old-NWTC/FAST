@@ -983,7 +983,7 @@ SUBROUTINE ChckOutLst(OutList, p_StrD, ErrStat, ErrMsg )
      
    !-------------------------------------------------------------------------------------------------
    ! Set index, name, and units for the output channels
-   ! If a selected output channel is not available in this module, set error flag and return.
+   ! If a selected output channel is not available in this module, set error flag.
    !-------------------------------------------------------------------------------------------------     
 
    OutPFmt = '( I4, 3X,A '//TRIM(Num2LStr(OutStrLen))//',1 X, A'//TRIM(Num2LStr(OutStrLen))//' )'
@@ -1134,12 +1134,12 @@ CALL ReadCom ( UnIn, ADAMSFile, 'feature switches'  )
 
    ! SaveGrphcs - Save GRAPHICS output.
 
-CALL ReadLVar ( UnIn, ADAMSFile, SaveGrphcs, 'SaveGrphcs', 'Save GRAPHICS output' )
+CALL ReadVar ( UnIn, ADAMSFile, SaveGrphcs, 'SaveGrphcs', 'Save GRAPHICS output' )
 
 
    ! MakeLINacf - Make ADAMS/LINEAR control command file.
 
-CALL ReadLVar ( UnIn, ADAMSFile, MakeLINacf, 'MakeLINacf', 'Make ADAMS/LINEAR control command file' )
+CALL ReadVar ( UnIn, ADAMSFile, MakeLINacf, 'MakeLINacf', 'Make ADAMS/LINEAR control command file' )
 
 IF ( MakeLINacf .AND. ( .NOT. SaveGrphcs ) )  &
    CALL ProgAbort ( ' SaveGrphcs must be True if MakeLINacf is True.' )
@@ -1156,28 +1156,28 @@ CALL ReadCom ( UnIn, ADAMSFile, 'damping parameters'  )
 
    ! CRatioTGJ - Tower torsional damping ratio.
 
-CALL ReadRVar ( UnIn, ADAMSFile, CRatioTGJ, 'CRatioTGJ', 'Tower torsional damping ratio' )
+CALL ReadVar ( UnIn, ADAMSFile, CRatioTGJ, 'CRatioTGJ', 'Tower torsional damping ratio' )
 
 IF ( CRatioTGJ < 0.0 )  CALL ProgAbort ( ' CRatioTGJ must not be less than zero.' )
 
 
    ! CRatioTEA - Tower extensional damping ratio.
 
-CALL ReadRVar ( UnIn, ADAMSFile, CRatioTEA, 'CRatioTEA', 'Tower extensional damping ratio' )
+CALL ReadVar ( UnIn, ADAMSFile, CRatioTEA, 'CRatioTEA', 'Tower extensional damping ratio' )
 
 IF ( CRatioTEA < 0.0 )  CALL ProgAbort ( ' CRatioTEA must not be less than zero.' )
 
 
    ! CRatioBGJ - Blade torsional damping ratio.
 
-CALL ReadRVar ( UnIn, ADAMSFile, CRatioBGJ, 'CRatioBGJ', 'Blade torsional damping ratio' )
+CALL ReadVar ( UnIn, ADAMSFile, CRatioBGJ, 'CRatioBGJ', 'Blade torsional damping ratio' )
 
 IF ( CRatioBGJ < 0.0 )  CALL ProgAbort ( ' CRatioBGJ must not be less than zero.' )
 
 
    ! CRatioBEA - Blade extensional damping ratio.
 
-CALL ReadRVar ( UnIn, ADAMSFile, CRatioBEA, 'CRatioBEA', 'Blade extensional damping ratio' )
+CALL ReadVar ( UnIn, ADAMSFile, CRatioBEA, 'CRatioBEA', 'Blade extensional damping ratio' )
 
 IF ( CRatioBEA < 0.0 )  CALL ProgAbort ( ' CRatioBEA must not be less than zero.' )
 
@@ -1192,14 +1192,14 @@ CALL ReadCom ( UnIn, ADAMSFile, 'blade pitch actuator parameters'  )
 
    ! BPActrSpr - Blade pitch actuator spring constant.
 
-CALL ReadRVar ( UnIn, ADAMSFile, BPActrSpr, 'BPActrSpr', 'Blade pitch actuator spring constant' )
+CALL ReadVar ( UnIn, ADAMSFile, BPActrSpr, 'BPActrSpr', 'Blade pitch actuator spring constant' )
 
 IF ( BPActrSpr < 0.0 )  CALL ProgAbort ( ' BPActrSpr must not be less than zero.' )
 
 
    ! BPActrDmp - Blade pitch actuator damping constant.
 
-CALL ReadRVar ( UnIn, ADAMSFile, BPActrDmp, 'BPActrDmp', 'Blade pitch actuator damping constant' )
+CALL ReadVar ( UnIn, ADAMSFile, BPActrDmp, 'BPActrDmp', 'Blade pitch actuator damping constant' )
 
 IF ( BPActrDmp < 0.0 )  CALL ProgAbort ( ' BPActrSpr must not be less than zero.' )
 
@@ -1214,7 +1214,7 @@ CALL ReadCom ( UnIn, ADAMSFile, 'GRAPHICS parameters'  )
 
    ! NSides - Number of sides.
 
-CALL ReadIVar ( UnIn, ADAMSFile, NSides, 'NSides', 'Number of sides' )
+CALL ReadVar ( UnIn, ADAMSFile, NSides, 'NSides', 'Number of sides' )
 
 IF ( ( NSides < 0 ) .OR. ( NSides > 99999 ) )  &
    CALL ProgAbort ( ' NSides must be between 0 and 99,999 (inclusive).' )
@@ -1222,21 +1222,21 @@ IF ( ( NSides < 0 ) .OR. ( NSides > 99999 ) )  &
 
    ! TwrBaseRad - Tower base radius.
 
-CALL ReadRVar ( UnIn, ADAMSFile, TwrBaseRad, 'TwrBaseRad', 'Tower base radius' )
+CALL ReadVar ( UnIn, ADAMSFile, TwrBaseRad, 'TwrBaseRad', 'Tower base radius' )
 
 IF ( TwrBaseRad < 0.0 )  CALL ProgAbort ( ' TwrBaseRad must not be less than zero.' )
 
 
    ! TwrTopRad - Tower top radius.
 
-CALL ReadRVar ( UnIn, ADAMSFile, TwrTopRad, 'TwrTopRad', 'Tower top radius' )
+CALL ReadVar ( UnIn, ADAMSFile, TwrTopRad, 'TwrTopRad', 'Tower top radius' )
 
 IF ( TwrTopRad < 0.0 )  CALL ProgAbort ( ' TwrTopRad must not be less than zero.' )
 
 
    ! NacLength - Nacelle length.
 
-CALL ReadRVar ( UnIn, ADAMSFile, NacLength, 'NacLength', 'Nacelle length' )
+CALL ReadVar ( UnIn, ADAMSFile, NacLength, 'NacLength', 'Nacelle length' )
 
 IF ( ( NacLength < 0.0 ) .OR. ( NacLength > 2.0*ABS(OverHang) ) )  &
    CALL ProgAbort ( ' NacLength must be between zero and 2*ABS(OverHang) (inclusive).' )
@@ -1244,84 +1244,84 @@ IF ( ( NacLength < 0.0 ) .OR. ( NacLength > 2.0*ABS(OverHang) ) )  &
 
    ! NacRadBot - Bottom radius of nacelle.
 
-CALL ReadRVar ( UnIn, ADAMSFile, NacRadBot, 'NacRadBot', 'Bottom radius of nacelle' )
+CALL ReadVar ( UnIn, ADAMSFile, NacRadBot, 'NacRadBot', 'Bottom radius of nacelle' )
 
 IF ( NacRadBot < 0.0 )  CALL ProgAbort ( ' NacRadBot must not be less than zero.' )
 
 
    ! NacRadTop - Top radius of nacelle.
 
-CALL ReadRVar ( UnIn, ADAMSFile, NacRadTop, 'NacRadTop', 'Top radius of nacelle' )
+CALL ReadVar ( UnIn, ADAMSFile, NacRadTop, 'NacRadTop', 'Top radius of nacelle' )
 
 IF ( NacRadTop < 0.0 )  CALL ProgAbort ( ' NacRadTop must not be less than zero.' )
 
 
    ! GBoxLength - Gearbox length.
 
-CALL ReadRVar ( UnIn, ADAMSFile, GBoxLength, 'GBoxLength', 'Gearbox length' )
+CALL ReadVar ( UnIn, ADAMSFile, GBoxLength, 'GBoxLength', 'Gearbox length' )
 
 IF ( GBoxLength < 0.0 )  CALL ProgAbort ( ' GBoxLength must not be less than zero.' )
 
 
    ! GenLength - Generator length.
 
-CALL ReadRVar ( UnIn, ADAMSFile, GenLength, 'GenLength', 'Generator length' )
+CALL ReadVar ( UnIn, ADAMSFile, GenLength, 'GenLength', 'Generator length' )
 
 IF ( GenLength < 0.0 )  CALL ProgAbort ( ' GenLength must not be less than zero.' )
 
 
    ! HSSLength - High-speed shaft length.
 
-CALL ReadRVar ( UnIn, ADAMSFile, HSSLength, 'HSSLength', 'High-speed shaft length' )
+CALL ReadVar ( UnIn, ADAMSFile, HSSLength, 'HSSLength', 'High-speed shaft length' )
 
 IF ( HSSLength < 0.0 )  CALL ProgAbort ( ' HSSLength must not be less than zero.' )
 
 
    ! LSSLength - Low-speed shaft length.
 
-CALL ReadRVar ( UnIn, ADAMSFile, LSSLength, 'LSSLength', 'Low-speed shaft length' )
+CALL ReadVar ( UnIn, ADAMSFile, LSSLength, 'LSSLength', 'Low-speed shaft length' )
 
 IF ( LSSLength < 0.0 )  CALL ProgAbort ( ' LSSLength must not be less than zero.' )
 
 
    ! GenRad - Generator radius.
 
-CALL ReadRVar ( UnIn, ADAMSFile, GenRad, 'GenRad', 'Generator radius' )
+CALL ReadVar ( UnIn, ADAMSFile, GenRad, 'GenRad', 'Generator radius' )
 
 IF ( GenRad < 0.0 )  CALL ProgAbort ( ' GenRad must not be less than zero.' )
 
 
    ! HSSRad - High-speed shaft radius.
 
-CALL ReadRVar ( UnIn, ADAMSFile, HSSRad, 'HSSRad', 'High-speed shaft radius' )
+CALL ReadVar ( UnIn, ADAMSFile, HSSRad, 'HSSRad', 'High-speed shaft radius' )
 
 IF ( HSSRad < 0.0 )  CALL ProgAbort ( ' HSSRad must not be less than zero.' )
 
 
    ! LSSRad - Low-speed shaft radius.
 
-CALL ReadRVar ( UnIn, ADAMSFile, LSSRad, 'LSSRad', 'Low-speed shaft radius' )
+CALL ReadVar ( UnIn, ADAMSFile, LSSRad, 'LSSRad', 'Low-speed shaft radius' )
 
 IF ( LSSRad < 0.0 )  CALL ProgAbort ( ' LSSRad must not be less than zero.' )
 
 
    ! HubCylRad - Hub cylinder radius.
 
-CALL ReadRVar ( UnIn, ADAMSFile, HubCylRad, 'HubCylRad', 'Hub cylinder radius' )
+CALL ReadVar ( UnIn, ADAMSFile, HubCylRad, 'HubCylRad', 'Hub cylinder radius' )
 
 IF ( HubCylRad < 0.0 )  CALL ProgAbort ( ' HubCylRad must not be less than zero.' )
 
 
    ! ThkOvrChrd - Thickness over chord ratio.
 
-CALL ReadRVar ( UnIn, ADAMSFile, ThkOvrChrd, 'ThkOvrChrd', 'Thickness over chord ratio' )
+CALL ReadVar ( UnIn, ADAMSFile, ThkOvrChrd, 'ThkOvrChrd', 'Thickness over chord ratio' )
 
 IF ( ThkOvrChrd < 0.0 )  CALL ProgAbort ( ' ThkOvrChrd must not be less than zero.' )
 
 
    ! BoomRad - Tail boom radius.
 
-CALL ReadRVar ( UnIn, ADAMSFile, BoomRad, 'Boom', 'Tail boom radius' )
+CALL ReadVar ( UnIn, ADAMSFile, BoomRad, 'Boom', 'Tail boom radius' )
 
 IF ( BoomRad < 0.0 )  CALL ProgAbort ( ' BoomRad must not be less than zero.' )
 
@@ -1410,7 +1410,7 @@ CALL ReadCom ( UnIn, BldFile(K), 'blade parameters'  )
 
    ! NBlInpSt - Number of blade input stations.
 
-CALL ReadIVar ( UnIn, BldFile(K), NBlInpSt, 'NBlInpSt', 'Number of blade input stations' )
+CALL ReadVar ( UnIn, BldFile(K), NBlInpSt, 'NBlInpSt', 'Number of blade input stations' )
 
 IF ( NBlInpSt < 1 )  CALL ProgAbort ( ' NBlInpSt must be at least 1.' )
 
@@ -1418,7 +1418,7 @@ IF ( NBlInpSt < 1 )  CALL ProgAbort ( ' NBlInpSt must be at least 1.' )
    ! CalcBMode - Calculate blade mode shapes (switch).
 
 !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-!JASON:CALL ReadLVar ( UnIn, BldFile(K), CalcBMode, 'CalcBMode', 'Calculate blade mode shapes' )
+!JASON:CALL ReadVar ( UnIn, BldFile(K), CalcBMode, 'CalcBMode', 'Calculate blade mode shapes' )
 CALL ReadCom ( UnIn, BldFile(K), 'currently ignored CalcBMode'  )
 
 
@@ -1455,21 +1455,21 @@ IF ( FlStTunr(2) <= 0.0 )  CALL ProgAbort ( ' FlStTunr(2) must be greater than z
 
    ! AdjBlMs - Factor to adjust blade mass density.
 
-CALL ReadRVar ( UnIn, BldFile(K), AdjBlMs, 'AdjBlMs', 'Factor to adjust blade mass density' )
+CALL ReadVar ( UnIn, BldFile(K), AdjBlMs, 'AdjBlMs', 'Factor to adjust blade mass density' )
 
 IF ( AdjBlMs <= 0.0 )  CALL ProgAbort ( ' AdjBlMs must be greater than zero.' )
 
 
    ! AdjFlSt - Factor to adjust blade flap stiffness.
 
-CALL ReadRVar ( UnIn, BldFile(K), AdjFlSt, 'AdjFlSt', 'Factor to adjust blade flap stiffness' )
+CALL ReadVar ( UnIn, BldFile(K), AdjFlSt, 'AdjFlSt', 'Factor to adjust blade flap stiffness' )
 
 IF ( AdjFlSt <= 0.0 )  CALL ProgAbort ( ' AdjFlSt must be greater than zero.' )
 
 
    ! AdjEdSt - Factor to adjust blade edge stiffness.
 
-CALL ReadRVar ( UnIn, BldFile(K), AdjEdSt, 'AdjEdSt', 'Factor to adjust blade edge stiffness' )
+CALL ReadVar ( UnIn, BldFile(K), AdjEdSt, 'AdjEdSt', 'Factor to adjust blade edge stiffness' )
 
 IF ( AdjEdSt <= 0.0 )  CALL ProgAbort ( ' AdjEdSt must be greater than zero.' )
 
@@ -1807,12 +1807,12 @@ CALL ReadCom ( UnIn, FurlFile, 'degree of freedom switches (cont)'  )
 
    ! RFrlDOF - Rotor-furl DOF.
 
-CALL ReadLVar ( UnIn, FurlFile, RFrlDOF, 'RFrlDOF', 'Rotor-furl DOF' )
+CALL ReadVar ( UnIn, FurlFile, RFrlDOF, 'RFrlDOF', 'Rotor-furl DOF' )
 
 
    ! TFrlDOF - Tail-furl DOF.
 
-CALL ReadLVar ( UnIn, FurlFile, TFrlDOF, 'TFrlDOF', 'Tail-furl DOF' )
+CALL ReadVar ( UnIn, FurlFile, TFrlDOF, 'TFrlDOF', 'Tail-furl DOF' )
 
 
 
@@ -1826,7 +1826,7 @@ CALL ReadCom ( UnIn, FurlFile, 'initial conditions (cont)'  )
 
    ! RotFurl - Initial or fixed rotor-furl angle.
 
-CALL ReadRVar ( UnIn, FurlFile, RotFurl, 'RotFurl', 'Initial or fixed rotor-furl angle' )
+CALL ReadVar ( UnIn, FurlFile, RotFurl, 'RotFurl', 'Initial or fixed rotor-furl angle' )
 
 IF ( ( RotFurl <= -180.0 ) .OR. ( RotFurl > 180.0 ) )  &
    CALL ProgAbort ( ' RotFurl must be greater than -180 and less than or equal to 180.' )
@@ -1834,7 +1834,7 @@ IF ( ( RotFurl <= -180.0 ) .OR. ( RotFurl > 180.0 ) )  &
 
    ! TailFurl - Initial or fixed tail-furl angle.
 
-CALL ReadRVar ( UnIn, FurlFile, TailFurl, 'TailFurl', 'Initial or fixed tail-furl angle' )
+CALL ReadVar ( UnIn, FurlFile, TailFurl, 'TailFurl', 'Initial or fixed tail-furl angle' )
 
 IF ( ( TailFurl <= -180.0 ) .OR. ( TailFurl > 180.0 ) )  &
    CALL ProgAbort ( ' TailFurl must be greater than -180 and less than or equal to 180.' )
@@ -1851,12 +1851,12 @@ CALL ReadCom ( UnIn, FurlFile, 'turbine configuration (cont)'  )
 
    ! Yaw2Shft - Lateral distance from yaw axis to rotor shaft.
 
-CALL ReadRVar ( UnIn, FurlFile, Yaw2Shft, 'Yaw2Shft', 'Lateral distance from yaw axis to rotor shaft' )
+CALL ReadVar ( UnIn, FurlFile, Yaw2Shft, 'Yaw2Shft', 'Lateral distance from yaw axis to rotor shaft' )
 
 
    ! ShftSkew - Rotor shaft skew angle.
 
-CALL ReadRVar ( UnIn, FurlFile, ShftSkew, 'ShftSkew', 'Rotor shaft skew angle' )
+CALL ReadVar ( UnIn, FurlFile, ShftSkew, 'ShftSkew', 'Rotor shaft skew angle' )
 
 IF ( ( ShftSkew < -15.0 ) .OR. ( ShftSkew > 15.0 ) )  &
    CALL ProgAbort ( ' ShftSkew should only be used to skew the shaft a few degrees away from the zero-yaw position'//             &
@@ -1865,22 +1865,22 @@ IF ( ( ShftSkew < -15.0 ) .OR. ( ShftSkew > 15.0 ) )  &
 
    ! RFrlCMxn - Downwind distance from tower-top to CM of structure that furls with the rotor (not including rotor).
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlCMxn, 'RFrlCMxn', 'Downwind distance from tower-top to rotor-furl CM' )
+CALL ReadVar ( UnIn, FurlFile, RFrlCMxn, 'RFrlCMxn', 'Downwind distance from tower-top to rotor-furl CM' )
 
 
    ! RFrlCMyn - Lateral  distance from tower-top to CM of structure that furls with the rotor (not including rotor).
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlCMyn, 'RFrlCMyn', 'Lateral  distance from tower-top to rotor-furl CM' )
+CALL ReadVar ( UnIn, FurlFile, RFrlCMyn, 'RFrlCMyn', 'Lateral  distance from tower-top to rotor-furl CM' )
 
 
    ! RFrlCMzn - Vertical distance from tower-top to CM of structure that furls with the rotor (not including rotor).
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlCMzn, 'RFrlCMzn', 'Vertical distance from tower-top to rotor-furl CM' )
+CALL ReadVar ( UnIn, FurlFile, RFrlCMzn, 'RFrlCMzn', 'Vertical distance from tower-top to rotor-furl CM' )
 
 
    ! BoomCMxn - Downwind distance from tower-top to tail boom CM.
 
-CALL ReadRVar ( UnIn, FurlFile, BoomCMxn, 'BoomCMxn', 'Downwind distance from tower-top to tail boom CM' )
+CALL ReadVar ( UnIn, FurlFile, BoomCMxn, 'BoomCMxn', 'Downwind distance from tower-top to tail boom CM' )
 
 IF ( BoomCMxn < 0.0 )  THEN   ! Print out warning when tail boom CM defined upwind of the tower.
    CALL UsrAlarm
@@ -1893,17 +1893,17 @@ ENDIF
 
    ! BoomCMyn - Lateral  distance from tower-top to tail boom CM.
 
-CALL ReadRVar ( UnIn, FurlFile, BoomCMyn, 'BoomCMyn', 'Lateral  distance from tower-top to tail boom CM' )
+CALL ReadVar ( UnIn, FurlFile, BoomCMyn, 'BoomCMyn', 'Lateral  distance from tower-top to tail boom CM' )
 
 
    ! BoomCMzn - Vertical distance from tower-top to tail boom CM.
 
-CALL ReadRVar ( UnIn, FurlFile, BoomCMzn, 'BoomCMzn', 'Vertical distance from tower-top to tail boom CM' )
+CALL ReadVar ( UnIn, FurlFile, BoomCMzn, 'BoomCMzn', 'Vertical distance from tower-top to tail boom CM' )
 
 
    ! TFinCMxn - Downwind distance from tower-top to tail fin CM.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinCMxn, 'TFinCMxn', 'Downwind distance from tower-top to tail fin CM' )
+CALL ReadVar ( UnIn, FurlFile, TFinCMxn, 'TFinCMxn', 'Downwind distance from tower-top to tail fin CM' )
 
 IF ( TFinCMxn < 0.0 )  THEN   ! Print out warning when tail fin CM defined upwind of the tower.
    CALL UsrAlarm
@@ -1916,17 +1916,17 @@ ENDIF
 
    ! TFinCMyn - Lateral  distance from tower-top to tail fin CM.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinCMyn, 'TFinCMyn', 'Lateral  distance from tower-top to tail fin CM' )
+CALL ReadVar ( UnIn, FurlFile, TFinCMyn, 'TFinCMyn', 'Lateral  distance from tower-top to tail fin CM' )
 
 
    ! TFinCMzn - Vertical distance from tower-top to tail fin CM.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinCMzn, 'TFinCMzn', 'Vertical distance from tower-top to tail fin CM' )
+CALL ReadVar ( UnIn, FurlFile, TFinCMzn, 'TFinCMzn', 'Vertical distance from tower-top to tail fin CM' )
 
 
    ! TFinCPxn - Downwind distance from tower-top to tail fin CP.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinCPxn, 'TFinCPxn', 'Downwind distance from tower-top to tail fin CP' )
+CALL ReadVar ( UnIn, FurlFile, TFinCPxn, 'TFinCPxn', 'Downwind distance from tower-top to tail fin CP' )
 
 IF ( TFinCPxn < 0.0 )  THEN   ! Print out warning when tail fin CP defined upwind of the tower.
    CALL UsrAlarm
@@ -1939,17 +1939,17 @@ ENDIF
 
    ! TFinCPyn - Lateral  distance from tower-top to tail fin CP.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinCPyn, 'TFinCPyn', 'Lateral  distance from tower-top to tail fin CP' )
+CALL ReadVar ( UnIn, FurlFile, TFinCPyn, 'TFinCPyn', 'Lateral  distance from tower-top to tail fin CP' )
 
 
    ! TFinCPzn - Vertical distance from tower-top to tail fin CP.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinCPzn, 'TFinCPzn', 'Vertical distance from tower-top to tail fin CP' )
+CALL ReadVar ( UnIn, FurlFile, TFinCPzn, 'TFinCPzn', 'Vertical distance from tower-top to tail fin CP' )
 
 
    ! TFinSkew - Tail fin chordline skew angle.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinSkew, 'TFinSkew', 'Tail fin chordline skew angle' )
+CALL ReadVar ( UnIn, FurlFile, TFinSkew, 'TFinSkew', 'Tail fin chordline skew angle' )
 
 IF ( ( TFinSkew <= -180.0 ) .OR. ( TFinSkew > 180.0 ) )  &
    CALL ProgAbort ( ' TFinSkew must be greater than -180 and less than or equal to 180.' )
@@ -1957,14 +1957,14 @@ IF ( ( TFinSkew <= -180.0 ) .OR. ( TFinSkew > 180.0 ) )  &
 
    ! TFinTilt - Tail fin chordline tilt angle.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinTilt, 'TFinTilt', 'Tail fin chordline tilt angle' )
+CALL ReadVar ( UnIn, FurlFile, TFinTilt, 'TFinTilt', 'Tail fin chordline tilt angle' )
 
 IF ( ( TFinTilt < -90.0 ) .OR. ( TFinTilt > 90.0 ) )  CALL ProgAbort ( ' TFinTilt must be between -90 and 90 (inclusive).' )
 
 
    ! TFinBank - Tail fin planform  bank angle.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinBank, 'TFinBank', 'Tail fin planform  bank angle' )
+CALL ReadVar ( UnIn, FurlFile, TFinBank, 'TFinBank', 'Tail fin planform  bank angle' )
 
 IF ( ( TFinBank <= -180.0 ) .OR. ( TFinBank > 180.0 ) )  &
    CALL ProgAbort ( ' TFinBank must be greater than -180 and less than or equal to 180.' )
@@ -1972,22 +1972,22 @@ IF ( ( TFinBank <= -180.0 ) .OR. ( TFinBank > 180.0 ) )  &
 
    ! RFrlPntxn - Downwind distance from tower-top to arbitrary point on rotor-furl axis.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlPntxn, 'RFrlPntxn', 'Downwind distance from tower-top to arbitrary point on rotor-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, RFrlPntxn, 'RFrlPntxn', 'Downwind distance from tower-top to arbitrary point on rotor-furl axis' )
 
 
    ! RFrlPntyn - Lateral  distance from tower-top to arbitrary point on rotor-furl axis.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlPntyn, 'RFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on rotor-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, RFrlPntyn, 'RFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on rotor-furl axis' )
 
 
    ! RFrlPntzn - Vertical distance from tower-top to arbitrary point on rotor-furl axis.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlPntzn, 'RFrlPntzn', 'Vertical distance from tower-top to arbitrary point on rotor-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, RFrlPntzn, 'RFrlPntzn', 'Vertical distance from tower-top to arbitrary point on rotor-furl axis' )
 
 
    ! RFrlSkew - Rotor-furl axis skew angle.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlSkew, 'RFrlSkew', 'Rotor-furl axis skew angle' )
+CALL ReadVar ( UnIn, FurlFile, RFrlSkew, 'RFrlSkew', 'Rotor-furl axis skew angle' )
 
 IF ( ( RFrlSkew <= -180.0 ) .OR. ( RFrlSkew > 180.0 ) )  &
    CALL ProgAbort ( ' RFrlSkew must be greater than -180 and less than or equal to 180.' )
@@ -1995,29 +1995,29 @@ IF ( ( RFrlSkew <= -180.0 ) .OR. ( RFrlSkew > 180.0 ) )  &
 
    ! RFrlTilt - Rotor-furl axis tilt angle.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlTilt, 'RFrlTilt', 'Rotor-furl axis tilt angle' )
+CALL ReadVar ( UnIn, FurlFile, RFrlTilt, 'RFrlTilt', 'Rotor-furl axis tilt angle' )
 
 IF ( ( RFrlTilt < -90.0 ) .OR. ( RFrlTilt > 90.0 ) )  CALL ProgAbort ( ' RFrlTilt must be between -90 and 90 (inclusive).' )
 
 
    ! TFrlPntxn - Downwind distance from tower-top to arbitrary point on tail-furl axis.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlPntxn, 'TFrlPntxn', 'Downwind distance from tower-top to arbitrary point on tail-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, TFrlPntxn, 'TFrlPntxn', 'Downwind distance from tower-top to arbitrary point on tail-furl axis' )
 
 
    ! TFrlPntyn - Lateral  distance from tower-top to arbitrary point on tail-furl axis.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlPntyn, 'TFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on tail-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, TFrlPntyn, 'TFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on tail-furl axis' )
 
 
    ! TFrlPntzn - Vertical distance from tower-top to arbitrary point on tail-furl axis.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlPntzn, 'TFrlPntzn', 'Vertical distance from tower-top to arbitrary point on tail-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, TFrlPntzn, 'TFrlPntzn', 'Vertical distance from tower-top to arbitrary point on tail-furl axis' )
 
 
    ! TFrlSkew - Tail-furl axis skew angle.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlSkew, 'TFrlSkew', 'Tail-furl axis skew angle' )
+CALL ReadVar ( UnIn, FurlFile, TFrlSkew, 'TFrlSkew', 'Tail-furl axis skew angle' )
 
 IF ( ( TFrlSkew <= -180.0 ) .OR. ( TFrlSkew > 180.0 ) )  &
    CALL ProgAbort ( ' TFrlSkew must be greater than -180 and less than or equal to 180.' )
@@ -2025,7 +2025,7 @@ IF ( ( TFrlSkew <= -180.0 ) .OR. ( TFrlSkew > 180.0 ) )  &
 
    ! TFrlTilt - Tail-furl axis tilt angle.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlTilt, 'TFrlTilt', 'Tail-furl axis tilt angle' )
+CALL ReadVar ( UnIn, FurlFile, TFrlTilt, 'TFrlTilt', 'Tail-furl axis tilt angle' )
 
 IF ( ( TFrlTilt < -90.0 ) .OR. ( TFrlTilt > 90.0 ) )  CALL ProgAbort ( ' TFrlTilt must be between -90 and 90 (inclusive).' )
 
@@ -2040,35 +2040,35 @@ CALL ReadCom ( UnIn, FurlFile, 'mass and inertia (cont)'  )
 
    ! RFrlMass - Mass of structure that furls with the rotor (not including rotor).
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlMass, 'RFrlMass', 'Rotor-furl mass' )
+CALL ReadVar ( UnIn, FurlFile, RFrlMass, 'RFrlMass', 'Rotor-furl mass' )
 
 IF ( RFrlMass < 0.0 )  CALL ProgAbort ( ' RFrlMass must not be negative.' )
 
 
    ! BoomMass - Tail boom mass.
 
-CALL ReadRVar ( UnIn, FurlFile, BoomMass, 'BoomMass', 'Tail boom mass' )
+CALL ReadVar ( UnIn, FurlFile, BoomMass, 'BoomMass', 'Tail boom mass' )
 
 IF ( BoomMass < 0.0 )  CALL ProgAbort ( ' BoomMass must not be negative.' )
 
 
    ! TFinMass - Tail fin mass.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinMass, 'TFinMass', 'Tail fin mass' )
+CALL ReadVar ( UnIn, FurlFile, TFinMass, 'TFinMass', 'Tail fin mass' )
 
 IF ( TFinMass < 0.0 )  CALL ProgAbort ( ' TFinMass must not be negative.' )
 
 
    ! RFrlIner - Inertia of structure that furls with the rotor about the rotor-furl axis (not including rotor).
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlIner, 'RFrlIner', 'Rotor-furl inertia about rotor-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, RFrlIner, 'RFrlIner', 'Rotor-furl inertia about rotor-furl axis' )
 
 IF ( RFrlIner < 0.0 )  CALL ProgAbort ( ' RFrlIner must not be negative.' )
 
 
    ! TFrlIner - Tail boom inertia about tail-furl axis.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlIner, 'TFrlIner', 'Tail boom inertia about tail-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, TFrlIner, 'TFrlIner', 'Tail boom inertia about tail-furl axis' )
 
 IF ( TFrlIner < 0.0 )  CALL ProgAbort ( ' TFrlIner must not be negative.' )
 
@@ -2084,35 +2084,35 @@ CALL ReadCom ( UnIn, FurlFile, 'rotor-furl' )
 
    ! RFrlMod - Rotor-furl spring/damper model switch.
 
-CALL ReadIVar ( UnIn, FurlFile, RFrlMod, 'RFrlMod', 'Rotor-furl spring/damper model switch' )
+CALL ReadVar ( UnIn, FurlFile, RFrlMod, 'RFrlMod', 'Rotor-furl spring/damper model switch' )
 
 IF ( ( RFrlMod /= 0 ) .AND. ( RFrlMod /= 1 ) .AND. ( RFrlMod /= 2 ) )  CALL ProgAbort ( ' RFrlMod must be 0, 1, or 2.' )
 
 
    ! RFrlSpr - Rotor-furl spring constant.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlSpr, 'RFrlSpr', 'Rotor-furl spring constant' )
+CALL ReadVar ( UnIn, FurlFile, RFrlSpr, 'RFrlSpr', 'Rotor-furl spring constant' )
 
 IF ( RFrlSpr < 0.0 )  CALL ProgAbort ( ' RFrlSpr must not be negative.' )
 
 
    ! RFrlDmp - Rotor-furl damping constant.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlDmp, 'RFrlDmp', 'Rotor-furl damping constant' )
+CALL ReadVar ( UnIn, FurlFile, RFrlDmp, 'RFrlDmp', 'Rotor-furl damping constant' )
 
 IF ( RFrlDmp < 0.0 )  CALL ProgAbort ( ' RFrlDmp must not be negative.' )
 
 
    ! RFrlCDmp - Rotor-furl rate-independent Coulomb-damping moment.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlCDmp, 'RFrlCDmp', 'Rotor-furl rate-independent Coulomb-damping moment' )
+CALL ReadVar ( UnIn, FurlFile, RFrlCDmp, 'RFrlCDmp', 'Rotor-furl rate-independent Coulomb-damping moment' )
 
 IF ( RFrlCDmp < 0.0 )  CALL ProgAbort ( ' RFrlCDmp must not be negative.' )
 
 
    ! RFrlUSSP - Rotor-furl up-stop spring position.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlUSSP, 'RFrlUSSP', 'Rotor-furl up-stop spring position' )
+CALL ReadVar ( UnIn, FurlFile, RFrlUSSP, 'RFrlUSSP', 'Rotor-furl up-stop spring position' )
 
 IF ( ( RFrlUSSP <= -180.0 ) .OR. ( RFrlUSSP > 180.0 ) )  &
    CALL ProgAbort ( ' RFrlUSSP must be greater than -180 and less than or equal to 180.' )
@@ -2120,7 +2120,7 @@ IF ( ( RFrlUSSP <= -180.0 ) .OR. ( RFrlUSSP > 180.0 ) )  &
 
    ! RFrlDSSP - Rotor-furl down-stop spring position.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlDSSP, 'RFrlDSSP', 'Rotor-furl down-stop spring position' )
+CALL ReadVar ( UnIn, FurlFile, RFrlDSSP, 'RFrlDSSP', 'Rotor-furl down-stop spring position' )
 
 IF ( ( RFrlDSSP <= -180.0 ) .OR. ( RFrlDSSP > RFrlUSSP ) )  &
    CALL ProgAbort ( ' RFrlDSSP must be greater than -180 and less than or equal to RFrlUSSP.' )
@@ -2128,21 +2128,21 @@ IF ( ( RFrlDSSP <= -180.0 ) .OR. ( RFrlDSSP > RFrlUSSP ) )  &
 
    ! RFrlUSSpr - Rotor-furl up-stop spring constant.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlUSSpr, 'RFrlUSSpr', 'Rotor-furl up-stop spring constant' )
+CALL ReadVar ( UnIn, FurlFile, RFrlUSSpr, 'RFrlUSSpr', 'Rotor-furl up-stop spring constant' )
 
 IF ( RFrlUSSpr < 0.0 )  CALL ProgAbort ( ' RFrlUSSpr must not be negative.' )
 
 
    ! RFrlDSSpr - Rotor-furl down-stop spring constant.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlDSSpr, 'RFrlDSSpr', 'Rotor-furl down-stop spring constant' )
+CALL ReadVar ( UnIn, FurlFile, RFrlDSSpr, 'RFrlDSSpr', 'Rotor-furl down-stop spring constant' )
 
 IF ( RFrlDSSpr < 0.0 )  CALL ProgAbort ( ' RFrlDSSpr must not be negative.' )
 
 
    ! RFrlUSDP - Rotor-furl up-stop damper position.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlUSDP, 'RFrlUSDP', 'Rotor-furl up-stop damper position' )
+CALL ReadVar ( UnIn, FurlFile, RFrlUSDP, 'RFrlUSDP', 'Rotor-furl up-stop damper position' )
 
 IF ( ( RFrlUSDP <= -180.0 ) .OR. ( RFrlUSDP > 180.0 ) )  &
    CALL ProgAbort ( ' RFrlUSDP must be greater than -180 and less than or equal to 180.' )
@@ -2150,7 +2150,7 @@ IF ( ( RFrlUSDP <= -180.0 ) .OR. ( RFrlUSDP > 180.0 ) )  &
 
    ! RFrlDSDP - Rotor-furl down-stop damper position.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlDSDP, 'RFrlDSDP', 'Rotor-furl down-stop damper position' )
+CALL ReadVar ( UnIn, FurlFile, RFrlDSDP, 'RFrlDSDP', 'Rotor-furl down-stop damper position' )
 
 IF ( ( RFrlDSDP <= -180.0 ) .OR. ( RFrlDSDP > RFrlUSDP ) )  &
    CALL ProgAbort ( ' RFrlDSDP must be greater than -180 and less than or equal to RFrlUSDP.' )
@@ -2158,14 +2158,14 @@ IF ( ( RFrlDSDP <= -180.0 ) .OR. ( RFrlDSDP > RFrlUSDP ) )  &
 
    ! RFrlUSDmp - Rotor-furl up-stop damping constant.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlUSDmp, 'RFrlUSDmp', 'Rotor-furl up-stop damping constant' )
+CALL ReadVar ( UnIn, FurlFile, RFrlUSDmp, 'RFrlUSDmp', 'Rotor-furl up-stop damping constant' )
 
 IF ( RFrlUSDmp < 0.0 )  CALL ProgAbort ( ' RFrlUSDmp must not be negative.' )
 
 
    ! RFrlDSDmp - Rotor-furl down-stop damping constant.
 
-CALL ReadRVar ( UnIn, FurlFile, RFrlDSDmp, 'RFrlDSDmp', 'Rotor-furl down-stop damping constant' )
+CALL ReadVar ( UnIn, FurlFile, RFrlDSDmp, 'RFrlDSDmp', 'Rotor-furl down-stop damping constant' )
 
 IF ( RFrlDSDmp < 0.0 )  CALL ProgAbort ( ' RFrlDSDmp must not be negative.' )
 
@@ -2181,35 +2181,35 @@ CALL ReadCom ( UnIn, FurlFile, 'tail-furl' )
 
    ! TFrlMod - Tail-furl spring/damper model switch.
 
-CALL ReadIVar ( UnIn, FurlFile, TFrlMod, 'TFrlMod', 'Tail-furl spring/damper model switch' )
+CALL ReadVar ( UnIn, FurlFile, TFrlMod, 'TFrlMod', 'Tail-furl spring/damper model switch' )
 
 IF ( ( TFrlMod /= 0 ) .AND. ( TFrlMod /= 1 ) .AND. ( TFrlMod /= 2 ) )  CALL ProgAbort ( ' TFrlMod must be 0, 1, or 2.' )
 
 
    ! TFrlSpr - Tail-furl spring constant.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlSpr, 'TFrlSpr', 'Tail-furl spring constant' )
+CALL ReadVar ( UnIn, FurlFile, TFrlSpr, 'TFrlSpr', 'Tail-furl spring constant' )
 
 IF ( TFrlSpr < 0.0 )  CALL ProgAbort ( ' TFrlSpr must not be negative.' )
 
 
    ! TFrlDmp - Tail-furl damping constant.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlDmp, 'TFrlDmp', 'Tail-furl damping constant' )
+CALL ReadVar ( UnIn, FurlFile, TFrlDmp, 'TFrlDmp', 'Tail-furl damping constant' )
 
 IF ( TFrlDmp < 0.0 )  CALL ProgAbort ( ' TFrlDmp must not be negative.' )
 
 
    ! TFrlCDmp - Tail-furl rate-independent Coulomb-damping moment.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlCDmp, 'TFrlCDmp', 'Tail-furl rate-independent Coulomb-damping moment' )
+CALL ReadVar ( UnIn, FurlFile, TFrlCDmp, 'TFrlCDmp', 'Tail-furl rate-independent Coulomb-damping moment' )
 
 IF ( TFrlCDmp < 0.0 )  CALL ProgAbort ( ' TFrlCDmp must not be negative.' )
 
 
    ! TFrlUSSP - Tail-furl up-stop spring position.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlUSSP, 'TFrlUSSP', 'Tail-furl up-stop spring position' )
+CALL ReadVar ( UnIn, FurlFile, TFrlUSSP, 'TFrlUSSP', 'Tail-furl up-stop spring position' )
 
 IF ( ( TFrlUSSP <= -180.0 ) .OR. ( TFrlUSSP > 180.0 ) )  &
    CALL ProgAbort ( ' TFrlUSSP must be greater than -180 and less than or equal to 180.' )
@@ -2217,7 +2217,7 @@ IF ( ( TFrlUSSP <= -180.0 ) .OR. ( TFrlUSSP > 180.0 ) )  &
 
    ! TFrlDSSP - Tail-furl down-stop spring position.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlDSSP, 'TFrlDSSP', 'Tail-furl down-stop spring position' )
+CALL ReadVar ( UnIn, FurlFile, TFrlDSSP, 'TFrlDSSP', 'Tail-furl down-stop spring position' )
 
 IF ( ( TFrlDSSP <= -180.0 ) .OR. ( TFrlDSSP > TFrlUSSP ) )  &
    CALL ProgAbort ( ' TFrlDSSP must be greater than -180 and less than or equal to TFrlUSSP.' )
@@ -2225,21 +2225,21 @@ IF ( ( TFrlDSSP <= -180.0 ) .OR. ( TFrlDSSP > TFrlUSSP ) )  &
 
    ! TFrlUSSpr - Tail-furl up-stop spring constant.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlUSSpr, 'TFrlUSSpr', 'Tail-furl up-stop spring constant' )
+CALL ReadVar ( UnIn, FurlFile, TFrlUSSpr, 'TFrlUSSpr', 'Tail-furl up-stop spring constant' )
 
 IF ( TFrlUSSpr < 0.0 )  CALL ProgAbort ( ' TFrlUSSpr must not be negative.' )
 
 
    ! TFrlDSSpr - Tail-furl down-stop spring constant.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlDSSpr, 'TFrlDSSpr', 'Tail-furl down-stop spring constant' )
+CALL ReadVar ( UnIn, FurlFile, TFrlDSSpr, 'TFrlDSSpr', 'Tail-furl down-stop spring constant' )
 
 IF ( TFrlDSSpr < 0.0 )  CALL ProgAbort ( ' TFrlDSSpr must not be negative.' )
 
 
    ! TFrlUSDP - Tail-furl up-stop damper position.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlUSDP, 'TFrlUSDP', 'Tail-furl up-stop damper position' )
+CALL ReadVar ( UnIn, FurlFile, TFrlUSDP, 'TFrlUSDP', 'Tail-furl up-stop damper position' )
 
 IF ( ( TFrlUSDP <= -180.0 ) .OR. ( TFrlUSDP > 180.0 ) )  &
    CALL ProgAbort ( ' TFrlUSDP must be greater than -180 and less than or equal to 180.' )
@@ -2247,7 +2247,7 @@ IF ( ( TFrlUSDP <= -180.0 ) .OR. ( TFrlUSDP > 180.0 ) )  &
 
    ! TFrlDSDP - Tail-furl down-stop damper position.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlDSDP, 'TFrlDSDP', 'Tail-furl down-stop damper position' )
+CALL ReadVar ( UnIn, FurlFile, TFrlDSDP, 'TFrlDSDP', 'Tail-furl down-stop damper position' )
 
 IF ( ( TFrlDSDP <= -180.0 ) .OR. ( TFrlDSDP > TFrlUSDP ) )  &
    CALL ProgAbort ( ' TFrlDSDP must be greater than -180 and less than or equal to TFrlUSDP.' )
@@ -2255,14 +2255,14 @@ IF ( ( TFrlDSDP <= -180.0 ) .OR. ( TFrlDSDP > TFrlUSDP ) )  &
 
    ! TFrlUSDmp - Tail-furl up-stop damping constant.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlUSDmp, 'TFrlUSDmp', 'Tail-furl up-stop damping constant' )
+CALL ReadVar ( UnIn, FurlFile, TFrlUSDmp, 'TFrlUSDmp', 'Tail-furl up-stop damping constant' )
 
 IF ( TFrlUSDmp < 0.0 )  CALL ProgAbort ( ' TFrlUSDmp must not be negative.' )
 
 
    ! TFrlDSDmp - Tail-furl down-stop damping constant.
 
-CALL ReadRVar ( UnIn, FurlFile, TFrlDSDmp, 'TFrlDSDmp', 'Tail-furl down-stop damping constant' )
+CALL ReadVar ( UnIn, FurlFile, TFrlDSDmp, 'TFrlDSDmp', 'Tail-furl down-stop damping constant' )
 
 IF ( TFrlDSDmp < 0.0 )  CALL ProgAbort ( ' TFrlDSDmp must not be negative.' )
 
@@ -2278,26 +2278,26 @@ CALL ReadCom ( UnIn, FurlFile, 'tail fin aerodynamics' )
 
    ! TFinMod - Tail fin aerodynamics model switch.
 
-CALL ReadIVar ( UnIn, FurlFile, TFinMod, 'TFinMod', 'Tail fin aerodynamics model switch' )
+CALL ReadVar ( UnIn, FurlFile, TFinMod, 'TFinMod', 'Tail fin aerodynamics model switch' )
 
 IF ( ( TFinMod /= 0 ) .AND. ( TFinMod /= 1 ) .AND. ( TFinMod /= 2 ) )  CALL ProgAbort ( ' TFinMod must be 0, 1, or 2.' )
 
 
    ! TFinNFoil - Tail fin airfoil number.
 
-CALL ReadIVar ( UnIn, FurlFile, TFinNFoil, 'TFinNFoil', 'Tail fin airfoil number' )
+CALL ReadVar ( UnIn, FurlFile, TFinNFoil, 'TFinNFoil', 'Tail fin airfoil number' )
 
 
    ! TFinArea - Tail fin planform area.
 
-CALL ReadRVar ( UnIn, FurlFile, TFinArea, 'TFinArea', 'Tail fin planform area' )
+CALL ReadVar ( UnIn, FurlFile, TFinArea, 'TFinArea', 'Tail fin planform area' )
 
 IF ( TFinArea < 0.0 )  CALL ProgAbort ( ' TFinArea must not be negative.' )
 
 
    ! SubAxInd - Subtract rotor axial induction?
 
-CALL ReadLVar ( UnIn, FurlFile, SubAxInd, 'SubAxInd', 'Subtract rotor axial induction?' )
+CALL ReadVar ( UnIn, FurlFile, SubAxInd, 'SubAxInd', 'Subtract rotor axial induction?' )
 
 
 
@@ -2371,7 +2371,7 @@ CALL ReadCom ( UnIn, LinFile, 'Periodic steady state solution' )
 
    ! CalcStdy - Calculate periodic steady state condition.
 
-CALL ReadLVar ( UnIn, LinFile, CalcStdy, 'CalcStdy', 'Calculate periodic steady state condition' )
+CALL ReadVar ( UnIn, LinFile, CalcStdy, 'CalcStdy', 'Calculate periodic steady state condition' )
 
 
 IF ( CalcStdy )  THEN   ! Only read in these variables if we will be computing a steady state solution
@@ -2381,7 +2381,7 @@ IF ( CalcStdy )  THEN   ! Only read in these variables if we will be computing a
 
    IF ( GenDOF )  THEN  ! Only read in TrimCase if we will be computing a steady state solution with a variable speed generator
 
-      CALL ReadIVar ( UnIn, LinFile, TrimCase, 'TrimCase', 'Trim Case' )
+      CALL ReadVar ( UnIn, LinFile, TrimCase, 'TrimCase', 'Trim Case' )
 
       IF ( ( TrimCase < 1 ) .OR. ( TrimCase > 3 ) )  CALL ProgAbort ( ' TrimCase must be 1, 2, or 3.' )
       IF ( ( TrimCase == 3 ) )  THEN   ! We will be trimming rotor collective blade pitch
@@ -2404,14 +2404,14 @@ IF ( CalcStdy )  THEN   ! Only read in these variables if we will be computing a
 
    ! DispTol - Convergence tolerance for the 2-norm of displacements in the periodic steady state calculation.
 
-   CALL ReadRVar ( UnIn, LinFile, DispTol, 'DispTol', 'Convergence tolerance for displacements' )
+   CALL ReadVar ( UnIn, LinFile, DispTol, 'DispTol', 'Convergence tolerance for displacements' )
 
    IF ( DispTol <= 0.0 )  CALL ProgAbort ( ' DispTol must be greater than 0.' )
 
 
    ! VelTol  - Convergence tolerance for the 2-norm of velocities    in the periodic steady state calculation.
 
-   CALL ReadRVar ( UnIn, LinFile, VelTol, 'VelTol', 'Convergence tolerance for velocities' )
+   CALL ReadVar ( UnIn, LinFile, VelTol, 'VelTol', 'Convergence tolerance for velocities' )
 
    IF ( VelTol <= 0.0 )  CALL ProgAbort ( ' VelTol must be greater than 0.' )
 
@@ -2438,14 +2438,14 @@ ENDIF
 
    ! NAzimStep - Number of azimuth steps in periodic linearized model.
 
-CALL ReadIVar ( UnIn, LinFile, NAzimStep, 'NAzimStep', 'Number of azimuth steps in periodic linearized model' )
+CALL ReadVar ( UnIn, LinFile, NAzimStep, 'NAzimStep', 'Number of azimuth steps in periodic linearized model' )
 
 IF ( NAzimStep <= 0 )  CALL ProgAbort ( ' NAzimStep must be greater than 0.' )
 
 
    ! MdlOrder - Order of output linearized model.
 
-CALL ReadIVar ( UnIn, LinFile, MdlOrder, 'MdlOrder', 'Order of output linearized model' )
+CALL ReadVar ( UnIn, LinFile, MdlOrder, 'MdlOrder', 'Order of output linearized model' )
 
 IF ( ( MdlOrder < 1 ) .OR. ( MdlOrder > 2 ) )  CALL ProgAbort ( ' MdlOrder must be 1 or 2.' )
 
@@ -2461,7 +2461,7 @@ IF ( ( MdlOrder < 1 ) .OR. ( MdlOrder > 2 ) )  CALL ProgAbort ( ' MdlOrder must 
 
    ! NInputs - Number of control inputs.
 
-CALL ReadIVar ( UnIn, LinFile, NInputs, 'NInputs', 'Number of control inputs' )
+CALL ReadVar ( UnIn, LinFile, NInputs, 'NInputs', 'Number of control inputs' )
 
 IF ( NumBl == 3 )  THEN ! 3-blader
    IF ( ( NInputs < 0 ) .OR. ( NInputs  > 7 ) )  CALL ProgAbort ( ' NInputs must be between 0 and 7 (inclusive) for 3-blader.' )
@@ -2535,7 +2535,7 @@ ENDIF
 
    ! NDisturbs - Number of wind disturbances.
 
-CALL ReadIVar ( UnIn, LinFile, NDisturbs, 'NDisturbs', 'Number of wind disturbances' )
+CALL ReadVar ( UnIn, LinFile, NDisturbs, 'NDisturbs', 'Number of wind disturbances' )
 
 IF ( ( NDisturbs < 0 ) .OR.  ( NDisturbs  > 7 ) )  CALL ProgAbort ( ' NDisturbs must be between 0 and 7 (inclusive).' )
 IF ( ( NDisturbs > 0 ) .AND. ( .NOT. CompAero ) )  &
@@ -2625,41 +2625,67 @@ INTEGER(IntKi)               :: OutFileFmt                                      
 CHARACTER(1024)              :: Comment                                         ! String to temporarily hold the comment line.
 CHARACTER(  35), PARAMETER   :: Frmt      = "( 2X, L11, 2X, A, T30, ' - ', A )" ! Output format for logical parameters. (matches NWTC Subroutine Library format)
 CHARACTER(1024)              :: PriPath                                         ! The path to the primary input file
+CHARACTER(1024)              :: Msg                                             ! Temporary error message
 
 
+ErrMsg = ''
 
+   ! Note that all the errors in reading from the input file are ErrID_Fatal
+   
+   
    ! Open the primary input file.
 
-CALL OpenFInpFile ( UnIn, PriFile )
+CALL OpenFInpFile ( UnIn, PriFile, ErrStat, ErrMsg )
+IF ( ErrStat >= AbortErrLev ) RETURN   
 
 CALL GetPath( PriFile, PriPath )    ! Input files will be relative to the path where the primary input file is located.
 
+
    ! Read the lines up/including to the "Echo" simulation control variable
-Cnt = 1
-DO ! If echo is FALSE, don't write these lines to the echo file. If Echo is true, rewind and write on the second try
+   ! If echo is FALSE, don't write these lines to the echo file. 
+   ! If Echo is TRUE, rewind and write on the second try.
+   
+I = 1
+DO 
 !-------------------------- HEADER ---------------------------------------------
    
-   CALL ReadCom( UnIn, PriFile, 'file header line 1', ErrStat )
-   CALL ReadCom( UnIn, PriFile, 'file header line 2', ErrStat )
-   CALL ReadStr( UnIn, PriFile, FTitle, 'title line', ErrStat )
-   CALL ReadCom( UnIn, PriFile, 'file header line 4', ErrStat )
+   CALL ReadCom( UnIn, PriFile,                   'file header line 1', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN   
+
+   CALL ReadCom( UnIn, PriFile,                   'file header line 2', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN   
+
+   CALL ReadStr( UnIn, PriFile, FTitle, 'FTitle', 'file header line 3', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN   
+
+   CALL ReadCom( UnIn, PriFile,                   'file header line 4', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN   
 
 !-------------------------- SIMULATION CONTROL PARAMETERS ----------------------
 
-   CALL ReadCom( UnIn, PriFile, 'simulation control parameters comment', ErrStat )
+   CALL ReadCom( UnIn, PriFile, 'simulation control parameters comment', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN   
 
       ! Echo - Echo input to "echo.out".
    
-   CALL ReadVar( WrEcho )
+   CALL ReadVar( UnIn, PriFile, WrEcho, 'Echo',   'Echo switch', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN   
    
    Echo = WrEcho
    
-   IF (.NOT. Echo .OR. Cnt > 1) EXIT
+   IF (.NOT. Echo .OR. I > 1) EXIT
    
-   Cnt = Cnt + 1
-   REWIND( UnIn, IOSTAT=IOS )
+   I = I + 1
+   REWIND( UnIn, IOSTAT=ErrStat )   
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'Error rewinding file "'//TRIM(PriFile)//'".'
+      RETURN
+   END IF
    
-   CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat, ErrMsg, StrD_Ver )
+!   CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat, ErrMsg, StrD_Ver ) !need this to add the text at the top of the echo file
+   CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN   
    
 END DO    
 
@@ -2668,7 +2694,12 @@ CALL WrScr1( ' Heading of the FAST input file: '//TRIM( FTitle ) )
 
    ! ADAMSPrep - ADAMS preprocossor mode.
 
-CALL ReadIVar ( UnIn, PriFile, ADAMSPrep, 'ADAMSPrep', 'ADAMS preprocessor mode' )
+CALL ReadVar ( UnIn, PriFile, ADAMSPrep, 'ADAMSPrep', 'ADAMS preprocessor mode', ErrStat, Msg )
+IF ( ErrStat /= 0 ) THEN
+   ErrMsg = TRIM(Msg)//' '//TRIM(ErrMsg)
+   IF ( ErrStat >= AbortErrLev ) RETURN
+END IF
+
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( ADAMSPrep /= 1 ) )  THEN
    CALL ProgWarn ( " An ADAMS dataset can't be built when FAST is interfaced with Simulink or Labview."// & 
@@ -2681,7 +2712,7 @@ ENDIF
 
    ! AnalMode - FAST analysis mode.
 
-CALL ReadIVar ( UnIn, PriFile, AnalMode, 'AnalMode', 'Analysis mode' )
+CALL ReadVar ( UnIn, PriFile, AnalMode, 'AnalMode', 'Analysis mode' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( AnalMode /= 1 ) )  THEN
    CALL ProgAbort ( ' FAST can''t linearize the model when interfaced with Simulink or Labview.'// &
@@ -2693,21 +2724,21 @@ ENDIF
 
    ! NumBl - Number of blades.
 
-CALL ReadIVar ( UnIn, PriFile, InputFileData%NumBl, 'NumBl', 'Number of blades' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%NumBl, 'NumBl', 'Number of blades' )
 
-IF ( ( NumBl < 2 ) .OR. ( NumBl > 3 ) )  CALL ProgAbort ( ' NumBl must be either 2 or 3.' )
-
+IF ( ( InputFileData%NumBl < 2 ) .OR. ( InputFileData%NumBl > 3 ) )  CALL ProgAbort ( ' NumBl must be either 2 or 3.' )
+p%NumBl = InputFileData%NumBl
 
    ! TMax - Total run time.
 
-CALL ReadRVar ( UnIn, PriFile, TMax, 'TMax', 'Total run time' )
+CALL ReadVar ( UnIn, PriFile, TMax, 'TMax', 'Total run time' )
 
 !IF ( ( TMax < 0.0 ) .OR. ( TMax > 9999.999 ) )  CALL ProgAbort ( ' TMax must be between 0.0 and 9999.999 (inclusive).' )
 IF ( TMax < 0.0  )  CALL ProgAbort ( ' TMax must not be a negative number.' )
 
    ! DT - Integration time step.
 
-CALL ReadRVar ( UnIn, PriFile, DT, 'DT', 'Integration time step' )
+CALL ReadVar ( UnIn, PriFile, DT, 'DT', 'Integration time step' )
 
 IF ( DT <= 0.0 )  CALL ProgAbort ( ' DT must be greater than 0.' )
 IF ( DT <= TMax*EPSILON(DT) )  CALL ProgAbort ( ' DT must be greater than '//TRIM ( Flt2Lstr( TMax*EPSILON(DT) ) )//' seconds.' ) ! Test DT and TMax to ensure numerical stability -- HINT: see the use of OnePlusEps.
@@ -2723,7 +2754,7 @@ IF ( DT <= TMax*EPSILON(DT) )  CALL ProgAbort ( ' DT must be greater than '//TRI
 
    ! YCMode - Yaw control mode.
 
-CALL ReadIVar ( UnIn, PriFile, YCMode, 'YCMode', 'Yaw control mode' )
+CALL ReadVar ( UnIn, PriFile, YCMode, 'YCMode', 'Yaw control mode' )
 
 IF ( ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV ) .AND. ( YCMode == 2 ) )  THEN
    CALL ProgAbort ( ' YCMode can only equal 2 when FAST is interfaced with Simulink or Labview.'// &
@@ -2735,7 +2766,7 @@ ENDIF
 
    ! TYCOn - Time to enable yaw control.
 
-CALL ReadRVar ( UnIn, PriFile, TYCOn, 'TYCOn', 'Time to enable yaw control' )
+CALL ReadVar ( UnIn, PriFile, TYCOn, 'TYCOn', 'Time to enable yaw control' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( YCMode == 2 ) .AND. ( TYCOn /= 0.0 ) )  THEN
    CALL ProgAbort ( ' Yaw control must be enabled at time zero when implemented in Simulink or Labview.'//      &
@@ -2747,7 +2778,7 @@ ENDIF
 
    ! PCMode - Pitch control mode.
 
-CALL ReadIVar ( UnIn, PriFile, PCMode, 'PCMode', 'Pitch control mode' )
+CALL ReadVar ( UnIn, PriFile, PCMode, 'PCMode', 'Pitch control mode' )
 
 IF ( ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV ) .AND. ( PCMode == 2 ) )  THEN
    CALL ProgAbort ( ' PCMode can only equal 2 when FAST is interfaced with Simulink or Labview.'// &
@@ -2759,7 +2790,7 @@ ENDIF
 
    ! TPCOn - Time to enable pitch control.
 
-CALL ReadRVar ( UnIn, PriFile, TPCOn, 'TPCOn', 'Time to enable pitch control' )
+CALL ReadVar ( UnIn, PriFile, TPCOn, 'TPCOn', 'Time to enable pitch control' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV)  .AND. ( PCMode == 2 ) .AND. ( TPCOn /= 0.0 ) )  THEN
    CALL ProgAbort ( ' Pitch control must be enabled at time zero when implemented in Simulink or Labview.'//    &
@@ -2771,7 +2802,7 @@ ENDIF
 
    ! VSContrl - Variable-speed-generator control switch.
 
-CALL ReadIVar ( UnIn, PriFile, VSContrl, 'VSContrl', 'Variable-speed-generator control switch' )
+CALL ReadVar ( UnIn, PriFile, VSContrl, 'VSContrl', 'Variable-speed-generator control switch' )
 
 IF ( ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV ) .AND. ( VSContrl == 3 ) )  THEN
    CALL ProgAbort ( ' VSContrl can only equal 3 when FAST is interfaced with Simulink or Labview.'// &
@@ -2783,14 +2814,14 @@ ENDIF
 
    ! VS_RtGnSp - Rated generator speed for simple variable-speed generator control.
 
-CALL ReadRVar ( UnIn, PriFile, VS_RtGnSp, 'VS_RtGnSp', 'Rated generator speed for simple variable-speed generator control' )
+CALL ReadVar ( UnIn, PriFile, VS_RtGnSp, 'VS_RtGnSp', 'Rated generator speed for simple variable-speed generator control' )
 
 IF ( ( VSContrl == 1 ) .AND. ( VS_RtGnSp <= 0.0 ) )  CALL ProgAbort ( ' VS_RtGnSp must be greater than zero.' )
 
 
    ! VS_RtTq - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control.
 
-CALL ReadRVar ( UnIn, PriFile, VS_RtTq, 'VS_RtTq', &
+CALL ReadVar ( UnIn, PriFile, VS_RtTq, 'VS_RtTq', &
    'Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control' )
 
 IF ( ( VSContrl == 1 ) .AND. ( VS_RtTq < 0.0 ) )  CALL ProgAbort ( ' VS_RtTq must not be negative.' )
@@ -2798,7 +2829,7 @@ IF ( ( VSContrl == 1 ) .AND. ( VS_RtTq < 0.0 ) )  CALL ProgAbort ( ' VS_RtTq mus
 
    ! VS_Rgn2K - Generator torque constant in Region 2 for simple variable-speed generator control.
 
-CALL ReadRVar ( UnIn, PriFile, VS_Rgn2K, 'VS_Rgn2K', &
+CALL ReadVar ( UnIn, PriFile, VS_Rgn2K, 'VS_Rgn2K', &
    'Generator torque constant in Region 2 for simple variable-speed generator control' )
 
 IF ( ( VSContrl == 1 ) .AND. ( VS_Rgn2K < 0.0 ) )  CALL ProgAbort ( ' VS_Rgn2K must not be negative.' )
@@ -2808,21 +2839,21 @@ IF ( ( VSContrl == 1 ) .AND. ( VS_Rgn2K*VS_RtGnSp*VS_RtGnSp >  VS_RtTq ) )  &
 
    ! VS_SlPc - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control.
 
-CALL ReadRVar ( UnIn, PriFile, VS_SlPc, 'VS_SlPc', &
+CALL ReadVar ( UnIn, PriFile, VS_SlPc, 'VS_SlPc', &
    'Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control' )
 
 IF ( ( VSContrl == 1 ) .AND. ( VS_SlPc <= 0.0 ) )  CALL ProgAbort ( ' VS_SlPc must be greater than zero.' )
 
    ! GenModel - Generator model.
 
-CALL ReadIVar ( UnIn, PriFile, GenModel, 'GenModel', 'Generator model' )
+CALL ReadVar ( UnIn, PriFile, GenModel, 'GenModel', 'Generator model' )
 
 IF ( ( GenModel < 1 ) .OR. ( GenModel > 3 ) )  CALL ProgAbort ( ' GenModel must be either 1, 2, or 3.' )
 
 
    ! GenTiStr - Start generator based upon T: time or F: generator speed.
 
-CALL ReadLVar ( UnIn, PriFile, GenTiStr, 'GenTiStr', 'Start generator based upon T: time or F: generator speed' )
+CALL ReadVar ( UnIn, PriFile, GenTiStr, 'GenTiStr', 'Start generator based upon T: time or F: generator speed' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( .NOT. GenTiStr ) )  &
    CALL ProgAbort ( ' Variable-speed, generator torque control must be enabled at time zero when implemented in Simulink'//&
@@ -2831,7 +2862,7 @@ IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( .NOT. GenTiStr ) )
 
    ! GenTiStp - Stop generator based upon T: time or F: generator power = 0.
 
-CALL ReadLVar ( UnIn, PriFile, GenTiStp, 'GenTiStp', 'Stop generator based upon T: time or F: generator power = 0' )
+CALL ReadVar ( UnIn, PriFile, GenTiStp, 'GenTiStp', 'Stop generator based upon T: time or F: generator power = 0' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( .NOT. GenTiStp ) )  &
    CALL ProgAbort ( ' Variable-speed, generator torque control must not be disabled during simulation when'//   &
@@ -2841,14 +2872,14 @@ IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( .NOT. GenTiStp ) )
 
    ! SpdGenOn - Generator speed to turn on the generator for a startup.
 
-CALL ReadRVar ( UnIn, PriFile, SpdGenOn, 'SpdGenOn', 'Generator speed to turn on the generator' )
+CALL ReadVar ( UnIn, PriFile, SpdGenOn, 'SpdGenOn', 'Generator speed to turn on the generator' )
 
 IF ( SpdGenOn < 0.0 )  CALL ProgAbort ( ' SpdGenOn must not be negative.' )
 
 
    ! TimGenOn - Time to turn on generator for startup.
 
-CALL ReadRVar ( UnIn, PriFile, TimGenOn, 'TimGenOn', 'Time to turn on generator' )
+CALL ReadVar ( UnIn, PriFile, TimGenOn, 'TimGenOn', 'Time to turn on generator' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( TimGenOn /= 0.0 ) )  THEN
    CALL ProgAbort ( ' Variable-speed, generator torque control must be enabled at time zero when implemented in Simulink'//&
@@ -2860,7 +2891,7 @@ ENDIF
 
    ! TimGenOf - Time to turn off generator for braking or modeling a run-away.
 
-CALL ReadRVar ( UnIn, PriFile, TimGenOf, 'TimGenOf', 'Time to turn off generator' )
+CALL ReadVar ( UnIn, PriFile, TimGenOf, 'TimGenOf', 'Time to turn off generator' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( VSContrl == 3 ) .AND. ( TimGenOf <= TMax ) )  THEN
    CALL ProgAbort ( ' Variable-speed, generator torque control must not be disabled during simulation when'//         &
@@ -2873,7 +2904,7 @@ ENDIF
 
    ! HSSBrMode - HSS brake model.
 
-CALL ReadIVar ( UnIn, PriFile, HSSBrMode, 'HSSBrMode', 'HSS brake model' )
+CALL ReadVar ( UnIn, PriFile, HSSBrMode, 'HSSBrMode', 'HSS brake model' )
 
 IF ( ( HSSBrMode < 1 ) .OR. ( HSSBrMode > 3 ) )  CALL ProgAbort ( ' HSSBrMode must be 1, 2 or 3.' )
 
@@ -2885,7 +2916,7 @@ ENDIF
 
    ! THSSBrDp - Time to initiate deployment of the HSS brake.
 
-CALL ReadRVar ( UnIn, PriFile, THSSBrDp, 'THSSBrDp', 'Time to initiate deployment of the HSS brake' )
+CALL ReadVar ( UnIn, PriFile, THSSBrDp, 'THSSBrDp', 'Time to initiate deployment of the HSS brake' )
 
 IF ( Cmpl4SFun .AND. ( THSSBrDp <= TMax ) )  THEN
    CALL ProgAbort ( ' A high-speed shaft brake shutdown event can''t be initiated when FAST is interfaced with Simulink'// &
@@ -2898,7 +2929,7 @@ ENDIF
    ! TiDynBrk - Time to initiate deployment of the dynamic generator brake.
 
 !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-!JASON:CALL ReadRVar ( UnIn, PriFile, TiDynBrk, 'TiDynBrk', 'Time to initiate deployment of the dynamic generator brake' )
+!JASON:CALL ReadVar ( UnIn, PriFile, TiDynBrk, 'TiDynBrk', 'Time to initiate deployment of the dynamic generator brake' )
 !JASON:
 !JASON:IF ( TiDynBrk < 0.0 )  CALL ProgAbort ( ' TiDynBrk must not be negative.' )
    CALL ReadCom ( UnIn, PriFile, 'currently ignored TiDynBrk' )
@@ -2946,21 +2977,21 @@ ENDIF
 
    ! TYawManS - Time to start yaw maneuver.
 
-CALL ReadRVar ( UnIn, PriFile, TYawManS, 'TYawManS', 'Time to start yaw maneuver' )
+CALL ReadVar ( UnIn, PriFile, TYawManS, 'TYawManS', 'Time to start yaw maneuver' )
 
 IF ( TYawManS < 0.0 )  CALL ProgAbort ( ' TYawManS must not be negative.' )
 
 
    ! TYawManE - Time to end yaw maneuver.
 
-CALL ReadRVar ( UnIn, PriFile, TYawManE, 'TYawManE', 'Time to end yaw maneuver' )
+CALL ReadVar ( UnIn, PriFile, TYawManE, 'TYawManE', 'Time to end yaw maneuver' )
 
 IF ( TYawManE < TYawManS )  CALL ProgAbort ( ' TYawManE must not be less than TYawManS.' )
 
 
    ! NacYawF - Final nacelle-yaw angle for maneuvers.
 
-CALL ReadRVar ( UnIn, PriFile, NacYawF, 'NacYawF', 'Final nacelle-yaw angle for maneuvers' )
+CALL ReadVar ( UnIn, PriFile, NacYawF, 'NacYawF', 'Final nacelle-yaw angle for maneuvers' )
 
 
    ! TPitManS - Time to start pitch maneuvers.
@@ -3045,7 +3076,7 @@ ENDIF
 
    ! Gravity - Gravitational acceleration.
 
-CALL ReadRVar ( UnIn, PriFile, Gravity, 'Gravity', 'Gravitational acceleration' )
+CALL ReadVar ( UnIn, PriFile, Gravity, 'Gravity', 'Gravitational acceleration' )
 
 IF ( Gravity < 0.0 )  CALL ProgAbort ( ' Gravity must not be negative.' )
 
@@ -3061,12 +3092,12 @@ IF ( Gravity < 0.0 )  CALL ProgAbort ( ' Gravity must not be negative.' )
 
    ! FlapDOF1 - First flapwise blade mode DOF.
 
-CALL ReadLVar ( UnIn, PriFile, FlapDOF1, 'FlapDOF1', 'First flapwise blade mode DOF' )
+CALL ReadVar ( UnIn, PriFile, FlapDOF1, 'FlapDOF1', 'First flapwise blade mode DOF' )
 
 
    ! FlapDOF2 - Second flapwise blade mode DOF.
 
-CALL ReadLVar ( UnIn, PriFile, FlapDOF2, 'FlapDOF2', 'Second flapwise blade mode DOF' )
+CALL ReadVar ( UnIn, PriFile, FlapDOF2, 'FlapDOF2', 'Second flapwise blade mode DOF' )
 
 IF ( FlapDOF2 .AND. ( .NOT. FlapDOF1 ) )  THEN  ! Print out warning when flap mode 1 is not enabled and flap mode 2 is enabled
    CALL UsrAlarm
@@ -3079,13 +3110,13 @@ ENDIF
 
    ! EdgeDOF - First edgewise blade mode DOF.
 
-CALL ReadLVar ( UnIn, PriFile, EdgeDOF, 'EdgeDOF', 'First edgewise blade mode DOF' )
+CALL ReadVar ( UnIn, PriFile, EdgeDOF, 'EdgeDOF', 'First edgewise blade mode DOF' )
 
 
    ! TeetDOF - Teeter DOF.
 
 IF ( NumBl == 2 )  THEN
-   CALL ReadLVar ( UnIn, PriFile, TeetDOF, 'TeetDOF', 'Teeter DOF' )
+   CALL ReadVar ( UnIn, PriFile, TeetDOF, 'TeetDOF', 'Teeter DOF' )
 ELSE
    CALL ReadCom ( UnIn, PriFile, 'unused TeetDOF' )
 ENDIF
@@ -3093,27 +3124,27 @@ ENDIF
 
    ! DrTrDOF - Drivetrain rotational-flexibility DOF.
 
-CALL ReadLVar ( UnIn, PriFile, DrTrDOF, 'DrTrDOF', 'Drivetrain rotational-flexibility DOF' )
+CALL ReadVar ( UnIn, PriFile, DrTrDOF, 'DrTrDOF', 'Drivetrain rotational-flexibility DOF' )
 
 
    ! GenDOF - Generator DOF.
 
-CALL ReadLVar ( UnIn, PriFile, GenDOF, 'GenDOF', 'Generator DOF' )
+CALL ReadVar ( UnIn, PriFile, GenDOF, 'GenDOF', 'Generator DOF' )
 
 
    ! YawDOF - Yaw DOF.
 
-CALL ReadLVar ( UnIn, PriFile, YawDOF, 'YawDOF', 'Yaw DOF' )
+CALL ReadVar ( UnIn, PriFile, YawDOF, 'YawDOF', 'Yaw DOF' )
 
 
    ! TwFADOF1 - First tower fore-aft bending-mode DOF.
 
-CALL ReadLVar ( UnIn, PriFile, TwFADOF1, 'TwFADOF1', 'First tower fore-aft bending-mode DOF' )
+CALL ReadVar ( UnIn, PriFile, TwFADOF1, 'TwFADOF1', 'First tower fore-aft bending-mode DOF' )
 
 
    ! TwFADOF2 - Second tower fore-aft bending-mode DOF.
 
-CALL ReadLVar ( UnIn, PriFile, TwFADOF2, 'TwFADOF2', 'Second tower fore-aft bending-mode DOF' )
+CALL ReadVar ( UnIn, PriFile, TwFADOF2, 'TwFADOF2', 'Second tower fore-aft bending-mode DOF' )
 
 IF ( TwFADOF2 .AND. ( .NOT. TwFADOF1 ) )  THEN  ! Print out warning when tower fore-aft mode 1 is not enabled and fore-aft mode 2 is enabled
    CALL UsrAlarm
@@ -3126,12 +3157,12 @@ ENDIF
 
    ! TwSSDOF1 - First tower side-to-side bending-mode DOF.
 
-CALL ReadLVar ( UnIn, PriFile, TwSSDOF1, 'TwSSDOF1', 'First tower side-to-side bending-mode DOF' )
+CALL ReadVar ( UnIn, PriFile, TwSSDOF1, 'TwSSDOF1', 'First tower side-to-side bending-mode DOF' )
 
 
    ! TwSSDOF2 - Second tower side-to-side bending-mode DOF.
 
-CALL ReadLVar ( UnIn, PriFile, TwSSDOF2, 'TwSSDOF2', 'Second tower side-to-side bending-mode DOF' )
+CALL ReadVar ( UnIn, PriFile, TwSSDOF2, 'TwSSDOF2', 'Second tower side-to-side bending-mode DOF' )
 
 IF ( TwSSDOF2 .AND. ( .NOT. TwSSDOF1 ) )  THEN  ! Print out warning when tower side-to-side mode 1 is not enabled and side-to-side mode 2 is enabled
    CALL UsrAlarm
@@ -3144,12 +3175,12 @@ ENDIF
 
    ! CompAero - Compute aerodynamic forces.
 
-CALL ReadLVar ( UnIn, PriFile, CompAero, 'CompAero', 'Compute aerodynamic forces' )
+CALL ReadVar ( UnIn, PriFile, CompAero, 'CompAero', 'Compute aerodynamic forces' )
 
 
    ! CompNoise - Compute aerodynamic noise.
 
-CALL ReadLVar ( UnIn, PriFile, CompNoise, 'CompNoise', 'Compute aerodynamic noise' )
+CALL ReadVar ( UnIn, PriFile, CompNoise, 'CompNoise', 'Compute aerodynamic noise' )
 
 IF ( CompNoise .AND. ( .NOT. CompAero ) )  &
    CALL ProgAbort ( ' CompAero must be True if CompNoise is True.' )
@@ -3170,7 +3201,7 @@ ENDIF
 
    ! OoPDefl - Initial out-of-plane blade-tip deflection.
 
-CALL ReadRVar ( UnIn, PriFile, OoPDefl, 'OoPDefl', 'Initial out-of-plane blade-tip deflection' )
+CALL ReadVar ( UnIn, PriFile, OoPDefl, 'OoPDefl', 'Initial out-of-plane blade-tip deflection' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( OoPDefl /= 0.0 ) )  &
    CALL ProgAbort ( ' Initial out-of-plane blade-tip displacements must be zero when FAST is interfaced with Simulink'// &
@@ -3179,7 +3210,7 @@ IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( OoPDefl /= 0.0 ) )  &
 
    ! IPDefl - Initial in-plane blade-tip deflection.
 
-CALL ReadRVar ( UnIn, PriFile, IPDefl, 'IPDefl', 'Initial in-plane blade-tip deflection' )
+CALL ReadVar ( UnIn, PriFile, IPDefl, 'IPDefl', 'Initial in-plane blade-tip deflection' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( IPDefl  /= 0.0 ) )  &
    CALL ProgAbort ( ' Initial in-plane blade-tip displacements must be zero when FAST is interfaced with Simulink'// &
@@ -3189,7 +3220,7 @@ IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( IPDefl  /= 0.0 ) )  &
    ! TeetDefl - Initial or fixed teeter angle.
 
 IF ( NumBl == 2 )  THEN
-   CALL ReadRVar ( UnIn, PriFile, TeetDefl, 'TeetDefl', 'Initial or fixed teeter angle' )
+   CALL ReadVar ( UnIn, PriFile, TeetDefl, 'TeetDefl', 'Initial or fixed teeter angle' )
    IF ( ( TeetDefl <= -180.0 ) .OR. ( TeetDefl > 180.0 ) )  &
       CALL ProgAbort ( ' TeetDefl must be greater than -180 and less than or equal to 180.' )
 ELSE
@@ -3199,7 +3230,7 @@ ENDIF
 
    ! Azimuth - Initial azimuth position for blade 1.
 
-CALL ReadRVar ( UnIn, PriFile, Azimuth, 'Azimuth', 'Initial azimuth position for blade 1' )
+CALL ReadVar ( UnIn, PriFile, Azimuth, 'Azimuth', 'Initial azimuth position for blade 1' )
 
 IF ( ( Azimuth < 0.0 ) .OR. ( Azimuth >= 360.0 ) )  &
    CALL ProgAbort ( ' Azimuth must be greater or equal to 0 and less than 360.' )
@@ -3207,14 +3238,14 @@ IF ( ( Azimuth < 0.0 ) .OR. ( Azimuth >= 360.0 ) )  &
 
    ! RotSpeed - Initial or fixed rotor speed.
 
-CALL ReadRVar ( UnIn, PriFile, RotSpeed, 'RotSpeed', 'Initial or fixed rotor speed' )
+CALL ReadVar ( UnIn, PriFile, RotSpeed, 'RotSpeed', 'Initial or fixed rotor speed' )
 
 IF ( RotSpeed < 0.0 )  CALL ProgAbort ( ' RotSpeed must not be negative.' )
 
 
    ! NacYaw - Initial or fixed nacelle-yaw angle.
 
-CALL ReadRVar ( UnIn, PriFile, NacYaw, 'NacYaw', 'Initial or fixed nacelle-yaw angle' )
+CALL ReadVar ( UnIn, PriFile, NacYaw, 'NacYaw', 'Initial or fixed nacelle-yaw angle' )
 
 IF ( ( NacYaw <= -180.0 ) .OR. ( NacYaw > 180.0 ) )  &
    CALL ProgAbort ( ' NacYaw must be greater than -180 and less than or equal to 180.' )
@@ -3222,7 +3253,7 @@ IF ( ( NacYaw <= -180.0 ) .OR. ( NacYaw > 180.0 ) )  &
 
    ! TTDspFA - Initial fore-aft tower-top displacement.
 
-CALL ReadRVar ( UnIn, PriFile, TTDspFA, 'TTDspFA', 'Initial fore-aft tower-top displacement' )
+CALL ReadVar ( UnIn, PriFile, TTDspFA, 'TTDspFA', 'Initial fore-aft tower-top displacement' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( TTDspFA /= 0.0 ) )  &
    CALL ProgAbort ( ' Initial fore-aft tower-top displacements must be zero when FAST is interfaced with Simulink'// &
@@ -3231,7 +3262,7 @@ IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( TTDspFA /= 0.0 ) )  &
 
    ! TTDspSS - Initial side-to-side tower-top displacement.
 
-CALL ReadRVar ( UnIn, PriFile, TTDspSS, 'TTDspSS', 'Initial side-to-side tower-top displacement' )
+CALL ReadVar ( UnIn, PriFile, TTDspSS, 'TTDspSS', 'Initial side-to-side tower-top displacement' )
 
 IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( TTDspSS /= 0.0 ) )  &
    CALL ProgAbort ( ' Initial side-to-side tower-top displacements must be zero when FAST is interfaced with Simulink'// &
@@ -3249,14 +3280,14 @@ IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( TTDspSS /= 0.0 ) )  &
 
    ! TipRad - Preconed blade-tip radius.
 
-CALL ReadRVar ( UnIn, PriFile, TipRad, 'TipRad', 'Preconed blade-tip radius' )
+CALL ReadVar ( UnIn, PriFile, TipRad, 'TipRad', 'Preconed blade-tip radius' )
 
 IF ( TipRad < 0.0 )  CALL ProgAbort ( ' TipRad must be greater than 0.' )
 
 
    ! HubRad - Preconed hub radius.
 
-CALL ReadRVar ( UnIn, PriFile, HubRad, 'HubRad', 'Preconed hub radius' )
+CALL ReadVar ( UnIn, PriFile, HubRad, 'HubRad', 'Preconed hub radius' )
 
 IF ( ( HubRad < 0.0 ) .OR. ( HubRad >= TipRad ) ) THEN
    CALL ProgAbort ( ' HubRad must be between 0 (inclusive) and TipRad (exclusive).' )
@@ -3266,13 +3297,13 @@ END IF
    ! PSpnElN - Number of the innermost blade element which is still part of the pitchable portion of the blade for partial-span pitch control.
 
 !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-!JASON:CALL ReadIVar ( UnIn, PriFile, PSpnElN, 'PSpnElN', 'Partial-span pitch control element number' )
+!JASON:CALL ReadVar ( UnIn, PriFile, PSpnElN, 'PSpnElN', 'Partial-span pitch control element number' )
    CALL ReadCom ( UnIn, PriFile, 'currently ignored PSpnElN' )
 
    ! UndSling - Undersling length.
 
 IF ( NumBl == 2 )  THEN
-   CALL ReadRVar ( UnIn, PriFile, UndSling, 'UndSling', 'Undersling length' )
+   CALL ReadVar ( UnIn, PriFile, UndSling, 'UndSling', 'Undersling length' )
 ELSE
    CALL ReadCom ( UnIn, PriFile, 'unused UndSling' )
    UndSling = 0.0
@@ -3281,53 +3312,53 @@ ENDIF
 
    ! HubCM - Distance from rotor apex to hub mass.
 
-CALL ReadRVar ( UnIn, PriFile, HubCM, 'HubCM', 'Distance from rotor apex to hub mass' )
+CALL ReadVar ( UnIn, PriFile, HubCM, 'HubCM', 'Distance from rotor apex to hub mass' )
 
 
    ! OverHang - Distance from yaw axis to rotor apex or teeter pin.
 
-CALL ReadRVar ( UnIn, PriFile, OverHang, 'OverHang', 'Distance from yaw axis to rotor apex or teeter pin' )
+CALL ReadVar ( UnIn, PriFile, OverHang, 'OverHang', 'Distance from yaw axis to rotor apex or teeter pin' )
 
 
    ! NacCMxn - Downwind distance from tower-top to nacelle CM.
 
-CALL ReadRVar ( UnIn, PriFile, NacCMxn, 'NacCMxn', 'Downwind distance from tower-top to nacelle CM' )
+CALL ReadVar ( UnIn, PriFile, NacCMxn, 'NacCMxn', 'Downwind distance from tower-top to nacelle CM' )
 
 
    ! NacCMyn - Lateral  distance from tower-top to nacelle CM.
 
-CALL ReadRVar ( UnIn, PriFile, NacCMyn, 'NacCMyn', 'Lateral  distance from tower-top to nacelle CM' )
+CALL ReadVar ( UnIn, PriFile, NacCMyn, 'NacCMyn', 'Lateral  distance from tower-top to nacelle CM' )
 
 
    ! NacCMzn - Vertical distance from tower-top to nacelle CM.
 
-CALL ReadRVar ( UnIn, PriFile, NacCMzn, 'NacCMzn', 'Vertical distance from tower-top to nacelle CM' )
+CALL ReadVar ( UnIn, PriFile, NacCMzn, 'NacCMzn', 'Vertical distance from tower-top to nacelle CM' )
 
 
    ! TowerHt - Tower height.
 
-CALL ReadRVar ( UnIn, PriFile, TowerHt, 'TowerHt', 'Tower height' )
+CALL ReadVar ( UnIn, PriFile, TowerHt, 'TowerHt', 'Tower height' )
 
 IF ( TowerHt <= 0.0 )  CALL ProgAbort ( ' TowerHt must be greater than zero.' )
 
 
    ! Twr2Shft - Vertical distance from tower-top rotor shaft.
 
-CALL ReadRVar ( UnIn, PriFile, Twr2Shft, 'Twr2Shft', 'Vertical distance from tower-top to rotor shaft' )
+CALL ReadVar ( UnIn, PriFile, Twr2Shft, 'Twr2Shft', 'Vertical distance from tower-top to rotor shaft' )
 
 IF ( Twr2Shft < 0.0 )  CALL ProgAbort ( ' Twr2Shft cannot be negative.' )
 
 
    ! TwrRBHt - Tower rigid base height.
 
-CALL ReadRVar ( UnIn, PriFile, TwrRBHt, 'TwrRBHt', 'Tower rigid base height' )
+CALL ReadVar ( UnIn, PriFile, TwrRBHt, 'TwrRBHt', 'Tower rigid base height' )
 
 IF ( TwrRBHt < 0.0 )  CALL ProgAbort ( ' TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.' )
 
 
    ! ShftTilt - Rotor shaft tilt angle.
 
-CALL ReadRVar ( UnIn, PriFile, ShftTilt, 'ShftTilt', 'Rotor shaft tilt angle' )
+CALL ReadVar ( UnIn, PriFile, ShftTilt, 'ShftTilt', 'Rotor shaft tilt angle' )
 
 IF ( ( ShftTilt < -90.0 ) .OR. ( ShftTilt > 90.0 ) )              &
    CALL ProgAbort ( ' ShftTilt must be between -90 and 90 (inclusive).' )
@@ -3338,7 +3369,7 @@ IF ( TowerHt + Twr2Shft + OverHang*SIN(ShftTilt*D2R) <= TipRad )  &
    ! Delta3 - Delta-3 angle for teetering rotors.
 
 IF ( NumBl == 2 )  THEN
-   CALL ReadRVar ( UnIn, PriFile, Delta3, 'Delta3', 'Delta-3 angle for teetering rotors' )
+   CALL ReadVar ( UnIn, PriFile, Delta3, 'Delta3', 'Delta-3 angle for teetering rotors' )
    IF ( ( Delta3 <= -90.0 ) .OR. ( Delta3 >= 90.0 ) )  CALL ProgAbort ( ' Delta3 must be between -90 and 90 (exclusive).' )
 ELSE
    CALL ReadCom ( UnIn, PriFile, 'unused Delta3' )
@@ -3367,7 +3398,7 @@ ENDIF
 
    ! AzimB1Up - Azimuth value to use for I/O when blade 1 points up.
 
-CALL ReadRVar ( UnIn, PriFile, AzimB1Up, 'AzimB1Up', 'Azimuth value to use for I/O when blade 1 points up' )
+CALL ReadVar ( UnIn, PriFile, AzimB1Up, 'AzimB1Up', 'Azimuth value to use for I/O when blade 1 points up' )
 
 IF ( ( AzimB1Up < 0.0 ) .OR. ( AzimB1Up > 360.0 ) )  CALL ProgAbort ( ' AzimB1Up must be between 0 and 360 (inclusive).' )
 
@@ -3383,21 +3414,21 @@ IF ( ( AzimB1Up < 0.0 ) .OR. ( AzimB1Up > 360.0 ) )  CALL ProgAbort ( ' AzimB1Up
 
    ! YawBrMass - Yaw bearing mass.
 
-CALL ReadRVar ( UnIn, PriFile, YawBrMass, 'YawBrMass', 'Yaw bearing mass' )
+CALL ReadVar ( UnIn, PriFile, YawBrMass, 'YawBrMass', 'Yaw bearing mass' )
 
 IF ( YawBrMass < 0.0 )  CALL ProgAbort ( ' YawBrMass must not be negative.' )
 
 
    ! NacMass - Nacelle mass.
 
-CALL ReadRVar ( UnIn, PriFile, NacMass, 'NacMass', 'Nacelle mass' )
+CALL ReadVar ( UnIn, PriFile, NacMass, 'NacMass', 'Nacelle mass' )
 
 IF ( NacMass < 0.0 )  CALL ProgAbort ( ' NacMass must not be negative.' )
 
 
    ! HubMass - Hub mass.
 
-CALL ReadRVar ( UnIn, PriFile, HubMass, 'HubMass', 'Hub mass' )
+CALL ReadVar ( UnIn, PriFile, HubMass, 'HubMass', 'Hub mass' )
 
 IF ( HubMass < 0.0 )  CALL ProgAbort ( ' HubMass must not be negative.' )
 
@@ -3424,14 +3455,14 @@ ENDIF
 
    ! NacYIner - Nacelle yaw inertia.
 
-CALL ReadRVar ( UnIn, PriFile, NacYIner, 'NacYIner', 'Nacelle yaw inertia' )
+CALL ReadVar ( UnIn, PriFile, NacYIner, 'NacYIner', 'Nacelle yaw inertia' )
 
 IF ( NacYIner < 0.0 )  CALL ProgAbort ( ' NacYIner must not be negative.' )
 
 
    ! GenIner - Generator inertia about HSS.
 
-CALL ReadRVar ( UnIn, PriFile, GenIner, 'GenIner', 'Generator inertia about HSS' )
+CALL ReadVar ( UnIn, PriFile, GenIner, 'GenIner', 'Generator inertia about HSS' )
 
 IF ( GenIner < 0.0 )  CALL ProgAbort ( ' GenIner must not be negative.' )
 
@@ -3439,9 +3470,9 @@ IF ( GenIner < 0.0 )  CALL ProgAbort ( ' GenIner must not be negative.' )
    ! HubIner - Hub inertia about teeter axis (2-blader) or rotor axis (3-blader).
 
 IF ( NumBl == 2 )  THEN
-   CALL ReadRVar ( UnIn, PriFile, HubIner, 'HubIner', 'Hub inertia about teeter axis' )
+   CALL ReadVar ( UnIn, PriFile, HubIner, 'HubIner', 'Hub inertia about teeter axis' )
 ELSE
-   CALL ReadRVar ( UnIn, PriFile, HubIner, 'HubIner', 'Hub inertia about rotor axis' )
+   CALL ReadVar ( UnIn, PriFile, HubIner, 'HubIner', 'Hub inertia about rotor axis' )
 ENDIF
 
 IF ( HubIner < 0.0 )  CALL ProgAbort ( ' HubIner must not be negative.' )
@@ -3458,7 +3489,7 @@ IF ( HubIner < 0.0 )  CALL ProgAbort ( ' HubIner must not be negative.' )
 
    ! GBoxEff - Gearbox efficiency.
 
-CALL ReadRVar ( UnIn, PriFile, GBoxEff, 'GBoxEff', 'Gearbox efficiency' )
+CALL ReadVar ( UnIn, PriFile, GBoxEff, 'GBoxEff', 'Gearbox efficiency' )
 
 IF ( ( GBoxEff <= 0.0 ) .OR. ( GBoxEff > 100.0 ) ) THEN
    CALL ProgAbort ( ' GBoxEff must be greater than 0 and less than or equal to 100.' )
@@ -3469,14 +3500,14 @@ END IF
 
    ! GenEff - Generator efficiency.
 
-CALL ReadRVar ( UnIn, PriFile, GenEff, 'GenEff', 'Generator efficiency' )
+CALL ReadVar ( UnIn, PriFile, GenEff, 'GenEff', 'Generator efficiency' )
 
 IF ( ( GenEff < 0.0 ) .OR. ( GenEff > 100.0 ) )  CALL ProgAbort ( ' GenEff must be between 0 and 100 (inclusive).' )
 
 
    ! GBRatio - Gearbox ratio.
 
-CALL ReadRVar ( UnIn, PriFile, GBRatio, 'GBRatio', 'Gearbox ratio' )
+CALL ReadVar ( UnIn, PriFile, GBRatio, 'GBRatio', 'Gearbox ratio' )
 
 IF ( GBRatio <= 0.0 )  CALL ProgAbort ( ' GBRatio must be greater than 0.' )
 
@@ -3484,19 +3515,19 @@ IF ( GBRatio <= 0.0 )  CALL ProgAbort ( ' GBRatio must be greater than 0.' )
 !JASON: ELIMINATE THIS INPUT BY ALLOWING GBRatio TO BE NEGATIVE!!!!!<--ACTUALLY, DON'T DO THIS SINCE WE ALWAYS WANT THE HSS SPEED TO REMAIN POSITIVE AND THE TORQUE TO DEPEND ON WHETHER WE ARE PRODUCING POWER OR MOTORING UP.
    ! GBRevers - Gearbox reversal flag.
 
-CALL ReadLVar ( UnIn, PriFile, GBRevers, 'GBRevers', 'Gearbox reversal flag' )
+CALL ReadVar ( UnIn, PriFile, GBRevers, 'GBRevers', 'Gearbox reversal flag' )
 
 
    ! HSSBrTqF - Fully deployed HSS brake torque.
 
-CALL ReadRVar ( UnIn, PriFile, HSSBrTqF, 'HSSBrTqF', 'Fully deployed HSS brake torque' )
+CALL ReadVar ( UnIn, PriFile, HSSBrTqF, 'HSSBrTqF', 'Fully deployed HSS brake torque' )
 
 IF ( HSSBrTqF < 0.0 )  CALL ProgAbort ( ' HSSBrTqF must not be negative.' )
 
 
    ! HSSBrDT - Time for HSS-brake to reach full deployment once initiated.
 
-CALL ReadRVar ( UnIn, PriFile, HSSBrDT, 'HSSBrDT', 'Time for HSS-brake to reach full deployment once initiated' )
+CALL ReadVar ( UnIn, PriFile, HSSBrDT, 'HSSBrDT', 'Time for HSS-brake to reach full deployment once initiated' )
 
 IF ( HSSBrDT < 0.0 )  CALL ProgAbort ( ' HSSBrDT must not be negative.' )
 
@@ -3504,7 +3535,7 @@ IF ( HSSBrDT < 0.0 )  CALL ProgAbort ( ' HSSBrDT must not be negative.' )
    ! DynBrkFi - Name of file containing dynamic generator brake properties.
 
 !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-!JASON:CALL ReadCVar ( UnIn, PriFile, DynBrkFi, 'DynBrkFi', 'Name of file containing dynamic generator brake properties' )
+!JASON:CALL ReadVar ( UnIn, PriFile, DynBrkFi, 'DynBrkFi', 'Name of file containing dynamic generator brake properties' )
 !JASON:
 !JASON:IF ( LEN_TRIM( DynBrkFi ) == 0 )  CALL ProgAbort ( ' DynBrkFi must not be an empty string.' )
 
@@ -3513,14 +3544,14 @@ IF ( HSSBrDT < 0.0 )  CALL ProgAbort ( ' HSSBrDT must not be negative.' )
 
    ! DTTorSpr - Drivetrain torsional spring.
 
-CALL ReadRVar ( UnIn, PriFile, DTTorSpr, 'DTTorSpr', 'Drivetrain torsional spring' )
+CALL ReadVar ( UnIn, PriFile, DTTorSpr, 'DTTorSpr', 'Drivetrain torsional spring' )
 
 IF ( DTTorSpr < 0.0 )  CALL ProgAbort ( ' DTTorSpr must not be negative.' )
 
 
    ! DTTorDmp - Drivetrain torsional damper.
 
-CALL ReadRVar ( UnIn, PriFile, DTTorDmp, 'DTTorDmp', 'Drivetrain torsional damper' )
+CALL ReadVar ( UnIn, PriFile, DTTorDmp, 'DTTorDmp', 'Drivetrain torsional damper' )
 
 IF ( DTTorDmp < 0.0 )  CALL ProgAbort ( ' DTTorDmp must not be negative.' )
 
@@ -3536,28 +3567,28 @@ IF ( DTTorDmp < 0.0 )  CALL ProgAbort ( ' DTTorDmp must not be negative.' )
 
    ! SIG_SlPc - Rated generator slip percentage.
 
-CALL ReadRVar ( UnIn, PriFile, SIG_SlPc, 'SIG_SlPc', 'Rated generator slip percentage' )
+CALL ReadVar ( UnIn, PriFile, SIG_SlPc, 'SIG_SlPc', 'Rated generator slip percentage' )
 
 IF ( ( GenModel == 1 )  .AND. ( SIG_SlPc <= 0.0 ) )  CALL ProgAbort ( ' SIG_SlPc must be greater than zero.' )
 
 
    ! SIG_SySp - Synchronous (zero-torque) generator speed.
 
-CALL ReadRVar ( UnIn, PriFile, SIG_SySp, 'SIG_SySp', 'Synchronous (zero-torque) generator speed' )
+CALL ReadVar ( UnIn, PriFile, SIG_SySp, 'SIG_SySp', 'Synchronous (zero-torque) generator speed' )
 
 IF ( ( GenModel == 1 )  .AND. ( SIG_SySp <= 0 ) )  CALL ProgAbort ( ' SIG_SySp must be greater than zero.' )
 
 
    ! SIG_RtTq - Rated torque.
 
-CALL ReadRVar ( UnIn, PriFile, SIG_RtTq, 'SIG_RtTq', 'Rated torque' )
+CALL ReadVar ( UnIn, PriFile, SIG_RtTq, 'SIG_RtTq', 'Rated torque' )
 
 IF ( ( GenModel == 1 )  .AND. ( SIG_RtTq <= 0.0 ) )  CALL ProgAbort ( ' SIG_RtTq must be greater than zero.' )
 
 
    ! SIG_PORt - Pull-out ratio.
 
-CALL ReadRVar ( UnIn, PriFile, SIG_PORt, 'SIG_PORt', 'Pull-out ratio' )
+CALL ReadVar ( UnIn, PriFile, SIG_PORt, 'SIG_PORt', 'Pull-out ratio' )
 
 IF ( ( GenModel == 1 )  .AND. ( SIG_PORt < 1.0 ) )  CALL ProgAbort ( ' SIG_PORt must not be less than 1.' )
 
@@ -3573,14 +3604,14 @@ IF ( ( GenModel == 1 )  .AND. ( SIG_PORt < 1.0 ) )  CALL ProgAbort ( ' SIG_PORt 
 
    ! TEC_Freq - Line frequency.
 
-CALL ReadRVar ( UnIn, PriFile, TEC_Freq, 'TEC_Freq', 'Line frequency' )
+CALL ReadVar ( UnIn, PriFile, TEC_Freq, 'TEC_Freq', 'Line frequency' )
 
 IF ( ( GenModel == 2 )  .AND. ( TEC_Freq <= 0.0 ) )  CALL ProgAbort ( ' TEC_Freq must be greater than zero.' )
 
 
    ! TEC_NPol - Number of poles.
 
-CALL ReadIVar ( UnIn, PriFile, TEC_NPol, 'TEC_NPol', 'Number of poles' )
+CALL ReadVar ( UnIn, PriFile, TEC_NPol, 'TEC_NPol', 'Number of poles' )
 
 IF ( ( GenModel == 2 )  .AND. ( ( TEC_NPol <= 0 ) .OR. ( MOD( TEC_NPol, 2 ) /= 0 ) ) )  &
      CALL ProgAbort ( ' TEC_NPol must be an even number greater than zero.' )
@@ -3588,42 +3619,42 @@ IF ( ( GenModel == 2 )  .AND. ( ( TEC_NPol <= 0 ) .OR. ( MOD( TEC_NPol, 2 ) /= 0
 
    ! TEC_SRes - Stator resistance.
 
-CALL ReadRVar ( UnIn, PriFile, TEC_SRes, 'TEC_SRes', 'Stator resistance' )
+CALL ReadVar ( UnIn, PriFile, TEC_SRes, 'TEC_SRes', 'Stator resistance' )
 
 IF ( ( GenModel == 2 )  .AND. ( TEC_SRes <= 0.0 ) )  CALL ProgAbort ( ' TEC_SRes must be greater than zero.' )
 
 
    ! TEC_RRes - Rotor resistance.
 
-CALL ReadRVar ( UnIn, PriFile, TEC_RRes, 'TEC_RRes', 'Rotor resistance' )
+CALL ReadVar ( UnIn, PriFile, TEC_RRes, 'TEC_RRes', 'Rotor resistance' )
 
 IF ( ( GenModel == 2 )  .AND. ( TEC_RRes <= 0.0 ) )  CALL ProgAbort ( ' TEC_RRes must be greater than zero.' )
 
 
    ! TEC_VLL - Line-to-line RMS voltage.
 
-CALL ReadRVar ( UnIn, PriFile, TEC_VLL, 'TEC_VLL', 'Line-to-line RMS voltage' )
+CALL ReadVar ( UnIn, PriFile, TEC_VLL, 'TEC_VLL', 'Line-to-line RMS voltage' )
 
 IF ( ( GenModel == 2 )  .AND. ( TEC_VLL <= 0.0 ) )  CALL ProgAbort ( ' TEC_VLL must be greater than zero.' )
 
 
    ! TEC_SLR - Stator leakage reactance.
 
-CALL ReadRVar ( UnIn, PriFile, TEC_SLR, 'TEC_SLR', 'Stator leakage reactance' )
+CALL ReadVar ( UnIn, PriFile, TEC_SLR, 'TEC_SLR', 'Stator leakage reactance' )
 
 IF ( ( GenModel == 2 )  .AND. ( TEC_SLR <= 0.0 ) )  CALL ProgAbort ( ' TEC_SLR must be greater than zero.' )
 
 
    ! TEC_RLR  - Rotor leakage reactance.
 
-CALL ReadRVar ( UnIn, PriFile, TEC_RLR, 'TEC_RLR', 'Rotor leakage reactance' )
+CALL ReadVar ( UnIn, PriFile, TEC_RLR, 'TEC_RLR', 'Rotor leakage reactance' )
 
 IF ( ( GenModel == 2 )  .AND. ( TEC_RLR <= 0.0 ) )  CALL ProgAbort ( ' TEC_RLR must be greater than zero.' )
 
 
    ! TEC_MR - Magnetizing reactance.
 
-CALL ReadRVar ( UnIn, PriFile, TEC_MR, 'TEC_MR', 'Magnetizing reactance' )
+CALL ReadVar ( UnIn, PriFile, TEC_MR, 'TEC_MR', 'Magnetizing reactance' )
 
 IF ( ( GenModel == 2 )  .AND. ( TEC_MR <= 0.0 ) )  CALL ProgAbort ( ' TEC_MR must be greater than zero.' )
 
@@ -3637,14 +3668,14 @@ CALL ReadCom ( UnIn, PriFile, 'platform parameters'  )
 
    ! PtfmModel - Platform model switch.
 
-CALL ReadIVar ( UnIn, PriFile, PtfmModel, 'PtfmModel', 'Platform model switch' )
+CALL ReadVar ( UnIn, PriFile, PtfmModel, 'PtfmModel', 'Platform model switch' )
 
 IF ( ( PtfmModel < 0 ) .OR. ( PtfmModel > 3 ) )  CALL ProgAbort ( ' PtfmModel must be either 0, 1, 2, or 3.' )
 
 
    ! PtfmFile - Name of file containing platform properties.
 
-CALL ReadCVar ( UnIn, PriFile, PtfmFile, 'PtfmFile', 'Name of file containing platform properties' )
+CALL ReadVar ( UnIn, PriFile, PtfmFile, 'PtfmFile', 'Name of file containing platform properties' )
 
 IF ( LEN_TRIM( PtfmFile ) == 0 .AND. PtfmModel /= 0 )  CALL ProgAbort ( ' PtfmFile must not be an empty string.' ) 
 IF ( PathIsRelative( PtfmFile ) ) PtfmFile = TRIM(PriPath)//TRIM(PtfmFile)
@@ -3660,14 +3691,14 @@ CALL ReadCom ( UnIn, PriFile, 'tower parameters' )
 
    ! TwrNodes - Number of tower nodes used for analysis.
 
-CALL ReadIVar ( UnIn, PriFile, TwrNodes, 'TwrNodes', 'Number of tower nodes used for analysis' )
+CALL ReadVar ( UnIn, PriFile, TwrNodes, 'TwrNodes', 'Number of tower nodes used for analysis' )
 
 IF ( TwrNodes < 1 )  CALL ProgAbort ( ' TwrNodes must not be less than 1.' )
 
 
    ! TwrFile - Name of file containing tower properties.
 
-CALL ReadCVar ( UnIn, PriFile, TwrFile, 'TwrFile', 'Name of file containing tower properties' )
+CALL ReadVar ( UnIn, PriFile, TwrFile, 'TwrFile', 'Name of file containing tower properties' )
 
 IF ( LEN_TRIM( TwrFile ) == 0 )  CALL ProgAbort ( ' TwrFile must not be an empty string.' )
 IF ( PathIsRelative( TwrFile ) ) TwrFile = TRIM(PriPath)//TRIM(TwrFile)
@@ -3684,21 +3715,21 @@ IF ( PathIsRelative( TwrFile ) ) TwrFile = TRIM(PriPath)//TRIM(TwrFile)
 
    ! YawSpr - Yaw spring constant.
 
-CALL ReadRVar ( UnIn, PriFile, YawSpr, 'YawSpr', 'Nacelle-yaw spring constant' )
+CALL ReadVar ( UnIn, PriFile, YawSpr, 'YawSpr', 'Nacelle-yaw spring constant' )
 
 IF ( YawSpr < 0.0 )  CALL ProgAbort ( ' YawSpr must not be negative.' )
 
 
    ! YawDamp - Yaw damping constant.
 
-CALL ReadRVar ( UnIn, PriFile, YawDamp, 'YawDamp', 'Nacelle-yaw damping constant' )
+CALL ReadVar ( UnIn, PriFile, YawDamp, 'YawDamp', 'Nacelle-yaw damping constant' )
 
 IF ( YawDamp < 0.0 )  CALL ProgAbort ( ' YawDamp must not be negative.' )
 
 
    ! YawNeut - Neutral yaw position.
 
-CALL ReadRVar ( UnIn, PriFile, YawNeut, 'YawNeut', 'Neutral yaw position' )
+CALL ReadVar ( UnIn, PriFile, YawNeut, 'YawNeut', 'Neutral yaw position' )
 
 IF ( ( YawNeut <= -180.0 ) .OR. ( YawNeut > 180.0 ) )  &
    CALL ProgAbort ( ' YawNeut must be greater than -180 and less than or equal to 180.' )
@@ -3714,7 +3745,7 @@ IF ( ( YawNeut <= -180.0 ) .OR. ( YawNeut > 180.0 ) )  &
 
    ! Furling - Read in additional model properties for furling turbine.
 
-CALL ReadLVar ( UnIn, PriFile, Furling, 'Furling', 'Read in additional model properties for furling turbine' )
+CALL ReadVar ( UnIn, PriFile, Furling, 'Furling', 'Read in additional model properties for furling turbine' )
 
 IF ( Furling .AND. ( OverHang > 0.0 ) )  THEN   ! Print out warning when downwind turbine is modeled with furling.
    CALL UsrAlarm
@@ -3727,7 +3758,7 @@ ENDIF
 
    ! FurlFile - Name of file containing furling properties.
 
-CALL ReadCVar ( UnIn, PriFile, FurlFile, 'FurlFile', 'Name of file containing furling properties' )
+CALL ReadVar ( UnIn, PriFile, FurlFile, 'FurlFile', 'Name of file containing furling properties' )
 
 IF ( LEN_TRIM( FurlFile ) == 0 .AND. Furling )  CALL ProgAbort ( ' FurlFile must not be an empty string.' )
 IF ( PathIsRelative( FurlFile ) ) FurlFile = TRIM(PriPath)//TRIM(FurlFile)
@@ -3745,42 +3776,42 @@ IF ( NumBl == 2 )  THEN
 
       ! TeetMod - Rotor-teeter spring/damper model switch.
 
-   CALL ReadIVar ( UnIn, PriFile, TeetMod, 'TeetMod', 'Rotor-teeter spring/damper model switch' )
+   CALL ReadVar ( UnIn, PriFile, TeetMod, 'TeetMod', 'Rotor-teeter spring/damper model switch' )
 
    IF ( ( TeetMod /= 0 ) .AND. ( TeetMod /= 1 ) .AND. ( TeetMod /= 2 ) )  CALL ProgAbort ( ' TeetMod must be 0, 1, or 2.' )
 
 
       ! TeetDmpP - Rotor-teeter damper position.
 
-   CALL ReadRVar ( UnIn, PriFile, TeetDmpP, 'TeetDmpP', 'Rotor-teeter damper position' )
+   CALL ReadVar ( UnIn, PriFile, TeetDmpP, 'TeetDmpP', 'Rotor-teeter damper position' )
 
    IF ( ( TeetDmpP < 0.0 ) .OR. ( TeetDmpP > 180.0 ) )  CALL ProgAbort ( ' TeetDmpP must be between 0 and 180 (inclusive).' )
 
 
       ! TeetDmp - Rotor-teeter damping constant.
 
-   CALL ReadRVar ( UnIn, PriFile, TeetDmp, 'TeetDmp', 'Rotor-teeter damping constant' )
+   CALL ReadVar ( UnIn, PriFile, TeetDmp, 'TeetDmp', 'Rotor-teeter damping constant' )
 
    IF ( TeetDmp < 0.0 )  CALL ProgAbort ( ' TeetDmp must not be negative.' )
 
 
       ! TeetCDmp - Rotor-teeter rate-independent Coulomb-damping moment.
 
-   CALL ReadRVar ( UnIn, PriFile, TeetCDmp, 'TeetCDmp', 'Rotor-teeter rate-independent Coulomb-damping moment' )
+   CALL ReadVar ( UnIn, PriFile, TeetCDmp, 'TeetCDmp', 'Rotor-teeter rate-independent Coulomb-damping moment' )
 
    IF ( TeetCDmp < 0.0 )  CALL ProgAbort ( ' TeetCDmp must not be negative.' )
 
 
       ! TeetSStP - Rotor-teeter soft-stop position.
 
-   CALL ReadRVar ( UnIn, PriFile, TeetSStP, 'TeetSStP', 'Rotor-teeter soft-stop position' )
+   CALL ReadVar ( UnIn, PriFile, TeetSStP, 'TeetSStP', 'Rotor-teeter soft-stop position' )
 
    IF ( ( TeetSStP < 0.0 ) .OR. ( TeetSStP > 180.0 ) )  CALL ProgAbort ( ' TeetSStP must be between 0 and 180 (inclusive).' )
 
 
       ! TeetHStP - Rotor-teeter hard-stop position.
 
-   CALL ReadRVar ( UnIn, PriFile, TeetHStP, 'TeetHStP', 'Rotor-teeter hard-stop position' )
+   CALL ReadVar ( UnIn, PriFile, TeetHStP, 'TeetHStP', 'Rotor-teeter hard-stop position' )
 
    IF ( ( TeetHStP < TeetSStP ) .OR. ( TeetHStP > 180.0 ) )  &
       CALL ProgAbort ( ' TeetHStP must be between TeetSStP  and 180 (inclusive).' )
@@ -3788,14 +3819,14 @@ IF ( NumBl == 2 )  THEN
 
       ! TeetSSSp - Rotor-teeter soft-stop linear-spring constant.
 
-   CALL ReadRVar ( UnIn, PriFile, TeetSSSp, 'TeetSSSp', 'Rotor-teeter soft-stop linear-spring constant' )
+   CALL ReadVar ( UnIn, PriFile, TeetSSSp, 'TeetSSSp', 'Rotor-teeter soft-stop linear-spring constant' )
 
    IF ( TeetSSSp < 0.0 )  CALL ProgAbort ( ' TeetSSSp must not be negative.' )
 
 
       ! TeetHSSp - Rotor-teeter hard-stop linear-spring constant.
 
-   CALL ReadRVar ( UnIn, PriFile, TeetHSSp, 'TeetHSSp', 'Rotor-teeter hard-stop linear-spring constant' )
+   CALL ReadVar ( UnIn, PriFile, TeetHSSp, 'TeetHSSp', 'Rotor-teeter hard-stop linear-spring constant' )
 
    IF ( TeetHSSp < 0.0 )  CALL ProgAbort ( ' TeetHSSp must not be negative.' )
 
@@ -3827,21 +3858,21 @@ ENDIF
 
    ! TBDrConN - Tip-brake drag constant during normal operation.
 
-CALL ReadRVar ( UnIn, PriFile, TBDrConN, 'TBDrConN', 'Tip-brake drag constant during normal operation' )
+CALL ReadVar ( UnIn, PriFile, TBDrConN, 'TBDrConN', 'Tip-brake drag constant during normal operation' )
 
 IF ( TBDrConN < 0.0 )  CALL ProgAbort ( ' TBDrConN must not be negative.' )
 
 
    ! TBDrConD - Tip-brake drag constant during fully-deployed operation.
 
-CALL ReadRVar ( UnIn, PriFile, TBDrConD, 'TBDrConD', 'Tip-brake drag constant during fully-deployed operation' )
+CALL ReadVar ( UnIn, PriFile, TBDrConD, 'TBDrConD', 'Tip-brake drag constant during fully-deployed operation' )
 
 IF ( TBDrConD < TBDrConN )  CALL ProgAbort( ' TBDrConD must not be less than TBDrConN.' )
 
 
    ! TpBrDT - Time for tip-brake to reach full deployment once released.
 
-CALL ReadRVar ( UnIn, PriFile, TpBrDT, 'TpBrDT', 'Time for tip-brake to reach full deployment once released' )
+CALL ReadVar ( UnIn, PriFile, TpBrDT, 'TpBrDT', 'Time for tip-brake to reach full deployment once released' )
 
 IF ( TpBrDT < 0.0 )  CALL ProgAbort ( ' TpBrDT must not be negative.' )
 
@@ -3886,7 +3917,7 @@ ENDIF
 
    ! ADFile - Name of file containing AeroDyn parameters.
 
-CALL ReadCVar( UnIn, PriFile, ADFile, 'ADFile', 'Name of file containing AeroDyn parameters' )
+CALL ReadVar( UnIn, PriFile, ADFile, 'ADFile', 'Name of file containing AeroDyn parameters' )
 
 IF ( LEN_TRIM( ADFile ) == 0 )  CALL ProgAbort ( 'ADFile must not be an empty string.' )
 IF ( PathIsRelative( ADFile ) ) ADFile = TRIM(PriPath)//TRIM(ADFile)
@@ -3903,7 +3934,7 @@ IF ( PathIsRelative( ADFile ) ) ADFile = TRIM(PriPath)//TRIM(ADFile)
 
    ! NoiseFile - Name of file containing aerodynamic noise parameters.
 
-CALL ReadCVar ( UnIn, PriFile, NoiseFile, 'NoiseFile', 'Name of file containing aerodynamic noise parameters' )
+CALL ReadVar ( UnIn, PriFile, NoiseFile, 'NoiseFile', 'Name of file containing aerodynamic noise parameters' )
 
 IF ( LEN_TRIM( NoiseFile ) == 0 .AND. CompNoise)  CALL ProgAbort ( ' NoiseFile must not be an empty string.' )
 IF ( PathIsRelative( NoiseFile ) ) NoiseFile = TRIM(PriPath)//TRIM(NoiseFile)
@@ -3918,7 +3949,7 @@ IF ( PathIsRelative( NoiseFile ) ) NoiseFile = TRIM(PriPath)//TRIM(NoiseFile)
 
    ! ADAMSFile - Name of file containing ADAMS-specific parameters.
 
-CALL ReadCVar ( UnIn, PriFile, ADAMSFile, 'ADAMSFile', 'Name of file containing ADAMS-specific properties' )
+CALL ReadVar ( UnIn, PriFile, ADAMSFile, 'ADAMSFile', 'Name of file containing ADAMS-specific properties' )
 
 IF ( LEN_TRIM( ADAMSFile ) == 0 .AND. ADAMSPrep /= 1)  CALL ProgAbort ( ' ADAMSFile must not be an empty string.' )
 IF ( PathIsRelative( ADAMSFile ) ) ADAMSFile = TRIM(PriPath)//TRIM(ADAMSFile)
@@ -3934,7 +3965,7 @@ IF ( PathIsRelative( ADAMSFile ) ) ADAMSFile = TRIM(PriPath)//TRIM(ADAMSFile)
 
    ! LinFile - Name of file containing FAST linearization parameters.
 
-CALL ReadCVar ( UnIn, PriFile, LinFile, 'LinFile', 'Name of file containing FAST linearization parameters' )
+CALL ReadVar ( UnIn, PriFile, LinFile, 'LinFile', 'Name of file containing FAST linearization parameters' )
 
 IF ( LEN_TRIM( LinFile ) == 0 .AND. AnalMode /= 1)  CALL ProgAbort ( ' LinFile must not be an empty string.' )
 IF ( PathIsRelative( LinFile ) ) LinFile = TRIM(PriPath)//TRIM(LinFile)
@@ -3950,7 +3981,7 @@ IF ( PathIsRelative( LinFile ) ) LinFile = TRIM(PriPath)//TRIM(LinFile)
 
    ! SumPrint - Print summary data to "*.fsm".
 
-CALL ReadLVar ( UnIn, PriFile, SumPrint, 'SumPrint', 'Print summary data to "*.fsm"' )
+CALL ReadVar ( UnIn, PriFile, SumPrint, 'SumPrint', 'Print summary data to "*.fsm"' )
 
 
    ! OutFileFmt - Format for output file(s).
@@ -3977,19 +4008,19 @@ END IF
 
    ! TabDelim - Generate a tab-delimited output file.
 
-CALL ReadLVar ( UnIn, PriFile, TabDelim, 'TabDelim', 'Use tab delimiters in text output file' )
+CALL ReadVar ( UnIn, PriFile, TabDelim, 'TabDelim', 'Use tab delimiters in text output file' )
 
 
    ! OutFmt - Output format for tabular data.
 
-CALL ReadCVar ( UnIn, PriFile, OutFmt, 'OutFmt', 'Output format for text tabular data' )
+CALL ReadVar ( UnIn, PriFile, OutFmt, 'OutFmt', 'Output format for text tabular data' )
 
 IF ( LEN_TRIM( OutFmt ) == 0 )  CALL ProgAbort ( ' OutFmt must not be an empty string.' )
 
 
    ! TStart - Time to start tabular output.
 
-CALL ReadRVar ( UnIn, PriFile, TStart, 'TStart', 'Time to begin tabular output' )
+CALL ReadVar ( UnIn, PriFile, TStart, 'TStart', 'Time to begin tabular output' )
 
 IF ( TStart < 0.0  )  CALL ProgAbort ( ' TStart must not be less than 0.' )
 IF ( TMax < TStart )  CALL ProgAbort ( ' TMax must not be less than TStart.' )
@@ -3997,41 +4028,41 @@ IF ( TMax < TStart )  CALL ProgAbort ( ' TMax must not be less than TStart.' )
 
    ! DecFact - Decimation factor for tabular output.
 
-CALL ReadIVar ( UnIn, PriFile, DecFact, 'DecFact', 'Decimation factor for tabular output' )
+CALL ReadVar ( UnIn, PriFile, DecFact, 'DecFact', 'Decimation factor for tabular output' )
 
 IF ( DecFact < 1 )  CALL ProgAbort ( ' DecFact must be greater than 0.' )
 
 
    ! SttsTime - Amount of time between screen status messages.
 
-CALL ReadRVar ( UnIn, PriFile, SttsTime, 'SttsTime', 'Amount of time between screen status messages' )
+CALL ReadVar ( UnIn, PriFile, SttsTime, 'SttsTime', 'Amount of time between screen status messages' )
 
 IF ( SttsTime <= 0.0 )  CALL ProgAbort ( ' SttsTime must be greater than 0.' )
 
 
    ! NcIMUxn - Downwind distance from the tower-top to the nacelle IMU.
 
-CALL ReadRVar ( UnIn, PriFile, NcIMUxn, 'NcIMUxn', 'Downwind distance from the tower-top to the nacelle IMU' )
+CALL ReadVar ( UnIn, PriFile, NcIMUxn, 'NcIMUxn', 'Downwind distance from the tower-top to the nacelle IMU' )
 
 
    ! NcIMUyn - Lateral distance from the tower-top to the nacelle IMU.
 
-CALL ReadRVar ( UnIn, PriFile, NcIMUyn, 'NcIMUyn', 'Lateral distance from the tower-top to the nacelle IMU' )
+CALL ReadVar ( UnIn, PriFile, NcIMUyn, 'NcIMUyn', 'Lateral distance from the tower-top to the nacelle IMU' )
 
 
    ! NcIMUzn - Vertical distance from the tower-top to the nacelle IMU.
 
-CALL ReadRVar ( UnIn, PriFile, NcIMUzn, 'NcIMUzn', 'Vertical distance from the tower-top to the nacelle IMU' )
+CALL ReadVar ( UnIn, PriFile, NcIMUzn, 'NcIMUzn', 'Vertical distance from the tower-top to the nacelle IMU' )
 
 
    ! ShftGagL - Distance from hub or teeter pin to shaft strain gages.
 
-CALL ReadRVar ( UnIn, PriFile, ShftGagL, 'ShftGagL', 'Distance from hub or teeter pin to shaft strain gages' )
+CALL ReadVar ( UnIn, PriFile, ShftGagL, 'ShftGagL', 'Distance from hub or teeter pin to shaft strain gages' )
 
 
    ! NTwGages - Number of tower "strain-gage" output stations.
 
-CALL ReadIVar ( UnIn, PriFile, NTwGages, 'NTwGages', 'Number of tower "strain-gage" output stations' )
+CALL ReadVar ( UnIn, PriFile, NTwGages, 'NTwGages', 'Number of tower "strain-gage" output stations' )
 
 IF ( ( NTwGages < 0 ) .OR. ( NTwGages > 9 ) )  CALL ProgAbort ( ' NTwGages must be between 0 and 9 (inclusive).' )
 
@@ -4055,7 +4086,7 @@ ENDIF
 
    ! NBlGages - Number of blade "strain-gage" output stations.
 
-CALL ReadIVar ( UnIn, PriFile, NBlGages, 'NBlGages', 'Number of blade "strain-gage" output stations' )
+CALL ReadVar ( UnIn, PriFile, NBlGages, 'NBlGages', 'Number of blade "strain-gage" output stations' )
 
 IF ( ( NBlGages < 0 ) .OR. ( NBlGages > 9 ) )  CALL ProgAbort ( ' NBlGages must be between 0 and 9 (inclusive).' )
 
@@ -4197,32 +4228,32 @@ ENDIF
 
    ! PtfmSgDOF - Platform horizontal surge translation DOF.
 
-CALL ReadLVar ( UnIn, PtfmFile, PtfmSgDOF, 'PtfmSgDOF', 'Platform surge DOF' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmSgDOF, 'PtfmSgDOF', 'Platform surge DOF' )
 
 
    ! PtfmSwDOF - Platform horizontal sway translation DOF.
 
-CALL ReadLVar ( UnIn, PtfmFile, PtfmSwDOF, 'PtfmSwDOF', 'Platform sway DOF' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmSwDOF, 'PtfmSwDOF', 'Platform sway DOF' )
 
 
    ! PtfmHvDOF - Platform vertical heave translation DOF.
 
-CALL ReadLVar ( UnIn, PtfmFile, PtfmHvDOF, 'PtfmHvDOF', 'Platform heave DOF' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmHvDOF, 'PtfmHvDOF', 'Platform heave DOF' )
 
 
    ! PtfmRDOF - Platform roll tilt rotation DOF.
 
-CALL ReadLVar ( UnIn, PtfmFile, PtfmRDOF, 'PtfmRDOF', 'Platform roll DOF' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmRDOF, 'PtfmRDOF', 'Platform roll DOF' )
 
 
    ! PtfmPDOF - Platform pitch tilt rotation DOF.
 
-CALL ReadLVar ( UnIn, PtfmFile, PtfmPDOF, 'PtfmPDOF', 'Platform pitch DOF' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmPDOF, 'PtfmPDOF', 'Platform pitch DOF' )
 
 
    ! PtfmYDOF - Platform yaw rotation DOF.
 
-CALL ReadLVar ( UnIn, PtfmFile, PtfmYDOF, 'PtfmYDOF', 'Platform yaw DOF' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmYDOF, 'PtfmYDOF', 'Platform yaw DOF' )
 
 
 
@@ -4236,22 +4267,22 @@ CALL ReadLVar ( UnIn, PtfmFile, PtfmYDOF, 'PtfmYDOF', 'Platform yaw DOF' )
 
    ! PtfmSurge - Initial or fixed horizontal surge translational displacement of platform.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmSurge, 'PtfmSurge', 'Initial or fixed platform surge' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmSurge, 'PtfmSurge', 'Initial or fixed platform surge' )
 
 
    ! PtfmSway - Initial or fixed horizontal sway translational displacement of platform.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmSway, 'PtfmSway', 'Initial or fixed platform sway' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmSway, 'PtfmSway', 'Initial or fixed platform sway' )
 
 
    ! PtfmHeave - Initial or fixed vertical heave translational displacement of platform.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmHeave, 'PtfmHeave', 'Initial or fixed platform heave' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmHeave, 'PtfmHeave', 'Initial or fixed platform heave' )
 
 
    ! PtfmRoll - Initial or fixed roll tilt rotational displacement of platform.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmRoll, 'PtfmRoll', 'Initial or fixed platform roll' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmRoll, 'PtfmRoll', 'Initial or fixed platform roll' )
 
 IF ( ( PtfmRoll < -15.0 ) .OR. ( PtfmRoll > 15.0 ) )  &
    CALL ProgAbort ( ' PtfmRoll must be between -15 and 15 (inclusive).' )
@@ -4259,7 +4290,7 @@ IF ( ( PtfmRoll < -15.0 ) .OR. ( PtfmRoll > 15.0 ) )  &
 
    ! PtfmPitch - Initial or fixed pitch tilt rotational displacement of platform.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmPitch, 'PtfmPitch', 'Initial or fixed platform pitch' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmPitch, 'PtfmPitch', 'Initial or fixed platform pitch' )
 
 IF ( ( PtfmPitch < -15.0 ) .OR. ( PtfmPitch > 15.0 ) )  &
    CALL ProgAbort ( ' PtfmPitch must be between -15 and 15 (inclusive).' )
@@ -4267,7 +4298,7 @@ IF ( ( PtfmPitch < -15.0 ) .OR. ( PtfmPitch > 15.0 ) )  &
 
    ! PtfmYaw - Initial or fixed yaw rotational displacement of platform.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmYaw, 'PtfmYaw', 'Initial or fixed platform yaw' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmYaw, 'PtfmYaw', 'Initial or fixed platform yaw' )
 
 IF ( ( PtfmYaw < -15.0 ) .OR. ( PtfmYaw > 15.0 ) )  &
    CALL ProgAbort ( ' PtfmYaw must be between -15 and 15 (inclusive).' )
@@ -4284,7 +4315,7 @@ IF ( ( PtfmYaw < -15.0 ) .OR. ( PtfmYaw > 15.0 ) )  &
 
    ! TwrDraft - Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection.
 
-CALL ReadRVar ( UnIn, PtfmFile, TwrDraft, 'TwrDraft', &
+CALL ReadVar ( UnIn, PtfmFile, TwrDraft, 'TwrDraft', &
    'Downward distance from ground [onshore] or MSL [offshore] to tower base platform connection' )
 
 IF ( TwrDraft <= -TowerHt )  CALL ProgAbort ( ' TwrDraft must be greater than -TowerHt.' )
@@ -4295,7 +4326,7 @@ IF ( TwrRBHt >= ( TowerHt + TwrDraft ) )  &
 
    ! PtfmCM - Downward distance from the ground [onshore] or MSL [offshore] to the platform CM.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmCM, 'PtfmCM', &
+CALL ReadVar ( UnIn, PtfmFile, PtfmCM, 'PtfmCM', &
    'Downward distance from ground [onshore] or MSL [offshore] to platform CM' )
 
 IF ( PtfmCM < TwrDraft )  CALL ProgAbort ( ' PtfmCM must not be less than TwrDraft.' )
@@ -4303,7 +4334,7 @@ IF ( PtfmCM < TwrDraft )  CALL ProgAbort ( ' PtfmCM must not be less than TwrDra
 
    ! PtfmRef - Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmRef, 'PtfmRef', &
+CALL ReadVar ( UnIn, PtfmFile, PtfmRef, 'PtfmRef', &
    'Downward distance from ground [onshore] or MSL [offshore] to platform reference point' )
 
 IF ( PtfmRef < TwrDraft )  CALL ProgAbort ( ' PtfmRef must not be less than TwrDraft.' )
@@ -4321,28 +4352,28 @@ IF ( PtfmRef < TwrDraft )  CALL ProgAbort ( ' PtfmRef must not be less than TwrD
 
    ! PtfmMass - Platform mass.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmMass, 'PtfmMass', 'Platform mass' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmMass, 'PtfmMass', 'Platform mass' )
 
 IF ( PtfmMass < 0.0 )  CALL ProgAbort ( ' PtfmMass must not be negative.' )
 
 
    ! PtfmRIner - Platform inertia for roll tilt rotation about the platform CM.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmRIner, 'PtfmRIner', 'Platform inertia for roll tilt rotation about the platform CM' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmRIner, 'PtfmRIner', 'Platform inertia for roll tilt rotation about the platform CM' )
 
 IF ( PtfmRIner < 0.0 )  CALL ProgAbort ( ' PtfmRIner must not be negative.' )
 
 
    ! PtfmPIner - Platform inertia for pitch tilt rotation about the platform CM.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmPIner, 'PtfmPIner', 'Platform inertia for pitch tilt rotation about the platform CM' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmPIner, 'PtfmPIner', 'Platform inertia for pitch tilt rotation about the platform CM' )
 
 IF ( PtfmPIner < 0.0 )  CALL ProgAbort ( ' PtfmPIner must not be negative.' )
 
 
    ! PtfmYIner - Platform inertia for yaw rotation about the platform CM.
 
-CALL ReadRVar ( UnIn, PtfmFile, PtfmYIner, 'PtfmYIner', 'Platform inertia for yaw rotation about the platform CM' )
+CALL ReadVar ( UnIn, PtfmFile, PtfmYIner, 'PtfmYIner', 'Platform inertia for yaw rotation about the platform CM' )
 
 IF ( PtfmYIner < 0.0 )  CALL ProgAbort ( ' PtfmYIner must not be negative.' )
 
@@ -4366,7 +4397,7 @@ CASE ( 1 )                 ! Onshore.
 
    ! PtfmLdMod - Platform loading model switch.
 
-   CALL ReadIVar ( UnIn, PtfmFile, PtfmLdMod, 'PtfmLdMod', 'Platform loading model switch' )
+   CALL ReadVar ( UnIn, PtfmFile, PtfmLdMod, 'PtfmLdMod', 'Platform loading model switch' )
 
    IF ( ( PtfmLdMod /= 0 ) .AND. ( PtfmLdMod /= 1 ) )  CALL ProgAbort ( ' PtfmLdMod must be 0 or 1.' )
 
@@ -4380,7 +4411,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! PtfmLdMod - Platform loading model switch.
 
-   CALL ReadIVar ( UnIn, PtfmFile, PtfmLdMod, 'PtfmLdMod', 'Platform loading model switch' )
+   CALL ReadVar ( UnIn, PtfmFile, PtfmLdMod, 'PtfmLdMod', 'Platform loading model switch' )
 
    IF ( ( PtfmLdMod /= 0 ) .AND. ( PtfmLdMod /= 1 ) )  CALL ProgAbort ( ' PtfmLdMod must be 0 or 1.' )
 
@@ -4409,7 +4440,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! TwrLdMod - Tower loading model switch.
 
-         CALL ReadIVar ( UnIn, PtfmFile, TwrLdMod, 'TwrLdMod', 'Tower loading model switch' )
+         CALL ReadVar ( UnIn, PtfmFile, TwrLdMod, 'TwrLdMod', 'Tower loading model switch' )
 
          IF ( ( TwrLdMod /= 0 ) .AND. ( TwrLdMod /= 1 ) .AND. ( TwrLdMod /= 2 ) )  THEN
             CALL ProgAbort ( ' TwrLdMod must be 0, 1, or 2.' )
@@ -4421,14 +4452,14 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! TwrDiam - Tower diameter in Morison's equation.
 
-            CALL ReadRVar ( UnIn, PtfmFile, TwrDiam, 'TwrDiam', 'Tower diameter in Morison''s equation' )
+            CALL ReadVar ( UnIn, PtfmFile, TwrDiam, 'TwrDiam', 'Tower diameter in Morison''s equation' )
 
             IF ( TwrDiam < 0.0 )  CALL ProgAbort ( ' TwrDiam must not be negative.' )
 
 
    ! TwrCA - Normalized hydrodynamic added mass coefficient in Morison's equation.
 
-            CALL ReadRVar ( UnIn, PtfmFile, TwrCA, 'TwrCA', &
+            CALL ReadVar ( UnIn, PtfmFile, TwrCA, 'TwrCA', &
                'Normalized hydrodynamic added mass coefficient in Morison''s equation' )
 
             IF ( TwrCA < 0.0 )  CALL ProgAbort ( ' TwrCA must not be negative.' )
@@ -4436,7 +4467,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! TwrCD - Normalized hydrodynamic viscous drag coefficient in Morison's equation.
 
-            CALL ReadRVar ( UnIn, PtfmFile, TwrCD, 'TwrCD', &
+            CALL ReadVar ( UnIn, PtfmFile, TwrCD, 'TwrCD', &
                'Normalized hydrodynamic viscous drag coefficient in Morison''s equation' )
 
             IF ( TwrCD < 0.0 )  CALL ProgAbort ( ' TwrCD must not be negative.' )
@@ -4465,14 +4496,14 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 !JASON: MOVE THIS INPUT, WtrDens, TO AN ENVIRONMENTAL CONDITIONS SECTION OF THE INPUT FILE WHEN YOU DOCUMENT THIS NEW FEATURE!!!!
    ! WtrDens - Water density.
 
-         CALL ReadRVar ( UnIn, PtfmFile, WtrDens, 'WtrDens', 'Water density' )
+         CALL ReadVar ( UnIn, PtfmFile, WtrDens, 'WtrDens', 'Water density' )
 
          IF ( WtrDens < 0.0 )  CALL ProgAbort ( ' WtrDens must not be negative.' )
 
 
    ! WtrDpth - Water depth.
 
-         CALL ReadRVar ( UnIn, PtfmFile, WtrDpth, 'WtrDpth', 'Water depth' )
+         CALL ReadVar ( UnIn, PtfmFile, WtrDpth, 'WtrDpth', 'Water depth' )
 
          IF ( WtrDpth <= 0.0 )  CALL ProgAbort ( ' WtrDpth must be greater than zero.' )
 
@@ -4486,7 +4517,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! WaveMod - Wave kinematics model switch.
 
-         CALL ReadIVar ( UnIn, PtfmFile, WaveMod, 'WaveMod', 'Wave kinematics model switch' )
+         CALL ReadVar ( UnIn, PtfmFile, WaveMod, 'WaveMod', 'Wave kinematics model switch' )
 
          IF ( ( WaveMod /= 0 ) .AND. ( WaveMod /= 1 ) .AND. ( WaveMod /= 2 ) .AND. ( WaveMod /= 3 ) .AND. ( WaveMod /= 4 ) )  &
             CALL ProgAbort ( ' WaveMod must be 0, 1, 2, 3, or 4.' )
@@ -4497,7 +4528,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! WaveStMod - Model switch for stretching incident wave kinematics to instantaneous free surface.
 
-            CALL ReadIVar ( UnIn, PtfmFile, WaveStMod, 'WaveStMod', &
+            CALL ReadVar ( UnIn, PtfmFile, WaveStMod, 'WaveStMod', &
                'Model switch for stretching incident wave kinematics to instantaneous free surface' )
 
             IF ( ( WaveStMod /= 0 ) .AND. ( WaveStMod /= 1 ) .AND. ( WaveStMod /= 2 ) .AND. ( WaveStMod /= 3 ) )  &
@@ -4509,14 +4540,14 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! WaveTMax - Analysis time for incident wave calculations.
 
-            CALL ReadRVar ( UnIn, PtfmFile, WaveTMax, 'WaveTMax', 'Analysis time for incident wave calculations' )
+            CALL ReadVar ( UnIn, PtfmFile, WaveTMax, 'WaveTMax', 'Analysis time for incident wave calculations' )
 
             IF ( WaveTMax < TMax )  CALL ProgAbort ( ' WaveTMax must not be less than TMax.' )
 
 
    ! WaveDT - Time step for incident wave calculations.
 
-            CALL ReadRVar ( UnIn, PtfmFile, WaveDT, 'WaveDT', 'Time step for incident wave calculations' )
+            CALL ReadVar ( UnIn, PtfmFile, WaveDT, 'WaveDT', 'Time step for incident wave calculations' )
 
             IF ( WaveDT <= 0.0 )  CALL ProgAbort ( ' WaveDT must be greater than zero.' )
 
@@ -4539,7 +4570,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
             IF ( ( WaveMod == 1 ) .OR. ( WaveMod == 2 ) )  THEN   ! .TRUE. for plane progressive (regular) or JONSWAP/Pierson-Moskowitz spectrum (irregular) wave
 
-               CALL ReadRVar ( UnIn, PtfmFile, WaveHs, 'WaveHs', 'Significant wave height' )
+               CALL ReadVar ( UnIn, PtfmFile, WaveHs, 'WaveHs', 'Significant wave height' )
 
                IF ( WaveHs <= 0.0 )  CALL ProgAbort ( ' WaveHs must be greater than zero.' )
 
@@ -4554,7 +4585,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
             IF ( ( WaveMod == 1 ) .OR. ( WaveMod == 2 ) )  THEN   ! .TRUE. for plane progressive (regular) or JONSWAP/Pierson-Moskowitz spectrum (irregular) wave
 
-               CALL ReadRVar ( UnIn, PtfmFile, WaveTp, 'WaveTp', 'Peak spectral period' )
+               CALL ReadVar ( UnIn, PtfmFile, WaveTp, 'WaveTp', 'Peak spectral period' )
 
                IF ( WaveTp <= 0.0 )  CALL ProgAbort ( ' WaveTp must be greater than zero.' )
 
@@ -4569,7 +4600,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
             IF ( WaveMod == 2 )  THEN                             ! .TRUE. for JONSWAP/Pierson-Moskowitz spectrum (irregular) wave
 
-               CALL ReadCVar ( UnIn, PtfmFile, Line, 'WavePkShp', 'Peak shape parameter' )
+               CALL ReadVar ( UnIn, PtfmFile, Line, 'WavePkShp', 'Peak shape parameter' )
                CALL Conv2UC( Line )    ! Convert Line to upper case.
 
                IF ( TRIM(Line) == 'DEFAULT' )  THEN   ! .TRUE. when one wants to use the default value of the peak shape parameter, conditioned on significant wave height and peak spectral period.
@@ -4595,7 +4626,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! WaveDir - Wave heading direction.
 
-            CALL ReadRVar ( UnIn, PtfmFile, WaveDir, 'WaveDir', 'Wave heading direction' )
+            CALL ReadVar ( UnIn, PtfmFile, WaveDir, 'WaveDir', 'Wave heading direction' )
 
             IF ( ( WaveDir <= -180.0 ) .OR. ( WaveDir > 180.0 ) )  &
                 CALL ProgAbort ( ' WaveDir must be greater than -180 and less than or equal to 180.' )
@@ -4603,12 +4634,12 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! WaveSeed(1) - First random seed.
 
-            CALL ReadIVar ( UnIn, PtfmFile, WaveSeed(1), 'WaveSeed(1)', 'First random seed' )
+            CALL ReadVar ( UnIn, PtfmFile, WaveSeed(1), 'WaveSeed(1)', 'First random seed' )
 
 
    ! WaveSeed(2) - Second random seed.
 
-            CALL ReadIVar ( UnIn, PtfmFile, WaveSeed(2), 'WaveSeed(2)', 'Second random seed' )
+            CALL ReadVar ( UnIn, PtfmFile, WaveSeed(2), 'WaveSeed(2)', 'Second random seed' )
 
 
          ELSE                                                  ! We must not have incident waves or we must have GH Bladed wave data, so skip these inputs.
@@ -4629,7 +4660,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
          IF ( WaveMod == 4 )  THEN  ! .TRUE if we are to use GH Bladed wave data.
 
-            CALL ReadCVar ( UnIn, PtfmFile, GHWvFile, 'GHWvFile', 'Root name of GH Bladed files containing wave data' )
+            CALL ReadVar ( UnIn, PtfmFile, GHWvFile, 'GHWvFile', 'Root name of GH Bladed files containing wave data' )
 
             IF ( LEN_TRIM( GHWvFile ) == 0 )  CALL ProgAbort ( ' GHWvFile must not be an empty string.' )
             IF ( PathIsRelative( GHWvFile ) ) GHWvFile = TRIM(FilePath)//TRIM(GHWvFile)
@@ -4652,7 +4683,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! CurrMod - Current profile model switch.
 
-         CALL ReadIVar ( UnIn, PtfmFile, CurrMod, 'CurrMod', 'Current profile model switch' )
+         CALL ReadVar ( UnIn, PtfmFile, CurrMod, 'CurrMod', 'Current profile model switch' )
 
          IF ( ( CurrMod /= 0 ) .AND. ( CurrMod /= 1 ) .AND. ( CurrMod /= 2 ) )  THEN
             CALL ProgAbort ( ' CurrMod must be 0, 1, or 2.' )
@@ -4668,14 +4699,14 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! CurrSSV0 - Sub-surface current velocity at still water level.
 
-            CALL ReadRVar ( UnIn, PtfmFile, CurrSSV0, 'CurrSSV0', 'Sub-surface current velocity at still water level' )
+            CALL ReadVar ( UnIn, PtfmFile, CurrSSV0, 'CurrSSV0', 'Sub-surface current velocity at still water level' )
 
             IF ( CurrSSV0 < 0.0 )  CALL ProgAbort ( ' CurrSSV0 must not be less than zero.' )
 
 
    ! CurrSSDir - Sub-surface current heading direction.
 
-            CALL ReadCVar ( UnIn, PtfmFile, Line, 'CurrSSDir', 'Sub-surface current heading direction' )
+            CALL ReadVar ( UnIn, PtfmFile, Line, 'CurrSSDir', 'Sub-surface current heading direction' )
             CALL Conv2UC( Line )    ! Convert Line to upper case.
 
             IF ( TRIM(Line) == 'DEFAULT' )  THEN   ! .TRUE. when one wants to use the default value of codirectionality between sub-surface current and incident wave propogation heading directions.
@@ -4697,21 +4728,21 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! CurrNSRef - Near-surface current reference depth.
 
-            CALL ReadRVar ( UnIn, PtfmFile, CurrNSRef, 'CurrNSRef', 'Near-surface current reference depth' )
+            CALL ReadVar ( UnIn, PtfmFile, CurrNSRef, 'CurrNSRef', 'Near-surface current reference depth' )
 
             IF ( CurrNSRef <= 0.0 )  CALL ProgAbort ( ' CurrNSRef must be greater than zero.' )
 
 
    ! CurrNSV0 - Near-surface current velocity at still water level.
 
-            CALL ReadRVar ( UnIn, PtfmFile, CurrNSV0, 'CurrNSV0', 'Near-surface current velocity at still water level' )
+            CALL ReadVar ( UnIn, PtfmFile, CurrNSV0, 'CurrNSV0', 'Near-surface current velocity at still water level' )
 
             IF ( CurrNSV0 < 0.0 )  CALL ProgAbort ( ' CurrNSV0 must not be less than zero.' )
 
 
    ! CurrNSDir - Near-surface current heading direction.
 
-            CALL ReadRVar ( UnIn, PtfmFile, CurrNSDir, 'CurrNSDir', 'Near-surface current heading direction' )
+            CALL ReadVar ( UnIn, PtfmFile, CurrNSDir, 'CurrNSDir', 'Near-surface current heading direction' )
 
             IF ( ( CurrNSDir <= -180.0 ) .OR. ( CurrNSDir > 180.0 ) )  &
                CALL ProgAbort ( ' CurrNSDir must be greater than -180 and less than or equal to 180.' )
@@ -4719,14 +4750,14 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! CurrDIV - Depth-independent current velocity.
 
-            CALL ReadRVar ( UnIn, PtfmFile, CurrDIV, 'CurrDIV', 'Depth-independent current velocity' )
+            CALL ReadVar ( UnIn, PtfmFile, CurrDIV, 'CurrDIV', 'Depth-independent current velocity' )
 
             IF ( CurrDIV < 0.0 )  CALL ProgAbort ( ' CurrDIV must not be less than zero.' )
 
 
    ! CurrDIDir - Depth-independent current heading direction.
 
-            CALL ReadRVar ( UnIn, PtfmFile, CurrDIDir, 'CurrDIDir', 'Depth-independent current heading direction' )
+            CALL ReadVar ( UnIn, PtfmFile, CurrDIDir, 'CurrDIDir', 'Depth-independent current heading direction' )
 
             IF ( ( CurrDIDir <= -180.0 ) .OR. ( CurrDIDir > 180.0 ) )  &
                CALL ProgAbort ( ' CurrDIDir must be greater than -180 and less than or equal to 180.' )
@@ -4758,7 +4789,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! NWaveKin - Number of points where the incident wave kinematics can be output.
 
-         CALL ReadIVar ( UnIn, PtfmFile, NWaveKin, 'NWaveKin', &
+         CALL ReadVar ( UnIn, PtfmFile, NWaveKin, 'NWaveKin', &
             'Number of points where the incident wave kinematics can be output' )
 
          IF ( ( NWaveKin < 0 ) .OR. ( NWaveKin > 9 ) )  CALL ProgAbort ( ' NWaveKin must be between 0 and 9 (inclusive).' )
@@ -4804,7 +4835,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! PtfmLdMod - Platform loading model switch.
 
-   CALL ReadCVar ( UnIn, PtfmFile, Line, 'PtfmLdMod', 'Platform loading model switch' )
+   CALL ReadVar ( UnIn, PtfmFile, Line, 'PtfmLdMod', 'Platform loading model switch' )
 
    LineUC = Line
    CALL Conv2UC( LineUC )    ! Convert LineUC to upper case.
@@ -4846,14 +4877,14 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! WAMITFile - Root name of WAMIT output files.
 
-      CALL ReadCVar ( UnIn, PtfmFile, WAMITFile, 'WAMITFile', 'Root name of WAMIT output files' )
+      CALL ReadVar ( UnIn, PtfmFile, WAMITFile, 'WAMITFile', 'Root name of WAMIT output files' )
 
       IF ( LEN_TRIM( WAMITFile ) == 0 )  CALL ProgAbort ( ' WAMITFile must not be an empty string.' )
       IF ( PathIsRelative( WAMITFile ) ) WAMITFile = TRIM(FilePath)//TRIM(WAMITFile)
 
    ! PtfmVol0 - Displaced volume of water when the platform is in its undisplaced position.
 
-      CALL ReadRVar ( UnIn, PtfmFile, PtfmVol0, 'PtfmVol0', &
+      CALL ReadVar ( UnIn, PtfmFile, PtfmVol0, 'PtfmVol0', &
          'Displaced volume of water when the platform is in its undisplaced position' )
 
       IF ( PtfmVol0 < 0.0 )  CALL ProgAbort ( ' PtfmVol0 must not be negative.' )
@@ -4861,7 +4892,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! PtfmNodes - Number of platform nodes used in calculation of viscous drag term from Morison's equation.
 
-      CALL ReadIVar ( UnIn, PtfmFile, PtfmNodes, 'PtfmNodes', &
+      CALL ReadVar ( UnIn, PtfmFile, PtfmNodes, 'PtfmNodes', &
          'Number of platform nodes used in calculation of viscous drag term from Morison''s equation' )
 
       IF ( PtfmNodes < 0 )  CALL ProgAbort ( ' PtfmNodes must not be less than 0.' )
@@ -4869,7 +4900,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! PtfmDraft - Effective platform draft in calculation of viscous drag term from Morison's equation.
 
-      CALL ReadRVar ( UnIn, PtfmFile, PtfmDraft, 'PtfmDraft', &
+      CALL ReadVar ( UnIn, PtfmFile, PtfmDraft, 'PtfmDraft', &
          'Effective platform draft in calculation of viscous drag term from Morison''s equation' )
 
       IF ( PtfmDraft < 0.0 )  CALL ProgAbort ( ' PtfmDraft must not be negative.' )
@@ -4877,7 +4908,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! PtfmDiam - Effective platform diameter in calculation of viscous drag term from Morison's equation.
 
-      CALL ReadRVar ( UnIn, PtfmFile, PtfmDiam, 'PtfmDiam', &
+      CALL ReadVar ( UnIn, PtfmFile, PtfmDiam, 'PtfmDiam', &
          'Effective platform diameter in calculation of viscous drag term from Morison''s equation' )
 
       IF ( PtfmDiam < 0.0 )  CALL ProgAbort ( ' PtfmDiam must not be negative.' )
@@ -4885,7 +4916,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! PtfmCD - Effective platform normalized hydrodynamic viscous drag coefficient in calculation of viscous drag term from Morison's equation.
 
-      CALL ReadRVar ( UnIn, PtfmFile, PtfmCD, 'PtfmCD', &
+      CALL ReadVar ( UnIn, PtfmFile, PtfmCD, 'PtfmCD', &
          'Effective platform normalized hydrodynamic viscous drag coefficient in Morison''s equation' )
 
       IF ( PtfmCD < 0.0 )  CALL ProgAbort ( ' PtfmCD must not be negative.' )
@@ -4894,14 +4925,14 @@ CASE ( 3 )                 ! Floating offshore.
    ! RdtnTMax - Analysis time for wave radiation kernel calculations.
    ! NOTE: Use RdtnTMax = 0.0 to eliminate wave radiation damping.
 
-      CALL ReadRVar ( UnIn, PtfmFile, RdtnTMax, 'RdtnTMax', 'Analysis time for wave radiation kernel calculations' )
+      CALL ReadVar ( UnIn, PtfmFile, RdtnTMax, 'RdtnTMax', 'Analysis time for wave radiation kernel calculations' )
 
       IF ( RdtnTMax < 0.0 )  CALL ProgAbort ( ' RdtnTMax must not be negative.' )
 
 
    ! RdtnDT - Time step for wave radiation kernel calculations.
 
-      CALL ReadRVar ( UnIn, PtfmFile, RdtnDT, 'RdtnDT', 'Time step for wave radiation kernel calculations' )
+      CALL ReadVar ( UnIn, PtfmFile, RdtnDT, 'RdtnDT', 'Time step for wave radiation kernel calculations' )
 
       IF ( RdtnDT <= 0.0 )  CALL ProgAbort ( ' RdtnDT must be greater than zero.' )
 
@@ -4917,7 +4948,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! NumLines - Number of mooring lines.
 
-      CALL ReadIVar ( UnIn, PtfmFile, NumLines, 'NumLines', 'Number of mooring lines' )
+      CALL ReadVar ( UnIn, PtfmFile, NumLines, 'NumLines', 'Number of mooring lines' )
 
       IF ( NumLines < 0 )  CALL ProgAbort ( ' NumLines must not be less than zero.' )
 
@@ -5023,7 +5054,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! LineMod - Mooring line model switch.
 
-         CALL ReadIVar ( UnIn, PtfmFile, LineMod, 'LineMod', 'Mooring line model switch' )
+         CALL ReadVar ( UnIn, PtfmFile, LineMod, 'LineMod', 'Mooring line model switch' )
 
          IF ( ( LineMod /= 1 ) .AND. ( LineMod /= 2 ) )  CALL ProgAbort ( ' LineMod must be 1 or 2.' )
 
@@ -5140,14 +5171,14 @@ CASE ( 3 )                 ! Floating offshore.
 !JASON: MOVE THIS INPUT, WtrDens, TO AN ENVIRONMENTAL CONDITIONS SECTION OF THE INPUT FILE WHEN YOU DOCUMENT THIS NEW FEATURE!!!!
    ! WtrDens - Water density.
 
-      CALL ReadRVar ( UnIn, PtfmFile, WtrDens, 'WtrDens', 'Water density' )
+      CALL ReadVar ( UnIn, PtfmFile, WtrDens, 'WtrDens', 'Water density' )
 
       IF ( WtrDens < 0.0 )  CALL ProgAbort ( ' WtrDens must not be negative.' )
 
 
    ! WtrDpth - Water depth.
 
-      CALL ReadRVar ( UnIn, PtfmFile, WtrDpth, 'WtrDpth', 'Water depth' )
+      CALL ReadVar ( UnIn, PtfmFile, WtrDpth, 'WtrDpth', 'Water depth' )
 
       IF (       WtrDpth <= PtfmDraft  )  CALL ProgAbort ( ' WtrDpth must be greater than PtfmDraft.' )
       IF ( LineMod == 1 )  THEN  ! .TRUE if we have standard quasi-static mooring lines.
@@ -5160,7 +5191,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! WaveMod - Wave kinematics model switch.
 
-      CALL ReadIVar ( UnIn, PtfmFile, WaveMod, 'WaveMod', 'Wave kinematics model switch' )
+      CALL ReadVar ( UnIn, PtfmFile, WaveMod, 'WaveMod', 'Wave kinematics model switch' )
 
       IF ( ( WaveMod /= 0 ) .AND. ( WaveMod /= 1 ) .AND. ( WaveMod /= 2 ) .AND. ( WaveMod /= 3 ) )  &
          CALL ProgAbort ( ' WaveMod must be 0, 1, 2, or 3.' )
@@ -5180,14 +5211,14 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! WaveTMax - Analysis time for incident wave calculations.
 
-         CALL ReadRVar ( UnIn, PtfmFile, WaveTMax, 'WaveTMax', 'Analysis time for incident wave calculations' )
+         CALL ReadVar ( UnIn, PtfmFile, WaveTMax, 'WaveTMax', 'Analysis time for incident wave calculations' )
 
          IF ( WaveTMax < TMax )  CALL ProgAbort ( ' WaveTMax must not be less than TMax.' )
 
 
    ! WaveDT - Time step for incident wave calculations.
 
-         CALL ReadRVar ( UnIn, PtfmFile, WaveDT, 'WaveDT', 'Time step for incident wave calculations' )
+         CALL ReadVar ( UnIn, PtfmFile, WaveDT, 'WaveDT', 'Time step for incident wave calculations' )
 
          IF ( WaveDT <= 0.0 )  CALL ProgAbort ( ' WaveDT must be greater than zero.' )
 
@@ -5196,7 +5227,7 @@ CASE ( 3 )                 ! Floating offshore.
 
          IF ( ( WaveMod == 1 ) .OR. ( WaveMod == 2 ) )  THEN   ! .TRUE. for plane progressive (regular) or JONSWAP/Pierson-Moskowitz spectrum (irregular) wave
 
-            CALL ReadRVar ( UnIn, PtfmFile, WaveHs, 'WaveHs', 'Significant wave height' )
+            CALL ReadVar ( UnIn, PtfmFile, WaveHs, 'WaveHs', 'Significant wave height' )
 
             IF ( WaveHs <= 0.0 )  CALL ProgAbort ( ' WaveHs must be greater than zero.' )
 
@@ -5211,7 +5242,7 @@ CASE ( 3 )                 ! Floating offshore.
 
          IF ( ( WaveMod == 1 ) .OR. ( WaveMod == 2 ) )  THEN   ! .TRUE. for plane progressive (regular) or JONSWAP/Pierson-Moskowitz spectrum (irregular) wave
 
-            CALL ReadRVar ( UnIn, PtfmFile, WaveTp, 'WaveTp', 'Peak spectral period' )
+            CALL ReadVar ( UnIn, PtfmFile, WaveTp, 'WaveTp', 'Peak spectral period' )
 
             IF ( WaveTp <= 0.0 )  CALL ProgAbort ( ' WaveTp must be greater than zero.' )
 
@@ -5226,7 +5257,7 @@ CASE ( 3 )                 ! Floating offshore.
 
          IF ( WaveMod == 2 )  THEN                             ! .TRUE. for JONSWAP/Pierson-Moskowitz spectrum (irregular) wave
 
-            CALL ReadCVar ( UnIn, PtfmFile, Line, 'WavePkShp', 'Peak shape parameter' )
+            CALL ReadVar ( UnIn, PtfmFile, Line, 'WavePkShp', 'Peak shape parameter' )
             CALL Conv2UC( Line )    ! Convert Line to upper case.
 
             IF ( TRIM(Line) == 'DEFAULT' )  THEN   ! .TRUE. when one wants to use the default value of the peak shape parameter, conditioned on significant wave height and peak spectral period.
@@ -5252,7 +5283,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! WaveDir - Wave heading direction.
 
-         CALL ReadRVar ( UnIn, PtfmFile, WaveDir, 'WaveDir', 'Wave heading direction' )
+         CALL ReadVar ( UnIn, PtfmFile, WaveDir, 'WaveDir', 'Wave heading direction' )
 
          IF ( ( WaveDir <= -180.0 ) .OR. ( WaveDir > 180.0 ) )  &
             CALL ProgAbort ( ' WaveDir must be greater than -180 and less than or equal to 180.' )
@@ -5260,12 +5291,12 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! WaveSeed(1) - First random seed.
 
-         CALL ReadIVar ( UnIn, PtfmFile, WaveSeed(1), 'WaveSeed(1)', 'First random seed' )
+         CALL ReadVar ( UnIn, PtfmFile, WaveSeed(1), 'WaveSeed(1)', 'First random seed' )
 
 
    ! WaveSeed(2) - Second random seed.
 
-         CALL ReadIVar ( UnIn, PtfmFile, WaveSeed(2), 'WaveSeed(2)', 'Second random seed' )
+         CALL ReadVar ( UnIn, PtfmFile, WaveSeed(2), 'WaveSeed(2)', 'Second random seed' )
 
 
       ELSE                       ! We must not have incident waves, so skip these inputs.
@@ -5295,7 +5326,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! CurrMod - Current profile model switch.
 
-      CALL ReadIVar ( UnIn, PtfmFile, CurrMod, 'CurrMod', 'Current profile model switch' )
+      CALL ReadVar ( UnIn, PtfmFile, CurrMod, 'CurrMod', 'Current profile model switch' )
 
       IF ( ( CurrMod /= 0 ) .AND. ( CurrMod /= 1 ) .AND. ( CurrMod /= 2 ) )  CALL ProgAbort ( ' CurrMod must be 0, 1, or 2.' )
 
@@ -5305,14 +5336,14 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! CurrSSV0 - Sub-surface current velocity at still water level.
 
-         CALL ReadRVar ( UnIn, PtfmFile, CurrSSV0, 'CurrSSV0', 'Sub-surface current velocity at still water level' )
+         CALL ReadVar ( UnIn, PtfmFile, CurrSSV0, 'CurrSSV0', 'Sub-surface current velocity at still water level' )
 
          IF ( CurrSSV0 < 0.0 )  CALL ProgAbort ( ' CurrSSV0 must not be less than zero.' )
 
 
    ! CurrSSDir - Sub-surface current heading direction.
 
-         CALL ReadCVar ( UnIn, PtfmFile, Line, 'CurrSSDir', 'Sub-surface current heading direction' )
+         CALL ReadVar ( UnIn, PtfmFile, Line, 'CurrSSDir', 'Sub-surface current heading direction' )
          CALL Conv2UC( Line )    ! Convert Line to upper case.
 
          IF ( TRIM(Line) == 'DEFAULT' )  THEN   ! .TRUE. when one wants to use the default value of codirectionality between sub-surface current and incident wave propogation heading directions.
@@ -5334,21 +5365,21 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! CurrNSRef - Near-surface current reference depth.
 
-         CALL ReadRVar ( UnIn, PtfmFile, CurrNSRef, 'CurrNSRef', 'Near-surface current reference depth' )
+         CALL ReadVar ( UnIn, PtfmFile, CurrNSRef, 'CurrNSRef', 'Near-surface current reference depth' )
 
          IF ( CurrNSRef <= 0.0 )  CALL ProgAbort ( ' CurrNSRef must be greater than zero.' )
 
 
    ! CurrNSV0 - Near-surface current velocity at still water level.
 
-         CALL ReadRVar ( UnIn, PtfmFile, CurrNSV0, 'CurrNSV0', 'Near-surface current velocity at still water level' )
+         CALL ReadVar ( UnIn, PtfmFile, CurrNSV0, 'CurrNSV0', 'Near-surface current velocity at still water level' )
 
          IF ( CurrNSV0 < 0.0 )  CALL ProgAbort ( ' CurrNSV0 must not be less than zero.' )
 
 
    ! CurrNSDir - Near-surface current heading direction.
 
-         CALL ReadRVar ( UnIn, PtfmFile, CurrNSDir, 'CurrNSDir', 'Near-surface current heading direction' )
+         CALL ReadVar ( UnIn, PtfmFile, CurrNSDir, 'CurrNSDir', 'Near-surface current heading direction' )
 
          IF ( ( CurrNSDir <= -180.0 ) .OR. ( CurrNSDir > 180.0 ) )  &
             CALL ProgAbort ( ' CurrNSDir must be greater than -180 and less than or equal to 180.' )
@@ -5356,14 +5387,14 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! CurrDIV - Depth-independent current velocity.
 
-         CALL ReadRVar ( UnIn, PtfmFile, CurrDIV, 'CurrDIV', 'Depth-independent current velocity' )
+         CALL ReadVar ( UnIn, PtfmFile, CurrDIV, 'CurrDIV', 'Depth-independent current velocity' )
 
          IF ( CurrDIV < 0.0 )  CALL ProgAbort ( ' CurrDIV must not be less than zero.' )
 
 
    ! CurrDIDir - Depth-independent current heading direction.
 
-         CALL ReadRVar ( UnIn, PtfmFile, CurrDIDir, 'CurrDIDir', 'Depth-independent current heading direction' )
+         CALL ReadVar ( UnIn, PtfmFile, CurrDIDir, 'CurrDIDir', 'Depth-independent current heading direction' )
 
          IF ( ( CurrDIDir <= -180.0 ) .OR. ( CurrDIDir > 180.0 ) )  &
             CALL ProgAbort ( ' CurrDIDir must be greater than -180 and less than or equal to 180.' )
@@ -5395,7 +5426,7 @@ CASE ( 3 )                 ! Floating offshore.
 
    ! NWaveKin - Number of points where the incident wave kinematics can be output.
 
-      CALL ReadIVar ( UnIn, PtfmFile, NWaveKin, 'NWaveKin', &
+      CALL ReadVar ( UnIn, PtfmFile, NWaveKin, 'NWaveKin', &
          'Number of points where the incident wave kinematics can be output' )
 
       IF ( ( NWaveKin < 0 ) .OR. ( NWaveKin > 9 ) )  CALL ProgAbort ( ' NWaveKin must be between 0 and 9 (inclusive).' )
@@ -5500,7 +5531,7 @@ ENDIF
 
    ! NTwInpSt - Number of tower input stations.
 
-CALL ReadIVar ( UnIn, TwrFile, NTwInpSt, 'NTwInpSt', 'Number of tower input stations' )
+CALL ReadVar ( UnIn, TwrFile, NTwInpSt, 'NTwInpSt', 'Number of tower input stations' )
 
 IF ( NTwInpSt < 1 )  CALL ProgAbort ( ' NTwInpSt must be at least 1.' )
 
@@ -5508,7 +5539,7 @@ IF ( NTwInpSt < 1 )  CALL ProgAbort ( ' NTwInpSt must be at least 1.' )
    ! CalcTMode - Calculate tower mode shapes (switch).
 
 !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-!JASON:CALL ReadLVar ( UnIn, TwrFile, CalcTMode, 'CalcTMode', 'Calculate tower mode shapes' )
+!JASON:CALL ReadVar ( UnIn, TwrFile, CalcTMode, 'CalcTMode', 'Calculate tower mode shapes' )
    CALL ReadCom ( UnIn, TwrFile, 'currently ignored CalcTMode' )
 
 
@@ -5556,21 +5587,21 @@ IF ( SSStTunr(2) <= 0.0 )  CALL ProgAbort ( ' SSStTunr(2) must be greater than z
 
    ! AdjTwMa - Factor to adjust tower mass density.
 
-CALL ReadRVar ( UnIn, TwrFile, AdjTwMa, 'AdjTwMa', 'Factor to adjust tower mass density' )
+CALL ReadVar ( UnIn, TwrFile, AdjTwMa, 'AdjTwMa', 'Factor to adjust tower mass density' )
 
 IF ( AdjTwMa <= 0.0 )  CALL ProgAbort ( ' AdjTwMa must be greater than zero.' )
 
 
    ! AdjFASt - Factor to adjust tower fore-aft stiffness.
 
-CALL ReadRVar ( UnIn, TwrFile, AdjFASt, 'AdjFASt', 'Factor to adjust tower fore-aft stiffness' )
+CALL ReadVar ( UnIn, TwrFile, AdjFASt, 'AdjFASt', 'Factor to adjust tower fore-aft stiffness' )
 
 IF ( AdjFASt <= 0.0 )  CALL ProgAbort ( ' AdjFASt must be greater than zero.' )
 
 
    ! AdjSSSt - Factor to adjust tower side-to-side stiffness.
 
-CALL ReadRVar ( UnIn, TwrFile, AdjSSSt, 'AdjSSSt', 'Factor to adjust tower side-to-side stiffness' )
+CALL ReadVar ( UnIn, TwrFile, AdjSSSt, 'AdjSSSt', 'Factor to adjust tower side-to-side stiffness' )
 
 IF ( AdjSSSt <= 0.0 )  CALL ProgAbort ( ' AdjSSSt must be greater than zero.' )
 
@@ -5809,7 +5840,7 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetTower
 !=======================================================================
-SUBROUTINE FAST_Input(ErrStat, ErrMsg )
+SUBROUTINE FAST_Input( p, OtherState, ErrStat, ErrMsg )
 
 
    ! This routine reads the input files and does some preliminary processing.
@@ -5851,8 +5882,10 @@ USE                             Noise  !NoiseInput()
 IMPLICIT                        NONE
 
    ! passed variables
-INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status
-CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat 
+TYPE(StrD_ParameterType), INTENT(OUT) :: p                                 ! Parameter data type for structural dynamics module
+TYPE(StrD_OtherStateType),INTENT(OUT) :: OtherState                        ! Other State data type for Structural dynamics module
+INTEGER,          INTENT(OUT),OPTIONAL:: ErrStat                           ! Error status
+CHARACTER(*),     INTENT(OUT),OPTIONAL:: ErrMsg                            ! Error message corresponding to ErrStat 
 
    ! Local variables.
 
@@ -5871,7 +5904,7 @@ TYPE(StrD_InputFile)         :: InputFileData                                   
 
    ! Read the primary parameter file:
 
-CALL GetPrimary( InputFileData )
+CALL GetPrimary( InputFileData, p, ErrStat, Errmsg )
 
 
    ! Read the platform parameter file if necessary, calculate some parameters
@@ -6640,20 +6673,20 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
 
    ! Allocate the arrays holding the operating point values:
 
-   CALL AllocAry( Qop, p_StrD%NDOF,   NAzimStep, 'Qop',   ErrStat, ErrMsg )
+   CALL AllocAry( Qop, p%NDOF,   NAzimStep, 'Qop',   ErrStat, ErrMsg )
    IF ( ErrStat >= AbortErrLev ) RETURN
 
-   CALL AllocAry( QDop, p_StrD%NDOF,  NAzimStep, 'QDop',  ErrStat, ErrMsg )
+   CALL AllocAry( QDop, p%NDOF,  NAzimStep, 'QDop',  ErrStat, ErrMsg )
    IF ( ErrStat >= AbortErrLev ) RETURN
 
-   CALL AllocAry( QD2op, p_StrD%NDOF, NAzimStep, 'QD2op', ErrStat, ErrMsg )
+   CALL AllocAry( QD2op, p%NDOF, NAzimStep, 'QD2op', ErrStat, ErrMsg )
    IF ( ErrStat >= AbortErrLev ) RETURN
 
 ENDIF
 
    ! Check to see if any inputted output channels are ill-conditioned and set values for p_StrD%OutParam(:):
 
-CALL ChckOutLst( InputFileData%OutList, p_StrD, ErrStat, ErrMsg )
+CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
 IF ( ErrStat >= AbortErrLev ) RETURN
 
 
