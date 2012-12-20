@@ -451,7 +451,7 @@ CLOSE ( UnAL )
 RETURN
 END SUBROUTINE MakeACF_LIN
 !=======================================================================
-SUBROUTINE MakeADM
+SUBROUTINE MakeADM(p,x)
 
 
    ! This routine generates an ADAMS dataset file (.adm) using the
@@ -494,6 +494,13 @@ USE                             FASTSubs    !SetCoordSy
 
 
 IMPLICIT                        NONE
+
+   ! passed variables
+
+TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             ! Parameters of the structural dynamics module
+TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
+!TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
+!TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for Structural dynamics module
 
 
    ! Local variables:
@@ -640,7 +647,7 @@ IDCntrl = 0.0
 
 x%QT  = Q (:,1) ! Transfer the initial conditions of the DOFs to the QT array, which is used throughout SetCoordSy().
 CALL CoordSys_Alloc( CoordSys, NumBl, BldNodes, TwrNodes, ErrStat, ErrMsg )
-CALL SetCoordSy( CoordSys )
+CALL SetCoordSy( CoordSys, p, x )
 
 
 

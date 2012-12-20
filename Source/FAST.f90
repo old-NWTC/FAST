@@ -2,10 +2,11 @@ MODULE FASTSubs
 
    USE   NWTC_Library
    USE   StructDyn_Types
+   USE   StructDyn_Parameters
 
 CONTAINS
 !=======================================================================
-SUBROUTINE Alloc
+SUBROUTINE Alloc(p,x,y)
 
 
    ! This routine allocates many of the variable-length arrays.
@@ -27,6 +28,13 @@ USE                             TurbCont
 USE                             NOISE !AllocNoise
 
 IMPLICIT                        NONE
+
+
+   ! Passed variables.
+
+TYPE(StrD_ParameterType),        INTENT(INOUT) :: p                             ! Parameters of the structural dynamics module
+TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
+TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
 
 
    ! Local variables.
@@ -162,21 +170,21 @@ IF (.NOT. ALLOCATED( FreqBF ) ) THEN
       CALL ProgAbort(' Error allocating memory for the FreqBF array.')
    ENDIF
 ENDIF
-
-IF (.NOT. ALLOCATED( DOF_BE ) ) THEN
-   ALLOCATE ( DOF_BE(NumBl,1) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort(' Error allocating memory for the DOF_BE array.')
-   ENDIF
-ENDIF
-
-IF (.NOT. ALLOCATED( DOF_BF ) ) THEN
-   ALLOCATE ( DOF_BF(NumBl,2) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort(' Error allocating memory for the DOF_BF array.')
-   ENDIF
-ENDIF
-
+!
+!IF (.NOT. ALLOCATED( DOF_BE ) ) THEN
+!   ALLOCATE ( DOF_BE(NumBl,1) , STAT=Sttus )
+!   IF ( Sttus /= 0 )  THEN
+!      CALL ProgAbort(' Error allocating memory for the DOF_BE array.')
+!   ENDIF
+!ENDIF
+!
+!IF (.NOT. ALLOCATED( DOF_BF ) ) THEN
+!   ALLOCATE ( DOF_BF(NumBl,2) , STAT=Sttus )
+!   IF ( Sttus /= 0 )  THEN
+!      CALL ProgAbort(' Error allocating memory for the DOF_BF array.')
+!   ENDIF
+!ENDIF
+!
 IF (.NOT. ALLOCATED( BldMass ) ) THEN
    ALLOCATE ( BldMass(NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
@@ -923,7 +931,7 @@ END SUBROUTINE Alloc
 !=======================================================================
 
 
-SUBROUTINE CalcOuts( CoordSys )
+SUBROUTINE CalcOuts( p,x,y,OtherState )
 
 
    ! This SUBROUTINE is used to compute the selected output channels
@@ -964,6 +972,18 @@ USE                             AeroDyn
 
 IMPLICIT                        NONE
 
+   ! passed variables:
+!TYPE(StrD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+TYPE(StrD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+TYPE(StrD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+!TYPE(StrD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
+!TYPE(StrD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+TYPE(StrD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states (The coordinate systems previously calculated)
+TYPE(StrD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
+                                                              !   nectivity information does not have to be recalculated)
+!INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+!CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   
 
    ! Local variables:
 
@@ -1006,7 +1026,6 @@ REAL(ReKi)                   :: rSTipPSTip(3)                                   
 REAL(ReKi)                   :: TmpVec    (3)                                   ! A temporary vector used in various computations.
 REAL(ReKi)                   :: TmpVec2   (3)                                   ! A temporary vector.
 
-TYPE(StrD_CoordSys), INTENT(IN) :: CoordSys                                     ! The coordinate systems previously calculated
 
 INTEGER                      :: I                                               ! Generic index
 INTEGER                      :: J                                               ! Loops through nodes / elements.
@@ -1185,23 +1204,23 @@ END IF
    ! Blade (1-3) Tip Motions:
 
 DO K = 1,NumBl
-   rSTipPSTip = rS0S(K,TipNode,:) - BldFlexL*CoordSys%j3(K,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
+   rSTipPSTip = rS0S(K,TipNode,:) - BldFlexL*OtherState%CoordSys%j3(K,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
    rOSTip     = rS  (K,TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 1.
-   rOSTipxn   =      DOT_PRODUCT( rOSTip, CoordSys%d1 )                ! Component of rOSTip directed along the xn-axis.
-   rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, CoordSys%d3 )                ! Component of rOSTip directed along the yn-axis.
-   rOSTipzn   =      DOT_PRODUCT( rOSTip, CoordSys%d2 )                ! Component of rOSTip directed along the zn-axis.
+   rOSTipxn   =      DOT_PRODUCT( rOSTip, OtherState%CoordSys%d1 )                ! Component of rOSTip directed along the xn-axis.
+   rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, OtherState%CoordSys%d3 )                ! Component of rOSTip directed along the yn-axis.
+   rOSTipzn   =      DOT_PRODUCT( rOSTip, OtherState%CoordSys%d2 )                ! Component of rOSTip directed along the zn-axis.
 
-   AllOuts(  TipDxc(K) ) = DOT_PRODUCT(            rSTipPSTip, CoordSys%i1(K,         :) )
-   AllOuts(  TipDyc(K) ) = DOT_PRODUCT(            rSTipPSTip, CoordSys%i2(K,         :) )
-   AllOuts(  TipDzc(K) ) = DOT_PRODUCT(            rSTipPSTip, CoordSys%i3(K,         :) )
-   AllOuts(  TipDxb(K) ) = DOT_PRODUCT(            rSTipPSTip, CoordSys%j1(K,         :) )
-   AllOuts(  TipDyb(K) ) = DOT_PRODUCT(            rSTipPSTip, CoordSys%j2(K,         :) )
+   AllOuts(  TipDxc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i1(K,         :) )
+   AllOuts(  TipDyc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i2(K,         :) )
+   AllOuts(  TipDzc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i3(K,         :) )
+   AllOuts(  TipDxb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j1(K,         :) )
+   AllOuts(  TipDyb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j2(K,         :) )
    !JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-   AllOuts( TipALxb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), CoordSys%n1(K,BldNodes,:) )
-   AllOuts( TipALyb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), CoordSys%n2(K,BldNodes,:) )
-   AllOuts( TipALzb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), CoordSys%n3(K,BldNodes,:) )
-   AllOuts( TipRDxb(K) ) = DOT_PRODUCT( AngPosHM(K,TipNode,:), CoordSys%j1(K,         :) )*R2D
-   AllOuts( TipRDyb(K) ) = DOT_PRODUCT( AngPosHM(K,TipNode,:), CoordSys%j2(K,         :) )*R2D
+   AllOuts( TipALxb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), OtherState%CoordSys%n1(K,BldNodes,:) )
+   AllOuts( TipALyb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), OtherState%CoordSys%n2(K,BldNodes,:) )
+   AllOuts( TipALzb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), OtherState%CoordSys%n3(K,BldNodes,:) )
+   AllOuts( TipRDxb(K) ) = DOT_PRODUCT( AngPosHM(K,TipNode,:), OtherState%CoordSys%j1(K,         :) )*R2D
+   AllOuts( TipRDyb(K) ) = DOT_PRODUCT( AngPosHM(K,TipNode,:), OtherState%CoordSys%j2(K,         :) )*R2D
    ! There is no sense computing AllOuts( TipRDzc(K) ) here since it is always zero for FAST simulation results.
    IF ( rOSTipzn > 0.0 )  THEN   ! Tip of blade K is above the yaw bearing.
       AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 1.
@@ -1216,19 +1235,19 @@ END DO !K
 DO K = 1,NumBl
    DO I = 1, NBlGages
 
-      AllOuts( SpnALxb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), CoordSys%n1(K,BldGagNd(I),:) )
-      AllOuts( SpnALyb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), CoordSys%n2(K,BldGagNd(I),:) )
-      AllOuts( SpnALzb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), CoordSys%n3(K,BldGagNd(I),:) )
+      AllOuts( SpnALxb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), OtherState%CoordSys%n1(K,BldGagNd(I),:) )
+      AllOuts( SpnALyb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), OtherState%CoordSys%n2(K,BldGagNd(I),:) )
+      AllOuts( SpnALzb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), OtherState%CoordSys%n3(K,BldGagNd(I),:) )
 
-      rSPS                    = rS0S(K,BldGagNd(I),:) - RNodes(BldGagNd(I))*CoordSys%j3(K,:)
+      rSPS                    = rS0S(K,BldGagNd(I),:) - RNodes(BldGagNd(I))*OtherState%CoordSys%j3(K,:)
 
-      AllOuts( SpnTDxb(I,K) ) = DOT_PRODUCT( rSPS, CoordSys%j1(K,:) )
-      AllOuts( SpnTDyb(I,K) ) = DOT_PRODUCT( rSPS, CoordSys%j2(K,:) )
-      AllOuts( SpnTDzb(I,K) ) = DOT_PRODUCT( rSPS, CoordSys%j3(K,:) )
+      AllOuts( SpnTDxb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j1(K,:) )
+      AllOuts( SpnTDyb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j2(K,:) )
+      AllOuts( SpnTDzb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j3(K,:) )
 
-      AllOuts( SpnRDxb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), CoordSys%j1(K,:) )*R2D
-      AllOuts( SpnRDyb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), CoordSys%j2(K,:) )*R2D
-     !AllOuts( SpnRDzb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), CoordSys%j3(K,:) )*R2D           ! this is always zero for FAST
+      AllOuts( SpnRDxb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), OtherState%CoordSys%j1(K,:) )*R2D
+      AllOuts( SpnRDyb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), OtherState%CoordSys%j2(K,:) )*R2D
+     !AllOuts( SpnRDzb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), OtherState%CoordSys%j3(K,:) )*R2D           ! this is always zero for FAST
 
    END DO !I
 END DO !K
@@ -1283,18 +1302,18 @@ ENDIF
 
    ! Nacelle IMU Motions:
 
-AllOuts(NcIMUTVxs) =      DOT_PRODUCT( LinVelEIMU, CoordSys%c1 )
-AllOuts(NcIMUTVys) = -1.0*DOT_PRODUCT( LinVelEIMU, CoordSys%c3 )
-AllOuts(NcIMUTVzs) =      DOT_PRODUCT( LinVelEIMU, CoordSys%c2 )
-AllOuts(NcIMUTAxs) =      DOT_PRODUCT( LinAccEIMU, CoordSys%c1 )
-AllOuts(NcIMUTAys) = -1.0*DOT_PRODUCT( LinAccEIMU, CoordSys%c3 )
-AllOuts(NcIMUTAzs) =      DOT_PRODUCT( LinAccEIMU, CoordSys%c2 )
-AllOuts(NcIMURVxs) =      DOT_PRODUCT( AngVelER  , CoordSys%c1 )*R2D
-AllOuts(NcIMURVys) = -1.0*DOT_PRODUCT( AngVelER  , CoordSys%c3 )*R2D
-AllOuts(NcIMURVzs) =      DOT_PRODUCT( AngVelER  , CoordSys%c2 )*R2D
-AllOuts(NcIMURAxs) =      DOT_PRODUCT( AngAccER  , CoordSys%c1 )*R2D
-AllOuts(NcIMURAys) = -1.0*DOT_PRODUCT( AngAccER  , CoordSys%c3 )*R2D
-AllOuts(NcIMURAzs) =      DOT_PRODUCT( AngAccER  , CoordSys%c2 )*R2D
+AllOuts(NcIMUTVxs) =      DOT_PRODUCT( LinVelEIMU, OtherState%CoordSys%c1 )
+AllOuts(NcIMUTVys) = -1.0*DOT_PRODUCT( LinVelEIMU, OtherState%CoordSys%c3 )
+AllOuts(NcIMUTVzs) =      DOT_PRODUCT( LinVelEIMU, OtherState%CoordSys%c2 )
+AllOuts(NcIMUTAxs) =      DOT_PRODUCT( LinAccEIMU, OtherState%CoordSys%c1 )
+AllOuts(NcIMUTAys) = -1.0*DOT_PRODUCT( LinAccEIMU, OtherState%CoordSys%c3 )
+AllOuts(NcIMUTAzs) =      DOT_PRODUCT( LinAccEIMU, OtherState%CoordSys%c2 )
+AllOuts(NcIMURVxs) =      DOT_PRODUCT( AngVelER  , OtherState%CoordSys%c1 )*R2D
+AllOuts(NcIMURVys) = -1.0*DOT_PRODUCT( AngVelER  , OtherState%CoordSys%c3 )*R2D
+AllOuts(NcIMURVzs) =      DOT_PRODUCT( AngVelER  , OtherState%CoordSys%c2 )*R2D
+AllOuts(NcIMURAxs) =      DOT_PRODUCT( AngAccER  , OtherState%CoordSys%c1 )*R2D
+AllOuts(NcIMURAys) = -1.0*DOT_PRODUCT( AngAccER  , OtherState%CoordSys%c3 )*R2D
+AllOuts(NcIMURAzs) =      DOT_PRODUCT( AngAccER  , OtherState%CoordSys%c2 )*R2D
 
 
    ! Rotor-Furl Motions:
@@ -1320,45 +1339,45 @@ AllOuts(   YawAzn) =   QD2T(DOF_Yaw )*R2D
 
    ! Tower-Top / Yaw Bearing Motions:
 
-rOPO     = rT0O - TwrFlexL*CoordSys%a2 ! Position vector from the undeflected tower top (point O prime) to the deflected tower top (point O).
+rOPO     = rT0O - TwrFlexL*OtherState%CoordSys%a2 ! Position vector from the undeflected tower top (point O prime) to the deflected tower top (point O).
 
-AllOuts(YawBrTDxp) =  DOT_PRODUCT(     rOPO, CoordSys%b1 )
-AllOuts(YawBrTDyp) = -DOT_PRODUCT(     rOPO, CoordSys%b3 )
-AllOuts(YawBrTDzp) =  DOT_PRODUCT(     rOPO, CoordSys%b2 )
-AllOuts(YawBrTDxt) =  DOT_PRODUCT(     rOPO, CoordSys%a1 )
-AllOuts(YawBrTDyt) = -DOT_PRODUCT(     rOPO, CoordSys%a3 )
-AllOuts(YawBrTDzt) =  DOT_PRODUCT(     rOPO, CoordSys%a2 )
-AllOuts(YawBrTAxp) =  DOT_PRODUCT( LinAccEO, CoordSys%b1 )
-AllOuts(YawBrTAyp) = -DOT_PRODUCT( LinAccEO, CoordSys%b3 )
-AllOuts(YawBrTAzp) =  DOT_PRODUCT( LinAccEO, CoordSys%b2 )
-AllOuts(YawBrRDxt) =  DOT_PRODUCT( AngPosXB, CoordSys%a1 )*R2D
-AllOuts(YawBrRDyt) = -DOT_PRODUCT( AngPosXB, CoordSys%a3 )*R2D
+AllOuts(YawBrTDxp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b1 )
+AllOuts(YawBrTDyp) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%b3 )
+AllOuts(YawBrTDzp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b2 )
+AllOuts(YawBrTDxt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a1 )
+AllOuts(YawBrTDyt) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%a3 )
+AllOuts(YawBrTDzt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a2 )
+AllOuts(YawBrTAxp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b1 )
+AllOuts(YawBrTAyp) = -DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b3 )
+AllOuts(YawBrTAzp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b2 )
+AllOuts(YawBrRDxt) =  DOT_PRODUCT( AngPosXB, OtherState%CoordSys%a1 )*R2D
+AllOuts(YawBrRDyt) = -DOT_PRODUCT( AngPosXB, OtherState%CoordSys%a3 )*R2D
 ! There is no sense computing AllOuts(YawBrRDzt) here since it is always zero for FAST simulation results.
-AllOuts(YawBrRVxp) =  DOT_PRODUCT( AngVelEB, CoordSys%b1 )*R2D
-AllOuts(YawBrRVyp) = -DOT_PRODUCT( AngVelEB, CoordSys%b3 )*R2D
-AllOuts(YawBrRVzp) =  DOT_PRODUCT( AngVelEB, CoordSys%b2 )*R2D
-AllOuts(YawBrRAxp) =  DOT_PRODUCT( AngAccEB, CoordSys%b1 )*R2D
-AllOuts(YawBrRAyp) = -DOT_PRODUCT( AngAccEB, CoordSys%b3 )*R2D
-AllOuts(YawBrRAzp) =  DOT_PRODUCT( AngAccEB, CoordSys%b2 )*R2D
+AllOuts(YawBrRVxp) =  DOT_PRODUCT( AngVelEB, OtherState%CoordSys%b1 )*R2D
+AllOuts(YawBrRVyp) = -DOT_PRODUCT( AngVelEB, OtherState%CoordSys%b3 )*R2D
+AllOuts(YawBrRVzp) =  DOT_PRODUCT( AngVelEB, OtherState%CoordSys%b2 )*R2D
+AllOuts(YawBrRAxp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b1 )*R2D
+AllOuts(YawBrRAyp) = -DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b3 )*R2D
+AllOuts(YawBrRAzp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b2 )*R2D
 
 
    ! Local Tower Motions:
 
 DO I = 1, NTwGages
 
-   AllOuts( TwHtALxt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), CoordSys%t1(TwrGagNd(I),:) )
-   AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(TwrGagNd(I),:), CoordSys%t3(TwrGagNd(I),:) )
-   AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), CoordSys%t2(TwrGagNd(I),:) )
+   AllOuts( TwHtALxt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t1(TwrGagNd(I),:) )
+   AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t3(TwrGagNd(I),:) )
+   AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t2(TwrGagNd(I),:) )
 
-   rTPT                   = rT0T(TwrGagNd(I),:) - HNodes(TwrGagNd(I))*CoordSys%a2(:)
+   rTPT                   = rT0T(TwrGagNd(I),:) - HNodes(TwrGagNd(I))*OtherState%CoordSys%a2(:)
 
-   AllOuts( TwHtTDxt(I) ) =      DOT_PRODUCT( rTPT,     CoordSys%a1 )
-   AllOuts( TwHtTDyt(I) ) = -1.0*DOT_PRODUCT( rTPT,     CoordSys%a3 )
-   AllOuts( TwHtTDzt(I) ) =      DOT_PRODUCT( rTPT,     CoordSys%a2 )   
+   AllOuts( TwHtTDxt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a1 )
+   AllOuts( TwHtTDyt(I) ) = -1.0*DOT_PRODUCT( rTPT,     OtherState%CoordSys%a3 )
+   AllOuts( TwHtTDzt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a2 )   
    
-   AllOuts( TwHtRDxt(I) ) =      DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), CoordSys%a1 )*R2D  !why is this zero???
-   AllOuts( TwHtRDyt(I) ) = -1.0*DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), CoordSys%a3 )*R2D
-!   AllOuts( TwHtRDzt(I) ) =     DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), CoordSys%a2 )*R2D  !this will always be 0 in FAST, so no need to calculate
+   AllOuts( TwHtRDxt(I) ) =      DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), OtherState%CoordSys%a1 )*R2D  !why is this zero???
+   AllOuts( TwHtRDyt(I) ) = -1.0*DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), OtherState%CoordSys%a3 )*R2D
+!   AllOuts( TwHtRDzt(I) ) =     DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), OtherState%CoordSys%a2 )*R2D  !this will always be 0 in FAST, so no need to calculate
 
 
    AllOuts( TwHtTPxi(I) ) =      rT(TwrGagNd(I),1)
@@ -1373,36 +1392,36 @@ END DO !I
 
    ! Platform Motions:
 
-AllOuts( PtfmTDxt) =  DOT_PRODUCT(       rZ, CoordSys%a1 )
-AllOuts( PtfmTDyt) = -DOT_PRODUCT(       rZ, CoordSys%a3 )
-AllOuts( PtfmTDzt) =  DOT_PRODUCT(       rZ, CoordSys%a2 )
+AllOuts( PtfmTDxt) =  DOT_PRODUCT(       rZ, OtherState%CoordSys%a1 )
+AllOuts( PtfmTDyt) = -DOT_PRODUCT(       rZ, OtherState%CoordSys%a3 )
+AllOuts( PtfmTDzt) =  DOT_PRODUCT(       rZ, OtherState%CoordSys%a2 )
 AllOuts( PtfmTDxi) = x%QT  (DOF_Sg  )
 AllOuts( PtfmTDyi) = x%QT  (DOF_Sw  )
 AllOuts( PtfmTDzi) = x%QT  (DOF_Hv  )
-AllOuts( PtfmTVxt) =  DOT_PRODUCT( LinVelEZ, CoordSys%a1 )
-AllOuts( PtfmTVyt) = -DOT_PRODUCT( LinVelEZ, CoordSys%a3 )
-AllOuts( PtfmTVzt) =  DOT_PRODUCT( LinVelEZ, CoordSys%a2 )
+AllOuts( PtfmTVxt) =  DOT_PRODUCT( LinVelEZ, OtherState%CoordSys%a1 )
+AllOuts( PtfmTVyt) = -DOT_PRODUCT( LinVelEZ, OtherState%CoordSys%a3 )
+AllOuts( PtfmTVzt) =  DOT_PRODUCT( LinVelEZ, OtherState%CoordSys%a2 )
 AllOuts( PtfmTVxi) = x%QDT (DOF_Sg  )
 AllOuts( PtfmTVyi) = x%QDT (DOF_Sw  )
 AllOuts( PtfmTVzi) = x%QDT (DOF_Hv  )
-AllOuts( PtfmTAxt) =  DOT_PRODUCT( LinAccEZ, CoordSys%a1 )
-AllOuts( PtfmTAyt) = -DOT_PRODUCT( LinAccEZ, CoordSys%a3 )
-AllOuts( PtfmTAzt) =  DOT_PRODUCT( LinAccEZ, CoordSys%a2 )
+AllOuts( PtfmTAxt) =  DOT_PRODUCT( LinAccEZ, OtherState%CoordSys%a1 )
+AllOuts( PtfmTAyt) = -DOT_PRODUCT( LinAccEZ, OtherState%CoordSys%a3 )
+AllOuts( PtfmTAzt) =  DOT_PRODUCT( LinAccEZ, OtherState%CoordSys%a2 )
 AllOuts( PtfmTAxi) = QD2T(DOF_Sg  )
 AllOuts( PtfmTAyi) = QD2T(DOF_Sw  )
 AllOuts( PtfmTAzi) = QD2T(DOF_Hv  )
 AllOuts( PtfmRDxi) = x%QT  (DOF_R   )                       *R2D
 AllOuts( PtfmRDyi) = x%QT  (DOF_P   )                       *R2D
 AllOuts( PtfmRDzi) = x%QT  (DOF_Y   )                       *R2D
-AllOuts( PtfmRVxt) =  DOT_PRODUCT( AngVelEX, CoordSys%a1 )*R2D
-AllOuts( PtfmRVyt) = -DOT_PRODUCT( AngVelEX, CoordSys%a3 )*R2D
-AllOuts( PtfmRVzt) =  DOT_PRODUCT( AngVelEX, CoordSys%a2 )*R2D
+AllOuts( PtfmRVxt) =  DOT_PRODUCT( AngVelEX, OtherState%CoordSys%a1 )*R2D
+AllOuts( PtfmRVyt) = -DOT_PRODUCT( AngVelEX, OtherState%CoordSys%a3 )*R2D
+AllOuts( PtfmRVzt) =  DOT_PRODUCT( AngVelEX, OtherState%CoordSys%a2 )*R2D
 AllOuts( PtfmRVxi) = x%QDT (DOF_R   )                       *R2D
 AllOuts( PtfmRVyi) = x%QDT (DOF_P   )                       *R2D
 AllOuts( PtfmRVzi) = x%QDT (DOF_Y   )                       *R2D
-AllOuts( PtfmRAxt) =  DOT_PRODUCT( AngAccEX, CoordSys%a1 )*R2D
-AllOuts( PtfmRAyt) = -DOT_PRODUCT( AngAccEX, CoordSys%a3 )*R2D
-AllOuts( PtfmRAzt) =  DOT_PRODUCT( AngAccEX, CoordSys%a2 )*R2D
+AllOuts( PtfmRAxt) =  DOT_PRODUCT( AngAccEX, OtherState%CoordSys%a1 )*R2D
+AllOuts( PtfmRAyt) = -DOT_PRODUCT( AngAccEX, OtherState%CoordSys%a3 )*R2D
+AllOuts( PtfmRAzt) =  DOT_PRODUCT( AngAccEX, OtherState%CoordSys%a2 )*R2D
 AllOuts( PtfmRAxi) = QD2T(DOF_R   )                       *R2D
 AllOuts( PtfmRAyi) = QD2T(DOF_P   )                       *R2D
 AllOuts( PtfmRAzi) = QD2T(DOF_Y   )                       *R2D
@@ -1421,16 +1440,16 @@ ENDIF
    ! Blade Root Loads:
 
 DO K=1,NumBl
-   AllOuts( RootFxc(K) ) = DOT_PRODUCT( FrcS0B(K,:), CoordSys%i1(K,:) )
-   AllOuts( RootFyc(K) ) = DOT_PRODUCT( FrcS0B(K,:), CoordSys%i2(K,:) )
-   AllOuts( RootFzc(K) ) = DOT_PRODUCT( FrcS0B(K,:), CoordSys%i3(K,:) )
-   AllOuts( RootFxb(K) ) = DOT_PRODUCT( FrcS0B(K,:), CoordSys%j1(K,:) )
-   AllOuts( RootFyb(K) ) = DOT_PRODUCT( FrcS0B(K,:), CoordSys%j2(K,:) )
-   AllOuts( RootMxc(K) ) = DOT_PRODUCT( MomH0B(K,:), CoordSys%i1(K,:) )
-   AllOuts( RootMyc(K) ) = DOT_PRODUCT( MomH0B(K,:), CoordSys%i2(K,:) )
-   AllOuts( RootMzc(K) ) = DOT_PRODUCT( MomH0B(K,:), CoordSys%i3(K,:) )
-   AllOuts( RootMxb(K) ) = DOT_PRODUCT( MomH0B(K,:), CoordSys%j1(K,:) )
-   AllOuts( RootMyb(K) ) = DOT_PRODUCT( MomH0B(K,:), CoordSys%j2(K,:) )
+   AllOuts( RootFxc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i1(K,:) )
+   AllOuts( RootFyc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i2(K,:) )
+   AllOuts( RootFzc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i3(K,:) )
+   AllOuts( RootFxb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j1(K,:) )
+   AllOuts( RootFyb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j2(K,:) )
+   AllOuts( RootMxc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i1(K,:) )
+   AllOuts( RootMyc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i2(K,:) )
+   AllOuts( RootMzc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i3(K,:) )
+   AllOuts( RootMxb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j1(K,:) )
+   AllOuts( RootMyb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j2(K,:) )
 END DO !K
 
 
@@ -1441,14 +1460,14 @@ DO K = 1,NumBl
    
       ! Initialize FrcMGagB and MomMGagB using the tip brake effects:
       
-         FrcMGagB = FSTipDrag(K,:) - TipMass(K)*( Gravity*CoordSys%z2 + LinAccES(K,TipNode,:) )
+         FrcMGagB = FSTipDrag(K,:) - TipMass(K)*( Gravity*OtherState%CoordSys%z2 + LinAccES(K,TipNode,:) )
          MomMGagB = CROSS_PRODUCT( rS0S(K,TipNode,:) - rS0S(K,BldGagNd(I),:), FrcMGagB )
 
 
       ! Integrate to find FrcMGagB and MomMGagB using all of the nodes / elements above the current strain gage location:
          DO J = ( BldGagNd(I) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
 
-            TmpVec2  = FSAero(K,J,:) - MassB(K,J)*( Gravity*CoordSys%z2 + LinAccES(K,J,:) )  ! Portion of FrcMGagB associated with element J
+            TmpVec2  = FSAero(K,J,:) - MassB(K,J)*( Gravity*OtherState%CoordSys%z2 + LinAccES(K,J,:) )  ! Portion of FrcMGagB associated with element J
             FrcMGagB = FrcMGagB + TmpVec2*DRNodes(J)
 
             TmpVec = CROSS_PRODUCT( rS0S(K,J,:) - rS0S(K,BldGagNd(I),:), TmpVec2 )           ! Portion of MomMGagB associated with element J                             
@@ -1462,24 +1481,24 @@ DO K = 1,NumBl
       !   the moment arm for the force is 1/4 of DRNodes() and the element
       !   length is 1/2 of DRNodes().
 
-         TmpVec2  = FSAero(K,BldGagNd(I),:) - MassB(K,BldGagNd(I))* ( Gravity*CoordSys%z2 + LinAccES(K,BldGagNd(I),:) ) ! Portion of FrcMGagB associated with 1/2 of the strain gage element
+         TmpVec2  = FSAero(K,BldGagNd(I),:) - MassB(K,BldGagNd(I))* ( Gravity*OtherState%CoordSys%z2 + LinAccES(K,BldGagNd(I),:) ) ! Portion of FrcMGagB associated with 1/2 of the strain gage element
          FrcMGagB = FrcMGagB + TmpVec2 * 0.5 * DRNodes(BldGagNd(I))                                                    ! Portion of FrcMGagB associated with 1/2 of the strain gage element
          FrcMGagB = 0.001*FrcMGagB           ! Convert the local force to kN
          
          
-         TmpVec = CROSS_PRODUCT( ( 0.25*DRNodes(BldGagNd(I)) )*CoordSys%j3(K,:), TmpVec2 )                              ! Portion of MomMGagB associated with 1/2 of the strain gage element
+         TmpVec = CROSS_PRODUCT( ( 0.25*DRNodes(BldGagNd(I)) )*OtherState%CoordSys%j3(K,:), TmpVec2 )                              ! Portion of MomMGagB associated with 1/2 of the strain gage element
 
          MomMGagB = MomMGagB + ( TmpVec + MMAero(K,BldGagNd(I),:) )* ( 0.5 *DRNodes(BldGagNd(I)) )
          MomMGagB = 0.001*MomMGagB           ! Convert the local moment to kN-m
 
 
-         AllOuts(SpnFLxb(I,K)) = DOT_PRODUCT( FrcMGagB, CoordSys%n1(K,BldGagNd(I),:) )
-         AllOuts(SpnFLyb(I,K)) = DOT_PRODUCT( FrcMGagB, CoordSys%n2(K,BldGagNd(I),:) )
-         AllOuts(SpnFLzb(I,K)) = DOT_PRODUCT( FrcMGagB, CoordSys%n3(K,BldGagNd(I),:) )
+         AllOuts(SpnFLxb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n1(K,BldGagNd(I),:) )
+         AllOuts(SpnFLyb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n2(K,BldGagNd(I),:) )
+         AllOuts(SpnFLzb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n3(K,BldGagNd(I),:) )
 
-         AllOuts(SpnMLxb(I,K)) = DOT_PRODUCT( MomMGagB, CoordSys%n1(K,BldGagNd(I),:) )
-         AllOuts(SpnMLyb(I,K)) = DOT_PRODUCT( MomMGagB, CoordSys%n2(K,BldGagNd(I),:) )
-         AllOuts(SpnMLzb(I,K)) = DOT_PRODUCT( MomMGagB, CoordSys%n3(K,BldGagNd(I),:) )
+         AllOuts(SpnMLxb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n1(K,BldGagNd(I),:) )
+         AllOuts(SpnMLyb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n2(K,BldGagNd(I),:) )
+         AllOuts(SpnMLzb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n3(K,BldGagNd(I),:) )
    END DO ! I
 END DO ! K
 
@@ -1489,16 +1508,16 @@ END DO ! K
 
 ComDenom = 0.5*AirDens*ProjArea*AllOuts(  WindVxi)*AllOuts(  WindVxi)   ! Common denominator used in several expressions
 
-AllOuts(LSShftFxa) =  DOT_PRODUCT(  FrcPRot, CoordSys%e1 )
-AllOuts(LSShftFya) =  DOT_PRODUCT(  FrcPRot, CoordSys%e2 )
-AllOuts(LSShftFza) =  DOT_PRODUCT(  FrcPRot, CoordSys%e3 )
-AllOuts(LSShftFys) = -DOT_PRODUCT(  FrcPRot, CoordSys%c3 )
-AllOuts(LSShftFzs) =  DOT_PRODUCT(  FrcPRot, CoordSys%c2 )
-AllOuts(LSShftMxa) =  DOT_PRODUCT( MomLPRot, CoordSys%e1 )
-AllOuts(LSSTipMya) =  DOT_PRODUCT( MomLPRot, CoordSys%e2 )
-AllOuts(LSSTipMza) =  DOT_PRODUCT( MomLPRot, CoordSys%e3 )
-AllOuts(LSSTipMys) = -DOT_PRODUCT( MomLPRot, CoordSys%c3 )
-AllOuts(LSSTipMzs) =  DOT_PRODUCT( MomLPRot, CoordSys%c2 )
+AllOuts(LSShftFxa) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e1 )
+AllOuts(LSShftFya) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e2 )
+AllOuts(LSShftFza) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e3 )
+AllOuts(LSShftFys) = -DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c3 )
+AllOuts(LSShftFzs) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c2 )
+AllOuts(LSShftMxa) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e1 )
+AllOuts(LSSTipMya) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e2 )
+AllOuts(LSSTipMza) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e3 )
+AllOuts(LSSTipMys) = -DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c3 )
+AllOuts(LSSTipMzs) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c2 )
 IF ( AllOuts(LSShftFxa) /= 0.0 )  THEN ! .TRUE. if the denominator in the following equations is not zero.
 
    CThrstys = -AllOuts(LSSTipMzs)/AllOuts(LSShftFxa)  ! Estimate of the ys-location of the center of thrust
@@ -1544,7 +1563,7 @@ AllOuts(LSSGagMzs) = AllOuts(LSSTipMzs) - ShftGagL*AllOuts(LSShftFys)
    ! Generator and High-Speed Shaft Loads:
 
 AllOuts( HSShftTq) = AllOuts(LSShftMxa)*GBoxEffFac/GBRatio
-AllOuts(HSShftPwr) = AllOuts( HSShftTq)*GBRatio*QDT(DOF_GeAz)
+AllOuts(HSShftPwr) = AllOuts( HSShftTq)*GBRatio*x%QDT(DOF_GeAz)
 AllOuts(  HSSBrTq) = 0.001*HSSBrTrq
 AllOuts(    GenTq) = 0.001*GenTrq
 AllOuts(   GenPwr) = 0.001*ElecPwr
@@ -1567,36 +1586,36 @@ ENDIF
 
    ! Rotor-Furl Axis Loads:
 
-AllOuts(RFrlBrM  ) =  DOT_PRODUCT( MomNGnRt, CoordSys%rfa )
+AllOuts(RFrlBrM  ) =  DOT_PRODUCT( MomNGnRt, OtherState%CoordSys%rfa )
 
 
    ! Tail-Furl Axis Loads:
 
-AllOuts(TFrlBrM  ) =  DOT_PRODUCT( MomNTail, CoordSys%tfa )
+AllOuts(TFrlBrM  ) =  DOT_PRODUCT( MomNTail, OtherState%CoordSys%tfa )
 
 
    ! Tower-Top / Yaw Bearing Loads:
 
-AllOuts( YawBrFxn) =  DOT_PRODUCT( FrcONcRt, CoordSys%d1 )
-AllOuts( YawBrFyn) = -DOT_PRODUCT( FrcONcRt, CoordSys%d3 )
-AllOuts( YawBrFzn) =  DOT_PRODUCT( FrcONcRt, CoordSys%d2 )
-AllOuts( YawBrFxp) =  DOT_PRODUCT( FrcONcRt, CoordSys%b1 )
-AllOuts( YawBrFyp) = -DOT_PRODUCT( FrcONcRt, CoordSys%b3 )
-AllOuts( YawBrMxn) =  DOT_PRODUCT( MomBNcRt, CoordSys%d1 )
-AllOuts( YawBrMyn) = -DOT_PRODUCT( MomBNcRt, CoordSys%d3 )
-AllOuts( YawBrMzn) =  DOT_PRODUCT( MomBNcRt, CoordSys%d2 )
-AllOuts( YawBrMxp) =  DOT_PRODUCT( MomBNcRt, CoordSys%b1 )
-AllOuts( YawBrMyp) = -DOT_PRODUCT( MomBNcRt, CoordSys%b3 )
+AllOuts( YawBrFxn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d1 )
+AllOuts( YawBrFyn) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d3 )
+AllOuts( YawBrFzn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d2 )
+AllOuts( YawBrFxp) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b1 )
+AllOuts( YawBrFyp) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b3 )
+AllOuts( YawBrMxn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d1 )
+AllOuts( YawBrMyn) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d3 )
+AllOuts( YawBrMzn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d2 )
+AllOuts( YawBrMxp) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b1 )
+AllOuts( YawBrMyp) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b3 )
 
 
    ! Tower Base Loads:
 
-AllOuts( TwrBsFxt) =  DOT_PRODUCT( FrcT0Trb, CoordSys%a1 )
-AllOuts( TwrBsFyt) = -DOT_PRODUCT( FrcT0Trb, CoordSys%a3 )
-AllOuts( TwrBsFzt) =  DOT_PRODUCT( FrcT0Trb, CoordSys%a2 )
-AllOuts( TwrBsMxt) =  DOT_PRODUCT( MomX0Trb, CoordSys%a1 )
-AllOuts( TwrBsMyt) = -DOT_PRODUCT( MomX0Trb, CoordSys%a3 )
-AllOuts( TwrBsMzt) =  DOT_PRODUCT( MomX0Trb, CoordSys%a2 )
+AllOuts( TwrBsFxt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a1 )
+AllOuts( TwrBsFyt) = -DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a3 )
+AllOuts( TwrBsFzt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a2 )
+AllOuts( TwrBsMxt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a1 )
+AllOuts( TwrBsMyt) = -DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a3 )
+AllOuts( TwrBsMzt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a2 )
 
 
    ! Local Tower Loads:
@@ -1607,13 +1626,13 @@ MomBNcRt = 1000.0*MomBNcRt ! from kN and kN-m back to N and N-m, respectively.
 DO I=1,NTwGages
 
    ! Initialize FrcFGagT and MomFGagT using the tower-top and yaw bearing mass effects:
-   FrcFGagT = FrcONcRt - YawBrMass*( Gravity*CoordSys%z2 + LinAccEO )
+   FrcFGagT = FrcONcRt - YawBrMass*( Gravity*OtherState%CoordSys%z2 + LinAccEO )
    MomFGagT = CROSS_PRODUCT( rZO - rZT(TwrGagNd(I),:), FrcFGagT )
    MomFGagT = MomFGagT + MomBNcRt
 
    ! Integrate to find FrcFGagT and MomFGagT using all of the nodes / elements above the current strain gage location:
    DO J = ( TwrGagNd(I) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
-      TmpVec2  = FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*CoordSys%z2 + LinAccET(J,:) )           ! Portion of FrcFGagT associated with element J       
+      TmpVec2  = FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*OtherState%CoordSys%z2 + LinAccET(J,:) )           ! Portion of FrcFGagT associated with element J       
       FrcFGagT = FrcFGagT + TmpVec2*DHNodes(J)
       
       TmpVec = CROSS_PRODUCT( rZT(J,:) - rZT(TwrGagNd(I),:), TmpVec2 )                          ! Portion of MomFGagT associated with element J
@@ -1625,41 +1644,41 @@ DO I=1,NTwGages
    !   effect (due to tower bending) within the element.  Thus, the moment arm
    !   for the force is 1/4 of DHNodes() and the element length is 1/2 of DHNodes().
    
-   TmpVec2  = FTAero(TwrGagNd(I),:) + FTHydro(TwrGagNd(I),:) - MassT(TwrGagNd(I))*( Gravity*CoordSys%z2 + LinAccET(TwrGagNd(I),:))
+   TmpVec2  = FTAero(TwrGagNd(I),:) + FTHydro(TwrGagNd(I),:) - MassT(TwrGagNd(I))*( Gravity*OtherState%CoordSys%z2 + LinAccET(TwrGagNd(I),:))
    
    FrcFGagT = FrcFGagT + TmpVec2 * 0.5 * DHNodes(TwrGagNd(I))
    FrcFGagT = 0.001*FrcFGagT  ! Convert the local force to kN
    
-   TmpVec = CROSS_PRODUCT( ( 0.25*DHNodes( TwrGagNd(I)) )*CoordSys%a2, TmpVec2 )              ! Portion of MomFGagT associated with 1/2 of the strain gage element
+   TmpVec = CROSS_PRODUCT( ( 0.25*DHNodes( TwrGagNd(I)) )*OtherState%CoordSys%a2, TmpVec2 )              ! Portion of MomFGagT associated with 1/2 of the strain gage element
    TmpVec   = TmpVec   + MFAero(TwrGagNd(I),:) + MFHydro(TwrGagNd(I),:) 
    MomFGagT = MomFGagT + TmpVec * 0.5 * DHNodes(TwrGagNd(I)) 
    MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
 
-   AllOuts( TwHtFLxt(I) ) =     DOT_PRODUCT( FrcFGagT, CoordSys%t1(TwrGagNd(I),:) )
-   AllOuts( TwHtFLyt(I) ) = -1.*DOT_PRODUCT( FrcFGagT, CoordSys%t3(TwrGagNd(I),:) )
-   AllOuts( TwHtFLzt(I) ) =     DOT_PRODUCT( FrcFGagT, CoordSys%t2(TwrGagNd(I),:) )
+   AllOuts( TwHtFLxt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t1(TwrGagNd(I),:) )
+   AllOuts( TwHtFLyt(I) ) = -1.*DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t3(TwrGagNd(I),:) )
+   AllOuts( TwHtFLzt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t2(TwrGagNd(I),:) )
 
-   AllOuts( TwHtMLxt(I) ) =     DOT_PRODUCT( MomFGagT, CoordSys%t1(TwrGagNd(I),:) )
-   AllOuts( TwHtMLyt(I) ) = -1.*DOT_PRODUCT( MomFGagT, CoordSys%t3(TwrGagNd(I),:) )
-   AllOuts( TwHtMLzt(I) ) =     DOT_PRODUCT( MomFGagT, CoordSys%t2(TwrGagNd(I),:) )
+   AllOuts( TwHtMLxt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t1(TwrGagNd(I),:) )
+   AllOuts( TwHtMLyt(I) ) = -1.*DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t3(TwrGagNd(I),:) )
+   AllOuts( TwHtMLzt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t2(TwrGagNd(I),:) )
 
 END DO
 
 
    ! Platform Loads:
 
-AllOuts(  PtfmFxt) =  DOT_PRODUCT( FZHydro, CoordSys%a1 )
-AllOuts(  PtfmFyt) = -DOT_PRODUCT( FZHydro, CoordSys%a3 )
-AllOuts(  PtfmFzt) =  DOT_PRODUCT( FZHydro, CoordSys%a2 )
-AllOuts(  PtfmFxi) =  DOT_PRODUCT( FZHydro, CoordSys%z1 )
-AllOuts(  PtfmFyi) = -DOT_PRODUCT( FZHydro, CoordSys%z3 )
-AllOuts(  PtfmFzi) =  DOT_PRODUCT( FZHydro, CoordSys%z2 )
-AllOuts(  PtfmMxt) =  DOT_PRODUCT( MXHydro, CoordSys%a1 )
-AllOuts(  PtfmMyt) = -DOT_PRODUCT( MXHydro, CoordSys%a3 )
-AllOuts(  PtfmMzt) =  DOT_PRODUCT( MXHydro, CoordSys%a2 )
-AllOuts(  PtfmMxi) =  DOT_PRODUCT( MXHydro, CoordSys%z1 )
-AllOuts(  PtfmMyi) = -DOT_PRODUCT( MXHydro, CoordSys%z3 )
-AllOuts(  PtfmMzi) =  DOT_PRODUCT( MXHydro, CoordSys%z2 )
+AllOuts(  PtfmFxt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a1 )
+AllOuts(  PtfmFyt) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%a3 )
+AllOuts(  PtfmFzt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a2 )
+AllOuts(  PtfmFxi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z1 )
+AllOuts(  PtfmFyi) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%z3 )
+AllOuts(  PtfmFzi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z2 )
+AllOuts(  PtfmMxt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a1 )
+AllOuts(  PtfmMyt) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%a3 )
+AllOuts(  PtfmMzt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a2 )
+AllOuts(  PtfmMxi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z1 )
+AllOuts(  PtfmMyi) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%z3 )
+AllOuts(  PtfmMzi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z2 )
 
 
 IF ( CompHydro )  THEN  ! Hydrodynamics have been used
@@ -2487,7 +2506,7 @@ IF (ALLOCATED( TMssAbvNd )) DEALLOCATE ( TMssAbvNd )
 RETURN
 END SUBROUTINE Coeff
 !=======================================================================
-SUBROUTINE Control( b1 )
+SUBROUTINE Control( x, b1 )
 
 
    ! This is the main control routine.
@@ -2510,7 +2529,8 @@ USE                             AeroDyn
 IMPLICIT                        NONE
 
    ! Passed variables:
-REAL(ReKi)                  :: b1(3)                                            ! Vector / direction b1 (=  xp from the IEC coord. system)   
+TYPE(StrD_ContinuousStateType),INTENT(INOUT) :: x                          ! The structural dynamics module's continuous states
+REAL(ReKi)                                :: b1(3)                      ! Vector / direction b1 (=  xp from the IEC coord. system)   
 
    ! Local variables:
 
@@ -3562,8 +3582,8 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(QD                                 ) ) DEALLOCATE(QD                                 )
    IF ( ALLOCATED(QD2                                ) ) DEALLOCATE(QD2                                )
    IF ( ALLOCATED(Diag                               ) ) DEALLOCATE(Diag                               )
-   IF ( ALLOCATED(DOF_BE                             ) ) DEALLOCATE(DOF_BE                             )
-   IF ( ALLOCATED(DOF_BF                             ) ) DEALLOCATE(DOF_BF                             )
+   !IF ( ALLOCATED(DOF_BE                             ) ) DEALLOCATE(DOF_BE                             )
+   !IF ( ALLOCATED(DOF_BF                             ) ) DEALLOCATE(DOF_BF                             )
    IF ( ALLOCATED(IC                                 ) ) DEALLOCATE(IC                                 )
    IF ( ALLOCATED(NPSBE                              ) ) DEALLOCATE(NPSBE                              )
    IF ( ALLOCATED(NPSE                               ) ) DEALLOCATE(NPSE                               )
@@ -4168,7 +4188,7 @@ ENDIF
 RETURN
 END SUBROUTINE InitBlDefl
 !=======================================================================
-SUBROUTINE FAST_Initialize()
+SUBROUTINE FAST_Initialize(p,x,y)
 
 
    ! Initialize sets up starting values for each degree of freedom.
@@ -4193,7 +4213,15 @@ USE                             Waves, ONLY:InitWaves
 IMPLICIT                        NONE
 
 
+   ! Passed variables
+   
+TYPE(StrD_ParameterType),        INTENT(INOUT) :: p                             ! Parameters of the structural dynamics module
+TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
+TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
+
+
    ! Local variables:
+   
 REAL(ReKi), ALLOCATABLE      :: DZNodesPtfm(:)                                  ! Length of variable-length support platform elements (meters)
 
 REAL(ReKi)                   :: InitQE1                                         ! Initial value of the 1st blade edge DOF
@@ -4212,7 +4240,7 @@ INTEGER(4)                   :: Sttus                                           
 
    ! Allocate many of the variable-length arrays:
 
-CALL Alloc
+CALL Alloc(p,x,y)
 
 
    ! Initialize the IC array:
@@ -4223,13 +4251,13 @@ DO I = 2,NMX
 ENDDO
 
 
-   ! Define DOF index locations for the blade modes:
-
-DO K = 1,NumBl ! Loop through all blades
-   DOF_BF(K,1) = 16 + 3*(K-1)       ! 1st blade flap mode--DOFs 16, 19, and 22 for blade 1, 2, and 3, respectively
-   DOF_BE(K,1) = 17 + 3*(K-1)       ! 1st blade edge mode--DOFs 17, 20, and 23 for blade 1, 2, and 3, respectively
-   DOF_BF(K,2) = 18 + 3*(K-1)       ! 2nd blade flap mode--DOFs 18, 21, and 24 for blade 1, 2, and 3, respectively
-ENDDO          ! K - All blades
+!   ! Define DOF index locations for the blade modes:
+!
+!DO K = 1,NumBl ! Loop through all blades
+!   DOF_BF(K,1) = 16 + 3*(K-1)       ! 1st blade flap mode--DOFs 16, 19, and 22 for blade 1, 2, and 3, respectively
+!   DOF_BE(K,1) = 17 + 3*(K-1)       ! 1st blade edge mode--DOFs 17, 20, and 23 for blade 1, 2, and 3, respectively
+!   DOF_BF(K,2) = 18 + 3*(K-1)       ! 2nd blade flap mode--DOFs 18, 21, and 24 for blade 1, 2, and 3, respectively
+!ENDDO          ! K - All blades
 
 
    ! Define arrays of DOF indices (pointers) that contribute to the angular
@@ -4661,7 +4689,7 @@ ENDIF
 RETURN
 END SUBROUTINE FAST_Initialize
 !=======================================================================
-SUBROUTINE PtfmLoading
+SUBROUTINE PtfmLoading(x)
 
 
    ! This routine computes the platform loading; that is PtfmAM(1:6,1:6)
@@ -4675,6 +4703,10 @@ USE                             SimCont
 
 IMPLICIT                        NONE
 
+
+   ! passed variables
+   
+TYPE(StrD_ContinuousStateType),INTENT(IN)       :: x                          ! The structural dynamics module's continuous states
 
    ! Local variables:
 
@@ -5063,7 +5095,7 @@ CALL SetEnabledDOFIndexArrays
    !   of control measurements are computed until the end of the first time
    !   step):
 
-IF ( ( ZTime > 0.0 ) .AND. ( AnalMode == 1 ) )  CALL Control( CoordSys%b1 ) !bjj: note that b1 hasn't been set yet....
+IF ( ( ZTime > 0.0 ) .AND. ( AnalMode == 1 ) )  CALL Control( x, CoordSys%b1 ) !bjj: note that b1 hasn't been set yet when the simulation starts....
 
 
 
@@ -5093,7 +5125,7 @@ LinAccEZt   = 0.0
 
    ! Let's define the coordinate systems that will be used throughout this routine:
 
-CALL SetCoordSy( CoordSys )
+CALL SetCoordSy( CoordSys, p, x )
 
    !-------------------------------------------------------------------------------------------------
    ! Positions
@@ -6232,7 +6264,7 @@ IF ( CompAero )  THEN   ! Calculate the tail aerodynamic forces using AeroDyn.
    CALL TFinAero( rK(1), -rK(3), rK(2),                  &
                   DOT_PRODUCT( LinVelEK,  CoordSys%p1 ), &
                   DOT_PRODUCT( LinVelEK, -CoordSys%p3 ), &
-                  DOT_PRODUCT( LinVelEK,  CoordSys%p2 ), CoordSys )
+                  DOT_PRODUCT( LinVelEK,  CoordSys%p2 ), CoordSys, x )
 
 
    ! Vectorize these values into FKAero and MAAero:
@@ -6717,7 +6749,7 @@ ENDIF
    ! Let's compute the platform loading; that is PtfmAM(1:6,1:6), and
    !   PtfmFt(1:6):
 
-CALL PtfmLoading
+CALL PtfmLoading( x )
 
 
    ! Compute the partial platform forces and moments (including those
@@ -6909,8 +6941,8 @@ IF ( DOF_Flag (DOF_Yaw ) )  THEN
       AugMat(SrtPS(I),DOF_Yaw ) = -DOT_PRODUCT( PAngVelEN(DOF_Yaw ,0,:), PMomBNcRt(SrtPS(I),:) )    ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
       AugMat(DOF_Yaw ,    NAUG) =  DOT_PRODUCT( PAngVelEN(DOF_Yaw ,0,:), MomBNcRtt             ) &  ! {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
-                                -  YawSpr *( QT (DOF_Yaw) - YawNeut     )                    &  ! + {-f(qd,q,t)}SpringYaw
-                                -  YawDamp*( QDT(DOF_Yaw) - YawRateNeut )                       ! + {-f(qd,q,t)}DampYaw; NOTE: The neutral yaw rate, YawRateNeut, defaults to zero.  It is only used for yaw control.
+                                -  YawSpr *( x%QT (DOF_Yaw) - YawNeut     )                    &  ! + {-f(qd,q,t)}SpringYaw
+                                -  YawDamp*( x%QDT(DOF_Yaw) - YawRateNeut )                       ! + {-f(qd,q,t)}DampYaw; NOTE: The neutral yaw rate, YawRateNeut, defaults to zero.  It is only used for yaw control.
 ENDIF
 
 IF ( DOF_Flag (DOF_RFrl) )  THEN
@@ -6949,8 +6981,8 @@ IF ( DOF_Flag (DOF_DrTr) )  THEN
       AugMat(SrtPS(I),DOF_DrTr) = -DOT_PRODUCT( PAngVelEL(DOF_DrTr,0,:), PMomLPRot(SrtPS(I),:) )    ! [C(q,t)]H + [C(q,t)]B
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
       AugMat(DOF_DrTr,    NAUG) =  DOT_PRODUCT( PAngVelEL(DOF_DrTr,0,:), MomLPRott             ) &  ! {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
-                                -  DTTorSpr*QT (DOF_DrTr)                                    &  ! + {-f(qd,q,t)}ElasticDrive
-                                -  DTTorDmp*QDT(DOF_DrTr)                                       ! + {-f(qd,q,t)}DampDrive
+                                -  DTTorSpr*x%QT (DOF_DrTr)                                    &  ! + {-f(qd,q,t)}ElasticDrive
+                                -  DTTorDmp*x%QDT(DOF_DrTr)                                       ! + {-f(qd,q,t)}DampDrive
 ENDIF
 
 IF ( DOF_Flag (DOF_TFrl) )  THEN
@@ -7131,7 +7163,7 @@ CONTAINS
 
 END SUBROUTINE RtHS
 !=======================================================================
-SUBROUTINE SetCoordSy( CoordSys, p )
+SUBROUTINE SetCoordSy( CoordSys, p, x )
 
 
    ! This routine is used to define the internal coordinate systems for
@@ -7152,8 +7184,9 @@ IMPLICIT                        NONE
 
    ! Subroutine arguments (passed variables)
 
-TYPE(StrD_CoordSys), INTENT(INOUT) :: CoordSys                                  ! The coordinate systems to be set
-TYPE(StrD_CoordSys), INTENT(IN)    :: p                                         ! The module's parameters
+TYPE(StrD_CoordSys),            INTENT(INOUT) :: CoordSys                      ! The coordinate systems to be set
+TYPE(StrD_ParameterType),       INTENT(IN)    :: p                             ! The module's parameters
+TYPE(StrD_ContinuousStateType), INTENT(IN)    :: x                             ! The module's continuous states
 
 
    ! Local variables
@@ -7205,7 +7238,7 @@ CoordSys%z3 = (/ 0.0, 0.0, 1.0 /)   ! Vector / direction z3 (= -yi from the IEC 
 
    ! Tower base / platform coordinate system:
 
-CALL SmllRotTrans( 'platform displacement', QT(DOF_R), QT(DOF_Y), -QT(DOF_P), TransMat, TRIM(Num2LStr(ZTime))//' s' )  ! Get the transformation matrix, TransMat, from inertial frame to tower base / platform coordinate systems.
+CALL SmllRotTrans( 'platform displacement', x%QT(DOF_R), x%QT(DOF_Y), -x%QT(DOF_P), TransMat, TRIM(Num2LStr(ZTime))//' s' )  ! Get the transformation matrix, TransMat, from inertial frame to tower base / platform coordinate systems.
 
 CoordSys%a1 = TransMat(1,1)*CoordSys%z1 + TransMat(1,2)*CoordSys%z2 + TransMat(1,3)*CoordSys%z3 ! Vector / direction a1 (=  xt from the IEC coord. system).
 CoordSys%a2 = TransMat(2,1)*CoordSys%z1 + TransMat(2,2)*CoordSys%z2 + TransMat(2,3)*CoordSys%z3 ! Vector / direction a2 (=  zt from the IEC coord. system).
@@ -7878,7 +7911,7 @@ SrtPSNAUG ( NActvDOF + 1 ) = NAUG
 RETURN
 END SUBROUTINE SetEnabledDOFIndexArrays
 !=======================================================================
-SUBROUTINE Solver( CoordSys, x )
+SUBROUTINE Solver( p, x, y, OtherState )
 
 
    ! Solver solves the equations of motion by marching in time using a
@@ -7898,8 +7931,10 @@ IMPLICIT                        NONE
 
    ! Subroutine arguments (Passed variables):
    
-TYPE(StrD_CoordSys), INTENT(INOUT) :: CoordSys                                  ! The coordinate systems to be set
-TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x                            ! The structural dynamics module's continuous states
+TYPE(StrD_ParameterType),      INTENT(IN)       :: p                           ! The parameters of the structural dynamics module
+TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x                           ! The structural dynamics module's continuous states
+TYPE(StrD_OtherStateType),     INTENT(INOUT)    :: OtherState                  ! The structural dynamics "other" states (including CoordSys coordinate systems) 
+TYPE(StrD_OutputType),         INTENT(INOUT)    :: y                           ! System outputs of the structural dynamics module
 
 
    ! Local variables:
@@ -7973,7 +8008,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    x%QT  = Q (:,IC(1))
    x%QDT = QD(:,IC(1))
 
-   CALL RtHS( p, CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x )
 
 
    ! Compute intermediate functions to estimate next Q and QD.
@@ -7987,7 +8022,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x )
 
 
    ! Repeat above steps for each ZK, ZKD:
@@ -8001,7 +8036,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x )
 
 
    DO I = 1,NDOF  ! Loop through all DOFs
@@ -8013,7 +8048,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x )
 
 
    ! Compute best estimate for Q, QD at next time step using
@@ -8055,7 +8090,7 @@ ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corre
    x%QT  = Q (:,IC(NMX))
    x%QDT = QD(:,IC(NMX))
 
-   CALL RtHS( p, CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x )
 
    QD2(:,IC(NMX)) = QD2T
 
@@ -8086,7 +8121,7 @@ ENDIF
 x%QT  = Q (:,IC(NMX))
 x%QDT = QD(:,IC(NMX))
 
-CALL RtHS( p, CoordSys, x, x )
+CALL RtHS( p, OtherState%CoordSys, x )
 
 QD2(:,IC(NMX)) = QD2T
 
@@ -8318,7 +8353,7 @@ ENDSELECT
 RETURN
 END SUBROUTINE TFurling
 !=======================================================================
-SUBROUTINE TimeMarch( p_StrD, x_StrD, OtherSt_StrD, ErrStat, ErrMsg  )
+SUBROUTINE TimeMarch( p_StrD, x_StrD, OtherSt_StrD, y_StrD, ErrStat, ErrMsg  )
 
 
    ! TimeMarch controls the execution of the typical time-marching
@@ -8339,15 +8374,20 @@ USE                             Tower, ONLY: TwrNodes
 IMPLICIT                        NONE
 
 
+   ! passed variables
+TYPE(StrD_ParameterType),      INTENT(IN)       :: p_StrD                     ! The parameters of the structural dynamics module
+TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x_StrD                     ! The structural dynamics module's continuous states
+TYPE(StrD_OtherStateType),     INTENT(INOUT)    :: OtherSt_StrD               ! The structural dynamics "other" states (including CoordSys coordinate systems) 
+TYPE(StrD_OutputType),         INTENT(INOUT)    :: y_StrD                     ! System outputs of the structural dynamics module
+
+
+INTEGER(IntKi),                INTENT(OUT)      :: ErrStat                    ! Error status
+CHARACTER(*),                  INTENT(OUT)      :: ErrMsg                     ! Error message
+
+
    ! Local variables.
 
 REAL(ReKi)                                      :: TiLstPrn  = 0.0                           ! The time of the last print.
-INTEGER(IntKi),             INTENT(OUT)         :: ErrStat                                   ! Error status
-CHARACTER(1024),            INTENT(OUT)         :: ErrMsg                                    ! Error message
-
-TYPE(StrD_OtherStateType), INTENT(INOUT)        :: OtherSt_StrD                              ! The structural dynamics "other" states (including CoordSys coordinate systems) 
-TYPE(StrD_ParameterType),  INTENT(IN)           :: p_StrD                                    ! The parameters of the structural dynamics module
-TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x_StrD                                    ! The structural dynamics module's continuous states
 
 
    ! Allocate space for coordinate systems
@@ -8383,7 +8423,7 @@ DO
 
    ! Call predictor-corrector routine:
 
-   CALL Solver( OtherSt_StrD%CoordSys, x_StrD )
+   CALL Solver( p_StrD, x_StrD, y_StrD, OtherSt_StrD  )
 
 
    ! Make sure the rotor azimuth is not greater or equal to 360 degrees:
@@ -8401,7 +8441,7 @@ DO
 
    ! Compute all of the output channels and fill in the OutData() array:
 
-   CALL CalcOuts( OtherSt_StrD%CoordSys, x_StrD )
+   CALL CalcOuts( p_StrD, x_StrD, y_StrD, OtherSt_StrD  )
 
 
    ! Check to see if we should output data this time step:
@@ -8409,7 +8449,7 @@ DO
    IF ( ZTime >= TStart )  THEN
       IF ( CompNoise                 )  CALL PredictNoise( OtherSt_StrD%CoordSys%te1, &
                                                            OtherSt_StrD%CoordSys%te2, OtherSt_StrD%CoordSys%te3 )
-      IF ( MOD( Step, DecFact ) == 0 )  CALL WrOutput
+      IF ( MOD( Step, DecFact ) == 0 )  CALL WrOutput( p_StrD, y_StrD )
    ENDIF
 
 

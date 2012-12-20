@@ -1321,28 +1321,31 @@ CLOSE (UnIn)
 RETURN
 END SUBROUTINE NoiseInput
 !====================================================================================================
-SUBROUTINE WriteSPLOut(p_StrD,x_StrD)
+SUBROUTINE WriteSPLOut(Delim, p_StrD, AzimuthOut)
 
 
-USE                             Blades
+!USE                             Blades
 USE                             DOFs
-USE                             General
-USE                             Output
-USE                             RtHndSid
-USE                             SimCont
-USE                             TurbConf
+USE                             General, ONLY: UnNoSPL
+!USE                             Output
+!USE                             RtHndSid
+USE                             SimCont, ONLY : ZTime
+!USE                             TurbConf
+
+USE StructDyn_Types
 
 IMPLICIT                        NONE
 
    ! passed variables
 
-TYPE(StrD_ParameterType),INTENT(IN)      :: p_StrD                                          ! The parameters of the structural dynamics module
-TYPE(StrD_ContinuousStateType),INTENT(IN):: x_StrD                                          ! The structural dynamics continuous states
+CHARACTER(1), INTENT(IN)                 :: Delim                                ! Delimiter for output file
+TYPE(StrD_ParameterType),INTENT(IN)      :: p_StrD                               ! The parameters of the structural dynamics module
+REAL(ReKi), INTENT(IN)                   :: AzimuthOut                           ! Azimuth angle
+
 
    ! Local variables
 
-REAL(ReKi)                   :: AzimuthOut                                      ! Azimuth angle
-REAL(ReKi)                   :: OASPLout (NumBl,BldNodes)                       ! Overall sound pressure level to output
+REAL(ReKi)                   :: OASPLout (p_StrD%NumBl,p_StrD%BldNodes)         ! Overall sound pressure level to output
 
 INTEGER(4)                   :: I                                               ! A generic index for DO loops.
 INTEGER(4)                   :: J                                               ! A generic index for DO loops.
@@ -1371,19 +1374,19 @@ CASE DEFAULT
    OASPLout = OASPL
 END SELECT
 
-AzimuthOut =MOD( ( x_StrD%QT(DOF_GeAz) + x_StrD%QT(DOF_DrTr) )*R2D + AzimB1Up + 90.0, 360.0 )
+!AzimuthOut = MOD( ( x_StrD%QT(DOF_GeAz) + x_StrD%QT(DOF_DrTr) )*R2D + AzimB1Up + 90.0, 360.0 ).  This is the same as AllOuts(LSSTipPxa).
 
-IF ( TabDelim )  THEN
-   Frmt = '(F8.3,A,F8.3,200(:,A ,F8.3))'
-   WRITE(UnNoSPL,Frmt)  ZTime, TAB, AzimuthOut,(( TAB, OASPLout(J,I), I = 1,BldNodes), J = 1, NumBl)
-ELSE
-   Frmt = '(F8.3,F8.3,200(:,1X,F8.3))'
-   WRITE(UnNoSPL,Frmt)  ZTime, AzimuthOut,((  OASPLout(J,I), I = 1,BldNodes), J = 1, NumBl)
-ENDIF
+
+!bjj:  note that if SIZE(OASPLout) > 200, this won't print everything:
+
+Frmt = '(F8.3,A,F8.3,200(:,A ,F8.3))'
+
+WRITE(UnNoSPL,Frmt)  ZTime, Delim, AzimuthOut,( (Delim, OASPLout(J,I), I = 1,SIZE(OASPLout,DIM=2)), J = 1,SIZE(OASPLout,DIM=1) )
+
 
 ! Debug
-!WRITE(199,Frmt)  ZTime, TAB, AzimuthOut,(( TAB, SpanAngleTE(J,I), I = 1,BldNodes), J = 1, NumBl)
-!WRITE(299,Frmt)  ZTime, TAB, AzimuthOut,(( TAB, ChordAngleTE(J,I), I = 1,BldNodes), J = 1, NumBl)
+!WRITE(199,Frmt)  ZTime, Delim, AzimuthOut,(( Delim, SpanAngleTE( J,I), I = 1,p_StrD%BldNodes), J = 1, p_StrD%NumBl)
+!WRITE(299,Frmt)  ZTime, Delim, AzimuthOut,(( Delim, ChordAngleTE(J,I), I = 1,p_StrD%BldNodes), J = 1, p_StrD%NumBl)
 
 RETURN
 END SUBROUTINE WriteSPLOut

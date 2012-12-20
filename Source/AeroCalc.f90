@@ -132,7 +132,7 @@ ENDIF
 RETURN
 END SUBROUTINE Set_FAST_Params
 !=======================================================================
-SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz, CoordSys )
+SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz, CoordSys, x )
 
 
    ! This routine computes the tail fin aerodynamic loads TFinKFx, TFinKFy,
@@ -140,7 +140,8 @@ SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz,
 
 
    ! FAST Modules:
-USE                             StructDyn_Types
+USE StructDyn_Types
+USE StructDyn_Parameters
    
 USE                             DOFs
 USE                             General
@@ -170,7 +171,8 @@ REAL(ReKi), INTENT(IN )      :: TFinCPxi                                        
 REAL(ReKi), INTENT(IN )      :: TFinCPyi                                        ! Lateral  distance from the inertial frame origin to the tail fin center-of-pressure (m)
 REAL(ReKi), INTENT(IN )      :: TFinCPzi                                        ! Vertical distance from the inertial frame origin to the tail fin center-of-pressure (m)
 
-TYPE(StrD_CoordSys), INTENT(IN) :: CoordSys                                     ! Coordinate systems
+TYPE(StrD_CoordSys), INTENT(IN)                :: CoordSys                      ! Coordinate systems of the structural dynamics module
+TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
 
    ! Local variables:
 

@@ -229,7 +229,7 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
   ! a "Level-2" S-Function so that we can use discrete time?
 
    CALL RtHS( CoordSys )
-   CALL CalcOuts( CoordSys )
+   CALL CalcOuts( p,x,y,OtherState )
 
 
       !----------------------------------------------------------------------------------------------
@@ -324,7 +324,7 @@ SUBROUTINE FAST_Init(InpFile, NumBl_S, NDOF_S, NumOuts_S)
 
    PriFile = InpFile
 
-   CALL FAST_Begin()
+   CALL FAST_Begin( PriFile, RootName, DirRoot )
 
    CALL FAST_Input()
 
@@ -341,7 +341,7 @@ SUBROUTINE FAST_Init(InpFile, NumBl_S, NDOF_S, NumOuts_S)
       !----------------------------------------------------------------------------------------------
 !call wrscr('Initialize ')
 
-   CALL FAST_Initialize()
+   CALL FAST_Initialize(p,x,y)
 
       !----------------------------------------------------------------------------------------------
       ! Print summary information to "*.fsm"?                                    [ see FASTProg.f90 ]

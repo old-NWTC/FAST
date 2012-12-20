@@ -885,7 +885,7 @@ MODULE StructDyn_Parameters
       ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
 
 
-   INTEGER(IntKi), PARAMETER        :: PolyOrd  =  6                                   ! Order of the polynomial describing the mode shape
+   !INTEGER(IntKi), PARAMETER        :: PolyOrd  =  6                                   ! Order of the polynomial describing the mode shape
    
 
       ! Parameters related to output length -- Possibly a local variable elsewhere????

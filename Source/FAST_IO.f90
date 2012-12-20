@@ -110,51 +110,58 @@ SUBROUTINE AeroInput()
    RETURN
 END SUBROUTINE AeroInput
 !====================================================================================================
-SUBROUTINE FAST_Begin()
+SUBROUTINE FAST_Begin( InFile, InFileRoot, InFileRootAbs )
 
 
-   ! This subroutine Prints out the name and version of the program, checks for
-   !  command-line arguments, and creates the names of the output files.
+   ! This subroutine checks for command-line arguments, gets the root name of the input files 
+   ! (including full path name), and creates the names of the output files.
 
 
-USE                             General
-USE                             TurbConf
+USE                             General, ONLY: Cmpl4SFun, Cmpl4LV
 
 
 IMPLICIT                        NONE
+
+   ! Passed variables
+   
+CHARACTER(*), INTENT(INOUT)  :: InFile                                          ! A CHARACTER string containing the name of the input file
+CHARACTER(*), INTENT(OUT)    :: InFileRoot                                      ! A CHARACTER string containing the root name of the input file (may be a relative path)
+CHARACTER(*), INTENT(OUT)    :: InFileRootAbs                                   ! A CHARACTER string containing the root name of the input file, including the full path
 
 
    ! Local variables.
 
 INTEGER                      :: Stat                                            ! The status of the call to GET_CWD
-
 CHARACTER(1024)              :: DirName                                         ! A CHARACTER string containing the path of the current working directory.
+
+
 
 
 
    ! Check for command line arguments.  Maybe the user specified an input file name.
    ! Don't perform this check when interfaced with Simulink or Labview:
 
-IF ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV  )  CALL CheckArgs( PriFile )
+IF ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV  )  CALL CheckArgs( InFile )
 
-CALL GetRoot( PriFile, RootName )
+CALL GetRoot( InFile, InFileRoot )
 
 
    ! Let's create a root file name variable, DirRoot, which includes the full
    !   path to the current working directory.
 
-IF ( PathIsRelative(RootName) ) THEN
+IF ( PathIsRelative(InFileRoot) ) THEN
    CALL Get_CWD  ( DirName, Stat )
    IF (Stat /= 0) CALL ProgAbort('Error retreiving current working directory.')
    
-   DirRoot = TRIM( DirName )//PathSep//TRIM( RootName )
+   InFileRootAbs = TRIM( DirName )//PathSep//TRIM( InFileRoot )
 ELSE
-   DirRoot = RootName
+   InFileRootAbs = InFileRoot
 END IF   
+
 
    ! Let's create the name of the output file.
 
-IF ( Cmpl4SFun )  RootName = TRIM( RootName )//'_SFunc'
+IF ( Cmpl4SFun )  InFileRoot = TRIM( InFileRoot )//'_SFunc'
 
 
 RETURN
@@ -8106,7 +8113,7 @@ IF ( CompNoise )  CALL WrNoiseOutHdr
 RETURN
 END SUBROUTINE WrOutHdr
 !=======================================================================
-SUBROUTINE WrOutput
+SUBROUTINE WrOutput(p_StrD,y_StrD)
 
 
    ! This routine writes output to the primary output file.
@@ -8117,18 +8124,29 @@ USE                             General
 USE                             Output
 
 USE                             AeroGenSubs, ONLY: ElemOut
-USE                             NOISE  !WriteSPLOut()
+USE                             NOISE, ONLY: WriteSPLOut  !SUBROUTINE
 
 IMPLICIT                        NONE
 
 
+   ! Passed variables
+TYPE(StrD_ParameterType)         :: p_StrD                                       ! Parameters of the structural dynamics module
+TYPE(StrD_OutputType)            :: y_StrD                                       ! System outputs of the structural dynamics module
+   
+
    ! Local variables.
 
-INTEGER(4)                   :: I                                               ! A generic index for DO loops.
+INTEGER(IntKi)                   :: I                                            ! A generic index for DO loops.
+CHARACTER(40)                    :: Frmt                                         ! A string to hold a format specifier.
+CHARACTER(1)                     :: Delim                                        ! The delimiter character
 
-CHARACTER(37)                :: Frmt                                            ! A string to hold a format specifier.
-CHARACTER(1)                 :: Delim                                           ! The delimiter character
 
+
+IF ( TabDelim ) THEN
+   Delim = TAB
+ELSE
+   Delim = ' '
+END IF      
 
 
 IF (WrTxtOutFile) THEN      
@@ -8137,11 +8155,6 @@ IF (WrTxtOutFile) THEN
 
    Frmt = '(F8.3,'//TRIM(Int2LStr(NumOuts))//'(:,A,'//TRIM( OutFmt )//'))'
 
-   IF ( TabDelim ) THEN
-      Delim = TAB
-   ELSE
-      Delim = ' '
-   END IF      
    WRITE(UnOu,Frmt)  OutData(Time), ( Delim, OutData(I), I=1,NumOuts )
    
 END IF
@@ -8173,7 +8186,7 @@ CALL ElemOut()
 
    ! Output noise if desired:
 
-IF ( CompNoise )  CALL WriteSPLOut
+IF ( CompNoise )  CALL WriteSPLOut( Delim, p_StrD, AllOuts(LSSTipPxa) )
 
 
 
