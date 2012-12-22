@@ -1,5 +1,5 @@
 !=======================================================================
-SUBROUTINE Set_FAST_Params
+SUBROUTINE Set_FAST_Params( p_StrD )
 
 
    ! Set variables based on AeroDyn inputs
@@ -11,7 +11,7 @@ SUBROUTINE Set_FAST_Params
 
 USE                           Blade,      ONLY: C, DR
 USE                           AeroDyn
-
+USE StructDyn_Types
 
    ! FAST Modules:
 
@@ -26,6 +26,9 @@ USE                           AeroElem !, ONLY: NumADBldNodes, AD_AeroMarker
 
 
 IMPLICIT                      NONE
+
+   ! Passed variables:
+TYPE(StrD_ParameterType),  INTENT(INOUT)  :: p_StrD                      ! The parameters of the structural dynamics module
 
 
    ! Local variables:
@@ -42,45 +45,45 @@ INTEGER                    :: ErrStat
 
    ! Write data read in from ADFile into MODULEs used by FAST:
 
-BldNodes = NumADBldNodes
+p_StrD%BldNodes = NumADBldNodes
 
 IF (.NOT. ALLOCATED(RNodes)) THEN
-   ALLOCATE ( RNodes(BldNodes) , STAT=Sttus )
+   ALLOCATE ( RNodes(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the RNodes array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED(DRNodes)) THEN
-   ALLOCATE ( DRNodes(BldNodes) , STAT=Sttus )
+   ALLOCATE ( DRNodes(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the DRNodes array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED(Chord)) THEN
-   ALLOCATE ( Chord(BldNodes) , STAT=Sttus )
+   ALLOCATE ( Chord(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the Chord array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED(AeroTwst)) THEN
-   ALLOCATE ( AeroTwst(BldNodes) , STAT=Sttus )
+   ALLOCATE ( AeroTwst(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the AeroTwst array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED(CAeroTwst)) THEN
-   ALLOCATE ( CAeroTwst(BldNodes) , STAT=Sttus )
+   ALLOCATE ( CAeroTwst(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the CAeroTwst array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED(SAeroTwst)) THEN
-   ALLOCATE ( SAeroTwst(BldNodes) , STAT=Sttus )
+   ALLOCATE ( SAeroTwst(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the SAeroTwst array.' )
    ENDIF

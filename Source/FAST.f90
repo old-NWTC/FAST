@@ -6,7 +6,7 @@ MODULE FASTSubs
 
 CONTAINS
 !=======================================================================
-SUBROUTINE Alloc(p,x,y)
+SUBROUTINE Alloc(p,x,y, OtherState)
 
 
    ! This routine allocates many of the variable-length arrays.
@@ -35,6 +35,7 @@ IMPLICIT                        NONE
 TYPE(StrD_ParameterType),        INTENT(INOUT) :: p                             ! Parameters of the structural dynamics module
 TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
 TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
+TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for the structural dynamics module
 
 
    ! Local variables.
@@ -44,23 +45,31 @@ INTEGER(4)                   :: Sttus                                           
 
 
    ! Allocate some arrays:
+   
+IF (.NOT. ALLOCATED( y%AllOuts ) ) THEN
+   ALLOCATE ( y%AllOuts(0:MaxOutPts) , STAT=Sttus )
+   IF ( Sttus /= 0 )  THEN
+      CALL ProgAbort(' Error allocating memory for the AllOuts array.')
+   ENDIF
+   y%AllOuts = 0.0
+ENDIF
 
 IF (.NOT. ALLOCATED( BlPitchFrct ) ) THEN
-   ALLOCATE ( BlPitchFrct(NumBl) , STAT=Sttus )
+   ALLOCATE ( BlPitchFrct(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the BlPitchFrct array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( BlPitchI ) ) THEN
-   ALLOCATE ( BlPitchI(NumBl) , STAT=Sttus )
+   ALLOCATE ( BlPitchI(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the BlPitchI array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( BlPitchCom ) ) THEN
-   ALLOCATE ( BlPitchCom(NumBl) , STAT=Sttus )
+   ALLOCATE ( BlPitchCom(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the BlPitchCom array.')
    ENDIF
@@ -95,231 +104,217 @@ IF (.NOT. ALLOCATED( TwrSSSF ) ) THEN
 ENDIF
 
 IF (.NOT. ALLOCATED( AxRedBld ) ) THEN
-   ALLOCATE ( AxRedBld(NumBl,3,3,TipNode) , STAT=Sttus )
+   ALLOCATE ( AxRedBld(p%NumBl,3,3,p%TipNode) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the AxRedBld array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( TwistedSF ) ) THEN
-   ALLOCATE ( TwistedSF(NumBl,2,3,TipNode,0:2) , STAT=Sttus )
+   ALLOCATE ( TwistedSF(p%NumBl,2,3,p%TipNode,0:2) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the TwistedSF array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( BldCG ) ) THEN
-   ALLOCATE ( BldCG(NumBl) , STAT=Sttus )
+   ALLOCATE ( BldCG(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the BldCG array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( KBF ) ) THEN
-   ALLOCATE ( KBF(NumBl,2,2) , STAT=Sttus )
+   ALLOCATE ( KBF(p%NumBl,2,2) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the KBF array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( KBE ) ) THEN
-   ALLOCATE ( KBE(NumBl,1,1) , STAT=Sttus )
+   ALLOCATE ( KBE(p%NumBl,1,1) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the KBE array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( CBF ) ) THEN
-   ALLOCATE ( CBF(NumBl,2,2) , STAT=Sttus )
+   ALLOCATE ( CBF(p%NumBl,2,2) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the CBF array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( CBE ) ) THEN
-   ALLOCATE ( CBE(NumBl,1,1) , STAT=Sttus )
+   ALLOCATE ( CBE(p%NumBl,1,1) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the CBE array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( SecondMom ) ) THEN
-   ALLOCATE ( SecondMom(NumBl) , STAT=Sttus )
+   ALLOCATE ( SecondMom(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the SecondMom array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FirstMom ) ) THEN
-   ALLOCATE ( FirstMom(NumBl) , STAT=Sttus )
+   ALLOCATE ( FirstMom(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the FirstMom array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FreqBE ) ) THEN
-   ALLOCATE ( FreqBE(NumBl,1,3) , STAT=Sttus )
+   ALLOCATE ( FreqBE(p%NumBl,1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the FreqBE array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FreqBF ) ) THEN
-   ALLOCATE ( FreqBF(NumBl,2,3) , STAT=Sttus )
+   ALLOCATE ( FreqBF(p%NumBl,2,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the FreqBF array.')
    ENDIF
 ENDIF
-!
-!IF (.NOT. ALLOCATED( DOF_BE ) ) THEN
-!   ALLOCATE ( DOF_BE(NumBl,1) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort(' Error allocating memory for the DOF_BE array.')
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( DOF_BF ) ) THEN
-!   ALLOCATE ( DOF_BF(NumBl,2) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort(' Error allocating memory for the DOF_BF array.')
-!   ENDIF
-!ENDIF
-!
+
 IF (.NOT. ALLOCATED( BldMass ) ) THEN
-   ALLOCATE ( BldMass(NumBl) , STAT=Sttus )
+   ALLOCATE ( BldMass(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the BldMass array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( rSAerCenn1 ) ) THEN
-   ALLOCATE ( rSAerCenn1(NumBl,BldNodes) , STAT=Sttus )
+   ALLOCATE ( rSAerCenn1(p%NumBl,p%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the rSAerCenn1 array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( rSAerCenn2 ) ) THEN
-   ALLOCATE ( rSAerCenn2(NumBl,BldNodes) , STAT=Sttus )
+   ALLOCATE ( rSAerCenn2(p%NumBl,p%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the rSAerCenn2 array.')
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( DOF_Flag ) ) THEN
-   ALLOCATE ( DOF_Flag(NDOF) , STAT=Sttus )
+   ALLOCATE ( DOF_Flag(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the DOF_Flag array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( DOF_FlagInit ) ) THEN
-   ALLOCATE ( DOF_FlagInit(NDOF) , STAT=Sttus )
+   ALLOCATE ( DOF_FlagInit(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the DOF_FlagInit array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( DOF_Desc ) ) THEN
-   ALLOCATE ( DOF_Desc(NDOF) , STAT=Sttus )
+   ALLOCATE ( DOF_Desc(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the DOF_Desc array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( NPSBE ) ) THEN
-   ALLOCATE ( NPSBE(NumBl) , STAT=Sttus )
+   ALLOCATE ( NPSBE(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the NPSBE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( NPSE ) ) THEN
-   ALLOCATE ( NPSE(NumBl) , STAT=Sttus )
+   ALLOCATE ( NPSE(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the NPSE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PCE ) ) THEN
-   ALLOCATE ( PCE(NDOF) , STAT=Sttus )
+   ALLOCATE ( PCE(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PCE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PDE ) ) THEN
-   ALLOCATE ( PDE(NDOF) , STAT=Sttus )
+   ALLOCATE ( PDE(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PDE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PIE ) ) THEN
-   ALLOCATE ( PIE(NDOF) , STAT=Sttus )
+   ALLOCATE ( PIE(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PIE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PTTE ) ) THEN
-   ALLOCATE ( PTTE(NDOF) , STAT=Sttus )
+   ALLOCATE ( PTTE(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PTTE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PTE ) ) THEN
-   ALLOCATE ( PTE(NDOF) , STAT=Sttus )
+   ALLOCATE ( PTE(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PTE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PS ) ) THEN
-   ALLOCATE ( PS(NDOF) , STAT=Sttus )
+   ALLOCATE ( PS(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PS array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PSBE ) ) THEN
-   ALLOCATE ( PSBE(NumBl,3) , STAT=Sttus )
+   ALLOCATE ( PSBE(p%NumBl,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PSBE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PSE ) ) THEN
-   ALLOCATE ( PSE(NumBl,NDOF) , STAT=Sttus )
+   ALLOCATE ( PSE(p%NumBl,p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PSE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PUE ) ) THEN
-   ALLOCATE ( PUE(NDOF) , STAT=Sttus )
+   ALLOCATE ( PUE(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PUE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PYE ) ) THEN
-   ALLOCATE ( PYE(NDOF) , STAT=Sttus )
+   ALLOCATE ( PYE(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PYE array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( Diag ) ) THEN
-   ALLOCATE ( Diag(NDOF) , STAT=Sttus )
+   ALLOCATE ( Diag(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the Diag array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( SrtPS ) ) THEN
-   ALLOCATE ( SrtPS(NDOF) , STAT=Sttus )
+   ALLOCATE ( SrtPS(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the SrtPS array.' )
    ENDIF
@@ -332,8 +327,8 @@ IF (.NOT. ALLOCATED( SrtPSNAUG ) ) THEN
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( QD2 ) ) THEN
-   ALLOCATE ( QD2(NDOF,NMX) , STAT=Sttus )
+IF (.NOT. ALLOCATED( OtherState%QD2 ) ) THEN
+   ALLOCATE ( OtherState%QD2(p%NDOF,NMX) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the QD2 array.' )
    ENDIF
@@ -346,15 +341,15 @@ IF (.NOT. ALLOCATED( IC ) ) THEN
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( Q ) ) THEN
-   ALLOCATE ( Q(NDOF,NMX) , STAT=Sttus )
+IF (.NOT. ALLOCATED( OtherState%Q ) ) THEN
+   ALLOCATE ( OtherState%Q(p%NDOF,NMX) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the Q array.' )
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( QD ) ) THEN
-   ALLOCATE ( QD(NDOF,NMX) , STAT=Sttus )
+IF (.NOT. ALLOCATED( OtherState%QD ) ) THEN
+   ALLOCATE ( OtherState%QD(p%NDOF,NMX) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the QD array.' )
    ENDIF
@@ -364,21 +359,21 @@ ENDIF
    ! Allocate RtHS arrays:
 
 IF (.NOT. ALLOCATED( AngPosEF ) ) THEN
-   ALLOCATE ( AngPosEF(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( AngPosEF(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the AngPosEF array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( AngPosXF ) ) THEN
-   ALLOCATE ( AngPosXF(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( AngPosXF(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the AngPosXF array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( AngVelEF ) ) THEN
-   ALLOCATE ( AngVelEF(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( AngVelEF(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the AngVelEF array.' )
    ENDIF
@@ -386,525 +381,525 @@ ENDIF
 
 
 IF (.NOT. ALLOCATED( AugMat ) ) THEN
-   ALLOCATE ( AugMat(NDOF,NAUG) , STAT=Sttus )
+   ALLOCATE ( AugMat(p%NDOF,NAUG) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the AugMat array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( LinAccES ) ) THEN
-   ALLOCATE ( LinAccES(NumBl,TipNode,3) , STAT=Sttus )
+   ALLOCATE ( LinAccES(p%NumBl,p%TipNode,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the LinAccES array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( LinAccESt ) ) THEN
-   ALLOCATE ( LinAccESt(NumBl,TipNode,3) , STAT=Sttus )
+   ALLOCATE ( LinAccESt(p%NumBl,p%TipNode,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the LinAccESt array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( LinAccET ) ) THEN
-   ALLOCATE ( LinAccET(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( LinAccET(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the LinAccET array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( LinAccETt ) ) THEN
-   ALLOCATE ( LinAccETt(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( LinAccETt(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the LinAccETt array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( LinVelET ) ) THEN
-   ALLOCATE ( LinVelET(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( LinVelET(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the LinVelET array.' )
    ENDIF
 ENDIF
 
 
-ALLOCATE ( AngAccEFt(TwrNodes,3) , STAT=Sttus )
+ALLOCATE ( AngAccEFt(p%TwrNodes,3) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the AngAccEFt array.' )
 ENDIF
 
 
 IF (.NOT. ALLOCATED( LinVelESm2 ) ) THEN
-   ALLOCATE ( LinVelESm2(NumBl) , STAT=Sttus )
+   ALLOCATE ( LinVelESm2(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the LinVelESm2 array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FrcS0B ) ) THEN
-   ALLOCATE ( FrcS0B(NumBl,3) , STAT=Sttus )
+   ALLOCATE ( FrcS0B(p%NumBl,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the FrcS0B array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PFrcS0B ) ) THEN
-   ALLOCATE ( PFrcS0B(NumBl,NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PFrcS0B(p%NumBl,p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PFrcS0B array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FrcS0Bt ) ) THEN
-   ALLOCATE ( FrcS0Bt(NumBl,3) , STAT=Sttus )
+   ALLOCATE ( FrcS0Bt(p%NumBl,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the FrcS0Bt array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( MomH0B ) ) THEN
-   ALLOCATE ( MomH0B(NumBl,3) , STAT=Sttus )
+   ALLOCATE ( MomH0B(p%NumBl,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the MomH0B array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PMomH0B ) ) THEN
-   ALLOCATE ( PMomH0B(NumBl,NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PMomH0B(p%NumBl,p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PMomH0B array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( MomH0Bt ) ) THEN
-   ALLOCATE ( MomH0Bt(NumBl,3) , STAT=Sttus )
+   ALLOCATE ( MomH0Bt(p%NumBl,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the MomH0Bt array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PFrcPRot ) ) THEN
-   ALLOCATE ( PFrcPRot(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PFrcPRot(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PFrcPRot array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PMomLPRot ) ) THEN
-   ALLOCATE ( PMomLPRot(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PMomLPRot(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PMomLPRot array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PFrcVGnRt ) ) THEN
-   ALLOCATE ( PFrcVGnRt(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PFrcVGnRt(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PFrcVGnRt array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PMomNGnRt ) ) THEN
-   ALLOCATE ( PMomNGnRt(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PMomNGnRt(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PMomNGnRt array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PFrcWTail ) ) THEN
-   ALLOCATE ( PFrcWTail(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PFrcWTail(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PFrcWTail array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PMomNTail ) ) THEN
-   ALLOCATE ( PMomNTail(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PMomNTail(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PMomNTail array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PFrcONcRt ) ) THEN
-   ALLOCATE ( PFrcONcRt(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PFrcONcRt(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PFrcONcRt array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PMomBNcRt ) ) THEN
-   ALLOCATE ( PMomBNcRt(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PMomBNcRt(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PMomBNcRt array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PFrcT0Trb ) ) THEN
-   ALLOCATE ( PFrcT0Trb(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PFrcT0Trb(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PFrcT0Trb array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PMomX0Trb ) ) THEN
-   ALLOCATE ( PMomX0Trb(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PMomX0Trb(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PMomX0Trb array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PFrcZAll ) ) THEN
-   ALLOCATE ( PFrcZAll(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PFrcZAll(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PFrcZAll array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PMomXAll ) ) THEN
-   ALLOCATE ( PMomXAll(NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PMomXAll(p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PMomXAll array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FSAero ) ) THEN
-   ALLOCATE ( FSAero(NumBl,BldNodes,3) , STAT=Sttus )
+   ALLOCATE ( FSAero(p%NumBl,p%BldNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the FSAero array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FSTipDrag ) ) THEN
-   ALLOCATE ( FSTipDrag(NumBl,3) , STAT=Sttus )
+   ALLOCATE ( FSTipDrag(p%NumBl,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the FSTipDrag array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( MMAero ) ) THEN
-   ALLOCATE ( MMAero(NumBl,BldNodes,3) , STAT=Sttus )
+   ALLOCATE ( MMAero(p%NumBl,p%BldNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the MMAero array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( rS ) ) THEN
-   ALLOCATE ( rS(NumBl,TipNode,3) , STAT=Sttus )
+   ALLOCATE ( rS(p%NumBl,p%TipNode,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the rS array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( rQS ) ) THEN
-   ALLOCATE ( rQS(NumBl,TipNode,3) , STAT=Sttus )
+   ALLOCATE ( rQS(p%NumBl,p%TipNode,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the rQS array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( rS0S ) ) THEN
-   ALLOCATE ( rS0S(NumBl,TipNode,3) , STAT=Sttus )
+   ALLOCATE ( rS0S(p%NumBl,p%TipNode,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the rS0S array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( AngPosHM ) ) THEN
-   ALLOCATE ( AngPosHM(NumBl,TipNode,3) , STAT=Sttus )
+   ALLOCATE ( AngPosHM(p%NumBl,p%TipNode,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the AngPosHM array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FTAero ) ) THEN
-   ALLOCATE ( FTAero(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( FTAero(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the FTAero array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( MFAero ) ) THEN
-   ALLOCATE ( MFAero(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( MFAero(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the MFAero array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FTHydro ) ) THEN
-   ALLOCATE ( FTHydro(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( FTHydro(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the FTHydro array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( MFHydro ) ) THEN
-   ALLOCATE ( MFHydro(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( MFHydro(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the MFHydro array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PFTHydro ) ) THEN
-   ALLOCATE ( PFTHydro(TwrNodes,NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PFTHydro(p%TwrNodes,p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PFTHydro array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PMFHydro ) ) THEN
-   ALLOCATE ( PMFHydro(TwrNodes,NDOF,3) , STAT=Sttus )
+   ALLOCATE ( PMFHydro(p%TwrNodes,p%NDOF,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PMFHydro array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( FTHydrot ) ) THEN
-   ALLOCATE ( FTHydrot(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( FTHydrot(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the FTHydrot array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( MFHydrot ) ) THEN
-   ALLOCATE ( MFHydrot(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( MFHydrot(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the MFHydrot array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( rZT ) ) THEN
-   ALLOCATE ( rZT(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( rZT(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the rZT array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( rT ) ) THEN
-   ALLOCATE ( rT(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( rT(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the rT array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( rT0T ) ) THEN
-   ALLOCATE ( rT0T(TwrNodes,3) , STAT=Sttus )
+   ALLOCATE ( rT0T(p%TwrNodes,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the rT0T array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelEA ) ) THEN
-   ALLOCATE ( PAngVelEA(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelEA(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelEA array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelEB ) ) THEN
-   ALLOCATE ( PAngVelEB(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelEB(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelEB array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelEF ) ) THEN
-   ALLOCATE ( PAngVelEF(TwrNodes,NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelEF(p%TwrNodes,p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelEF array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelEG ) ) THEN
-   ALLOCATE ( PAngVelEG(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelEG(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelEG array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelEH ) ) THEN
-   ALLOCATE ( PAngVelEH(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelEH(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelEH array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelEL ) ) THEN
-   ALLOCATE ( PAngVelEL(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelEL(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelEL array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelEM ) ) THEN
-   ALLOCATE ( PAngVelEM(NumBl,TipNode,NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelEM(p%NumBl,p%TipNode,p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelEM array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelEN ) ) THEN
-   ALLOCATE ( PAngVelEN(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelEN(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelEN array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelER ) ) THEN
-   ALLOCATE ( PAngVelER(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelER(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelER array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PAngVelEX ) ) THEN
-   ALLOCATE ( PAngVelEX(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PAngVelEX(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PAngVelEX array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEC ) ) THEN
-   ALLOCATE ( PLinVelEC(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEC(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEC array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelED ) ) THEN
-   ALLOCATE ( PLinVelED(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelED(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelED array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEI ) ) THEN
-   ALLOCATE ( PLinVelEI(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEI(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEI array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEIMU ) ) THEN
-   ALLOCATE ( PLinVelEIMU(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEIMU(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEIMU array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEJ ) ) THEN
-   ALLOCATE ( PLinVelEJ(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEJ(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEJ array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEK ) ) THEN
-   ALLOCATE ( PLinVelEK(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEK(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEK array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEO ) ) THEN
-   ALLOCATE ( PLinVelEO(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEO(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEO array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEP ) ) THEN
-   ALLOCATE ( PLinVelEP(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEP(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEP array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEQ ) ) THEN
-   ALLOCATE ( PLinVelEQ(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEQ(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEQ array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelES ) ) THEN
-   ALLOCATE ( PLinVelES(NumBl,TipNode,NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelES(p%NumBl,p%TipNode,p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelES array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelET ) ) THEN
-   ALLOCATE ( PLinVelET(TwrNodes,NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelET(p%TwrNodes,p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelET array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEU ) ) THEN
-   ALLOCATE ( PLinVelEU(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEU(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEU array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEV ) ) THEN
-   ALLOCATE ( PLinVelEV(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEV(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEV array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEW ) ) THEN
-   ALLOCATE ( PLinVelEW(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEW(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEW array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEY ) ) THEN
-   ALLOCATE ( PLinVelEY(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEY(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEY array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( PLinVelEZ ) ) THEN
-   ALLOCATE ( PLinVelEZ(NDOF,0:1,3) , STAT=Sttus )
+   ALLOCATE ( PLinVelEZ(p%NDOF,0:1,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the PLinVelEZ array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( SolnVec ) ) THEN
-   ALLOCATE ( SolnVec(NDOF) , STAT=Sttus )
+   ALLOCATE ( SolnVec(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the SolnVec array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( QD2T ) ) THEN
-   ALLOCATE ( QD2T(NDOF) , STAT=Sttus )
+   ALLOCATE ( QD2T(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the QD2T array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( x%QDT ) ) THEN
-   ALLOCATE ( x%QDT(NDOF) , STAT=Sttus )
+   ALLOCATE ( x%QDT(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the QDT array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( x%QT ) ) THEN
-   ALLOCATE ( x%QT(NDOF) , STAT=Sttus )
+   ALLOCATE ( x%QT(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the QT array.' )
    ENDIF
 ENDIF
 
 IF (.NOT. ALLOCATED( QD2TC ) ) THEN
-   ALLOCATE ( QD2TC(NDOF) , STAT=Sttus )
+   ALLOCATE ( QD2TC(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the QD2TC array.' )
    ENDIF
@@ -922,7 +917,7 @@ ENDIF
 
    ! Allocate noise arrays:
 
-CALL AllocNoise
+CALL AllocNoise( p )
 
 
 
@@ -945,7 +940,7 @@ SUBROUTINE CalcOuts( p,x,y,OtherState )
    !   calculate it).  This is also important since some users may want to
    !   access any of of the output channels in their user-defined routines
    !   without actually outputting those values to the output file.  All
-   !   of the calculated output channels are placed into the AllOuts(:)
+   !   of the calculated output channels are placed into the y%AllOuts(:)
    !   array.
 
 
@@ -1036,7 +1031,7 @@ INTEGER                      :: ErrStat
 
 
 
-!Array AllOuts() is initialized to 0.0 in subroutine ChckOutLst(), so we are not going to reinitialize it here.
+!Array y%AllOuts() is initialized to 0.0 in subroutine ChckOutLst(), so we are not going to reinitialize it here.
 
 
    ! Calculate all of the total forces and moments using all of the
@@ -1087,19 +1082,19 @@ ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-re
 
 
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
 
-   LinAccES(K,TipNode,:) = LinAccESt(K,TipNode,:)
+   LinAccES(K,p%TipNode,:) = LinAccESt(K,p%TipNode,:)
    FrcS0B  (K,        :) = FrcS0Bt  (K,        :)
    MomH0B  (K,        :) = MomH0Bt  (K,        :)
 
    DO I = 1,NPSE(K)  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
-      LinAccES(K,TipNode,:) = LinAccES(K,TipNode,:) + PLinVelES(K,TipNode,PSE(K,I),0,:)*QD2T(PSE(K,I))
+      LinAccES(K,p%TipNode,:) = LinAccES(K,p%TipNode,:) + PLinVelES(K,p%TipNode,PSE(K,I),0,:)*QD2T(PSE(K,I))
       FrcS0B  (K,        :) = FrcS0B  (K,        :) + PFrcS0B  (K,        PSE(K,I),  :)*QD2T(PSE(K,I))
       MomH0B  (K,        :) = MomH0B  (K,        :) + PMomH0B  (K,        PSE(K,I),  :)*QD2T(PSE(K,I))
    ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
-   DO J = 1,BldNodes ! Loop through the blade nodes / elements
+   DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
       LinAccES(K,J,:) = LinAccESt(K,J,:)
 
@@ -1111,7 +1106,7 @@ DO K = 1,NumBl ! Loop through all blades
 
 ENDDO          ! K - All blades
 
-DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
+DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
 
    LinAccET(J,:) = LinAccETt(J,:)
    FTHydro (J,:) = FTHydrot (J,:)
@@ -1146,7 +1141,7 @@ MomH0B   = 0.001*MomH0B
 
    ! Define the output channel specifying the current simulation time:
 
-AllOuts(  Time) = ZTime
+y%AllOuts(  Time) = ZTime
 
 
 IF ( CompAero )  THEN   ! AeroDyn has been used
@@ -1156,26 +1151,26 @@ IF ( CompAero )  THEN   ! AeroDyn has been used
 
    HHWndVec(:) = AD_GetUndisturbedWind( ZTime, (/REAL(0.0, ReKi), REAL(0.0, ReKi), FASTHH /), ErrStat )
 
-   AllOuts(  WindVxi) = HHWndVec(1)
-   AllOuts(  WindVyi) = HHWndVec(2)
-   AllOuts(  WindVzi) = HHWndVec(3)
-   AllOuts( TotWindV) = SQRT(   ( AllOuts(  WindVxi)*AllOuts(  WindVxi) ) &
-                              + ( AllOuts(  WindVyi)*AllOuts(  WindVyi) ) &
-                              + ( AllOuts(  WindVzi)*AllOuts(  WindVzi) )   )
-   AllOuts( HorWindV) = SQRT(   ( AllOuts(  WindVxi)*AllOuts(  WindVxi) ) &
-                              + ( AllOuts(  WindVyi)*AllOuts(  WindVyi) )   )
-   AllOuts(HorWndDir) = ATAN2( AllOuts(  WindVyi), AllOuts(  WindVxi) )*R2D
-   AllOuts(VerWndDir) = ATAN2( AllOuts(  WindVzi), AllOuts( HorWindV) )*R2D
+   y%AllOuts(  WindVxi) = HHWndVec(1)
+   y%AllOuts(  WindVyi) = HHWndVec(2)
+   y%AllOuts(  WindVzi) = HHWndVec(3)
+   y%AllOuts( TotWindV) = SQRT(   ( y%AllOuts(  WindVxi)*y%AllOuts(  WindVxi) ) &
+                                + ( y%AllOuts(  WindVyi)*y%AllOuts(  WindVyi) ) &
+                                + ( y%AllOuts(  WindVzi)*y%AllOuts(  WindVzi) )   )
+   y%AllOuts( HorWindV) = SQRT(   ( y%AllOuts(  WindVxi)*y%AllOuts(  WindVxi) ) &
+                                + ( y%AllOuts(  WindVyi)*y%AllOuts(  WindVyi) )   )
+   y%AllOuts(HorWndDir) = ATAN2( y%AllOuts(  WindVyi), y%AllOuts(  WindVxi) )*R2D
+   y%AllOuts(VerWndDir) = ATAN2( y%AllOuts(  WindVzi), y%AllOuts( HorWindV) )*R2D
 
 
    ! Tail Fin Element Aerodynamics:
 
-   AllOuts(TFinAlpha) = TFinAOA*R2D
-   AllOuts(TFinCLift) = TFinCL
-   AllOuts(TFinCDrag) = TFinCD
-   AllOuts(TFinDnPrs) = TFinQ
-   AllOuts(TFinCPFx ) = TFinKFx*0.001
-   AllOuts(TFinCPFy ) = TFinKFy*0.001
+   y%AllOuts(TFinAlpha) = TFinAOA*R2D
+   y%AllOuts(TFinCLift) = TFinCL
+   y%AllOuts(TFinCDrag) = TFinCD
+   y%AllOuts(TFinDnPrs) = TFinQ
+   y%AllOuts(TFinCPFx ) = TFinKFx*0.001
+   y%AllOuts(TFinCPFy ) = TFinKFy*0.001
 
 
 ENDIF
@@ -1185,16 +1180,16 @@ IF ( CompHydro )  THEN  ! Hydrodynamics have been used
 
    ! Wave Motions:
 
-   AllOuts(WaveElev ) = WaveElevation ( 1, ZTime )
+   y%AllOuts(WaveElev ) = WaveElevation ( 1, ZTime )
 
    DO I = 1, NWaveKin
 
-         AllOuts( WaveVxi(I) ) = WaveVelocity     ( WaveKinNd(I), 1, ZTime )
-         AllOuts( WaveVyi(I) ) = WaveVelocity     ( WaveKinNd(I), 2, ZTime )
-         AllOuts( WaveVzi(I) ) = WaveVelocity     ( WaveKinNd(I), 3, ZTime )
-         AllOuts( WaveAxi(I) ) = WaveAcceleration ( WaveKinNd(I), 1, ZTime )
-         AllOuts( WaveAyi(I) ) = WaveAcceleration ( WaveKinNd(I), 2, ZTime )
-         AllOuts( WaveAzi(I) ) = WaveAcceleration ( WaveKinNd(I), 3, ZTime )
+         y%AllOuts( WaveVxi(I) ) = WaveVelocity     ( WaveKinNd(I), 1, ZTime )
+         y%AllOuts( WaveVyi(I) ) = WaveVelocity     ( WaveKinNd(I), 2, ZTime )
+         y%AllOuts( WaveVzi(I) ) = WaveVelocity     ( WaveKinNd(I), 3, ZTime )
+         y%AllOuts( WaveAxi(I) ) = WaveAcceleration ( WaveKinNd(I), 1, ZTime )
+         y%AllOuts( WaveAyi(I) ) = WaveAcceleration ( WaveKinNd(I), 2, ZTime )
+         y%AllOuts( WaveAzi(I) ) = WaveAcceleration ( WaveKinNd(I), 3, ZTime )
 
    END DO
 
@@ -1203,51 +1198,51 @@ END IF
 
    ! Blade (1-3) Tip Motions:
 
-DO K = 1,NumBl
-   rSTipPSTip = rS0S(K,TipNode,:) - BldFlexL*OtherState%CoordSys%j3(K,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
-   rOSTip     = rS  (K,TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 1.
+DO K = 1,p%NumBl
+   rSTipPSTip = rS0S(K,p%TipNode,:) - BldFlexL*OtherState%CoordSys%j3(K,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
+   rOSTip     = rS  (K,p%TipNode,:) - rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 1.
    rOSTipxn   =      DOT_PRODUCT( rOSTip, OtherState%CoordSys%d1 )                ! Component of rOSTip directed along the xn-axis.
    rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, OtherState%CoordSys%d3 )                ! Component of rOSTip directed along the yn-axis.
    rOSTipzn   =      DOT_PRODUCT( rOSTip, OtherState%CoordSys%d2 )                ! Component of rOSTip directed along the zn-axis.
 
-   AllOuts(  TipDxc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i1(K,         :) )
-   AllOuts(  TipDyc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i2(K,         :) )
-   AllOuts(  TipDzc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i3(K,         :) )
-   AllOuts(  TipDxb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j1(K,         :) )
-   AllOuts(  TipDyb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j2(K,         :) )
+   y%AllOuts(  TipDxc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i1(K,         :) )
+   y%AllOuts(  TipDyc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i2(K,         :) )
+   y%AllOuts(  TipDzc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i3(K,         :) )
+   y%AllOuts(  TipDxb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j1(K,         :) )
+   y%AllOuts(  TipDyb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j2(K,         :) )
    !JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-   AllOuts( TipALxb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), OtherState%CoordSys%n1(K,BldNodes,:) )
-   AllOuts( TipALyb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), OtherState%CoordSys%n2(K,BldNodes,:) )
-   AllOuts( TipALzb(K) ) = DOT_PRODUCT( LinAccES(K,TipNode,:), OtherState%CoordSys%n3(K,BldNodes,:) )
-   AllOuts( TipRDxb(K) ) = DOT_PRODUCT( AngPosHM(K,TipNode,:), OtherState%CoordSys%j1(K,         :) )*R2D
-   AllOuts( TipRDyb(K) ) = DOT_PRODUCT( AngPosHM(K,TipNode,:), OtherState%CoordSys%j2(K,         :) )*R2D
+   y%AllOuts( TipALxb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n1(K,p%BldNodes,:) )
+   y%AllOuts( TipALyb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n2(K,p%BldNodes,:) )
+   y%AllOuts( TipALzb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n3(K,p%BldNodes,:) )
+   y%AllOuts( TipRDxb(K) ) = DOT_PRODUCT( AngPosHM(K,p%TipNode,:), OtherState%CoordSys%j1(K,         :) )*R2D
+   y%AllOuts( TipRDyb(K) ) = DOT_PRODUCT( AngPosHM(K,p%TipNode,:), OtherState%CoordSys%j2(K,         :) )*R2D
    ! There is no sense computing AllOuts( TipRDzc(K) ) here since it is always zero for FAST simulation results.
    IF ( rOSTipzn > 0.0 )  THEN   ! Tip of blade K is above the yaw bearing.
-      AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 1.
+      y%AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 1.
    ELSE                          ! Tip of blade K is below the yaw bearing.
-      AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 1.
+      y%AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 1.
    ENDIF
 
 END DO !K
 
    ! Blade (1-3) Local Span Motions:
 
-DO K = 1,NumBl
-   DO I = 1, NBlGages
+DO K = 1,p%NumBl
+   DO I = 1, p%NBlGages
 
-      AllOuts( SpnALxb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), OtherState%CoordSys%n1(K,BldGagNd(I),:) )
-      AllOuts( SpnALyb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), OtherState%CoordSys%n2(K,BldGagNd(I),:) )
-      AllOuts( SpnALzb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), OtherState%CoordSys%n3(K,BldGagNd(I),:) )
+      y%AllOuts( SpnALxb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), OtherState%CoordSys%n1(K,BldGagNd(I),:) )
+      y%AllOuts( SpnALyb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), OtherState%CoordSys%n2(K,BldGagNd(I),:) )
+      y%AllOuts( SpnALzb(I,K) ) = DOT_PRODUCT( LinAccES(K,BldGagNd(I),:), OtherState%CoordSys%n3(K,BldGagNd(I),:) )
 
       rSPS                    = rS0S(K,BldGagNd(I),:) - RNodes(BldGagNd(I))*OtherState%CoordSys%j3(K,:)
 
-      AllOuts( SpnTDxb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j1(K,:) )
-      AllOuts( SpnTDyb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j2(K,:) )
-      AllOuts( SpnTDzb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j3(K,:) )
+      y%AllOuts( SpnTDxb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j1(K,:) )
+      y%AllOuts( SpnTDyb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j2(K,:) )
+      y%AllOuts( SpnTDzb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j3(K,:) )
 
-      AllOuts( SpnRDxb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), OtherState%CoordSys%j1(K,:) )*R2D
-      AllOuts( SpnRDyb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), OtherState%CoordSys%j2(K,:) )*R2D
-     !AllOuts( SpnRDzb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), OtherState%CoordSys%j3(K,:) )*R2D           ! this is always zero for FAST
+      y%AllOuts( SpnRDxb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), OtherState%CoordSys%j1(K,:) )*R2D
+      y%AllOuts( SpnRDyb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), OtherState%CoordSys%j2(K,:) )*R2D
+     !y%AllOuts( SpnRDzb(I,K) ) = DOT_PRODUCT( AngPosHM(K,BldGagNd(I),:), OtherState%CoordSys%j3(K,:) )*R2D           ! this is always zero for FAST
 
    END DO !I
 END DO !K
@@ -1256,182 +1251,185 @@ END DO !K
 
    ! Blade Pitch Motions:
 
-AllOuts(PtchPMzc1) = BlPitch(1)*R2D
-AllOuts(PtchPMzc2) = BlPitch(2)*R2D
-IF ( NumBl == 3 )  THEN ! 3-blader
+y%AllOuts(PtchPMzc1) = BlPitch(1)*R2D
+y%AllOuts(PtchPMzc2) = BlPitch(2)*R2D
+IF ( p%NumBl == 3 )  THEN ! 3-blader
 
-   AllOuts(PtchPMzc3) = BlPitch(3)*R2D
+   y%AllOuts(PtchPMzc3) = BlPitch(3)*R2D
 
 ELSE  ! 2-blader
 
 
    ! Teeter Motions:
 
-   AllOuts(  TeetPya) =x%QT  (DOF_Teet)*R2D
-   AllOuts(  TeetVya) =x%QDT (DOF_Teet)*R2D
-   AllOuts(  TeetAya) =  QD2T(DOF_Teet)*R2D
+   y%AllOuts(  TeetPya) =x%QT  (DOF_Teet)*R2D
+   y%AllOuts(  TeetVya) =x%QDT (DOF_Teet)*R2D
+   y%AllOuts(  TeetAya) =  QD2T(DOF_Teet)*R2D
 
 ENDIF
 
 
    ! Shaft Motions:
 
-IF ( IgnoreMOD )  THEN  ! Don't use MOD when computing AllOuts(LSSTipPxa) and AllOuts(LSSGagPxa) -- IgnoreMOD is needed when computing CMat for output measurements during FAST linearization.
-   AllOuts(LSSTipPxa) =      ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) )*R2D + AzimB1Up + 90.0
-   AllOuts(LSSGagPxa) =        x%QT (DOF_GeAz)                     *R2D + AzimB1Up + 90.0
-ELSE                    ! Do    use MOD when computing AllOuts(LSSTipPxa) and AllOuts(LSSGagPxa)
-   AllOuts(LSSTipPxa) = MOD( ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) )*R2D + AzimB1Up + 90.0, 360.0 )
-   AllOuts(LSSGagPxa) = MOD(   x%QT (DOF_GeAz)                     *R2D + AzimB1Up + 90.0, 360.0 )
+IF ( IgnoreMOD )  THEN  ! Don't use MOD when computing y%AllOuts(LSSTipPxa) and y%AllOuts(LSSGagPxa) -- IgnoreMOD is needed when computing CMat for output measurements during FAST linearization.
+   y%AllOuts(LSSTipPxa) =      ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) )*R2D + AzimB1Up + 90.0
+   y%AllOuts(LSSGagPxa) =        x%QT (DOF_GeAz)                     *R2D + AzimB1Up + 90.0
+ELSE                    ! Do    use MOD when computing y%AllOuts(LSSTipPxa) and y%AllOuts(LSSGagPxa)
+   y%AllOuts(LSSTipPxa) = MOD( ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) )*R2D + AzimB1Up + 90.0, 360.0 )
+   y%AllOuts(LSSGagPxa) = MOD(   x%QT (DOF_GeAz)                     *R2D + AzimB1Up + 90.0, 360.0 )
 ENDIF
-AllOuts(   LSSTipVxa) =    ( x%QDT (DOF_GeAz) +  x%QDT (DOF_DrTr) )*RPS2RPM
-AllOuts(   LSSTipAxa) =    (   QD2T(DOF_GeAz) +    QD2T(DOF_DrTr) )*R2D
-AllOuts(   LSSGagVxa) =      x%QDT (DOF_GeAz)                      *RPS2RPM
-AllOuts(   LSSGagAxa) =        QD2T(DOF_GeAz)                      *R2D
-AllOuts(     HSShftV) = GBRatio*AllOuts(LSSGagVxa)
-AllOuts(     HSShftA) = GBRatio*AllOuts(LSSGagAxa)
-IF ( AllOuts(  WindVxi) /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equation is not zero.
+y%AllOuts(   LSSTipVxa) =    ( x%QDT (DOF_GeAz) +  x%QDT (DOF_DrTr) )*RPS2RPM
+y%AllOuts(   LSSTipAxa) =    (   QD2T(DOF_GeAz) +    QD2T(DOF_DrTr) )*R2D
+y%AllOuts(   LSSGagVxa) =      x%QDT (DOF_GeAz)                      *RPS2RPM
+y%AllOuts(   LSSGagAxa) =        QD2T(DOF_GeAz)                      *R2D
+y%AllOuts(     HSShftV) = GBRatio*y%AllOuts(LSSGagVxa)
+y%AllOuts(     HSShftA) = GBRatio*y%AllOuts(LSSGagAxa)
+IF ( y%AllOuts(  WindVxi) /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equation is not zero.
 
-   AllOuts(TipSpdRat) =      ( x%QDT (DOF_GeAz) + x%QDT (DOF_DrTr) )*AvgNrmTpRd / AllOuts(  WindVxi)
+   y%AllOuts(TipSpdRat) =      ( x%QDT (DOF_GeAz) + x%QDT (DOF_DrTr) )*AvgNrmTpRd / y%AllOuts(  WindVxi)
 
 ELSE
 
-   AllOuts(TipSpdRat) = 0.0
+   y%AllOuts(TipSpdRat) = 0.0
 
 ENDIF
 
 
    ! Nacelle IMU Motions:
 
-AllOuts(NcIMUTVxs) =      DOT_PRODUCT( LinVelEIMU, OtherState%CoordSys%c1 )
-AllOuts(NcIMUTVys) = -1.0*DOT_PRODUCT( LinVelEIMU, OtherState%CoordSys%c3 )
-AllOuts(NcIMUTVzs) =      DOT_PRODUCT( LinVelEIMU, OtherState%CoordSys%c2 )
-AllOuts(NcIMUTAxs) =      DOT_PRODUCT( LinAccEIMU, OtherState%CoordSys%c1 )
-AllOuts(NcIMUTAys) = -1.0*DOT_PRODUCT( LinAccEIMU, OtherState%CoordSys%c3 )
-AllOuts(NcIMUTAzs) =      DOT_PRODUCT( LinAccEIMU, OtherState%CoordSys%c2 )
-AllOuts(NcIMURVxs) =      DOT_PRODUCT( AngVelER  , OtherState%CoordSys%c1 )*R2D
-AllOuts(NcIMURVys) = -1.0*DOT_PRODUCT( AngVelER  , OtherState%CoordSys%c3 )*R2D
-AllOuts(NcIMURVzs) =      DOT_PRODUCT( AngVelER  , OtherState%CoordSys%c2 )*R2D
-AllOuts(NcIMURAxs) =      DOT_PRODUCT( AngAccER  , OtherState%CoordSys%c1 )*R2D
-AllOuts(NcIMURAys) = -1.0*DOT_PRODUCT( AngAccER  , OtherState%CoordSys%c3 )*R2D
-AllOuts(NcIMURAzs) =      DOT_PRODUCT( AngAccER  , OtherState%CoordSys%c2 )*R2D
+y%AllOuts(NcIMUTVxs) =      DOT_PRODUCT( LinVelEIMU, OtherState%CoordSys%c1 )
+y%AllOuts(NcIMUTVys) = -1.0*DOT_PRODUCT( LinVelEIMU, OtherState%CoordSys%c3 )
+y%AllOuts(NcIMUTVzs) =      DOT_PRODUCT( LinVelEIMU, OtherState%CoordSys%c2 )
+y%AllOuts(NcIMUTAxs) =      DOT_PRODUCT( LinAccEIMU, OtherState%CoordSys%c1 )
+y%AllOuts(NcIMUTAys) = -1.0*DOT_PRODUCT( LinAccEIMU, OtherState%CoordSys%c3 )
+y%AllOuts(NcIMUTAzs) =      DOT_PRODUCT( LinAccEIMU, OtherState%CoordSys%c2 )
+y%AllOuts(NcIMURVxs) =      DOT_PRODUCT( AngVelER  , OtherState%CoordSys%c1 )*R2D
+y%AllOuts(NcIMURVys) = -1.0*DOT_PRODUCT( AngVelER  , OtherState%CoordSys%c3 )*R2D
+y%AllOuts(NcIMURVzs) =      DOT_PRODUCT( AngVelER  , OtherState%CoordSys%c2 )*R2D
+y%AllOuts(NcIMURAxs) =      DOT_PRODUCT( AngAccER  , OtherState%CoordSys%c1 )*R2D
+y%AllOuts(NcIMURAys) = -1.0*DOT_PRODUCT( AngAccER  , OtherState%CoordSys%c3 )*R2D
+y%AllOuts(NcIMURAzs) =      DOT_PRODUCT( AngAccER  , OtherState%CoordSys%c2 )*R2D
 
 
    ! Rotor-Furl Motions:
 
-AllOuts( RotFurlP) = x%QT  (DOF_RFrl)*R2D
-AllOuts( RotFurlV) = x%QDT (DOF_RFrl)*R2D
-AllOuts( RotFurlA) =   QD2T(DOF_RFrl)*R2D
+y%AllOuts( RotFurlP) = x%QT  (DOF_RFrl)*R2D
+y%AllOuts( RotFurlV) = x%QDT (DOF_RFrl)*R2D
+y%AllOuts( RotFurlA) =   QD2T(DOF_RFrl)*R2D
 
 
    ! Tail-Furl Motions:
 
-AllOuts(TailFurlP) = x%QT  (DOF_TFrl)*R2D
-AllOuts(TailFurlV) = x%QDT (DOF_TFrl)*R2D
-AllOuts(TailFurlA) =   QD2T(DOF_TFrl)*R2D
+y%AllOuts(TailFurlP) = x%QT  (DOF_TFrl)*R2D
+y%AllOuts(TailFurlV) = x%QDT (DOF_TFrl)*R2D
+y%AllOuts(TailFurlA) =   QD2T(DOF_TFrl)*R2D
 
 
    ! Yaw Motions:
 
-AllOuts(   YawPzn) = x%QT  (DOF_Yaw )*R2D
-AllOuts(   YawVzn) = x%QDT (DOF_Yaw )*R2D
-AllOuts(   YawAzn) =   QD2T(DOF_Yaw )*R2D
+y%AllOuts(   YawPzn) = x%QT  (DOF_Yaw )*R2D
+y%AllOuts(   YawVzn) = x%QDT (DOF_Yaw )*R2D
+y%AllOuts(   YawAzn) =   QD2T(DOF_Yaw )*R2D
 
 
    ! Tower-Top / Yaw Bearing Motions:
 
 rOPO     = rT0O - TwrFlexL*OtherState%CoordSys%a2 ! Position vector from the undeflected tower top (point O prime) to the deflected tower top (point O).
 
-AllOuts(YawBrTDxp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b1 )
-AllOuts(YawBrTDyp) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%b3 )
-AllOuts(YawBrTDzp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b2 )
-AllOuts(YawBrTDxt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a1 )
-AllOuts(YawBrTDyt) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%a3 )
-AllOuts(YawBrTDzt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a2 )
-AllOuts(YawBrTAxp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b1 )
-AllOuts(YawBrTAyp) = -DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b3 )
-AllOuts(YawBrTAzp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b2 )
-AllOuts(YawBrRDxt) =  DOT_PRODUCT( AngPosXB, OtherState%CoordSys%a1 )*R2D
-AllOuts(YawBrRDyt) = -DOT_PRODUCT( AngPosXB, OtherState%CoordSys%a3 )*R2D
-! There is no sense computing AllOuts(YawBrRDzt) here since it is always zero for FAST simulation results.
-AllOuts(YawBrRVxp) =  DOT_PRODUCT( AngVelEB, OtherState%CoordSys%b1 )*R2D
-AllOuts(YawBrRVyp) = -DOT_PRODUCT( AngVelEB, OtherState%CoordSys%b3 )*R2D
-AllOuts(YawBrRVzp) =  DOT_PRODUCT( AngVelEB, OtherState%CoordSys%b2 )*R2D
-AllOuts(YawBrRAxp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b1 )*R2D
-AllOuts(YawBrRAyp) = -DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b3 )*R2D
-AllOuts(YawBrRAzp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b2 )*R2D
+y%AllOuts(YawBrTDxp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b1 )
+y%AllOuts(YawBrTDyp) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%b3 )
+y%AllOuts(YawBrTDzp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b2 )
+y%AllOuts(YawBrTDxt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a1 )
+y%AllOuts(YawBrTDyt) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%a3 )
+y%AllOuts(YawBrTDzt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a2 )
+y%AllOuts(YawBrTAxp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b1 )
+y%AllOuts(YawBrTAyp) = -DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b3 )
+y%AllOuts(YawBrTAzp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b2 )
+y%AllOuts(YawBrRDxt) =  DOT_PRODUCT( AngPosXB, OtherState%CoordSys%a1 )*R2D
+y%AllOuts(YawBrRDyt) = -DOT_PRODUCT( AngPosXB, OtherState%CoordSys%a3 )*R2D
+! There is no sense computing y%AllOuts(YawBrRDzt) here since it is always zero for FAST simulation results.
+y%AllOuts(YawBrRVxp) =  DOT_PRODUCT( AngVelEB, OtherState%CoordSys%b1 )*R2D
+y%AllOuts(YawBrRVyp) = -DOT_PRODUCT( AngVelEB, OtherState%CoordSys%b3 )*R2D
+y%AllOuts(YawBrRVzp) =  DOT_PRODUCT( AngVelEB, OtherState%CoordSys%b2 )*R2D
+y%AllOuts(YawBrRAxp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b1 )*R2D
+y%AllOuts(YawBrRAyp) = -DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b3 )*R2D
+y%AllOuts(YawBrRAzp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b2 )*R2D
 
 
    ! Local Tower Motions:
 
-DO I = 1, NTwGages
+DO I = 1, p%NTwGages
 
-   AllOuts( TwHtALxt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t1(TwrGagNd(I),:) )
-   AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t3(TwrGagNd(I),:) )
-   AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t2(TwrGagNd(I),:) )
+   y%AllOuts( TwHtALxt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t1(TwrGagNd(I),:) )
+   y%AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t3(TwrGagNd(I),:) )
+   y%AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t2(TwrGagNd(I),:) )
 
    rTPT                   = rT0T(TwrGagNd(I),:) - HNodes(TwrGagNd(I))*OtherState%CoordSys%a2(:)
 
-   AllOuts( TwHtTDxt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a1 )
-   AllOuts( TwHtTDyt(I) ) = -1.0*DOT_PRODUCT( rTPT,     OtherState%CoordSys%a3 )
-   AllOuts( TwHtTDzt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a2 )   
+   y%AllOuts( TwHtTDxt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a1 )
+   y%AllOuts( TwHtTDyt(I) ) = -1.0*DOT_PRODUCT( rTPT,     OtherState%CoordSys%a3 )
+   y%AllOuts( TwHtTDzt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a2 )   
    
-   AllOuts( TwHtRDxt(I) ) =      DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), OtherState%CoordSys%a1 )*R2D  !why is this zero???
-   AllOuts( TwHtRDyt(I) ) = -1.0*DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), OtherState%CoordSys%a3 )*R2D
-!   AllOuts( TwHtRDzt(I) ) =     DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), OtherState%CoordSys%a2 )*R2D  !this will always be 0 in FAST, so no need to calculate
+   y%AllOuts( TwHtRDxt(I) ) =      DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), OtherState%CoordSys%a1 )*R2D  !why is this zero???
+   y%AllOuts( TwHtRDyt(I) ) = -1.0*DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), OtherState%CoordSys%a3 )*R2D
+!   y%AllOuts( TwHtRDzt(I) ) =     DOT_PRODUCT( AngPosXF(TwrGagNd(I),:), OtherState%CoordSys%a2 )*R2D  !this will always be 0 in FAST, so no need to calculate
 
 
-   AllOuts( TwHtTPxi(I) ) =      rT(TwrGagNd(I),1)
-   AllOuts( TwHtTPyi(I) ) = -1.0*rT(TwrGagNd(I),3)
-   AllOuts( TwHtTPzi(I) ) =      rT(TwrGagNd(I),2) - PtfmRef
+   y%AllOuts( TwHtTPxi(I) ) =      rT(TwrGagNd(I),1)
+   y%AllOuts( TwHtTPyi(I) ) = -1.0*rT(TwrGagNd(I),3)
+   y%AllOuts( TwHtTPzi(I) ) =      rT(TwrGagNd(I),2) - PtfmRef
    
-   AllOuts( TwHtRPxi(I) ) =  AngPosEF(TwrGagNd(I),1)*R2D
-   AllOuts( TwHtRPyi(I) ) = -AngPosEF(TwrGagNd(I),3)*R2D
-   AllOuts( TwHtRPzi(I) ) =  AngPosEF(TwrGagNd(I),2)*R2D      
+   y%AllOuts( TwHtRPxi(I) ) =  AngPosEF(TwrGagNd(I),1)*R2D
+   y%AllOuts( TwHtRPyi(I) ) = -AngPosEF(TwrGagNd(I),3)*R2D
+   y%AllOuts( TwHtRPzi(I) ) =  AngPosEF(TwrGagNd(I),2)*R2D      
 
 END DO !I
 
    ! Platform Motions:
 
-AllOuts( PtfmTDxt) =  DOT_PRODUCT(       rZ, OtherState%CoordSys%a1 )
-AllOuts( PtfmTDyt) = -DOT_PRODUCT(       rZ, OtherState%CoordSys%a3 )
-AllOuts( PtfmTDzt) =  DOT_PRODUCT(       rZ, OtherState%CoordSys%a2 )
-AllOuts( PtfmTDxi) = x%QT  (DOF_Sg  )
-AllOuts( PtfmTDyi) = x%QT  (DOF_Sw  )
-AllOuts( PtfmTDzi) = x%QT  (DOF_Hv  )
-AllOuts( PtfmTVxt) =  DOT_PRODUCT( LinVelEZ, OtherState%CoordSys%a1 )
-AllOuts( PtfmTVyt) = -DOT_PRODUCT( LinVelEZ, OtherState%CoordSys%a3 )
-AllOuts( PtfmTVzt) =  DOT_PRODUCT( LinVelEZ, OtherState%CoordSys%a2 )
-AllOuts( PtfmTVxi) = x%QDT (DOF_Sg  )
-AllOuts( PtfmTVyi) = x%QDT (DOF_Sw  )
-AllOuts( PtfmTVzi) = x%QDT (DOF_Hv  )
-AllOuts( PtfmTAxt) =  DOT_PRODUCT( LinAccEZ, OtherState%CoordSys%a1 )
-AllOuts( PtfmTAyt) = -DOT_PRODUCT( LinAccEZ, OtherState%CoordSys%a3 )
-AllOuts( PtfmTAzt) =  DOT_PRODUCT( LinAccEZ, OtherState%CoordSys%a2 )
-AllOuts( PtfmTAxi) = QD2T(DOF_Sg  )
-AllOuts( PtfmTAyi) = QD2T(DOF_Sw  )
-AllOuts( PtfmTAzi) = QD2T(DOF_Hv  )
-AllOuts( PtfmRDxi) = x%QT  (DOF_R   )                       *R2D
-AllOuts( PtfmRDyi) = x%QT  (DOF_P   )                       *R2D
-AllOuts( PtfmRDzi) = x%QT  (DOF_Y   )                       *R2D
-AllOuts( PtfmRVxt) =  DOT_PRODUCT( AngVelEX, OtherState%CoordSys%a1 )*R2D
-AllOuts( PtfmRVyt) = -DOT_PRODUCT( AngVelEX, OtherState%CoordSys%a3 )*R2D
-AllOuts( PtfmRVzt) =  DOT_PRODUCT( AngVelEX, OtherState%CoordSys%a2 )*R2D
-AllOuts( PtfmRVxi) = x%QDT (DOF_R   )                       *R2D
-AllOuts( PtfmRVyi) = x%QDT (DOF_P   )                       *R2D
-AllOuts( PtfmRVzi) = x%QDT (DOF_Y   )                       *R2D
-AllOuts( PtfmRAxt) =  DOT_PRODUCT( AngAccEX, OtherState%CoordSys%a1 )*R2D
-AllOuts( PtfmRAyt) = -DOT_PRODUCT( AngAccEX, OtherState%CoordSys%a3 )*R2D
-AllOuts( PtfmRAzt) =  DOT_PRODUCT( AngAccEX, OtherState%CoordSys%a2 )*R2D
-AllOuts( PtfmRAxi) = QD2T(DOF_R   )                       *R2D
-AllOuts( PtfmRAyi) = QD2T(DOF_P   )                       *R2D
-AllOuts( PtfmRAzi) = QD2T(DOF_Y   )                       *R2D
+y%AllOuts( PtfmTDxt) =  DOT_PRODUCT(       rZ, OtherState%CoordSys%a1 )
+y%AllOuts( PtfmTDyt) = -DOT_PRODUCT(       rZ, OtherState%CoordSys%a3 )
+y%AllOuts( PtfmTDzt) =  DOT_PRODUCT(       rZ, OtherState%CoordSys%a2 )
+y%AllOuts( PtfmTDxi) = x%QT  (DOF_Sg  )
+y%AllOuts( PtfmTDyi) = x%QT  (DOF_Sw  )
+y%AllOuts( PtfmTDzi) = x%QT  (DOF_Hv  )
+y%AllOuts( PtfmTVxt) =  DOT_PRODUCT( LinVelEZ, OtherState%CoordSys%a1 )
+y%AllOuts( PtfmTVyt) = -DOT_PRODUCT( LinVelEZ, OtherState%CoordSys%a3 )
+y%AllOuts( PtfmTVzt) =  DOT_PRODUCT( LinVelEZ, OtherState%CoordSys%a2 )
+y%AllOuts( PtfmTVxi) = x%QDT (DOF_Sg  )
+y%AllOuts( PtfmTVyi) = x%QDT (DOF_Sw  )
+y%AllOuts( PtfmTVzi) = x%QDT (DOF_Hv  )
+y%AllOuts( PtfmTAxt) =  DOT_PRODUCT( LinAccEZ, OtherState%CoordSys%a1 )
+y%AllOuts( PtfmTAyt) = -DOT_PRODUCT( LinAccEZ, OtherState%CoordSys%a3 )
+y%AllOuts( PtfmTAzt) =  DOT_PRODUCT( LinAccEZ, OtherState%CoordSys%a2 )
+y%AllOuts( PtfmTAxi) = QD2T(DOF_Sg  )
+y%AllOuts( PtfmTAyi) = QD2T(DOF_Sw  )
+y%AllOuts( PtfmTAzi) = QD2T(DOF_Hv  )
+y%AllOuts( PtfmRDxi) = x%QT  (DOF_R   )                       *R2D
+y%AllOuts( PtfmRDyi) = x%QT  (DOF_P   )                       *R2D
+y%AllOuts( PtfmRDzi) = x%QT  (DOF_Y   )                       *R2D
+y%AllOuts( PtfmRVxt) =  DOT_PRODUCT( AngVelEX, OtherState%CoordSys%a1 )*R2D
+y%AllOuts( PtfmRVyt) = -DOT_PRODUCT( AngVelEX, OtherState%CoordSys%a3 )*R2D
+y%AllOuts( PtfmRVzt) =  DOT_PRODUCT( AngVelEX, OtherState%CoordSys%a2 )*R2D
+y%AllOuts( PtfmRVxi) = x%QDT (DOF_R   )                       *R2D
+y%AllOuts( PtfmRVyi) = x%QDT (DOF_P   )                       *R2D
+y%AllOuts( PtfmRVzi) = x%QDT (DOF_Y   )                       *R2D
+y%AllOuts( PtfmRAxt) =  DOT_PRODUCT( AngAccEX, OtherState%CoordSys%a1 )*R2D
+y%AllOuts( PtfmRAyt) = -DOT_PRODUCT( AngAccEX, OtherState%CoordSys%a3 )*R2D
+y%AllOuts( PtfmRAzt) =  DOT_PRODUCT( AngAccEX, OtherState%CoordSys%a2 )*R2D
+y%AllOuts( PtfmRAxi) = QD2T(DOF_R   )                       *R2D
+y%AllOuts( PtfmRAyi) = QD2T(DOF_P   )                       *R2D
+y%AllOuts( PtfmRAzi) = QD2T(DOF_Y   )                       *R2D
 
 
    ! Nacelle Yaw Error Estimate:
 
 IF ( CompAero )  THEN   ! AeroDyn has been used
-
-   AllOuts(NacYawErr) = AllOuts(HorWndDir) - AllOuts(YawPzn) - AllOuts(YawBrRDzt) - AllOuts(PtfmRDzi)
+!print *, y%AllOuts(HorWndDir)
+!print *, y%AllOuts(YawPzn), y%AllOuts(YawBrRDzt), y%AllOuts(PtfmRDzi)
+   
+   y%AllOuts(NacYawErr) = y%AllOuts(HorWndDir) - y%AllOuts(YawPzn) - y%AllOuts(YawBrRDzt) - y%AllOuts(PtfmRDzi)
+!print *, y%AllOuts(NacYawErr)   
 
 ENDIF
 
@@ -1439,33 +1437,33 @@ ENDIF
 
    ! Blade Root Loads:
 
-DO K=1,NumBl
-   AllOuts( RootFxc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i1(K,:) )
-   AllOuts( RootFyc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i2(K,:) )
-   AllOuts( RootFzc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i3(K,:) )
-   AllOuts( RootFxb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j1(K,:) )
-   AllOuts( RootFyb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j2(K,:) )
-   AllOuts( RootMxc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i1(K,:) )
-   AllOuts( RootMyc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i2(K,:) )
-   AllOuts( RootMzc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i3(K,:) )
-   AllOuts( RootMxb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j1(K,:) )
-   AllOuts( RootMyb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j2(K,:) )
+DO K=1,p%NumBl
+   y%AllOuts( RootFxc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i1(K,:) )
+   y%AllOuts( RootFyc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i2(K,:) )
+   y%AllOuts( RootFzc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i3(K,:) )
+   y%AllOuts( RootFxb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j1(K,:) )
+   y%AllOuts( RootFyb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j2(K,:) )
+   y%AllOuts( RootMxc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i1(K,:) )
+   y%AllOuts( RootMyc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i2(K,:) )
+   y%AllOuts( RootMzc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i3(K,:) )
+   y%AllOuts( RootMxb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j1(K,:) )
+   y%AllOuts( RootMyb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j2(K,:) )
 END DO !K
 
 
    ! Blade Local Span Loads:
 
-DO K = 1,NumBl
-   DO I = 1,NBlGages
+DO K = 1,p%NumBl
+   DO I = 1,p%NBlGages
    
       ! Initialize FrcMGagB and MomMGagB using the tip brake effects:
       
-         FrcMGagB = FSTipDrag(K,:) - TipMass(K)*( Gravity*OtherState%CoordSys%z2 + LinAccES(K,TipNode,:) )
-         MomMGagB = CROSS_PRODUCT( rS0S(K,TipNode,:) - rS0S(K,BldGagNd(I),:), FrcMGagB )
+         FrcMGagB = FSTipDrag(K,:) - TipMass(K)*( Gravity*OtherState%CoordSys%z2 + LinAccES(K,p%TipNode,:) )
+         MomMGagB = CROSS_PRODUCT( rS0S(K,p%TipNode,:) - rS0S(K,BldGagNd(I),:), FrcMGagB )
 
 
       ! Integrate to find FrcMGagB and MomMGagB using all of the nodes / elements above the current strain gage location:
-         DO J = ( BldGagNd(I) + 1 ),BldNodes ! Loop through blade nodes / elements above strain gage node
+         DO J = ( BldGagNd(I) + 1 ),p%BldNodes ! Loop through blade nodes / elements above strain gage node
 
             TmpVec2  = FSAero(K,J,:) - MassB(K,J)*( Gravity*OtherState%CoordSys%z2 + LinAccES(K,J,:) )  ! Portion of FrcMGagB associated with element J
             FrcMGagB = FrcMGagB + TmpVec2*DRNodes(J)
@@ -1492,13 +1490,13 @@ DO K = 1,NumBl
          MomMGagB = 0.001*MomMGagB           ! Convert the local moment to kN-m
 
 
-         AllOuts(SpnFLxb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n1(K,BldGagNd(I),:) )
-         AllOuts(SpnFLyb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n2(K,BldGagNd(I),:) )
-         AllOuts(SpnFLzb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n3(K,BldGagNd(I),:) )
+         y%AllOuts(SpnFLxb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n1(K,BldGagNd(I),:) )
+         y%AllOuts(SpnFLyb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n2(K,BldGagNd(I),:) )
+         y%AllOuts(SpnFLzb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n3(K,BldGagNd(I),:) )
 
-         AllOuts(SpnMLxb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n1(K,BldGagNd(I),:) )
-         AllOuts(SpnMLyb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n2(K,BldGagNd(I),:) )
-         AllOuts(SpnMLzb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n3(K,BldGagNd(I),:) )
+         y%AllOuts(SpnMLxb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n1(K,BldGagNd(I),:) )
+         y%AllOuts(SpnMLyb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n2(K,BldGagNd(I),:) )
+         y%AllOuts(SpnMLzb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n3(K,BldGagNd(I),:) )
    END DO ! I
 END DO ! K
 
@@ -1506,116 +1504,116 @@ END DO ! K
 
    ! Hub and Rotor Loads:
 
-ComDenom = 0.5*AirDens*ProjArea*AllOuts(  WindVxi)*AllOuts(  WindVxi)   ! Common denominator used in several expressions
+ComDenom = 0.5*AirDens*ProjArea*y%AllOuts(  WindVxi)*y%AllOuts(  WindVxi)   ! Common denominator used in several expressions
 
-AllOuts(LSShftFxa) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e1 )
-AllOuts(LSShftFya) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e2 )
-AllOuts(LSShftFza) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e3 )
-AllOuts(LSShftFys) = -DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c3 )
-AllOuts(LSShftFzs) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c2 )
-AllOuts(LSShftMxa) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e1 )
-AllOuts(LSSTipMya) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e2 )
-AllOuts(LSSTipMza) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e3 )
-AllOuts(LSSTipMys) = -DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c3 )
-AllOuts(LSSTipMzs) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c2 )
-IF ( AllOuts(LSShftFxa) /= 0.0 )  THEN ! .TRUE. if the denominator in the following equations is not zero.
+y%AllOuts(LSShftFxa) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e1 )
+y%AllOuts(LSShftFya) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e2 )
+y%AllOuts(LSShftFza) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e3 )
+y%AllOuts(LSShftFys) = -DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c3 )
+y%AllOuts(LSShftFzs) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c2 )
+y%AllOuts(LSShftMxa) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e1 )
+y%AllOuts(LSSTipMya) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e2 )
+y%AllOuts(LSSTipMza) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e3 )
+y%AllOuts(LSSTipMys) = -DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c3 )
+y%AllOuts(LSSTipMzs) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c2 )
+IF ( y%AllOuts(LSShftFxa) /= 0.0 )  THEN ! .TRUE. if the denominator in the following equations is not zero.
 
-   CThrstys = -AllOuts(LSSTipMzs)/AllOuts(LSShftFxa)  ! Estimate of the ys-location of the center of thrust
-   CThrstzs =  AllOuts(LSSTipMys)/AllOuts(LSShftFxa)  ! Estimate of the zs-location of the center of thrust
+   CThrstys = -y%AllOuts(LSSTipMzs)/y%AllOuts(LSShftFxa)  ! Estimate of the ys-location of the center of thrust
+   CThrstzs =  y%AllOuts(LSSTipMys)/y%AllOuts(LSShftFxa)  ! Estimate of the zs-location of the center of thrust
 
-   IF ( IgnoreMOD )  THEN  ! Don't use MOD when computing AllOuts(CThrstAzm) -- IgnoreMOD is needed when computing CMat for azimuth measurements during FAST linearization.
-      AllOuts(CThrstAzm) =      ATAN2( -CThrstzs, -CThrstys )*R2D + 360.0 + AzimB1Up + 90.0
-   ELSE                    ! Do    use MOD when computing AllOuts(CThrstAzm)
-      AllOuts(CThrstAzm) = MOD( ATAN2( -CThrstzs, -CThrstys )*R2D + 360.0 + AzimB1Up + 90.0, 360.0 )
+   IF ( IgnoreMOD )  THEN  ! Don't use MOD when computing y%AllOuts(CThrstAzm) -- IgnoreMOD is needed when computing CMat for azimuth measurements during FAST linearization.
+      y%AllOuts(CThrstAzm) =      ATAN2( -CThrstzs, -CThrstys )*R2D + 360.0 + AzimB1Up + 90.0
+   ELSE                    ! Do    use MOD when computing y%AllOuts(CThrstAzm)
+      y%AllOuts(CThrstAzm) = MOD( ATAN2( -CThrstzs, -CThrstys )*R2D + 360.0 + AzimB1Up + 90.0, 360.0 )
    ENDIF
-   AllOuts(   CThrstRad) = MIN( 1.0, SQRT( CThrstys*CThrstys + CThrstzs*CThrstzs )/AvgNrmTpRd )
+   y%AllOuts(   CThrstRad) = MIN( 1.0, SQRT( CThrstys*CThrstys + CThrstzs*CThrstzs )/AvgNrmTpRd )
 
 ELSE
 
-   AllOuts(CThrstAzm) = 0.0
-   AllOuts(CThrstRad) = 0.0
+   y%AllOuts(CThrstAzm) = 0.0
+   y%AllOuts(CThrstRad) = 0.0
 
 ENDIF
-AllOuts(   RotPwr) = ( x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr) )*AllOuts(LSShftMxa)
+y%AllOuts(   RotPwr) = ( x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr) )*y%AllOuts(LSShftMxa)
 IF ( ComDenom /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equations is not zero.
 
-   AllOuts( RotCq) = 1000.0*AllOuts(LSShftMxa) / ( ComDenom*TipRad )
-   AllOuts( RotCp) = 1000.0*AllOuts(   RotPwr) / ( ComDenom*AllOuts(  WindVxi) )
-   AllOuts( RotCt) = 1000.0*AllOuts(LSShftFxa) /   ComDenom
+   y%AllOuts( RotCq) = 1000.0*y%AllOuts(LSShftMxa) / ( ComDenom*TipRad )
+   y%AllOuts( RotCp) = 1000.0*y%AllOuts(   RotPwr) / ( ComDenom*y%AllOuts(  WindVxi) )
+   y%AllOuts( RotCt) = 1000.0*y%AllOuts(LSShftFxa) /   ComDenom
 
 ELSE
 
-   AllOuts( RotCq) = 0.0
-   AllOuts( RotCp) = 0.0
-   AllOuts( RotCt) = 0.0
+   y%AllOuts( RotCq) = 0.0
+   y%AllOuts( RotCp) = 0.0
+   y%AllOuts( RotCt) = 0.0
 
 ENDIF
 
 
    ! Shaft Strain Gage Loads:
 
-AllOuts(LSSGagMya) = AllOuts(LSSTipMya) + ShftGagL*AllOuts(LSShftFza)
-AllOuts(LSSGagMza) = AllOuts(LSSTipMza) - ShftGagL*AllOuts(LSShftFya)
-AllOuts(LSSGagMys) = AllOuts(LSSTipMys) + ShftGagL*AllOuts(LSShftFzs)
-AllOuts(LSSGagMzs) = AllOuts(LSSTipMzs) - ShftGagL*AllOuts(LSShftFys)
+y%AllOuts(LSSGagMya) = y%AllOuts(LSSTipMya) + ShftGagL*y%AllOuts(LSShftFza)
+y%AllOuts(LSSGagMza) = y%AllOuts(LSSTipMza) - ShftGagL*y%AllOuts(LSShftFya)
+y%AllOuts(LSSGagMys) = y%AllOuts(LSSTipMys) + ShftGagL*y%AllOuts(LSShftFzs)
+y%AllOuts(LSSGagMzs) = y%AllOuts(LSSTipMzs) - ShftGagL*y%AllOuts(LSShftFys)
 
 
    ! Generator and High-Speed Shaft Loads:
 
-AllOuts( HSShftTq) = AllOuts(LSShftMxa)*GBoxEffFac/GBRatio
-AllOuts(HSShftPwr) = AllOuts( HSShftTq)*GBRatio*x%QDT(DOF_GeAz)
-AllOuts(  HSSBrTq) = 0.001*HSSBrTrq
-AllOuts(    GenTq) = 0.001*GenTrq
-AllOuts(   GenPwr) = 0.001*ElecPwr
+y%AllOuts( HSShftTq) = y%AllOuts(LSShftMxa)*GBoxEffFac/GBRatio
+y%AllOuts(HSShftPwr) = y%AllOuts( HSShftTq)*GBRatio*x%QDT(DOF_GeAz)
+y%AllOuts(  HSSBrTq) = 0.001*HSSBrTrq
+y%AllOuts(    GenTq) = 0.001*GenTrq
+y%AllOuts(   GenPwr) = 0.001*ElecPwr
 IF ( ComDenom /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equations is not zero (ComDenom is the same as it is calculated above).
 
-   AllOuts( HSShftCq) = 1000.0*AllOuts( HSShftTq) / ( ComDenom*TipRad )
-   AllOuts( HSShftCp) = 1000.0*AllOuts(HSShftPwr) / ( ComDenom*AllOuts(  WindVxi) )
-   AllOuts(    GenCq) = 1000.0*AllOuts(    GenTq) / ( ComDenom*TipRad )
-   AllOuts(    GenCp) = 1000.0*AllOuts(   GenPwr) / ( ComDenom*AllOuts(  WindVxi) )
+   y%AllOuts( HSShftCq) = 1000.0*y%AllOuts( HSShftTq) / ( ComDenom*TipRad )
+   y%AllOuts( HSShftCp) = 1000.0*y%AllOuts(HSShftPwr) / ( ComDenom*y%AllOuts(  WindVxi) )
+   y%AllOuts(    GenCq) = 1000.0*y%AllOuts(    GenTq) / ( ComDenom*TipRad )
+   y%AllOuts(    GenCp) = 1000.0*y%AllOuts(   GenPwr) / ( ComDenom*y%AllOuts(  WindVxi) )
 
 ELSE
 
-   AllOuts( HSShftCq) = 0.0
-   AllOuts( HSShftCp) = 0.0
-   AllOuts(    GenCq) = 0.0
-   AllOuts(    GenCp) = 0.0
+   y%AllOuts( HSShftCq) = 0.0
+   y%AllOuts( HSShftCp) = 0.0
+   y%AllOuts(    GenCq) = 0.0
+   y%AllOuts(    GenCp) = 0.0
 
 ENDIF
 
 
    ! Rotor-Furl Axis Loads:
 
-AllOuts(RFrlBrM  ) =  DOT_PRODUCT( MomNGnRt, OtherState%CoordSys%rfa )
+y%AllOuts(RFrlBrM  ) =  DOT_PRODUCT( MomNGnRt, OtherState%CoordSys%rfa )
 
 
    ! Tail-Furl Axis Loads:
 
-AllOuts(TFrlBrM  ) =  DOT_PRODUCT( MomNTail, OtherState%CoordSys%tfa )
+y%AllOuts(TFrlBrM  ) =  DOT_PRODUCT( MomNTail, OtherState%CoordSys%tfa )
 
 
    ! Tower-Top / Yaw Bearing Loads:
 
-AllOuts( YawBrFxn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d1 )
-AllOuts( YawBrFyn) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d3 )
-AllOuts( YawBrFzn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d2 )
-AllOuts( YawBrFxp) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b1 )
-AllOuts( YawBrFyp) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b3 )
-AllOuts( YawBrMxn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d1 )
-AllOuts( YawBrMyn) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d3 )
-AllOuts( YawBrMzn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d2 )
-AllOuts( YawBrMxp) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b1 )
-AllOuts( YawBrMyp) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b3 )
+y%AllOuts( YawBrFxn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d1 )
+y%AllOuts( YawBrFyn) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d3 )
+y%AllOuts( YawBrFzn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d2 )
+y%AllOuts( YawBrFxp) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b1 )
+y%AllOuts( YawBrFyp) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b3 )
+y%AllOuts( YawBrMxn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d1 )
+y%AllOuts( YawBrMyn) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d3 )
+y%AllOuts( YawBrMzn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d2 )
+y%AllOuts( YawBrMxp) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b1 )
+y%AllOuts( YawBrMyp) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b3 )
 
 
    ! Tower Base Loads:
 
-AllOuts( TwrBsFxt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a1 )
-AllOuts( TwrBsFyt) = -DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a3 )
-AllOuts( TwrBsFzt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a2 )
-AllOuts( TwrBsMxt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a1 )
-AllOuts( TwrBsMyt) = -DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a3 )
-AllOuts( TwrBsMzt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a2 )
+y%AllOuts( TwrBsFxt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a1 )
+y%AllOuts( TwrBsFyt) = -DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a3 )
+y%AllOuts( TwrBsFzt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a2 )
+y%AllOuts( TwrBsMxt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a1 )
+y%AllOuts( TwrBsMyt) = -DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a3 )
+y%AllOuts( TwrBsMzt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a2 )
 
 
    ! Local Tower Loads:
@@ -1623,7 +1621,7 @@ AllOuts( TwrBsMzt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a2 )
 FrcONcRt = 1000.0*FrcONcRt ! Convert the units of these forces and moments
 MomBNcRt = 1000.0*MomBNcRt ! from kN and kN-m back to N and N-m, respectively.
 
-DO I=1,NTwGages
+DO I=1,p%NTwGages
 
    ! Initialize FrcFGagT and MomFGagT using the tower-top and yaw bearing mass effects:
    FrcFGagT = FrcONcRt - YawBrMass*( Gravity*OtherState%CoordSys%z2 + LinAccEO )
@@ -1631,7 +1629,7 @@ DO I=1,NTwGages
    MomFGagT = MomFGagT + MomBNcRt
 
    ! Integrate to find FrcFGagT and MomFGagT using all of the nodes / elements above the current strain gage location:
-   DO J = ( TwrGagNd(I) + 1 ),TwrNodes ! Loop through tower nodes / elements above strain gage node
+   DO J = ( TwrGagNd(I) + 1 ),p%TwrNodes ! Loop through tower nodes / elements above strain gage node
       TmpVec2  = FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*OtherState%CoordSys%z2 + LinAccET(J,:) )           ! Portion of FrcFGagT associated with element J       
       FrcFGagT = FrcFGagT + TmpVec2*DHNodes(J)
       
@@ -1654,31 +1652,31 @@ DO I=1,NTwGages
    MomFGagT = MomFGagT + TmpVec * 0.5 * DHNodes(TwrGagNd(I)) 
    MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
 
-   AllOuts( TwHtFLxt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t1(TwrGagNd(I),:) )
-   AllOuts( TwHtFLyt(I) ) = -1.*DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t3(TwrGagNd(I),:) )
-   AllOuts( TwHtFLzt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t2(TwrGagNd(I),:) )
+   y%AllOuts( TwHtFLxt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t1(TwrGagNd(I),:) )
+   y%AllOuts( TwHtFLyt(I) ) = -1.*DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t3(TwrGagNd(I),:) )
+   y%AllOuts( TwHtFLzt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t2(TwrGagNd(I),:) )
 
-   AllOuts( TwHtMLxt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t1(TwrGagNd(I),:) )
-   AllOuts( TwHtMLyt(I) ) = -1.*DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t3(TwrGagNd(I),:) )
-   AllOuts( TwHtMLzt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t2(TwrGagNd(I),:) )
+   y%AllOuts( TwHtMLxt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t1(TwrGagNd(I),:) )
+   y%AllOuts( TwHtMLyt(I) ) = -1.*DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t3(TwrGagNd(I),:) )
+   y%AllOuts( TwHtMLzt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t2(TwrGagNd(I),:) )
 
 END DO
 
 
    ! Platform Loads:
 
-AllOuts(  PtfmFxt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a1 )
-AllOuts(  PtfmFyt) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%a3 )
-AllOuts(  PtfmFzt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a2 )
-AllOuts(  PtfmFxi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z1 )
-AllOuts(  PtfmFyi) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%z3 )
-AllOuts(  PtfmFzi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z2 )
-AllOuts(  PtfmMxt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a1 )
-AllOuts(  PtfmMyt) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%a3 )
-AllOuts(  PtfmMzt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a2 )
-AllOuts(  PtfmMxi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z1 )
-AllOuts(  PtfmMyi) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%z3 )
-AllOuts(  PtfmMzi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z2 )
+y%AllOuts(  PtfmFxt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a1 )
+y%AllOuts(  PtfmFyt) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%a3 )
+y%AllOuts(  PtfmFzt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a2 )
+y%AllOuts(  PtfmFxi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z1 )
+y%AllOuts(  PtfmFyi) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%z3 )
+y%AllOuts(  PtfmFzi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z2 )
+y%AllOuts(  PtfmMxt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a1 )
+y%AllOuts(  PtfmMyt) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%a3 )
+y%AllOuts(  PtfmMzt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a2 )
+y%AllOuts(  PtfmMxi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z1 )
+y%AllOuts(  PtfmMyi) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%z3 )
+y%AllOuts(  PtfmMzi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z2 )
 
 
 IF ( CompHydro )  THEN  ! Hydrodynamics have been used
@@ -1688,10 +1686,10 @@ IF ( CompHydro )  THEN  ! Hydrodynamics have been used
    DO I = 1,NumLines
       CALL FairleadTension ( I, FairTe, FairTeAng )
       CALL AnchorTension   ( I, AnchTe, AnchTeAng )
-      AllOuts( FairTen(I) ) = FairTe   *0.001   ! Convert to kN
-      AllOuts( FairAng(I) ) = FairTeAng*R2D     ! Convert to degrees
-      AllOuts( AnchTen(I) ) = AnchTe   *0.001   ! Convert to kN
-      AllOuts( AnchAng(I) ) = AnchTeAng*R2D     ! Convert to degrees
+      y%AllOuts( FairTen(I) ) = FairTe   *0.001   ! Convert to kN
+      y%AllOuts( FairAng(I) ) = FairTeAng*R2D     ! Convert to degrees
+      y%AllOuts( AnchTen(I) ) = AnchTe   *0.001   ! Convert to kN
+      y%AllOuts( AnchAng(I) ) = AnchTeAng*R2D     ! Convert to degrees
    END DO
 
 END IF
@@ -1699,89 +1697,89 @@ END IF
 
    ! Internal DOF outputs:
 
-AllOuts( Q_B1E1   ) = x%QT(   DOF_BE(1,1) )
-AllOuts( Q_B2E1   ) = x%QT(   DOF_BE(2,1) )
-AllOuts( Q_B1F1   ) = x%QT(   DOF_BF(1,1) )
-AllOuts( Q_B2F1   ) = x%QT(   DOF_BF(2,1) )
-AllOuts( Q_B1F2   ) = x%QT(   DOF_BF(1,2) )
-AllOuts( Q_B2F2   ) = x%QT(   DOF_BF(2,2) )
-AllOuts( Q_DrTr   ) = x%QT(   DOF_DrTr    )
-AllOuts( Q_GeAz   ) = x%QT(   DOF_GeAz    )
-AllOuts( Q_RFrl   ) = x%QT(   DOF_RFrl    )
-AllOuts( Q_TFrl   ) = x%QT(   DOF_TFrl    )
-AllOuts( Q_Yaw    ) = x%QT(   DOF_Yaw     )
-AllOuts( Q_TFA1   ) = x%QT(   DOF_TFA1    )
-AllOuts( Q_TSS1   ) = x%QT(   DOF_TSS1    )
-AllOuts( Q_TFA2   ) = x%QT(   DOF_TFA2    )
-AllOuts( Q_TSS2   ) = x%QT(   DOF_TSS2    )
-AllOuts( Q_Sg     ) = x%QT(   DOF_Sg      )
-AllOuts( Q_Sw     ) = x%QT(   DOF_Sw      )
-AllOuts( Q_Hv     ) = x%QT(   DOF_Hv      )
-AllOuts( Q_R      ) = x%QT(   DOF_R       )
-AllOuts( Q_P      ) = x%QT(   DOF_P       )
-AllOuts( Q_Y      ) = x%QT(   DOF_Y       )
+y%AllOuts( Q_B1E1   ) = x%QT(   DOF_BE(1,1) )
+y%AllOuts( Q_B2E1   ) = x%QT(   DOF_BE(2,1) )
+y%AllOuts( Q_B1F1   ) = x%QT(   DOF_BF(1,1) )
+y%AllOuts( Q_B2F1   ) = x%QT(   DOF_BF(2,1) )
+y%AllOuts( Q_B1F2   ) = x%QT(   DOF_BF(1,2) )
+y%AllOuts( Q_B2F2   ) = x%QT(   DOF_BF(2,2) )
+y%AllOuts( Q_DrTr   ) = x%QT(   DOF_DrTr    )
+y%AllOuts( Q_GeAz   ) = x%QT(   DOF_GeAz    )
+y%AllOuts( Q_RFrl   ) = x%QT(   DOF_RFrl    )
+y%AllOuts( Q_TFrl   ) = x%QT(   DOF_TFrl    )
+y%AllOuts( Q_Yaw    ) = x%QT(   DOF_Yaw     )
+y%AllOuts( Q_TFA1   ) = x%QT(   DOF_TFA1    )
+y%AllOuts( Q_TSS1   ) = x%QT(   DOF_TSS1    )
+y%AllOuts( Q_TFA2   ) = x%QT(   DOF_TFA2    )
+y%AllOuts( Q_TSS2   ) = x%QT(   DOF_TSS2    )
+y%AllOuts( Q_Sg     ) = x%QT(   DOF_Sg      )
+y%AllOuts( Q_Sw     ) = x%QT(   DOF_Sw      )
+y%AllOuts( Q_Hv     ) = x%QT(   DOF_Hv      )
+y%AllOuts( Q_R      ) = x%QT(   DOF_R       )
+y%AllOuts( Q_P      ) = x%QT(   DOF_P       )
+y%AllOuts( Q_Y      ) = x%QT(   DOF_Y       )
 
-AllOuts( QD_B1E1  ) = x%QDT(  DOF_BE(1,1) )
-AllOuts( QD_B2E1  ) = x%QDT(  DOF_BE(2,1) )
-AllOuts( QD_B1F1  ) = x%QDT(  DOF_BF(1,1) )
-AllOuts( QD_B2F1  ) = x%QDT(  DOF_BF(2,1) )
-AllOuts( QD_B1F2  ) = x%QDT(  DOF_BF(1,2) )
-AllOuts( QD_B2F2  ) = x%QDT(  DOF_BF(2,2) )
-AllOuts( QD_DrTr  ) = x%QDT(  DOF_DrTr    )
-AllOuts( QD_GeAz  ) = x%QDT(  DOF_GeAz    )
-AllOuts( QD_RFrl  ) = x%QDT(  DOF_RFrl    )
-AllOuts( QD_TFrl  ) = x%QDT(  DOF_TFrl    )
-AllOuts( QD_Yaw   ) = x%QDT(  DOF_Yaw     )
-AllOuts( QD_TFA1  ) = x%QDT(  DOF_TFA1    )
-AllOuts( QD_TSS1  ) = x%QDT(  DOF_TSS1    )
-AllOuts( QD_TFA2  ) = x%QDT(  DOF_TFA2    )
-AllOuts( QD_TSS2  ) = x%QDT(  DOF_TSS2    )
-AllOuts( QD_Sg    ) = x%QDT(  DOF_Sg      )
-AllOuts( QD_Sw    ) = x%QDT(  DOF_Sw      )
-AllOuts( QD_Hv    ) = x%QDT(  DOF_Hv      )
-AllOuts( QD_R     ) = x%QDT(  DOF_R       )
-AllOuts( QD_P     ) = x%QDT(  DOF_P       )
-AllOuts( QD_Y     ) = x%QDT(  DOF_Y       )
+y%AllOuts( QD_B1E1  ) = x%QDT(  DOF_BE(1,1) )
+y%AllOuts( QD_B2E1  ) = x%QDT(  DOF_BE(2,1) )
+y%AllOuts( QD_B1F1  ) = x%QDT(  DOF_BF(1,1) )
+y%AllOuts( QD_B2F1  ) = x%QDT(  DOF_BF(2,1) )
+y%AllOuts( QD_B1F2  ) = x%QDT(  DOF_BF(1,2) )
+y%AllOuts( QD_B2F2  ) = x%QDT(  DOF_BF(2,2) )
+y%AllOuts( QD_DrTr  ) = x%QDT(  DOF_DrTr    )
+y%AllOuts( QD_GeAz  ) = x%QDT(  DOF_GeAz    )
+y%AllOuts( QD_RFrl  ) = x%QDT(  DOF_RFrl    )
+y%AllOuts( QD_TFrl  ) = x%QDT(  DOF_TFrl    )
+y%AllOuts( QD_Yaw   ) = x%QDT(  DOF_Yaw     )
+y%AllOuts( QD_TFA1  ) = x%QDT(  DOF_TFA1    )
+y%AllOuts( QD_TSS1  ) = x%QDT(  DOF_TSS1    )
+y%AllOuts( QD_TFA2  ) = x%QDT(  DOF_TFA2    )
+y%AllOuts( QD_TSS2  ) = x%QDT(  DOF_TSS2    )
+y%AllOuts( QD_Sg    ) = x%QDT(  DOF_Sg      )
+y%AllOuts( QD_Sw    ) = x%QDT(  DOF_Sw      )
+y%AllOuts( QD_Hv    ) = x%QDT(  DOF_Hv      )
+y%AllOuts( QD_R     ) = x%QDT(  DOF_R       )
+y%AllOuts( QD_P     ) = x%QDT(  DOF_P       )
+y%AllOuts( QD_Y     ) = x%QDT(  DOF_Y       )
 
-AllOuts( QD2_B1E1 ) = QD2T( DOF_BE(1,1) )
-AllOuts( QD2_B2E1 ) = QD2T( DOF_BE(2,1) )
-AllOuts( QD2_B1F1 ) = QD2T( DOF_BF(1,1) )
-AllOuts( QD2_B2F1 ) = QD2T( DOF_BF(2,1) )
-AllOuts( QD2_B1F2 ) = QD2T( DOF_BF(1,2) )
-AllOuts( QD2_B2F2 ) = QD2T( DOF_BF(2,2) )
-AllOuts( QD2_DrTr ) = QD2T( DOF_DrTr    )
-AllOuts( QD2_GeAz ) = QD2T( DOF_GeAz    )
-AllOuts( QD2_RFrl ) = QD2T( DOF_RFrl    )
-AllOuts( QD2_TFrl ) = QD2T( DOF_TFrl    )
-AllOuts( QD2_Yaw  ) = QD2T( DOF_Yaw     )
-AllOuts( QD2_TFA1 ) = QD2T( DOF_TFA1    )
-AllOuts( QD2_TSS1 ) = QD2T( DOF_TSS1    )
-AllOuts( QD2_TFA2 ) = QD2T( DOF_TFA2    )
-AllOuts( QD2_TSS2 ) = QD2T( DOF_TSS2    )
-AllOuts( QD2_Sg   ) = QD2T( DOF_Sg      )
-AllOuts( QD2_Sw   ) = QD2T( DOF_Sw      )
-AllOuts( QD2_Hv   ) = QD2T( DOF_Hv      )
-AllOuts( QD2_R    ) = QD2T( DOF_R       )
-AllOuts( QD2_P    ) = QD2T( DOF_P       )
-AllOuts( QD2_Y    ) = QD2T( DOF_Y       )
+y%AllOuts( QD2_B1E1 ) = QD2T( DOF_BE(1,1) )
+y%AllOuts( QD2_B2E1 ) = QD2T( DOF_BE(2,1) )
+y%AllOuts( QD2_B1F1 ) = QD2T( DOF_BF(1,1) )
+y%AllOuts( QD2_B2F1 ) = QD2T( DOF_BF(2,1) )
+y%AllOuts( QD2_B1F2 ) = QD2T( DOF_BF(1,2) )
+y%AllOuts( QD2_B2F2 ) = QD2T( DOF_BF(2,2) )
+y%AllOuts( QD2_DrTr ) = QD2T( DOF_DrTr    )
+y%AllOuts( QD2_GeAz ) = QD2T( DOF_GeAz    )
+y%AllOuts( QD2_RFrl ) = QD2T( DOF_RFrl    )
+y%AllOuts( QD2_TFrl ) = QD2T( DOF_TFrl    )
+y%AllOuts( QD2_Yaw  ) = QD2T( DOF_Yaw     )
+y%AllOuts( QD2_TFA1 ) = QD2T( DOF_TFA1    )
+y%AllOuts( QD2_TSS1 ) = QD2T( DOF_TSS1    )
+y%AllOuts( QD2_TFA2 ) = QD2T( DOF_TFA2    )
+y%AllOuts( QD2_TSS2 ) = QD2T( DOF_TSS2    )
+y%AllOuts( QD2_Sg   ) = QD2T( DOF_Sg      )
+y%AllOuts( QD2_Sw   ) = QD2T( DOF_Sw      )
+y%AllOuts( QD2_Hv   ) = QD2T( DOF_Hv      )
+y%AllOuts( QD2_R    ) = QD2T( DOF_R       )
+y%AllOuts( QD2_P    ) = QD2T( DOF_P       )
+y%AllOuts( QD2_Y    ) = QD2T( DOF_Y       )
 
-IF ( NumBl > 2 ) THEN
-   AllOuts( Q_B3E1   ) = x%QT(   DOF_BE(3,1) )
-   AllOuts( Q_B3F1   ) = x%QT(   DOF_BF(3,1) )
-   AllOuts( Q_B3F2   ) = x%QT(   DOF_BF(3,2) )
+IF ( p%NumBl > 2 ) THEN
+   y%AllOuts( Q_B3E1   ) = x%QT(   DOF_BE(3,1) )
+   y%AllOuts( Q_B3F1   ) = x%QT(   DOF_BF(3,1) )
+   y%AllOuts( Q_B3F2   ) = x%QT(   DOF_BF(3,2) )
    
-   AllOuts( QD_B3E1  ) = x%QDT(  DOF_BE(3,1) )
-   AllOuts( QD_B3F1  ) = x%QDT(  DOF_BF(3,1) )
-   AllOuts( QD_B3F2  ) = x%QDT(  DOF_BF(3,2) )
+   y%AllOuts( QD_B3E1  ) = x%QDT(  DOF_BE(3,1) )
+   y%AllOuts( QD_B3F1  ) = x%QDT(  DOF_BF(3,1) )
+   y%AllOuts( QD_B3F2  ) = x%QDT(  DOF_BF(3,2) )
 
-   AllOuts( QD2_B3E1 ) = QD2T( DOF_BE(3,1) )
-   AllOuts( QD2_B3F1 ) = QD2T( DOF_BF(3,1) )
-   AllOuts( QD2_B3F2 ) = QD2T( DOF_BF(3,2) )
+   y%AllOuts( QD2_B3E1 ) = QD2T( DOF_BE(3,1) )
+   y%AllOuts( QD2_B3F1 ) = QD2T( DOF_BF(3,1) )
+   y%AllOuts( QD2_B3F2 ) = QD2T( DOF_BF(3,2) )
    
 ELSE
-   AllOuts( Q_Teet   ) = x%QT(   DOF_Teet    )
-   AllOuts( QD_Teet  ) = x%QDT(  DOF_Teet    )
-   AllOuts( QD2_Teet ) =   QD2T( DOF_Teet    )
+   y%AllOuts( Q_Teet   ) = x%QT(   DOF_Teet    )
+   y%AllOuts( QD_Teet  ) = x%QDT(  DOF_Teet    )
+   y%AllOuts( QD2_Teet ) =   QD2T( DOF_Teet    )
 END IF
 
 
@@ -1790,9 +1788,9 @@ END IF
    ! Place the selected output channels into the OutData(:) array with
    !   the proper sign:
 
-DO I = 0,NumOuts  ! Loop through all selected output channels
+DO I = 0,p%NumOuts  ! Loop through all selected output channels
 
-   OutData(I) = OutParam(I)%SignM * AllOuts( OutParam(I)%Indx )
+   OutData(I) = p%OutParam(I)%SignM * y%AllOuts( p%OutParam(I)%Indx )
 
 ENDDO             ! I - All selected output channels
 
@@ -1801,7 +1799,7 @@ ENDDO             ! I - All selected output channels
 RETURN
 END SUBROUTINE CalcOuts
 !=======================================================================
-SUBROUTINE Coeff
+SUBROUTINE Coeff(p)
 
 
    ! This routine is used to compute rotor (blade and hub) properties:
@@ -1824,7 +1822,6 @@ SUBROUTINE Coeff
 
 
 USE                             Blades
-USE                             Constants    !bjj: why don't you define inv2pi here since it's the only subroutine/function in which it is used?
 USE                             DriveTrain
 USE                             EnvCond
 USE                             Features
@@ -1836,6 +1833,11 @@ USE                             TurbConf
 
 
 IMPLICIT                        NONE
+
+
+   ! Passed variables
+   
+TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             ! Parameters of the structural dynamics module
 
 
    ! Local variables.
@@ -1880,32 +1882,32 @@ INTEGER(4)                   :: Sttus                                           
    ! ALLOCATE some local arrays:
 Sttus = 0.0
 
-IF (.NOT. ALLOCATED( FMomAbvNd )) ALLOCATE ( FMomAbvNd(NumBl,BldNodes) , STAT=Sttus )
+IF (.NOT. ALLOCATED( FMomAbvNd )) ALLOCATE ( FMomAbvNd(p%NumBl,p%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the FMomAbvNd array.' )
 ENDIF
 
-IF (.NOT. ALLOCATED( KBECent )) ALLOCATE ( KBECent(NumBl,1,1) , STAT=Sttus )
+IF (.NOT. ALLOCATED( KBECent )) ALLOCATE ( KBECent(p%NumBl,1,1) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the KBECent array.' )
 ENDIF
 
-IF (.NOT. ALLOCATED( KBFCent )) ALLOCATE ( KBFCent(NumBl,2,2) , STAT=Sttus )
+IF (.NOT. ALLOCATED( KBFCent )) ALLOCATE ( KBFCent(p%NumBl,2,2) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the KBFCent array.' )
 ENDIF
 
-IF (.NOT. ALLOCATED( MBE )) ALLOCATE ( MBE(NumBl,1,1) , STAT=Sttus )
+IF (.NOT. ALLOCATED( MBE )) ALLOCATE ( MBE(p%NumBl,1,1) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the MBE array.' )
 ENDIF
 
-IF (.NOT. ALLOCATED( MBF )) ALLOCATE ( MBF(NumBl,2,2) , STAT=Sttus )
+IF (.NOT. ALLOCATED( MBF )) ALLOCATE ( MBF(p%NumBl,2,2) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the MBF array.' )
 ENDIF
 
-IF (.NOT. ALLOCATED( TMssAbvNd )) ALLOCATE ( TMssAbvNd(TwrNodes) , STAT=Sttus )
+IF (.NOT. ALLOCATED( TMssAbvNd )) ALLOCATE ( TMssAbvNd(p%TwrNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the TMssAbvNd array.' )
 ENDIF
@@ -1915,9 +1917,9 @@ ENDIF
    ! Calculate the distances from point S on a blade to the aerodynamic
    !   center in the j1 and j2 directions:
 
-DO K = 1,NumBl          ! Loop through the blades
+DO K = 1,p%NumBl          ! Loop through the blades
 
-   DO J = 1,BldNodes    ! Loop through the blade nodes / elements
+   DO J = 1,p%BldNodes    ! Loop through the blade nodes / elements
 
       TmpDist         = ( AeroCent(K,J) - 0.25 )*Chord(J)   ! Distance along the chordline from point S (25% chord) to the aerodynamic center of the blade element J--positive towards the trailing edge.
       TmpDistj1       = TmpDist*SAeroTwst(J)                ! Distance along the j1-axis   from point S (25% chord) to the aerodynamic center of the blade element J
@@ -1977,7 +1979,7 @@ IF ( Nacd2Iner < 0.0 )  CALL ProgAbort ( ' NacYIner must not be less than NacMas
    !   3-bladers, Hubg1Iner is simply equal to HubIner and Hubg2Iner is zero.
    ! Also, Initialize RotMass and RotIner to associated hub properties:
 
-IF ( NumBl == 2 )  THEN ! 2-blader
+IF ( p%NumBl == 2 )  THEN ! 2-blader
    Hubg1Iner = ( HubIner - HubMass*( ( UndSling - HubCM )**2 ) )/( ( COS(Delta3) )**2 )
    Hubg2Iner = Hubg1Iner
    IF ( Hubg1Iner < 0.0 )  CALL ProgAbort ( ' HubIner must not be less than HubMass*( UndSling - HubCM )^2 for 2-blader.' )
@@ -2006,7 +2008,7 @@ KTSSGrav  = 0.0
 
 
 
-DO K = 1,NumBl          ! Loop through the blades
+DO K = 1,p%NumBl          ! Loop through the blades
 
 
    ! Initialize BldMass(), FirstMom(), and SecondMom() using TipMass() effects:
@@ -2016,7 +2018,7 @@ DO K = 1,NumBl          ! Loop through the blades
    SecondMom(K) = TipMass(K)*BldFlexL*BldFlexL
 
 
-   DO J = BldNodes,1,-1 ! Loop through the blade nodes / elements in reverse
+   DO J = p%BldNodes,1,-1 ! Loop through the blade nodes / elements in reverse
 
 
    ! Calculate the mass of the current element
@@ -2035,7 +2037,7 @@ DO K = 1,NumBl          ! Loop through the blades
 
       FMomAbvNd   (K,J) = ( 0.5*ElmntMass )*( HubRad + RNodes(J  ) + 0.5*DRNodes(J  ) )
 
-      IF ( J == BldNodes )  THEN ! Outermost blade element
+      IF ( J == p%BldNodes )  THEN ! Outermost blade element
    ! Add the TipMass() effects:
 
          FMomAbvNd(K,J) = FmomAbvNd(K,J) + TipMass(K)*TipRad
@@ -2066,7 +2068,7 @@ ENDDO ! K - Blades
 
 
 
-DO K = 1,NumBl          ! Loop through the blades
+DO K = 1,p%NumBl          ! Loop through the blades
 
 
    ! Initialize the generalized blade masses using tip mass effects:
@@ -2076,7 +2078,7 @@ DO K = 1,NumBl          ! Loop through the blades
    MBE(K,1,1) = TipMass(K)
 
 
-   DO J = 1,BldNodes    ! Loop through the blade nodes / elements
+   DO J = 1,p%BldNodes    ! Loop through the blade nodes / elements
 
 
    ! Integrate to find the generalized mass of the blade (including tip mass effects).
@@ -2252,16 +2254,16 @@ DO K = 1,NumBl          ! Loop through the blades
    ! Calculate the 2nd derivatives of the twisted shape functions at the tip:
 
    Shape  = SHP( 1.0, BldFlexL, BldFl1Sh(:,K), 2 )
-   TwistedSF(K,1,1,TipNode,2) =  Shape*CThetaS(K,BldNodes)        ! 2nd deriv. of Phi1(TipNode) for blade K
-   TwistedSF(K,2,1,TipNode,2) = -Shape*SThetaS(K,BldNodes)        ! 2nd deriv. of Psi1(TipNode) for blade K
+   TwistedSF(K,1,1,p%TipNode,2) =  Shape*CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi1(p%TipNode) for blade K
+   TwistedSF(K,2,1,p%TipNode,2) = -Shape*SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi1(p%TipNode) for blade K
 
    Shape  = SHP( 1.0, BldFlexL, BldFl2Sh(:,K), 2 )
-   TwistedSF(K,1,2,TipNode,2) =  Shape*CThetaS(K,BldNodes)        ! 2nd deriv. of Phi2(TipNode) for blade K
-   TwistedSF(K,2,2,TipNode,2) = -Shape*SThetaS(K,BldNodes)        ! 2nd deriv. of Psi2(TipNode) for blade K
+   TwistedSF(K,1,2,p%TipNode,2) =  Shape*CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi2(p%TipNode) for blade K
+   TwistedSF(K,2,2,p%TipNode,2) = -Shape*SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi2(p%TipNode) for blade K
 
    Shape  = SHP( 1.0, BldFlexL, BldEdgSh(:,K), 2 )
-   TwistedSF(K,1,3,TipNode,2) =  Shape*SThetaS(K,BldNodes)        ! 2nd deriv. of Phi3(TipNode) for blade K
-   TwistedSF(K,2,3,TipNode,2) =  Shape*CThetaS(K,BldNodes)        ! 2nd deriv. of Psi3(TipNode) for blade K
+   TwistedSF(K,1,3,p%TipNode,2) =  Shape*SThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi3(p%TipNode) for blade K
+   TwistedSF(K,2,3,p%TipNode,2) =  Shape*CThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi3(p%TipNode) for blade K
 
 
    ! Integrate to find the 1st and zeroeth derivatives of the twisted shape functions
@@ -2269,8 +2271,8 @@ DO K = 1,NumBl          ! Loop through the blades
 
    DO I = 1,2     ! Loop through Phi and Psi
       DO L = 1,3  ! Loop through all blade DOFs
-         TwistedSF(K,I,L,TipNode,1) = TwistedSF(K,I,L,BldNodes,1) + TwstdSFOld(I,L,1)
-         TwistedSF(K,I,L,TipNode,0) = TwistedSF(K,I,L,BldNodes,0) + TwstdSFOld(I,L,0)
+         TwistedSF(K,I,L,p%TipNode,1) = TwistedSF(K,I,L,p%BldNodes,1) + TwstdSFOld(I,L,1)
+         TwistedSF(K,I,L,p%TipNode,0) = TwistedSF(K,I,L,p%BldNodes,0) + TwstdSFOld(I,L,0)
       ENDDO       ! L - All blade DOFs
    ENDDO          ! I - Phi and Psi
 
@@ -2279,7 +2281,7 @@ DO K = 1,NumBl          ! Loop through the blades
 
    DO I = 1,3     ! Loop through all blade DOFs
       DO L = 1,3  ! Loop through all blade DOFs
-         AxRedBld(K,I,L,TipNode) = AxRedBld(K,I,L,BldNodes) + AxRdBldOld(I,L)
+         AxRedBld(K,I,L,p%TipNode) = AxRedBld(K,I,L,p%BldNodes) + AxRdBldOld(I,L)
       ENDDO       ! L - All blade DOFs
    ENDDO          ! I - All blade DOFs
 
@@ -2293,7 +2295,7 @@ ENDDO ! K - Blades
 TwrTpMass = RotMass + RFrlMass + BoomMass + TFinMass + NacMass + YawBrMass
 
 
-DO J = TwrNodes,1,-1 ! Loop through the tower nodes / elements in reverse
+DO J = p%TwrNodes,1,-1 ! Loop through the tower nodes / elements in reverse
 
 
    ! Calculate the mass of the current element
@@ -2310,7 +2312,7 @@ DO J = TwrNodes,1,-1 ! Loop through the tower nodes / elements in reverse
 
    TMssAbvNd   (J) = 0.5*ElmntMass
 
-   IF ( J == TwrNodes )  THEN ! Uppermost tower element
+   IF ( J == p%TwrNodes )  THEN ! Uppermost tower element
    ! Add the TwrTpMass effects:
 
       TMssAbvNd(J) = TMssAbvNd(J) + TwrTpMass
@@ -2338,7 +2340,7 @@ DO I = 1,2  ! Loop through all tower modes in a single direction
 ENDDO       ! I - All tower modes in a single direction
 
 
-DO J = 1,TwrNodes    ! Loop through the tower nodes / elements
+DO J = 1,p%TwrNodes    ! Loop through the tower nodes / elements
 
 
    ! Calculate the tower shape functions (all derivatives):
@@ -2482,8 +2484,8 @@ TwrSSSF(2,TTopNode,0) = SHP( 1.0, TwrFlexL, TwSSM2Sh(:), 0 )
 
 DO I = 1,2     ! Loop through all tower DOFs in one direction
    DO L = 1,2  ! Loop through all tower DOFs in one direction
-      AxRedTFA(I,L,TTopNode) = AxRedTFA(I,L,TwrNodes)+ AxRdTFAOld(I,L)
-      AxRedTSS(I,L,TTopNode) = AxRedTSS(I,L,TwrNodes)+ AxRdTSSOld(I,L)
+      AxRedTFA(I,L,TTopNode) = AxRedTFA(I,L,p%TwrNodes)+ AxRdTFAOld(I,L)
+      AxRedTSS(I,L,TTopNode) = AxRedTSS(I,L,p%TwrNodes)+ AxRdTSSOld(I,L)
    ENDDO       ! L - All tower DOFs in one direction
 ENDDO
 
@@ -2506,7 +2508,7 @@ IF (ALLOCATED( TMssAbvNd )) DEALLOCATE ( TMssAbvNd )
 RETURN
 END SUBROUTINE Coeff
 !=======================================================================
-SUBROUTINE Control( x, b1 )
+SUBROUTINE Control( p, x, OtherState, b1 )
 
 
    ! This is the main control routine.
@@ -2529,8 +2531,10 @@ USE                             AeroDyn
 IMPLICIT                        NONE
 
    ! Passed variables:
-TYPE(StrD_ContinuousStateType),INTENT(INOUT) :: x                          ! The structural dynamics module's continuous states
-REAL(ReKi)                                :: b1(3)                      ! Vector / direction b1 (=  xp from the IEC coord. system)   
+TYPE(StrD_ParameterType),      INTENT(IN)    :: p                               ! Parameters of the structural dynamics module
+TYPE(StrD_ContinuousStateType),INTENT(INOUT) :: x                               ! The structural dynamics module's continuous states
+TYPE(StrD_OtherStateType),     INTENT(INOUT) :: OtherState                      ! Other State data type for Structural dynamics module
+REAL(ReKi)                                   :: b1(3)                           ! Vector / direction b1 (=  xp from the IEC coord. system)   
 
    ! Local variables:
 
@@ -2603,7 +2607,7 @@ IF ( ZTime >= TYCOn )  THEN   ! Time now to enable active yaw control.
 
    ! Call the user-defined yaw control routine:
 
-      CALL UserYawCont ( x%QT(DOF_Yaw), x%QDT(DOF_Yaw), WindDir, YawError, NumBl, ZTime, DT, DirRoot, YawPosCom, YawRateCom )
+      CALL UserYawCont ( x%QT(DOF_Yaw), x%QDT(DOF_Yaw), WindDir, YawError, p%NumBl, ZTime, DT, DirRoot, YawPosCom, YawRateCom )
 
 
    CASE ( 2 )              ! User-defined from Simulink or Labview.
@@ -2684,10 +2688,10 @@ IF ( DOF_Flag(DOF_Yaw) )  THEN   ! Yaw DOF is currently enabled (use FAST's buil
 
 ELSE                             ! Yaw DOF is currently disabled (no built-in actuator).
 
-   Q  (DOF_Yaw,IC(NMX)) = YawPosCom    ! Update the saved values
-   QD (DOF_Yaw,IC(NMX)) = YawRateCom   !   used in routine Solver()
-   x%QT (DOF_Yaw)       = YawPosCom    ! Update the current, intermediate
-   x%QDT(DOF_Yaw)       = YawRateCom   !    values used in routine RtHS()
+   OtherState%Q  (DOF_Yaw,IC(NMX)) = YawPosCom    ! Update the saved values
+   OtherState%QD (DOF_Yaw,IC(NMX)) = YawRateCom   !   used in routine Solver()
+   x%QT          (DOF_Yaw)         = YawPosCom    ! Update the current, intermediate
+   x%QDT         (DOF_Yaw)         = YawRateCom   !    values used in routine RtHS()
 
 ENDIF
 
@@ -2725,7 +2729,7 @@ IF ( ZTime >= TPCOn )  THEN   ! Time now to enable active pitch control.
 
    ! Call the user-defined pitch control routine:
 
-      CALL PitchCntrl ( BlPitch, ElecPwr, GBRatio*x%QDT(DOF_GeAz), GBRatio, TwrAccel, NumBl, ZTime, DT, DirRoot, BlPitchCom )
+      CALL PitchCntrl ( BlPitch, ElecPwr, GBRatio*x%QDT(DOF_GeAz), GBRatio, TwrAccel, p%NumBl, ZTime, DT, DirRoot, BlPitchCom )
 
 
    CASE ( 2 )              ! User-defined from Simulink or Labview.
@@ -2750,7 +2754,7 @@ ENDIF
 
    ! Override standard pitch control with a linear maneuver if necessary:
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
 
 
    IF ( ZTime >= TPitManE(K) )  THEN      ! Override pitch maneuver has ended, blade is locked at BlPitchF.
@@ -2794,7 +2798,7 @@ BlPitch = BlPitchCom
 RETURN
 END SUBROUTINE Control
 !=======================================================================
-SUBROUTINE CoordSys_Alloc( CoordSys, NumBl, BldNodes, TwrNodes, ErrStat, ErrMsg )
+SUBROUTINE CoordSys_Alloc( CoordSys, p, ErrStat, ErrMsg )
 
    ! This subroutine allocates the coordinate systems in the StrD_CoordSys type.
 
@@ -2802,13 +2806,11 @@ IMPLICIT NONE
 
    ! passed arguments
    
-TYPE(StrD_CoordSys), INTENT(OUT) :: CoordSys       ! The coordinate systems, with arrays to be allocated
-INTEGER(IntKi),      INTENT(IN)  :: NumBl          ! Number of blades
-INTEGER(IntKi),      INTENT(IN)  :: BldNodes       ! Number of nodes per blade
-INTEGER(IntKi),      INTENT(IN)  :: TwrNodes       ! Number of tower nodes 
+TYPE(StrD_CoordSys),      INTENT(OUT) :: CoordSys       ! The coordinate systems, with arrays to be allocated
+TYPE(StrD_ParameterType), INTENT(IN)  :: p              ! Parameters of the structural dynamics module
 
-INTEGER(IntKi),      INTENT(OUT) :: ErrStat        ! Error status 
-CHARACTER(*),        INTENT(OUT) :: ErrMsg         ! Err msg
+INTEGER(IntKi),           INTENT(OUT) :: ErrStat        ! Error status 
+CHARACTER(*),             INTENT(OUT) :: ErrMsg         ! Err msg
 
 
    ! local variables
@@ -2824,7 +2826,7 @@ ErrMsg  = ""
 
   ! Allocate coordinate system arrays:
 
-ALLOCATE ( CoordSys%i1(NumBl,3), CoordSys%i2(NumBl,3), CoordSys%i3(NumBl,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+ALLOCATE ( CoordSys%i1(p%NumBl,3), CoordSys%i2(p%NumBl,3), CoordSys%i3(p%NumBl,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
 IF ( ErrStat /= 0 )  THEN
    ErrStat = ErrID_Fatal
    ErrMsg  = 'Error allocating the i1, i2, and i3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
@@ -2832,7 +2834,7 @@ IF ( ErrStat /= 0 )  THEN
 END IF
 
 
-ALLOCATE ( CoordSys%j1(NumBl,3), CoordSys%j2(NumBl,3), CoordSys%j3(NumBl,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+ALLOCATE ( CoordSys%j1(p%NumBl,3), CoordSys%j2(p%NumBl,3), CoordSys%j3(p%NumBl,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
 IF ( ErrStat /= 0 )  THEN
    ErrStat = ErrID_Fatal
    ErrMsg  = 'Error allocating the j1, j2, and j3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
@@ -2840,7 +2842,8 @@ IF ( ErrStat /= 0 )  THEN
 END IF
 
 
-ALLOCATE ( CoordSys%m1(NumBl,BldNodes,3), CoordSys%m2(NumBl,BldNodes,3), CoordSys%m3(NumBl,BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+ALLOCATE ( CoordSys%m1(p%NumBl,p%BldNodes,3), CoordSys%m2(p%NumBl,p%BldNodes,3), &
+           CoordSys%m3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
 IF ( ErrStat /= 0 )  THEN
    ErrStat = ErrID_Fatal
    ErrMsg  = 'Error allocating the m1, m2, and m3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
@@ -2848,7 +2851,8 @@ IF ( ErrStat /= 0 )  THEN
 END IF
 
 
-ALLOCATE ( CoordSys%n1(NumBl,BldNodes,3), CoordSys%n2(NumBl,BldNodes,3), CoordSys%n3(NumBl,BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+ALLOCATE ( CoordSys%n1(p%NumBl,p%BldNodes,3), CoordSys%n2(p%NumBl,p%BldNodes,3), &
+           CoordSys%n3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
 IF ( ErrStat /= 0 )  THEN
    ErrStat = ErrID_Fatal
    ErrMsg  = 'Error allocating the n1, n2, and n3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
@@ -2856,7 +2860,7 @@ IF ( ErrStat /= 0 )  THEN
 END IF
 
 
-ALLOCATE ( CoordSys%t1(TwrNodes,3), CoordSys%t2(TwrNodes,3), CoordSys%t3(TwrNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+ALLOCATE ( CoordSys%t1(p%TwrNodes,3), CoordSys%t2(p%TwrNodes,3), CoordSys%t3(p%TwrNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
 IF ( ErrStat /= 0 )  THEN
    ErrStat = ErrID_Fatal
    ErrMsg  = 'Error allocating the t1, t2, and t3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
@@ -2864,7 +2868,8 @@ IF ( ErrStat /= 0 )  THEN
 END IF
 
 
-ALLOCATE ( CoordSys%te1(NumBl,BldNodes,3), CoordSys%te2(NumBl,BldNodes,3), CoordSys%te3(NumBl,BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+ALLOCATE ( CoordSys%te1(p%NumBl,p%BldNodes,3), CoordSys%te2(p%NumBl,p%BldNodes,3), &
+           CoordSys%te3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
 IF ( ErrStat /= 0 )  THEN
    ErrStat = ErrID_Fatal
    ErrMsg  = 'Error allocating the te1, te2, and te3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
@@ -2883,10 +2888,10 @@ IMPLICIT NONE
 
    ! passed arguments
    
-TYPE(StrD_CoordSys), INTENT(INOUT) :: CoordSys       ! The coordinate systems to be deallocated
+TYPE(StrD_CoordSys),      INTENT(INOUT) :: CoordSys       ! The coordinate systems to be deallocated
 
-INTEGER(IntKi),      INTENT(OUT)   :: ErrStat        ! Error status 
-CHARACTER(*),        INTENT(OUT)   :: ErrMsg         ! Err msg
+INTEGER(IntKi),           INTENT(OUT)   :: ErrStat        ! Error status 
+CHARACTER(*),             INTENT(OUT)   :: ErrMsg         ! Err msg
 
 
    ! local variables
@@ -2973,7 +2978,7 @@ VecResult = Cross_Product(Vector1, Vector2)
 RETURN
 END SUBROUTINE CrossProd
 !=======================================================================
-SUBROUTINE DrvTrTrq ( LSS_Spd, GBoxTrq )
+SUBROUTINE DrvTrTrq ( p_StrD, LSS_Spd, GBoxTrq )
 
 
    ! This routine calculates the drive-train torque.
@@ -2990,7 +2995,7 @@ IMPLICIT                        NONE
 
 
    ! Passed variables:
-
+TYPE(StrD_ParameterType),INTENT(IN) :: p_StrD                                    ! Parameters of the structural dynamics module
 REAL(ReKi), INTENT(OUT)      :: GBoxTrq                                         ! Gearbox torque on the LSS side in N-m (output).
 REAL(ReKi), INTENT(IN )      :: LSS_Spd                                         ! LSS speed in rad/sec (input).
 
@@ -3102,7 +3107,7 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
       CASE ( 3 )                          ! User-defined generator model.
 
 
-         CALL UserGen ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+         CALL UserGen ( HSS_Spd, GBRatio, p_StrD%NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
 
 
       ENDSELECT
@@ -3133,7 +3138,7 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
    CASE ( 2 )                             ! User-defined variable-speed control for routine UserVSCont().
 
 
-      CALL UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+      CALL UserVSCont ( HSS_Spd, GBRatio, p_StrD%NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
 
 
    CASE ( 3 )                             ! User-defined variable-speed control from Simulink or Labview.
@@ -3209,7 +3214,7 @@ ELSE                             ! HSS brake deployed.
 
    CASE ( 2 )                                ! User-defined HSS brake model.
 
-      CALL UserHSSBr ( GenTrq, ElecPwr, HSS_Spd, GBRatio, NumBl, ZTime, DT, DirRoot, HSSBrFrac )
+      CALL UserHSSBr ( GenTrq, ElecPwr, HSS_Spd, GBRatio, p_StrD%NumBl, ZTime, DT, DirRoot, HSSBrFrac )
 
       IF ( ( HSSBrFrac < 0.0 ) .OR. ( HSSBrFrac > 1.0 ) )  &   ! 0 (off) <= HSSBrFrac <= 1 (full); else Abort.
          CALL ProgAbort ( ' HSSBrFrac must be between 0.0 (off) and 1.0 (full) (inclusive).  Fix logic in routine UserHSSBr().' )
@@ -3247,7 +3252,7 @@ GBoxTrq = ( GenTrq + HSSBrTrq )*GBRatio
 RETURN
 END SUBROUTINE DrvTrTrq
 !=======================================================================
-SUBROUTINE FixHSSBrTq ( Integrator )
+SUBROUTINE FixHSSBrTq ( Integrator, p, OtherState )
 
 
    ! This routine is used to adjust the HSSBrTrq value if the absolute
@@ -3276,6 +3281,8 @@ IMPLICIT                        NONE
    ! Passed variables:
 
 CHARACTER(9), INTENT(IN )    :: Integrator                                      ! A string holding the current integrator being used.
+TYPE(StrD_ParameterType),  INTENT(IN)   :: p                                    ! The parameters of the structural dynamics module
+TYPE(StrD_OtherStateType), INTENT(INOUT):: OtherState                           ! Other State data type for Structural dynamics module
 
 
    ! Local variables:
@@ -3307,8 +3314,8 @@ CASE ('Corrector')
    ! This is found by solving the corrector formula for QD2(DOF_GeAz,IC(NMX))
    !   when QD(DOF_GeAz,IC(NMX)) equals zero.
 
-   RqdQD2GeAz = ( -      QD (DOF_GeAz,IC(1))/DT24 - 19.0*QD2(DOF_GeAz,IC(1)) &
-                  +  5.0*QD2(DOF_GeAz,IC(2))      -      QD2(DOF_GeAz,IC(3))   )/ 9.0
+   RqdQD2GeAz = ( -      OtherState%QD (DOF_GeAz,IC(1))/DT24 - 19.0*OtherState%QD2(DOF_GeAz,IC(1)) &
+                  +  5.0*OtherState%QD2(DOF_GeAz,IC(2))      -      OtherState%QD2(DOF_GeAz,IC(3))   )/ 9.0
 
 CASE ('Predictor')
 
@@ -3316,8 +3323,8 @@ CASE ('Predictor')
    ! This is found by solving the predictor formula for QD2(DOF_GeAz,IC(1))
    !   when QD(DOF_GeAz,IC(NMX)) equals zero.
 
-   RqdQD2GeAz = ( -      QD (DOF_GeAz,IC(1))/DT24 + 59.0*QD2(DOF_GeAz,IC(2)) &
-                  - 37.0*QD2(DOF_GeAz,IC(3))      +  9.0*QD2(DOF_GeAz,IC(4))   )/55.0
+   RqdQD2GeAz = ( -      OtherState%QD (DOF_GeAz,IC(1))/DT24 + 59.0*OtherState%QD2(DOF_GeAz,IC(2)) &
+                  - 37.0*OtherState%QD2(DOF_GeAz,IC(3))      +  9.0*OtherState%QD2(DOF_GeAz,IC(4))   )/55.0
 
 END SELECT
 
@@ -3414,10 +3421,13 @@ ELSE
    !    of the other QDs as necessary.
    ! The Q's are unnaffected by this change.
 
-      QD2(:,IC(NMX)) = QD2T
+      OtherState%QD2(:,IC(NMX)) = QD2T
 
-      DO I = 1,NDOF  ! Loop through all DOFs
-         QD(I,IC(NMX)) = QD(I,IC(1)) + DT24*( 9.0*QD2(I,IC(NMX)) + 19.0*QD2(I,IC(1)) - 5.0*QD2(I,IC(2)) + QD2(I,IC(3)) )
+      DO I = 1,p%NDOF  ! Loop through all DOFs
+         OtherState%QD(I,IC(NMX)) = OtherState%QD(I,IC(1)) + DT24*( 9.0*OtherState%QD2(I,IC(NMX)) &
+                                                                 + 19.0*OtherState%QD2(I,IC(1  )) &
+                                                                 -  5.0*OtherState%QD2(I,IC(2  )) &
+                                                                 +      OtherState%QD2(I,IC(3  )) )
       ENDDO          ! I - All DOFs
 
    CASE ('Predictor')
@@ -3427,7 +3437,7 @@ ELSE
    ! This will make QD(DOF_GeAz,IC(NMX)) equal to zero and adjust all
    !    of the other QDs as necessary during the next time step.
 
-      QD2(:,IC(  1)) = QD2T
+      OtherState%QD2(:,IC(  1)) = QD2T
 
    END SELECT
 
@@ -3578,9 +3588,10 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
       ! MODULE DOFs
 
-   IF ( ALLOCATED(Q                                  ) ) DEALLOCATE(Q                                  )
-   IF ( ALLOCATED(QD                                 ) ) DEALLOCATE(QD                                 )
-   IF ( ALLOCATED(QD2                                ) ) DEALLOCATE(QD2                                )
+   !IF ( ALLOCATED(OtherState%Q                                  ) ) DEALLOCATE(OtherState%Q                                  )
+   !IF ( ALLOCATED(OtherState%QD                                 ) ) DEALLOCATE(OtherState%QD                                 )
+   !IF ( ALLOCATED(OtherState%QD2                                ) ) DEALLOCATE(OtherState%QD2                                )
+   !
    IF ( ALLOCATED(Diag                               ) ) DEALLOCATE(Diag                               )
    !IF ( ALLOCATED(DOF_BE                             ) ) DEALLOCATE(DOF_BE                             )
    !IF ( ALLOCATED(DOF_BF                             ) ) DEALLOCATE(DOF_BF                             )
@@ -3661,7 +3672,7 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(OutData                            ) ) DEALLOCATE(OutData                            )
    IF ( ALLOCATED(AllOutData                         ) ) DEALLOCATE(AllOutData                         )
    IF ( ALLOCATED(TimeData                           ) ) DEALLOCATE(TimeData                           )
-   IF ( ALLOCATED(OutParam                           ) ) DEALLOCATE(OutParam                           )
+!   IF ( ALLOCATED(p%OutParam                           ) ) DEALLOCATE(p%OutParam                           )
 
 
       ! MODULE RtHndSid
@@ -3738,8 +3749,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(rZT                                ) ) DEALLOCATE(rZT                                )
    IF ( ALLOCATED(SolnVec                            ) ) DEALLOCATE(SolnVec                            )
 
-
-   CALL StrD_DestroyState( x, ErrStat, ErrMsg )
    
 !   IF ( ALLOCATED(x%QDT                                ) ) DEALLOCATE(x%QDT                                )
 !   IF ( ALLOCATED(x%QT                                 ) ) DEALLOCATE(x%QT                               )
@@ -3891,7 +3900,7 @@ SolnVec = AugMat(:,NAug)
 RETURN
 END SUBROUTINE Gauss
 !=======================================================================
-SUBROUTINE InitBlDefl ( K, InitQF1, InitQF2, InitQE1 )
+SUBROUTINE InitBlDefl ( K, InitQF1, InitQF2, InitQE1, p )
 
 
    ! This routine calculates the initial blade deflections.
@@ -3916,6 +3925,7 @@ REAL(ReKi), INTENT(OUT)      :: InitQF1                                         
 REAL(ReKi), INTENT(OUT)      :: InitQF2                                         ! Initial flap deflection for mode 2 (output).
 
 INTEGER(4), INTENT(IN )      :: K                                               ! Blade number (input).
+TYPE(StrD_ParameterType),  INTENT(IN)  :: p                                     ! The parameters of the structural dynamics module
 
 
    ! Local variables:
@@ -3945,8 +3955,8 @@ WRITE (BladeStr(8:8),'(I1)')  K
 CosPitch = COS( BlPitch(K) )
 SinPitch = SIN( BlPitch(K) )
 
-A(1,2) =  TwistedSF(K,1,3,TipNode,0)*CosPitch + TwistedSF(K,2,3,TipNode,0)*SinPitch
-A(2,2) = -TwistedSF(K,1,3,TipNode,0)*SinPitch + TwistedSF(K,2,3,TipNode,0)*CosPitch
+A(1,2) =  TwistedSF(K,1,3,p%TipNode,0)*CosPitch + TwistedSF(K,2,3,p%TipNode,0)*SinPitch
+A(2,2) = -TwistedSF(K,1,3,p%TipNode,0)*SinPitch + TwistedSF(K,2,3,p%TipNode,0)*CosPitch
 A(1,3) =  OoPDefl
 A(2,3) =  IPDefl
 
@@ -3954,8 +3964,8 @@ IF ( FlapDOF1 )  THEN                       ! Blade flap mode 1 is enabled
 
    InitQF2 = 0.0
 
-   A(1,1) =  TwistedSF(K,1,1,TipNode,0)*CosPitch + TwistedSF(K,2,1,TipNode,0)*SinPitch
-   A(2,1) = -TwistedSF(K,1,1,TipNode,0)*SinPitch + TwistedSF(K,2,1,TipNode,0)*CosPitch
+   A(1,1) =  TwistedSF(K,1,1,p%TipNode,0)*CosPitch + TwistedSF(K,2,1,p%TipNode,0)*SinPitch
+   A(2,1) = -TwistedSF(K,1,1,p%TipNode,0)*SinPitch + TwistedSF(K,2,1,p%TipNode,0)*CosPitch
 
    DET = ( A(1,1)*A(2,2) - A(1,2)*A(2,1) )
 
@@ -4046,8 +4056,8 @@ ELSE                                        ! Blade flap mode 1 is not enabled.
 
    IF ( FlapDOF2 )  THEN                    ! Blade flap mode 2 is enabled.
 
-      A(1,1) =  TwistedSF(K,1,2,TipNode,0)*CosPitch + TwistedSF(K,2,2,TipNode,0)*SinPitch
-      A(2,1) = -TwistedSF(K,1,2,TipNode,0)*SinPitch + TwistedSF(K,2,2,TipNode,0)*CosPitch
+      A(1,1) =  TwistedSF(K,1,2,p%TipNode,0)*CosPitch + TwistedSF(K,2,2,p%TipNode,0)*SinPitch
+      A(2,1) = -TwistedSF(K,1,2,p%TipNode,0)*SinPitch + TwistedSF(K,2,2,p%TipNode,0)*CosPitch
 
       DET = ( A(1,1)*A(2,2) - A(1,2)*A(2,1) )
 
@@ -4188,7 +4198,7 @@ ENDIF
 RETURN
 END SUBROUTINE InitBlDefl
 !=======================================================================
-SUBROUTINE FAST_Initialize(p,x,y)
+SUBROUTINE FAST_Initialize(p,x,y,OtherState)
 
 
    ! Initialize sets up starting values for each degree of freedom.
@@ -4218,6 +4228,7 @@ IMPLICIT                        NONE
 TYPE(StrD_ParameterType),        INTENT(INOUT) :: p                             ! Parameters of the structural dynamics module
 TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
 TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
+TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for the structural dynamics module
 
 
    ! Local variables:
@@ -4240,7 +4251,8 @@ INTEGER(4)                   :: Sttus                                           
 
    ! Allocate many of the variable-length arrays:
 
-CALL Alloc(p,x,y)
+CALL Alloc(p,x,y, OtherState)
+
 
 
    ! Initialize the IC array:
@@ -4253,7 +4265,7 @@ ENDDO
 
 !   ! Define DOF index locations for the blade modes:
 !
-!DO K = 1,NumBl ! Loop through all blades
+!DO K = 1,p%NumBl ! Loop through all blades
 !   DOF_BF(K,1) = 16 + 3*(K-1)       ! 1st blade flap mode--DOFs 16, 19, and 22 for blade 1, 2, and 3, respectively
 !   DOF_BE(K,1) = 17 + 3*(K-1)       ! 1st blade edge mode--DOFs 17, 20, and 23 for blade 1, 2, and 3, respectively
 !   DOF_BF(K,2) = 18 + 3*(K-1)       ! 2nd blade flap mode--DOFs 18, 21, and 24 for blade 1, 2, and 3, respectively
@@ -4274,7 +4286,7 @@ NPB    =  7                         ! Number of DOFs that contribute to the angu
 NPN    =  8                         ! Number of DOFs that contribute to the angular velocity of the nacelle                                                   (body N) in the inertia frame.
 NPR    =  9                         ! Number of DOFs that contribute to the angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame.
 NPL    = 11                         ! Number of DOFs that contribute to the angular velocity of the low-speed shaft                                           (body L) in the inertia frame.
-IF ( NumBl == 2 )  THEN ! 2-blader
+IF ( p%NumBl == 2 )  THEN ! 2-blader
    NPH = 12                         ! Number of DOFs that contribute to the angular velocity of the hub                                                       (body H) in the inertia frame.
    NPM = 15                         ! Number of DOFs that contribute to the angular velocity of the blade elements                                            (body M) in the inertia frame.
 ELSE                    ! 3-blader
@@ -4320,7 +4332,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the PH array.' )
 ENDIF
 
-ALLOCATE ( PM(NumBl,NPM) , STAT=Sttus )
+ALLOCATE ( PM(p%NumBl,NPM) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the PM array.' )
 ENDIF
@@ -4343,10 +4355,10 @@ PN            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, 
 PR            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl /)                               ! Array of DOF indices (pointers) that contribute to the angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame.
 PL            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr /)           ! Array of DOF indices (pointers) that contribute to the angular velocity of the low-speed shaft                                           (body L) in the inertia frame.
 
-IF ( NumBl == 2 )  THEN ! 2-blader
+IF ( p%NumBl == 2 )  THEN ! 2-blader
 
    PH         = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, DOF_Teet /) ! Array of DOF indices (pointers) that contribute to the angular velocity of the hub                                                       (body H) in the inertia frame.
-   DO K = 1,NumBl ! Loop through all blades
+   DO K = 1,p%NumBl ! Loop through all blades
       PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, DOF_Teet, & ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements                                            (body M) in the inertia frame.
                    DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                                   /)
    ENDDO          ! K - All blades
@@ -4354,7 +4366,7 @@ IF ( NumBl == 2 )  THEN ! 2-blader
 ELSE                    ! 3-blader
 
    PH         = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr /)           ! Array of DOF indices (pointers) that contribute to the angular velocity of the hub                                                       (body H) in the inertia frame.
-   DO K = 1,NumBl ! Loop through all blades
+   DO K = 1,p%NumBl ! Loop through all blades
       PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, &           ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements                                            (body M) in the inertia frame.
                    DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                         /)
    ENDDO          ! K - All blades
@@ -4367,33 +4379,33 @@ PA            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, 
 
    ! Compute the constant blade and tower properties:
 
-CALL Coeff
+CALL Coeff(p)
 
 
    ! Initialize the accelerations to zero.
 
-QD2 = 0.0
+OtherState%QD2 = 0.0
 
 
    ! Blade motions:
 
-DO K = 1,NumBl   ! Loop through all blades
+DO K = 1,p%NumBl   ! Loop through all blades
 
 
    ! Calculate the initial blade deflections:
 
-   CALL InitBlDefl ( K, InitQF1, InitQF2, InitQE1 )
+   CALL InitBlDefl ( K, InitQF1, InitQF2, InitQE1, p )
 
 
    ! Apply these initial blade DOF values to the corresponding
    !   DOFs for this blade.
 
-   Q ( DOF_BF(K,1), 1 ) = InitQF1   !
-   Q ( DOF_BF(K,2), 1 ) = InitQF2   ! These come from InitBlDefl().
-   Q ( DOF_BE(K,1), 1 ) = InitQE1   !
-   QD( DOF_BF(K,1), 1 ) = 0.0
-   QD( DOF_BF(K,2), 1 ) = 0.0
-   QD( DOF_BE(K,1), 1 ) = 0.0
+   OtherState%Q ( DOF_BF(K,1), 1 ) = InitQF1   !
+   OtherState%Q ( DOF_BF(K,2), 1 ) = InitQF2   ! These come from InitBlDefl().
+   OtherState%Q ( DOF_BE(K,1), 1 ) = InitQE1   !
+   OtherState%QD( DOF_BF(K,1), 1 ) = 0.0
+   OtherState%QD( DOF_BF(K,2), 1 ) = 0.0
+   OtherState%QD( DOF_BE(K,1), 1 ) = 0.0
 
    DOF_Flag( DOF_BF(K,1) ) = FlapDOF1
    DOF_Flag( DOF_BF(K,2) ) = FlapDOF2
@@ -4409,7 +4421,7 @@ DO K = 1,NumBl   ! Loop through all blades
 ENDDO          ! K - All blades
 
 
-IF ( NumBl == 2 )  THEN
+IF ( p%NumBl == 2 )  THEN
 
 
    ! Teeter Motion
@@ -4417,8 +4429,8 @@ IF ( NumBl == 2 )  THEN
    ! Set initial teeter angle to TeetDefl and initial teeter angular velocity
    !   to 0.
 
-   Q (DOF_Teet,1) = TeetDefl
-   QD(DOF_Teet,1) = 0.0
+   OtherState%Q (DOF_Teet,1) = TeetDefl
+   OtherState%QD(DOF_Teet,1) = 0.0
 
    DOF_Flag(DOF_Teet) = TeetDOF
 
@@ -4432,8 +4444,8 @@ ENDIF
    ! The initial shaft compliance displacements and velocities are all zero.
    !   They will remain zero if the drivetrain DOF is disabled:
 
-Q (DOF_DrTr,1) = 0.0
-QD(DOF_DrTr,1) = 0.0
+OtherState%Q (DOF_DrTr,1) = 0.0
+OtherState%QD(DOF_DrTr,1) = 0.0
 
 DOF_Flag(DOF_DrTr) = DrTrDOF
 
@@ -4449,8 +4461,8 @@ DOF_Desc(DOF_DrTr) = 'Drivetrain rotational-flexibility DOF (internal DOF index 
 !JASON: CHANGE THESE MOD() FUNCTIONS INTO MODULO() FUNCTIONS SO THAT YOU CAN ELIMINATE ADDING 360:
 QAzimInit      = MOD( Azimuth - AzimB1Up + 270.0 + 360.0, 360.0 )*D2R   ! Internal position of blade 1.
 
-Q (DOF_GeAz,1) = QAzimInit
-QD(DOF_GeAz,1) = RotSpeed                                               ! Rotor speed in rad/sec.
+OtherState%Q (DOF_GeAz,1) = QAzimInit
+OtherState%QD(DOF_GeAz,1) = RotSpeed                                               ! Rotor speed in rad/sec.
 
 DOF_Flag(DOF_GeAz) = GenDOF
 
@@ -4462,8 +4474,8 @@ DOF_Desc(DOF_GeAz) = 'Variable speed generator DOF (internal DOF index = DOF_GeA
    ! Set initial rotor-furl angle to RotFurl.  If rotor-furl is off, this
    !   becomes a fixed rotor-furl angle.
 
-Q (DOF_RFrl,1) = RotFurl
-QD(DOF_RFrl,1) = 0.0
+OtherState%Q (DOF_RFrl,1) = RotFurl
+OtherState%QD(DOF_RFrl,1) = 0.0
 
 DOF_Flag(DOF_RFrl) = RFrlDOF
 
@@ -4475,8 +4487,8 @@ DOF_Desc(DOF_RFrl) = 'Rotor-furl DOF (internal DOF index = DOF_RFrl)'
    ! Set initial tail-furl angle to TailFurl.  If tail-furl is off, this
    !   becomes a fixed tail-furl angle.
 
-Q (DOF_TFrl,1) = TailFurl
-QD(DOF_TFrl,1) = 0.0
+OtherState%Q (DOF_TFrl,1) = TailFurl
+OtherState%QD(DOF_TFrl,1) = 0.0
 
 DOF_Flag(DOF_TFrl) = TFrlDOF
 
@@ -4488,8 +4500,8 @@ DOF_Desc(DOF_TFrl) = 'Tail-furl DOF (internal DOF index = DOF_TFrl)'
    ! Set initial yaw angle to NacYaw.  If yaw is off, this becomes a
    !   fixed yaw angle.
 
-Q (DOF_Yaw ,1) = NacYaw
-QD(DOF_Yaw ,1) = 0.0
+OtherState%Q (DOF_Yaw ,1) = NacYaw
+OtherState%QD(DOF_Yaw ,1) = 0.0
 
 DOF_Flag(DOF_Yaw ) = YawDOF
 
@@ -4502,27 +4514,27 @@ DOF_Desc(DOF_Yaw ) = 'Nacelle yaw DOF (internal DOF index = DOF_Yaw)'
    !   is disabled and mode 2 is enabled, assign all displacements to mode 2.
    ! If both modes are disabled, set the displacements to zero.
 
-Q   (DOF_TFA1,1) =  0.0
-Q   (DOF_TSS1,1) =  0.0
-Q   (DOF_TFA2,1) =  0.0
-Q   (DOF_TSS2,1) =  0.0
+OtherState%Q   (DOF_TFA1,1) =  0.0
+OtherState%Q   (DOF_TSS1,1) =  0.0
+OtherState%Q   (DOF_TFA2,1) =  0.0
+OtherState%Q   (DOF_TSS2,1) =  0.0
 
 IF (    TwFADOF1 )  THEN   ! First fore-aft tower mode is enabled.
-   Q(DOF_TFA1,1) =  TTDspFA
+   OtherState%Q(DOF_TFA1,1) =  TTDspFA
 ELSEIF( TwFADOF2 )  THEN   ! Second fore-aft tower mode is enabled, but first is not.
-   Q(DOF_TFA2,1) =  TTDspFA
+   OtherState%Q(DOF_TFA2,1) =  TTDspFA
 ENDIF
 
 IF (    TwSSDOF1 )  THEN   ! First side-to-side tower mode is enabled.
-   Q(DOF_TSS1,1) = -TTDspSS
+   OtherState%Q(DOF_TSS1,1) = -TTDspSS
 ELSEIF( TwSSDOF2 )  THEN   ! Second side-to-side tower mode is enabled, but first is not.
-   Q(DOF_TSS2,1) = -TTDspSS
+   OtherState%Q(DOF_TSS2,1) = -TTDspSS
 ENDIF
 
-QD  (DOF_TFA1,1) =  0.0
-QD  (DOF_TSS1,1) =  0.0
-QD  (DOF_TFA2,1) =  0.0
-QD  (DOF_TSS2,1) =  0.0
+OtherState%QD  (DOF_TFA1,1) =  0.0
+OtherState%QD  (DOF_TSS1,1) =  0.0
+OtherState%QD  (DOF_TFA2,1) =  0.0
+OtherState%QD  (DOF_TSS2,1) =  0.0
 
 DOF_Flag(DOF_TFA1) = TwFADOF1
 DOF_Flag(DOF_TSS1) = TwSSDOF1
@@ -4540,18 +4552,18 @@ DOF_Desc(DOF_TSS2) = '2nd tower side-to-side bending mode DOF (internal DOF inde
    ! Set initial platform displacements.  If platform DOFs are off, these
    !   become fixed platform displacements.
 
-Q (DOF_Sg  ,1) = PtfmSurge
-Q (DOF_Sw  ,1) = PtfmSway
-Q (DOF_Hv  ,1) = PtfmHeave
-Q (DOF_R   ,1) = PtfmRoll
-Q (DOF_P   ,1) = PtfmPitch
-Q (DOF_Y   ,1) = PtfmYaw
-QD(DOF_Sg  ,1) = 0.0
-QD(DOF_Sw  ,1) = 0.0
-QD(DOF_Hv  ,1) = 0.0
-QD(DOF_R   ,1) = 0.0
-QD(DOF_P   ,1) = 0.0
-QD(DOF_Y   ,1) = 0.0
+OtherState%Q (DOF_Sg  ,1) = PtfmSurge
+OtherState%Q (DOF_Sw  ,1) = PtfmSway
+OtherState%Q (DOF_Hv  ,1) = PtfmHeave
+OtherState%Q (DOF_R   ,1) = PtfmRoll
+OtherState%Q (DOF_P   ,1) = PtfmPitch
+OtherState%Q (DOF_Y   ,1) = PtfmYaw
+OtherState%QD(DOF_Sg  ,1) = 0.0
+OtherState%QD(DOF_Sw  ,1) = 0.0
+OtherState%QD(DOF_Hv  ,1) = 0.0
+OtherState%QD(DOF_R   ,1) = 0.0
+OtherState%QD(DOF_P   ,1) = 0.0
+OtherState%QD(DOF_Y   ,1) = 0.0
 
 DOF_Flag(DOF_Sg  ) = PtfmSgDOF
 DOF_Flag(DOF_Sw  ) = PtfmSwDOF
@@ -4578,7 +4590,7 @@ DOF_FlagInit = DOF_Flag
 
    ! Calculate the number of active (enabled) DOFs in the model, NActvDOF:
 
-CALL SetEnabledDOFIndexArrays
+CALL SetEnabledDOFIndexArrays( p )
 
    ! Initialize the variables associated with the incident waves and
    !   hydrodynamic loading, if necessary:
@@ -4598,7 +4610,7 @@ IF (     ( PtfmModel == 2 ) .AND. CompHydro )  THEN   ! .TRUE. if we have a fixe
    !   tower nodes relative to the mean sea level when the support platform is
    !   undisplaced:
 
-   NWaveKin0 = TwrNodes
+   NWaveKin0 = p%TwrNodes
 
    ALLOCATE ( WaveKinzi0 (NWaveKin0) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
@@ -4675,7 +4687,7 @@ ELSEIF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN   ! .TRUE. if we have floati
                           LAnchxi   , LAnchyi   , LAnchzi    , LFairxt  , &
                           LFairyt   , LFairzt   , LUnstrLen  , LDiam    , &
                           LMassDen  , LEAStff   , LSeabedCD  , LTenTol  , &
-                          LineNodes , LSNodes   , Q(1:6,1)                  )
+                          LineNodes , LSNodes   , OtherState%Q(1:6,1)       )
 
    IF (ALLOCATED( DZNodesPtfm ) ) DEALLOCATE( DZNodesPtfm )
    IF (ALLOCATED( WaveKinzi0 ) )  DEALLOCATE( WaveKinzi0 )
@@ -4946,7 +4958,7 @@ ENDSELECT
 RETURN
 END SUBROUTINE RFurling
 !=======================================================================
-SUBROUTINE RtHS( p, CoordSys, x )
+SUBROUTINE RtHS( p, CoordSys, x, OtherState )
 
 
    ! This routine is used to set up and solve the equations of motion
@@ -4973,8 +4985,6 @@ USE                             Tower
 USE                             TurbConf
 USE                             TurbCont
 
-USE                             Constants
-
 
 IMPLICIT                        NONE
 
@@ -4984,6 +4994,7 @@ IMPLICIT                        NONE
 TYPE(StrD_ParameterType),  INTENT(IN)           :: p                            ! The parameters of the structural dynamics module
 TYPE(StrD_CoordSys), INTENT(INOUT)              :: CoordSys                     ! The coordinate systems to be set
 TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x                            ! The structural dynamics module's continuous states
+TYPE(StrD_OtherStateType),INTENT(INOUT)         :: OtherState                        ! Other State data type for Structural dynamics module
 
 
    ! Local variables:
@@ -5085,7 +5096,7 @@ INTEGER                      :: ErrStat
    ! Determine how many DOFs are currently enabled (this can change within
    !   user-defined routines) and set vector subscript arrays accordingly:
 
-CALL SetEnabledDOFIndexArrays
+CALL SetEnabledDOFIndexArrays( p ) 
 
 
 
@@ -5095,7 +5106,7 @@ CALL SetEnabledDOFIndexArrays
    !   of control measurements are computed until the end of the first time
    !   step):
 
-IF ( ( ZTime > 0.0 ) .AND. ( AnalMode == 1 ) )  CALL Control( x, CoordSys%b1 ) !bjj: note that b1 hasn't been set yet when the simulation starts....
+IF ( ( ZTime > 0.0 ) .AND. ( AnalMode == 1 ) )  CALL Control( p, x, OtherState, CoordSys%b1 ) !bjj: note that b1 hasn't been set yet when the simulation starts....
 
 
 
@@ -5166,30 +5177,30 @@ rQ    = rP  + rPQ                                                               
 rK    = rO  + rOW + rWK                                                                                     ! Position vector from inertial frame origin to tail fin center of pressure (point K).
 
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
 
 
 
    ! Calculate the position vector of the tip:
 
-   rS0S(K,TipNode,:) = (   TwistedSF(K,1,1,TipNode,0)*x%QT( DOF_BF(K,1) ) &  ! Position vector from the blade root (point S(0)) to the blade tip (point S(BldFlexL)).
-                         + TwistedSF(K,1,2,TipNode,0)*x%QT( DOF_BF(K,2) ) &
-                         + TwistedSF(K,1,3,TipNode,0)*x%QT( DOF_BE(K,1) )                          )*CoordSys%j1(K,:) &
-                     + (   TwistedSF(K,2,1,TipNode,0)*x%QT( DOF_BF(K,1) ) &
-                         + TwistedSF(K,2,2,TipNode,0)*x%QT( DOF_BF(K,2) ) &
-                         + TwistedSF(K,2,3,TipNode,0)*x%QT( DOF_BE(K,1) )                          )*CoordSys%j2(K,:) &
+   rS0S(K,p%TipNode,:) = (   TwistedSF(K,1,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &  ! Position vector from the blade root (point S(0)) to the blade tip (point S(BldFlexL)).
+                         + TwistedSF(K,1,2,p%TipNode,0)*x%QT( DOF_BF(K,2) ) &
+                         + TwistedSF(K,1,3,p%TipNode,0)*x%QT( DOF_BE(K,1) )                          )*CoordSys%j1(K,:) &
+                     + (   TwistedSF(K,2,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &
+                         + TwistedSF(K,2,2,p%TipNode,0)*x%QT( DOF_BF(K,2) ) &
+                         + TwistedSF(K,2,3,p%TipNode,0)*x%QT( DOF_BE(K,1) )                          )*CoordSys%j2(K,:) &
                      + ( BldFlexL - 0.5* &
-                         (       AxRedBld(K,1,1,TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,1) ) &
-                           +     AxRedBld(K,2,2,TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BF(K,2) ) &
-                           +     AxRedBld(K,3,3,TipNode)*x%QT( DOF_BE(K,1) )*x%QT( DOF_BE(K,1) ) &
-                           + 2.0*AxRedBld(K,1,2,TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
-                           + 2.0*AxRedBld(K,2,3,TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
-                           + 2.0*AxRedBld(K,1,3,TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )   ) )*CoordSys%j3(K,:)
-   rQS (K,TipNode,:) = rS0S(K,TipNode,:) + HubRad*CoordSys%j3(K,:)                  ! Position vector from apex of rotation (point Q) to the blade tip (point S(BldFlexL)).
-   rS  (K,TipNode,:) = rQS (K,TipNode,:) + rQ                              ! Position vector from inertial frame origin      to the blade tip (point S(BldFlexL)).
+                         (       AxRedBld(K,1,1,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,1) ) &
+                           +     AxRedBld(K,2,2,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BF(K,2) ) &
+                           +     AxRedBld(K,3,3,p%TipNode)*x%QT( DOF_BE(K,1) )*x%QT( DOF_BE(K,1) ) &
+                           + 2.0*AxRedBld(K,1,2,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
+                           + 2.0*AxRedBld(K,2,3,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
+                           + 2.0*AxRedBld(K,1,3,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )   ) )*CoordSys%j3(K,:)
+   rQS (K,p%TipNode,:) = rS0S(K,p%TipNode,:) + HubRad*CoordSys%j3(K,:)                  ! Position vector from apex of rotation (point Q) to the blade tip (point S(BldFlexL)).
+   rS  (K,p%TipNode,:) = rQS (K,p%TipNode,:) + rQ                              ! Position vector from inertial frame origin      to the blade tip (point S(BldFlexL)).
 
 
-   DO J = 1,BldNodes ! Loop through the blade nodes / elements
+   DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
 
    ! Calculate the position vector of the current node:
@@ -5232,9 +5243,9 @@ DO K = 1,NumBl ! Loop through all blades
 !JASON: WE SHOULD REALLY BE PASSING TO AERODYN THE LINEAR VELOCITIES OF THE AERODYNAMIC CENTER IN THE INERTIA FRAME, NOT SIMPLY THE LINEAR VELOCITIES OF POINT S.  IS THERE ANY WAY OF GETTING THIS VELOCITY?<--DO THIS, WHEN YOU ADD THE COUPLED MODE SHAPES!!!!
       END IF  ! CompAero
 
-   END DO !J = 1,BldNodes ! Loop through the blade nodes / elements
+   END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
-END DO !K = 1,NumBl
+END DO !K = 1,p%NumBl
 
 
    ! the hub position should use rQ instead of rP, but the current version of AeroDyn treats
@@ -5260,8 +5271,8 @@ ADInterfaceComponents%Tower%Position(:)     = (/ rZ(1), -1.*rZ(3), rZ(2) - PtfmR
    ! Orientations - bjj: should this be moved to SetCoordSys ?
    !-------------------------------------------------------------------------------------------------
    
-DO K = 1,NumBl   
-   DO J = 1,BldNodes   
+DO K = 1,p%NumBl   
+   DO J = 1,p%BldNodes   
    
       ADAeroMarkers%Blade(J,K)%Orientation(1,1) =     CoordSys%te1(K,J,1)
       ADAeroMarkers%Blade(J,K)%Orientation(2,1) =     CoordSys%te2(K,J,1)
@@ -5273,8 +5284,8 @@ DO K = 1,NumBl
       ADAeroMarkers%Blade(J,K)%Orientation(2,3) =     CoordSys%te2(K,J,2)
       ADAeroMarkers%Blade(J,K)%Orientation(3,3) =     CoordSys%te3(K,J,2)
 
-   END DO !J = 1,BldNodes ! Loop through the blade nodes / elements
-END DO !K = 1,NumBl
+   END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
+END DO !K = 1,p%NumBl
 
    
    
@@ -5362,7 +5373,7 @@ PAngVelEL(DOF_DrTr,0,:) =  CoordSys%c1
 
 PAngVelEH(       :,0,:) = PAngVelEL(:,0,:)
  AngVelEH               =  AngVelEL
-IF ( NumBl == 2 )  THEN ! 2-blader
+IF ( p%NumBl == 2 )  THEN ! 2-blader
    PAngVelEH(DOF_Teet,0,:) = CoordSys%f2
     AngVelEH            =  AngVelEH + x%QDT(DOF_Teet)*PAngVelEH(DOF_Teet,0,:)
 ENDIF
@@ -5418,7 +5429,7 @@ CALL CrossProd( PAngVelEL(DOF_DrTr,1,:),   AngVelER,                   PAngVelEL
 
                 PAngVelEH(       :,1,:) = PAngVelEL(:,1,:)
                  AngAccEHt              =  AngAccELt
-IF ( NumBl == 2 )  THEN ! 2-blader
+IF ( p%NumBl == 2 )  THEN ! 2-blader
    CALL CrossProd( PAngVelEH(DOF_Teet,1,:),AngVelEH,                   PAngVelEH(DOF_Teet,0,:) )
                     AngAccEHt           =  AngAccEHt + x%QDT(DOF_Teet)*PAngVelEH(DOF_Teet,1,:)
 ENDIF
@@ -5433,24 +5444,24 @@ CALL CrossProd( PAngVelEA(DOF_TFrl,1,:),   AngVelEN,                   PAngVelEA
 
 
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
 
    ! Define the partial angular velocities of the tip (body M(BldFlexL)) in the  inertia frame:
    ! NOTE: PAngVelEM(K,J,I,D,:) = the Dth-derivative of the partial angular velocity of DOF I for body M of blade K, element J in body E.
 
-   PAngVelEM(K,TipNode,          :,0,:) = PAngVelEH(:,0,:)
-   PAngVelEM(K,TipNode,DOF_BF(K,1),0,:) = - TwistedSF(K,2,1,TipNode,1)*CoordSys%j1(K,:) &
-                                          + TwistedSF(K,1,1,TipNode,1)*CoordSys%j2(K,:)
-   PAngVelEM(K,TipNode,DOF_BF(K,2),0,:) = - TwistedSF(K,2,2,TipNode,1)*CoordSys%j1(K,:) &
-                                          + TwistedSF(K,1,2,TipNode,1)*CoordSys%j2(K,:)
-   PAngVelEM(K,TipNode,DOF_BE(K,1),0,:) = - TwistedSF(K,2,3,TipNode,1)*CoordSys%j1(K,:) &
-                                          + TwistedSF(K,1,3,TipNode,1)*CoordSys%j2(K,:)
-!    AngVelHM(K,TipNode              ,:) =  AngVelEH + x%QDT(DOF_BF(K,1))*PAngVelEM(K,TipNode,DOF_BF(K,1),0,:) & ! Currently
-!                                                    + x%QDT(DOF_BF(K,2))*PAngVelEM(K,TipNode,DOF_BF(K,2),0,:) & ! unused
-!                                                    + x%QDT(DOF_BE(K,1))*PAngVelEM(K,TipNode,DOF_BE(K,1),0,:)   ! calculations
-    AngPosHM(K,TipNode              ,:) =             x%QT (DOF_BF(K,1))*PAngVelEM(K,TipNode,DOF_BF(K,1),0,:) &
-                                                    + x%QT (DOF_BF(K,2))*PAngVelEM(K,TipNode,DOF_BF(K,2),0,:) &
-                                                    + x%QT (DOF_BE(K,1))*PAngVelEM(K,TipNode,DOF_BE(K,1),0,:)
+   PAngVelEM(K,p%TipNode,          :,0,:) = PAngVelEH(:,0,:)
+   PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) = - TwistedSF(K,2,1,p%TipNode,1)*CoordSys%j1(K,:) &
+                                          + TwistedSF(K,1,1,p%TipNode,1)*CoordSys%j2(K,:)
+   PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:) = - TwistedSF(K,2,2,p%TipNode,1)*CoordSys%j1(K,:) &
+                                          + TwistedSF(K,1,2,p%TipNode,1)*CoordSys%j2(K,:)
+   PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:) = - TwistedSF(K,2,3,p%TipNode,1)*CoordSys%j1(K,:) &
+                                          + TwistedSF(K,1,3,p%TipNode,1)*CoordSys%j2(K,:)
+!    AngVelHM(K,p%TipNode              ,:) =  AngVelEH + x%QDT(DOF_BF(K,1))*PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) & ! Currently
+!                                                    + x%QDT(DOF_BF(K,2))*PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:) & ! unused
+!                                                    + x%QDT(DOF_BE(K,1))*PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:)   ! calculations
+    AngPosHM(K,p%TipNode              ,:) =             x%QT (DOF_BF(K,1))*PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) &
+                                                    + x%QT (DOF_BF(K,2))*PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:) &
+                                                    + x%QT (DOF_BE(K,1))*PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:)
 
 
    ! Define the 1st derivatives of the partial angular velocities of the tip
@@ -5461,16 +5472,16 @@ DO K = 1,NumBl ! Loop through all blades
 !       turns out that they are ever needed (i.e., if inertias of the
 !       blade elements are ever added, etc...) simply uncomment out these
 !       computations:
-!                   PAngVelEM(K,TipNode,          :,1,:) = PAngVelEH(:,1,:)
-!   CALL CrossProd( PAngVelEM(K,TipNode,DOF_BF(K,1),1,:),   AngVelEH, &
-!                   PAngVelEM(K,TipNode,DOF_BF(K,1),0,:)                )
-!   CALL CrossProd( PAngVelEM(K,TipNode,DOF_BF(K,2),1,:),   AngVelEH, &
-!                   PAngVelEM(K,TipNode,DOF_BF(K,2),0,:)                )
-!   CALL CrossProd( PAngVelEM(K,TipNode,DOF_BE(K,1),1,:),   AngVelEH, &
-!                   PAngVelEM(K,TipNode,DOF_BE(K,1),0,:)                )
+!                   PAngVelEM(K,p%TipNode,          :,1,:) = PAngVelEH(:,1,:)
+!   CALL CrossProd( PAngVelEM(K,p%TipNode,DOF_BF(K,1),1,:),   AngVelEH, &
+!                   PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:)                )
+!   CALL CrossProd( PAngVelEM(K,p%TipNode,DOF_BF(K,2),1,:),   AngVelEH, &
+!                   PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:)                )
+!   CALL CrossProd( PAngVelEM(K,p%TipNode,DOF_BE(K,1),1,:),   AngVelEH, &
+!                   PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:)                )
 
 
-   DO J = 1,BldNodes ! Loop through the blade nodes / elements
+   DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
    ! Define the partial angular velocities of the current node (body M(RNodes(J))) in the inertia frame:
    ! NOTE: PAngVelEM(K,J,I,D,:) = the Dth-derivative of the partial angular velocity
    !   of DOF I for body M of blade K, element J in body E.
@@ -5506,9 +5517,9 @@ DO K = 1,NumBl ! Loop through all blades
 !                      PAngVelEM(K,J,DOF_BE(K,1),0,:)                )
 
 
-   END DO !J = 1,BldNodes ! Loop through the blade nodes / elements
+   END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
-END DO !K = 1,NumBl
+END DO !K = 1,p%NumBl
 
 
    !-------------------------------------------------------------------------------------------------
@@ -5717,7 +5728,7 @@ ENDDO          ! I - all DOFs associated with the angular motion of the hub (bod
 
 
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
 
    ! Define the partial linear velocities (and their 1st derivatives) of the
    !   blade tip (point S(BldFlexL)) in the inertia frame.  Also define the
@@ -5725,69 +5736,69 @@ DO K = 1,NumBl ! Loop through all blades
    !   define the portion of the linear acceleration of the blade tip in the
    !   inertia frame associated with everything but the QD2T()'s:
 
-   CALL CrossProd( EwHXrQS, AngVelEH, rQS(K,TipNode,:) )
+   CALL CrossProd( EwHXrQS, AngVelEH, rQS(K,p%TipNode,:) )
 
-   PLinVelES(K,TipNode,          :,:,:) = PLinVelEQ(:,:,:)
-   PLinVelES(K,TipNode,DOF_BF(K,1),0,:) = TwistedSF(K,1,1,TipNode,0)                          *CoordSys%j1(K,:) &
-                                        + TwistedSF(K,2,1,TipNode,0)                          *CoordSys%j2(K,:) &
-                                        - (   AxRedBld(K,1,1,TipNode)*x%QT ( DOF_BF(K,1) ) &
-                                            + AxRedBld(K,1,2,TipNode)*x%QT ( DOF_BF(K,2) ) &
-                                            + AxRedBld(K,1,3,TipNode)*x%QT ( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
-   PLinVelES(K,TipNode,DOF_BE(K,1),0,:) = TwistedSF(K,1,3,TipNode,0)                          *CoordSys%j1(K,:) &
-                                        + TwistedSF(K,2,3,TipNode,0)                          *CoordSys%j2(K,:) &
-                                        - (   AxRedBld(K,3,3,TipNode)*x%QT ( DOF_BE(K,1) ) &
-                                            + AxRedBld(K,2,3,TipNode)*x%QT ( DOF_BF(K,2) ) &
-                                            + AxRedBld(K,1,3,TipNode)*x%QT ( DOF_BF(K,1) )   )*CoordSys%j3(K,:)
-   PLinVelES(K,TipNode,DOF_BF(K,2),0,:) = TwistedSF(K,1,2,TipNode,0)                          *CoordSys%j1(K,:) &
-                                        + TwistedSF(K,2,2,TipNode,0)                          *CoordSys%j2(K,:) &
-                                        - (   AxRedBld(K,2,2,TipNode)*x%QT ( DOF_BF(K,2) ) &
-                                            + AxRedBld(K,1,2,TipNode)*x%QT ( DOF_BF(K,1) ) &
-                                            + AxRedBld(K,2,3,TipNode)*x%QT ( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
+   PLinVelES(K,p%TipNode,          :,:,:) = PLinVelEQ(:,:,:)
+   PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) = TwistedSF(K,1,1,p%TipNode,0)                          *CoordSys%j1(K,:) &
+                                        + TwistedSF(K,2,1,p%TipNode,0)                          *CoordSys%j2(K,:) &
+                                        - (   AxRedBld(K,1,1,p%TipNode)*x%QT ( DOF_BF(K,1) ) &
+                                            + AxRedBld(K,1,2,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
+                                            + AxRedBld(K,1,3,p%TipNode)*x%QT ( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
+   PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) = TwistedSF(K,1,3,p%TipNode,0)                          *CoordSys%j1(K,:) &
+                                        + TwistedSF(K,2,3,p%TipNode,0)                          *CoordSys%j2(K,:) &
+                                        - (   AxRedBld(K,3,3,p%TipNode)*x%QT ( DOF_BE(K,1) ) &
+                                            + AxRedBld(K,2,3,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
+                                            + AxRedBld(K,1,3,p%TipNode)*x%QT ( DOF_BF(K,1) )   )*CoordSys%j3(K,:)
+   PLinVelES(K,p%TipNode,DOF_BF(K,2),0,:) = TwistedSF(K,1,2,p%TipNode,0)                          *CoordSys%j1(K,:) &
+                                        + TwistedSF(K,2,2,p%TipNode,0)                          *CoordSys%j2(K,:) &
+                                        - (   AxRedBld(K,2,2,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
+                                            + AxRedBld(K,1,2,p%TipNode)*x%QT ( DOF_BF(K,1) ) &
+                                            + AxRedBld(K,2,3,p%TipNode)*x%QT ( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
 
-   CALL CrossProd( TmpVec1, AngVelEH, PLinVelES(K,TipNode,DOF_BF(K,1),0,:) )
-   CALL CrossProd( TmpVec2, AngVelEH, PLinVelES(K,TipNode,DOF_BE(K,1),0,:) )
-   CALL CrossProd( TmpVec3, AngVelEH, PLinVelES(K,TipNode,DOF_BF(K,2),0,:) )
+   CALL CrossProd( TmpVec1, AngVelEH, PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) )
+   CALL CrossProd( TmpVec2, AngVelEH, PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) )
+   CALL CrossProd( TmpVec3, AngVelEH, PLinVelES(K,p%TipNode,DOF_BF(K,2),0,:) )
 
-   PLinVelES(K,TipNode,DOF_BF(K,1),1,:) = TmpVec1 &
-                                        - (   AxRedBld(K,1,1,TipNode)*x%QDT( DOF_BF(K,1) ) &
-                                            + AxRedBld(K,1,2,TipNode)*x%QDT( DOF_BF(K,2) ) &
-                                            + AxRedBld(K,1,3,TipNode)*x%QDT( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
-   PLinVelES(K,TipNode,DOF_BE(K,1),1,:) = TmpVec2 &
-                                        - (   AxRedBld(K,3,3,TipNode)*x%QDT( DOF_BE(K,1) ) &
-                                            + AxRedBld(K,2,3,TipNode)*x%QDT( DOF_BF(K,2) ) &
-                                            + AxRedBld(K,1,3,TipNode)*x%QDT( DOF_BF(K,1) )   )*CoordSys%j3(K,:)
-   PLinVelES(K,TipNode,DOF_BF(K,2),1,:) = TmpVec3 &
-                                        - (   AxRedBld(K,2,2,TipNode)*x%QDT( DOF_BF(K,2) ) &
-                                            + AxRedBld(K,1,2,TipNode)*x%QDT( DOF_BF(K,1) ) &
-                                            + AxRedBld(K,2,3,TipNode)*x%QDT( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
+   PLinVelES(K,p%TipNode,DOF_BF(K,1),1,:) = TmpVec1 &
+                                        - (   AxRedBld(K,1,1,p%TipNode)*x%QDT( DOF_BF(K,1) ) &
+                                            + AxRedBld(K,1,2,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
+                                            + AxRedBld(K,1,3,p%TipNode)*x%QDT( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
+   PLinVelES(K,p%TipNode,DOF_BE(K,1),1,:) = TmpVec2 &
+                                        - (   AxRedBld(K,3,3,p%TipNode)*x%QDT( DOF_BE(K,1) ) &
+                                            + AxRedBld(K,2,3,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
+                                            + AxRedBld(K,1,3,p%TipNode)*x%QDT( DOF_BF(K,1) )   )*CoordSys%j3(K,:)
+   PLinVelES(K,p%TipNode,DOF_BF(K,2),1,:) = TmpVec3 &
+                                        - (   AxRedBld(K,2,2,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
+                                            + AxRedBld(K,1,2,p%TipNode)*x%QDT( DOF_BF(K,1) ) &
+                                            + AxRedBld(K,2,3,p%TipNode)*x%QDT( DOF_BE(K,1) )   )*CoordSys%j3(K,:)
 
-   LinVelHS               = x%QDT( DOF_BF(K,1) )*PLinVelES(K,TipNode,DOF_BF(K,1),0,:) &
-                          + x%QDT( DOF_BE(K,1) )*PLinVelES(K,TipNode,DOF_BE(K,1),0,:) &
-                          + x%QDT( DOF_BF(K,2) )*PLinVelES(K,TipNode,DOF_BF(K,2),0,:)
-   LinAccESt(K,TipNode,:) = x%QDT( DOF_BF(K,1) )*PLinVelES(K,TipNode,DOF_BF(K,1),1,:) &
-                          + x%QDT( DOF_BE(K,1) )*PLinVelES(K,TipNode,DOF_BE(K,1),1,:) &
-                          + x%QDT( DOF_BF(K,2) )*PLinVelES(K,TipNode,DOF_BF(K,2),1,:)
+   LinVelHS                 = x%QDT( DOF_BF(K,1) )*PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) &
+                            + x%QDT( DOF_BE(K,1) )*PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) &
+                            + x%QDT( DOF_BF(K,2) )*PLinVelES(K,p%TipNode,DOF_BF(K,2),0,:)
+   LinAccESt(K,p%TipNode,:) = x%QDT( DOF_BF(K,1) )*PLinVelES(K,p%TipNode,DOF_BF(K,1),1,:) &
+                            + x%QDT( DOF_BE(K,1) )*PLinVelES(K,p%TipNode,DOF_BE(K,1),1,:) &
+                            + x%QDT( DOF_BF(K,2) )*PLinVelES(K,p%TipNode,DOF_BF(K,2),1,:)
 
    LinVelES               = LinVelHS + LinVelEZ
    DO I = 1,NPH   ! Loop through all DOFs associated with the angular motion of the hub (body H)
 
-      CALL CrossProd( TmpVec0, PAngVelEH(PH(I),0,:),     rQS(K,TipNode,:)            )
+      CALL CrossProd( TmpVec0, PAngVelEH(PH(I),0,:),     rQS(K,p%TipNode,:)            )
       CALL CrossProd( TmpVec1, PAngVelEH(PH(I),0,:), EwHXrQS              + LinVelHS )
-      CALL CrossProd( TmpVec2, PAngVelEH(PH(I),1,:),     rQS(K,TipNode,:)            )
+      CALL CrossProd( TmpVec2, PAngVelEH(PH(I),1,:),     rQS(K,p%TipNode,:)            )
 
-      PLinVelES(K,TipNode,PH(I),0,:) = PLinVelES(K,TipNode,PH(I),0,:) + TmpVec0
-      PLinVelES(K,TipNode,PH(I),1,:) = PLinVelES(K,TipNode,PH(I),1,:) + TmpVec1 + TmpVec2
+      PLinVelES(K,p%TipNode,PH(I),0,:) = PLinVelES(K,p%TipNode,PH(I),0,:) + TmpVec0
+      PLinVelES(K,p%TipNode,PH(I),1,:) = PLinVelES(K,p%TipNode,PH(I),1,:) + TmpVec1 + TmpVec2
 
-      LinVelES                       = LinVelES                       + x%QDT(PH(I))*PLinVelES(K,TipNode,PH(I),0,:)
-      LinAccESt(K,TipNode,        :) = LinAccESt(K,TipNode,        :) + x%QDT(PH(I))*PLinVelES(K,TipNode,PH(I),1,:)
+      LinVelES                         = LinVelES                         + x%QDT(PH(I))*PLinVelES(K,p%TipNode,PH(I),0,:)
+      LinAccESt(K,p%TipNode,        :) = LinAccESt(K,p%TipNode,        :) + x%QDT(PH(I))*PLinVelES(K,p%TipNode,PH(I),1,:)
 
    ENDDO          ! I - all DOFs associated with the angular motion of the hub (body H)
 
 !JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-   LinVelESm2(K) = DOT_PRODUCT( LinVelES, CoordSys%m2(K,BldNodes,:) )
+   LinVelESm2(K) = DOT_PRODUCT( LinVelES, CoordSys%m2(K,p%BldNodes,:) )
 
 
-   DO J = 1,BldNodes ! Loop through the blade nodes / elements
+   DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
    ! Define the partial linear velocities (and their 1st derivatives) of the
    !   current node (point S(RNodes(J))) in the inertia frame.  Also define
@@ -5856,9 +5867,9 @@ DO K = 1,NumBl ! Loop through all blades
       ADAeroMarkers%Blade(J,K)%TranslationVel(:)= (/ LinVelES(1), -1.*LinVelES(3),  LinVelES(2)  /)  !AeroDyn's coordinates
 
 
-   END DO !J = 1,BldNodes ! Loop through the blade nodes / elements
+   END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
-END DO !K = 1,NumBl
+END DO !K = 1,p%NumBl
 
 
 
@@ -5961,7 +5972,7 @@ MomLPRott = TmpVec2 + TmpVec3 - Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, 
 IF ( CompAero ) ADAeroLoads = AD_CalculateLoads( ZTime, ADAeroMarkers, ADInterfaceComponents, ADIntrfaceOptions, ErrStat )
 
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
 
    ! Calculate the position vector from the teeter pin to the blade root:
 
@@ -5991,7 +6002,7 @@ DO K = 1,NumBl ! Loop through all blades
       ENDIF
 
 
-      FSTipDrag(K,:) = CoordSys%m2(K,BldNodes,:)*SIGN( 0.5*AirDens*LinVelESm2(K)*LinVelESm2(K)*TBDrCon, -1.*LinVelESm2(K) )
+      FSTipDrag(K,:) = CoordSys%m2(K,p%BldNodes,:)*SIGN( 0.5*AirDens*LinVelESm2(K)*LinVelESm2(K)*TBDrCon, -1.*LinVelESm2(K) )
 
    ELSE                    ! Wind turbine in vacuum, no aerodynamic forces.
 
@@ -6008,8 +6019,8 @@ DO K = 1,NumBl ! Loop through all blades
    PMomH0B(K,:,:) = 0.0 ! forces and moments to zero
    DO I = 1,NPSE(K)  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
-      TmpVec1 = -TipMass(K)*PLinVelES(K,TipNode,PSE(K,I),0,:)  ! The portion of PFrcS0B associated with the tip brake
-      CALL CrossProd( TmpVec2, rS0S(K,TipNode,:), TmpVec1 )    ! The portion of PMomH0B associated with the tip brake
+      TmpVec1 = -TipMass(K)*PLinVelES(K,p%TipNode,PSE(K,I),0,:)  ! The portion of PFrcS0B associated with the tip brake
+      CALL CrossProd( TmpVec2, rS0S(K,p%TipNode,:), TmpVec1 )    ! The portion of PMomH0B associated with the tip brake
 
       PFrcS0B(K,PSE(K,I),:) = TmpVec1
 
@@ -6017,8 +6028,8 @@ DO K = 1,NumBl ! Loop through all blades
 
    ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
-   TmpVec1 = FSTipDrag(K,:) - TipMass(K)*( Gravity*CoordSys%z2 + LinAccESt(K,TipNode,:) ) ! The portion of FrcS0Bt associated with the tip brake
-   CALL CrossProd( TmpVec2, rS0S(K,TipNode,:), TmpVec1 )                         ! The portion of MomH0Bt associated with the tip brake
+   TmpVec1 = FSTipDrag(K,:) - TipMass(K)*( Gravity*CoordSys%z2 + LinAccESt(K,p%TipNode,:) ) ! The portion of FrcS0Bt associated with the tip brake
+   CALL CrossProd( TmpVec2, rS0S(K,p%TipNode,:), TmpVec1 )                         ! The portion of MomH0Bt associated with the tip brake
 
    FrcS0Bt(K,:) = TmpVec1
 
@@ -6037,18 +6048,18 @@ DO K = 1,NumBl ! Loop through all blades
 
    DO L = 1,NPSBE(K)    ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(BldFlexL))
       DO I = L,NPSBE(K) ! Loop through all active (enabled) blade DOFs greater than or equal to L
-         AugMat(PSBE(K,I),PSBE(K,L)) = TipMass(K)*DOT_PRODUCT( PLinVelES(K,TipNode,PSBE(K,I),0,:), &   ! [C(q,t)]B
-                                                               PLinVelES(K,TipNode,PSBE(K,L),0,:)    )
+         AugMat(PSBE(K,I),PSBE(K,L)) = TipMass(K)*DOT_PRODUCT( PLinVelES(K,p%TipNode,PSBE(K,I),0,:), &   ! [C(q,t)]B
+                                                               PLinVelES(K,p%TipNode,PSBE(K,L),0,:)    )
       ENDDO             ! I - All active (enabled) blade DOFs greater than or equal to L
    ENDDO                ! L - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(BldFlexL))
    DO I = 1,NPSBE(K)    ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(BldFlexL))
-         AugMat(PSBE(K,I),     NAUG) =            DOT_PRODUCT( PLinVelES(K,TipNode,PSBE(K,I),0,:), &   ! {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
+         AugMat(PSBE(K,I),     NAUG) =            DOT_PRODUCT( PLinVelES(K,p%TipNode,PSBE(K,I),0,:), &   ! {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
                                                            TmpVec1                               ) ! NOTE: TmpVec1 is still the portion of FrcS0Bt associated with the tip brake
    ENDDO                ! I - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(BldFlexL))
 
 
 
-   DO J = 1,BldNodes ! Loop through the blade nodes / elements
+   DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
    ! Calculate the normal and tangential aerodynamic forces and the aerodynamic
    !   pitching moment at the current element per unit span by calling AeroDyn,
@@ -6168,7 +6179,7 @@ DO K = 1,NumBl ! Loop through all blades
    !   with the teeter and pure blade DOFs using the partial loads at the
    !   teeter pin; only do this if necessary:
 
-   IF ( ( NumBl == 2 ) .AND. ( DOF_Flag(DOF_Teet) ) )  THEN
+   IF ( ( p%NumBl == 2 ) .AND. ( DOF_Flag(DOF_Teet) ) )  THEN
       DO L = 1,NPSBE(K) ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the blade
          AugMat(DOF_Teet,PSBE(K,L)) = -DOT_PRODUCT( PAngVelEH(DOF_Teet,0,:), PMomLPRot(PSBE(K,L),:) )  ! [C(q,t)]B
       ENDDO             ! L - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the blade
@@ -6425,7 +6436,7 @@ ENDDO             ! I - All active (enabled) tower DOFs that contribute to the Q
 !----------------------------------------------------------------------------------------------------
 
 
-DO J = 1,TwrNodes  ! Loop through the tower nodes / elements
+DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
 
 
    ! Calculate the position vector of the current node:
@@ -6835,7 +6846,7 @@ MomXAllt = MomX0Trbt + MXHydrot + TmpVec2 + TmpVec3 + TmpVec4
 CALL Teeter  ( TeetAng     , TeetAngVel   , TeetMom ) ! Compute moment from teeter     springs and dampers, TeetMom; NOTE: TeetMom will be zero for a 3-blader since TeetAng = TeetAngVel = 0
 CALL RFurling( x%QT(DOF_RFrl), x%QDT(DOF_RFrl), RFrlMom ) ! Compute moment from rotor-furl springs and dampers, RFrlMom
 CALL TFurling( x%QT(DOF_TFrl), x%QDT(DOF_TFrl), TFrlMom ) ! Compute moment from tail-furl  springs and dampers, TFrlMom
-CALL DrvTrTrq(                 x%QDT(DOF_GeAz), GBoxTrq ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
+CALL DrvTrTrq( p,              x%QDT(DOF_GeAz), GBoxTrq ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
 
 
    ! Now that all of the partial loads have been found, lets fill in the
@@ -6992,7 +7003,7 @@ IF ( DOF_Flag (DOF_TFrl) )  THEN
                                 +  TFrlMom                                                      ! + {-f(qd,q,t)}SpringTF + {-f(qd,q,t)}DampTF
 ENDIF
 
-IF ( ( NumBl == 2 ) .AND. ( DOF_Flag(DOF_Teet) ) )  THEN
+IF ( ( p%NumBl == 2 ) .AND. ( DOF_Flag(DOF_Teet) ) )  THEN
    ! The teeter DOF does not affect any DOF index larger than DOF_Teet.  Therefore, there is no need to perform the loop: DO I = Diag(DOF_Teet),NActvDOF
       AugMat(DOF_Teet,DOF_Teet) = -DOT_PRODUCT( PAngVelEH(DOF_Teet,0,:), PMomLPRot(DOF_Teet,:) )    ! [C(q,t)]H + [C(q,t)]B
       AugMat(DOF_Teet,    NAUG) =  DOT_PRODUCT( PAngVelEH(DOF_Teet,0,:), MomLPRott             ) &  ! {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
@@ -7055,7 +7066,7 @@ OgnlGeAzRo = AugMat(DOF_GeAz,:)
    !   sections with vector subscripts must not be used in INTENT(OUT)
    !   arguments.
 
-!do i=1,ndof
+!do i=1,p%NDOF
 !   write(*,'("GaussInp: ",i2,1x,700(G15.7,1X))') i, AugMat( i, : )
 !end do
 
@@ -7093,7 +7104,7 @@ SgnPrvLSTQ = NINT( SIGN( 1.0, DOT_PRODUCT( MomLPRot, CoordSys%e1 ) ) )
 
 IF ( AnalMode == 2 )  THEN ! .TRUE. when we are in the process of linearizing the FAST model
 
-   DO I = 1,NDOF     ! Loop through all DOFs
+   DO I = 1,p%NDOF     ! Loop through all DOFs
       IF ( DOF_Flag(I) .NEQV. DOF_FlagInit(I) )  &
          CALL ProgAbort ( ' FAST can''t linearize a model when DOFs are being switched on-or-off from within user-defined'// &
                       ' routines.  Make sure no user-defined routines change the value of DOF_Flag().'                     )
@@ -7171,7 +7182,6 @@ SUBROUTINE SetCoordSy( CoordSys, p, x )
 
 
 USE                             Blades
-USE                             Constants
 USE                             DOFs
 USE                             RtHndSid
 USE                             Tower
@@ -7245,7 +7255,7 @@ CoordSys%a2 = TransMat(2,1)*CoordSys%z1 + TransMat(2,2)*CoordSys%z2 + TransMat(2
 CoordSys%a3 = TransMat(3,1)*CoordSys%z1 + TransMat(3,2)*CoordSys%z2 + TransMat(3,3)*CoordSys%z3 ! Vector / direction a3 (= -yt from the IEC coord. system).
 
 
-DO J = 1,TwrNodes ! Loop through the tower nodes / elements
+DO J = 1,p%TwrNodes ! Loop through the tower nodes / elements
 
 
    ! Tower element-fixed coordinate system:
@@ -7327,7 +7337,7 @@ CoordSys%e3 = -SAzimuth*CoordSys%c2 + CAzimuth*CoordSys%c3  ! Vector / direction
    !   equations of motion for both the 2 and 3-blader configurations even
    !   though a 3-blader does not have a teetering DOF.
 
-IF ( NumBL == 2 )  THEN ! 2-blader
+IF ( p%NumBl == 2 )  THEN ! 2-blader
    TeetAng    = x%QT (DOF_Teet)
    TeetAngVel = x%QDT(DOF_Teet)
 ELSE                    ! 3-blader
@@ -7349,12 +7359,12 @@ CoordSys%g2 =  CosDel3*CoordSys%f2 + SinDel3*CoordSys%f3    ! Vector / direction
 CoordSys%g3 = -SinDel3*CoordSys%f2 + CosDel3*CoordSys%f3    ! Vector / direction g3 (=  zh from the IEC coord. system).
 
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
 
 
    ! Hub (Prime) coordinate system rotated to match blade K.
 
-    gRotAng = TwoPiNB*(K-1)
+    gRotAng = p%TwoPiNB*(K-1)
    CgRotAng = COS( gRotAng )
    SgRotAng = SIN( gRotAng )
 
@@ -7380,8 +7390,8 @@ DO K = 1,NumBl ! Loop through all blades
    CoordSys%j3(K,:) = CoordSys%i3(K,:)                                           ! j3(K,:) = vector / direction j3 for blade K (=  zbK from the IEC coord. system).
 
 
-!JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-   DO J = 1,BldNodes ! Loop through the blade nodes / elements
+!JASON: USE TipNode HERE INSTEAD OF p%BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
+   DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
 
    ! Blade coordinate system aligned with local structural axes (not element fixed):
@@ -7477,7 +7487,7 @@ CoordSys%p3 = ( STFinSkew*CTFinBank + CTFinSkew*STFinTilt*STFinBank )*CoordSys%t
 RETURN
 END SUBROUTINE SetCoordSy
 !=======================================================================
-SUBROUTINE SetEnabledDOFIndexArrays
+SUBROUTINE SetEnabledDOFIndexArrays( p )
 
 
    ! This routine is used create arrays of DOF indices (pointers /
@@ -7496,6 +7506,10 @@ USE                             DOFs
 USE                             TurbConf
 
 IMPLICIT                        NONE
+
+
+   ! passed variables
+TYPE(StrD_ParameterType),INTENT(IN) :: p                                       ! Parameters of the structural dynamics module
 
 
    ! Local Variables:
@@ -7823,7 +7837,7 @@ IF ( DOF_Flag(DOF_DrTr) )  THEN  ! Drivetrain torsion.
 ENDIF
 
 
-IF ( NumBl == 2 )  THEN
+IF ( p%NumBl == 2 )  THEN
    IF ( DOF_Flag(DOF_Teet   ) )  THEN  ! Rotor-teeter.
 
       NActvDOF = NActvDOF + 1
@@ -7838,7 +7852,7 @@ IF ( NumBl == 2 )  THEN
 ENDIF
 
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
    IF ( DOF_Flag(DOF_BF(K,1)) )  THEN  ! 1st blade flap.
 
       NActvDOF = NActvDOF + 1
@@ -7853,7 +7867,7 @@ DO K = 1,NumBl ! Loop through all blades
 ENDDO          ! K - Blades
 
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
    IF ( DOF_Flag(DOF_BE(K,1)) )  THEN  ! 1st blade edge.
 
       NActvDOF = NActvDOF + 1
@@ -7868,7 +7882,7 @@ DO K = 1,NumBl ! Loop through all blades
 ENDDO          ! K - Blades
 
 
-DO K = 1,NumBl ! Loop through all blades
+DO K = 1,p%NumBl ! Loop through all blades
    IF ( DOF_Flag(DOF_BF(K,2)) )  THEN  ! 2nd blade flap.
 
       NActvDOF = NActvDOF + 1
@@ -7892,7 +7906,7 @@ ENDDO          ! K - Blades
    !       of no concern however, since the resulting value will be the same.
 
 NActvDOF = 0
-DO I = 1,NDOF  ! Loop through all DOFs
+DO I = 1,p%NDOF  ! Loop through all DOFs
    IF ( DOF_Flag(I) )  THEN   ! .TRUE. if the corresponding DOF is enabled
 
       NActvDOF = NActvDOF + 1
@@ -7962,42 +7976,42 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
 
    Sttus = 0
 
-   IF (.NOT. ALLOCATED(ZK1)) ALLOCATE ( ZK1(NDOF) , STAT=Sttus )
+   IF (.NOT. ALLOCATED(ZK1)) ALLOCATE ( ZK1(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK1 array.' )
    ENDIF
 
-   IF (.NOT. ALLOCATED(ZK1D)) ALLOCATE ( ZK1D(NDOF) , STAT=Sttus )
+   IF (.NOT. ALLOCATED(ZK1D)) ALLOCATE ( ZK1D(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK1D array.' )
    ENDIF
 
-   IF (.NOT. ALLOCATED(ZK2)) ALLOCATE ( ZK2(NDOF) , STAT=Sttus )
+   IF (.NOT. ALLOCATED(ZK2)) ALLOCATE ( ZK2(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK2 array.' )
    ENDIF
 
-   IF (.NOT. ALLOCATED(ZK2D)) ALLOCATE ( ZK2D(NDOF) , STAT=Sttus )
+   IF (.NOT. ALLOCATED(ZK2D)) ALLOCATE ( ZK2D(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK2D array.' )
    ENDIF
 
-   IF (.NOT. ALLOCATED(ZK3)) ALLOCATE ( ZK3(NDOF) , STAT=Sttus )
+   IF (.NOT. ALLOCATED(ZK3)) ALLOCATE ( ZK3(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK3 array.' )
    ENDIF
 
-   IF (.NOT. ALLOCATED(ZK3D)) ALLOCATE ( ZK3D(NDOF) , STAT=Sttus )
+   IF (.NOT. ALLOCATED(ZK3D)) ALLOCATE ( ZK3D(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK3D array.' )
    ENDIF
 
-   IF (.NOT. ALLOCATED(ZK4)) ALLOCATE ( ZK4(NDOF) , STAT=Sttus )
+   IF (.NOT. ALLOCATED(ZK4)) ALLOCATE ( ZK4(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK4 array.' )
    ENDIF
 
-   IF (.NOT. ALLOCATED(ZK4D)) ALLOCATE ( ZK4D(NDOF) , STAT=Sttus )
+   IF (.NOT. ALLOCATED(ZK4D)) ALLOCATE ( ZK4D(p%NDOF) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the ZK4D array.' )
    ENDIF
@@ -8005,62 +8019,62 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
 
    ! First call to dynamics routine:
 
-   x%QT  = Q (:,IC(1))
-   x%QDT = QD(:,IC(1))
+   x%QT  = OtherState%Q (:,IC(1))
+   x%QDT = OtherState%QD(:,IC(1))
 
-   CALL RtHS( p, OtherState%CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x, OtherState )
 
 
    ! Compute intermediate functions to estimate next Q and QD.
 
-   DO I = 1,NDOF  ! Loop through all DOFs
-      ZK1 (I) = DT*QD  (I,IC(1))
+   DO I = 1,p%NDOF  ! Loop through all DOFs
+      ZK1 (I) = DT*OtherState%QD  (I,IC(1))
       ZK1D(I) = DT*QD2T(I)
 
-      x%QT  (I) = Q (I,IC(1)) + 0.5*ZK1 (I)
-      x%QDT (I) = QD(I,IC(1)) + 0.5*ZK1D(I)
+      x%QT  (I) = OtherState%Q (I,IC(1)) + 0.5*ZK1 (I)
+      x%QDT (I) = OtherState%QD(I,IC(1)) + 0.5*ZK1D(I)
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, OtherState%CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x, OtherState )
 
 
    ! Repeat above steps for each ZK, ZKD:
 
-   DO I = 1,NDOF  ! Loop through all DOFs
-      ZK2 (I) = DT*( QD  (I,IC(1)) + 0.5*ZK1D(I) )
+   DO I = 1,p%NDOF  ! Loop through all DOFs
+      ZK2 (I) = DT*( OtherState%QD  (I,IC(1)) + 0.5*ZK1D(I) )
       ZK2D(I) = DT*  QD2T(I)
 
-      x%QT  (I) = Q (I,IC(1)) + 0.5*ZK2 (I)
-      x%QDT (I) = QD(I,IC(1)) + 0.5*ZK2D(I)
+      x%QT  (I) = OtherState%Q (I,IC(1)) + 0.5*ZK2 (I)
+      x%QDT (I) = OtherState%QD(I,IC(1)) + 0.5*ZK2D(I)
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, OtherState%CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x, OtherState )
 
 
-   DO I = 1,NDOF  ! Loop through all DOFs
-      ZK3 (I) = DT*( QD  (I,IC(1)) + 0.5*ZK2D(I) )
+   DO I = 1,p%NDOF  ! Loop through all DOFs
+      ZK3 (I) = DT*( OtherState%QD  (I,IC(1)) + 0.5*ZK2D(I) )
       ZK3D(I) = DT*  QD2T(I)
 
-      x%QT  (I) = Q (I,IC(1)) + ZK3 (I)
-      x%QDT (I) = QD(I,IC(1)) + ZK3D(I)
+      x%QT  (I) = OtherState%Q (I,IC(1)) + ZK3 (I)
+      x%QDT (I) = OtherState%QD(I,IC(1)) + ZK3D(I)
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, OtherState%CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x, OtherState )
 
 
    ! Compute best estimate for Q, QD at next time step using
    !   the intermediate functions (Runge-Kutta).
    ! IC(NMX) locates the i + 1 value of Q, QD.
 
-   DO I = 1,NDOF  ! Loop through all DOFs
-      ZK4 (I) = DT*( QD  (I,IC(1)) + ZK3D(I) )
+   DO I = 1,p%NDOF  ! Loop through all DOFs
+      ZK4 (I) = DT*( OtherState%QD  (I,IC(1)) + ZK3D(I) )
       ZK4D(I) = DT*  QD2T(I)
 
-      Q (I,IC(NMX)) = Q (I,IC(1)) + ( ZK1 (I) + 2.0*ZK2 (I) + 2.0*ZK3 (I) + ZK4 (I) ) / 6.0
-      QD(I,IC(NMX)) = QD(I,IC(1)) + ( ZK1D(I) + 2.0*ZK2D(I) + 2.0*ZK3D(I) + ZK4D(I) ) / 6.0
+      OtherState%Q (I,IC(NMX)) = OtherState%Q (I,IC(1)) + ( ZK1 (I) + 2.0*ZK2 (I) + 2.0*ZK3 (I) + ZK4 (I) ) / 6.0
+      OtherState%QD(I,IC(NMX)) = OtherState%QD(I,IC(1)) + ( ZK1D(I) + 2.0*ZK2D(I) + 2.0*ZK3D(I) + ZK4D(I) ) / 6.0
    ENDDO          ! I - All DOFs
 
 
@@ -8082,17 +8096,19 @@ ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corre
    ! Compute predictor from current (IC(1)) and 3 previous values of
    !   Q, QD, and QD2().  IC(1) = i, IC(2) = i-1, IC(3) = i-2 etc...
 
-   DO I = 1,NDOF  ! Loop through all DOFs
-      Q (I,IC(NMX)) = Q (I,IC(1)) + DT24*( 55.0*QD (I,IC(1)) - 59.0*QD (I,IC(2)) + 37.0*QD (I,IC(3)) - 9.0*QD (I,IC(4)) )
-      QD(I,IC(NMX)) = QD(I,IC(1)) + DT24*( 55.0*QD2(I,IC(1)) - 59.0*QD2(I,IC(2)) + 37.0*QD2(I,IC(3)) - 9.0*QD2(I,IC(4)) )
+   DO I = 1,p%NDOF  ! Loop through all DOFs
+      OtherState%Q (I,IC(NMX)) = OtherState%Q (I,IC(1)) + DT24*( 55.0*OtherState%QD (I,IC(1)) - 59.0*OtherState%QD (I,IC(2)) &
+                                                               + 37.0*OtherState%QD (I,IC(3)) -  9.0*OtherState%QD (I,IC(4)) )
+      OtherState%QD(I,IC(NMX)) = OtherState%QD(I,IC(1)) + DT24*( 55.0*OtherState%QD2(I,IC(1)) - 59.0*OtherState%QD2(I,IC(2)) &
+                                                               + 37.0*OtherState%QD2(I,IC(3)) -  9.0*OtherState%QD2(I,IC(4)) )
    ENDDO          ! I - All DOFs
 
-   x%QT  = Q (:,IC(NMX))
-   x%QDT = QD(:,IC(NMX))
+   x%QT  = OtherState%Q (:,IC(NMX))
+   x%QDT = OtherState%QD(:,IC(NMX))
 
-   CALL RtHS( p, OtherState%CoordSys, x )
+   CALL RtHS( p, OtherState%CoordSys, x, OtherState )
 
-   QD2(:,IC(NMX)) = QD2T
+   OtherState%QD2(:,IC(NMX)) = QD2T
 
 
    ! Corrector (Adams-Moulton)
@@ -8101,15 +8117,17 @@ ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corre
    !   previous values of Q, QD, and QD2().  IC(1) = i, IC(2) = i-1,
    !   IC(3) = i-2 etc...
 
-   DO I = 1,NDOF  ! Loop through all DOFs
-      Q (I,IC(NMX)) = Q (I,IC(1)) + DT24*( 9.0*QD (I,IC(NMX)) + 19.0*QD (I,IC(1)) - 5.0*QD (I,IC(2)) + QD (I,IC(3)) )
-      QD(I,IC(NMX)) = QD(I,IC(1)) + DT24*( 9.0*QD2(I,IC(NMX)) + 19.0*QD2(I,IC(1)) - 5.0*QD2(I,IC(2)) + QD2(I,IC(3)) )
+   DO I = 1,p%NDOF  ! Loop through all DOFs
+      OtherState%Q (I,IC(NMX)) = OtherState%Q (I,IC(1)) + DT24*( 9.0*OtherState%QD (I,IC(NMX)) + 19.0*OtherState%QD (I,IC(1)) &
+                                                               - 5.0*OtherState%QD (I,IC(2  )) +      OtherState%QD (I,IC(3)) )
+      OtherState%QD(I,IC(NMX)) = OtherState%QD(I,IC(1)) + DT24*( 9.0*OtherState%QD2(I,IC(NMX)) + 19.0*OtherState%QD2(I,IC(1)) &
+                                                               - 5.0*OtherState%QD2(I,IC(2  )) +      OtherState%QD2(I,IC(3)) )
    ENDDO          ! I - All DOFs
 
 
     ! Make sure the HSS brake has not reversed the direction of the HSS:
 
-   IF ( DOF_Flag(DOF_GeAz) .AND. ( ZTime > THSSBrDp ) )  CALL FixHSSBrTq ( 'Corrector' )
+   IF ( DOF_Flag(DOF_GeAz) .AND. ( ZTime > THSSBrDp ) )  CALL FixHSSBrTq ( 'Corrector', p, OtherState )
 
 
 ENDIF
@@ -8118,12 +8136,12 @@ ENDIF
    ! Compute the final value of QD2T from the best estimates for Q and
    !   QD, last call to RtHS:
 
-x%QT  = Q (:,IC(NMX))
-x%QDT = QD(:,IC(NMX))
+x%QT  = OtherState%Q (:,IC(NMX))
+x%QDT = OtherState%QD(:,IC(NMX))
 
-CALL RtHS( p, OtherState%CoordSys, x )
+CALL RtHS( p, OtherState%CoordSys, x, OtherState )
 
-QD2(:,IC(NMX)) = QD2T
+OtherState%QD2(:,IC(NMX)) = QD2T
 
 
    ! Update IC() index so IC(1) is the location of current Q values.
@@ -8144,10 +8162,12 @@ ENDDO
 
 IF ( DOF_Flag(DOF_GeAz) .AND. ( ZTime > THSSBrDp ) .AND. ( Step >= 3 ) )  THEN
 
-   QD(DOF_GeAz,IC(NMX)) = QD(DOF_GeAz,IC(1)) + DT24*(   55.0*QD2(DOF_GeAz,IC(1)) - 59.0*QD2(DOF_GeAz,IC(2)) &
-                                                      + 37.0*QD2(DOF_GeAz,IC(3)) -  9.0*QD2(DOF_GeAz,IC(4))   )
+   OtherState%QD(DOF_GeAz,IC(NMX)) = OtherState%QD(DOF_GeAz,IC(1)) + DT24*(   55.0*OtherState%QD2(DOF_GeAz,IC(1)) &
+                                                                            - 59.0*OtherState%QD2(DOF_GeAz,IC(2)) &
+                                                                            + 37.0*OtherState%QD2(DOF_GeAz,IC(3)) &
+                                                                            -  9.0*OtherState%QD2(DOF_GeAz,IC(4))   )
 
-   CALL FixHSSBrTq ( 'Predictor' )
+   CALL FixHSSBrTq ( 'Predictor', p, OtherState )
 
 ENDIF
 
@@ -8367,9 +8387,6 @@ USE                             Output
 USE                             SimCont
 USE                             FAST_IO_Subs       ! WrOutHdr(),  SimStatus(), WrOutput()
 USE                             NOISE              ! PredictNoise(), WriteAveSpecOut()
-USE                             TurbConf, ONLY : NumBL
-USE                             Blades, ONLY: BldNodes
-USE                             Tower, ONLY: TwrNodes
 
 IMPLICIT                        NONE
 
@@ -8392,7 +8409,7 @@ REAL(ReKi)                                      :: TiLstPrn  = 0.0              
 
    ! Allocate space for coordinate systems
 
-CALL CoordSys_Alloc( OtherSt_StrD%CoordSys, NumBl, BldNodes, TwrNodes, ErrStat, ErrMsg )
+CALL CoordSys_Alloc( OtherSt_StrD%CoordSys, p_StrD, ErrStat, ErrMsg )
             
 IF (ErrStat /= ErrID_none) THEN
    CALL WrScr( ' Error in SUBROUTINE TimeMarch: ' )
@@ -8406,7 +8423,7 @@ END IF
 
    ! Set up output file format.
 
-CALL WrOutHdr
+CALL WrOutHdr( p_StrD ) 
 
 
    ! Start simulation.  Initialize the simulation status.
@@ -8426,10 +8443,10 @@ DO
    CALL Solver( p_StrD, x_StrD, y_StrD, OtherSt_StrD  )
 
 
-   ! Make sure the rotor azimuth is not greater or equal to 360 degrees:
+   ! Make sure the rotor azimuth is not greater or equal to 360 degrees: (can't we do a mod here?)
 
-   IF ( ( Q(DOF_GeAz,IC(1)) + Q(DOF_DrTr,IC(1)) ) >= TwoPi )  THEN
-      Q(DOF_GeAz,IC(1)) = Q(DOF_GeAz,IC(1)) - TwoPi
+   IF ( ( OtherSt_StrD%Q(DOF_GeAz,IC(1)) + OtherSt_StrD%Q(DOF_DrTr,IC(1)) ) >= TwoPi )  THEN
+          OtherSt_StrD%Q(DOF_GeAz,IC(1)) = OtherSt_StrD%Q(DOF_GeAz,IC(1)) - TwoPi
    ENDIF
 
 
@@ -8447,7 +8464,7 @@ DO
    ! Check to see if we should output data this time step:
 
    IF ( ZTime >= TStart )  THEN
-      IF ( CompNoise                 )  CALL PredictNoise( OtherSt_StrD%CoordSys%te1, &
+      IF ( CompNoise                 )  CALL PredictNoise( p_StrD,                    OtherSt_StrD%CoordSys%te1, &
                                                            OtherSt_StrD%CoordSys%te2, OtherSt_StrD%CoordSys%te3 )
       IF ( MOD( Step, DecFact ) == 0 )  CALL WrOutput( p_StrD, y_StrD )
    ENDIF
@@ -8483,7 +8500,7 @@ END IF
    ! Output the binary file if requested
 
 IF (WrBinOutFile) THEN
-   CALL WrBinOutput(UnOuBin, OutputFileFmtID, FileDesc, OutParam(:)%Name, OutParam(:)%Units, TimeData, &
+   CALL WrBinOutput(UnOuBin, OutputFileFmtID, FileDesc, p_StrD%OutParam(:)%Name, p_StrD%OutParam(:)%Units, TimeData, &
                      AllOutData(:,1:CurrOutStep), ErrStat, ErrMsg)
 
    IF ( ErrStat /= ErrID_None ) THEN

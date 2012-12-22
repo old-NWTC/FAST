@@ -125,7 +125,7 @@ SUBROUTINE FAST_End
          ! Output the binary file if requested
       
       IF (WrBinOutFile) THEN
-         CALL WrBinOutput(UnOuBin, OutputFileFmtID, FileDesc, OutParam(:)%Name, OutParam(:)%Units, TimeData, & 
+         CALL WrBinOutput(UnOuBin, OutputFileFmtID, FileDesc, p%OutParam(:)%Name, OutParam(:)%Units, TimeData, & 
                            AllOutData(:,1:CurrOutStep), ErrStat, ErrMsg)
 
          IF ( ErrStat /= ErrID_None ) THEN
@@ -277,9 +277,6 @@ SUBROUTINE FAST_Init(InpFile, NumBl_S, NDOF_S, NumOuts_S)
    USE                             FASTSubs,       ONLY: FAST_Initialize, CoordSys_Alloc
    USE                             Output,         ONLY: OutputFileFmtID, FileFmtID_WithTime, NumOuts
 
-   USE                             TurbConf,       ONLY: NumBL
-   USE                             Blades,         ONLY: BldNodes
-   USE                             Tower,          ONLY: TwrNodes
    USE                             DOFs,           ONLY: NDOF
 
    
@@ -341,7 +338,7 @@ SUBROUTINE FAST_Init(InpFile, NumBl_S, NDOF_S, NumOuts_S)
       !----------------------------------------------------------------------------------------------
 !call wrscr('Initialize ')
 
-   CALL FAST_Initialize(p,x,y)
+   CALL FAST_Initialize(p,x,y,OtherState)
 
       !----------------------------------------------------------------------------------------------
       ! Print summary information to "*.fsm"?                                    [ see FASTProg.f90 ]
@@ -354,7 +351,7 @@ SUBROUTINE FAST_Init(InpFile, NumBl_S, NDOF_S, NumOuts_S)
       ! Allocate space for coordinate systems.                           [ see FAST.f90/TimeMarch() ]
       !----------------------------------------------------------------------------------------------
       
-   CALL CoordSys_Alloc( CoordSys, NumBl, BldNodes, TwrNodes, ErrStat, ErrMsg )
+   CALL CoordSys_Alloc( CoordSys, p, ErrStat, ErrMsg )
             
    IF (ErrStat /= ErrID_none) THEN
       CALL WrScr( ' Error in SUBROUTINE TimeMarch: ' )

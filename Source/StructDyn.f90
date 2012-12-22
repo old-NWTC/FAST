@@ -1,3 +1,67 @@
+
+MODULE StructDyn_Parameters
+
+      ! This module contains definitions of compile-time PARAMETERS for the StrucyDyn module. 
+      ! Every variable defined here MUST have the PARAMETER attribute.
+      
+
+   USE NWTC_Library
+
+
+      ! Parameters related to degrees of freedom (formerly MODULE DOFs)
+
+   INTEGER(IntKi), PARAMETER        :: MaxBl    =  3                                   ! Maximum number of blades allowed in simulation
+   INTEGER(IntKi), PARAMETER        :: NumBE    =  1                                   ! Number of blade-edge modes
+   INTEGER(IntKi), PARAMETER        :: NumBF    =  2                                   ! Number of blade-flap modes
+
+   INTEGER(IntKi), PARAMETER        :: DOF_Sg   =  1                                   ! DOF index for platform surge
+   INTEGER(IntKi), PARAMETER        :: DOF_Sw   =  2                                   ! DOF index for platform sway
+   INTEGER(IntKi), PARAMETER        :: DOF_Hv   =  3                                   ! DOF index for platform heave
+   INTEGER(IntKi), PARAMETER        :: DOF_R    =  4                                   ! DOF index for platform roll
+   INTEGER(IntKi), PARAMETER        :: DOF_P    =  5                                   ! DOF index for platform pitch
+   INTEGER(IntKi), PARAMETER        :: DOF_Y    =  6                                   ! DOF index for platform yaw
+   INTEGER(IntKi), PARAMETER        :: DOF_TFA1 =  7                                   ! DOF index for 1st tower fore-aft mode
+   INTEGER(IntKi), PARAMETER        :: DOF_TSS1 =  8                                   ! DOF index for 1st tower side-to-side mode
+   INTEGER(IntKi), PARAMETER        :: DOF_TFA2 =  9                                   ! DOF index for 2nd tower fore-aft mode
+   INTEGER(IntKi), PARAMETER        :: DOF_TSS2 = 10                                   ! DOF index for 2nd tower side-to-side mode
+   INTEGER(IntKi), PARAMETER        :: DOF_Yaw  = 11                                   ! DOF index for nacelle-yaw
+   INTEGER(IntKi), PARAMETER        :: DOF_RFrl = 12                                   ! DOF index for rotor-furl
+   INTEGER(IntKi), PARAMETER        :: DOF_GeAz = 13                                   ! DOF index for the generator azimuth
+   INTEGER(IntKi), PARAMETER        :: DOF_DrTr = 14                                   ! DOF index for drivetrain rotational-flexibility
+   INTEGER(IntKi), PARAMETER        :: DOF_TFrl = 15                                   ! DOF index for tail-furl
+
+   INTEGER(IntKi), PARAMETER        :: DOF_BE (MaxBl,NumBE) = RESHAPE(  &              ! DOF indices for blade edge:
+                                               (/ 17, 20, 23 /),   (/MaxBl,NumBE/) )   !    1st blade edge mode for blades 1,2, and 3, respectively 17 + 3*(K-1)
+   INTEGER(IntKi), PARAMETER        :: DOF_BF (MaxBl,NumBF) = RESHAPE(  &              ! DOF indices for blade flap:
+                                               (/ 16, 19, 22,           &              !    1st blade flap mode for blades 1,2, and 3, respectively 16 + 3*(K-1)
+                                                  18, 21, 24 /),   (/MaxBl,NumBF/) )   !    2nd blade flap mode for blades 1,2, and 3, respectively 18 + 3*(K-1)
+
+
+   INTEGER(IntKi), PARAMETER        :: DOF_Teet = 22 !DOF_TFrl + 2*(NumBE+NumBF)+ 1    ! DOF index for rotor-teeter
+
+
+   
+   
+      ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
+
+
+   INTEGER(IntKi), PARAMETER        :: NMX      =  9                                   ! Used in updating predictor-corrector values.
+
+
+
+      ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
+
+
+   !INTEGER(IntKi), PARAMETER        :: PolyOrd  =  6                                   ! Order of the polynomial describing the mode shape
+   
+
+      ! Parameters related to output length -- Possibly a local variable elsewhere????
+   INTEGER(IntKi), PARAMETER        :: OutStrLen  = 10                                  ! number of characters allowed in the output data headers              
+   INTEGER(IntKi), PARAMETER        :: OutStrLenM = OutStrLen-1                         ! number of characters allowed in the output data headers, excluding a minus sign or "M"           
+!   INTEGER(IntKi), PARAMETER        ::MaxOutPts =  986 
+   
+END MODULE StructDyn_Parameters
+!**********************************************************************************************************************************
 !**********************************************************************************************************************************
 ! The StructDyn.f90, StructDyn_Types.f90, and StructDyn_Parameters.f90 files make up the StructDyn module of the
 ! FAST Modularization Framework. StructDyn_Types is auto-generated based on FAST_Registry.txt.
@@ -337,8 +401,8 @@ SUBROUTINE StrD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
 
          ! Compute outputs here:
 
-      y%WriteOutput(1) = REAL(Time,ReKi)
-      y%WriteOutput(2) = 1.0_ReKi
+!      y%WriteOutput(1) = REAL(Time,ReKi)
+!      y%WriteOutput(2) = 1.0_ReKi
 
 
 END SUBROUTINE StrD_CalcOutput
@@ -795,7 +859,7 @@ SUBROUTINE StrD_ValidateInput( InputFileData, p, ErrStat, ErrMsg )
       ! Check to see if any inputted output channels are ill-conditioned (and if so, Abort)
    !    and set values for OutParam(:):
 
-   CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
+  ! CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
    
 !!!!!!!!!!!!!!!!!
 
@@ -832,66 +896,3 @@ END SUBROUTINE StrD_ValidateInput
 END MODULE StructDyn
 !**********************************************************************************************************************************
 
-MODULE StructDyn_Parameters
-
-      ! This module contains definitions of compile-time PARAMETERS for the StrucyDyn module. 
-      ! Every variable defined here MUST have the PARAMETER attribute.
-      
-
-   USE NWTC_Library
-
-
-      ! Parameters related to degrees of freedom (formerly MODULE DOFs)
-
-   INTEGER(IntKi), PARAMETER        :: MaxBl    =  3                                   ! Maximum number of blades allowed in simulation
-   INTEGER(IntKi), PARAMETER        :: NumBE    =  1                                   ! Number of blade-edge modes
-   INTEGER(IntKi), PARAMETER        :: NumBF    =  2                                   ! Number of blade-flap modes
-
-   INTEGER(IntKi), PARAMETER        :: DOF_Sg   =  1                                   ! DOF index for platform surge
-   INTEGER(IntKi), PARAMETER        :: DOF_Sw   =  2                                   ! DOF index for platform sway
-   INTEGER(IntKi), PARAMETER        :: DOF_Hv   =  3                                   ! DOF index for platform heave
-   INTEGER(IntKi), PARAMETER        :: DOF_R    =  4                                   ! DOF index for platform roll
-   INTEGER(IntKi), PARAMETER        :: DOF_P    =  5                                   ! DOF index for platform pitch
-   INTEGER(IntKi), PARAMETER        :: DOF_Y    =  6                                   ! DOF index for platform yaw
-   INTEGER(IntKi), PARAMETER        :: DOF_TFA1 =  7                                   ! DOF index for 1st tower fore-aft mode
-   INTEGER(IntKi), PARAMETER        :: DOF_TSS1 =  8                                   ! DOF index for 1st tower side-to-side mode
-   INTEGER(IntKi), PARAMETER        :: DOF_TFA2 =  9                                   ! DOF index for 2nd tower fore-aft mode
-   INTEGER(IntKi), PARAMETER        :: DOF_TSS2 = 10                                   ! DOF index for 2nd tower side-to-side mode
-   INTEGER(IntKi), PARAMETER        :: DOF_Yaw  = 11                                   ! DOF index for nacelle-yaw
-   INTEGER(IntKi), PARAMETER        :: DOF_RFrl = 12                                   ! DOF index for rotor-furl
-   INTEGER(IntKi), PARAMETER        :: DOF_GeAz = 13                                   ! DOF index for the generator azimuth
-   INTEGER(IntKi), PARAMETER        :: DOF_DrTr = 14                                   ! DOF index for drivetrain rotational-flexibility
-   INTEGER(IntKi), PARAMETER        :: DOF_TFrl = 15                                   ! DOF index for tail-furl
-
-   INTEGER(IntKi), PARAMETER        :: DOF_BE (MaxBl,NumBE) = RESHAPE(  &              ! DOF indices for blade edge:
-                                               (/ 17, 20, 23 /),   (/MaxBl,NumBE/) )   !    1st blade edge mode for blades 1,2, and 3, respectively 17 + 3*(K-1)
-   INTEGER(IntKi), PARAMETER        :: DOF_BF (MaxBl,NumBF) = RESHAPE(  &              ! DOF indices for blade flap:
-                                               (/ 16, 19, 22,           &              !    1st blade flap mode for blades 1,2, and 3, respectively 16 + 3*(K-1)
-                                                  18, 21, 24 /),   (/MaxBl,NumBF/) )   !    2nd blade flap mode for blades 1,2, and 3, respectively 18 + 3*(K-1)
-
-
-   INTEGER(IntKi), PARAMETER        :: DOF_Teet = 22 !DOF_TFrl + 2*(NumBE+NumBF)+ 1    ! DOF index for rotor-teeter
-
-
-   
-   
-      ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
-
-
-   INTEGER(IntKi), PARAMETER        :: NMX      =  9                                   ! Used in updating predictor-corrector values.
-
-
-
-      ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
-
-
-   !INTEGER(IntKi), PARAMETER        :: PolyOrd  =  6                                   ! Order of the polynomial describing the mode shape
-   
-
-      ! Parameters related to output length -- Possibly a local variable elsewhere????
-   INTEGER(IntKi), PARAMETER        :: OutStrLen  = 10                                  ! number of characters allowed in the output data headers              
-   INTEGER(IntKi), PARAMETER        :: OutStrLenM = OutStrLen-1                         ! number of characters allowed in the output data headers, excluding a minus sign or "M"           
-!   INTEGER(IntKi), PARAMETER        :: MaxOutPts  = 
-   
-END MODULE StructDyn_Parameters
-!**********************************************************************************************************************************
