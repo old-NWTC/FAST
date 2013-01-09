@@ -108,7 +108,7 @@ AirDens  = AD_GetConstant('AirDensity',   ErrStat)
   !   turbulent inflow noise calculation:
 
 IF ( CompNoise )  THEN  ! Yes, noise will be computed.
-   InpPosition = (/ 0.0, 0.0, FASTHH /)
+   InpPosition = (/ 0.0, 0.0, p_StrD%FASTHH /)
 
    CALL Noise_CalcTI( REAL(0.0, ReKi), TMax, DT, InpPosition )
 
@@ -123,9 +123,9 @@ IF ( CompAero )  THEN
 
    ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
 
-   IF ( ABS( FASTHH - AD_RefHt ) > 0.1*( FASTHH ) )  THEN  !bjj: I believe that this should not be done in the future
+   IF ( ABS( p_StrD%FASTHH - AD_RefHt ) > 0.1*( p_StrD%FASTHH ) )  THEN  !bjj: I believe that this should not be done in the future
 
-      CALL ProgWarn( ' The FAST hub height ('//TRIM(Flt2LStr( FASTHH ))//') and AeroDyn input'// &
+      CALL ProgWarn( ' The FAST hub height ('//TRIM(Flt2LStr( p_StrD%FASTHH ))//') and AeroDyn input'// &
                     ' reference hub height ('//TRIM(Flt2LStr(AD_RefHt))//') differ by more than 10%.' )
    ENDIF
 
@@ -146,7 +146,6 @@ SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz,
 USE StructDyn_Types
 USE StructDyn_Parameters
    
-USE                             DOFs
 USE                             General
 USE                             RtHndSid
 USE                             SimCont

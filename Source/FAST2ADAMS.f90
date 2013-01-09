@@ -316,7 +316,7 @@ WRITE (UnAL,FmtText  )  TRIM( RootName )//'_ADAMS_LIN'
    !   during the STATICS simulation):
 
 WRITE (UnAL,FmtText  )  'MOTION/3150, VELOCITY, ICDISP = 0'                                                    ! Make sure ICDISP = 0 or else ADAMS/SOLVER will generate an error when switching this MOTION statement from VELOCITY to DISPLACEMENT.
-WRITE (UnAL,FmtTR    )  'MOTION/3150, DISPLACEMENT, FUNCTION = ', MOD( Azimuth - AzimB1Up + 180.0, 360.0 )*D2R ! Set the fixid DISPLACEMENT to what was previously the ICDISP value.
+WRITE (UnAL,FmtTR    )  'MOTION/3150, DISPLACEMENT, FUNCTION = ', MOD( Azimuth - p%AzimB1Up + 180.0, 360.0 )*D2R ! Set the fixid DISPLACEMENT to what was previously the ICDISP value.
 
 
    ! Disable AeroDynamics if AeroDyn was called from the dataset by
@@ -456,7 +456,7 @@ CLOSE ( UnAL )
 RETURN
 END SUBROUTINE MakeACF_LIN
 !=======================================================================
-SUBROUTINE MakeADM(p,x,OtherState)
+SUBROUTINE MakeADM(p,x,OtherState, InputFileData)
 
 
    ! This routine generates an ADAMS dataset file (.adm) using the
@@ -473,7 +473,6 @@ USE                             AeroDyn  !to get the unit number for AeroDyn... 
 
 USE                             ADAMSInput
 USE                             Blades
-USE                             DOFs
 USE                             DriveTrain
 USE                             EnvCond
 USE                             Features
@@ -505,6 +504,7 @@ TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             
 TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
 !TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
 TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for Structural dynamics module
+TYPE(StrD_InputFile),            INTENT(IN)    :: InputFileData                 ! Data stored in the module's input file
 
 
    ! Local variables:
@@ -702,8 +702,8 @@ ENDIF
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''CalcOuts_V'''
 WRITE (UnAD,FmtText  )  'VARIABLE/'//TRIM(Int2LStr(CalcOuts_V))//', FUNCTION = USER(1)'
 !WRITE (UnAD,FmtText  )  'VARIABLE/1'
-!WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Flt2LStr( AzimB1Up ))//', '//TRIM(Flt2LStr( GBRatio ))// &
-!                        ', '//TRIM(Flt2LStr( AvgNrmTpRd ))//', '//TRIM(Flt2LStr( ProjArea ))//               &
+!WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Flt2LStr( p%AzimB1Up ))//', '//TRIM(Flt2LStr( GBRatio ))// &
+!                        ', '//TRIM(Flt2LStr( p%AvgNrmTpRd ))//', '//TRIM(Flt2LStr( ProjArea ))//               &
 !                        ', '//TRIM(Int2LStr( CompAeroI  ))//', '//TRIM(Int2LStr( CompHydroI ))//             &
 !                        ', '//TRIM(Int2LStr( TabDelimI  ))//', '//TRIM(Int2LStr( p%NumBl      ))//','
 !WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( p%BldNodes   ))//', '//TRIM(Int2LStr( p%TwrNodes   ))//             &
@@ -2039,7 +2039,7 @@ WRITE (UnAD,FmtText  )  'MARKER/4010'
 WRITE (UnAD,FmtText  )  ', PART = 4000'
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', UndSling, ', ', 0.0, ', ', 0.0
 
-WRITE (UnAD,FmtTRTRTR)  ', REULER = ', 0.0, ', ', -Delta3 - PiBy2, ', ', 0.0
+WRITE (UnAD,FmtTRTRTR)  ', REULER = ', 0.0, ', ', -InputFileData%Delta3 - PiBy2, ', ', 0.0
 
 
 DO K = 1,p%NumBl ! Loop through all blades
@@ -2640,7 +2640,7 @@ WRITE (UnAD,FmtText  )  'MOTION/3150'
 WRITE (UnAD,FmtText  )  ', JOINT = 3150'
 WRITE (UnAD,FmtText  )  ', ROTATION'
 WRITE (UnAD,FmtText  )  ', VELOCITY'
-WRITE (UnAD,FmtTR    )  ', ICDISP = ', MOD( Azimuth - AzimB1Up + 180.0, 360.0 )*D2R
+WRITE (UnAD,FmtTR    )  ', ICDISP = ', MOD( Azimuth - p%AzimB1Up + 180.0, 360.0 )*D2R
 WRITE (UnAD,FmtTR    )  ', FUNCTION = ', RotSpeed
 
 
@@ -4013,9 +4013,9 @@ WRITE (UnAD,FmtText  )  '!========================= ANALYSIS SETTINGS / OUTPUT =
 !---------------
 CALL MakeADM_WrICArraysR( (/ REAL(p%NumBl,ReKi),   REAL(p%BldNodes,ReKi), REAL(p%TwrNodes,ReKi),   REAL(p%NBlGages,ReKi),  & 
                              REAL(p%NTwGages,ReKi),REAL(p%NumOuts,ReKi),     &    ! bjj if linearizing, set NumOuts = 0 here ???
-                             REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  AzimB1Up,             GBRatio,   &
+                             REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  p%AzimB1Up,           GBRatio,   &
                              TipRad,               TStart               , REAL(PtfmLdMod),       REAL(TwrLdMod),       ProjArea,  &
-                             AvgNrmTpRd,           GenIner              , REAL(OutFileFmt,ReKi)             /), &
+                             p%AvgNrmTpRd,         GenIner              , REAL(OutFileFmt,ReKi)             /), &
                                      ModelConstants_A, 19       , UnAD, "ModelConstants_A" )             
                                               
 CALL MakeADM_WrICArrays (p%OutParam(1:p%NumOuts)%Indx + 500*( 1 - p%OutParam(1:p%NumOuts)%SignM), & !ADD 1000 if SignM is negative (this implies that SignM should only be +1 or -1!!!!!)

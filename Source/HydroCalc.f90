@@ -14,7 +14,7 @@ COMPLEX(ReKi), ALLOCATABLE   :: WaveElevC0(:)                                   
 
 REAL(ReKi), ALLOCATABLE      :: DZNodes   (:)                                   ! Length of variable-length tower or platform elements for the points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed (meters)
 REAL(ReKi)                   :: Gravity                                         ! Gravitational acceleration (m/s^2)
-REAL(ReKi), PARAMETER        :: Inv2Pi   =  0.15915494                          ! 0.5/Pi.
+!REAL(ReKi), PARAMETER        :: Inv2Pi   =  0.15915494                          ! 0.5/Pi.
 REAL(ReKi), PARAMETER        :: PiOvr4   =  0.78539816                          ! Pi/4.
 REAL(ReKi)                   :: RhoXg                                           ! = WtrDens*Gravity
 REAL(ReKi), ALLOCATABLE      :: WaveAcc0  (:,:,:)                               ! Instantaneous acceleration of incident waves in the xi- (1), yi- (2), and zi- (3) directions, respectively, accounting for stretching, at each of the NWaveKin0 points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed (m/s^2)

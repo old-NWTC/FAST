@@ -1,9 +1,9 @@
 
 MODULE StructDyn_Parameters
 
-      ! This module contains definitions of compile-time PARAMETERS for the StrucyDyn module. 
+      ! This module contains definitions of compile-time PARAMETERS for the StrucyDyn module.
       ! Every variable defined here MUST have the PARAMETER attribute.
-      
+
 
    USE NWTC_Library
 
@@ -38,10 +38,43 @@ MODULE StructDyn_Parameters
 
 
    INTEGER(IntKi), PARAMETER        :: DOF_Teet = 22 !DOF_TFrl + 2*(NumBE+NumBF)+ 1    ! DOF index for rotor-teeter
+  
+   
 
+   INTEGER(IntKi), PARAMETER        :: NPA      =  9                                   ! Number of DOFs that contribute to the angular velocity of the tail (body A) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: NPB      =  7                                   ! Number of DOFs that contribute to the angular velocity of the tower top / baseplate (body B) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: NPF      =  7                                   ! Number of DOFs that contribute to the angular velocity of the tower elements (body F) in the inertia frame                                           (body F) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: NPG      = 10                                   ! Number of DOFs that contribute to the angular velocity of the generator (body G) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: NPL      = 11                                   ! Number of DOFs that contribute to the angular velocity of the low-speed shaft (body L) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: NPN      =  8                                   ! Number of DOFs that contribute to the angular velocity of the nacelle (body N) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: NPR      =  9                                   ! Number of DOFs that contribute to the angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: NPX      =  3                                   ! Number of DOFs that contribute to the angular velocity of the platform (body X) in the inertia frame.
 
+   INTEGER(IntKi), PARAMETER        :: PX(NPX)  = (/ DOF_R, DOF_P, DOF_Y /)                                                                                          ! Array of DOF indices (pointers) that contribute to the angular velocity of the platform                                                  (body X) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: PF(NPF)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2 /)                                                  ! Array of DOF indices (pointers) that contribute to the angular velocity of the tower elements                                            (body F) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: PB(NPB)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2 /)                                                  ! Array of DOF indices (pointers) that contribute to the angular velocity of the tower top / baseplate                                     (body B) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: PN(NPN)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw /)                                         ! Array of DOF indices (pointers) that contribute to the angular velocity of the nacelle                                                   (body N) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: PR(NPR)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl /)                               ! Array of DOF indices (pointers) that contribute to the angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: PL(NPL)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr /)           ! Array of DOF indices (pointers) that contribute to the angular velocity of the low-speed shaft                                           (body L) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: PG(NPG)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz /)                     ! Array of DOF indices (pointers) that contribute to the angular velocity of the generator                                                 (body G) in the inertia frame.
+   INTEGER(IntKi), PARAMETER        :: PA(NPA)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_TFrl /)                               ! Array of DOF indices (pointers) that contribute to the angular velocity of the tail                                                      (body A) in the inertia frame.
    
    
+
+!INTEGER(4)                   :: NPCE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the hub center of mass                                                              (point C) in the inertia frame, based on which DOFs are presently enabled.
+!INTEGER(4)                   :: NPDE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the center of mass of the structure that furls with the rotor (not including rotor) (point D) in the inertia frame, based on which DOFs are presently enabled.
+!INTEGER(4)                   :: NPH                                             ! Number of DOFs                  that contribute to the angular velocity of the hub                                                       (body H) in the inertia frame.
+!INTEGER(4)                   :: NPIE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the tail boom center of mass                                                        (point I) in the inertia frame, based on which DOFs are presently enabled.
+!INTEGER(4)                   :: NPM                                             ! Number of DOFs                  that contribute to the angular velocity of the blade elements                                            (body M) in the inertia frame.
+!INTEGER(4)                   :: NPTE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the tower nodes                                                                     (point T) in the inertia frame, based on which DOFs are presently enabled.
+!INTEGER(4)                   :: NPTTE                                           ! Number of tower DOFs            that contribute to the QD2T-related linear accelerations of the tower nodes                                                                     (point T) in the inertia frame, based on which DOFs are presently enabled.
+!INTEGER(4), ALLOCATABLE      :: NPSBE    (:)                                    ! Number of blade DOFs            that contribute to the QD2T-related linear accelerations of the blade nodes                                                                     (point S) in the inertia frame, based on which DOFs are presently enabled.
+!INTEGER(4), ALLOCATABLE      :: NPSE     (:)                                    ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the blade nodes                                                                     (point S) in the inertia frame, based on which DOFs are presently enabled.
+!INTEGER(4)                   :: NPUE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the nacelle center of mass                                                          (point U) in the inertia frame, based on which DOFs are presently enabled.
+
+
+
+
       ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
 
 
@@ -53,13 +86,19 @@ MODULE StructDyn_Parameters
 
 
    !INTEGER(IntKi), PARAMETER        :: PolyOrd  =  6                                   ! Order of the polynomial describing the mode shape
-   
+
 
       ! Parameters related to output length -- Possibly a local variable elsewhere????
-   INTEGER(IntKi), PARAMETER        :: OutStrLen  = 10                                  ! number of characters allowed in the output data headers              
-   INTEGER(IntKi), PARAMETER        :: OutStrLenM = OutStrLen-1                         ! number of characters allowed in the output data headers, excluding a minus sign or "M"           
-!   INTEGER(IntKi), PARAMETER        ::MaxOutPts =  986 
-   
+   INTEGER(IntKi), PARAMETER        :: OutStrLen  = 10                                  ! number of characters allowed in the output data headers
+   INTEGER(IntKi), PARAMETER        :: OutStrLenM = OutStrLen-1                         ! number of characters allowed in the output data headers, excluding a minus sign or "M"
+!   INTEGER(IntKi), PARAMETER        ::MaxOutPts =  986
+
+
+!BJJ move this later, after you figure out what it does:
+
+INTEGER(4), ALLOCATABLE      :: IC       (:)                                    ! Array which stores pointers to predictor-corrector results. !bjj: from the DOF module
+
+
 END MODULE StructDyn_Parameters
 !**********************************************************************************************************************************
 !**********************************************************************************************************************************
@@ -92,7 +131,7 @@ MODULE StructDyn
 
    IMPLICIT NONE
 
-   PRIVATE
+!BJJ REMOVE FOR NOW:   PRIVATE
 
    TYPE(ProgDesc), PARAMETER  :: StrD_Ver = ProgDesc( 'StructDyn', 'v1.00.00a-bjj', '01-January-2013' )
 
@@ -151,13 +190,13 @@ SUBROUTINE StrD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
-      
-         ! Local variables
-         
-      TYPE(StrD_InputFile)                           :: InputFileData  ! Data stored in the module's input file       
-      
 
-      
+         ! Local variables
+
+      TYPE(StrD_InputFile)                           :: InputFileData  ! Data stored in the module's input file
+
+
+
          ! Initialize ErrStat
 
       ErrStat = ErrID_None
@@ -172,16 +211,18 @@ SUBROUTINE StrD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
 
       CALL DispNVD( StrD_Ver )
 
-      
+
          ! Read the input file and validate the data
-         
-      CALL StrD_ReadInput( InitInp%InputFile, InputFileData, ErrStat, ErrMsg )
-      CALL StrD_ValidateInput( InputFileData, p, ErrStat, ErrMsg )   
-      
-      
-      
+
+!      CALL StrD_ReadInput( InitInp%InputFile, InputFileData, ErrStat, ErrMsg )
+!      CALL StrD_ValidateInput( InputFileData, p, ErrStat, ErrMsg )
+
+
+      CALL StrD_InitDOFs( OtherState%DOFs, p, ErrStat, ErrMsg )
+
+
          ! Define parameters here:
-         
+
 
       p%DT  = Interval
 
@@ -192,7 +233,7 @@ SUBROUTINE StrD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       z%DummyConstrState         = 0
 
       ! x =
-      ! OtherState = 
+      ! OtherState =
 
          ! Define initial guess for the system inputs here:
 
@@ -393,6 +434,53 @@ SUBROUTINE StrD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
       CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
+
+         ! Local variables:
+
+      REAL(ReKi)                   :: AnchTe                        ! Instantaneous effective tension in a mooring line at the anchor   (N  )
+      REAL(ReKi)                   :: AnchTeAng                     ! Instantaneous vertical angle    of a mooring line at the anchor   (rad)
+      REAL(ReKi)                   :: AngAccEB  (3)                 ! Angular acceleration of the base plate                                                (body B) in the inertia frame (body E for earth).
+      REAL(ReKi)                   :: AngAccER  (3)                 ! Angular acceleration of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth).
+      REAL(ReKi)                   :: AngAccEX  (3)                 ! Angular acceleration of the platform                                                  (body X) in the inertia frame (body E for earth).
+      REAL(ReKi)                   :: ComDenom                      ! Common denominator used in several expressions.
+      REAL(ReKi)                   :: CThrstys                      ! Estimate of the ys-location of the center of thrust.
+      REAL(ReKi)                   :: CThrstzs                      ! Estimate of the zs-location of the center of thrust.
+      REAL(ReKi)                   :: FairTe                        ! Instantaneous effective tension in a mooring line at the fairlead (N  )
+      REAL(ReKi)                   :: FairTeAng                     ! Instantaneous vertical angle    of a mooring line at the fairlead (rad)
+      REAL(ReKi)                   :: FrcMGagB  (3)                 ! Total force at the blade element   (body M) / blade strain gage location            (point S) due to the blade above the strain gage.
+      REAL(ReKi)                   :: FrcFGagT  (3)                 ! Total force at the tower element   (body F) / tower strain gage location            (point T) due to the nacelle and rotor and tower above the strain gage.
+      REAL(ReKi)                   :: FrcONcRt  (3)                 ! Total force at the yaw bearing (point O  ) due to the nacelle, generator, and rotor.
+      REAL(ReKi)                   :: FrcPRot   (3)                 ! Total force at the teeter pin  (point P  ) due to the rotor.
+      REAL(ReKi)                   :: FrcT0Trb  (3)                 ! Total force at the base of flexible portion of the tower (point T(0)) due to the entire wind turbine.
+      REAL(ReKi)                   :: FZHydro   (3)                 ! Total platform hydrodynamic force at the platform reference (point Z).
+      REAL(ReKi)                   :: HHWndVec  (3)                 ! Hub-height wind vector in the AeroDyn coordinate system.
+      REAL(ReKi)                   :: LinAccEIMU(3)                 ! Total linear acceleration of the nacelle IMU (point IMU) in the inertia frame (body E for earth).
+      REAL(ReKi)                   :: LinAccEO  (3)                 ! Total linear acceleration of the base plate (point O) in the inertia frame (body E for earth).
+      REAL(ReKi)                   :: LinAccEZ  (3)                 ! Total linear acceleration of the platform refernce (point Z) in the inertia frame (body E for earth).
+      REAL(ReKi)                   :: MomBNcRt  (3)                 ! Total moment at the base plate      (body B) / yaw bearing                           (point O) due to the nacelle, generator, and rotor.
+      REAL(ReKi)                   :: MomFGagT  (3)                 ! Total moment at the tower element   (body F) / tower strain gage location            (point T) due to the nacelle and rotor and tower above the strain gage.
+      REAL(ReKi)                   :: MomLPRot  (3)                 ! Total moment at the low-speed shaft (body L) / teeter pin                            (point P) due to the rotor.
+      REAL(ReKi)                   :: MomMGagB  (3)                 ! Total moment at the blade element   (body M) / blade strain gage location            (point S) due to the blade above the strain gage.
+      REAL(ReKi)                   :: MomNGnRt  (3)                 ! Total moment at the nacelle         (body N) / specified point on rotor-furl axis    (point V) due to the structure that furls with the rotor, generator, and rotor.
+      REAL(ReKi)                   :: MomNTail  (3)                 ! Total moment at the nacelle         (body N) / specified point on  tail-furl axis    (point W) due to the tail.
+      REAL(ReKi)                   :: MomX0Trb  (3)                 ! Total moment at the tower base      (body X) / base of flexible portion of the tower (point T(0)) due to the entire wind turbine.
+      REAL(ReKi)                   :: MXHydro   (3)                 ! Total platform hydrodynamic moment acting at the platform (body X) / platform reference (point Z).
+      REAL(ReKi)                   :: rOPO      (3)                 ! Position vector from the undeflected tower top (point O prime) to the deflected tower top (point O).
+      REAL(ReKi)                   :: rOSTip    (3)                 ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip).
+      REAL(ReKi)                   :: rOSTipxn                      ! Component of rOSTip directed along the xn-axis.
+      REAL(ReKi)                   :: rOSTipyn                      ! Component of rOSTip directed along the yn-axis.
+      REAL(ReKi)                   :: rOSTipzn                      ! Component of rOSTip directed along the zn-axis.
+      REAL(ReKi)                   :: rTPT      (3)                 ! Position vector from the undeflected tower node (point T prime) to the deflected node (point T)
+      REAL(ReKi)                   :: rSPS      (3)                 ! Position vector from the undeflected blade node (point S prime) to the deflected node (point S)
+      REAL(ReKi)                   :: rSTipPSTip(3)                 ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip).
+      REAL(ReKi)                   :: TmpVec    (3)                 ! A temporary vector used in various computations.
+      REAL(ReKi)                   :: TmpVec2   (3)                 ! A temporary vector.
+
+      INTEGER(IntKi)               :: I                             ! Generic index
+      INTEGER(IntKi)               :: J                             ! Loops through nodes / elements.
+      INTEGER(IntKi)               :: K                             ! Loops through blades.
+
+
          ! Initialize ErrStat
 
       ErrStat = ErrID_None
@@ -404,6 +492,8 @@ SUBROUTINE StrD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
 !      y%WriteOutput(1) = REAL(Time,ReKi)
 !      y%WriteOutput(2) = 1.0_ReKi
 
+
+   RETURN
 
 END SUBROUTINE StrD_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -773,32 +863,32 @@ END SUBROUTINE StrD_CalcConstrStateResidual
 
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE StrD_ReadInput( InputFileName, InputFileData, ErrStat, ErrMsg )
-! This subroutine reads the input file and stores all the data in the StrD_InputFile structure. 
+! This subroutine reads the input file and stores all the data in the StrD_InputFile structure.
 ! It does not perform data validation.
 !..................................................................................................................................
 
-      ! Passed varialbes
-      
-   CHARACTER(*), INTENT(IN)               :: InputFileName  ! Name of the input file       
+      ! Passed variables
 
-   TYPE(StrD_InputFile), INTENT(OUT)      :: InputFileData  ! Data stored in the module's input file       
-   INTEGER(IntKi),       INTENT(OUT)      :: ErrStat        ! The error status code 
-   CHARACTER(*),         INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred 
-   
+   CHARACTER(*), INTENT(IN)               :: InputFileName  ! Name of the input file
+
+   TYPE(StrD_InputFile), INTENT(OUT)      :: InputFileData  ! Data stored in the module's input file
+   INTEGER(IntKi),       INTENT(OUT)      :: ErrStat        ! The error status code
+   CHARACTER(*),         INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
+
       ! local variables
-      
+
    INTEGER(IntKi)                         :: UnIn           ! Unit number for the input file
    INTEGER(IntKi)                         :: UnEcho         ! Unit number for the echo file
-   
+
    ErrStat = ErrID_None
    ErrMsg  = ''
-   
-   
+
+
 !===================== FAST_Input
-   
+
    CALL ExitThisRoutine(ErrID_None, '')
 
-   
+
 CONTAINS
    !............................................................................................................................
    SUBROUTINE ExitThisRoutine(ErrID,Msg)
@@ -818,12 +908,6 @@ CONTAINS
       END IF
 
 
-      !.........................................................................................................................
-      ! Close files
-      !.........................................................................................................................
-      CLOSE(UnIn)
-      CLOSE(UnEcho)
-
    END SUBROUTINE ExitThisRoutine
 
 
@@ -835,32 +919,32 @@ SUBROUTINE StrD_ValidateInput( InputFileData, p, ErrStat, ErrMsg )
 
    TYPE(StrD_InputFile),     INTENT(IN)       :: InputFileData  ! Data stored in the module's input file
    TYPE(StrD_ParameterType), INTENT(INOUT)    :: p              ! The module's parameter data
-   INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code 
-   CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred 
-   
+   INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code
+   CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
+
       ! local variables
-      
-   INTEGER(IntKi)                             :: UnIn           ! Unit number for input file           
-      
-   
+
+   INTEGER(IntKi)                             :: UnIn           ! Unit number for input file
+
+
       ! Initialize variables
-      
+
    ErrStat = ErrID_None
    ErrMsg  = ''
-   
+
    CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
    IF ( ErrStat >= AbortErrLev ) THEN
       RETURN
    ELSE
       ErrStat = ErrID_Info
    END IF
-   
-!!!!!!!!!!!!!!!!!!!   
+
+!!!!!!!!!!!!!!!!!!!
       ! Check to see if any inputted output channels are ill-conditioned (and if so, Abort)
    !    and set values for OutParam(:):
 
   ! CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
-   
+
 !!!!!!!!!!!!!!!!!
 
 CONTAINS
@@ -892,7 +976,142 @@ CONTAINS
 
 END SUBROUTINE StrD_ValidateInput
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE StrD_InitDOFs( DOFs, p, ErrStat, ErrMsg )
+! This subroutine initialized the ActiveDOF data type
+!..................................................................................................................................
 
+   TYPE(ActiveDOFs),         INTENT(INOUT)    :: DOFs           ! ActiveDOF data 
+   TYPE(StrD_ParameterType), INTENT(INOUT)    :: p              ! The module's parameter data
+   INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code
+   CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
+
+      ! Local variables
+   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
+      
+      ! Initialize variables
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+   
+   
+      ! BJJ: note that this method will cause an error if allocating data that has already been allocated...
+
+   ALLOCATE ( DOFs%NPSBE(p%NumBl), DOFs%NPSE(p%NumBl),  STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs NPSBE and NPSE arrays.' )
+      RETURN
+   ENDIF
+
+   
+   ALLOCATE ( DOFs%PCE(p%NDOF), DOFs%PDE(p%NDOF), DOFs%PIE(p%NDOF), STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PCE, PDE, and PIE arrays.' )
+      RETURN
+   ENDIF
+   
+   
+   ALLOCATE (  DOFs%PTTE(p%NDOF), DOFs%PTE(p%NDOF), DOFs%PS(p%NDOF), STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PTTE, PTE, and PS arrays.' )
+      RETURN
+   ENDIF
+
+   
+   ALLOCATE ( DOFs%PUE(p%NDOF), DOFs%PYE(p%NDOF),  STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PUE and PYE arrays.' )
+      RETURN
+   ENDIF
+
+   
+!bjj was   ALLOCATE ( DOFs%PSBE(p%NumBl,3), DOFs%PSE(p%NumBl,p%NDOF),  STAT=ErrStat )
+   ALLOCATE ( DOFs%PSBE(p%NumBl,(NumBE+NumBF)), DOFs%PSE(p%NumBl,p%NDOF),  STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PSBE and PSE arrays.' )
+      RETURN
+   ENDIF
+
+   
+   ALLOCATE ( DOFs%SrtPS(p%NDOF), DOFs%SrtPSNAUG(p%NAug),  DOFs%Diag(p%NDOF), STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs SrtPS, SrtPSNAUG, and Diag arrays.' )
+      RETURN
+   ENDIF
+   
+
+   !...............................................................................................................................
+! BJJ: these are now parameters....
+
+   !...............................................................................................................................
+   
+      ! Allocate and Initialize arrays for DOFS that contribute to the angular velocity of the hub and blade elements
+   
+   IF ( p%NumBl == 2 )  THEN ! 2-blader
+      p%NPH = 12                         ! Number of DOFs that contribute to the angular velocity of the hub            (body H) in the inertia frame.
+      p%NPM = 15                         ! Number of DOFs that contribute to the angular velocity of the blade elements (body M) in the inertia frame.
+   ELSE                    ! 3-blader
+      p%NPH = 11                         ! Number of DOFs that contribute to the angular velocity of the hub            (body H) in the inertia frame.
+      p%NPM = 14                         ! Number of DOFs that contribute to the angular velocity of the blade elements (body M) in the inertia frame.
+   ENDIF
+        
+
+   ALLOCATE ( p%PH(p%NPH),  p%PM(p%NumBl,p%NPM), STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PH and PM arrays.' )
+      RETURN
+   ENDIF     
+  
+      ! Array of DOF indices (pointers) that contribute to the angular velocity of the hub (body H) in the inertia frame:
+   p%PH(1:11) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr /) 
+   
+   IF ( p%NumBl == 2 )  THEN ! 2-blader (add DOF_Teet to the arrays)
+
+      p%PH(12) = DOF_Teet
+      
+         ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements (body M) in the inertia frame:
+      DO K = 1,p%NumBl ! Loop through all blades
+         p%PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, DOF_Teet, & 
+                           DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                                   /)
+      ENDDO          ! K - All blades
+
+   ELSE                    ! 3-blader
+
+         ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements (body M) in the inertia frame:
+      DO K = 1,p%NumBl ! Loop through all blades
+         p%PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, &           
+                           DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                         /)
+      ENDDO          ! K - All blades
+
+   ENDIF
+
+   
+   
+   
+CONTAINS
+   !............................................................................................................................
+   SUBROUTINE ExitThisRoutine(ErrID,Msg)
+   ! This subroutine cleans up all the allocatable arrays, closes the file, and sets the error status/message
+   !............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error ID (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+         ! Set error status/message
+
+      ErrStat = ErrID
+      ErrMsg  = Msg
+      IF ( ErrStat /= ErrID_None ) THEN
+         ErrMsg = 'Error in StrD_AllocDOFs: '//TRIM(ErrMsg)
+      END IF
+
+
+   END SUBROUTINE ExitThisRoutine
+
+
+END SUBROUTINE StrD_InitDOFs
+!----------------------------------------------------------------------------------------------------------------------------------
 END MODULE StructDyn
 !**********************************************************************************************************************************
 

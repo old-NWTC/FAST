@@ -159,7 +159,7 @@ DO K = 1, p_StrD%NumBl
 
         IF ( IInflow )  &
           CALL InflowNoise(UNoise,Chord(III),DRNodes(III),rLEtoObserve(K,III), &
-                            ChordAngleLE(K,III),SpanAngleLE(K,III),SPLti)
+                            ChordAngleLE(K,III),SpanAngleLE(K,III),SPLti, p_StrD)
 
 
 !      ADD IN THIS SEGMENT'S CONTRIBUTION ON A MEAN-SQUARE
@@ -1326,13 +1326,8 @@ END SUBROUTINE NoiseInput
 SUBROUTINE WriteSPLOut(p_StrD, AzimuthOut)
 
 
-!USE                             Blades
-USE                             DOFs
 USE                             General, ONLY: UnNoSPL
-!USE                             Output
-!USE                             RtHndSid
 USE                             SimCont, ONLY : ZTime
-!USE                             TurbConf
 
 USE StructDyn_Types
 
@@ -1523,7 +1518,7 @@ RETURN
 END SUBROUTINE WriteAveSpecOut
 
 !====================================================================================================
-SUBROUTINE InflowNoise(U,Chord,d,RObs,THETA,PHI,SPLti)
+SUBROUTINE InflowNoise(U,Chord,d,RObs,THETA,PHI,SPLti,p_StrD)
 
 
 USE                             EnvCond
@@ -1531,6 +1526,11 @@ USE                             TurbConf
 
 IMPLICIT                        NONE
 
+   ! passed variables:
+   
+TYPE(StrD_ParameterType),       INTENT(  IN)  :: p_StrD           ! Parameters of the structural dynamics module
+
+   ! local variables
 
 REAL(ReKi)                   :: Beta2                                           ! Prandtl-Glauert correction factor
 REAL(ReKi)                   :: Chord                                           ! chord length
@@ -1563,8 +1563,8 @@ ELSE
     RETURN
 ENDIF
 
-IF (FASTHH < 30.0) THEN
-    LTurb = 3.5*0.7*FASTHH ! Prediction sensitive to this parameter!
+IF (p_StrD%FASTHH < 30.0) THEN
+    LTurb = 3.5*0.7*p_StrD%FASTHH ! Prediction sensitive to this parameter!
 ELSE
     LTurb = 3.5*21.
 ENDIF

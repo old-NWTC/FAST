@@ -12,7 +12,7 @@ SUBROUTINE AeroInput(p_StrD)
 
    USE                     AeroElem !,   ONLY: ADAeroMarkers, NumADBldNodes, ADCurrentOutputs, ADIntrfaceOptions, ADFirstLoop, Prev_Aero_t
    USE                     General,    ONLY: RootName, ADFile, SumPrint
-   USE                     TurbConf,   ONLY: TipRad, HubRad, SinPreC, CosPreC
+   USE                     TurbConf,   ONLY: TipRad, HubRad
    USE                     Output,     ONLY: WrEcho
 
 
@@ -55,21 +55,21 @@ TYPE(StrD_ParameterType),  INTENT(INOUT)  :: p_StrD      ! The parameters of the
       END IF
    END IF
 
-  ADInterfaceComponents%Blade(:)%Position(1)      = HubRad*SinPreC(:)
+  ADInterfaceComponents%Blade(:)%Position(1)      = HubRad*p_StrD%SinPreC(:)
   ADInterfaceComponents%Blade(:)%Position(2)      =  0.0
-  ADInterfaceComponents%Blade(:)%Position(3)      = HubRad*CosPreC(:)
+  ADInterfaceComponents%Blade(:)%Position(3)      = HubRad*p_StrD%CosPreC(:)
   
-  ADInterfaceComponents%Blade(:)%Orientation(1,1) =        CosPreC(:)
+  ADInterfaceComponents%Blade(:)%Orientation(1,1) =        p_StrD%CosPreC(:)
   ADInterfaceComponents%Blade(:)%Orientation(2,1) =  0.0
-  ADInterfaceComponents%Blade(:)%Orientation(3,1) =  1.0 * SinPreC(:)
+  ADInterfaceComponents%Blade(:)%Orientation(3,1) =  1.0 * p_StrD%SinPreC(:)
   
   ADInterfaceComponents%Blade(:)%Orientation(1,2) =  0.0
   ADInterfaceComponents%Blade(:)%Orientation(2,2) =  1.0
   ADInterfaceComponents%Blade(:)%Orientation(3,2) =  0.0
 
-  ADInterfaceComponents%Blade(:)%Orientation(1,3) = -1.0 * SinPreC(:)
+  ADInterfaceComponents%Blade(:)%Orientation(1,3) = -1.0 * p_StrD%SinPreC(:)
   ADInterfaceComponents%Blade(:)%Orientation(2,3) =  0.0
-  ADInterfaceComponents%Blade(:)%Orientation(3,3) =        CosPreC(:)
+  ADInterfaceComponents%Blade(:)%Orientation(3,3) =        p_StrD%CosPreC(:)
 
 
       ! Blade length
@@ -1373,8 +1373,8 @@ IMPLICIT                        NONE
 
    ! Passed variables:
 
-TYPE(StrD_ParameterType), INTENT(IN)  :: p                                      ! Parameters of the structural dynamics module
-INTEGER(4),               INTENT(IN ) :: K                                      ! Blade number.
+TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                      ! Parameters of the structural dynamics module
+INTEGER(4),               INTENT(IN )    :: K                                      ! Blade number.
 
 
    ! Local variables:
@@ -1756,7 +1756,7 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetBlade
 !=======================================================================
-SUBROUTINE GetFurl
+SUBROUTINE GetFurl( InputFileData )
 
 
    ! This routine reads in the FAST furling input parameters from
@@ -1776,10 +1776,12 @@ USE                             TurbConf
 
 IMPLICIT                        NONE
 
+   ! Passed variables
+TYPE(StrD_InputFile),     INTENT(INOUT)    :: InputFileData                   ! Data stored in the module's input file
 
    ! Local variables:
 
-INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
+INTEGER(4)                   :: IOS                                           ! I/O status returned from the read statement.
 
 
 
@@ -1890,9 +1892,9 @@ CALL ReadVar ( UnIn, FurlFile, RFrlCMzn, 'RFrlCMzn', 'Vertical distance from tow
 
    ! BoomCMxn - Downwind distance from tower-top to tail boom CM.
 
-CALL ReadVar ( UnIn, FurlFile, BoomCMxn, 'BoomCMxn', 'Downwind distance from tower-top to tail boom CM' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMxn, 'BoomCMxn', 'Downwind distance from tower-top to tail boom CM' )
 
-IF ( BoomCMxn < 0.0 )  THEN   ! Print out warning when tail boom CM defined upwind of the tower.
+IF ( InputFileData%BoomCMxn < 0.0 )  THEN   ! Print out warning when tail boom CM defined upwind of the tower.
    CALL UsrAlarm
 
    CALL WrScr1(' WARNING: ')
@@ -1903,12 +1905,12 @@ ENDIF
 
    ! BoomCMyn - Lateral  distance from tower-top to tail boom CM.
 
-CALL ReadVar ( UnIn, FurlFile, BoomCMyn, 'BoomCMyn', 'Lateral  distance from tower-top to tail boom CM' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMyn, 'BoomCMyn', 'Lateral  distance from tower-top to tail boom CM' )
 
 
    ! BoomCMzn - Vertical distance from tower-top to tail boom CM.
 
-CALL ReadVar ( UnIn, FurlFile, BoomCMzn, 'BoomCMzn', 'Vertical distance from tower-top to tail boom CM' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMzn, 'BoomCMzn', 'Vertical distance from tower-top to tail boom CM' )
 
 
    ! TFinCMxn - Downwind distance from tower-top to tail fin CM.
@@ -3300,7 +3302,7 @@ END IF
    ! PSpnElN - Number of the innermost blade element which is still part of the pitchable portion of the blade for partial-span pitch control.
 
 !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-!JASON:CALL ReadVar ( UnIn, PriFile, PSpnElN, 'PSpnElN', 'Partial-span pitch control element number' )
+!JASON:CALL ReadVar ( UnIn, PriFile, p%PSpnElN, 'PSpnElN', 'Partial-span pitch control element number' )
    CALL ReadCom ( UnIn, PriFile, 'currently ignored PSpnElN' )
 
    ! UndSling - Undersling length.
@@ -3372,10 +3374,11 @@ IF ( TowerHt + Twr2Shft + OverHang*SIN(ShftTilt*D2R) <= TipRad )  &
    ! Delta3 - Delta-3 angle for teetering rotors.
 
 IF ( p%NumBl == 2 )  THEN
-   CALL ReadVar ( UnIn, PriFile, Delta3, 'Delta3', 'Delta-3 angle for teetering rotors' )
-   IF ( ( Delta3 <= -90.0 ) .OR. ( Delta3 >= 90.0 ) )  CALL ProgAbort ( ' Delta3 must be between -90 and 90 (exclusive).' )
+   CALL ReadVar ( UnIn, PriFile, InputFileData%Delta3, 'Delta3', 'Delta-3 angle for teetering rotors' )
+   IF ( ( InputFileData%Delta3 <= -90.0 ) .OR. ( InputFileData%Delta3 >= 90.0 ) )  CALL ProgAbort ( ' Delta3 must be between -90 and 90 (exclusive).' )
 ELSE
    CALL ReadCom ( UnIn, PriFile, 'unused Delta3' )
+   InputFileData%Delta3 = 0.0
 ENDIF
 
 
@@ -3401,9 +3404,9 @@ ENDIF
 
    ! AzimB1Up - Azimuth value to use for I/O when blade 1 points up.
 
-CALL ReadVar ( UnIn, PriFile, AzimB1Up, 'AzimB1Up', 'Azimuth value to use for I/O when blade 1 points up' )
+CALL ReadVar ( UnIn, PriFile, p%AzimB1Up, 'AzimB1Up', 'Azimuth value to use for I/O when blade 1 points up' )
 
-IF ( ( AzimB1Up < 0.0 ) .OR. ( AzimB1Up > 360.0 ) )  CALL ProgAbort ( ' AzimB1Up must be between 0 and 360 (inclusive).' )
+IF ( ( p%AzimB1Up < 0.0 ) .OR. ( p%AzimB1Up > 360.0 ) )  CALL ProgAbort ( ' AzimB1Up must be between 0 and 360 (inclusive).' )
 
 
 
@@ -5833,7 +5836,7 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetTower
 !=======================================================================
-SUBROUTINE FAST_Input( p, OtherState, ErrStat, ErrMsg )
+SUBROUTINE FAST_Input( p, OtherState, InputFileData, ErrStat, ErrMsg )
 
 
    ! This routine reads the input files and does some preliminary processing.
@@ -5842,7 +5845,6 @@ SUBROUTINE FAST_Input( p, OtherState, ErrStat, ErrMsg )
    ! FAST Modules:
 
 USE                             Blades
-USE                             DOFs
 USE                             DriveTrain
 USE                             EnvCond
 USE                             Features
@@ -5876,6 +5878,7 @@ IMPLICIT                        NONE
    ! passed variables
 TYPE(StrD_ParameterType), INTENT(INOUT) :: p                                 ! Parameter data type for structural dynamics module
 TYPE(StrD_OtherStateType),INTENT(INOUT) :: OtherState                        ! Other State data type for Structural dynamics module
+TYPE(StrD_InputFile),     INTENT(OUT)   :: InputFileData                     ! all the data in the StructDyn input file
 INTEGER,          INTENT(OUT),OPTIONAL  :: ErrStat                           ! Error status
 CHARACTER(*),     INTENT(OUT),OPTIONAL  :: ErrMsg                            ! Error message corresponding to ErrStat 
 
@@ -5888,7 +5891,6 @@ INTEGER(4)                   :: I                                               
 INTEGER(4)                   :: K                                               ! Index for blade number.
 INTEGER(4)                   :: Sttus                                           ! Status of an attempted array allocation.
 
-TYPE(StrD_InputFile)         :: InputFileData                                   ! all the data in the StructDyn input file
 
 
 !  -------------- PRIMARY PARAMETERS -------------------------------------------
@@ -5920,7 +5922,7 @@ ENDIF
 
 IF ( Furling )  THEN
 
-   CALL GetFurl
+   CALL GetFurl( InputFileData )
 
    RotFurl   = RotFurl  *D2R
    TailFurl  = TailFurl *D2R
@@ -5981,9 +5983,9 @@ IF ( Furling )  THEN
    STFrlTlt2 = STFrlTilt*STFrlTilt
    CSTFrlTlt = CTFrlTilt*STFrlTilt
 
-   rWIxn     = BoomCMxn - TFrlPntxn
-   rWIyn     = BoomCMyn - TFrlPntyn
-   rWIzn     = BoomCMzn - TFrlPntzn
+   rWIxn     = InputFileData%BoomCMxn - TFrlPntxn
+   rWIyn     = InputFileData%BoomCMyn - TFrlPntyn
+   rWIzn     = InputFileData%BoomCMzn - TFrlPntzn
 
    rWJxn     = TFinCMxn - TFrlPntxn
    rWJyn     = TFinCMyn - TFrlPntyn
@@ -6025,7 +6027,7 @@ YawNeut   = D2R*YawNeut                                                         
 ShftTilt  = ShftTilt*D2R                                                        ! Rotor shaft tilt in radians.
 CShftTilt = COS( ShftTilt )
 SShftTilt = SIN( ShftTilt )
-FASTHH    = TowerHt + Twr2Shft + OverHang*SShftTilt
+p%FASTHH    = TowerHt + Twr2Shft + OverHang*SShftTilt
 GBoxEff   = GBoxEff*0.01
 GenEff    = GenEff *0.01
 SpdGenOn  = SpdGenOn*RPM2RPS
@@ -6083,7 +6085,7 @@ ELSE
    p%NDOF = 24
 ENDIF
 
-NAug = p%NDOF + 1
+p%NAug = p%NDOF + 1
 
 
    ! ALLOCATE some arrays:
@@ -6103,12 +6105,12 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort(' Error allocating memory for the TTpBrFl array.')
 ENDIF
 
-ALLOCATE ( CosPreC(p%NumBl) , STAT=Sttus )
+ALLOCATE ( p%CosPreC(p%NumBl) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the CosPreC array.' )
 ENDIF
 
-ALLOCATE ( SinPreC(p%NumBl) , STAT=Sttus )
+ALLOCATE ( p%SinPreC(p%NumBl) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the SinPreC array.' )
 ENDIF
@@ -6118,9 +6120,9 @@ ENDIF
 
 IF ( p%NumBl == 2 )  THEN
    TeetDefl = TeetDefl*D2R
-   Delta3   = Delta3 *D2R
-   CosDel3  = COS( Delta3 )
-   SinDel3  = SIN( Delta3 )
+   InputFileData%Delta3   = InputFileData%Delta3 *D2R
+   p%CosDel3  = COS( InputFileData%Delta3 )
+   p%SinDel3  = SIN( InputFileData%Delta3 )
    TeetSStP = TeetSStP*D2R
    TeetDmpP = TeetDmpP*D2R
    TeetHStP = TeetHStP*D2R
@@ -6138,17 +6140,17 @@ DO K=1,p%NumBl
    BegPitMan  (K) = .TRUE.
    TTpBrFl    (K) = TTpBrDp (K) + TpBrDT
    Precone    (K) = Precone (K)*D2R
-   CosPreC    (K) = COS( Precone(K) )
-   SinPreC    (K) = SIN( Precone(K) )
-   SumCosPreC     = SumCosPreC + CosPreC(K)
+   p%CosPreC  (K) = COS( Precone(K) )
+   p%SinPreC  (K) = SIN( Precone(K) )
+   SumCosPreC     = SumCosPreC + p%CosPreC(K)
 ENDDO ! K
 
 
    ! Calculate the average tip radius normal to the shaft (AvgNrmTpRd)
    !   and the swept area of the rotor (ProjArea):
 
-AvgNrmTpRd = TipRad*SumCosPreC/p%NumBl   ! Average tip radius normal to the saft.
-ProjArea   = Pi*( AvgNrmTpRd**2 )      ! Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft).
+p%AvgNrmTpRd = TipRad*SumCosPreC/p%NumBl   ! Average tip radius normal to the saft.
+ProjArea     = Pi*( p%AvgNrmTpRd**2 )      ! Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft).
 
 
 
@@ -6280,7 +6282,7 @@ ENDDO ! I
 
    ! Check to see if PSpnElN is an existing analysis point:
 
-IF ( ( PSpnElN < 1 ) .OR. ( PSpnElN > p%BldNodes ) )  &
+IF ( ( p%PSpnElN < 1 ) .OR. ( p%PSpnElN > p%BldNodes ) )  &
    CALL ProgAbort(' PSpnElN must be between 1 and '//TRIM( Int2LStr( p%BldNodes ) )//' (inclusive).' )
 
 
@@ -6602,10 +6604,10 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
    ! NOTE: There is one additional requirement, which is that there must be at
    !       least one DOF enabled in order to run a linearization analysis.
    !       This condition is commented out below.  Instead of here, this
-   !       condition is checked in PROGRAM FAST(), since variable NActvDOF has
+   !       condition is checked in PROGRAM FAST(), since variable OtherState%NActvDOF has
    !       not been defined yet.  I would like to test all of the conditions
    !       in one place, but oh well :-(.
-!   IF ( NActvDOF == 0                       )  CALL ProgAbort ( ' FAST can''t linearize a model with no DOFs.  Enable at least one DOF.' )
+!   IF ( OtherState%NActvDOF == 0                       )  CALL ProgAbort ( ' FAST can''t linearize a model with no DOFs.  Enable at least one DOF.' )
 
    ! Conditions on AeroDyn inputs:
    ! NOTE: I overwrite the value of AToler internally but force the users to
@@ -7068,7 +7070,7 @@ ENDIF
 RETURN
 END SUBROUTINE InterpTwr
 !=======================================================================
-SUBROUTINE PrintSum( p )
+SUBROUTINE PrintSum( p, OtherState )
 
 
    ! This routine generates the summary file, which contains a regurgitation of
@@ -7076,7 +7078,6 @@ SUBROUTINE PrintSum( p )
 
 USE                             AeroDyn
 USE                             Blades
-USE                             DOFs
 USE                             Features
 USE                             General
 USE                             MassInert
@@ -7088,8 +7089,9 @@ USE                             TurbConf
 IMPLICIT                        NONE
 
    ! passed variables
-TYPE(StrD_ParameterType), INTENT(IN)  :: p                                     ! Parameters of the structural dynamics module
-  
+TYPE(StrD_ParameterType),  INTENT(IN)  :: p                                    ! Parameters of the structural dynamics module
+TYPE(StrD_OtherStateType), INTENT(IN)  :: OtherState                           ! Other/optimization states of the structural dynamics module 
+
 
    ! Local variables.
 
@@ -7150,7 +7152,7 @@ CASE ( 3 )
    WRITE (UnSu,FmtTxt)  '            Floating offshore turbine.'
 ENDSELECT
 
-WRITE    (UnSu,FmtTxt)  '            The model has '//TRIM(Int2LStr( NActvDOF ))//' of '// &
+WRITE    (UnSu,FmtTxt)  '            The model has '//TRIM(Int2LStr( OtherState%DOFs%NActvDOF ))//' of '// &
                                      TRIM(Int2LStr( p%NDOF ))//' DOFs active (enabled) at start-up.'
 
 IF ( FlapDOF1 )  THEN
@@ -7299,7 +7301,7 @@ WRITE (UnSu,FmtDatT) '    Aerodynamic           (s)     ', DT*CEILING( AD_GetCon
 
 WRITE (UnSu,FmtHead)  'Some calculated parameters:'
 
-WRITE (UnSu,FmtDat ) '    Hub-Height            (m)     ', FASTHH
+WRITE (UnSu,FmtDat ) '    Hub-Height            (m)     ', p%FASTHH
 WRITE (UnSu,FmtDat ) '    Flexible Tower Length (m)     ', TwrFlexL
 WRITE (UnSu,FmtDat ) '    Flexible Blade Length (m)     ', BldFlexL
 
