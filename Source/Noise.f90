@@ -75,7 +75,6 @@ USE                             Blades
 USE                             Output
 USE                             RtHndSid
 USE                             SimCont
-USE                             TurbConf
 USE                             AeroDyn
 
 USE StructDyn_Types
@@ -1156,7 +1155,6 @@ USE StructDyn_Types
 USE                             Blades
 USE                             General
 USE                             Output
-USE                             TurbConf
 
     ! AeroDyn modules
 USE                             AeroDyn
@@ -1395,7 +1393,6 @@ SUBROUTINE CalcObserve( p_StrD, te1, te2, te3 )
 USE                             Blades
 USE                             RtHndSid
 USE                             SimCont
-USE                             TurbConf
 
 
 IMPLICIT                        NONE
@@ -1427,7 +1424,7 @@ INTEGER(4)                   :: J                                               
 
 ! Transform RObserve to the internal a coordinate system
 RObserveInt (1) = RObserve (1)
-RObserveInt (2) = RObserve (3) + PtfmRef
+RObserveInt (2) = RObserve (3) + p_StrD%PtfmRef
 RObserveInt (3) =-RObserve (2)
 
    DO J = 1, p_StrD%NumBl
@@ -1522,7 +1519,6 @@ SUBROUTINE InflowNoise(U,Chord,d,RObs,THETA,PHI,SPLti,p_StrD)
 
 
 USE                             EnvCond
-USE                             TurbConf
 
 IMPLICIT                        NONE
 
@@ -1633,7 +1629,6 @@ END SUBROUTINE Noise_CalcTI
 !====================================================================================================
 SUBROUTINE AllocNoise( p_StrD )
 
-USE                             TurbConf
 USE                             Blades
 
 IMPLICIT                        NONE

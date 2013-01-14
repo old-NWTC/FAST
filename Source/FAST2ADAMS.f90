@@ -82,7 +82,6 @@ USE                             MassInert
 USE                             Output
 USE                             SimCont
 USE                             Tower
-USE                             TurbConf
 USE                             TurbCont
 
 
@@ -261,7 +260,6 @@ USE                             Platform
 USE                             SimCont
 USE                             TipBrakes
 USE                             Tower
-USE                             TurbConf
 
 
 IMPLICIT                        NONE
@@ -491,7 +489,6 @@ USE                             TailAero
 USE                             TailFurling
 USE                             TipBrakes
 USE                             Tower
-USE                             TurbConf
 USE                             TurbCont
 USE                             FASTSubs    !SetCoordSy
 
@@ -703,11 +700,11 @@ WRITE (UnAD,FmtText  )  '!                             adams_view_name=''CalcOut
 WRITE (UnAD,FmtText  )  'VARIABLE/'//TRIM(Int2LStr(CalcOuts_V))//', FUNCTION = USER(1)'
 !WRITE (UnAD,FmtText  )  'VARIABLE/1'
 !WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Flt2LStr( p%AzimB1Up ))//', '//TRIM(Flt2LStr( GBRatio ))// &
-!                        ', '//TRIM(Flt2LStr( p%AvgNrmTpRd ))//', '//TRIM(Flt2LStr( ProjArea ))//               &
+!                        ', '//TRIM(Flt2LStr( p%AvgNrmTpRd ))//', '//TRIM(Flt2LStr( p%ProjArea ))//               &
 !                        ', '//TRIM(Int2LStr( CompAeroI  ))//', '//TRIM(Int2LStr( CompHydroI ))//             &
 !                        ', '//TRIM(Int2LStr( TabDelimI  ))//', '//TRIM(Int2LStr( p%NumBl      ))//','
 !WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( p%BldNodes   ))//', '//TRIM(Int2LStr( p%TwrNodes   ))//             &
-!                        ', '//TRIM(Flt2LStr( TipRad     ))//', '//TRIM(Flt2LStr( GenIner    ))//' )'
+!                        ', '//TRIM(Flt2LStr( p%TipRad     ))//', '//TRIM(Flt2LStr( GenIner    ))//' )'
 
 
 
@@ -734,7 +731,7 @@ WRITE (UnAD,FmtText  )  ', GROUND'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''AeroDynGround_M'''
 WRITE (UnAD,FmtText  )  'MARKER/1'
 WRITE (UnAD,FmtText  )  ', PART = 1'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', PtfmRef
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', p%PtfmRef
 WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 
 
@@ -826,7 +823,7 @@ IF ( CompHydro )  THEN  ! .TRUE. if we are using the undocumented monopile or pl
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Seabed_M'''
    WRITE (UnAD,FmtText  )  'MARKER/20'
    WRITE (UnAD,FmtText  )  ', PART = 1'
-   WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', PtfmRef - WtrDpth
+   WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', p%PtfmRef - WtrDpth
    WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 
 
@@ -836,7 +833,7 @@ IF ( CompHydro )  THEN  ! .TRUE. if we are using the undocumented monopile or pl
    WRITE (UnAD,FmtText  )  'GRAPHICS/20'
    WRITE (UnAD,FmtText  )  ', CIRCLE'
    WRITE (UnAD,FmtText  )  ', CM = 20'
-   WRITE (UnAD,FmtTR    )  ', RADIUS = ', MAX( TipRad, MaxLRadAnch )
+   WRITE (UnAD,FmtTR    )  ', RADIUS = ', MAX( p%TipRad, MaxLRadAnch )
    WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
 
@@ -855,7 +852,7 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
    ! Compute the variables needed to place MARKERs on the incident wave
    !   propogation heading direction:
 
-   NFreeSrfc = CEILING ( ( 2.0*TipRad )/FrSrfcSpc )
+   NFreeSrfc = CEILING ( ( 2.0*p%TipRad )/FrSrfcSpc )
    IF ( NFreeSrfc > 99 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with more than 99 free'// &
                                           ' surface GRAPHICS statements.  Set FrSrfcSpc >= 2*TipRad/99.' )
 
@@ -875,7 +872,7 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
       WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID - 100000 ))
       WRITE (UnAD,FmtText     )  ', PART = 1'
       WRITE (UnAD,FmtTRTRTR   )  ', QP = ', ( I*FrSrfcSpc - TmpLength )*CWaveDir + TmpLength*SWaveDir, &
-                                 ', '     , ( I*FrSrfcSpc - TmpLength )*SWaveDir - TmpLength*CWaveDir, ', ', PtfmRef
+                                 ', '     , ( I*FrSrfcSpc - TmpLength )*SWaveDir - TmpLength*CWaveDir, ', ', p%PtfmRef
       WRITE (UnAD,FmtTRTRTR   )  ', REULER = ', WaveDir*D2R, ', ', 0.0, ', ', 0.0
 
 
@@ -884,7 +881,7 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , '_P'''
       WRITE (UnAD,FmtText     )  'PART/'//TRIM(Int2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR   )  ', QG = ', ( I*FrSrfcSpc - TmpLength )*CWaveDir + TmpLength*SWaveDir, &
-                                 ', '     , ( I*FrSrfcSpc - TmpLength )*SWaveDir - TmpLength*CWaveDir, ', ', PtfmRef
+                                 ', '     , ( I*FrSrfcSpc - TmpLength )*SWaveDir - TmpLength*CWaveDir, ', ', p%PtfmRef
       WRITE (UnAD,FmtTRTRTR   )  ', REULER = ', WaveDir*D2R, ', ', 0.0, ', ', 0.0
       WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Int2LStr( TmpID ))
       WRITE (UnAD,FmtTR       )  ', MASS = ', SmllNmbr
@@ -964,7 +961,7 @@ ELSE
    WRITE (UnAD,FmtText  )  'GRAPHICS/1'
    WRITE (UnAD,FmtText  )  ', CIRCLE'
    WRITE (UnAD,FmtText  )  ', CM = 1'
-   WRITE (UnAD,FmtTR    )  ', RADIUS = ', TipRad
+   WRITE (UnAD,FmtTR    )  ', RADIUS = ', p%TipRad
    WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
 
@@ -1115,7 +1112,7 @@ WRITE (UnAD,FmtText  )  ', PART = 1000'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''PlatformCM_M'''
 WRITE (UnAD,FmtText  )  'MARKER/1005'
 WRITE (UnAD,FmtText  )  ', PART = 1000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', rZYzt
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', p%rZYzt
 WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 
 
@@ -1124,7 +1121,7 @@ WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''UndeflTwrTop_M'''
 WRITE (UnAD,FmtText  )  'MARKER/1030'
 WRITE (UnAD,FmtText  )  ', PART = 1000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', RefTwrHt
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', p%RefTwrHt
 WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 
 IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
@@ -1151,7 +1148,7 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
    WRITE (UnAD,FmtText  )  'GRAPHICS/1000'
    WRITE (UnAD,FmtText  )  ', CYLINDER'
    WRITE (UnAD,FmtText  )  ', CM = 1100'
-   WRITE (UnAD,FmtTR    )  ', LENGTH = ', TwrDraft - PtfmDraft ! NOTE: TwrDraft <= 0.0 in this equation
+   WRITE (UnAD,FmtTR    )  ', LENGTH = ', p%TwrDraft - PtfmDraft ! NOTE: TwrDraft <= 0.0 in this equation
    WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
    WRITE (UnAD,FmtTR    )  ', RADIUS = ', 0.5*PtfmDiam
    WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
@@ -1176,7 +1173,7 @@ WRITE (UnAD,FmtText  )  '!------------------------------ Tower: Tower Base -----
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TowerBaseCS_M'''
 WRITE (UnAD,FmtText  )  'MARKER/1100'  ! MARKER/1100 is equivalent to the tower-base coordinate system: X = Xt, Y = Yt, Z = Zt
 WRITE (UnAD,FmtText  )  ', PART = 1000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', PtfmRef - TwrDraft
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', p%PtfmRef - p%TwrDraft
 WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 
 
@@ -1185,7 +1182,7 @@ WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TwrBaseToTwrSec01_M'''
 WRITE (UnAD,FmtText  )  'MARKER/1400'
 WRITE (UnAD,FmtText  )  ', PART = 1000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', rZT0zt
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', p%rZT0zt
 WRITE (UnAD,FmtText  )  ', REULER = 90D, 90D, 90D'
 
 
@@ -1195,7 +1192,7 @@ WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TowerBa
 WRITE (UnAD,FmtText  )  'GRAPHICS/1400'
 WRITE (UnAD,FmtText  )  ', CYLINDER'
 WRITE (UnAD,FmtText  )  ', CM = 1100'
-WRITE (UnAD,FmtTR    )  ', LENGTH = ', TwrRBHt
+WRITE (UnAD,FmtTR    )  ', LENGTH = ', p%TwrRBHt
 WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
 WRITE (UnAD,FmtTR    )  ', RADIUS = ', TwrBaseRad
 WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
@@ -1214,13 +1211,13 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,'(A,I2.2,A)') "!                             adams_view_name='UndeflTowerSec", J, "_M'"
    WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
    WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( 1000 )) !PlatformRef_M
-   WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', rZT0zt + HNodes(J) 
+   WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', p%rZT0zt + HNodes(J) 
    WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
    ! PART and elastic axis:
 
    TmpID = 1100 + J
    ThnBarI = MassT(J)*( DHNodes(J)**3 )/12.0 ! Define the transverse inertias of the tower element (both identical) to be that of a thin uniform bar.
-   TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + ( rZT0zt + HNodes(J) )*CoordSys%a2 ! rT = Position vector from ground to current tower node (point T(J))
+   TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + ( p%rZT0zt + HNodes(J) )*CoordSys%a2 ! rT = Position vector from ground to current tower node (point T(J))
    TmpVec1 = TmpVec + CoordSys%t1(J,:)
    TmpVec2 = TmpVec + CoordSys%t2(J,:)
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, '_P'''
@@ -1302,7 +1299,7 @@ ENDDO             ! J - Tower nodes/elements
 
    ! Tower-top:
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
 TmpVec1 = TmpVec + CoordSys%b2
 TmpVec2 = TmpVec + CoordSys%b1
 WRITE (UnAD,FmtText  )  '!------------------------------ Tower: Tower-Top -------------------------------'
@@ -1349,7 +1346,7 @@ WRITE (UnAD,FmtText  )  '!----------------------------------- Nacelle ----------
 
    ! Nacelle:
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
 TmpVec1 = TmpVec + CoordSys%d2
 TmpVec2 = TmpVec + CoordSys%d1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Nacelle_P'''
@@ -1374,7 +1371,7 @@ WRITE (UnAD,FmtText  )  ', PART = 2000'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacelleCM_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2005'
 WRITE (UnAD,FmtText  )  ', PART = 2000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', NacCMxn, ', ', NacCMyn, ', ', NacCMzn
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%NacCMxn, ', ', p%NacCMyn, ', ', p%NacCMzn
 WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
 
@@ -1392,9 +1389,9 @@ WRITE (UnAD,FmtText  )  ', REULER = 0D, 180D, 0D'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlBrBottom_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2030'
 WRITE (UnAD,FmtText  )  ', PART = 2000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', RFrlPntxn                    , ', ', RFrlPntyn                    , ', ', RFrlPntzn           ! Orient the rotor-furl bearing sing the 3-point method
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', RFrlPntxn+CRFrlSkew*CRFrlTilt, ', ', RFrlPntyn+SRFrlSkew*CRFrlTilt, ', ', RFrlPntzn+SRFrlTilt ! NOTE: the z-axis is the rotor-furl axis
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', RFrlPntxn-CRFrlSkew*SRFrlTilt, ', ', RFrlPntyn-SRFrlSkew*SRFrlTilt, ', ', RFrlPntzn+CRFrlTilt ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses RFrlSkew and (RFrlTilt + 90 deg)
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%RFrlPntxn                        , ', ', p%RFrlPntyn                        , ', ', p%RFrlPntzn             ! Orient the rotor-furl bearing sing the 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', p%RFrlPntxn+p%CRFrlSkew*p%CRFrlTilt, ', ', p%RFrlPntyn+p%SRFrlSkew*p%CRFrlTilt, ', ', p%RFrlPntzn+p%SRFrlTilt ! NOTE: the z-axis is the rotor-furl axis
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', p%RFrlPntxn-p%CRFrlSkew*p%SRFrlTilt, ', ', p%RFrlPntyn-p%SRFrlSkew*p%SRFrlTilt, ', ', p%RFrlPntzn+p%CRFrlTilt ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses RFrlSkew and (RFrlTilt + 90 deg)
 
 
    ! Tail-furl bearing attached to nacelle:
@@ -1402,9 +1399,9 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', RFrlPntxn-CRFrlSkew*SRFrlTilt, ', ', RFrlPnty
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlBrBottom_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2040'
 WRITE (UnAD,FmtText  )  ', PART = 2000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', TFrlPntxn                    , ', ', TFrlPntyn                    , ', ', TFrlPntzn           ! Orient the rotor-furl bearing sing the 3-point method
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', TFrlPntxn+CTFrlSkew*CTFrlTilt, ', ', TFrlPntyn+STFrlSkew*CTFrlTilt, ', ', TFrlPntzn+STFrlTilt ! NOTE: the z-axis is the rotor-furl axis
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', TFrlPntxn-CTFrlSkew*STFrlTilt, ', ', TFrlPntyn-STFrlSkew*STFrlTilt, ', ', TFrlPntzn+CTFrlTilt ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses RFrlSkew and (RFrlTilt + 90 deg)
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%TFrlPntxn                        , ', ', p%TFrlPntyn                        , ', ', p%TFrlPntzn             ! Orient the rotor-furl bearing sing the 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', p%TFrlPntxn+p%CTFrlSkew*p%CTFrlTilt, ', ', p%TFrlPntyn+p%STFrlSkew*p%CTFrlTilt, ', ', p%TFrlPntzn+p%STFrlTilt ! NOTE: the z-axis is the rotor-furl axis
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', p%TFrlPntxn-p%CTFrlSkew*p%STFrlTilt, ', ', p%TFrlPntyn-p%STFrlSkew*p%STFrlTilt, ', ', p%TFrlPntzn+p%CTFrlTilt ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses RFrlSkew and (RFrlTilt + 90 deg)
 
 
    ! Nacelle graphics:
@@ -1412,7 +1409,7 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', TFrlPntxn-CTFrlSkew*STFrlTilt, ', ', TFrlPnty
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacelleGraphics_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2020'
 WRITE (UnAD,FmtText  )  ', PART = 2000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', -0.5*NacLength, ', ', Yaw2Shft, ', ', Twr2Shft
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', -0.5*NacLength, ', ', InputFileData%Yaw2Shft, ', ', InputFileData%Twr2Shft
 WRITE (UnAD,FmtText  )  ', REULER = 90D, 90D, -90D'
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Nacelle_G'''
@@ -1429,7 +1426,7 @@ WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Twr2Shf
 WRITE (UnAD,FmtText  )  'GRAPHICS/2010'
 WRITE (UnAD,FmtText  )  ', FRUSTUM'
 WRITE (UnAD,FmtText  )  ', CM = 2010'
-WRITE (UnAD,FmtTR    )  ', LENGTH = ', -Twr2Shft
+WRITE (UnAD,FmtTR    )  ', LENGTH = ', -InputFileData%Twr2Shft
 WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
 WRITE (UnAD,FmtTR    )  ', TOP = ', 0.5*TwrTopRad
 WRITE (UnAD,FmtTR    )  ', BOTTOM = ',  TwrTopRad
@@ -1444,8 +1441,8 @@ WRITE (UnAD,FmtText  )  '!------------------------------------ Tail ------------
 
    ! Tail boom:
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
-        + TFrlPntxn*CoordSys%d1 + TFrlPntzn*CoordSys%d2 - TFrlPntyn*CoordSys%d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+        + p%TFrlPntxn*CoordSys%d1 + p%TFrlPntzn*CoordSys%d2 - p%TFrlPntyn*CoordSys%d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
 TmpVec1 = TmpVec + CoordSys%tf2
 TmpVec2 = TmpVec + CoordSys%tf1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailBoom_P'''
@@ -1470,9 +1467,9 @@ WRITE (UnAD,FmtText  )  ', PART = 5000'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailBoomCM_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5005'
 WRITE (UnAD,FmtText  )  ', PART = 5000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', rWIxn                      , ', ', rWIyn                      , ', ', rWIzn             ! Orient the tail-furl center-of-mass marker using the 3-point method
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', rWIxn + CTFrlSkew*CTFrlTilt, ', ', rWIyn + STFrlSkew*CTFrlTilt, ', ', rWIzn + STFrlTilt ! NOTE: the z-axis is parallel to the tail-furl axis
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', rWIxn - CTFrlSkew*STFrlTilt, ', ', rWIyn - STFrlSkew*STFrlTilt, ', ', rWIzn + CTFrlTilt ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses TFrlSkew and (TFrlTilt + 90 deg)
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%rWIxn                          , ', ', p%rWIyn                          , ', ', p%rWIzn               ! Orient the tail-furl center-of-mass marker using the 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ', p%rWIxn + p%CTFrlSkew*p%CTFrlTilt, ', ', p%rWIyn + p%STFrlSkew*p%CTFrlTilt, ', ', p%rWIzn + p%STFrlTilt ! NOTE: the z-axis is parallel to the tail-furl axis
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', p%rWIxn - p%CTFrlSkew*p%STFrlTilt, ', ', p%rWIyn - p%STFrlSkew*p%STFrlTilt, ', ', p%rWIzn + p%CTFrlTilt ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses TFrlSkew and (TFrlTilt + 90 deg)
 
 
    ! Rotor-furl bearing attached to nacelle:
@@ -1480,14 +1477,14 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', rWIxn - CTFrlSkew*STFrlTilt, ', ', rWIyn - ST
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlBrTop_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5040'
 WRITE (UnAD,FmtText  )  ', PART = 5000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0                 , ', ', 0.0                 , ', ', 0.0        ! Orient the tail-furl bearing sing the 3-point method
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ',  CTFrlSkew*CTFrlTilt, ', ',  STFrlSkew*CTFrlTilt, ', ', STFrlTilt  ! NOTE: the z-axis is the tail-furl axis
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', -CTFrlSkew*STFrlTilt, ', ', -STFrlSkew*STFrlTilt, ', ', CTFrlTilt  ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses TFrlSkew and (TFrlTilt + 90 deg)
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0                     , ', ', 0.0                     , ', ', 0.0          ! Orient the tail-furl bearing sing the 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ',  p%CTFrlSkew*p%CTFrlTilt, ', ',  p%STFrlSkew*p%CTFrlTilt, ', ', p%STFrlTilt  ! NOTE: the z-axis is the tail-furl axis
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', -p%CTFrlSkew*p%STFrlTilt, ', ', -p%STFrlSkew*p%STFrlTilt, ', ', p%CTFrlTilt  ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses TFrlSkew and (TFrlTilt + 90 deg)
 
 
    ! Tail boom graphics:
 
-TmpVec1 = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 - 0.25*SQRTTFinA*CoordSys%p2   ! z-axis along the boom - directed from the specified point on the tail-furl axis to a point just below the tail fin CM and just downwind (along p1) of TailFinOutline5_M
+TmpVec1 = p%rWKxn*CoordSys%tf1 + p%rWKzn*CoordSys%tf2 - p%rWKyn*CoordSys%tf3 - 0.25*SQRTTFinA*CoordSys%p2   ! z-axis along the boom - directed from the specified point on the tail-furl axis to a point just below the tail fin CM and just downwind (along p1) of TailFinOutline5_M
 TmpVec2 = CoordSys%tfa                                                                                ! This is chosen somewhat arbitrarily (only the z-axis matters) - I chose tfa since it is very unlikely that the the boom-axis will lie along the tail-furl axis
 TmpLength = SQRT( TmpVec1(1)*TmpVec1(1) + TmpVec1(2)*TmpVec1(2) + TmpVec1(3)*TmpVec1(3) )             ! Length of tail boom
 IF ( TmpLength /= 0.0 )  THEN                                                                         ! Only add the tail boom graphics if the specified point on the z-axis (via TmpVec1) is different from the origin.
@@ -1513,8 +1510,8 @@ ENDIF
 
    ! Tail fin:
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
-        + TFrlPntxn*CoordSys%d1 + TFrlPntzn*CoordSys%d2 - TFrlPntyn*CoordSys%d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
+TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+        + p%TFrlPntxn*CoordSys%d1 + p%TFrlPntzn*CoordSys%d2 - p%TFrlPntyn*CoordSys%d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
 TmpVec1 = TmpVec + CoordSys%tf2
 TmpVec2 = TmpVec + CoordSys%tf1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFin_P'''
@@ -1539,13 +1536,13 @@ WRITE (UnAD,FmtText  )  ', PART = 5100'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinCM_M'''
 WRITE (UnAD,FmtText  )  'MARKER/5105'
 WRITE (UnAD,FmtText  )  ', PART = 5100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', rWJxn, ', ', rWJyn, ', ', rWJzn
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%rWJxn, ', ', p%rWJyn, ', ', p%rWJzn
 WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
 
    ! Tail fin center of pressure / tail fin coordinate system:
 
-TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3  ! rWK = Position vector from specified point on tail-furl axis (point W) to tail fin center-of-pressure (point K)
+TmpVec  = p%rWKxn*CoordSys%tf1 + p%rWKzn*CoordSys%tf2 - p%rWKyn*CoordSys%tf3  ! rWK = Position vector from specified point on tail-furl axis (point W) to tail fin center-of-pressure (point K)
 TmpVec1 = TmpVec + CoordSys%p2
 TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinAero_M'''
@@ -1561,7 +1558,7 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -
 
    ! Tail fin graphics:
 
-TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 - 0.75*SQRTTFinA*CoordSys%p2
+TmpVec  = p%rWKxn*CoordSys%tf1 + p%rWKzn*CoordSys%tf2 - p%rWKyn*CoordSys%tf3 - 0.75*SQRTTFinA*CoordSys%p2
 TmpVec1 = TmpVec + CoordSys%p2
 TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline1_M'''
@@ -1574,7 +1571,7 @@ WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -
 WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', &    
                                    DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
-TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 + 0.4166667*SQRTTFinA*CoordSys%p1 - 0.75*SQRTTFinA*CoordSys%p2
+TmpVec  = p%rWKxn*CoordSys%tf1 + p%rWKzn*CoordSys%tf2 - p%rWKyn*CoordSys%tf3 + 0.4166667*SQRTTFinA*CoordSys%p1 - 0.75*SQRTTFinA*CoordSys%p2
 TmpVec1 = TmpVec + CoordSys%p2
 TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline2_M'''
@@ -1587,7 +1584,7 @@ WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -
 WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', & 
                                    DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
-TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 + 0.4166667*SQRTTFinA*CoordSys%p1 + 0.75*SQRTTFinA*CoordSys%p2
+TmpVec  = p%rWKxn*CoordSys%tf1 + p%rWKzn*CoordSys%tf2 - p%rWKyn*CoordSys%tf3 + 0.4166667*SQRTTFinA*CoordSys%p1 + 0.75*SQRTTFinA*CoordSys%p2
 TmpVec1 = TmpVec + CoordSys%p2
 TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline3_M'''
@@ -1600,7 +1597,7 @@ WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -
 WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', & 
                                    DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
-TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 + 0.75*SQRTTFinA*CoordSys%p2
+TmpVec  = p%rWKxn*CoordSys%tf1 + p%rWKzn*CoordSys%tf2 - p%rWKyn*CoordSys%tf3 + 0.75*SQRTTFinA*CoordSys%p2
 TmpVec1 = TmpVec + CoordSys%p2
 TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline4_M'''
@@ -1613,7 +1610,7 @@ WRITE (UnAD,FmtTRTRTR)  ', ZP = ', DOT_PRODUCT( TmpVec1, CoordSys%tf1 ), ', ', -
 WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%tf1 ), ', ', -DOT_PRODUCT( TmpVec2, CoordSys%tf3 ), ', ', & 
                                    DOT_PRODUCT( TmpVec2, CoordSys%tf2 )
 
-TmpVec  = rWKxn*CoordSys%tf1 + rWKzn*CoordSys%tf2 - rWKyn*CoordSys%tf3 - 0.5*SQRTTFinA*CoordSys%p1 - 0.25*SQRTTFinA*CoordSys%p2
+TmpVec  = p%rWKxn*CoordSys%tf1 + p%rWKzn*CoordSys%tf2 - p%rWKyn*CoordSys%tf3 - 0.5*SQRTTFinA*CoordSys%p1 - 0.25*SQRTTFinA*CoordSys%p2
 TmpVec1 = TmpVec + CoordSys%p2
 TmpVec2 = TmpVec + CoordSys%p1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TailFinOutline5_M'''
@@ -1639,8 +1636,8 @@ WRITE (UnAD,FmtText  )  '!--------------------- Structure that Furls with the Ro
 
    ! Structure that furls with the rotor (not including rotor):
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
-        + RFrlPntxn*CoordSys%d1 + RFrlPntzn*CoordSys%d2 - RFrlPntyn*CoordSys%d3                 ! rV = Position vector from ground to specified point on rotor-furl axis (point V)
+TmpVec  = PtfmSurge*CoordSys%z1   + PtfmHeave*CoordSys%z2   - PtfmSway *CoordSys%z3   + p%RefTwrHt*CoordSys%a2 &
+        + p%RFrlPntxn*CoordSys%d1 + p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                 ! rV = Position vector from ground to specified point on rotor-furl axis (point V)
 TmpVec1 = TmpVec + CoordSys%rf2
 TmpVec2 = TmpVec + CoordSys%rf1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RotorFurl_P'''
@@ -1662,12 +1659,12 @@ WRITE (UnAD,FmtText  )  ', PART = 2100'
 
    ! Center of mass of the structure that furls with the rotor (not including rotor):
 
-WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RotorFurlCM_M'''
-WRITE (UnAD,FmtText  )  'MARKER/2105'
-WRITE (UnAD,FmtText  )  ', PART = 2100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', rVDxn                      , ', ', rVDyn                      , ', ', rVDzn             ! Orient the rotor-furl center-of-mass marker using the 3-point method
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ', rVDxn + CRFrlSkew*CRFrlTilt, ', ', rVDyn + SRFrlSkew*CRFrlTilt, ', ', rVDzn + SRFrlTilt ! NOTE: the z-axis is parallel to the rotor-furl axis
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', rVDxn - CRFrlSkew*SRFrlTilt, ', ', rVDyn - SRFrlSkew*SRFrlTilt, ', ', rVDzn + CRFrlTilt ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses RFrlSkew and (RFrlTilt + 90 deg)
+WRITE (UnAD,FmtText  ) '!                             adams_view_name=''RotorFurlCM_M'''
+WRITE (UnAD,FmtText  ) 'MARKER/2105'
+WRITE (UnAD,FmtText  ) ', PART = 2100'
+WRITE (UnAD,FmtTRTRTR) ', QP = ', p%rVDxn                        , ', ', p%rVDyn                        , ', ', p%rVDzn               ! Orient the rotor-furl center-of-mass marker using the 3-point method
+WRITE (UnAD,FmtTRTRTR) ', ZP = ', p%rVDxn+p%CRFrlSkew*p%CRFrlTilt, ', ', p%rVDyn+p%SRFrlSkew*p%CRFrlTilt, ', ', p%rVDzn + p%SRFrlTilt ! NOTE: the z-axis is parallel to the rotor-furl axis
+WRITE (UnAD,FmtTRTRTR) ', XP = ', p%rVDxn-p%CRFrlSkew*p%SRFrlTilt, ', ', p%rVDyn-p%SRFrlSkew*p%SRFrlTilt, ', ', p%rVDzn + p%CRFrlTilt ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses RFrlSkew and (RFrlTilt + 90 deg)
 
 
    ! Rotor-furl bearing attached to nacelle:
@@ -1675,14 +1672,14 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', rVDxn - CRFrlSkew*SRFrlTilt, ', ', rVDyn - SR
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlBrTop_M'''
 WRITE (UnAD,FmtText  )  'MARKER/2130'
 WRITE (UnAD,FmtText  )  ', PART = 2100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0                 , ', ', 0.0                 , ', ', 0.0        ! Orient the rotor-furl bearing sing the 3-point method
-WRITE (UnAD,FmtTRTRTR)  ', ZP = ',  CRFrlSkew*CRFrlTilt, ', ',  SRFrlSkew*CRFrlTilt, ', ', SRFrlTilt  ! NOTE: the z-axis is the rotor-furl axis
-WRITE (UnAD,FmtTRTRTR)  ', XP = ', -CRFrlSkew*SRFrlTilt, ', ', -SRFrlSkew*SRFrlTilt, ', ', CRFrlTilt  ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses RFrlSkew and (RFrlTilt + 90 deg)
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0                     , ', ', 0.0                     , ', ', 0.0          ! Orient the rotor-furl bearing sing the 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', ZP = ',  p%CRFrlSkew*p%CRFrlTilt, ', ',  p%SRFrlSkew*p%CRFrlTilt, ', ', p%SRFrlTilt  ! NOTE: the z-axis is the rotor-furl axis
+WRITE (UnAD,FmtTRTRTR)  ', XP = ', -p%CRFrlSkew*p%SRFrlTilt, ', ', -p%SRFrlSkew*p%SRFrlTilt, ', ', p%CRFrlTilt  ! NOTE: the x-axis is oriented using the same technique the z-axis, but uses RFrlSkew and (RFrlTilt + 90 deg)
 
 
    ! Nacelle IMU location (fixed in structure that furls with the rotor):
 
-TmpVec  = rVIMUxn*CoordSys%rf1 + rVIMUzn*CoordSys%rf2 - rVIMUyn*CoordSys%rf3  ! = Position vector from specified point on rotor-furl axis (point V) to nacelle IMU  (point IMU)
+TmpVec  = p%rVIMUxn*CoordSys%rf1 + p%rVIMUzn*CoordSys%rf2 - p%rVIMUyn*CoordSys%rf3  ! = Position vector from specified point on rotor-furl axis (point V) to nacelle IMU  (point IMU)
 TmpVec1 = TmpVec + CoordSys%c2
 TmpVec2 = TmpVec + CoordSys%c1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacelleIMU_M'''
@@ -1698,7 +1695,7 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%rf1 ), ', ', -
 
    ! Shaft coordinate system (fixed in structure that furls with the rotor):
 
-TmpVec  = rVPxn*CoordSys%rf1 + rVPzn*CoordSys%rf2 - rVPyn*CoordSys%rf3  ! = Position vector from specified point on rotor-furl axis (point V) to origin of shaft CS
+TmpVec  = p%rVPxn*CoordSys%rf1 + p%rVPzn*CoordSys%rf2 - p%rVPyn*CoordSys%rf3  ! = Position vector from specified point on rotor-furl axis (point V) to origin of shaft CS
 TmpVec1 = TmpVec + CoordSys%c2
 TmpVec2 = TmpVec + CoordSys%c1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''ShaftCS_M'''
@@ -1714,7 +1711,7 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%rf1 ), ', ', -
 
    ! Nacelle/hub reference:
 
-TmpVec  = rVPxn*CoordSys%rf1 + rVPzn*CoordSys%rf2 - rVPyn*CoordSys%rf3  ! = Position vector from specified point on rotor-furl axis (point V) to origin of shaft CS
+TmpVec  = p%rVPxn*CoordSys%rf1 + p%rVPzn*CoordSys%rf2 - p%rVPyn*CoordSys%rf3  ! = Position vector from specified point on rotor-furl axis (point V) to origin of shaft CS
 TmpVec1 = TmpVec + CoordSys%c1
 TmpVec2 = TmpVec - CoordSys%c2
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''NacelleHubRef_M'''
@@ -1731,8 +1728,8 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%rf1 ), ', ', -
    ! Gearbox graphics:
 
 IF ( GBoxLength > 0.0 )  THEN ! Only include these statements in the dataset if GBoxLength > 0.0:
-   TmpVec  = rVPxn*CoordSys%rf1 + rVPzn*CoordSys%rf2 - rVPyn*CoordSys%rf3 + &
-             (OverHang-LSSLength-0.5*GBoxLength)*CoordSys%c1 - 0.5*GBoxLength*CoordSys%c2 + 0.5*GBoxLength*CoordSys%c3  ! = Position vector from specified point on rotor-furl axis (point V) to origin gearbox graphics MARKER
+   TmpVec  = p%rVPxn*CoordSys%rf1 + p%rVPzn*CoordSys%rf2 - p%rVPyn*CoordSys%rf3 + &
+             (p%OverHang-LSSLength-0.5*GBoxLength)*CoordSys%c1 - 0.5*GBoxLength*CoordSys%c2 + 0.5*GBoxLength*CoordSys%c3  ! = Position vector from specified point on rotor-furl axis (point V) to origin gearbox graphics MARKER
    TmpVec1 = TmpVec + CoordSys%c2
    TmpVec2 = TmpVec + CoordSys%c1
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''GBoxGraphics_M'''
@@ -1763,9 +1760,9 @@ WRITE (UnAD,FmtText  )  '!------------------------------------ Shaft -----------
 
    ! Low-speed shaft:
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
-        + RFrlPntxn*CoordSys%d1 + RFrlPntzn*CoordSys%d2 - RFrlPntyn*CoordSys%d3                        &
-        + rVPxn*CoordSys%rf1    + rVPzn*CoordSys%rf2    - rVPyn*CoordSys%rf3  ! Position vector from ground to origin of shaft CS
+TmpVec  = PtfmSurge*CoordSys%z1   + PtfmHeave*CoordSys%z2   - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+        + p%RFrlPntxn*CoordSys%d1 + p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                        &
+        + p%rVPxn*CoordSys%rf1    + p%rVPzn*CoordSys%rf2    - p%rVPyn*CoordSys%rf3  ! Position vector from ground to origin of shaft CS
 TmpVec1 = TmpVec + CoordSys%e3
 TmpVec2 = TmpVec + CoordSys%e1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''LSS_P'''
@@ -1790,7 +1787,7 @@ WRITE (UnAD,FmtText  )  ', PART = 3000'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''LSSCM_M'''
 WRITE (UnAD,FmtText  )  'MARKER/3005'
 WRITE (UnAD,FmtText  )  ', PART = 3000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', OverHang - 0.5*LSSLength, ', ', 0.0, ', ', 0.0  ! Locate the LSS CM half-way down the shaft.
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang - 0.5*LSSLength, ', ', 0.0, ', ', 0.0  ! Locate the LSS CM half-way down the shaft.
 WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
 
@@ -1799,7 +1796,7 @@ WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''LSSTeetPin_M'''
 WRITE (UnAD,FmtText  )  'MARKER/3030'
 WRITE (UnAD,FmtText  )  ', PART = 3000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', OverHang, ', ', 0.0, ', ', 0.0
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang, ', ', 0.0, ', ', 0.0
 WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
 
@@ -1808,7 +1805,7 @@ WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''LSSGag_M'''
 WRITE (UnAD,FmtText  )  'MARKER/3040'
 WRITE (UnAD,FmtText  )  ', PART = 3000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', OverHang + ShftGagL, ', ', 0.0, ', ', 0.0
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang + ShftGagL, ', ', 0.0, ', ', 0.0
 WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
 
@@ -1835,7 +1832,7 @@ ENDDO          ! K - Blades
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''LSSGraphics_M'''
 WRITE (UnAD,FmtText  )  'MARKER/3020'
 WRITE (UnAD,FmtText  )  ', PART = 3000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', OverHang - LSSLength, ', ', 0.0, ', ', 0.0
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang - LSSLength, ', ', 0.0, ', ', 0.0
 WRITE (UnAD,FmtText  )  ', REULER = 90D, 90D, 90D'
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''LSS_G'''
@@ -1850,9 +1847,9 @@ WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
    ! High-speed shaft:
 
-TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
-        + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3                        &
-        + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3  ! Position vector from ground to origin of shaft CS
+TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+        + p%RFrlPntxn*CoordSys%d1  + p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3                        &
+        + p%rVPxn    *CoordSys%rf1 + p%rVPzn    *CoordSys%rf2 -p% rVPyn    *CoordSys%rf3  ! Position vector from ground to origin of shaft CS
 TmpVec1 = TmpVec + CoordSys%e3
 TmpVec2 = TmpVec + CoordSys%e1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''HSS_P'''
@@ -1877,7 +1874,7 @@ WRITE (UnAD,FmtText  )  ', PART = 3100'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''HSSCM_M'''
 WRITE (UnAD,FmtText  )  'MARKER/3105'
 WRITE (UnAD,FmtText  )  ', PART = 3100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', OverHang - LSSLength + 0.5*HSSLength, ', ', 0.0, ', ', 0.0   ! Locate the HSS CM half-way down the shaft.
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang - LSSLength + 0.5*HSSLength, ', ', 0.0, ', ', 0.0   ! Locate the HSS CM half-way down the shaft.
 WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
 
@@ -1895,7 +1892,7 @@ WRITE (UnAD,FmtText  )  ', REULER = 90D, 90D, 90D'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''HSSGraphics_M'''
 WRITE (UnAD,FmtText  )  'MARKER/3120'
 WRITE (UnAD,FmtText  )  ', PART = 3100'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', OverHang - LSSLength, ', ', 0.0, ', ', 0.0
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang - LSSLength, ', ', 0.0, ', ', 0.0
 WRITE (UnAD,FmtText  )  ', REULER = 90D, 90D, 90D'
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''HSS_G'''
@@ -1910,9 +1907,9 @@ WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
    ! Generator:
 
-TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2 &
-        + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3                        &
-        + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3  ! Position vector from ground to origin of shaft CS
+TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+        + p%RFrlPntxn*CoordSys%d1  + p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3                        &
+        + p%rVPxn    *CoordSys%rf1 + p%rVPzn    *CoordSys%rf2 - p%rVPyn    *CoordSys%rf3  ! Position vector from ground to origin of shaft CS
 TmpVec1 = TmpVec + CoordSys%e3
 TmpVec2 = TmpVec + CoordSys%e1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Generator_P'''
@@ -1937,7 +1934,7 @@ WRITE (UnAD,FmtText  )  ', PART = 3200'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''GenCM_M'''
 WRITE (UnAD,FmtText  )  'MARKER/3205'
 WRITE (UnAD,FmtText  )  ', PART = 3200'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', OverHang - LSSLength + HSSLength + 0.5*GenLength, ', ', 0.0, ', ', 0.0   ! Locate the generator CM in the middle of the generator.
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang - LSSLength + HSSLength + 0.5*GenLength, ', ', 0.0, ', ', 0.0   ! Locate the generator CM in the middle of the generator.
 WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
 
@@ -1946,7 +1943,7 @@ WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''GenGraphics_M'''
 WRITE (UnAD,FmtText  )  'MARKER/3220'
 WRITE (UnAD,FmtText  )  ', PART = 3200'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', OverHang - LSSLength + HSSLength, ', ', 0.0, ', ', 0.0
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang - LSSLength + HSSLength, ', ', 0.0, ', ', 0.0
 WRITE (UnAD,FmtText  )  ', REULER = 90D, 90D, 90D'
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Generator_G'''
@@ -1961,9 +1958,9 @@ WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
    ! Teeter pin:
 
-TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3  + RefTwrHt*CoordSys%a2 &
-        + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3                        &
-        + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3 + OverHang*CoordSys%c1   ! rP = Position vector from ground to teeter pin (point P).
+TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3  + p%RefTwrHt*CoordSys%a2 &
+        + p%RFrlPntxn*CoordSys%d1  + p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3                        &
+        + p%rVPxn    *CoordSys%rf1 + p%rVPzn    *CoordSys%rf2 - p%rVPyn    *CoordSys%rf3 + p%OverHang*CoordSys%c1   ! rP = Position vector from ground to teeter pin (point P).
 TmpVec1 = TmpVec + CoordSys%e3
 TmpVec2 = TmpVec + CoordSys%e1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TeeterPin_P'''
@@ -2000,10 +1997,10 @@ WRITE (UnAD,FmtText  )  '!------------------------------------- Hub ------------
 
    ! Hub:
 
-TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2                       &
-        + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3  &
-        + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3 &
-        + OverHang* CoordSys%c1  - UndSling *CoordSys%g1                                                          ! rP = Position vector from ground to apex of rotation (point Q).
+TmpVec  = PtfmSurge*CoordSys%z1  +   PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2                       &
+        + p%RFrlPntxn*CoordSys%d1  +   p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3  &
+        + p%rVPxn    *CoordSys%rf1 +   p%rVPzn    *CoordSys%rf2 - p%rVPyn    *CoordSys%rf3 &
+        + p%OverHang* CoordSys%c1  - p%UndSling *CoordSys%g1                                                          ! rP = Position vector from ground to apex of rotation (point Q).
 TmpVec1 = TmpVec + CoordSys%g3
 TmpVec2 = TmpVec + CoordSys%g1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Hub_P'''
@@ -2028,7 +2025,7 @@ WRITE (UnAD,FmtText  )  ', PART = 4000'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''HubCM_M'''
 WRITE (UnAD,FmtText  )  'MARKER/4005'
 WRITE (UnAD,FmtText  )  ', PART = 4000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', HubCM, ', ', 0.0, ', ', 0.0
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%HubCM, ', ', 0.0, ', ', 0.0
 WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
 
@@ -2037,7 +2034,7 @@ WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TeetBrTop_M'''
 WRITE (UnAD,FmtText  )  'MARKER/4010'
 WRITE (UnAD,FmtText  )  ', PART = 4000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', UndSling, ', ', 0.0, ', ', 0.0
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%UndSling, ', ', 0.0, ', ', 0.0
 
 WRITE (UnAD,FmtTRTRTR)  ', REULER = ', 0.0, ', ', -InputFileData%Delta3 - PiBy2, ', ', 0.0
 
@@ -2063,7 +2060,7 @@ DO K = 1,p%NumBl ! Loop through all blades
    ! Pitch bearing (fixed in hub):
 
    TmpID = 4010 + K
-   TmpVec  = HubRad*CoordSys%i3(K,:)   ! rQS0 = Position vector from apex of rotation (point Q) to the blade root (point S(0)).
+   TmpVec  = p%HubRad*CoordSys%i3(K,:)   ! rQS0 = Position vector from apex of rotation (point Q) to the blade root (point S(0)).
    TmpVec1 = TmpVec + CoordSys%i3(K,:)
    TmpVec2 = TmpVec + CoordSys%i1(K,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchBr', K, 'Bottom_M'''
@@ -2080,7 +2077,7 @@ DO K = 1,p%NumBl ! Loop through all blades
    ! Pitch reference MARKERS (fixed in hub):
 
    TmpID = 4091 + K*100
-   TmpVec  = HubRad*CoordSys%i3(K,:)   ! rQS0 = Position vector from apex of rotation (point Q) to the blade root (point S(0)).
+   TmpVec  = p%HubRad*CoordSys%i3(K,:)   ! rQS0 = Position vector from apex of rotation (point Q) to the blade root (point S(0)).
    TmpVec1 = TmpVec - CoordSys%i2(K,:)
    TmpVec2 = TmpVec + CoordSys%i3(K,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchRef', K, '_M'''
@@ -2104,7 +2101,7 @@ DO K = 1,p%NumBl ! Loop through all blades
    WRITE (UnAD,FmtText   )  'GRAPHICS/'//TRIM(Int2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', CYLINDER'
    WRITE (UnAD,FmtText   )  ', CM = '//TRIM(Int2LStr( TmpID ))
-   WRITE (UnAD,FmtTR     )  ', LENGTH = ', HubRad
+   WRITE (UnAD,FmtTR     )  ', LENGTH = ', p%HubRad
    WRITE (UnAD,FmtText   )  ', SIDES = '//TRIM(Int2LStr( NSides ))
    WRITE (UnAD,FmtTR     )  ', RADIUS = ', HubCylRad
    WRITE (UnAD,FmtText   )  ', SEG = '//TRIM(Int2LStr( NSides ))
@@ -2126,10 +2123,10 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
    WRITE (UnAD,'(A,I1,A)')  '!---------------------------- Blade ', K, ': Pitch Plate -----------------------------'
    TmpID = 10000*K
-   TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2                       &
-           + RFrlPntxn*CoordSys%d1  + RFrlPntzn*CoordSys%d2  - RFrlPntyn*CoordSys%d3 &
-           + rVPxn    *CoordSys%rf1 + rVPzn    *CoordSys%rf2 - rVPyn    *CoordSys%rf3 &
-           + OverHang*CoordSys%c1   - UndSling *CoordSys%g1  + HubRad*CoordSys%i3(K,:)                                         ! rS0 = Position vector from ground to the blade root (point S(0)).
+   TmpVec  = PtfmSurge*CoordSys%z1  +   PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2                       &
+           + p%RFrlPntxn*CoordSys%d1  +   p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3 &
+           + p%rVPxn    *CoordSys%rf1 +   p%rVPzn    *CoordSys%rf2 - p%rVPyn    *CoordSys%rf3 &
+           + p%OverHang*CoordSys%c1   - p%UndSling *CoordSys%g1  + p%HubRad*CoordSys%i3(K,:)                                         ! rS0 = Position vector from ground to the blade root (point S(0)).
    TmpVec1 = TmpVec + CoordSys%j3(K,:)
    TmpVec2 = TmpVec + CoordSys%j1(K,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchPlate', K, '_P'''
@@ -2165,7 +2162,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
       WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''UndeflBld', K, 'Tip_M'''
       WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', TipRad-HubRad
+      WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', p%TipRad-p%HubRad
       WRITE (UnAD,FmtText   )  ', REULER = 0D, 0D, 0D'
 
 
@@ -2265,10 +2262,10 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID  = 10000*K + J
       ThnBarI = MassB(K,J)*( DRNodes(J)**3 )/12.0  ! Define the transverse inertias of the blade element (both identical) to be that of a thin uniform bar.
-      TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2   &
-              + RFrlPntxn*CoordSys%d1 + RFrlPntzn*CoordSys%d2 - RFrlPntyn*CoordSys%d3                          &
-              + rVPxn*CoordSys%rf1    + rVPzn*CoordSys%rf2    - rVPyn*CoordSys%rf3                             &
-              + OverHang*CoordSys%c1  - UndSling*CoordSys%g1  + ( HubRad + RNodes(J) )*CoordSys%i3(K,:)        &
+      TmpVec  = PtfmSurge*CoordSys%z1 +   PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   &
+              + p%RFrlPntxn*CoordSys%d1 +   p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                          &
+              + p%rVPxn*CoordSys%rf1    +   p%rVPzn*CoordSys%rf2    - p%rVPyn*CoordSys%rf3                             &
+              + p%OverHang*CoordSys%c1  - p%UndSling*CoordSys%g1  + ( p%HubRad + RNodes(J) )*CoordSys%i3(K,:)        &
               + RefAxisxb(K,J)*CoordSys%j1(K,:)               + RefAxisyb(K,J)*CoordSys%j2(K,:)  ! rS = Position vector from ground to the current blade point (point S).
       TmpVec1 = TmpVec - CoordSys%te2(K,J,:)
       TmpVec2 = TmpVec + CoordSys%te3(K,J,:)
@@ -2428,10 +2425,10 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
    WRITE (UnAD,'(A,I1,A)')  '!----------------------------- Blade ', K, ': Tip Brake ------------------------------'
    TmpID = 10000*K + 5000
-   TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + RefTwrHt*CoordSys%a2   &
-           + RFrlPntxn*CoordSys%d1 + RFrlPntzn*CoordSys%d2 - RFrlPntyn*CoordSys%d3                          &
-           + rVPxn*CoordSys%rf1    + rVPzn*CoordSys%rf2    - rVPyn*CoordSys%rf3                             &
-           + OverHang*CoordSys%c1  - UndSling*CoordSys%g1  + TipRad*CoordSys%i3(K,:)                        &
+   TmpVec  = PtfmSurge*CoordSys%z1 +   PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   &
+           + p%RFrlPntxn*CoordSys%d1 +   p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                          &
+           + p%rVPxn*CoordSys%rf1    +   p%rVPzn*CoordSys%rf2    - p%rVPyn*CoordSys%rf3                             &
+           + p%OverHang*CoordSys%c1  - p%UndSling*CoordSys%g1  + p%TipRad*CoordSys%i3(K,:)                        &
            + RefAxisxb(K,p%TipNode)*CoordSys%j1(K,:) + RefAxisyb(K,p%TipNode)*CoordSys%j2(K,:)   ! rS(BldFlexL) = Position vector from ground to the blade tip (point S(BldFlexL)).
    TmpVec1 = TmpVec - CoordSys%n2(K,p%BldNodes,:)
    TmpVec2 = TmpVec + CoordSys%n3(K,p%BldNodes,:)
@@ -3171,7 +3168,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
          WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
 !         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( TwrLdMod ))// &
          WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', 0'// &
-                                    ', '//TRIM(Int2LStr( p%TwrNodes    ))//', '//TRIM(Flt2LStr( TwrDraft    ))//             &
+                                    ', '//TRIM(Int2LStr( p%TwrNodes    ))//', '//TRIM(Flt2LStr( p%TwrDraft    ))//             &
                                     ', '//TRIM(Flt2LStr( WtrDens     ))//', '//TRIM(Flt2LStr( WtrDpth     ))//','
          WRITE (UnAD,FmtText     )  ', '//TRIM(Int2LStr( WaveMod     ))//', '//TRIM(Int2LStr( WaveStMod   ))//             &
                                     ', '//TRIM(Flt2LStr( WaveTMax    ))//', '//TRIM(Flt2LStr( WaveDT      ))//             &
@@ -3199,7 +3196,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
          WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Int2LStr( TmpID  ))
          WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
          WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( TwrLdMod ))// &
-                                    ', '//TRIM(Int2LStr( p%TwrNodes    ))//', '//TRIM(Flt2LStr( TwrDraft    ))//             &
+                                    ', '//TRIM(Int2LStr( p%TwrNodes    ))//', '//TRIM(Flt2LStr( p%TwrDraft    ))//             &
                                     ', '//TRIM(Flt2LStr( WtrDens     ))//', '//TRIM(Flt2LStr( WtrDpth     ))//','
          WRITE (UnAD,FmtText     )  ', '//TRIM(Int2LStr( WaveMod     ))//', '//TRIM(Int2LStr( WaveStMod   ))//             &
                                     ', '//TRIM(Flt2LStr( WaveTMax    ))//', '//TRIM(Flt2LStr( WaveDT      ))//             &
@@ -4014,7 +4011,7 @@ WRITE (UnAD,FmtText  )  '!========================= ANALYSIS SETTINGS / OUTPUT =
 CALL MakeADM_WrICArraysR( (/ REAL(p%NumBl,ReKi),   REAL(p%BldNodes,ReKi), REAL(p%TwrNodes,ReKi),   REAL(p%NBlGages,ReKi),  & 
                              REAL(p%NTwGages,ReKi),REAL(p%NumOuts,ReKi),     &    ! bjj if linearizing, set NumOuts = 0 here ???
                              REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  p%AzimB1Up,           GBRatio,   &
-                             TipRad,               TStart               , REAL(PtfmLdMod),       REAL(TwrLdMod),       ProjArea,  &
+                             p%TipRad,               TStart               , REAL(PtfmLdMod),       REAL(TwrLdMod),       p%ProjArea,  &
                              p%AvgNrmTpRd,         GenIner              , REAL(OutFileFmt,ReKi)             /), &
                                      ModelConstants_A, 19       , UnAD, "ModelConstants_A" )             
                                               

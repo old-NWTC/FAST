@@ -20,7 +20,6 @@ USE                           EnvCond
 USE                           Features
 USE                           Noise
 USE                           SimCont !DT, TMax
-USE                           TurbConf
 
 USE                           AeroElem !, ONLY: NumADBldNodes, AD_AeroMarker
 
@@ -89,8 +88,8 @@ IF (.NOT. ALLOCATED(SAeroTwst)) THEN
    ENDIF
 ENDIF
 
-RNodes   = ADAeroMarkers%Blade(:,1)%Position(3) + HubRad         ! ADAeroMarkers contains relative markers after initialization
-DRNodes(1) = 2.0*( RNodes(1) - HubRad )
+RNodes   = ADAeroMarkers%Blade(:,1)%Position(3) + p_StrD%HubRad         ! ADAeroMarkers contains relative markers after initialization
+DRNodes(1) = 2.0*( RNodes(1) - p_StrD%HubRad )
 DO IElm = 2,NumADBldNodes
    DRNodes(IElm) = 2.0*( RNodes(IElm) - RNodes(IElm-1) ) - DRNodes(IElm-1)
 END DO
@@ -101,7 +100,7 @@ AeroTwst( :) = ATAN2( SAeroTwst(:), CAeroTwst(:) )
 
 
 AD_RefHt = AD_GetConstant('RefHt', ErrStat)
-AirDens  = AD_GetConstant('AirDensity',   ErrStat)
+AirDens  = AD_GetConstant('AirDensity', ErrStat)
 
 
   ! Let's compute the turbulence intensity and average wind speed for the
@@ -135,7 +134,7 @@ ENDIF
 RETURN
 END SUBROUTINE Set_FAST_Params
 !=======================================================================
-SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz, CoordSys, x )
+SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz, CoordSys, x, p )
 
 
    ! This routine computes the tail fin aerodynamic loads TFinKFx, TFinKFy,
@@ -150,7 +149,6 @@ USE                             General
 USE                             RtHndSid
 USE                             SimCont
 USE                             TailAero
-USE                             TurbConf
 USE                             EnvCond
 
 
@@ -175,6 +173,7 @@ REAL(ReKi), INTENT(IN )      :: TFinCPzi                                        
 
 TYPE(StrD_CoordSys), INTENT(IN)                :: CoordSys                      ! Coordinate systems of the structural dynamics module
 TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
+TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             ! The parameters of the structural dynamics module
 
    ! Local variables:
 
@@ -209,7 +208,7 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
    !   coordinate system:
 
 
-   WindVelEK(:) = AD_WindVelocityWithDisturbance( (/TFinCPxi,  TFinCPyi, TFinCPzi - PtfmRef /) )
+   WindVelEK(:) = AD_WindVelocityWithDisturbance( (/TFinCPxi,  TFinCPyi, TFinCPzi - p%PtfmRef /) )
 
       ! Convert wind velocity at tail fin center-of-pressure to FAST inertial coordinate system:
 
@@ -276,7 +275,7 @@ CASE ( 2 )              ! User-defined tail fin aerodynamics model.
 
 
    CALL UserTFin ( x%QT(DOF_TFrl), x%QDT(DOF_TFrl), ZTime, DirRoot, &
-                   TFinCPxi, TFinCPyi, ( TFinCPzi - PtfmRef ),      &
+                   TFinCPxi, TFinCPyi, ( TFinCPzi - p%PtfmRef ),    &
                    TFinCPVx, TFinCPVy,   TFinCPVz,                  &
                    TFinAOA , TFinQ   ,                              &
                    TFinCL  , TFinCD  ,                              &

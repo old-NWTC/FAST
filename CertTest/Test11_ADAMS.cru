@@ -1,4 +1,4 @@
------  Crunch v3.00.00 Input File  ---------------------------------------------
+-----  Crunch v3.01.00 Input File  ---------------------------------------------
 Input file for generating statistics for FAST certification Test #11.
 -----  Job Options  ------------------------------------------------------------
 False          Echo:               The flag for echoing input to <root>.ech.
@@ -9,6 +9,7 @@ False          TabDelim:           The flag for using tab-delimited output (best
 False          Aggregate:          The flag to output aggregate-analysis files.  Use false to generate separate analysis files for each input file.
 "Aggregate"    AggRoot             The root name of the aggregate-analysis files, if aggregates were specified above.
 -----  Input-Data Layout  ------------------------------------------------------
+False          FASTbin:            The flag that indicates if the input files are in FAST binary form.  Considered traditionally formatted if FALSE.  All records will be processed.
 7              CTRow:              The row with the channel titles on it (zero if no titles are available of if titles are specified below).
 8              CURow:              The row with the channel units on it (zero if no units are available of if units are specified below).
 9              FDRow               The first row of data.

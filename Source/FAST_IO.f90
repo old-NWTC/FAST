@@ -12,7 +12,6 @@ SUBROUTINE AeroInput(p_StrD)
 
    USE                     AeroElem !,   ONLY: ADAeroMarkers, NumADBldNodes, ADCurrentOutputs, ADIntrfaceOptions, ADFirstLoop, Prev_Aero_t
    USE                     General,    ONLY: RootName, ADFile, SumPrint
-   USE                     TurbConf,   ONLY: TipRad, HubRad
    USE                     Output,     ONLY: WrEcho
 
 
@@ -55,26 +54,26 @@ TYPE(StrD_ParameterType),  INTENT(INOUT)  :: p_StrD      ! The parameters of the
       END IF
    END IF
 
-  ADInterfaceComponents%Blade(:)%Position(1)      = HubRad*p_StrD%SinPreC(:)
+  ADInterfaceComponents%Blade(:)%Position(1)      = p_StrD%HubRad*p_StrD%SinPreC(:)
   ADInterfaceComponents%Blade(:)%Position(2)      =  0.0
-  ADInterfaceComponents%Blade(:)%Position(3)      = HubRad*p_StrD%CosPreC(:)
+  ADInterfaceComponents%Blade(:)%Position(3)      = p_StrD%HubRad*p_StrD%CosPreC(:)
   
-  ADInterfaceComponents%Blade(:)%Orientation(1,1) =        p_StrD%CosPreC(:)
+  ADInterfaceComponents%Blade(:)%Orientation(1,1) =               p_StrD%CosPreC(:)
   ADInterfaceComponents%Blade(:)%Orientation(2,1) =  0.0
-  ADInterfaceComponents%Blade(:)%Orientation(3,1) =  1.0 * p_StrD%SinPreC(:)
+  ADInterfaceComponents%Blade(:)%Orientation(3,1) =  1.0 *        p_StrD%SinPreC(:)
   
   ADInterfaceComponents%Blade(:)%Orientation(1,2) =  0.0
   ADInterfaceComponents%Blade(:)%Orientation(2,2) =  1.0
   ADInterfaceComponents%Blade(:)%Orientation(3,2) =  0.0
 
-  ADInterfaceComponents%Blade(:)%Orientation(1,3) = -1.0 * p_StrD%SinPreC(:)
+  ADInterfaceComponents%Blade(:)%Orientation(1,3) = -1.0 *         p_StrD%SinPreC(:)
   ADInterfaceComponents%Blade(:)%Orientation(2,3) =  0.0
-  ADInterfaceComponents%Blade(:)%Orientation(3,3) =        p_StrD%CosPreC(:)
+  ADInterfaceComponents%Blade(:)%Orientation(3,3) =                p_StrD%CosPreC(:)
 
 
       ! Blade length
    
-   ADInterfaceComponents%BladeLength = TipRad - HubRad
+   ADInterfaceComponents%BladeLength = p_StrD%TipRad - p_StrD%HubRad
    
      
       ! Initialize AeroDyn
@@ -183,8 +182,7 @@ SUBROUTINE ChckOutLst(OutList, p_StrD, ErrStat, ErrMsg )
    USE                             General
    USE                             Output
    USE                             Platform
-   USE                             TurbConf
-
+   
    IMPLICIT                        NONE
 
 
@@ -1091,7 +1089,7 @@ SUBROUTINE ChckOutLst(OutList, p_StrD, ErrStat, ErrMsg )
 RETURN
 END SUBROUTINE ChckOutLst
 !=======================================================================
-SUBROUTINE GetADAMS
+SUBROUTINE GetADAMS( p )
 
 
    ! This routine reads in the ADAMS-specific parameters from ADAMSFile
@@ -1101,10 +1099,12 @@ SUBROUTINE GetADAMS
 USE                             ADAMSInput
 USE                             General
 USE                             Output
-USE                             TurbConf
 
 
 IMPLICIT                        NONE
+
+   ! passed variables
+TYPE(StrD_ParameterType), INTENT(IN)  :: p                                      ! Parameters of the structural dynamics module
 
 
    ! Local variables:
@@ -1249,7 +1249,7 @@ IF ( TwrTopRad < 0.0 )  CALL ProgAbort ( ' TwrTopRad must not be less than zero.
 
 CALL ReadVar ( UnIn, ADAMSFile, NacLength, 'NacLength', 'Nacelle length' )
 
-IF ( ( NacLength < 0.0 ) .OR. ( NacLength > 2.0*ABS(OverHang) ) )  &
+IF ( ( NacLength < 0.0 ) .OR. ( NacLength > 2.0*ABS(p%OverHang) ) )  &
    CALL ProgAbort ( ' NacLength must be between zero and 2*ABS(OverHang) (inclusive).' )
 
 
@@ -1340,10 +1340,10 @@ IF ( BoomRad < 0.0 )  CALL ProgAbort ( ' BoomRad must not be less than zero.' )
 
    ! Let's convert the sign of several variables as appropriate:
 
-NacLength = SIGN( NacLength,  OverHang )
-LSSLength = SIGN( LSSLength,  OverHang )
-HSSLength = SIGN( HSSLength, -OverHang )
-GenLength = SIGN( GenLength, -OverHang )
+NacLength = SIGN( NacLength,  p%OverHang )
+LSSLength = SIGN( LSSLength,  p%OverHang )
+HSSLength = SIGN( HSSLength, -p%OverHang )
+GenLength = SIGN( GenLength, -p%OverHang )
 
 
 
@@ -1771,13 +1771,13 @@ USE                             Output
 USE                             RotorFurling
 USE                             TailAero
 USE                             TailFurling
-USE                             TurbConf
 
 
 IMPLICIT                        NONE
 
    ! Passed variables
 TYPE(StrD_InputFile),     INTENT(INOUT)    :: InputFileData                   ! Data stored in the module's input file
+
 
    ! Local variables:
 
@@ -1863,31 +1863,31 @@ CALL ReadCom ( UnIn, FurlFile, 'turbine configuration (cont)'  )
 
    ! Yaw2Shft - Lateral distance from yaw axis to rotor shaft.
 
-CALL ReadVar ( UnIn, FurlFile, Yaw2Shft, 'Yaw2Shft', 'Lateral distance from yaw axis to rotor shaft' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%Yaw2Shft, 'Yaw2Shft', 'Lateral distance from yaw axis to rotor shaft' )
 
 
    ! ShftSkew - Rotor shaft skew angle.
 
-CALL ReadVar ( UnIn, FurlFile, ShftSkew, 'ShftSkew', 'Rotor shaft skew angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%ShftSkew, 'ShftSkew', 'Rotor shaft skew angle' )
 
-IF ( ( ShftSkew < -15.0 ) .OR. ( ShftSkew > 15.0 ) )  &
+IF ( ( InputFileData%ShftSkew < -15.0 ) .OR. ( InputFileData%ShftSkew > 15.0 ) )  &
    CALL ProgAbort ( ' ShftSkew should only be used to skew the shaft a few degrees away from the zero-yaw position'//             &
                 ' and must not be used as a replacement for the yaw angle.  ShftSkew must be between -15 and 15 (inclusive).'   )
 
 
    ! RFrlCMxn - Downwind distance from tower-top to CM of structure that furls with the rotor (not including rotor).
 
-CALL ReadVar ( UnIn, FurlFile, RFrlCMxn, 'RFrlCMxn', 'Downwind distance from tower-top to rotor-furl CM' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMxn, 'RFrlCMxn', 'Downwind distance from tower-top to rotor-furl CM' )
 
 
    ! RFrlCMyn - Lateral  distance from tower-top to CM of structure that furls with the rotor (not including rotor).
 
-CALL ReadVar ( UnIn, FurlFile, RFrlCMyn, 'RFrlCMyn', 'Lateral  distance from tower-top to rotor-furl CM' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMyn, 'RFrlCMyn', 'Lateral  distance from tower-top to rotor-furl CM' )
 
 
    ! RFrlCMzn - Vertical distance from tower-top to CM of structure that furls with the rotor (not including rotor).
 
-CALL ReadVar ( UnIn, FurlFile, RFrlCMzn, 'RFrlCMzn', 'Vertical distance from tower-top to rotor-furl CM' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMzn, 'RFrlCMzn', 'Vertical distance from tower-top to rotor-furl CM' )
 
 
    ! BoomCMxn - Downwind distance from tower-top to tail boom CM.
@@ -1915,9 +1915,9 @@ CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMzn, 'BoomCMzn', 'Vertical dis
 
    ! TFinCMxn - Downwind distance from tower-top to tail fin CM.
 
-CALL ReadVar ( UnIn, FurlFile, TFinCMxn, 'TFinCMxn', 'Downwind distance from tower-top to tail fin CM' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMxn, 'TFinCMxn', 'Downwind distance from tower-top to tail fin CM' )
 
-IF ( TFinCMxn < 0.0 )  THEN   ! Print out warning when tail fin CM defined upwind of the tower.
+IF ( InputFileData%TFinCMxn < 0.0 )  THEN   ! Print out warning when tail fin CM defined upwind of the tower.
    CALL UsrAlarm
 
    CALL WrScr1(' WARNING: ')
@@ -1928,19 +1928,19 @@ ENDIF
 
    ! TFinCMyn - Lateral  distance from tower-top to tail fin CM.
 
-CALL ReadVar ( UnIn, FurlFile, TFinCMyn, 'TFinCMyn', 'Lateral  distance from tower-top to tail fin CM' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMyn, 'TFinCMyn', 'Lateral  distance from tower-top to tail fin CM' )
 
 
    ! TFinCMzn - Vertical distance from tower-top to tail fin CM.
 
-CALL ReadVar ( UnIn, FurlFile, TFinCMzn, 'TFinCMzn', 'Vertical distance from tower-top to tail fin CM' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMzn, 'TFinCMzn', 'Vertical distance from tower-top to tail fin CM' )
 
 
    ! TFinCPxn - Downwind distance from tower-top to tail fin CP.
 
-CALL ReadVar ( UnIn, FurlFile, TFinCPxn, 'TFinCPxn', 'Downwind distance from tower-top to tail fin CP' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPxn, 'TFinCPxn', 'Downwind distance from tower-top to tail fin CP' )
 
-IF ( TFinCPxn < 0.0 )  THEN   ! Print out warning when tail fin CP defined upwind of the tower.
+IF ( InputFileData%TFinCPxn < 0.0 )  THEN   ! Print out warning when tail fin CP defined upwind of the tower.
    CALL UsrAlarm
 
    CALL WrScr1(' WARNING: ')
@@ -1951,95 +1951,96 @@ ENDIF
 
    ! TFinCPyn - Lateral  distance from tower-top to tail fin CP.
 
-CALL ReadVar ( UnIn, FurlFile, TFinCPyn, 'TFinCPyn', 'Lateral  distance from tower-top to tail fin CP' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPyn, 'TFinCPyn', 'Lateral  distance from tower-top to tail fin CP' )
 
 
    ! TFinCPzn - Vertical distance from tower-top to tail fin CP.
 
-CALL ReadVar ( UnIn, FurlFile, TFinCPzn, 'TFinCPzn', 'Vertical distance from tower-top to tail fin CP' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPzn, 'TFinCPzn', 'Vertical distance from tower-top to tail fin CP' )
 
 
    ! TFinSkew - Tail fin chordline skew angle.
 
-CALL ReadVar ( UnIn, FurlFile, TFinSkew, 'TFinSkew', 'Tail fin chordline skew angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinSkew, 'TFinSkew', 'Tail fin chordline skew angle' )
 
-IF ( ( TFinSkew <= -180.0 ) .OR. ( TFinSkew > 180.0 ) )  &
+IF ( ( InputFileData%TFinSkew <= -180.0 ) .OR. ( InputFileData%TFinSkew > 180.0 ) )  &
    CALL ProgAbort ( ' TFinSkew must be greater than -180 and less than or equal to 180.' )
 
 
    ! TFinTilt - Tail fin chordline tilt angle.
 
-CALL ReadVar ( UnIn, FurlFile, TFinTilt, 'TFinTilt', 'Tail fin chordline tilt angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinTilt, 'TFinTilt', 'Tail fin chordline tilt angle' )
 
-IF ( ( TFinTilt < -90.0 ) .OR. ( TFinTilt > 90.0 ) )  CALL ProgAbort ( ' TFinTilt must be between -90 and 90 (inclusive).' )
+IF ( ( InputFileData%TFinTilt < -90.0 ) .OR. ( InputFileData%TFinTilt > 90.0 ) )  CALL ProgAbort ( ' TFinTilt must be between -90 and 90 (inclusive).' )
 
 
    ! TFinBank - Tail fin planform  bank angle.
 
-CALL ReadVar ( UnIn, FurlFile, TFinBank, 'TFinBank', 'Tail fin planform  bank angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinBank, 'TFinBank', 'Tail fin planform  bank angle' )
 
-IF ( ( TFinBank <= -180.0 ) .OR. ( TFinBank > 180.0 ) )  &
+IF ( ( InputFileData%TFinBank <= -180.0 ) .OR. ( InputFileData%TFinBank > 180.0 ) )  &
    CALL ProgAbort ( ' TFinBank must be greater than -180 and less than or equal to 180.' )
 
 
    ! RFrlPntxn - Downwind distance from tower-top to arbitrary point on rotor-furl axis.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlPntxn, 'RFrlPntxn', 'Downwind distance from tower-top to arbitrary point on rotor-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntxn, 'RFrlPntxn', 'Downwind distance from tower-top to arbitrary point on rotor-furl axis' )
 
 
    ! RFrlPntyn - Lateral  distance from tower-top to arbitrary point on rotor-furl axis.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlPntyn, 'RFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on rotor-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntyn, 'RFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on rotor-furl axis' )
 
 
    ! RFrlPntzn - Vertical distance from tower-top to arbitrary point on rotor-furl axis.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlPntzn, 'RFrlPntzn', 'Vertical distance from tower-top to arbitrary point on rotor-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntzn, 'RFrlPntzn', 'Vertical distance from tower-top to arbitrary point on rotor-furl axis' )
 
 
    ! RFrlSkew - Rotor-furl axis skew angle.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlSkew, 'RFrlSkew', 'Rotor-furl axis skew angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlSkew, 'RFrlSkew', 'Rotor-furl axis skew angle' )
 
-IF ( ( RFrlSkew <= -180.0 ) .OR. ( RFrlSkew > 180.0 ) )  &
+IF ( ( InputFileData%RFrlSkew <= -180.0 ) .OR. ( InputFileData%RFrlSkew > 180.0 ) )  &
    CALL ProgAbort ( ' RFrlSkew must be greater than -180 and less than or equal to 180.' )
 
 
    ! RFrlTilt - Rotor-furl axis tilt angle.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlTilt, 'RFrlTilt', 'Rotor-furl axis tilt angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlTilt, 'RFrlTilt', 'Rotor-furl axis tilt angle' )
 
-IF ( ( RFrlTilt < -90.0 ) .OR. ( RFrlTilt > 90.0 ) )  CALL ProgAbort ( ' RFrlTilt must be between -90 and 90 (inclusive).' )
+IF ( ( InputFileData%RFrlTilt < -90.0 ) .OR. ( InputFileData%RFrlTilt > 90.0 ) )  &
+              CALL ProgAbort ( ' RFrlTilt must be between -90 and 90 (inclusive).' )
 
 
    ! TFrlPntxn - Downwind distance from tower-top to arbitrary point on tail-furl axis.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlPntxn, 'TFrlPntxn', 'Downwind distance from tower-top to arbitrary point on tail-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntxn, 'TFrlPntxn', 'Downwind distance from tower-top to arbitrary point on tail-furl axis' )
 
 
    ! TFrlPntyn - Lateral  distance from tower-top to arbitrary point on tail-furl axis.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlPntyn, 'TFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on tail-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntyn, 'TFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on tail-furl axis' )
 
 
    ! TFrlPntzn - Vertical distance from tower-top to arbitrary point on tail-furl axis.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlPntzn, 'TFrlPntzn', 'Vertical distance from tower-top to arbitrary point on tail-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntzn, 'TFrlPntzn', 'Vertical distance from tower-top to arbitrary point on tail-furl axis' )
 
 
    ! TFrlSkew - Tail-furl axis skew angle.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlSkew, 'TFrlSkew', 'Tail-furl axis skew angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlSkew, 'TFrlSkew', 'Tail-furl axis skew angle' )
 
-IF ( ( TFrlSkew <= -180.0 ) .OR. ( TFrlSkew > 180.0 ) )  &
+IF ( ( InputFileData%TFrlSkew <= -180.0 ) .OR. ( InputFileData%TFrlSkew > 180.0 ) )  &
    CALL ProgAbort ( ' TFrlSkew must be greater than -180 and less than or equal to 180.' )
 
 
    ! TFrlTilt - Tail-furl axis tilt angle.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlTilt, 'TFrlTilt', 'Tail-furl axis tilt angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlTilt, 'TFrlTilt', 'Tail-furl axis tilt angle' )
 
-IF ( ( TFrlTilt < -90.0 ) .OR. ( TFrlTilt > 90.0 ) )  CALL ProgAbort ( ' TFrlTilt must be between -90 and 90 (inclusive).' )
+IF ( ( InputFileData%TFrlTilt < -90.0 ) .OR. ( InputFileData%TFrlTilt > 90.0 ) )  CALL ProgAbort ( ' TFrlTilt must be between -90 and 90 (inclusive).' )
 
 
 
@@ -2333,7 +2334,6 @@ USE                             Features
 USE                             General
 USE                             Linear
 USE                             Output
-USE                             TurbConf
 USE                             TurbCont
 
 
@@ -2607,7 +2607,6 @@ USE                             SimCont
 USE                             TeeterVars
 USE                             TipBrakes
 USE                             Tower
-USE                             TurbConf
 USE                             TurbCont
 
 IMPLICIT                        NONE
@@ -3285,16 +3284,16 @@ IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( TTDspSS /= 0.0 ) )  &
 
    ! TipRad - Preconed blade-tip radius.
 
-CALL ReadVar ( UnIn, PriFile, TipRad, 'TipRad', 'Preconed blade-tip radius' )
+CALL ReadVar ( UnIn, PriFile, p%TipRad, 'TipRad', 'Preconed blade-tip radius' )
 
-IF ( TipRad < 0.0 )  CALL ProgAbort ( ' TipRad must be greater than 0.' )
+IF ( p%TipRad < 0.0 )  CALL ProgAbort ( ' TipRad must be greater than 0.' )
 
 
    ! HubRad - Preconed hub radius.
 
-CALL ReadVar ( UnIn, PriFile, HubRad, 'HubRad', 'Preconed hub radius' )
+CALL ReadVar ( UnIn, PriFile, p%HubRad, 'HubRad', 'Preconed hub radius' )
 
-IF ( ( HubRad < 0.0 ) .OR. ( HubRad >= TipRad ) ) THEN
+IF ( ( p%HubRad < 0.0 ) .OR. ( p%HubRad >= p%TipRad ) ) THEN
    CALL ProgAbort ( ' HubRad must be between 0 (inclusive) and TipRad (exclusive).' )
 END IF
 
@@ -3308,66 +3307,66 @@ END IF
    ! UndSling - Undersling length.
 
 IF ( p%NumBl == 2 )  THEN
-   CALL ReadVar ( UnIn, PriFile, UndSling, 'UndSling', 'Undersling length' )
+   CALL ReadVar ( UnIn, PriFile, p%UndSling, 'UndSling', 'Undersling length' )
 ELSE
    CALL ReadCom ( UnIn, PriFile, 'unused UndSling' )
-   UndSling = 0.0
+   p%UndSling = 0.0
 ENDIF
 
 
    ! HubCM - Distance from rotor apex to hub mass.
 
-CALL ReadVar ( UnIn, PriFile, HubCM, 'HubCM', 'Distance from rotor apex to hub mass' )
+CALL ReadVar ( UnIn, PriFile, p%HubCM, 'HubCM', 'Distance from rotor apex to hub mass' )
 
 
    ! OverHang - Distance from yaw axis to rotor apex or teeter pin.
 
-CALL ReadVar ( UnIn, PriFile, OverHang, 'OverHang', 'Distance from yaw axis to rotor apex or teeter pin' )
+CALL ReadVar ( UnIn, PriFile, p%OverHang, 'OverHang', 'Distance from yaw axis to rotor apex or teeter pin' )
 
 
    ! NacCMxn - Downwind distance from tower-top to nacelle CM.
 
-CALL ReadVar ( UnIn, PriFile, NacCMxn, 'NacCMxn', 'Downwind distance from tower-top to nacelle CM' )
+CALL ReadVar ( UnIn, PriFile, p%NacCMxn, 'NacCMxn', 'Downwind distance from tower-top to nacelle CM' )
 
 
    ! NacCMyn - Lateral  distance from tower-top to nacelle CM.
 
-CALL ReadVar ( UnIn, PriFile, NacCMyn, 'NacCMyn', 'Lateral  distance from tower-top to nacelle CM' )
+CALL ReadVar ( UnIn, PriFile, p%NacCMyn, 'NacCMyn', 'Lateral  distance from tower-top to nacelle CM' )
 
 
    ! NacCMzn - Vertical distance from tower-top to nacelle CM.
 
-CALL ReadVar ( UnIn, PriFile, NacCMzn, 'NacCMzn', 'Vertical distance from tower-top to nacelle CM' )
+CALL ReadVar ( UnIn, PriFile, p%NacCMzn, 'NacCMzn', 'Vertical distance from tower-top to nacelle CM' )
 
 
    ! TowerHt - Tower height.
 
-CALL ReadVar ( UnIn, PriFile, TowerHt, 'TowerHt', 'Tower height' )
+CALL ReadVar ( UnIn, PriFile, p%TowerHt, 'TowerHt', 'Tower height' )
 
-IF ( TowerHt <= 0.0 )  CALL ProgAbort ( ' TowerHt must be greater than zero.' )
+IF ( p%TowerHt <= 0.0 )  CALL ProgAbort ( ' TowerHt must be greater than zero.' )
 
 
    ! Twr2Shft - Vertical distance from tower-top rotor shaft.
 
-CALL ReadVar ( UnIn, PriFile, Twr2Shft, 'Twr2Shft', 'Vertical distance from tower-top to rotor shaft' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%Twr2Shft, 'Twr2Shft', 'Vertical distance from tower-top to rotor shaft' )
 
-IF ( Twr2Shft < 0.0 )  CALL ProgAbort ( ' Twr2Shft cannot be negative.' )
+IF ( InputFileData%Twr2Shft < 0.0 )  CALL ProgAbort ( ' Twr2Shft cannot be negative.' )
 
 
    ! TwrRBHt - Tower rigid base height.
 
-CALL ReadVar ( UnIn, PriFile, TwrRBHt, 'TwrRBHt', 'Tower rigid base height' )
+CALL ReadVar ( UnIn, PriFile, p%TwrRBHt, 'TwrRBHt', 'Tower rigid base height' )
 
-IF ( TwrRBHt < 0.0 )  CALL ProgAbort ( ' TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.' )
+IF ( p%TwrRBHt < 0.0 )  CALL ProgAbort ( ' TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.' )
 
 
    ! ShftTilt - Rotor shaft tilt angle.
 
-CALL ReadVar ( UnIn, PriFile, ShftTilt, 'ShftTilt', 'Rotor shaft tilt angle' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%ShftTilt, 'ShftTilt', 'Rotor shaft tilt angle' )
 
-IF ( ( ShftTilt < -90.0 ) .OR. ( ShftTilt > 90.0 ) )              &
+IF ( ( InputFileData%ShftTilt < -90.0 ) .OR. ( InputFileData%ShftTilt > 90.0 ) )              &
    CALL ProgAbort ( ' ShftTilt must be between -90 and 90 (inclusive).' )
-IF ( TowerHt + Twr2Shft + OverHang*SIN(ShftTilt*D2R) <= TipRad )  &
+IF ( p%TowerHt + InputFileData%Twr2Shft + p%OverHang*SIN(InputFileData%ShftTilt*D2R) <= p%TipRad )  &
    CALL ProgAbort ( ' TowerHt + Twr2Shft + OverHang*SIN(ShftTilt) must be greater than TipRad.' )
 
 
@@ -3384,15 +3383,15 @@ ENDIF
 
    ! PreCone - Blade coning angle.
 
-ALLOCATE ( PreCone(p%NumBl) , STAT=Sttus )
+ALLOCATE ( p%PreCone(p%NumBl) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the PreCone array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, PreCone, p%NumBl, 'PreCone', 'Blade coning angle' )
+CALL ReadAryLines ( UnIn, PriFile, p%PreCone, p%NumBl, 'PreCone', 'Blade coning angle' )
 
 DO K=1,p%NumBl
-   IF ( ( PreCone(K) <= -90.0 ) .OR. ( PreCone(K) >= 90.0 ) )  THEN
+   IF ( ( p%PreCone(K) <= -90.0 ) .OR. ( p%PreCone(K) >= 90.0 ) )  THEN
       CALL ProgAbort ( ' PreCone('//TRIM( Int2LStr( K ) )//') must be between -90 and 90 degrees (exclusive).' )
    ENDIF
 ENDDO ! K
@@ -3753,7 +3752,7 @@ IF ( ( YawNeut <= -180.0 ) .OR. ( YawNeut > 180.0 ) )  &
 
 CALL ReadVar ( UnIn, PriFile, Furling, 'Furling', 'Read in additional model properties for furling turbine' )
 
-IF ( Furling .AND. ( OverHang > 0.0 ) )  THEN   ! Print out warning when downwind turbine is modeled with furling.
+IF ( Furling .AND. ( p%OverHang > 0.0 ) )  THEN   ! Print out warning when downwind turbine is modeled with furling.
    CALL UsrAlarm
 
    CALL WrScr1(' WARNING: ')
@@ -4136,7 +4135,7 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetPrimary
 !=======================================================================
-SUBROUTINE GetPtfm( p )
+SUBROUTINE GetPtfm( p, InputFileData )
 
    ! This routine reads in the FAST platform input parameters from
    !   PtfmFile and validates the input.
@@ -4150,14 +4149,14 @@ USE                             Output
 USE                             Platform
 USE                             SimCont
 USE                             Tower
-USE                             TurbConf
 USE                             Waves, ONLY:WavePkShpDefault
 
 
 IMPLICIT                        NONE
 
    ! Passed variables  
-TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             ! Parameters of the structural dynamics module
+TYPE(StrD_ParameterType),     INTENT(INOUT)    :: p                             ! Parameters of the structural dynamics module
+TYPE(StrD_InputFile),         INTENT(INOUT)    :: InputFileData                 ! all the data in the StructDyn input file
 
 
    ! Local variables:
@@ -4307,29 +4306,29 @@ IF ( ( PtfmYaw < -15.0 ) .OR. ( PtfmYaw > 15.0 ) )  &
 
    ! TwrDraft - Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection.
 
-CALL ReadVar ( UnIn, PtfmFile, TwrDraft, 'TwrDraft', &
+CALL ReadVar ( UnIn, PtfmFile, p%TwrDraft, 'TwrDraft', &
    'Downward distance from ground [onshore] or MSL [offshore] to tower base platform connection' )
 
-IF ( TwrDraft <= -TowerHt )  CALL ProgAbort ( ' TwrDraft must be greater than -TowerHt.' )
+IF ( p%TwrDraft <= -p%TowerHt )  CALL ProgAbort ( ' TwrDraft must be greater than -TowerHt.' )
 
-IF ( TwrRBHt >= ( TowerHt + TwrDraft ) )  &
+IF ( p%TwrRBHt >= ( p%TowerHt + p%TwrDraft ) )  &
          CALL ProgAbort ( ' TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.' )
 
 
    ! PtfmCM - Downward distance from the ground [onshore] or MSL [offshore] to the platform CM.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmCM, 'PtfmCM', &
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmCM, 'PtfmCM', &
    'Downward distance from ground [onshore] or MSL [offshore] to platform CM' )
 
-IF ( PtfmCM < TwrDraft )  CALL ProgAbort ( ' PtfmCM must not be less than TwrDraft.' )
+IF ( InputFileData%PtfmCM < p%TwrDraft )  CALL ProgAbort ( ' PtfmCM must not be less than TwrDraft.' )
 
 
    ! PtfmRef - Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmRef, 'PtfmRef', &
+CALL ReadVar ( UnIn, PtfmFile, p%PtfmRef, 'PtfmRef', &
    'Downward distance from ground [onshore] or MSL [offshore] to platform reference point' )
 
-IF ( PtfmRef < TwrDraft )  CALL ProgAbort ( ' PtfmRef must not be less than TwrDraft.' )
+IF ( p%PtfmRef < p%TwrDraft )  CALL ProgAbort ( ' PtfmRef must not be less than TwrDraft.' )
 
 
 
@@ -4500,7 +4499,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
          IF ( WtrDpth <= 0.0 )  CALL ProgAbort ( ' WtrDpth must be greater than zero.' )
 
 !JASON: WHAT LOADING DO WE APPLY TO THE FLEXIBLE PORTION OF THE TOWER EXTENDING BELOW THE SEABED?
-         IF ( ( TwrDraft - TwrRBHt ) < WtrDpth )  THEN   ! Print out a warning when the flexible portion of the support structure does not extend to the seabed.
+         IF ( ( p%TwrDraft - p%TwrRBHt ) < WtrDpth )  THEN   ! Print out a warning when the flexible portion of the support structure does not extend to the seabed.
             CALL ProgWarn( ' Hydrodynamic loading will only be applied to the flexible portion of the support structure.'// &
                            ' Make sure that ( TwrDraft - TwrRBHt ) >= WtrDpth if you want hydrodynamic loading applied'// &
                            ' along the entire submerged portion of the support structure. ')
@@ -4839,10 +4838,10 @@ CASE ( 3 )                 ! Floating offshore.
       IF ( Gravity <= 0.0 )  &
          CALL ProgAbort ( ' Gravity must be greater than zero when PtfmLdMod is set to "'//TRIM(Line)//'".' )
 
-      IF ( TwrDraft > 0.0 )  &
+      IF ( p%TwrDraft > 0.0 )  &
          CALL ProgAbort ( ' TwrDraft must be less than or equal to zero when PtfmLdMod is set to "'//TRIM(Line)//'".' )  ! Do not allow the combination of tower hydrodynamics using Morison's equation and platform hydrodynamics using the true form of the using the true form of the hydrodynamics equations since the true equations require that the shape of the platform does not change above the MSL (platform reference point)--Consider the linear hydrostatic restoring matrix, for example.
 
-      IF ( PtfmRef /= 0.0 )  &
+      IF ( p%PtfmRef /= 0.0 )  &
          CALL ProgAbort ( ' PtfmRef must be zero when PtfmLdMod is set to "'//TRIM(Line)//'".' )
 
    ELSE                                         ! The input is specified as documented: ProgAbort the program if the input is not the Numeric value of 0 or 1.
@@ -5095,7 +5094,7 @@ CASE ( 3 )                 ! Floating offshore.
                IF ( LRadFair     <  0.0       )  &
                   CALL ProgAbort ( ' LRadFair('//TRIM( Int2LStr( I ) )//') must not be less than zero.' )
 
-               IF ( LDrftFair    <  TwrDraft  ) &
+               IF ( LDrftFair    <  p%TwrDraft  ) &
                   CALL ProgAbort ( ' LDrftFair('//TRIM( Int2LStr( I ) )//') must not be less than TwrDraft.' )
 
                IF ( LDpthAnch    <  LDrftFair ) &
@@ -5862,7 +5861,6 @@ USE                             TailFurling
 USE                             TeeterVars
 USE                             TipBrakes
 USE                             Tower
-USE                             TurbConf
 USE                             TurbCont
 
 
@@ -5906,13 +5904,13 @@ CALL GetPrimary( InputFileData, p, ErrStat, Errmsg )
 
 IF ( ( PtfmModel == 1 ) .OR. ( PtfmModel == 2 ) .OR. ( PtfmModel == 3 ) )  THEN
 
-   CALL GetPtfm( p )
+   CALL GetPtfm( p, InputFileData )
 
    PtfmRoll  = PtfmRoll *D2R
    PtfmPitch = PtfmPitch*D2R
    PtfmYaw   = PtfmYaw  *D2R
 
-   rZYzt     = PtfmRef  - PtfmCM
+   p%rZYzt     = p%PtfmRef  - InputFileData%PtfmCM
 
 ENDIF
 
@@ -5924,20 +5922,29 @@ IF ( Furling )  THEN
 
    CALL GetFurl( InputFileData )
 
+   p%RFrlPntxn = InputFileData%RFrlPntxn
+   p%RFrlPntyn = InputFileData%RFrlPntyn
+   p%RFrlPntzn = InputFileData%RFrlPntzn
+   
+   p%TFrlPntxn = InputFileData%TFrlPntxn
+   p%TFrlPntyn = InputFileData%TFrlPntyn
+   p%TFrlPntzn = InputFileData%TFrlPntzn
+
+   
    RotFurl   = RotFurl  *D2R
    TailFurl  = TailFurl *D2R
 
-   ShftSkew  = ShftSkew *D2R
+   InputFileData%ShftSkew  = InputFileData%ShftSkew *D2R
 
-   TFinSkew  = TFinSkew *D2R
-   TFinTilt  = TFinTilt *D2R
-   TFinBank  = TFinBank *D2R
+   InputFileData%TFinSkew  = InputFileData%TFinSkew *D2R
+   InputFileData%TFinTilt  = InputFileData%TFinTilt *D2R
+   InputFileData%TFinBank  = InputFileData%TFinBank *D2R
 
-   RFrlSkew  = RFrlSkew *D2R
-   RFrlTilt  = RFrlTilt *D2R
+   InputFileData%RFrlSkew  = InputFileData%RFrlSkew *D2R
+   InputFileData%RFrlTilt  = InputFileData%RFrlTilt *D2R
 
-   TFrlSkew  = TFrlSkew *D2R
-   TFrlTilt  = TFrlTilt *D2R
+   InputFileData%TFrlSkew  = InputFileData%TFrlSkew *D2R
+   InputFileData%TFrlTilt  = InputFileData%TFrlTilt *D2R
 
    RFrlUSSP  = RFrlUSSP *D2R
    RFrlDSSP  = RFrlDSSP *D2R
@@ -5949,85 +5956,85 @@ IF ( Furling )  THEN
    TFrlUSDP  = TFrlUSDP *D2R
    TFrlDSDP  = TFrlDSDP *D2R
 
-   CShftSkew = COS( ShftSkew )
-   SShftSkew = SIN( ShftSkew )
+   p%CShftSkew = COS( InputFileData%ShftSkew )
+   p%SShftSkew = SIN( InputFileData%ShftSkew )
 
-   CTFinSkew = COS( TFinSkew )
-   STFinSkew = SIN( TFinSkew )
-   CTFinTilt = COS( TFinTilt )
-   STFinTilt = SIN( TFinTilt )
-   CTFinBank = COS( TFinBank )
-   STFinBank = SIN( TFinBank )
+   p%CTFinSkew = COS( InputFileData%TFinSkew )
+   p%STFinSkew = SIN( InputFileData%TFinSkew )
+   p%CTFinTilt = COS( InputFileData%TFinTilt )
+   p%STFinTilt = SIN( InputFileData%TFinTilt )
+   p%CTFinBank = COS( InputFileData%TFinBank )
+   p%STFinBank = SIN( InputFileData%TFinBank )
 
-   CRFrlSkew = COS( RFrlSkew )
-   SRFrlSkew = SIN( RFrlSkew )
-   CRFrlTilt = COS( RFrlTilt )
-   SRFrlTilt = SIN( RFrlTilt )
+   p%CRFrlSkew = COS( InputFileData%RFrlSkew )
+   p%SRFrlSkew = SIN( InputFileData%RFrlSkew )
+   p%CRFrlTilt = COS( InputFileData%RFrlTilt )
+   p%SRFrlTilt = SIN( InputFileData%RFrlTilt )
 
-   CTFrlSkew = COS( TFrlSkew )
-   STFrlSkew = SIN( TFrlSkew )
-   CTFrlTilt = COS( TFrlTilt )
-   STFrlTilt = SIN( TFrlTilt )
+   p%CTFrlSkew = COS( InputFileData%TFrlSkew )
+   p%STFrlSkew = SIN( InputFileData%TFrlSkew )
+   p%CTFrlTilt = COS( InputFileData%TFrlTilt )
+   p%STFrlTilt = SIN( InputFileData%TFrlTilt )
 
-   CRFrlSkw2 = CRFrlSkew*CRFrlSkew
-   SRFrlSkw2 = SRFrlSkew*SRFrlSkew
-   CSRFrlSkw = CRFrlSkew*SRFrlSkew
-   CRFrlTlt2 = CRFrlTilt*CRFrlTilt
-   SRFrlTlt2 = SRFrlTilt*SRFrlTilt
-   CSRFrlTlt = CRFrlTilt*SRFrlTilt
+   p%CRFrlSkw2 = p%CRFrlSkew*p%CRFrlSkew
+   p%SRFrlSkw2 = p%SRFrlSkew*p%SRFrlSkew
+   p%CSRFrlSkw = p%CRFrlSkew*p%SRFrlSkew
+   p%CRFrlTlt2 = p%CRFrlTilt*p%CRFrlTilt
+   p%SRFrlTlt2 = p%SRFrlTilt*p%SRFrlTilt
+   p%CSRFrlTlt = p%CRFrlTilt*p%SRFrlTilt
 
-   CTFrlSkw2 = CTFrlSkew*CTFrlSkew
-   STFrlSkw2 = STFrlSkew*STFrlSkew
-   CSTFrlSkw = CTFrlSkew*STfrlSkew
-   CTFrlTlt2 = CTFrlTilt*CTFrlTilt
-   STFrlTlt2 = STFrlTilt*STFrlTilt
-   CSTFrlTlt = CTFrlTilt*STFrlTilt
+   p%CTFrlSkw2 = p%CTFrlSkew*p%CTFrlSkew
+   p%STFrlSkw2 = p%STFrlSkew*p%STFrlSkew
+   p%CSTFrlSkw = p%CTFrlSkew*p%STfrlSkew
+   p%CTFrlTlt2 = p%CTFrlTilt*p%CTFrlTilt
+   p%STFrlTlt2 = p%STFrlTilt*p%STFrlTilt
+   p%CSTFrlTlt = p%CTFrlTilt*p%STFrlTilt
 
-   rWIxn     = InputFileData%BoomCMxn - TFrlPntxn
-   rWIyn     = InputFileData%BoomCMyn - TFrlPntyn
-   rWIzn     = InputFileData%BoomCMzn - TFrlPntzn
+   p%rWIxn     = InputFileData%BoomCMxn - p%TFrlPntxn
+   p%rWIyn     = InputFileData%BoomCMyn - p%TFrlPntyn
+   p%rWIzn     = InputFileData%BoomCMzn - p%TFrlPntzn
 
-   rWJxn     = TFinCMxn - TFrlPntxn
-   rWJyn     = TFinCMyn - TFrlPntyn
-   rWJzn     = TFinCMzn - TFrlPntzn
+   p%rWJxn     = InputFileData%TFinCMxn - p%TFrlPntxn
+   p%rWJyn     = InputFileData%TFinCMyn - p%TFrlPntyn
+   p%rWJzn     = InputFileData%TFinCMzn - p%TFrlPntzn
 
-   rWKxn     = TFinCPxn - TFrlPntxn
-   rWKyn     = TFinCPyn - TFrlPntyn
-   rWKzn     = TFinCPzn - TFrlPntzn
+   p%rWKxn     = InputFileData%TFinCPxn - p%TFrlPntxn
+   p%rWKyn     = InputFileData%TFinCPyn - p%TFrlPntyn
+   p%rWKzn     = InputFileData%TFinCPzn - p%TFrlPntzn
 
-   rVDxn     = RFrlCMxn - RFrlPntxn
-   rVDyn     = RFrlCMyn - RFrlPntyn
-   rVDzn     = RFrlCMzn - RFrlPntzn
+   p%rVDxn     = InputFileData%RFrlCMxn - p%RFrlPntxn
+   p%rVDyn     = InputFileData%RFrlCMyn - p%RFrlPntyn
+   p%rVDzn     = InputFileData%RFrlCMzn - p%RFrlPntzn
 
-   rVPxn     =          - RFrlPntxn
-   rVPyn     = Yaw2Shft - RFrlPntyn
+   p%rVPxn     =                        - p%RFrlPntxn
+   p%rVPyn     = InputFileData%Yaw2Shft - p%RFrlPntyn
 
    SQRTTFinA = SQRT( TFinArea )
 
 ENDIF
 
-rVPzn        = Twr2Shft - RFrlPntzn ! This computation must remain outside of the IF...ENDIF since it must also be computed for nonfurling machines.
-rVIMUxn      =  NcIMUxn - RFrlPntxn ! "
-rVIMUyn      =  NcIMUyn - RFrlPntyn ! "
-rVIMUzn      =  NcIMUzn - RFrlPntzn ! "
+p%rVPzn        = InputFileData%Twr2Shft - p%RFrlPntzn ! This computation must remain outside of the IF...ENDIF since it must also be computed for nonfurling machines.
+p%rVIMUxn      =  NcIMUxn               - p%RFrlPntxn ! "
+p%rVIMUyn      =  NcIMUyn               - p%RFrlPntyn ! "
+p%rVIMUzn      =  NcIMUzn               - p%RFrlPntzn ! "
 
 
    ! Calculate some parameters that are not input directly.  Convert units if appropriate.
 
 DT24      = DT/24.0                                                             ! Time-step parameter needed for Solver().
-rZT0zt    = TwrRBHt + PtfmRef - TwrDraft                                        ! zt-component of position vector rZT0.
-RefTwrHt  = TowerHt + PtfmRef                                                   ! Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef).
-TwrFlexL  = TowerHt + TwrDraft - TwrRBHt                                        ! Height / length of the flexible portion of the tower.
-BldFlexL  = TipRad             - HubRad                                         ! Length of the flexible portion of the blade.
+p%rZT0zt    = p%TwrRBHt + p%PtfmRef - p%TwrDraft                                        ! zt-component of position vector rZT0.
+p%RefTwrHt  = p%TowerHt + p%PtfmRef                                                   ! Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef).
+TwrFlexL  = p%TowerHt + p%TwrDraft - p%TwrRBHt                                        ! Height / length of the flexible portion of the tower.
+BldFlexL  = p%TipRad               - p%HubRad                                         ! Length of the flexible portion of the blade.
 p%TwoPiNB = TwoPi/p%NumBl                                                       ! 2*Pi/NumBl is used in RtHS().
 RotSpeed  = RotSpeed*RPM2RPS                                                    ! Rotor speed in rad/sec.
 NacYaw    = D2R*NacYaw                                                          ! Nacelle yaw in radians.
 NacYawF   = D2R*NacYawF                                                         ! Final nacelle yaw (after override yaw maneuver) in radians.
 YawNeut   = D2R*YawNeut                                                         ! Neutral yaw in radians.
-ShftTilt  = ShftTilt*D2R                                                        ! Rotor shaft tilt in radians.
-CShftTilt = COS( ShftTilt )
-SShftTilt = SIN( ShftTilt )
-p%FASTHH    = TowerHt + Twr2Shft + OverHang*SShftTilt
+InputFileData%ShftTilt  = InputFileData%ShftTilt*D2R                                                        ! Rotor shaft tilt in radians.
+p%CShftTilt = COS( InputFileData%ShftTilt )
+p%SShftTilt = SIN( InputFileData%ShftTilt )
+p%FASTHH    = p%TowerHt + InputFileData%Twr2Shft + p%OverHang*p%SShftTilt
 GBoxEff   = GBoxEff*0.01
 GenEff    = GenEff *0.01
 SpdGenOn  = SpdGenOn*RPM2RPS
@@ -6139,9 +6146,9 @@ DO K=1,p%NumBl
    BlPitchInit(K) = BlPitch (K)
    BegPitMan  (K) = .TRUE.
    TTpBrFl    (K) = TTpBrDp (K) + TpBrDT
-   Precone    (K) = Precone (K)*D2R
-   p%CosPreC  (K) = COS( Precone(K) )
-   p%SinPreC  (K) = SIN( Precone(K) )
+   p%Precone  (K) = p%Precone (K)*D2R
+   p%CosPreC  (K) = COS( p%Precone(K) )
+   p%SinPreC  (K) = SIN( p%Precone(K) )
    SumCosPreC     = SumCosPreC + p%CosPreC(K)
 ENDDO ! K
 
@@ -6149,8 +6156,8 @@ ENDDO ! K
    ! Calculate the average tip radius normal to the shaft (AvgNrmTpRd)
    !   and the swept area of the rotor (ProjArea):
 
-p%AvgNrmTpRd = TipRad*SumCosPreC/p%NumBl   ! Average tip radius normal to the saft.
-ProjArea     = Pi*( p%AvgNrmTpRd**2 )      ! Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft).
+p%AvgNrmTpRd = p%TipRad*SumCosPreC/p%NumBl   ! Average tip radius normal to the saft.
+p%ProjArea   = Pi*( p%AvgNrmTpRd**2 )      ! Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft).
 
 
 
@@ -6289,7 +6296,7 @@ IF ( ( p%PSpnElN < 1 ) .OR. ( p%PSpnElN > p%BldNodes ) )  &
 
    ! Convert RNodes to be relative to the hub:
 
-RNodes = RNodes - HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < BldFlexL )
+RNodes = RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < BldFlexL )
 
 
    ! Compute the index for the blade tip and tower top nodes:
@@ -6547,7 +6554,7 @@ ENDIF
 
 IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! Create equivalent ADAMS model.
 
-   CALL GetADAMS                                         ! Read in the ADAMS-specific parameters from ADAMSFile.
+   CALL GetADAMS( p )                                        ! Read in the ADAMS-specific parameters from ADAMSFile.
 
 ENDIF
 
@@ -6707,7 +6714,6 @@ SUBROUTINE InterpBld ( K, p )
 
 USE                             Blades
 USE                             General
-USE                             TurbConf
 
 IMPLICIT                        NONE
 
@@ -6917,7 +6923,6 @@ SUBROUTINE InterpTwr( p )
 
 USE                             General
 USE                             Tower
-USE                             TurbConf
 
 
 IMPLICIT                        NONE
@@ -7083,7 +7088,6 @@ USE                             General
 USE                             MassInert
 USE                             SimCont
 USE                             Tower
-USE                             TurbConf
 
 
 IMPLICIT                        NONE
@@ -7124,7 +7128,7 @@ WRITE (UnSu,FmtTitl)  TRIM( FTitle )
 
 WRITE (UnSu,FmtHead)  'Turbine features:'
 
-IF ( OverHang > 0.0 )  THEN
+IF ( p%OverHang > 0.0 )  THEN
    RotorType = 'Downwind,'
 ELSE
    RotorType = 'Upwind,'
@@ -7344,7 +7348,7 @@ IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will b
                         '     (Nm^2)        (N)    (kg m)    (kg m)      (m)      (m)'
 
    DO I=1,p%TwrNodes
-      WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, HNodesNorm(I), HNodes(I)+TwrRBHt, DHNodes(I), MassT(I), &
+      WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, HNodesNorm(I), HNodes(I)+p%TwrRBHt, DHNodes(I), MassT(I), &
                                                               StiffTFA(I), StiffTSS(I), StiffTGJ(I), StiffTEA(I),           &
                                                               InerTFA(I), InerTSS(I), cgOffTFA(I), cgOffTSS(I)
    ENDDO ! I
@@ -7355,7 +7359,7 @@ ELSE                                                     ! Only FAST will be run
    WRITE (UnSu,FmtTxt)  ' (-)      (-)      (m)      (m)    (kg/m)     (Nm^2)     (Nm^2)'
 
    DO I=1,p%TwrNodes
-      WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, HNodesNorm(I), HNodes(I) + TwrRBHt, DHNodes(I), MassT(I), &
+      WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, HNodesNorm(I), HNodes(I) + p%TwrRBHt, DHNodes(I), MassT(I), &
                                                  StiffTFA(I), StiffTSS(I)
    ENDDO ! I
 
@@ -7378,7 +7382,7 @@ DO K=1,p%NumBl
 
       DO I=1,p%BldNodes
 
-         WRITE(UnSu,'(I4,3F9.3,3F10.3,4ES11.3,F9.3,4F10.3,4F9.3)')  I, RNodesNorm(I), RNodes(I) + HubRad, DRNodes(I),            &
+         WRITE(UnSu,'(I4,3F9.3,3F10.3,4ES11.3,F9.3,4F10.3,4F9.3)')  I, RNodesNorm(I), RNodes(I) + p%HubRad, DRNodes(I),            &
                                                                        AeroCent(K,I), ThetaS(K,I)*R2D, MassB(K,I),               &
                                                                        StiffBF(K,I), StiffBE(K,I), StiffBGJ(K,I), StiffBEA(K,I), &
                                                                        BAlpha(K,I), InerBFlp(K,I), InerBEdg(K,I),                &
@@ -7393,7 +7397,7 @@ DO K=1,p%NumBl
       WRITE (UnSu,FmtTxt)  ' (-)      (-)      (m)      (m)       (-)     (deg)    (kg/m)     (Nm^2)     (Nm^2)'
 
       DO I=1,p%BldNodes
-         WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, RNodesNorm(I), RNodes(I) + HubRad, DRNodes(I), AeroCent(K,I), &
+         WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, RNodesNorm(I), RNodes(I) + p%HubRad, DRNodes(I), AeroCent(K,I), &
                                                      ThetaS(K,I)*R2D, MassB(K,I), StiffBF(K,I), StiffBE(K,I)
       ENDDO ! I
 

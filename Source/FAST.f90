@@ -22,7 +22,6 @@ USE                             Output
 USE                             RtHndSid
 USE                             SimCont
 USE                             Tower
-USE                             TurbConf
 USE                             TurbCont
 
 USE                             NOISE !AllocNoise
@@ -223,110 +222,7 @@ IF (.NOT. ALLOCATED( p%DOF_Desc ) ) THEN
    ENDIF
 ENDIF
 
-!IF (.NOT. ALLOCATED( NPSBE ) ) THEN
-!   ALLOCATE ( NPSBE(p%NumBl) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the NPSBE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( NPSE ) ) THEN
-!   ALLOCATE ( NPSE(p%NumBl) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the NPSE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PCE ) ) THEN
-!   ALLOCATE ( PCE(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PCE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PDE ) ) THEN
-!   ALLOCATE ( PDE(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PDE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PIE ) ) THEN
-!   ALLOCATE ( PIE(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PIE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PTTE ) ) THEN
-!   ALLOCATE ( PTTE(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PTTE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PTE ) ) THEN
-!   ALLOCATE ( PTE(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PTE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PS ) ) THEN
-!   ALLOCATE ( PS(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PS array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PSBE ) ) THEN
-!   ALLOCATE ( PSBE(p%NumBl,3) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PSBE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PSE ) ) THEN
-!   ALLOCATE ( PSE(p%NumBl,p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PSE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PUE ) ) THEN
-!   ALLOCATE ( PUE(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PUE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( PYE ) ) THEN
-!   ALLOCATE ( PYE(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the PYE array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( Diag ) ) THEN
-!   ALLOCATE ( Diag(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the Diag array.' )
-!   ENDIF
-!ENDIF
 
-!IF (.NOT. ALLOCATED( SrtPS ) ) THEN
-!   ALLOCATE ( SrtPS(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the SrtPS array.' )
-!   ENDIF
-!ENDIF
-!
-!IF (.NOT. ALLOCATED( SrtPSNAUG ) ) THEN
-!   ALLOCATE ( SrtPSNAUG(p%NAug) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the SrtPSNAUG array.' )
-!   ENDIF
-!ENDIF
 
 IF (.NOT. ALLOCATED( OtherState%QD2 ) ) THEN
    ALLOCATE ( OtherState%QD2(p%NDOF,NMX) , STAT=Sttus )
@@ -946,7 +842,6 @@ SUBROUTINE CalcOuts( p,x,y,OtherState )
 
 
 USE                             Blades
-!USE                             DOFs
 USE                             DriveTrain
 USE                             EnvCond
 USE                             Features
@@ -959,7 +854,6 @@ USE                             RtHndSid
 USE                             SimCont
 USE                             TailAero
 USE                             Tower
-USE                             TurbConf
 USE                             TurbCont
 USE                             Waves, ONLY:WaveElevation, WaveVelocity, WaveAcceleration
 
@@ -1378,7 +1272,7 @@ DO I = 1, p%NTwGages
 
    y%AllOuts( TwHtTPxi(I) ) =      rT(TwrGagNd(I),1)
    y%AllOuts( TwHtTPyi(I) ) = -1.0*rT(TwrGagNd(I),3)
-   y%AllOuts( TwHtTPzi(I) ) =      rT(TwrGagNd(I),2) - PtfmRef
+   y%AllOuts( TwHtTPzi(I) ) =      rT(TwrGagNd(I),2) - p%PtfmRef
 
    y%AllOuts( TwHtRPxi(I) ) =  AngPosEF(TwrGagNd(I),1)*R2D
    y%AllOuts( TwHtRPyi(I) ) = -AngPosEF(TwrGagNd(I),3)*R2D
@@ -1505,7 +1399,7 @@ END DO ! K
 
    ! Hub and Rotor Loads:
 
-ComDenom = 0.5*AirDens*ProjArea*y%AllOuts(  WindVxi)*y%AllOuts(  WindVxi)   ! Common denominator used in several expressions
+ComDenom = 0.5*AirDens*p%ProjArea*y%AllOuts(  WindVxi)*y%AllOuts(  WindVxi)   ! Common denominator used in several expressions
 
 y%AllOuts(LSShftFxa) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e1 )
 y%AllOuts(LSShftFya) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e2 )
@@ -1538,7 +1432,7 @@ ENDIF
 y%AllOuts(   RotPwr) = ( x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr) )*y%AllOuts(LSShftMxa)
 IF ( ComDenom /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equations is not zero.
 
-   y%AllOuts( RotCq) = 1000.0*y%AllOuts(LSShftMxa) / ( ComDenom*TipRad )
+   y%AllOuts( RotCq) = 1000.0*y%AllOuts(LSShftMxa) / ( ComDenom*p%TipRad )
    y%AllOuts( RotCp) = 1000.0*y%AllOuts(   RotPwr) / ( ComDenom*y%AllOuts(  WindVxi) )
    y%AllOuts( RotCt) = 1000.0*y%AllOuts(LSShftFxa) /   ComDenom
 
@@ -1568,9 +1462,9 @@ y%AllOuts(    GenTq) = 0.001*GenTrq
 y%AllOuts(   GenPwr) = 0.001*ElecPwr
 IF ( ComDenom /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equations is not zero (ComDenom is the same as it is calculated above).
 
-   y%AllOuts( HSShftCq) = 1000.0*y%AllOuts( HSShftTq) / ( ComDenom*TipRad )
+   y%AllOuts( HSShftCq) = 1000.0*y%AllOuts( HSShftTq) / ( ComDenom*p%TipRad )
    y%AllOuts( HSShftCp) = 1000.0*y%AllOuts(HSShftPwr) / ( ComDenom*y%AllOuts(  WindVxi) )
-   y%AllOuts(    GenCq) = 1000.0*y%AllOuts(    GenTq) / ( ComDenom*TipRad )
+   y%AllOuts(    GenCq) = 1000.0*y%AllOuts(    GenTq) / ( ComDenom*p%TipRad )
    y%AllOuts(    GenCp) = 1000.0*y%AllOuts(   GenPwr) / ( ComDenom*y%AllOuts(  WindVxi) )
 
 ELSE
@@ -1830,7 +1724,6 @@ USE                             InitCond
 USE                             MassInert
 USE                             Modes
 USE                             Tower
-USE                             TurbConf
 
 
 IMPLICIT                        NONE
@@ -1944,31 +1837,31 @@ ENDIF
 
    ! Calculate the structure that furls with the rotor inertia term:
 
-RrfaIner  = RFrlIner - RFrlMass*(       rVDxn*rVDxn*( 1.0 - CRFrlSkw2*CRFrlTlt2 ) &
-                                  +     rVDzn*rVDzn*                  CRFrlTlt2   &
-                                  +     rVDyn*rVDyn*( 1.0 - SRFrlSkw2*CRFrlTlt2 ) &
-                                  - 2.0*rVDxn*rVDzn*        CRFrlSkew*CSRFrlTlt   &
-                                  - 2.0*rVDxn*rVDyn*        CSRFrlSkw*CRFrlTlt2   &
-                                  - 2.0*rVDzn*rVDyn*        SRFrlSkew*CSRFrlTlt     )
+RrfaIner  = RFrlIner - RFrlMass*(      (p%rVDxn**2    )*( 1.0 - p%CRFrlSkw2*p%CRFrlTlt2 ) &
+                                  +    (p%rVDzn**2    )*                    p%CRFrlTlt2   &
+                                  +    (p%rVDyn**2    )*( 1.0 - p%SRFrlSkw2*p%CRFrlTlt2 ) &
+                                  - 2.0*p%rVDxn*p%rVDzn*        p%CRFrlSkew*p%CSRFrlTlt   &
+                                  - 2.0*p%rVDxn*p%rVDyn*        p%CSRFrlSkw*p%CRFrlTlt2   &
+                                  - 2.0*p%rVDzn*p%rVDyn*        p%SRFrlSkew*p%CSRFrlTlt     )
 IF ( RrfaIner < 0.0 )   CALL ProgAbort ( ' RFrlIner must not be less than RFrlMass*( perpendicular distance between rotor-furl'// &
                                      ' axis and CM of the structure that furls with the rotor [not including rotor] )^2.'       )
 
 
    ! Calculate the tail boom inertia term:
 
-AtfaIner  = TFrlIner - BoomMass*(       rWIxn*rWIxn*( 1.0 - CTFrlSkw2*CTFrlTlt2 ) &
-                                  +     rWIzn*rWIzn*                  CTFrlTlt2   &
-                                  +     rWIyn*rWIyn*( 1.0 - STFrlSkw2*CTFrlTlt2 ) &
-                                  - 2.0*rWIxn*rWIzn*        CTFrlSkew*CSTFrlTlt   &
-                                  - 2.0*rWIxn*rWIyn*        CSTFrlSkw*CTFrlTlt2   &
-                                  - 2.0*rWIzn*rWIyn*        STFrlSkew*CSTFrlTlt     )
+AtfaIner  = TFrlIner - BoomMass*(       p%rWIxn*p%rWIxn*( 1.0 - p%CTFrlSkw2*p%CTFrlTlt2 ) &
+                                  +     p%rWIzn*p%rWIzn*                    p%CTFrlTlt2   &
+                                  +     p%rWIyn*p%rWIyn*( 1.0 - p%STFrlSkw2*p%CTFrlTlt2 ) &
+                                  - 2.0*p%rWIxn*p%rWIzn*        p%CTFrlSkew*p%CSTFrlTlt   &
+                                  - 2.0*p%rWIxn*p%rWIyn*        p%CSTFrlSkw*p%CTFrlTlt2   &
+                                  - 2.0*p%rWIzn*p%rWIyn*        p%STFrlSkew*p%CSTFrlTlt     )
 IF ( AtfaIner < 0.0 )   CALL ProgAbort ( ' TFrlIner must not be less than BoomMass*( perpendicular distance between tail-furl'// &
                                      ' axis and tail boom CM )^2.'                                                             )
 
 
    ! Calculate the nacelle inertia terms:
 
-Nacd2Iner = NacYIner - NacMass*( NacCMxn*NacCMxn + NacCMyn*NacCMyn ) ! Nacelle inertia about the d2-axis
+Nacd2Iner = NacYIner - NacMass*( p%NacCMxn**2 + p%NacCMyn**2 ) ! Nacelle inertia about the d2-axis
 IF ( Nacd2Iner < 0.0 )  CALL ProgAbort ( ' NacYIner must not be less than NacMass*( NacCMxn^2 + NacCMyn^2 ).' )
 
 
@@ -1981,7 +1874,7 @@ IF ( Nacd2Iner < 0.0 )  CALL ProgAbort ( ' NacYIner must not be less than NacMas
    ! Also, Initialize RotMass and RotIner to associated hub properties:
 
 IF ( p%NumBl == 2 )  THEN ! 2-blader
-   Hubg1Iner = ( HubIner - HubMass*( ( UndSling - HubCM )**2 ) )/( p%CosDel3**2 )
+   Hubg1Iner = ( HubIner - HubMass*( ( p%UndSling - p%HubCM )**2 ) )/( p%CosDel3**2 )
    Hubg2Iner = Hubg1Iner
    IF ( Hubg1Iner < 0.0 )  CALL ProgAbort ( ' HubIner must not be less than HubMass*( UndSling - HubCM )^2 for 2-blader.' )
 ELSE                    ! 3-blader
@@ -2036,17 +1929,17 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    ! Integrate to find FMomAbvNd:
 
-      FMomAbvNd   (K,J) = ( 0.5*ElmntMass )*( HubRad + RNodes(J  ) + 0.5*DRNodes(J  ) )
+      FMomAbvNd   (K,J) = ( 0.5*ElmntMass )*( p%HubRad + RNodes(J  ) + 0.5*DRNodes(J  ) )
 
       IF ( J == p%BldNodes )  THEN ! Outermost blade element
    ! Add the TipMass() effects:
 
-         FMomAbvNd(K,J) = FmomAbvNd(K,J) + TipMass(K)*TipRad
+         FMomAbvNd(K,J) = FmomAbvNd(K,J) + TipMass(K)*p%TipRad
       ELSE                       ! All other blade elements
    ! Add to FMomAbvNd(K,J) the effects from the (not yet used) portion of element J+1
 
          FMomAbvNd(K,J) = FMomAbvNd(K,J) + FMomAbvNd(K,J+1) &
-                        + ( 0.5*ElMassOld )*( HubRad + RNodes(J+1) - 0.5*DRNodes(J+1) )
+                        + ( 0.5*ElMassOld )*( p%HubRad + RNodes(J+1) - 0.5*DRNodes(J+1) )
       ENDIF
 
 
@@ -2063,8 +1956,8 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    BldCG    (K) = FirstMom (K) / BldMass    (K)
    RotMass      = RotMass      + BldMass    (K)
-   RotIner      = RotIner      + ( SecondMom(K) + BldMass  (K)*HubRad*( 2.0*BldCG(K) + HubRad ) )*( ( COS(PreCone(K)) )**2 )
-
+!   RotIner      = RotIner      + ( SecondMom(K) + BldMass  (K)*p%HubRad*( 2.0*BldCG(K) + p%HubRad ) )*( ( COS(p%PreCone(K)) )**2 )
+   RotIner      = RotIner      + ( SecondMom(K) + BldMass  (K)*p%HubRad*( 2.0*BldCG(K) + p%HubRad ) )*( p%CosPreC(K)**2 )
 ENDDO ! K - Blades
 
 
@@ -2515,7 +2408,6 @@ SUBROUTINE Control( p, x, OtherState, b1 )
    ! This is the main control routine.
 
 
-!USE                             DOFs
 USE                             DriveTrain
 USE                             Features
 USE                             General
@@ -2523,7 +2415,6 @@ USE                             InitCond
 USE                             NacelleYaw
 USE                             RtHndSid
 USE                             SimCont
-USE                             TurbConf
 USE                             TurbCont
 
 
@@ -2967,7 +2858,6 @@ USE                             DriveTrain
 USE                             General
 USE                             Linear
 USE                             SimCont
-USE                             TurbConf
 USE                             TurbCont
 
 IMPLICIT                        NONE
@@ -3248,7 +3138,6 @@ USE                             Switch
 
    ! FAST MODULES:
 
-!USE                             DOFs
 USE                             DriveTrain
 USE                             RtHndSid
 USE                             SimCont
@@ -3469,7 +3358,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
    USE            AeroElem
    USE            Blades
-!   USE            DOFs
    USE            General                                   ! contains file units, too
    USE            InitCond
    USE            Linear
@@ -3478,7 +3366,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    USE            Output
    USE            RtHndSid
    USE            Tower
-   USE            TurbConf
    USE            TurbCont
 
    INTEGER,       INTENT(OUT) :: ErrStat                    ! Determines if an error was encountered
@@ -3569,40 +3456,7 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
       ! MODULE DOFs
 
-   !IF ( ALLOCATED(OtherState%Q                                  ) ) DEALLOCATE(OtherState%Q                                  )
-   !IF ( ALLOCATED(OtherState%QD                                 ) ) DEALLOCATE(OtherState%QD                                 )
-   !IF ( ALLOCATED(OtherState%QD2                                ) ) DEALLOCATE(OtherState%QD2                                )
-   !
-   !IF ( ALLOCATED(Diag                               ) ) DEALLOCATE(Diag                               )
-   !IF ( ALLOCATED(DOF_BE                             ) ) DEALLOCATE(DOF_BE                             )
-   !IF ( ALLOCATED(DOF_BF                             ) ) DEALLOCATE(DOF_BF                             )
    IF ( ALLOCATED(IC                                 ) ) DEALLOCATE(IC                                 )
-   !IF ( ALLOCATED(NPSBE                              ) ) DEALLOCATE(NPSBE                              )
-   !IF ( ALLOCATED(NPSE                               ) ) DEALLOCATE(NPSE                               )
-   !IF ( ALLOCATED(PA                                 ) ) DEALLOCATE(PA                                 )
-   !IF ( ALLOCATED(PB                                 ) ) DEALLOCATE(PB                                 )
-   !IF ( ALLOCATED(PCE                                ) ) DEALLOCATE(PCE                                )
-   !IF ( ALLOCATED(PDE                                ) ) DEALLOCATE(PDE                                )
-   !IF ( ALLOCATED(PF                                 ) ) DEALLOCATE(PF                                 )
-   !IF ( ALLOCATED(PG                                 ) ) DEALLOCATE(PG                                 )
-   !IF ( ALLOCATED(PH                                 ) ) DEALLOCATE(PH                                 )
-   !IF ( ALLOCATED(PIE                                ) ) DEALLOCATE(PIE                                )
-   !IF ( ALLOCATED(PL                                 ) ) DEALLOCATE(PL                                 )
-   !IF ( ALLOCATED(PM                                 ) ) DEALLOCATE(PM                                 )
-   !IF ( ALLOCATED(PN                                 ) ) DEALLOCATE(PN                                 )
-   !IF ( ALLOCATED(PTE                                ) ) DEALLOCATE(PTE                                )
-   !IF ( ALLOCATED(PTTE                               ) ) DEALLOCATE(PTTE                               )
-   !IF ( ALLOCATED(PR                                 ) ) DEALLOCATE(PR                                 )
-   !IF ( ALLOCATED(PS                                 ) ) DEALLOCATE(PS                                 )
-   !IF ( ALLOCATED(PSBE                               ) ) DEALLOCATE(PSBE                               )
-   !IF ( ALLOCATED(PSE                                ) ) DEALLOCATE(PSE                                )
-   !IF ( ALLOCATED(PUE                                ) ) DEALLOCATE(PUE                                )
-   !IF ( ALLOCATED(PX                                 ) ) DEALLOCATE(PX                                 )
-   !IF ( ALLOCATED(PYE                                ) ) DEALLOCATE(PYE                                )
-   !IF ( ALLOCATED(SrtPS                              ) ) DEALLOCATE(SrtPS                              )
-   !IF ( ALLOCATED(SrtPSNAUG                          ) ) DEALLOCATE(SrtPSNAUG                          )
-   !IF ( ALLOCATED(DOF_Flag                           ) ) DEALLOCATE(DOF_Flag                           )
-   !IF ( ALLOCATED(DOF_Desc                           ) ) DEALLOCATE(DOF_Desc                           )
 
 
       ! MODULE General
@@ -3730,9 +3584,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(SolnVec                            ) ) DEALLOCATE(SolnVec                            )
 
 
-!   IF ( ALLOCATED(x%QDT                                ) ) DEALLOCATE(x%QDT                                )
-!   IF ( ALLOCATED(x%QT                                 ) ) DEALLOCATE(x%QT                               )
-
 
       ! MODULE Tower
 
@@ -3767,12 +3618,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(TwSSIner                           ) ) DEALLOCATE(TwSSIner                           )
    IF ( ALLOCATED(TwSSStif                           ) ) DEALLOCATE(TwSSStif                           )
 
-
-      ! MODULE TurbConf
-
-!   IF ( ALLOCATED(CosPreC                            ) ) DEALLOCATE(CosPreC                            )
-   IF ( ALLOCATED(PreCone                            ) ) DEALLOCATE(PreCone                            )
-!   IF ( ALLOCATED(SinPreC                            ) ) DEALLOCATE(SinPreC                            )
 
       ! MODULE TurbCont
 
@@ -4196,7 +4041,6 @@ USE                             Output
 USE                             Platform
 USE                             SimCont
 USE                             Tower
-USE                             TurbConf
 USE                             Waves, ONLY:InitWaves
 
 IMPLICIT                        NONE
@@ -4245,14 +4089,6 @@ DO I = 2,NMX
 ENDDO
 
 
-!   ! Define DOF index locations for the blade modes:
-!
-!DO K = 1,p%NumBl ! Loop through all blades
-!   DOF_BF(K,1) = 16 + 3*(K-1)       ! 1st blade flap mode--DOFs 16, 19, and 22 for blade 1, 2, and 3, respectively
-!   DOF_BE(K,1) = 17 + 3*(K-1)       ! 1st blade edge mode--DOFs 17, 20, and 23 for blade 1, 2, and 3, respectively
-!   DOF_BF(K,2) = 18 + 3*(K-1)       ! 2nd blade flap mode--DOFs 18, 21, and 24 for blade 1, 2, and 3, respectively
-!ENDDO          ! K - All blades
-
 
    ! Define arrays of DOF indices (pointers) that contribute to the angular
    !   velocities of each rigid body of the wind turbine in the inertia frame:
@@ -4262,102 +4098,7 @@ ENDDO
    !       that each DOF velocity is zero (for example, consider disabled
    !       generator DOF, which still spins at constant speed).
 
-!NPX    =  3                         ! Number of DOFs that contribute to the angular velocity of the platform                                                  (body X) in the inertia frame.
-!NPF    =  7                         ! Number of DOFs that contribute to the angular velocity of the tower elements                                            (body F) in the inertia frame.
-!NPB    =  7                         ! Number of DOFs that contribute to the angular velocity of the tower top / baseplate                                     (body B) in the inertia frame.
-!NPN    =  8                         ! Number of DOFs that contribute to the angular velocity of the nacelle                                                   (body N) in the inertia frame.
-!NPR    =  9                         ! Number of DOFs that contribute to the angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame.
-!NPL    = 11                         ! Number of DOFs that contribute to the angular velocity of the low-speed shaft                                           (body L) in the inertia frame.
-!IF ( p%NumBl == 2 )  THEN ! 2-blader
-!   p%NPH = 12                         ! Number of DOFs that contribute to the angular velocity of the hub                                                       (body H) in the inertia frame.
-!   p%NPM = 15                         ! Number of DOFs that contribute to the angular velocity of the blade elements                                            (body M) in the inertia frame.
-!ELSE                    ! 3-blader
-!   p%NPH = 11                         ! Number of DOFs that contribute to the angular velocity of the hub                                                       (body H) in the inertia frame.
-!   p%NPM = 14                         ! Number of DOFs that contribute to the angular velocity of the blade elements                                            (body M) in the inertia frame.
-!ENDIF
-!NPG    = 10                         ! Number of DOFs that contribute to the angular velocity of the generator                                                 (body G) in the inertia frame.
-!NPA    =  9                         ! Number of DOFs that contribute to the angular velocity of the tail                                                      (body A) in the inertia frame.
-
-
-!ALLOCATE ( PX(NPX) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PX array.' )
-!ENDIF
-!
-!ALLOCATE ( PF(NPF) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PF array.' )
-!ENDIF
-
-!ALLOCATE ( PB(NPB) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PB array.' )
-!ENDIF
-
-!ALLOCATE ( PN(NPN) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PN array.' )
-!ENDIF
-
-!ALLOCATE ( PR(NPR) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PR array.' )
-!ENDIF
-
-!ALLOCATE ( PL(NPL) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PL array.' )
-!ENDIF
-!
-!ALLOCATE ( PH(NPH) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PH array.' )
-!ENDIF
-!
-!ALLOCATE ( PM(p%NumBl,NPM) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PM array.' )
-!ENDIF
-!
-!ALLOCATE ( PG(NPG) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PG array.' )
-!ENDIF
-!
-!ALLOCATE ( PA(NPA) , STAT=Sttus )
-!IF ( Sttus /= 0 )  THEN
-!   CALL ProgAbort ( ' Error allocating memory for the PA array.' )
-!ENDIF
-!
-!
-!PX            = (/ DOF_R, DOF_P, DOF_Y /)                                                                                          ! Array of DOF indices (pointers) that contribute to the angular velocity of the platform                                                  (body X) in the inertia frame.
-!PF            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2 /)                                                  ! Array of DOF indices (pointers) that contribute to the angular velocity of the tower elements                                            (body F) in the inertia frame.
-!PB            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2 /)                                                  ! Array of DOF indices (pointers) that contribute to the angular velocity of the tower top / baseplate                                     (body B) in the inertia frame.
-!PN            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw /)                                         ! Array of DOF indices (pointers) that contribute to the angular velocity of the nacelle                                                   (body N) in the inertia frame.
-!PR            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl /)                               ! Array of DOF indices (pointers) that contribute to the angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame.
-!PL            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr /)           ! Array of DOF indices (pointers) that contribute to the angular velocity of the low-speed shaft                                           (body L) in the inertia frame.
-!
-!IF ( p%NumBl == 2 )  THEN ! 2-blader
-!
-!   PH         = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, DOF_Teet /) ! Array of DOF indices (pointers) that contribute to the angular velocity of the hub                                                       (body H) in the inertia frame.
-!   DO K = 1,p%NumBl ! Loop through all blades
-!      PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, DOF_Teet, & ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements                                            (body M) in the inertia frame.
-!                   DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                                   /)
-!   ENDDO          ! K - All blades
-!
-!ELSE                    ! 3-blader
-!
-!   PH         = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr /)           ! Array of DOF indices (pointers) that contribute to the angular velocity of the hub                                                       (body H) in the inertia frame.
-!   DO K = 1,p%NumBl ! Loop through all blades
-!      PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, &           ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements                                            (body M) in the inertia frame.
-!                   DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                         /)
-!   ENDDO          ! K - All blades
-!
-!ENDIF
-!
-!PG            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz /)                     ! Array of DOF indices (pointers) that contribute to the angular velocity of the generator                                                 (body G) in the inertia frame.
-!PA            = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_TFrl /)                               ! Array of DOF indices (pointers) that contribute to the angular velocity of the tail                                                      (body A) in the inertia frame.
-
+!------------
 
    ! Compute the constant blade and tower properties:
 
@@ -4600,7 +4341,7 @@ IF (     ( PtfmModel == 2 ) .AND. CompHydro )  THEN   ! .TRUE. if we have a fixe
    ENDIF
 
    DO J = 1,NWaveKin0   ! Loop through the tower nodes / elements
-      WaveKinzi0(J) = TwrRBHt + HNodes(J) - TwrDraft
+      WaveKinzi0(J) = p%TwrRBHt + HNodes(J) - p%TwrDraft
    ENDDO                ! J - Tower nodes / elements
 
 
@@ -4963,7 +4704,6 @@ USE                             SimCont
 USE                             TailAero
 USE                             TipBrakes
 USE                             Tower
-USE                             TurbConf
 USE                             TurbCont
 
 
@@ -5127,27 +4867,27 @@ CALL SetCoordSy( CoordSys, p, x )
    !   that are not dependent on the distributed tower or blade parameters:
 
 rZ    = x%QT(DOF_Sg)* CoordSys%z1 + x%QT(DOF_Hv)* CoordSys%z2 - x%QT(DOF_Sw)* CoordSys%z3                   ! Position vector from inertia frame origin to platform reference (point Z).
-rZY   =        rZYzt* CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to platform mass center (point Y).
-rZT0  =       rZT0zt* CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to tower base (point T(0))
+rZY   =        p%rZYzt* CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to platform mass center (point Y).
+rZT0  =       p%rZT0zt* CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to tower base (point T(0))
 rZO   = ( x%QT(DOF_TFA1) + x%QT(DOF_TFA2)                                             )*CoordSys%a1 &       ! Position vector from platform reference (point Z) to tower-top / base plate (point O).
-      + ( RefTwrHt - 0.5*(       AxRedTFA(1,1,TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
+      + ( p%RefTwrHt - 0.5*(       AxRedTFA(1,1,TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
                            +     AxRedTFA(2,2,TTopNode)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
                            + 2.0*AxRedTFA(1,2,TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
                            +     AxRedTSS(1,1,TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS1) &
                            +     AxRedTSS(2,2,TTopNode)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
                            + 2.0*AxRedTSS(1,2,TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*CoordSys%a2 &
       + ( x%QT(DOF_TSS1) + x%QT(DOF_TSS2)                                                 )*CoordSys%a3
-rOU   =    NacCMxn*CoordSys%d1  +    NacCMzn* CoordSys%d2 -    NacCMyn* CoordSys%d3                         ! Position vector from tower-top / base plate (point O) to nacelle center of mass (point U).
-rOV   =  RFrlPntxn*CoordSys%d1  +  RFrlPntzn* CoordSys%d2 -  RFrlPntyn* CoordSys%d3                         ! Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V).
-rVIMU =    rVIMUxn*CoordSys%rf1 +    rVIMUzn*CoordSys%rf2 -    rVIMUyn*CoordSys%rf3                         ! Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU).
-rVD   =      rVDxn*CoordSys%rf1 +      rVDzn*CoordSys%rf2 -      rVDyn*CoordSys%rf3                         ! Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D).
-rVP   =      rVPxn*CoordSys%rf1 +      rVPzn*CoordSys%rf2 -      rVPyn*CoordSys%rf3 + OverHang*CoordSys%c1  ! Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P).
-rPQ   =  -UndSling*CoordSys%g1                                                                              ! Position vector from teeter pin (point P) to apex of rotation (point Q).
-rQC   =      HubCM*CoordSys%g1                                                                              ! Position vector from apex of rotation (point Q) to hub center of mass (point C).
-rOW   =  TFrlPntxn*CoordSys%d1  +  TFrlPntzn* CoordSys%d2 -  TFrlPntyn* CoordSys%d3                         ! Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W).
-rWI   =      rWIxn*CoordSys%tf1 +      rWIzn*CoordSys%tf2 -      rWIyn*CoordSys%tf3                         ! Position vector from specified point on  tail-furl axis (point W) to tail boom center of mass     (point I).
-rWJ   =      rWJxn*CoordSys%tf1 +      rWJzn*CoordSys%tf2 -      rWJyn*CoordSys%tf3                         ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J).
-rWK   =      rWKxn*CoordSys%tf1 +      rWKzn*CoordSys%tf2 -      rWKyn*CoordSys%tf3                         ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K).
+rOU   =    p%NacCMxn*CoordSys%d1  +  p%NacCMzn*  CoordSys%d2  -  p%NacCMyn  *CoordSys%d3                          ! Position vector from tower-top / base plate (point O) to nacelle center of mass (point U).
+rOV   =  p%RFrlPntxn*CoordSys%d1  +  p%RFrlPntzn*CoordSys%d2  -  p%RFrlPntyn*CoordSys%d3                          ! Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V).
+rVIMU =    p%rVIMUxn*CoordSys%rf1 +  p%rVIMUzn  *CoordSys%rf2 -   p%rVIMUyn *CoordSys%rf3                         ! Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU).
+rVD   =      p%rVDxn*CoordSys%rf1 +    p%rVDzn  *CoordSys%rf2 -     p%rVDyn *CoordSys%rf3                         ! Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D).
+rVP   =      p%rVPxn*CoordSys%rf1 +    p%rVPzn  *CoordSys%rf2 -     p%rVPyn *CoordSys%rf3 + p%OverHang*CoordSys%c1  ! Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P).
+rPQ   =  -p%UndSling*CoordSys%g1                                                                              ! Position vector from teeter pin (point P) to apex of rotation (point Q).
+rQC   =      p%HubCM*CoordSys%g1                                                                              ! Position vector from apex of rotation (point Q) to hub center of mass (point C).
+rOW   =  p%TFrlPntxn*CoordSys%d1  + p%TFrlPntzn* CoordSys%d2 -  p%TFrlPntyn*CoordSys%d3                          ! Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W).
+rWI   =    p%rWIxn*CoordSys%tf1 +       p%rWIzn* CoordSys%tf2 -     p%rWIyn*CoordSys%tf3                         ! Position vector from specified point on  tail-furl axis (point W) to tail boom center of mass     (point I).
+rWJ   =    p%rWJxn*CoordSys%tf1 +       p%rWJzn* CoordSys%tf2 -     p%rWJyn*CoordSys%tf3                         ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J).
+rWK   =    p%rWKxn*CoordSys%tf1 +       p%rWKzn* CoordSys%tf2 -     p%rWKyn*CoordSys%tf3                         ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K).
 rPC   = rPQ + rQC                                                                                           ! Position vector from teeter pin (point P) to hub center of mass (point C).
 rT0O  = rZO - rZT0                                                                                          ! Position vector from the tower base (point T(0)) to tower-top / base plate (point O).
 rO    = rZ  + rZO                                                                                           ! Position vector from inertial frame origin to tower-top / base plate (point O).
@@ -5177,7 +4917,7 @@ DO K = 1,p%NumBl ! Loop through all blades
                            + 2.0*AxRedBld(K,1,2,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
                            + 2.0*AxRedBld(K,2,3,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
                            + 2.0*AxRedBld(K,1,3,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )   ) )*CoordSys%j3(K,:)
-   rQS (K,p%TipNode,:) = rS0S(K,p%TipNode,:) + HubRad*CoordSys%j3(K,:)                  ! Position vector from apex of rotation (point Q) to the blade tip (point S(BldFlexL)).
+   rQS (K,p%TipNode,:) = rS0S(K,p%TipNode,:) + p%HubRad*CoordSys%j3(K,:)                  ! Position vector from apex of rotation (point Q) to the blade tip (point S(BldFlexL)).
    rS  (K,p%TipNode,:) = rQS (K,p%TipNode,:) + rQ                              ! Position vector from inertial frame origin      to the blade tip (point S(BldFlexL)).
 
 
@@ -5199,7 +4939,7 @@ DO K = 1,p%NumBl ! Loop through all blades
                         + 2.0*AxRedBld(K,1,2,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
                         + 2.0*AxRedBld(K,2,3,J)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
                         + 2.0*AxRedBld(K,1,3,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )   ) )*CoordSys%j3(K,:)
-      rQS (K,J,:) = rS0S(K,J,:) + HubRad*CoordSys%j3(K,:)                  ! Position vector from apex of rotation (point Q) to the current node (point S(RNodes(J)).
+      rQS (K,J,:) = rS0S(K,J,:) + p%HubRad*CoordSys%j3(K,:)                  ! Position vector from apex of rotation (point Q) to the current node (point S(RNodes(J)).
       rS  (K,J,:) = rQS (K,J,:) + rQ                              ! Position vector from inertial frame origin      to the current node (point S(RNodes(J)).
 
       IF ( CompAero )  THEN   ! Calculate the blade element aerodynamic loads using AeroDyn.
@@ -5218,7 +4958,7 @@ DO K = 1,p%NumBl ! Loop through all blades
 
          ADAeroMarkers%Blade(J,K)%Position(1)      =     rAerCen(1)              ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the xi ( z1) direction
          ADAeroMarkers%Blade(J,K)%Position(2)      = -1.*rAerCen(3)              ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the yi (-z3) direction
-         ADAeroMarkers%Blade(J,K)%Position(3)      =     rAerCen(2) - PtfmRef    ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
+         ADAeroMarkers%Blade(J,K)%Position(3)      =     rAerCen(2) - p%PtfmRef  ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
 
 
 !JASON: WE SHOULD REALLY BE PASSING TO AERODYN THE LINEAR VELOCITIES OF THE AERODYNAMIC CENTER IN THE INERTIA FRAME, NOT SIMPLY THE LINEAR VELOCITIES OF POINT S.  IS THERE ANY WAY OF GETTING THIS VELOCITY?<--DO THIS, WHEN YOU ADD THE COUPLED MODE SHAPES!!!!
@@ -5233,19 +4973,19 @@ END DO !K = 1,p%NumBl
    ! teeter deflections like blade deflections:
 
 
-ADInterfaceComponents%Hub%Position(:)       = (/ rP(1), -1.*rP(3), rP(2) - PtfmRef /)
+ADInterfaceComponents%Hub%Position(:)       = (/ rP(1), -1.*rP(3), rP(2) - p%PtfmRef /)
 
 
    ! Rotor furl position should be rP instead of rV, but AeroDyn needs this for the
    ! HubVDue2Yaw calculation:
 
-ADInterfaceComponents%RotorFurl%Position(:) = (/ rV(1), -1.*rV(3), rV(2) - PtfmRef /)
+ADInterfaceComponents%RotorFurl%Position(:) = (/ rV(1), -1.*rV(3), rV(2) - p%PtfmRef /)
 
-ADInterfaceComponents%Nacelle%Position(:)   = (/ rO(1), -1.*rO(3), rO(2) - PtfmRef /)
+ADInterfaceComponents%Nacelle%Position(:)   = (/ rO(1), -1.*rO(3), rO(2) - p%PtfmRef /)
 
    ! Tower base position should be rT(0) instead of rZ, but AeroDyn needs this for
    ! the HubVDue2Yaw calculation:
-ADInterfaceComponents%Tower%Position(:)     = (/ rZ(1), -1.*rZ(3), rZ(2) - PtfmRef /)
+ADInterfaceComponents%Tower%Position(:)     = (/ rZ(1), -1.*rZ(3), rZ(2) - p%PtfmRef /)
 
 
    !-------------------------------------------------------------------------------------------------
@@ -5953,7 +5693,7 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    ! Calculate the position vector from the teeter pin to the blade root:
 
-   rPS0 = rPQ + HubRad*CoordSys%j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
+   rPS0 = rPQ + p%HubRad*CoordSys%j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
 
 
    ! Calculate the tip drag forces if necessary:
@@ -6254,7 +5994,7 @@ IF ( CompAero )  THEN   ! Calculate the tail aerodynamic forces using AeroDyn.
    CALL TFinAero( rK(1), -rK(3), rK(2),                  &
                   DOT_PRODUCT( LinVelEK,  CoordSys%p1 ), &
                   DOT_PRODUCT( LinVelEK, -CoordSys%p3 ), &
-                  DOT_PRODUCT( LinVelEK,  CoordSys%p2 ), CoordSys, x )
+                  DOT_PRODUCT( LinVelEK,  CoordSys%p2 ), CoordSys, x, p )
 
 
    ! Vectorize these values into FKAero and MAAero:
@@ -6552,7 +6292,7 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
    !   TwrFt(1:6).
 
 
-   CALL TwrLoading ( J, rT(   J,1), -rT(      J,3), ( rT(      J,2) - PtfmRef ), AngPosEF(J,1), -AngPosEF(J,3), AngPosEF(J,2), &
+   CALL TwrLoading ( J, rT(   J,1), -rT(      J,3), ( rT(      J,2) - p%PtfmRef ), AngPosEF(J,1), -AngPosEF(J,3), AngPosEF(J,2), &
                      LinVelET(J,1), -LinVelET(J,3),   LinVelET(J,2)            , AngVelEF(J,1), -AngVelEF(J,3), AngVelEF(J,2)  )
 
 
@@ -7169,7 +6909,6 @@ USE                             Blades
 USE                             RtHndSid
 USE                             Tower
 USE                             SimCont, ONLY: ZTime
-USE                             TurbConf
 USE                             TurbCont
 
 
@@ -7283,23 +7022,23 @@ CoordSys%d3 = SNacYaw*CoordSys%b1 + CNacYaw*CoordSys%b3     ! Vector / direction
 CRotFurl = COS( x%QT(DOF_RFrl) )
 SRotFurl = SIN( x%QT(DOF_RFrl) )
 
-CoordSys%rf1 = ( ( 1.0 - CRFrlSkw2*CRFrlTlt2 )*CRotFurl + CRFrlSkw2*CRFrlTlt2          )*CoordSys%d1 &
-             + ( CRFrlSkew*CSRFrlTlt*( 1.0 - CRotFurl ) - SRFrlSkew*CRFrlTilt*SRotFurl )*CoordSys%d2 &
-             + ( CSRFrlSkw*CRFrlTlt2*( CRotFurl - 1.0 ) -           SRFrlTilt*SRotFurl )*CoordSys%d3
-CoordSys%rf2 = ( CRFrlSkew*CSRFrlTlt*( 1.0 - CRotFurl ) + SRFrlSkew*CRFrlTilt*SRotFurl )*CoordSys%d1 &
-             + (           CRFrlTlt2          *CRotFurl +           SRFrlTlt2          )*CoordSys%d2 &
-             + ( SRFrlSkew*CSRFrlTlt*( CRotFurl - 1.0 ) + CRFrlSkew*CRFrlTilt*SRotFurl )*CoordSys%d3
-CoordSys%rf3 = ( CSRFrlSkw*CRFrlTlt2*( CRotFurl - 1.0 ) +           SRFrlTilt*SRotFurl )*CoordSys%d1 &
-             + ( SRFrlSkew*CSRFrlTlt*( CRotFurl - 1.0 ) - CRFrlSkew*CRFrlTilt*SRotFurl )*CoordSys%d2 &
-             + ( ( 1.0 - SRFrlSkw2*CRFrlTlt2 )*CRotFurl + SRFrlSkw2*CRFrlTlt2          )*CoordSys%d3
-CoordSys%rfa = CRFrlSkew*CRFrlTilt*CoordSys%d1 + SRFrlTilt*CoordSys%d2 - SRFrlSkew*CRFrlTilt*CoordSys%d3
+CoordSys%rf1 = ( (   1.0 - p%CRFrlSkw2*p%CRFrlTlt2 )*CRotFurl   + p%CRFrlSkw2*p%CRFrlTlt2          )*CoordSys%d1 &
+             + ( p%CRFrlSkew*p%CSRFrlTlt*( 1.0 -     CRotFurl ) - p%SRFrlSkew*p%CRFrlTilt*SRotFurl )*CoordSys%d2 &
+             + ( p%CSRFrlSkw*p%CRFrlTlt2*( CRotFurl - 1.0     ) -             p%SRFrlTilt*SRotFurl )*CoordSys%d3
+CoordSys%rf2 = ( p%CRFrlSkew*p%CSRFrlTlt*( 1.0 -     CRotFurl ) + p%SRFrlSkew*p%CRFrlTilt*SRotFurl )*CoordSys%d1 &
+             + (             p%CRFrlTlt2*            CRotFurl   +             p%SRFrlTlt2          )*CoordSys%d2 &
+             + ( p%SRFrlSkew*p%CSRFrlTlt*( CRotFurl - 1.0     ) + p%CRFrlSkew*p%CRFrlTilt*SRotFurl )*CoordSys%d3
+CoordSys%rf3 = ( p%CSRFrlSkw*p%CRFrlTlt2*( CRotFurl - 1.0     ) +             p%SRFrlTilt*SRotFurl )*CoordSys%d1 &
+             + ( p%SRFrlSkew*p%CSRFrlTlt*( CRotFurl - 1.0     ) - p%CRFrlSkew*p%CRFrlTilt*SRotFurl )*CoordSys%d2 &
+             + ( (   1.0 - p%SRFrlSkw2*p%CRFrlTlt2 )*CRotFurl   + p%SRFrlSkw2*p%CRFrlTlt2          )*CoordSys%d3
+CoordSys%rfa = p%CRFrlSkew*p%CRFrlTilt*CoordSys%d1 + p%SRFrlTilt*CoordSys%d2 - p%SRFrlSkew*p%CRFrlTilt*CoordSys%d3
 
 
    ! Shaft coordinate system:
 
-CoordSys%c1 =  CShftSkew*CShftTilt*CoordSys%rf1 + SShftTilt*CoordSys%rf2 - SShftSkew*CShftTilt*CoordSys%rf3  ! Vector / direction c1 (=  xs from the IEC coord. system).
-CoordSys%c2 = -CShftSkew*SShftTilt*CoordSys%rf1 + CShftTilt*CoordSys%rf2 + SShftSkew*SShftTilt*CoordSys%rf3  ! Vector / direction c2 (=  zs from the IEC coord. system).
-CoordSys%c3 =  SShftSkew*          CoordSys%rf1                          + CShftSkew*          CoordSys%rf3  ! Vector / direction c3 (= -ys from the IEC coord. system).
+CoordSys%c1 =  p%CShftSkew*p%CShftTilt*CoordSys%rf1 + p%SShftTilt*CoordSys%rf2 - p%SShftSkew*p%CShftTilt*CoordSys%rf3  ! Vector / direction c1 (=  xs from the IEC coord. system).
+CoordSys%c2 = -p%CShftSkew*p%SShftTilt*CoordSys%rf1 + p%CShftTilt*CoordSys%rf2 + p%SShftSkew*p%SShftTilt*CoordSys%rf3  ! Vector / direction c2 (=  zs from the IEC coord. system).
+CoordSys%c3 =  p%SShftSkew*           CoordSys%rf1                            + p%CShftSkew*            CoordSys%rf3  ! Vector / direction c3 (= -ys from the IEC coord. system).
 
 
    ! Azimuth coordinate system:
@@ -7441,29 +7180,29 @@ ENDDO ! K - Blades
 CTailFurl = COS( x%QT(DOF_TFrl) )
 STailFurl = SIN( x%QT(DOF_TFrl) )
 
-CoordSys%tf1 = ( ( 1.0 - CTFrlSkw2*CTFrlTlt2 )*CTailFurl + CTFrlSkw2*CTFrlTlt2           )*CoordSys%d1 &
-             + ( CTFrlSkew*CSTFrlTlt*( 1.0 - CTailFurl ) - STFrlSkew*CTFrlTilt*STailFurl )*CoordSys%d2 &
-             + ( CSTFrlSkw*CTFrlTlt2*( CTailFurl - 1.0 ) -           STFrlTilt*STailFurl )*CoordSys%d3
-CoordSys%tf2 = ( CTFrlSkew*CSTFrlTlt*( 1.0 - CTailFurl ) + STFrlSkew*CTFrlTilt*STailFurl )*CoordSys%d1 &
-             + (           CTFrlTlt2          *CTailFurl +           STFrlTlt2           )*CoordSys%d2 &
-             + ( STFrlSkew*CSTFrlTlt*( CTailFurl - 1.0 ) + CTFrlSkew*CTFrlTilt*STailFurl )*CoordSys%d3
-CoordSys%tf3 = ( CSTFrlSkw*CTFrlTlt2*( CTailFurl - 1.0 ) +           STFrlTilt*STailFurl )*CoordSys%d1 &
-             + ( STFrlSkew*CSTFrlTlt*( CTailFurl - 1.0 ) - CTFrlSkew*CTFrlTilt*STailFurl )*CoordSys%d2 &
-             + ( ( 1.0 - STFrlSkw2*CTFrlTlt2 )*CTailFurl + STFrlSkw2*CTFrlTlt2           )*CoordSys%d3
-CoordSys%tfa = CTFrlSkew*CTFrlTilt*CoordSys%d1 + STFrlTilt*CoordSys%d2 - STFrlSkew*CTFrlTilt*CoordSys%d3
+CoordSys%tf1 = ( ( 1.0 - p%CTFrlSkw2*p%CTFrlTlt2 )*CTailFurl  + p%CTFrlSkw2*p%CTFrlTlt2           )*CoordSys%d1 &
+             + ( p%CTFrlSkew*p%CSTFrlTlt*(  1.0 - CTailFurl ) - p%STFrlSkew*p%CTFrlTilt*STailFurl )*CoordSys%d2 &
+             + ( p%CSTFrlSkw*p%CTFrlTlt2*( CTailFurl - 1.0  ) -             p%STFrlTilt*STailFurl )*CoordSys%d3
+CoordSys%tf2 = ( p%CTFrlSkew*p%CSTFrlTlt*(  1.0 - CTailFurl ) + p%STFrlSkew*p%CTFrlTilt*STailFurl )*CoordSys%d1 &
+             + (             p%CTFrlTlt2*         CTailFurl +               p%STFrlTlt2           )*CoordSys%d2 &
+             + ( p%STFrlSkew*p%CSTFrlTlt*( CTailFurl - 1.0  ) + p%CTFrlSkew*p%CTFrlTilt*STailFurl )*CoordSys%d3
+CoordSys%tf3 = ( p%CSTFrlSkw*p%CTFrlTlt2*( CTailFurl - 1.0  ) +             p%STFrlTilt*STailFurl )*CoordSys%d1 &
+             + ( p%STFrlSkew*p%CSTFrlTlt*( CTailFurl - 1.0  ) - p%CTFrlSkew*p%CTFrlTilt*STailFurl )*CoordSys%d2 &
+             + ( ( 1.0 - p%STFrlSkw2*p%CTFrlTlt2 )*CTailFurl  + p%STFrlSkw2*p%CTFrlTlt2           )*CoordSys%d3
+CoordSys%tfa = p%CTFrlSkew*p%CTFrlTilt*CoordSys%d1 + p%STFrlTilt*CoordSys%d2 - p%STFrlSkew*p%CTFrlTilt*CoordSys%d3
 
 
    ! Tail fin coordinate system:
 
-CoordSys%p1 = (                       CTFinSkew*CTFinTilt           )*CoordSys%tf1 &   ! Vector / direction p1 (= tail fin  x).
-            + (                                 STFinTilt           )*CoordSys%tf2 &
-            + (                     - STFinSkew*CTFinTilt           )*CoordSys%tf3
-CoordSys%p2 = ( STFinSkew*STFinBank - CTFinSkew*STFinTilt*CTFinBank )*CoordSys%tf1 &   ! Vector / direction p2 (= tail fin  z).
-            + (                                 CTFinTilt*CTFinBank )*CoordSys%tf2 &
-            + ( CTFinSkew*STFinBank + STFinSkew*STFinTilt*CTFinBank )*CoordSys%tf3
-CoordSys%p3 = ( STFinSkew*CTFinBank + CTFinSkew*STFinTilt*STFinBank )*CoordSys%tf1 &   ! Vector / direction p3 (= tail fin -y).
-            + (                     -           CTFinTilt*STFinBank )*CoordSys%tf2 &
-            + ( CTFinSkew*CTFinBank - STFinSkew*STFinTilt*STFinBank )*CoordSys%tf3
+CoordSys%p1 = (                           p%CTFinSkew*p%CTFinTilt             )*CoordSys%tf1 &   ! Vector / direction p1 (= tail fin  x).
+            + (                                       p%STFinTilt             )*CoordSys%tf2 &
+            + (                         - p%STFinSkew*p%CTFinTilt             )*CoordSys%tf3
+CoordSys%p2 = ( p%STFinSkew*p%STFinBank - p%CTFinSkew*p%STFinTilt*p%CTFinBank )*CoordSys%tf1 &   ! Vector / direction p2 (= tail fin  z).
+            + (                                       p%CTFinTilt*p%CTFinBank )*CoordSys%tf2 &
+            + ( p%CTFinSkew*p%STFinBank + p%STFinSkew*p%STFinTilt*p%CTFinBank )*CoordSys%tf3
+CoordSys%p3 = ( p%STFinSkew*p%CTFinBank + p%CTFinSkew*p%STFinTilt*p%STFinBank )*CoordSys%tf1 &   ! Vector / direction p3 (= tail fin -y).
+            + (                         -             p%CTFinTilt*p%STFinBank )*CoordSys%tf2 &
+            + ( p%CTFinSkew*p%CTFinBank - p%STFinSkew*p%STFinTilt*p%STFinBank )*CoordSys%tf3
 
 
 
@@ -7485,7 +7224,6 @@ SUBROUTINE SetEnabledDOFIndexArrays( p, DOF )
    !       from smallest to largest DOF index.
 
 
-USE                             TurbConf
 
 IMPLICIT                        NONE
 
@@ -8471,12 +8209,6 @@ ENDDO
 
    ! We're done!
 
-!CALL CoordSys_Dealloc( OtherSt_StrD%CoordSys, ErrStat, ErrMsg )  ! this happens in StrD_End
-!IF (ErrStat /= ErrID_none) THEN
-!   CALL WrScr( ' Error in SUBROUTINE TimeMarch: ' )
-!   CALL WrScr( '  '//TRIM(ErrMsg) )
-!END IF
-!
 
    ! Output the binary file if requested
 
