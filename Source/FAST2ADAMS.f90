@@ -81,7 +81,6 @@ USE                             General
 USE                             MassInert
 USE                             Output
 USE                             SimCont
-USE                             Tower
 USE                             TurbCont
 
 
@@ -259,7 +258,6 @@ USE                             Output
 USE                             Platform
 USE                             SimCont
 USE                             TipBrakes
-USE                             Tower
 
 
 IMPLICIT                        NONE
@@ -488,7 +486,6 @@ USE                             TeeterVars
 USE                             TailAero
 USE                             TailFurling
 USE                             TipBrakes
-USE                             Tower
 USE                             TurbCont
 USE                             FASTSubs    !SetCoordSy
 
@@ -1211,13 +1208,13 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,'(A,I2.2,A)') "!                             adams_view_name='UndeflTowerSec", J, "_M'"
    WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
    WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( 1000 )) !PlatformRef_M
-   WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', p%rZT0zt + HNodes(J) 
+   WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', p%rZT0zt + p%HNodes(J) 
    WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
    ! PART and elastic axis:
 
    TmpID = 1100 + J
-   ThnBarI = MassT(J)*( DHNodes(J)**3 )/12.0 ! Define the transverse inertias of the tower element (both identical) to be that of a thin uniform bar.
-   TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + ( p%rZT0zt + HNodes(J) )*CoordSys%a2 ! rT = Position vector from ground to current tower node (point T(J))
+   ThnBarI = p%MassT(J)*( p%DHNodes(J)**3 )/12.0 ! Define the transverse inertias of the tower element (both identical) to be that of a thin uniform bar.
+   TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + ( p%rZT0zt + p%HNodes(J) )*CoordSys%a2 ! rT = Position vector from ground to current tower node (point T(J))
    TmpVec1 = TmpVec + CoordSys%t1(J,:)
    TmpVec2 = TmpVec + CoordSys%t2(J,:)
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, '_P'''
@@ -1226,9 +1223,9 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,FmtTRTRTR   )  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! section using the
    WRITE (UnAD,FmtTRTRTR   )  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
    WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Int2LStr( 1500 + J ))
-   WRITE (UnAD,FmtTR       )  ', MASS = ', MassT(J)*DHNodes(J) + SmllNmbr
-   WRITE (UnAD,FmtTRTRTR   )  ', IP = ', ( ( InerTFA(J) + InerTSS(J) )*DHNodes(J) ) + SmllNmbr, ', ', &
-                              ( InerTFA(J)*DHNodes(J) ) + ThnBarI + SmllNmbr, ', ', ( InerTSS(J)*DHNodes(J) ) + ThnBarI + SmllNmbr
+   WRITE (UnAD,FmtTR       )  ', MASS = ', p%MassT(J)*p%DHNodes(J) + SmllNmbr
+   WRITE (UnAD,FmtTRTRTR   )  ', IP = ', ( ( p%InerTFA(J) + p%InerTSS(J) )*p%DHNodes(J) ) + SmllNmbr, ', ', &
+                              ( p%InerTFA(J)*p%DHNodes(J) ) + ThnBarI + SmllNmbr, ', ', ( p%InerTSS(J)*p%DHNodes(J) ) + ThnBarI + SmllNmbr
 
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'Elastic_M'''
    WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID ))
@@ -1251,16 +1248,16 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'Graphics_M'''
    WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
    WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
-   WRITE (UnAD,FmtTRTRTR   )  ', QP = ', -0.5*DHNodes(J), ', ', 0.0, ', ', 0.0
+   WRITE (UnAD,FmtTRTRTR   )  ', QP = ', -0.5*p%DHNodes(J), ', ', 0.0, ', ', 0.0
    WRITE (UnAD,FmtText     )  ', REULER = 90D, 90D, 90D'
 
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, '_G'''
    WRITE (UnAD,FmtText     )  'GRAPHICS/'//TRIM(Int2LStr( TmpID2 ))
    WRITE (UnAD,FmtText     )  ', CYLINDER'
    WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtTR       )  ', LENGTH = ', DHNodes(J)
+   WRITE (UnAD,FmtTR       )  ', LENGTH = ', p%DHNodes(J)
    WRITE (UnAD,FmtText     )  ', SIDES = '//TRIM(Int2LStr( NSides ))
-   WRITE (UnAD,FmtTR       )  ', RADIUS = ', TwrBaseRad + ( TwrTopRad - TwrBaseRad )*HNodesNorm(J) ! Linearly interpolate the tower base and tower top radii.
+   WRITE (UnAD,FmtTR       )  ', RADIUS = ', TwrBaseRad + ( TwrTopRad - TwrBaseRad )*p%HNodesNorm(J) ! Linearly interpolate the tower base and tower top radii.
    WRITE (UnAD,FmtText     )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
 
@@ -1270,7 +1267,7 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TwrSec', J, 'ToTwrSecBelow_M'''
    WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
    WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
-   WRITE (UnAD,FmtTRTRTR   )  ', QP = ', -0.5*DHNodes(J), ', ', 0.0, ', ', 0.0
+   WRITE (UnAD,FmtTRTRTR   )  ', QP = ', -0.5*p%DHNodes(J), ', ', 0.0, ', ', 0.0
    WRITE (UnAD,FmtText     )  ', REULER = 0D, 0D, 0D'
 
 
@@ -1280,7 +1277,7 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TwrSec', J, 'ToTwrSecAbove_M'''
    WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
    WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
-   WRITE (UnAD,FmtTRTRTR   )  ', QP = ', 0.5*DHNodes(J), ', ', 0.0, ', ', 0.0
+   WRITE (UnAD,FmtTRTRTR   )  ', QP = ', 0.5*p%DHNodes(J), ', ', 0.0, ', ', 0.0
    WRITE (UnAD,FmtText     )  ', REULER = 0D, 0D, 0D'
 
 
@@ -1290,7 +1287,7 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'CM_M'''
    WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
    WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
-   WRITE (UnAD,FmtTRTRTR   )  ', QP = ', 0.0, ', ', -cgOffTSS(J), ', ', cgOffTFA(J)
+   WRITE (UnAD,FmtTRTRTR   )  ', QP = ', 0.0, ', ', -p%cgOffTSS(J), ', ', p%cgOffTFA(J)
    WRITE (UnAD,FmtText     )  ', REULER = 0D, 0D, 0D'
 
 
@@ -2938,22 +2935,22 @@ ENDSELECT
 
 WRITE (UnAD,FmtText  )  '!------------------------------------ Tower ------------------------------------'
 
-CRatioTFA = 0.01*TwrFADmp(1)/( Pi*FreqTFA(1,1) )   ! Use the same damping ratio as used for the first FA mode in FAST.
-CRatioTSS = 0.01*TwrSSDmp(1)/( Pi*FreqTSS(1,1) )   ! Use the same damping ratio as used for the first SS mode in FAST.
+CRatioTFA = 0.01*p%TwrFADmp(1)/( Pi*FreqTFA(1,1) )   ! Use the same damping ratio as used for the first FA mode in FAST.
+CRatioTSS = 0.01*p%TwrSSDmp(1)/( Pi*FreqTSS(1,1) )   ! Use the same damping ratio as used for the first SS mode in FAST.
 TmpID  = 1400                                      ! ID of the MARKER on the top    of the tower rigid base.
 TmpID2 = 1100 + 1                                  ! ID of the MARKER in the middle of     tower element 1.
-TmpLength  = 0.5*DHNodes(1)                        ! Distance between tower node 1 and the top of the tower rigid base.
+TmpLength  = 0.5*p%DHNodes(1)                        ! Distance between tower node 1 and the top of the tower rigid base.
 TmpLength2 = TmpLength*TmpLength                   ! = TmpLength^2.
 TmpLength3 = TmpLength*TmpLength2                  ! = TmpLength^3.
 KMatrix      =  0.0                                ! Initialize KMatrix to zero.
-KMatrix(1,1) =  0.001*     StiffTEA(1)/TmpLength   ! Use the same KMatrix specified in the ADAMS/WT user's guide.
-KMatrix(2,2) =  0.001*12.0*StiffTSS(1)/TmpLength3
-KMatrix(3,3) =  0.001*12.0*StiffTFA(1)/TmpLength3
-KMatrix(4,4) =  0.001*     StiffTGJ(1)/TmpLength
-KMatrix(5,5) =  0.001* 4.0*StiffTFA(1)/TmpLength
-KMatrix(6,6) =  0.001* 4.0*StiffTSS(1)/TmpLength
-KMatrix(2,6) = -0.001* 6.0*StiffTSS(1)/TmpLength2
-KMatrix(3,5) =  0.001* 6.0*StiffTFA(1)/TmpLength2
+KMatrix(1,1) =  0.001*     p%StiffTEA(1)/TmpLength   ! Use the same KMatrix specified in the ADAMS/WT user's guide.
+KMatrix(2,2) =  0.001*12.0*p%StiffTSS(1)/TmpLength3
+KMatrix(3,3) =  0.001*12.0*p%StiffTFA(1)/TmpLength3
+KMatrix(4,4) =  0.001*     p%StiffTGJ(1)/TmpLength
+KMatrix(5,5) =  0.001* 4.0*p%StiffTFA(1)/TmpLength
+KMatrix(6,6) =  0.001* 4.0*p%StiffTSS(1)/TmpLength
+KMatrix(2,6) = -0.001* 6.0*p%StiffTSS(1)/TmpLength2
+KMatrix(3,5) =  0.001* 6.0*p%StiffTFA(1)/TmpLength2
 KMatrix(6,2) = KMatrix(2,6)
 KMatrix(5,3) = KMatrix(3,5)
 CMatrix      =  0.0                                ! Initialize CMatrix to zero.
@@ -3006,18 +3003,18 @@ DO J = 2,p%TwrNodes ! Loop through all but the innermost tower nodes/elements
 
    TmpID  = 1100 + J - 1                           ! ID of the MARKER in the middle of tower element J - 1.
    TmpID2 = 1100 + J                               ! ID of the MARKER in the middle of tower element J.
-   TmpLength  = 0.5*( DHNodes(J) + DHNodes(J-1) )  ! Distance between tower node J and node J-1.
+   TmpLength  = 0.5*( p%DHNodes(J) + p%DHNodes(J-1) )  ! Distance between tower node J and node J-1.
    TmpLength2 = TmpLength*TmpLength                ! = TmpLength^2.
    TmpLength3 = TmpLength*TmpLength2               ! = TmpLength^3.
    KMatrix      =  0.0                             ! Initialize KMatrix to zero.
-   KMatrix(1,1) =  0.001*0.5*(     StiffTEA(J) + StiffTEA(J-1) )/TmpLength    ! Use the same KMatrix specified in the ADAMS/WT user's guide.
-   KMatrix(2,2) =  0.001*6.0*(     StiffTSS(J) + StiffTSS(J-1) )/TmpLength3
-   KMatrix(3,3) =  0.001*6.0*(     StiffTFA(J) + StiffTFA(J-1) )/TmpLength3
-   KMatrix(4,4) =  0.001*0.5*(     StiffTGJ(J) + StiffTGJ(J-1) )/TmpLength
-   KMatrix(5,5) =  0.001*    ( 3.0*StiffTFA(J) + StiffTFA(J-1) )/TmpLength
-   KMatrix(6,6) =  0.001*    ( 3.0*StiffTSS(J) + StiffTSS(J-1) )/TmpLength
-   KMatrix(2,6) = -0.001*2.0*( 2.0*StiffTSS(J) + StiffTSS(J-1) )/TmpLength2
-   KMatrix(3,5) =  0.001*2.0*( 2.0*StiffTFA(J) + StiffTFA(J-1) )/TmpLength2
+   KMatrix(1,1) =  0.001*0.5*(     p%StiffTEA(J) + p%StiffTEA(J-1) )/TmpLength    ! Use the same KMatrix specified in the ADAMS/WT user's guide.
+   KMatrix(2,2) =  0.001*6.0*(     p%StiffTSS(J) + p%StiffTSS(J-1) )/TmpLength3
+   KMatrix(3,3) =  0.001*6.0*(     p%StiffTFA(J) + p%StiffTFA(J-1) )/TmpLength3
+   KMatrix(4,4) =  0.001*0.5*(     p%StiffTGJ(J) + p%StiffTGJ(J-1) )/TmpLength
+   KMatrix(5,5) =  0.001*    ( 3.0*p%StiffTFA(J) + p%StiffTFA(J-1) )/TmpLength
+   KMatrix(6,6) =  0.001*    ( 3.0*p%StiffTSS(J) + p%StiffTSS(J-1) )/TmpLength
+   KMatrix(2,6) = -0.001*2.0*( 2.0*p%StiffTSS(J) + p%StiffTSS(J-1) )/TmpLength2
+   KMatrix(3,5) =  0.001*2.0*( 2.0*p%StiffTFA(J) + p%StiffTFA(J-1) )/TmpLength2
    KMatrix(6,2) = KMatrix(2,6)
    KMatrix(5,3) = KMatrix(3,5)
    CMatrix      =  0.0                             ! Initialize CMatrix to zero.
@@ -3070,18 +3067,18 @@ ENDDO             ! J - Tower nodes/elements
 
 TmpID  = 1100 + p%TwrNodes               ! ID of the MARKER in the middle of tower element TwrNodes.
 TmpID2 = 1500                          ! ID of the MARKER on the bottom of the tower top.
-TmpLength  = 0.5*DHNodes(p%TwrNodes)     ! Distance between tower node TwrNodes and the tower top.
+TmpLength  = 0.5*p%DHNodes(p%TwrNodes)     ! Distance between tower node TwrNodes and the tower top.
 TmpLength2 = TmpLength*TmpLength       ! = TmpLength^2.
 TmpLength3 = TmpLength*TmpLength2      ! = TmpLength^3.
 KMatrix      =  0.0                    ! Initialize KMatrix to zero.
-KMatrix(1,1) =  0.001*     StiffTEA(p%TwrNodes)/TmpLength  ! Use the same KMatrix specified in the ADAMS/WT user's guide.
-KMatrix(2,2) =  0.001*12.0*StiffTSS(p%TwrNodes)/TmpLength3
-KMatrix(3,3) =  0.001*12.0*StiffTFA(p%TwrNodes)/TmpLength3
-KMatrix(4,4) =  0.001*     StiffTGJ(p%TwrNodes)/TmpLength
-KMatrix(5,5) =  0.001* 4.0*StiffTFA(p%TwrNodes)/TmpLength
-KMatrix(6,6) =  0.001* 4.0*StiffTSS(p%TwrNodes)/TmpLength
-KMatrix(2,6) = -0.001* 6.0*StiffTSS(p%TwrNodes)/TmpLength2
-KMatrix(3,5) =  0.001* 6.0*StiffTFA(p%TwrNodes)/TmpLength2
+KMatrix(1,1) =  0.001*     p%StiffTEA(p%TwrNodes)/TmpLength  ! Use the same KMatrix specified in the ADAMS/WT user's guide.
+KMatrix(2,2) =  0.001*12.0*p%StiffTSS(p%TwrNodes)/TmpLength3
+KMatrix(3,3) =  0.001*12.0*p%StiffTFA(p%TwrNodes)/TmpLength3
+KMatrix(4,4) =  0.001*     p%StiffTGJ(p%TwrNodes)/TmpLength
+KMatrix(5,5) =  0.001* 4.0*p%StiffTFA(p%TwrNodes)/TmpLength
+KMatrix(6,6) =  0.001* 4.0*p%StiffTSS(p%TwrNodes)/TmpLength
+KMatrix(2,6) = -0.001* 6.0*p%StiffTSS(p%TwrNodes)/TmpLength2
+KMatrix(3,5) =  0.001* 6.0*p%StiffTFA(p%TwrNodes)/TmpLength2
 KMatrix(6,2) = KMatrix(2,6)
 KMatrix(5,3) = KMatrix(3,5)
 CMatrix      =  0.0                    ! Initialize CMatrix to zero.
@@ -3149,7 +3146,7 @@ CASE ( 1 )                 ! Onshore.
 CASE ( 2 )                 ! Fixed bottom offshore.
 
 
-   SELECT CASE ( TwrLdMod )   ! Which tower loading model are we using?
+   SELECT CASE ( p%TwrLdMod )   ! Which tower loading model are we using?
 
    CASE ( 0 )                 ! None!
 
@@ -3166,7 +3163,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
          WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID2 ))
          WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Int2LStr( TmpID  ))
          WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
-!         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( TwrLdMod ))// &
+!         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( p%TwrLdMod ))// &
          WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', 0'// &
                                     ', '//TRIM(Int2LStr( p%TwrNodes    ))//', '//TRIM(Flt2LStr( p%TwrDraft    ))//             &
                                     ', '//TRIM(Flt2LStr( WtrDens     ))//', '//TRIM(Flt2LStr( WtrDpth     ))//','
@@ -3180,8 +3177,8 @@ CASE ( 2 )                 ! Fixed bottom offshore.
                                     ', '//TRIM(Flt2LStr( CurrNSV0    ))//', '//TRIM(Flt2LStr( CurrNSDir   ))//             &
                                     ', '//TRIM(Flt2LStr( CurrDIV     ))//', '//TRIM(Flt2LStr( CurrDIDir   ))//             &
                                     ', '//TRIM(Flt2LStr( Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( DiamT(J)    ))//', '//TRIM(Flt2LStr( CAT(J)      ))//             &
-                                    ', '//TRIM(Flt2LStr( CDT(J)      ))                                     //' )'
+         WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( p%DiamT(J)    ))//', '//TRIM(Flt2LStr( p%CAT(J)    ))//             &
+                                    ', '//TRIM(Flt2LStr( p%CDT(J)    ))                                     //' )'
       ENDDO             ! J - Tower nodes/elements
 
 
@@ -3195,7 +3192,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
          WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID2 ))
          WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Int2LStr( TmpID  ))
          WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( TwrLdMod ))// &
+         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( p%TwrLdMod ))// &
                                     ', '//TRIM(Int2LStr( p%TwrNodes    ))//', '//TRIM(Flt2LStr( p%TwrDraft    ))//             &
                                     ', '//TRIM(Flt2LStr( WtrDens     ))//', '//TRIM(Flt2LStr( WtrDpth     ))//','
          WRITE (UnAD,FmtText     )  ', '//TRIM(Int2LStr( WaveMod     ))//', '//TRIM(Int2LStr( WaveStMod   ))//             &
@@ -4011,7 +4008,7 @@ WRITE (UnAD,FmtText  )  '!========================= ANALYSIS SETTINGS / OUTPUT =
 CALL MakeADM_WrICArraysR( (/ REAL(p%NumBl,ReKi),   REAL(p%BldNodes,ReKi), REAL(p%TwrNodes,ReKi),   REAL(p%NBlGages,ReKi),  & 
                              REAL(p%NTwGages,ReKi),REAL(p%NumOuts,ReKi),     &    ! bjj if linearizing, set NumOuts = 0 here ???
                              REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  p%AzimB1Up,           GBRatio,   &
-                             p%TipRad,               TStart               , REAL(PtfmLdMod),       REAL(TwrLdMod),       p%ProjArea,  &
+                             p%TipRad,               TStart               , REAL(PtfmLdMod),       REAL(p%TwrLdMod),       p%ProjArea,  &
                              p%AvgNrmTpRd,         GenIner              , REAL(OutFileFmt,ReKi)             /), &
                                      ModelConstants_A, 19       , UnAD, "ModelConstants_A" )             
                                               

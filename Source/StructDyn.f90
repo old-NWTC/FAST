@@ -61,19 +61,6 @@ MODULE StructDyn_Parameters
    
    
 
-!INTEGER(4)                   :: NPCE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the hub center of mass                                                              (point C) in the inertia frame, based on which DOFs are presently enabled.
-!INTEGER(4)                   :: NPDE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the center of mass of the structure that furls with the rotor (not including rotor) (point D) in the inertia frame, based on which DOFs are presently enabled.
-!INTEGER(4)                   :: NPH                                             ! Number of DOFs                  that contribute to the angular velocity of the hub                                                       (body H) in the inertia frame.
-!INTEGER(4)                   :: NPIE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the tail boom center of mass                                                        (point I) in the inertia frame, based on which DOFs are presently enabled.
-!INTEGER(4)                   :: NPM                                             ! Number of DOFs                  that contribute to the angular velocity of the blade elements                                            (body M) in the inertia frame.
-!INTEGER(4)                   :: NPTE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the tower nodes                                                                     (point T) in the inertia frame, based on which DOFs are presently enabled.
-!INTEGER(4)                   :: NPTTE                                           ! Number of tower DOFs            that contribute to the QD2T-related linear accelerations of the tower nodes                                                                     (point T) in the inertia frame, based on which DOFs are presently enabled.
-!INTEGER(4), ALLOCATABLE      :: NPSBE    (:)                                    ! Number of blade DOFs            that contribute to the QD2T-related linear accelerations of the blade nodes                                                                     (point S) in the inertia frame, based on which DOFs are presently enabled.
-!INTEGER(4), ALLOCATABLE      :: NPSE     (:)                                    ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the blade nodes                                                                     (point S) in the inertia frame, based on which DOFs are presently enabled.
-!INTEGER(4)                   :: NPUE                                            ! Number of DOFs                  that contribute to the QD2T-related linear accelerations of the nacelle center of mass                                                          (point U) in the inertia frame, based on which DOFs are presently enabled.
-
-
-
 
       ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
 
@@ -85,7 +72,7 @@ MODULE StructDyn_Parameters
       ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
 
 
-   !INTEGER(IntKi), PARAMETER        :: PolyOrd  =  6                                   ! Order of the polynomial describing the mode shape
+   INTEGER(IntKi), PARAMETER        :: PolyOrd  =  6                                    ! Order of the polynomial describing the mode shape
 
 
       ! Parameters related to output length -- Possibly a local variable elsewhere????
@@ -237,7 +224,7 @@ SUBROUTINE StrD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
 
          ! Define initial guess for the system inputs here:
 
-      u%DummyInput = 0
+!      u%DummyInput = 0
 
 
          ! Define system output initializations (set up mesh) here:
@@ -1112,6 +1099,62 @@ CONTAINS
 
 END SUBROUTINE StrD_InitDOFs
 !----------------------------------------------------------------------------------------------------------------------------------
+FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
+! SHP calculates the Derive-derivative of the shape function ModShpAry at Fract.
+! NOTE: This function only works for Deriv = 0, 1, or 2.
+!----------------------------------------------------------------------------------------------------------------------------------
+
+      ! Passed variables:
+
+   REAL(ReKi),     INTENT(IN )    :: FlexL                     ! Length of flexible beam, (m)
+   REAL(ReKi),     INTENT(IN )    :: Fract                     ! Fractional distance along flexible beam, 0<=Frac<=1
+   REAL(ReKi),     INTENT(IN )    :: ModShpAry(:)              ! Array holding mode shape coefficients (2:PolyOrd)
+   REAL(ReKi)                     :: SHP                       ! The shape function returned by this function.
+
+   INTEGER(IntKi), INTENT(IN )    :: Deriv                     ! Which derivative to compute Deriv = 0 (regular function SHP), 1 (D(SHP)/DZ), 2 (D2(SHP)/DZ2)
+   INTEGER(IntKi), INTENT(OUT)    :: ErrStat                   ! A error level that indicates if/what error occurred
+   CHARACTER(*),   INTENT(OUT)    :: ErrMsg                    ! A message indicating the error if one occurred
+      
+
+      ! Local variables:
+
+   INTEGER(IntKi)                 :: CoefTmp                   ! Temporary coefficient
+   INTEGER(IntKi)                 :: I                         ! Counts through polynomial array.
+   INTEGER(IntKi)                 :: J                         ! I+1
+   INTEGER(IntKi)                 :: Swtch(0:2)                ! Corresponds to which derivative to compute.  Sets all portions of the coefficient = 0 except those that are relevant.
+   
+
+   IF ( Deriv < 0 .OR. Deriv > 2 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Function SHP input Deriv='//TRIM(Num2LStr(Deriv))//' is invalid. Deriv must be 0, 1, or 2.' 
+      RETURN
+   ELSEIF ( Fract < 0.0_ReKi .OR. Fract > 1.0_ReKi ) THEN
+      ErrStat = ErrID_Warn
+      ErrMsg  = 'Function SHP input Fract='//TRIM(Num2LStr(Fract))//' does not meet the condition 0<=Fract<=1.'
+   ELSE
+      ErrStat = ErrID_None
+   END IF
+      
+   Swtch        = 0 ! Initialize Swtch(:) to 0
+   Swtch(Deriv) = 1
+   SHP          = 0.0
+
+   DO I = 1,SIZE(ModShpAry,DIM=1,KIND=IntKi) ! =2,PolyOrd
+      J = I + 1
+      CoefTmp = Swtch(0) + Swtch(1)*J + Swtch(2)*I*J
+         
+      IF ( (J == 2) .AND. (Deriv == 2) ) THEN !bjj this could be removed as Fract**0 = 1 (0**0 = 1 in Fortran)
+         SHP =       ModShpAry(I)*CoefTmp                         /( FlexL**Deriv )
+      ELSE
+         SHP = SHP + ModShpAry(I)*CoefTmp*( Fract**( J - Deriv ) )/( FlexL**Deriv )
+      ENDIF
+   ENDDO !I
+
+   RETURN
+   
+END FUNCTION SHP
+!----------------------------------------------------------------------------------------------------------------------------------
+
 END MODULE StructDyn
 !**********************************************************************************************************************************
 

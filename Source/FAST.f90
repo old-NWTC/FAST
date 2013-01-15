@@ -21,7 +21,6 @@ USE                             Modes
 USE                             Output
 USE                             RtHndSid
 USE                             SimCont
-USE                             Tower
 USE                             TurbCont
 
 USE                             NOISE !AllocNoise
@@ -75,29 +74,29 @@ IF (.NOT. ALLOCATED( BlPitchCom ) ) THEN
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( AxRedTFA ) ) THEN
-   ALLOCATE ( AxRedTFA(2,2,TTopNode) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%AxRedTFA ) ) THEN
+   ALLOCATE ( p%AxRedTFA(2,2,p%TTopNode) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the AxRedTFA array.')
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( AxRedTSS ) ) THEN
-   ALLOCATE ( AxRedTSS(2,2,TTopNode) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%AxRedTSS ) ) THEN
+   ALLOCATE ( p%AxRedTSS(2,2,p%TTopNode) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the AxRedTSS array.')
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( TwrFASF ) ) THEN
-   ALLOCATE ( TwrFASF(2,TTopNode,0:2) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%TwrFASF ) ) THEN
+   ALLOCATE ( p%TwrFASF(2,p%TTopNode,0:2) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the TwrFASF array.')
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( TwrSSSF ) ) THEN
-   ALLOCATE ( TwrSSSF(2,TTopNode,0:2) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%TwrSSSF ) ) THEN
+   ALLOCATE ( p%TwrSSSF(2,p%TTopNode,0:2) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the TwrSSSF array.')
    ENDIF
@@ -853,7 +852,6 @@ USE                             Platform
 USE                             RtHndSid
 USE                             SimCont
 USE                             TailAero
-USE                             Tower
 USE                             TurbCont
 USE                             Waves, ONLY:WaveElevation, WaveVelocity, WaveAcceleration
 
@@ -1229,7 +1227,7 @@ y%AllOuts(   YawAzn) =   QD2T(DOF_Yaw )*R2D
 
    ! Tower-Top / Yaw Bearing Motions:
 
-rOPO     = rT0O - TwrFlexL*OtherState%CoordSys%a2 ! Position vector from the undeflected tower top (point O prime) to the deflected tower top (point O).
+rOPO     = rT0O - p%TwrFlexL*OtherState%CoordSys%a2 ! Position vector from the undeflected tower top (point O prime) to the deflected tower top (point O).
 
 y%AllOuts(YawBrTDxp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b1 )
 y%AllOuts(YawBrTDyp) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%b3 )
@@ -1259,7 +1257,7 @@ DO I = 1, p%NTwGages
    y%AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t3(TwrGagNd(I),:) )
    y%AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(TwrGagNd(I),:), OtherState%CoordSys%t2(TwrGagNd(I),:) )
 
-   rTPT                   = rT0T(TwrGagNd(I),:) - HNodes(TwrGagNd(I))*OtherState%CoordSys%a2(:)
+   rTPT                   = rT0T(TwrGagNd(I),:) - p%HNodes(TwrGagNd(I))*OtherState%CoordSys%a2(:)
 
    y%AllOuts( TwHtTDxt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a1 )
    y%AllOuts( TwHtTDyt(I) ) = -1.0*DOT_PRODUCT( rTPT,     OtherState%CoordSys%a3 )
@@ -1525,11 +1523,11 @@ DO I=1,p%NTwGages
 
    ! Integrate to find FrcFGagT and MomFGagT using all of the nodes / elements above the current strain gage location:
    DO J = ( TwrGagNd(I) + 1 ),p%TwrNodes ! Loop through tower nodes / elements above strain gage node
-      TmpVec2  = FTAero(J,:) + FTHydro(J,:) - MassT(J)*( Gravity*OtherState%CoordSys%z2 + LinAccET(J,:) )           ! Portion of FrcFGagT associated with element J
-      FrcFGagT = FrcFGagT + TmpVec2*DHNodes(J)
+      TmpVec2  = FTAero(J,:) + FTHydro(J,:) - p%MassT(J)*( Gravity*OtherState%CoordSys%z2 + LinAccET(J,:) )           ! Portion of FrcFGagT associated with element J
+      FrcFGagT = FrcFGagT + TmpVec2*p%DHNodes(J)
 
       TmpVec = CROSS_PRODUCT( rZT(J,:) - rZT(TwrGagNd(I),:), TmpVec2 )                          ! Portion of MomFGagT associated with element J
-      MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*DHNodes(J)
+      MomFGagT = MomFGagT + ( TmpVec + MFAero(J,:) + MFHydro(J,:) )*p%DHNodes(J)
    ENDDO ! J -Tower nodes / elements above strain gage node
 
    ! Add the effects of 1/2 the strain gage element:
@@ -1537,14 +1535,14 @@ DO I=1,p%NTwGages
    !   effect (due to tower bending) within the element.  Thus, the moment arm
    !   for the force is 1/4 of DHNodes() and the element length is 1/2 of DHNodes().
 
-   TmpVec2  = FTAero(TwrGagNd(I),:) + FTHydro(TwrGagNd(I),:) - MassT(TwrGagNd(I))*( Gravity*OtherState%CoordSys%z2 + LinAccET(TwrGagNd(I),:))
+   TmpVec2  = FTAero(TwrGagNd(I),:) + FTHydro(TwrGagNd(I),:) - p%MassT(TwrGagNd(I))*( Gravity*OtherState%CoordSys%z2 + LinAccET(TwrGagNd(I),:))
 
-   FrcFGagT = FrcFGagT + TmpVec2 * 0.5 * DHNodes(TwrGagNd(I))
+   FrcFGagT = FrcFGagT + TmpVec2 * 0.5 * p%DHNodes(TwrGagNd(I))
    FrcFGagT = 0.001*FrcFGagT  ! Convert the local force to kN
 
-   TmpVec = CROSS_PRODUCT( ( 0.25*DHNodes( TwrGagNd(I)) )*OtherState%CoordSys%a2, TmpVec2 )              ! Portion of MomFGagT associated with 1/2 of the strain gage element
+   TmpVec = CROSS_PRODUCT( ( 0.25*p%DHNodes( TwrGagNd(I)) )*OtherState%CoordSys%a2, TmpVec2 )              ! Portion of MomFGagT associated with 1/2 of the strain gage element
    TmpVec   = TmpVec   + MFAero(TwrGagNd(I),:) + MFHydro(TwrGagNd(I),:)
-   MomFGagT = MomFGagT + TmpVec * 0.5 * DHNodes(TwrGagNd(I))
+   MomFGagT = MomFGagT + TmpVec * 0.5 * p%DHNodes(TwrGagNd(I))
    MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
 
    y%AllOuts( TwHtFLxt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t1(TwrGagNd(I),:) )
@@ -1694,7 +1692,7 @@ ENDDO             ! I - All selected output channels
 RETURN
 END SUBROUTINE CalcOuts
 !=======================================================================
-SUBROUTINE Coeff(p)
+SUBROUTINE Coeff(p,InputFileData)
 
 
    ! This routine is used to compute rotor (blade and hub) properties:
@@ -1723,7 +1721,6 @@ USE                             Features
 USE                             InitCond
 USE                             MassInert
 USE                             Modes
-USE                             Tower
 
 
 IMPLICIT                        NONE
@@ -1731,7 +1728,8 @@ IMPLICIT                        NONE
 
    ! Passed variables
 
-TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             ! Parameters of the structural dynamics module
+TYPE(StrD_ParameterType),        INTENT(INOUT)    :: p                             ! Parameters of the structural dynamics module
+TYPE(StrD_InputFile),            INTENT(IN)       :: InputFileData                 ! all the data in the StructDyn input file
 
 
    ! Local variables.
@@ -1771,7 +1769,8 @@ INTEGER(4)                   :: J                                               
 INTEGER(4)                   :: K                                               ! Loops through blades.
 INTEGER(4)                   :: L                                               ! Generic index
 INTEGER(4)                   :: Sttus                                           ! Status returned from an allocation request.
-
+INTEGER(IntKi)               :: ErrStat                                         ! Error status
+CHARACTER(1024)              :: ErrMsg                                          ! Error message when ErrStat =/ ErrID_None
 
    ! ALLOCATE some local arrays:
 Sttus = 0.0
@@ -1895,8 +1894,8 @@ KBFCent   = 0.0
 KBECent   = 0.0
 
 TwrMass   = 0.0
-KTFA      = 0.0
-KTSS      = 0.0
+p%KTFA      = 0.0
+p%KTSS      = 0.0
 KTFAGrav  = 0.0
 KTSSGrav  = 0.0
 
@@ -1981,12 +1980,12 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
       ElmntMass     = MassB(K,J)*DRNodes(J)                          ! Mass of blade element J
 
-      Shape1 = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 0 )
-      Shape2 = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 0 )
+      Shape1 = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 0, ErrStat, ErrMsg )
+      Shape2 = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 0, ErrStat, ErrMsg )
       MBF    (K,1,1) = MBF    (K,1,1) + ElmntMass*Shape1*Shape1
       MBF    (K,2,2) = MBF    (K,2,2) + ElmntMass*Shape2*Shape2
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 0 )
+      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 0, ErrStat, ErrMsg )
       MBE    (K,1,1) = MBE    (K,1,1) + ElmntMass*Shape *Shape
 
 
@@ -1994,15 +1993,15 @@ DO K = 1,p%NumBl          ! Loop through the blades
    !    effects).
 
       ElmntStff      = StiffBF(K,J)*DRNodes(J)                       ! Flapwise stiffness of blade element J
-      Shape1 = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 2 )
-      Shape2 = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 2 )
+      Shape1 = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
+      Shape2 = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
       KBF    (K,1,1) = KBF    (K,1,1) + ElmntStff*Shape1*Shape1
       KBF    (K,1,2) = KBF    (K,1,2) + ElmntStff*Shape1*Shape2
       KBF    (K,2,1) = KBF    (K,2,1) + ElmntStff*Shape2*Shape1
       KBF    (K,2,2) = KBF    (K,2,2) + ElmntStff*Shape2*Shape2
 
       ElmntStff      = StiffBE(K,J)*DRNodes(J)                       ! Edgewise stiffness of blade element J
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 2 )
+      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 2, ErrStat, ErrMsg )
       KBE    (K,1,1) = KBE    (K,1,1) + ElmntStff*Shape *Shape
 
 
@@ -2012,26 +2011,26 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
       ElmntStff      = FMomAbvNd(K,J)*DRNodes(J)*RotSpeed*RotSpeed   ! Centrifugal stiffness of blade element J
 
-      Shape1 = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 1 )
-      Shape2 = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 1 )
+      Shape1 = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 1, ErrStat, ErrMsg )
+      Shape2 = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 1, ErrStat, ErrMsg )
       KBFCent(K,1,1) = KBFCent(K,1,1) + ElmntStff*Shape1*Shape1
       KBFCent(K,2,2) = KBFCent(K,2,2) + ElmntStff*Shape2*Shape2
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 1 )
+      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 1, ErrStat, ErrMsg )
       KBECent(K,1,1) = KBECent(K,1,1) + ElmntStff*Shape *Shape
 
 
    ! Calculate the 2nd derivatives of the twisted shape functions:
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 2 )
+      Shape  = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
       TwistedSF(K,1,1,J,2) =  Shape*CThetaS(K,J)                  ! 2nd deriv. of Phi1(J) for blade K
       TwistedSF(K,2,1,J,2) = -Shape*SThetaS(K,J)                  ! 2nd deriv. of Psi1(J) for blade K
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 2 )
+      Shape  = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
       TwistedSF(K,1,2,J,2) =  Shape*CThetaS(K,J)                  ! 2nd deriv. of Phi2(J) for blade K
       TwistedSF(K,2,2,J,2) = -Shape*SThetaS(K,J)                  ! 2nd deriv. of Psi2(J) for blade K
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 2 )
+      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 2, ErrStat, ErrMsg )
       TwistedSF(K,1,3,J,2) =  Shape*SThetaS(K,J)                  ! 2nd deriv. of Phi3(J) for blade K
       TwistedSF(K,2,3,J,2) =  Shape*CThetaS(K,J)                  ! 2nd deriv. of Psi3(J) for blade K
 
@@ -2147,15 +2146,15 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    ! Calculate the 2nd derivatives of the twisted shape functions at the tip:
 
-   Shape  = SHP( 1.0, BldFlexL, BldFl1Sh(:,K), 2 )
+   Shape  = SHP( 1.0, BldFlexL, BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
    TwistedSF(K,1,1,p%TipNode,2) =  Shape*CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi1(p%TipNode) for blade K
    TwistedSF(K,2,1,p%TipNode,2) = -Shape*SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi1(p%TipNode) for blade K
 
-   Shape  = SHP( 1.0, BldFlexL, BldFl2Sh(:,K), 2 )
+   Shape  = SHP( 1.0, BldFlexL, BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
    TwistedSF(K,1,2,p%TipNode,2) =  Shape*CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi2(p%TipNode) for blade K
    TwistedSF(K,2,2,p%TipNode,2) = -Shape*SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi2(p%TipNode) for blade K
 
-   Shape  = SHP( 1.0, BldFlexL, BldEdgSh(:,K), 2 )
+   Shape  = SHP( 1.0, BldFlexL, BldEdgSh(:,K), 2, ErrStat, ErrMsg )
    TwistedSF(K,1,3,p%TipNode,2) =  Shape*SThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi3(p%TipNode) for blade K
    TwistedSF(K,2,3,p%TipNode,2) =  Shape*CThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi3(p%TipNode) for blade K
 
@@ -2194,7 +2193,7 @@ DO J = p%TwrNodes,1,-1 ! Loop through the tower nodes / elements in reverse
 
    ! Calculate the mass of the current element
 
-   ElmntMass    = MassT(J)*DHNodes(J)     ! Mass of tower element J
+   ElmntMass    = p%MassT(J)*p%DHNodes(J)     ! Mass of tower element J
 
 
    ! Integrate to find the tower mass which will be output in .fsm
@@ -2239,43 +2238,43 @@ DO J = 1,p%TwrNodes    ! Loop through the tower nodes / elements
 
    ! Calculate the tower shape functions (all derivatives):
 
-   TwrFASF(1,J,2) = SHP( HNodesNorm(J), TwrFlexL, TwFAM1Sh(:), 2 )
-   TwrFASF(2,J,2) = SHP( HNodesNorm(J), TwrFlexL, TwFAM2Sh(:), 2 )
-   TwrFASF(1,J,1) = SHP( HNodesNorm(J), TwrFlexL, TwFAM1Sh(:), 1 )
-   TwrFASF(2,J,1) = SHP( HNodesNorm(J), TwrFlexL, TwFAM2Sh(:), 1 )
-   TwrFASF(1,J,0) = SHP( HNodesNorm(J), TwrFlexL, TwFAM1Sh(:), 0 )
-   TwrFASF(2,J,0) = SHP( HNodesNorm(J), TwrFlexL, TwFAM2Sh(:), 0 )
+   p%TwrFASF(1,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM1Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrFASF(2,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM2Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrFASF(1,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM1Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrFASF(2,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM2Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrFASF(1,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM1Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrFASF(2,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM2Sh(:), 0, ErrStat, ErrMsg )
 
-   TwrSSSF(1,J,2) = SHP( HNodesNorm(J), TwrFlexL, TwSSM1Sh(:), 2 )
-   TwrSSSF(2,J,2) = SHP( HNodesNorm(J), TwrFlexL, TwSSM2Sh(:), 2 )
-   TwrSSSF(1,J,1) = SHP( HNodesNorm(J), TwrFlexL, TwSSM1Sh(:), 1 )
-   TwrSSSF(2,J,1) = SHP( HNodesNorm(J), TwrFlexL, TwSSM2Sh(:), 1 )
-   TwrSSSF(1,J,0) = SHP( HNodesNorm(J), TwrFlexL, TwSSM1Sh(:), 0 )
-   TwrSSSF(2,J,0) = SHP( HNodesNorm(J), TwrFlexL, TwSSM2Sh(:), 0 )
+   p%TwrSSSF(1,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM1Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrSSSF(2,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM2Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrSSSF(1,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM1Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrSSSF(2,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM2Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrSSSF(1,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM1Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrSSSF(2,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM2Sh(:), 0, ErrStat, ErrMsg )
 
 
    ! Integrate to find the generalized mass of the tower (including tower-top mass effects).
    !   Ignore the cross-correlation terms of MTFA (i.e. MTFA(i,j) where i /= j) and MTSS
    !   since these terms will never be used.
 
-   ElmntMass      = MassT(J)*DHNodes(J)                           ! Mass of tower element J
+   ElmntMass      = p%MassT(J)*p%DHNodes(J)                           ! Mass of tower element J
 
    DO I = 1,2     ! Loop through all tower DOFs in one direction
-      MTFA  (I,I) = MTFA  (I,I) + ElmntMass*TwrFASF(I,J,0)*TwrFASF(I,J,0)
-      MTSS  (I,I) = MTSS  (I,I) + ElmntMass*TwrSSSF(I,J,0)*TwrSSSF(I,J,0)
+      MTFA  (I,I) = MTFA  (I,I) + ElmntMass*p%TwrFASF(I,J,0)**2
+      MTSS  (I,I) = MTSS  (I,I) + ElmntMass*p%TwrSSSF(I,J,0)**2
    ENDDO          ! I - through all tower DOFs in one direction
 
 
    ! Integrate to find the generalized stiffness of the tower (not including gravitational
    !    effects).
 
-   ElStffFA       = StiffTFA(J)*DHNodes(J)                        ! Fore-aft stiffness of tower element J
-   ElStffSS       = StiffTSS(J)*DHNodes(J)                        ! Side-to-side stiffness of tower element J
+   ElStffFA       = p%StiffTFA(J)*p%DHNodes(J)                        ! Fore-aft stiffness of tower element J
+   ElStffSS       = p%StiffTSS(J)*p%DHNodes(J)                        ! Side-to-side stiffness of tower element J
 
    DO I = 1,2     ! Loop through all tower DOFs in one direction
       DO L = 1,2  ! Loop through all tower DOFs in one direction
-         KTFA (I,L) = KTFA    (I,L) + ElStffFA *TwrFASF(I,J,2)*TwrFASF(L,J,2)
-         KTSS (I,L) = KTSS    (I,L) + ElStffSS *TwrSSSF(I,J,2)*TwrSSSF(L,J,2)
+         p%KTFA (I,L) = p%KTFA    (I,L) + ElStffFA *p%TwrFASF(I,J,2)*p%TwrFASF(L,J,2)
+         p%KTSS (I,L) = p%KTSS    (I,L) + ElStffSS *p%TwrSSSF(I,J,2)*p%TwrSSSF(L,J,2)
       ENDDO       ! L - All tower DOFs in one direction
    ENDDO          ! I - through all tower DOFs in one direction
 
@@ -2284,11 +2283,11 @@ DO J = 1,p%TwrNodes    ! Loop through the tower nodes / elements
    !   Ignore the cross-correlation terms of KTFAGrav (i.e. KTFAGrav(i,j) where i /= j)
    !   and KTSSGrav since these terms will never be used.
 
-   ElmntStff      = -TMssAbvNd(J)*DHNodes(J)*Gravity              ! Gravitational stiffness of tower element J
+   ElmntStff      = -TMssAbvNd(J)*p%DHNodes(J)*Gravity              ! Gravitational stiffness of tower element J
 
    DO I = 1,2     ! Loop through all tower DOFs in one direction
-      KTFAGrav(I,I) = KTFAGrav(I,I) + ElmntStff*TwrFASF(I,J,1)*TwrFASF(I,J,1)
-      KTSSGrav(I,I) = KTSSGrav(I,I) + ElmntStff*TwrSSSF(I,J,1)*TwrSSSF(I,J,1)
+      KTFAGrav(I,I) = KTFAGrav(I,I) + ElmntStff*p%TwrFASF(I,J,1)**2
+      KTSSGrav(I,I) = KTSSGrav(I,I) + ElmntStff*p%TwrSSSF(I,J,1)**2
    ENDDO
 
 
@@ -2296,11 +2295,11 @@ DO J = 1,p%TwrNodes    ! Loop through the tower nodes / elements
 
    DO I = 1,2     ! Loop through all tower DOFs in one direction
       DO L = 1,2  ! Loop through all tower DOFs in one direction
-         AxRdTFA (I,L) = 0.5*DHNodes(J)*TwrFASF(I,J,1)*TwrFASF(L,J,1)
-         AxRdTSS (I,L) = 0.5*DHNodes(J)*TwrSSSF(I,J,1)*TwrSSSF(L,J,1)
+         AxRdTFA (I,L) = 0.5*p%DHNodes(J)*p%TwrFASF(I,J,1)*p%TwrFASF(L,J,1)
+         AxRdTSS (I,L) = 0.5*p%DHNodes(J)*p%TwrSSSF(I,J,1)*p%TwrSSSF(L,J,1)
 
-         AxRedTFA(I,L,J) = AxRdTFA(I,L)
-         AxRedTSS(I,L,J) = AxRdTSS(I,L)
+         p%AxRedTFA(I,L,J) = AxRdTFA(I,L)
+         p%AxRedTSS(I,L,J) = AxRdTSS(I,L)
       ENDDO       ! L - All tower DOFs in one direction
    ENDDO
 
@@ -2309,8 +2308,8 @@ DO J = 1,p%TwrNodes    ! Loop through the tower nodes / elements
 
       DO I = 1,2     ! Loop through all tower DOFs in one direction
          DO L = 1,2  ! Loop through all tower DOFs in one direction
-            AxRedTFA(I,L,J) = AxRedTFA(I,L,J) + AxRedTFA(I,L,J-1)+ AxRdTFAOld(I,L)
-            AxRedTSS(I,L,J) = AxRedTSS(I,L,J) + AxRedTSS(I,L,J-1)+ AxRdTSSOld(I,L)
+            p%AxRedTFA(I,L,J) = p%AxRedTFA(I,L,J) + p%AxRedTFA(I,L,J-1)+ AxRdTFAOld(I,L)
+            p%AxRedTSS(I,L,J) = p%AxRedTSS(I,L,J) + p%AxRedTSS(I,L,J-1)+ AxRdTSSOld(I,L)
          ENDDO       ! L - All tower DOFs in one direction
       ENDDO
    ENDIF
@@ -2329,9 +2328,9 @@ ENDDO ! J - Tower nodes / elements
 
 DO I = 1,2     ! Loop through all tower DOFs in one direction
    DO L = 1,2  ! Loop through all tower DOFs in one direction
-      KTFA(I,L) = SQRT( FAStTunr(I)*FAStTunr(L) )*KTFA(I,L)
+      p%KTFA(I,L) = SQRT( InputFileData%FAStTunr(I)*InputFileData%FAStTunr(L) )*p%KTFA(I,L)
 
-      KTSS(I,L) = SQRT( SSStTunr(I)*SSStTunr(L) )*KTSS(I,L)
+      p%KTSS(I,L) = SQRT( InputFileData%SSStTunr(I)*InputFileData%SSStTunr(L) )*p%KTSS(I,L)
    ENDDO       ! L - All tower DOFs in one direction
 ENDDO          ! I - through all tower DOFs in one direction
 
@@ -2339,10 +2338,10 @@ ENDDO          ! I - through all tower DOFs in one direction
    ! Calculate the tower natural frequencies:
 
 DO I = 1,2     ! Loop through all tower DOFs in one direction
-   FreqTFA(I,1) = Inv2Pi*SQRT(   KTFA(I,I)                  /( MTFA(I,I) - TwrTpMass ) )  ! Natural tower I-fore-aft frequency w/o gravitational destiffening nor tower-top mass effects
-   FreqTFA(I,2) = Inv2Pi*SQRT( ( KTFA(I,I) + KTFAGrav(I,I) )/  MTFA(I,I)               )  ! Natural tower I-fore-aft frequency w/  gravitational destiffening and tower-top mass effects
-   FreqTSS(I,1) = Inv2Pi*SQRT(   KTSS(I,I)                  /( MTSS(I,I) - TwrTpMass ) )  ! Natural tower I-side-to-side frequency w/o gravitational destiffening nor tower-top mass effects
-   FreqTSS(I,2) = Inv2Pi*SQRT( ( KTSS(I,I) + KTSSGrav(I,I) )/  MTSS(I,I)               )  ! Natural tower I-side-to-side frequency w/  gravitational destiffening and tower-top mass effects
+   FreqTFA(I,1) = Inv2Pi*SQRT(   p%KTFA(I,I)                  /( MTFA(I,I) - TwrTpMass ) )  ! Natural tower I-fore-aft frequency w/o gravitational destiffening nor tower-top mass effects
+   FreqTFA(I,2) = Inv2Pi*SQRT( ( p%KTFA(I,I) + KTFAGrav(I,I) )/  MTFA(I,I)               )  ! Natural tower I-fore-aft frequency w/  gravitational destiffening and tower-top mass effects
+   FreqTSS(I,1) = Inv2Pi*SQRT(   p%KTSS(I,I)                  /( MTSS(I,I) - TwrTpMass ) )  ! Natural tower I-side-to-side frequency w/o gravitational destiffening nor tower-top mass effects
+   FreqTSS(I,2) = Inv2Pi*SQRT( ( p%KTSS(I,I) + KTSSGrav(I,I) )/  MTSS(I,I)               )  ! Natural tower I-side-to-side frequency w/  gravitational destiffening and tower-top mass effects
 ENDDO          ! I - All tower DOFs in one direction
 
 
@@ -2350,36 +2349,36 @@ ENDDO          ! I - All tower DOFs in one direction
 
 DO I = 1,2     ! Loop through all tower DOFs in one direction
    DO L = 1,2  ! Loop through all tower DOFs in one direction
-      CTFA(I,L) = ( 0.01*TwrFADmp(L) )*KTFA(I,L)/( Pi*FreqTFA(L,1) )
+      p%CTFA(I,L) = ( 0.01*p%TwrFADmp(L) )*p%KTFA(I,L)/( Pi*FreqTFA(L,1) )
 
-      CTSS(I,L) = ( 0.01*TwrSSDmp(L) )*KTSS(I,L)/( Pi*FreqTSS(L,1) )
+      p%CTSS(I,L) = ( 0.01*p%TwrSSDmp(L) )*p%KTSS(I,L)/( Pi*FreqTSS(L,1) )
    ENDDO       ! L - All tower DOFs in one direction
 ENDDO          ! I - All tower DOFs in one direction
 
 
    ! Calculate the tower shape functions (all derivatives) at the tower-top:
 
-TwrFASF(1,TTopNode,2) = SHP( 1.0, TwrFlexL, TwFAM1Sh(:), 2 )
-TwrFASF(2,TTopNode,2) = SHP( 1.0, TwrFlexL, TwFAM2Sh(:), 2 )
-TwrFASF(1,TTopNode,1) = SHP( 1.0, TwrFlexL, TwFAM1Sh(:), 1 )
-TwrFASF(2,TTopNode,1) = SHP( 1.0, TwrFlexL, TwFAM2Sh(:), 1 )
-TwrFASF(1,TTopNode,0) = SHP( 1.0, TwrFlexL, TwFAM1Sh(:), 0 )
-TwrFASF(2,TTopNode,0) = SHP( 1.0, TwrFlexL, TwFAM2Sh(:), 0 )
+p%TwrFASF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, TwFAM1Sh(:), 2, ErrStat, ErrMsg )
+p%TwrFASF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, TwFAM2Sh(:), 2, ErrStat, ErrMsg )
+p%TwrFASF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, TwFAM1Sh(:), 1, ErrStat, ErrMsg )
+p%TwrFASF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, TwFAM2Sh(:), 1, ErrStat, ErrMsg )
+p%TwrFASF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, TwFAM1Sh(:), 0, ErrStat, ErrMsg )
+p%TwrFASF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, TwFAM2Sh(:), 0, ErrStat, ErrMsg )
 
-TwrSSSF(1,TTopNode,2) = SHP( 1.0, TwrFlexL, TwSSM1Sh(:), 2 )
-TwrSSSF(2,TTopNode,2) = SHP( 1.0, TwrFlexL, TwSSM2Sh(:), 2 )
-TwrSSSF(1,TTopNode,1) = SHP( 1.0, TwrFlexL, TwSSM1Sh(:), 1 )
-TwrSSSF(2,TTopNode,1) = SHP( 1.0, TwrFlexL, TwSSM2Sh(:), 1 )
-TwrSSSF(1,TTopNode,0) = SHP( 1.0, TwrFlexL, TwSSM1Sh(:), 0 )
-TwrSSSF(2,TTopNode,0) = SHP( 1.0, TwrFlexL, TwSSM2Sh(:), 0 )
+p%TwrSSSF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, TwSSM1Sh(:), 2, ErrStat, ErrMsg )
+p%TwrSSSF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, TwSSM2Sh(:), 2, ErrStat, ErrMsg )
+p%TwrSSSF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, TwSSM1Sh(:), 1, ErrStat, ErrMsg )
+p%TwrSSSF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, TwSSM2Sh(:), 1, ErrStat, ErrMsg )
+p%TwrSSSF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, TwSSM1Sh(:), 0, ErrStat, ErrMsg )
+p%TwrSSSF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, TwSSM2Sh(:), 0, ErrStat, ErrMsg )
 
 
    ! Integrate to find the tower axial reduction shape functions at the tower-top:
 
 DO I = 1,2     ! Loop through all tower DOFs in one direction
    DO L = 1,2  ! Loop through all tower DOFs in one direction
-      AxRedTFA(I,L,TTopNode) = AxRedTFA(I,L,p%TwrNodes)+ AxRdTFAOld(I,L)
-      AxRedTSS(I,L,TTopNode) = AxRedTSS(I,L,p%TwrNodes)+ AxRdTSSOld(I,L)
+      p%AxRedTFA(I,L,p%TTopNode) = p%AxRedTFA(I,L,p%TwrNodes)+ AxRdTFAOld(I,L)
+      p%AxRedTSS(I,L,p%TTopNode) = p%AxRedTSS(I,L,p%TwrNodes)+ AxRdTSSOld(I,L)
    ENDDO       ! L - All tower DOFs in one direction
 ENDDO
 
@@ -3365,7 +3364,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    USE            Modes
    USE            Output
    USE            RtHndSid
-   USE            Tower
    USE            TurbCont
 
    INTEGER,       INTENT(OUT) :: ErrStat                    ! Determines if an error was encountered
@@ -3584,39 +3582,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(SolnVec                            ) ) DEALLOCATE(SolnVec                            )
 
 
-
-      ! MODULE Tower
-
-
-   IF ( ALLOCATED(AxRedTFA                           ) ) DEALLOCATE(AxRedTFA                           )
-   IF ( ALLOCATED(AxRedTSS                           ) ) DEALLOCATE(AxRedTSS                           )
-   IF ( ALLOCATED(CAT                                ) ) DEALLOCATE(CAT                                )
-   IF ( ALLOCATED(CDT                                ) ) DEALLOCATE(CDT                                )
-   IF ( ALLOCATED(cgOffTFA                           ) ) DEALLOCATE(cgOffTFA                           )
-   IF ( ALLOCATED(cgOffTSS                           ) ) DEALLOCATE(cgOffTSS                           )
-   IF ( ALLOCATED(DHNodes                            ) ) DEALLOCATE(DHNodes                            )
-   IF ( ALLOCATED(DiamT                              ) ) DEALLOCATE(DiamT                              )
-   IF ( ALLOCATED(HNodes                             ) ) DEALLOCATE(HNodes                             )
-   IF ( ALLOCATED(HNodesNorm                         ) ) DEALLOCATE(HNodesNorm                         )
-   IF ( ALLOCATED(HtFract                            ) ) DEALLOCATE(HtFract                            )
-   IF ( ALLOCATED(InerTFA                            ) ) DEALLOCATE(InerTFA                            )
-   IF ( ALLOCATED(InerTSS                            ) ) DEALLOCATE(InerTSS                            )
-   IF ( ALLOCATED(MassT                              ) ) DEALLOCATE(MassT                              )
-   IF ( ALLOCATED(StiffTEA                           ) ) DEALLOCATE(StiffTEA                           )
-   IF ( ALLOCATED(StiffTFA                           ) ) DEALLOCATE(StiffTFA                           )
-   IF ( ALLOCATED(StiffTGJ                           ) ) DEALLOCATE(StiffTGJ                           )
-   IF ( ALLOCATED(StiffTSS                           ) ) DEALLOCATE(StiffTSS                           )
-   IF ( ALLOCATED(TMassDen                           ) ) DEALLOCATE(TMassDen                           )
-   IF ( ALLOCATED(TwEAStif                           ) ) DEALLOCATE(TwEAStif                           )
-   IF ( ALLOCATED(TwFAcgOf                           ) ) DEALLOCATE(TwFAcgOf                           )
-   IF ( ALLOCATED(TwFAIner                           ) ) DEALLOCATE(TwFAIner                           )
-   IF ( ALLOCATED(TwFAStif                           ) ) DEALLOCATE(TwFAStif                           )
-   IF ( ALLOCATED(TwGJStif                           ) ) DEALLOCATE(TwGJStif                           )
-   IF ( ALLOCATED(TwrFASF                            ) ) DEALLOCATE(TwrFASF                            )
-   IF ( ALLOCATED(TwrSSSF                            ) ) DEALLOCATE(TwrSSSF                            )
-   IF ( ALLOCATED(TwSScgOf                           ) ) DEALLOCATE(TwSScgOf                           )
-   IF ( ALLOCATED(TwSSIner                           ) ) DEALLOCATE(TwSSIner                           )
-   IF ( ALLOCATED(TwSSStif                           ) ) DEALLOCATE(TwSSStif                           )
 
 
       ! MODULE TurbCont
@@ -4023,7 +3988,7 @@ ENDIF
 RETURN
 END SUBROUTINE InitBlDefl
 !=======================================================================
-SUBROUTINE FAST_Initialize(p,x,y,OtherState)
+SUBROUTINE FAST_Initialize(p,x,y,OtherState,InputFileData)
 
 
    ! Initialize sets up starting values for each degree of freedom.
@@ -4040,7 +4005,6 @@ USE                             InitCond
 USE                             Output
 USE                             Platform
 USE                             SimCont
-USE                             Tower
 USE                             Waves, ONLY:InitWaves
 
 IMPLICIT                        NONE
@@ -4052,6 +4016,7 @@ TYPE(StrD_ParameterType),        INTENT(INOUT) :: p                             
 TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
 TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
 TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for the structural dynamics module
+TYPE(StrD_InputFile),            INTENT(IN   ) :: InputFileData                 ! all the data in the StructDyn input file
 
 
    ! Local variables:
@@ -4102,7 +4067,7 @@ ENDDO
 
    ! Compute the constant blade and tower properties:
 
-CALL Coeff(p)
+CALL Coeff(p, InputFileData)
 
 
    ! Initialize the accelerations to zero.
@@ -4341,7 +4306,7 @@ IF (     ( PtfmModel == 2 ) .AND. CompHydro )  THEN   ! .TRUE. if we have a fixe
    ENDIF
 
    DO J = 1,NWaveKin0   ! Loop through the tower nodes / elements
-      WaveKinzi0(J) = p%TwrRBHt + HNodes(J) - p%TwrDraft
+      WaveKinzi0(J) = p%TwrRBHt + p%HNodes(J) - p%TwrDraft
    ENDDO                ! J - Tower nodes / elements
 
 
@@ -4353,7 +4318,7 @@ IF (     ( PtfmModel == 2 ) .AND. CompHydro )  THEN   ! .TRUE. if we have a fixe
                     WavePkShp , WaveDir   , WaveSeed , GHWvFile , &
                     CurrMod   , CurrSSV0  , CurrSSDir, CurrNSRef, &
                     CurrNSV0  , CurrNSDir , CurrDIV  , CurrDIDir, &
-                    NWaveKin0 , WaveKinzi0, DHNodes  , NWaveElev, &
+                    NWaveKin0 , WaveKinzi0, p%DHNodes  , NWaveElev, &
                     WaveElevxi, WaveElevyi, Gravity  , DirRoot      )
 
 
@@ -4703,7 +4668,6 @@ USE                             RtHndSid
 USE                             SimCont
 USE                             TailAero
 USE                             TipBrakes
-USE                             Tower
 USE                             TurbCont
 
 
@@ -4812,6 +4776,8 @@ INTEGER(4), SAVE             :: SgnPrvLSTQ = 1                                  
 INTEGER                      :: ErrStat
 
 
+!TYPE(StrD_InputType),           INTENT(  IN)  :: u           ! An initial guess for the input; input mesh must be defined
+TYPE(StrD_InputType)         :: u           !The inputs for the structural dynamics module
 
 
    ! Determine how many DOFs are currently enabled (this can change within
@@ -4870,12 +4836,12 @@ rZ    = x%QT(DOF_Sg)* CoordSys%z1 + x%QT(DOF_Hv)* CoordSys%z2 - x%QT(DOF_Sw)* Co
 rZY   =        p%rZYzt* CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to platform mass center (point Y).
 rZT0  =       p%rZT0zt* CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to tower base (point T(0))
 rZO   = ( x%QT(DOF_TFA1) + x%QT(DOF_TFA2)                                             )*CoordSys%a1 &       ! Position vector from platform reference (point Z) to tower-top / base plate (point O).
-      + ( p%RefTwrHt - 0.5*(       AxRedTFA(1,1,TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
-                           +     AxRedTFA(2,2,TTopNode)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
-                           + 2.0*AxRedTFA(1,2,TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
-                           +     AxRedTSS(1,1,TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS1) &
-                           +     AxRedTSS(2,2,TTopNode)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
-                           + 2.0*AxRedTSS(1,2,TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*CoordSys%a2 &
+      + ( p%RefTwrHt - 0.5*(       p%AxRedTFA(1,1,p%TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
+                           +     p%AxRedTFA(2,2,p%TTopNode)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
+                           + 2.0*p%AxRedTFA(1,2,p%TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
+                           +     p%AxRedTSS(1,1,p%TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS1) &
+                           +     p%AxRedTSS(2,2,p%TTopNode)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
+                           + 2.0*p%AxRedTSS(1,2,p%TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*CoordSys%a2 &
       + ( x%QT(DOF_TSS1) + x%QT(DOF_TSS2)                                                 )*CoordSys%a3
 rOU   =    p%NacCMxn*CoordSys%d1  +  p%NacCMzn*  CoordSys%d2  -  p%NacCMyn  *CoordSys%d3                          ! Position vector from tower-top / base plate (point O) to nacelle center of mass (point U).
 rOV   =  p%RFrlPntxn*CoordSys%d1  +  p%RFrlPntzn*CoordSys%d2  -  p%RFrlPntyn*CoordSys%d3                          ! Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V).
@@ -5065,10 +5031,10 @@ PAngVelEX(DOF_Y   ,0,:) =  CoordSys%z2
                                     + x%QT (DOF_Y   )*PAngVelEX(DOF_Y   ,0,:)
 
 PAngVelEB(       :,0,:) = PAngVelEX(:,0,:)
-PAngVelEB(DOF_TFA1,0,:) = -TwrFASF(1,TTopNode,1)*CoordSys%a3
-PAngVelEB(DOF_TSS1,0,:) =  TwrSSSF(1,TTopNode,1)*CoordSys%a1
-PAngVelEB(DOF_TFA2,0,:) = -TwrFASF(2,TTopNode,1)*CoordSys%a3
-PAngVelEB(DOF_TSS2,0,:) =  TwrSSSF(2,TTopNode,1)*CoordSys%a1
+PAngVelEB(DOF_TFA1,0,:) = -p%TwrFASF(1,p%TTopNode,1)*CoordSys%a3
+PAngVelEB(DOF_TSS1,0,:) =  p%TwrSSSF(1,p%TTopNode,1)*CoordSys%a1
+PAngVelEB(DOF_TFA2,0,:) = -p%TwrFASF(2,p%TTopNode,1)*CoordSys%a3
+PAngVelEB(DOF_TSS2,0,:) =  p%TwrSSSF(2,p%TTopNode,1)*CoordSys%a1
  AngVelEB               =  AngVelEX + x%QDT(DOF_TFA1)*PAngVelEB(DOF_TFA1,0,:) &
                                     + x%QDT(DOF_TSS1)*PAngVelEB(DOF_TSS1,0,:) &
                                     + x%QDT(DOF_TFA2)*PAngVelEB(DOF_TFA2,0,:) &
@@ -5289,28 +5255,28 @@ ENDDO          ! I - all DOFs associated with the angular motion of the platform
 
 
 PLinVelEO(       :,:,:) = PLinVelEZ(:,:,:)
-PLinVelEO(DOF_TFA1,0,:) = CoordSys%a1      - (   AxRedTFA(1,1,TTopNode)* x%QT(DOF_TFA1) &
-                                               + AxRedTFA(1,2,TTopNode)* x%QT(DOF_TFA2)   )*CoordSys%a2
-PLinVelEO(DOF_TSS1,0,:) = CoordSys%a3      - (   AxRedTSS(1,1,TTopNode)* x%QT(DOF_TSS1) &
-                                               + AxRedTSS(1,2,TTopNode)* x%QT(DOF_TSS2)   )*CoordSys%a2
-PLinVelEO(DOF_TFA2,0,:) = CoordSys%a1      - (   AxRedTFA(2,2,TTopNode)* x%QT(DOF_TFA2) &
-                                               + AxRedTFA(1,2,TTopNode)* x%QT(DOF_TFA1)   )*CoordSys%a2
-PLinVelEO(DOF_TSS2,0,:) = CoordSys%a3      - (   AxRedTSS(2,2,TTopNode)* x%QT(DOF_TSS2) &
-                                               + AxRedTSS(1,2,TTopNode)* x%QT(DOF_TSS1)   )*CoordSys%a2
+PLinVelEO(DOF_TFA1,0,:) = CoordSys%a1      - (   p%AxRedTFA(1,1,p%TTopNode)* x%QT(DOF_TFA1) &
+                                               + p%AxRedTFA(1,2,p%TTopNode)* x%QT(DOF_TFA2)   )*CoordSys%a2
+PLinVelEO(DOF_TSS1,0,:) = CoordSys%a3      - (   p%AxRedTSS(1,1,p%TTopNode)* x%QT(DOF_TSS1) &
+                                               + p%AxRedTSS(1,2,p%TTopNode)* x%QT(DOF_TSS2)   )*CoordSys%a2
+PLinVelEO(DOF_TFA2,0,:) = CoordSys%a1      - (   p%AxRedTFA(2,2,p%TTopNode)* x%QT(DOF_TFA2) &
+                                               + p%AxRedTFA(1,2,p%TTopNode)* x%QT(DOF_TFA1)   )*CoordSys%a2
+PLinVelEO(DOF_TSS2,0,:) = CoordSys%a3      - (   p%AxRedTSS(2,2,p%TTopNode)* x%QT(DOF_TSS2) &
+                                               + p%AxRedTSS(1,2,p%TTopNode)* x%QT(DOF_TSS1)   )*CoordSys%a2
 
 TmpVec1 = CROSS_PRODUCT(   AngVelEX   , PLinVelEO(DOF_TFA1,0,:) )
 TmpVec2 = CROSS_PRODUCT(   AngVelEX   , PLinVelEO(DOF_TSS1,0,:) )
 TmpVec3 = CROSS_PRODUCT(   AngVelEX   , PLinVelEO(DOF_TFA2,0,:) )
 TmpVec4 = CROSS_PRODUCT(   AngVelEX   , PLinVelEO(DOF_TSS2,0,:) )
 
-PLinVelEO(DOF_TFA1,1,:) = TmpVec1 - (   AxRedTFA(1,1,TTopNode)*x%QDT(DOF_TFA1) &
-                                      + AxRedTFA(1,2,TTopNode)*x%QDT(DOF_TFA2)   )*CoordSys%a2
-PLinVelEO(DOF_TSS1,1,:) = TmpVec2 - (   AxRedTSS(1,1,TTopNode)*x%QDT(DOF_TSS1) &
-                                      + AxRedTSS(1,2,TTopNode)*x%QDT(DOF_TSS2)   )*CoordSys%a2
-PLinVelEO(DOF_TFA2,1,:) = TmpVec3 - (   AxRedTFA(2,2,TTopNode)*x%QDT(DOF_TFA2) &
-                                      + AxRedTFA(1,2,TTopNode)*x%QDT(DOF_TFA1)   )*CoordSys%a2
-PLinVelEO(DOF_TSS2,1,:) = TmpVec4 - (   AxRedTSS(2,2,TTopNode)*x%QDT(DOF_TSS2) &
-                                      + AxRedTSS(1,2,TTopNode)*x%QDT(DOF_TSS1)   )*CoordSys%a2
+PLinVelEO(DOF_TFA1,1,:) = TmpVec1 - (   p%AxRedTFA(1,1,p%TTopNode)*x%QDT(DOF_TFA1) &
+                                      + p%AxRedTFA(1,2,p%TTopNode)*x%QDT(DOF_TFA2)   )*CoordSys%a2
+PLinVelEO(DOF_TSS1,1,:) = TmpVec2 - (   p%AxRedTSS(1,1,p%TTopNode)*x%QDT(DOF_TSS1) &
+                                      + p%AxRedTSS(1,2,p%TTopNode)*x%QDT(DOF_TSS2)   )*CoordSys%a2
+PLinVelEO(DOF_TFA2,1,:) = TmpVec3 - (   p%AxRedTFA(2,2,p%TTopNode)*x%QDT(DOF_TFA2) &
+                                      + p%AxRedTFA(1,2,p%TTopNode)*x%QDT(DOF_TFA1)   )*CoordSys%a2
+PLinVelEO(DOF_TSS2,1,:) = TmpVec4 - (   p%AxRedTSS(2,2,p%TTopNode)*x%QDT(DOF_TSS2) &
+                                      + p%AxRedTSS(1,2,p%TTopNode)*x%QDT(DOF_TSS1)   )*CoordSys%a2
 
  LinVelXO               =              x%QDT(DOF_TFA1)*PLinVelEO(DOF_TFA1,0,:) &
                                      + x%QDT(DOF_TSS1)*PLinVelEO(DOF_TSS1,0,:) &
@@ -6160,14 +6126,14 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
 
    ! Calculate the position vector of the current node:
 
-   rT0T(J,:) = ( TwrFASF(1,J,0)*x%QT(DOF_TFA1) + TwrFASF(2,J,0)*x%QT(DOF_TFA2)             )*CoordSys%a1 &   ! Position vector from base of flexible portion of tower (point T(0)) to current node (point T(J)).
-             + ( HNodes(J) - 0.5*(       AxRedTFA(1,1,J)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
-                                   +     AxRedTFA(2,2,J)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
-                                   + 2.0*AxRedTFA(1,2,J)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
-                                   +     AxRedTSS(1,1,J)*x%QT(DOF_TSS1)*x%QT(DOF_TSS1) &
-                                   +     AxRedTSS(2,2,J)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
-                                   + 2.0*AxRedTSS(1,2,J)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*CoordSys%a2 &
-             + ( TwrSSSF(1,J,0)*x%QT(DOF_TSS1) + TwrSSSF(2,J,0)*x%QT(DOF_TSS2)             )*CoordSys%a3
+   rT0T(J,:) = ( p%TwrFASF(1,J,0)*x%QT(DOF_TFA1) + p%TwrFASF(2,J,0)*x%QT(DOF_TFA2)             )*CoordSys%a1 &   ! Position vector from base of flexible portion of tower (point T(0)) to current node (point T(J)).
+             + ( p%HNodes(J) - 0.5*(     p%AxRedTFA(1,1,J)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
+                                   +     p%AxRedTFA(2,2,J)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
+                                   + 2.0*p%AxRedTFA(1,2,J)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
+                                   +     p%AxRedTSS(1,1,J)*x%QT(DOF_TSS1)*x%QT(DOF_TSS1) &
+                                   +     p%AxRedTSS(2,2,J)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
+                                   + 2.0*p%AxRedTSS(1,2,J)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*CoordSys%a2 &
+             + ( p%TwrSSSF(1,J,0)*x%QT(DOF_TSS1) + p%TwrSSSF(2,J,0)*x%QT(DOF_TSS2)             )*CoordSys%a3
    rZT (J,:) = rZT0 + rT0T(J,:)                                                                          ! Position vector from platform reference (point Z) to the current node (point T(HNodes(J)).
 
 
@@ -6184,10 +6150,10 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
    !   of DOF I for body F of element J in body E.
 
    PAngVelEF (J,       :,0,:) = PAngVelEX(:,0,:)
-   PAngVelEF (J,DOF_TFA1,0,:) = -TwrFASF(1,J,1)*CoordSys%a3
-   PAngVelEF (J,DOF_TSS1,0,:) =  TwrSSSF(1,J,1)*CoordSys%a1
-   PAngVelEF (J,DOF_TFA2,0,:) = -TwrFASF(2,J,1)*CoordSys%a3
-   PAngVelEF (J,DOF_TSS2,0,:) =  TwrSSSF(2,J,1)*CoordSys%a1
+   PAngVelEF (J,DOF_TFA1,0,:) = -p%TwrFASF(1,J,1)*CoordSys%a3
+   PAngVelEF (J,DOF_TSS1,0,:) =  p%TwrSSSF(1,J,1)*CoordSys%a1
+   PAngVelEF (J,DOF_TFA2,0,:) = -p%TwrFASF(2,J,1)*CoordSys%a3
+   PAngVelEF (J,DOF_TSS2,0,:) =  p%TwrSSSF(2,J,1)*CoordSys%a1
 
    PAngVelEF (J,       :,1,:) = PAngVelEX(:,1,:)
    PAngVelEF (J,DOF_TFA1,1,:) = CROSS_PRODUCT(  AngVelEX  ,                 PAngVelEF(J,DOF_TFA1,0,:) )
@@ -6221,28 +6187,28 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
    EwXXrZT                   = CROSS_PRODUCT(  AngVelEX, rZT(J,:) )
 
    PLinVelET(J,       :,:,:) = PLinVelEZ(:,:,:)
-   PLinVelET(J,DOF_TFA1,0,:) = TwrFASF(1,J,0)*CoordSys%a1 - (   AxRedTFA(1,1,J)* x%QT(DOF_TFA1) &
-                                                              + AxRedTFA(1,2,J)* x%QT(DOF_TFA2)   )*CoordSys%a2
-   PLinVelET(J,DOF_TSS1,0,:) = TwrSSSF(1,J,0)*CoordSys%a3 - (   AxRedTSS(1,1,J)* x%QT(DOF_TSS1) &
-                                                              + AxRedTSS(1,2,J)* x%QT(DOF_TSS2)   )*CoordSys%a2
-   PLinVelET(J,DOF_TFA2,0,:) = TwrFASF(2,J,0)*CoordSys%a1 - (   AxRedTFA(2,2,J)* x%QT(DOF_TFA2) &
-                                                              + AxRedTFA(1,2,J)* x%QT(DOF_TFA1)   )*CoordSys%a2
-   PLinVelET(J,DOF_TSS2,0,:) = TwrSSSF(2,J,0)*CoordSys%a3 - (   AxRedTSS(2,2,J)* x%QT(DOF_TSS2) &
-                                                              + AxRedTSS(1,2,J)* x%QT(DOF_TSS1)   )*CoordSys%a2
+   PLinVelET(J,DOF_TFA1,0,:) = p%TwrFASF(1,J,0)*CoordSys%a1 - (   p%AxRedTFA(1,1,J)* x%QT(DOF_TFA1) &
+                                                              + p%AxRedTFA(1,2,J)* x%QT(DOF_TFA2)   )*CoordSys%a2
+   PLinVelET(J,DOF_TSS1,0,:) = p%TwrSSSF(1,J,0)*CoordSys%a3 - (   p%AxRedTSS(1,1,J)* x%QT(DOF_TSS1) &
+                                                              + p%AxRedTSS(1,2,J)* x%QT(DOF_TSS2)   )*CoordSys%a2
+   PLinVelET(J,DOF_TFA2,0,:) = p%TwrFASF(2,J,0)*CoordSys%a1 - (   p%AxRedTFA(2,2,J)* x%QT(DOF_TFA2) &
+                                                              + p%AxRedTFA(1,2,J)* x%QT(DOF_TFA1)   )*CoordSys%a2
+   PLinVelET(J,DOF_TSS2,0,:) = p%TwrSSSF(2,J,0)*CoordSys%a3 - (   p%AxRedTSS(2,2,J)* x%QT(DOF_TSS2) &
+                                                              + p%AxRedTSS(1,2,J)* x%QT(DOF_TSS1)   )*CoordSys%a2
 
    TmpVec1                   = CROSS_PRODUCT( AngVelEX, PLinVelET(J,DOF_TFA1,0,:) )
    TmpVec2                   = CROSS_PRODUCT( AngVelEX, PLinVelET(J,DOF_TSS1,0,:) )
    TmpVec3                   = CROSS_PRODUCT( AngVelEX, PLinVelET(J,DOF_TFA2,0,:) )
    TmpVec4                   = CROSS_PRODUCT( AngVelEX, PLinVelET(J,DOF_TSS2,0,:) )
 
-   PLinVelET(J,DOF_TFA1,1,:) = TmpVec1                    - (   AxRedTFA(1,1,J)*x%QDT(DOF_TFA1) &
-                                                              + AxRedTFA(1,2,J)*x%QDT(DOF_TFA2)   )*CoordSys%a2
-   PLinVelET(J,DOF_TSS1,1,:) = TmpVec2                    - (   AxRedTSS(1,1,J)*x%QDT(DOF_TSS1) &
-                                                              + AxRedTSS(1,2,J)*x%QDT(DOF_TSS2)   )*CoordSys%a2
-   PLinVelET(J,DOF_TFA2,1,:) = TmpVec3                    - (   AxRedTFA(2,2,J)*x%QDT(DOF_TFA2) &
-                                                              + AxRedTFA(1,2,J)*x%QDT(DOF_TFA1)   )*CoordSys%a2
-   PLinVelET(J,DOF_TSS2,1,:) = TmpVec4                    - (   AxRedTSS(2,2,J)*x%QDT(DOF_TSS2) &
-                                                              + AxRedTSS(1,2,J)*x%QDT(DOF_TSS1)   )*CoordSys%a2
+   PLinVelET(J,DOF_TFA1,1,:) = TmpVec1                    - (   p%AxRedTFA(1,1,J)*x%QDT(DOF_TFA1) &
+                                                              + p%AxRedTFA(1,2,J)*x%QDT(DOF_TFA2)   )*CoordSys%a2
+   PLinVelET(J,DOF_TSS1,1,:) = TmpVec2                    - (   p%AxRedTSS(1,1,J)*x%QDT(DOF_TSS1) &
+                                                              + p%AxRedTSS(1,2,J)*x%QDT(DOF_TSS2)   )*CoordSys%a2
+   PLinVelET(J,DOF_TFA2,1,:) = TmpVec3                    - (   p%AxRedTFA(2,2,J)*x%QDT(DOF_TFA2) &
+                                                              + p%AxRedTFA(1,2,J)*x%QDT(DOF_TFA1)   )*CoordSys%a2
+   PLinVelET(J,DOF_TSS2,1,:) = TmpVec4                    - (   p%AxRedTSS(2,2,J)*x%QDT(DOF_TSS2) &
+                                                              + p%AxRedTSS(1,2,J)*x%QDT(DOF_TSS1)   )*CoordSys%a2
 
    LinVelXT       = x%QDT(DOF_TFA1)*PLinVelET(J,DOF_TFA1,0,:) &
                   + x%QDT(DOF_TSS1)*PLinVelET(J,DOF_TSS1,0,:) &
@@ -6293,7 +6259,8 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
 
 
    CALL TwrLoading ( J, rT(   J,1), -rT(      J,3), ( rT(      J,2) - p%PtfmRef ), AngPosEF(J,1), -AngPosEF(J,3), AngPosEF(J,2), &
-                     LinVelET(J,1), -LinVelET(J,3),   LinVelET(J,2)            , AngVelEF(J,1), -AngVelEF(J,3), AngVelEF(J,2)  )
+                     LinVelET(J,1), -LinVelET(J,3),   LinVelET(J,2)            , AngVelEF(J,1), -AngVelEF(J,3), AngVelEF(J,2), &
+                    p, u%TwrAM, u%TwrFT)
 
 
 
@@ -6315,85 +6282,85 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
    PMFHydro(J,:,:) = 0.0
    DO I = 1,OtherState%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-      PFTHydro(J,OtherState%DOFs%PTE(I),:) = CoordSys%z1*( - TwrAM(DOF_Sg,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_Sg,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_Sg,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
-                                           - TwrAM(DOF_Sg,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_Sg,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_Sg,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   ) &
-                           - CoordSys%z3*( - TwrAM(DOF_Sw,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_Sw,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_Sw,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
-                                           - TwrAM(DOF_Sw,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_Sw,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_Sw,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   ) &
-                           + CoordSys%z2*( - TwrAM(DOF_Hv,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_Hv,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_Hv,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
-                                           - TwrAM(DOF_Hv,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_Hv,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_Hv,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   )
-      PMFHydro(J,OtherState%DOFs%PTE(I),:) = CoordSys%z1*( - TwrAM(DOF_R ,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_R ,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_R ,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
-                                           - TwrAM(DOF_R ,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_R ,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_R ,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   ) &
-                           - CoordSys%z3*( - TwrAM(DOF_P ,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_P ,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_P ,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
-                                           - TwrAM(DOF_P ,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_P ,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_P ,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   ) &
-                           + CoordSys%z2*( - TwrAM(DOF_Y ,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_Y ,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_Y ,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
-                                           - TwrAM(DOF_Y ,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
-                                           + TwrAM(DOF_Y ,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
-                                           - TwrAM(DOF_Y ,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   )
+      PFTHydro(J,OtherState%DOFs%PTE(I),:) = CoordSys%z1*( - u%TwrAM(DOF_Sg,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_Sg,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_Sg,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
+                                           - u%TwrAM(DOF_Sg,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_Sg,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_Sg,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   ) &
+                           - CoordSys%z3*( - u%TwrAM(DOF_Sw,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_Sw,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_Sw,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
+                                           - u%TwrAM(DOF_Sw,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_Sw,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_Sw,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   ) &
+                           + CoordSys%z2*( - u%TwrAM(DOF_Hv,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_Hv,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_Hv,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
+                                           - u%TwrAM(DOF_Hv,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_Hv,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_Hv,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   )
+      PMFHydro(J,OtherState%DOFs%PTE(I),:) = CoordSys%z1*( - u%TwrAM(DOF_R ,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_R ,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_R ,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
+                                           - u%TwrAM(DOF_R ,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_R ,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_R ,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   ) &
+                           - CoordSys%z3*( - u%TwrAM(DOF_P ,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_P ,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_P ,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
+                                           - u%TwrAM(DOF_P ,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_P ,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_P ,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   ) &
+                           + CoordSys%z2*( - u%TwrAM(DOF_Y ,DOF_Sg)*PLinVelET(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_Y ,DOF_Sw)*PLinVelET(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_Y ,DOF_Hv)*PLinVelET(J,OtherState%DOFs%PTE(I),0,2) &
+                                           - u%TwrAM(DOF_Y ,DOF_R )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,1) &
+                                           + u%TwrAM(DOF_Y ,DOF_P )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,3) &
+                                           - u%TwrAM(DOF_Y ,DOF_Y )*PAngVelEF(J,OtherState%DOFs%PTE(I),0,2)   )
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-   FTHydrot(J,:) = CoordSys%z1*( TwrFt(DOF_Sg) - TwrAM(DOF_Sg,DOF_Sg)*LinAccETt(J,1) &
-                                               + TwrAM(DOF_Sg,DOF_Sw)*LinAccETt(J,3) &
-                                               - TwrAM(DOF_Sg,DOF_Hv)*LinAccETt(J,2) &
-                                               - TwrAM(DOF_Sg,DOF_R )*AngAccEFt(J,1) &
-                                               + TwrAM(DOF_Sg,DOF_P )*AngAccEFt(J,3) &
-                                               - TwrAM(DOF_Sg,DOF_Y )*AngAccEFt(J,2)   ) &
-                 - CoordSys%z3*( TwrFt(DOF_Sw) - TwrAM(DOF_Sw,DOF_Sg)*LinAccETt(J,1) &
-                                               + TwrAM(DOF_Sw,DOF_Sw)*LinAccETt(J,3) &
-                                               - TwrAM(DOF_Sw,DOF_Hv)*LinAccETt(J,2) &
-                                               - TwrAM(DOF_Sw,DOF_R )*AngAccEFt(J,1) &
-                                               + TwrAM(DOF_Sw,DOF_P )*AngAccEFt(J,3) &
-                                               - TwrAM(DOF_Sw,DOF_Y )*AngAccEFt(J,2)   ) &
-                 + CoordSys%z2*( TwrFt(DOF_Hv) - TwrAM(DOF_Hv,DOF_Sg)*LinAccETt(J,1) &
-                                               + TwrAM(DOF_Hv,DOF_Sw)*LinAccETt(J,3) &
-                                               - TwrAM(DOF_Hv,DOF_Hv)*LinAccETt(J,2) &
-                                               - TwrAM(DOF_Hv,DOF_R )*AngAccEFt(J,1) &
-                                               + TwrAM(DOF_Hv,DOF_P )*AngAccEFt(J,3) &
-                                               - TwrAM(DOF_Hv,DOF_Y )*AngAccEFt(J,2)   )
-   MFHydrot(J,:) = CoordSys%z1*( TwrFt(DOF_R ) - TwrAM(DOF_R ,DOF_Sg)*LinAccETt(J,1) &
-                                               + TwrAM(DOF_R ,DOF_Sw)*LinAccETt(J,3) &
-                                               - TwrAM(DOF_R ,DOF_Hv)*LinAccETt(J,2) &
-                                               - TwrAM(DOF_R ,DOF_R )*AngAccEFt(J,1) &
-                                               + TwrAM(DOF_R ,DOF_P )*AngAccEFt(J,3) &
-                                               - TwrAM(DOF_R ,DOF_Y )*AngAccEFt(J,2)   ) &
-                 - CoordSys%z3*( TwrFt(DOF_P ) - TwrAM(DOF_P ,DOF_Sg)*LinAccETt(J,1) &
-                                               + TwrAM(DOF_P ,DOF_Sw)*LinAccETt(J,3) &
-                                               - TwrAM(DOF_P ,DOF_Hv)*LinAccETt(J,2) &
-                                               - TwrAM(DOF_P ,DOF_R )*AngAccEFt(J,1) &
-                                               + TwrAM(DOF_P ,DOF_P )*AngAccEFt(J,3) &
-                                               - TwrAM(DOF_P ,DOF_Y )*AngAccEFt(J,2)   ) &
-                 + CoordSys%z2*( TwrFt(DOF_Y ) - TwrAM(DOF_Y ,DOF_Sg)*LinAccETt(J,1) &
-                                               + TwrAM(DOF_Y ,DOF_Sw)*LinAccETt(J,3) &
-                                               - TwrAM(DOF_Y ,DOF_Hv)*LinAccETt(J,2) &
-                                               - TwrAM(DOF_Y ,DOF_R )*AngAccEFt(J,1) &
-                                               + TwrAM(DOF_Y ,DOF_P )*AngAccEFt(J,3) &
-                                               - TwrAM(DOF_Y ,DOF_Y )*AngAccEFt(J,2)   )
+   FTHydrot(J,:) = CoordSys%z1*( u%TwrFt(DOF_Sg) - u%TwrAM(DOF_Sg,DOF_Sg)*LinAccETt(J,1) &
+                                               + u%TwrAM(DOF_Sg,DOF_Sw)*LinAccETt(J,3) &
+                                               - u%TwrAM(DOF_Sg,DOF_Hv)*LinAccETt(J,2) &
+                                               - u%TwrAM(DOF_Sg,DOF_R )*AngAccEFt(J,1) &
+                                               + u%TwrAM(DOF_Sg,DOF_P )*AngAccEFt(J,3) &
+                                               - u%TwrAM(DOF_Sg,DOF_Y )*AngAccEFt(J,2)   ) &
+                 - CoordSys%z3*( u%TwrFt(DOF_Sw) - u%TwrAM(DOF_Sw,DOF_Sg)*LinAccETt(J,1) &
+                                               + u%TwrAM(DOF_Sw,DOF_Sw)*LinAccETt(J,3) &
+                                               - u%TwrAM(DOF_Sw,DOF_Hv)*LinAccETt(J,2) &
+                                               - u%TwrAM(DOF_Sw,DOF_R )*AngAccEFt(J,1) &
+                                               + u%TwrAM(DOF_Sw,DOF_P )*AngAccEFt(J,3) &
+                                               - u%TwrAM(DOF_Sw,DOF_Y )*AngAccEFt(J,2)   ) &
+                 + CoordSys%z2*( u%TwrFt(DOF_Hv) - u%TwrAM(DOF_Hv,DOF_Sg)*LinAccETt(J,1) &
+                                               + u%TwrAM(DOF_Hv,DOF_Sw)*LinAccETt(J,3) &
+                                               - u%TwrAM(DOF_Hv,DOF_Hv)*LinAccETt(J,2) &
+                                               - u%TwrAM(DOF_Hv,DOF_R )*AngAccEFt(J,1) &
+                                               + u%TwrAM(DOF_Hv,DOF_P )*AngAccEFt(J,3) &
+                                               - u%TwrAM(DOF_Hv,DOF_Y )*AngAccEFt(J,2)   )
+   MFHydrot(J,:) = CoordSys%z1*( u%TwrFt(DOF_R ) - u%TwrAM(DOF_R ,DOF_Sg)*LinAccETt(J,1) &
+                                               + u%TwrAM(DOF_R ,DOF_Sw)*LinAccETt(J,3) &
+                                               - u%TwrAM(DOF_R ,DOF_Hv)*LinAccETt(J,2) &
+                                               - u%TwrAM(DOF_R ,DOF_R )*AngAccEFt(J,1) &
+                                               + u%TwrAM(DOF_R ,DOF_P )*AngAccEFt(J,3) &
+                                               - u%TwrAM(DOF_R ,DOF_Y )*AngAccEFt(J,2)   ) &
+                 - CoordSys%z3*( u%TwrFt(DOF_P ) - u%TwrAM(DOF_P ,DOF_Sg)*LinAccETt(J,1) &
+                                               + u%TwrAM(DOF_P ,DOF_Sw)*LinAccETt(J,3) &
+                                               - u%TwrAM(DOF_P ,DOF_Hv)*LinAccETt(J,2) &
+                                               - u%TwrAM(DOF_P ,DOF_R )*AngAccEFt(J,1) &
+                                               + u%TwrAM(DOF_P ,DOF_P )*AngAccEFt(J,3) &
+                                               - u%TwrAM(DOF_P ,DOF_Y )*AngAccEFt(J,2)   ) &
+                 + CoordSys%z2*( u%TwrFt(DOF_Y ) - u%TwrAM(DOF_Y ,DOF_Sg)*LinAccETt(J,1) &
+                                               + u%TwrAM(DOF_Y ,DOF_Sw)*LinAccETt(J,3) &
+                                               - u%TwrAM(DOF_Y ,DOF_Hv)*LinAccETt(J,2) &
+                                               - u%TwrAM(DOF_Y ,DOF_R )*AngAccEFt(J,1) &
+                                               + u%TwrAM(DOF_Y ,DOF_P )*AngAccEFt(J,3) &
+                                               - u%TwrAM(DOF_Y ,DOF_Y )*AngAccEFt(J,2)   )
 
    ! Calculate the mass of the current element:
 
-   ElmntMass = MassT(J)*DHNodes(J)   ! Mass of tower element J
+   ElmntMass = p%MassT(J)*p%DHNodes(J)   ! Mass of tower element J
 
 
    ! Integrate to find the total partial forces and moments (including those
@@ -6402,10 +6369,10 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
 
    DO I = 1,OtherState%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-      TmpVec1 = PFTHydro(J,OtherState%DOFs%PTE(I),:)*DHNodes(J) &
+      TmpVec1 = PFTHydro(J,OtherState%DOFs%PTE(I),:)*p%DHNodes(J) &
               - ElmntMass*PLinVelET(J,OtherState%DOFs%PTE(I),0,:)           ! The portion of PFrcT0Trb associated with tower element J
       TmpVec2 = CROSS_PRODUCT( rT0T(J,:), TmpVec1 )         ! The portion of PMomX0Trb associated with tower element J
-      TmpVec3 = PMFHydro(J,OtherState%DOFs%PTE(I),:)*DHNodes(J)             ! The added moment applied at tower element J
+      TmpVec3 = PMFHydro(J,OtherState%DOFs%PTE(I),:)*p%DHNodes(J)             ! The added moment applied at tower element J
 
       PFrcT0Trb(OtherState%DOFs%PTE(I),:) = PFrcT0Trb(OtherState%DOFs%PTE(I),:) + TmpVec1
 
@@ -6413,10 +6380,10 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-   TmpVec1 = ( FTAero(J,:) + FTHydrot(J,:) )*DHNodes(J) &
+   TmpVec1 = ( FTAero(J,:) + FTHydrot(J,:) )*p%DHNodes(J) &
            - ElmntMass*( Gravity*CoordSys%z2 + LinAccETt(J,:) )   ! The portion of FrcT0Trbt associated with tower element J
    TmpVec2 = CROSS_PRODUCT( rT0T(J,:), TmpVec1 )                  ! The portion of MomX0Trbt associated with tower element J
-   TmpVec3 = ( MFAero(J,:) + MFHydrot(J,:) )*DHNodes(J)           ! The external moment applied to tower element J
+   TmpVec3 = ( MFAero(J,:) + MFHydrot(J,:) )*p%DHNodes(J)           ! The external moment applied to tower element J
 
    FrcT0Trbt = FrcT0Trbt + TmpVec1
 
@@ -6437,9 +6404,9 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
          AugMat(OtherState%DOFs%PTTE(I),OtherState%DOFs%PTTE(L)) = AugMat(OtherState%DOFs%PTTE(I),OtherState%DOFs%PTTE(L))  &
                                  + ElmntMass *DOT_PRODUCT( PLinVelET(J,OtherState%DOFs%PTTE(I),0,:),  &
                                                            PLinVelET(J,OtherState%DOFs%PTTE(L),0,:) ) &  ! [C(q,t)]T + [C(q,t)]HydroT
-                                 - DHNodes(J)*DOT_PRODUCT( PLinVelET(J,OtherState%DOFs%PTTE(I),0,:),  &
+                                 - p%DHNodes(J)*DOT_PRODUCT( PLinVelET(J,OtherState%DOFs%PTTE(I),0,:),  &
                                                            PFTHydro (J,OtherState%DOFs%PTTE(L),  :) ) &
-                                 - DHNodes(J)*DOT_PRODUCT( PAngVelEF(J,OtherState%DOFs%PTTE(I),0,:),  &
+                                 - p%DHNodes(J)*DOT_PRODUCT( PAngVelEF(J,OtherState%DOFs%PTTE(I),0,:),  &
                                                            PMFHydro (J,OtherState%DOFs%PTTE(L),  :) )
       ENDDO          ! I - All active (enabled) tower DOFs greater than or equal to L
    ENDDO             ! L - All active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the tower
@@ -6458,23 +6425,23 @@ ENDDO ! J - Tower nodes / elements
 
 IF ( p%DOF_Flag(DOF_TFA1) )  THEN
    AugMat(    DOF_TFA1,p%NAug) = AugMat(DOF_TFA1,p%NAug)                             &
-                             - KTFA(1,1)*x%QT( DOF_TFA1) - KTFA(1,2)*x%QT( DOF_TFA2) &  !
-                             - CTFA(1,1)*x%QDT(DOF_TFA1) - CTFA(1,2)*x%QDT(DOF_TFA2)
+                             - p%KTFA(1,1)*x%QT( DOF_TFA1) - p%KTFA(1,2)*x%QT( DOF_TFA2) &  !
+                             - p%CTFA(1,1)*x%QDT(DOF_TFA1) - p%CTFA(1,2)*x%QDT(DOF_TFA2)
 ENDIF
 IF ( p%DOF_Flag(DOF_TSS1) )  THEN
    AugMat(    DOF_TSS1,p%NAug) = AugMat(DOF_TSS1,p%NAug)                             &
-                             - KTSS(1,1)*x%QT( DOF_TSS1) - KTSS(1,2)*x%QT( DOF_TSS2) &  ! {-f(qd,q,t)}ElasticT + {-f(qd,q,t)}DampT
-                             - CTSS(1,1)*x%QDT(DOF_TSS1) - CTSS(1,2)*x%QDT(DOF_TSS2)
+                             - p%KTSS(1,1)*x%QT( DOF_TSS1) - p%KTSS(1,2)*x%QT( DOF_TSS2) &  ! {-f(qd,q,t)}ElasticT + {-f(qd,q,t)}DampT
+                             - p%CTSS(1,1)*x%QDT(DOF_TSS1) - p%CTSS(1,2)*x%QDT(DOF_TSS2)
 ENDIF
 IF ( p%DOF_Flag(DOF_TFA2) )  THEN
    AugMat(    DOF_TFA2,p%NAug) = AugMat(DOF_TFA2,p%NAug)                             &
-                             - KTFA(2,1)*x%QT( DOF_TFA1) - KTFA(2,2)*x%QT( DOF_TFA2) &  !
-                             - CTFA(2,1)*x%QDT(DOF_TFA1) - CTFA(2,2)*x%QDT(DOF_TFA2)
+                             - p%KTFA(2,1)*x%QT( DOF_TFA1) - p%KTFA(2,2)*x%QT( DOF_TFA2) &  !
+                             - p%CTFA(2,1)*x%QDT(DOF_TFA1) - p%CTFA(2,2)*x%QDT(DOF_TFA2)
 ENDIF
 IF ( p%DOF_Flag(DOF_TSS2) )  THEN
    AugMat(    DOF_TSS2,p%NAug) = AugMat(DOF_TSS2,p%NAug)                             &
-                             - KTSS(2,1)*x%QT( DOF_TSS1) - KTSS(2,2)*x%QT( DOF_TSS2) &  !
-                             - CTSS(2,1)*x%QDT(DOF_TSS1) - CTSS(2,2)*x%QDT(DOF_TSS2)
+                             - p%KTSS(2,1)*x%QT( DOF_TSS1) - p%KTSS(2,2)*x%QT( DOF_TSS2) &  !
+                             - p%CTSS(2,1)*x%QDT(DOF_TSS1) - p%CTSS(2,2)*x%QDT(DOF_TSS2)
 ENDIF
 
 
@@ -6907,7 +6874,6 @@ SUBROUTINE SetCoordSy( CoordSys, p, x )
 
 USE                             Blades
 USE                             RtHndSid
-USE                             Tower
 USE                             SimCont, ONLY: ZTime
 USE                             TurbCont
 
@@ -6982,8 +6948,8 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes / elements
 
    ! Tower element-fixed coordinate system:
 
-   ThetaFA = -TwrFASF(1,J       ,1)*x%QT(DOF_TFA1) - TwrFASF(2,J       ,1)*x%QT(DOF_TFA2)
-   ThetaSS =  TwrSSSF(1,J       ,1)*x%QT(DOF_TSS1) + TwrSSSF(2,J       ,1)*x%QT(DOF_TSS2)
+   ThetaFA = -p%TwrFASF(1,J       ,1)*x%QT(DOF_TFA1) - p%TwrFASF(2,J       ,1)*x%QT(DOF_TFA2)
+   ThetaSS =  p%TwrSSSF(1,J       ,1)*x%QT(DOF_TSS1) + p%TwrSSSF(2,J       ,1)*x%QT(DOF_TSS2)
 
    CALL SmllRotTrans( 'tower deflection', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(ZTime))//' s' )   ! Get the transformation matrix, TransMat, from tower-base to tower element-fixed coordinate systems.
 
@@ -6997,8 +6963,8 @@ ENDDO ! J - Tower nodes / elements
 
    ! Tower-top / base plate coordinate system:
 
-ThetaFA    = -TwrFASF(1,TTopNode,1)*x%QT(DOF_TFA1) - TwrFASF(2,TTopNode,1)*x%QT(DOF_TFA2)
-ThetaSS    =  TwrSSSF(1,TTopNode,1)*x%QT(DOF_TSS1) + TwrSSSF(2,TTopNode,1)*x%QT(DOF_TSS2)
+ThetaFA    = -p%TwrFASF(1,p%TTopNode,1)*x%QT(DOF_TFA1) - p%TwrFASF(2,p%TTopNode,1)*x%QT(DOF_TFA2)
+ThetaSS    =  p%TwrSSSF(1,p%TTopNode,1)*x%QT(DOF_TSS1) + p%TwrSSSF(2,p%TTopNode,1)*x%QT(DOF_TSS2)
 
 CALL SmllRotTrans( 'tower deflection', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(ZTime))//' s' )   ! Get the transformation matrix, TransMat, from tower-base to tower-top/base-plate coordinate systems.
 
@@ -8231,7 +8197,7 @@ RETURN
 END SUBROUTINE TimeMarch
 !=======================================================================
 SUBROUTINE TwrLoading ( JNode, X1 , X2 , X3 , X4 , X5 , X6 , &
-                               XD1, XD2, XD3, XD4, XD5, XD6    )
+                               XD1, XD2, XD3, XD4, XD5, XD6, p, TwrAM, TwrFt    )
 
 
    ! This routine computes the tower hydrodynamic loading; that is
@@ -8241,7 +8207,6 @@ SUBROUTINE TwrLoading ( JNode, X1 , X2 , X3 , X4 , X5 , X6 , &
 USE                             General
 USE                             FixedBottomSupportStructure, ONLY:MorisonTwrLd
 USE                             SimCont
-USE                             Tower
 
 IMPLICIT                        NONE
 
@@ -8262,6 +8227,11 @@ REAL(ReKi), INTENT(IN )      :: XD5                                             
 REAL(ReKi), INTENT(IN )      :: XD6                                             ! The zi-component of the rotational (angular) velocity (in rad/s) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
 
 INTEGER(4), INTENT(IN )      :: JNode                                           ! The number of the current tower node / element. [1 to TwrNodes]
+
+TYPE(StrD_ParameterType), INTENT(IN)  :: p                                      ! Parameters of the structural dynamics module;  bjj: remove this in new framework
+
+REAL(ReKi), INTENT(OUT )     :: TwrAM     (6,6)                                 ! Added mass matrix of the current tower element per unit length.
+REAL(ReKi), INTENT(OUT )     :: TwrFt     (6)                                   ! The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower element (point T) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the tower moment acting at the current tower element (body F) / (point T) per unit length associated with everything but the QD2T()'s.
 
 
    ! Local variables:
@@ -8291,7 +8261,8 @@ XD(4) = XD4
 XD(5) = XD5
 XD(6) = XD6
 
-
+TwrAM = 0.0_ReKi 
+TwrFt = 0.0_ReKi
 
    ! Compute the tower hydrodynamic loading for the current tower node /
    !   element:
@@ -8313,7 +8284,7 @@ CASE ( 1 )                 ! Onshore.
 CASE ( 2 )                 ! Fixed bottom offshore.
 
 
-   SELECT CASE ( TwrLdMod )   ! Which tower loading model are we using?
+   SELECT CASE ( p%TwrLdMod )   ! Which tower loading model are we using?
 
    CASE ( 0 )                 ! None!
 
@@ -8326,7 +8297,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! CALL the undocumented Morison's equation tower loading model:
 
-      CALL MorisonTwrLd ( JNode, DiamT(JNode), CAT(JNode), CDT(JNode), X, XD, ZTime, TwrAM, TwrFt )
+      CALL MorisonTwrLd ( JNode, p%DiamT(JNode), p%CAT(JNode), p%CDT(JNode), X, XD, ZTime, TwrAM, TwrFt )
 
 
    CASE ( 2 )                 ! User-defined tower loading.
