@@ -1756,7 +1756,7 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetBlade
 !=======================================================================
-SUBROUTINE GetFurl( InputFileData )
+SUBROUTINE GetFurl( InputFileData, p )
 
 
    ! This routine reads in the FAST furling input parameters from
@@ -1766,7 +1766,6 @@ SUBROUTINE GetFurl( InputFileData )
 USE                             Features
 USE                             General
 USE                             InitCond
-USE                             MassInert
 USE                             Output
 USE                             RotorFurling
 USE                             TailAero
@@ -1777,6 +1776,7 @@ IMPLICIT                        NONE
 
    ! Passed variables
 TYPE(StrD_InputFile),     INTENT(INOUT)    :: InputFileData                   ! Data stored in the module's input file
+TYPE(StrD_ParameterType), INTENT(INOUT)    :: p                               ! The module's parameters
 
 
    ! Local variables:
@@ -2053,37 +2053,37 @@ CALL ReadCom ( UnIn, FurlFile, 'mass and inertia (cont)'  )
 
    ! RFrlMass - Mass of structure that furls with the rotor (not including rotor).
 
-CALL ReadVar ( UnIn, FurlFile, RFrlMass, 'RFrlMass', 'Rotor-furl mass' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlMass, 'RFrlMass', 'Rotor-furl mass' )
 
-IF ( RFrlMass < 0.0 )  CALL ProgAbort ( ' RFrlMass must not be negative.' )
+IF ( p%RFrlMass < 0.0 )  CALL ProgAbort ( ' RFrlMass must not be negative.' )
 
 
    ! BoomMass - Tail boom mass.
 
-CALL ReadVar ( UnIn, FurlFile, BoomMass, 'BoomMass', 'Tail boom mass' )
+CALL ReadVar ( UnIn, FurlFile, p%BoomMass, 'BoomMass', 'Tail boom mass' )
 
-IF ( BoomMass < 0.0 )  CALL ProgAbort ( ' BoomMass must not be negative.' )
+IF ( p%BoomMass < 0.0 )  CALL ProgAbort ( ' BoomMass must not be negative.' )
 
 
    ! TFinMass - Tail fin mass.
 
-CALL ReadVar ( UnIn, FurlFile, TFinMass, 'TFinMass', 'Tail fin mass' )
+CALL ReadVar ( UnIn, FurlFile, p%TFinMass, 'TFinMass', 'Tail fin mass' )
 
-IF ( TFinMass < 0.0 )  CALL ProgAbort ( ' TFinMass must not be negative.' )
+IF ( p%TFinMass < 0.0 )  CALL ProgAbort ( ' TFinMass must not be negative.' )
 
 
    ! RFrlIner - Inertia of structure that furls with the rotor about the rotor-furl axis (not including rotor).
 
-CALL ReadVar ( UnIn, FurlFile, RFrlIner, 'RFrlIner', 'Rotor-furl inertia about rotor-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlIner, 'RFrlIner', 'Rotor-furl inertia about rotor-furl axis' )
 
-IF ( RFrlIner < 0.0 )  CALL ProgAbort ( ' RFrlIner must not be negative.' )
+IF ( InputFileData%RFrlIner < 0.0 )  CALL ProgAbort ( ' RFrlIner must not be negative.' )
 
 
    ! TFrlIner - Tail boom inertia about tail-furl axis.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlIner, 'TFrlIner', 'Tail boom inertia about tail-furl axis' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlIner, 'TFrlIner', 'Tail boom inertia about tail-furl axis' )
 
-IF ( TFrlIner < 0.0 )  CALL ProgAbort ( ' TFrlIner must not be negative.' )
+IF ( p%TFrlIner < 0.0 )  CALL ProgAbort ( ' TFrlIner must not be negative.' )
 
 
 
@@ -2600,7 +2600,6 @@ USE                             Features
 USE                             General
 USE                             InitCond
 USE                             Linear
-USE                             MassInert
 USE                             NacelleYaw
 USE                             Output
 USE                             SimCont
@@ -3418,36 +3417,36 @@ IF ( ( p%AzimB1Up < 0.0 ) .OR. ( p%AzimB1Up > 360.0 ) )  CALL ProgAbort ( ' Azim
 
    ! YawBrMass - Yaw bearing mass.
 
-CALL ReadVar ( UnIn, PriFile, YawBrMass, 'YawBrMass', 'Yaw bearing mass' )
+CALL ReadVar ( UnIn, PriFile, p%YawBrMass, 'YawBrMass', 'Yaw bearing mass' )
 
-IF ( YawBrMass < 0.0 )  CALL ProgAbort ( ' YawBrMass must not be negative.' )
+IF ( p%YawBrMass < 0.0 )  CALL ProgAbort ( ' YawBrMass must not be negative.' )
 
 
    ! NacMass - Nacelle mass.
 
-CALL ReadVar ( UnIn, PriFile, NacMass, 'NacMass', 'Nacelle mass' )
+CALL ReadVar ( UnIn, PriFile, p%NacMass, 'NacMass', 'Nacelle mass' )
 
-IF ( NacMass < 0.0 )  CALL ProgAbort ( ' NacMass must not be negative.' )
+IF ( p%NacMass < 0.0 )  CALL ProgAbort ( ' NacMass must not be negative.' )
 
 
    ! HubMass - Hub mass.
 
-CALL ReadVar ( UnIn, PriFile, HubMass, 'HubMass', 'Hub mass' )
+CALL ReadVar ( UnIn, PriFile, p%HubMass, 'HubMass', 'Hub mass' )
 
-IF ( HubMass < 0.0 )  CALL ProgAbort ( ' HubMass must not be negative.' )
+IF ( p%HubMass < 0.0 )  CALL ProgAbort ( ' HubMass must not be negative.' )
 
 
    ! TipMass - Tip-brake mass.
 
-ALLOCATE ( TipMass(p%NumBl) , STAT=Sttus )
+ALLOCATE ( p%TipMass(p%NumBl) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the TipMass array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, TipMass, p%NumBl, 'TipMass', 'Tip-brake mass' )
+CALL ReadAryLines ( UnIn, PriFile, p%TipMass, p%NumBl, 'TipMass', 'Tip-brake mass' )
 
 DO K=1,p%NumBl
-   IF ( TipMass(K) < 0.0 )  THEN
+   IF ( p%TipMass(K) < 0.0 )  THEN
       CALL ProgAbort ( ' TipMass('//TRIM( Int2LStr( K ) )//') must not be negative.' )
    ENDIF
 ENDDO ! K
@@ -3459,27 +3458,27 @@ ENDIF
 
    ! NacYIner - Nacelle yaw inertia.
 
-CALL ReadVar ( UnIn, PriFile, NacYIner, 'NacYIner', 'Nacelle yaw inertia' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%NacYIner, 'NacYIner', 'Nacelle yaw inertia' )
 
-IF ( NacYIner < 0.0 )  CALL ProgAbort ( ' NacYIner must not be negative.' )
+IF ( InputFileData%NacYIner < 0.0 )  CALL ProgAbort ( ' NacYIner must not be negative.' )
 
 
    ! GenIner - Generator inertia about HSS.
 
-CALL ReadVar ( UnIn, PriFile, GenIner, 'GenIner', 'Generator inertia about HSS' )
+CALL ReadVar ( UnIn, PriFile, p%GenIner, 'GenIner', 'Generator inertia about HSS' )
 
-IF ( GenIner < 0.0 )  CALL ProgAbort ( ' GenIner must not be negative.' )
+IF ( p%GenIner < 0.0 )  CALL ProgAbort ( ' GenIner must not be negative.' )
 
 
    ! HubIner - Hub inertia about teeter axis (2-blader) or rotor axis (3-blader).
 
 IF ( p%NumBl == 2 )  THEN
-   CALL ReadVar ( UnIn, PriFile, HubIner, 'HubIner', 'Hub inertia about teeter axis' )
+   CALL ReadVar ( UnIn, PriFile, InputFileData%HubIner, 'HubIner', 'Hub inertia about teeter axis' )
 ELSE
-   CALL ReadVar ( UnIn, PriFile, HubIner, 'HubIner', 'Hub inertia about rotor axis' )
+   CALL ReadVar ( UnIn, PriFile, InputFileData%HubIner, 'HubIner', 'Hub inertia about rotor axis' )
 ENDIF
 
-IF ( HubIner < 0.0 )  CALL ProgAbort ( ' HubIner must not be negative.' )
+IF ( InputFileData%HubIner < 0.0 )  CALL ProgAbort ( ' HubIner must not be negative.' )
 
 
 
@@ -4143,7 +4142,6 @@ USE                             EnvCond
 USE                             Features
 USE                             General
 USE                             InitCond
-USE                             MassInert
 USE                             Output
 USE                             Platform
 USE                             SimCont
@@ -4341,30 +4339,30 @@ IF ( p%PtfmRef < p%TwrDraft )  CALL ProgAbort ( ' PtfmRef must not be less than 
 
    ! PtfmMass - Platform mass.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmMass, 'PtfmMass', 'Platform mass' )
+CALL ReadVar ( UnIn, PtfmFile, p%PtfmMass, 'PtfmMass', 'Platform mass' )
 
-IF ( PtfmMass < 0.0 )  CALL ProgAbort ( ' PtfmMass must not be negative.' )
+IF ( p%PtfmMass < 0.0 )  CALL ProgAbort ( ' PtfmMass must not be negative.' )
 
 
    ! PtfmRIner - Platform inertia for roll tilt rotation about the platform CM.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmRIner, 'PtfmRIner', 'Platform inertia for roll tilt rotation about the platform CM' )
+CALL ReadVar ( UnIn, PtfmFile, p%PtfmRIner, 'PtfmRIner', 'Platform inertia for roll tilt rotation about the platform CM' )
 
-IF ( PtfmRIner < 0.0 )  CALL ProgAbort ( ' PtfmRIner must not be negative.' )
+IF ( p%PtfmRIner < 0.0 )  CALL ProgAbort ( ' PtfmRIner must not be negative.' )
 
 
    ! PtfmPIner - Platform inertia for pitch tilt rotation about the platform CM.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmPIner, 'PtfmPIner', 'Platform inertia for pitch tilt rotation about the platform CM' )
+CALL ReadVar ( UnIn, PtfmFile, p%PtfmPIner, 'PtfmPIner', 'Platform inertia for pitch tilt rotation about the platform CM' )
 
-IF ( PtfmPIner < 0.0 )  CALL ProgAbort ( ' PtfmPIner must not be negative.' )
+IF ( p%PtfmPIner < 0.0 )  CALL ProgAbort ( ' PtfmPIner must not be negative.' )
 
 
    ! PtfmYIner - Platform inertia for yaw rotation about the platform CM.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmYIner, 'PtfmYIner', 'Platform inertia for yaw rotation about the platform CM' )
+CALL ReadVar ( UnIn, PtfmFile, p%PtfmYIner, 'PtfmYIner', 'Platform inertia for yaw rotation about the platform CM' )
 
-IF ( PtfmYIner < 0.0 )  CALL ProgAbort ( ' PtfmYIner must not be negative.' )
+IF ( p%PtfmYIner < 0.0 )  CALL ProgAbort ( ' PtfmYIner must not be negative.' )
 
 
 !  -------------- PLATFORM (CONT) ----------------------------------------------
@@ -5920,7 +5918,7 @@ ENDIF
 
 IF ( Furling )  THEN
 
-   CALL GetFurl( InputFileData )
+   CALL GetFurl( InputFileData, p )
 
    p%RFrlPntxn = InputFileData%RFrlPntxn
    p%RFrlPntyn = InputFileData%RFrlPntyn
@@ -7033,7 +7031,6 @@ USE                             AeroDyn
 USE                             Blades
 USE                             Features
 USE                             General
-USE                             MassInert
 USE                             SimCont
 
 
@@ -7261,27 +7258,27 @@ WRITE (UnSu,FmtDat ) '    Flexible Blade Length (m)     ', BldFlexL
 
 WRITE (UnSu,FmtHead)  'Rotor mass properties:'
 
-WRITE (UnSu,FmtDat ) '    Rotor Mass            (kg)    ', RotMass
-WRITE (UnSu,FmTDat ) '    Rotor Inertia         (kg-m^2)', RotINer
+WRITE (UnSu,FmtDat ) '    Rotor Mass            (kg)    ', p%RotMass
+WRITE (UnSu,FmTDat ) '    Rotor Inertia         (kg-m^2)', p%RotINer
 
 WRITE (UnSu,Fmt1   ) ( K,         K=1,p%NumBl )
 WRITE (UnSu,Fmt2   ) ( '-------', K=1,p%NumBl )
 
-WRITE (UnSu,FmtDat ) '    Mass                  (kg)    ', ( BldMass  (K), K=1,p%NumBl )
-WRITE (UnSu,FmtDat ) '    Second Mass Moment    (kg-m^2)', ( SecondMom(K), K=1,p%NumBl )
-WRITE (UnSu,FmtDat ) '    First Mass Moment     (kg-m)  ', ( FirstMom (K), K=1,p%NumBl )
-WRITE (UnSu,FmtDat ) '    Center of Mass        (m)     ', ( BldCG    (K), K=1,p%NumBl )
+WRITE (UnSu,FmtDat ) '    Mass                  (kg)    ', ( p%BldMass  (K), K=1,p%NumBl )
+WRITE (UnSu,FmtDat ) '    Second Mass Moment    (kg-m^2)', ( p%SecondMom(K), K=1,p%NumBl )
+WRITE (UnSu,FmtDat ) '    First Mass Moment     (kg-m)  ', ( p%FirstMom (K), K=1,p%NumBl )
+WRITE (UnSu,FmtDat ) '    Center of Mass        (m)     ', ( p%BldCG    (K), K=1,p%NumBl )
 
 
    ! Output additional masses:
 
 WRITE (UnSu,FmtHead)  'Additional mass properties:'
 
-WRITE (UnSu,FmtDat ) '    Tower-top Mass        (kg)    ', TwrTpMass
-WRITE (UnSu,FmtDat ) '    Tower Mass            (kg)    ', TwrMass
-!WRITE (UnSu,FmtDat ) '    Turbine Mass          (kg)    ', TurbMass
-WRITE (UnSu,FmtDat ) '    Platform Mass         (kg)    ', PtfmMass
-WRITE (UnSu,FmtDat ) '    Mass Incl. Platform   (kg)    ', TotalMass
+WRITE (UnSu,FmtDat ) '    Tower-top Mass        (kg)    ', p%TwrTpMass
+WRITE (UnSu,FmtDat ) '    Tower Mass            (kg)    ', p%TwrMass
+!WRITE (UnSu,FmtDat ) '    Turbine Mass          (kg)    ', p%TurbMass
+WRITE (UnSu,FmtDat ) '    Platform Mass         (kg)    ', p%PtfmMass
+WRITE (UnSu,FmtDat ) '    Mass Incl. Platform   (kg)    ', p%TurbMass + p%PtfmMass !TotalMass !bjj TotalMass not used anywhere else so removed it
 
 
    ! Interpolated tower properties.

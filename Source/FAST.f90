@@ -16,7 +16,6 @@ SUBROUTINE Alloc(p,x,y, OtherState)
 USE                             Blades
 USE                             DriveTrain
 USE                             InitCond
-USE                             MassInert
 USE                             Modes
 USE                             Output
 USE                             RtHndSid
@@ -116,8 +115,8 @@ IF (.NOT. ALLOCATED( TwistedSF ) ) THEN
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( BldCG ) ) THEN
-   ALLOCATE ( BldCG(p%NumBl) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%BldCG ) ) THEN
+   ALLOCATE ( p%BldCG(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the BldCG array.')
    ENDIF
@@ -151,15 +150,15 @@ IF (.NOT. ALLOCATED( CBE ) ) THEN
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( SecondMom ) ) THEN
-   ALLOCATE ( SecondMom(p%NumBl) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%SecondMom ) ) THEN
+   ALLOCATE ( p%SecondMom(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the SecondMom array.')
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( FirstMom ) ) THEN
-   ALLOCATE ( FirstMom(p%NumBl) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%FirstMom ) ) THEN
+   ALLOCATE ( p%FirstMom(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the FirstMom array.')
    ENDIF
@@ -179,8 +178,8 @@ IF (.NOT. ALLOCATED( FreqBF ) ) THEN
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( BldMass ) ) THEN
-   ALLOCATE ( BldMass(p%NumBl) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%BldMass ) ) THEN
+   ALLOCATE ( p%BldMass(p%NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the BldMass array.')
    ENDIF
@@ -846,7 +845,6 @@ USE                             EnvCond
 USE                             Features
 USE                             FloatingPlatform, ONLY:AnchorTension, FairleadTension
 USE                             Linear
-USE                             MassInert
 USE                             Output
 USE                             Platform
 USE                             RtHndSid
@@ -1351,7 +1349,7 @@ DO K = 1,p%NumBl
 
       ! Initialize FrcMGagB and MomMGagB using the tip brake effects:
 
-         FrcMGagB = FSTipDrag(K,:) - TipMass(K)*( Gravity*OtherState%CoordSys%z2 + LinAccES(K,p%TipNode,:) )
+         FrcMGagB = FSTipDrag(K,:) - p%TipMass(K)*( Gravity*OtherState%CoordSys%z2 + LinAccES(K,p%TipNode,:) )
          MomMGagB = CROSS_PRODUCT( rS0S(K,p%TipNode,:) - rS0S(K,BldGagNd(I),:), FrcMGagB )
 
 
@@ -1517,7 +1515,7 @@ MomBNcRt = 1000.0*MomBNcRt ! from kN and kN-m back to N and N-m, respectively.
 DO I=1,p%NTwGages
 
    ! Initialize FrcFGagT and MomFGagT using the tower-top and yaw bearing mass effects:
-   FrcFGagT = FrcONcRt - YawBrMass*( Gravity*OtherState%CoordSys%z2 + LinAccEO )
+   FrcFGagT = FrcONcRt - p%YawBrMass*( Gravity*OtherState%CoordSys%z2 + LinAccEO )
    MomFGagT = CROSS_PRODUCT( rZO - rZT(TwrGagNd(I),:), FrcFGagT )
    MomFGagT = MomFGagT + MomBNcRt
 
@@ -1719,7 +1717,6 @@ USE                             DriveTrain
 USE                             EnvCond
 USE                             Features
 USE                             InitCond
-USE                             MassInert
 USE                             Modes
 
 
@@ -1836,32 +1833,32 @@ ENDIF
 
    ! Calculate the structure that furls with the rotor inertia term:
 
-RrfaIner  = RFrlIner - RFrlMass*(      (p%rVDxn**2    )*( 1.0 - p%CRFrlSkw2*p%CRFrlTlt2 ) &
+p%RrfaIner  = InputFileData%RFrlIner - p%RFrlMass*(      (p%rVDxn**2    )*( 1.0 - p%CRFrlSkw2*p%CRFrlTlt2 ) &
                                   +    (p%rVDzn**2    )*                    p%CRFrlTlt2   &
                                   +    (p%rVDyn**2    )*( 1.0 - p%SRFrlSkw2*p%CRFrlTlt2 ) &
                                   - 2.0*p%rVDxn*p%rVDzn*        p%CRFrlSkew*p%CSRFrlTlt   &
                                   - 2.0*p%rVDxn*p%rVDyn*        p%CSRFrlSkw*p%CRFrlTlt2   &
                                   - 2.0*p%rVDzn*p%rVDyn*        p%SRFrlSkew*p%CSRFrlTlt     )
-IF ( RrfaIner < 0.0 )   CALL ProgAbort ( ' RFrlIner must not be less than RFrlMass*( perpendicular distance between rotor-furl'// &
+IF ( p%RrfaIner < 0.0 )   CALL ProgAbort ( ' RFrlIner must not be less than RFrlMass*( perpendicular distance between rotor-furl'// &
                                      ' axis and CM of the structure that furls with the rotor [not including rotor] )^2.'       )
 
 
    ! Calculate the tail boom inertia term:
 
-AtfaIner  = TFrlIner - BoomMass*(       p%rWIxn*p%rWIxn*( 1.0 - p%CTFrlSkw2*p%CTFrlTlt2 ) &
-                                  +     p%rWIzn*p%rWIzn*                    p%CTFrlTlt2   &
-                                  +     p%rWIyn*p%rWIyn*( 1.0 - p%STFrlSkw2*p%CTFrlTlt2 ) &
-                                  - 2.0*p%rWIxn*p%rWIzn*        p%CTFrlSkew*p%CSTFrlTlt   &
-                                  - 2.0*p%rWIxn*p%rWIyn*        p%CSTFrlSkw*p%CTFrlTlt2   &
-                                  - 2.0*p%rWIzn*p%rWIyn*        p%STFrlSkew*p%CSTFrlTlt     )
-IF ( AtfaIner < 0.0 )   CALL ProgAbort ( ' TFrlIner must not be less than BoomMass*( perpendicular distance between tail-furl'// &
+p%AtfaIner  = p%TFrlIner - p%BoomMass*(       p%rWIxn*p%rWIxn*( 1.0 - p%CTFrlSkw2*p%CTFrlTlt2 ) &
+                                    +     p%rWIzn*p%rWIzn*                    p%CTFrlTlt2   &
+                                    +     p%rWIyn*p%rWIyn*( 1.0 - p%STFrlSkw2*p%CTFrlTlt2 ) &
+                                    - 2.0*p%rWIxn*p%rWIzn*        p%CTFrlSkew*p%CSTFrlTlt   &
+                                    - 2.0*p%rWIxn*p%rWIyn*        p%CSTFrlSkw*p%CTFrlTlt2   &
+                                    - 2.0*p%rWIzn*p%rWIyn*        p%STFrlSkew*p%CSTFrlTlt     )
+IF ( p%AtfaIner < 0.0 )   CALL ProgAbort ( ' TFrlIner must not be less than BoomMass*( perpendicular distance between tail-furl'// &
                                      ' axis and tail boom CM )^2.'                                                             )
 
 
    ! Calculate the nacelle inertia terms:
 
-Nacd2Iner = NacYIner - NacMass*( p%NacCMxn**2 + p%NacCMyn**2 ) ! Nacelle inertia about the d2-axis
-IF ( Nacd2Iner < 0.0 )  CALL ProgAbort ( ' NacYIner must not be less than NacMass*( NacCMxn^2 + NacCMyn^2 ).' )
+p%Nacd2Iner = InputFileData%NacYIner - p%NacMass*( p%NacCMxn**2 + p%NacCMyn**2 ) ! Nacelle inertia about the d2-axis
+IF ( p%Nacd2Iner < 0.0 )  CALL ProgAbort ( ' NacYIner must not be less than NacMass*( NacCMxn^2 + NacCMyn^2 ).' )
 
 
    ! Calculate hub inertia about its centerline passing through its c.g..
@@ -1873,16 +1870,16 @@ IF ( Nacd2Iner < 0.0 )  CALL ProgAbort ( ' NacYIner must not be less than NacMas
    ! Also, Initialize RotMass and RotIner to associated hub properties:
 
 IF ( p%NumBl == 2 )  THEN ! 2-blader
-   Hubg1Iner = ( HubIner - HubMass*( ( p%UndSling - p%HubCM )**2 ) )/( p%CosDel3**2 )
-   Hubg2Iner = Hubg1Iner
-   IF ( Hubg1Iner < 0.0 )  CALL ProgAbort ( ' HubIner must not be less than HubMass*( UndSling - HubCM )^2 for 2-blader.' )
+   p%Hubg1Iner = ( InputFileData%HubIner - p%HubMass*( ( p%UndSling - p%HubCM )**2 ) )/( p%CosDel3**2 )
+   p%Hubg2Iner = p%Hubg1Iner
+   IF ( p%Hubg1Iner < 0.0 )  CALL ProgAbort ( ' HubIner must not be less than HubMass*( UndSling - HubCM )^2 for 2-blader.' )
 ELSE                    ! 3-blader
-   Hubg1Iner = HubIner
-   Hubg2Iner = 0.0
+   p%Hubg1Iner = InputFileData%HubIner
+   p%Hubg2Iner = 0.0
 ENDIF
 
-RotMass   = HubMass
-RotIner   = Hubg1Iner
+p%RotMass   = p%HubMass
+p%RotIner   = p%Hubg1Iner
 
 
 
@@ -1893,7 +1890,7 @@ KBE       = 0.0
 KBFCent   = 0.0
 KBECent   = 0.0
 
-TwrMass   = 0.0
+p%TwrMass   = 0.0
 p%KTFA      = 0.0
 p%KTSS      = 0.0
 KTFAGrav  = 0.0
@@ -1906,9 +1903,9 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    ! Initialize BldMass(), FirstMom(), and SecondMom() using TipMass() effects:
 
-   BldMass  (K) = TipMass(K)
-   FirstMom (K) = TipMass(K)*BldFlexL
-   SecondMom(K) = TipMass(K)*BldFlexL*BldFlexL
+   p%BldMass  (K) = p%TipMass(K)
+   p%FirstMom (K) = p%TipMass(K)*BldFlexL
+   p%SecondMom(K) = p%TipMass(K)*BldFlexL*BldFlexL
 
 
    DO J = p%BldNodes,1,-1 ! Loop through the blade nodes / elements in reverse
@@ -1921,9 +1918,9 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    ! Integrate to find some blade properties which will be output in .fsm
 
-      BldMass  (K) = BldMass  (K) + ElmntMass
-      FirstMom (K) = FirstMom (K) + ElmntMass*RNodes(J)
-      SecondMom(K) = SecondMom(K) + ElmntMass*RNodes(J)*RNodes(J)
+      p%BldMass  (K) = p%BldMass  (K) + ElmntMass
+      p%FirstMom (K) = p%FirstMom (K) + ElmntMass*RNodes(J)
+      p%SecondMom(K) = p%SecondMom(K) + ElmntMass*RNodes(J)*RNodes(J)
 
 
    ! Integrate to find FMomAbvNd:
@@ -1933,7 +1930,7 @@ DO K = 1,p%NumBl          ! Loop through the blades
       IF ( J == p%BldNodes )  THEN ! Outermost blade element
    ! Add the TipMass() effects:
 
-         FMomAbvNd(K,J) = FmomAbvNd(K,J) + TipMass(K)*p%TipRad
+         FMomAbvNd(K,J) = FmomAbvNd(K,J) + p%TipMass(K)*p%TipRad
       ELSE                       ! All other blade elements
    ! Add to FMomAbvNd(K,J) the effects from the (not yet used) portion of element J+1
 
@@ -1953,10 +1950,9 @@ DO K = 1,p%NumBl          ! Loop through the blades
    ! Calculate BldCG() using FirstMom() and BldMass(); and calculate
    !   RotMass and RotIner:
 
-   BldCG    (K) = FirstMom (K) / BldMass    (K)
-   RotMass      = RotMass      + BldMass    (K)
-!   RotIner      = RotIner      + ( SecondMom(K) + BldMass  (K)*p%HubRad*( 2.0*BldCG(K) + p%HubRad ) )*( ( COS(p%PreCone(K)) )**2 )
-   RotIner      = RotIner      + ( SecondMom(K) + BldMass  (K)*p%HubRad*( 2.0*BldCG(K) + p%HubRad ) )*( p%CosPreC(K)**2 )
+   p%BldCG    (K) = p%FirstMom (K) / p%BldMass    (K)
+   p%RotMass      = p%RotMass      + p%BldMass    (K)
+   p%RotIner      = p%RotIner      + ( p%SecondMom(K) + p%BldMass  (K)*p%HubRad*( 2.0*p%BldCG(K) + p%HubRad ) )*( p%CosPreC(K)**2 )
 ENDDO ! K - Blades
 
 
@@ -1966,9 +1962,9 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    ! Initialize the generalized blade masses using tip mass effects:
 
-   MBF(K,1,1) = TipMass(K)
-   MBF(K,2,2) = TipMass(K)
-   MBE(K,1,1) = TipMass(K)
+   MBF(K,1,1) = p%TipMass(K)
+   MBF(K,2,2) = p%TipMass(K)
+   MBE(K,1,1) = p%TipMass(K)
 
 
    DO J = 1,p%BldNodes    ! Loop through the blade nodes / elements
@@ -2123,12 +2119,12 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
 
    DO I = 1,2     ! Loop through flap DOFs
-      FreqBF(K,I,1) = Inv2Pi*SQRT(   KBF(K,I,I)                   /( MBF(K,I,I) - TipMass(K) ) )   ! Natural blade I-flap frequency w/o centrifugal stiffening nor     tip mass effects
+      FreqBF(K,I,1) = Inv2Pi*SQRT(   KBF(K,I,I)                   /( MBF(K,I,I) - p%TipMass(K) ) )   ! Natural blade I-flap frequency w/o centrifugal stiffening nor     tip mass effects
       FreqBF(K,I,2) = Inv2Pi*SQRT(   KBF(K,I,I)                   /  MBF(K,I,I)                )   ! Natural blade I-flap frequency w/o centrifugal stiffening, but w/ tip mass effects
       FreqBF(K,I,3) = Inv2Pi*SQRT( ( KBF(K,I,I) + KBFCent(K,I,I) )/  MBF(K,I,I)                )   ! Natural blade I-flap frequency w/  centrifugal stiffening and     tip mass effects
    ENDDO          ! I - Flap DOFs
 
-   FreqBE   (K,1,1) = Inv2Pi*SQRT(   KBE(K,1,1)                   /( MBE(K,1,1) - TipMass(K) ) )   ! Natural blade 1-edge frequency w/o centrifugal stiffening nor      tip mass effects
+   FreqBE   (K,1,1) = Inv2Pi*SQRT(   KBE(K,1,1)                   /( MBE(K,1,1) - p%TipMass(K) ) )   ! Natural blade 1-edge frequency w/o centrifugal stiffening nor      tip mass effects
    FreqBE   (K,1,2) = Inv2Pi*SQRT(   KBE(K,1,1)                   /  MBE(K,1,1)                )   ! Natural Blade 1-edge frequency w/o  centrifugal stiffening, but w/ tip mass effects
    FreqBE   (K,1,3) = Inv2Pi*SQRT( ( KBE(K,1,1) + KBECent(K,1,1) )/  MBE(K,1,1)                )   ! Natural Blade 1-edge frequency w/  centrifugal stiffening and      tip mass effects
 
@@ -2185,7 +2181,7 @@ ENDDO ! K - Blades
 
    ! Calculate the tower-top mass:
 
-TwrTpMass = RotMass + RFrlMass + BoomMass + TFinMass + NacMass + YawBrMass
+p%TwrTpMass = p%RotMass + p%RFrlMass + p%BoomMass + p%TFinMass + p%NacMass + p%YawBrMass
 
 
 DO J = p%TwrNodes,1,-1 ! Loop through the tower nodes / elements in reverse
@@ -2198,7 +2194,7 @@ DO J = p%TwrNodes,1,-1 ! Loop through the tower nodes / elements in reverse
 
    ! Integrate to find the tower mass which will be output in .fsm
 
-   TwrMass      = TwrMass + ElmntMass
+   p%TwrMass      = p%TwrMass + ElmntMass
 
 
    ! Integrate to find TMssAbvNd:
@@ -2208,7 +2204,7 @@ DO J = p%TwrNodes,1,-1 ! Loop through the tower nodes / elements in reverse
    IF ( J == p%TwrNodes )  THEN ! Uppermost tower element
    ! Add the TwrTpMass effects:
 
-      TMssAbvNd(J) = TMssAbvNd(J) + TwrTpMass
+      TMssAbvNd(J) = TMssAbvNd(J) + p%TwrTpMass
    ELSE                       ! All other tower elements
    ! Add to TMssAbvNd(J) the effects from the (not yet used) portion of element J+1
 
@@ -2228,8 +2224,8 @@ ENDDO ! J - Tower nodes / elements in reverse
    ! Initialize the generalized tower masses using tower-top mass effects:
 
 DO I = 1,2  ! Loop through all tower modes in a single direction
-   MTFA(I,I) = TwrTpMass
-   MTSS(I,I) = TwrTpMass
+   MTFA(I,I) = p%TwrTpMass
+   MTSS(I,I) = p%TwrTpMass
 ENDDO       ! I - All tower modes in a single direction
 
 
@@ -2338,9 +2334,9 @@ ENDDO          ! I - through all tower DOFs in one direction
    ! Calculate the tower natural frequencies:
 
 DO I = 1,2     ! Loop through all tower DOFs in one direction
-   FreqTFA(I,1) = Inv2Pi*SQRT(   p%KTFA(I,I)                  /( MTFA(I,I) - TwrTpMass ) )  ! Natural tower I-fore-aft frequency w/o gravitational destiffening nor tower-top mass effects
+   FreqTFA(I,1) = Inv2Pi*SQRT(   p%KTFA(I,I)                  /( MTFA(I,I) - p%TwrTpMass ) )  ! Natural tower I-fore-aft frequency w/o gravitational destiffening nor tower-top mass effects
    FreqTFA(I,2) = Inv2Pi*SQRT( ( p%KTFA(I,I) + KTFAGrav(I,I) )/  MTFA(I,I)               )  ! Natural tower I-fore-aft frequency w/  gravitational destiffening and tower-top mass effects
-   FreqTSS(I,1) = Inv2Pi*SQRT(   p%KTSS(I,I)                  /( MTSS(I,I) - TwrTpMass ) )  ! Natural tower I-side-to-side frequency w/o gravitational destiffening nor tower-top mass effects
+   FreqTSS(I,1) = Inv2Pi*SQRT(   p%KTSS(I,I)                  /( MTSS(I,I) - p%TwrTpMass ) )  ! Natural tower I-side-to-side frequency w/o gravitational destiffening nor tower-top mass effects
    FreqTSS(I,2) = Inv2Pi*SQRT( ( p%KTSS(I,I) + KTSSGrav(I,I) )/  MTSS(I,I)               )  ! Natural tower I-side-to-side frequency w/  gravitational destiffening and tower-top mass effects
 ENDDO          ! I - All tower DOFs in one direction
 
@@ -2383,10 +2379,10 @@ DO I = 1,2     ! Loop through all tower DOFs in one direction
 ENDDO
 
 
-   ! Calculate the turbine and total masses:
+   ! Calculate the turbine mass:
 
-TurbMass  = TwrTpMass + TwrMass
-TotalMass = TurbMass + PtfmMass
+p%TurbMass  = p%TwrTpMass + p%TwrMass
+
 
    ! deallocate local variables:
 
@@ -3360,7 +3356,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    USE            General                                   ! contains file units, too
    USE            InitCond
    USE            Linear
-   USE            MassInert
    USE            Modes
    USE            Output
    USE            RtHndSid
@@ -3473,14 +3468,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(QDop                               ) ) DEALLOCATE(QDop                               )
    IF ( ALLOCATED(Qop                                ) ) DEALLOCATE(Qop                                )
 
-
-      ! MODULE MassInert
-
-   IF ( ALLOCATED(BldCG                              ) ) DEALLOCATE(BldCG                              )
-   IF ( ALLOCATED(BldMass                            ) ) DEALLOCATE(BldMass                            )
-   IF ( ALLOCATED(FirstMom                           ) ) DEALLOCATE(FirstMom                           )
-   IF ( ALLOCATED(SecondMom                          ) ) DEALLOCATE(SecondMom                          )
-   IF ( ALLOCATED(TipMass                            ) ) DEALLOCATE(TipMass                            )
 
 
       ! MODULE Modes
@@ -4660,7 +4647,6 @@ USE                             EnvCond
 USE                             Features
 USE                             General
 USE                             InitCond
-USE                             MassInert
 USE                             NacelleYaw
 USE                             Output
 USE                             Platform
@@ -5627,25 +5613,25 @@ PFrcPRot  = 0.0   ! Initialize these partial
 PMomLPRot = 0.0   ! forces and moments to zero
 DO I = 1,OtherState%DOFs%NPCE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the hub center of mass (point C)
 
-   TmpVec1 = -HubMass*PLinVelEC(OtherState%DOFs%PCE(I),0,:)     ! The portion of PFrcPRot  associated with the HubMass
+   TmpVec1 = -p%HubMass*PLinVelEC(OtherState%DOFs%PCE(I),0,:)     ! The portion of PFrcPRot  associated with the HubMass
    TmpVec2 = CROSS_PRODUCT( rPC, TmpVec1 )      ! The portion of PMomLPRot associated with the HubMass
 
    PFrcPRot (OtherState%DOFs%PCE(I),:) = TmpVec1
 
-   PMomLPRot(OtherState%DOFs%PCE(I),:) = TmpVec2 - Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, PAngVelEH(OtherState%DOFs%PCE(I),0,:) ) &
-                                 - Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, PAngVelEH(OtherState%DOFs%PCE(I),0,:) )
+   PMomLPRot(OtherState%DOFs%PCE(I),:) = TmpVec2 - p%Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, PAngVelEH(OtherState%DOFs%PCE(I),0,:) ) &
+                                 - p%Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, PAngVelEH(OtherState%DOFs%PCE(I),0,:) )
 
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the hub center of mass (point C)
 
-TmpVec1 = -HubMass*( Gravity*CoordSys%z2 + LinAccECt )                     ! The portion of FrcPRott  associated with the HubMass
+TmpVec1 = -p%HubMass*( Gravity*CoordSys%z2 + LinAccECt )                     ! The portion of FrcPRott  associated with the HubMass
 TmpVec2 = CROSS_PRODUCT( rPC, TmpVec1 )                                    ! The portion of MomLPRott associated with the HubMass
-TmpVec  = Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, AngVelEH ) &     ! = ( Hub inertia dyadic ) dot ( angular velocity of hub in the inertia frame )
-        + Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, AngVelEH )
+TmpVec  = p%Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, AngVelEH ) &     ! = ( Hub inertia dyadic ) dot ( angular velocity of hub in the inertia frame )
+        + p%Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, AngVelEH )
 TmpVec3 = CROSS_PRODUCT( -AngVelEH, TmpVec )                               ! = ( -angular velocity of hub in the inertia frame ) cross ( TmpVec )
 
 FrcPRott  = TmpVec1
-MomLPRott = TmpVec2 + TmpVec3 - Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, AngAccEHt ) &
-                              - Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, AngAccEHt )
+MomLPRott = TmpVec2 + TmpVec3 - p%Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, AngAccEHt ) &
+                              - p%Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, AngAccEHt )
 
 
    !-------------------------------------------------------------------------------------------------
@@ -5702,7 +5688,7 @@ DO K = 1,p%NumBl ! Loop through all blades
    PMomH0B(K,:,:) = 0.0 ! forces and moments to zero
    DO I = 1,OtherState%DOFs%NPSE(K)  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
-      TmpVec1 = -TipMass(K)*PLinVelES(K,p%TipNode,OtherState%DOFs%PSE(K,I),0,:)  ! The portion of PFrcS0B associated with the tip brake
+      TmpVec1 = -p%TipMass(K)*PLinVelES(K,p%TipNode,OtherState%DOFs%PSE(K,I),0,:)  ! The portion of PFrcS0B associated with the tip brake
       TmpVec2 = CROSS_PRODUCT( rS0S(K,p%TipNode,:), TmpVec1 )                    ! The portion of PMomH0B associated with the tip brake
 
       PFrcS0B(K,OtherState%DOFs%PSE(K,I),:) = TmpVec1
@@ -5711,7 +5697,7 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
-   TmpVec1 = FSTipDrag(K,:) - TipMass(K)*( Gravity*CoordSys%z2 + LinAccESt(K,p%TipNode,:) ) ! The portion of FrcS0Bt associated with the tip brake
+   TmpVec1 = FSTipDrag(K,:) - p%TipMass(K)*( Gravity*CoordSys%z2 + LinAccESt(K,p%TipNode,:) ) ! The portion of FrcS0Bt associated with the tip brake
    TmpVec2 = CROSS_PRODUCT(  rS0S(K,p%TipNode,:), TmpVec1 )                                 ! The portion of MomH0Bt associated with the tip brake
 
    FrcS0Bt(K,:) = TmpVec1
@@ -5731,7 +5717,7 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    DO L = 1,OtherState%DOFs%NPSBE(K)    ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(BldFlexL))
       DO I = L,OtherState%DOFs%NPSBE(K) ! Loop through all active (enabled) blade DOFs greater than or equal to L
-         AugMat(OtherState%DOFs%PSBE(K,I),OtherState%DOFs%PSBE(K,L)) = TipMass(K)*&
+         AugMat(OtherState%DOFs%PSBE(K,I),OtherState%DOFs%PSBE(K,L)) = p%TipMass(K)*&
                                      DOT_PRODUCT( PLinVelES(K, p%TipNode, OtherState%DOFs%PSBE(K,I),0,:), &   ! [C(q,t)]B
                                                   PLinVelES(K, p%TipNode, OtherState%DOFs%PSBE(K,L),0,:)    )
       ENDDO             ! I - All active (enabled) blade DOFs greater than or equal to L
@@ -5917,36 +5903,36 @@ DO I = 1,OtherState%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 ENDDO             ! I - All active (enabled) DOFs
 DO I = 1,OtherState%DOFs%NPDE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the center of mass of the structure that furls with the rotor (not including rotor) (point D)
 
-   TmpVec1 = -RFrlMass*PLinVelED(OtherState%DOFs%PDE(I)  ,0,:)           ! The portion of PFrcVGnRt associated with the RFrlMass
+   TmpVec1 = -p%RFrlMass*PLinVelED(OtherState%DOFs%PDE(I)  ,0,:)           ! The portion of PFrcVGnRt associated with the RFrlMass
    TmpVec2 = CROSS_PRODUCT( rVD,              TmpVec1 )  ! The portion of PMomNGnRt associated with the RFrlMass
 
    PFrcVGnRt(OtherState%DOFs%PDE(I)  ,:) = PFrcVGnRt(OtherState%DOFs%PDE(I)  ,:) + TmpVec1
 
    PMomNGnRt(OtherState%DOFs%PDE(I)  ,:) = PMomNGnRt(OtherState%DOFs%PDE(I)  ,:) + TmpVec2                                   &
-                         - RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, PAngVelER(OtherState%DOFs%PDE(I)  ,0,:) ) &
-                         -  GenIner*CoordSys%c1 *DOT_PRODUCT( CoordSys%c1 , PAngVelEG(OtherState%DOFs%PDE(I)  ,0,:) )
+                         - p%RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, PAngVelER(OtherState%DOFs%PDE(I)  ,0,:) ) &
+                         -  p%GenIner*CoordSys%c1 *DOT_PRODUCT( CoordSys%c1 , PAngVelEG(OtherState%DOFs%PDE(I)  ,0,:) )
 
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the center of mass of the structure that furls with the rotor (not including rotor) (point D)
 IF ( p%DOF_Flag(DOF_GeAz) )  THEN
 
    PMomNGnRt(DOF_GeAz,:) = PMomNGnRt(DOF_GeAz,:)                                             &           ! The previous loop (DO I = 1,NPDE) misses the DOF_GeAz-contribution to: ( Generator inertia dyadic ) dot ( partial angular velocity of the generator in the inertia frame )
-                         -  GenIner*CoordSys%c1 *DOT_PRODUCT( CoordSys%c1 , PAngVelEG(DOF_GeAz,0,:) )     ! Thus, add this contribution if necessary.
+                         -  p%GenIner*CoordSys%c1 *DOT_PRODUCT( CoordSys%c1 , PAngVelEG(DOF_GeAz,0,:) )     ! Thus, add this contribution if necessary.
 
 ENDIF
 
-TmpVec1 = -RFrlMass*( Gravity*CoordSys%z2 + LinAccEDt )                    ! The portion of FrcVGnRtt associated with the RFrlMass
+TmpVec1 = -p%RFrlMass*( Gravity*CoordSys%z2 + LinAccEDt )                    ! The portion of FrcVGnRtt associated with the RFrlMass
 TmpVec2 = CROSS_PRODUCT( rVD      ,  TmpVec1 )                             ! The portion of MomNGnRtt associated with the RFrlMass
 TmpVec3 = CROSS_PRODUCT( rVP      , FrcPRott )                             ! The portion of MomNGnRtt associated with the FrcPRott
-TmpVec  = RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, AngVelER )      ! = ( R inertia dyadic ) dot ( angular velocity of structure that furls with the rotor in the inertia frame )
+TmpVec  = p%RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, AngVelER )      ! = ( R inertia dyadic ) dot ( angular velocity of structure that furls with the rotor in the inertia frame )
 TmpVec4 = CROSS_PRODUCT( -AngVelER, TmpVec )                               ! = ( -angular velocity of structure that furls with the rotor in the inertia frame ) cross ( TmpVec )
-TmpVec  =  GenIner*CoordSys%c1* DOT_PRODUCT( CoordSys%c1 , AngVelEG )      ! = ( Generator inertia dyadic ) dot ( angular velocity of generator in the inertia frame )
+TmpVec  =  p%GenIner*CoordSys%c1* DOT_PRODUCT( CoordSys%c1 , AngVelEG )      ! = ( Generator inertia dyadic ) dot ( angular velocity of generator in the inertia frame )
 TmpVec5 = CROSS_PRODUCT( -AngVelEG, TmpVec )                               ! = ( -angular velocity of generator in the inertia frame ) cross ( TmpVec )
 
 FrcVGnRtt = FrcPRott  + TmpVec1
 
 MomNGnRtt = MomLPRott + TmpVec2 + TmpVec3 + TmpVec4 + TmpVec5            &
-          - RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, AngAccERt ) &
-          -  GenIner*CoordSys%c1 *DOT_PRODUCT( CoordSys%c1 , AngAccEGt )
+          - p%RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, AngAccERt ) &
+          -  p%GenIner*CoordSys%c1 *DOT_PRODUCT( CoordSys%c1 , AngAccEGt )
 
 
 
@@ -5988,30 +5974,30 @@ PFrcWTail = 0.0   ! Initialize these partial
 PMomNTail = 0.0   ! forces and moments to zero
 DO I = 1,OtherState%DOFs%NPIE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tail boom center of mass (point I)
 
-   TmpVec1 = -BoomMass*PLinVelEI(OtherState%DOFs%PIE(I),0,:)    ! The portion of PFrcWTail associated with the BoomMass
-   TmpVec2 = -TFinMass*PLinVelEJ(OtherState%DOFs%PIE(I),0,:)    ! The portion of PFrcWTail associated with the TFinMass
+   TmpVec1 = -p%BoomMass*PLinVelEI(OtherState%DOFs%PIE(I),0,:)    ! The portion of PFrcWTail associated with the BoomMass
+   TmpVec2 = -p%TFinMass*PLinVelEJ(OtherState%DOFs%PIE(I),0,:)    ! The portion of PFrcWTail associated with the TFinMass
    TmpVec3 = CROSS_PRODUCT( rWI, TmpVec1 )                      ! The portion of PMomNTail associated with the BoomMass
    TmpVec4 = CROSS_PRODUCT( rWJ, TmpVec2 )                      ! The portion of PMomNTail associated with the TFinMass
 
    PFrcWTail(OtherState%DOFs%PIE(I),:) = TmpVec1 + TmpVec2
 
    PMomNTail(OtherState%DOFs%PIE(I),:) = TmpVec3 + TmpVec4 &
-                       - AtfaIner*CoordSys%tfa*DOT_PRODUCT( CoordSys%tfa, PAngVelEA(OtherState%DOFs%PIE(I),0,:) )
+                       - p%AtfaIner*CoordSys%tfa*DOT_PRODUCT( CoordSys%tfa, PAngVelEA(OtherState%DOFs%PIE(I),0,:) )
 
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tail boom center of mass (point I)
 
-TmpVec1 = -BoomMass*( Gravity*CoordSys%z2 + LinAccEIt )                 ! The portion of FrcWTailt associated with the BoomMass
-TmpVec2 = -TFinMass*( Gravity*CoordSys%z2 + LinAccEJt )                 ! The portion of FrcWTailt associated with the TFinMass
+TmpVec1 = -p%BoomMass*( Gravity*CoordSys%z2 + LinAccEIt )                 ! The portion of FrcWTailt associated with the BoomMass
+TmpVec2 = -p%TFinMass*( Gravity*CoordSys%z2 + LinAccEJt )                 ! The portion of FrcWTailt associated with the TFinMass
 TmpVec3 = CROSS_PRODUCT( rWI      , TmpVec1 )                           ! The portion of MomNTailt associated with the BoomMass
 TmpVec4 = CROSS_PRODUCT( rWJ      , TmpVec2 )                           ! The portion of MomNTailt associated with the TFinMass
-TmpVec  = AtfaIner*CoordSys%tfa*DOT_PRODUCT( CoordSys%tfa, AngVelEA )   ! = ( A inertia dyadic ) dot ( angular velocity of the tail in the inertia frame )
+TmpVec  = p%AtfaIner*CoordSys%tfa*DOT_PRODUCT( CoordSys%tfa, AngVelEA )   ! = ( A inertia dyadic ) dot ( angular velocity of the tail in the inertia frame )
 TmpVec5 = CROSS_PRODUCT( -AngVelEA, TmpVec  )                           ! = ( -angular velocity of the tail in the inertia frame ) cross ( TmpVec )
 TmpVec  = CROSS_PRODUCT( rWK      , FKAero  )                           ! The portion of MomNTailt associated with FKAero
 
 FrcWTailt = FKAero + TmpVec1 + TmpVec2
 
 MomNTailt = MAAero + TmpVec3 + TmpVec4 + TmpVec5 + TmpVec &
-          - AtfaIner*CoordSys%tfa*DOT_PRODUCT( CoordSys%tfa, AngAccEAt )
+          - p%AtfaIner*CoordSys%tfa*DOT_PRODUCT( CoordSys%tfa, AngAccEAt )
 
 
 
@@ -6037,27 +6023,27 @@ DO I = 1,OtherState%DOFs%NPIE  ! Loop through all active (enabled) DOFs that con
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tail boom center of mass (point I)
 DO I = 1,OtherState%DOFs%NPUE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the nacelle center of mass (point U)
 
-   TmpVec1 = -NacMass*PLinVelEU(OtherState%DOFs%PUE(I),0,:)              ! The portion of PFrcONcRt associated with the NacMass
+   TmpVec1 = -p%NacMass*PLinVelEU(OtherState%DOFs%PUE(I),0,:)              ! The portion of PFrcONcRt associated with the NacMass
    TmpVec2 = CROSS_PRODUCT( rOU,               TmpVec1 ) ! The portion of PMomBNcRt associated with the NacMass
 
    PFrcONcRt(OtherState%DOFs%PUE(I)  ,:) = PFrcONcRt(OtherState%DOFs%PUE(I)  ,:) + TmpVec1
 
    PMomBNcRt(OtherState%DOFs%PUE(I)  ,:) = PMomBNcRt(OtherState%DOFs%PUE(I)  ,:) + TmpVec2 &
-                         - Nacd2Iner*CoordSys%d2*DOT_PRODUCT( CoordSys%d2, PAngVelEN(OtherState%DOFs%PUE(I),0,:) )
+                         - p%Nacd2Iner*CoordSys%d2*DOT_PRODUCT( CoordSys%d2, PAngVelEN(OtherState%DOFs%PUE(I),0,:) )
 
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the nacelle center of mass (point U)
 
-TmpVec1 = -NacMass*( Gravity*CoordSys%z2 + LinAccEUt )                  ! The portion of FrcONcRtt associated with the NacMass
+TmpVec1 = -p%NacMass*( Gravity*CoordSys%z2 + LinAccEUt )                  ! The portion of FrcONcRtt associated with the NacMass
 TmpVec2 = CROSS_PRODUCT( rOU      ,   TmpVec1 )                         ! The portion of MomBNcRtt associated with the NacMass
 TmpVec3 = CROSS_PRODUCT( rOV      , FrcVGnRtt )                         ! The portion of MomBNcRtt associated with the FrcVGnRtt
 TmpVec4 = CROSS_PRODUCT( rOW      , FrcWTailt )                         ! The portion of MomBNcRtt associated with the FrcWTailt
-TmpVec  = Nacd2Iner*CoordSys%d2*DOT_PRODUCT( CoordSys%d2, AngVelEN )    ! = ( Nacelle inertia dyadic ) dot ( angular velocity of nacelle in the inertia frame )
+TmpVec  = p%Nacd2Iner*CoordSys%d2*DOT_PRODUCT( CoordSys%d2, AngVelEN )    ! = ( Nacelle inertia dyadic ) dot ( angular velocity of nacelle in the inertia frame )
 TmpVec5 = CROSS_PRODUCT( -AngVelEN, TmpVec    )                         ! = ( -angular velocity of nacelle in the inertia frame ) cross ( TmpVec )
 
 FrcONcRtt = FrcVGnRtt + FrcWTailt + TmpVec1
 
 MomBNcRtt = MomNGnRtt + MomNTailt + TmpVec2 + TmpVec3 + TmpVec4 + TmpVec5 &
-          - Nacd2Iner*CoordSys%d2*DOT_PRODUCT( CoordSys%d2, AngAccENt )
+          - p%Nacd2Iner*CoordSys%d2*DOT_PRODUCT( CoordSys%d2, AngAccENt )
 
 
 
@@ -6076,7 +6062,7 @@ DO I = 1,OtherState%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 ENDDO             ! I - All active (enabled) DOFs
 DO I = 1,OtherState%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
 
-   TmpVec1 = -YawBrMass*PLinVelEO(OtherState%DOFs%PTE(I),0,:)               ! The portion of PFrcT0Trb associated with the YawBrMass
+   TmpVec1 = -p%YawBrMass*PLinVelEO(OtherState%DOFs%PTE(I),0,:)               ! The portion of PFrcT0Trb associated with the YawBrMass
    TmpVec2 = CROSS_PRODUCT( rT0O,               TmpVec1 )   ! The portion of PMomX0Trb associated with the YawBrMass
 
    PFrcT0Trb(OtherState%DOFs%PTE(I)  ,:) = PFrcT0Trb(OtherState%DOFs%PTE(I)  ,:) + TmpVec1
@@ -6085,7 +6071,7 @@ DO I = 1,OtherState%DOFs%NPTE  ! Loop through all active (enabled) DOFs that con
 
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
 
-TmpVec1 = -YawBrMass*( Gravity*CoordSys%z2 + LinAccEOt ) ! The portion of FrcT0Trbt associated with the YawBrMass
+TmpVec1 = -p%YawBrMass*( Gravity*CoordSys%z2 + LinAccEOt ) ! The portion of FrcT0Trbt associated with the YawBrMass
 TmpVec2 = CROSS_PRODUCT( rT0O,   TmpVec1 )               ! The portion of MomX0Trbt associated with the YawBrMass
 TmpVec3 = CROSS_PRODUCT( rT0O, FrcONcRtt )               ! The portion of MomX0Trbt associated with the FrcONcRtt
 
@@ -6107,7 +6093,7 @@ MomX0Trbt = MomBNcRtt + TmpVec2 + TmpVec3
 
 DO L = 1,OtherState%DOFs%NPTTE    ! Loop through all active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing (point O)
    DO I = L,OtherState%DOFs%NPTTE ! Loop through all active (enabled) tower DOFs greater than or equal to L
-      AugMat(OtherState%DOFs%PTTE(I),OtherState%DOFs%PTTE(L)) = YawBrMass*DOT_PRODUCT( PLinVelEO(OtherState%DOFs%PTTE(I),0,:), &     ! [C(q,t)]T of YawBrMass
+      AugMat(OtherState%DOFs%PTTE(I),OtherState%DOFs%PTTE(L)) = p%YawBrMass*DOT_PRODUCT( PLinVelEO(OtherState%DOFs%PTTE(I),0,:), &     ! [C(q,t)]T of YawBrMass
                                                    PLinVelEO(OtherState%DOFs%PTTE(L),0,:)    )
    ENDDO          ! I - All active (enabled) tower DOFs greater than or equal to L
 ENDDO             ! L - All active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing (point O)
@@ -6502,24 +6488,24 @@ DO I = 1,OtherState%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 ENDDO             ! I - All active (enabled) DOFs
 DO I = 1,OtherState%DOFs%NPYE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
 
-   TmpVec1 = -PtfmMass*PLinVelEY(OtherState%DOFs%PYE(I),0,:)                ! The portion of PFrcZAll associated with the PtfmMass
+   TmpVec1 = -p%PtfmMass*PLinVelEY(OtherState%DOFs%PYE(I),0,:)                ! The portion of PFrcZAll associated with the PtfmMass
    TmpVec2 = CROSS_PRODUCT( rZY ,               TmpVec1 )   ! The portion of PMomXAll associated with the PtfmMass
 
    PFrcZAll(OtherState%DOFs%PYE(I)  ,:) = PFrcZAll(OtherState%DOFs%PYE(I)  ,:) + PFZHydro(OtherState%DOFs%PYE(I),:) + TmpVec1
 
    PMomXAll(OtherState%DOFs%PYE(I)  ,:) = PMomXAll(OtherState%DOFs%PYE(I)  ,:) + PMXHydro(OtherState%DOFs%PYE(I),:) + TmpVec2 &
-                        - PtfmRIner*CoordSys%a1*DOT_PRODUCT( CoordSys%a1, PAngVelEX(OtherState%DOFs%PYE(I),0,:) )   &
-                        - PtfmYIner*CoordSys%a2*DOT_PRODUCT( CoordSys%a2, PAngVelEX(OtherState%DOFs%PYE(I),0,:) )   &
-                        - PtfmPIner*CoordSys%a3*DOT_PRODUCT( CoordSys%a3, PAngVelEX(OtherState%DOFs%PYE(I),0,:) )
+                        - p%PtfmRIner*CoordSys%a1*DOT_PRODUCT( CoordSys%a1, PAngVelEX(OtherState%DOFs%PYE(I),0,:) )   &
+                        - p%PtfmYIner*CoordSys%a2*DOT_PRODUCT( CoordSys%a2, PAngVelEX(OtherState%DOFs%PYE(I),0,:) )   &
+                        - p%PtfmPIner*CoordSys%a3*DOT_PRODUCT( CoordSys%a3, PAngVelEX(OtherState%DOFs%PYE(I),0,:) )
 
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
 
-TmpVec1 = -PtfmMass*( Gravity*CoordSys%z2 + LinAccEYt  )                   ! The portion of FrcZAllt associated with the PtfmMass
+TmpVec1 = -p%PtfmMass*( Gravity*CoordSys%z2 + LinAccEYt  )                   ! The portion of FrcZAllt associated with the PtfmMass
 TmpVec2 = CROSS_PRODUCT( rZY      ,   TmpVec1 )                            ! The portion of MomXAllt associated with the PtfmMass
 TmpVec3 = CROSS_PRODUCT( rZT0     , FrcT0Trbt )                            ! The portion of MomXAllt associated with the FrcT0Trbt
-TmpVec  = PtfmRIner*CoordSys%a1*DOT_PRODUCT( CoordSys%a1, AngVelEX  ) &    ! = ( Platform inertia dyadic ) dot ( angular velocity of platform in the inertia frame )
-        + PtfmYIner*CoordSys%a2*DOT_PRODUCT( CoordSys%a2, AngVelEX  ) &
-        + PtfmPIner*CoordSys%a3*DOT_PRODUCT( CoordSys%a3, AngVelEX  )
+TmpVec  = p%PtfmRIner*CoordSys%a1*DOT_PRODUCT( CoordSys%a1, AngVelEX  ) &    ! = ( Platform inertia dyadic ) dot ( angular velocity of platform in the inertia frame )
+        + p%PtfmYIner*CoordSys%a2*DOT_PRODUCT( CoordSys%a2, AngVelEX  ) &
+        + p%PtfmPIner*CoordSys%a3*DOT_PRODUCT( CoordSys%a3, AngVelEX  )
 TmpVec4 = CROSS_PRODUCT( -AngVelEX,   TmpVec  )                            ! = ( -angular velocity of platform in the inertia frame ) cross ( TmpVec )
 
 FrcZAllt = FrcT0Trbt + FZHydrot + TmpVec1
@@ -6653,7 +6639,7 @@ IF ( p%DOF_Flag (DOF_RFrl) )  THEN
                                 +  RFrlMom                                                      ! + {-f(qd,q,t)}SpringRF + {-f(qd,q,t)}DampRF
 ENDIF
 
-TmpVec = GenIner*CoordSys%c1*DOT_PRODUCT( CoordSys%c1, PAngVelEG(DOF_GeAz,0,:) )  ! = ( generator inertia dyadic ) Dot ( partial angular velocity of G in E for DOF_GeAz )
+TmpVec = p%GenIner*CoordSys%c1*DOT_PRODUCT( CoordSys%c1, PAngVelEG(DOF_GeAz,0,:) )  ! = ( generator inertia dyadic ) Dot ( partial angular velocity of G in E for DOF_GeAz )
 
 IF ( p%DOF_Flag (DOF_GeAz) )  THEN
    DO I = OtherState%DOFs%Diag(DOF_GeAz),OtherState%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal

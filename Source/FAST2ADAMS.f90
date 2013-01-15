@@ -78,7 +78,6 @@ USE                             Blades
 USE                             EnvCond
 USE                             Features
 USE                             General
-USE                             MassInert
 USE                             Output
 USE                             SimCont
 USE                             TurbCont
@@ -196,7 +195,7 @@ IF ( FlapDOF1 )  THEN   ! Blade flexibility is enabled.
 
       WRITE (   UnAC,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Int2LStr( 10000*K + 3000 + 1        ))//', '// &
                                                                TRIM(Int2LStr( 10000*K + 3000 + p_StrD%BldNodes ))
-      IF ( TipMass(K) /= 0.0 )  &
+      IF ( p_StrD%TipMass(K) /= 0.0 )  &
          WRITE (UnAC,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Int2LStr( 10000*K + 5000            ))
 
    ENDDO                ! K - blades
@@ -253,7 +252,6 @@ USE                             EnvCond
 USE                             Features
 USE                             General
 USE                             InitCond
-USE                             MassInert
 USE                             Output
 USE                             Platform
 USE                             SimCont
@@ -415,7 +413,7 @@ IF ( FlapDOF1 )  THEN   ! Blade flexibility is enabled.
 
       WRITE (   UnAL,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Int2LStr( 10000*K + 3000 + 1        ))//', '// &
                                                                TRIM(Int2LStr( 10000*K + 3000 + p%BldNodes ))
-      IF ( TipMass(K) /= 0.0 )  &
+      IF ( p%TipMass(K) /= 0.0 )  &
          WRITE (UnAL,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Int2LStr( 10000*K + 5000            ))
 
    ENDDO                ! K - blades
@@ -474,7 +472,6 @@ USE                             EnvCond
 USE                             Features
 USE                             General
 USE                             InitCond
-USE                             MassInert
 USE                             Modes
 USE                             NacelleYaw
 USE                             Output
@@ -701,7 +698,7 @@ WRITE (UnAD,FmtText  )  'VARIABLE/'//TRIM(Int2LStr(CalcOuts_V))//', FUNCTION = U
 !                        ', '//TRIM(Int2LStr( CompAeroI  ))//', '//TRIM(Int2LStr( CompHydroI ))//             &
 !                        ', '//TRIM(Int2LStr( TabDelimI  ))//', '//TRIM(Int2LStr( p%NumBl      ))//','
 !WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( p%BldNodes   ))//', '//TRIM(Int2LStr( p%TwrNodes   ))//             &
-!                        ', '//TRIM(Flt2LStr( p%TipRad     ))//', '//TRIM(Flt2LStr( GenIner    ))//' )'
+!                        ', '//TRIM(Flt2LStr( p%TipRad     ))//', '//TRIM(Flt2LStr( p%GenIner    ))//' )'
 
 
 
@@ -1093,8 +1090,8 @@ WRITE (UnAD,FmtTRTRTR)  ', QG = ', PtfmSurge                 , ', ', PtfmSway   
 WRITE (UnAD,FmtTRTRTR)  ', ZG = ', PtfmSurge + CoordSys%a2(1), ', ', PtfmSway - CoordSys%a2(3), ', ', PtfmHeave + CoordSys%a2(2) ! platform using the
 WRITE (UnAD,FmtTRTRTR)  ', XG = ', PtfmSurge + CoordSys%a1(1), ', ', PtfmSway - CoordSys%a1(3), ', ', PtfmHeave + CoordSys%a1(2) ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 1005'
-WRITE (UnAD,FmtTR    )  ', MASS = ', PtfmMass + SmllNmbr
-WRITE (UnAD,FmtTRTRTR)  ', IP = ', PtfmRIner + SmllNmbr, ', ', PtfmPIner + SmllNmbr, ', ', PtfmYIner + SmllNmbr
+WRITE (UnAD,FmtTR    )  ', MASS = ', p%PtfmMass + SmllNmbr
+WRITE (UnAD,FmtTRTRTR)  ', IP = ', p%PtfmRIner + SmllNmbr, ', ', p%PtfmPIner + SmllNmbr, ', ', p%PtfmYIner + SmllNmbr
 
 
    ! Reference axis for platform:
@@ -1306,7 +1303,7 @@ WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (
 WRITE (UnAD,FmtTRTRTR)  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! top using the
 WRITE (UnAD,FmtTRTRTR)  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 1600'
-WRITE (UnAD,FmtTR    )  ', MASS = ', YawBrMass + SmllNmbr
+WRITE (UnAD,FmtTR    )  ', MASS = ', p%YawBrMass + SmllNmbr
 WRITE (UnAD,FmtTRTRTR)  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
 
 
@@ -1352,8 +1349,8 @@ WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (
 WRITE (UnAD,FmtTRTRTR)  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! nacelle using the
 WRITE (UnAD,FmtTRTRTR)  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 2005'
-WRITE (UnAD,FmtTR    )  ', MASS = ', NacMass + SmllNmbr
-WRITE (UnAD,FmtTRTRTR)  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', Nacd2Iner + SmllNmbr
+WRITE (UnAD,FmtTR    )  ', MASS = ', p%NacMass + SmllNmbr
+WRITE (UnAD,FmtTRTRTR)  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', p%Nacd2Iner + SmllNmbr
 
 
    ! Nacelle coordinate system (fixed in nacelle):
@@ -1448,8 +1445,8 @@ WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (
 WRITE (UnAD,FmtTRTRTR)  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! boom using the
 WRITE (UnAD,FmtTRTRTR)  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 5005'
-WRITE (UnAD,FmtTR    )  ', MASS = ', BoomMass + SmllNmbr
-WRITE (UnAD,FmtTRTRTR)  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', AtfaIner + SmllNmbr
+WRITE (UnAD,FmtTR    )  ', MASS = ', p%BoomMass + SmllNmbr
+WRITE (UnAD,FmtTRTRTR)  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', p%AtfaIner + SmllNmbr
 
 
    ! Reference axis for the tail boom:
@@ -1517,7 +1514,7 @@ WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (
 WRITE (UnAD,FmtTRTRTR)  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! fin using the
 WRITE (UnAD,FmtTRTRTR)  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 5105'
-WRITE (UnAD,FmtTR    )  ', MASS = ', TFinMass + SmllNmbr
+WRITE (UnAD,FmtTR    )  ', MASS = ', p%TFinMass + SmllNmbr
 WRITE (UnAD,FmtTRTRTR)  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
 
 
@@ -1643,8 +1640,8 @@ WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (
 WRITE (UnAD,FmtTRTRTR)  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! furls with the rotor using
 WRITE (UnAD,FmtTRTRTR)  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! the 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 2105'
-WRITE (UnAD,FmtTR    )  ', MASS = ', RFrlMass + SmllNmbr
-WRITE (UnAD,FmtTRTRTR)  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', RrfaIner + SmllNmbr
+WRITE (UnAD,FmtTR    )  ', MASS = ', p%RFrlMass + SmllNmbr
+WRITE (UnAD,FmtTRTRTR)  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', p%RrfaIner + SmllNmbr
 
 
    ! Reference axis for the structure that furls with the rotor:
@@ -1916,7 +1913,7 @@ WRITE (UnAD,FmtTRTRTR)  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(
 WRITE (UnAD,FmtTRTRTR)  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 3205'
 WRITE (UnAD,FmtTR    )  ', MASS = ', SmllNmbr
-WRITE (UnAD,FmtTRTRTR)  ', IP = ', GenIner*GBRatio*GBRatio + SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
+WRITE (UnAD,FmtTRTRTR)  ', IP = ', p%GenIner*GBRatio*GBRatio + SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
 
 
    ! Generator reference axis:
@@ -2006,8 +2003,8 @@ WRITE (UnAD,FmtTRTRTR)  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (
 WRITE (UnAD,FmtTRTRTR)  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! rotation using the
 WRITE (UnAD,FmtTRTRTR)  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 4005'
-WRITE (UnAD,FmtTR    )  ', MASS = ', HubMass + SmllNmbr
-WRITE (UnAD,FmtTRTRTR)  ', IP = ', Hubg1Iner + SmllNmbr, ', ', Hubg2Iner + SmllNmbr, ', ', SmllNmbr
+WRITE (UnAD,FmtTR    )  ', MASS = ', p%HubMass + SmllNmbr
+WRITE (UnAD,FmtTRTRTR)  ', IP = ', p%Hubg1Iner + SmllNmbr, ', ', p%Hubg2Iner + SmllNmbr, ', ', SmllNmbr
 
 
    ! Hub coordinate system (fixed in hub):
@@ -2435,7 +2432,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
    WRITE (UnAD,FmtTRTRTR )  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2) ! 3-point method.  Make sure it
    WRITE (UnAD,FmtTRTRTR )  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2) ! is aligned with the outermost blade element.
    WRITE (UnAD,FmtText   )  ', CM = '//TRIM(Int2LStr( TmpID ))
-   WRITE (UnAD,FmtTR     )  ', MASS = ', TipMass(K) + SmllNmbr
+   WRITE (UnAD,FmtTR     )  ', MASS = ', p%TipMass(K) + SmllNmbr
    WRITE (UnAD,FmtTRTRTR )  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
 
 
@@ -4009,7 +4006,7 @@ CALL MakeADM_WrICArraysR( (/ REAL(p%NumBl,ReKi),   REAL(p%BldNodes,ReKi), REAL(p
                              REAL(p%NTwGages,ReKi),REAL(p%NumOuts,ReKi),     &    ! bjj if linearizing, set NumOuts = 0 here ???
                              REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  p%AzimB1Up,           GBRatio,   &
                              p%TipRad,               TStart               , REAL(PtfmLdMod),       REAL(p%TwrLdMod),       p%ProjArea,  &
-                             p%AvgNrmTpRd,         GenIner              , REAL(OutFileFmt,ReKi)             /), &
+                             p%AvgNrmTpRd,         p%GenIner              , REAL(OutFileFmt,ReKi)             /), &
                                      ModelConstants_A, 19       , UnAD, "ModelConstants_A" )             
                                               
 CALL MakeADM_WrICArrays (p%OutParam(1:p%NumOuts)%Indx + 500*( 1 - p%OutParam(1:p%NumOuts)%SignM), & !ADD 1000 if SignM is negative (this implies that SignM should only be +1 or -1!!!!!)
