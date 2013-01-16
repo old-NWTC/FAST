@@ -12,12 +12,12 @@ SUBROUTINE Set_FAST_Params( p_StrD )
 USE                           Blade,      ONLY: C, DR
 USE                           AeroDyn
 USE StructDyn_Types
-
+USE GlueCodeVars
+   
    ! FAST Modules:
 
 USE                           Blades
 USE                           EnvCond
-USE                           Features
 USE                           Noise
 USE                           SimCont !DT, TMax
 
@@ -144,6 +144,7 @@ SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz,
    ! FAST Modules:
 USE StructDyn_Types
 USE StructDyn_Parameters
+USE GlueCodeVars
    
 USE                             General
 USE                             RtHndSid

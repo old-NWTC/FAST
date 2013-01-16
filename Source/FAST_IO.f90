@@ -4,6 +4,8 @@ MODULE FAST_IO_Subs
    USE   StructDyn_Parameters
    USE   StructDyn_Types
 
+   USE GlueCodeVars
+   
 CONTAINS
 !====================================================================================================
 SUBROUTINE AeroInput(p_StrD)
@@ -178,7 +180,6 @@ SUBROUTINE ChckOutLst(OutList, p_StrD, ErrStat, ErrMsg )
    !    index, name, and units of the output channels, OutData(:)).
 
 
-   USE                             Features
    USE                             General
    USE                             Output
    USE                             Platform
@@ -1763,7 +1764,6 @@ SUBROUTINE GetFurl( InputFileData, p )
    !   FurlFile and validates the input.
 
 
-USE                             Features
 USE                             General
 USE                             InitCond
 USE                             Output
@@ -1819,12 +1819,12 @@ CALL ReadCom ( UnIn, FurlFile, 'degree of freedom switches (cont)'  )
 
    ! RFrlDOF - Rotor-furl DOF.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlDOF, 'RFrlDOF', 'Rotor-furl DOF' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDOF, 'RFrlDOF', 'Rotor-furl DOF' )
 
 
    ! TFrlDOF - Tail-furl DOF.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlDOF, 'TFrlDOF', 'Tail-furl DOF' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDOF, 'TFrlDOF', 'Tail-furl DOF' )
 
 
 
@@ -2323,14 +2323,13 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetFurl
 !=======================================================================
-SUBROUTINE GetLin(p_StrD)
+SUBROUTINE GetLin(p_StrD, InputFileData)
 
 
    ! This routine reads in the FAST linearization input parameters from
    !   LinFile and validates the input.
 
 
-USE                             Features
 USE                             General
 USE                             Linear
 USE                             Output
@@ -2343,6 +2342,7 @@ IMPLICIT                        NONE
    ! Passed variables
 
 TYPE(StrD_ParameterType),        INTENT(IN)    :: p_StrD                        ! Parameters of the structural dynamics module
+TYPE(StrD_InputFile),      INTENT(INOUT)      :: InputFileData                   ! Data stored in the module's input file
 
    ! Local variables:
 
@@ -2395,7 +2395,7 @@ IF ( CalcStdy )  THEN   ! Only read in these variables if we will be computing a
 
    ! TrimCase - Trim case.
 
-   IF ( GenDOF )  THEN  ! Only read in TrimCase if we will be computing a steady state solution with a variable speed generator
+   IF ( InputFileData%GenDOF )  THEN  ! Only read in TrimCase if we will be computing a steady state solution with a variable speed generator
 
       CALL ReadVar ( UnIn, LinFile, TrimCase, 'TrimCase', 'Trim Case' )
 
@@ -2596,7 +2596,6 @@ SUBROUTINE GetPrimary( InputFileData, p, ErrStat, ErrMsg )
 USE                             Blades
 USE                             Drivetrain
 USE                             EnvCond
-USE                             Features
 USE                             General
 USE                             InitCond
 USE                             Linear
@@ -3094,14 +3093,14 @@ IF ( Gravity < 0.0 )  CALL ProgAbort ( ' Gravity must not be negative.' )
 
    ! FlapDOF1 - First flapwise blade mode DOF.
 
-CALL ReadVar ( UnIn, PriFile, FlapDOF1, 'FlapDOF1', 'First flapwise blade mode DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%FlapDOF1, 'FlapDOF1', 'First flapwise blade mode DOF' )
 
 
    ! FlapDOF2 - Second flapwise blade mode DOF.
 
-CALL ReadVar ( UnIn, PriFile, FlapDOF2, 'FlapDOF2', 'Second flapwise blade mode DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%FlapDOF2, 'FlapDOF2', 'Second flapwise blade mode DOF' )
 
-IF ( FlapDOF2 .AND. ( .NOT. FlapDOF1 ) )  THEN  ! Print out warning when flap mode 1 is not enabled and flap mode 2 is enabled
+IF ( InputFileData%FlapDOF2 .AND. ( .NOT. InputFileData%FlapDOF1 ) )  THEN  ! Print out warning when flap mode 1 is not enabled and flap mode 2 is enabled
    CALL UsrAlarm
 
    CALL WrScr1(' WARNING: ')
@@ -3112,13 +3111,13 @@ ENDIF
 
    ! EdgeDOF - First edgewise blade mode DOF.
 
-CALL ReadVar ( UnIn, PriFile, EdgeDOF, 'EdgeDOF', 'First edgewise blade mode DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%EdgeDOF, 'EdgeDOF', 'First edgewise blade mode DOF' )
 
 
    ! TeetDOF - Teeter DOF.
 
 IF ( p%NumBl == 2 )  THEN
-   CALL ReadVar ( UnIn, PriFile, TeetDOF, 'TeetDOF', 'Teeter DOF' )
+   CALL ReadVar ( UnIn, PriFile, InputFileData%TeetDOF, 'TeetDOF', 'Teeter DOF' )
 ELSE
    CALL ReadCom ( UnIn, PriFile, 'unused TeetDOF' )
 ENDIF
@@ -3126,29 +3125,29 @@ ENDIF
 
    ! DrTrDOF - Drivetrain rotational-flexibility DOF.
 
-CALL ReadVar ( UnIn, PriFile, DrTrDOF, 'DrTrDOF', 'Drivetrain rotational-flexibility DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%DrTrDOF, 'DrTrDOF', 'Drivetrain rotational-flexibility DOF' )
 
 
    ! GenDOF - Generator DOF.
 
-CALL ReadVar ( UnIn, PriFile, GenDOF, 'GenDOF', 'Generator DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%GenDOF, 'GenDOF', 'Generator DOF' )
 
 
    ! YawDOF - Yaw DOF.
 
-CALL ReadVar ( UnIn, PriFile, YawDOF, 'YawDOF', 'Yaw DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%YawDOF, 'YawDOF', 'Yaw DOF' )
 
 
    ! TwFADOF1 - First tower fore-aft bending-mode DOF.
 
-CALL ReadVar ( UnIn, PriFile, TwFADOF1, 'TwFADOF1', 'First tower fore-aft bending-mode DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%TwFADOF1, 'TwFADOF1', 'First tower fore-aft bending-mode DOF' )
 
 
    ! TwFADOF2 - Second tower fore-aft bending-mode DOF.
 
-CALL ReadVar ( UnIn, PriFile, TwFADOF2, 'TwFADOF2', 'Second tower fore-aft bending-mode DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%TwFADOF2, 'TwFADOF2', 'Second tower fore-aft bending-mode DOF' )
 
-IF ( TwFADOF2 .AND. ( .NOT. TwFADOF1 ) )  THEN  ! Print out warning when tower fore-aft mode 1 is not enabled and fore-aft mode 2 is enabled
+IF ( InputFileData%TwFADOF2 .AND. ( .NOT. InputFileData%TwFADOF1 ) )  THEN  ! Print out warning when tower fore-aft mode 1 is not enabled and fore-aft mode 2 is enabled
    CALL UsrAlarm
 
    CALL WrScr1(' WARNING: ')
@@ -3159,14 +3158,14 @@ ENDIF
 
    ! TwSSDOF1 - First tower side-to-side bending-mode DOF.
 
-CALL ReadVar ( UnIn, PriFile, TwSSDOF1, 'TwSSDOF1', 'First tower side-to-side bending-mode DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%TwSSDOF1, 'TwSSDOF1', 'First tower side-to-side bending-mode DOF' )
 
 
    ! TwSSDOF2 - Second tower side-to-side bending-mode DOF.
 
-CALL ReadVar ( UnIn, PriFile, TwSSDOF2, 'TwSSDOF2', 'Second tower side-to-side bending-mode DOF' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%TwSSDOF2, 'TwSSDOF2', 'Second tower side-to-side bending-mode DOF' )
 
-IF ( TwSSDOF2 .AND. ( .NOT. TwSSDOF1 ) )  THEN  ! Print out warning when tower side-to-side mode 1 is not enabled and side-to-side mode 2 is enabled
+IF ( InputFileData%TwSSDOF2 .AND. ( .NOT. InputFileData%TwSSDOF1 ) )  THEN  ! Print out warning when tower side-to-side mode 1 is not enabled and side-to-side mode 2 is enabled
    CALL UsrAlarm
 
    CALL WrScr1(' WARNING: ')
@@ -4139,7 +4138,6 @@ SUBROUTINE GetPtfm( p, InputFileData )
    !   PtfmFile and validates the input.
 
 USE                             EnvCond
-USE                             Features
 USE                             General
 USE                             InitCond
 USE                             Output
@@ -4215,32 +4213,32 @@ ENDIF
 
    ! PtfmSgDOF - Platform horizontal surge translation DOF.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmSgDOF, 'PtfmSgDOF', 'Platform surge DOF' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmSgDOF, 'PtfmSgDOF', 'Platform surge DOF' )
 
 
    ! PtfmSwDOF - Platform horizontal sway translation DOF.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmSwDOF, 'PtfmSwDOF', 'Platform sway DOF' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmSwDOF, 'PtfmSwDOF', 'Platform sway DOF' )
 
 
    ! PtfmHvDOF - Platform vertical heave translation DOF.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmHvDOF, 'PtfmHvDOF', 'Platform heave DOF' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmHvDOF, 'PtfmHvDOF', 'Platform heave DOF' )
 
 
    ! PtfmRDOF - Platform roll tilt rotation DOF.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmRDOF, 'PtfmRDOF', 'Platform roll DOF' )
+CALL ReadVar ( UnIn, PtfmFile, p%DOF_Flag(DOF_R   ), 'PtfmRDOF', 'Platform roll DOF' )
 
 
    ! PtfmPDOF - Platform pitch tilt rotation DOF.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmPDOF, 'PtfmPDOF', 'Platform pitch DOF' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmPDOF, 'PtfmPDOF', 'Platform pitch DOF' )
 
 
    ! PtfmYDOF - Platform yaw rotation DOF.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmYDOF, 'PtfmYDOF', 'Platform yaw DOF' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmYDOF, 'PtfmYDOF', 'Platform yaw DOF' )
 
 
 
@@ -5845,7 +5843,6 @@ SUBROUTINE FAST_Input( p, OtherState, InputFileData, ErrStat, ErrMsg )
 USE                             Blades
 USE                             DriveTrain
 USE                             EnvCond
-USE                             Features
 USE                             General
 USE                             InitCond
 USE                             Linear
@@ -6562,7 +6559,7 @@ ENDIF
 
 IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearization analysis
 
-   CALL GetLin( p )                                      ! Read in the FAST linearization parameters from LinFile.
+   CALL GetLin( p, InputFileData )                           ! Read in the FAST linearization parameters from LinFile.
 
 
    ! FAST linearization wont work for all possible input settings.
@@ -6655,9 +6652,9 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
                                           ' to 1 since RotSpeed = 0 and the steady solution will not be periodic.'   )
       NAzimStep = 1
 
-      IF ( GenDOF         )  CALL WrScr1( ' NOTE: GenDOF changed from True to False since RotSpeed = 0'// &
+      IF ( InputFileData%GenDOF         )  CALL WrScr1( ' NOTE: GenDOF changed from True to False since RotSpeed = 0'// &
                                           ' meaning the generator is locked in place.'                      )
-      GenDOF = .FALSE.
+      InputFileData%GenDOF = .FALSE.
 
    ELSE                                ! Rotor is spinning, therefore we will find a periodic steady state solution.
 
@@ -7029,7 +7026,6 @@ SUBROUTINE PrintSum( p, OtherState )
 
 USE                             AeroDyn
 USE                             Blades
-USE                             Features
 USE                             General
 USE                             SimCont
 
@@ -7082,7 +7078,7 @@ IF ( p%NumBl == 2 )  THEN
 ELSE
    RotorType = TRIM(RotorType)//' three-bladed rotor'
 ENDIF
-IF ( TeetDOF )  THEN
+IF ( p%DOF_Flag(DOF_Teet) )  THEN
    RotorType = TRIM(RotorType)//' with teetering hub.'
 ELSE
    RotorType = TRIM(RotorType)//' with rigid hub.'
@@ -7103,115 +7099,115 @@ ENDSELECT
 WRITE    (UnSu,FmtTxt)  '            The model has '//TRIM(Int2LStr( OtherState%DOFs%NActvDOF ))//' of '// &
                                      TRIM(Int2LStr( p%NDOF ))//' DOFs active (enabled) at start-up.'
 
-IF ( FlapDOF1 )  THEN
+IF ( p%DOF_Flag( DOF_BF(1,1) ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    First flapwise blade mode DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   First flapwise blade mode DOF.'
 ENDIF
 
-IF ( FlapDOF2 )  THEN
+IF ( p%DOF_Flag( DOF_BF(1,2) ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Second flapwise blade mode DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Second flapwise blade mode DOF.'
 ENDIF
 
-IF ( EdgeDOF )  THEN
+IF ( p%DOF_Flag( DOF_BE(1,1) ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Edgewise blade mode DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Edgewise blade mode DOF.'
 ENDIF
 
-IF ( TeetDOF )  THEN
+IF ( p%DOF_Flag(DOF_Teet) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Rotor-teeter DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Rotor-teeter DOF.'
 ENDIF
 
-IF ( DrTrDOF )  THEN
+IF ( p%DOF_Flag(DOF_DrTr) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Drivetrain rotational-flexibility DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Drivetrain rotational-flexibility DOF.'
 ENDIF
 
-IF ( GenDOF )  THEN
+IF ( p%DOF_Flag(DOF_GeAz) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Generator DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Generator DOF.'
 ENDIF
 
-IF ( RFrlDOF )  THEN
+IF ( p%DOF_Flag(DOF_RFrl) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Rotor-furl DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Rotor-furl DOF.'
 ENDIF
 
-IF ( TFrlDOF )  THEN
+IF ( p%DOF_Flag(DOF_TFrl) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Tail-furl DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Tail-furl DOF.'
 ENDIF
 
-IF ( YawDOF )  THEN
+IF ( p%DOF_Flag(DOF_Yaw ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Yaw DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Yaw DOF.'
 ENDIF
 
-IF ( TwFADOF1 )  THEN
+IF ( p%DOF_Flag(DOF_TFA1) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    First tower fore-aft bending-mode DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   First tower fore-aft bending-mode DOF.'
 ENDIF
 
-IF ( TwFADOF2 )  THEN
+IF ( p%DOF_Flag(DOF_TFA2) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Second tower fore-aft bending-mode DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Second tower fore-aft bending-mode DOF.'
 ENDIF
 
-IF ( TwSSDOF1 )  THEN
+IF ( p%DOF_Flag(DOF_TSS1) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    First tower side-to-side bending-mode DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   First tower side-to-side bending-mode DOF.'
 ENDIF
 
-IF ( TwSSDOF2 )  THEN
+IF ( p%DOF_Flag(DOF_TSS2) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Second tower side-to-side bending-mode DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Second tower side-to-side bending-mode DOF.'
 ENDIF
 
-IF ( PtfmSgDOF )  THEN
+IF ( p%DOF_Flag(DOF_Sg  ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Platform horizontal surge translation DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Platform horizontal surge translation DOF.'
 ENDIF
 
-IF ( PtfmSwDOF )  THEN
+IF ( p%DOF_Flag(DOF_Sw  ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Platform horizontal sway translation DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Platform horizontal sway translation DOF.'
 ENDIF
 
-IF ( PtfmHvDOF )  THEN
+IF ( p%DOF_Flag(DOF_Hv  ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Platform vertical heave translation DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Platform vertical heave translation DOF.'
 ENDIF
 
-IF ( PtfmRDOF )  THEN
+IF ( p%DOF_Flag(DOF_R   ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Platform roll tilt rotation DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Platform roll tilt rotation DOF.'
 ENDIF
 
-IF ( PtfmPDOF )  THEN
+IF ( p%DOF_Flag(DOF_P   ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Platform pitch tilt rotation DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Platform pitch tilt rotation DOF.'
 ENDIF
 
-IF ( PtfmYDOF )  THEN
+IF ( p%DOF_Flag(DOF_Y   ) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Platform yaw rotation DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Platform yaw rotation DOF.'
@@ -7945,7 +7941,6 @@ SUBROUTINE WrOutHdr(p_StrD)
    ! This routine generates the header for the primary output file.
 
 
-USE                             Features
 USE                             General
 USE                             AeroDyn
 USE                             Output
@@ -8057,7 +8052,6 @@ SUBROUTINE WrOutput(p_StrD,y_StrD)
    ! This routine writes output to the primary output file.
 
 
-USE                             Features
 USE                             General
 USE                             Output
 

@@ -5,6 +5,9 @@ MODULE FASTSubs
    USE   StructDyn_Parameters
    USE   StructDyn
 
+   USE GlueCodeVars
+   
+   
 CONTAINS
 !=======================================================================
 SUBROUTINE Alloc(p,x,y, OtherState)
@@ -842,7 +845,6 @@ SUBROUTINE CalcOuts( p,x,y,OtherState )
 USE                             Blades
 USE                             DriveTrain
 USE                             EnvCond
-USE                             Features
 USE                             FloatingPlatform, ONLY:AnchorTension, FairleadTension
 USE                             Linear
 USE                             Output
@@ -1715,7 +1717,6 @@ SUBROUTINE Coeff(p,InputFileData)
 USE                             Blades
 USE                             DriveTrain
 USE                             EnvCond
-USE                             Features
 USE                             InitCond
 USE                             Modes
 
@@ -2404,7 +2405,6 @@ SUBROUTINE Control( p, x, OtherState, b1 )
 
 
 USE                             DriveTrain
-USE                             Features
 USE                             General
 USE                             InitCond
 USE                             NacelleYaw
@@ -3677,7 +3677,7 @@ SolnVec = AugMat(:,NAug)
 RETURN
 END SUBROUTINE Gauss
 !=======================================================================
-SUBROUTINE InitBlDefl ( K, InitQF1, InitQF2, InitQE1, p )
+SUBROUTINE InitBlDefl ( K, InitQF1, InitQF2, InitQE1, p, InputFileData )
 
 
    ! This routine calculates the initial blade deflections.
@@ -3688,7 +3688,6 @@ SUBROUTINE InitBlDefl ( K, InitQF1, InitQF2, InitQE1, p )
 
 
 USE                             Blades
-USE                             Features
 USE                             InitCond
 USE                             TurbCont
 
@@ -3703,6 +3702,7 @@ REAL(ReKi), INTENT(OUT)      :: InitQF2                                         
 
 INTEGER(4), INTENT(IN )      :: K                                               ! Blade number (input).
 TYPE(StrD_ParameterType),  INTENT(IN)  :: p                                     ! The parameters of the structural dynamics module
+TYPE(StrD_InputFile),            INTENT(IN   ) :: InputFileData                 ! all the data in the StructDyn input file
 
 
    ! Local variables:
@@ -3737,7 +3737,7 @@ A(2,2) = -TwistedSF(K,1,3,p%TipNode,0)*SinPitch + TwistedSF(K,2,3,p%TipNode,0)*C
 A(1,3) =  OoPDefl
 A(2,3) =  IPDefl
 
-IF ( FlapDOF1 )  THEN                       ! Blade flap mode 1 is enabled
+IF ( InputFileData%FlapDOF1 )  THEN                       ! Blade flap mode 1 is enabled
 
    InitQF2 = 0.0
 
@@ -3751,7 +3751,7 @@ IF ( FlapDOF1 )  THEN                       ! Blade flap mode 1 is enabled
       InitQF1 = ( A(1,3)*A(2,2) - A(1,2)*A(2,3) )/DET
       InitQE1 = ( A(1,1)*A(2,3) - A(1,3)*A(2,1) )/DET
 
-   ELSEIF ( .NOT. EdgeDOF )  THEN          ! Blade edge mode 1 is not enabled which caused DET = 0.
+   ELSEIF ( .NOT. InputFileData%EdgeDOF )  THEN          ! Blade edge mode 1 is not enabled which caused DET = 0.
 
       InitQE1 = 0.0
 
@@ -3831,7 +3831,7 @@ ELSE                                        ! Blade flap mode 1 is not enabled.
 
    InitQF1 = 0.0
 
-   IF ( FlapDOF2 )  THEN                    ! Blade flap mode 2 is enabled.
+   IF ( InputFileData%FlapDOF2 )  THEN                    ! Blade flap mode 2 is enabled.
 
       A(1,1) =  TwistedSF(K,1,2,p%TipNode,0)*CosPitch + TwistedSF(K,2,2,p%TipNode,0)*SinPitch
       A(2,1) = -TwistedSF(K,1,2,p%TipNode,0)*SinPitch + TwistedSF(K,2,2,p%TipNode,0)*CosPitch
@@ -3842,7 +3842,7 @@ ELSE                                        ! Blade flap mode 1 is not enabled.
          InitQF2 = ( A(1,3)*A(2,2) - A(1,2)*A(2,3) )/DET
          InitQE1 = ( A(1,1)*A(2,3) - A(1,3)*A(2,1) )/DET
 
-      ELSEIF ( .NOT. EdgeDOF )  THEN          ! Blade edge mode 1 is not enabled which caused DET = 0.
+      ELSEIF ( .NOT. InputFileData%EdgeDOF )  THEN          ! Blade edge mode 1 is not enabled which caused DET = 0.
 
          InitQE1 = 0.0
 
@@ -3985,7 +3985,6 @@ SUBROUTINE FAST_Initialize(p,x,y,OtherState,InputFileData)
 
 
 USE                             EnvCond
-USE                             Features
 USE                             FloatingPlatform, ONLY:InitFltngPtfmLd
 USE                             General
 USE                             InitCond
@@ -4069,7 +4068,7 @@ DO K = 1,p%NumBl   ! Loop through all blades
 
    ! Calculate the initial blade deflections:
 
-   CALL InitBlDefl ( K, InitQF1, InitQF2, InitQE1, p )
+   CALL InitBlDefl ( K, InitQF1, InitQF2, InitQE1, p, InputFileData )
 
 
    ! Apply these initial blade DOF values to the corresponding
@@ -4082,9 +4081,9 @@ DO K = 1,p%NumBl   ! Loop through all blades
    OtherState%QD( DOF_BF(K,2), 1 ) = 0.0
    OtherState%QD( DOF_BE(K,1), 1 ) = 0.0
 
-   p%DOF_Flag( DOF_BF(K,1) ) = FlapDOF1
-   p%DOF_Flag( DOF_BF(K,2) ) = FlapDOF2
-   p%DOF_Flag( DOF_BE(K,1) ) = EdgeDOF
+   p%DOF_Flag( DOF_BF(K,1) ) = InputFileData%FlapDOF1
+   p%DOF_Flag( DOF_BF(K,2) ) = InputFileData%FlapDOF2
+   p%DOF_Flag( DOF_BE(K,1) ) = InputFileData%EdgeDOF
 
    p%DOF_Desc( DOF_BF(K,1) ) = '1st flapwise bending-mode DOF of blade '//TRIM(Int2LStr( K ))// &
                              ' (internal DOF index = DOF_BF('         //TRIM(Int2LStr( K ))//',1))'
@@ -4107,7 +4106,7 @@ IF ( p%NumBl == 2 )  THEN
    OtherState%Q (DOF_Teet,1) = TeetDefl
    OtherState%QD(DOF_Teet,1) = 0.0
 
-   p%DOF_Flag(DOF_Teet) = TeetDOF
+   p%DOF_Flag(DOF_Teet) = InputFileData%TeetDOF
 
    p%DOF_Desc(DOF_Teet) = 'Hub teetering DOF (internal DOF index = DOF_Teet)'
 
@@ -4122,7 +4121,7 @@ ENDIF
 OtherState%Q (DOF_DrTr,1) = 0.0
 OtherState%QD(DOF_DrTr,1) = 0.0
 
-p%DOF_Flag(DOF_DrTr) = DrTrDOF
+p%DOF_Flag(DOF_DrTr) = InputFileData%DrTrDOF
 
 p%DOF_Desc(DOF_DrTr) = 'Drivetrain rotational-flexibility DOF (internal DOF index = DOF_DrTr)'
 
@@ -4139,7 +4138,7 @@ QAzimInit      = MOD( Azimuth - p%AzimB1Up + 270.0 + 360.0, 360.0 )*D2R   ! Inte
 OtherState%Q (DOF_GeAz,1) = QAzimInit
 OtherState%QD(DOF_GeAz,1) = RotSpeed                                               ! Rotor speed in rad/sec.
 
-p%DOF_Flag(DOF_GeAz) = GenDOF
+p%DOF_Flag(DOF_GeAz) = InputFileData%GenDOF
 
 p%DOF_Desc(DOF_GeAz) = 'Variable speed generator DOF (internal DOF index = DOF_GeAz)'
 
@@ -4152,7 +4151,7 @@ p%DOF_Desc(DOF_GeAz) = 'Variable speed generator DOF (internal DOF index = DOF_G
 OtherState%Q (DOF_RFrl,1) = RotFurl
 OtherState%QD(DOF_RFrl,1) = 0.0
 
-p%DOF_Flag(DOF_RFrl) = RFrlDOF
+p%DOF_Flag(DOF_RFrl) = InputFileData%RFrlDOF
 
 p%DOF_Desc(DOF_RFrl) = 'Rotor-furl DOF (internal DOF index = DOF_RFrl)'
 
@@ -4165,7 +4164,7 @@ p%DOF_Desc(DOF_RFrl) = 'Rotor-furl DOF (internal DOF index = DOF_RFrl)'
 OtherState%Q (DOF_TFrl,1) = TailFurl
 OtherState%QD(DOF_TFrl,1) = 0.0
 
-p%DOF_Flag(DOF_TFrl) = TFrlDOF
+p%DOF_Flag(DOF_TFrl) = InputFileData%TFrlDOF
 
 p%DOF_Desc(DOF_TFrl) = 'Tail-furl DOF (internal DOF index = DOF_TFrl)'
 
@@ -4178,7 +4177,7 @@ p%DOF_Desc(DOF_TFrl) = 'Tail-furl DOF (internal DOF index = DOF_TFrl)'
 OtherState%Q (DOF_Yaw ,1) = NacYaw
 OtherState%QD(DOF_Yaw ,1) = 0.0
 
-p%DOF_Flag(DOF_Yaw ) = YawDOF
+p%DOF_Flag(DOF_Yaw ) = InputFileData%YawDOF
 
 p%DOF_Desc(DOF_Yaw ) = 'Nacelle yaw DOF (internal DOF index = DOF_Yaw)'
 
@@ -4194,15 +4193,15 @@ OtherState%Q   (DOF_TSS1,1) =  0.0
 OtherState%Q   (DOF_TFA2,1) =  0.0
 OtherState%Q   (DOF_TSS2,1) =  0.0
 
-IF (    TwFADOF1 )  THEN   ! First fore-aft tower mode is enabled.
+IF (    InputFileData%TwFADOF1 )  THEN   ! First fore-aft tower mode is enabled.
    OtherState%Q(DOF_TFA1,1) =  TTDspFA
-ELSEIF( TwFADOF2 )  THEN   ! Second fore-aft tower mode is enabled, but first is not.
+ELSEIF( InputFileData%TwFADOF2 )  THEN   ! Second fore-aft tower mode is enabled, but first is not.
    OtherState%Q(DOF_TFA2,1) =  TTDspFA
 ENDIF
 
-IF (    TwSSDOF1 )  THEN   ! First side-to-side tower mode is enabled.
+IF (    InputFileData%TwSSDOF1 )  THEN   ! First side-to-side tower mode is enabled.
    OtherState%Q(DOF_TSS1,1) = -TTDspSS
-ELSEIF( TwSSDOF2 )  THEN   ! Second side-to-side tower mode is enabled, but first is not.
+ELSEIF( InputFileData%TwSSDOF2 )  THEN   ! Second side-to-side tower mode is enabled, but first is not.
    OtherState%Q(DOF_TSS2,1) = -TTDspSS
 ENDIF
 
@@ -4211,10 +4210,10 @@ OtherState%QD  (DOF_TSS1,1) =  0.0
 OtherState%QD  (DOF_TFA2,1) =  0.0
 OtherState%QD  (DOF_TSS2,1) =  0.0
 
-p%DOF_Flag(DOF_TFA1) = TwFADOF1
-p%DOF_Flag(DOF_TSS1) = TwSSDOF1
-p%DOF_Flag(DOF_TFA2) = TwFADOF2
-p%DOF_Flag(DOF_TSS2) = TwSSDOF2
+p%DOF_Flag(DOF_TFA1) = InputFileData%TwFADOF1
+p%DOF_Flag(DOF_TSS1) = InputFileData%TwSSDOF1
+p%DOF_Flag(DOF_TFA2) = InputFileData%TwFADOF2
+p%DOF_Flag(DOF_TSS2) = InputFileData%TwSSDOF2
 
 p%DOF_Desc(DOF_TFA1) = '1st tower fore-aft bending mode DOF (internal DOF index = DOF_TFA1)'
 p%DOF_Desc(DOF_TSS1) = '1st tower side-to-side bending mode DOF (internal DOF index = DOF_TSS1)'
@@ -4240,12 +4239,12 @@ OtherState%QD(DOF_R   ,1) = 0.0
 OtherState%QD(DOF_P   ,1) = 0.0
 OtherState%QD(DOF_Y   ,1) = 0.0
 
-p%DOF_Flag(DOF_Sg  ) = PtfmSgDOF
-p%DOF_Flag(DOF_Sw  ) = PtfmSwDOF
-p%DOF_Flag(DOF_Hv  ) = PtfmHvDOF
-p%DOF_Flag(DOF_R   ) = PtfmRDOF
-p%DOF_Flag(DOF_P   ) = PtfmPDOF
-p%DOF_Flag(DOF_Y   ) = PtfmYDOF
+p%DOF_Flag(DOF_Sg  ) = InputFileData%PtfmSgDOF
+p%DOF_Flag(DOF_Sw  ) = InputFileData%PtfmSwDOF
+p%DOF_Flag(DOF_Hv  ) = InputFileData%PtfmHvDOF
+p%DOF_Flag(DOF_R   ) = InputFileData%PtfmRDOF
+p%DOF_Flag(DOF_P   ) = InputFileData%PtfmPDOF
+p%DOF_Flag(DOF_Y   ) = InputFileData%PtfmYDOF
 
 p%DOF_Desc(DOF_Sg  ) = 'Platform horizontal surge translation DOF (internal DOF index = DOF_Sg)'
 p%DOF_Desc(DOF_Sw  ) = 'Platform horizontal sway translation DOF (internal DOF index = DOF_Sw)'
@@ -4644,7 +4643,6 @@ USE                             AeroElem
 USE                             Blades
 USE                             DriveTrain
 USE                             EnvCond
-USE                             Features
 USE                             General
 USE                             InitCond
 USE                             NacelleYaw
@@ -8052,7 +8050,6 @@ SUBROUTINE TimeMarch( p_StrD, x_StrD, OtherSt_StrD, y_StrD, ErrStat, ErrMsg  )
    !   simulation of the FAST code.
 
 
-USE                             Features
 USE                             General, ONLY : UnOuBin, Cmpl4LV
 USE                             Output
 USE                             SimCont

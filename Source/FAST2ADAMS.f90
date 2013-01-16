@@ -2,7 +2,10 @@ MODULE FAST2ADAMSSubs
 
    USE   NWTC_Library
    USE   StructDyn_Types
+   USE   StructDyn_Parameters
 
+   USE GlueCodeVars
+   
    IMPLICIT NONE
    
 !------------------------------------------------------------------------------
@@ -76,7 +79,6 @@ USE                             ADAMSInput
 
 USE                             Blades
 USE                             EnvCond
-USE                             Features
 USE                             General
 USE                             Output
 USE                             SimCont
@@ -134,9 +136,9 @@ WRITE (UnAC,FmtTRTR  )  'SIMULATE/DYNAMICS, END = ', DT, ', DTOUT = ', DT*DecFac
    ! DEACTIVATE the MOTION statements for the translational platform DOFs if
    !   the corresponding DOFs are enabled:
 
-IF ( PtfmSgDOF )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1001'
-IF ( PtfmSwDOF )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1002'
-IF ( PtfmHvDOF )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1003'
+IF ( p_StrD%DOF_Flag(DOF_Sg  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1001'
+IF ( p_StrD%DOF_Flag(DOF_Sw  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1002'
+IF ( p_StrD%DOF_Flag(DOF_Hv  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1003'
 
 
    ! DEACTIVATE the JPRIM statement for the rotational platform DOFs if the
@@ -145,19 +147,19 @@ IF ( PtfmHvDOF )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1003'
    !   must all be set to the same value, a requirement enforced in routine
    !   MakeADM()]:
 
-IF ( PtfmRDOF  )  WRITE (UnAC,FmtText  )  'DEACTIVATE/JPRIM, ID = 1000'
+IF ( p_StrD%DOF_Flag(DOF_R   )  )  WRITE (UnAC,FmtText  )  'DEACTIVATE/JPRIM, ID = 1000'
 
 
    ! DEACTIVATE the MOTION statements for the yaw, rotor-furl, tail-furl, HSS,
    !   and teeter bearings and the drivetrain LSS/HSS lock if the corresponding
    !   DOFs are enabled:
 
-IF ( YawDOF    )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 2010'
-IF ( TFrlDOF   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 5040'
-IF ( RFrlDOF   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 2130'
-IF ( TeetDOF   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 4010'
-IF ( DrTrDOF   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 3020'
-IF ( GenDOF    )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 3150'
+IF ( p_StrD%DOF_Flag(DOF_Yaw )   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 2010'
+IF ( p_StrD%DOF_Flag(DOF_TFrl)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 5040'
+IF ( p_StrD%DOF_Flag(DOF_RFrl)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 2130'
+IF ( p_StrD%DOF_Flag(DOF_Teet)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 4010'
+IF ( p_StrD%DOF_Flag(DOF_DrTr)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 3020'
+IF ( p_StrD%DOF_Flag(DOF_GeAz)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 3150'
 
 
    ! Turn off fixed pitch MOTION; use advanced, individual blade pitch control
@@ -181,7 +183,7 @@ ENDDO          ! K - Blades
    !   elements together during the initial condition solution eliminates
    !   this problem.
 
-IF ( TwFADOF1 )  THEN   ! Tower flexibility is enabled.
+IF ( p_StrD%DOF_Flag(DOF_TFA1) )  THEN   ! Tower flexibility is enabled.
 
    WRITE    (UnAC,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Int2LStr(           1300 + 1        ))//', '// &
                                                             TRIM(Int2LStr(           1300 + p_StrD%TwrNodes ))
@@ -189,7 +191,7 @@ IF ( TwFADOF1 )  THEN   ! Tower flexibility is enabled.
 
 ENDIF
 
-IF ( FlapDOF1 )  THEN   ! Blade flexibility is enabled.
+IF ( p_StrD%DOF_Flag( DOF_BF(1,1) ) )  THEN   ! Blade flexibility is enabled.
 
    DO K = 1,p_StrD%NumBl       ! Loop through all the blades
 
@@ -249,7 +251,6 @@ SUBROUTINE MakeACF_LIN( p )
 
 USE                             Blades
 USE                             EnvCond
-USE                             Features
 USE                             General
 USE                             InitCond
 USE                             Output
@@ -364,9 +365,9 @@ WRITE (UnAL,FmtTRTR  )  'SIMULATE/DYNAMICS, END = ', DT, ', DTOUT = ', DT*DecFac
    ! DEACTIVATE the MOTION statements for the translational platform DOFs if
    !   the corresponding DOFs are enabled:
 
-IF ( PtfmSgDOF )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 1001'
-IF ( PtfmSwDOF )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 1002'
-IF ( PtfmHvDOF )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 1003'
+IF ( p%DOF_Flag(DOF_Sg  ) )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 1001'
+IF ( p%DOF_Flag(DOF_Sw  ) )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 1002'
+IF ( p%DOF_Flag(DOF_Hv  ) )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 1003'
 
 
    ! DEACTIVATE the JPRIM statement for the rotational platform DOFs if the
@@ -375,7 +376,7 @@ IF ( PtfmHvDOF )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 1003'
    !   must all be set to the same value, a requirement enforced in routine
    !   MakeADM()]:
 
-IF ( PtfmRDOF  )  WRITE (UnAL,FmtText  )  'DEACTIVATE/JPRIM, ID = 1000'
+IF ( p%DOF_Flag(DOF_R   )  )  WRITE (UnAL,FmtText  )  'DEACTIVATE/JPRIM, ID = 1000'
 
 
    ! DEACTIVATE the MOTION statements for the yaw, rotor-furl, tail-furl, and
@@ -383,11 +384,11 @@ IF ( PtfmRDOF  )  WRITE (UnAL,FmtText  )  'DEACTIVATE/JPRIM, ID = 1000'
    !   DOFs are enabled.
    ! Do not DEACTIVATE the generator MOTION statement:
 
-IF ( YawDOF    )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 2010'
-IF ( TFrlDOF   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 5040'
-IF ( RFrlDOF   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 2130'
-IF ( TeetDOF   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 4010'
-IF ( DrTrDOF   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 3020'
+IF ( p%DOF_Flag(DOF_Yaw )   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 2010'
+IF ( p%DOF_Flag(DOF_TFrl)   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 5040'
+IF ( p%DOF_Flag(DOF_RFrl)   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 2130'
+IF ( p%DOF_Flag(DOF_Teet)   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 4010'
+IF ( p%DOF_Flag(DOF_DrTr)   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 3020'
 
 
    ! DEACTIVATE the FIXED JOINTS in the tower and blade if tower and blade
@@ -399,7 +400,7 @@ IF ( DrTrDOF   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 3020'
    !   this problem.
    ! Do not DEACTIVATE the free surface MOTION statements here:
 
-IF ( TwFADOF1 )  THEN   ! Tower flexibility is enabled.
+IF ( p%DOF_Flag(DOF_TFA1) )  THEN   ! Tower flexibility is enabled.
 
    WRITE    (   UnAL,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Int2LStr(           1300 + 1        ))//', '// &
                                                                TRIM(Int2LStr(           1300 + p%TwrNodes ))
@@ -407,7 +408,7 @@ IF ( TwFADOF1 )  THEN   ! Tower flexibility is enabled.
 
 ENDIF
 
-IF ( FlapDOF1 )  THEN   ! Blade flexibility is enabled.
+IF ( p%DOF_Flag( DOF_BF(1,1) ) )  THEN   ! Blade flexibility is enabled.
 
    DO K = 1,p%NumBl       ! Loop through all the blades
 
@@ -469,7 +470,6 @@ USE                             ADAMSInput
 USE                             Blades
 USE                             DriveTrain
 USE                             EnvCond
-USE                             Features
 USE                             General
 USE                             InitCond
 USE                             Modes
@@ -567,28 +567,28 @@ IF ( SCAN( FTitle, '!' ) /= 0 )  &
    CALL ProgAbort ( ' An ADAMS dataset can''t be built if character "!" appears in the title of the primary FAST input file: "'// &
                 TRIM( FTitle )//'".'                                                                                            )
 
-IF ( ( PtfmRDOF .NEQV. PtfmPDOF ) .OR. ( PtfmRDOF .NEQV. PtfmYDOF ) )  &   ! .TRUE. if one platform rotation DOF is set differently than the other two
+IF ( ( p%DOF_Flag(DOF_R   ) .NEQV. p%DOF_Flag(DOF_P   ) ) .OR. ( p%DOF_Flag(DOF_R   ) .NEQV. p%DOF_Flag(DOF_Y   ) ) )  &   ! .TRUE. if one platform rotation DOF is set differently than the other two
    CALL ProgAbort ( ' An ADAMS dataset can''t be built when one of the platform rotational DOFs is set differently than the'// &
                 ' other two.  Set PtfmRDOF, PtfmPDOF, and PtfmYDOF to the same value (i.e., all .TRUE. or all .FALSE.).'     )
 
-IF ( ( .NOT. YawDOF ) .AND. ( ( ( YCMode /= 0 ) .AND. ( TYCOn < TMax ) ) .OR. ( TYawManS < TMax ) ) )  &
+IF ( ( .NOT. p%DOF_Flag(DOF_Yaw ) ) .AND. ( ( ( YCMode /= 0 ) .AND. ( TYCOn < TMax ) ) .OR. ( TYawManS < TMax ) ) )  &
    CALL ProgAbort ( ' An ADAMS dataset can''t be built with yaw control unless the yaw DOF is enabled.'//  &
                 '  Set YawDOF to .TRUE., YCMode to 0, or TYawManS > TMax.'                               )
 
-IF (     TwFADOF1 .AND. ( .NOT. TwSSDOF1 ) )  THEN ! FA flexibility is enabled, SS is rigid
+IF (     p%DOF_Flag(DOF_TFA1) .AND. ( .NOT. p%DOF_Flag(DOF_TSS1) ) )  THEN ! FA flexibility is enabled, SS is rigid
     CALL ProgAbort ( ' An ADAMS dataset can''t be built with tower FA flexibility and SS rigidity.'// &
                  '  Force TwFADOF1 to equal TwSSDOF1 or vice-versa.'                                )
-ELSEIF ( TwSSDOF1 .AND. ( .NOT. TwFADOF1 ) )  THEN ! SS flexibility is enabled, FA is rigid
+ELSEIF ( p%DOF_Flag(DOF_TSS1) .AND. ( .NOT. p%DOF_Flag(DOF_TFA1) ) )  THEN ! SS flexibility is enabled, FA is rigid
    CALL ProgAbort ( ' An ADAMS dataset can''t be built with tower SS flexibility and FA rigidity.'// &
                 '  Force TwFADOF1 to equal TwSSDOF1 or vice-versa.'                                )
 ENDIF
 
 ! NOTE: Blade flexibility is determined by FlapDOF1
 ! NOTE: FlapDOF2 is ignored by MakeADM()
-IF (     FlapDOF1 .AND. ( .NOT. EdgeDOF  ) )  THEN ! flap flexibility is enabled, edge is rigid
+IF (     InputFileData%FlapDOF1 .AND. ( .NOT. InputFileData%EdgeDOF  ) )  THEN ! flap flexibility is enabled, edge is rigid
    CALL ProgAbort ( ' An ADAMS dataset can''t be built with blade flap flexibility and edge rigidity.'// &
                 '  Force FlapDOF1 to equal EdgeDOF or vice-versa.'                                     )
-ELSEIF ( EdgeDOF  .AND. ( .NOT. FlapDOF1 ) )  THEN ! edge flexibility is enabled, flap is rigid
+ELSEIF ( InputFileData%EdgeDOF  .AND. ( .NOT. InputFileData%FlapDOF1 ) )  THEN ! edge flexibility is enabled, flap is rigid
    CALL ProgAbort ( ' An ADAMS dataset can''t be built with blade edge flexibility and flap rigidity.'// &
                 '  Force FlapDOF1 to equal EdgeDOF or vice-versa.'                                     )
 ENDIF
@@ -3484,7 +3484,7 @@ WRITE (UnAD,FmtText  )  ', ANGLE = 0'
    ! The PARameters passed to routine SFOSUB() depend on which generator model
    !   we are using:
 
-IF ( GenDOF )  THEN  ! Only include the generator models if the generator is variable speed.
+IF ( p%DOF_Flag(DOF_GeAz) )  THEN  ! Only include the generator models if the generator is variable speed.
 
    WRITE (UnAD,FmtText  )  '!---------------------------------- Generator ----------------------------------'
 
@@ -3537,7 +3537,7 @@ ENDIF
 
    ! HSS brake torque:
 
-IF ( ( GenDOF ) .AND. ( TMax > THSSBrDp ) )  THEN  ! .TRUE. if the HSS brake deploys during the simulation and is capable of slowing down the rotor.
+IF ( ( p%DOF_Flag(DOF_GeAz) ) .AND. ( TMax > THSSBrDp ) )  THEN  ! .TRUE. if the HSS brake deploys during the simulation and is capable of slowing down the rotor.
 
    WRITE (UnAD,FmtText  )  '!---------------------------------- HSS Brake ----------------------------------'
 
