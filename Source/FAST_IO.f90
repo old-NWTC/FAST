@@ -121,8 +121,6 @@ SUBROUTINE FAST_Begin( InFile, InFileRoot, InFileRootAbs )
    ! (including full path name), and creates the names of the output files.
 
 
-USE                             General, ONLY: Cmpl4SFun, Cmpl4LV
-
 
 IMPLICIT                        NONE
 
@@ -3077,9 +3075,9 @@ ENDIF
 
    ! Gravity - Gravitational acceleration.
 
-CALL ReadVar ( UnIn, PriFile, Gravity, 'Gravity', 'Gravitational acceleration' )
+CALL ReadVar ( UnIn, PriFile, p%Gravity, 'Gravity', 'Gravitational acceleration' )
 
-IF ( Gravity < 0.0 )  CALL ProgAbort ( ' Gravity must not be negative.' )
+IF ( p%Gravity < 0.0 )  CALL ProgAbort ( ' Gravity must not be negative.' )
 
 
 
@@ -3747,9 +3745,9 @@ IF ( ( YawNeut <= -180.0 ) .OR. ( YawNeut > 180.0 ) )  &
 
    ! Furling - Read in additional model properties for furling turbine.
 
-CALL ReadVar ( UnIn, PriFile, Furling, 'Furling', 'Read in additional model properties for furling turbine' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%Furling, 'Furling', 'Read in additional model properties for furling turbine' )
 
-IF ( Furling .AND. ( p%OverHang > 0.0 ) )  THEN   ! Print out warning when downwind turbine is modeled with furling.
+IF ( InputFileData%Furling .AND. ( p%OverHang > 0.0 ) )  THEN   ! Print out warning when downwind turbine is modeled with furling.
    CALL UsrAlarm
 
    CALL WrScr1(' WARNING: ')
@@ -3762,7 +3760,7 @@ ENDIF
 
 CALL ReadVar ( UnIn, PriFile, FurlFile, 'FurlFile', 'Name of file containing furling properties' )
 
-IF ( LEN_TRIM( FurlFile ) == 0 .AND. Furling )  CALL ProgAbort ( ' FurlFile must not be an empty string.' )
+IF ( LEN_TRIM( FurlFile ) == 0 .AND. InputFileData%Furling )  CALL ProgAbort ( ' FurlFile must not be an empty string.' )
 IF ( PathIsRelative( FurlFile ) ) FurlFile = TRIM(PriPath)//TRIM(FurlFile)
 
 
@@ -4832,7 +4830,7 @@ CASE ( 3 )                 ! Floating offshore.
 
       PtfmLdMod = 9999
 
-      IF ( Gravity <= 0.0 )  &
+      IF ( p%Gravity <= 0.0 )  &
          CALL ProgAbort ( ' Gravity must be greater than zero when PtfmLdMod is set to "'//TRIM(Line)//'".' )
 
       IF ( p%TwrDraft > 0.0 )  &
@@ -5913,7 +5911,7 @@ ENDIF
    ! Read in the furling parameter file if necessary, calculate some parameters
    !   that are not input directly, and convert units where appropriate:
 
-IF ( Furling )  THEN
+IF ( InputFileData%Furling )  THEN
 
    CALL GetFurl( InputFileData, p )
 

@@ -100,7 +100,7 @@ AeroTwst( :) = ATAN2( SAeroTwst(:), CAeroTwst(:) )
 
 
 AD_RefHt = AD_GetConstant('RefHt', ErrStat)
-AirDens  = AD_GetConstant('AirDensity', ErrStat)
+p_StrD%AirDens  = AD_GetConstant('AirDensity', ErrStat)
 
 
   ! Let's compute the turbulence intensity and average wind speed for the
@@ -244,7 +244,7 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
 
    ! Compute the dynamic pressure of the relative wind velocity:
 
-   TFinQ        = 0.5*AirDens*( TFinVrelx*TFinVrelx + TFinVrely*TFinVrely )
+   TFinQ        = 0.5*p%AirDens*( TFinVrelx*TFinVrelx + TFinVrely*TFinVrely )
    TFinQArea    = TFinQ*TFinArea
 
 

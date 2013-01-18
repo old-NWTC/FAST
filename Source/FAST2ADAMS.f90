@@ -642,7 +642,7 @@ IDCntrl = 0.0
 
 x%QT  = OtherState%Q (:,1) ! Transfer the initial conditions of the DOFs to the QT array, which is used throughout SetCoordSy().
 CALL CoordSys_Alloc( CoordSys, p, ErrStat, ErrMsg )
-CALL SetCoordSy( CoordSys, p, x )
+CALL SetCoordSy( CoordSys, OtherState%RtHS, p, x )
 
 
 
@@ -2857,7 +2857,7 @@ CASE ( 3 )                 ! Floating offshore.
                               ', '//TRIM(Flt2LStr( CurrSSDir   ))//', '//TRIM(Flt2LStr( CurrNSRef   ))//              &
                               ', '//TRIM(Flt2LStr( CurrNSV0    ))//', '//TRIM(Flt2LStr( CurrNSDir   ))//              &
                               ', '//TRIM(Flt2LStr( CurrDIV     ))//', '//TRIM(Flt2LStr( CurrDIDir   ))//              &
-                              ', '//TRIM(Flt2LStr( Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//' )'
+                              ', '//TRIM(Flt2LStr( p%Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//' )'
 
 
    ! Create an ARRAY statement to hold the mooring line data:
@@ -3173,7 +3173,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
                                     ', '//TRIM(Flt2LStr( CurrSSDir   ))//', '//TRIM(Flt2LStr( CurrNSRef   ))//             &
                                     ', '//TRIM(Flt2LStr( CurrNSV0    ))//', '//TRIM(Flt2LStr( CurrNSDir   ))//             &
                                     ', '//TRIM(Flt2LStr( CurrDIV     ))//', '//TRIM(Flt2LStr( CurrDIDir   ))//             &
-                                    ', '//TRIM(Flt2LStr( Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//','
+                                    ', '//TRIM(Flt2LStr( p%Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//','
          WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( p%DiamT(J)    ))//', '//TRIM(Flt2LStr( p%CAT(J)    ))//             &
                                     ', '//TRIM(Flt2LStr( p%CDT(J)    ))                                     //' )'
       ENDDO             ! J - Tower nodes/elements
@@ -3201,7 +3201,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
                                     ', '//TRIM(Flt2LStr( CurrSSDir   ))//', '//TRIM(Flt2LStr( CurrNSRef   ))//             &
                                     ', '//TRIM(Flt2LStr( CurrNSV0    ))//', '//TRIM(Flt2LStr( CurrNSDir   ))//             &
                                     ', '//TRIM(Flt2LStr( CurrDIV     ))//', '//TRIM(Flt2LStr( CurrDIDir   ))//             &
-                                    ', '//TRIM(Flt2LStr( Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//' )'
+                                    ', '//TRIM(Flt2LStr( p%Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//' )'
       ENDDO             ! J - Tower nodes/elements
 
 
@@ -3960,7 +3960,7 @@ WRITE (UnAD,FmtText  )  '!========================= GRAVITATIONAL ACCELERATION =
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Gravity'''
 WRITE (UnAD,FmtText  )  'ACCGRAV/'
-WRITE (UnAD,FmtTR    )  ', KGRAV = ', -Gravity
+WRITE (UnAD,FmtTR    )  ', KGRAV = ', -p%Gravity
 
 
 

@@ -6,8 +6,7 @@ SUBROUTINE SetVersion
    !   of the old way of initializing it in a module, we will no longer
    !   have to recompile everything every time we change versions.
 
-
-USE                             General
+USE GlueCodeVars
 USE                             NWTC_Library
 
 USE                             FloatingPlatform, ONLY: OC3HywindMods

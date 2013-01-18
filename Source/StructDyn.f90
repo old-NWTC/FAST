@@ -81,10 +81,6 @@ MODULE StructDyn_Parameters
 !   INTEGER(IntKi), PARAMETER        ::MaxOutPts =  986
 
 
-!BJJ move this later, after you figure out what it does:
-
-INTEGER(4), ALLOCATABLE      :: IC       (:)                                    ! Array which stores pointers to predictor-corrector results. !bjj: from the DOF module
-
 
 END MODULE StructDyn_Parameters
 !**********************************************************************************************************************************
