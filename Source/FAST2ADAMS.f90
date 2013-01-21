@@ -477,7 +477,6 @@ USE                             NacelleYaw
 USE                             Output
 USE                             Platform
 USE                             RotorFurling
-USE                             RtHndSid
 USE                             SimCont
 USE                             TeeterVars
 USE                             TailAero

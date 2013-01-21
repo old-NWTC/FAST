@@ -68,12 +68,11 @@ REAL(ReKi), DIMENSION(NFrequency) :: FrequencyCenter = &    ! Center frequency o
 
 CONTAINS
 !====================================================================================================
-SUBROUTINE PredictNoise( p_StrD, te1, te2, te3 )
+SUBROUTINE PredictNoise( p_StrD, te1, te2, te3, rS )
 
 USE                             AeroElem
 USE                             Blades
 USE                             Output
-USE                             RtHndSid
 USE                             SimCont
 USE                             AeroDyn
 
@@ -86,6 +85,7 @@ TYPE(StrD_ParameterType), INTENT(IN)  :: p_StrD                                 
 REAL(ReKi),               INTENT(IN)  :: te1(:,:,:)                             ! te1(K,J,:) = vector / direction te1 for node J of blade K (used to calc. noise)
 REAL(ReKi),               INTENT(IN)  :: te2(:,:,:)                             ! te2(K,J,:) = vector / direction te2 for node J of blade K (used to calc. noise)
 REAL(ReKi),               INTENT(IN)  :: te3(:,:,:)                             ! te3(K,J,:) = vector / direction te3 for node J of blade K (used to calc. noise)
+REAL(ReKi),               INTENT(IN)  :: rS (:,:,:)                             ! Position vector from inertial frame origin to a point on a blade (point S).
 
    ! local variables
 
@@ -122,7 +122,7 @@ INTEGER                       :: ErrStat
 
 ! Calculate observer distance and directivity angles
 
-CALL CalcObserve( p_StrD, te1, te2, te3 )
+CALL CalcObserve( p_StrD, te1, te2, te3, rS )
 
 DO K = 1, p_StrD%NumBl
 
@@ -1387,11 +1387,10 @@ RETURN
 END SUBROUTINE WriteSPLOut
 
 !====================================================================================================
-SUBROUTINE CalcObserve( p_StrD, te1, te2, te3 )
+SUBROUTINE CalcObserve( p_StrD, te1, te2, te3, rS )
 
 
 USE                             Blades
-USE                             RtHndSid
 USE                             SimCont
 
 
@@ -1403,6 +1402,7 @@ TYPE(StrD_ParameterType),INTENT(IN) :: p_StrD                                   
 REAL(ReKi), INTENT(IN)        :: te1(:,:,:)                                     ! te1(K,J,:) = vector / direction te1 for node J of blade K (used to calc. noise)
 REAL(ReKi), INTENT(IN)        :: te2(:,:,:)                                     ! te2(K,J,:) = vector / direction te2 for node J of blade K (used to calc. noise)
 REAL(ReKi), INTENT(IN)        :: te3(:,:,:)                                     ! te3(K,J,:) = vector / direction te3 for node J of blade K (used to calc. noise)
+REAL(ReKi), INTENT(IN)        :: rS (:,:,:)                                     ! Position vector from inertial frame origin to a point on a blade (point S).
 
 
    ! Local variables.

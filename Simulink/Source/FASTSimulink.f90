@@ -104,7 +104,6 @@ SUBROUTINE FAST_End
 
    USE             FAST_IO_Subs, ONLY: RunTimes, WrBinOutput
    USE             FASTSubs,     ONLY: FAST_Terminate, CoordSys_Dealloc
-   USE             Features,     ONLY: CompNoise
    USE             General
    USE             HydroDyn
    USE             Noise,        ONLY: WriteAveSpecOut, Noise_Terminate
@@ -182,9 +181,7 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
 
    USE                             DriveTrain,  ONLY: GenTrq, ElecPwr
    USE                             DOFs,        ONLY: NDoF
-   USE                             Features,    ONLY: CompNoise
    USE                             Output,      ONLY: TStart, DecFact, OutData, NumOuts
-   USE                             RtHndSid,    ONLY: QT, QDT, QD2T
    USE                             SimCont,     ONLY: DT, ZTime, Step
    USE                             TurbConf,    ONLY: NumBl
    USE                             TurbCont,    ONLY: YawPosCom, YawRateCom, BlPitchCom
@@ -228,8 +225,8 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
   ! call these routines if DT has passed?  Perhaps, we should upgrade to
   ! a "Level-2" S-Function so that we can use discrete time?
 
-   CALL RtHS( CoordSys )
-   CALL CalcOuts( p,x,y,OtherState )
+   CALL RtHS( p, x, OtherState, u )
+   CALL CalcOuts( p,x,y,OtherState, u )
 
 
       !----------------------------------------------------------------------------------------------
@@ -245,7 +242,7 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
          ! Check to see if we should output data this time step:
 
       IF ( ZTime >= TStart )  THEN
-         IF ( CompNoise                 )  CALL PredictNoise( CoordSys%te1, CoordSys%te2, CoordSys%te3 )
+         IF ( CompNoise                 )  CALL PredictNoise( CoordSys%te1, CoordSys%te2, CoordSys%te3, OtherState%RtHS%rS )
          IF ( MOD( Step, DecFact ) == 0 )  CALL WrOutput
       ENDIF
 

@@ -147,7 +147,6 @@ USE StructDyn_Parameters
 USE GlueCodeVars
    
 USE                             General
-USE                             RtHndSid
 USE                             SimCont
 USE                             TailAero
 USE                             EnvCond
