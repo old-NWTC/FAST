@@ -2369,8 +2369,8 @@ ELSE                             ! Yaw DOF is currently disabled (no built-in ac
 
    OtherState%Q  (DOF_Yaw,OtherState%IC(NMX)) = YawPosCom    ! Update the saved values
    OtherState%QD (DOF_Yaw,OtherState%IC(NMX)) = YawRateCom   !   used in routine Solver()
-   x%QT          (DOF_Yaw)         = YawPosCom    ! Update the current, intermediate
-   x%QDT         (DOF_Yaw)         = YawRateCom   !    values used in routine RtHS()
+   x%QT          (DOF_Yaw)                    = YawPosCom    ! Update the current, intermediate
+   x%QDT         (DOF_Yaw)                    = YawRateCom   !    values used in routine RtHS()
 
 ENDIF
 
@@ -3039,7 +3039,7 @@ CALL GaussElim( AugMat( OtherState%DOFs%SrtPS    (1: OtherState%DOFs%NActvDOF  )
                         OtherState%DOFs%SrtPSNAUG(1:(OtherState%DOFs%NActvDOF+1)) ),         &
                                                      OtherState%DOFs%NActvDOF,       SolnVec, ErrStat, ErrMsg )
 
-IF ( ErrStat /= 0 ) CALL WrScr( ' Message from FixHSSBrTq: '//TRIM(ErrMsg) )
+!IF ( ErrStat /= ErrID_None ) CALL WrScr( ' Message from FixHSSBrTq: '//TRIM(ErrMsg) )
 
 OtherState%QD2T = 0.0
 DO I = 1,OtherState%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
@@ -3754,7 +3754,7 @@ CALL StrD_InitDOFs( OtherState%DOFs, p, Sttus, ErrMsg )
 IF ( Sttus > AbortErrLev ) CALL ProgAbort( ErrMsg )
 
 
-   ! Initialize the IC array:
+   ! Initialize the IC array: = CSHIFT( (/NMX, NMX-1, ... , 1 /), -1 )
 
 OtherState%IC(1) = 1
 DO I = 2,NMX
@@ -6388,8 +6388,8 @@ IF ( p%DOF_Flag (DOF_Yaw ) )  THEN
       AugMat(OtherState%DOFs%SrtPS(I),DOF_Yaw ) = -DOT_PRODUCT( PAngVelEN(DOF_Yaw ,0,:), OtherState%RtHS%PMomBNcRt(OtherState%DOFs%SrtPS(I),:) )    ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
       AugMat(DOF_Yaw ,    p%NAug) =  DOT_PRODUCT( PAngVelEN(DOF_Yaw ,0,:), OtherState%RtHS%MomBNcRtt             ) &  ! {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
-                                -  YawSpr *( x%QT (DOF_Yaw) - YawNeut     )                    &  ! + {-f(qd,q,t)}SpringYaw
-                                -  YawDamp*( x%QDT(DOF_Yaw) - YawRateNeut )                       ! + {-f(qd,q,t)}DampYaw; NOTE: The neutral yaw rate, YawRateNeut, defaults to zero.  It is only used for yaw control.
+                                -  p%YawSpr *( x%QT (DOF_Yaw) - YawNeut     )                    &  ! + {-f(qd,q,t)}SpringYaw
+                                -  p%YawDamp*( x%QDT(DOF_Yaw) - YawRateNeut )                       ! + {-f(qd,q,t)}DampYaw; NOTE: The neutral yaw rate, YawRateNeut, defaults to zero.  It is only used for yaw control.
 ENDIF
 
 IF ( p%DOF_Flag (DOF_RFrl) )  THEN
@@ -6508,7 +6508,7 @@ END IF
 CALL GaussElim( AugMat( OtherState%DOFs%SrtPS    (1: OtherState%DOFs%NActvDOF   ),     &
                         OtherState%DOFs%SrtPSNAUG(1:(OtherState%DOFs%NActvDOF+1)) ),   &
                                                      OtherState%DOFs%NActvDOF, SolnVec, ErrStat, ErrMsg )
-IF ( ErrStat /= 0 ) CALL WrScr( ' Message from RtHS: '//TRIM(ErrMsg) )
+!IF ( ErrStat /= ErrID_None ) CALL WrScr( ' Message from RtHS: '//TRIM(ErrMsg) )
 
 
 
@@ -7591,14 +7591,10 @@ CALL RtHS( p, x, OtherState, u, AugMat )
 OtherState%QD2(:,OtherState%IC(NMX)) = OtherState%QD2T
 
 
-   ! Update IC() index so IC(1) is the location of current Q values. (bjj: why don't we do subtract 1 and do a mod?)
+   ! Update IC() index so IC(1) is the location of current Q values.
 
-OtherState%IC(1) = OtherState%IC(1) + 1
-IF ( OtherState%IC(1) > NMX )  OtherState%IC(1) = OtherState%IC(1) - NMX
-DO I = 2,NMX
-   OtherState%IC(I) = OtherState%IC(1) - I + 1
-   IF ( OtherState%IC(I) <= 0 )  OtherState%IC(I) = OtherState%IC(I) + NMX
-ENDDO
+OtherState%IC = CSHIFT( OtherState%IC, -1 ) ! circular shift of all values to the right 
+
 
 
    ! Make sure the HSS brake will not reverse the direction of the HSS

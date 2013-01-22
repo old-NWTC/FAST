@@ -3254,8 +3254,8 @@ WRITE (UnAD,FmtText  )  'SFORCE/2010'
 WRITE (UnAD,FmtText  )  ', ROTATION'
 WRITE (UnAD,FmtText  )  ', I = 2010'
 WRITE (UnAD,FmtText  )  ', J = 1010'
-WRITE (UnAD,FmtText  )  ', FUNCTION = -'//TRIM(Flt2LStr( YawSpr *0.001 ))//'*VARVAL(2013) - '// &
-                                          TRIM(Flt2LStr( YawDamp*0.001 ))//'*VARVAL(2014)'
+WRITE (UnAD,FmtText  )  ', FUNCTION = -'//TRIM(Flt2LStr( p%YawSpr *0.001 ))//'*VARVAL(2013) - '// &
+                                          TRIM(Flt2LStr( p%YawDamp*0.001 ))//'*VARVAL(2014)'
 
 
 

@@ -3715,16 +3715,16 @@ IF ( PathIsRelative( TwrFile ) ) TwrFile = TRIM(PriPath)//TRIM(TwrFile)
 
    ! YawSpr - Yaw spring constant.
 
-CALL ReadVar ( UnIn, PriFile, YawSpr, 'YawSpr', 'Nacelle-yaw spring constant' )
+CALL ReadVar ( UnIn, PriFile, p%YawSpr, 'YawSpr', 'Nacelle-yaw spring constant' )
 
-IF ( YawSpr < 0.0 )  CALL ProgAbort ( ' YawSpr must not be negative.' )
+IF ( p%YawSpr < 0.0 )  CALL ProgAbort ( ' YawSpr must not be negative.' )
 
 
    ! YawDamp - Yaw damping constant.
 
-CALL ReadVar ( UnIn, PriFile, YawDamp, 'YawDamp', 'Nacelle-yaw damping constant' )
+CALL ReadVar ( UnIn, PriFile, p%YawDamp, 'YawDamp', 'Nacelle-yaw damping constant' )
 
-IF ( YawDamp < 0.0 )  CALL ProgAbort ( ' YawDamp must not be negative.' )
+IF ( p%YawDamp < 0.0 )  CALL ProgAbort ( ' YawDamp must not be negative.' )
 
 
    ! YawNeut - Neutral yaw position.
