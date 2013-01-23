@@ -103,8 +103,8 @@ IF (.NOT. ALLOCATED( p%TwrSSSF ) ) THEN
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( AxRedBld ) ) THEN
-   ALLOCATE ( AxRedBld(p%NumBl,3,3,p%TipNode) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%AxRedBld ) ) THEN
+   ALLOCATE ( p%AxRedBld(p%NumBl,3,3,p%TipNode) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the AxRedBld array.')
    ENDIF
@@ -138,15 +138,15 @@ IF (.NOT. ALLOCATED( KBE ) ) THEN
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( CBF ) ) THEN
-   ALLOCATE ( CBF(p%NumBl,2,2) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%CBF ) ) THEN
+   ALLOCATE ( p%CBF(p%NumBl,2,2) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the CBF array.')
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( CBE ) ) THEN
-   ALLOCATE ( CBE(p%NumBl,1,1) , STAT=Sttus )
+IF (.NOT. ALLOCATED( p%CBE ) ) THEN
+   ALLOCATE ( p%CBE(p%NumBl,1,1) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort(' Error allocating memory for the CBE array.')
    ENDIF
@@ -885,7 +885,7 @@ END IF
    ! Blade (1-3) Tip Motions:
 
 DO K = 1,p%NumBl
-   rSTipPSTip = OtherState%RtHS%rS0S(K,p%TipNode,:) - BldFlexL*OtherState%CoordSys%j3(K,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
+   rSTipPSTip = OtherState%RtHS%rS0S(K,p%TipNode,:) - p%BldFlexL*OtherState%CoordSys%j3(K,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
    rOSTip     = OtherState%RtHS%rS  (K,p%TipNode,:) - OtherState%RtHS%rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 1.
    rOSTipxn   =      DOT_PRODUCT( rOSTip, OtherState%CoordSys%d1 )                ! Component of rOSTip directed along the xn-axis.
    rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, OtherState%CoordSys%d3 )                ! Component of rOSTip directed along the yn-axis.
@@ -1152,27 +1152,27 @@ DO K = 1,p%NumBl
          DO J = ( BldGagNd(I) + 1 ),p%BldNodes ! Loop through blade nodes / elements above strain gage node
 
             TmpVec2  = OtherState%RtHS%FSAero(K,J,:) - MassB(K,J)*( p%Gravity*OtherState%CoordSys%z2 + LinAccES(K,J,:) )  ! Portion of FrcMGagB associated with element J
-            FrcMGagB = FrcMGagB + TmpVec2*DRNodes(J)
+            FrcMGagB = FrcMGagB + TmpVec2*p%DRNodes(J)
 
             TmpVec = CROSS_PRODUCT( OtherState%RtHS%rS0S(K,J,:) - OtherState%RtHS%rS0S(K,BldGagNd(I),:), TmpVec2 )           ! Portion of MomMGagB associated with element J
-            MomMGagB = MomMGagB + ( TmpVec + OtherState%RtHS%MMAero(K,J,:) )*DRNodes(J)
+            MomMGagB = MomMGagB + ( TmpVec + OtherState%RtHS%MMAero(K,J,:) )*p%DRNodes(J)
 
          ENDDO ! J - Blade nodes / elements above strain gage node
 
       ! Add the effects of 1/2 the strain gage element:
       ! NOTE: for the radius in this calculation, assume that there is no
       !   shortening effect (due to blade bending) within the element.  Thus,
-      !   the moment arm for the force is 1/4 of DRNodes() and the element
-      !   length is 1/2 of DRNodes().
+      !   the moment arm for the force is 1/4 of p%DRNodes() and the element
+      !   length is 1/2 of p%DRNodes().
 
          TmpVec2  = OtherState%RtHS%FSAero(K,BldGagNd(I),:) - MassB(K,BldGagNd(I))* ( p%Gravity*OtherState%CoordSys%z2 + LinAccES(K,BldGagNd(I),:) ) ! Portion of FrcMGagB associated with 1/2 of the strain gage element
-         FrcMGagB = FrcMGagB + TmpVec2 * 0.5 * DRNodes(BldGagNd(I))                                                    ! Portion of FrcMGagB associated with 1/2 of the strain gage element
+         FrcMGagB = FrcMGagB + TmpVec2 * 0.5 * p%DRNodes(BldGagNd(I))                                                    ! Portion of FrcMGagB associated with 1/2 of the strain gage element
          FrcMGagB = 0.001*FrcMGagB           ! Convert the local force to kN
 
 
-         TmpVec = CROSS_PRODUCT( ( 0.25*DRNodes(BldGagNd(I)) )*OtherState%CoordSys%j3(K,:), TmpVec2 )                              ! Portion of MomMGagB associated with 1/2 of the strain gage element
+         TmpVec = CROSS_PRODUCT( ( 0.25*p%DRNodes(BldGagNd(I)) )*OtherState%CoordSys%j3(K,:), TmpVec2 )                              ! Portion of MomMGagB associated with 1/2 of the strain gage element
 
-         MomMGagB = MomMGagB + ( TmpVec + OtherState%RtHS%MMAero(K,BldGagNd(I),:) )* ( 0.5 *DRNodes(BldGagNd(I)) )
+         MomMGagB = MomMGagB + ( TmpVec + OtherState%RtHS%MMAero(K,BldGagNd(I),:) )* ( 0.5 *p%DRNodes(BldGagNd(I)) )
          MomMGagB = 0.001*MomMGagB           ! Convert the local moment to kN-m
 
 
@@ -1525,7 +1525,7 @@ TYPE(StrD_InputFile),            INTENT(IN)       :: InputFileData              
 
    ! Local variables.
 
-REAL(ReKi)                   :: AxRdBld   (3,3)                                 ! Temporary result holding the current addition to the AxRedBld() array.
+REAL(ReKi)                   :: AxRdBld   (3,3)                                 ! Temporary result holding the current addition to the p%AxRedBld() array.
 REAL(ReKi)                   :: AxRdBldOld(3,3)                                 ! Previous AxRdBld (i.e., AxRdBld from the previous node)
 REAL(ReKi)                   :: AxRdTFA   (2,2)                                 ! Temporary result holding the current addition to the AxRedTFA() array.
 REAL(ReKi)                   :: AxRdTFAOld(2,2)                                 ! Previous AxRdTFA (i.e., AxRdTFA from the previous node)
@@ -1605,11 +1605,11 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    DO J = 1,p%BldNodes    ! Loop through the blade nodes / elements
 
-      TmpDist         = ( AeroCent(K,J) - 0.25 )*Chord(J)   ! Distance along the chordline from point S (25% chord) to the aerodynamic center of the blade element J--positive towards the trailing edge.
-      TmpDistj1       = TmpDist*SAeroTwst(J)                ! Distance along the j1-axis   from point S (25% chord) to the aerodynamic center of the blade element J
-      TmpDistj2       = TmpDist*CAeroTwst(J)                ! Distance along the j2-axis   from point S (25% chord) to the aerodynamic center of the blade element J
-      rSAerCenn1(K,J) = TmpDistj1*CThetaS(K,J) - TmpDistj2*SThetaS(K,J)
-      rSAerCenn2(K,J) = TmpDistj1*SThetaS(K,J) + TmpDistj2*CThetaS(K,J)
+      TmpDist         = ( p%AeroCent(K,J) - 0.25 )*p%Chord(J)   ! Distance along the chordline from point S (25% chord) to the aerodynamic center of the blade element J--positive towards the trailing edge.
+      TmpDistj1       = TmpDist*p%SAeroTwst(J)                ! Distance along the j1-axis   from point S (25% chord) to the aerodynamic center of the blade element J
+      TmpDistj2       = TmpDist*p%CAeroTwst(J)                ! Distance along the j2-axis   from point S (25% chord) to the aerodynamic center of the blade element J
+      rSAerCenn1(K,J) = TmpDistj1*p%CThetaS(K,J) - TmpDistj2*p%SThetaS(K,J)
+      rSAerCenn2(K,J) = TmpDistj1*p%SThetaS(K,J) + TmpDistj2*p%CThetaS(K,J)
 
    ENDDO ! J - Blade nodes / elements
 
@@ -1698,8 +1698,8 @@ DO K = 1,p%NumBl          ! Loop through the blades
    ! Initialize BldMass(), FirstMom(), and SecondMom() using TipMass() effects:
 
    p%BldMass  (K) = p%TipMass(K)
-   p%FirstMom (K) = p%TipMass(K)*BldFlexL
-   p%SecondMom(K) = p%TipMass(K)*BldFlexL*BldFlexL
+   p%FirstMom (K) = p%TipMass(K)*p%BldFlexL
+   p%SecondMom(K) = p%TipMass(K)*p%BldFlexL*p%BldFlexL
 
 
    DO J = p%BldNodes,1,-1 ! Loop through the blade nodes / elements in reverse
@@ -1707,7 +1707,7 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    ! Calculate the mass of the current element
 
-      ElmntMass    = MassB(K,J)*DRNodes(J)                        ! Mass of blade element J
+      ElmntMass    = MassB(K,J)*p%DRNodes(J)                        ! Mass of blade element J
 
 
    ! Integrate to find some blade properties which will be output in .fsm
@@ -1719,7 +1719,7 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    ! Integrate to find FMomAbvNd:
 
-      FMomAbvNd   (K,J) = ( 0.5*ElmntMass )*( p%HubRad + RNodes(J  ) + 0.5*DRNodes(J  ) )
+      FMomAbvNd   (K,J) = ( 0.5*ElmntMass )*( p%HubRad + RNodes(J  ) + 0.5*p%DRNodes(J  ) )
 
       IF ( J == p%BldNodes )  THEN ! Outermost blade element
    ! Add the TipMass() effects:
@@ -1729,7 +1729,7 @@ DO K = 1,p%NumBl          ! Loop through the blades
    ! Add to FMomAbvNd(K,J) the effects from the (not yet used) portion of element J+1
 
          FMomAbvNd(K,J) = FMomAbvNd(K,J) + FMomAbvNd(K,J+1) &
-                        + ( 0.5*ElMassOld )*( p%HubRad + RNodes(J+1) - 0.5*DRNodes(J+1) )
+                        + ( 0.5*ElMassOld )*( p%HubRad + RNodes(J+1) - 0.5*p%DRNodes(J+1) )
       ENDIF
 
 
@@ -1768,30 +1768,30 @@ DO K = 1,p%NumBl          ! Loop through the blades
    !   Ignore the cross-correlation terms of MBF (i.e. MBF(i,j) where i /= j) since
    !   these terms will never be used.
 
-      ElmntMass     = MassB(K,J)*DRNodes(J)                          ! Mass of blade element J
+      ElmntMass     = MassB(K,J)*p%DRNodes(J)                          ! Mass of blade element J
 
-      Shape1 = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 0, ErrStat, ErrMsg )
-      Shape2 = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 0, ErrStat, ErrMsg )
+      Shape1 = SHP( RNodesNorm(J), p%BldFlexL, p%BldFl1Sh(:,K), 0, ErrStat, ErrMsg )
+      Shape2 = SHP( RNodesNorm(J), p%BldFlexL, p%BldFl2Sh(:,K), 0, ErrStat, ErrMsg )
       MBF    (K,1,1) = MBF    (K,1,1) + ElmntMass*Shape1*Shape1
       MBF    (K,2,2) = MBF    (K,2,2) + ElmntMass*Shape2*Shape2
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 0, ErrStat, ErrMsg )
+      Shape  = SHP( RNodesNorm(J), p%BldFlexL, p%BldEdgSh(:,K), 0, ErrStat, ErrMsg )
       MBE    (K,1,1) = MBE    (K,1,1) + ElmntMass*Shape *Shape
 
 
    ! Integrate to find the generalized stiffness of the blade (not including centrifugal
    !    effects).
 
-      ElmntStff      = StiffBF(K,J)*DRNodes(J)                       ! Flapwise stiffness of blade element J
-      Shape1 = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
-      Shape2 = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
+      ElmntStff      = StiffBF(K,J)*p%DRNodes(J)                       ! Flapwise stiffness of blade element J
+      Shape1 = SHP( RNodesNorm(J), p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
+      Shape2 = SHP( RNodesNorm(J), p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
       KBF    (K,1,1) = KBF    (K,1,1) + ElmntStff*Shape1*Shape1
       KBF    (K,1,2) = KBF    (K,1,2) + ElmntStff*Shape1*Shape2
       KBF    (K,2,1) = KBF    (K,2,1) + ElmntStff*Shape2*Shape1
       KBF    (K,2,2) = KBF    (K,2,2) + ElmntStff*Shape2*Shape2
 
-      ElmntStff      = StiffBE(K,J)*DRNodes(J)                       ! Edgewise stiffness of blade element J
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 2, ErrStat, ErrMsg )
+      ElmntStff      = StiffBE(K,J)*p%DRNodes(J)                       ! Edgewise stiffness of blade element J
+      Shape  = SHP( RNodesNorm(J), p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
       KBE    (K,1,1) = KBE    (K,1,1) + ElmntStff*Shape *Shape
 
 
@@ -1799,37 +1799,37 @@ DO K = 1,p%NumBl          ! Loop through the blades
    !   stiffness of the blades.  Ignore the cross-correlation terms of KBFCent (i.e.
    !   KBFCent(i,j) where i /= j) since these terms will never be used.
 
-      ElmntStff      = FMomAbvNd(K,J)*DRNodes(J)*RotSpeed*RotSpeed   ! Centrifugal stiffness of blade element J
+      ElmntStff      = FMomAbvNd(K,J)*p%DRNodes(J)*RotSpeed*RotSpeed   ! Centrifugal stiffness of blade element J
 
-      Shape1 = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 1, ErrStat, ErrMsg )
-      Shape2 = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 1, ErrStat, ErrMsg )
+      Shape1 = SHP( RNodesNorm(J), p%BldFlexL, p%BldFl1Sh(:,K), 1, ErrStat, ErrMsg )
+      Shape2 = SHP( RNodesNorm(J), p%BldFlexL, p%BldFl2Sh(:,K), 1, ErrStat, ErrMsg )
       KBFCent(K,1,1) = KBFCent(K,1,1) + ElmntStff*Shape1*Shape1
       KBFCent(K,2,2) = KBFCent(K,2,2) + ElmntStff*Shape2*Shape2
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 1, ErrStat, ErrMsg )
+      Shape  = SHP( RNodesNorm(J), p%BldFlexL, p%BldEdgSh(:,K), 1, ErrStat, ErrMsg )
       KBECent(K,1,1) = KBECent(K,1,1) + ElmntStff*Shape *Shape
 
 
    ! Calculate the 2nd derivatives of the twisted shape functions:
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
-      TwistedSF(K,1,1,J,2) =  Shape*CThetaS(K,J)                  ! 2nd deriv. of Phi1(J) for blade K
-      TwistedSF(K,2,1,J,2) = -Shape*SThetaS(K,J)                  ! 2nd deriv. of Psi1(J) for blade K
+      Shape  = SHP( RNodesNorm(J), p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
+      TwistedSF(K,1,1,J,2) =  Shape*p%CThetaS(K,J)                  ! 2nd deriv. of Phi1(J) for blade K
+      TwistedSF(K,2,1,J,2) = -Shape*p%SThetaS(K,J)                  ! 2nd deriv. of Psi1(J) for blade K
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
-      TwistedSF(K,1,2,J,2) =  Shape*CThetaS(K,J)                  ! 2nd deriv. of Phi2(J) for blade K
-      TwistedSF(K,2,2,J,2) = -Shape*SThetaS(K,J)                  ! 2nd deriv. of Psi2(J) for blade K
+      Shape  = SHP( RNodesNorm(J), p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
+      TwistedSF(K,1,2,J,2) =  Shape*p%CThetaS(K,J)                  ! 2nd deriv. of Phi2(J) for blade K
+      TwistedSF(K,2,2,J,2) = -Shape*p%SThetaS(K,J)                  ! 2nd deriv. of Psi2(J) for blade K
 
-      Shape  = SHP( RNodesNorm(J), BldFlexL, BldEdgSh(:,K), 2, ErrStat, ErrMsg )
-      TwistedSF(K,1,3,J,2) =  Shape*SThetaS(K,J)                  ! 2nd deriv. of Phi3(J) for blade K
-      TwistedSF(K,2,3,J,2) =  Shape*CThetaS(K,J)                  ! 2nd deriv. of Psi3(J) for blade K
+      Shape  = SHP( RNodesNorm(J), p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
+      TwistedSF(K,1,3,J,2) =  Shape*p%SThetaS(K,J)                  ! 2nd deriv. of Phi3(J) for blade K
+      TwistedSF(K,2,3,J,2) =  Shape*p%CThetaS(K,J)                  ! 2nd deriv. of Psi3(J) for blade K
 
 
    ! Integrate to find the 1st derivatives of the twisted shape functions:
 
       DO I = 1,2     ! Loop through Phi and Psi
          DO L = 1,3  ! Loop through all blade DOFs
-            TwstdSF     (  I,L,  1) = TwistedSF(K,I,L,J,2)*0.5*DRNodes(J)
+            TwstdSF     (  I,L,  1) = TwistedSF(K,I,L,J,2)*0.5*p%DRNodes(J)
             TwistedSF   (K,I,L,J,1) = TwstdSF   ( I,L,  1)
          ENDDO       ! L - All blade DOFs
       ENDDO          ! I - Phi and Psi
@@ -1851,7 +1851,7 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
       DO I = 1,2     ! Loop through Phi and Psi
          DO L = 1,3  ! Loop through all blade DOFs
-            TwstdSF     (  I,L,  0) = TwistedSF(K,I,L,J,1)*0.5*DRNodes(J)
+            TwstdSF     (  I,L,  0) = TwistedSF(K,I,L,J,1)*0.5*p%DRNodes(J)
             TwistedSF   (K,I,L,J,0) = TwstdSF   ( I,L,  0)
          ENDDO       ! L - All blade DOFs
       ENDDO          ! I - Phi and Psi
@@ -1872,10 +1872,10 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
       DO I = 1,3     ! Loop through all blade DOFs
          DO L = 1,3  ! Loop through all blade DOFs
-            AxRdBld    (  I,L  ) = 0.5*DRNodes(J)*(                          &
+            AxRdBld    (  I,L  ) = 0.5*p%DRNodes(J)*(                          &
                                    TwistedSF(K,1,I,J,1)*TwistedSF(K,1,L,J,1) &
                                  + TwistedSF(K,2,I,J,1)*TwistedSF(K,2,L,J,1) )
-            AxRedBld   (K,I,L,J) = AxRdBld(I,L)
+            p%AxRedBld   (K,I,L,J) = AxRdBld(I,L)
          ENDDO       ! L - All blade DOFs
       ENDDO          ! I - All blade DOFs
 
@@ -1884,7 +1884,7 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
          DO I = 1,3     ! Loop through all blade DOFs
             DO L = 1,3  ! Loop through all blade DOFs
-               AxRedBld(K,I,L,J) = AxRedBld(K,I,L,J) + AxRedBld(K,I,L,J-1)   &
+               p%AxRedBld(K,I,L,J) = p%AxRedBld(K,I,L,J) + p%AxRedBld(K,I,L,J-1)   &
                                  + AxRdBldOld(I,L)
             ENDDO       ! L - All blade DOFs
          ENDDO          ! I - All blade DOFs
@@ -1927,26 +1927,26 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    DO I = 1,2     ! Loop through flap DOFs
       DO L = 1,2  ! Loop through flap DOFs
-         CBF(K,I,L) = ( 0.01*BldFDamp(K,L) )*KBF(K,I,L)/( Pi*FreqBF(K,L,1) )
+         p%CBF(K,I,L) = ( 0.01*p%BldFDamp(K,L) )*KBF(K,I,L)/( Pi*FreqBF(K,L,1) )
       ENDDO       ! L - Flap DOFs
    ENDDO          ! I - Flap DOFs
 
-   CBE      (K,1,1) = ( 0.01*BldEDamp(K,1) )*KBE(K,1,1)/( Pi*FreqBE(K,1,1) )
+   p%CBE      (K,1,1) = ( 0.01*p%BldEDamp(K,1) )*KBE(K,1,1)/( Pi*FreqBE(K,1,1) )
 
 
    ! Calculate the 2nd derivatives of the twisted shape functions at the tip:
 
-   Shape  = SHP( 1.0, BldFlexL, BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
-   TwistedSF(K,1,1,p%TipNode,2) =  Shape*CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi1(p%TipNode) for blade K
-   TwistedSF(K,2,1,p%TipNode,2) = -Shape*SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi1(p%TipNode) for blade K
+   Shape  = SHP( 1.0, p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
+   TwistedSF(K,1,1,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi1(p%TipNode) for blade K
+   TwistedSF(K,2,1,p%TipNode,2) = -Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi1(p%TipNode) for blade K
 
-   Shape  = SHP( 1.0, BldFlexL, BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
-   TwistedSF(K,1,2,p%TipNode,2) =  Shape*CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi2(p%TipNode) for blade K
-   TwistedSF(K,2,2,p%TipNode,2) = -Shape*SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi2(p%TipNode) for blade K
+   Shape  = SHP( 1.0, p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
+   TwistedSF(K,1,2,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi2(p%TipNode) for blade K
+   TwistedSF(K,2,2,p%TipNode,2) = -Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi2(p%TipNode) for blade K
 
-   Shape  = SHP( 1.0, BldFlexL, BldEdgSh(:,K), 2, ErrStat, ErrMsg )
-   TwistedSF(K,1,3,p%TipNode,2) =  Shape*SThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi3(p%TipNode) for blade K
-   TwistedSF(K,2,3,p%TipNode,2) =  Shape*CThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi3(p%TipNode) for blade K
+   Shape  = SHP( 1.0, p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
+   TwistedSF(K,1,3,p%TipNode,2) =  Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi3(p%TipNode) for blade K
+   TwistedSF(K,2,3,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi3(p%TipNode) for blade K
 
 
    ! Integrate to find the 1st and zeroeth derivatives of the twisted shape functions
@@ -1964,7 +1964,7 @@ DO K = 1,p%NumBl          ! Loop through the blades
 
    DO I = 1,3     ! Loop through all blade DOFs
       DO L = 1,3  ! Loop through all blade DOFs
-         AxRedBld(K,I,L,p%TipNode) = AxRedBld(K,I,L,p%BldNodes) + AxRdBldOld(I,L)
+         p%AxRedBld(K,I,L,p%TipNode) = p%AxRedBld(K,I,L,p%BldNodes) + AxRdBldOld(I,L)
       ENDDO       ! L - All blade DOFs
    ENDDO          ! I - All blade DOFs
 
@@ -2476,88 +2476,7 @@ BlPitch = BlPitchCom
 
 RETURN
 END SUBROUTINE Control
-!=======================================================================
-SUBROUTINE CoordSys_Alloc( CoordSys, p, ErrStat, ErrMsg )
 
-   ! This subroutine allocates the coordinate systems in the StrD_CoordSys type.
-
-IMPLICIT NONE
-
-   ! passed arguments
-
-TYPE(StrD_CoordSys),      INTENT(OUT) :: CoordSys       ! The coordinate systems, with arrays to be allocated
-TYPE(StrD_ParameterType), INTENT(IN)  :: p              ! Parameters of the structural dynamics module
-
-INTEGER(IntKi),           INTENT(OUT) :: ErrStat        ! Error status
-CHARACTER(*),             INTENT(OUT) :: ErrMsg         ! Err msg
-
-
-   ! local variables
-
-CHARACTER(200), PARAMETER        :: ErrTxt = 'coordinate system arrays in SUBROUTINE CoordSys_Alloc.'
-
-
-   ! Initialize ErrStat and ErrMsg
-
-ErrStat = ErrID_None
-ErrMsg  = ""
-
-
-  ! Allocate coordinate system arrays:
-
-ALLOCATE ( CoordSys%i1(p%NumBl,3), CoordSys%i2(p%NumBl,3), CoordSys%i3(p%NumBl,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-IF ( ErrStat /= 0 )  THEN
-   ErrStat = ErrID_Fatal
-   ErrMsg  = 'Error allocating the i1, i2, and i3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   RETURN
-END IF
-
-
-ALLOCATE ( CoordSys%j1(p%NumBl,3), CoordSys%j2(p%NumBl,3), CoordSys%j3(p%NumBl,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-IF ( ErrStat /= 0 )  THEN
-   ErrStat = ErrID_Fatal
-   ErrMsg  = 'Error allocating the j1, j2, and j3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   RETURN
-END IF
-
-
-ALLOCATE ( CoordSys%m1(p%NumBl,p%BldNodes,3), CoordSys%m2(p%NumBl,p%BldNodes,3), &
-           CoordSys%m3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-IF ( ErrStat /= 0 )  THEN
-   ErrStat = ErrID_Fatal
-   ErrMsg  = 'Error allocating the m1, m2, and m3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   RETURN
-END IF
-
-
-ALLOCATE ( CoordSys%n1(p%NumBl,p%BldNodes,3), CoordSys%n2(p%NumBl,p%BldNodes,3), &
-           CoordSys%n3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-IF ( ErrStat /= 0 )  THEN
-   ErrStat = ErrID_Fatal
-   ErrMsg  = 'Error allocating the n1, n2, and n3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   RETURN
-END IF
-
-
-ALLOCATE ( CoordSys%t1(p%TwrNodes,3), CoordSys%t2(p%TwrNodes,3), CoordSys%t3(p%TwrNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-IF ( ErrStat /= 0 )  THEN
-   ErrStat = ErrID_Fatal
-   ErrMsg  = 'Error allocating the t1, t2, and t3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   RETURN
-END IF
-
-
-ALLOCATE ( CoordSys%te1(p%NumBl,p%BldNodes,3), CoordSys%te2(p%NumBl,p%BldNodes,3), &
-           CoordSys%te3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-IF ( ErrStat /= 0 )  THEN
-   ErrStat = ErrID_Fatal
-   ErrMsg  = 'Error allocating the te1, te2, and te3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   RETURN
-END IF
-
-
-RETURN
-END SUBROUTINE CoordSys_Alloc
 !=======================================================================
 SUBROUTINE CoordSys_Dealloc( CoordSys, ErrStat, ErrMsg )
 
@@ -3195,44 +3114,14 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
       ! MODULE Blades
 
-   IF ( ALLOCATED(AerCen                             ) ) DEALLOCATE(AerCen                             )
-   IF ( ALLOCATED(AeroCent                           ) ) DEALLOCATE(AeroCent                           )
-   IF ( ALLOCATED(AeroTwst                           ) ) DEALLOCATE(AeroTwst                           )
-   IF ( ALLOCATED(Alpha                              ) ) DEALLOCATE(Alpha                              )
-   IF ( ALLOCATED(AxRedBld                           ) ) DEALLOCATE(AxRedBld                           )
-   IF ( ALLOCATED(BAlpha                             ) ) DEALLOCATE(BAlpha                             )
-   IF ( ALLOCATED(BldEDamp                           ) ) DEALLOCATE(BldEDamp                           )
-   IF ( ALLOCATED(BldFDamp                           ) ) DEALLOCATE(BldFDamp                           )
-   IF ( ALLOCATED(BlFract                            ) ) DEALLOCATE(BlFract                            )
-   IF ( ALLOCATED(BMassDen                           ) ) DEALLOCATE(BMassDen                           )
-   IF ( ALLOCATED(CAeroTwst                          ) ) DEALLOCATE(CAeroTwst                          )
-   IF ( ALLOCATED(CBE                                ) ) DEALLOCATE(CBE                                )
-   IF ( ALLOCATED(CBF                                ) ) DEALLOCATE(CBF                                )
-   IF ( ALLOCATED(cgOffBEdg                          ) ) DEALLOCATE(cgOffBEdg                          )
-   IF ( ALLOCATED(cgOffBFlp                          ) ) DEALLOCATE(cgOffBFlp                          )
-   IF ( ALLOCATED(Chord                              ) ) DEALLOCATE(Chord                              )
-   IF ( ALLOCATED(CThetaS                            ) ) DEALLOCATE(CThetaS                            )
-   IF ( ALLOCATED(DRNodes                            ) ) DEALLOCATE( DRNodes                           )
    IF ( ALLOCATED(EAOffBEdg                          ) ) DEALLOCATE(EAOffBEdg                          )
    IF ( ALLOCATED(EAOffBFlp                          ) ) DEALLOCATE(EAOffBFlp                          )
-   IF ( ALLOCATED(EAStff                             ) ) DEALLOCATE(EAStff                             )
-   IF ( ALLOCATED(EdgcgOf                            ) ) DEALLOCATE(EdgcgOf                            )
-   IF ( ALLOCATED(EdgEAOf                            ) ) DEALLOCATE(EdgEAOf                            )
-   IF ( ALLOCATED(EdgIner                            ) ) DEALLOCATE(EdgIner                            )
-   IF ( ALLOCATED(EdgStff                            ) ) DEALLOCATE(EdgStff                            )
-   IF ( ALLOCATED(FlpcgOf                            ) ) DEALLOCATE(FlpcgOf                            )
-   IF ( ALLOCATED(FlpEAOf                            ) ) DEALLOCATE(FlpEAOf                            )
-   IF ( ALLOCATED(FlpIner                            ) ) DEALLOCATE(FlpIner                            )
-   IF ( ALLOCATED(FlpStff                            ) ) DEALLOCATE(FlpStff                            )
    IF ( ALLOCATED(FStTunr                            ) ) DEALLOCATE(FStTunr                            )
-   IF ( ALLOCATED(GJStff                             ) ) DEALLOCATE(GJStff                             )
    IF ( ALLOCATED(InerBEdg                           ) ) DEALLOCATE(InerBEdg                           )
    IF ( ALLOCATED(InerBFlp                           ) ) DEALLOCATE(InerBFlp                           )
    IF ( ALLOCATED(KBE                                ) ) DEALLOCATE(KBE                                )
    IF ( ALLOCATED(KBF                                ) ) DEALLOCATE(KBF                                )
    IF ( ALLOCATED(MassB                              ) ) DEALLOCATE(MassB                              )
-   IF ( ALLOCATED(PrecrvRef                          ) ) DEALLOCATE(PrecrvRef                          )
-   IF ( ALLOCATED(PreswpRef                          ) ) DEALLOCATE(PreswpRef                          )
    IF ( ALLOCATED(RefAxisxb                          ) ) DEALLOCATE(RefAxisxb                          )
    IF ( ALLOCATED(RefAxisyb                          ) ) DEALLOCATE(RefAxisyb                          )
    IF ( ALLOCATED(RNodes                             ) ) DEALLOCATE(RNodes                             )
@@ -3245,7 +3134,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    IF ( ALLOCATED(StiffBF                            ) ) DEALLOCATE(StiffBF                            )
    IF ( ALLOCATED(StiffBGJ                           ) ) DEALLOCATE(StiffBGJ                           )
    IF ( ALLOCATED(SThetaS                            ) ) DEALLOCATE(SThetaS                            )
-   IF ( ALLOCATED(StrcTwst                           ) ) DEALLOCATE(StrcTwst                           )
    IF ( ALLOCATED(ThetaS                             ) ) DEALLOCATE(ThetaS                             )
    IF ( ALLOCATED(TwistedSF                          ) ) DEALLOCATE(TwistedSF                          )
 
@@ -3271,13 +3159,9 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
       ! MODULE Modes
 
-   IF ( ALLOCATED(BldEdgSh                           ) ) DEALLOCATE(BldEdgSh                           )
-   IF ( ALLOCATED(BldFl1Sh                           ) ) DEALLOCATE(BldFl1Sh                           )
-   IF ( ALLOCATED(BldFl2Sh                           ) ) DEALLOCATE(BldFl2Sh                           )
    IF ( ALLOCATED(FreqBE                             ) ) DEALLOCATE(FreqBE                             )
    IF ( ALLOCATED(FreqBF                             ) ) DEALLOCATE(FreqBF                             )
-   IF ( ALLOCATED(CalcBModes                         ) ) DEALLOCATE(CalcBModes                         )
-
+   !
 
       ! MODULE Output
 
@@ -3332,72 +3216,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
 
 END SUBROUTINE FAST_Terminate
-!=======================================================================
-!SUBROUTINE Gauss( AugMatIn, NumEq, SolnVec )
-!
-!
-!   ! This routine uses the Gauss-Jordan elimination method for the
-!   !   solution of a given set of simultaneous linear equations.
-!   ! NOTE: this routine works if no pivot points are zero and you
-!   !   don't want the eschelon or reduced eschelon form of the
-!   !   augmented matrix.  The form of the original augmented matrix
-!   !   IS preserved in this call.
-!
-!
-!
-!IMPLICIT                        NONE
-!
-!
-!   ! Passed variables:
-!
-!INTEGER(4), INTENT(IN )      :: NumEq                                           ! Number of equations in augmented matrix.
-!
-!REAL(ReKi), INTENT(IN )      :: AugMatIn (NumEq,( NumEq + 1 ))                  ! Augmented matrix passed into this subroutine.
-!REAL(ReKi), INTENT(OUT)      :: SolnVec  (NumEq)                                ! Solution vector.
-!
-!
-!   ! Local variables:
-!
-!REAL(ReKi)                   :: AugMat   (NumEq,( NumEq + 1 ))                  ! A copy of the augmented matrix.
-!
-!INTEGER(4)                   :: I                                               ! Steps through columns
-!INTEGER(4)                   :: J                                               ! Steps through rows
-!INTEGER(4)                   :: L                                               ! Steps through rows
-!INTEGER(4)                   :: NAug                                            ! Column dimension of augmented matrix
-!
-!
-!
-!   ! Transfer the data from AugMatIn to AugMat:
-!
-!AugMat = AugMatIn
-!
-!
-!   ! Find the column dimension of the augmented matrix:
-!
-!NAug = NumEq + 1
-!
-!
-!   ! Perform Gauss-Jordan elimination and store the solution vector
-!   !   in the last column of the augmented matrix:
-!
-!DO L = 1,NumEq             ! Loop through all rows
-!   DO I = ( L + 1 ), NAug  ! Loop through all columns above current row number
-!      AugMat(L,I) = AugMat(L,I) / AugMat(L,L)
-!      DO J = 1,NumEq       ! Loop through all rows except L
-!         IF ( J /= L )  AugMat(J,I) = AugMat(J,I) - ( AugMat(J,L)*AugMat(L,I) )
-!      ENDDO                ! J - All rows except L
-!   ENDDO                   ! I - All columns above current row number
-!ENDDO                      ! L - All rows
-!
-!
-!   ! Transfer the solution vector from AugMat() to SolnVec():
-!
-!SolnVec = AugMat(:,NAug)
-!
-!
-!
-!RETURN
-!END SUBROUTINE Gauss
 !=======================================================================
 SUBROUTINE InitBlDefl ( K, InitQF1, InitQF2, InitQE1, p, InputFileData )
 
@@ -4473,25 +4291,14 @@ REAL(ReKi)                   :: TmpVec3   (3)                                   
 REAL(ReKi)                   :: TmpVec4   (3)                                   ! A temporary vector used in various computations.
 REAL(ReKi)                   :: TmpVec5   (3)                                   ! A temporary vector used in various computations.
 
-INTEGER(4)                   :: I                                               ! Loops through some or all of the DOFs.
-INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
-INTEGER(4)                   :: K                                               ! Loops through blades.
-INTEGER(4)                   :: L                                               ! Generic index
-INTEGER(4), SAVE             :: SgnPrvLSTQ = 1                                  ! The sign of the low-speed shaft torque from the previous call to RtHS().  This is calculated at the end of RtHS().  NOTE: The low-speed shaft torque is assumed to be positive at the beginning of the run!
-
-INTEGER(IntKi)  :: ErrStat     ! Error status of the operation
-CHARACTER(1024) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-   ! variables that used to be in RtHndSd, but aren't used elsewhere:
+   ! variables that used to be in MODULE RtHndSd, but aren't used elsewhere:
 REAL(ReKi)                   :: FKAero   (3)                                    ! The tail fin aerodynamic force acting at point K, the center-of-pressure of the tail fin.
 REAL(ReKi)                   :: MAAero   (3)                                    ! The tail fin aerodynamic moment acting at point K, the center-of-pressure of the tail fin.
 REAL(ReKi)                   :: FrcVGnRtt(3)                                    ! Portion of the force at the rotor-furl axis (point V   ) due to the structure that furls with the rotor, generator, and rotor associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: FrcWTailt(3)                                    ! Portion of the force at the  tail-furl axis (point W   ) due to the tail associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: FrcZAllt (3)                                    ! Portion of the force at platform reference  (point Z   ) due to everything associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: MomXAllt (3)                                    ! Portion of the moment at the platform   (body X) / platform reference                (point Z   ) due to everything associated with everything but the QD2T()'s.
-REAL(ReKi)                   :: SolnVec(p%NDOF)                                 ! Solution vector found by solving the equations of motion
-
-
+REAL(ReKi)                   :: SolnVec    (p%NDOF)                             ! Solution vector found by solving the equations of motion
 REAL(ReKi)                   :: AngAccEFt  (p%TwrNodes,3)                       ! Portion of the angular acceleration of tower element J                                               (body F) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: AngVelEF   (p%TwrNodes,3)                       ! Angular velocity of the current point on the tower                                (body F) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: LinVelET   (p%TwrNodes,3)                       ! Linear velocity of current point on the tower         (point T) in the inertia frame.
@@ -4521,6 +4328,16 @@ REAL(ReKi)                   :: PMomXAll   (p%NDOF,3)                           
 REAL(ReKi)                   :: rQS        (p%NumBl,p%TipNode,3)                ! Position vector from the apex of rotation (point Q   ) to a point on a blade (point S).
 REAL(ReKi)                   :: AugMat     (p%NDOF,p%NAug)                      ! The augmented matrix used for the solution of the QD2T()s.
 
+   ! local integer variables
+   
+INTEGER(4)                   :: I                                               ! Loops through some or all of the DOFs.
+INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
+INTEGER(4)                   :: K                                               ! Loops through blades.
+INTEGER(4)                   :: L                                               ! Generic index
+INTEGER(4), SAVE             :: SgnPrvLSTQ = 1                                  ! The sign of the low-speed shaft torque from the previous call to RtHS().  This is calculated at the end of RtHS().  NOTE: The low-speed shaft torque is assumed to be positive at the beginning of the run!
+
+INTEGER(IntKi)  :: ErrStat     ! Error status of the operation
+CHARACTER(1024) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
 
@@ -4615,21 +4432,21 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    ! Calculate the position vector of the tip:
 
-   OtherState%RtHS%rS0S(K,p%TipNode,:) = (   TwistedSF(K,1,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &  ! Position vector from the blade root (point S(0)) to the blade tip (point S(BldFlexL)).
+   OtherState%RtHS%rS0S(K,p%TipNode,:) = (   TwistedSF(K,1,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &  ! Position vector from the blade root (point S(0)) to the blade tip (point S(p%BldFlexL)).
                          + TwistedSF(K,1,2,p%TipNode,0)*x%QT( DOF_BF(K,2) ) &
                          + TwistedSF(K,1,3,p%TipNode,0)*x%QT( DOF_BE(K,1) )                          )*OtherState%CoordSys%j1(K,:) &
                      + (   TwistedSF(K,2,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &
                          + TwistedSF(K,2,2,p%TipNode,0)*x%QT( DOF_BF(K,2) ) &
                          + TwistedSF(K,2,3,p%TipNode,0)*x%QT( DOF_BE(K,1) )                          )*OtherState%CoordSys%j2(K,:) &
-                     + ( BldFlexL - 0.5* &
-                         (       AxRedBld(K,1,1,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,1) ) &
-                           +     AxRedBld(K,2,2,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BF(K,2) ) &
-                           +     AxRedBld(K,3,3,p%TipNode)*x%QT( DOF_BE(K,1) )*x%QT( DOF_BE(K,1) ) &
-                           + 2.0*AxRedBld(K,1,2,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
-                           + 2.0*AxRedBld(K,2,3,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
-                           + 2.0*AxRedBld(K,1,3,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )   ) )*OtherState%CoordSys%j3(K,:)
-   rQS (K,p%TipNode,:) = OtherState%RtHS%rS0S(K,p%TipNode,:) + p%HubRad*OtherState%CoordSys%j3(K,:)                  ! Position vector from apex of rotation (point Q) to the blade tip (point S(BldFlexL)).
-   OtherState%RtHS%rS  (K,p%TipNode,:) = rQS (K,p%TipNode,:) + rQ                              ! Position vector from inertial frame origin      to the blade tip (point S(BldFlexL)).
+                     + ( p%BldFlexL - 0.5* &
+                         (       p%AxRedBld(K,1,1,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,1) ) &
+                           +     p%AxRedBld(K,2,2,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BF(K,2) ) &
+                           +     p%AxRedBld(K,3,3,p%TipNode)*x%QT( DOF_BE(K,1) )*x%QT( DOF_BE(K,1) ) &
+                           + 2.0*p%AxRedBld(K,1,2,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
+                           + 2.0*p%AxRedBld(K,2,3,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
+                           + 2.0*p%AxRedBld(K,1,3,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )   ) )*OtherState%CoordSys%j3(K,:)
+   rQS (K,p%TipNode,:) = OtherState%RtHS%rS0S(K,p%TipNode,:) + p%HubRad*OtherState%CoordSys%j3(K,:)                  ! Position vector from apex of rotation (point Q) to the blade tip (point S(p%BldFlexL)).
+   OtherState%RtHS%rS  (K,p%TipNode,:) = rQS (K,p%TipNode,:) + rQ                              ! Position vector from inertial frame origin      to the blade tip (point S(p%BldFlexL)).
 
 
    DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
@@ -4644,12 +4461,12 @@ DO K = 1,p%NumBl ! Loop through all blades
                       + TwistedSF(K,2,2,J,0)*x%QT( DOF_BF(K,2) ) &
                       + TwistedSF(K,2,3,J,0)*x%QT( DOF_BE(K,1) )                          )*OtherState%CoordSys%j2(K,:) &
                   + ( RNodes(J) - 0.5* &
-                      (       AxRedBld(K,1,1,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,1) ) &
-                        +     AxRedBld(K,2,2,J)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BF(K,2) ) &
-                        +     AxRedBld(K,3,3,J)*x%QT( DOF_BE(K,1) )*x%QT( DOF_BE(K,1) ) &
-                        + 2.0*AxRedBld(K,1,2,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
-                        + 2.0*AxRedBld(K,2,3,J)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
-                        + 2.0*AxRedBld(K,1,3,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )   ) )*OtherState%CoordSys%j3(K,:)
+                      (       p%AxRedBld(K,1,1,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,1) ) &
+                        +     p%AxRedBld(K,2,2,J)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BF(K,2) ) &
+                        +     p%AxRedBld(K,3,3,J)*x%QT( DOF_BE(K,1) )*x%QT( DOF_BE(K,1) ) &
+                        + 2.0*p%AxRedBld(K,1,2,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
+                        + 2.0*p%AxRedBld(K,2,3,J)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
+                        + 2.0*p%AxRedBld(K,1,3,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )   ) )*OtherState%CoordSys%j3(K,:)
       rQS (K,J,:) = OtherState%RtHS%rS0S(K,J,:) + p%HubRad*OtherState%CoordSys%j3(K,:)                  ! Position vector from apex of rotation (point Q) to the current node (point S(RNodes(J)).
       OtherState%RtHS%rS  (K,J,:) = rQS (K,J,:) + rQ                              ! Position vector from inertial frame origin      to the current node (point S(RNodes(J)).
 
@@ -4878,7 +4695,7 @@ AngAccEAt               =                  AngAccENt + x%QDT(DOF_TFrl)*PAngVelEA
 
 DO K = 1,p%NumBl ! Loop through all blades
 
-   ! Define the partial angular velocities of the tip (body M(BldFlexL)) in the  inertia frame:
+   ! Define the partial angular velocities of the tip (body M(p%BldFlexL)) in the  inertia frame:
    ! NOTE: PAngVelEM(K,J,I,D,:) = the Dth-derivative of the partial angular velocity of DOF I for body M of blade K, element J in body E.
 
    PAngVelEM(K,p%TipNode,          :,0,:) = PAngVelEH(:,0,:)
@@ -4897,7 +4714,7 @@ DO K = 1,p%NumBl ! Loop through all blades
 
 
    ! Define the 1st derivatives of the partial angular velocities of the tip
-   !   (body M(BldFlexL)) in the inertia frame:
+   !   (body M(p%BldFlexL)) in the inertia frame:
 
 ! NOTE: These are currently unused by the code, therefore, they need not
 !       be calculated.  Thus, they are currently commented out.  If it
@@ -5157,7 +4974,7 @@ ENDDO          ! I - all DOFs associated with the angular motion of the hub (bod
 DO K = 1,p%NumBl ! Loop through all blades
 
    ! Define the partial linear velocities (and their 1st derivatives) of the
-   !   blade tip (point S(BldFlexL)) in the inertia frame.  Also define the
+   !   blade tip (point S(p%BldFlexL)) in the inertia frame.  Also define the
    !   overall linear velocity of the blade tip in the inertia frame.  Also,
    !   define the portion of the linear acceleration of the blade tip in the
    !   inertia frame associated with everything but the QD2T()'s:
@@ -5167,36 +4984,36 @@ DO K = 1,p%NumBl ! Loop through all blades
    OtherState%RtHS%PLinVelES(K,p%TipNode,          :,:,:) = PLinVelEQ(:,:,:)
    OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) = TwistedSF(K,1,1,p%TipNode,0)                          *OtherState%CoordSys%j1(K,:) &
                                           + TwistedSF(K,2,1,p%TipNode,0)                          *OtherState%CoordSys%j2(K,:) &
-                                          - (   AxRedBld(K,1,1,p%TipNode)*x%QT ( DOF_BF(K,1) ) &
-                                              + AxRedBld(K,1,2,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
-                                              + AxRedBld(K,1,3,p%TipNode)*x%QT ( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                          - (   p%AxRedBld(K,1,1,p%TipNode)*x%QT ( DOF_BF(K,1) ) &
+                                              + p%AxRedBld(K,1,2,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
+                                              + p%AxRedBld(K,1,3,p%TipNode)*x%QT ( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
    OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) = TwistedSF(K,1,3,p%TipNode,0)                          *OtherState%CoordSys%j1(K,:) &
                                           + TwistedSF(K,2,3,p%TipNode,0)                          *OtherState%CoordSys%j2(K,:) &
-                                          - (   AxRedBld(K,3,3,p%TipNode)*x%QT ( DOF_BE(K,1) ) &
-                                              + AxRedBld(K,2,3,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
-                                              + AxRedBld(K,1,3,p%TipNode)*x%QT ( DOF_BF(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                          - (   p%AxRedBld(K,3,3,p%TipNode)*x%QT ( DOF_BE(K,1) ) &
+                                              + p%AxRedBld(K,2,3,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
+                                              + p%AxRedBld(K,1,3,p%TipNode)*x%QT ( DOF_BF(K,1) )   )*OtherState%CoordSys%j3(K,:)
    OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BF(K,2),0,:) = TwistedSF(K,1,2,p%TipNode,0)                          *OtherState%CoordSys%j1(K,:) &
                                           + TwistedSF(K,2,2,p%TipNode,0)                          *OtherState%CoordSys%j2(K,:) &
-                                          - (   AxRedBld(K,2,2,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
-                                              + AxRedBld(K,1,2,p%TipNode)*x%QT ( DOF_BF(K,1) ) &
-                                              + AxRedBld(K,2,3,p%TipNode)*x%QT ( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                          - (   p%AxRedBld(K,2,2,p%TipNode)*x%QT ( DOF_BF(K,2) ) &
+                                              + p%AxRedBld(K,1,2,p%TipNode)*x%QT ( DOF_BF(K,1) ) &
+                                              + p%AxRedBld(K,2,3,p%TipNode)*x%QT ( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
 
    TmpVec1 = CROSS_PRODUCT( AngVelEH, OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) )
    TmpVec2 = CROSS_PRODUCT( AngVelEH, OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) )
    TmpVec3 = CROSS_PRODUCT( AngVelEH, OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BF(K,2),0,:) )
 
    OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BF(K,1),1,:) = TmpVec1 &
-                                        - (   AxRedBld(K,1,1,p%TipNode)*x%QDT( DOF_BF(K,1) ) &
-                                            + AxRedBld(K,1,2,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
-                                            + AxRedBld(K,1,3,p%TipNode)*x%QDT( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                        - (   p%AxRedBld(K,1,1,p%TipNode)*x%QDT( DOF_BF(K,1) ) &
+                                            + p%AxRedBld(K,1,2,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
+                                            + p%AxRedBld(K,1,3,p%TipNode)*x%QDT( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
    OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BE(K,1),1,:) = TmpVec2 &
-                                        - (   AxRedBld(K,3,3,p%TipNode)*x%QDT( DOF_BE(K,1) ) &
-                                            + AxRedBld(K,2,3,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
-                                            + AxRedBld(K,1,3,p%TipNode)*x%QDT( DOF_BF(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                        - (   p%AxRedBld(K,3,3,p%TipNode)*x%QDT( DOF_BE(K,1) ) &
+                                            + p%AxRedBld(K,2,3,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
+                                            + p%AxRedBld(K,1,3,p%TipNode)*x%QDT( DOF_BF(K,1) )   )*OtherState%CoordSys%j3(K,:)
    OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BF(K,2),1,:) = TmpVec3 &
-                                        - (   AxRedBld(K,2,2,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
-                                            + AxRedBld(K,1,2,p%TipNode)*x%QDT( DOF_BF(K,1) ) &
-                                            + AxRedBld(K,2,3,p%TipNode)*x%QDT( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                        - (   p%AxRedBld(K,2,2,p%TipNode)*x%QDT( DOF_BF(K,2) ) &
+                                            + p%AxRedBld(K,1,2,p%TipNode)*x%QDT( DOF_BF(K,1) ) &
+                                            + p%AxRedBld(K,2,3,p%TipNode)*x%QDT( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
 
    LinVelHS                 = x%QDT( DOF_BF(K,1) )*OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) &
                             + x%QDT( DOF_BE(K,1) )*OtherState%RtHS%PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) &
@@ -5239,36 +5056,36 @@ DO K = 1,p%NumBl ! Loop through all blades
       OtherState%RtHS%PLinVelES(K,J,          :,:,:) = PLinVelEQ(:,:,:)
       OtherState%RtHS%PLinVelES(K,J,DOF_BF(K,1),0,:) = TwistedSF(K,1,1,J,0)                          *OtherState%CoordSys%j1(K,:) &
                                      + TwistedSF(K,2,1,J,0)                          *OtherState%CoordSys%j2(K,:) &
-                                     - (   AxRedBld(K,1,1,J)*x%QT ( DOF_BF(K,1) ) &
-                                         + AxRedBld(K,1,2,J)*x%QT ( DOF_BF(K,2) ) &
-                                         + AxRedBld(K,1,3,J)*x%QT ( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                     - (   p%AxRedBld(K,1,1,J)*x%QT ( DOF_BF(K,1) ) &
+                                         + p%AxRedBld(K,1,2,J)*x%QT ( DOF_BF(K,2) ) &
+                                         + p%AxRedBld(K,1,3,J)*x%QT ( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
       OtherState%RtHS%PLinVelES(K,J,DOF_BE(K,1),0,:) = TwistedSF(K,1,3,J,0)                          *OtherState%CoordSys%j1(K,:) &
                                      + TwistedSF(K,2,3,J,0)                          *OtherState%CoordSys%j2(K,:) &
-                                     - (   AxRedBld(K,3,3,J)*x%QT ( DOF_BE(K,1) ) &
-                                         + AxRedBld(K,2,3,J)*x%QT ( DOF_BF(K,2) ) &
-                                         + AxRedBld(K,1,3,J)*x%QT ( DOF_BF(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                     - (   p%AxRedBld(K,3,3,J)*x%QT ( DOF_BE(K,1) ) &
+                                         + p%AxRedBld(K,2,3,J)*x%QT ( DOF_BF(K,2) ) &
+                                         + p%AxRedBld(K,1,3,J)*x%QT ( DOF_BF(K,1) )   )*OtherState%CoordSys%j3(K,:)
       OtherState%RtHS%PLinVelES(K,J,DOF_BF(K,2),0,:) = TwistedSF(K,1,2,J,0)                          *OtherState%CoordSys%j1(K,:) &
                                      + TwistedSF(K,2,2,J,0)                          *OtherState%CoordSys%j2(K,:) &
-                                     - (   AxRedBld(K,2,2,J)*x%QT ( DOF_BF(K,2) ) &
-                                         + AxRedBld(K,1,2,J)*x%QT ( DOF_BF(K,1) ) &
-                                         + AxRedBld(K,2,3,J)*x%QT ( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                     - (   p%AxRedBld(K,2,2,J)*x%QT ( DOF_BF(K,2) ) &
+                                         + p%AxRedBld(K,1,2,J)*x%QT ( DOF_BF(K,1) ) &
+                                         + p%AxRedBld(K,2,3,J)*x%QT ( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
 
       TmpVec1 = CROSS_PRODUCT( AngVelEH, OtherState%RtHS%PLinVelES(K,J,DOF_BF(K,1),0,:) )
       TmpVec2 = CROSS_PRODUCT( AngVelEH, OtherState%RtHS%PLinVelES(K,J,DOF_BE(K,1),0,:) )
       TmpVec3 = CROSS_PRODUCT( AngVelEH, OtherState%RtHS%PLinVelES(K,J,DOF_BF(K,2),0,:) )
 
       OtherState%RtHS%PLinVelES(K,J,DOF_BF(K,1),1,:) = TmpVec1 &
-                                     - (   AxRedBld(K,1,1,J)*x%QDT( DOF_BF(K,1) ) &
-                                         + AxRedBld(K,1,2,J)*x%QDT( DOF_BF(K,2) ) &
-                                         + AxRedBld(K,1,3,J)*x%QDT( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                     - (   p%AxRedBld(K,1,1,J)*x%QDT( DOF_BF(K,1) ) &
+                                         + p%AxRedBld(K,1,2,J)*x%QDT( DOF_BF(K,2) ) &
+                                         + p%AxRedBld(K,1,3,J)*x%QDT( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
       OtherState%RtHS%PLinVelES(K,J,DOF_BE(K,1),1,:) = TmpVec2 &
-                                     - (   AxRedBld(K,3,3,J)*x%QDT( DOF_BE(K,1) ) &
-                                         + AxRedBld(K,2,3,J)*x%QDT( DOF_BF(K,2) ) &
-                                         + AxRedBld(K,1,3,J)*x%QDT( DOF_BF(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                     - (   p%AxRedBld(K,3,3,J)*x%QDT( DOF_BE(K,1) ) &
+                                         + p%AxRedBld(K,2,3,J)*x%QDT( DOF_BF(K,2) ) &
+                                         + p%AxRedBld(K,1,3,J)*x%QDT( DOF_BF(K,1) )   )*OtherState%CoordSys%j3(K,:)
       OtherState%RtHS%PLinVelES(K,J,DOF_BF(K,2),1,:) = TmpVec3 &
-                                     - (   AxRedBld(K,2,2,J)*x%QDT( DOF_BF(K,2) ) &
-                                         + AxRedBld(K,1,2,J)*x%QDT( DOF_BF(K,1) ) &
-                                         + AxRedBld(K,2,3,J)*x%QDT( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
+                                     - (   p%AxRedBld(K,2,2,J)*x%QDT( DOF_BF(K,2) ) &
+                                         + p%AxRedBld(K,1,2,J)*x%QDT( DOF_BF(K,1) ) &
+                                         + p%AxRedBld(K,2,3,J)*x%QDT( DOF_BE(K,1) )   )*OtherState%CoordSys%j3(K,:)
 
       LinVelHS         = x%QDT( DOF_BF(K,1) )*OtherState%RtHS%PLinVelES(K,J,DOF_BF(K,1),0,:) &
                        + x%QDT( DOF_BE(K,1) )*OtherState%RtHS%PLinVelES(K,J,DOF_BE(K,1),0,:) &
@@ -5475,17 +5292,17 @@ DO K = 1,p%NumBl ! Loop through all blades
    !       be sorted from smallest to largest DOF index in order for the loops
    !       to work to enter values only on and below the diagonal of AugMat():
 
-   DO L = 1,OtherState%DOFs%NPSBE(K)    ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(BldFlexL))
+   DO L = 1,OtherState%DOFs%NPSBE(K)    ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(p%BldFlexL))
       DO I = L,OtherState%DOFs%NPSBE(K) ! Loop through all active (enabled) blade DOFs greater than or equal to L
          AugMat(OtherState%DOFs%PSBE(K,I),OtherState%DOFs%PSBE(K,L)) = p%TipMass(K)*&
                                      DOT_PRODUCT( OtherState%RtHS%PLinVelES(K, p%TipNode, OtherState%DOFs%PSBE(K,I),0,:), &   ! [C(q,t)]B
                                                   OtherState%RtHS%PLinVelES(K, p%TipNode, OtherState%DOFs%PSBE(K,L),0,:)    )
       ENDDO             ! I - All active (enabled) blade DOFs greater than or equal to L
-   ENDDO                ! L - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(BldFlexL))
-   DO I = 1,OtherState%DOFs%NPSBE(K)    ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(BldFlexL))
+   ENDDO                ! L - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(p%BldFlexL))
+   DO I = 1,OtherState%DOFs%NPSBE(K)    ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(p%BldFlexL))
          AugMat(OtherState%DOFs%PSBE(K,I), p%NAug) = DOT_PRODUCT( OtherState%RtHS%PLinVelES(K,p%TipNode,OtherState%DOFs%PSBE(K,I),0,:), &   ! {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
                                                            TmpVec1                               ) ! NOTE: TmpVec1 is still the portion of FrcS0Bt associated with the tip brake
-   ENDDO                ! I - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(BldFlexL))
+   ENDDO                ! I - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(p%BldFlexL))
 
 
 
@@ -5530,7 +5347,7 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    ! Calculate the mass of the current element
 
-      ElmntMass = MassB(K,J)*DRNodes(J)   ! Mass of blade element J
+      ElmntMass = MassB(K,J)*p%DRNodes(J)   ! Mass of blade element J
 
 
    ! Integrate to find the partial forces and moments (including those associated
@@ -5547,9 +5364,9 @@ DO K = 1,p%NumBl ! Loop through all blades
 
       ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
-      TmpVec1 = OtherState%RtHS%FSAero(K,J,:)*DRNodes(J) - ElmntMass*( p%Gravity*OtherState%CoordSys%z2 + OtherState%RtHS%LinAccESt(K,J,:) ) ! The portion of FrcS0Bt associated with blade element J
+      TmpVec1 = OtherState%RtHS%FSAero(K,J,:)*p%DRNodes(J) - ElmntMass*( p%Gravity*OtherState%CoordSys%z2 + OtherState%RtHS%LinAccESt(K,J,:) ) ! The portion of FrcS0Bt associated with blade element J
       TmpVec2 = CROSS_PRODUCT( OtherState%RtHS%rS0S(K,J,:), TmpVec1 )                                  ! The portion of MomH0Bt associated with blade element J
-      TmpVec3 = OtherState%RtHS%MMAero(K,J,:)*DRNodes(J)                                               ! The total external moment applied to blade element J
+      TmpVec3 = OtherState%RtHS%MMAero(K,J,:)*p%DRNodes(J)                                               ! The total external moment applied to blade element J
 
       OtherState%RtHS%FrcS0Bt(K,:) = OtherState%RtHS%FrcS0Bt(K,:) + TmpVec1
 
@@ -5626,20 +5443,20 @@ DO K = 1,p%NumBl ! Loop through all blades
       AugMat(    DOF_BF(K,1),p%NAug) = AugMat(DOF_BF(K,1),p%NAug)      & !
                                    - KBF(K,1,1)*x%QT( DOF_BF(K,1)) &
                                    - KBF(K,1,2)*x%QT( DOF_BF(K,2)) &
-                                   - CBF(K,1,1)*x%QDT(DOF_BF(K,1)) &
-                                   - CBF(K,1,2)*x%QDT(DOF_BF(K,2))
+                                   - p%CBF(K,1,1)*x%QDT(DOF_BF(K,1)) &
+                                   - p%CBF(K,1,2)*x%QDT(DOF_BF(K,2))
    ENDIF
    IF ( p%DOF_Flag(DOF_BF(K,2)) )  THEN
       AugMat(    DOF_BF(K,2),p%NAug) = AugMat(DOF_BF(K,2),p%NAug)      & ! {-f(qd,q,t)}ElasticB + {-f(qd,q,t)}DampB
                                    - KBF(K,2,1)*x%QT( DOF_BF(K,1)) &
                                    - KBF(K,2,2)*x%QT( DOF_BF(K,2)) &
-                                   - CBF(K,2,1)*x%QDT(DOF_BF(K,1)) &
-                                   - CBF(K,2,2)*x%QDT(DOF_BF(K,2))
+                                   - p%CBF(K,2,1)*x%QDT(DOF_BF(K,1)) &
+                                   - p%CBF(K,2,2)*x%QDT(DOF_BF(K,2))
    ENDIF
    IF ( p%DOF_Flag(DOF_BE(K,1)) )  THEN
       AugMat(    DOF_BE(K,1),p%NAug) = AugMat(DOF_BE(K,1),p%NAug)      & !
                                    - KBE(K,1,1)*x%QT( DOF_BE(K,1)) &
-                                   - CBE(K,1,1)*x%QDT(DOF_BE(K,1))
+                                   - p%CBE(K,1,1)*x%QDT(DOF_BE(K,1))
    ENDIF
 
 
@@ -6833,8 +6650,8 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    ! Blade coordinate system aligned with local structural axes (not element fixed):
 
-      Lj1 = CThetaS(K,J)*CoordSys%j1(K,:) - SThetaS(K,J)*CoordSys%j2(K,:)  ! vector / direction Lj1 at node J for blade K
-      Lj2 = SThetaS(K,J)*CoordSys%j1(K,:) + CThetaS(K,J)*CoordSys%j2(K,:)  ! vector / direction Lj2 at node J for blade K
+      Lj1 = p%CThetaS(K,J)*CoordSys%j1(K,:) - p%SThetaS(K,J)*CoordSys%j2(K,:)  ! vector / direction Lj1 at node J for blade K
+      Lj2 = p%SThetaS(K,J)*CoordSys%j1(K,:) + p%CThetaS(K,J)*CoordSys%j2(K,:)  ! vector / direction Lj2 at node J for blade K
       Lj3 = CoordSys%j3(K,:)                                               ! vector / direction Lj3 at node J for blade K
 
 
@@ -6847,8 +6664,8 @@ DO K = 1,p%NumBl ! Loop through all blades
                  - TwistedSF(K,2,2,J,1)*x%QT( DOF_BF(K,2) ) &
                  - TwistedSF(K,2,3,J,1)*x%QT( DOF_BE(K,1) )
 
-      ThetaLxb = CThetaS(K,J)*ThetaIP - SThetaS(K,J)*ThetaOoP
-      ThetaLyb = SThetaS(K,J)*ThetaIP + CThetaS(K,J)*ThetaOoP
+      ThetaLxb = p%CThetaS(K,J)*ThetaIP - p%SThetaS(K,J)*ThetaOoP
+      ThetaLyb = p%SThetaS(K,J)*ThetaIP + p%CThetaS(K,J)*ThetaOoP
 
       CALL SmllRotTrans( 'blade deflection', ThetaLxb, ThetaLyb, 0.0, TransMat, TRIM(Num2LStr(ZTime))//' s' ) ! Get the transformation matrix, TransMat, from blade coordinate system aligned with local structural axes (not element fixed) to blade element-fixed coordinate system aligned with local structural axes.
 
@@ -6863,8 +6680,8 @@ DO K = 1,p%NumBl ! Loop through all blades
    !    BlPitch(K) + ThetaS(K,J) and is coincident with the i-vector triad
    !    when the blade is undeflected.
 
-      CPitPTwstS = CosPitch*CThetaS(K,J) - SinPitch*SThetaS(K,J)  ! = COS( BlPitch(K) + ThetaS(K,J) ) found using the sum of angles formulae of cosine.
-      SPitPTwstS = CosPitch*SThetaS(K,J) + SinPitch*CThetaS(K,J)  ! = SIN( BlPitch(K) + ThetaS(K,J) ) found using the sum of angles formulae of   sine.
+      CPitPTwstS = CosPitch*p%CThetaS(K,J) - SinPitch*p%SThetaS(K,J)  ! = COS( BlPitch(K) + ThetaS(K,J) ) found using the sum of angles formulae of cosine.
+      SPitPTwstS = CosPitch*p%SThetaS(K,J) + SinPitch*p%CThetaS(K,J)  ! = SIN( BlPitch(K) + ThetaS(K,J) ) found using the sum of angles formulae of   sine.
 
       CoordSys%m1(K,J,:)  =  CPitPTwstS*CoordSys%n1(K,J,:) + SPitPTwstS*CoordSys%n2(K,J,:)   ! m1(K,J,:) = vector / direction m1 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn).
       CoordSys%m2(K,J,:)  = -SPitPTwstS*CoordSys%n1(K,J,:) + CPitPTwstS*CoordSys%n2(K,J,:)   ! m2(K,J,:) = vector / direction m2 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn).
@@ -6876,8 +6693,8 @@ DO K = 1,p%NumBl ! Loop through all blades
    !   aerodynamic axes (te2 points toward trailing edge, te1 points toward
    !   suction surface):
 
-      CPitPTwstA = CosPitch*CAeroTwst(J) - SinPitch*SAeroTwst(J)  ! = COS( BlPitch(K) + AeroTwst(J) ) found using the sum of angles formulae of cosine.
-      SPitPTwstA = CosPitch*SAeroTwst(J) + SinPitch*CAeroTwst(J)  ! = SIN( BlPitch(K) + AeroTwst(J) ) found using the sum of angles formulae of   sine.
+      CPitPTwstA = CosPitch*p%CAeroTwst(J) - SinPitch*p%SAeroTwst(J)  ! = COS( BlPitch(K) + AeroTwst(J) ) found using the sum of angles formulae of cosine.
+      SPitPTwstA = CosPitch*p%SAeroTwst(J) + SinPitch*p%CAeroTwst(J)  ! = SIN( BlPitch(K) + AeroTwst(J) ) found using the sum of angles formulae of   sine.
 
       CoordSys%te1(K,J,:) =  CPitPTwstA*CoordSys%m1(K,J,:) - SPitPTwstA*CoordSys%m2(K,J,:)   ! te1(K,J,:) = vector / direction te1 for node J of blade K (used to calc. noise and to calc. and return aerodynamic loads from AeroDyn).
       CoordSys%te2(K,J,:) =  SPitPTwstA*CoordSys%m1(K,J,:) + CPitPTwstA*CoordSys%m2(K,J,:)   ! te2(K,J,:) = vector / direction te2 for node J of blade K (used to calc. noise and to calc. and return aerodynamic loads from AeroDyn).

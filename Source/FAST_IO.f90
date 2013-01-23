@@ -3,6 +3,7 @@ MODULE FAST_IO_Subs
    USE   NWTC_Library
    USE   StructDyn_Parameters
    USE   StructDyn_Types
+   USE   StructDyn
 
    USE GlueCodeVars
    
@@ -22,7 +23,7 @@ SUBROUTINE AeroInput(p_StrD)
    IMPLICIT NONE
 
    ! Passed variables:
-TYPE(StrD_ParameterType),  INTENT(INOUT)  :: p_StrD      ! The parameters of the structural dynamics module
+   TYPE(StrD_ParameterType),  INTENT(INOUT)  :: p_StrD      ! The parameters of the structural dynamics module
    
       ! Local variables
 
@@ -1355,405 +1356,102 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetADAMS
 !=======================================================================
-SUBROUTINE GetBlade ( K, p )
-
-
-   ! This routine reads the Kth blade file and validates the input.
-
-
-USE                             Blades
-USE                             General
-USE                             Modes
-USE                             Output
-
-
-IMPLICIT                        NONE
-
-
-   ! Passed variables:
-
-TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                      ! Parameters of the structural dynamics module
-INTEGER(4),               INTENT(IN )    :: K                                      ! Blade number.
-
-
-   ! Local variables:
-
-REAL(ReKi)                   :: TipDispl                                        ! Blade tip displacement for a mode shape.
-
-INTEGER(4)                   :: I                                               ! A generic DO index.
-INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-INTEGER(4)                   :: Sttus                                           ! Status of allocation attempts.
-
-CHARACTER(198)               :: Frmt                                            ! Format for element data.
-
-
-
-
-   ! Add a separator to the echo file if appropriate.
-
-IF ( Echo )  WRITE (UnEc,'(//,A,/)')  'Blade '//TRIM( Int2LStr( K ) )//' input data from file "'//TRIM( BldFile(K) )//'":'
-
-
-   ! Open the input file for blade K.
-
-CALL OpenFInpFile ( UnIn, BldFile(K) )
-
-
-
-!  -------------- HEADER -------------------------------------------------------
-
-
-   ! Ship the header.
-
-CALL ReadCom ( UnIn, BldFile(K), 'unused blade '//TRIM(Num2LStr(K))//' file header line 1' )
-CALL ReadCom ( UnIn, BldFile(K), 'unused blade '//TRIM(Num2LStr(K))//' file header line 2' )
-CALL ReadCom ( UnIn, BldFile(K), 'unused blade '//TRIM(Num2LStr(K))//' file header line 3' )
-
-
-!  -------------- BLADE PARAMETERS ---------------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, BldFile(K), 'blade parameters'  )
-
-   ! NBlInpSt - Number of blade input stations.
-
-CALL ReadVar ( UnIn, BldFile(K), NBlInpSt, 'NBlInpSt', 'Number of blade input stations' )
-
-IF ( NBlInpSt < 1 )  CALL ProgAbort ( ' NBlInpSt must be at least 1.' )
-
-
-   ! CalcBMode - Calculate blade mode shapes (switch).
-
-!JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-!JASON:CALL ReadVar ( UnIn, BldFile(K), CalcBMode, 'CalcBMode', 'Calculate blade mode shapes' )
-CALL ReadCom ( UnIn, BldFile(K), 'currently ignored CalcBMode'  )
-
-
-   ! BldFlDmp - Blade structural damping ratios in flapwise direction.
-
-CALL ReadAryLines( UnIn, BldFile(K), BldFlDmp, 2, 'BldFlDmp', 'Blade structural damping ratios in flapwise direction' )
-
-IF ( BldFlDmp(1) < 0.0 )    CALL ProgAbort ( ' BldFlDmp(1) for blade '//TRIM( Int2LStr( K ) )//' must not be negative.' )
-IF ( BldFlDmp(2) < 0.0 )    CALL ProgAbort ( ' BldFlDmp(2) for blade '//TRIM( Int2LStr( K ) )//' must not be negative.' )
-
-
-   ! BldEdDmp - Blade structural damping ratios in edgewise direction.
-
-CALL ReadAryLines( UnIn, BldFile(K), BldEdDmp, 1, 'BldEdDmp', 'Blade structural damping ratios in edgewise direction' )
-
-IF ( BldEdDmp(1) < 0.0 )    CALL ProgAbort ( ' BldEdDmp(1) for blade '//TRIM( Int2LStr( K ) )//' must not be negative.' )
-
-
-
-!  -------------- BLADE ADJUSTMENT FACTORS -------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, BldFile(K), 'blade adjustment factors'  )
-
-   ! FlStTunr(1) - Blade flapwise modal stiffness tuners.
-
-CALL ReadAryLines ( UnIn, BldFile(K), FlStTunr, 2, 'FlStTunr', 'Blade flapwise modal stiffness tuners' )
-
-IF ( FlStTunr(1) <= 0.0 )  CALL ProgAbort ( ' FlStTunr(1) must be greater than zero.' )
-IF ( FlStTunr(2) <= 0.0 )  CALL ProgAbort ( ' FlStTunr(2) must be greater than zero.' )
-
-
-   ! AdjBlMs - Factor to adjust blade mass density.
-
-CALL ReadVar ( UnIn, BldFile(K), AdjBlMs, 'AdjBlMs', 'Factor to adjust blade mass density' )
-
-IF ( AdjBlMs <= 0.0 )  CALL ProgAbort ( ' AdjBlMs must be greater than zero.' )
-
-
-   ! AdjFlSt - Factor to adjust blade flap stiffness.
-
-CALL ReadVar ( UnIn, BldFile(K), AdjFlSt, 'AdjFlSt', 'Factor to adjust blade flap stiffness' )
-
-IF ( AdjFlSt <= 0.0 )  CALL ProgAbort ( ' AdjFlSt must be greater than zero.' )
-
-
-   ! AdjEdSt - Factor to adjust blade edge stiffness.
-
-CALL ReadVar ( UnIn, BldFile(K), AdjEdSt, 'AdjEdSt', 'Factor to adjust blade edge stiffness' )
-
-IF ( AdjEdSt <= 0.0 )  CALL ProgAbort ( ' AdjEdSt must be greater than zero.' )
-
-
-
-!  -------------- DISTRIBUTED BLADE PROPERTIES ---------------------------------
-
-
-   ! Skip the comment lines.
-
-CALL ReadCom ( UnIn, BldFile(K), 'distributed blade parameters'  )
-CALL ReadCom ( UnIn, BldFile(K), 'distributed-blade-parameter names' )
-CALL ReadCom ( UnIn, BldFile(K), 'distributed-blade-parameter units'  )
-
-
-   ! Allocate the arrays.
-
-ALLOCATE ( BlFract(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the BlFract array.' )
-ENDIF
-
-ALLOCATE ( AerCen(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the AerCen array.' )
-ENDIF
-
-ALLOCATE ( StrcTwst(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the StrcTwst array.' )
-ENDIF
-
-ALLOCATE ( BMassDen(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the BMassDen array.' )
-ENDIF
-
-ALLOCATE ( FlpStff(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the FlpStff array.' )
-ENDIF
-
-ALLOCATE ( EdgStff(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the EdgStff array.' )
-ENDIF
-
-ALLOCATE ( GJStff(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the GJStff array.' )
-ENDIF
-
-ALLOCATE ( EAStff(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the EAStff array.' )
-ENDIF
-
-ALLOCATE ( Alpha(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the Alpha array.' )
-ENDIF
-
-ALLOCATE ( FlpIner(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the FlpIner array.' )
-ENDIF
-
-ALLOCATE ( EdgIner(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the EdgIner array.' )
-ENDIF
-
-ALLOCATE ( PrecrvRef(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the PrecrvRef array.' )
-ENDIF
-
-ALLOCATE ( PreswpRef(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the PreswpRef array.' )
-ENDIF
-
-ALLOCATE ( FlpcgOf(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the FlpcgOf array.' )
-ENDIF
-
-ALLOCATE ( EdgcgOf(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the EdgcgOf array.' )
-ENDIF
-
-ALLOCATE ( FlpEAOf(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the FlpEAOf array.' )
-ENDIF
-
-ALLOCATE ( EdgEAOf(NBlInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the EdgEAOf array.' )
-ENDIF
-
-
-   ! Read the table.
-
-IF ( Echo )  THEN
-
-   IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-
-      Frmt = "( '  Node   BlFract   AeroCent   StrcTwst   BMassDen    FlpStff    EdgStff     GJStff     EAStff"// &
-             "      Alpha    FlpIner    EdgIner  PrecrvRef  PreswpRef    FlpcgOf    EdgcgOf    FlpEAOf    EdgEAOf' )"
-      WRITE (UnEc,Frmt)
-      Frmt = "( '  ----   -------   --------   --------   --------    -------    -------     ------     ------"// &
-             "      -----    -------    -------  ---------  ---------    -------    -------    -------    -------' )"
-      WRITE (UnEc,Frmt)
-      Frmt = '(I5,17(1X,'//TRIM( p%OutFmt )//'))'
-
-   ELSE                                                     ! Only FAST will be run; thus, read in only the first 6 cols.
-
-      Frmt = "( '  Node   BlFract   AeroCent   StrcTwst   BMassDen    FlpStff    EdgStff' )"
-      WRITE (UnEc,Frmt)
-      Frmt = "( '  ----   -------   --------   --------   --------    -------    -------' )"
-      WRITE (UnEc,Frmt)
-      Frmt = '(I5,6(1X,'//TRIM( p%OutFmt )//'))'
-
-   ENDIF
-
-ENDIF
-
-DO I=1,NBlInpSt
-
-   IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-      READ (UnIn,*,IOSTAT=IOS)  BlFract(I), AerCen(I), StrcTwst(I), BMassDen(I), FlpStff(I), EdgStff(I),            &
-                                GJStff(I), EAStff(I), Alpha(I), FlpIner(I), EdgIner(I), PrecrvRef(I), PreswpRef(I), &
-                                FlpcgOf(I), EdgcgOf(I), FlpEAOf(I), EdgEAOf(I)
-   ELSE                                                     ! Only FAST will be run; thus, read in only the first 6 cols.
-      READ (UnIn,*,IOSTAT=IOS)  BlFract(I), AerCen(I), StrcTwst(I), BMassDen(I), FlpStff(I), EdgStff(I)
-   ENDIF
-
-   CALL CheckIOS ( IOS, BldFile(K), 'line '//TRIM( Int2LStr( I ) )//' of the blade distributed properties for blade ' &
-                                           //TRIM( Int2LStr( K ) ), NumType )
-
-   IF ( Echo )  THEN
-      IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-         WRITE (UnEc,Frmt)  I, BlFract(I), AerCen(I), StrcTwst(I), BMassDen(I), FlpStff(I), EdgStff(I),            &
-                               GJStff(I), EAStff(I), Alpha(I), FlpIner(I), EdgIner(I), PrecrvRef(I), PreswpRef(I), &
-                               FlpcgOf(I), EdgcgOf(I), FlpEAOf(I), EdgEAOf(I)
-      ELSE                                                     ! Only FAST will be run; thus, read in only the first 6 cols.
-         WRITE (UnEc,Frmt)  I, BlFract(I), AerCen(I), StrcTwst(I), BMassDen(I), FlpStff(I), EdgStff(I)
-      ENDIF
-   ENDIF
-
-   IF ( I == 1 )  THEN
-      IF ( BlFract(I) /= 0.0 )  CALL ProgAbort ( ' BlFract(1) must be 0.0.' )
-   ELSEIF ( ( I == NBlInpSt ) .AND. ( I /= 1 ) )  THEN
-      IF ( BlFract(I) /= 1.0 )  CALL ProgAbort ( ' BlFract('//TRIM( Int2LStr( I ) )//') must be 1.0.' )
-   ELSE
-      IF ( BlFract(I) <= BlFract(I-1) )  CALL ProgAbort ( ' BlFract('//TRIM( Int2LStr( I ) )//') greater than '// &
-                                                      TRIM( Flt2LStr( BlFract(I-1) ) )//'.'                     )
-   ENDIF
-
-   IF ( ( AerCen(I) ) < 0.0 .OR. ( AerCen(I) > 1.0 ) )  CALL ProgAbort ( ' AerCen('//TRIM( Int2LStr( I ) )//      &
-                                                                     ') must be between 0 and 1 (inclusive).'   )
-   IF ( ( StrcTwst(I) <= -180.0 ) .OR. ( StrcTwst(I) > 180.0 ) )  THEN
-      CALL ProgAbort ( ' StrcTwst('//TRIM( Int2LStr( I ) )//') must be greater than -180 and less than or equal to 180.' )
-   ENDIF
-   IF ( BMassDen(I) <= 0.0 )  CALL ProgAbort ( ' BMassDen('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-   IF ( FlpStff (I) <= 0.0 )  CALL ProgAbort ( ' FlpStff('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-   IF ( EdgStff (I) <= 0.0 )  CALL ProgAbort ( ' EdgStff('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-
-   IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-
-      IF ( GJStff(I) <= 0.0 )  &
-         CALL ProgAbort ( ' GJStff('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-
-      IF ( EAStff(I) <= 0.0 )  &
-         CALL ProgAbort ( ' EAStff('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-
-      IF ( ( Alpha(I) <= -1.0 ) .OR. ( Alpha(I) >= 1.0 ) )  &
-         CALL ProgAbort ( ' Alpha('//TRIM( Int2LStr( I ) )//') (the blade flap/twist'// &
-                      ' coupling coefficient) must be between -1 and 1 (exclusive).'  )
-
-      IF ( FlpIner(I) <  0.0 )  &
-         CALL ProgAbort ( ' FlpIner('//TRIM( Int2LStr( I ) )//') must not be less than zero.' )
-
-      IF ( EdgIner(I) <  0.0 )  &
-         CALL ProgAbort ( ' EdgIner('//TRIM( Int2LStr( I ) )//') must not be less than zero.' )
-
-   ! The reference axis must be coincident with the pitch axis at the blade
-   !   root (I == 1):
-
-      IF ( PrecrvRef(1) /= 0.0 )  &
-         CALL ProgAbort ( ' Both PrecrvRef(1) and PreswpRef(1) must be zero.' )
-
-      IF ( PreswpRef(1) /= 0.0 )  &
-         CALL ProgAbort ( ' Both PrecrvRef(1) and PreswpRef(1) must be zero.' )
-
-      IF ( PrecrvRef(I) /= 0.0 )  &
-         CALL ProgAbort ( ' PrecrvRef(I) must be zero for Adams models.' )
-
-      IF ( PreswpRef(I) /= 0.0 )  &
-         CALL ProgAbort ( ' PreswpRef(I) must be zero for Adams models.' )
-
-
-   ENDIF
-
-
-      ! Apply the correction factors to the elemental data.
-
-   BMassDen(I)  = BMassDen(I)*AdjBlMs
-   FlpStff (I)  = FlpStff (I)*AdjFlSt
-   EdgStff (I)  = EdgStff (I)*AdjEdSt
-
-ENDDO ! I
-
-
-
-!  -------------- BLADE MODE SHAPES --------------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, BldFile(K), 'blade mode shapes'  )
-
-
-   ! BldFl1Sh - Blade-flap mode-1 shape coefficients.
-CALL ReadAryLines ( UnIn, BldFile(K), BldFl1Sh(:,K), PolyOrd-1, 'BldFl1Sh', 'Blade-flap mode-1 shape coefficients' )
-
-
-
-TipDispl = 0.0
-
-DO I=2,PolyOrd
-   TipDispl = TipDispl + BldFl1Sh(I,K)
-ENDDO ! I
-
-IF ( ABS( TipDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Blade-flap mode-1 shape coefficients must add to 1.0.' )
-
-
-   ! BldFl2Sh - Blade-flap mode-2 shape coefficients.
-
-CALL ReadAryLines ( UnIn, BldFile(K), BldFl2Sh(:,K), PolyOrd-1, 'BldFl2Sh', 'Blade-flap mode-2 shape coefficients' )
-
-TipDispl = 0.0
-
-DO I=2,PolyOrd
-   TipDispl = TipDispl + BldFl2Sh(I,K)
-ENDDO ! I
-
-IF ( ABS( TipDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Blade-flap mode-2 shape coefficients must add to 1.0.' )
-
-
-   ! BldEdgSh - Blade-edge mode shape coefficients.
+SUBROUTINE GetBladeInputs ( BldFile, p, InputFileData, ErrStat, ErrMsg )
+   ! This routine reads the data from the input file, validates it,
+   ! and then sets the blade parameters. 
+   ! It replaces former subroutines GetBlade and InterpBld, as well
+   ! as some of the logic around when those routines were called in FAST.f90
    
-CALL ReadAryLines ( UnIn, BldFile(K), BldEdgSh(:,K), PolyOrd-1, 'BldEdgSh', 'Blade-edge mode shape coefficients' )
+
+   IMPLICIT                        NONE
 
 
-TipDispl = 0.0
+      ! Passed variables:
 
-DO I=2,PolyOrd
-   TipDispl = TipDispl + BldEdgSh(I,K)
-ENDDO ! I
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! Input file data Data for Blade K stored in the module's input file
+   CHARACTER(*),             INTENT(IN)     :: BldFile(:)                          ! The array of file names containing blade information
 
-IF ( ABS( TipDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Blade-edge mode shape coefficients must add to 1.0.' )
-
-
-
-   ! Close the blade file.
-
-CLOSE ( UnIn )
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! The error ID
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Message describing error
 
 
+      ! Local variables:
+   INTEGER(IntKi)                           :: K                                   ! Blade number
+   INTEGER(IntKi)                           :: ErrStat2                            ! Temporary error ID
+   LOGICAL                                  :: ReadAdmVals                         ! determines if an Adams model will be created (do we read/check all the inputs?)
+   LOGICAL                                  :: ReadFile                            ! determines if an input file for a blade is the same as the file for the previous blade
+   CHARACTER(LEN(ErrMsg))                   :: ErrMsg2                             ! Temporary message describing error
 
-RETURN
-END SUBROUTINE GetBlade
+
+      ! Initialize variables
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+   ReadAdmVals = ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 )  ! If an ADAMS model will be created; thus, read in all the cols. 
+
+
+      ! Allocate space for the input file data
+   ALLOCATE( InputFileData%InpBl( p%NumBl ), STAT=ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating InpBl array.'
+      RETURN
+   END IF
+   
+
+      ! Read the input file(s)
+   ReadFile = .TRUE.
+   DO K = 1,p%NumBl   
+   
+      IF ( ReadFile ) THEN
+      
+            ! Add a separator to the echo file if appropriate.
+
+         IF ( Echo )  WRITE (UnEc,'(//,A,/)')  'Blade '//TRIM( Num2LStr( K ) )//' input data from file "'//TRIM( BldFile(K) )//'":'
+         
+         CALL ReadBladeFile( BldFile(K), p, InputFileData%InpBl(K), ReadAdmVals, ErrStat2, ErrMsg2 )
+         IF ( ErrStat /= ErrID_None ) THEN
+            ErrMsg  = TRIM(ErrMsg)//NewLine//' Errors reading blade '//TRIM(Num2LStr(K))//' input file ('//TRIM(BldFile(K))//'): '//NewLine//TRIM(ErrMsg2)
+            ErrStat = MAX(ErrStat, ErrStat2)
+            IF ( ErrStat > AbortErrLev ) RETURN
+         END IF
+      
+      ELSE 
+      
+         InputFileData%InpBl(K) = InputFileData%InpBl(K-1)
+
+      END IF      
+      IF ( K /= p%NumBl ) ReadFile = BldFile(K) == BldFile( K + 1 )
+      
+   END DO
+    
+   
+      ! Check that the data from the input files is valid:   
+      
+   DO K = 1,p%NumBl   
+      
+      CALL ValidateBladeData (        p, InputFileData%InpBl(K), ReadAdmVals, ErrStat2, ErrMsg2 )
+      IF ( ErrStat /= ErrID_None ) THEN
+         ErrMsg  = ' Errors in blade '//TRIM(Num2LStr(K))//' input data: '//NewLine//TRIM(ErrMsg2)
+         ErrStat = MAX(ErrStat, ErrStat2)
+         IF ( ErrStat > AbortErrLev ) RETURN
+      END IF      
+  
+   END DO
+   
+   
+      ! Now set the parameters based on the input data:
+      
+   CALL SetBladeParams( p, InputFileData%InpBl, ReadAdmVals, ErrStat2, ErrMsg2 )      
+   IF ( ErrStat /= ErrID_None ) THEN
+      ErrMsg  = ' Error Setting '//NewLine//TRIM(ErrMsg2)
+      ErrStat = MAX(ErrStat, ErrStat2)
+      IF ( ErrStat > AbortErrLev ) RETURN
+   END IF      
+   
+
+   RETURN
+END SUBROUTINE GetBladeInputs
 !=======================================================================
 SUBROUTINE GetFurl( InputFileData, p )
 
@@ -6018,7 +5716,7 @@ DT24      = DT/24.0                                                             
 p%rZT0zt    = p%TwrRBHt + p%PtfmRef - p%TwrDraft                                        ! zt-component of position vector rZT0.
 p%RefTwrHt  = p%TowerHt + p%PtfmRef                                                   ! Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef).
 p%TwrFlexL  = p%TowerHt + p%TwrDraft - p%TwrRBHt                                        ! Height / length of the flexible portion of the tower.
-BldFlexL  = p%TipRad               - p%HubRad                                         ! Length of the flexible portion of the blade.
+p%BldFlexL  = p%TipRad               - p%HubRad                                         ! Length of the flexible portion of the blade.
 p%TwoPiNB = TwoPi/p%NumBl                                                       ! 2*Pi/NumBl is used in RtHS().
 RotSpeed  = RotSpeed*RPM2RPS                                                    ! Rotor speed in rad/sec.
 NacYaw    = D2R*NacYaw                                                          ! Nacelle yaw in radians.
@@ -6289,7 +5987,7 @@ IF ( ( p%PSpnElN < 1 ) .OR. ( p%PSpnElN > p%BldNodes ) )  &
 
    ! Convert RNodes to be relative to the hub:
 
-RNodes = RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < BldFlexL )
+RNodes = RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < p%BldFlexL )
 
 
    ! Compute the index for the blade tip and tower top nodes:
@@ -6324,7 +6022,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the StiffBF array.' )
 ENDIF
 
-ALLOCATE ( AeroCent(p%NumBl,p%BldNodes) , STAT=Sttus )
+ALLOCATE ( p%AeroCent(p%NumBl,p%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the AeroCent array.' )
 ENDIF
@@ -6334,12 +6032,12 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the ThetaS array.' )
 ENDIF
 
-ALLOCATE ( CThetaS(p%NumBl,p%BldNodes) , STAT=Sttus )
+ALLOCATE ( p%CThetaS(p%NumBl,p%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the CThetaS array.' )
 ENDIF
 
-ALLOCATE ( SThetaS(p%NumBl,p%BldNodes) , STAT=Sttus )
+ALLOCATE ( p%SThetaS(p%NumBl,p%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the SThetaS array.' )
 ENDIF
@@ -6354,7 +6052,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the StiffBEA array.' )
 ENDIF
 
-ALLOCATE ( BAlpha(p%NumBl,p%BldNodes) , STAT=Sttus )
+ALLOCATE ( p%BAlpha(p%NumBl,p%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BAlpha array.' )
 ENDIF
@@ -6379,12 +6077,12 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the RefAxisyb array.' )
 ENDIF
 
-ALLOCATE ( cgOffBFlp(p%NumBl,p%BldNodes) , STAT=Sttus )
+ALLOCATE ( p%cgOffBFlp(p%NumBl,p%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the cgOffBFlp array.' )
 ENDIF
 
-ALLOCATE ( cgOffBEdg(p%NumBl,p%BldNodes) , STAT=Sttus )
+ALLOCATE ( p%cgOffBEdg(p%NumBl,p%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the cgOffBEdg array.' )
 ENDIF
@@ -6399,17 +6097,13 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the EAOffBEdg array.' )
 ENDIF
 
-ALLOCATE ( CalcBModes(p%NumBl) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the CalcBModes array.' )
-ENDIF
 
-ALLOCATE ( BldEDamp(p%NumBl,1) , STAT=Sttus )
+ALLOCATE ( p%BldEDamp(p%NumBl,1) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldEDamp array.' )
 ENDIF
 
-ALLOCATE ( BldFDamp(p%NumBl,2) , STAT=Sttus )
+ALLOCATE ( p%BldFDamp(p%NumBl,2) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldFDamp array.' )
 ENDIF
@@ -6419,17 +6113,17 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the FStTunr array.' )
 ENDIF
 
-ALLOCATE ( BldEdgSh(2:PolyOrd,p%NumBl) , STAT=Sttus )
+ALLOCATE ( p%BldEdgSh(2:PolyOrd,p%NumBl) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldEdgSh array.' )
 ENDIF
 
-ALLOCATE ( BldFl1Sh(2:PolyOrd,p%NumBl) , STAT=Sttus )
+ALLOCATE ( p%BldFl1Sh(2:PolyOrd,p%NumBl) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldFl1Sh array.' )
 ENDIF
 
-ALLOCATE ( BldFl2Sh(2:PolyOrd,p%NumBl) , STAT=Sttus )
+ALLOCATE ( p%BldFl2Sh(2:PolyOrd,p%NumBl) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldFl2Sh array.' )
 ENDIF
@@ -6437,98 +6131,11 @@ ENDIF
 
    ! Define RNodesNorm() which is common to all the blades:
 
-RNodesNorm = RNodes/BldFlexL  ! Normalized radius to analysis nodes relative to hub ( 0 < RNodesNorm(:) < 1 )
+RNodesNorm = RNodes/p%BldFlexL  ! Normalized radius to analysis nodes relative to hub ( 0 < RNodesNorm(:) < 1 )
 
 
-   ! Let's work on the data for blade 1.
 
-DO K=1,p%NumBl
-
-
-      ! If we didn't just read BldFile(K), read it and interpolate the data.
-      ! Otherwise, use data from last time we read it.
-
-   IF ( K == 1 )  THEN                          ! We are on the first blade
-
-      CALL GetBlade  ( K, p )
-      CALL InterpBld ( K, p )
-
-      DO I=1,p%BldNodes
-         ThetaS (K,I) = D2R* ThetaS(K,I)    ! Convert structural twist to radians.
-         CThetaS(K,I) = COS( ThetaS(K,I) )
-         SThetaS(K,I) = SIN( ThetaS(K,I) )
-      ENDDO ! I
-
-      CalcBModes(K) = CalcBMode
-      BldFDamp(K,1) = BldFlDmp(1)
-      BldFDamp(K,2) = BldFlDmp(2)
-      BldEDamp(K,1) = BldEdDmp(1)
-      FStTunr (K,1) = FlStTunr(1)
-      FStTunr (K,2) = FlStTunr(2)
-
-   ELSEIF ( BldFile(K) /= BldFile(K-1) )  THEN  ! .TRUE. if this next blade is different
-
-      CALL GetBlade  ( K, p )
-      CALL InterpBld ( K, p )
-
-      DO I=1,p%BldNodes
-         ThetaS (K,I) = D2R* ThetaS(K,I)    ! Convert structural twist to radians.
-         CThetaS(K,I) = COS( ThetaS(K,I) )
-         SThetaS(K,I) = SIN( ThetaS(K,I) )
-      ENDDO ! I
-
-      CalcBModes(K) = CalcBMode
-      BldFDamp(K,1) = BldFlDmp(1)
-      BldFDamp(K,2) = BldFlDmp(2)
-      BldEDamp(K,1) = BldEdDmp(1)
-      FStTunr (K,1) = FlStTunr(1)
-      FStTunr (K,2) = FlStTunr(2)
-
-   ELSE                                         ! .TRUE. if this blade is the same as the previous blade
-
-      CalcBModes(K) = CalcBModes(K-1)
-      BldFDamp(K,1) = BldFDamp(K-1,1)
-      BldFDamp(K,2) = BldFDamp(K-1,2)
-      BldEDamp(K,1) = BldEDamp(K-1,1)
-      FStTunr (K,1) = FStTunr (K-1,1)
-      FStTunr (K,2) = FStTunr (K-1,2)
-
-      DO I=2,PolyOrd
-         BldEdgSh(I,K) = BldEdgSh(I,K-1)
-         BldFl1Sh(I,K) = BldFl1Sh(I,K-1)
-         BldFl2Sh(I,K) = BldFl2Sh(I,K-1)
-      ENDDO ! I
-
-      DO I=1,p%BldNodes
-         AeroCent(K,I) = AeroCent(K-1,I)
-          ThetaS (K,I) =  ThetaS (K-1,I)
-         CThetaS (K,I) = CThetaS (K-1,I)
-         SThetaS (K,I) = SThetaS (K-1,I)
-         MassB   (K,I) = MassB   (K-1,I)
-         StiffBF (K,I) = StiffBF (K-1,I)
-         StiffBE (K,I) = StiffBE (K-1,I)
-         IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-            StiffBGJ (K,I) = StiffBGJ (K-1,I)
-            StiffBEA (K,I) = StiffBEA (K-1,I)
-            BAlpha   (K,I) = BAlpha   (K-1,I)
-            InerBFlp (K,I) = InerBFlp (K-1,I)
-            InerBEdg (K,I) = InerBEdg (K-1,I)
-            RefAxisxb(K,I) = RefAxisxb(K-1,I)
-            RefAxisyb(K,I) = RefAxisyb(K-1,I)
-            IF ( I == p%BldNodes )  THEN ! Copy data for the tip also (I know this code is inefficient, but it is only computed once, so who cares!)
-               RefAxisxb(K,p%TipNode) = RefAxisxb(K-1,p%TipNode)
-               RefAxisyb(K,p%TipNode) = RefAxisyb(K-1,p%TipNode)
-            ENDIF
-            cgOffBFlp(K,I) = cgOffBFlp(K-1,I)
-            cgOffBEdg(K,I) = cgOffBEdg(K-1,I)
-            EAOffBFlp(K,I) = EAOffBFlp(K-1,I)
-            EAOffBEdg(K,I) = EAOffBEdg(K-1,I)
-         ENDIF
-      ENDDO ! I
-
-   ENDIF
-
-ENDDO ! K
+CALL GetBladeInputs ( BldFile, p, InputFileData, ErrStat, ErrMsg )
 
 
 
@@ -6697,215 +6304,6 @@ IF ( Echo )  CLOSE ( UnEc )
 
 RETURN
 END SUBROUTINE FAST_Input
-!=======================================================================
-SUBROUTINE InterpBld ( K, p )
-
-
-   ! InterpBld performs a linear interpolation of the input blade data
-   ! and writes the result in six arrays with the specified interval.
-
-
-USE                             Blades
-USE                             General
-
-IMPLICIT                        NONE
-
-
-   ! Passed variables:
-TYPE(StrD_ParameterType),INTENT(IN)  :: p                                       ! The parameters of the structural dynamics module
-INTEGER(4), INTENT(IN )      :: K                                               ! Blade number.
-
-
-   ! Local variables:
-
-INTEGER(4)                   :: Ind                                             ! Index for the node arrays.
-INTEGER(4)                   :: Sttus                                           ! Status of an attempted array allocation.
-INTEGER                      :: InterpInd                                       ! Index for the interpolated array
-
-
-
-   ! Array definitions:
-
-   !    Input      Interp    Description
-   !    -----      ------    -----------
-   !    BlFract    RNodesNorm Fractional radius (0 at root, 1 at tip)
-   !    AerCen     AeroCent   Aerodynamic center (0 at LE, 1 at TE)
-   !    StrcTwst   ThetaS     Structural twist
-   !    BMassDen   MassB      Lineal mass density
-   !    FlpStff    StiffBF    Flapwise stiffness
-   !    EdgStff    StiffBE    Edgewise stiffness
-   !    GJStff     StiffBGJ   Blade torsional stiffness
-   !    EAStff     StiffBEA   Blade extensional stiffness
-   !    Alpha      BAlpha     Blade flap/twist coupling coefficient
-   !    FlpIner    InerBFlp   Blade flap (about local structural yb-axis) mass inertia per unit length
-   !    EdgIner    InerBEdg   Blade edge (about local structural xb-axis) mass inertia per unit length
-   !    PrecrvRef  RefAxisxb  Blade offset for defining the reference axis from the pitch axis for precurved blades (along xb-axis)
-   !    PreswpRef  RefAxisyb  Blade offset for defining the reference axis from the pitch axis for preswept  blades (along yb-axis)
-   !    FlpcgOf    cgOffBFlp  Blade flap mass cg offset
-   !    EdgcgOf    cgOffBEdg  Blade edge mass cg offset
-   !    FlpEAOf    EAOffBFlp  Blade flap elastic axis offset
-   !    EdgEAOf    EAOffBEdg  Blade edge elastic axis offset
-
-
-
-   ! Depending on the number of input locations, we'll do this differently.
-
-IF ( NBlInpSt == 1 )  THEN
-
-
-      ! Maybe we're lucky today and the user specified only one input station
-      !  because the blade is a uniform beam.
-
-   DO Ind=1,p%BldNodes
-      AeroCent(K,Ind) = AerCen  (1)
-      ThetaS  (K,Ind) = StrcTwst(1)
-      MassB   (K,Ind) = BMassDen(1)
-      StiffBF (K,Ind) = FlpStff (1)
-      StiffBE (K,Ind) = EdgStff (1)
-      IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-         StiffBGJ (K,Ind) = GJStff   (1)
-         StiffBEA (K,Ind) = EAStff   (1)
-         BAlpha   (K,Ind) = Alpha    (1)
-         InerBFlp (K,Ind) = FlpIner  (1)
-         InerBEdg (K,Ind) = EdgIner  (1)
-         RefAxisxb(K,Ind) = PrecrvRef(1)
-         RefAxisyb(K,Ind) = PreswpRef(1)
-         IF ( Ind == p%BldNodes )  THEN  ! Copy data for the tip also (I know this code is inefficient, but it is only computed once, so who cares!)
-            RefAxisxb(K,p%TipNode) = PrecrvRef(1)
-            RefAxisyb(K,p%TipNode) = PreswpRef(1)
-         ENDIF
-         cgOffBFlp(K,Ind) = FlpcgOf  (1)
-         cgOffBEdg(K,Ind) = EdgcgOf  (1)
-         EAOffBFlp(K,Ind) = FlpEAOf  (1)
-         EAOffBEdg(K,Ind) = EdgEAOf  (1)
-      ENDIF
-   ENDDO ! Ind
-
-ELSE
-
-      ! We have more than one input station, so we're just going to have to
-      !  interpolate the data.
-
-InterpInd = 1
-
-   DO Ind=1,p%BldNodes
-      AeroCent(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, AerCen  , InterpInd, NBlInpSt )
-      ThetaS  (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, StrcTwst, InterpInd, NBlInpSt )
-      MassB   (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, BMassDen, InterpInd, NBlInpSt )
-      StiffBF (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, FlpStff , InterpInd, NBlInpSt )
-      StiffBE (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EdgStff , InterpInd, NBlInpSt )
-      IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-         StiffBGJ (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, GJStff   , InterpInd, NBlInpSt )
-         StiffBEA (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EAStff   , InterpInd, NBlInpSt )
-         BAlpha   (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, Alpha    , InterpInd, NBlInpSt )
-         InerBFlp (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, FlpIner  , InterpInd, NBlInpSt )
-         InerBEdg (K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EdgIner  , InterpInd, NBlInpSt )
-         RefAxisxb(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, PrecrvRef, InterpInd, NBlInpSt )
-         RefAxisyb(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, PreswpRef, InterpInd, NBlInpSt )
-         IF ( Ind == p%BldNodes )  THEN  ! Copy data for the tip also (I know this code is inefficient, but it is only computed once, so who cares!)
-            RefAxisxb(K,p%TipNode) = PrecrvRef(NBlInpSt)
-            RefAxisyb(K,p%TipNode) = PreswpRef(NBlInpSt)
-         ENDIF
-         cgOffBFlp(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, FlpcgOf  , InterpInd, NBlInpSt )
-         cgOffBEdg(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EdgcgOf  , InterpInd, NBlInpSt )
-         EAOffBFlp(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, FlpEAOf  , InterpInd, NBlInpSt )
-         EAOffBEdg(K,Ind) = InterpStp( RNodesNorm(Ind), BlFract, EdgEAOf  , InterpInd, NBlInpSt )
-      ENDIF
-   ENDDO ! Ind
-
-ENDIF
-
-
-   ! Deallocate the distributed input parameters.
-
-DEALLOCATE ( BlFract , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the BlFract array.' )
-ENDIF
-
-DEALLOCATE ( AerCen , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the AerCen array.' )
-ENDIF
-
-DEALLOCATE ( StrcTwst , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the StrcTwst array.' )
-ENDIF
-
-DEALLOCATE ( BMassDen , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the BMassDen array.' )
-ENDIF
-
-DEALLOCATE ( FlpStff , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the FlpStff array.' )
-ENDIF
-
-DEALLOCATE ( EdgStff , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the EdgStff array.' )
-ENDIF
-
-DEALLOCATE ( GJStff , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the GJStff array.' )
-ENDIF
-
-DEALLOCATE ( EAStff , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the EAStff array.' )
-ENDIF
-
-DEALLOCATE ( Alpha , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the Alpha array.' )
-ENDIF
-
-DEALLOCATE ( FlpIner , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the FlpIner array.' )
-ENDIF
-
-DEALLOCATE ( EdgIner , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the EdgIner array.' )
-ENDIF
-
-DEALLOCATE ( PrecrvRef , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the PrecrvRef array.' )
-ENDIF
-
-DEALLOCATE ( PreswpRef , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the PreswpRef array.' )
-ENDIF
-
-DEALLOCATE ( FlpcgOf , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the FlpcgOf array.' )
-ENDIF
-
-DEALLOCATE ( EdgcgOf , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the EdgcgOf array.' )
-ENDIF
-
-DEALLOCATE ( FlpEAOf , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the FlpEAOf array.' )
-ENDIF
-
-DEALLOCATE ( EdgEAOf , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error deallocating memory for the EdgEAOf array.' )
-ENDIF
-
-
-RETURN
-END SUBROUTINE InterpBld
 !=======================================================================
 SUBROUTINE InterpTwr( p, InputFileData )
 
@@ -7245,7 +6643,7 @@ WRITE (UnSu,FmtHead)  'Some calculated parameters:'
 
 WRITE (UnSu,FmtDat ) '    Hub-Height            (m)     ', p%FASTHH
 WRITE (UnSu,FmtDat ) '    Flexible Tower Length (m)     ', p%TwrFlexL
-WRITE (UnSu,FmtDat ) '    Flexible Blade Length (m)     ', BldFlexL
+WRITE (UnSu,FmtDat ) '    Flexible Blade Length (m)     ', p%BldFlexL
 
 
    ! Rotor properties:
@@ -7320,12 +6718,12 @@ DO K=1,p%NumBl
 
       DO I=1,p%BldNodes
 
-         WRITE(UnSu,'(I4,3F9.3,3F10.3,4ES11.3,F9.3,4F10.3,4F9.3)')  I, RNodesNorm(I), RNodes(I) + p%HubRad, DRNodes(I),            &
-                                                                       AeroCent(K,I), ThetaS(K,I)*R2D, MassB(K,I),               &
+         WRITE(UnSu,'(I4,3F9.3,3F10.3,4ES11.3,F9.3,4F10.3,4F9.3)')  I, RNodesNorm(I), RNodes(I) + p%HubRad, p%DRNodes(I),            &
+                                                                       p%AeroCent(K,I), ThetaS(K,I)*R2D, MassB(K,I),               &
                                                                        StiffBF(K,I), StiffBE(K,I), StiffBGJ(K,I), StiffBEA(K,I), &
-                                                                       BAlpha(K,I), InerBFlp(K,I), InerBEdg(K,I),                &
+                                                                       p%BAlpha(K,I), InerBFlp(K,I), InerBEdg(K,I),                &
                                                                        RefAxisxb(K,I), RefAxisyb(K,I),                           &
-                                                                       cgOffBFlp(K,I), cgOffBEdg(K,I),                           &
+                                                                       p%cgOffBFlp(K,I), p%cgOffBEdg(K,I),                           &
                                                                        EAOffBFlp(K,I), EAOffBEdg(K,I)
       ENDDO ! I
 
@@ -7335,7 +6733,7 @@ DO K=1,p%NumBl
       WRITE (UnSu,FmtTxt)  ' (-)      (-)      (m)      (m)       (-)     (deg)    (kg/m)     (Nm^2)     (Nm^2)'
 
       DO I=1,p%BldNodes
-         WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, RNodesNorm(I), RNodes(I) + p%HubRad, DRNodes(I), AeroCent(K,I), &
+         WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, RNodesNorm(I), RNodes(I) + p%HubRad, p%DRNodes(I), p%AeroCent(K,I), &
                                                      ThetaS(K,I)*R2D, MassB(K,I), StiffBF(K,I), StiffBE(K,I)
       ENDDO ! I
 

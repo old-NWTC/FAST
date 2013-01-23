@@ -1150,6 +1150,809 @@ FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
    
 END FUNCTION SHP
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CoordSys_Alloc( CoordSys, p, ErrStat, ErrMsg )
+
+   ! This subroutine allocates the coordinate systems in the StrD_CoordSys type.
+
+IMPLICIT NONE
+
+   ! passed arguments
+
+TYPE(StrD_CoordSys),      INTENT(OUT) :: CoordSys       ! The coordinate systems, with arrays to be allocated
+TYPE(StrD_ParameterType), INTENT(IN)  :: p              ! Parameters of the structural dynamics module
+
+INTEGER(IntKi),           INTENT(OUT) :: ErrStat        ! Error status
+CHARACTER(*),             INTENT(OUT) :: ErrMsg         ! Err msg
+
+
+   ! local variables
+
+CHARACTER(200), PARAMETER        :: ErrTxt = 'coordinate system arrays in SUBROUTINE CoordSys_Alloc.'
+
+
+   ! Initialize ErrStat and ErrMsg
+
+ErrStat = ErrID_None
+ErrMsg  = ""
+
+
+  ! Allocate coordinate system arrays:
+
+ALLOCATE ( CoordSys%i1(p%NumBl,3), CoordSys%i2(p%NumBl,3), CoordSys%i3(p%NumBl,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+IF ( ErrStat /= 0 )  THEN
+   ErrStat = ErrID_Fatal
+   ErrMsg  = 'Error allocating the i1, i2, and i3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
+   RETURN
+END IF
+
+
+ALLOCATE ( CoordSys%j1(p%NumBl,3), CoordSys%j2(p%NumBl,3), CoordSys%j3(p%NumBl,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+IF ( ErrStat /= 0 )  THEN
+   ErrStat = ErrID_Fatal
+   ErrMsg  = 'Error allocating the j1, j2, and j3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
+   RETURN
+END IF
+
+
+ALLOCATE ( CoordSys%m1(p%NumBl,p%BldNodes,3), CoordSys%m2(p%NumBl,p%BldNodes,3), &
+           CoordSys%m3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+IF ( ErrStat /= 0 )  THEN
+   ErrStat = ErrID_Fatal
+   ErrMsg  = 'Error allocating the m1, m2, and m3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
+   RETURN
+END IF
+
+
+ALLOCATE ( CoordSys%n1(p%NumBl,p%BldNodes,3), CoordSys%n2(p%NumBl,p%BldNodes,3), &
+           CoordSys%n3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+IF ( ErrStat /= 0 )  THEN
+   ErrStat = ErrID_Fatal
+   ErrMsg  = 'Error allocating the n1, n2, and n3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
+   RETURN
+END IF
+
+
+ALLOCATE ( CoordSys%t1(p%TwrNodes,3), CoordSys%t2(p%TwrNodes,3), CoordSys%t3(p%TwrNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+IF ( ErrStat /= 0 )  THEN
+   ErrStat = ErrID_Fatal
+   ErrMsg  = 'Error allocating the t1, t2, and t3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
+   RETURN
+END IF
+
+
+ALLOCATE ( CoordSys%te1(p%NumBl,p%BldNodes,3), CoordSys%te2(p%NumBl,p%BldNodes,3), &
+           CoordSys%te3(p%NumBl,p%BldNodes,3), STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
+IF ( ErrStat /= 0 )  THEN
+   ErrStat = ErrID_Fatal
+   ErrMsg  = 'Error allocating the te1, te2, and te3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
+   RETURN
+END IF
+
+
+RETURN
+END SUBROUTINE CoordSys_Alloc
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrMsg )
+! This routine checks the blade file input data for errors
+!----------------------------------------------------------------------------------------------------------------------------------
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
+   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated 
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
+
+      ! local variables
+   REAL(ReKi)                               :: TipDispl                            ! Blade tip displacement for a mode shape.
+   INTEGER                                  :: I                                   ! Loop counter
+
+
+   ErrStat = ErrID_None
+   ErrMsg= ''
+   
+   
+      ! Check that BlFract goes from 0.0 to 1.0 in increasing order:
+   
+   IF ( .NOT. EqualRealNos( BladeKInputFileData%BlFract(1), 0.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract(1) must be 0.0.'
+   END IF 
+
+   IF ( BladeKInputFileData%NBlInpSt /= 1 .AND. &
+      .NOT. EqualRealNos( BladeKInputFileData%BlFract(BladeKInputFileData%NBlInpSt), 1.0_ReKi )  ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.' 
+   END IF
+
+   DO I = 2,BladeKInputFileData%NBlInpSt
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.' 
+
+      IF ( BladeKInputFileData%BlFract(I) <= BladeKInputFileData%BlFract(I-1) )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
+                                                      //TRIM( Num2LStr(I-1) )//').'
+         
+      ENDIF
+   END DO 
+   
+
+
+   DO I = 1,BladeKInputFileData%NBlInpSt
+   
+         ! Check that AerCen is contained in [0.0, 1.0]:
+      IF ( ( BladeKInputFileData%AerCen(I) ) < 0.0_ReKi .OR. ( BladeKInputFileData%AerCen(I) > 1.0_ReKi ) )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  AerCen('//TRIM( Num2LStr( I ) )//') must be between 0 and 1 (inclusive).'
+      END IF
+      
+         ! Check that StrcTwst is contained in (-180.0, 180.0]:
+      IF ( ( BladeKInputFileData%StrcTwst(I) <= -180.0_ReKi ) .OR. ( BladeKInputFileData%StrcTwst(I) > 180.0_ReKi ) )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  StrcTwst('//TRIM( Num2LStr( I ) ) // &
+                     ') must be greater than -180 and less than or equal to 180.'
+      END IF
+   
+         ! Check that BMassDen is contained in (0.0, inf):
+      IF ( BladeKInputFileData%BMassDen(I) <= 0.0_ReKi )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  BMassDen('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+      END IF
+      
+         ! Check that FlpStff is contained in (0.0, inf):
+      IF ( BladeKInputFileData%FlpStff (I) <= 0.0_ReKi )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+      END IF
+   
+         ! Check that EdgStff is contained in (0.0, inf):
+      IF ( BladeKInputFileData%EdgStff (I) <= 0.0_ReKi )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+      END IF
+   
+   END DO
+   
+   
+   IF ( ChkAdmVals ) THEN  ! Check values for Adams input
+
+      
+         ! The reference axis must be coincident with the pitch axis at the blade root (I == 1):
+      IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(1), 0.0_ReKi ) .OR. &
+            .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(1), 0.0_ReKi )      )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  Both PrecrvRef(1) and PreswpRef(1) must be zero '//&
+                            '(the reference axis must be coincident with the pitch axis at the blade root).'
+      END IF       
+
+      
+      DO I = 1,BladeKInputFileData%NBlInpSt
+   
+            ! Check that GJStff is contained in (0.0, inf):
+         IF ( BladeKInputFileData%GJStff(I) <= 0.0_ReKi )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  GJStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+         END IF
+         
+            ! Check that EAStff is contained in (0.0, inf):
+         IF ( BladeKInputFileData%EAStff(I) <= 0.0_ReKi )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  EAStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+         END IF
+         
+            ! Check that Alpha is contained in (-1.0, 1):
+         IF ( ( BladeKInputFileData%Alpha(I) <= -1.0_ReKi ) .OR. ( BladeKInputFileData%Alpha(I) >= 1.0_ReKi ) )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  Alpha('//TRIM( Num2LStr( I ) )//') (the blade flap/twist'// &
+                         ' coupling coefficient) must be between -1 and 1 (exclusive).'
+         END IF
+         
+            ! Check that FlpIner is contained in [0.0, inf):
+         IF ( BladeKInputFileData%FlpIner(I) <  0.0_ReKi )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
+         END IF
+         
+            ! Check that EdgIner is contained in [0.0, inf):
+         IF ( BladeKInputFileData%EdgIner(I) <  0.0_ReKi )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
+         END IF
+                           
+            ! Check that PrecrvRef is 0.0 for Adams models:
+         IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(I), 0.0_ReKi) )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  PrecrvRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
+         END IF
+         
+            ! Check that GJStff is contained in (0.0, inf):
+         IF ( .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(I), 0.0_ReKi) )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  PreswpRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
+         END IF
+         
+      END DO
+               
+   END IF  ! check for Adams models
+   
+      
+      ! Check that the blade damping is not negative:  
+      
+   IF ( ANY( BladeKInputFileData%BldFlDmp < 0.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldFlDmp must not be negative.'
+   END IF
+
+   IF ( ANY( BladeKInputFileData%BldEdDmp < 0.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldEdDmp must not be negative.'
+   END IF
+   
+
+      ! Check that the stiffness tuner isn't negative:
+      
+   IF ( ANY( BladeKInputFileData%FlStTunr <= 0.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlStTunr must be greater than zero.'
+   END IF
+
+   
+      ! Check that the mode shape coefficients add to 1.0:
+      ! bjj: old check was this:
+      ! ( ABS( TipDispl - 1.0 ) > 0.001 )
+
+   TipDispl = SUM(BladeKInputFileData%BldFl1Sh)
+   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-flap mode-1 shape coefficients must add to 1.0.'
+   END IF
+   
+
+   TipDispl = SUM(BladeKInputFileData%BldFl2Sh)
+   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-flap mode-2 shape coefficients must add to 1.0.'
+   END IF   
+   
+
+   TipDispl = SUM(BladeKInputFileData%BldEdgSh)
+   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-edge mode shape coefficients must add to 1.0.'
+   END IF  
+
+
+END SUBROUTINE ValidateBladeData
+!----------------------------------------------------------------------------------------------------------------------------------
+
+SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, ErrStat, ErrMsg )
+
+
+   ! This routine reads a blade file and validates the input.
+
+IMPLICIT                        NONE
+
+
+   ! Passed variables:
+
+TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
+CHARACTER(*),             INTENT(IN)     :: BldFile                             ! Name of the blade input file data
+LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file 
+
+INTEGER(IntKi),           INTENT(OUT)    :: ErrStat        ! Error status
+CHARACTER(*),             INTENT(OUT)    :: ErrMsg         ! Err msg
+
+
+   ! Local variables:
+   
+REAL(ReKi)                   :: AdjBlMs                                         ! Factor to adjust blade mass density.
+REAL(ReKi)                   :: AdjEdSt                                         ! Factor to adjust edge stiffness.
+REAL(ReKi)                   :: AdjFlSt                                         ! Factor to adjust flap stiffness.
+
+REAL(ReKi)                   :: TmpRAry(17)                                     ! Temporary variable to read table from file (up to 17 columns)
+   
+INTEGER(IntKi)               :: I                                               ! A generic DO index.
+INTEGER( IntKi )             :: UnIn                                            ! Unit number for reading file
+INTEGER( IntKi )             :: NInputCols                                      ! Number of columns to be read from the file
+INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
+CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
+
+
+
+CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   ! Open the input file for blade K.
+
+CALL OpenFInpFile ( UnIn, BldFile, ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+!  -------------- HEADER -------------------------------------------------------
+
+   ! Ship the header.
+
+CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 1', ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 2', ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 3', ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+!  -------------- BLADE PARAMETERS ---------------------------------------------
+
+
+   ! Skip the comment line.
+
+CALL ReadCom ( UnIn, BldFile, 'blade parameters', ErrStat2, ErrMsg2  )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+   ! NBlInpSt - Number of blade input stations.
+
+CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%NBlInpSt, 'NBlInpSt', 'Number of blade input stations' )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+   
+
+   ! Allocate the arrays based on this NBlInpSt input 
+CALL Alloc_BladeProperties( BladeKInputFileData, ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+   
+   ! CalcBMode - Calculate blade mode shapes (switch).
+
+!JASON: ADD LOGIC FOR THIS NEW VARIABLE:
+!JASON:CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%CalcBMode, 'CalcBMode', 'Calculate blade mode shapes' )
+CALL ReadCom ( UnIn, BldFile, 'currently ignored CalcBMode', ErrStat2, ErrMsg2  )
+   BladeKInputFileData%CalcBMode = .FALSE.
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   ! BldFlDmp - Blade structural damping ratios in flapwise direction.
+
+CALL ReadAryLines( UnIn, BldFile, BladeKInputFileData%BldFlDmp, SIZE(BladeKInputFileData%BldFlDmp), 'BldFlDmp', &
+                                    'Blade structural damping ratios in flapwise direction', ErrStat2  )
+   ErrMsg2 = ' Error reading BldFlDmp array from '//TRIM(BldFile)//'.'
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+   ! BldEdDmp - Blade structural damping ratios in edgewise direction.
+
+CALL ReadAryLines( UnIn, BldFile, BladeKInputFileData%BldEdDmp, SIZE(BladeKInputFileData%BldEdDmp), 'BldEdDmp', &
+                                    'Blade structural damping ratios in edgewise direction', ErrStat2 )
+   ErrMsg2 = ' Error reading BldEdDmp array from '//TRIM(BldFile)//'.'
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+!  -------------- BLADE ADJUSTMENT FACTORS -------------------------------------
+
+
+   ! Skip the comment line.
+
+CALL ReadCom ( UnIn, BldFile, 'blade adjustment factors', ErrStat2, ErrMsg2  )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+   
+   ! FlStTunr(1) - Blade flapwise modal stiffness tuners.
+
+CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%FlStTunr, SIZE(BladeKInputFileData%FlStTunr), 'FlStTunr', &
+                                               'Blade flapwise modal stiffness tuners', ErrStat2 )
+   ErrMsg2 = ' Error reading FlStTunr array from '//TRIM(BldFile)//'.'
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+   ! AdjBlMs - Factor to adjust blade mass density.
+
+CALL ReadVar ( UnIn, BldFile, AdjBlMs, 'AdjBlMs', 'Factor to adjust blade mass density', ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+   ! AdjFlSt - Factor to adjust blade flap stiffness.
+
+CALL ReadVar ( UnIn, BldFile, AdjFlSt, 'AdjFlSt', 'Factor to adjust blade flap stiffness', ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+   ! AdjEdSt - Factor to adjust blade edge stiffness.
+
+CALL ReadVar ( UnIn, BldFile, AdjEdSt, 'AdjEdSt', 'Factor to adjust blade edge stiffness', ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   
+      ! Check the locally-defined adjustment factors: AdjBlMs, AdjFlSt, AdjEdSt
+   
+   IF ( AdjBlMs <= 0.0_ReKi ) THEN
+      CALL CheckError( ErrID_Warn, ' AdjBlMs must be greater than zero.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF
+
+   IF ( AdjFlSt <= 0.0_ReKi ) THEN
+      CALL CheckError( ErrID_Warn, ' AdjFlSt must be greater than zero.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF
+   
+   IF ( AdjEdSt <= 0.0_ReKi ) THEN
+      CALL CheckError( ErrID_Warn, ' AdjEdSt must be greater than zero.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF   
+
+
+!  -------------- DISTRIBUTED BLADE PROPERTIES ---------------------------------
+
+
+   ! Skip the comment lines.
+
+CALL ReadCom ( UnIn, BldFile, 'distributed blade parameters'     , ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+CALL ReadCom ( UnIn, BldFile, 'distributed-blade-parameter names', ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+CALL ReadCom ( UnIn, BldFile, 'distributed-blade-parameter units', ErrStat2, ErrMsg2 )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+   ! Read the table.
+
+IF ( ReadAdmVals ) THEN
+   NInputCols = 17
+ELSE
+   NInputCols = 6
+END IF   
+
+
+DO I=1,BladeKInputFileData%NBlInpSt
+
+   CALL ReadAry( UnIn, BldFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Blade input station table', ErrStat2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   BladeKInputFileData%BlFract( I) = TmpRAry(1)
+   BladeKInputFileData%AerCen(  I) = TmpRAry(2)
+   BladeKInputFileData%StrcTwst(I) = TmpRAry(3)
+   BladeKInputFileData%BMassDen(I) = TmpRAry(4)*AdjBlMs  ! Apply the correction factors to the elemental data.
+   BladeKInputFileData%FlpStff( I) = TmpRAry(5)*AdjFlSt  ! Apply the correction factors to the elemental data.
+   BladeKInputFileData%EdgStff( I) = TmpRAry(6)*AdjEdSt  ! Apply the correction factors to the elemental data.
+   
+   IF ( NInputCols > 6 ) THEN
+      BladeKInputFileData%GJStff(   I) = TmpRAry( 7)
+      BladeKInputFileData%EAStff(   I) = TmpRAry( 8)
+      BladeKInputFileData%Alpha(    I) = TmpRAry( 9)
+      BladeKInputFileData%FlpIner(  I) = TmpRAry(10)
+      BladeKInputFileData%EdgIner(  I) = TmpRAry(11)
+      BladeKInputFileData%PrecrvRef(I) = TmpRAry(12)
+      BladeKInputFileData%PreswpRef(I) = TmpRAry(13)
+      BladeKInputFileData%FlpcgOf(  I) = TmpRAry(14)
+      BladeKInputFileData%EdgcgOf(  I) = TmpRAry(15)
+      BladeKInputFileData%FlpEAOf(  I) = TmpRAry(16)
+      BladeKInputFileData%EdgEAOf(  I) = TmpRAry(17)
+   END IF        
+ENDDO ! I
+
+
+
+!  -------------- BLADE MODE SHAPES --------------------------------------------
+
+
+   ! Skip the comment line.
+
+CALL ReadCom ( UnIn, BldFile, 'blade mode shapes', ErrStat2, ErrMsg2  )
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   ! BldFl1Sh - Blade-flap mode-1 shape coefficients.
+CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldFl1Sh, SIZE(BladeKInputFileData%BldFl1Sh), 'BldFl1Sh', &
+                        'Blade-flap mode-1 shape coefficients', ErrStat2 )
+   ErrMsg2 = ' Error reading BldFl1Sh array from '//TRIM(BldFile)//'.'
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   ! BldFl2Sh - Blade-flap mode-2 shape coefficients.
+
+CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldFl2Sh, SIZE(BladeKInputFileData%BldFl2Sh), 'BldFl2Sh', &
+                 'Blade-flap mode-2 shape coefficients', ErrStat2 )
+   ErrMsg2 = ' Error reading BldFl2Sh array from '//TRIM(BldFile)//'.'
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   ! BldEdgSh - Blade-edge mode shape coefficients.
+   
+CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldEdgSh, SIZE(BladeKInputFileData%BldEdgSh), 'BldEdgSh', &
+                  'Blade-edge mode shape coefficients', ErrStat2 )
+   ErrMsg2 = ' Error reading BldEdgSh array from '//TRIM(BldFile)//'.'
+   CALL CheckError( ErrStat2, ErrMsg2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+!  -------------- END OF FILE --------------------------------------------
+   
+   ! Close the blade file.
+
+CLOSE ( UnIn )
+RETURN
+
+
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+   
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+      
+      
+      !............................................................................................................................
+      ! Set error status/message; 
+      !............................................................................................................................
+   
+      IF ( ErrID /= ErrID_None ) THEN
+      
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+         
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnIn )
+         END IF        
+         
+      END IF                  
+            
+         
+   END SUBROUTINE CheckError
+
+END SUBROUTINE ReadBladeFile
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Alloc_BladeProperties( BladeKInputFileData, ErrStat, ErrMsg )
+! This routine allocates arrays for the blade properties from the input file
+!----------------------------------------------------------------------------------------------------------------------------------
+
+   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat        ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg         ! Err msg
+
+   
+   IF ( BladeKInputFileData%NBlInpSt < 1 )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating arrays for blade input properties: NBlInpSt must be at least 1.' 
+      RETURN
+   END IF
+   
+   
+      ! Allocate the arrays.
+
+   CALL AllocAry  ( BladeKInputFileData%BlFract,  BladeKInputFileData%NBlInpSt, 'BlFract'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%AerCen,   BladeKInputFileData%NBlInpSt, 'AerCen'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%StrcTwst, BladeKInputFileData%NBlInpSt, 'StrcTwst' , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%BMassDen, BladeKInputFileData%NBlInpSt, 'BMassDen' , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%FlpStff,  BladeKInputFileData%NBlInpSt, 'FlpStff'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%EdgStff,  BladeKInputFileData%NBlInpSt, 'EdgStff'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%GJStff,   BladeKInputFileData%NBlInpSt, 'GJStff'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%EAStff,   BladeKInputFileData%NBlInpSt, 'EAStff'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%Alpha,    BladeKInputFileData%NBlInpSt, 'Alpha'    , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%FlpIner,  BladeKInputFileData%NBlInpSt, 'FlpIner'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%EdgIner,  BladeKInputFileData%NBlInpSt, 'EdgIner'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%PrecrvRef,BladeKInputFileData%NBlInpSt, 'PrecrvRef', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%PreswpRef,BladeKInputFileData%NBlInpSt, 'PreswpRef', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%FlpcgOf,  BladeKInputFileData%NBlInpSt, 'FlpcgOf'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%EdgcgOf,  BladeKInputFileData%NBlInpSt, 'EdgcgOf'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%FlpEAOf,  BladeKInputFileData%NBlInpSt, 'FlpEAOf'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%EdgEAOf,  BladeKInputFileData%NBlInpSt, 'EdgEAOf'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+
+   
+      ! BJJ: note that these used to be allocated 2:PolyOrd  :
+   
+   CALL AllocAry  ( BladeKInputFileData%BldFl1Sh,  PolyOrd-1, 'BldFl1Sh'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%BldFl2Sh,  PolyOrd-1, 'BldFl2Sh'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileData%BldEdgSh,  PolyOrd-1, 'BldEdgSh'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   
+   
+END SUBROUTINE Alloc_BladeProperties
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
+! This takes the blade input file data and sets the corresponding blade parameters, performing linear interpolation of the
+! input data to the specified blade mesh.
+!----------------------------------------------------------------------------------------------------------------------------------
+
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
+   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeInData(:)                      ! Program input data for all blades
+   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set 
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+   
+      ! Local variables:
+   REAL(ReKi)                               :: x                                   ! Fractional location between two points in linear interpolation
+   INTEGER(IntKi )                          :: K                                   ! Blade number
+   INTEGER(IntKi )                          :: J                                   ! Index for the node arrays
+   INTEGER(IntKi)                           :: InterpInd                           ! Index for the interpolation routine
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+   
+!bjj: it would probably make sense to allocate all of these arrays here (shape as well as the interpolated/mesh arrays)
+!
+!
+!      ! Allocate space for the arrays (BJJ check that this isn't done elsewhere...)
+!ALLOCATE( p%BldEdgSh(2:PolyOrd,p%NumBl), p%BldFl1Sh(2:PolyOrd,p%NumBl), BldFl2Sh(2:PolyOrd,p%NumBl), STAT = ErrStat )
+!IF ( ErrStat /= 0 ) THEN
+!   ErrStat = ErrID_Fatal
+!   ErrMsg  = ' Error allocating BldEdgSh, BldFl1Sh, and BldFl2Sh arrays.'
+!   RETURN
+!END IF   
+   
+
+   ! Array definitions:
+
+   !    Input      Interp    Description
+   !    -----      ------    -----------
+   !    BlFract    RNodesNorm Fractional radius (0 at root, 1 at tip)
+   !    AerCen     AeroCent   Aerodynamic center (0 at LE, 1 at TE)
+   !    StrcTwst   ThetaS     Structural twist
+   !    BMassDen   MassB      Lineal mass density
+   !    FlpStff    StiffBF    Flapwise stiffness
+   !    EdgStff    StiffBE    Edgewise stiffness
+   !    GJStff     StiffBGJ   Blade torsional stiffness
+   !    EAStff     StiffBEA   Blade extensional stiffness
+   !    Alpha      BAlpha     Blade flap/twist coupling coefficient
+   !    FlpIner    InerBFlp   Blade flap (about local structural yb-axis) mass inertia per unit length
+   !    EdgIner    InerBEdg   Blade edge (about local structural xb-axis) mass inertia per unit length
+   !    PrecrvRef  RefAxisxb  Blade offset for defining the reference axis from the pitch axis for precurved blades (along xb-axis)
+   !    PreswpRef  RefAxisyb  Blade offset for defining the reference axis from the pitch axis for preswept  blades (along yb-axis)
+   !    FlpcgOf    cgOffBFlp  Blade flap mass cg offset
+   !    EdgcgOf    cgOffBEdg  Blade edge mass cg offset
+   !    FlpEAOf    EAOffBFlp  Blade flap elastic axis offset
+   !    EdgEAOf    EAOffBEdg  Blade edge elastic axis offset
+
+   
+      ! Perform a linear interpolation of the input data to map to the meshed data for simulation:
+    
+   DO K=1,p%NumBl      
+      InterpInd = 1
+
+      DO J=1,p%BldNodes
+         
+            ! Get the index into BlFract for all of the arrays, using the NWTC Subroutine Library
+         p%AeroCent(K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%AerCen, &
+                                      InterpInd, BladeInData(K)%NBlInpSt )
+      
+            ! The remaining arrays will have the same x value for the linear interpolation, 
+            ! so we'll do it manually (with a local subroutine) instead of calling the InterpStp routine again
+         x = ( p%RNodesNorm(InterpInd)             - BladeInData(K)%BlFract(InterpInd) ) / &
+             ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
+       
+         p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd )
+         p%MassB   (K,J) = InterpAry( x, BladeInData(K)%BMassDen, InterpInd )
+         p%StiffBF (K,J) = InterpAry( x, BladeInData(K)%FlpStff , InterpInd )
+         p%StiffBE (K,J) = InterpAry( x, BladeInData(K)%EdgStff , InterpInd )
+      
+         IF ( SetAdmVals ) THEN
+            p%StiffBGJ (K,J) = InterpAry( x, BladeInData(K)%GJStff   , InterpInd )
+            p%StiffBEA (K,J) = InterpAry( x, BladeInData(K)%EAStff   , InterpInd )
+            p%BAlpha   (K,J) = InterpAry( x, BladeInData(K)%Alpha    , InterpInd )
+            p%InerBFlp (K,J) = InterpAry( x, BladeInData(K)%FlpIner  , InterpInd )
+            p%InerBEdg (K,J) = InterpAry( x, BladeInData(K)%EdgIner  , InterpInd )
+            p%RefAxisxb(K,J) = InterpAry( x, BladeInData(K)%PrecrvRef, InterpInd )
+            p%RefAxisyb(K,J) = InterpAry( x, BladeInData(K)%PreswpRef, InterpInd )
+            p%cgOffBFlp(K,J) = InterpAry( x, BladeInData(K)%FlpcgOf  , InterpInd )
+            p%cgOffBEdg(K,J) = InterpAry( x, BladeInData(K)%EdgcgOf  , InterpInd )
+            p%EAOffBFlp(K,J) = InterpAry( x, BladeInData(K)%FlpEAOf  , InterpInd )
+            p%EAOffBEdg(K,J) = InterpAry( x, BladeInData(K)%EdgEAOf  , InterpInd )
+         END IF
+      
+      
+      END DO ! J (Blade nodes)
+   
+      IF ( SetAdmVals ) THEN
+            ! Set the valus for the tip node
+         p%RefAxisxb(K,p%TipNode) = BladeInData(K)%PrecrvRef( BladeInData(K)%NBlInpSt )
+         p%RefAxisyb(K,p%TipNode) = BladeInData(K)%PreswpRef( BladeInData(K)%NBlInpSt )  
+      END IF
+   
+      
+         ! Set the blade damping and stiffness tuner
+      p%BldFDamp(K,:) = BladeInData(K)%BldFlDmp
+      p%FStTunr (K,:) = BladeInData(K)%FlStTunr
+
+      
+      
+         ! Set the mode shape arrays
+       !p%CalcBModes(K) = BladeInData(K)%CalcBMode
+     
+      p%BldEdgSh(:,K) = BladeInData(K)%BldEdgSh
+      p%BldFl1Sh(:,K) = BladeInData(K)%BldFl1Sh
+      p%BldFl2Sh(:,K) = BladeInData(K)%BldFl2Sh
+      
+
+   END DO ! ( Blades )
+
+   
+   p%ThetaS  = D2R*p%ThetaS
+   p%CThetaS = COS(p%ThetaS)
+   p%CThetaS = SIN(p%ThetaS)
+   
+ 
+   
+   
+   
+   
+RETURN
+   ! bjj: also set mode shapes (I've changed the inputs...).
+
+   
+   
+   
+
+CONTAINS
+   FUNCTION InterpAry( x, YAry, Ind )
+      ! This subroutine is used to interpolate the arrays more efficiently (all arrays have the same X value)
+      ! See InterpStpReal() for comparison. This assumes we already know Ind and that 
+      ! x = ( XVal - XAry(Ind) )/( XAry(Ind+1) - XAry(Ind) )
+      
+      
+      REAL(ReKi),      INTENT(IN) :: x                ! the relative distance between Ind and Ind+ 1
+      REAL(ReKi),      INTENT(IN) :: YAry (:)         ! Array of Y values to be interpolated.
+      INTEGER(IntKi) , INTENT(IN) :: Ind              ! the index into the array 
+      
+      REAL(ReKi)                  :: InterpAry        ! the value calculated in this function
+      
+      InterpAry = ( YAry(Ind+1) - YAry(Ind) ) * x  + YAry(Ind)
+      
+   END FUNCTION InterpAry
+   
+END SUBROUTINE SetBladeParams
+
 
 END MODULE StructDyn
 !**********************************************************************************************************************************

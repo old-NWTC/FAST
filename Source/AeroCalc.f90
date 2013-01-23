@@ -46,57 +46,57 @@ INTEGER                    :: ErrStat
 
 p_StrD%BldNodes = NumADBldNodes
 
-IF (.NOT. ALLOCATED(RNodes)) THEN
-   ALLOCATE ( RNodes(p_StrD%BldNodes) , STAT=Sttus )
+IF (.NOT. ALLOCATED(p_StrD%RNodes)) THEN
+   ALLOCATE ( p_StrD%RNodes(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the RNodes array.' )
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED(DRNodes)) THEN
-   ALLOCATE ( DRNodes(p_StrD%BldNodes) , STAT=Sttus )
+IF (.NOT. ALLOCATED(p_StrD%DRNodes)) THEN
+   ALLOCATE ( p_StrD%DRNodes(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the DRNodes array.' )
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED(Chord)) THEN
-   ALLOCATE ( Chord(p_StrD%BldNodes) , STAT=Sttus )
+IF (.NOT. ALLOCATED(p_StrD%Chord)) THEN
+   ALLOCATE ( p_StrD%Chord(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the Chord array.' )
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED(AeroTwst)) THEN
-   ALLOCATE ( AeroTwst(p_StrD%BldNodes) , STAT=Sttus )
+IF (.NOT. ALLOCATED(p_StrD%AeroTwst)) THEN
+   ALLOCATE ( p_StrD%AeroTwst(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the AeroTwst array.' )
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED(CAeroTwst)) THEN
-   ALLOCATE ( CAeroTwst(p_StrD%BldNodes) , STAT=Sttus )
+IF (.NOT. ALLOCATED(p_StrD%CAeroTwst)) THEN
+   ALLOCATE ( p_StrD%CAeroTwst(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the CAeroTwst array.' )
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED(SAeroTwst)) THEN
-   ALLOCATE ( SAeroTwst(p_StrD%BldNodes) , STAT=Sttus )
+IF (.NOT. ALLOCATED(p_StrD%SAeroTwst)) THEN
+   ALLOCATE ( p_StrD%SAeroTwst(p_StrD%BldNodes) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the SAeroTwst array.' )
    ENDIF
 ENDIF
 
 RNodes   = ADAeroMarkers%Blade(:,1)%Position(3) + p_StrD%HubRad         ! ADAeroMarkers contains relative markers after initialization
-DRNodes(1) = 2.0*( RNodes(1) - p_StrD%HubRad )
+p_StrD%DRNodes(1) = 2.0*( RNodes(1) - p_StrD%HubRad )
 DO IElm = 2,NumADBldNodes
-   DRNodes(IElm) = 2.0*( RNodes(IElm) - RNodes(IElm-1) ) - DRNodes(IElm-1)
+   p_StrD%DRNodes(IElm) = 2.0*( p_StrD%RNodes(IElm) - p_StrD%RNodes(IElm-1) ) - p_StrD%DRNodes(IElm-1)
 END DO
-Chord    = C
-CAeroTwst(:) = ADAeroMarkers%Blade(:,1)%Orientation(1,1)
-SAeroTwst(:) = ADAeroMarkers%Blade(:,1)%Orientation(2,1)
-AeroTwst( :) = ATAN2( SAeroTwst(:), CAeroTwst(:) )
+p_StrD%Chord    = C
+p_StrD%CAeroTwst(:) = ADAeroMarkers%Blade(:,1)%Orientation(1,1)
+p_StrD%SAeroTwst(:) = ADAeroMarkers%Blade(:,1)%Orientation(2,1)
+p_StrD%AeroTwst( :) = ATAN2( p_StrD%SAeroTwst(:), p_StrD%CAeroTwst(:) )
 
 
 AD_RefHt = AD_GetConstant('RefHt', ErrStat)

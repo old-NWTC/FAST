@@ -2172,8 +2172,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
          Slopexb = -( RefAxisyb(K,J+1)                    )/( RNodes(J+1)               ) ! The reference axis is coincident with the
          Slopeyb =  ( RefAxisxb(K,J+1)                    )/( RNodes(J+1)               ) ! pitch axis at the blade root (RNodes = 0)
       ELSEIF ( J == p%BldNodes )  THEN   ! Outermost blade element
-         Slopexb = -( RefAxisyb(K,J+1) - RefAxisyb(K,J-1) )/( BldFlexL    - RNodes(J-1) ) ! Slope of the reference axis about the xb-axis using central difference differentation
-         Slopeyb =  ( RefAxisxb(K,J+1) - RefAxisxb(K,J-1) )/( BldFlexL    - RNodes(J-1) ) ! Slope of the reference axis about the yb-axis using central difference differentation
+         Slopexb = -( RefAxisyb(K,J+1) - RefAxisyb(K,J-1) )/( p%BldFlexL    - RNodes(J-1) ) ! Slope of the reference axis about the xb-axis using central difference differentation
+         Slopeyb =  ( RefAxisxb(K,J+1) - RefAxisxb(K,J-1) )/( p%BldFlexL    - RNodes(J-1) ) ! Slope of the reference axis about the yb-axis using central difference differentation
       ELSE                             ! All other blade elements
          Slopexb = -( RefAxisyb(K,J+1) - RefAxisyb(K,J-1) )/( RNodes(J+1) - RNodes(J-1) ) ! Slope of the reference axis about the xb-axis using central difference differentation
          Slopeyb =  ( RefAxisxb(K,J+1) - RefAxisxb(K,J-1) )/( RNodes(J+1) - RNodes(J-1) ) ! Slope of the reference axis about the yb-axis using central difference differentation
@@ -2188,7 +2188,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
    ! Let's define the lengths of the blade elements used in blade graphics:
 
-      DRNodesGRA(J) = DRNodes(J)*SQRT( 1.0 + Slopexb*Slopexb + Slopeyb*Slopeyb )
+      DRNodesGRA(J) = p%DRNodes(J)*SQRT( 1.0 + Slopexb*Slopexb + Slopeyb*Slopeyb )
 
 
    ! Let's redefine what the trailing edge coordinate system is now that we
@@ -2197,8 +2197,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
    !   aerodynamic axes (te2 points toward trailing edge, te1 points toward
    !   suction surface):
 
-      CoordSys%te1(K,J,:) = Ref1*CAeroTwst(J) - Ref2*SAeroTwst(J)
-      CoordSys%te2(K,J,:) = Ref1*SAeroTwst(J) + Ref2*CAeroTwst(J)
+      CoordSys%te1(K,J,:) = Ref1*p%CAeroTwst(J) - Ref2*p%SAeroTwst(J)
+      CoordSys%te2(K,J,:) = Ref1*p%SAeroTwst(J) + Ref2*p%CAeroTwst(J)
       CoordSys%te3(K,J,:) = Ref3
 
 
@@ -2237,7 +2237,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
    ! Let's store the location of the blade tip relative to the outermost blade
    !   element structural axes:
 
-   EAVec(K,p%TipNode,:) = BldFlexL             *CoordSys%i3 (K,         :) - RNodes   (  p%BldNodes)*CoordSys%i3 (K,         :) &
+   EAVec(K,p%TipNode,:) = p%BldFlexL             *CoordSys%i3 (K,         :) - RNodes   (  p%BldNodes)*CoordSys%i3 (K,         :) &
                       + RefAxisxb(K,p%TipNode )*CoordSys%j1 (K,         :) + RefAxisyb(K,p%TipNode )*CoordSys%j2 (K,         :) &
                       - RefAxisxb(K,p%BldNodes)*CoordSys%j1 (K,         :) - RefAxisyb(K,p%BldNodes)*CoordSys%j2 (K,         :) &
                       - EAOffBFlp(K,p%BldNodes)*CoordSys%te1(K,p%BldNodes,:) - EAOffBEdg(K,p%BldNodes)*CoordSys%te2(K,p%BldNodes,:)
@@ -2254,7 +2254,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
    ! PART:
 
       TmpID  = 10000*K + J
-      ThnBarI = MassB(K,J)*( DRNodes(J)**3 )/12.0  ! Define the transverse inertias of the blade element (both identical) to be that of a thin uniform bar.
+      ThnBarI = MassB(K,J)*( p%DRNodes(J)**3 )/12.0  ! Define the transverse inertias of the blade element (both identical) to be that of a thin uniform bar.
       TmpVec  = PtfmSurge*CoordSys%z1 +   PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   &
               + p%RFrlPntxn*CoordSys%d1 +   p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                          &
               + p%rVPxn*CoordSys%rf1    +   p%rVPzn*CoordSys%rf2    - p%rVPyn*CoordSys%rf3                             &
@@ -2269,10 +2269,10 @@ DO K = 1,p%NumBl       ! Loop through all blades
       WRITE (UnAD,FmtTRTRTR        )  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)   ! 3-point method
       WRITE (UnAD,FmtText          )  ', CM = '//TRIM(Int2LStr( 10000*K + 5000 + J ))
 !JASON: THIS MASS CALCULATION SHOULD USE DRNodesGRA SINCE THE MASS OF A SHEARED ELEMENT WOULD BE MORE THAN A STRAIGHT ELEMENT.  FOR EXAMPLE, IF THERE WAS A LINEAR PRESWEEP IN A BEAM, THEN THE MASS OF THE BEAM WOULD BE 1/COS(ANGLE) TIMES THE MASS OF AN EQUIVALENT STRAIGHT BEAM (SINCE THE LENGTH OF A THE SWEPT BEAM WOULD BE 1/COS(ANGLE) TIMES THE LENGTH OF THE STRAIGHT BEAM).  THE SAME LENGTH SHOULD BE USED IN THE CALCULATION OF THE STIFFNESS TERMS IN THE FIELD STATMENT.  THE MASS CALCULATION PERFORMED BELOW IS WHAT APPEARED IN KIRK PIERCE'S VERSION OF ADAMS/WT AND I DON'T LIKE IT (BUT I USED IT FOR CONSISTENCY WITH THE OLD CODE)!!!
-      WRITE (UnAD,FmtTR            )  ', MASS = ', MassB(K,J)*DRNodes(J) + SmllNmbr
-      WRITE (UnAD,FmtTRTRTR        )  ', IP = ', ( ( InerBFlp(K,J) + InerBEdg(K,J) )*DRNodes(J) ) + SmllNmbr, ', ', &
-                                      ( InerBEdg(K,J)*DRNodes(J) ) + ThnBarI + SmllNmbr, ', ',                      &
-                                      ( InerBFlp(K,J)*DRNodes(J) ) + ThnBarI + SmllNmbr
+      WRITE (UnAD,FmtTR            )  ', MASS = ', MassB(K,J)*p%DRNodes(J) + SmllNmbr
+      WRITE (UnAD,FmtTRTRTR        )  ', IP = ', ( ( InerBFlp(K,J) + InerBEdg(K,J) )*p%DRNodes(J) ) + SmllNmbr, ', ', &
+                                      ( InerBEdg(K,J)*p%DRNodes(J) ) + ThnBarI + SmllNmbr, ', ',                      &
+                                      ( InerBFlp(K,J)*p%DRNodes(J) ) + ThnBarI + SmllNmbr
 
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'Ref_M'''
       WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID ))
@@ -2285,7 +2285,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'Aero_M'''
       WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0, ', ', 0.0, ', ', ( 0.25 - AeroCent(K,J) )*Chord(J)
+      WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0, ', ', 0.0, ', ', ( 0.25 - p%AeroCent(K,J) )*p%Chord(J)
       WRITE (UnAD,FmtText          )  ', REULER = 0D, 0D, 0D'
 
 
@@ -2295,7 +2295,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'Graphics_M'''
       WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtTRTRTR        )  ', QP = ', -0.5*DRNodesGRA(J), ', ', -0.5*ThkOvrChrd*Chord(J), ', ', -0.75*Chord(J)  ! The pitch axis (reference axis) is at 25% chord
+      WRITE (UnAD,FmtTRTRTR        )  ', QP = ', -0.5*DRNodesGRA(J), ', ', -0.5*ThkOvrChrd*p%Chord(J), ', ', -0.75*p%Chord(J)  ! The pitch axis (reference axis) is at 25% chord
       WRITE (UnAD,FmtText          )  ', REULER = 0D, 0D, 0D'
 
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, '_G'''
@@ -2303,8 +2303,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
       WRITE (UnAD,FmtText          )  ', BOX'
       WRITE (UnAD,FmtText          )  ', CORNER = '//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtTR            )  ', X = ', DRNodesGRA(J)
-      WRITE (UnAD,FmtTR            )  ', Y = ', ThkOvrChrd*Chord(J)
-      WRITE (UnAD,FmtTR            )  ', Z = ', Chord(J)
+      WRITE (UnAD,FmtTR            )  ', Y = ', ThkOvrChrd*p%Chord(J)
+      WRITE (UnAD,FmtTR            )  ', Z = ', p%Chord(J)
 
 
    ! Bottom (for connection to the segment below):
@@ -2371,8 +2371,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'CM_M'''
       WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0, ', ', -cgOffBFlp(K,J), ', ', -cgOffBEdg(K,J)
-      WRITE (UnAD,FmtTRTRTR        )  ', REULER = ', 0.0, ', ', AeroTwst(J) - ThetaS(K,J), ', ', 0.0    ! Use the same orientation as the structural axis
+      WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0, ', ', -p%cgOffBFlp(K,J), ', ', -p%cgOffBEdg(K,J)
+      WRITE (UnAD,FmtTRTRTR        )  ', REULER = ', 0.0, ', ', p%AeroTwst(J) - ThetaS(K,J), ', ', 0.0    ! Use the same orientation as the structural axis
 
    ! Structural Axis:
    ! This MARKER is positioned at the structural axis of the precurved and
@@ -2422,7 +2422,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
            + p%RFrlPntxn*CoordSys%d1 +   p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                          &
            + p%rVPxn*CoordSys%rf1    +   p%rVPzn*CoordSys%rf2    - p%rVPyn*CoordSys%rf3                             &
            + p%OverHang*CoordSys%c1  - p%UndSling*CoordSys%g1  + p%TipRad*CoordSys%i3(K,:)                        &
-           + RefAxisxb(K,p%TipNode)*CoordSys%j1(K,:) + RefAxisyb(K,p%TipNode)*CoordSys%j2(K,:)   ! rS(BldFlexL) = Position vector from ground to the blade tip (point S(BldFlexL)).
+           + RefAxisxb(K,p%TipNode)*CoordSys%j1(K,:) + RefAxisyb(K,p%TipNode)*CoordSys%j2(K,:)   ! rS(p%BldFlexL) = Position vector from ground to the blade tip (point S(p%BldFlexL)).
    TmpVec1 = TmpVec - CoordSys%n2(K,p%BldNodes,:)
    TmpVec2 = TmpVec + CoordSys%n3(K,p%BldNodes,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, '_P'''
@@ -3674,11 +3674,11 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
    WRITE (UnAD,'(A,I1,A)')  '!------------------------------------ Blade ', K, ' ----------------------------------'
 
-   CRatioBFl = 0.01*BldFDamp(K,1)/( Pi*FreqBF(K,1,1) )   ! Use the same damping ratio as used for the first blade flap mode in FAST.
-   CRatioBEd = 0.01*BldEDamp(K,1)/( Pi*FreqBE(K,1,1) )   ! Use the same damping ratio as used for the first blade edge mode in FAST.
+   CRatioBFl = 0.01*p%BldFDamp(K,1)/( Pi*FreqBF(K,1,1) )   ! Use the same damping ratio as used for the first blade flap mode in FAST.
+   CRatioBEd = 0.01*p%BldEDamp(K,1)/( Pi*FreqBE(K,1,1) )   ! Use the same damping ratio as used for the first blade edge mode in FAST.
    TmpID  = 10000*K + 4000                               ! ID of the MARKER on the root of blade.
    TmpID2 = 10000*K + 6000 + 1                           ! ID of the structural axis MARKER in the middle of blade element 1.
-   TmpLength  = 0.5*DRNodes(1)                           ! Distance between blade node 1 and the blade root.
+   TmpLength  = 0.5*p%DRNodes(1)                           ! Distance between blade node 1 and the blade root.
    TmpLength2 = TmpLength*TmpLength                      ! = TmpLength^2.
    TmpLength3 = TmpLength*TmpLength2                     ! = TmpLength^3.
    KMatrix      =  0.0                                   ! Initialize KMatrix to zero.
@@ -3692,7 +3692,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
    KMatrix(3,5) =  0.001* 6.0*StiffBE (K,1)/TmpLength2
    KMatrix(6,2) = KMatrix(2,6)
    KMatrix(5,3) = KMatrix(3,5)
-   KMatrix(4,6) = -0.001*     BAlpha  (K,1)*SQRT( StiffBF(K,1)*StiffBGJ(K,1) )/TmpLength  ! Flap/twist coupling terms.  These are the terms described in the following reference:
+   KMatrix(4,6) = -0.001*     p%BAlpha  (K,1)*SQRT( StiffBF(K,1)*StiffBGJ(K,1) )/TmpLength  ! Flap/twist coupling terms.  These are the terms described in the following reference:
    KMatrix(6,4) = KMatrix(4,6)                                                            ! Lobitz, D.W., Laino, D.J., "Load Mitigation with Twist-Coupled HAWT Blades." Proceedings, 1999 ASME Wind Energy Symposium/37th AIAA Aerospace Sciences Meeting and Exhibit, Reno, Nevada.  AIAA-1999-0033, January 1999, pp. 124-134.
    CMatrix      =  0.0                                   ! Initialize CMatrix to zero.
    CMatrix(1,1) = KMatrix(1,1)*CRatioBEA                 ! Scale the  KMatrix to form the CMatrix.
@@ -3749,7 +3749,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID  = 10000*K + 6000 + J - 1                       ! ID of the structural axis MARKER in the middle of blade element J - 1.
       TmpID2 = 10000*K + 6000 + J                           ! ID of the structural axis MARKER in the middle of blade element J.
-      TmpLength  = 0.5*( DRNodes(J) + DRNodes(J-1) )        ! Distance between blade node J and blade node J - 1.
+      TmpLength  = 0.5*( p%DRNodes(J) + p%DRNodes(J-1) )        ! Distance between blade node J and blade node J - 1.
       TmpLength2 = TmpLength*TmpLength                      ! = TmpLength^2.
       TmpLength3 = TmpLength*TmpLength2                     ! = TmpLength^3.
       KMatrix      =  0.0                                   ! Initialize KMatrix to zero.
@@ -3763,7 +3763,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
       KMatrix(3,5) =  0.001*2.0* ( 2.0*StiffBE (K,J) + StiffBE (K,J-1) )/TmpLength2
       KMatrix(6,2) = KMatrix(2,6)
       KMatrix(5,3) = KMatrix(3,5)
-      KMatrix(4,6) = -0.001*0.25*(     BAlpha  (K,J) + BAlpha  (K,J-1) )* &
+      KMatrix(4,6) = -0.001*0.25*(     p%BAlpha  (K,J) + p%BAlpha  (K,J-1) )* &
                      SQRT(( StiffBF(K,J) + StiffBF(K,J-1) )*( StiffBGJ(K,J) + StiffBGJ(K,J-1) ))/TmpLength  ! Flap/twist coupling terms.  These are the terms described in the following reference:
       KMatrix(6,4) = KMatrix(4,6)                                                                           ! Lobitz, D.W., Laino, D.J., "Load Mitigation with Twist-Coupled HAWT Blades." Proceedings, 1999 ASME Wind Energy Symposium/37th AIAA Aerospace Sciences Meeting and Exhibit, Reno, Nevada.  AIAA-1999-0033, January 1999, pp. 124-134.
       CMatrix      =  0.0                                   ! Initialize CMatrix to zero.
@@ -3821,7 +3821,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
    TmpID  = 10000*K + 6000 + p%BldNodes                    ! ID of the structural axis MARKER in the middle of blade element BldNodes.
    TmpID2 = 10000*K + 5000                               ! ID of the MARKER at the blade tip.
-   TmpLength  = 0.5*DRNodes(p%BldNodes)                    ! Distance between blade node BldNodes and the blade tip.
+   TmpLength  = 0.5*p%DRNodes(p%BldNodes)                    ! Distance between blade node BldNodes and the blade tip.
    TmpLength2 = TmpLength*TmpLength                      ! = TmpLength^2.
    TmpLength3 = TmpLength*TmpLength2                     ! = TmpLength^3.
    KMatrix      =  0.0                                   ! Initialize KMatrix to zero.
@@ -3835,7 +3835,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
    KMatrix(3,5) =  0.001* 6.0*StiffBE (K,p%BldNodes)/TmpLength2
    KMatrix(6,2) = KMatrix(2,6)
    KMatrix(5,3) = KMatrix(3,5)
-   KMatrix(4,6) = -0.001*     BAlpha  (K,p%BldNodes)*SQRT( StiffBF(K,p%BldNodes)*StiffBGJ(K,p%BldNodes) )/TmpLength  ! Flap/twist coupling terms.  These are the terms described in the following reference:
+   KMatrix(4,6) = -0.001*     p%BAlpha  (K,p%BldNodes)*SQRT( StiffBF(K,p%BldNodes)*StiffBGJ(K,p%BldNodes) )/TmpLength  ! Flap/twist coupling terms.  These are the terms described in the following reference:
    KMatrix(6,4) = KMatrix(4,6)                                                                                 ! Lobitz, D.W., Laino, D.J., "Load Mitigation with Twist-Coupled HAWT Blades." Proceedings, 1999 ASME Wind Energy Symposium/37th AIAA Aerospace Sciences Meeting and Exhibit, Reno, Nevada.  AIAA-1999-0033, January 1999, pp. 124-134.
    CMatrix      =  0.0                                   ! Initialize CMatrix to zero.
    CMatrix(1,1) = KMatrix(1,1)*CRatioBEA                 ! Scale the  KMatrix to form the CMatrix.

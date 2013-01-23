@@ -141,23 +141,23 @@ DO K = 1, p_StrD%NumBl
         AlphaNoise = ABS( R2D * AD_GetCurrentValue('ALPHA',ErrStat, IBlade=K, IElement=III) )
 
         IF ( ILAM .AND. ( ITRIP .EQ. 0 ) )                                     &
-         CALL LBLVS(AlphaNoise,Chord(III),UNoise,SPLLBL, &
-                 ChordAngleTE(K,III),SpanAngleTE(K,III),DRNodes(III),rTEtoObserve(K,III))
+         CALL LBLVS(AlphaNoise,p_StrD%Chord(III),UNoise,SPLLBL, &
+                 ChordAngleTE(K,III),SpanAngleTE(K,III),p_StrD%DRNodes(III),rTEtoObserve(K,III))
 
         IF ( ITURB )                                              &
-         CALL TBLTE(AlphaNoise,Chord(III),UNoise,SPLP,       &
-                SPLS,SPLALPH,SPLTBL,ChordAngleTE(K,III),SpanAngleTE(K,III),DRNodes(III),rTEtoObserve(K,III))
+         CALL TBLTE(AlphaNoise,p_StrD%Chord(III),UNoise,SPLP,       &
+                SPLS,SPLALPH,SPLTBL,ChordAngleTE(K,III),SpanAngleTE(K,III),p_StrD%DRNodes(III),rTEtoObserve(K,III))
 
         IF ( IBLUNT )                                            &
-         CALL BLUNT(AlphaNoise,Chord(III),UNoise,SPLBLNT,   &
-                  ChordAngleTE(K,III),SpanAngleTE(K,III),DRNodes(III),rTEtoObserve(K,III),TEThick(III),TEAngle(III))
+         CALL BLUNT(AlphaNoise,p_StrD%Chord(III),UNoise,SPLBLNT,   &
+                  ChordAngleTE(K,III),SpanAngleTE(K,III),p_StrD%DRNodes(III),rTEtoObserve(K,III),TEThick(III),TEAngle(III))
 
         IF ( ITIP .AND. ( III .EQ. p_StrD%BldNodes ) )                       &
-          CALL TIPNOIS(AlphaNoise,ALPRAT,Chord(III),UNoise,SPLTIP,      &
+          CALL TIPNOIS(AlphaNoise,ALPRAT,p_StrD%Chord(III),UNoise,SPLTIP,      &
                        ChordAngleTE(K,III),SpanAngleTE(K,III),rTEtoObserve(K,III))
 
         IF ( IInflow )  &
-          CALL InflowNoise(UNoise,Chord(III),DRNodes(III),rLEtoObserve(K,III), &
+          CALL InflowNoise(UNoise,p_StrD%Chord(III),p_StrD%DRNodes(III),rLEtoObserve(K,III), &
                             ChordAngleLE(K,III),SpanAngleLE(K,III),SPLti, p_StrD)
 
 
@@ -1245,7 +1245,7 @@ WRITE (UnNoSpec,'(/,1X,A,/)')  TRIM( FTitle )
       WRITE (UnNoSpec,"(A10,4(1X,A9))") " Segment# ", "    C    ", "    L    ", "    H    ", "   PSI   "
       WRITE (UnNoSpec,"(A10,4(1X,A9))") "----------", "---------", "---------", "---------", "---------"
       DO I = 1, p%BldNodes
-         WRITE(UnNoSpec,"(I10,4(1X,F9.3))") I, Chord(I), DRNodes(I), TEThick(I), TEAngle(I)
+         WRITE(UnNoSpec,"(I10,4(1X,F9.3))") I, p%Chord(I), p%DRNodes(I), TEThick(I), TEAngle(I)
       ENDDO
       WRITE(UnNoSpec,*)
 
@@ -1432,12 +1432,12 @@ RObserveInt (3) =-RObserve (2)
 
           ! Calculate position vector of trailing edge from tower base in trailing edge coordinate system
           rSTE (1) = DOT_PRODUCT(te1(J,I,:),rS(J,I,:))
-          rSTE (2) = DOT_PRODUCT(te2(J,I,:),rS(J,I,:)) + 0.75*Chord(I)
+          rSTE (2) = DOT_PRODUCT(te2(J,I,:),rS(J,I,:)) + 0.75*p_StrD%Chord(I)
           rSTE (3) = DOT_PRODUCT(te3(J,I,:),rS(J,I,:))
 
           ! Calculate position vector of leading edge from tower base in trailing edge coordinate system
           rSLE (1) = rSTE (1)
-          rSLE (2) = rSTE (2) - Chord(I)
+          rSLE (2) = rSTE (2) - p_StrD%Chord(I)
           rSLE (3) = rSTE (3)
 
           ! Calculate position vector of observer from tower base in trailing edge coordinate system
