@@ -2,6 +2,7 @@ MODULE Noise
 
 USE                             NWTC_Library
 USE StructDyn_Types
+USE GlueCodeVars
 
 !bjj: several subroutines have default FORTRAN typing:
 ! IMPLICIT INTEGER (I-N), REAL (A-H, O-Z)
@@ -71,7 +72,6 @@ CONTAINS
 SUBROUTINE PredictNoise( p_StrD, te1, te2, te3, rS )
 
 USE                             AeroElem
-USE                             Blades
 USE                             Output
 USE                             SimCont
 USE                             AeroDyn
@@ -1152,7 +1152,6 @@ SUBROUTINE WrNoiseOutHdr(p)
 
 USE StructDyn_Types
 
-USE                             Blades
 USE                             General
 USE                             Output
 
@@ -1265,7 +1264,6 @@ SUBROUTINE NoiseInput(UnIn, NoiseFile, p_StrD)
 
    ! This routine reads the noise input files.
 
-USE                             Blades
 
 IMPLICIT                        NONE
 
@@ -1390,7 +1388,6 @@ END SUBROUTINE WriteSPLOut
 SUBROUTINE CalcObserve( p_StrD, te1, te2, te3, rS )
 
 
-USE                             Blades
 USE                             SimCont
 
 
@@ -1629,7 +1626,6 @@ END SUBROUTINE Noise_CalcTI
 !====================================================================================================
 SUBROUTINE AllocNoise( p_StrD )
 
-USE                             Blades
 
 IMPLICIT                        NONE
 

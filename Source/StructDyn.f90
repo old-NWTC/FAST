@@ -78,7 +78,1322 @@ MODULE StructDyn_Parameters
       ! Parameters related to output length -- Possibly a local variable elsewhere????
    INTEGER(IntKi), PARAMETER        :: OutStrLen  = 10                                  ! number of characters allowed in the output data headers
    INTEGER(IntKi), PARAMETER        :: OutStrLenM = OutStrLen-1                         ! number of characters allowed in the output data headers, excluding a minus sign or "M"
-!   INTEGER(IntKi), PARAMETER        ::MaxOutPts =  986
+
+   
+     ! Parameters:
+
+
+     ! Indices for computing output channels:
+     ! NOTES: 
+     !    (1) These parameters are in the order stored in "OutListParameters.xlsx"
+     !    (2) Array AllOuts() must be dimensioned to the value of the largest output parameter
+     !    (3) If an index (MaxOutPts) ever becomes greater or equal to 1000, the logic to create ARRAY/1 in the FAST-to-ADAMS preprocessor will have to be changed.
+
+     !  Time: 
+
+   INTEGER, PARAMETER             :: Time      =    0
+
+
+  ! Wind Motions:
+
+   INTEGER, PARAMETER             :: WindVxi   =    1
+   INTEGER, PARAMETER             :: WindVyi   =    2
+   INTEGER, PARAMETER             :: WindVzi   =    3
+   INTEGER, PARAMETER             :: TotWindV  =    4
+   INTEGER, PARAMETER             :: HorWindV  =    5
+   INTEGER, PARAMETER             :: HorWndDir =    6
+   INTEGER, PARAMETER             :: VerWndDir =    7
+
+
+  ! Blade 1 Tip Motions:
+
+   INTEGER, PARAMETER             :: TipDxc1   =    8
+   INTEGER, PARAMETER             :: TipDyc1   =    9
+   INTEGER, PARAMETER             :: TipDzc1   =   10
+   INTEGER, PARAMETER             :: TipDxb1   =   11
+   INTEGER, PARAMETER             :: TipDyb1   =   12
+   INTEGER, PARAMETER             :: TipALxb1  =   13
+   INTEGER, PARAMETER             :: TipALyb1  =   14
+   INTEGER, PARAMETER             :: TipALzb1  =   15
+   INTEGER, PARAMETER             :: TipRDxb1  =   16
+   INTEGER, PARAMETER             :: TipRDyb1  =   17
+   INTEGER, PARAMETER             :: TipRDzc1  =   18
+   INTEGER, PARAMETER             :: TipClrnc1 =   19
+
+
+  ! Blade 2 Tip Motions:
+
+   INTEGER, PARAMETER             :: TipDxc2   =   20
+   INTEGER, PARAMETER             :: TipDyc2   =   21
+   INTEGER, PARAMETER             :: TipDzc2   =   22
+   INTEGER, PARAMETER             :: TipDxb2   =   23
+   INTEGER, PARAMETER             :: TipDyb2   =   24
+   INTEGER, PARAMETER             :: TipALxb2  =   25
+   INTEGER, PARAMETER             :: TipALyb2  =   26
+   INTEGER, PARAMETER             :: TipALzb2  =   27
+   INTEGER, PARAMETER             :: TipRDxb2  =   28
+   INTEGER, PARAMETER             :: TipRDyb2  =   29
+   INTEGER, PARAMETER             :: TipRDzc2  =   30
+   INTEGER, PARAMETER             :: TipClrnc2 =   31
+
+
+  ! Blade 3 Tip Motions:
+
+   INTEGER, PARAMETER             :: TipDxc3   =   32
+   INTEGER, PARAMETER             :: TipDyc3   =   33
+   INTEGER, PARAMETER             :: TipDzc3   =   34
+   INTEGER, PARAMETER             :: TipDxb3   =   35
+   INTEGER, PARAMETER             :: TipDyb3   =   36
+   INTEGER, PARAMETER             :: TipALxb3  =   37
+   INTEGER, PARAMETER             :: TipALyb3  =   38
+   INTEGER, PARAMETER             :: TipALzb3  =   39
+   INTEGER, PARAMETER             :: TipRDxb3  =   40
+   INTEGER, PARAMETER             :: TipRDyb3  =   41
+   INTEGER, PARAMETER             :: TipRDzc3  =   42
+   INTEGER, PARAMETER             :: TipClrnc3 =   43
+
+
+  ! Blade 1 Local Span Motions:
+
+   INTEGER, PARAMETER             :: Spn1ALxb1 =   44
+   INTEGER, PARAMETER             :: Spn1ALyb1 =   45
+   INTEGER, PARAMETER             :: Spn1ALzb1 =   46
+   INTEGER, PARAMETER             :: Spn2ALxb1 =   47
+   INTEGER, PARAMETER             :: Spn2ALyb1 =   48
+   INTEGER, PARAMETER             :: Spn2ALzb1 =   49
+   INTEGER, PARAMETER             :: Spn3ALxb1 =   50
+   INTEGER, PARAMETER             :: Spn3ALyb1 =   51
+   INTEGER, PARAMETER             :: Spn3ALzb1 =   52
+   INTEGER, PARAMETER             :: Spn4ALxb1 =   53
+   INTEGER, PARAMETER             :: Spn4ALyb1 =   54
+   INTEGER, PARAMETER             :: Spn4ALzb1 =   55
+   INTEGER, PARAMETER             :: Spn5ALxb1 =   56
+   INTEGER, PARAMETER             :: Spn5ALyb1 =   57
+   INTEGER, PARAMETER             :: Spn5ALzb1 =   58
+   INTEGER, PARAMETER             :: Spn6ALxb1 =   59
+   INTEGER, PARAMETER             :: Spn6ALyb1 =   60
+   INTEGER, PARAMETER             :: Spn6ALzb1 =   61
+   INTEGER, PARAMETER             :: Spn7ALxb1 =   62
+   INTEGER, PARAMETER             :: Spn7ALyb1 =   63
+   INTEGER, PARAMETER             :: Spn7ALzb1 =   64
+   INTEGER, PARAMETER             :: Spn8ALxb1 =   65
+   INTEGER, PARAMETER             :: Spn8ALyb1 =   66
+   INTEGER, PARAMETER             :: Spn8ALzb1 =   67
+   INTEGER, PARAMETER             :: Spn9ALxb1 =   68
+   INTEGER, PARAMETER             :: Spn9ALyb1 =   69
+   INTEGER, PARAMETER             :: Spn9ALzb1 =   70
+   INTEGER, PARAMETER             :: Spn1TDxb1 =   71
+   INTEGER, PARAMETER             :: Spn1TDyb1 =   72
+   INTEGER, PARAMETER             :: Spn1TDzb1 =   73
+   INTEGER, PARAMETER             :: Spn2TDxb1 =   74
+   INTEGER, PARAMETER             :: Spn2TDyb1 =   75
+   INTEGER, PARAMETER             :: Spn2TDzb1 =   76
+   INTEGER, PARAMETER             :: Spn3TDxb1 =   77
+   INTEGER, PARAMETER             :: Spn3TDyb1 =   78
+   INTEGER, PARAMETER             :: Spn3TDzb1 =   79
+   INTEGER, PARAMETER             :: Spn4TDxb1 =   80
+   INTEGER, PARAMETER             :: Spn4TDyb1 =   81
+   INTEGER, PARAMETER             :: Spn4TDzb1 =   82
+   INTEGER, PARAMETER             :: Spn5TDxb1 =   83
+   INTEGER, PARAMETER             :: Spn5TDyb1 =   84
+   INTEGER, PARAMETER             :: Spn5TDzb1 =   85
+   INTEGER, PARAMETER             :: Spn6TDxb1 =   86
+   INTEGER, PARAMETER             :: Spn6TDyb1 =   87
+   INTEGER, PARAMETER             :: Spn6TDzb1 =   88
+   INTEGER, PARAMETER             :: Spn7TDxb1 =   89
+   INTEGER, PARAMETER             :: Spn7TDyb1 =   90
+   INTEGER, PARAMETER             :: Spn7TDzb1 =   91
+   INTEGER, PARAMETER             :: Spn8TDxb1 =   92
+   INTEGER, PARAMETER             :: Spn8TDyb1 =   93
+   INTEGER, PARAMETER             :: Spn8TDzb1 =   94
+   INTEGER, PARAMETER             :: Spn9TDxb1 =   95
+   INTEGER, PARAMETER             :: Spn9TDyb1 =   96
+   INTEGER, PARAMETER             :: Spn9TDzb1 =   97
+   INTEGER, PARAMETER             :: Spn1RDxb1 =   98
+   INTEGER, PARAMETER             :: Spn1RDyb1 =   99
+   INTEGER, PARAMETER             :: Spn1RDzb1 =  100
+   INTEGER, PARAMETER             :: Spn2RDxb1 =  101
+   INTEGER, PARAMETER             :: Spn2RDyb1 =  102
+   INTEGER, PARAMETER             :: Spn2RDzb1 =  103
+   INTEGER, PARAMETER             :: Spn3RDxb1 =  104
+   INTEGER, PARAMETER             :: Spn3RDyb1 =  105
+   INTEGER, PARAMETER             :: Spn3RDzb1 =  106
+   INTEGER, PARAMETER             :: Spn4RDxb1 =  107
+   INTEGER, PARAMETER             :: Spn4RDyb1 =  108
+   INTEGER, PARAMETER             :: Spn4RDzb1 =  109
+   INTEGER, PARAMETER             :: Spn5RDxb1 =  110
+   INTEGER, PARAMETER             :: Spn5RDyb1 =  111
+   INTEGER, PARAMETER             :: Spn5RDzb1 =  112
+   INTEGER, PARAMETER             :: Spn6RDxb1 =  113
+   INTEGER, PARAMETER             :: Spn6RDyb1 =  114
+   INTEGER, PARAMETER             :: Spn6RDzb1 =  115
+   INTEGER, PARAMETER             :: Spn7RDxb1 =  116
+   INTEGER, PARAMETER             :: Spn7RDyb1 =  117
+   INTEGER, PARAMETER             :: Spn7RDzb1 =  118
+   INTEGER, PARAMETER             :: Spn8RDxb1 =  119
+   INTEGER, PARAMETER             :: Spn8RDyb1 =  120
+   INTEGER, PARAMETER             :: Spn8RDzb1 =  121
+   INTEGER, PARAMETER             :: Spn9RDxb1 =  122
+   INTEGER, PARAMETER             :: Spn9RDyb1 =  123
+   INTEGER, PARAMETER             :: Spn9RDzb1 =  124
+
+
+  ! Blade 2 Local Span Motions:
+
+   INTEGER, PARAMETER             :: Spn1ALxb2 =  125
+   INTEGER, PARAMETER             :: Spn1ALyb2 =  126
+   INTEGER, PARAMETER             :: Spn1ALzb2 =  127
+   INTEGER, PARAMETER             :: Spn2ALxb2 =  128
+   INTEGER, PARAMETER             :: Spn2ALyb2 =  129
+   INTEGER, PARAMETER             :: Spn2ALzb2 =  130
+   INTEGER, PARAMETER             :: Spn3ALxb2 =  131
+   INTEGER, PARAMETER             :: Spn3ALyb2 =  132
+   INTEGER, PARAMETER             :: Spn3ALzb2 =  133
+   INTEGER, PARAMETER             :: Spn4ALxb2 =  134
+   INTEGER, PARAMETER             :: Spn4ALyb2 =  135
+   INTEGER, PARAMETER             :: Spn4ALzb2 =  136
+   INTEGER, PARAMETER             :: Spn5ALxb2 =  137
+   INTEGER, PARAMETER             :: Spn5ALyb2 =  138
+   INTEGER, PARAMETER             :: Spn5ALzb2 =  139
+   INTEGER, PARAMETER             :: Spn6ALxb2 =  140
+   INTEGER, PARAMETER             :: Spn6ALyb2 =  141
+   INTEGER, PARAMETER             :: Spn6ALzb2 =  142
+   INTEGER, PARAMETER             :: Spn7ALxb2 =  143
+   INTEGER, PARAMETER             :: Spn7ALyb2 =  144
+   INTEGER, PARAMETER             :: Spn7ALzb2 =  145
+   INTEGER, PARAMETER             :: Spn8ALxb2 =  146
+   INTEGER, PARAMETER             :: Spn8ALyb2 =  147
+   INTEGER, PARAMETER             :: Spn8ALzb2 =  148
+   INTEGER, PARAMETER             :: Spn9ALxb2 =  149
+   INTEGER, PARAMETER             :: Spn9ALyb2 =  150
+   INTEGER, PARAMETER             :: Spn9ALzb2 =  151
+   INTEGER, PARAMETER             :: Spn1TDxb2 =  152
+   INTEGER, PARAMETER             :: Spn1TDyb2 =  153
+   INTEGER, PARAMETER             :: Spn1TDzb2 =  154
+   INTEGER, PARAMETER             :: Spn2TDxb2 =  155
+   INTEGER, PARAMETER             :: Spn2TDyb2 =  156
+   INTEGER, PARAMETER             :: Spn2TDzb2 =  157
+   INTEGER, PARAMETER             :: Spn3TDxb2 =  158
+   INTEGER, PARAMETER             :: Spn3TDyb2 =  159
+   INTEGER, PARAMETER             :: Spn3TDzb2 =  160
+   INTEGER, PARAMETER             :: Spn4TDxb2 =  161
+   INTEGER, PARAMETER             :: Spn4TDyb2 =  162
+   INTEGER, PARAMETER             :: Spn4TDzb2 =  163
+   INTEGER, PARAMETER             :: Spn5TDxb2 =  164
+   INTEGER, PARAMETER             :: Spn5TDyb2 =  165
+   INTEGER, PARAMETER             :: Spn5TDzb2 =  166
+   INTEGER, PARAMETER             :: Spn6TDxb2 =  167
+   INTEGER, PARAMETER             :: Spn6TDyb2 =  168
+   INTEGER, PARAMETER             :: Spn6TDzb2 =  169
+   INTEGER, PARAMETER             :: Spn7TDxb2 =  170
+   INTEGER, PARAMETER             :: Spn7TDyb2 =  171
+   INTEGER, PARAMETER             :: Spn7TDzb2 =  172
+   INTEGER, PARAMETER             :: Spn8TDxb2 =  173
+   INTEGER, PARAMETER             :: Spn8TDyb2 =  174
+   INTEGER, PARAMETER             :: Spn8TDzb2 =  175
+   INTEGER, PARAMETER             :: Spn9TDxb2 =  176
+   INTEGER, PARAMETER             :: Spn9TDyb2 =  177
+   INTEGER, PARAMETER             :: Spn9TDzb2 =  178
+   INTEGER, PARAMETER             :: Spn1RDxb2 =  179
+   INTEGER, PARAMETER             :: Spn1RDyb2 =  180
+   INTEGER, PARAMETER             :: Spn1RDzb2 =  181
+   INTEGER, PARAMETER             :: Spn2RDxb2 =  182
+   INTEGER, PARAMETER             :: Spn2RDyb2 =  183
+   INTEGER, PARAMETER             :: Spn2RDzb2 =  184
+   INTEGER, PARAMETER             :: Spn3RDxb2 =  185
+   INTEGER, PARAMETER             :: Spn3RDyb2 =  186
+   INTEGER, PARAMETER             :: Spn3RDzb2 =  187
+   INTEGER, PARAMETER             :: Spn4RDxb2 =  188
+   INTEGER, PARAMETER             :: Spn4RDyb2 =  189
+   INTEGER, PARAMETER             :: Spn4RDzb2 =  190
+   INTEGER, PARAMETER             :: Spn5RDxb2 =  191
+   INTEGER, PARAMETER             :: Spn5RDyb2 =  192
+   INTEGER, PARAMETER             :: Spn5RDzb2 =  193
+   INTEGER, PARAMETER             :: Spn6RDxb2 =  194
+   INTEGER, PARAMETER             :: Spn6RDyb2 =  195
+   INTEGER, PARAMETER             :: Spn6RDzb2 =  196
+   INTEGER, PARAMETER             :: Spn7RDxb2 =  197
+   INTEGER, PARAMETER             :: Spn7RDyb2 =  198
+   INTEGER, PARAMETER             :: Spn7RDzb2 =  199
+   INTEGER, PARAMETER             :: Spn8RDxb2 =  200
+   INTEGER, PARAMETER             :: Spn8RDyb2 =  201
+   INTEGER, PARAMETER             :: Spn8RDzb2 =  202
+   INTEGER, PARAMETER             :: Spn9RDxb2 =  203
+   INTEGER, PARAMETER             :: Spn9RDyb2 =  204
+   INTEGER, PARAMETER             :: Spn9RDzb2 =  205
+
+
+  ! Blade 3 Local Span Motions:
+
+   INTEGER, PARAMETER             :: Spn1ALxb3 =  206
+   INTEGER, PARAMETER             :: Spn1ALyb3 =  207
+   INTEGER, PARAMETER             :: Spn1ALzb3 =  208
+   INTEGER, PARAMETER             :: Spn2ALxb3 =  209
+   INTEGER, PARAMETER             :: Spn2ALyb3 =  210
+   INTEGER, PARAMETER             :: Spn2ALzb3 =  211
+   INTEGER, PARAMETER             :: Spn3ALxb3 =  212
+   INTEGER, PARAMETER             :: Spn3ALyb3 =  213
+   INTEGER, PARAMETER             :: Spn3ALzb3 =  214
+   INTEGER, PARAMETER             :: Spn4ALxb3 =  215
+   INTEGER, PARAMETER             :: Spn4ALyb3 =  216
+   INTEGER, PARAMETER             :: Spn4ALzb3 =  217
+   INTEGER, PARAMETER             :: Spn5ALxb3 =  218
+   INTEGER, PARAMETER             :: Spn5ALyb3 =  219
+   INTEGER, PARAMETER             :: Spn5ALzb3 =  220
+   INTEGER, PARAMETER             :: Spn6ALxb3 =  221
+   INTEGER, PARAMETER             :: Spn6ALyb3 =  222
+   INTEGER, PARAMETER             :: Spn6ALzb3 =  223
+   INTEGER, PARAMETER             :: Spn7ALxb3 =  224
+   INTEGER, PARAMETER             :: Spn7ALyb3 =  225
+   INTEGER, PARAMETER             :: Spn7ALzb3 =  226
+   INTEGER, PARAMETER             :: Spn8ALxb3 =  227
+   INTEGER, PARAMETER             :: Spn8ALyb3 =  228
+   INTEGER, PARAMETER             :: Spn8ALzb3 =  229
+   INTEGER, PARAMETER             :: Spn9ALxb3 =  230
+   INTEGER, PARAMETER             :: Spn9ALyb3 =  231
+   INTEGER, PARAMETER             :: Spn9ALzb3 =  232
+   INTEGER, PARAMETER             :: Spn1TDxb3 =  233
+   INTEGER, PARAMETER             :: Spn1TDyb3 =  234
+   INTEGER, PARAMETER             :: Spn1TDzb3 =  235
+   INTEGER, PARAMETER             :: Spn2TDxb3 =  236
+   INTEGER, PARAMETER             :: Spn2TDyb3 =  237
+   INTEGER, PARAMETER             :: Spn2TDzb3 =  238
+   INTEGER, PARAMETER             :: Spn3TDxb3 =  239
+   INTEGER, PARAMETER             :: Spn3TDyb3 =  240
+   INTEGER, PARAMETER             :: Spn3TDzb3 =  241
+   INTEGER, PARAMETER             :: Spn4TDxb3 =  242
+   INTEGER, PARAMETER             :: Spn4TDyb3 =  243
+   INTEGER, PARAMETER             :: Spn4TDzb3 =  244
+   INTEGER, PARAMETER             :: Spn5TDxb3 =  245
+   INTEGER, PARAMETER             :: Spn5TDyb3 =  246
+   INTEGER, PARAMETER             :: Spn5TDzb3 =  247
+   INTEGER, PARAMETER             :: Spn6TDxb3 =  248
+   INTEGER, PARAMETER             :: Spn6TDyb3 =  249
+   INTEGER, PARAMETER             :: Spn6TDzb3 =  250
+   INTEGER, PARAMETER             :: Spn7TDxb3 =  251
+   INTEGER, PARAMETER             :: Spn7TDyb3 =  252
+   INTEGER, PARAMETER             :: Spn7TDzb3 =  253
+   INTEGER, PARAMETER             :: Spn8TDxb3 =  254
+   INTEGER, PARAMETER             :: Spn8TDyb3 =  255
+   INTEGER, PARAMETER             :: Spn8TDzb3 =  256
+   INTEGER, PARAMETER             :: Spn9TDxb3 =  257
+   INTEGER, PARAMETER             :: Spn9TDyb3 =  258
+   INTEGER, PARAMETER             :: Spn9TDzb3 =  259
+   INTEGER, PARAMETER             :: Spn1RDxb3 =  260
+   INTEGER, PARAMETER             :: Spn1RDyb3 =  261
+   INTEGER, PARAMETER             :: Spn1RDzb3 =  262
+   INTEGER, PARAMETER             :: Spn2RDxb3 =  263
+   INTEGER, PARAMETER             :: Spn2RDyb3 =  264
+   INTEGER, PARAMETER             :: Spn2RDzb3 =  265
+   INTEGER, PARAMETER             :: Spn3RDxb3 =  266
+   INTEGER, PARAMETER             :: Spn3RDyb3 =  267
+   INTEGER, PARAMETER             :: Spn3RDzb3 =  268
+   INTEGER, PARAMETER             :: Spn4RDxb3 =  269
+   INTEGER, PARAMETER             :: Spn4RDyb3 =  270
+   INTEGER, PARAMETER             :: Spn4RDzb3 =  271
+   INTEGER, PARAMETER             :: Spn5RDxb3 =  272
+   INTEGER, PARAMETER             :: Spn5RDyb3 =  273
+   INTEGER, PARAMETER             :: Spn5RDzb3 =  274
+   INTEGER, PARAMETER             :: Spn6RDxb3 =  275
+   INTEGER, PARAMETER             :: Spn6RDyb3 =  276
+   INTEGER, PARAMETER             :: Spn6RDzb3 =  277
+   INTEGER, PARAMETER             :: Spn7RDxb3 =  278
+   INTEGER, PARAMETER             :: Spn7RDyb3 =  279
+   INTEGER, PARAMETER             :: Spn7RDzb3 =  280
+   INTEGER, PARAMETER             :: Spn8RDxb3 =  281
+   INTEGER, PARAMETER             :: Spn8RDyb3 =  282
+   INTEGER, PARAMETER             :: Spn8RDzb3 =  283
+   INTEGER, PARAMETER             :: Spn9RDxb3 =  284
+   INTEGER, PARAMETER             :: Spn9RDyb3 =  285
+   INTEGER, PARAMETER             :: Spn9RDzb3 =  286
+
+
+  ! Blade Pitch Motions:
+
+   INTEGER, PARAMETER             :: PtchPMzc1 =  287
+   INTEGER, PARAMETER             :: PtchPMzc2 =  288
+   INTEGER, PARAMETER             :: PtchPMzc3 =  289
+
+
+  ! Teeter Motions:
+
+   INTEGER, PARAMETER             :: TeetPya   =  290
+   INTEGER, PARAMETER             :: TeetVya   =  291
+   INTEGER, PARAMETER             :: TeetAya   =  292
+
+
+  ! Shaft Motions:
+
+   INTEGER, PARAMETER             :: LSSTipPxa =  293
+   INTEGER, PARAMETER             :: LSSTipVxa =  294
+   INTEGER, PARAMETER             :: LSSTipAxa =  295
+   INTEGER, PARAMETER             :: LSSGagPxa =  296
+   INTEGER, PARAMETER             :: LSSGagVxa =  297
+   INTEGER, PARAMETER             :: LSSGagAxa =  298
+   INTEGER, PARAMETER             :: HSShftV   =  299
+   INTEGER, PARAMETER             :: HSShftA   =  300
+   INTEGER, PARAMETER             :: TipSpdRat =  301
+
+
+  ! Nacelle IMU Motions:
+
+   INTEGER, PARAMETER             :: NcIMUTVxs =  302
+   INTEGER, PARAMETER             :: NcIMUTVys =  303
+   INTEGER, PARAMETER             :: NcIMUTVzs =  304
+   INTEGER, PARAMETER             :: NcIMUTAxs =  305
+   INTEGER, PARAMETER             :: NcIMUTAys =  306
+   INTEGER, PARAMETER             :: NcIMUTAzs =  307
+   INTEGER, PARAMETER             :: NcIMURVxs =  308
+   INTEGER, PARAMETER             :: NcIMURVys =  309
+   INTEGER, PARAMETER             :: NcIMURVzs =  310
+   INTEGER, PARAMETER             :: NcIMURAxs =  311
+   INTEGER, PARAMETER             :: NcIMURAys =  312
+   INTEGER, PARAMETER             :: NcIMURAzs =  313
+
+
+  ! Rotor-Furl Motions:
+
+   INTEGER, PARAMETER             :: RotFurlP  =  314
+   INTEGER, PARAMETER             :: RotFurlV  =  315
+   INTEGER, PARAMETER             :: RotFurlA  =  316
+
+
+  ! Tail-Furl Motions:
+
+   INTEGER, PARAMETER             :: TailFurlP =  317
+   INTEGER, PARAMETER             :: TailFurlV =  318
+   INTEGER, PARAMETER             :: TailFurlA =  319
+
+
+  ! Nacelle Yaw Motions:
+
+   INTEGER, PARAMETER             :: YawPzn    =  320
+   INTEGER, PARAMETER             :: YawVzn    =  321
+   INTEGER, PARAMETER             :: YawAzn    =  322
+   INTEGER, PARAMETER             :: NacYawErr =  323
+
+
+  ! Tower-Top / Yaw Bearing Motions:
+
+   INTEGER, PARAMETER             :: YawBrTDxp =  324
+   INTEGER, PARAMETER             :: YawBrTDyp =  325
+   INTEGER, PARAMETER             :: YawBrTDzp =  326
+   INTEGER, PARAMETER             :: YawBrTDxt =  327
+   INTEGER, PARAMETER             :: YawBrTDyt =  328
+   INTEGER, PARAMETER             :: YawBrTDzt =  329
+   INTEGER, PARAMETER             :: YawBrTAxp =  330
+   INTEGER, PARAMETER             :: YawBrTAyp =  331
+   INTEGER, PARAMETER             :: YawBrTAzp =  332
+   INTEGER, PARAMETER             :: YawBrRDxt =  333
+   INTEGER, PARAMETER             :: YawBrRDyt =  334
+   INTEGER, PARAMETER             :: YawBrRDzt =  335
+   INTEGER, PARAMETER             :: YawBrRVxp =  336
+   INTEGER, PARAMETER             :: YawBrRVyp =  337
+   INTEGER, PARAMETER             :: YawBrRVzp =  338
+   INTEGER, PARAMETER             :: YawBrRAxp =  339
+   INTEGER, PARAMETER             :: YawBrRAyp =  340
+   INTEGER, PARAMETER             :: YawBrRAzp =  341
+
+
+  ! Local Tower Motions:
+
+   INTEGER, PARAMETER             :: TwHt1ALxt =  342
+   INTEGER, PARAMETER             :: TwHt1ALyt =  343
+   INTEGER, PARAMETER             :: TwHt1ALzt =  344
+   INTEGER, PARAMETER             :: TwHt2ALxt =  345
+   INTEGER, PARAMETER             :: TwHt2ALyt =  346
+   INTEGER, PARAMETER             :: TwHt2ALzt =  347
+   INTEGER, PARAMETER             :: TwHt3ALxt =  348
+   INTEGER, PARAMETER             :: TwHt3ALyt =  349
+   INTEGER, PARAMETER             :: TwHt3ALzt =  350
+   INTEGER, PARAMETER             :: TwHt4ALxt =  351
+   INTEGER, PARAMETER             :: TwHt4ALyt =  352
+   INTEGER, PARAMETER             :: TwHt4ALzt =  353
+   INTEGER, PARAMETER             :: TwHt5ALxt =  354
+   INTEGER, PARAMETER             :: TwHt5ALyt =  355
+   INTEGER, PARAMETER             :: TwHt5ALzt =  356
+   INTEGER, PARAMETER             :: TwHt6ALxt =  357
+   INTEGER, PARAMETER             :: TwHt6ALyt =  358
+   INTEGER, PARAMETER             :: TwHt6ALzt =  359
+   INTEGER, PARAMETER             :: TwHt7ALxt =  360
+   INTEGER, PARAMETER             :: TwHt7ALyt =  361
+   INTEGER, PARAMETER             :: TwHt7ALzt =  362
+   INTEGER, PARAMETER             :: TwHt8ALxt =  363
+   INTEGER, PARAMETER             :: TwHt8ALyt =  364
+   INTEGER, PARAMETER             :: TwHt8ALzt =  365
+   INTEGER, PARAMETER             :: TwHt9ALxt =  366
+   INTEGER, PARAMETER             :: TwHt9ALyt =  367
+   INTEGER, PARAMETER             :: TwHt9ALzt =  368
+   INTEGER, PARAMETER             :: TwHt1TDxt =  369
+   INTEGER, PARAMETER             :: TwHt1TDyt =  370
+   INTEGER, PARAMETER             :: TwHt1TDzt =  371
+   INTEGER, PARAMETER             :: TwHt2TDxt =  372
+   INTEGER, PARAMETER             :: TwHt2TDyt =  373
+   INTEGER, PARAMETER             :: TwHt2TDzt =  374
+   INTEGER, PARAMETER             :: TwHt3TDxt =  375
+   INTEGER, PARAMETER             :: TwHt3TDyt =  376
+   INTEGER, PARAMETER             :: TwHt3TDzt =  377
+   INTEGER, PARAMETER             :: TwHt4TDxt =  378
+   INTEGER, PARAMETER             :: TwHt4TDyt =  379
+   INTEGER, PARAMETER             :: TwHt4TDzt =  380
+   INTEGER, PARAMETER             :: TwHt5TDxt =  381
+   INTEGER, PARAMETER             :: TwHt5TDyt =  382
+   INTEGER, PARAMETER             :: TwHt5TDzt =  383
+   INTEGER, PARAMETER             :: TwHt6TDxt =  384
+   INTEGER, PARAMETER             :: TwHt6TDyt =  385
+   INTEGER, PARAMETER             :: TwHt6TDzt =  386
+   INTEGER, PARAMETER             :: TwHt7TDxt =  387
+   INTEGER, PARAMETER             :: TwHt7TDyt =  388
+   INTEGER, PARAMETER             :: TwHt7TDzt =  389
+   INTEGER, PARAMETER             :: TwHt8TDxt =  390
+   INTEGER, PARAMETER             :: TwHt8TDyt =  391
+   INTEGER, PARAMETER             :: TwHt8TDzt =  392
+   INTEGER, PARAMETER             :: TwHt9TDxt =  393
+   INTEGER, PARAMETER             :: TwHt9TDyt =  394
+   INTEGER, PARAMETER             :: TwHt9TDzt =  395
+   INTEGER, PARAMETER             :: TwHt1RDxt =  396
+   INTEGER, PARAMETER             :: TwHt1RDyt =  397
+   INTEGER, PARAMETER             :: TwHt1RDzt =  398
+   INTEGER, PARAMETER             :: TwHt2RDxt =  399
+   INTEGER, PARAMETER             :: TwHt2RDyt =  400
+   INTEGER, PARAMETER             :: TwHt2RDzt =  401
+   INTEGER, PARAMETER             :: TwHt3RDxt =  402
+   INTEGER, PARAMETER             :: TwHt3RDyt =  403
+   INTEGER, PARAMETER             :: TwHt3RDzt =  404
+   INTEGER, PARAMETER             :: TwHt4RDxt =  405
+   INTEGER, PARAMETER             :: TwHt4RDyt =  406
+   INTEGER, PARAMETER             :: TwHt4RDzt =  407
+   INTEGER, PARAMETER             :: TwHt5RDxt =  408
+   INTEGER, PARAMETER             :: TwHt5RDyt =  409
+   INTEGER, PARAMETER             :: TwHt5RDzt =  410
+   INTEGER, PARAMETER             :: TwHt6RDxt =  411
+   INTEGER, PARAMETER             :: TwHt6RDyt =  412
+   INTEGER, PARAMETER             :: TwHt6RDzt =  413
+   INTEGER, PARAMETER             :: TwHt7RDxt =  414
+   INTEGER, PARAMETER             :: TwHt7RDyt =  415
+   INTEGER, PARAMETER             :: TwHt7RDzt =  416
+   INTEGER, PARAMETER             :: TwHt8RDxt =  417
+   INTEGER, PARAMETER             :: TwHt8RDyt =  418
+   INTEGER, PARAMETER             :: TwHt8RDzt =  419
+   INTEGER, PARAMETER             :: TwHt9RDxt =  420
+   INTEGER, PARAMETER             :: TwHt9RDyt =  421
+   INTEGER, PARAMETER             :: TwHt9RDzt =  422
+   INTEGER, PARAMETER             :: TwHt1TPxi =  423
+   INTEGER, PARAMETER             :: TwHt1TPyi =  424
+   INTEGER, PARAMETER             :: TwHt1TPzi =  425
+   INTEGER, PARAMETER             :: TwHt2TPxi =  426
+   INTEGER, PARAMETER             :: TwHt2TPyi =  427
+   INTEGER, PARAMETER             :: TwHt2TPzi =  428
+   INTEGER, PARAMETER             :: TwHt3TPxi =  429
+   INTEGER, PARAMETER             :: TwHt3TPyi =  430
+   INTEGER, PARAMETER             :: TwHt3TPzi =  431
+   INTEGER, PARAMETER             :: TwHt4TPxi =  432
+   INTEGER, PARAMETER             :: TwHt4TPyi =  433
+   INTEGER, PARAMETER             :: TwHt4TPzi =  434
+   INTEGER, PARAMETER             :: TwHt5TPxi =  435
+   INTEGER, PARAMETER             :: TwHt5TPyi =  436
+   INTEGER, PARAMETER             :: TwHt5TPzi =  437
+   INTEGER, PARAMETER             :: TwHt6TPxi =  438
+   INTEGER, PARAMETER             :: TwHt6TPyi =  439
+   INTEGER, PARAMETER             :: TwHt6TPzi =  440
+   INTEGER, PARAMETER             :: TwHt7TPxi =  441
+   INTEGER, PARAMETER             :: TwHt7TPyi =  442
+   INTEGER, PARAMETER             :: TwHt7TPzi =  443
+   INTEGER, PARAMETER             :: TwHt8TPxi =  444
+   INTEGER, PARAMETER             :: TwHt8TPyi =  445
+   INTEGER, PARAMETER             :: TwHt8TPzi =  446
+   INTEGER, PARAMETER             :: TwHt9TPxi =  447
+   INTEGER, PARAMETER             :: TwHt9TPyi =  448
+   INTEGER, PARAMETER             :: TwHt9TPzi =  449
+   INTEGER, PARAMETER             :: TwHt1RPxi =  450
+   INTEGER, PARAMETER             :: TwHt1RPyi =  451
+   INTEGER, PARAMETER             :: TwHt1RPzi =  452
+   INTEGER, PARAMETER             :: TwHt2RPxi =  453
+   INTEGER, PARAMETER             :: TwHt2RPyi =  454
+   INTEGER, PARAMETER             :: TwHt2RPzi =  455
+   INTEGER, PARAMETER             :: TwHt3RPxi =  456
+   INTEGER, PARAMETER             :: TwHt3RPyi =  457
+   INTEGER, PARAMETER             :: TwHt3RPzi =  458
+   INTEGER, PARAMETER             :: TwHt4RPxi =  459
+   INTEGER, PARAMETER             :: TwHt4RPyi =  460
+   INTEGER, PARAMETER             :: TwHt4RPzi =  461
+   INTEGER, PARAMETER             :: TwHt5RPxi =  462
+   INTEGER, PARAMETER             :: TwHt5RPyi =  463
+   INTEGER, PARAMETER             :: TwHt5RPzi =  464
+   INTEGER, PARAMETER             :: TwHt6RPxi =  465
+   INTEGER, PARAMETER             :: TwHt6RPyi =  466
+   INTEGER, PARAMETER             :: TwHt6RPzi =  467
+   INTEGER, PARAMETER             :: TwHt7RPxi =  468
+   INTEGER, PARAMETER             :: TwHt7RPyi =  469
+   INTEGER, PARAMETER             :: TwHt7RPzi =  470
+   INTEGER, PARAMETER             :: TwHt8RPxi =  471
+   INTEGER, PARAMETER             :: TwHt8RPyi =  472
+   INTEGER, PARAMETER             :: TwHt8RPzi =  473
+   INTEGER, PARAMETER             :: TwHt9RPxi =  474
+   INTEGER, PARAMETER             :: TwHt9RPyi =  475
+   INTEGER, PARAMETER             :: TwHt9RPzi =  476
+
+
+  ! Platform Motions:
+
+   INTEGER, PARAMETER             :: PtfmTDxt  =  477
+   INTEGER, PARAMETER             :: PtfmTDyt  =  478
+   INTEGER, PARAMETER             :: PtfmTDzt  =  479
+   INTEGER, PARAMETER             :: PtfmTDxi  =  480
+   INTEGER, PARAMETER             :: PtfmTDyi  =  481
+   INTEGER, PARAMETER             :: PtfmTDzi  =  482
+   INTEGER, PARAMETER             :: PtfmTVxt  =  483
+   INTEGER, PARAMETER             :: PtfmTVyt  =  484
+   INTEGER, PARAMETER             :: PtfmTVzt  =  485
+   INTEGER, PARAMETER             :: PtfmTVxi  =  486
+   INTEGER, PARAMETER             :: PtfmTVyi  =  487
+   INTEGER, PARAMETER             :: PtfmTVzi  =  488
+   INTEGER, PARAMETER             :: PtfmTAxt  =  489
+   INTEGER, PARAMETER             :: PtfmTAyt  =  490
+   INTEGER, PARAMETER             :: PtfmTAzt  =  491
+   INTEGER, PARAMETER             :: PtfmTAxi  =  492
+   INTEGER, PARAMETER             :: PtfmTAyi  =  493
+   INTEGER, PARAMETER             :: PtfmTAzi  =  494
+   INTEGER, PARAMETER             :: PtfmRDxi  =  495
+   INTEGER, PARAMETER             :: PtfmRDyi  =  496
+   INTEGER, PARAMETER             :: PtfmRDzi  =  497
+   INTEGER, PARAMETER             :: PtfmRVxt  =  498
+   INTEGER, PARAMETER             :: PtfmRVyt  =  499
+   INTEGER, PARAMETER             :: PtfmRVzt  =  500
+   INTEGER, PARAMETER             :: PtfmRVxi  =  501
+   INTEGER, PARAMETER             :: PtfmRVyi  =  502
+   INTEGER, PARAMETER             :: PtfmRVzi  =  503
+   INTEGER, PARAMETER             :: PtfmRAxt  =  504
+   INTEGER, PARAMETER             :: PtfmRAyt  =  505
+   INTEGER, PARAMETER             :: PtfmRAzt  =  506
+   INTEGER, PARAMETER             :: PtfmRAxi  =  507
+   INTEGER, PARAMETER             :: PtfmRAyi  =  508
+   INTEGER, PARAMETER             :: PtfmRAzi  =  509
+
+
+  ! Blade 1 Root Loads:
+
+   INTEGER, PARAMETER             :: RootFxc1  =  510
+   INTEGER, PARAMETER             :: RootFyc1  =  511
+   INTEGER, PARAMETER             :: RootFzc1  =  512
+   INTEGER, PARAMETER             :: RootFxb1  =  513
+   INTEGER, PARAMETER             :: RootFyb1  =  514
+   INTEGER, PARAMETER             :: RootMxc1  =  515
+   INTEGER, PARAMETER             :: RootMyc1  =  516
+   INTEGER, PARAMETER             :: RootMzc1  =  517
+   INTEGER, PARAMETER             :: RootMxb1  =  518
+   INTEGER, PARAMETER             :: RootMyb1  =  519
+
+
+  ! Blade 2 Root Loads:
+
+   INTEGER, PARAMETER             :: RootFxc2  =  520
+   INTEGER, PARAMETER             :: RootFyc2  =  521
+   INTEGER, PARAMETER             :: RootFzc2  =  522
+   INTEGER, PARAMETER             :: RootFxb2  =  523
+   INTEGER, PARAMETER             :: RootFyb2  =  524
+   INTEGER, PARAMETER             :: RootMxc2  =  525
+   INTEGER, PARAMETER             :: RootMyc2  =  526
+   INTEGER, PARAMETER             :: RootMzc2  =  527
+   INTEGER, PARAMETER             :: RootMxb2  =  528
+   INTEGER, PARAMETER             :: RootMyb2  =  529
+
+
+  ! Blade 3 Root Loads:
+
+   INTEGER, PARAMETER             :: RootFxc3  =  530
+   INTEGER, PARAMETER             :: RootFyc3  =  531
+   INTEGER, PARAMETER             :: RootFzc3  =  532
+   INTEGER, PARAMETER             :: RootFxb3  =  533
+   INTEGER, PARAMETER             :: RootFyb3  =  534
+   INTEGER, PARAMETER             :: RootMxc3  =  535
+   INTEGER, PARAMETER             :: RootMyc3  =  536
+   INTEGER, PARAMETER             :: RootMzc3  =  537
+   INTEGER, PARAMETER             :: RootMxb3  =  538
+   INTEGER, PARAMETER             :: RootMyb3  =  539
+
+
+  ! Blade 1 Local Span Loads:
+
+   INTEGER, PARAMETER             :: Spn1MLxb1 =  540
+   INTEGER, PARAMETER             :: Spn1MLyb1 =  541
+   INTEGER, PARAMETER             :: Spn1MLzb1 =  542
+   INTEGER, PARAMETER             :: Spn2MLxb1 =  543
+   INTEGER, PARAMETER             :: Spn2MLyb1 =  544
+   INTEGER, PARAMETER             :: Spn2MLzb1 =  545
+   INTEGER, PARAMETER             :: Spn3MLxb1 =  546
+   INTEGER, PARAMETER             :: Spn3MLyb1 =  547
+   INTEGER, PARAMETER             :: Spn3MLzb1 =  548
+   INTEGER, PARAMETER             :: Spn4MLxb1 =  549
+   INTEGER, PARAMETER             :: Spn4MLyb1 =  550
+   INTEGER, PARAMETER             :: Spn4MLzb1 =  551
+   INTEGER, PARAMETER             :: Spn5MLxb1 =  552
+   INTEGER, PARAMETER             :: Spn5MLyb1 =  553
+   INTEGER, PARAMETER             :: Spn5MLzb1 =  554
+   INTEGER, PARAMETER             :: Spn6MLxb1 =  555
+   INTEGER, PARAMETER             :: Spn6MLyb1 =  556
+   INTEGER, PARAMETER             :: Spn6MLzb1 =  557
+   INTEGER, PARAMETER             :: Spn7MLxb1 =  558
+   INTEGER, PARAMETER             :: Spn7MLyb1 =  559
+   INTEGER, PARAMETER             :: Spn7MLzb1 =  560
+   INTEGER, PARAMETER             :: Spn8MLxb1 =  561
+   INTEGER, PARAMETER             :: Spn8MLyb1 =  562
+   INTEGER, PARAMETER             :: Spn8MLzb1 =  563
+   INTEGER, PARAMETER             :: Spn9MLxb1 =  564
+   INTEGER, PARAMETER             :: Spn9MLyb1 =  565
+   INTEGER, PARAMETER             :: Spn9MLzb1 =  566
+   INTEGER, PARAMETER             :: Spn1FLxb1 =  567
+   INTEGER, PARAMETER             :: Spn1FLyb1 =  568
+   INTEGER, PARAMETER             :: Spn1FLzb1 =  569
+   INTEGER, PARAMETER             :: Spn2FLxb1 =  570
+   INTEGER, PARAMETER             :: Spn2FLyb1 =  571
+   INTEGER, PARAMETER             :: Spn2FLzb1 =  572
+   INTEGER, PARAMETER             :: Spn3FLxb1 =  573
+   INTEGER, PARAMETER             :: Spn3FLyb1 =  574
+   INTEGER, PARAMETER             :: Spn3FLzb1 =  575
+   INTEGER, PARAMETER             :: Spn4FLxb1 =  576
+   INTEGER, PARAMETER             :: Spn4FLyb1 =  577
+   INTEGER, PARAMETER             :: Spn4FLzb1 =  578
+   INTEGER, PARAMETER             :: Spn5FLxb1 =  579
+   INTEGER, PARAMETER             :: Spn5FLyb1 =  580
+   INTEGER, PARAMETER             :: Spn5FLzb1 =  581
+   INTEGER, PARAMETER             :: Spn6FLxb1 =  582
+   INTEGER, PARAMETER             :: Spn6FLyb1 =  583
+   INTEGER, PARAMETER             :: Spn6FLzb1 =  584
+   INTEGER, PARAMETER             :: Spn7FLxb1 =  585
+   INTEGER, PARAMETER             :: Spn7FLyb1 =  586
+   INTEGER, PARAMETER             :: Spn7FLzb1 =  587
+   INTEGER, PARAMETER             :: Spn8FLxb1 =  588
+   INTEGER, PARAMETER             :: Spn8FLyb1 =  589
+   INTEGER, PARAMETER             :: Spn8FLzb1 =  590
+   INTEGER, PARAMETER             :: Spn9FLxb1 =  591
+   INTEGER, PARAMETER             :: Spn9FLyb1 =  592
+   INTEGER, PARAMETER             :: Spn9FLzb1 =  593
+
+
+  ! Blade 2 Local Span Loads:
+
+   INTEGER, PARAMETER             :: Spn1MLxb2 =  594
+   INTEGER, PARAMETER             :: Spn1MLyb2 =  595
+   INTEGER, PARAMETER             :: Spn1MLzb2 =  596
+   INTEGER, PARAMETER             :: Spn2MLxb2 =  597
+   INTEGER, PARAMETER             :: Spn2MLyb2 =  598
+   INTEGER, PARAMETER             :: Spn2MLzb2 =  599
+   INTEGER, PARAMETER             :: Spn3MLxb2 =  600
+   INTEGER, PARAMETER             :: Spn3MLyb2 =  601
+   INTEGER, PARAMETER             :: Spn3MLzb2 =  602
+   INTEGER, PARAMETER             :: Spn4MLxb2 =  603
+   INTEGER, PARAMETER             :: Spn4MLyb2 =  604
+   INTEGER, PARAMETER             :: Spn4MLzb2 =  605
+   INTEGER, PARAMETER             :: Spn5MLxb2 =  606
+   INTEGER, PARAMETER             :: Spn5MLyb2 =  607
+   INTEGER, PARAMETER             :: Spn5MLzb2 =  608
+   INTEGER, PARAMETER             :: Spn6MLxb2 =  609
+   INTEGER, PARAMETER             :: Spn6MLyb2 =  610
+   INTEGER, PARAMETER             :: Spn6MLzb2 =  611
+   INTEGER, PARAMETER             :: Spn7MLxb2 =  612
+   INTEGER, PARAMETER             :: Spn7MLyb2 =  613
+   INTEGER, PARAMETER             :: Spn7MLzb2 =  614
+   INTEGER, PARAMETER             :: Spn8MLxb2 =  615
+   INTEGER, PARAMETER             :: Spn8MLyb2 =  616
+   INTEGER, PARAMETER             :: Spn8MLzb2 =  617
+   INTEGER, PARAMETER             :: Spn9MLxb2 =  618
+   INTEGER, PARAMETER             :: Spn9MLyb2 =  619
+   INTEGER, PARAMETER             :: Spn9MLzb2 =  620
+   INTEGER, PARAMETER             :: Spn1FLxb2 =  621
+   INTEGER, PARAMETER             :: Spn1FLyb2 =  622
+   INTEGER, PARAMETER             :: Spn1FLzb2 =  623
+   INTEGER, PARAMETER             :: Spn2FLxb2 =  624
+   INTEGER, PARAMETER             :: Spn2FLyb2 =  625
+   INTEGER, PARAMETER             :: Spn2FLzb2 =  626
+   INTEGER, PARAMETER             :: Spn3FLxb2 =  627
+   INTEGER, PARAMETER             :: Spn3FLyb2 =  628
+   INTEGER, PARAMETER             :: Spn3FLzb2 =  629
+   INTEGER, PARAMETER             :: Spn4FLxb2 =  630
+   INTEGER, PARAMETER             :: Spn4FLyb2 =  631
+   INTEGER, PARAMETER             :: Spn4FLzb2 =  632
+   INTEGER, PARAMETER             :: Spn5FLxb2 =  633
+   INTEGER, PARAMETER             :: Spn5FLyb2 =  634
+   INTEGER, PARAMETER             :: Spn5FLzb2 =  635
+   INTEGER, PARAMETER             :: Spn6FLxb2 =  636
+   INTEGER, PARAMETER             :: Spn6FLyb2 =  637
+   INTEGER, PARAMETER             :: Spn6FLzb2 =  638
+   INTEGER, PARAMETER             :: Spn7FLxb2 =  639
+   INTEGER, PARAMETER             :: Spn7FLyb2 =  640
+   INTEGER, PARAMETER             :: Spn7FLzb2 =  641
+   INTEGER, PARAMETER             :: Spn8FLxb2 =  642
+   INTEGER, PARAMETER             :: Spn8FLyb2 =  643
+   INTEGER, PARAMETER             :: Spn8FLzb2 =  644
+   INTEGER, PARAMETER             :: Spn9FLxb2 =  645
+   INTEGER, PARAMETER             :: Spn9FLyb2 =  646
+   INTEGER, PARAMETER             :: Spn9FLzb2 =  647
+
+
+  ! Blade 3 Local Span Loads:
+
+   INTEGER, PARAMETER             :: Spn1MLxb3 =  648
+   INTEGER, PARAMETER             :: Spn1MLyb3 =  649
+   INTEGER, PARAMETER             :: Spn1MLzb3 =  650
+   INTEGER, PARAMETER             :: Spn2MLxb3 =  651
+   INTEGER, PARAMETER             :: Spn2MLyb3 =  652
+   INTEGER, PARAMETER             :: Spn2MLzb3 =  653
+   INTEGER, PARAMETER             :: Spn3MLxb3 =  654
+   INTEGER, PARAMETER             :: Spn3MLyb3 =  655
+   INTEGER, PARAMETER             :: Spn3MLzb3 =  656
+   INTEGER, PARAMETER             :: Spn4MLxb3 =  657
+   INTEGER, PARAMETER             :: Spn4MLyb3 =  658
+   INTEGER, PARAMETER             :: Spn4MLzb3 =  659
+   INTEGER, PARAMETER             :: Spn5MLxb3 =  660
+   INTEGER, PARAMETER             :: Spn5MLyb3 =  661
+   INTEGER, PARAMETER             :: Spn5MLzb3 =  662
+   INTEGER, PARAMETER             :: Spn6MLxb3 =  663
+   INTEGER, PARAMETER             :: Spn6MLyb3 =  664
+   INTEGER, PARAMETER             :: Spn6MLzb3 =  665
+   INTEGER, PARAMETER             :: Spn7MLxb3 =  666
+   INTEGER, PARAMETER             :: Spn7MLyb3 =  667
+   INTEGER, PARAMETER             :: Spn7MLzb3 =  668
+   INTEGER, PARAMETER             :: Spn8MLxb3 =  669
+   INTEGER, PARAMETER             :: Spn8MLyb3 =  670
+   INTEGER, PARAMETER             :: Spn8MLzb3 =  671
+   INTEGER, PARAMETER             :: Spn9MLxb3 =  672
+   INTEGER, PARAMETER             :: Spn9MLyb3 =  673
+   INTEGER, PARAMETER             :: Spn9MLzb3 =  674
+   INTEGER, PARAMETER             :: Spn1FLxb3 =  675
+   INTEGER, PARAMETER             :: Spn1FLyb3 =  676
+   INTEGER, PARAMETER             :: Spn1FLzb3 =  677
+   INTEGER, PARAMETER             :: Spn2FLxb3 =  678
+   INTEGER, PARAMETER             :: Spn2FLyb3 =  679
+   INTEGER, PARAMETER             :: Spn2FLzb3 =  680
+   INTEGER, PARAMETER             :: Spn3FLxb3 =  681
+   INTEGER, PARAMETER             :: Spn3FLyb3 =  682
+   INTEGER, PARAMETER             :: Spn3FLzb3 =  683
+   INTEGER, PARAMETER             :: Spn4FLxb3 =  684
+   INTEGER, PARAMETER             :: Spn4FLyb3 =  685
+   INTEGER, PARAMETER             :: Spn4FLzb3 =  686
+   INTEGER, PARAMETER             :: Spn5FLxb3 =  687
+   INTEGER, PARAMETER             :: Spn5FLyb3 =  688
+   INTEGER, PARAMETER             :: Spn5FLzb3 =  689
+   INTEGER, PARAMETER             :: Spn6FLxb3 =  690
+   INTEGER, PARAMETER             :: Spn6FLyb3 =  691
+   INTEGER, PARAMETER             :: Spn6FLzb3 =  692
+   INTEGER, PARAMETER             :: Spn7FLxb3 =  693
+   INTEGER, PARAMETER             :: Spn7FLyb3 =  694
+   INTEGER, PARAMETER             :: Spn7FLzb3 =  695
+   INTEGER, PARAMETER             :: Spn8FLxb3 =  696
+   INTEGER, PARAMETER             :: Spn8FLyb3 =  697
+   INTEGER, PARAMETER             :: Spn8FLzb3 =  698
+   INTEGER, PARAMETER             :: Spn9FLxb3 =  699
+   INTEGER, PARAMETER             :: Spn9FLyb3 =  700
+   INTEGER, PARAMETER             :: Spn9FLzb3 =  701
+
+
+  ! Hub and Rotor Loads:
+
+   INTEGER, PARAMETER             :: LSShftFxa =  702
+   INTEGER, PARAMETER             :: LSShftFya =  703
+   INTEGER, PARAMETER             :: LSShftFza =  704
+   INTEGER, PARAMETER             :: LSShftFys =  705
+   INTEGER, PARAMETER             :: LSShftFzs =  706
+   INTEGER, PARAMETER             :: LSShftMxa =  707
+   INTEGER, PARAMETER             :: LSSTipMya =  708
+   INTEGER, PARAMETER             :: LSSTipMza =  709
+   INTEGER, PARAMETER             :: LSSTipMys =  710
+   INTEGER, PARAMETER             :: LSSTipMzs =  711
+   INTEGER, PARAMETER             :: CThrstAzm =  712
+   INTEGER, PARAMETER             :: CThrstRad =  713
+   INTEGER, PARAMETER             :: RotPwr    =  714
+   INTEGER, PARAMETER             :: RotCq     =  715
+   INTEGER, PARAMETER             :: RotCp     =  716
+   INTEGER, PARAMETER             :: RotCt     =  717
+
+
+  ! Shaft Strain Gage Loads:
+
+   INTEGER, PARAMETER             :: LSSGagMya =  718
+   INTEGER, PARAMETER             :: LSSGagMza =  719
+   INTEGER, PARAMETER             :: LSSGagMys =  720
+   INTEGER, PARAMETER             :: LSSGagMzs =  721
+
+
+  ! Generator and High-Speed Shaft Loads:
+
+   INTEGER, PARAMETER             :: HSShftTq  =  722
+   INTEGER, PARAMETER             :: HSShftPwr =  723
+   INTEGER, PARAMETER             :: HSShftCq  =  724
+   INTEGER, PARAMETER             :: HSShftCp  =  725
+   INTEGER, PARAMETER             :: GenTq     =  726
+   INTEGER, PARAMETER             :: GenPwr    =  727
+   INTEGER, PARAMETER             :: GenCq     =  728
+   INTEGER, PARAMETER             :: GenCp     =  729
+   INTEGER, PARAMETER             :: HSSBrTq   =  730
+
+
+  ! Rotor-Furl Bearing Loads:
+
+   INTEGER, PARAMETER             :: RFrlBrM   =  731
+
+
+  ! Tail-Furl Bearing Loads:
+
+   INTEGER, PARAMETER             :: TFrlBrM   =  732
+
+
+  ! Tail Fin Aerodynamic Loads:
+
+   INTEGER, PARAMETER             :: TFinAlpha =  733
+   INTEGER, PARAMETER             :: TFinCLift =  734
+   INTEGER, PARAMETER             :: TFinCDrag =  735
+   INTEGER, PARAMETER             :: TFinDnPrs =  736
+   INTEGER, PARAMETER             :: TFinCPFx  =  737
+   INTEGER, PARAMETER             :: TFinCPFy  =  738
+
+
+  ! Tower-Top / Yaw Bearing Loads:
+
+   INTEGER, PARAMETER             :: YawBrFxn  =  739
+   INTEGER, PARAMETER             :: YawBrFyn  =  740
+   INTEGER, PARAMETER             :: YawBrFzn  =  741
+   INTEGER, PARAMETER             :: YawBrFxp  =  742
+   INTEGER, PARAMETER             :: YawBrFyp  =  743
+   INTEGER, PARAMETER             :: YawBrMxn  =  744
+   INTEGER, PARAMETER             :: YawBrMyn  =  745
+   INTEGER, PARAMETER             :: YawBrMzn  =  746
+   INTEGER, PARAMETER             :: YawBrMxp  =  747
+   INTEGER, PARAMETER             :: YawBrMyp  =  748
+
+
+  ! Tower Base Loads:
+
+   INTEGER, PARAMETER             :: TwrBsFxt  =  749
+   INTEGER, PARAMETER             :: TwrBsFyt  =  750
+   INTEGER, PARAMETER             :: TwrBsFzt  =  751
+   INTEGER, PARAMETER             :: TwrBsMxt  =  752
+   INTEGER, PARAMETER             :: TwrBsMyt  =  753
+   INTEGER, PARAMETER             :: TwrBsMzt  =  754
+
+
+  ! Local Tower Loads:
+
+   INTEGER, PARAMETER             :: TwHt1MLxt =  755
+   INTEGER, PARAMETER             :: TwHt1MLyt =  756
+   INTEGER, PARAMETER             :: TwHt1MLzt =  757
+   INTEGER, PARAMETER             :: TwHt2MLxt =  758
+   INTEGER, PARAMETER             :: TwHt2MLyt =  759
+   INTEGER, PARAMETER             :: TwHt2MLzt =  760
+   INTEGER, PARAMETER             :: TwHt3MLxt =  761
+   INTEGER, PARAMETER             :: TwHt3MLyt =  762
+   INTEGER, PARAMETER             :: TwHt3MLzt =  763
+   INTEGER, PARAMETER             :: TwHt4MLxt =  764
+   INTEGER, PARAMETER             :: TwHt4MLyt =  765
+   INTEGER, PARAMETER             :: TwHt4MLzt =  766
+   INTEGER, PARAMETER             :: TwHt5MLxt =  767
+   INTEGER, PARAMETER             :: TwHt5MLyt =  768
+   INTEGER, PARAMETER             :: TwHt5MLzt =  769
+   INTEGER, PARAMETER             :: TwHt6MLxt =  770
+   INTEGER, PARAMETER             :: TwHt6MLyt =  771
+   INTEGER, PARAMETER             :: TwHt6MLzt =  772
+   INTEGER, PARAMETER             :: TwHt7MLxt =  773
+   INTEGER, PARAMETER             :: TwHt7MLyt =  774
+   INTEGER, PARAMETER             :: TwHt7MLzt =  775
+   INTEGER, PARAMETER             :: TwHt8MLxt =  776
+   INTEGER, PARAMETER             :: TwHt8MLyt =  777
+   INTEGER, PARAMETER             :: TwHt8MLzt =  778
+   INTEGER, PARAMETER             :: TwHt9MLxt =  779
+   INTEGER, PARAMETER             :: TwHt9MLyt =  780
+   INTEGER, PARAMETER             :: TwHt9MLzt =  781
+   INTEGER, PARAMETER             :: TwHt1FLxt =  782
+   INTEGER, PARAMETER             :: TwHt1FLyt =  783
+   INTEGER, PARAMETER             :: TwHt1FLzt =  784
+   INTEGER, PARAMETER             :: TwHt2FLxt =  785
+   INTEGER, PARAMETER             :: TwHt2FLyt =  786
+   INTEGER, PARAMETER             :: TwHt2FLzt =  787
+   INTEGER, PARAMETER             :: TwHt3FLxt =  788
+   INTEGER, PARAMETER             :: TwHt3FLyt =  789
+   INTEGER, PARAMETER             :: TwHt3FLzt =  790
+   INTEGER, PARAMETER             :: TwHt4FLxt =  791
+   INTEGER, PARAMETER             :: TwHt4FLyt =  792
+   INTEGER, PARAMETER             :: TwHt4FLzt =  793
+   INTEGER, PARAMETER             :: TwHt5FLxt =  794
+   INTEGER, PARAMETER             :: TwHt5FLyt =  795
+   INTEGER, PARAMETER             :: TwHt5FLzt =  796
+   INTEGER, PARAMETER             :: TwHt6FLxt =  797
+   INTEGER, PARAMETER             :: TwHt6FLyt =  798
+   INTEGER, PARAMETER             :: TwHt6FLzt =  799
+   INTEGER, PARAMETER             :: TwHt7FLxt =  800
+   INTEGER, PARAMETER             :: TwHt7FLyt =  801
+   INTEGER, PARAMETER             :: TwHt7FLzt =  802
+   INTEGER, PARAMETER             :: TwHt8FLxt =  803
+   INTEGER, PARAMETER             :: TwHt8FLyt =  804
+   INTEGER, PARAMETER             :: TwHt8FLzt =  805
+   INTEGER, PARAMETER             :: TwHt9FLxt =  806
+   INTEGER, PARAMETER             :: TwHt9FLyt =  807
+   INTEGER, PARAMETER             :: TwHt9FLzt =  808
+
+
+  ! Platform Loads:
+
+   INTEGER, PARAMETER             :: PtfmFxt   =  809
+   INTEGER, PARAMETER             :: PtfmFyt   =  810
+   INTEGER, PARAMETER             :: PtfmFzt   =  811
+   INTEGER, PARAMETER             :: PtfmFxi   =  812
+   INTEGER, PARAMETER             :: PtfmFyi   =  813
+   INTEGER, PARAMETER             :: PtfmFzi   =  814
+   INTEGER, PARAMETER             :: PtfmMxt   =  815
+   INTEGER, PARAMETER             :: PtfmMyt   =  816
+   INTEGER, PARAMETER             :: PtfmMzt   =  817
+   INTEGER, PARAMETER             :: PtfmMxi   =  818
+   INTEGER, PARAMETER             :: PtfmMyi   =  819
+   INTEGER, PARAMETER             :: PtfmMzi   =  820
+
+
+  ! Mooring Line Loads: (these will be in HydroDyn)
+
+   INTEGER, PARAMETER             :: Fair1Ten  =  821
+   INTEGER, PARAMETER             :: Fair1Ang  =  822
+   INTEGER, PARAMETER             :: Anch1Ten  =  823
+   INTEGER, PARAMETER             :: Anch1Ang  =  824
+   INTEGER, PARAMETER             :: Fair2Ten  =  825
+   INTEGER, PARAMETER             :: Fair2Ang  =  826
+   INTEGER, PARAMETER             :: Anch2Ten  =  827
+   INTEGER, PARAMETER             :: Anch2Ang  =  828
+   INTEGER, PARAMETER             :: Fair3Ten  =  829
+   INTEGER, PARAMETER             :: Fair3Ang  =  830
+   INTEGER, PARAMETER             :: Anch3Ten  =  831
+   INTEGER, PARAMETER             :: Anch3Ang  =  832
+   INTEGER, PARAMETER             :: Fair4Ten  =  833
+   INTEGER, PARAMETER             :: Fair4Ang  =  834
+   INTEGER, PARAMETER             :: Anch4Ten  =  835
+   INTEGER, PARAMETER             :: Anch4Ang  =  836
+   INTEGER, PARAMETER             :: Fair5Ten  =  837
+   INTEGER, PARAMETER             :: Fair5Ang  =  838
+   INTEGER, PARAMETER             :: Anch5Ten  =  839
+   INTEGER, PARAMETER             :: Anch5Ang  =  840
+   INTEGER, PARAMETER             :: Fair6Ten  =  841
+   INTEGER, PARAMETER             :: Fair6Ang  =  842
+   INTEGER, PARAMETER             :: Anch6Ten  =  843
+   INTEGER, PARAMETER             :: Anch6Ang  =  844
+   INTEGER, PARAMETER             :: Fair7Ten  =  845
+   INTEGER, PARAMETER             :: Fair7Ang  =  846
+   INTEGER, PARAMETER             :: Anch7Ten  =  847
+   INTEGER, PARAMETER             :: Anch7Ang  =  848
+   INTEGER, PARAMETER             :: Fair8Ten  =  849
+   INTEGER, PARAMETER             :: Fair8Ang  =  850
+   INTEGER, PARAMETER             :: Anch8Ten  =  851
+   INTEGER, PARAMETER             :: Anch8Ang  =  852
+   INTEGER, PARAMETER             :: Fair9Ten  =  853
+   INTEGER, PARAMETER             :: Fair9Ang  =  854
+   INTEGER, PARAMETER             :: Anch9Ten  =  855
+   INTEGER, PARAMETER             :: Anch9Ang  =  856
+
+
+  ! Wave Motions: (these will be in HydroDyn)
+
+   INTEGER, PARAMETER             :: WaveElev  =  857
+   INTEGER, PARAMETER             :: Wave1Vxi  =  858
+   INTEGER, PARAMETER             :: Wave1Vyi  =  859
+   INTEGER, PARAMETER             :: Wave1Vzi  =  860
+   INTEGER, PARAMETER             :: Wave1Axi  =  861
+   INTEGER, PARAMETER             :: Wave1Ayi  =  862
+   INTEGER, PARAMETER             :: Wave1Azi  =  863
+   INTEGER, PARAMETER             :: Wave2Vxi  =  864
+   INTEGER, PARAMETER             :: Wave2Vyi  =  865
+   INTEGER, PARAMETER             :: Wave2Vzi  =  866
+   INTEGER, PARAMETER             :: Wave2Axi  =  867
+   INTEGER, PARAMETER             :: Wave2Ayi  =  868
+   INTEGER, PARAMETER             :: Wave2Azi  =  869
+   INTEGER, PARAMETER             :: Wave3Vxi  =  870
+   INTEGER, PARAMETER             :: Wave3Vyi  =  871
+   INTEGER, PARAMETER             :: Wave3Vzi  =  872
+   INTEGER, PARAMETER             :: Wave3Axi  =  873
+   INTEGER, PARAMETER             :: Wave3Ayi  =  874
+   INTEGER, PARAMETER             :: Wave3Azi  =  875
+   INTEGER, PARAMETER             :: Wave4Vxi  =  876
+   INTEGER, PARAMETER             :: Wave4Vyi  =  877
+   INTEGER, PARAMETER             :: Wave4Vzi  =  878
+   INTEGER, PARAMETER             :: Wave4Axi  =  879
+   INTEGER, PARAMETER             :: Wave4Ayi  =  880
+   INTEGER, PARAMETER             :: Wave4Azi  =  881
+   INTEGER, PARAMETER             :: Wave5Vxi  =  882
+   INTEGER, PARAMETER             :: Wave5Vyi  =  883
+   INTEGER, PARAMETER             :: Wave5Vzi  =  884
+   INTEGER, PARAMETER             :: Wave5Axi  =  885
+   INTEGER, PARAMETER             :: Wave5Ayi  =  886
+   INTEGER, PARAMETER             :: Wave5Azi  =  887
+   INTEGER, PARAMETER             :: Wave6Vxi  =  888
+   INTEGER, PARAMETER             :: Wave6Vyi  =  889
+   INTEGER, PARAMETER             :: Wave6Vzi  =  890
+   INTEGER, PARAMETER             :: Wave6Axi  =  891
+   INTEGER, PARAMETER             :: Wave6Ayi  =  892
+   INTEGER, PARAMETER             :: Wave6Azi  =  893
+   INTEGER, PARAMETER             :: Wave7Vxi  =  894
+   INTEGER, PARAMETER             :: Wave7Vyi  =  895
+   INTEGER, PARAMETER             :: Wave7Vzi  =  896
+   INTEGER, PARAMETER             :: Wave7Axi  =  897
+   INTEGER, PARAMETER             :: Wave7Ayi  =  898
+   INTEGER, PARAMETER             :: Wave7Azi  =  899
+   INTEGER, PARAMETER             :: Wave8Vxi  =  900
+   INTEGER, PARAMETER             :: Wave8Vyi  =  901
+   INTEGER, PARAMETER             :: Wave8Vzi  =  902
+   INTEGER, PARAMETER             :: Wave8Axi  =  903
+   INTEGER, PARAMETER             :: Wave8Ayi  =  904
+   INTEGER, PARAMETER             :: Wave8Azi  =  905
+   INTEGER, PARAMETER             :: Wave9Vxi  =  906
+   INTEGER, PARAMETER             :: Wave9Vyi  =  907
+   INTEGER, PARAMETER             :: Wave9Vzi  =  908
+   INTEGER, PARAMETER             :: Wave9Axi  =  909
+   INTEGER, PARAMETER             :: Wave9Ayi  =  910
+   INTEGER, PARAMETER             :: Wave9Azi  =  911
+
+
+  ! Internal Degrees of Freedom:
+
+   INTEGER, PARAMETER             :: Q_B1E1    =  912
+   INTEGER, PARAMETER             :: Q_B2E1    =  913
+   INTEGER, PARAMETER             :: Q_B3E1    =  914
+   INTEGER, PARAMETER             :: Q_B1F1    =  915
+   INTEGER, PARAMETER             :: Q_B2F1    =  916
+   INTEGER, PARAMETER             :: Q_B3F1    =  917
+   INTEGER, PARAMETER             :: Q_B1F2    =  918
+   INTEGER, PARAMETER             :: Q_B2F2    =  919
+   INTEGER, PARAMETER             :: Q_B3F2    =  920
+   INTEGER, PARAMETER             :: Q_Teet    =  921
+   INTEGER, PARAMETER             :: Q_DrTr    =  922
+   INTEGER, PARAMETER             :: Q_GeAz    =  923
+   INTEGER, PARAMETER             :: Q_RFrl    =  924
+   INTEGER, PARAMETER             :: Q_TFrl    =  925
+   INTEGER, PARAMETER             :: Q_Yaw     =  926
+   INTEGER, PARAMETER             :: Q_TFA1    =  927
+   INTEGER, PARAMETER             :: Q_TSS1    =  928
+   INTEGER, PARAMETER             :: Q_TFA2    =  929
+   INTEGER, PARAMETER             :: Q_TSS2    =  930
+   INTEGER, PARAMETER             :: Q_Sg      =  931
+   INTEGER, PARAMETER             :: Q_Sw      =  932
+   INTEGER, PARAMETER             :: Q_Hv      =  933
+   INTEGER, PARAMETER             :: Q_R       =  934
+   INTEGER, PARAMETER             :: Q_P       =  935
+   INTEGER, PARAMETER             :: Q_Y       =  936
+   INTEGER, PARAMETER             :: QD_B1E1   =  937
+   INTEGER, PARAMETER             :: QD_B2E1   =  938
+   INTEGER, PARAMETER             :: QD_B3E1   =  939
+   INTEGER, PARAMETER             :: QD_B1F1   =  940
+   INTEGER, PARAMETER             :: QD_B2F1   =  941
+   INTEGER, PARAMETER             :: QD_B3F1   =  942
+   INTEGER, PARAMETER             :: QD_B1F2   =  943
+   INTEGER, PARAMETER             :: QD_B2F2   =  944
+   INTEGER, PARAMETER             :: QD_B3F2   =  945
+   INTEGER, PARAMETER             :: QD_Teet   =  946
+   INTEGER, PARAMETER             :: QD_DrTr   =  947
+   INTEGER, PARAMETER             :: QD_GeAz   =  948
+   INTEGER, PARAMETER             :: QD_RFrl   =  949
+   INTEGER, PARAMETER             :: QD_TFrl   =  950
+   INTEGER, PARAMETER             :: QD_Yaw    =  951
+   INTEGER, PARAMETER             :: QD_TFA1   =  952
+   INTEGER, PARAMETER             :: QD_TSS1   =  953
+   INTEGER, PARAMETER             :: QD_TFA2   =  954
+   INTEGER, PARAMETER             :: QD_TSS2   =  955
+   INTEGER, PARAMETER             :: QD_Sg     =  956
+   INTEGER, PARAMETER             :: QD_Sw     =  957
+   INTEGER, PARAMETER             :: QD_Hv     =  958
+   INTEGER, PARAMETER             :: QD_R      =  959
+   INTEGER, PARAMETER             :: QD_P      =  960
+   INTEGER, PARAMETER             :: QD_Y      =  961
+   INTEGER, PARAMETER             :: QD2_B1E1  =  962
+   INTEGER, PARAMETER             :: QD2_B2E1  =  963
+   INTEGER, PARAMETER             :: QD2_B3E1  =  964
+   INTEGER, PARAMETER             :: QD2_B1F1  =  965
+   INTEGER, PARAMETER             :: QD2_B2F1  =  966
+   INTEGER, PARAMETER             :: QD2_B3F1  =  967
+   INTEGER, PARAMETER             :: QD2_B1F2  =  968
+   INTEGER, PARAMETER             :: QD2_B2F2  =  969
+   INTEGER, PARAMETER             :: QD2_B3F2  =  970
+   INTEGER, PARAMETER             :: QD2_Teet  =  971
+   INTEGER, PARAMETER             :: QD2_DrTr  =  972
+   INTEGER, PARAMETER             :: QD2_GeAz  =  973
+   INTEGER, PARAMETER             :: QD2_RFrl  =  974
+   INTEGER, PARAMETER             :: QD2_TFrl  =  975
+   INTEGER, PARAMETER             :: QD2_Yaw   =  976
+   INTEGER, PARAMETER             :: QD2_TFA1  =  977
+   INTEGER, PARAMETER             :: QD2_TSS1  =  978
+   INTEGER, PARAMETER             :: QD2_TFA2  =  979
+   INTEGER, PARAMETER             :: QD2_TSS2  =  980
+   INTEGER, PARAMETER             :: QD2_Sg    =  981
+   INTEGER, PARAMETER             :: QD2_Sw    =  982
+   INTEGER, PARAMETER             :: QD2_Hv    =  983
+   INTEGER, PARAMETER             :: QD2_R     =  984
+   INTEGER, PARAMETER             :: QD2_P     =  985
+   INTEGER, PARAMETER             :: QD2_Y     =  986
+
+
+     ! The maximum number of output channels which can be output by the code.
+   INTEGER, PARAMETER             :: MaxOutPts =  986
+   
+
+INTEGER,  PARAMETER          :: TipDxc( 3)  = (/TipDxc1,  TipDxc2,  TipDxc3/)
+INTEGER,  PARAMETER          :: TipDyc( 3)  = (/TipDyc1,  TipDyc2,  TipDyc3/)
+INTEGER,  PARAMETER          :: TipDzc( 3)  = (/TipDzc1,  TipDzc2,  TipDzc3/)
+INTEGER,  PARAMETER          :: TipDxb( 3)  = (/TipDxb1,  TipDxb2,  TipDxb3/)
+INTEGER,  PARAMETER          :: TipDyb( 3)  = (/TipDyb1,  TipDyb2,  TipDyb3/)
+INTEGER,  PARAMETER          :: TipALxb(3)  = (/TipALxb1, TipALxb2, TipALxb3/)
+INTEGER,  PARAMETER          :: TipALyb(3)  = (/TipALyb1, TipALyb2, TipALyb3/)
+INTEGER,  PARAMETER          :: TipALzb(3)  = (/TipALzb1, TipALzb2, TipALzb3/)
+INTEGER,  PARAMETER          :: TipRDxb(3)  = (/TipRDxb1, TipRDxb2, TipRDxb3/)
+INTEGER,  PARAMETER          :: TipRDyb(3)  = (/TipRDyb1, TipRDyb2, TipRDyb3/)
+INTEGER,  PARAMETER          :: TipRDzc(3)  = (/TipRDzc1, TipRDzc2, TipRDzc3/)
+INTEGER,  PARAMETER          :: TipClrnc(3) = (/TipClrnc1,TipClrnc2,TipClrnc3/)
+INTEGER,  PARAMETER          :: PtchPMzc(3) = (/PtchPMzc1,PtchPMzc2,PtchPMzc3/)
+
+INTEGER,  PARAMETER          :: RootFxc(3) = (/ RootFxc1,RootFxc2,RootFxc3 /)
+INTEGER,  PARAMETER          :: RootFyc(3) = (/ RootFyc1,RootFyc2,RootFyc3 /)
+INTEGER,  PARAMETER          :: RootFzc(3) = (/ RootFzc1,RootFzc2,RootFzc3 /)
+INTEGER,  PARAMETER          :: RootFxb(3) = (/ RootFxb1,RootFxb2,RootFxb3 /)
+INTEGER,  PARAMETER          :: RootFyb(3) = (/ RootFyb1,RootFyb2,RootFyb3 /)
+INTEGER,  PARAMETER          :: RootMxc(3) = (/ RootMxc1,RootMxc2,RootMxc3 /)
+INTEGER,  PARAMETER          :: RootMyc(3) = (/ RootMyc1,RootMyc2,RootMyc3 /)
+INTEGER,  PARAMETER          :: RootMzc(3) = (/ RootMzc1,RootMzc2,RootMzc3 /)
+INTEGER,  PARAMETER          :: RootMxb(3) = (/ RootMxb1,RootMxb2,RootMxb3 /)
+INTEGER,  PARAMETER          :: RootMyb(3) = (/ RootMyb1,RootMyb2,RootMyb3 /)
+
+INTEGER,  PARAMETER          :: SpnALxb(9, 3) = RESHAPE( (/ &
+                                    Spn1ALxb1,Spn2ALxb1,Spn3ALxb1,Spn4ALxb1,Spn5ALxb1,Spn6ALxb1,Spn7ALxb1,Spn8ALxb1,Spn9ALxb1, &
+                                    Spn1ALxb2,Spn2ALxb2,Spn3ALxb2,Spn4ALxb2,Spn5ALxb2,Spn6ALxb2,Spn7ALxb2,Spn8ALxb2,Spn9ALxb2, &
+                                    Spn1ALxb3,Spn2ALxb3,Spn3ALxb3,Spn4ALxb3,Spn5ALxb3,Spn6ALxb3,Spn7ALxb3,Spn8ALxb3,Spn9ALxb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnALyb(9, 3) = RESHAPE( (/ &
+                                    Spn1ALyb1,Spn2ALyb1,Spn3ALyb1,Spn4ALyb1,Spn5ALyb1,Spn6ALyb1,Spn7ALyb1,Spn8ALyb1,Spn9ALyb1, &
+                                    Spn1ALyb2,Spn2ALyb2,Spn3ALyb2,Spn4ALyb2,Spn5ALyb2,Spn6ALyb2,Spn7ALyb2,Spn8ALyb2,Spn9ALyb2, &
+                                    Spn1ALyb3,Spn2ALyb3,Spn3ALyb3,Spn4ALyb3,Spn5ALyb3,Spn6ALyb3,Spn7ALyb3,Spn8ALyb3,Spn9ALyb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnALzb(9, 3) = RESHAPE( (/ &
+                                    Spn1ALzb1,Spn2ALzb1,Spn3ALzb1,Spn4ALzb1,Spn5ALzb1,Spn6ALzb1,Spn7ALzb1,Spn8ALzb1,Spn9ALzb1, &
+                                    Spn1ALzb2,Spn2ALzb2,Spn3ALzb2,Spn4ALzb2,Spn5ALzb2,Spn6ALzb2,Spn7ALzb2,Spn8ALzb2,Spn9ALzb2, &
+                                    Spn1ALzb3,Spn2ALzb3,Spn3ALzb3,Spn4ALzb3,Spn5ALzb3,Spn6ALzb3,Spn7ALzb3,Spn8ALzb3,Spn9ALzb3  &
+                                /), (/9, 3/) )
+
+INTEGER,  PARAMETER          :: SpnFLxb(9,3) = RESHAPE( (/ &
+                                    Spn1FLxb1,Spn2FLxb1,Spn3FLxb1,Spn4FLxb1,Spn5FLxb1,Spn6FLxb1,Spn7FLxb1,Spn8FLxb1,Spn9FLxb1, &
+                                    Spn1FLxb2,Spn2FLxb2,Spn3FLxb2,Spn4FLxb2,Spn5FLxb2,Spn6FLxb2,Spn7FLxb2,Spn8FLxb2,Spn9FLxb2, &
+                                    Spn1FLxb3,Spn2FLxb3,Spn3FLxb3,Spn4FLxb3,Spn5FLxb3,Spn6FLxb3,Spn7FLxb3,Spn8FLxb3,Spn9FLxb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnFLyb(9,3) = RESHAPE( (/ &
+                                    Spn1FLyb1,Spn2FLyb1,Spn3FLyb1,Spn4FLyb1,Spn5FLyb1,Spn6FLyb1,Spn7FLyb1,Spn8FLyb1,Spn9FLyb1, &
+                                    Spn1FLyb2,Spn2FLyb2,Spn3FLyb2,Spn4FLyb2,Spn5FLyb2,Spn6FLyb2,Spn7FLyb2,Spn8FLyb2,Spn9FLyb2, &
+                                    Spn1FLyb3,Spn2FLyb3,Spn3FLyb3,Spn4FLyb3,Spn5FLyb3,Spn6FLyb3,Spn7FLyb3,Spn8FLyb3,Spn9FLyb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnFLzb(9,3) = RESHAPE( (/ &
+                                    Spn1FLzb1,Spn2FLzb1,Spn3FLzb1,Spn4FLzb1,Spn5FLzb1,Spn6FLzb1,Spn7FLzb1,Spn8FLzb1,Spn9FLzb1, &
+                                    Spn1FLzb2,Spn2FLzb2,Spn3FLzb2,Spn4FLzb2,Spn5FLzb2,Spn6FLzb2,Spn7FLzb2,Spn8FLzb2,Spn9FLzb2, &
+                                    Spn1FLzb3,Spn2FLzb3,Spn3FLzb3,Spn4FLzb3,Spn5FLzb3,Spn6FLzb3,Spn7FLzb3,Spn8FLzb3,Spn9FLzb3  &
+                                /), (/9, 3/) )
+                                
+INTEGER,  PARAMETER          :: SpnMLxb(9,3) = RESHAPE( (/ &
+                                    Spn1MLxb1,Spn2MLxb1,Spn3MLxb1,Spn4MLxb1,Spn5MLxb1,Spn6MLxb1,Spn7MLxb1,Spn8MLxb1,Spn9MLxb1, &
+                                    Spn1MLxb2,Spn2MLxb2,Spn3MLxb2,Spn4MLxb2,Spn5MLxb2,Spn6MLxb2,Spn7MLxb2,Spn8MLxb2,Spn9MLxb2, &
+                                    Spn1MLxb3,Spn2MLxb3,Spn3MLxb3,Spn4MLxb3,Spn5MLxb3,Spn6MLxb3,Spn7MLxb3,Spn8MLxb3,Spn9MLxb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnMLyb(9,3) = RESHAPE( (/ &
+                                    Spn1MLyb1,Spn2MLyb1,Spn3MLyb1,Spn4MLyb1,Spn5MLyb1,Spn6MLyb1,Spn7MLyb1,Spn8MLyb1,Spn9MLyb1, &
+                                    Spn1MLyb2,Spn2MLyb2,Spn3MLyb2,Spn4MLyb2,Spn5MLyb2,Spn6MLyb2,Spn7MLyb2,Spn8MLyb2,Spn9MLyb2, &
+                                    Spn1MLyb3,Spn2MLyb3,Spn3MLyb3,Spn4MLyb3,Spn5MLyb3,Spn6MLyb3,Spn7MLyb3,Spn8MLyb3,Spn9MLyb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnMLzb(9,3) = RESHAPE( (/ &
+                                    Spn1MLzb1,Spn2MLzb1,Spn3MLzb1,Spn4MLzb1,Spn5MLzb1,Spn6MLzb1,Spn7MLzb1,Spn8MLzb1,Spn9MLzb1, &
+                                    Spn1MLzb2,Spn2MLzb2,Spn3MLzb2,Spn4MLzb2,Spn5MLzb2,Spn6MLzb2,Spn7MLzb2,Spn8MLzb2,Spn9MLzb2, &
+                                    Spn1MLzb3,Spn2MLzb3,Spn3MLzb3,Spn4MLzb3,Spn5MLzb3,Spn6MLzb3,Spn7MLzb3,Spn8MLzb3,Spn9MLzb3  &
+                                /), (/9, 3/) )
+                                
+INTEGER,  PARAMETER          :: SpnTDxb(9,3) = RESHAPE( (/ &
+                                    Spn1TDxb1,Spn2TDxb1,Spn3TDxb1,Spn4TDxb1,Spn5TDxb1,Spn6TDxb1,Spn7TDxb1,Spn8TDxb1,Spn9TDxb1, &
+                                    Spn1TDxb2,Spn2TDxb2,Spn3TDxb2,Spn4TDxb2,Spn5TDxb2,Spn6TDxb2,Spn7TDxb2,Spn8TDxb2,Spn9TDxb2, &
+                                    Spn1TDxb3,Spn2TDxb3,Spn3TDxb3,Spn4TDxb3,Spn5TDxb3,Spn6TDxb3,Spn7TDxb3,Spn8TDxb3,Spn9TDxb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnTDyb(9,3) = RESHAPE( (/ &
+                                    Spn1TDyb1,Spn2TDyb1,Spn3TDyb1,Spn4TDyb1,Spn5TDyb1,Spn6TDyb1,Spn7TDyb1,Spn8TDyb1,Spn9TDyb1, &
+                                    Spn1TDyb2,Spn2TDyb2,Spn3TDyb2,Spn4TDyb2,Spn5TDyb2,Spn6TDyb2,Spn7TDyb2,Spn8TDyb2,Spn9TDyb2, &
+                                    Spn1TDyb3,Spn2TDyb3,Spn3TDyb3,Spn4TDyb3,Spn5TDyb3,Spn6TDyb3,Spn7TDyb3,Spn8TDyb3,Spn9TDyb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnTDzb(9,3) = RESHAPE( (/ &
+                                    Spn1TDzb1,Spn2TDzb1,Spn3TDzb1,Spn4TDzb1,Spn5TDzb1,Spn6TDzb1,Spn7TDzb1,Spn8TDzb1,Spn9TDzb1, &
+                                    Spn1TDzb2,Spn2TDzb2,Spn3TDzb2,Spn4TDzb2,Spn5TDzb2,Spn6TDzb2,Spn7TDzb2,Spn8TDzb2,Spn9TDzb2, &
+                                    Spn1TDzb3,Spn2TDzb3,Spn3TDzb3,Spn4TDzb3,Spn5TDzb3,Spn6TDzb3,Spn7TDzb3,Spn8TDzb3,Spn9TDzb3  &
+                                /), (/9, 3/) )
+
+INTEGER,  PARAMETER          :: SpnRDxb(9,3) = RESHAPE( (/ &
+                                    Spn1RDxb1,Spn2RDxb1,Spn3RDxb1,Spn4RDxb1,Spn5RDxb1,Spn6RDxb1,Spn7RDxb1,Spn8RDxb1,Spn9RDxb1, &
+                                    Spn1RDxb2,Spn2RDxb2,Spn3RDxb2,Spn4RDxb2,Spn5RDxb2,Spn6RDxb2,Spn7RDxb2,Spn8RDxb2,Spn9RDxb2, &
+                                    Spn1RDxb3,Spn2RDxb3,Spn3RDxb3,Spn4RDxb3,Spn5RDxb3,Spn6RDxb3,Spn7RDxb3,Spn8RDxb3,Spn9RDxb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnRDyb(9,3) = RESHAPE( (/ &
+                                    Spn1RDyb1,Spn2RDyb1,Spn3RDyb1,Spn4RDyb1,Spn5RDyb1,Spn6RDyb1,Spn7RDyb1,Spn8RDyb1,Spn9RDyb1, &
+                                    Spn1RDyb2,Spn2RDyb2,Spn3RDyb2,Spn4RDyb2,Spn5RDyb2,Spn6RDyb2,Spn7RDyb2,Spn8RDyb2,Spn9RDyb2, &
+                                    Spn1RDyb3,Spn2RDyb3,Spn3RDyb3,Spn4RDyb3,Spn5RDyb3,Spn6RDyb3,Spn7RDyb3,Spn8RDyb3,Spn9RDyb3  &
+                                /), (/9, 3/) )
+INTEGER,  PARAMETER          :: SpnRDzb(9,3) = RESHAPE( (/ &
+                                    Spn1RDzb1,Spn2RDzb1,Spn3RDzb1,Spn4RDzb1,Spn5RDzb1,Spn6RDzb1,Spn7RDzb1,Spn8RDzb1,Spn9RDzb1, &
+                                    Spn1RDzb2,Spn2RDzb2,Spn3RDzb2,Spn4RDzb2,Spn5RDzb2,Spn6RDzb2,Spn7RDzb2,Spn8RDzb2,Spn9RDzb2, &
+                                    Spn1RDzb3,Spn2RDzb3,Spn3RDzb3,Spn4RDzb3,Spn5RDzb3,Spn6RDzb3,Spn7RDzb3,Spn8RDzb3,Spn9RDzb3  &
+                                /), (/9, 3/) )
+
+                                
+INTEGER,  PARAMETER          :: TwHtALxt(9) = (/ &
+                                    TwHt1ALxt,TwHt2ALxt,TwHt3ALxt,TwHt4ALxt,TwHt5ALxt,TwHt6ALxt,TwHt7ALxt,TwHt8ALxt,TwHt9ALxt /)
+INTEGER,  PARAMETER          :: TwHtALyt(9) = (/ &
+                                    TwHt1ALyt,TwHt2ALyt,TwHt3ALyt,TwHt4ALyt,TwHt5ALyt,TwHt6ALyt,TwHt7ALyt,TwHt8ALyt,TwHt9ALyt /)
+INTEGER,  PARAMETER          :: TwHtALzt(9) = (/ &
+                                    TwHt1ALzt,TwHt2ALzt,TwHt3ALzt,TwHt4ALzt,TwHt5ALzt,TwHt6ALzt,TwHt7ALzt,TwHt8ALzt,TwHt9ALzt /)
+
+INTEGER,  PARAMETER          :: TwHtMLxt(9) = (/ &
+                                    TwHt1MLxt,TwHt2MLxt,TwHt3MLxt,TwHt4MLxt,TwHt5MLxt,TwHt6MLxt,TwHt7MLxt,TwHt8MLxt,TwHt9MLxt /)
+INTEGER,  PARAMETER          :: TwHtMLyt(9) = (/ &
+                                    TwHt1MLyt,TwHt2MLyt,TwHt3MLyt,TwHt4MLyt,TwHt5MLyt,TwHt6MLyt,TwHt7MLyt,TwHt8MLyt,TwHt9MLyt /)
+INTEGER,  PARAMETER          :: TwHtMLzt(9) = (/ &
+                                    TwHt1MLzt,TwHt2MLzt,TwHt3MLzt,TwHt4MLzt,TwHt5MLzt,TwHt6MLzt,TwHt7MLzt,TwHt8MLzt,TwHt9MLzt /)
+
+INTEGER,  PARAMETER          :: TwHtFLxt(9) = (/ &
+                                    TwHt1FLxt,TwHt2FLxt,TwHt3FLxt,TwHt4FLxt,TwHt5FLxt,TwHt6FLxt,TwHt7FLxt,TwHt8FLxt,TwHt9FLxt /)
+INTEGER,  PARAMETER          :: TwHtFLyt(9) = (/ &
+                                    TwHt1FLyt,TwHt2FLyt,TwHt3FLyt,TwHt4FLyt,TwHt5FLyt,TwHt6FLyt,TwHt7FLyt,TwHt8FLyt,TwHt9FLyt /)
+INTEGER,  PARAMETER          :: TwHtFLzt(9) = (/ &
+                                    TwHt1FLzt,TwHt2FLzt,TwHt3FLzt,TwHt4FLzt,TwHt5FLzt,TwHt6FLzt,TwHt7FLzt,TwHt8FLzt,TwHt9FLzt /)
+
+INTEGER,  PARAMETER          :: TwHtTDxt(9) = (/ &
+                                    TwHt1TDxt,TwHt2TDxt,TwHt3TDxt,TwHt4TDxt,TwHt5TDxt,TwHt6TDxt,TwHt7TDxt,TwHt8TDxt,TwHt9TDxt /)
+INTEGER,  PARAMETER          :: TwHtTDyt(9) = (/ &
+                                    TwHt1TDyt,TwHt2TDyt,TwHt3TDyt,TwHt4TDyt,TwHt5TDyt,TwHt6TDyt,TwHt7TDyt,TwHt8TDyt,TwHt9TDyt /)
+INTEGER,  PARAMETER          :: TwHtTDzt(9) = (/ &
+                                    TwHt1TDzt,TwHt2TDzt,TwHt3TDzt,TwHt4TDzt,TwHt5TDzt,TwHt6TDzt,TwHt7TDzt,TwHt8TDzt,TwHt9TDzt /)
+
+INTEGER,  PARAMETER          :: TwHtRDxt(9) = (/ &
+                                    TwHt1RDxt,TwHt2RDxt,TwHt3RDxt,TwHt4RDxt,TwHt5RDxt,TwHt6RDxt,TwHt7RDxt,TwHt8RDxt,TwHt9RDxt /)
+INTEGER,  PARAMETER          :: TwHtRDyt(9) = (/ &
+                                    TwHt1RDyt,TwHt2RDyt,TwHt3RDyt,TwHt4RDyt,TwHt5RDyt,TwHt6RDyt,TwHt7RDyt,TwHt8RDyt,TwHt9RDyt /)
+INTEGER,  PARAMETER          :: TwHtRDzt(9) = (/ &
+                                    TwHt1RDzt,TwHt2RDzt,TwHt3RDzt,TwHt4RDzt,TwHt5RDzt,TwHt6RDzt,TwHt7RDzt,TwHt8RDzt,TwHt9RDzt /)
+
+INTEGER,  PARAMETER          :: TwHtTPxi(9) = (/ &
+                                    TwHt1TPxi,TwHt2TPxi,TwHt3TPxi,TwHt4TPxi,TwHt5TPxi,TwHt6TPxi,TwHt7TPxi,TwHt8TPxi,TwHt9TPxi /)
+INTEGER,  PARAMETER          :: TwHtTPyi(9) = (/ &
+                                    TwHt1TPyi,TwHt2TPyi,TwHt3TPyi,TwHt4TPyi,TwHt5TPyi,TwHt6TPyi,TwHt7TPyi,TwHt8TPyi,TwHt9TPyi /)
+INTEGER,  PARAMETER          :: TwHtTPzi(9) = (/ &
+                                    TwHt1TPzi,TwHt2TPzi,TwHt3TPzi,TwHt4TPzi,TwHt5TPzi,TwHt6TPzi,TwHt7TPzi,TwHt8TPzi,TwHt9TPzi /)
+
+INTEGER,  PARAMETER          :: TwHtRPxi(9) = (/ &
+                                    TwHt1RPxi,TwHt2RPxi,TwHt3RPxi,TwHt4RPxi,TwHt5RPxi,TwHt6RPxi,TwHt7RPxi,TwHt8RPxi,TwHt9RPxi /)
+INTEGER,  PARAMETER          :: TwHtRPyi(9) = (/ &
+                                    TwHt1RPyi,TwHt2RPyi,TwHt3RPyi,TwHt4RPyi,TwHt5RPyi,TwHt6RPyi,TwHt7RPyi,TwHt8RPyi,TwHt9RPyi /)
+INTEGER,  PARAMETER          :: TwHtRPzi(9) = (/ &
+                                    TwHt1RPzi,TwHt2RPzi,TwHt3RPzi,TwHt4RPzi,TwHt5RPzi,TwHt6RPzi,TwHt7RPzi,TwHt8RPzi,TwHt9RPzi /)
+
+!will be part of HydroDyn:
+INTEGER,  PARAMETER          :: WaveVxi(9) = (/Wave1Vxi,Wave2Vxi,Wave3Vxi,Wave4Vxi,Wave5Vxi,Wave6Vxi,Wave7Vxi,Wave8Vxi,Wave9Vxi/)
+INTEGER,  PARAMETER          :: WaveVyi(9) = (/Wave1Vyi,Wave2Vyi,Wave3Vyi,Wave4Vyi,Wave5Vyi,Wave6Vyi,Wave7Vyi,Wave8Vyi,Wave9Vyi/)
+INTEGER,  PARAMETER          :: WaveVzi(9) = (/Wave1Vzi,Wave2Vzi,Wave3Vzi,Wave4Vzi,Wave5Vzi,Wave6Vzi,Wave7Vzi,Wave8Vzi,Wave9Vzi/)
+INTEGER,  PARAMETER          :: WaveAxi(9) = (/Wave1Axi,Wave2Axi,Wave3Axi,Wave4Axi,Wave5Axi,Wave6Axi,Wave7Axi,Wave8Axi,Wave9Axi/)
+INTEGER,  PARAMETER          :: WaveAyi(9) = (/Wave1Ayi,Wave2Ayi,Wave3Ayi,Wave4Ayi,Wave5Ayi,Wave6Ayi,Wave7Ayi,Wave8Ayi,Wave9Ayi/)
+INTEGER,  PARAMETER          :: WaveAzi(9) = (/Wave1Azi,Wave2Azi,Wave3Azi,Wave4Azi,Wave5Azi,Wave6Azi,Wave7Azi,Wave8Azi,Wave9Azi/)
+INTEGER,  PARAMETER          :: FairTen(9) = (/Fair1Ten,Fair2Ten,Fair3Ten,Fair4Ten,Fair5Ten,Fair6Ten,Fair7Ten,Fair8Ten,Fair9Ten/)
+INTEGER,  PARAMETER          :: FairAng(9) = (/Fair1Ang,Fair2Ang,Fair3Ang,Fair4Ang,Fair5Ang,Fair6Ang,Fair7Ang,Fair8Ang,Fair9Ang/)
+INTEGER,  PARAMETER          :: AnchTen(9) = (/Anch1Ten,Anch2Ten,Anch3Ten,Anch4Ten,Anch5Ten,Anch6Ten,Anch7Ten,Anch8Ten,Anch9Ten/)
+INTEGER,  PARAMETER          :: AnchAng(9) = (/Anch1Ang,Anch2Ang,Anch3Ang,Anch4Ang,Anch5Ang,Anch6Ang,Anch7Ang,Anch8Ang,Anch9Ang/)
 
 
 
@@ -1041,7 +2356,7 @@ SUBROUTINE StrD_InitDOFs( DOFs, p, ErrStat, ErrMsg )
 
    ALLOCATE ( p%PH(p%NPH),  p%PM(p%NumBl,p%NPM), STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PH and PM arrays.' )
+      CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveDOFs PH and PM arrays.' )
       RETURN
    ENDIF     
   
@@ -1232,198 +2547,6 @@ END IF
 RETURN
 END SUBROUTINE CoordSys_Alloc
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrMsg )
-! This routine checks the blade file input data for errors
-!----------------------------------------------------------------------------------------------------------------------------------
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
-   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
-   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated 
-   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
-   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
-
-      ! local variables
-   REAL(ReKi)                               :: TipDispl                            ! Blade tip displacement for a mode shape.
-   INTEGER                                  :: I                                   ! Loop counter
-
-
-   ErrStat = ErrID_None
-   ErrMsg= ''
-   
-   
-      ! Check that BlFract goes from 0.0 to 1.0 in increasing order:
-   
-   IF ( .NOT. EqualRealNos( BladeKInputFileData%BlFract(1), 0.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract(1) must be 0.0.'
-   END IF 
-
-   IF ( BladeKInputFileData%NBlInpSt /= 1 .AND. &
-      .NOT. EqualRealNos( BladeKInputFileData%BlFract(BladeKInputFileData%NBlInpSt), 1.0_ReKi )  ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.' 
-   END IF
-
-   DO I = 2,BladeKInputFileData%NBlInpSt
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.' 
-
-      IF ( BladeKInputFileData%BlFract(I) <= BladeKInputFileData%BlFract(I-1) )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
-                                                      //TRIM( Num2LStr(I-1) )//').'
-         
-      ENDIF
-   END DO 
-   
-
-
-   DO I = 1,BladeKInputFileData%NBlInpSt
-   
-         ! Check that AerCen is contained in [0.0, 1.0]:
-      IF ( ( BladeKInputFileData%AerCen(I) ) < 0.0_ReKi .OR. ( BladeKInputFileData%AerCen(I) > 1.0_ReKi ) )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  AerCen('//TRIM( Num2LStr( I ) )//') must be between 0 and 1 (inclusive).'
-      END IF
-      
-         ! Check that StrcTwst is contained in (-180.0, 180.0]:
-      IF ( ( BladeKInputFileData%StrcTwst(I) <= -180.0_ReKi ) .OR. ( BladeKInputFileData%StrcTwst(I) > 180.0_ReKi ) )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  StrcTwst('//TRIM( Num2LStr( I ) ) // &
-                     ') must be greater than -180 and less than or equal to 180.'
-      END IF
-   
-         ! Check that BMassDen is contained in (0.0, inf):
-      IF ( BladeKInputFileData%BMassDen(I) <= 0.0_ReKi )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  BMassDen('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
-      END IF
-      
-         ! Check that FlpStff is contained in (0.0, inf):
-      IF ( BladeKInputFileData%FlpStff (I) <= 0.0_ReKi )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
-      END IF
-   
-         ! Check that EdgStff is contained in (0.0, inf):
-      IF ( BladeKInputFileData%EdgStff (I) <= 0.0_ReKi )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
-      END IF
-   
-   END DO
-   
-   
-   IF ( ChkAdmVals ) THEN  ! Check values for Adams input
-
-      
-         ! The reference axis must be coincident with the pitch axis at the blade root (I == 1):
-      IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(1), 0.0_ReKi ) .OR. &
-            .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(1), 0.0_ReKi )      )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  Both PrecrvRef(1) and PreswpRef(1) must be zero '//&
-                            '(the reference axis must be coincident with the pitch axis at the blade root).'
-      END IF       
-
-      
-      DO I = 1,BladeKInputFileData%NBlInpSt
-   
-            ! Check that GJStff is contained in (0.0, inf):
-         IF ( BladeKInputFileData%GJStff(I) <= 0.0_ReKi )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  GJStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
-         END IF
-         
-            ! Check that EAStff is contained in (0.0, inf):
-         IF ( BladeKInputFileData%EAStff(I) <= 0.0_ReKi )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  EAStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
-         END IF
-         
-            ! Check that Alpha is contained in (-1.0, 1):
-         IF ( ( BladeKInputFileData%Alpha(I) <= -1.0_ReKi ) .OR. ( BladeKInputFileData%Alpha(I) >= 1.0_ReKi ) )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  Alpha('//TRIM( Num2LStr( I ) )//') (the blade flap/twist'// &
-                         ' coupling coefficient) must be between -1 and 1 (exclusive).'
-         END IF
-         
-            ! Check that FlpIner is contained in [0.0, inf):
-         IF ( BladeKInputFileData%FlpIner(I) <  0.0_ReKi )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
-         END IF
-         
-            ! Check that EdgIner is contained in [0.0, inf):
-         IF ( BladeKInputFileData%EdgIner(I) <  0.0_ReKi )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
-         END IF
-                           
-            ! Check that PrecrvRef is 0.0 for Adams models:
-         IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(I), 0.0_ReKi) )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  PrecrvRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
-         END IF
-         
-            ! Check that GJStff is contained in (0.0, inf):
-         IF ( .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(I), 0.0_ReKi) )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  PreswpRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
-         END IF
-         
-      END DO
-               
-   END IF  ! check for Adams models
-   
-      
-      ! Check that the blade damping is not negative:  
-      
-   IF ( ANY( BladeKInputFileData%BldFlDmp < 0.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldFlDmp must not be negative.'
-   END IF
-
-   IF ( ANY( BladeKInputFileData%BldEdDmp < 0.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldEdDmp must not be negative.'
-   END IF
-   
-
-      ! Check that the stiffness tuner isn't negative:
-      
-   IF ( ANY( BladeKInputFileData%FlStTunr <= 0.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlStTunr must be greater than zero.'
-   END IF
-
-   
-      ! Check that the mode shape coefficients add to 1.0:
-      ! bjj: old check was this:
-      ! ( ABS( TipDispl - 1.0 ) > 0.001 )
-
-   TipDispl = SUM(BladeKInputFileData%BldFl1Sh)
-   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-flap mode-1 shape coefficients must add to 1.0.'
-   END IF
-   
-
-   TipDispl = SUM(BladeKInputFileData%BldFl2Sh)
-   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-flap mode-2 shape coefficients must add to 1.0.'
-   END IF   
-   
-
-   TipDispl = SUM(BladeKInputFileData%BldEdgSh)
-   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-edge mode shape coefficients must add to 1.0.'
-   END IF  
-
-
-END SUBROUTINE ValidateBladeData
-!----------------------------------------------------------------------------------------------------------------------------------
-
 SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, ErrStat, ErrMsg )
 
 
@@ -1503,7 +2626,7 @@ CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%NBlInpSt, 'NBlInpSt', 'Number 
    
 
    ! Allocate the arrays based on this NBlInpSt input 
-CALL Alloc_BladeProperties( BladeKInputFileData, ErrStat2, ErrMsg2 )
+CALL Alloc_BladeInputProperties( BladeKInputFileData, ErrStat2, ErrMsg2 )
    CALL CheckError( ErrStat2, ErrMsg2 )
    IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -1735,7 +2858,7 @@ CONTAINS
 
 END SUBROUTINE ReadBladeFile
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Alloc_BladeProperties( BladeKInputFileData, ErrStat, ErrMsg )
+SUBROUTINE Alloc_BladeInputProperties( BladeKInputFileData, ErrStat, ErrMsg )
 ! This routine allocates arrays for the blade properties from the input file
 !----------------------------------------------------------------------------------------------------------------------------------
 
@@ -1799,7 +2922,198 @@ SUBROUTINE Alloc_BladeProperties( BladeKInputFileData, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    
    
-END SUBROUTINE Alloc_BladeProperties
+END SUBROUTINE Alloc_BladeInputProperties
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrMsg )
+! This routine checks the blade file input data for errors
+!----------------------------------------------------------------------------------------------------------------------------------
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
+   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated 
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
+
+      ! local variables
+   REAL(ReKi)                               :: TipDispl                            ! Blade tip displacement for a mode shape.
+   INTEGER                                  :: I                                   ! Loop counter
+
+
+   ErrStat = ErrID_None
+   ErrMsg= ''
+   
+   
+      ! Check that BlFract goes from 0.0 to 1.0 in increasing order:
+   
+   IF ( .NOT. EqualRealNos( BladeKInputFileData%BlFract(1), 0.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract(1) must be 0.0.'
+   END IF 
+
+   IF ( BladeKInputFileData%NBlInpSt /= 1 .AND. &
+      .NOT. EqualRealNos( BladeKInputFileData%BlFract(BladeKInputFileData%NBlInpSt), 1.0_ReKi )  ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.' 
+   END IF
+
+   DO I = 2,BladeKInputFileData%NBlInpSt
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.' 
+
+      IF ( BladeKInputFileData%BlFract(I) <= BladeKInputFileData%BlFract(I-1) )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
+                                                      //TRIM( Num2LStr(I-1) )//').'
+         
+      ENDIF
+   END DO 
+   
+
+
+   DO I = 1,BladeKInputFileData%NBlInpSt
+   
+         ! Check that AerCen is contained in [0.0, 1.0]:
+      IF ( ( BladeKInputFileData%AerCen(I) ) < 0.0_ReKi .OR. ( BladeKInputFileData%AerCen(I) > 1.0_ReKi ) )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  AerCen('//TRIM( Num2LStr( I ) )//') must be between 0 and 1 (inclusive).'
+      END IF
+      
+         ! Check that StrcTwst is contained in (-180.0, 180.0]:
+      IF ( ( BladeKInputFileData%StrcTwst(I) <= -180.0_ReKi ) .OR. ( BladeKInputFileData%StrcTwst(I) > 180.0_ReKi ) )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  StrcTwst('//TRIM( Num2LStr( I ) ) // &
+                     ') must be greater than -180 and less than or equal to 180.'
+      END IF
+   
+         ! Check that BMassDen is contained in (0.0, inf):
+      IF ( BladeKInputFileData%BMassDen(I) <= 0.0_ReKi )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  BMassDen('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+      END IF
+      
+         ! Check that FlpStff is contained in (0.0, inf):
+      IF ( BladeKInputFileData%FlpStff (I) <= 0.0_ReKi )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+      END IF
+   
+         ! Check that EdgStff is contained in (0.0, inf):
+      IF ( BladeKInputFileData%EdgStff (I) <= 0.0_ReKi )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+      END IF
+   
+   END DO
+   
+   
+   IF ( ChkAdmVals ) THEN  ! Check values for Adams input
+
+      
+         ! The reference axis must be coincident with the pitch axis at the blade root (I == 1):
+      IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(1), 0.0_ReKi ) .OR. &
+            .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(1), 0.0_ReKi )      )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  Both PrecrvRef(1) and PreswpRef(1) must be zero '//&
+                            '(the reference axis must be coincident with the pitch axis at the blade root).'
+      END IF       
+
+      
+      DO I = 1,BladeKInputFileData%NBlInpSt
+   
+            ! Check that GJStff is contained in (0.0, inf):
+         IF ( BladeKInputFileData%GJStff(I) <= 0.0_ReKi )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  GJStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+         END IF
+         
+            ! Check that EAStff is contained in (0.0, inf):
+         IF ( BladeKInputFileData%EAStff(I) <= 0.0_ReKi )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  EAStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+         END IF
+         
+            ! Check that Alpha is contained in (-1.0, 1):
+         IF ( ( BladeKInputFileData%Alpha(I) <= -1.0_ReKi ) .OR. ( BladeKInputFileData%Alpha(I) >= 1.0_ReKi ) )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  Alpha('//TRIM( Num2LStr( I ) )//') (the blade flap/twist'// &
+                         ' coupling coefficient) must be between -1 and 1 (exclusive).'
+         END IF
+         
+            ! Check that FlpIner is contained in [0.0, inf):
+         IF ( BladeKInputFileData%FlpIner(I) <  0.0_ReKi )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
+         END IF
+         
+            ! Check that EdgIner is contained in [0.0, inf):
+         IF ( BladeKInputFileData%EdgIner(I) <  0.0_ReKi )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
+         END IF
+                           
+            ! Check that PrecrvRef is 0.0 for Adams models:
+         IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(I), 0.0_ReKi) )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  PrecrvRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
+         END IF
+         
+            ! Check that GJStff is contained in (0.0, inf):
+         IF ( .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(I), 0.0_ReKi) )  THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  PreswpRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
+         END IF
+         
+      END DO
+               
+   END IF  ! check for Adams models
+   
+      
+      ! Check that the blade damping is not negative:  
+      
+   IF ( ANY( BladeKInputFileData%BldFlDmp < 0.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldFlDmp must not be negative.'
+   END IF
+
+   IF ( ANY( BladeKInputFileData%BldEdDmp < 0.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldEdDmp must not be negative.'
+   END IF
+   
+
+      ! Check that the stiffness tuner isn't negative:
+      
+   IF ( ANY( BladeKInputFileData%FlStTunr <= 0.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlStTunr must be greater than zero.'
+   END IF
+
+   
+      ! Check that the mode shape coefficients add to 1.0:
+      ! bjj: old check was this:
+      ! ( ABS( TipDispl - 1.0 ) > 0.001 )
+
+   TipDispl = SUM(BladeKInputFileData%BldFl1Sh)
+   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-flap mode-1 shape coefficients must add to 1.0.'
+   END IF
+   
+
+   TipDispl = SUM(BladeKInputFileData%BldFl2Sh)
+   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-flap mode-2 shape coefficients must add to 1.0.'
+   END IF   
+   
+
+   TipDispl = SUM(BladeKInputFileData%BldEdgSh)
+   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-edge mode shape coefficients must add to 1.0.'
+   END IF  
+
+
+END SUBROUTINE ValidateBladeData
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
 ! This takes the blade input file data and sets the corresponding blade parameters, performing linear interpolation of the
@@ -1821,17 +3135,9 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
    ErrStat = ErrID_None
    ErrMsg  = ''
    
-!bjj: it would probably make sense to allocate all of these arrays here (shape as well as the interpolated/mesh arrays)
-!
-!
-!      ! Allocate space for the arrays (BJJ check that this isn't done elsewhere...)
-!ALLOCATE( p%BldEdgSh(2:PolyOrd,p%NumBl), p%BldFl1Sh(2:PolyOrd,p%NumBl), BldFl2Sh(2:PolyOrd,p%NumBl), STAT = ErrStat )
-!IF ( ErrStat /= 0 ) THEN
-!   ErrStat = ErrID_Fatal
-!   ErrMsg  = ' Error allocating BldEdgSh, BldFl1Sh, and BldFl2Sh arrays.'
-!   RETURN
-!END IF   
    
+   CALL Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
 
    ! Array definitions:
 
@@ -1856,6 +3162,11 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
    !    EdgEAOf    EAOffBEdg  Blade edge elastic axis offset
 
    
+      ! Define RNodesNorm() which is common to all the blades:
+
+   p%RNodesNorm = p%RNodes/p%BldFlexL  ! Normalized radius to analysis nodes relative to hub ( 0 < RNodesNorm(:) < 1 )
+   
+   
       ! Perform a linear interpolation of the input data to map to the meshed data for simulation:
     
    DO K=1,p%NumBl      
@@ -1866,10 +3177,11 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
             ! Get the index into BlFract for all of the arrays, using the NWTC Subroutine Library
          p%AeroCent(K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%AerCen, &
                                       InterpInd, BladeInData(K)%NBlInpSt )
-      
+
+         
             ! The remaining arrays will have the same x value for the linear interpolation, 
             ! so we'll do it manually (with a local subroutine) instead of calling the InterpStp routine again
-         x = ( p%RNodesNorm(InterpInd)             - BladeInData(K)%BlFract(InterpInd) ) / &
+         x = ( p%RNodesNorm(J)                     - BladeInData(K)%BlFract(InterpInd) ) / &
              ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
        
          p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd )
@@ -1883,7 +3195,7 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
             p%BAlpha   (K,J) = InterpAry( x, BladeInData(K)%Alpha    , InterpInd )
             p%InerBFlp (K,J) = InterpAry( x, BladeInData(K)%FlpIner  , InterpInd )
             p%InerBEdg (K,J) = InterpAry( x, BladeInData(K)%EdgIner  , InterpInd )
-            p%RefAxisxb(K,J) = InterpAry( x, BladeInData(K)%PrecrvRef, InterpInd )
+            p%RefAxisxb(K,J) = InterpAry( x, BladeInData(K)%PrecrvRef, InterpInd ) 
             p%RefAxisyb(K,J) = InterpAry( x, BladeInData(K)%PreswpRef, InterpInd )
             p%cgOffBFlp(K,J) = InterpAry( x, BladeInData(K)%FlpcgOf  , InterpInd )
             p%cgOffBEdg(K,J) = InterpAry( x, BladeInData(K)%EdgcgOf  , InterpInd )
@@ -1903,6 +3215,7 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
       
          ! Set the blade damping and stiffness tuner
       p%BldFDamp(K,:) = BladeInData(K)%BldFlDmp
+      p%BldEDamp(K,:) = BladeInData(K)%BldEdDmp
       p%FStTunr (K,:) = BladeInData(K)%FlStTunr
 
       
@@ -1920,21 +3233,14 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
    
    p%ThetaS  = D2R*p%ThetaS
    p%CThetaS = COS(p%ThetaS)
-   p%CThetaS = SIN(p%ThetaS)
-   
- 
-   
-   
+   p%SThetaS = SIN(p%ThetaS)
    
    
 RETURN
-   ! bjj: also set mode shapes (I've changed the inputs...).
-
-   
-   
    
 
 CONTAINS
+!..................................................................................................................................
    FUNCTION InterpAry( x, YAry, Ind )
       ! This subroutine is used to interpolate the arrays more efficiently (all arrays have the same X value)
       ! See InterpStpReal() for comparison. This assumes we already know Ind and that 
@@ -1950,8 +3256,85 @@ CONTAINS
       InterpAry = ( YAry(Ind+1) - YAry(Ind) ) * x  + YAry(Ind)
       
    END FUNCTION InterpAry
-   
+!..................................................................................................................................   
 END SUBROUTINE SetBladeParams
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
+! This routine allocates arrays for the blade parameters.
+!----------------------------------------------------------------------------------------------------------------------------------
+
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
+   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set 
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
+
+         
+   
+      ! Allocate arrays to hold blade data at the analysis nodes.
+   CALL AllocAry  ( p%RNodesNorm,              p%BldNodes, 'RNodesNorm' , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%AeroCent,    p%NumBl,    p%BldNodes, 'AeroCent'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%ThetaS,      p%NumBl,    p%BldNodes, 'ThetaS'     , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%CThetaS,     p%NumBl,    p%BldNodes, 'CThetaS'    , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%SThetaS,     p%NumBl,    p%BldNodes, 'SThetaS'    , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%MassB,       p%NumBl,    p%BldNodes, 'MassB'      , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%StiffBF,     p%NumBl,    p%BldNodes, 'StiffBF'    , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%StiffBE,     p%NumBl,    p%BldNodes, 'StiffBE'    , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+
+   
+!IF ( SetAdmVals ) THEN      
+   CALL AllocAry  ( p%StiffBGJ,    p%NumBl,    p%BldNodes, 'StiffBGJ'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%StiffBEA,    p%NumBl,    p%BldNodes, 'StiffBEA'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%BAlpha,      p%NumBl,    p%BldNodes, 'BAlpha'     , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%InerBFlp,    p%NumBl,    p%BldNodes, 'InerBFlp'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%InerBEdg,    p%NumBl,    p%BldNodes, 'InerBEdg'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%RefAxisxb,   p%NumBl,    p%TipNode,  'RefAxisxb'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%RefAxisyb,   p%NumBl,    p%TipNode,  'RefAxisyb'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%cgOffBFlp,   p%NumBl,    p%BldNodes, 'cgOffBFlp'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%cgOffBEdg,   p%NumBl,    p%BldNodes, 'cgOffBEdg'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%EAOffBFlp,   p%NumBl,    p%BldNodes, 'EAOffBFlp'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%EAOffBEdg,   p%NumBl,    p%BldNodes, 'EAOffBEdg'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+!END IF
+   
+   CALL AllocAry  ( p%BldEDamp,    p%NumBl,    NumBE,      'BldEDamp'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%BldFDamp,    p%NumBl,    NumBF,      'BldFDamp'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%FStTunr,     p%NumBl,    NumBF,      'FStTunr'    , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN        
+   
+   
+         ! Allocate space for the mode shape arrays:
+         
+   ALLOCATE( p%BldEdgSh(2:PolyOrd,p%NumBl), p%BldFl1Sh(2:PolyOrd,p%NumBl), p%BldFl2Sh(2:PolyOrd,p%NumBl), STAT = ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = ' Error allocating BldEdgSh, BldFl1Sh, and BldFl2Sh arrays.'
+      RETURN
+   END IF   
+   
+   
+   
+END SUBROUTINE Alloc_BladeParameters
+!----------------------------------------------------------------------------------------------------------------------------------
 
 
 END MODULE StructDyn

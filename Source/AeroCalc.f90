@@ -16,7 +16,6 @@ USE GlueCodeVars
    
    ! FAST Modules:
 
-USE                           Blades
 USE                           EnvCond
 USE                           Noise
 USE                           SimCont !DT, TMax
@@ -88,8 +87,8 @@ IF (.NOT. ALLOCATED(p_StrD%SAeroTwst)) THEN
    ENDIF
 ENDIF
 
-RNodes   = ADAeroMarkers%Blade(:,1)%Position(3) + p_StrD%HubRad         ! ADAeroMarkers contains relative markers after initialization
-p_StrD%DRNodes(1) = 2.0*( RNodes(1) - p_StrD%HubRad )
+p_StrD%RNodes   = ADAeroMarkers%Blade(:,1)%Position(3) + p_StrD%HubRad         ! ADAeroMarkers contains relative markers after initialization
+p_StrD%DRNodes(1) = 2.0*( p_StrD%RNodes(1) - p_StrD%HubRad )
 DO IElm = 2,NumADBldNodes
    p_StrD%DRNodes(IElm) = 2.0*( p_StrD%RNodes(IElm) - p_StrD%RNodes(IElm-1) ) - p_StrD%DRNodes(IElm-1)
 END DO

@@ -2289,7 +2289,6 @@ SUBROUTINE GetPrimary( InputFileData, p, ErrStat, ErrMsg )
    ! This routine reads the primary parameter file and validates the input.
 
 
-USE                             Blades
 USE                             Drivetrain
 USE                             EnvCond
 USE                             General
@@ -5536,7 +5535,6 @@ SUBROUTINE FAST_Input( p, OtherState, InputFileData, ErrStat, ErrMsg )
 
    ! FAST Modules:
 
-USE                             Blades
 USE                             DriveTrain
 USE                             EnvCond
 USE                             General
@@ -5987,7 +5985,7 @@ IF ( ( p%PSpnElN < 1 ) .OR. ( p%PSpnElN > p%BldNodes ) )  &
 
    ! Convert RNodes to be relative to the hub:
 
-RNodes = RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < p%BldFlexL )
+p%RNodes = p%RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < p%BldFlexL )
 
 
    ! Compute the index for the blade tip and tower top nodes:
@@ -5998,141 +5996,6 @@ p%TTopNode = p%TwrNodes + 1
 
 
 !  -------------- BLADE PARAMETERS ---------------------------------------------
-
-
-   ! Allocate arrays to hold blade data at the analysis nodes.
-
-ALLOCATE ( StiffBE(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the StiffBE array.' )
-ENDIF
-
-ALLOCATE ( RNodesNorm(p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the RNodesNorm array.' )
-ENDIF
-
-ALLOCATE ( MassB(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the MassB array.' )
-ENDIF
-
-ALLOCATE ( StiffBF(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the StiffBF array.' )
-ENDIF
-
-ALLOCATE ( p%AeroCent(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the AeroCent array.' )
-ENDIF
-
-ALLOCATE ( ThetaS(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the ThetaS array.' )
-ENDIF
-
-ALLOCATE ( p%CThetaS(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the CThetaS array.' )
-ENDIF
-
-ALLOCATE ( p%SThetaS(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the SThetaS array.' )
-ENDIF
-
-ALLOCATE ( StiffBGJ(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the StiffBGJ array.' )
-ENDIF
-
-ALLOCATE ( StiffBEA(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the StiffBEA array.' )
-ENDIF
-
-ALLOCATE ( p%BAlpha(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the BAlpha array.' )
-ENDIF
-
-ALLOCATE ( InerBFlp(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the InerBFlp array.' )
-ENDIF
-
-ALLOCATE ( InerBEdg(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the InerBEdg array.' )
-ENDIF
-
-ALLOCATE ( RefAxisxb(p%NumBl,p%TipNode) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the RefAxisxb array.' )
-ENDIF
-
-ALLOCATE ( RefAxisyb(p%NumBl,p%TipNode) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the RefAxisyb array.' )
-ENDIF
-
-ALLOCATE ( p%cgOffBFlp(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the cgOffBFlp array.' )
-ENDIF
-
-ALLOCATE ( p%cgOffBEdg(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the cgOffBEdg array.' )
-ENDIF
-
-ALLOCATE ( EAOffBFlp(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the EAOffBFlp array.' )
-ENDIF
-
-ALLOCATE ( EAOffBEdg(p%NumBl,p%BldNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the EAOffBEdg array.' )
-ENDIF
-
-
-ALLOCATE ( p%BldEDamp(p%NumBl,1) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the BldEDamp array.' )
-ENDIF
-
-ALLOCATE ( p%BldFDamp(p%NumBl,2) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the BldFDamp array.' )
-ENDIF
-
-ALLOCATE ( FStTunr(p%NumBl,2) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the FStTunr array.' )
-ENDIF
-
-ALLOCATE ( p%BldEdgSh(2:PolyOrd,p%NumBl) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the BldEdgSh array.' )
-ENDIF
-
-ALLOCATE ( p%BldFl1Sh(2:PolyOrd,p%NumBl) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the BldFl1Sh array.' )
-ENDIF
-
-ALLOCATE ( p%BldFl2Sh(2:PolyOrd,p%NumBl) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the BldFl2Sh array.' )
-ENDIF
-
-
-   ! Define RNodesNorm() which is common to all the blades:
-
-RNodesNorm = RNodes/p%BldFlexL  ! Normalized radius to analysis nodes relative to hub ( 0 < RNodesNorm(:) < 1 )
-
 
 
 CALL GetBladeInputs ( BldFile, p, InputFileData, ErrStat, ErrMsg )
@@ -6421,7 +6284,6 @@ SUBROUTINE PrintSum( p, OtherState )
    !  the input data and interpolated flexible body data.
 
 USE                             AeroDyn
-USE                             Blades
 USE                             General
 USE                             SimCont
 
@@ -6685,7 +6547,7 @@ IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will b
 
    DO I=1,p%TwrNodes
       WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, p%HNodesNorm(I), p%HNodes(I)+p%TwrRBHt, p%DHNodes(I), p%MassT(I), &
-                                                              p%StiffTFA(I), p%StiffTSS(I), p%StiffTGJ(I), p%StiffTEA(I),           &
+                                                              p%StiffTFA(I), p%StiffTSS(I), p%StiffTGJ(I), p%StiffTEA(I),       &
                                                               p%InerTFA(I), p%InerTSS(I), p%cgOffTFA(I), p%cgOffTSS(I)
    ENDDO ! I
 
@@ -6718,13 +6580,14 @@ DO K=1,p%NumBl
 
       DO I=1,p%BldNodes
 
-         WRITE(UnSu,'(I4,3F9.3,3F10.3,4ES11.3,F9.3,4F10.3,4F9.3)')  I, RNodesNorm(I), RNodes(I) + p%HubRad, p%DRNodes(I),            &
-                                                                       p%AeroCent(K,I), ThetaS(K,I)*R2D, MassB(K,I),               &
-                                                                       StiffBF(K,I), StiffBE(K,I), StiffBGJ(K,I), StiffBEA(K,I), &
-                                                                       p%BAlpha(K,I), InerBFlp(K,I), InerBEdg(K,I),                &
-                                                                       RefAxisxb(K,I), RefAxisyb(K,I),                           &
-                                                                       p%cgOffBFlp(K,I), p%cgOffBEdg(K,I),                           &
-                                                                       EAOffBFlp(K,I), EAOffBEdg(K,I)
+         WRITE(UnSu,'(I4,3F9.3,3F10.3,4ES11.3,F9.3,4F10.3,4F9.3)')  I, p%RNodesNorm(I),  p%RNodes(I) + p%HubRad, p%DRNodes(I), &
+                                                                       p%AeroCent(K,I),  p%ThetaS(K,I)*R2D,      p%MassB(K,I), &
+                                                                       p%StiffBF(K,I),   p%StiffBE(K,I),                       &
+                                                                       p%StiffBGJ(K,I),  p%StiffBEA(K,I),                      &
+                                                                       p%BAlpha(K,I),    p%InerBFlp(K,I), p%InerBEdg(K,I),     &
+                                                                       p%RefAxisxb(K,I), p%RefAxisyb(K,I),                     &
+                                                                       p%cgOffBFlp(K,I), p%cgOffBEdg(K,I),                     &
+                                                                       p%EAOffBFlp(K,I), p%EAOffBEdg(K,I)
       ENDDO ! I
 
    ELSE                                                     ! Only FAST will be run; thus, only print out the necessary cols.
@@ -6733,8 +6596,8 @@ DO K=1,p%NumBl
       WRITE (UnSu,FmtTxt)  ' (-)      (-)      (m)      (m)       (-)     (deg)    (kg/m)     (Nm^2)     (Nm^2)'
 
       DO I=1,p%BldNodes
-         WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, RNodesNorm(I), RNodes(I) + p%HubRad, p%DRNodes(I), p%AeroCent(K,I), &
-                                                     ThetaS(K,I)*R2D, MassB(K,I), StiffBF(K,I), StiffBE(K,I)
+         WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, p%RNodesNorm(I), p%RNodes(I) + p%HubRad, p%DRNodes(I), p%AeroCent(K,I), &
+                                                     p%ThetaS(K,I)*R2D, p%MassB(K,I), p%StiffBF(K,I), p%StiffBE(K,I)
       ENDDO ! I
 
    ENDIF
