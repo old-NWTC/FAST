@@ -18,7 +18,6 @@ SUBROUTINE Alloc(p,x,y, OtherState)
 
 USE                             DriveTrain
 USE                             InitCond
-USE                             Modes
 USE                             Output
 USE                             SimCont
 USE                             TurbCont
@@ -1508,7 +1507,6 @@ SUBROUTINE Coeff(p,InputFileData)
 USE                             DriveTrain
 USE                             EnvCond
 USE                             InitCond
-USE                             Modes
 
 
 IMPLICIT                        NONE
@@ -2025,19 +2023,19 @@ DO J = 1,p%TwrNodes    ! Loop through the tower nodes / elements
 
    ! Calculate the tower shape functions (all derivatives):
 
-   p%TwrFASF(1,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM1Sh(:), 2, ErrStat, ErrMsg )
-   p%TwrFASF(2,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM2Sh(:), 2, ErrStat, ErrMsg )
-   p%TwrFASF(1,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM1Sh(:), 1, ErrStat, ErrMsg )
-   p%TwrFASF(2,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM2Sh(:), 1, ErrStat, ErrMsg )
-   p%TwrFASF(1,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM1Sh(:), 0, ErrStat, ErrMsg )
-   p%TwrFASF(2,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwFAM2Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrFASF(1,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM1Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrFASF(2,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM2Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrFASF(1,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM1Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrFASF(2,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM2Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrFASF(1,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM1Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrFASF(2,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM2Sh(:), 0, ErrStat, ErrMsg )
 
-   p%TwrSSSF(1,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM1Sh(:), 2, ErrStat, ErrMsg )
-   p%TwrSSSF(2,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM2Sh(:), 2, ErrStat, ErrMsg )
-   p%TwrSSSF(1,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM1Sh(:), 1, ErrStat, ErrMsg )
-   p%TwrSSSF(2,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM2Sh(:), 1, ErrStat, ErrMsg )
-   p%TwrSSSF(1,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM1Sh(:), 0, ErrStat, ErrMsg )
-   p%TwrSSSF(2,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, TwSSM2Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrSSSF(1,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM1Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrSSSF(2,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM2Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrSSSF(1,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM1Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrSSSF(2,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM2Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrSSSF(1,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM1Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrSSSF(2,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM2Sh(:), 0, ErrStat, ErrMsg )
 
 
    ! Integrate to find the generalized mass of the tower (including tower-top mass effects).
@@ -2136,28 +2134,28 @@ ENDDO          ! I - All tower DOFs in one direction
 
 DO I = 1,2     ! Loop through all tower DOFs in one direction
    DO L = 1,2  ! Loop through all tower DOFs in one direction
-      p%CTFA(I,L) = ( 0.01*p%TwrFADmp(L) )*p%KTFA(I,L)/( Pi*p%FreqTFA(L,1) )
+      p%CTFA(I,L) = ( 0.01*InputFileData%TwrFADmp(L) )*p%KTFA(I,L)/( Pi*p%FreqTFA(L,1) )
 
-      p%CTSS(I,L) = ( 0.01*p%TwrSSDmp(L) )*p%KTSS(I,L)/( Pi*p%FreqTSS(L,1) )
+      p%CTSS(I,L) = ( 0.01*InputFileData%TwrSSDmp(L) )*p%KTSS(I,L)/( Pi*p%FreqTSS(L,1) )
    ENDDO       ! L - All tower DOFs in one direction
 ENDDO          ! I - All tower DOFs in one direction
 
 
    ! Calculate the tower shape functions (all derivatives) at the tower-top:
 
-p%TwrFASF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, TwFAM1Sh(:), 2, ErrStat, ErrMsg )
-p%TwrFASF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, TwFAM2Sh(:), 2, ErrStat, ErrMsg )
-p%TwrFASF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, TwFAM1Sh(:), 1, ErrStat, ErrMsg )
-p%TwrFASF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, TwFAM2Sh(:), 1, ErrStat, ErrMsg )
-p%TwrFASF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, TwFAM1Sh(:), 0, ErrStat, ErrMsg )
-p%TwrFASF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, TwFAM2Sh(:), 0, ErrStat, ErrMsg )
+p%TwrFASF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 2, ErrStat, ErrMsg )
+p%TwrFASF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 2, ErrStat, ErrMsg )
+p%TwrFASF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 1, ErrStat, ErrMsg )
+p%TwrFASF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 1, ErrStat, ErrMsg )
+p%TwrFASF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 0, ErrStat, ErrMsg )
+p%TwrFASF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 0, ErrStat, ErrMsg )
 
-p%TwrSSSF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, TwSSM1Sh(:), 2, ErrStat, ErrMsg )
-p%TwrSSSF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, TwSSM2Sh(:), 2, ErrStat, ErrMsg )
-p%TwrSSSF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, TwSSM1Sh(:), 1, ErrStat, ErrMsg )
-p%TwrSSSF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, TwSSM2Sh(:), 1, ErrStat, ErrMsg )
-p%TwrSSSF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, TwSSM1Sh(:), 0, ErrStat, ErrMsg )
-p%TwrSSSF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, TwSSM2Sh(:), 0, ErrStat, ErrMsg )
+p%TwrSSSF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 2, ErrStat, ErrMsg )
+p%TwrSSSF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 2, ErrStat, ErrMsg )
+p%TwrSSSF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 1, ErrStat, ErrMsg )
+p%TwrSSSF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 1, ErrStat, ErrMsg )
+p%TwrSSSF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 0, ErrStat, ErrMsg )
+p%TwrSSSF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 0, ErrStat, ErrMsg )
 
 
    ! Integrate to find the tower axial reduction shape functions at the tower-top:
@@ -3075,7 +3073,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    USE            General                                   ! contains file units, too
    USE            InitCond
    USE            Linear
-   USE            Modes
    USE            Output
    USE            TurbCont
 
@@ -6056,7 +6053,7 @@ MomXAllt = OtherState%RtHS%MomX0Trbt + OtherState%RtHS%MXHydrot + TmpVec2 + TmpV
    !   and dampers, tail-furl springs and dampers, and the generator and
    !   high-speed shaft brake torque:
 
-CALL Teeter  ( OtherState%RtHS%TeetAng     , OtherState%RtHS%TeetAngVel   , TeetMom ) ! Compute moment from teeter     springs and dampers, TeetMom; NOTE: TeetMom will be zero for a 3-blader since TeetAng = TeetAngVel = 0
+CALL Teeter  ( p, OtherState%RtHS%TeetAng     , OtherState%RtHS%TeetAngVel   , TeetMom ) ! Compute moment from teeter     springs and dampers, TeetMom; NOTE: TeetMom will be zero for a 3-blader since TeetAng = TeetAngVel = 0
 CALL RFurling( x%QT(DOF_RFrl), x%QDT(DOF_RFrl), RFrlMom ) ! Compute moment from rotor-furl springs and dampers, RFrlMom
 CALL TFurling( x%QT(DOF_TFrl), x%QDT(DOF_TFrl), TFrlMom ) ! Compute moment from tail-furl  springs and dampers, TFrlMom
 CALL DrvTrTrq( p,              x%QDT(DOF_GeAz), GBoxTrq ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
@@ -7396,7 +7393,7 @@ ENDIF
 RETURN
 END SUBROUTINE Solver
 !=======================================================================
-SUBROUTINE Teeter( TeetDef, TeetRate, TeetMom )
+SUBROUTINE Teeter( p, TeetDef, TeetRate, TeetMom )
 
 
    ! This routine computes the teeter moment due to teeter deflection
@@ -7405,14 +7402,13 @@ SUBROUTINE Teeter( TeetDef, TeetRate, TeetMom )
 
 USE                             General
 USE                             SimCont
-USE                             TeeterVars
 
 
 IMPLICIT                        NONE
 
 
    ! Passed Variables:
-
+TYPE(StrD_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
 REAL(ReKi), INTENT(IN )      :: TeetDef                                         ! The teeter deflection, x%QT(DOF_Teet).
 REAL(ReKi), INTENT(OUT)      :: TeetMom                                         ! The total moment supplied by the stop, spring, and damper.
 REAL(ReKi), INTENT(IN )      :: TeetRate                                        ! The teeter rate, x%QDT(DOF_Teet).
@@ -7430,7 +7426,7 @@ REAL(ReKi)                   :: TeetSMom                                        
 
 
 
-SELECT CASE ( TeetMod ) ! Which teeter model are we using?
+SELECT CASE ( p%TeetMod ) ! Which teeter model are we using?
 
 CASE ( 0 )              ! None!
 
@@ -7448,10 +7444,10 @@ CASE ( 1 )              ! Standard (using inputs from the primary FAST input fil
 
    ! Linear teeter spring.
 
-   SprgDef = AbsDef - TeetSStP
+   SprgDef = AbsDef - p%TeetSStP
 
    IF ( SprgDef > 0.0 )  THEN
-      TeetKMom = -SIGN( SprgDef*TeetSSSp, TeetDef )
+      TeetKMom = -SIGN( SprgDef*p%TeetSSSp, TeetDef )
    ELSE
       TeetKMom = 0
    ENDIF
@@ -7459,10 +7455,10 @@ CASE ( 1 )              ! Standard (using inputs from the primary FAST input fil
 
    ! Compute teeter-stop moment if hard stop has been contacted.
 
-   StopDef = AbsDef - TeetHStP
+   StopDef = AbsDef - p%TeetHStP
 
    IF ( StopDef > 0.0 )  THEN
-      TeetSMom = -TeetHSSp*SIGN( StopDef, TeetDef )
+      TeetSMom = -p%TeetHSSp*SIGN( StopDef, TeetDef )
    ELSE
       TeetSMom = 0.0
    ENDIF
@@ -7470,7 +7466,7 @@ CASE ( 1 )              ! Standard (using inputs from the primary FAST input fil
 
    ! Compute linear teeter-damper moment.
 
-   TeetDMom = -TeetDmp*TeetRate
+   TeetDMom = -p%TeetDmp*TeetRate
 
 
    ! Add coulomb friction to the teeter hinge.
@@ -7478,7 +7474,7 @@ CASE ( 1 )              ! Standard (using inputs from the primary FAST input fil
    IF ( TeetRate == 0.0 )  THEN
       TeetFMom = 0.0
    ELSE
-      TeetFMom = -SIGN( TeetCDmp, TeetRate )
+      TeetFMom = -SIGN( p%TeetCDmp, TeetRate )
    ENDIF
 
 

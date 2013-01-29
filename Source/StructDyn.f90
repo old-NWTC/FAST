@@ -2620,7 +2620,7 @@ CALL ReadCom ( UnIn, BldFile, 'blade parameters', ErrStat2, ErrMsg2  )
 
    ! NBlInpSt - Number of blade input stations.
 
-CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%NBlInpSt, 'NBlInpSt', 'Number of blade input stations' )
+CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%NBlInpSt, 'NBlInpSt', 'Number of blade input stations', ErrStat2, ErrMsg2 )
    CALL CheckError( ErrStat2, ErrMsg2 )
    IF ( ErrStat >= AbortErrLev ) RETURN
    
@@ -2931,11 +2931,12 @@ SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrM
    TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
    LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated 
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
-   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
 
       ! local variables
-   REAL(ReKi)                               :: TipDispl                            ! Blade tip displacement for a mode shape.
    INTEGER                                  :: I                                   ! Loop counter
+   INTEGER(IntKi)                           :: ErrStat2                            ! Error status
+   CHARACTER(LEN(ErrMsg))                   :: ErrMsg2                             ! Temporary error message
 
 
    ErrStat = ErrID_None
@@ -2956,9 +2957,6 @@ SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrM
    END IF
 
    DO I = 2,BladeKInputFileData%NBlInpSt
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.' 
-
       IF ( BladeKInputFileData%BlFract(I) <= BladeKInputFileData%BlFract(I-1) )  THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
@@ -3088,32 +3086,57 @@ SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrM
    END IF
 
    
-      ! Check that the mode shape coefficients add to 1.0:
-      ! bjj: old check was this:
-      ! ( ABS( TipDispl - 1.0 ) > 0.001 )
-
-   TipDispl = SUM(BladeKInputFileData%BldFl1Sh)
-   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-flap mode-1 shape coefficients must add to 1.0.'
-   END IF
    
-
-   TipDispl = SUM(BladeKInputFileData%BldFl2Sh)
-   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-flap mode-2 shape coefficients must add to 1.0.'
-   END IF   
+      ! Check that the mode shape coefficients are valid:
    
+   CALL ValidateModeShapeCoeffs(BladeKInputFileData%BldFl1Sh, 'blade flap mode 1', ErrStat2, ErrMsg2 )
+   IF ( ErrStat2 /= ErrID_None ) THEN
+      ErrStat = MAX(ErrStat2, ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
+   END IF 
+   
+   CALL ValidateModeShapeCoeffs(BladeKInputFileData%BldFl2Sh, 'blade flap mode 2', ErrStat2, ErrMsg2 )
+   IF ( ErrStat2 /= ErrID_None ) THEN
+      ErrStat = MAX(ErrStat2, ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
+   END IF     
 
-   TipDispl = SUM(BladeKInputFileData%BldEdgSh)
-   IF ( .NOT. EqualRealNos( TipDispl, 1.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  Blade-edge mode shape coefficients must add to 1.0.'
+   CALL ValidateModeShapeCoeffs(BladeKInputFileData%BldEdgSh, 'blade edge', ErrStat2, ErrMsg2 )
+   IF ( ErrStat2 /= ErrID_None ) THEN
+      ErrStat = MAX(ErrStat2, ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
    END IF  
 
 
 END SUBROUTINE ValidateBladeData
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ValidateModeShapeCoeffs( Coeffs, ShpDesc, ErrStat, ErrMsg )
+! This routine checks that the mode shape coefficients add to 1.0, within numerical tolerance.
+!----------------------------------------------------------------------------------------------------------------------------------
+   REAL(ReKi),               INTENT(IN )    :: Coeffs(:)                           ! Mode shape coefficients
+   CHARACTER(*),             INTENT(IN)     :: ShpDesc                             ! Description of the mode shape for the error message
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+
+      ! local variables
+   REAL(ReKi)                               :: Displ                               ! Blade tip/tower top displacement for a mode shape
+   
+
+      ! Check that the mode shape coefficients add to 1.0:
+     
+   Displ = SUM( Coeffs )
+! bjj this new check seems to be a bit too restrictive for the input data:   
+!   IF ( .NOT. EqualRealNos( Displ, 1.0_ReKi ) ) THEN
+   IF ( ABS( Displ - 1.0_ReKi ) > 0.001_ReKi ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = '  Mode shape coefficients for '//TRIM(ShpDesc)//' must add to 1.0.'
+   ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF  
+   
+   
+END SUBROUTINE ValidateModeShapeCoeffs
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
 ! This takes the blade input file data and sets the corresponding blade parameters, performing linear interpolation of the
@@ -3181,8 +3204,13 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
          
             ! The remaining arrays will have the same x value for the linear interpolation, 
             ! so we'll do it manually (with a local subroutine) instead of calling the InterpStp routine again
-         x = ( p%RNodesNorm(J)                     - BladeInData(K)%BlFract(InterpInd) ) / &
-             ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
+         IF ( BladeInData(K)%NBlInpSt < 2 ) THEN
+            x         = 1.0
+            InterpInd = 0
+         ELSE         
+            x = ( p%RNodesNorm(J)                     - BladeInData(K)%BlFract(InterpInd) ) / &
+               ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
+         END IF 
        
          p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd )
          p%MassB   (K,J) = InterpAry( x, BladeInData(K)%BMassDen, InterpInd )
@@ -3253,7 +3281,11 @@ CONTAINS
       
       REAL(ReKi)                  :: InterpAry        ! the value calculated in this function
       
-      InterpAry = ( YAry(Ind+1) - YAry(Ind) ) * x  + YAry(Ind)
+      IF ( Ind >= SIZE(YAry) ) THEN
+         InterpAry = YAry( SIZE(YAry) )
+      ELSE
+         InterpAry = ( YAry(Ind+1) - YAry(Ind) ) * x  + YAry(Ind)
+      END IF
       
    END FUNCTION InterpAry
 !..................................................................................................................................   
@@ -3335,7 +3367,711 @@ SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
    
 END SUBROUTINE Alloc_BladeParameters
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, ErrStat, ErrMsg )
+! This routine reads the tower file  input.
+!----------------------------------------------------------------------------------------------------------------------------------
 
+   IMPLICIT                        NONE
+
+      ! Passed variables:
+
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! All the data in the StructDyn input file
+   CHARACTER(*),             INTENT(IN)     :: TwrFile                             ! Name of the tower input file data
+   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file 
+
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat        ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg         ! Err msg
+
+
+      ! Local variables:
+   
+   REAL(ReKi)                   :: AdjFASt                                         ! Factor to adjust tower fore-aft stiffness
+   REAL(ReKi)                   :: AdjSSSt                                         ! Factor to adjust tower side-to-side stiffness
+   REAL(ReKi)                   :: AdjTwMa                                         ! Factor to adjust tower mass density
+
+   REAL(ReKi)                   :: TmpRAry(10)                                     ! Temporary variable to read table from file (up to 10 columns)
+   
+   INTEGER(IntKi)               :: I                                               ! A generic DO index.
+   INTEGER(IntKi)               :: UnIn                                            ! Unit number for reading file
+   INTEGER(IntKi)               :: NInputCols                                      ! Number of columns to be read from the file
+   INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
+   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
+
+
+
+   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Open the tower input file.
+
+   CALL OpenFInpFile ( UnIn, TwrFile, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Add a separator to the echo file if appropriate.
+   !IF ( Echo )  WRITE (UnEc,'(//,A,/)')  'Tower input data from file "'//TRIM( TwrFile )//'":'
+
+
+   !  -------------- FILE HEADER ---------------------------------------------------
+
+   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 1', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 2', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 3', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   !  -------------- TOWER PARAMETERS ---------------------------------------------
+
+   CALL ReadCom ( UnIn, TwrFile, 'heading for tower parameters', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! NTwInpSt - Number of tower input stations.
+
+   CALL ReadVar ( UnIn, TwrFile, InputFileData%NTwInpSt, 'NTwInpSt', 'Number of tower input stations', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   
+      ! Allocate the input arrays based on this NTwInpSt input 
+   CALL Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+
+      ! CalcTMode - Calculate tower mode shapes (switch).
+
+   !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
+   !JASON:CALL ReadVar ( UnIn, TwrFile, InputFileData%CalcTMode, 'CalcTMode', 'Calculate tower mode shapes', ErrStat2, ErrMsg2 )
+   CALL ReadCom ( UnIn, TwrFile, 'currently ignored CalcTMode', ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TwrFADmp - Tower fore-aft structural damping ratios.
+
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrFADmp, SIZE(InputFileData%TwrFADmp), 'TwrFADmp', & 
+                                     'Tower fore-aft structural damping ratios', ErrStat2 )
+      ErrMsg2 = ' Error reading TwrFADmp array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   
+      ! TwrSSDmp - Tower side-to-side structural damping ratios.
+
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrSSDmp, SIZE(InputFileData%TwrSSDmp), 'TwrSSDmp', & 
+                                     'Tower side-to-side structural damping ratios', ErrStat2 )
+      ErrMsg2 = ' Error reading TwrSSDmp array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+  
+
+   !  -------------- TOWER ADJUSTMENT FACTORS -------------------------------------
+
+
+      ! Skip the comment line.
+   CALL ReadCom ( UnIn, TwrFile, 'heading for tower adjustment factors', ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! FAStTunr - Tower fore-aft modal stiffness tuners.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%FAStTunr, SIZE(InputFileData%FAStTunr), 'FAStTunr', & 
+                                     'Tower fore-aft modal stiffness tuners', ErrStat2 )
+      ErrMsg2 = ' Error reading FAStTunr array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! SSStTunr - Tower side-to-side modal stiffness tuners.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%SSStTunr, SIZE(InputFileData%SSStTunr), 'SSStTunr', & 
+                                     'Tower side-to-side modal stiffness tuners', ErrStat2 )
+      ErrMsg2 = ' Error reading SSStTunr array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! AdjTwMa - Factor to adjust tower mass density.
+
+   CALL ReadVar ( UnIn, TwrFile, AdjTwMa, 'AdjTwMa', 'Factor to adjust tower mass density', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! AdjFASt - Factor to adjust tower fore-aft stiffness.
+
+   CALL ReadVar ( UnIn, TwrFile, AdjFASt, 'AdjFASt', 'Factor to adjust tower fore-aft stiffness', ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! AdjSSSt - Factor to adjust tower side-to-side stiffness.
+
+   CALL ReadVar ( UnIn, TwrFile, AdjSSSt, 'AdjSSSt', 'Factor to adjust tower side-to-side stiffness', ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+         ! Check the locally-defined adjustment factors: AdjTwMa, AdjFASt, AdjSSSt
+   
+               IF ( AdjTwMa <= 0.0_ReKi ) THEN
+      CALL CheckError( ErrID_Warn, ' AdjTwMa must be greater than zero.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF
+
+               IF ( AdjFASt <= 0.0_ReKi ) THEN
+      CALL CheckError( ErrID_Warn, ' AdjFASt must be greater than zero.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF
+   
+               IF ( AdjSSSt <= 0.0_ReKi ) THEN
+      CALL CheckError( ErrID_Warn, ' AdjSSSt must be greater than zero.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF   
+
+
+   !  -------------- DISTRIBUTED TOWER PROPERTIES ---------------------------------
+
+      ! Skip the comment lines.
+   CALL ReadCom ( UnIn, TwrFile, 'heading for distributed tower parameters', ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter names', ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter units', ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! Read the table.
+
+   IF ( ReadAdmVals ) THEN
+      NInputCols = 10
+   ELSE
+      NInputCols = 4
+   END IF   
+
+
+   DO I=1,InputFileData%NTwInpSt
+
+      CALL ReadAry( UnIn, TwrFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Tower input station table', ErrStat2 )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%HtFract( I) = TmpRAry(1)
+      InputFileData%TMassDen(I) = TmpRAry(2)*AdjTwMa   ! Apply the correction factors to the elemental data.
+      InputFileData%TwFAStif(I) = TmpRAry(3)*AdjFASt   ! Apply the correction factors to the elemental data.
+      InputFileData%TwSSStif(I) = TmpRAry(4)*AdjSSSt   ! Apply the correction factors to the elemental data.
+   
+      IF ( NInputCols > 4 ) THEN
+         InputFileData%TwGJStif(I) = TmpRAry( 5)
+         InputFileData%TwEAStif(I) = TmpRAry( 6)
+         InputFileData%TwFAIner(I) = TmpRAry( 7)
+         InputFileData%TwSSIner(I) = TmpRAry( 8)
+         InputFileData%TwFAcgOf(I) = TmpRAry( 9)
+         InputFileData%TwSScgOf(I) = TmpRAry(10)
+
+      END IF        
+   ENDDO ! I   
+   
+
+   !  -------------- TOWER FORE-AFT MODE SHAPES -----------------------------------
+
+
+      ! Skip the comment line.
+   CALL ReadCom ( UnIn, TwrFile, 'heading for tower fore-aft mode shapes', ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TwFAM1Sh - Tower fore-aft mode-1 shape coefficients.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwFAM1Sh, SIZE(InputFileData%TwFAM1Sh), 'TwFAM1Sh', &
+                           'Tower fore-aft mode-1 shape coefficients', ErrStat2 )
+      ErrMsg2 = ' Error reading TwFAM1Sh array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   
+      ! TwFAM2Sh - Tower fore-aft mode-2 shape coefficients.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwFAM2Sh, SIZE(InputFileData%TwFAM2Sh), 'TwFAM1Sh', &
+                           'Tower fore-aft mode-2 shape coefficients', ErrStat2 )
+      ErrMsg2 = ' Error reading TwFAM2Sh array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- TOWER SIDE-TO-SIDE MODE SHAPES -------------------------------
+
+
+      ! Skip the comment line.
+   CALL ReadCom ( UnIn, TwrFile, 'heading for tower side-to-side mode shapes', ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! TwSSM1Sh - Tower side-to-side mode-1 shape coefficients.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwSSM1Sh, SIZE(InputFileData%TwSSM1Sh), 'TwSSM1Sh', &
+                           'Tower side-to-side mode-1 shape coefficients', ErrStat2 )
+      ErrMsg2 = ' Error reading TwSSM1Sh array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! TwSSM2Sh - Tower side-to-side mode-2 shape coefficients.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwSSM2Sh, SIZE(InputFileData%TwSSM2Sh), 'TwSSM2Sh', &
+                           'Tower side-to-side mode-2 shape coefficients', ErrStat2 )
+      ErrMsg2 = ' Error reading TwSSM2Sh array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Close the tower file.
+   CLOSE ( UnIn )
+
+
+   RETURN
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+   
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+      
+      
+      !............................................................................................................................
+      ! Set error status/message; 
+      !............................................................................................................................
+   
+      IF ( ErrID /= ErrID_None ) THEN
+      
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+         
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnIn )
+         END IF        
+         
+      END IF                  
+            
+         
+   END SUBROUTINE CheckError
+   !...............................................................................................................................
+END SUBROUTINE ReadTowerFile
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ValidateTowerData ( p, InputFileData, ChkAdmVals, ErrStat, ErrMsg )
+! This routine checks the tower file input data for errors
+!----------------------------------------------------------------------------------------------------------------------------------
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! Data stored in the module's input file
+   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated 
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+
+      ! local variables
+   INTEGER                                  :: I                                   ! Loop counter
+   INTEGER(IntKi)                           :: ErrStat2                            ! Error status
+   CHARACTER(LEN(ErrMsg))                   :: ErrMsg2                             ! Temporary error message
+
+
+   ErrStat = ErrID_None
+   ErrMsg= ''
+   
+      
+     
+      ! Check that HtFract goes from 0.0 to 1.0 in increasing order:
+   
+   IF ( .NOT. EqualRealNos( InputFileData%HtFract(1), 0.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract(1) must be 0.0.'
+   END IF 
+
+   IF ( InputFileData%NTwInpSt /= 1 .AND. &
+      .NOT. EqualRealNos( InputFileData%HtFract(InputFileData%NTwInpSt), 1.0_ReKi )  ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract('//TRIM( Num2LStr( InputFileData%NTwInpSt ) )//') must be 1.0.' 
+   END IF
+
+   DO I = 2,InputFileData%NTwInpSt
+      IF ( InputFileData%HtFract(I) <= InputFileData%HtFract(I-1) )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
+                                                      //TRIM( Num2LStr(I-1) )//').'
+         
+      ENDIF
+   END DO 
+   
+
+      ! Check the input arrays:
+
+   DO I = 1,InputFileData%NTwInpSt   
+      IF ( InputFileData%TMassDen(I) <= 0.0_ReKi ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  TMassDen('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+      END IF
+      
+      IF ( InputFileData%TwFAStif(I) <= 0.0_ReKi ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwFAStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+      END IF
+
+      IF ( InputFileData%TwSSStif(I) <= 0.0_ReKi ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwSSStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+      END IF   
+   END DO
+   
+   
+   IF (ChkAdmVals) THEN
+      
+      DO I = 1,InputFileData%NTwInpSt   
+         IF ( InputFileData%TwGJStif(I) <= 0.0_ReKi ) THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwGJStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+         END IF   
+         
+         IF ( InputFileData%TwEAStif(I) <= 0.0_ReKi ) THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwEAStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+         END IF   
+         
+         IF ( InputFileData%TwFAIner(I) <= 0.0_ReKi ) THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwFAIner('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+         END IF   
+   
+         IF ( InputFileData%TwSSIner(I) <= 0.0_ReKi ) THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwSSIner('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+         END IF                     
+      END DO      
+      
+   END IF ! Check items for Adams
+   
+
+
+      ! Check that the tower damping (TwrFADmp) is contained in the range [0, 100]:
+           
+   IF ( ANY( InputFileData%TwrFADmp < 0.0_ReKi ) .OR. ANY( InputFileData%TwrFADmp > 100.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwrFADmp must be between 0 and 100 (inclusive).'
+   END IF
+
+   IF ( ANY( InputFileData%TwrSSDmp < 0.0_ReKi ) .OR. ANY( InputFileData%TwrSSDmp > 100.0_ReKi ) ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwrSSDmp must be between 0 and 100 (inclusive).'
+   END IF
+      
+
+      ! Check that the tower tuners are positive numbers:      
+      
+   IF ( ANY( InputFileData%FAStTunr <= 0.0_ReKi )  ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  FAStTunr must be greater than zero.'
+   END IF
+
+   IF ( ANY( InputFileData%SSStTunr <= 0.0_ReKi )  ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  SSStTunr must be greater than zero.'
+   END IF  
+   
+   
+   
+      ! Validate the mode shape coefficients:
+   
+   CALL ValidateModeShapeCoeffs( InputFileData%TwFAM1Sh, 'tower fore-aft mode 1', ErrStat, ErrMsg )
+   IF ( ErrStat2 /= ErrID_None ) THEN
+      ErrStat = MAX(ErrStat2, ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
+   END IF
+   
+   CALL ValidateModeShapeCoeffs( InputFileData%TwFAM2Sh, 'tower fore-aft mode 2', ErrStat, ErrMsg )
+   IF ( ErrStat2 /= ErrID_None ) THEN
+      ErrStat = MAX(ErrStat2, ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
+   END IF
+   
+   CALL ValidateModeShapeCoeffs( InputFileData%TwSSM1Sh, 'tower side-to-side mode 1', ErrStat, ErrMsg )
+   IF ( ErrStat2 /= ErrID_None ) THEN
+      ErrStat = MAX(ErrStat2, ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
+   END IF 
+
+   CALL ValidateModeShapeCoeffs( InputFileData%TwSSM2Sh, 'tower side-to-side mode 2', ErrStat, ErrMsg )
+   IF ( ErrStat2 /= ErrID_None ) THEN
+      ErrStat = MAX(ErrStat2, ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
+   END IF 
+   
+   
+END SUBROUTINE ValidateTowerData
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
+! This routine allocates arrays for the tower properties from the input file
+!----------------------------------------------------------------------------------------------------------------------------------
+
+   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData      ! All the data in the StructDyn input file
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat            ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg             ! Error message
+
+   
+   IF ( InputFileData%NTwInpSt < 1 )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating arrays for tower input properties: NTwInpSt must be at least 1.' 
+      RETURN
+   END IF
+   
+   
+      ! Allocate the arrays.
+
+   CALL AllocAry  ( InputFileData%HtFract,   InputFileData%NTwInpSt, 'HtFract'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TMassDen,  InputFileData%NTwInpSt, 'TMassDen'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwFAStif,  InputFileData%NTwInpSt, 'TwFAStif'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwSSStif,  InputFileData%NTwInpSt, 'TwSSStif'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwGJStif,  InputFileData%NTwInpSt, 'TwGJStif'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwEAStif,  InputFileData%NTwInpSt, 'TwEAStif'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwFAIner,  InputFileData%NTwInpSt, 'TwFAIner'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwSSIner,  InputFileData%NTwInpSt, 'TwSSIner'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwFAcgOf,  InputFileData%NTwInpSt, 'TwFAcgOf'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwSScgOf,  InputFileData%NTwInpSt, 'TwSScgOf'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN 
+
+   
+      ! BJJ: note that these used to be allocated 2:PolyOrd  :   
+   CALL AllocAry  ( InputFileData%TwFAM1Sh,  PolyOrd-1, 'TwFAM1Sh'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwFAM2Sh,  PolyOrd-1, 'TwFAM2Sh'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwSSM1Sh,  PolyOrd-1, 'TwSSM1Sh'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( InputFileData%TwSSM2Sh,  PolyOrd-1, 'TwSSM2Sh'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+ 
+   
+END SUBROUTINE Alloc_TowerInputProperties
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
+! This routine allocates arrays for the tower parameters.
+!----------------------------------------------------------------------------------------------------------------------------------
+
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
+   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set 
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
+
+         
+   
+   
+      ! Allocate arrays to hold tower data at the analysis nodes.
+   CALL AllocAry  ( p%HNodesNorm,    p%TwrNodes, 'HNodesNorm', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%HNodes,        p%TwrNodes, 'HNodes'    , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%DHNodes,       p%TwrNodes, 'DHNodes'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%MassT,         p%TwrNodes, 'MassT'     , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN      
+   CALL AllocAry  ( p%StiffTFA,      p%TwrNodes, 'StiffTFA'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%StiffTSS,      p%TwrNodes, 'StiffTSS'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   
+!IF ( SetAdmVals ) THEN      
+   CALL AllocAry  ( p%StiffTGJ,      p%TwrNodes, 'StiffTGJ'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%StiffTEA,      p%TwrNodes, 'StiffTEA'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%InerTFA,       p%TwrNodes, 'InerTFA'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%InerTSS,       p%TwrNodes, 'InerTSS'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%cgOffTFA,      p%TwrNodes, 'cgOffTFA'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%cgOffTSS,      p%TwrNodes, 'cgOffTSS'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+!END IF
+
+      ! these are for HydroDyn? 
+   CALL AllocAry  ( p%DiamT,         p%TwrNodes, 'DiamT'     , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%CAT,           p%TwrNodes, 'CAT'       , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%CDT,           p%TwrNodes, 'CDT'       , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN     
+      
+  
+   
+   !      ! Allocate space for the mode shape arrays:
+   !      
+   !ALLOCATE( p%BldEdgSh(2:PolyOrd,p%NumBl), p%BldFl1Sh(2:PolyOrd,p%NumBl), p%BldFl2Sh(2:PolyOrd,p%NumBl), STAT = ErrStat )
+   !IF ( ErrStat /= 0 ) THEN
+   !   ErrStat = ErrID_Fatal
+   !   ErrMsg  = ' Error allocating BldEdgSh, BldFl1Sh, and BldFl2Sh arrays.'
+   !   RETURN
+   !END IF   
+   
+   
+   
+END SUBROUTINE Alloc_TowerParameters
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SetTowerParams( p, InputFileData, SetAdmVals, ErrStat, ErrMsg  )
+! This takes the tower input file data and sets the corresponding tower parameters, performing linear interpolation of the
+! input data to the specified tower mesh.
+!----------------------------------------------------------------------------------------------------------------------------------
+
+   IMPLICIT                        NONE
+
+
+      ! Passed variables
+   
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                            ! Parameters of the structural dynamics module
+   TYPE(StrD_InputFile),     INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
+   LOGICAL,                  INTENT(IN)     :: SetAdmVals                   ! Logical to determine if Adams inputs should be set 
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
+
+      ! Local variables:
+
+   REAL(ReKi)                               :: x                            ! Fractional location between two points in linear interpolation
+   INTEGER(IntKi )                          :: J                            ! Index for the node arrays
+   INTEGER(IntKi)                           :: InterpInd                    ! Index for the interpolation routine
+
+
+      ! Initialize data      
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+      
+   CALL Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   
+   
+   !...............................................................................................................................   
+   ! Define the tower discretization arrays:
+   !...............................................................................................................................   
+
+      ! DHNodes (Let's use constant-spaced nodes for now, but the rest of the code is written to handle variable-spaced nodes--
+      !          this will be a future input!):
+   p%DHNodes = p%TwrFlexL/p%TwrNodes
+   
+      ! HNodes:
+   p%HNodes(1) = 0.5*p%DHNodes(1)     
+   DO J=2,p%TwrNodes
+      p%HNodes(J) = p%HNodes( J - 1 ) + 0.5*( p%DHNodes(J) + p%DHNodes( J - 1 ) )      
+   END DO
+   
+      ! HNodesNorm:
+   p%HNodesNorm = p%HNodes/p%TwrFlexL
+         
+   
+   !...............................................................................................................................   
+   ! Interpolate the input data to the tower discretization
+   !...............................................................................................................................   
+   ! Array definitions:
+
+   !    Input      Interp    Description
+   !    -----      ------    -----------
+   !    HtFract    HNodesNorm Fractional height (0 at top of rigid section, 1 at tower top)
+   !    TMassDen   MassT      Lineal mass density
+   !    TwFAStif   StiffTFA   Tower fore-aft stiffness
+   !    TwSSStif   StiffTSS   Tower side-to-side stiffness
+   !    TwGJStif   StiffTGJ   Tower torsional stiffness
+   !    TwEAStif   StiffTEA   Tower extensional stiffness
+   !    TwFAIner   InerTFA    Tower fore-aft (about yt-axis) mass inertia per unit length
+   !    TwSSIner   InerTSS    Tower side-to-side (about xt-axis) mass inertia per unit length
+   !    TwFAcgOf   cgOffTFA   Tower fore-aft mass cg offset
+   !    TwSScgOf   cgOffTSS   Tower side-to-side mass cg offset
+
+   InterpInd = 1
+
+     
+   DO J=1,p%TwrNodes
+
+         ! Get the index into HtFract for all of the arrays, using the NWTC Subroutine Library
+      p%MassT     (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TMassDen, InterpInd, InputFileData%NTwInpSt )
+      p%StiffTFA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAStif, InterpInd, InputFileData%NTwInpSt )
+      p%StiffTSS  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSSStif, InterpInd, InputFileData%NTwInpSt )           
+      
+      IF ( SetAdmVals )  THEN          ! An ADAMS model will be created; thus, read in all the cols.
+         p%StiffTGJ  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwGJStif, InterpInd, InputFileData%NTwInpSt )           
+         p%StiffTEA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwEAStif, InterpInd, InputFileData%NTwInpSt )           
+         p%InerTFA   (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAIner, InterpInd, InputFileData%NTwInpSt )           
+         p%InerTSS   (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSSIner, InterpInd, InputFileData%NTwInpSt )           
+         p%cgOffTFA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAcgOf, InterpInd, InputFileData%NTwInpSt )           
+         p%cgOffTSS  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSScgOf, InterpInd, InputFileData%NTwInpSt )           
+      END IF      
+      
+   END DO ! J
+
+   
+   
+   !...............................................................................................................................   
+   ! Set other tower parameters:
+   !...............................................................................................................................   
+
+   p%TTopNode = p%TwrNodes + 1
+   
+
+      ! these are for HydroDyn ?
+   p%DiamT(:) = InputFileData%TwrDiam
+   p%CAT(:)   = InputFileData%TwrCA
+   p%CDT(:)   = InputFileData%TwrCD
+        
+   
+RETURN
+   
+
+CONTAINS
+!..................................................................................................................................
+   FUNCTION InterpAry( x, YAry, Ind )
+      ! This subroutine is used to interpolate the arrays more efficiently (all arrays have the same X value)
+      ! See InterpStpReal() for comparison. This assumes we already know Ind and that 
+      ! x = ( XVal - XAry(Ind) )/( XAry(Ind+1) - XAry(Ind) )
+      
+      
+      REAL(ReKi),      INTENT(IN) :: x                ! the relative distance between Ind and Ind+ 1
+      REAL(ReKi),      INTENT(IN) :: YAry (:)         ! Array of Y values to be interpolated.
+      INTEGER(IntKi) , INTENT(IN) :: Ind              ! the index into the array 
+      
+      REAL(ReKi)                  :: InterpAry        ! the value calculated in this function
+      
+      InterpAry = ( YAry(Ind+1) - YAry(Ind) ) * x  + YAry(Ind)
+      
+   END FUNCTION InterpAry   
+   
+END SUBROUTINE SetTowerParams
+!----------------------------------------------------------------------------------------------------------------------------------
 
 END MODULE StructDyn
 !**********************************************************************************************************************************

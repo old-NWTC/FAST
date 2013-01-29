@@ -469,13 +469,11 @@ USE                             DriveTrain
 USE                             EnvCond
 USE                             General
 USE                             InitCond
-USE                             Modes
 USE                             NacelleYaw
 USE                             Output
 USE                             Platform
 USE                             RotorFurling
 USE                             SimCont
-USE                             TeeterVars
 USE                             TailAero
 USE                             TailFurling
 USE                             TipBrakes
@@ -2928,8 +2926,8 @@ ENDSELECT
 
 WRITE (UnAD,FmtText  )  '!------------------------------------ Tower ------------------------------------'
 
-CRatioTFA = 0.01*p%TwrFADmp(1)/( Pi*p%FreqTFA(1,1) )   ! Use the same damping ratio as used for the first FA mode in FAST.
-CRatioTSS = 0.01*p%TwrSSDmp(1)/( Pi*p%FreqTSS(1,1) )   ! Use the same damping ratio as used for the first SS mode in FAST.
+CRatioTFA = 0.01*InputFileData%TwrFADmp(1)/( Pi*p%FreqTFA(1,1) )   ! Use the same damping ratio as used for the first FA mode in FAST.
+CRatioTSS = 0.01*InputFileData%TwrSSDmp(1)/( Pi*p%FreqTSS(1,1) )   ! Use the same damping ratio as used for the first SS mode in FAST.
 TmpID  = 1400                                      ! ID of the MARKER on the top    of the tower rigid base.
 TmpID2 = 1100 + 1                                  ! ID of the MARKER in the middle of     tower element 1.
 TmpLength  = 0.5*p%DHNodes(1)                        ! Distance between tower node 1 and the top of the tower rigid base.
@@ -3566,7 +3564,7 @@ ENDIF
 
 WRITE (UnAD,FmtText     )  '!------------------------------------- Hub -------------------------------------'
 
-SELECT CASE ( TeetMod ) ! Which teeter model are we using?
+SELECT CASE ( p%TeetMod ) ! Which teeter model are we using?
 
 CASE ( 0 )              ! None!
 
@@ -3580,34 +3578,34 @@ CASE ( 1 )              ! Standard (using inputs from the primary FAST input fil
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 4010'
    WRITE (UnAD,FmtText  )  ', J = 3310'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Flt2LStr( TeetSStp ))//': 0, 0,'
-   WRITE (UnAD,FmtText  )  ', -SIGN( '//TRIM(Flt2LStr( TeetSSSp*0.001 ))//'*( ABS(AZ(4010,3310)) - '// &
-                           TRIM(Flt2LStr( TeetSStp ))//' ), AZ(4010,3310) ) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Flt2LStr( p%TeetSStp ))//': 0, 0,'
+   WRITE (UnAD,FmtText  )  ', -SIGN( '//TRIM(Flt2LStr( p%TeetSSSp*0.001 ))//'*( ABS(AZ(4010,3310)) - '// &
+                           TRIM(Flt2LStr( p%TeetSStp ))//' ), AZ(4010,3310) ) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TeetHrdStp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/4012'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 4010'
    WRITE (UnAD,FmtText  )  ', J = 3310'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Flt2LStr( TeetHStp ))//': 0, 0,'
-   WRITE (UnAD,FmtText  )  ', -SIGN( '//TRIM(Flt2LStr( TeetHSSp*0.001 ))//'*( ABS(AZ(4010,3310)) - '// &
-                           TRIM(Flt2LStr( TeetHStp ))//' ), AZ(4010,3310) ) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Flt2LStr( p%TeetHStP ))//': 0, 0,'
+   WRITE (UnAD,FmtText  )  ', -SIGN( '//TRIM(Flt2LStr( p%TeetHSSp*0.001 ))//'*( ABS(AZ(4010,3310)) - '// &
+                           TRIM(Flt2LStr( p%TeetHStP ))//' ), AZ(4010,3310) ) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TeetDamp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/4013'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 4010'
    WRITE (UnAD,FmtText  )  ', J = 3310'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Flt2LStr( TeetDmpP ))//': 0, 0, -'// &
-                           TRIM(Flt2LStr( TeetDmp*0.001 ))//'*WZ(4010,3310,3310) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Flt2LStr( p%TeetDmpP ))//': 0, 0, -'// &
+                           TRIM(Flt2LStr( p%TeetDmp*0.001 ))//'*WZ(4010,3310,3310) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TeetCoulombDamp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/4014'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 4010'
    WRITE (UnAD,FmtText  )  ', J = 3310'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(4010,3310,3310): '//TRIM(Flt2LStr( TeetCDmp*0.001 ))//', 0, -'// &
-                           TRIM(Flt2LStr( TeetCDmp*0.001 ))//' )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(4010,3310,3310): '//TRIM(Flt2LStr( p%TeetCDmp*0.001 ))//', 0, -'// &
+                           TRIM(Flt2LStr( p%TeetCDmp*0.001 ))//' )'
 
 
 CASE ( 2 )              ! User-defined teeter spring/damper model.

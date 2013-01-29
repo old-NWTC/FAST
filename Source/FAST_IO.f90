@@ -2297,7 +2297,6 @@ USE                             Linear
 USE                             NacelleYaw
 USE                             Output
 USE                             SimCont
-USE                             TeeterVars
 USE                             TipBrakes
 USE                             TurbCont
 
@@ -3473,59 +3472,59 @@ IF ( p%NumBl == 2 )  THEN
 
       ! TeetMod - Rotor-teeter spring/damper model switch.
 
-   CALL ReadVar ( UnIn, PriFile, TeetMod, 'TeetMod', 'Rotor-teeter spring/damper model switch' )
+   CALL ReadVar ( UnIn, PriFile, p%TeetMod, 'TeetMod', 'Rotor-teeter spring/damper model switch' )
 
-   IF ( ( TeetMod /= 0 ) .AND. ( TeetMod /= 1 ) .AND. ( TeetMod /= 2 ) )  CALL ProgAbort ( ' TeetMod must be 0, 1, or 2.' )
+   IF ( ( p%TeetMod /= 0 ) .AND. ( p%TeetMod /= 1 ) .AND. ( p%TeetMod /= 2 ) )  CALL ProgAbort ( ' TeetMod must be 0, 1, or 2.' )
 
 
       ! TeetDmpP - Rotor-teeter damper position.
 
-   CALL ReadVar ( UnIn, PriFile, TeetDmpP, 'TeetDmpP', 'Rotor-teeter damper position' )
+   CALL ReadVar ( UnIn, PriFile, p%TeetDmpP, 'TeetDmpP', 'Rotor-teeter damper position' )
 
-   IF ( ( TeetDmpP < 0.0 ) .OR. ( TeetDmpP > 180.0 ) )  CALL ProgAbort ( ' TeetDmpP must be between 0 and 180 (inclusive).' )
+   IF ( ( p%TeetDmpP < 0.0 ) .OR. ( p%TeetDmpP > 180.0 ) )  CALL ProgAbort ( ' TeetDmpP must be between 0 and 180 (inclusive).' )
 
 
       ! TeetDmp - Rotor-teeter damping constant.
 
-   CALL ReadVar ( UnIn, PriFile, TeetDmp, 'TeetDmp', 'Rotor-teeter damping constant' )
+   CALL ReadVar ( UnIn, PriFile, p%TeetDmp, 'TeetDmp', 'Rotor-teeter damping constant' )
 
-   IF ( TeetDmp < 0.0 )  CALL ProgAbort ( ' TeetDmp must not be negative.' )
+   IF ( p%TeetDmp < 0.0 )  CALL ProgAbort ( ' TeetDmp must not be negative.' )
 
 
       ! TeetCDmp - Rotor-teeter rate-independent Coulomb-damping moment.
 
-   CALL ReadVar ( UnIn, PriFile, TeetCDmp, 'TeetCDmp', 'Rotor-teeter rate-independent Coulomb-damping moment' )
+   CALL ReadVar ( UnIn, PriFile, p%TeetCDmp, 'TeetCDmp', 'Rotor-teeter rate-independent Coulomb-damping moment' )
 
-   IF ( TeetCDmp < 0.0 )  CALL ProgAbort ( ' TeetCDmp must not be negative.' )
+   IF ( p%TeetCDmp < 0.0 )  CALL ProgAbort ( ' TeetCDmp must not be negative.' )
 
 
       ! TeetSStP - Rotor-teeter soft-stop position.
 
-   CALL ReadVar ( UnIn, PriFile, TeetSStP, 'TeetSStP', 'Rotor-teeter soft-stop position' )
+   CALL ReadVar ( UnIn, PriFile, p%TeetSStP, 'TeetSStP', 'Rotor-teeter soft-stop position' )
 
-   IF ( ( TeetSStP < 0.0 ) .OR. ( TeetSStP > 180.0 ) )  CALL ProgAbort ( ' TeetSStP must be between 0 and 180 (inclusive).' )
+   IF ( ( p%TeetSStP < 0.0 ) .OR. ( p%TeetSStP > 180.0 ) )  CALL ProgAbort ( ' TeetSStP must be between 0 and 180 (inclusive).' )
 
 
       ! TeetHStP - Rotor-teeter hard-stop position.
 
-   CALL ReadVar ( UnIn, PriFile, TeetHStP, 'TeetHStP', 'Rotor-teeter hard-stop position' )
+   CALL ReadVar ( UnIn, PriFile, p%TeetHStP, 'TeetHStP', 'Rotor-teeter hard-stop position' )
 
-   IF ( ( TeetHStP < TeetSStP ) .OR. ( TeetHStP > 180.0 ) )  &
+   IF ( ( p%TeetHStP < p%TeetSStP ) .OR. ( p%TeetHStP > 180.0 ) )  &
       CALL ProgAbort ( ' TeetHStP must be between TeetSStP  and 180 (inclusive).' )
 
 
       ! TeetSSSp - Rotor-teeter soft-stop linear-spring constant.
 
-   CALL ReadVar ( UnIn, PriFile, TeetSSSp, 'TeetSSSp', 'Rotor-teeter soft-stop linear-spring constant' )
+   CALL ReadVar ( UnIn, PriFile, p%TeetSSSp, 'TeetSSSp', 'Rotor-teeter soft-stop linear-spring constant' )
 
-   IF ( TeetSSSp < 0.0 )  CALL ProgAbort ( ' TeetSSSp must not be negative.' )
+   IF ( p%TeetSSSp < 0.0 )  CALL ProgAbort ( ' TeetSSSp must not be negative.' )
 
 
       ! TeetHSSp - Rotor-teeter hard-stop linear-spring constant.
 
-   CALL ReadVar ( UnIn, PriFile, TeetHSSp, 'TeetHSSp', 'Rotor-teeter hard-stop linear-spring constant' )
+   CALL ReadVar ( UnIn, PriFile, p%TeetHSSp, 'TeetHSSp', 'Rotor-teeter hard-stop linear-spring constant' )
 
-   IF ( TeetHSSp < 0.0 )  CALL ProgAbort ( ' TeetHSSp must not be negative.' )
+   IF ( p%TeetHSSp < 0.0 )  CALL ProgAbort ( ' TeetHSSp must not be negative.' )
 
 ELSE
 
@@ -3541,6 +3540,14 @@ ELSE
    CALL ReadCom ( UnIn, PriFile, 'unused TeetSSSp' )
    CALL ReadCom ( UnIn, PriFile, 'unused TeetHSSp' )
 
+   p%TeetMod  = 0
+   p%TeetCDmp = 0.0
+   p%TeetDmp  = 0.0
+   p%TeetDmpP = 0.0
+   p%TeetHSSp = 0.0
+   p%TeetHStP = 0.0
+   p%TeetSSSp = 0.0
+   p%TeetSStP = 0.0
 ENDIF
 
 
@@ -5152,381 +5159,6 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetPtfm
 !=======================================================================
-SUBROUTINE GetTower( p, InputFileData )
-
-
-   ! This routine reads the tower file and validates the input.
-
-
-USE                             General
-USE                             Modes
-USE                             Output
-
-
-IMPLICIT                        NONE
-
-   ! passed variables
-   
-TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
-TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! all the data in the StructDyn input file
-
-
-   ! Local variables.
-
-REAL(ReKi)                   :: TopDispl                                        ! Tower-top displacement for a mode shape.
-
-
-INTEGER(4)                   :: I                                               ! A generic index.
-INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-INTEGER(4)                   :: Sttus                                           ! Status returned from an allocation request.
-
-CHARACTER(132)               :: Frmt                                            ! Format for element data.
-
-
-
-   ! Open the tower input file.
-
-CALL OpenFInpFile ( UnIn, TwrFile )
-
-
-   ! Add a separator to the echo file if appropriate.
-
-IF ( Echo )  WRITE (UnEc,'(//,A,/)')  'Tower input data from file "'//TRIM( TwrFile )//'":'
-
-
-
-!  -------------- HEADER -------------------------------------------------------
-
-
-   ! Skip the header.
-
-READ (UnIn,'(//)',IOSTAT=IOS)
-
-IF ( IOS < 0 )  THEN
-   CALL PremEOF ( TwrFile , 'unused tower-file header' )
-ENDIF
-
-
-
-!  -------------- TOWER PARAMETERS ---------------------------------------------
-
-
-   ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, PtfmFile, 'tower parameters' )
-
-
-   ! NTwInpSt - Number of tower input stations.
-
-CALL ReadVar ( UnIn, TwrFile, InputFileData%NTwInpSt, 'NTwInpSt', 'Number of tower input stations' )
-
-IF ( InputFileData%NTwInpSt < 1 )  CALL ProgAbort ( ' NTwInpSt must be at least 1.' )
-
-
-   ! CalcTMode - Calculate tower mode shapes (switch).
-
-!JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-!JASON:CALL ReadVar ( UnIn, TwrFile, CalcTMode, 'CalcTMode', 'Calculate tower mode shapes' )
-   CALL ReadCom ( UnIn, TwrFile, 'currently ignored CalcTMode' )
-
-
-   ! TwrFADmp - Tower fore-aft structural damping ratios.
-
-CALL ReadAryLines ( UnIn, TwrFile, p%TwrFADmp, 2, 'TwrFADmp', 'Tower fore-aft structural damping ratios' )
-
-IF ( ( p%TwrFADmp(1) < 0.0 ) .OR. ( p%TwrFADmp(1) > 100.0 ) )  CALL ProgAbort ( ' TwrFADmp(1) must be between 0 and 100 (inclusive).' )
-IF ( ( p%TwrFADmp(2) < 0.0 ) .OR. ( p%TwrFADmp(2) > 100.0 ) )  CALL ProgAbort ( ' TwrFADmp(2) must be between 0 and 100 (inclusive).' )
-
-
-   ! TwrSSDmp - Tower side-to-side structural damping ratios.
-
-CALL ReadAryLines ( UnIn, TwrFile, p%TwrSSDmp, 2, 'TwrSSDmp', 'Tower side-to-side structural damping ratios' )
-
-IF ( ( p%TwrSSDmp(1) < 0.0 ) .OR. ( p%TwrSSDmp(1) > 100.0 ) )  CALL ProgAbort ( ' TwrSSDmp(1) must be between 0 and 100 (inclusive).' )
-IF ( ( p%TwrSSDmp(2) < 0.0 ) .OR. ( p%TwrSSDmp(2) > 100.0 ) )  CALL ProgAbort ( ' TwrSSDmp(2) must be between 0 and 100 (inclusive).' )
-
-
-
-!  -------------- TOWER ADJUSTMENT FACTORS -------------------------------------
-
-
-   ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, TwrFile, 'tower adjustment factors' )
-
-
-
-   ! FAStTunr(1) - Tower fore-aft modal stiffness tuners.
-
-CALL ReadAryLines ( UnIn, TwrFile, InputFileData%FAStTunr, 2, 'FAStTunr', 'Tower fore-aft modal stiffness tuners' )
-
-IF ( InputFileData%FAStTunr(1) <= 0.0 )  CALL ProgAbort ( ' FAStTunr(1) must be greater than zero.' )
-IF ( InputFileData%FAStTunr(2) <= 0.0 )  CALL ProgAbort ( ' FAStTunr(2) must be greater than zero.' )
-
-
-   ! SSStTunr(1) - Tower side-to-side modal stiffness tuners.
-
-CALL ReadAryLines ( UnIn, TwrFile, InputFileData%SSStTunr, 2, 'SSStTunr', 'Tower side-to-side modal stiffness tuners' )
-
-IF ( InputFileData%SSStTunr(1) <= 0.0 )  CALL ProgAbort ( ' SSStTunr(1) must be greater than zero.' )
-IF ( InputFileData%SSStTunr(2) <= 0.0 )  CALL ProgAbort ( ' SSStTunr(2) must be greater than zero.' )
-
-
-   ! AdjTwMa - Factor to adjust tower mass density.
-
-CALL ReadVar ( UnIn, TwrFile, InputFileData%AdjTwMa, 'AdjTwMa', 'Factor to adjust tower mass density' )
-
-IF ( InputFileData%AdjTwMa <= 0.0 )  CALL ProgAbort ( ' AdjTwMa must be greater than zero.' )
-
-
-   ! AdjFASt - Factor to adjust tower fore-aft stiffness.
-
-CALL ReadVar ( UnIn, TwrFile, InputFileData%AdjFASt, 'AdjFASt', 'Factor to adjust tower fore-aft stiffness' )
-
-IF ( InputFileData%AdjFASt <= 0.0 )  CALL ProgAbort ( ' AdjFASt must be greater than zero.' )
-
-
-   ! AdjSSSt - Factor to adjust tower side-to-side stiffness.
-
-CALL ReadVar ( UnIn, TwrFile, InputFileData%AdjSSSt, 'AdjSSSt', 'Factor to adjust tower side-to-side stiffness' )
-
-IF ( InputFileData%AdjSSSt <= 0.0 )  CALL ProgAbort ( ' AdjSSSt must be greater than zero.' )
-
-
-
-!  -------------- DISTRIBUTED TOWER PROPERTIES ---------------------------------
-
-
-   ! Skip the comment lines.
-
-   CALL ReadCom ( UnIn, TwrFile, 'distributed tower parameters' )
-   CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter names' )
-   CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter units' )
-
-
-   ! Allocate the input arrays.
-
-ALLOCATE ( InputFileData%HtFract(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the HtFract array.' )
-ENDIF
-
-ALLOCATE ( InputFileData%TMassDen(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the TMassDen array.' )
-ENDIF
-
-ALLOCATE ( InputFileData%TwFAStif(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the TwFAStif array.' )
-ENDIF
-
-ALLOCATE ( InputFileData%TwSSStif(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the TwSSStif array.' )
-ENDIF
-
-ALLOCATE ( InputFileData%TwGJStif(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the TwGJStif array.' )
-ENDIF
-
-ALLOCATE ( InputFileData%TwEAStif(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the TwEAStif array.' )
-ENDIF
-
-ALLOCATE ( InputFileData%TwFAIner(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the TwFAIner array.' )
-ENDIF
-
-ALLOCATE ( InputFileData%TwSSIner(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the TwSSIner array.' )
-ENDIF
-
-ALLOCATE ( InputFileData%TwFAcgOf(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the TwFAcgOf array.' )
-ENDIF
-
-ALLOCATE ( InputFileData%TwSScgOf(InputFileData%NTwInpSt) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the TwSScgOf array.' )
-ENDIF
-
-
-IF ( Echo )  THEN
-
-   IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-
-      Frmt = "( '  Stat     HtFract    TMassDen    TwFAStif    TwSSStif"// &
-             "    TwGJStif    TwEAStif    TwFAIner    TwSSIner    TwFAcgOf    TwSScgOf' )"
-      WRITE (UnEc,Frmt)
-      Frmt = "( '  ----     -------    --------    --------    --------"// &
-             "    --------    --------    --------    --------    --------    --------' )"
-      WRITE (UnEc,Frmt)
-      Frmt = '( I5, 1X, 10( 2X, '//TRIM( p%OutFmt )//') )'
-
-   ELSE                                                     ! Only FAST will be run; thus, read in only the first 4 cols.
-
-      Frmt = "( '  Stat     HtFract    TMassDen    TwFAStif    TwSSStif' )"
-      WRITE (UnEc,Frmt)
-      Frmt = "( '  ----     -------    --------    --------    --------' )"
-      WRITE (UnEc,Frmt)
-      Frmt = '( I5, 1X,  4( 2X, '//TRIM( p%OutFmt )//') )'
-
-   ENDIF
-
-ENDIF
-
-
-DO I=1,InputFileData%NTwInpSt
-
-   IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-      READ (UnIn,*,IOSTAT=IOS)  InputFileData%HtFract(I), InputFileData%TMassDen(I), InputFileData%TwFAStif(I), InputFileData%TwSSStif(I), &
-                                InputFileData%TwGJStif(I), InputFileData%TwEAStif(I), InputFileData%TwFAIner(I), InputFileData%TwSSIner(I), InputFileData%TwFAcgOf(I), InputFileData%TwSScgOf(I)
-   ELSE                                                     ! Only FAST will be run; thus, read in only the first 4 cols.
-      READ (UnIn,*,IOSTAT=IOS)  InputFileData%HtFract(I), InputFileData%TMassDen(I), InputFileData%TwFAStif(I), InputFileData%TwSSStif(I)
-   ENDIF
-
-   CALL CheckIOS ( IOS, TwrFile, 'line '//TRIM( Int2LStr( I ) )//' of the tower distributed properties', NumType )
-
-   IF ( Echo )  THEN
-      IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-         WRITE (UnEc,Frmt)  I, InputFileData%HtFract(I), InputFileData%TMassDen(I), InputFileData%TwFAStif(I), InputFileData%TwSSStif(I), &
-                               InputFileData%TwGJStif(I), InputFileData%TwEAStif(I), InputFileData%TwFAIner(I), InputFileData%TwSSIner(I), InputFileData%TwFAcgOf(I), InputFileData%TwSScgOf(I)
-      ELSE                                                     ! Only FAST will be run; thus, read in only the first 4 cols.
-         WRITE (UnEc,Frmt)  I, InputFileData%HtFract(I), InputFileData%TMassDen(I), InputFileData%TwFAStif(I), InputFileData%TwSSStif(I)
-      ENDIF
-   ENDIF
-
-   IF ( I == 1 )  THEN
-      IF ( InputFileData%HtFract(I) /= 0.0 )  CALL ProgAbort ( ' HtFract(1) must be 0.0.' )
-   ELSEIF ( ( I == InputFileData%NTwInpSt ) .AND. ( I /= 1 ) )  THEN
-      IF ( InputFileData%HtFract(I) /= 1.0 )  CALL ProgAbort ( ' HtFract('//TRIM( Int2LStr( I ) )//') must be 1.0.' )
-   ELSE
-      IF ( InputFileData%HtFract(I) <= InputFileData%HtFract(I-1) )  &
-         CALL ProgAbort ( ' HtFract('//TRIM( Int2LStr( I ) )//') greater than '//TRIM( Flt2LStr( InputFileData%HtFract(I-1) ) )//'.' )
-   ENDIF
-
-   IF ( InputFileData%TMassDen(I) <= 0.0 )  &
-      CALL ProgAbort ( ' TMassDen('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-
-   IF ( InputFileData%TwFAStif(I) <= 0.0 )  &
-      CALL ProgAbort ( ' TwFAStif('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-
-   IF ( InputFileData%TwSSStif(I) <= 0.0 )  &
-      CALL ProgAbort ( ' TwSSStif('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-
-   IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-
-      IF ( InputFileData%TwGJStif(I) <= 0.0 )  &
-         CALL ProgAbort ( ' TwGJStif('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-
-      IF ( InputFileData%TwEAStif(I) <= 0.0 )  &
-         CALL ProgAbort ( ' TwEAStif('//TRIM( Int2LStr( I ) )//') must be greater than zero.' )
-
-      IF ( InputFileData%TwFAIner(I) <  0.0 )  &
-         CALL ProgAbort ( ' TwFAIner('//TRIM( Int2LStr( I ) )//') must not be less than zero.' )
-
-      IF ( InputFileData%TwSSIner(I) <  0.0 )  &
-         CALL ProgAbort ( ' TwSSIner('//TRIM( Int2LStr( I ) )//') must not be less than zero.' )
-
-   ENDIF
-
-
-   ! Apply the adjustment factors to the elemental data.
-
-   InputFileData%TMassDen(I) = InputFileData%TMassDen(I)*InputFileData%AdjTwMa
-   InputFileData%TwFAStif(I) = InputFileData%TwFAStif(I)*InputFileData%AdjFASt
-   InputFileData%TwSSStif(I) = InputFileData%TwSSStif(I)*InputFileData%AdjSSSt
-
-ENDDO ! I
-
-
-
-!  -------------- TOWER FORE-AFT MODE SHAPES -----------------------------------
-
-
-   ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, TwrFile, 'tower fore-aft mode shapes' )
-
-
-   ! TwFAM1Sh - Tower fore-aft mode-1 shape coefficients.
-
-CALL ReadAryLines ( UnIn, TwrFile, TwFAM1Sh, PolyOrd-1, 'TwFAM1Sh', 'Tower fore-aft mode-1 shape coefficients' )
-
-
-TopDispl = 0.0
-
-DO I=2,PolyOrd
-   TopDispl = TopDispl + TwFAM1Sh(I)
-ENDDO ! I
-
-IF ( ABS( TopDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Tower fore-aft mode-1 shape coefficients must add to 1.0.' )
-
-
-   ! TwFAM2Sh - Tower fore-aft mode-2 shape coefficients.
-
-CALL ReadAryLines ( UnIn, TwrFile, TwFAM2Sh, PolyOrd-1, 'TwFAM2Sh', 'Tower fore-aft mode-2 shape coefficients' )
-
-TopDispl = 0.0
-
-DO I=2,PolyOrd
-   TopDispl = TopDispl + TwFAM2Sh(I)
-ENDDO ! I
-
-IF ( ABS( TopDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Tower fore-aft mode-2 shape coefficients must add to 1.0.' )
-
-
-
-!  -------------- TOWER SIDE-TO-SIDE MODE SHAPES -------------------------------
-
-
-   ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, TwrFile, 'tower side-to-side mode shapes' )
-
-
-
-   ! TwSSM1Sh - Tower side-to-side mode-1 shape coefficients.
-
-
-CALL ReadAryLines ( UnIn, TwrFile, TwSSM1Sh, PolyOrd-1, 'TwSSM1Sh', 'Tower side-to-side mode-1 shape coefficients' )
-
-TopDispl = 0.0
-
-DO I=2,PolyOrd
-   TopDispl = TopDispl + TwSSM1Sh(I)
-ENDDO ! I
-
-IF ( ABS( TopDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Tower side-to-side mode-1 shape coefficients must add to 1.0.' )
-
-
-   ! TwSSM2Sh - Tower side-to-side mode-2 shape coefficients.
-
-CALL ReadAryLines ( UnIn, TwrFile, TwSSM2Sh, PolyOrd-1, 'TwSSM2Sh', 'Tower side-to-side mode-2 shape coefficients' )
-
-TopDispl = 0.0
-
-DO I=2,PolyOrd
-   TopDispl = TopDispl + TwSSM2Sh(I)
-ENDDO ! I
-
-IF ( ABS( TopDispl - 1.0 ) > 0.001 )  CALL ProgAbort ( ' Tower side-to-side mode-2 shape coefficients must add to 1.0.' )
-
-
-   ! Close the tower file.
-
-CLOSE ( UnIn )
-
-
-RETURN
-END SUBROUTINE GetTower
-!=======================================================================
 SUBROUTINE FAST_Input( p, OtherState, InputFileData, ErrStat, ErrMsg )
 
 
@@ -5540,7 +5172,6 @@ USE                             EnvCond
 USE                             General
 USE                             InitCond
 USE                             Linear
-USE                             Modes
 USE                             NacelleYaw
 USE                             Output
 USE                             Platform
@@ -5548,7 +5179,6 @@ USE                             RotorFurling
 USE                             SimCont
 USE                             TailAero
 USE                             TailFurling
-USE                             TeeterVars
 USE                             TipBrakes
 USE                             TurbCont
 
@@ -5819,9 +5449,9 @@ IF ( p%NumBl == 2 )  THEN
    InputFileData%Delta3   = InputFileData%Delta3 *D2R
    p%CosDel3  = COS( InputFileData%Delta3 )
    p%SinDel3  = SIN( InputFileData%Delta3 )
-   TeetSStP = TeetSStP*D2R
-   TeetDmpP = TeetDmpP*D2R
-   TeetHStP = TeetHStP*D2R
+   p%TeetSStP = p%TeetSStP*D2R
+   p%TeetDmpP = p%TeetDmpP*D2R
+   p%TeetHStP = p%TeetHStP*D2R
 ENDIF
 
 
@@ -5855,7 +5485,24 @@ p%ProjArea   = Pi*( p%AvgNrmTpRd**2 )      ! Swept area of the rotor projected o
 
    ! Read the tower data.
 
-CALL GetTower( p, InputFileData )
+!CALL GetTower( p, InputFileData )
+CALL ReadTowerFile(      p, InputFileData, TwrFile, ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ), ErrStat, ErrMsg )
+IF ( ErrStat /= ErrID_None ) THEN
+   IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
+   CALL WrScr(ErrMsg)
+END IF
+
+CALL ValidateTowerData ( p, InputFileData, ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ), ErrStat, ErrMsg )
+IF ( ErrStat /= ErrID_None ) THEN
+   IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
+   CALL WrScr(ErrMsg)
+END IF
+
+CALL SetTowerParams(     p, InputFileData, ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ), ErrStat, ErrMsg )
+IF ( ErrStat /= ErrID_None ) THEN
+   IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
+   CALL WrScr(ErrMsg)
+END IF
 
 
    ! Check to see if all TwrGagNd(:) analysis points are existing analysis points:
@@ -5864,94 +5511,6 @@ DO I=1,p%NTwGages
    IF ( ( TwrGagNd(I) < 1 ) .OR. ( TwrGagNd(I) > p%TwrNodes ) )  &
       CALL ProgAbort  ( ' All TwrGagNd values must be between 1 and '//TRIM( Int2LStr( p%TwrNodes ) )//' (inclusive).' )
 ENDDO ! I
-
-
-
-   ! Allocate arrays to hold tower data at the analysis nodes.
-
-ALLOCATE ( p%HNodesNorm(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the HNodesNorm array.' )
-ENDIF
-
-ALLOCATE ( p%HNodes(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the HNodes array.' )
-ENDIF
-
-ALLOCATE ( p%DHNodes(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the DHNodes array.' )
-ENDIF
-
-ALLOCATE ( p%MassT(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the MassT array.' )
-ENDIF
-
-ALLOCATE ( p%StiffTFA(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the StiffTFA array.' )
-ENDIF
-
-ALLOCATE ( p%StiffTSS(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the StiffTSS array.' )
-ENDIF
-
-ALLOCATE ( p%StiffTGJ(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the StiffTGJ array.' )
-ENDIF
-
-ALLOCATE ( p%StiffTEA(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the StiffTEA array.' )
-ENDIF
-
-ALLOCATE ( p%InerTFA(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the InerTFA array.' )
-ENDIF
-
-ALLOCATE ( p%InerTSS(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the InerTSS array.' )
-ENDIF
-
-ALLOCATE ( p%cgOffTFA(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the cgOffTFA array.' )
-ENDIF
-
-ALLOCATE ( p%cgOffTSS(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the cgOffTSS array.' )
-ENDIF
-
-
-ALLOCATE ( p%DiamT(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the DiamT array.' )
-ENDIF
-p%DiamT(:) = InputFileData%TwrDiam
-
-ALLOCATE ( p%CAT(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the CAT array.' )
-ENDIF
-p%CAT(:) = InputFileData%TwrCA
-
-ALLOCATE ( p%CDT(p%TwrNodes) , STAT=Sttus )
-IF ( Sttus /= 0 )  THEN
-   CALL ProgAbort ( ' Error allocating memory for the CDT array.' )
-ENDIF
-p%CDT(:) = InputFileData%TwrCD
-
-   ! Interpolate tower data for analysis nodes.
-
-CALL InterpTwr( p, InputFileData )
-
 
 
 !  -------------- AERODYN PARAMETERS -------------------------------------------
@@ -5991,16 +5550,16 @@ p%RNodes = p%RNodes - p%HubRad   ! Radius to blade analysis nodes relative to ro
    ! Compute the index for the blade tip and tower top nodes:
 
 p%TipNode  = p%BldNodes + 1
-p%TTopNode = p%TwrNodes + 1
-
 
 
 !  -------------- BLADE PARAMETERS ---------------------------------------------
 
 
 CALL GetBladeInputs ( BldFile, p, InputFileData, ErrStat, ErrMsg )
-
-
+IF ( ErrStat /= ErrID_None ) THEN
+   IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
+   CALL WrScr(ErrMsg)
+END IF
 
 !  -------------- NOISE --------------------------------------------------------
 
@@ -6168,115 +5727,6 @@ IF ( Echo )  CLOSE ( UnEc )
 RETURN
 END SUBROUTINE FAST_Input
 !=======================================================================
-SUBROUTINE InterpTwr( p, InputFileData )
-
-
-   ! InterpTwr performs a linear interpolation of the input tower data
-   ! and writes the result in four arrays with the specified interval.
-
-
-USE                             General
-
-
-IMPLICIT                        NONE
-
-
-   ! Passed variables
-   
-TYPE(StrD_ParameterType),        INTENT(INOUT) :: p                             ! Parameters of the structural dynamics module
-TYPE(StrD_InputFile),            INTENT(IN)    :: InputFileData                 ! Data stored in the module's input file
-
-   ! Local variables:
-
-INTEGER(4)                   :: Ind                                             ! Index for the node arrays.
-INTEGER(4)                   :: Sttus                                           ! Status of an attempted array allocation.
-INTEGER                      :: InterpInd                                       ! Index for the interpolated array
-
-
-
-   ! Array definitions:
-
-   !    Input      Interp    Description
-   !    -----      ------    -----------
-   !    HtFract    HNodesNorm Fractional height (0 at top of rigid section, 1 at tower top)
-   !    TMassDen   MassT      Lineal mass density
-   !    TwFAStif   StiffTFA   Tower fore-aft stiffness
-   !    TwSSStif   StiffTSS   Tower side-to-side stiffness
-   !    TwGJStif   StiffTGJ   Tower torsional stiffness
-   !    TwEAStif   StiffTEA   Tower extensional stiffness
-   !    TwFAIner   InerTFA    Tower fore-aft (about yt-axis) mass inertia per unit length
-   !    TwSSIner   InerTSS    Tower side-to-side (about xt-axis) mass inertia per unit length
-   !    TwFAcgOf   cgOffTFA   Tower fore-aft mass cg offset
-   !    TwSScgOf   cgOffTSS   Tower side-to-side mass cg offset
-
-
-   ! Depending on the number of input locations, we'll do this differently.
-
-IF ( InputFileData%NTwInpSt == 1 )  THEN
-
-
-      ! Maybe we're lucky today and the user specified only one input station
-      !  because the tower is a uniform beam.
-
-   DO Ind=1,p%TwrNodes
-      p%DHNodes  (Ind) = p%TwrFlexL/p%TwrNodes   !Let's use constant-spaced nodes for now, but the rest of the code is written to handle variable-spaced nodes--this will be a future input!
-      IF ( Ind == 1 ) THEN !Lowest analysis point
-         p%HNodes(Ind) = 0.5*p%DHNodes(Ind)
-      ELSE                 !All other analysis points
-         p%HNodes(Ind) = p%HNodes( Ind - 1 ) + 0.5*( p%DHNodes(Ind) + p%DHNodes( Ind - 1 ) )
-      ENDIF
-      p%HNodesNorm(Ind) = p%HNodes(Ind)/p%TwrFlexL
-
-      p%MassT    (Ind) = InputFileData%TMassDen(1)
-      p%StiffTFA (Ind) = InputFileData%TwFAStif(1)
-      p%StiffTSS (Ind) = InputFileData%TwSSStif(1)
-      IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-         p%StiffTGJ (Ind) = InputFileData%TwGJStif(1)
-         p%StiffTEA (Ind) = InputFileData%TwEAStif(1)
-         p%InerTFA  (Ind) = InputFileData%TwFAIner(1)
-         p%InerTSS  (Ind) = InputFileData%TwSSIner(1)
-         p%cgOffTFA (Ind) = InputFileData%TwFAcgOf(1)
-         p%cgOffTSS (Ind) = InputFileData%TwSScgOf(1)
-      ENDIF
-   ENDDO ! Ind
-
-ELSE
-
-
-      ! We have more than one input station, so we're just going to have to
-      !  interpolate the data.
-   InterpInd = 1
-
-   DO Ind=1,p%TwrNodes
-      p%DHNodes   (Ind) = p%TwrFlexL/p%TwrNodes   !Lets used constant-spaced nodes for now, but the rest of the code is written to handle variable-spaced nodes--this will be a future input!
-      IF ( Ind == 1 ) THEN !Lowest analysis point
-         p%HNodes (Ind) = 0.5*p%DHNodes(Ind)
-      ELSE                 !All other analysis points
-         p%HNodes (Ind) = p%HNodes( Ind - 1 ) + 0.5*( p%DHNodes(Ind) + p%DHNodes( Ind - 1 ) )
-      ENDIF
-      p%HNodesNorm(Ind) = p%HNodes(Ind)/p%TwrFlexL
-
-!bjj: it would probably be faster, since they all use the same InterpInd xVal, and xAry, to interpolate differently
-      p%MassT     (Ind) = InterpStp( p%HNodesNorm(Ind), InputFileData%HtFract, InputFileData%TMassDen, InterpInd, InputFileData%NTwInpSt )
-      p%StiffTFA  (Ind) = InterpStp( p%HNodesNorm(Ind), InputFileData%HtFract, InputFileData%TwFAStif, InterpInd, InputFileData%NTwInpSt )
-      p%StiffTSS  (Ind) = InterpStp( p%HNodesNorm(Ind), InputFileData%HtFract, InputFileData%TwSSStif, InterpInd, InputFileData%NTwInpSt )
-      IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! An ADAMS model will be created; thus, read in all the cols.
-         p%StiffTGJ (Ind) = InterpStp( p%HNodesNorm(Ind), InputFileData%HtFract, InputFileData%TwGJStif, InterpInd, InputFileData%NTwInpSt )
-         p%StiffTEA (Ind) = InterpStp( p%HNodesNorm(Ind), InputFileData%HtFract, InputFileData%TwEAStif, InterpInd, InputFileData%NTwInpSt )
-         p%InerTFA  (Ind) = InterpStp( p%HNodesNorm(Ind), InputFileData%HtFract, InputFileData%TwFAIner, InterpInd, InputFileData%NTwInpSt )
-         p%InerTSS  (Ind) = InterpStp( p%HNodesNorm(Ind), InputFileData%HtFract, InputFileData%TwSSIner, InterpInd, InputFileData%NTwInpSt )
-         p%cgOffTFA (Ind) = InterpStp( p%HNodesNorm(Ind), InputFileData%HtFract, InputFileData%TwFAcgOf, InterpInd, InputFileData%NTwInpSt )
-         p%cgOffTSS (Ind) = InterpStp( p%HNodesNorm(Ind), InputFileData%HtFract, InputFileData%TwSScgOf, InterpInd, InputFileData%NTwInpSt )
-      ENDIF
-   ENDDO ! Ind
-
-ENDIF
-
-
-
-RETURN
-END SUBROUTINE InterpTwr
-!=======================================================================
 SUBROUTINE PrintSum( p, OtherState )
 
 
@@ -6333,14 +5783,15 @@ ELSE
 ENDIF
 IF ( p%NumBl == 2 )  THEN
    RotorType = TRIM(RotorType)//' two-bladed rotor'
+   IF ( p%DOF_Flag(DOF_Teet) )  THEN
+      RotorType = TRIM(RotorType)//' with teetering hub.'
+   ELSE
+      RotorType = TRIM(RotorType)//' with rigid hub.'
+   ENDIF
 ELSE
-   RotorType = TRIM(RotorType)//' three-bladed rotor'
+   RotorType = TRIM(RotorType)//' three-bladed rotor with rigid hub.'
 ENDIF
-IF ( p%DOF_Flag(DOF_Teet) )  THEN
-   RotorType = TRIM(RotorType)//' with teetering hub.'
-ELSE
-   RotorType = TRIM(RotorType)//' with rigid hub.'
-ENDIF
+
 WRITE    (UnSu,FmtTxt)  '            '//TRIM(RotorType)
 
 SELECT CASE ( PtfmModel )
@@ -6375,7 +5826,7 @@ ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Edgewise blade mode DOF.'
 ENDIF
 
-IF ( p%DOF_Flag(DOF_Teet) )  THEN
+IF ( p%NumBl == 2 .AND. p%DOF_Flag(DOF_Teet) )  THEN
    WRITE (UnSu,FmtTxt)  ' Enabled    Rotor-teeter DOF.'
 ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Rotor-teeter DOF.'
