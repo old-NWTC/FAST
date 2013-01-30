@@ -1396,6 +1396,9 @@ INTEGER,  PARAMETER          :: AnchTen(9) = (/Anch1Ten,Anch2Ten,Anch3Ten,Anch4T
 INTEGER,  PARAMETER          :: AnchAng(9) = (/Anch1Ang,Anch2Ang,Anch3Ang,Anch4Ang,Anch5Ang,Anch6Ang,Anch7Ang,Anch8Ang,Anch9Ang/)
 
 
+INTEGER(B2Ki), PARAMETER     :: FileFmtID_WithTime    = 1         ! ID for OutputFileFmtID to specify that the time channel should be included in the output file (use if the output can occur at variable times)
+INTEGER(B2Ki), PARAMETER     :: FileFmtID_WithoutTime = 2         ! ID for OutputFileFmtID to specify that the time channel does not need to be included in the output file (used only with constant time-step output)
+
 
 END MODULE StructDyn_Parameters
 !**********************************************************************************************************************************

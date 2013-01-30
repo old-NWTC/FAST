@@ -472,10 +472,8 @@ USE                             InitCond
 USE                             NacelleYaw
 USE                             Output
 USE                             Platform
-USE                             RotorFurling
 USE                             SimCont
 USE                             TailAero
-USE                             TailFurling
 USE                             TipBrakes
 USE                             TurbCont
 USE                             FASTSubs    !SetCoordSy
@@ -598,9 +596,9 @@ IF ( TTDspSS  /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with
 If ( TeetDefl /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with an initial teeter angle.'// &
                                          '  Set TeetDefl to 0.0.'                                              )
 
-IF ( GBoxEff  /= 1.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with a non-ideal gearbox.'// &
+IF ( p%GBoxEff  /= 1.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with a non-ideal gearbox.'// &
                                          '  Set GBoxEff to 100.0.'                                         )
-IF ( GBRevers        )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with a gearbox reversal.'// &
+IF ( InputFileData%GBRevers )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with a gearbox reversal.'// &
                                          '  Set GBRevers to False.'                                       )
 
 IF ( p%TwrNodes  > 99  )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with more than 99 tower elements.'// &
@@ -667,7 +665,7 @@ ELSE
    CompHydroI = 0
 ENDIF
 
-IF ( TabDelim  )  THEN
+IF ( InputFileData%TabDelim  )  THEN
    TabDelimI  = 1
 ELSE
    TabDelimI  = 0
@@ -687,7 +685,7 @@ ENDIF
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''CalcOuts_V'''
 WRITE (UnAD,FmtText  )  'VARIABLE/'//TRIM(Int2LStr(CalcOuts_V))//', FUNCTION = USER(1)'
 !WRITE (UnAD,FmtText  )  'VARIABLE/1'
-!WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Flt2LStr( p%AzimB1Up ))//', '//TRIM(Flt2LStr( GBRatio ))// &
+!WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Flt2LStr( p%AzimB1Up ))//', '//TRIM(Flt2LStr( p%GBRatio ))// &
 !                        ', '//TRIM(Flt2LStr( p%AvgNrmTpRd ))//', '//TRIM(Flt2LStr( p%ProjArea ))//               &
 !                        ', '//TRIM(Int2LStr( CompAeroI  ))//', '//TRIM(Int2LStr( CompHydroI ))//             &
 !                        ', '//TRIM(Int2LStr( TabDelimI  ))//', '//TRIM(Int2LStr( p%NumBl      ))//','
@@ -1793,7 +1791,7 @@ WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''LSSGag_M'''
 WRITE (UnAD,FmtText  )  'MARKER/3040'
 WRITE (UnAD,FmtText  )  ', PART = 3000'
-WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang + ShftGagL, ', ', 0.0, ', ', 0.0
+WRITE (UnAD,FmtTRTRTR)  ', QP = ', p%OverHang + p%ShftGagL, ', ', 0.0, ', ', 0.0
 WRITE (UnAD,FmtText  )  ', REULER = 0, 0, 0'
 
 
@@ -1907,7 +1905,7 @@ WRITE (UnAD,FmtTRTRTR)  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(
 WRITE (UnAD,FmtTRTRTR)  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 3205'
 WRITE (UnAD,FmtTR    )  ', MASS = ', SmllNmbr
-WRITE (UnAD,FmtTRTRTR)  ', IP = ', p%GenIner*GBRatio*GBRatio + SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
+WRITE (UnAD,FmtTRTRTR)  ', IP = ', p%GenIner*p%GBRatio**2 + SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
 
 
    ! Generator reference axis:
@@ -3258,7 +3256,7 @@ WRITE (UnAD,FmtText  )  ', FUNCTION = -'//TRIM(Flt2LStr( p%YawSpr *0.001 ))//'*V
 
 WRITE (UnAD,FmtText     )  '!---------------------------------- Tail-Furl ----------------------------------'
 
-SELECT CASE ( TFrlMod ) ! Which tail-furl model are we using?
+SELECT CASE ( p%TFrlMod ) ! Which tail-furl model are we using?
 
 CASE ( 0 )              ! None!
 
@@ -3272,8 +3270,8 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtTR    )  ', CT = ', 0.001*TFrlDmp
-   WRITE (UnAD,FmtTR    )  ', KT = ', 0.001*TFrlSpr
+   WRITE (UnAD,FmtTR    )  ', CT = ', 0.001*p%TFrlDmp
+   WRITE (UnAD,FmtTR    )  ', KT = ', 0.001*p%TFrlSpr
    WRITE (UnAD,FmtText  )  ', TORQUE = 0'          ! The reference torque at ANGLE
    WRITE (UnAD,FmtText  )  ', ANGLE = 0'
 
@@ -3282,41 +3280,41 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( TFrlUSSP ))//': 0, 0,'
-   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( TFrlUSSpr*0.001 ))//'*( AZ(5040,2040) - '//TRIM(Flt2LStr( TFrlUSSP ))//' ) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlUSSP ))//': 0, 0,'
+   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( p%TFrlUSSpr*0.001 ))//'*( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlUSSP ))//' ) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlDSSpr_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/5042'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( TFrlDSSP ))//':'
-   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( TFrlDSSpr*0.001 ))// &
-                           '*( AZ(5040,2040) - '//TRIM(Flt2LStr( TFrlDSSP ))//' ), 0, 0 )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlDSSP ))//':'
+   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( p%TFrlDSSpr*0.001 ))// &
+                           '*( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlDSSP ))//' ), 0, 0 )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlUSDmp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/5043'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( TFrlUSDP ))// &
-                           ': 0, 0, -'//TRIM(Flt2LStr( TFrlUSDmp*0.001 ))//'*WZ(5040,2040,2040) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlUSDP ))// &
+                           ': 0, 0, -'//TRIM(Flt2LStr( p%TFrlUSDmp*0.001 ))//'*WZ(5040,2040,2040) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlDSDmp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/5044'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( TFrlDSDP ))// &
-                           ': -'//TRIM(Flt2LStr( TFrlDSDmp*0.001 ))//'*WZ(5040,2040,2040), 0, 0 )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlDSDP ))// &
+                           ': -'//TRIM(Flt2LStr( p%TFrlDSDmp*0.001 ))//'*WZ(5040,2040,2040), 0, 0 )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlCoulombDamp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/5045'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(5040,2040,2040): '//TRIM(Flt2LStr( TFrlCDmp*0.001 ))// &
-                           ', 0, -'//TRIM(Flt2LStr( TFrlCDmp*0.001 ))//' )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(5040,2040,2040): '//TRIM(Flt2LStr( p%TFrlCDmp*0.001 ))// &
+                           ', 0, -'//TRIM(Flt2LStr( p%TFrlCDmp*0.001 ))//' )'
 
 
 CASE ( 2 )              ! User-defined tail-furl spring/damper model.
@@ -3384,7 +3382,7 @@ ENDIF
 
 WRITE (UnAD,FmtText     )  '!--------------------------------- Rotor-Furl ----------------------------------'
 
-SELECT CASE ( RFrlMod ) ! Which rotor-furl model are we using?
+SELECT CASE ( p%RFrlMod ) ! Which rotor-furl model are we using?
 
 CASE ( 0 )              ! None!
 
@@ -3398,8 +3396,8 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtTR    )  ', CT = ', 0.001*RFrlDmp
-   WRITE (UnAD,FmtTR    )  ', KT = ', 0.001*RFrlSpr
+   WRITE (UnAD,FmtTR    )  ', CT = ', 0.001*p%RFrlDmp
+   WRITE (UnAD,FmtTR    )  ', KT = ', 0.001*p%RFrlSpr
    WRITE (UnAD,FmtText  )  ', TORQUE = 0'          ! The reference torque at ANGLE
    WRITE (UnAD,FmtText  )  ', ANGLE = 0'
 
@@ -3408,41 +3406,41 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( RFrlUSSP ))//': 0, 0,'
-   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( RFrlUSSpr*0.001 ))//'*( AZ(2130,2030) - '//TRIM(Flt2LStr( RFrlUSSP ))//' ) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlUSSP ))//': 0, 0,'
+   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( p%RFrlUSSpr*0.001 ))//'*( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlUSSP ))//' ) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlDSSpr_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/2132'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( RFrlDSSP ))//':'
-   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( RFrlDSSpr*0.001 ))// &
-                           '*( AZ(2130,2030) - '//TRIM(Flt2LStr( RFrlDSSP ))//' ), 0, 0 )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlDSSP ))//':'
+   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( p%RFrlDSSpr*0.001 ))// &
+                           '*( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlDSSP ))//' ), 0, 0 )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlUSDmp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/2133'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( RFrlUSDP ))// &
-                           ': 0, 0, -'//TRIM(Flt2LStr( RFrlUSDmp*0.001 ))//'*WZ(2130,2030,2030) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlUSDP ))// &
+                           ': 0, 0, -'//TRIM(Flt2LStr( p%RFrlUSDmp*0.001 ))//'*WZ(2130,2030,2030) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlDSDmp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/2134'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( RFrlDSDP ))// &
-                           ': -'//TRIM(Flt2LStr( RFrlDSDmp*0.001 ))//'*WZ(2130,2030,2030), 0, 0 )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlDSDP ))// &
+                           ': -'//TRIM(Flt2LStr( p%RFrlDSDmp*0.001 ))//'*WZ(2130,2030,2030), 0, 0 )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlCoulombDamp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/2135'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(2130,2030,2030): '//TRIM(Flt2LStr( RFrlCDmp*0.001 ))// &
-                           ', 0, -'//TRIM(Flt2LStr( RFrlCDmp*0.001 ))//' )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(2130,2030,2030): '//TRIM(Flt2LStr( p%RFrlCDmp*0.001 ))// &
+                           ', 0, -'//TRIM(Flt2LStr( p%RFrlCDmp*0.001 ))//' )'
 
 
 CASE ( 2 )              ! User-defined rotor-furl spring/damper model.
@@ -3468,8 +3466,8 @@ WRITE (UnAD,FmtText  )  'SPRINGDAMPER/3020'
 WRITE (UnAD,FmtText  )  ', ROTATION'
 WRITE (UnAD,FmtText  )  ', I = 3020'
 WRITE (UnAD,FmtText  )  ', J = 3120'
-WRITE (UnAD,FmtTR    )  ', CT = ', 0.001*DTTorDmp
-WRITE (UnAD,FmtTR    )  ', KT = ', 0.001*DTTorSpr
+WRITE (UnAD,FmtTR    )  ', CT = ', 0.001*p%DTTorDmp
+WRITE (UnAD,FmtTR    )  ', KT = ', 0.001*p%DTTorSpr
 WRITE (UnAD,FmtText  )  ', TORQUE = 0'          ! The reference torque at ANGLE
 WRITE (UnAD,FmtText  )  ', ANGLE = 0'
 
@@ -3497,14 +3495,14 @@ IF ( p%DOF_Flag(DOF_GeAz) )  THEN  ! Only include the generator models if the ge
    WRITE (UnAD,FmtText        )  ', J = 2050'
    WRITE (UnAD,FmtText        )  ', FUNCTION = USER( '//TRIM(Int2LStr( GenTiStrp ))//', '//TRIM(Flt2LStr( SpdGenOn ))// &
                                  ', '//TRIM(Flt2LStr( TimGenOn ))//', '//TRIM(Flt2LStr( TimGenOf ))//                   &
-                                 ', '//TRIM(Int2LStr( VSContrl ))//', 0, 0, '                                               !GBRatio & p%NumBl no longer necessary to send, but I'm not going to renumber the rest of the parameters
-!                                 ', '//TRIM(Int2LStr( VSContrl ))//', '//TRIM(Flt2LStr( GBRatio  ))//                   &
+                                 ', '//TRIM(Int2LStr( VSContrl ))//', 0, 0, '                                               !p%GBRatio & p%NumBl no longer necessary to send, but I'm not going to renumber the rest of the parameters
+!                                 ', '//TRIM(Int2LStr( VSContrl ))//', '//TRIM(Flt2LStr( p%GBRatio  ))//                   &
 !                                 ', '//TRIM(Int2LStr( p%NumBl    ))//','
    SELECT CASE ( VSContrl )               ! Are we using variable-speed control?
    CASE ( 0 )                             ! No variable-speed control.  Using a generator model.
       SELECT CASE ( GenModel )            ! Which generator model are we using?
       CASE ( 1 )                          ! Simple induction-generator model.
-         WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( GenModel ))//', '//TRIM(Flt2LStr( GenEff   ))//                   &
+         WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( GenModel ))//', '//TRIM(Flt2LStr( p%GenEff   ))//                   &
                                  ', '//TRIM(Flt2LStr( SIG_SySp ))//', '//TRIM(Flt2LStr( SIG_POSl ))//                   &
                                  ', '//TRIM(Flt2LStr( SIG_POTq ))//', '//TRIM(Flt2LStr( SIG_Slop ))//' )'
       CASE ( 2 )                          ! Thevenin-equivalent generator model.
@@ -3514,16 +3512,16 @@ IF ( p%DOF_Flag(DOF_GeAz) )  THEN  ! Only include the generator models if the ge
                                  ', '//TRIM(Flt2LStr( TEC_SLR  ))//', '//TRIM(Flt2LStr( TEC_RLR  ))//                   &
                                  ', '//TRIM(Flt2LStr( TEC_MR ))//' )'
       CASE ( 3 )                          ! User-defined generator model.
-         WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( GenModel ))//', '//TRIM(Flt2LStr( GenEff ))//                     &
+         WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( GenModel ))//', '//TRIM(Flt2LStr( p%GenEff ))//                     &
                                  ', '//TRIM(Flt2LStr( DT       ))//' )'
       ENDSELECT
    CASE ( 1 )                             ! Simple variable-speed control.
-      WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( GenEff   ))//', '//TRIM(Flt2LStr( VS_RtGnSp ))//                  &
+      WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( p%GenEff   ))//', '//TRIM(Flt2LStr( VS_RtGnSp ))//                  &
                                  ', '//TRIM(Flt2LStr( VS_RtTq  ))//', '//TRIM(Flt2LStr( VS_Rgn2K  ))//                  &
                                  ', '//TRIM(Flt2LStr( VS_Slope ))//', '//TRIM(Flt2LStr( VS_TrGnSp ))//                  &
                                  ', '//TRIM(Flt2LStr( VS_SySp  ))//' )'
    CASE ( 2 )                             ! User-defined variable-speed control.
-      WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( GenEff   ))//', '//TRIM(Flt2LStr( DT ))//' )'
+      WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( p%GenEff   ))//', '//TRIM(Flt2LStr( DT ))//' )'
    ENDSELECT
 
 ENDIF
@@ -3543,7 +3541,7 @@ IF ( ( p%DOF_Flag(DOF_GeAz) ) .AND. ( TMax > THSSBrDp ) )  THEN  ! .TRUE. if the
    WRITE (UnAD,FmtTR    )  ', STICTION_TRANSITION_VELOCITY = ', SmllNmbr
    WRITE (UnAD,FmtText  )  ', EFFECT = ALL'
    WRITE (UnAD,FmtText  )  ', INPUTS = PRELOAD'
-   WRITE (UnAD,FmtTR    )  ', FRICTION_TORQUE_PRELOAD = ', 0.001*GBRatio*HSSBrTqF   ! Apply the full HSS braking friction torque, transferred to the LSS and converted to kNm.
+   WRITE (UnAD,FmtTR    )  ', FRICTION_TORQUE_PRELOAD = ', 0.001*p%GBRatio*HSSBrTqF   ! Apply the full HSS braking friction torque, transferred to the LSS and converted to kNm.
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''HSSBrake_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/3151'        ! This SFORCE is used to cancel out part or all of the brake torque from the FRICTION/3151 statement when the HSS brake is not fully applied.
@@ -3635,7 +3633,7 @@ DO K = 1,p%NumBl ! Loop through all blades
    WRITE (UnAD,FmtText   )  'VARIABLE/'//TRIM(Int2LStr( TmpID     ))
    WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Int2LStr( PCMode ))//', '//TRIM(Flt2LStr( TPCOn ))// &
                             ', '//TRIM(Flt2LStr( DT ))//','
-!                            ', '//TRIM(Flt2LStr( DT          ))//', '//TRIM(Flt2LStr( GBRatio     ))//       &
+!                            ', '//TRIM(Flt2LStr( DT          ))//', '//TRIM(Flt2LStr( p%GBRatio     ))//       &
 !                            ', '//TRIM(Int2LStr( p%NumBl       ))//','
                             
    WRITE (UnAD,FmtText   )  ', '//TRIM(Flt2LStr( TPitManS(K) ))//                                            &
@@ -3998,15 +3996,15 @@ WRITE (UnAD,FmtText  )  '!========================= ANALYSIS SETTINGS / OUTPUT =
 !---------------
 CALL MakeADM_WrICArraysR( (/ REAL(p%NumBl,ReKi),   REAL(p%BldNodes,ReKi), REAL(p%TwrNodes,ReKi),   REAL(p%NBlGages,ReKi),  & 
                              REAL(p%NTwGages,ReKi),REAL(p%NumOuts,ReKi),     &    ! bjj if linearizing, set NumOuts = 0 here ???
-                             REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  p%AzimB1Up,           GBRatio,   &
-                             p%TipRad,               TStart               , REAL(PtfmLdMod),       REAL(p%TwrLdMod),       p%ProjArea,  &
-                             p%AvgNrmTpRd,         p%GenIner              , REAL(OutFileFmt,ReKi)             /), &
+                             REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  p%AzimB1Up,           p%GBRatio,   &
+                             p%TipRad,               TStart             , REAL(PtfmLdMod),       REAL(p%TwrLdMod),     p%ProjArea,  &
+                             p%AvgNrmTpRd,         p%GenIner            , REAL(OutFileFmt,ReKi)             /), &
                                      ModelConstants_A, 19       , UnAD, "ModelConstants_A" )             
                                               
 CALL MakeADM_WrICArrays (p%OutParam(1:p%NumOuts)%Indx + 500*( 1 - p%OutParam(1:p%NumOuts)%SignM), & !ADD 1000 if SignM is negative (this implies that SignM should only be +1 or -1!!!!!)
                                       OutIndSign_A    , p%NumOuts,  UnAD, "OutIndSign_A"     ) ! note that OutParam has a 0 element so we need to specify (1:NumOuts) here
-CALL MakeADM_WrICArrays (BldGagNd,    BldGagNd_A      , p%NBlGages, UnAD, "BldGagNd_A"       )
-CALL MakeADM_WrICArrays (TwrGagNd,    TwrGagNd_A      , p%NTwGages, UnAD, "TwrGagNd_A"       )
+CALL MakeADM_WrICArrays (p%BldGagNd,    BldGagNd_A    , p%NBlGages, UnAD, "BldGagNd_A"       )
+CALL MakeADM_WrICArrays (p%TwrGagNd,    TwrGagNd_A    , p%NTwGages, UnAD, "TwrGagNd_A"       )
 
 
 DO K = 1,p%NumBl       ! Loop through all blades

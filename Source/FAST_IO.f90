@@ -170,13 +170,13 @@ IF ( Cmpl4SFun )  InFileRoot = TRIM( InFileRoot )//'_SFunc'
 RETURN
 END SUBROUTINE FAST_Begin
 !=======================================================================
-SUBROUTINE ChckOutLst(OutList, p_StrD, ErrStat, ErrMsg )
+SUBROUTINE ChckOutLst(OutList, p_StrD, y, ErrStat, ErrMsg )
 
 
    ! This routine checks to see if any inputted output channels (stored
    !    in the OutList(:)) are ill-conditioned (and if so, FAST Aborts)
    !    and assigns the settings for OutParam(:) (i.e, the
-   !    index, name, and units of the output channels, OutData(:)).
+   !    index, name, and units of the output channels, WriteOutput(:)).
 
 
    USE                             General
@@ -192,7 +192,7 @@ SUBROUTINE ChckOutLst(OutList, p_StrD, ErrStat, ErrMsg )
    TYPE(StrD_ParameterType),  INTENT(INOUT)  :: p_StrD                            ! The parameters of the structural dynamics module
    INTEGER(IntKi),            INTENT(OUT)    :: ErrStat                           ! The error status code; If not present code aborts
    CHARACTER(*),              INTENT(OUT)    :: ErrMsg                            ! The error message, if an error occurred 
-!   TYPE(StrD_OutputType),     INTENT(INOUT)  :: y                             ! System outputs of the structural dynamics module
+   TYPE(StrD_OutputType),     INTENT(INOUT)  :: y                                 ! System outputs of the structural dynamics module
    
       
    
@@ -976,10 +976,10 @@ SUBROUTINE ChckOutLst(OutList, p_StrD, ErrStat, ErrMsg )
 !bjj: should we first check that NumOuts is a valid number (or at least initialize it somewhere)?   
    
       ! ALLOCATE some arrays:
-   ALLOCATE ( OutData(0:p_StrD%NumOuts) , STAT=Sttus )
+   ALLOCATE ( y%WriteOutput(0:p_StrD%NumOuts) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = 'Error allocating memory for the StructDyn OutData array.' 
+      ErrMsg = 'Error allocating memory for the StructDyn WriteOutput array.' 
       RETURN
    ENDIF
             
@@ -1001,7 +1001,7 @@ SUBROUTINE ChckOutLst(OutList, p_StrD, ErrStat, ErrMsg )
       ! Set index, name, and units for the time output channel:
    
    p_StrD%OutParam(0)%Indx  = Time      !
-   p_StrD%OutParam(0)%Name  = 'Time'    ! OutData(0) is the time channel by default.
+   p_StrD%OutParam(0)%Name  = 'Time'    ! WriteOutput(0) is the time channel by default.
    p_StrD%OutParam(0)%Units = '(s)'     !
    p_StrD%OutParam(0)%SignM = 1
    
@@ -1463,9 +1463,7 @@ SUBROUTINE GetFurl( InputFileData, p )
 USE                             General
 USE                             InitCond
 USE                             Output
-USE                             RotorFurling
 USE                             TailAero
-USE                             TailFurling
 
 
 IMPLICIT                        NONE
@@ -1793,90 +1791,90 @@ CALL ReadCom ( UnIn, FurlFile, 'rotor-furl' )
 
    ! RFrlMod - Rotor-furl spring/damper model switch.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlMod, 'RFrlMod', 'Rotor-furl spring/damper model switch' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlMod, 'RFrlMod', 'Rotor-furl spring/damper model switch' )
 
-IF ( ( RFrlMod /= 0 ) .AND. ( RFrlMod /= 1 ) .AND. ( RFrlMod /= 2 ) )  CALL ProgAbort ( ' RFrlMod must be 0, 1, or 2.' )
+IF ( ( p%RFrlMod /= 0 ) .AND. ( p%RFrlMod /= 1 ) .AND. ( p%RFrlMod /= 2 ) )  CALL ProgAbort ( ' RFrlMod must be 0, 1, or 2.' )
 
 
    ! RFrlSpr - Rotor-furl spring constant.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlSpr, 'RFrlSpr', 'Rotor-furl spring constant' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlSpr, 'RFrlSpr', 'Rotor-furl spring constant' )
 
-IF ( RFrlSpr < 0.0 )  CALL ProgAbort ( ' RFrlSpr must not be negative.' )
+IF ( p%RFrlSpr < 0.0 )  CALL ProgAbort ( ' RFrlSpr must not be negative.' )
 
 
    ! RFrlDmp - Rotor-furl damping constant.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlDmp, 'RFrlDmp', 'Rotor-furl damping constant' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlDmp, 'RFrlDmp', 'Rotor-furl damping constant' )
 
-IF ( RFrlDmp < 0.0 )  CALL ProgAbort ( ' RFrlDmp must not be negative.' )
+IF ( p%RFrlDmp < 0.0 )  CALL ProgAbort ( ' RFrlDmp must not be negative.' )
 
 
    ! RFrlCDmp - Rotor-furl rate-independent Coulomb-damping moment.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlCDmp, 'RFrlCDmp', 'Rotor-furl rate-independent Coulomb-damping moment' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlCDmp, 'RFrlCDmp', 'Rotor-furl rate-independent Coulomb-damping moment' )
 
-IF ( RFrlCDmp < 0.0 )  CALL ProgAbort ( ' RFrlCDmp must not be negative.' )
+IF ( p%RFrlCDmp < 0.0 )  CALL ProgAbort ( ' RFrlCDmp must not be negative.' )
 
 
    ! RFrlUSSP - Rotor-furl up-stop spring position.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlUSSP, 'RFrlUSSP', 'Rotor-furl up-stop spring position' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlUSSP, 'RFrlUSSP', 'Rotor-furl up-stop spring position' )
 
-IF ( ( RFrlUSSP <= -180.0 ) .OR. ( RFrlUSSP > 180.0 ) )  &
+IF ( ( p%RFrlUSSP <= -180.0 ) .OR. ( p%RFrlUSSP > 180.0 ) )  &
    CALL ProgAbort ( ' RFrlUSSP must be greater than -180 and less than or equal to 180.' )
 
 
    ! RFrlDSSP - Rotor-furl down-stop spring position.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlDSSP, 'RFrlDSSP', 'Rotor-furl down-stop spring position' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlDSSP, 'RFrlDSSP', 'Rotor-furl down-stop spring position' )
 
-IF ( ( RFrlDSSP <= -180.0 ) .OR. ( RFrlDSSP > RFrlUSSP ) )  &
+IF ( ( p%RFrlDSSP <= -180.0 ) .OR. ( p%RFrlDSSP > p%RFrlUSSP ) )  &
    CALL ProgAbort ( ' RFrlDSSP must be greater than -180 and less than or equal to RFrlUSSP.' )
 
 
    ! RFrlUSSpr - Rotor-furl up-stop spring constant.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlUSSpr, 'RFrlUSSpr', 'Rotor-furl up-stop spring constant' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlUSSpr, 'RFrlUSSpr', 'Rotor-furl up-stop spring constant' )
 
-IF ( RFrlUSSpr < 0.0 )  CALL ProgAbort ( ' RFrlUSSpr must not be negative.' )
+IF ( p%RFrlUSSpr < 0.0 )  CALL ProgAbort ( ' RFrlUSSpr must not be negative.' )
 
 
    ! RFrlDSSpr - Rotor-furl down-stop spring constant.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlDSSpr, 'RFrlDSSpr', 'Rotor-furl down-stop spring constant' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlDSSpr, 'RFrlDSSpr', 'Rotor-furl down-stop spring constant' )
 
-IF ( RFrlDSSpr < 0.0 )  CALL ProgAbort ( ' RFrlDSSpr must not be negative.' )
+IF ( p%RFrlDSSpr < 0.0 )  CALL ProgAbort ( ' RFrlDSSpr must not be negative.' )
 
 
    ! RFrlUSDP - Rotor-furl up-stop damper position.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlUSDP, 'RFrlUSDP', 'Rotor-furl up-stop damper position' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlUSDP, 'RFrlUSDP', 'Rotor-furl up-stop damper position' )
 
-IF ( ( RFrlUSDP <= -180.0 ) .OR. ( RFrlUSDP > 180.0 ) )  &
+IF ( ( p%RFrlUSDP <= -180.0 ) .OR. ( p%RFrlUSDP > 180.0 ) )  &
    CALL ProgAbort ( ' RFrlUSDP must be greater than -180 and less than or equal to 180.' )
 
 
    ! RFrlDSDP - Rotor-furl down-stop damper position.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlDSDP, 'RFrlDSDP', 'Rotor-furl down-stop damper position' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlDSDP, 'RFrlDSDP', 'Rotor-furl down-stop damper position' )
 
-IF ( ( RFrlDSDP <= -180.0 ) .OR. ( RFrlDSDP > RFrlUSDP ) )  &
+IF ( ( p%RFrlDSDP <= -180.0 ) .OR. ( p%RFrlDSDP > p%RFrlUSDP ) )  &
    CALL ProgAbort ( ' RFrlDSDP must be greater than -180 and less than or equal to RFrlUSDP.' )
 
 
    ! RFrlUSDmp - Rotor-furl up-stop damping constant.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlUSDmp, 'RFrlUSDmp', 'Rotor-furl up-stop damping constant' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlUSDmp, 'RFrlUSDmp', 'Rotor-furl up-stop damping constant' )
 
-IF ( RFrlUSDmp < 0.0 )  CALL ProgAbort ( ' RFrlUSDmp must not be negative.' )
+IF ( p%RFrlUSDmp < 0.0 )  CALL ProgAbort ( ' RFrlUSDmp must not be negative.' )
 
 
    ! RFrlDSDmp - Rotor-furl down-stop damping constant.
 
-CALL ReadVar ( UnIn, FurlFile, RFrlDSDmp, 'RFrlDSDmp', 'Rotor-furl down-stop damping constant' )
+CALL ReadVar ( UnIn, FurlFile, p%RFrlDSDmp, 'RFrlDSDmp', 'Rotor-furl down-stop damping constant' )
 
-IF ( RFrlDSDmp < 0.0 )  CALL ProgAbort ( ' RFrlDSDmp must not be negative.' )
+IF ( p%RFrlDSDmp < 0.0 )  CALL ProgAbort ( ' RFrlDSDmp must not be negative.' )
 
 
 
@@ -1890,90 +1888,90 @@ CALL ReadCom ( UnIn, FurlFile, 'tail-furl' )
 
    ! TFrlMod - Tail-furl spring/damper model switch.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlMod, 'TFrlMod', 'Tail-furl spring/damper model switch' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlMod, 'TFrlMod', 'Tail-furl spring/damper model switch' )
 
-IF ( ( TFrlMod /= 0 ) .AND. ( TFrlMod /= 1 ) .AND. ( TFrlMod /= 2 ) )  CALL ProgAbort ( ' TFrlMod must be 0, 1, or 2.' )
+IF ( ( p%TFrlMod /= 0 ) .AND. ( p%TFrlMod /= 1 ) .AND. ( p%TFrlMod /= 2 ) )  CALL ProgAbort ( ' TFrlMod must be 0, 1, or 2.' )
 
 
    ! TFrlSpr - Tail-furl spring constant.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlSpr, 'TFrlSpr', 'Tail-furl spring constant' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlSpr, 'TFrlSpr', 'Tail-furl spring constant' )
 
-IF ( TFrlSpr < 0.0 )  CALL ProgAbort ( ' TFrlSpr must not be negative.' )
+IF ( p%TFrlSpr < 0.0 )  CALL ProgAbort ( ' TFrlSpr must not be negative.' )
 
 
    ! TFrlDmp - Tail-furl damping constant.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlDmp, 'TFrlDmp', 'Tail-furl damping constant' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlDmp, 'TFrlDmp', 'Tail-furl damping constant' )
 
-IF ( TFrlDmp < 0.0 )  CALL ProgAbort ( ' TFrlDmp must not be negative.' )
+IF ( p%TFrlDmp < 0.0 )  CALL ProgAbort ( ' TFrlDmp must not be negative.' )
 
 
    ! TFrlCDmp - Tail-furl rate-independent Coulomb-damping moment.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlCDmp, 'TFrlCDmp', 'Tail-furl rate-independent Coulomb-damping moment' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlCDmp, 'TFrlCDmp', 'Tail-furl rate-independent Coulomb-damping moment' )
 
-IF ( TFrlCDmp < 0.0 )  CALL ProgAbort ( ' TFrlCDmp must not be negative.' )
+IF ( p%TFrlCDmp < 0.0 )  CALL ProgAbort ( ' TFrlCDmp must not be negative.' )
 
 
    ! TFrlUSSP - Tail-furl up-stop spring position.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlUSSP, 'TFrlUSSP', 'Tail-furl up-stop spring position' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlUSSP, 'TFrlUSSP', 'Tail-furl up-stop spring position' )
 
-IF ( ( TFrlUSSP <= -180.0 ) .OR. ( TFrlUSSP > 180.0 ) )  &
+IF ( ( p%TFrlUSSP <= -180.0 ) .OR. ( p%TFrlUSSP > 180.0 ) )  &
    CALL ProgAbort ( ' TFrlUSSP must be greater than -180 and less than or equal to 180.' )
 
 
    ! TFrlDSSP - Tail-furl down-stop spring position.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlDSSP, 'TFrlDSSP', 'Tail-furl down-stop spring position' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlDSSP, 'TFrlDSSP', 'Tail-furl down-stop spring position' )
 
-IF ( ( TFrlDSSP <= -180.0 ) .OR. ( TFrlDSSP > TFrlUSSP ) )  &
+IF ( ( p%TFrlDSSP <= -180.0 ) .OR. ( p%TFrlDSSP > p%TFrlUSSP ) )  &
    CALL ProgAbort ( ' TFrlDSSP must be greater than -180 and less than or equal to TFrlUSSP.' )
 
 
    ! TFrlUSSpr - Tail-furl up-stop spring constant.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlUSSpr, 'TFrlUSSpr', 'Tail-furl up-stop spring constant' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlUSSpr, 'TFrlUSSpr', 'Tail-furl up-stop spring constant' )
 
-IF ( TFrlUSSpr < 0.0 )  CALL ProgAbort ( ' TFrlUSSpr must not be negative.' )
+IF ( p%TFrlUSSpr < 0.0 )  CALL ProgAbort ( ' TFrlUSSpr must not be negative.' )
 
 
    ! TFrlDSSpr - Tail-furl down-stop spring constant.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlDSSpr, 'TFrlDSSpr', 'Tail-furl down-stop spring constant' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlDSSpr, 'TFrlDSSpr', 'Tail-furl down-stop spring constant' )
 
-IF ( TFrlDSSpr < 0.0 )  CALL ProgAbort ( ' TFrlDSSpr must not be negative.' )
+IF ( p%TFrlDSSpr < 0.0 )  CALL ProgAbort ( ' TFrlDSSpr must not be negative.' )
 
 
    ! TFrlUSDP - Tail-furl up-stop damper position.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlUSDP, 'TFrlUSDP', 'Tail-furl up-stop damper position' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlUSDP, 'TFrlUSDP', 'Tail-furl up-stop damper position' )
 
-IF ( ( TFrlUSDP <= -180.0 ) .OR. ( TFrlUSDP > 180.0 ) )  &
+IF ( ( p%TFrlUSDP <= -180.0 ) .OR. ( p%TFrlUSDP > 180.0 ) )  &
    CALL ProgAbort ( ' TFrlUSDP must be greater than -180 and less than or equal to 180.' )
 
 
    ! TFrlDSDP - Tail-furl down-stop damper position.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlDSDP, 'TFrlDSDP', 'Tail-furl down-stop damper position' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlDSDP, 'TFrlDSDP', 'Tail-furl down-stop damper position' )
 
-IF ( ( TFrlDSDP <= -180.0 ) .OR. ( TFrlDSDP > TFrlUSDP ) )  &
+IF ( ( p%TFrlDSDP <= -180.0 ) .OR. ( p%TFrlDSDP > p%TFrlUSDP ) )  &
    CALL ProgAbort ( ' TFrlDSDP must be greater than -180 and less than or equal to TFrlUSDP.' )
 
 
    ! TFrlUSDmp - Tail-furl up-stop damping constant.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlUSDmp, 'TFrlUSDmp', 'Tail-furl up-stop damping constant' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlUSDmp, 'TFrlUSDmp', 'Tail-furl up-stop damping constant' )
 
-IF ( TFrlUSDmp < 0.0 )  CALL ProgAbort ( ' TFrlUSDmp must not be negative.' )
+IF ( p%TFrlUSDmp < 0.0 )  CALL ProgAbort ( ' TFrlUSDmp must not be negative.' )
 
 
    ! TFrlDSDmp - Tail-furl down-stop damping constant.
 
-CALL ReadVar ( UnIn, FurlFile, TFrlDSDmp, 'TFrlDSDmp', 'Tail-furl down-stop damping constant' )
+CALL ReadVar ( UnIn, FurlFile, p%TFrlDSDmp, 'TFrlDSDmp', 'Tail-furl down-stop damping constant' )
 
-IF ( TFrlDSDmp < 0.0 )  CALL ProgAbort ( ' TFrlDSDmp must not be negative.' )
+IF ( p%TFrlDSDmp < 0.0 )  CALL ProgAbort ( ' TFrlDSDmp must not be negative.' )
 
 
 
@@ -3185,9 +3183,9 @@ IF ( InputFileData%HubIner < 0.0 )  CALL ProgAbort ( ' HubIner must not be negat
 
    ! GBoxEff - Gearbox efficiency.
 
-CALL ReadVar ( UnIn, PriFile, GBoxEff, 'GBoxEff', 'Gearbox efficiency' )
+CALL ReadVar ( UnIn, PriFile, p%GBoxEff, 'GBoxEff', 'Gearbox efficiency' )
 
-IF ( ( GBoxEff <= 0.0 ) .OR. ( GBoxEff > 100.0 ) ) THEN
+IF ( ( p%GBoxEff <= 0.0 ) .OR. ( p%GBoxEff > 100.0 ) ) THEN
    CALL ProgAbort ( ' GBoxEff must be greater than 0 and less than or equal to 100.' )
 END IF   
 
@@ -3196,22 +3194,22 @@ END IF
 
    ! GenEff - Generator efficiency.
 
-CALL ReadVar ( UnIn, PriFile, GenEff, 'GenEff', 'Generator efficiency' )
+CALL ReadVar ( UnIn, PriFile, p%GenEff, 'GenEff', 'Generator efficiency' )
 
-IF ( ( GenEff < 0.0 ) .OR. ( GenEff > 100.0 ) )  CALL ProgAbort ( ' GenEff must be between 0 and 100 (inclusive).' )
+IF ( ( p%GenEff < 0.0 ) .OR. ( p%GenEff > 100.0 ) )  CALL ProgAbort ( ' GenEff must be between 0 and 100 (inclusive).' )
 
 
    ! GBRatio - Gearbox ratio.
 
-CALL ReadVar ( UnIn, PriFile, GBRatio, 'GBRatio', 'Gearbox ratio' )
+CALL ReadVar ( UnIn, PriFile, p%GBRatio, 'GBRatio', 'Gearbox ratio' )
 
-IF ( GBRatio <= 0.0 )  CALL ProgAbort ( ' GBRatio must be greater than 0.' )
+IF ( p%GBRatio <= 0.0 )  CALL ProgAbort ( ' GBRatio must be greater than 0.' )
 
 
-!JASON: ELIMINATE THIS INPUT BY ALLOWING GBRatio TO BE NEGATIVE!!!!!<--ACTUALLY, DON'T DO THIS SINCE WE ALWAYS WANT THE HSS SPEED TO REMAIN POSITIVE AND THE TORQUE TO DEPEND ON WHETHER WE ARE PRODUCING POWER OR MOTORING UP.
+!JASON: ELIMINATE THIS INPUT BY ALLOWING p%GBRatio TO BE NEGATIVE!!!!!<--ACTUALLY, DON'T DO THIS SINCE WE ALWAYS WANT THE HSS SPEED TO REMAIN POSITIVE AND THE TORQUE TO DEPEND ON WHETHER WE ARE PRODUCING POWER OR MOTORING UP.
    ! GBRevers - Gearbox reversal flag.
 
-CALL ReadVar ( UnIn, PriFile, GBRevers, 'GBRevers', 'Gearbox reversal flag' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%GBRevers, 'GBRevers', 'Gearbox reversal flag' )
 
 
    ! HSSBrTqF - Fully deployed HSS brake torque.
@@ -3240,16 +3238,16 @@ IF ( HSSBrDT < 0.0 )  CALL ProgAbort ( ' HSSBrDT must not be negative.' )
 
    ! DTTorSpr - Drivetrain torsional spring.
 
-CALL ReadVar ( UnIn, PriFile, DTTorSpr, 'DTTorSpr', 'Drivetrain torsional spring' )
+CALL ReadVar ( UnIn, PriFile, p%DTTorSpr, 'DTTorSpr', 'Drivetrain torsional spring' )
 
-IF ( DTTorSpr < 0.0 )  CALL ProgAbort ( ' DTTorSpr must not be negative.' )
+IF ( p%DTTorSpr < 0.0 )  CALL ProgAbort ( ' DTTorSpr must not be negative.' )
 
 
    ! DTTorDmp - Drivetrain torsional damper.
 
-CALL ReadVar ( UnIn, PriFile, DTTorDmp, 'DTTorDmp', 'Drivetrain torsional damper' )
+CALL ReadVar ( UnIn, PriFile, p%DTTorDmp, 'DTTorDmp', 'Drivetrain torsional damper' )
 
-IF ( DTTorDmp < 0.0 )  CALL ProgAbort ( ' DTTorDmp must not be negative.' )
+IF ( p%DTTorDmp < 0.0 )  CALL ProgAbort ( ' DTTorDmp must not be negative.' )
 
 
 
@@ -3712,11 +3710,11 @@ END IF
 
    ! TabDelim - Generate a tab-delimited output file.
 
-CALL ReadVar ( UnIn, PriFile, TabDelim, 'TabDelim', 'Use tab delimiters in text output file' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%TabDelim, 'TabDelim', 'Use tab delimiters in text output file' )
 
    ! set the delimiter
    
-IF ( TabDelim ) THEN
+IF ( InputFileData%TabDelim ) THEN
    p%Delim = TAB
 ELSE
    p%Delim = ' '
@@ -3754,22 +3752,22 @@ IF ( SttsTime <= 0.0 )  CALL ProgAbort ( ' SttsTime must be greater than 0.' )
 
    ! NcIMUxn - Downwind distance from the tower-top to the nacelle IMU.
 
-CALL ReadVar ( UnIn, PriFile, NcIMUxn, 'NcIMUxn', 'Downwind distance from the tower-top to the nacelle IMU' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%NcIMUxn, 'NcIMUxn', 'Downwind distance from the tower-top to the nacelle IMU' )
 
 
    ! NcIMUyn - Lateral distance from the tower-top to the nacelle IMU.
 
-CALL ReadVar ( UnIn, PriFile, NcIMUyn, 'NcIMUyn', 'Lateral distance from the tower-top to the nacelle IMU' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%NcIMUyn, 'NcIMUyn', 'Lateral distance from the tower-top to the nacelle IMU' )
 
 
    ! NcIMUzn - Vertical distance from the tower-top to the nacelle IMU.
 
-CALL ReadVar ( UnIn, PriFile, NcIMUzn, 'NcIMUzn', 'Vertical distance from the tower-top to the nacelle IMU' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%NcIMUzn, 'NcIMUzn', 'Vertical distance from the tower-top to the nacelle IMU' )
 
 
    ! ShftGagL - Distance from hub or teeter pin to shaft strain gages.
 
-CALL ReadVar ( UnIn, PriFile, ShftGagL, 'ShftGagL', 'Distance from hub or teeter pin to shaft strain gages' )
+CALL ReadVar ( UnIn, PriFile, p%ShftGagL, 'ShftGagL', 'Distance from hub or teeter pin to shaft strain gages' )
 
 
    ! NTwGages - Number of tower "strain-gage" output stations.
@@ -3781,7 +3779,7 @@ IF ( ( p%NTwGages < 0 ) .OR. ( p%NTwGages > 9 ) )  CALL ProgAbort ( ' NTwGages m
 
    ! TwrGagNd - List of tower nodes that have strain gages.
 
-CALL ReadAry( UnIn, PriFile, TwrGagNd, p%NTwGages, 'TwrGagNd', 'List of tower nodes that have strain gages' )
+CALL ReadAry( UnIn, PriFile, p%TwrGagNd, p%NTwGages, 'TwrGagNd', 'List of tower nodes that have strain gages' )
    
 
    ! NBlGages - Number of blade "strain-gage" output stations.
@@ -3793,7 +3791,7 @@ IF ( ( p%NBlGages < 0 ) .OR. ( p%NBlGages > 9 ) )  CALL ProgAbort ( ' NBlGages m
 
    ! BldGagNd - List of blade nodes that have strain gages.
 
-CALL ReadAry( UnIn, PriFile, BldGagNd, p%NBlGages, 'BldGagNd', 'List of blade nodes that have strain gages' )
+CALL ReadAry( UnIn, PriFile, p%BldGagNd, p%NBlGages, 'BldGagNd', 'List of blade nodes that have strain gages' )
 
 
    ! Skip the comment line.
@@ -5175,10 +5173,8 @@ USE                             Linear
 USE                             NacelleYaw
 USE                             Output
 USE                             Platform
-USE                             RotorFurling
 USE                             SimCont
 USE                             TailAero
-USE                             TailFurling
 USE                             TipBrakes
 USE                             TurbCont
 
@@ -5265,15 +5261,15 @@ IF ( InputFileData%Furling )  THEN
    InputFileData%TFrlSkew  = InputFileData%TFrlSkew *D2R
    InputFileData%TFrlTilt  = InputFileData%TFrlTilt *D2R
 
-   RFrlUSSP  = RFrlUSSP *D2R
-   RFrlDSSP  = RFrlDSSP *D2R
-   RFrlUSDP  = RFrlUSDP *D2R
-   RFrlDSDP  = RFrlDSDP *D2R
+   p%RFrlUSSP  = p%RFrlUSSP *D2R
+   p%RFrlDSSP  = p%RFrlDSSP *D2R
+   p%RFrlUSDP  = p%RFrlUSDP *D2R
+   p%RFrlDSDP  = p%RFrlDSDP *D2R
 
-   TFrlUSSP  = TFrlUSSP *D2R
-   TFrlDSSP  = TFrlDSSP *D2R
-   TFrlUSDP  = TFrlUSDP *D2R
-   TFrlDSDP  = TFrlDSDP *D2R
+   p%TFrlUSSP  = p%TFrlUSSP *D2R
+   p%TFrlDSSP  = p%TFrlDSSP *D2R
+   p%TFrlUSDP  = p%TFrlUSDP *D2R
+   p%TFrlDSDP  = p%TFrlDSDP *D2R
 
    p%CShftSkew = COS( InputFileData%ShftSkew )
    p%SShftSkew = SIN( InputFileData%ShftSkew )
@@ -5333,9 +5329,9 @@ IF ( InputFileData%Furling )  THEN
 ENDIF
 
 p%rVPzn        = InputFileData%Twr2Shft - p%RFrlPntzn ! This computation must remain outside of the IF...ENDIF since it must also be computed for nonfurling machines.
-p%rVIMUxn      =  NcIMUxn               - p%RFrlPntxn ! "
-p%rVIMUyn      =  NcIMUyn               - p%RFrlPntyn ! "
-p%rVIMUzn      =  NcIMUzn               - p%RFrlPntzn ! "
+p%rVIMUxn      = InputFileData%NcIMUxn  - p%RFrlPntxn ! "
+p%rVIMUyn      = InputFileData%NcIMUyn  - p%RFrlPntyn ! "
+p%rVIMUzn      = InputFileData%NcIMUzn  - p%RFrlPntzn ! "
 
 
    ! Calculate some parameters that are not input directly.  Convert units if appropriate.
@@ -5354,8 +5350,8 @@ InputFileData%ShftTilt  = InputFileData%ShftTilt*D2R                            
 p%CShftTilt = COS( InputFileData%ShftTilt )
 p%SShftTilt = SIN( InputFileData%ShftTilt )
 p%FASTHH    = p%TowerHt + InputFileData%Twr2Shft + p%OverHang*p%SShftTilt
-GBoxEff   = GBoxEff*0.01
-GenEff    = GenEff *0.01
+p%GBoxEff   = p%GBoxEff*0.01
+p%GenEff    = p%GenEff *0.01
 SpdGenOn  = SpdGenOn*RPM2RPS
 TBDepISp  = TBDepISp*RPM2RPS
 THSSBrFl  = THSSBrDp + HSSBrDT
@@ -5508,7 +5504,7 @@ END IF
    ! Check to see if all TwrGagNd(:) analysis points are existing analysis points:
 
 DO I=1,p%NTwGages
-   IF ( ( TwrGagNd(I) < 1 ) .OR. ( TwrGagNd(I) > p%TwrNodes ) )  &
+   IF ( ( p%TwrGagNd(I) < 1 ) .OR. ( p%TwrGagNd(I) > p%TwrNodes ) )  &
       CALL ProgAbort  ( ' All TwrGagNd values must be between 1 and '//TRIM( Int2LStr( p%TwrNodes ) )//' (inclusive).' )
 ENDDO ! I
 
@@ -5530,7 +5526,7 @@ IF ( ( TFinNFoil < 1 ) .OR. ( TFinNFoil > NumFoil ) )  &
    ! Check to see if all BldGagNd(:) analysis points are existing analysis points:
 
 DO I=1,p%NBlGages
-   IF ( ( BldGagNd(I) < 1 ) .OR. ( BldGagNd(I) > p%BldNodes ) )  &
+   IF ( ( p%BldGagNd(I) < 1 ) .OR. ( p%BldGagNd(I) > p%BldNodes ) )  &
       CALL ProgAbort  ( ' All BldGagNd values must be between 1 and '//TRIM( Int2LStr( p%BldNodes ) )//' (inclusive).' )
 ENDDO ! I
 
@@ -5707,11 +5703,11 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
 
 ENDIF
 
-   ! Check to see if any inputted output channels are ill-conditioned and set values for p_StrD%OutParam(:):
-
-CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
-IF ( ErrStat >= AbortErrLev ) RETURN
-
+!   ! Check to see if any inputted output channels are ill-conditioned and set values for p_StrD%OutParam(:):
+!
+!CALL ChckOutLst( InputFileData%OutList, p, y, ErrStat, ErrMsg )
+!IF ( ErrStat >= AbortErrLev ) RETURN
+!
 
 
 
@@ -6233,7 +6229,6 @@ SUBROUTINE WrBinOutput(UnIn,FileID, DescStr,ChanName,ChanUnit,TimeData,AllOutDat
 ! Note that the file is opened at the start of the simulation to ensure that it's available before starting the simulation.
 !..................................................................................................................................
 
-USE                          Output, ONLY: FileFmtID_WithTime, FileFmtID_WithoutTime
 
 IMPLICIT                     NONE
 
@@ -6789,7 +6784,7 @@ IF (WrTxtOutFile) THEN
 
    Frmt = '(F8.3,'//TRIM(Int2LStr(p_StrD%NumOuts))//'(:,A,'//TRIM( p_StrD%OutFmt )//'))'
 
-   WRITE(UnOu,Frmt)  OutData(Time), ( p_StrD%Delim, OutData(I), I=1,p_StrD%NumOuts )
+   WRITE(UnOu,Frmt)  y_StrD%WriteOutput(Time), ( p_StrD%Delim, y_StrD%WriteOutput(I), I=1,p_StrD%NumOuts )
    
 END IF
 
@@ -6801,10 +6796,10 @@ IF (WrBinOutFile) THEN
       CALL ProgWarn( 'Not all data could be written to the binary output file.' )
    ELSE      
       CurrOutStep = CurrOutStep + 1
-      AllOutData(:,CurrOutStep) = OutData(1:p_StrD%NumOuts)
+      AllOutData(:,CurrOutStep) = y_StrD%WriteOutput(1:p_StrD%NumOuts)
       
       IF ( CurrOutStep == 1_IntKi .OR. OutputFileFmtID == FileFmtID_WithTime ) THEN
-         TimeData(CurrOutStep) = OutData(Time)   ! Time associated with these outputs (bjj: fix this when we convert time to double precision)         
+         TimeData(CurrOutStep) = y_StrD%WriteOutput(Time)   ! Time associated with these outputs (bjj: fix this when we convert time to double precision)         
       END IF
                
    END IF
