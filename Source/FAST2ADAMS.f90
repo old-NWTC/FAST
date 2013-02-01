@@ -240,7 +240,7 @@ CLOSE ( UnAC )
 RETURN
 END SUBROUTINE MakeACF
 !=======================================================================
-SUBROUTINE MakeACF_LIN( p )
+SUBROUTINE MakeACF_LIN( p, InputFileData )
 
 
    ! This routine generates an ADAMS control file (.acf) for an ADAMS
@@ -261,6 +261,7 @@ IMPLICIT                        NONE
 
    ! passed variables
 TYPE(StrD_ParameterType),INTENT(IN) :: p                                        ! Parameters of the structural dynamics module
+TYPE(StrD_InputFile),    INTENT(IN) :: InputFileData                            ! Input file data of the structural dynamics module
 
    ! Local variables.
 
@@ -309,7 +310,7 @@ WRITE (UnAL,FmtText  )  TRIM( RootName )//'_ADAMS_LIN'
    !   during the STATICS simulation):
 
 WRITE (UnAL,FmtText  )  'MOTION/3150, VELOCITY, ICDISP = 0'                                                    ! Make sure ICDISP = 0 or else ADAMS/SOLVER will generate an error when switching this MOTION statement from VELOCITY to DISPLACEMENT.
-WRITE (UnAL,FmtTR    )  'MOTION/3150, DISPLACEMENT, FUNCTION = ', MOD( Azimuth - p%AzimB1Up + 180.0, 360.0 )*D2R ! Set the fixid DISPLACEMENT to what was previously the ICDISP value.
+WRITE (UnAL,FmtTR    )  'MOTION/3150, DISPLACEMENT, FUNCTION = ', MOD( InputFileData%Azimuth - p%AzimB1Up + 180.0, 360.0 )*D2R ! Set the fixid DISPLACEMENT to what was previously the ICDISP value.
 
 
    ! Disable AeroDynamics if AeroDyn was called from the dataset by
@@ -585,15 +586,15 @@ ELSEIF ( InputFileData%EdgeDOF  .AND. ( .NOT. InputFileData%FlapDOF1 ) )  THEN !
                 '  Force FlapDOF1 to equal EdgeDOF or vice-versa.'                                     )
 ENDIF
 
-IF ( OoPDefl  /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with initial OoP blade-tip displacements.'// &
+IF ( InputFileData%OoPDefl  /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with initial OoP blade-tip displacements.'// &
                                          '  Set OoPDefl to 0.0.'                                                           )
-IF ( IPDefl   /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with initial IP blade-tip displacements.'// &
+IF ( InputFileData%IPDefl   /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with initial IP blade-tip displacements.'// &
                                          '  Set IPDefl to 0.0.'                                                           )
-IF ( TTDspFA  /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with an initial FA tower-top displacement.'// &
+IF ( InputFileData%TTDspFA  /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with an initial FA tower-top displacement.'// &
                                          '  Set TTDspFA to 0.0.'                                                            )
-IF ( TTDspSS  /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with an initial SS tower-top displacement.'// &
+IF ( InputFileData%TTDspSS  /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with an initial SS tower-top displacement.'// &
                                          '  Set TTDspSS to 0.0.'                                                            )
-If ( TeetDefl /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with an initial teeter angle.'// &
+If ( InputFileData%TeetDefl /= 0.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with an initial teeter angle.'// &
                                          '  Set TeetDefl to 0.0.'                                              )
 
 IF ( p%GBoxEff  /= 1.0 )  CALL ProgAbort ( ' An ADAMS dataset can''t be built with a non-ideal gearbox.'// &
@@ -966,7 +967,7 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro .AND. SaveGrphcs )  THEN  ! .TRUE. if we
 
       DO I = 1,NumLines ! Loop through all mooring lines
 
-         TmpVec = PtfmSurge *CoordSys%z1 + PtfmHeave *CoordSys%z2 - PtfmSway  *CoordSys%z3 &
+         TmpVec = InputFileData%PtfmSurge *CoordSys%z1 + InputFileData%PtfmHeave *CoordSys%z2 - InputFileData%PtfmSway  *CoordSys%z3 &
                 + LFairxt(I)*CoordSys%a1 + LFairzt(I)*CoordSys%a2 - LFairyt(I)*CoordSys%a3 &
                 - LAnchxi(I)*CoordSys%z1 - LAnchzi(I)*CoordSys%z2 + LAnchyi(I)*CoordSys%z3   ! = Position vector directed from the anchor to the fairlead of the current mooring line at simulation initialization
 
@@ -1078,9 +1079,9 @@ WRITE (UnAD,FmtText  )  '!------------------------------ Support Platform ------
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Platform_P'''
 WRITE (UnAD,FmtText  )  'PART/1000'
-WRITE (UnAD,FmtTRTRTR)  ', QG = ', PtfmSurge                 , ', ', PtfmSway                 , ', ', PtfmHeave         ! Orient the
-WRITE (UnAD,FmtTRTRTR)  ', ZG = ', PtfmSurge + CoordSys%a2(1), ', ', PtfmSway - CoordSys%a2(3), ', ', PtfmHeave + CoordSys%a2(2) ! platform using the
-WRITE (UnAD,FmtTRTRTR)  ', XG = ', PtfmSurge + CoordSys%a1(1), ', ', PtfmSway - CoordSys%a1(3), ', ', PtfmHeave + CoordSys%a1(2) ! 3-point method
+WRITE (UnAD,FmtTRTRTR)  ', QG = ', InputFileData%PtfmSurge                 , ', ', InputFileData%PtfmSway                 , ', ', InputFileData%PtfmHeave         ! Orient the
+WRITE (UnAD,FmtTRTRTR)  ', ZG = ', InputFileData%PtfmSurge + CoordSys%a2(1), ', ', InputFileData%PtfmSway - CoordSys%a2(3), ', ', InputFileData%PtfmHeave + CoordSys%a2(2) ! platform using the
+WRITE (UnAD,FmtTRTRTR)  ', XG = ', InputFileData%PtfmSurge + CoordSys%a1(1), ', ', InputFileData%PtfmSway - CoordSys%a1(3), ', ', InputFileData%PtfmHeave + CoordSys%a1(2) ! 3-point method
 WRITE (UnAD,FmtText  )  ', CM = 1005'
 WRITE (UnAD,FmtTR    )  ', MASS = ', p%PtfmMass + SmllNmbr
 WRITE (UnAD,FmtTRTRTR)  ', IP = ', p%PtfmRIner + SmllNmbr, ', ', p%PtfmPIner + SmllNmbr, ', ', p%PtfmYIner + SmllNmbr
@@ -1203,7 +1204,7 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
 
    TmpID = 1100 + J
    ThnBarI = p%MassT(J)*( p%DHNodes(J)**3 )/12.0 ! Define the transverse inertias of the tower element (both identical) to be that of a thin uniform bar.
-   TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + ( p%rZT0zt + p%HNodes(J) )*CoordSys%a2 ! rT = Position vector from ground to current tower node (point T(J))
+   TmpVec  = InputFileData%PtfmSurge*CoordSys%z1 + InputFileData%PtfmHeave*CoordSys%z2 - InputFileData%PtfmSway *CoordSys%z3 + ( p%rZT0zt + p%HNodes(J) )*CoordSys%a2 ! rT = Position vector from ground to current tower node (point T(J))
    TmpVec1 = TmpVec + CoordSys%t1(J,:)
    TmpVec2 = TmpVec + CoordSys%t2(J,:)
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, '_P'''
@@ -1285,7 +1286,7 @@ ENDDO             ! J - Tower nodes/elements
 
    ! Tower-top:
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1 + InputFileData%PtfmHeave*CoordSys%z2 - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
 TmpVec1 = TmpVec + CoordSys%b2
 TmpVec2 = TmpVec + CoordSys%b1
 WRITE (UnAD,FmtText  )  '!------------------------------ Tower: Tower-Top -------------------------------'
@@ -1332,7 +1333,7 @@ WRITE (UnAD,FmtText  )  '!----------------------------------- Nacelle ----------
 
    ! Nacelle:
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1 + InputFileData%PtfmHeave*CoordSys%z2 - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   ! rO = Position vector from ground to tower-top / base plate (point O)
 TmpVec1 = TmpVec + CoordSys%d2
 TmpVec2 = TmpVec + CoordSys%d1
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Nacelle_P'''
@@ -1427,7 +1428,7 @@ WRITE (UnAD,FmtText  )  '!------------------------------------ Tail ------------
 
    ! Tail boom:
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1 + InputFileData%PtfmHeave*CoordSys%z2 - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
         + p%TFrlPntxn*CoordSys%d1 + p%TFrlPntzn*CoordSys%d2 - p%TFrlPntyn*CoordSys%d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
 TmpVec1 = TmpVec + CoordSys%tf2
 TmpVec2 = TmpVec + CoordSys%tf1
@@ -1496,7 +1497,7 @@ ENDIF
 
    ! Tail fin:
 
-TmpVec  = PtfmSurge*CoordSys%z1 + PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1 + InputFileData%PtfmHeave*CoordSys%z2 - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
         + p%TFrlPntxn*CoordSys%d1 + p%TFrlPntzn*CoordSys%d2 - p%TFrlPntyn*CoordSys%d3                 ! rW = Position vector from ground to specified point on tail-furl axis (point W)
 TmpVec1 = TmpVec + CoordSys%tf2
 TmpVec2 = TmpVec + CoordSys%tf1
@@ -1622,7 +1623,7 @@ WRITE (UnAD,FmtText  )  '!--------------------- Structure that Furls with the Ro
 
    ! Structure that furls with the rotor (not including rotor):
 
-TmpVec  = PtfmSurge*CoordSys%z1   + PtfmHeave*CoordSys%z2   - PtfmSway *CoordSys%z3   + p%RefTwrHt*CoordSys%a2 &
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1   + InputFileData%PtfmHeave*CoordSys%z2   - InputFileData%PtfmSway *CoordSys%z3   + p%RefTwrHt*CoordSys%a2 &
         + p%RFrlPntxn*CoordSys%d1 + p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                 ! rV = Position vector from ground to specified point on rotor-furl axis (point V)
 TmpVec1 = TmpVec + CoordSys%rf2
 TmpVec2 = TmpVec + CoordSys%rf1
@@ -1746,7 +1747,7 @@ WRITE (UnAD,FmtText  )  '!------------------------------------ Shaft -----------
 
    ! Low-speed shaft:
 
-TmpVec  = PtfmSurge*CoordSys%z1   + PtfmHeave*CoordSys%z2   - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1   + InputFileData%PtfmHeave*CoordSys%z2   - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
         + p%RFrlPntxn*CoordSys%d1 + p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                        &
         + p%rVPxn*CoordSys%rf1    + p%rVPzn*CoordSys%rf2    - p%rVPyn*CoordSys%rf3  ! Position vector from ground to origin of shaft CS
 TmpVec1 = TmpVec + CoordSys%e3
@@ -1833,7 +1834,7 @@ WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
    ! High-speed shaft:
 
-TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1  + InputFileData%PtfmHeave*CoordSys%z2  - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
         + p%RFrlPntxn*CoordSys%d1  + p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3                        &
         + p%rVPxn    *CoordSys%rf1 + p%rVPzn    *CoordSys%rf2 -p% rVPyn    *CoordSys%rf3  ! Position vector from ground to origin of shaft CS
 TmpVec1 = TmpVec + CoordSys%e3
@@ -1893,7 +1894,7 @@ WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
    ! Generator:
 
-TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1  + InputFileData%PtfmHeave*CoordSys%z2  - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2 &
         + p%RFrlPntxn*CoordSys%d1  + p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3                        &
         + p%rVPxn    *CoordSys%rf1 + p%rVPzn    *CoordSys%rf2 - p%rVPyn    *CoordSys%rf3  ! Position vector from ground to origin of shaft CS
 TmpVec1 = TmpVec + CoordSys%e3
@@ -1944,7 +1945,7 @@ WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
 
    ! Teeter pin:
 
-TmpVec  = PtfmSurge*CoordSys%z1  + PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3  + p%RefTwrHt*CoordSys%a2 &
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1  + InputFileData%PtfmHeave*CoordSys%z2  - InputFileData%PtfmSway *CoordSys%z3  + p%RefTwrHt*CoordSys%a2 &
         + p%RFrlPntxn*CoordSys%d1  + p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3                        &
         + p%rVPxn    *CoordSys%rf1 + p%rVPzn    *CoordSys%rf2 - p%rVPyn    *CoordSys%rf3 + p%OverHang*CoordSys%c1   ! rP = Position vector from ground to teeter pin (point P).
 TmpVec1 = TmpVec + CoordSys%e3
@@ -1983,7 +1984,7 @@ WRITE (UnAD,FmtText  )  '!------------------------------------- Hub ------------
 
    ! Hub:
 
-TmpVec  = PtfmSurge*CoordSys%z1  +   PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2                       &
+TmpVec  = InputFileData%PtfmSurge*CoordSys%z1  +   InputFileData%PtfmHeave*CoordSys%z2  - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2                       &
         + p%RFrlPntxn*CoordSys%d1  +   p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3  &
         + p%rVPxn    *CoordSys%rf1 +   p%rVPzn    *CoordSys%rf2 - p%rVPyn    *CoordSys%rf3 &
         + p%OverHang* CoordSys%c1  - p%UndSling *CoordSys%g1                                                          ! rP = Position vector from ground to apex of rotation (point Q).
@@ -2109,7 +2110,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
    WRITE (UnAD,'(A,I1,A)')  '!---------------------------- Blade ', K, ': Pitch Plate -----------------------------'
    TmpID = 10000*K
-   TmpVec  = PtfmSurge*CoordSys%z1  +   PtfmHeave*CoordSys%z2  - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2                       &
+   TmpVec  = InputFileData%PtfmSurge*CoordSys%z1  +   InputFileData%PtfmHeave*CoordSys%z2  - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2                       &
            + p%RFrlPntxn*CoordSys%d1  +   p%RFrlPntzn*CoordSys%d2  - p%RFrlPntyn*CoordSys%d3 &
            + p%rVPxn    *CoordSys%rf1 +   p%rVPzn    *CoordSys%rf2 - p%rVPyn    *CoordSys%rf3 &
            + p%OverHang*CoordSys%c1   - p%UndSling *CoordSys%g1  + p%HubRad*CoordSys%i3(K,:)                                         ! rS0 = Position vector from ground to the blade root (point S(0)).
@@ -2248,7 +2249,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID  = 10000*K + J
       ThnBarI = p%MassB(K,J)*( p%DRNodes(J)**3 )/12.0  ! Define the transverse inertias of the blade element (both identical) to be that of a thin uniform bar.
-      TmpVec  = PtfmSurge*CoordSys%z1 +   PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   &
+      TmpVec  = InputFileData%PtfmSurge*CoordSys%z1 +   InputFileData%PtfmHeave*CoordSys%z2 - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   &
               + p%RFrlPntxn*CoordSys%d1 +   p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                          &
               + p%rVPxn*CoordSys%rf1    +   p%rVPzn*CoordSys%rf2    - p%rVPyn*CoordSys%rf3                             &
               + p%OverHang*CoordSys%c1  - p%UndSling*CoordSys%g1  + ( p%HubRad + p%RNodes(J) )*CoordSys%i3(K,:)        &
@@ -2411,7 +2412,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
    WRITE (UnAD,'(A,I1,A)')  '!----------------------------- Blade ', K, ': Tip Brake ------------------------------'
    TmpID = 10000*K + 5000
-   TmpVec  = PtfmSurge*CoordSys%z1 +   PtfmHeave*CoordSys%z2 - PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   &
+   TmpVec  = InputFileData%PtfmSurge*CoordSys%z1 +   InputFileData%PtfmHeave*CoordSys%z2 - InputFileData%PtfmSway *CoordSys%z3 + p%RefTwrHt*CoordSys%a2   &
            + p%RFrlPntxn*CoordSys%d1 +   p%RFrlPntzn*CoordSys%d2 - p%RFrlPntyn*CoordSys%d3                          &
            + p%rVPxn*CoordSys%rf1    +   p%rVPzn*CoordSys%rf2    - p%rVPyn*CoordSys%rf3                             &
            + p%OverHang*CoordSys%c1  - p%UndSling*CoordSys%g1  + p%TipRad*CoordSys%i3(K,:)                        &
@@ -2469,7 +2470,7 @@ WRITE (UnAD,FmtText  )  ', I = 1000'
 WRITE (UnAD,FmtText  )  ', J = 10'
 WRITE (UnAD,FmtText  )  ', X'
 WRITE (UnAD,FmtText  )  ', DISPLACEMENT'
-WRITE (UnAD,FmtTR    )  ', FUNCTION = ', PtfmSurge ! Lock platform surge at initial position PtfmSurge
+WRITE (UnAD,FmtTR    )  ', FUNCTION = ', InputFileData%PtfmSurge ! Lock platform surge at initial position PtfmSurge
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''PtfmSwayLocked_MO'''
 WRITE (UnAD,FmtText  )  'MOTION/1002'
@@ -2477,7 +2478,7 @@ WRITE (UnAD,FmtText  )  ', I = 1000'
 WRITE (UnAD,FmtText  )  ', J = 10'
 WRITE (UnAD,FmtText  )  ', Y'
 WRITE (UnAD,FmtText  )  ', DISPLACEMENT'
-WRITE (UnAD,FmtTR    )  ', FUNCTION = ', PtfmSway  ! Lock platform sway  at initial position PtfmSway
+WRITE (UnAD,FmtTR    )  ', FUNCTION = ', InputFileData%PtfmSway  ! Lock platform sway  at initial position PtfmSway
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''PtfmHeaveLocked_MO'''
 WRITE (UnAD,FmtText  )  'MOTION/1003'
@@ -2485,7 +2486,7 @@ WRITE (UnAD,FmtText  )  ', I = 1000'
 WRITE (UnAD,FmtText  )  ', J = 10'
 WRITE (UnAD,FmtText  )  ', Z'
 WRITE (UnAD,FmtText  )  ', DISPLACEMENT'
-WRITE (UnAD,FmtTR    )  ', FUNCTION = ', PtfmHeave ! Lock platform heave at initial position PtfmHeave
+WRITE (UnAD,FmtTR    )  ', FUNCTION = ', InputFileData%PtfmHeave ! Lock platform heave at initial position PtfmHeave
 
 
    ! Lock the platform rotational DOFs with a JPRIM statement at the start of
@@ -2570,7 +2571,7 @@ WRITE (UnAD,FmtText  )  'MOTION/5040'
 WRITE (UnAD,FmtText  )  ', JOINT = 5040'
 WRITE (UnAD,FmtText  )  ', ROTATION'
 WRITE (UnAD,FmtText  )  ', DISPLACEMENT'
-WRITE (UnAD,FmtTR    )  ', FUNCTION = ', TailFurl  ! Lock tail-furl angle at initial position TailFurl
+WRITE (UnAD,FmtTR    )  ', FUNCTION = ', InputFileData%TailFurl  ! Lock tail-furl angle at initial position TailFurl
 
 
    ! The tail boom is FIXED to the tail fin:
@@ -2600,7 +2601,7 @@ WRITE (UnAD,FmtText  )  'MOTION/2130'
 WRITE (UnAD,FmtText  )  ', JOINT = 2130'
 WRITE (UnAD,FmtText  )  ', ROTATION'
 WRITE (UnAD,FmtText  )  ', DISPLACEMENT'
-WRITE (UnAD,FmtTR    )  ', FUNCTION = ', RotFurl   ! Lock rotor-furl angle at initial position RotFurl
+WRITE (UnAD,FmtTR    )  ', FUNCTION = ', InputFileData%RotFurl   ! Lock rotor-furl angle at initial position RotFurl
 
 
    ! Those on the shaft:
@@ -2623,8 +2624,8 @@ WRITE (UnAD,FmtText  )  'MOTION/3150'
 WRITE (UnAD,FmtText  )  ', JOINT = 3150'
 WRITE (UnAD,FmtText  )  ', ROTATION'
 WRITE (UnAD,FmtText  )  ', VELOCITY'
-WRITE (UnAD,FmtTR    )  ', ICDISP = ', MOD( Azimuth - p%AzimB1Up + 180.0, 360.0 )*D2R
-WRITE (UnAD,FmtTR    )  ', FUNCTION = ', RotSpeed
+WRITE (UnAD,FmtTR    )  ', ICDISP = ', MOD( InputFileData%Azimuth - p%AzimB1Up + 180.0, 360.0 )*D2R
+WRITE (UnAD,FmtTR    )  ', FUNCTION = ', p%RotSpeed
 
 
    ! Low-speed shaft to high-speed shaft connection:
@@ -2684,7 +2685,7 @@ WRITE (UnAD,FmtText  )  'MOTION/4010'
 WRITE (UnAD,FmtText  )  ', JOINT = 4010'
 WRITE (UnAD,FmtText  )  ', ROTATION'
 WRITE (UnAD,FmtText  )  ', DISPLACEMENT'
-WRITE (UnAD,FmtTR    )  ', FUNCTION = ', TeetDefl  ! Lock teeter angle at initial position TeetDefl.
+WRITE (UnAD,FmtTR    )  ', FUNCTION = ', InputFileData%TeetDefl  ! Lock teeter angle at initial position TeetDefl.
 
 
    ! Pitch bearings:

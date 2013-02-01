@@ -15,7 +15,6 @@ SUBROUTINE AeroInput(p_StrD)
 
    USE                     AeroElem !,   ONLY: ADAeroMarkers, NumADBldNodes, ADCurrentOutputs, ADIntrfaceOptions, ADFirstLoop, Prev_Aero_t
    USE                     General,    ONLY: RootName, ADFile, SumPrint
-   USE                     Output,     ONLY: WrEcho
 
 
    USE                     AeroDyn
@@ -1532,17 +1531,17 @@ CALL ReadCom ( UnIn, FurlFile, 'initial conditions (cont)'  )
 
    ! RotFurl - Initial or fixed rotor-furl angle.
 
-CALL ReadVar ( UnIn, FurlFile, RotFurl, 'RotFurl', 'Initial or fixed rotor-furl angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%RotFurl, 'RotFurl', 'Initial or fixed rotor-furl angle' )
 
-IF ( ( RotFurl <= -180.0 ) .OR. ( RotFurl > 180.0 ) )  &
+IF ( ( InputFileData%RotFurl <= -180.0 ) .OR. ( InputFileData%RotFurl > 180.0 ) )  &
    CALL ProgAbort ( ' RotFurl must be greater than -180 and less than or equal to 180.' )
 
 
    ! TailFurl - Initial or fixed tail-furl angle.
 
-CALL ReadVar ( UnIn, FurlFile, TailFurl, 'TailFurl', 'Initial or fixed tail-furl angle' )
+CALL ReadVar ( UnIn, FurlFile, InputFileData%TailFurl, 'TailFurl', 'Initial or fixed tail-furl angle' )
 
-IF ( ( TailFurl <= -180.0 ) .OR. ( TailFurl > 180.0 ) )  &
+IF ( ( InputFileData%TailFurl <= -180.0 ) .OR. ( InputFileData%TailFurl > 180.0 ) )  &
    CALL ProgAbort ( ' TailFurl must be greater than -180 and less than or equal to 180.' )
 
 
@@ -2314,6 +2313,7 @@ INTEGER(4)                   :: IOS                                             
 INTEGER(4)                   :: K                                               ! Blade number.
 INTEGER(4)                   :: Sttus                                           ! Status returned from an allocation request.
 INTEGER(IntKi)               :: OutFileFmt                                      ! The switch indicating the format (text/binary) for the tabular output file(s)
+LOGICAL                      :: WrEcho
 
 CHARACTER(1024)              :: Comment                                         ! String to temporarily hold the comment line.
 CHARACTER(  35), PARAMETER   :: Frmt      = "( 2X, L11, 2X, A, T30, ' - ', A )" ! Output format for logical parameters. (matches NWTC Subroutine Library format)
@@ -2339,6 +2339,7 @@ CALL GetPath( PriFile, PriPath )    ! Input files will be relative to the path w
    ! If Echo is TRUE, rewind and write on the second try.
    
 I = 1
+Echo = .FALSE.
 DO 
 !-------------------------- HEADER ---------------------------------------------
    
@@ -2368,7 +2369,14 @@ DO
    
    IF (.NOT. Echo .OR. I > 1) EXIT
    
-   I = I + 1
+      ! Otherwise, open the echo file, then rewind the input file and echo everything we've read
+      
+   I = I + 1         ! make sure we do this only once (increment counter that says how many times we've read this file)
+
+!   CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat, ErrMsg, StrD_Ver ) !need this to add the text at the top of the echo file
+   CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN   
+      
    REWIND( UnIn, IOSTAT=ErrStat )   
    IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
@@ -2376,9 +2384,6 @@ DO
       RETURN
    END IF
    
-!   CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat, ErrMsg, StrD_Ver ) !need this to add the text at the top of the echo file
-   CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN   
    
 END DO    
 
@@ -2894,18 +2899,18 @@ ENDIF
 
    ! OoPDefl - Initial out-of-plane blade-tip deflection.
 
-CALL ReadVar ( UnIn, PriFile, OoPDefl, 'OoPDefl', 'Initial out-of-plane blade-tip deflection' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%OoPDefl, 'OoPDefl', 'Initial out-of-plane blade-tip deflection' )
 
-IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( OoPDefl /= 0.0 ) )  &
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%OoPDefl /= 0.0 ) )  &
    CALL ProgAbort ( ' Initial out-of-plane blade-tip displacements must be zero when FAST is interfaced with Simulink'// &
                 ' or Labview. Set OoPDefl to 0.0 or use the standard version of FAST.'                )
 
 
    ! IPDefl - Initial in-plane blade-tip deflection.
 
-CALL ReadVar ( UnIn, PriFile, IPDefl, 'IPDefl', 'Initial in-plane blade-tip deflection' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%IPDefl, 'IPDefl', 'Initial in-plane blade-tip deflection' )
 
-IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( IPDefl  /= 0.0 ) )  &
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%IPDefl  /= 0.0 ) )  &
    CALL ProgAbort ( ' Initial in-plane blade-tip displacements must be zero when FAST is interfaced with Simulink'// &
                 ' or Labview. Set IPDefl to 0.0 or use the standard version of FAST.'                 )
 
@@ -2913,8 +2918,8 @@ IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( IPDefl  /= 0.0 ) )  &
    ! TeetDefl - Initial or fixed teeter angle.
 
 IF ( p%NumBl == 2 )  THEN
-   CALL ReadVar ( UnIn, PriFile, TeetDefl, 'TeetDefl', 'Initial or fixed teeter angle' )
-   IF ( ( TeetDefl <= -180.0 ) .OR. ( TeetDefl > 180.0 ) )  &
+   CALL ReadVar ( UnIn, PriFile, InputFileData%TeetDefl, 'TeetDefl', 'Initial or fixed teeter angle' )
+   IF ( ( InputFileData%TeetDefl <= -180.0 ) .OR. ( InputFileData%TeetDefl > 180.0 ) )  &
       CALL ProgAbort ( ' TeetDefl must be greater than -180 and less than or equal to 180.' )
 ELSE
    CALL ReadCom ( UnIn, PriFile, 'unused Teeter' )
@@ -2923,17 +2928,17 @@ ENDIF
 
    ! Azimuth - Initial azimuth position for blade 1.
 
-CALL ReadVar ( UnIn, PriFile, Azimuth, 'Azimuth', 'Initial azimuth position for blade 1' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%Azimuth, 'Azimuth', 'Initial azimuth position for blade 1' )
 
-IF ( ( Azimuth < 0.0 ) .OR. ( Azimuth >= 360.0 ) )  &
+IF ( ( InputFileData%Azimuth < 0.0 ) .OR. ( InputFileData%Azimuth >= 360.0 ) )  &
    CALL ProgAbort ( ' Azimuth must be greater or equal to 0 and less than 360.' )
 
 
    ! RotSpeed - Initial or fixed rotor speed.
 
-CALL ReadVar ( UnIn, PriFile, RotSpeed, 'RotSpeed', 'Initial or fixed rotor speed' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%RotSpeed, 'RotSpeed', 'Initial or fixed rotor speed' )
 
-IF ( RotSpeed < 0.0 )  CALL ProgAbort ( ' RotSpeed must not be negative.' )
+IF ( InputFileData%RotSpeed < 0.0 )  CALL ProgAbort ( ' RotSpeed must not be negative.' )
 
 
    ! NacYaw - Initial or fixed nacelle-yaw angle.
@@ -2946,18 +2951,18 @@ IF ( ( NacYaw <= -180.0 ) .OR. ( NacYaw > 180.0 ) )  &
 
    ! TTDspFA - Initial fore-aft tower-top displacement.
 
-CALL ReadVar ( UnIn, PriFile, TTDspFA, 'TTDspFA', 'Initial fore-aft tower-top displacement' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%TTDspFA, 'TTDspFA', 'Initial fore-aft tower-top displacement' )
 
-IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( TTDspFA /= 0.0 ) )  &
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%TTDspFA /= 0.0 ) )  &
    CALL ProgAbort ( ' Initial fore-aft tower-top displacements must be zero when FAST is interfaced with Simulink'// &
                 ' or Labview. Set TTDspFA to 0.0 or use the standard version of FAST.'               )
 
 
    ! TTDspSS - Initial side-to-side tower-top displacement.
 
-CALL ReadVar ( UnIn, PriFile, TTDspSS, 'TTDspSS', 'Initial side-to-side tower-top displacement' )
+CALL ReadVar ( UnIn, PriFile, InputFileData%TTDspSS, 'TTDspSS', 'Initial side-to-side tower-top displacement' )
 
-IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( TTDspSS /= 0.0 ) )  &
+IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%TTDspSS /= 0.0 ) )  &
    CALL ProgAbort ( ' Initial side-to-side tower-top displacements must be zero when FAST is interfaced with Simulink'// &
                 ' or Labview. Set TTDspSS to 0.0 or use the standard version of FAST.'                      )
 
@@ -3952,40 +3957,40 @@ CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmYDOF, 'PtfmYDOF', 'Platform yaw
 
    ! PtfmSurge - Initial or fixed horizontal surge translational displacement of platform.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmSurge, 'PtfmSurge', 'Initial or fixed platform surge' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmSurge, 'PtfmSurge', 'Initial or fixed platform surge' )
 
 
    ! PtfmSway - Initial or fixed horizontal sway translational displacement of platform.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmSway, 'PtfmSway', 'Initial or fixed platform sway' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmSway, 'PtfmSway', 'Initial or fixed platform sway' )
 
 
    ! PtfmHeave - Initial or fixed vertical heave translational displacement of platform.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmHeave, 'PtfmHeave', 'Initial or fixed platform heave' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmHeave, 'PtfmHeave', 'Initial or fixed platform heave' )
 
 
    ! PtfmRoll - Initial or fixed roll tilt rotational displacement of platform.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmRoll, 'PtfmRoll', 'Initial or fixed platform roll' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmRoll, 'PtfmRoll', 'Initial or fixed platform roll' )
 
-IF ( ( PtfmRoll < -15.0 ) .OR. ( PtfmRoll > 15.0 ) )  &
+IF ( ( InputFileData%PtfmRoll < -15.0 ) .OR. ( InputFileData%PtfmRoll > 15.0 ) )  &
    CALL ProgAbort ( ' PtfmRoll must be between -15 and 15 (inclusive).' )
 
 
    ! PtfmPitch - Initial or fixed pitch tilt rotational displacement of platform.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmPitch, 'PtfmPitch', 'Initial or fixed platform pitch' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmPitch, 'PtfmPitch', 'Initial or fixed platform pitch' )
 
-IF ( ( PtfmPitch < -15.0 ) .OR. ( PtfmPitch > 15.0 ) )  &
+IF ( ( InputFileData%PtfmPitch < -15.0 ) .OR. ( InputFileData%PtfmPitch > 15.0 ) )  &
    CALL ProgAbort ( ' PtfmPitch must be between -15 and 15 (inclusive).' )
 
 
    ! PtfmYaw - Initial or fixed yaw rotational displacement of platform.
 
-CALL ReadVar ( UnIn, PtfmFile, PtfmYaw, 'PtfmYaw', 'Initial or fixed platform yaw' )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmYaw, 'PtfmYaw', 'Initial or fixed platform yaw' )
 
-IF ( ( PtfmYaw < -15.0 ) .OR. ( PtfmYaw > 15.0 ) )  &
+IF ( ( InputFileData%PtfmYaw < -15.0 ) .OR. ( InputFileData%PtfmYaw > 15.0 ) )  &
    CALL ProgAbort ( ' PtfmYaw must be between -15 and 15 (inclusive).' )
 
 
@@ -5221,9 +5226,9 @@ IF ( ( PtfmModel == 1 ) .OR. ( PtfmModel == 2 ) .OR. ( PtfmModel == 3 ) )  THEN
 
    CALL GetPtfm( p, InputFileData )
 
-   PtfmRoll  = PtfmRoll *D2R
-   PtfmPitch = PtfmPitch*D2R
-   PtfmYaw   = PtfmYaw  *D2R
+   InputFileData%PtfmRoll  = InputFileData%PtfmRoll *D2R
+   InputFileData%PtfmPitch = InputFileData%PtfmPitch*D2R
+   InputFileData%PtfmYaw   = InputFileData%PtfmYaw  *D2R
 
    p%rZYzt     = p%PtfmRef  - InputFileData%PtfmCM
 
@@ -5246,8 +5251,8 @@ IF ( InputFileData%Furling )  THEN
    p%TFrlPntzn = InputFileData%TFrlPntzn
 
    
-   RotFurl   = RotFurl  *D2R
-   TailFurl  = TailFurl *D2R
+   InputFileData%RotFurl   = InputFileData%RotFurl  *D2R
+   InputFileData%TailFurl  = InputFileData%TailFurl *D2R
 
    InputFileData%ShftSkew  = InputFileData%ShftSkew *D2R
 
@@ -5341,8 +5346,8 @@ p%rZT0zt    = p%TwrRBHt + p%PtfmRef - p%TwrDraft                                
 p%RefTwrHt  = p%TowerHt + p%PtfmRef                                                   ! Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef).
 p%TwrFlexL  = p%TowerHt + p%TwrDraft - p%TwrRBHt                                        ! Height / length of the flexible portion of the tower.
 p%BldFlexL  = p%TipRad               - p%HubRad                                         ! Length of the flexible portion of the blade.
-p%TwoPiNB = TwoPi/p%NumBl                                                       ! 2*Pi/NumBl is used in RtHS().
-RotSpeed  = RotSpeed*RPM2RPS                                                    ! Rotor speed in rad/sec.
+p%TwoPiNB   = TwoPi/p%NumBl                                                       ! 2*Pi/NumBl is used in RtHS().
+p%RotSpeed  = InputFileData%RotSpeed*RPM2RPS                                                    ! Rotor speed in rad/sec.
 NacYaw    = D2R*NacYaw                                                          ! Nacelle yaw in radians.
 NacYawF   = D2R*NacYawF                                                         ! Final nacelle yaw (after override yaw maneuver) in radians.
 YawNeut   = D2R*YawNeut                                                         ! Neutral yaw in radians.
@@ -5441,8 +5446,8 @@ ENDIF
    ! Do some things for the 2-blader.
 
 IF ( p%NumBl == 2 )  THEN
-   TeetDefl = TeetDefl*D2R
-   InputFileData%Delta3   = InputFileData%Delta3 *D2R
+   InputFileData%TeetDefl = InputFileData%TeetDefl*D2R
+   InputFileData%Delta3   = InputFileData%Delta3  *D2R
    p%CosDel3  = COS( InputFileData%Delta3 )
    p%SinDel3  = SIN( InputFileData%Delta3 )
    p%TeetSStP = p%TeetSStP*D2R
@@ -5611,7 +5616,7 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
       IF ( TTpBrDp (K) <= TMax              )  &
          CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.'// &
                       '  Set TTpBrDp( '//TRIM(Int2LStr(K))//') > TMax.'                )
-      IF ( TBDepISp(K) <= 10.0*RotSpeed     )  &
+      IF ( TBDepISp(K) <= 10.0*p%RotSpeed     )  &
          CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.'// &
                       '  Set TBDepISp('//TRIM(Int2LStr(K))//') >> RotSpeed.'           )
       IF ( TPitManS(K) <= TMax              )  &
@@ -5667,7 +5672,7 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
    !   solutions), make the 2-norm convergence tests occur only every 1 second.
    !   Also if parked, change NAzimStep to unity:
 
-   IF ( RotSpeed == 0.0 )  THEN        ! Rotor is parked, therefore we will find a static equilibrium position.
+   IF ( p%RotSpeed == 0.0 )  THEN        ! Rotor is parked, therefore we will find a static equilibrium position.
 
       NStep  = CEILING(    1.0 / DT )  ! Make each iteration one second long
 
@@ -5681,7 +5686,7 @@ IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearizat
 
    ELSE                                ! Rotor is spinning, therefore we will find a periodic steady state solution.
 
-      Period = TwoPi / RotSpeed
+      Period = TwoPi / p%RotSpeed
       NStep  = CEILING( Period / DT )  ! The number of time steps (an integer) in one period
 
       DT     = Period / NStep          ! Update DT so that there is an integer multiple of them in one period
@@ -5801,7 +5806,7 @@ CASE ( 3 )
    WRITE (UnSu,FmtTxt)  '            Floating offshore turbine.'
 ENDSELECT
 
-WRITE    (UnSu,FmtTxt)  '            The model has '//TRIM(Int2LStr( OtherState%DOFs%NActvDOF ))//' of '// &
+WRITE    (UnSu,FmtTxt)  '            The model has '//TRIM(Int2LStr( p%DOFs%NActvDOF ))//' of '// &
                                      TRIM(Int2LStr( p%NDOF ))//' DOFs active (enabled) at start-up.'
 
 IF ( p%DOF_Flag( DOF_BF(1,1) ) )  THEN
@@ -6222,424 +6227,6 @@ PrevTime = CurrTime
 RETURN
 END SUBROUTINE SimStatus
 !=======================================================================
-SUBROUTINE WrBinOutput(UnIn,FileID, DescStr,ChanName,ChanUnit,TimeData,AllOutData,ErrStat,ErrMsg)
-! This subroutine takes the previously-opened binary file specified by UnIn, and writes a the AllOutData Matrix to a 16-bit packed
-! binary file. A text DescStr is written to the file as well as the text in the ChanName and ChanUnit arrays. The file is closed 
-! at the end of this subroutine call.
-! Note that the file is opened at the start of the simulation to ensure that it's available before starting the simulation.
-!..................................................................................................................................
-
-
-IMPLICIT                     NONE
-
-INTEGER(IntKi), PARAMETER     :: LenName     = 10                 ! Number of characters allowed in a channel name
-INTEGER(IntKi), PARAMETER     :: LenUnit     = 10                 ! Number of characters allowed in a channel unit
-
-
-INTEGER,           INTENT(IN) :: UnIn                             ! Unit number of the file being written
-INTEGER(B2Ki),     INTENT(IN) :: FileID                           ! File ID, used to determine format of output file
-CHARACTER(*),      INTENT(IN) :: DescStr                          ! Description to write to the binary file (e.g., program version, date, & time)
-CHARACTER(LenName),INTENT(IN) :: ChanName(:)                      ! The output channel names (including Time)
-CHARACTER(LenUnit),INTENT(IN) :: ChanUnit(:)                      ! The output channel units (including Time)
-REAL(DbKi),        INTENT(IN) :: TimeData(:)                      ! The time being output to the file (element 1 is the first output time, element 2 is the delta t)
-REAL(ReKi),        INTENT(IN) :: AllOutData(:,:)                  ! All of the data being written to the file (except time; note that the channels are the rows and time is the column--this is done for speed of saving the array)
-INTEGER(IntKi),    INTENT(OUT):: ErrStat                          ! Indicates whether an error occurred (see NWTC_Library)
-CHARACTER(*),      INTENT(OUT):: ErrMsg                           ! Error message associated with the ErrStat
-
-
-      ! Parameters required for scaling Real data to 16-bit integers 
-      
-REAL(R8Ki), PARAMETER         :: Int32Max =  65535.0              ! Largest integer represented in 4 bytes
-REAL(R8Ki), PARAMETER         :: Int32Min = -65536.0              ! Smallest integer represented in 4 bytes
-REAL(R8Ki), PARAMETER         :: Int32Rng = Int32Max - Int32Min   ! Max Range of 4-byte integer
-
-REAL(SiKi), PARAMETER         :: IntMax   =  32767.0              ! Largest integer represented in 2 bytes
-REAL(SiKi), PARAMETER         :: IntMin   = -32768.0              ! Smallest integer represented in 2 bytes
-REAL(SiKi), PARAMETER         :: IntRng   = IntMax - IntMin       ! Max Range of 2 byte integer
-
-
-      ! Local variables
-
-REAL(DbKi)                    :: TimeMax                          ! Maximum value of the time data
-REAL(DbKi)                    :: TimeMin                          ! Minimum value of the time data   
-REAL(R8Ki)                    :: TimeOff                          ! Offset for the time data
-REAL(R8Ki)                    :: TimeScl                          ! Slope for the time data   
-REAL(R8Ki)                    :: TimeOut1                         ! The first output time
-REAL(R8Ki)                    :: TimeIncrement                    ! The delta t
-
-REAL(ReKi), ALLOCATABLE       :: ColMax(:)                        ! Maximum value of the column data
-REAL(ReKi), ALLOCATABLE       :: ColMin(:)                        ! Minimum value of the column data   
-REAL(SiKi), ALLOCATABLE       :: ColOff(:)                        ! Offset for the column data
-REAL(SiKi), ALLOCATABLE       :: ColScl(:)                        ! Slope for the column data
-
-
-INTEGER(IntKi)                :: I                                ! Generic loop counter
-INTEGER(IntKi)                :: IC                               ! Loop counter for the output channel
-INTEGER(IntKi)                :: IT                               ! Loop counter for the timestep
-INTEGER(IntKi)                :: J                                ! Generic counter
-INTEGER(IntKi)                :: LenDesc                          ! Length of the description string, DescStr
-INTEGER(IntKi)                :: NT                               ! Number of time steps
-INTEGER(IntKi)                :: NumOutChans                      ! Number of output channels
-
-
-INTEGER(B2Ki), ALLOCATABLE    :: TmpOutArray(:)                   ! This array holds the normalized output channels before being written to the binary file
-INTEGER(B4Ki), ALLOCATABLE    :: TmpTimeArray(:)                  ! This array holds the normalized output time channel before being written to the binary file
-INTEGER(B1Ki), ALLOCATABLE    :: DescStrASCII(:)                  ! The ASCII equivalent of DescStr 
-INTEGER(B1Ki), ALLOCATABLE    :: ChanNameASCII(:)                 ! The ASCII equivalent of ChanName 
-INTEGER(B1Ki), ALLOCATABLE    :: ChanUnitASCII(:)                 ! The ASCII equivalent of ChanUnit 
-
-
-   !...............................................................................................................................
-   ! Initialize some values
-   !...............................................................................................................................
-      
-   ErrStat     = ErrID_None             ! No error has yet occurred
-   ErrMsg      = ''                     ! No error has yet occurred
-   NumOutChans = SIZE(AllOutData,1)     ! The number of output channels
-   NT          = SIZE(AllOutData,2)     ! The number of time steps to be written
-   LenDesc     = LEN_TRIM( DescStr )    ! Length of the string that contains program name, version, date, and time
-
-
-   !...............................................................................................................................
-   ! Allocate arrays
-   !...............................................................................................................................
-
-   ALLOCATE ( ColMax( NumOutChans ) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for ColMax array.')
-      RETURN
-   ENDIF
-   
-   
-   ALLOCATE ( ColMin( NumOutChans ) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for ColMin array.')
-      RETURN
-   ENDIF
-   
-   
-   ALLOCATE ( ColOff( NumOutChans ) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for ColOff array.')
-      RETURN
-   ENDIF
-
-
-   ALLOCATE ( ColScl( NumOutChans ) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for ColScl array.')
-      RETURN
-   ENDIF
-   
-
-   ALLOCATE ( TmpOutArray( NumOutChans*NT ) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary output array.')
-      RETURN
-   ENDIF
-   
-   IF ( FileID == FileFmtID_WithTime ) THEN
-      ALLOCATE ( TmpTimeArray( NT ) , STAT=ErrStat )
-      IF ( ErrStat /= 0 )  THEN
-         CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary output time array.')
-         RETURN
-      ENDIF
-   END IF 
-   
-   ALLOCATE ( ChanNameASCII( (1+NumOutChans)*LenName ) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary FAST channel names.')
-      RETURN
-   ENDIF
-
-
-   ALLOCATE ( ChanUnitASCII( (1+NumOutChans)*LenUnit ) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary FAST channel unit names.')
-      RETURN
-   ENDIF
-
-
-   ALLOCATE ( DescStrASCII( LenDesc ) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error allocating memory for the temporary FAST file description.')
-      RETURN
-   ENDIF      
-   
-   !...............................................................................................................................
-   ! Convert character strings to ASCII
-   !...............................................................................................................................
-      
-      ! Description string (DescStr)
-      
-   DO I=1,LenDesc
-      DescStrASCII(I) = IACHAR( DescStr(I:I) )
-   END DO
-   
-      ! Channel names (ChanName)      
-   J = 1
-   DO IC = 1,SIZE(ChanName)
-      DO I=1,LenName
-         ChanNameASCII(J) = IACHAR( ChanName(IC)(I:I) )
-         J = J + 1
-      END DO
-   END DO
-
-      ! Channel units (ChanUnit)
-   J = 1
-   DO IC = 1,SIZE(ChanUnit)
-      DO I=1,LenUnit
-         ChanUnitASCII(J) = IACHAR( ChanUnit(IC)(I:I) )
-         J = J + 1
-      END DO
-   END DO
-   
-   !...............................................................................................................................
-   ! Find the range of our output channels
-   !...............................................................................................................................     
-   ColMin(:) = AllOutData(:,1_IntKi)         ! Initialize the Min values for each channel
-   ColMax(:) = AllOutData(:,1_IntKi)         ! Initialize the Max values for each channel
-
-   DO IT=2,NT                                ! Loop through the remaining time steps 
-      
-      DO IC=1,NumOutChans                    ! Loop through the output channels
-      
-         IF ( AllOutData(IC,IT) > ColMax(IC) ) THEN
-            ColMax(IC) = AllOutData(IC,IT)
-         ELSEIF ( AllOutData(IC,IT) < ColMin(IC) ) THEN
-            ColMin(IC) = AllOutData(IC,IT)
-         ENDIF
-
-      ENDDO !IC
-
-   ENDDO !IT
-
-
-   IF ( FileID == FileFmtID_WithTime ) THEN
-      TimeMin   = TimeData(1)                   ! Initialize the Min time value
-      TimeMax   = MAX(TimeData(1),TimeData(NT)) ! Initialize the Max time value
-   
-      DO IT=2,NT                                ! Loop through the remaining time steps    
-         IF ( TimeData(IT) > TimeMax ) THEN
-            TimeMax = TimeData(IT)
-         ELSEIF ( TimeData(IT) < TimeMin ) THEN
-            TimeMin = TimeData(IT)
-         ENDIF
-      ENDDO !IT
-      
-   ELSE ! FileFmtID_WithoutTime
-         ! Convert DbKi to R8Ki, if necessary
-      TimeOut1      = TimeData(1)                ! The first output time
-      TimeIncrement = TimeData(2)                ! The time increment
-   END IF ! FileID
-   
-   !...............................................................................................................................
-   ! Calculate the scaling parameters for each channel
-   !...............................................................................................................................   
-   DO IC=1,NumOutChans                    ! Loop through the output channels
-   
-      IF ( ColMax(IC) == ColMin(IC) ) THEN
-         ColScl(IC) = 1
-      ELSE
-         ColScl(IC) = IntRng/REAL( ColMax(IC) - ColMin(IC), SiKi )
-      ENDIF
-      
-      ColOff(IC) = IntMin - ColScl(IC)*REAL( ColMin(IC), SiKi )
-      
-   ENDDO !IC
-
-
-   IF ( FileID == FileFmtID_WithTime ) THEN
-      IF ( TimeMax == TimeMin ) THEN
-         TimeScl = 1
-      ELSE
-         TimeScl = Int32Rng/REAL( TimeMax - TimeMin, R8Ki )
-      ENDIF
-      
-      TimeOff = Int32Min - TimeScl*REAL( TimeMin, R8Ki )
-
-   END IF ! FileID
-   
-   !...............................................................................................................................
-   ! Convert channels to 16-bit integers (packed binary)
-   !...............................................................................................................................     
-   J = 1
-   DO IT=1,NT                                ! Loop through the time steps 
-      DO IC=1,NumOutChans                    ! Loop through the output channels
-      
-         TmpOutArray(J) =  NINT( Max( Min( REAL( ColScl(IC)*AllOutData(IC,IT) + ColOff(IC), SiKi), IntMax ), IntMin) , B2Ki )        
-         J = J + 1
-
-      ENDDO !IC
-            
-   ENDDO !IT
-
-
-   IF ( FileID == FileFmtID_WithTime ) THEN  ! Pack the time into 32-bit integers
-      DO IT=1,NT                             ! Loop through the time steps 
-         TmpTimeArray(IT) = NINT( Max( Min( REAL( TimeScl*TimeData(IT) + TimeOff, R8Ki), Int32Max ), Int32Min) , B4Ki )      
-      ENDDO !IT
-   END IF ! FileID
-
-   !...............................................................................................................................
-   ! Write the output file header   
-   !...............................................................................................................................
-
-   WRITE (UnIn, IOSTAT=ErrStat)   INT( FileID             , B2Ki )            ! FAST output file format
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing FileID to the FAST binary file.')
-      RETURN
-   ENDIF
-
-   WRITE (UnIn, IOSTAT=ErrStat)   INT( NumOutChans        , B4Ki )            ! The number of output channels
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing NumOutChans to the FAST binary file.')
-      RETURN
-   ENDIF
-
-   WRITE (UnIn, IOSTAT=ErrStat)   INT( NT                 , B4Ki )            ! The number of time steps
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing NT to the FAST binary file.')
-      RETURN
-   ENDIF
-
-
-   IF ( FileID == FileFmtID_WithTime ) THEN  
-         ! Write the slope and offset for the time channel
-
-      WRITE (UnIn, IOSTAT=ErrStat)  TimeScl                                  ! The time slope for scaling
-      IF ( ErrStat /= 0 )  THEN
-         CALL ExitThisRoutine(ErrID_Fatal,'Error writing TimeScl to the FAST binary file.')
-         RETURN
-      ENDIF
-
-      WRITE (UnIn, IOSTAT=ErrStat)  TimeOff                                  ! The time offset for scaling
-      IF ( ErrStat /= 0 )  THEN
-         CALL ExitThisRoutine(ErrID_Fatal,'Error writing TimeOff to the FAST binary file.')
-         RETURN
-      ENDIF
-
-   ELSE ! FileFmtID_WithoutTime
-         ! Write the first output time and the time step
-         
-      WRITE (UnIn, IOSTAT=ErrStat)  TimeOut1                                  ! The first output time 
-      IF ( ErrStat /= 0 )  THEN
-         CALL ExitThisRoutine(ErrID_Fatal,'Error writing TimeOut1 to the FAST binary file.')
-         RETURN
-      ENDIF
-      
-      WRITE (UnIn, IOSTAT=ErrStat)  TimeIncrement                             ! The time increment (between subsequent outputs)
-      IF ( ErrStat /= 0 )  THEN
-         CALL ExitThisRoutine(ErrID_Fatal,'Error writing TimeIncrement to the FAST binary file.')
-         RETURN
-      ENDIF            
-      
-   END IF
-
-   WRITE (UnIn, IOSTAT=ErrStat)  ColScl(:)                                    ! The channel slopes for scaling
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing ColScl to the FAST binary file.')
-      RETURN
-   ENDIF
-
-   WRITE (UnIn, IOSTAT=ErrStat)  ColOff(:)                                    ! The channel offsets for scaling
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing ColOff to the FAST binary file.')
-      RETURN
-   ENDIF
-
-   WRITE (UnIn, IOSTAT=ErrStat)   INT( LenDesc            , B4Ki )            ! The number of characters in the string
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing LenDesc to the FAST binary file.')
-      RETURN
-   ENDIF
-
-   WRITE (UnIn, IOSTAT=ErrStat)  DescStrASCII                                 ! DescStr converted to ASCII
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing file description to the FAST binary file.')
-      RETURN
-   ENDIF
-
-
-   WRITE (UnIn, IOSTAT=ErrStat)  ChanNameASCII                                 ! ChanName converted to ASCII
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing channel names to the FAST binary file.')
-      RETURN
-   ENDIF
-
-
-   WRITE (UnIn, IOSTAT=ErrStat)  ChanUnitASCII                                 ! ChanUnit converted to ASCII
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing channel units to the FAST binary file.')
-      RETURN
-   ENDIF
-
-   !...............................................................................................................................
-   ! Write the channel data   
-   !...............................................................................................................................
-   IF ( FileID == FileFmtID_WithTime ) THEN  
-      WRITE (UnIn, IOSTAT=ErrStat)  TmpTimeArray                               ! TimeData converted to packed binary (32-bit)
-      IF ( ErrStat /= 0 )  THEN
-         CALL ExitThisRoutine(ErrID_Fatal,'Error writing time data to the FAST binary file.')
-         RETURN
-      ENDIF
-   END IF ! FileID
-
-
-   WRITE (UnIn, IOSTAT=ErrStat)  TmpOutArray                                  ! AllOutData converted to packed binary (16-bit)
-   IF ( ErrStat /= 0 )  THEN
-      CALL ExitThisRoutine(ErrID_Fatal,'Error writing channel data to the FAST binary file.')
-      RETURN
-   ENDIF
-
-   !...............................................................................................................................
-   ! We're finished: clean up ALLOCATABLE arrays and close the file
-   !...............................................................................................................................
-
-   CALL ExitThisRoutine(ErrID_None,'')
-   RETURN
-
-!..................................................................................................................................
-CONTAINS 
-!..................................................................................................................................
-   SUBROUTINE ExitThisRoutine(ErrID,Msg)
-   ! This subroutine cleans up all the allocatable arrays, sets the error status/message and closes the binary file
-   !...............................................................................................................................
-   
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-      
-      
-      !............................................................................................................................
-      ! Set error status/message
-      !............................................................................................................................
-   
-      ErrStat = ErrID
-      ErrMsg  = Msg
-      
-      !............................................................................................................................
-      ! Deallocate arrays
-      !............................................................................................................................
-      IF ( ALLOCATED( ColMax        ) ) DEALLOCATE( ColMax )
-      IF ( ALLOCATED( ColMin        ) ) DEALLOCATE( ColMin )
-      IF ( ALLOCATED( ColOff        ) ) DEALLOCATE( ColOff )
-      IF ( ALLOCATED( ColScl        ) ) DEALLOCATE( ColScl )
-      IF ( ALLOCATED( TmpTimeArray  ) ) DEALLOCATE( TmpTimeArray )
-      IF ( ALLOCATED( TmpOutArray   ) ) DEALLOCATE( TmpOutArray )
-      IF ( ALLOCATED( DescStrASCII  ) ) DEALLOCATE( DescStrASCII )
-      IF ( ALLOCATED( ChanNameASCII ) ) DEALLOCATE( ChanNameASCII )
-      IF ( ALLOCATED( ChanUnitASCII ) ) DEALLOCATE( ChanUnitASCII )
-            
-      !............................................................................................................................
-      ! Close file
-      !............................................................................................................................
-      CLOSE ( UnIn )
-         
-   END SUBROUTINE ExitThisRoutine
-   !...............................................................................................................................
-END SUBROUTINE WrBinOutput
-!==================================================================================================================================
 SUBROUTINE WrOutHdr(p_StrD)
 
 
@@ -6703,7 +6290,6 @@ IF (WrTxtOutFile) THEN
 END IF   
 
 IF (WrBinOutFile) THEN      
-   CALL OpenBin ( UnOuBin,   TRIM(RootName)//'.outb', 2, ErrStat )
    
    NOutSteps = NINT ( (TMax - TStart) / (DT*DecFact) ) + 1
    IF (.NOT. ALLOCATED(AllOutData) ) THEN

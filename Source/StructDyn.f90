@@ -1396,8 +1396,8 @@ INTEGER,  PARAMETER          :: AnchTen(9) = (/Anch1Ten,Anch2Ten,Anch3Ten,Anch4T
 INTEGER,  PARAMETER          :: AnchAng(9) = (/Anch1Ang,Anch2Ang,Anch3Ang,Anch4Ang,Anch5Ang,Anch6Ang,Anch7Ang,Anch8Ang,Anch9Ang/)
 
 
-INTEGER(B2Ki), PARAMETER     :: FileFmtID_WithTime    = 1         ! ID for OutputFileFmtID to specify that the time channel should be included in the output file (use if the output can occur at variable times)
-INTEGER(B2Ki), PARAMETER     :: FileFmtID_WithoutTime = 2         ! ID for OutputFileFmtID to specify that the time channel does not need to be included in the output file (used only with constant time-step output)
+!INTEGER(B2Ki), PARAMETER     :: FileFmtID_WithTime    = 1         ! ID for OutputFileFmtID to specify that the time channel should be included in the output file (use if the output can occur at variable times)
+!INTEGER(B2Ki), PARAMETER     :: FileFmtID_WithoutTime = 2         ! ID for OutputFileFmtID to specify that the time channel does not need to be included in the output file (used only with constant time-step output)
 
 
 END MODULE StructDyn_Parameters
@@ -1519,7 +1519,7 @@ SUBROUTINE StrD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
 !      CALL StrD_ValidateInput( InputFileData, p, ErrStat, ErrMsg )
 
 
-      CALL StrD_InitDOFs( OtherState%DOFs, p, ErrStat, ErrMsg )
+      CALL StrD_InitDOFs( p, ErrStat, ErrMsg )
 
 
          ! Define parameters here:
@@ -2277,11 +2277,11 @@ CONTAINS
 
 END SUBROUTINE StrD_ValidateInput
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_InitDOFs( DOFs, p, ErrStat, ErrMsg )
+SUBROUTINE StrD_InitDOFs( p, ErrStat, ErrMsg )
 ! This subroutine initialized the ActiveDOF data type
 !..................................................................................................................................
 
-   TYPE(ActiveDOFs),         INTENT(INOUT)    :: DOFs           ! ActiveDOF data 
+!   TYPE(ActiveDOFs),         INTENT(INOUT)    :: DOFs           ! ActiveDOF data 
    TYPE(StrD_ParameterType), INTENT(INOUT)    :: p              ! The module's parameter data
    INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code
    CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
@@ -2298,43 +2298,43 @@ SUBROUTINE StrD_InitDOFs( DOFs, p, ErrStat, ErrMsg )
    
       ! BJJ: note that this method will cause an error if allocating data that has already been allocated...
 
-   ALLOCATE ( DOFs%NPSBE(p%NumBl), DOFs%NPSE(p%NumBl),  STAT=ErrStat )
+   ALLOCATE ( p%DOFs%NPSBE(p%NumBl), p%DOFs%NPSE(p%NumBl),  STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs NPSBE and NPSE arrays.' )
       RETURN
    ENDIF
 
    
-   ALLOCATE ( DOFs%PCE(p%NDOF), DOFs%PDE(p%NDOF), DOFs%PIE(p%NDOF), STAT=ErrStat )
+   ALLOCATE ( p%DOFs%PCE(p%NDOF), p%DOFs%PDE(p%NDOF), p%DOFs%PIE(p%NDOF), STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PCE, PDE, and PIE arrays.' )
       RETURN
    ENDIF
    
    
-   ALLOCATE (  DOFs%PTTE(p%NDOF), DOFs%PTE(p%NDOF), DOFs%PS(p%NDOF), STAT=ErrStat )
+   ALLOCATE (  p%DOFs%PTTE(p%NDOF), p%DOFs%PTE(p%NDOF), p%DOFs%PS(p%NDOF), STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PTTE, PTE, and PS arrays.' )
       RETURN
    ENDIF
 
    
-   ALLOCATE ( DOFs%PUE(p%NDOF), DOFs%PYE(p%NDOF),  STAT=ErrStat )
+   ALLOCATE ( p%DOFs%PUE(p%NDOF), p%DOFs%PYE(p%NDOF),  STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PUE and PYE arrays.' )
       RETURN
    ENDIF
 
    
-!bjj was   ALLOCATE ( DOFs%PSBE(p%NumBl,3), DOFs%PSE(p%NumBl,p%NDOF),  STAT=ErrStat )
-   ALLOCATE ( DOFs%PSBE(p%NumBl,(NumBE+NumBF)), DOFs%PSE(p%NumBl,p%NDOF),  STAT=ErrStat )
+!bjj was   ALLOCATE ( p%DOFs%PSBE(p%NumBl,3), p%DOFs%PSE(p%NumBl,p%NDOF),  STAT=ErrStat )
+   ALLOCATE ( p%DOFs%PSBE(p%NumBl,(NumBE+NumBF)), p%DOFs%PSE(p%NumBl,p%NDOF),  STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PSBE and PSE arrays.' )
       RETURN
    ENDIF
 
    
-   ALLOCATE ( DOFs%SrtPS(p%NDOF), DOFs%SrtPSNAUG(p%NAug),  DOFs%Diag(p%NDOF), STAT=ErrStat )
+   ALLOCATE ( p%DOFs%SrtPS(p%NDOF), p%DOFs%SrtPSNAUG(p%NAug),  p%DOFs%Diag(p%NDOF), STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs SrtPS, SrtPSNAUG, and Diag arrays.' )
       RETURN
