@@ -18,7 +18,6 @@ SUBROUTINE Alloc(p,x,y, OtherState)
 
 USE                             DriveTrain
 USE                             InitCond
-USE                             Output
 USE                             SimCont
 USE                             TurbCont
 
@@ -636,17 +635,15 @@ SUBROUTINE CalcOuts( p,x,y,OtherState, u )
 
 
 USE                             DriveTrain
-USE                             EnvCond
-USE                             FloatingPlatform, ONLY:AnchorTension, FairleadTension
 USE                             Linear
-USE                             Output
-USE                             Platform
 USE                             SimCont
 USE                             TailAero
 USE                             TurbCont
-USE                             Waves, ONLY:WaveElevation, WaveVelocity, WaveAcceleration
 
-USE                             AeroDyn
+USE Waves, ONLY:WaveElevation, WaveVelocity, WaveAcceleration
+USE FloatingPlatform, ONLY:AnchorTension, FairleadTension
+USE AeroDyn
+USE HydroVals
 
 
 IMPLICIT                        NONE
@@ -1515,7 +1512,6 @@ SUBROUTINE Coeff(p,InputFileData)
 
 
 USE                             DriveTrain
-USE                             EnvCond
 USE                             InitCond
 
 
@@ -2481,84 +2477,8 @@ BlPitch = BlPitchCom
 
 RETURN
 END SUBROUTINE Control
-
 !=======================================================================
-SUBROUTINE CoordSys_Dealloc( CoordSys, ErrStat, ErrMsg )
-
-   ! This subroutine deallocates the coordinate systems in the StrD_CoordSys type.
-
-IMPLICIT NONE
-
-   ! passed arguments
-
-TYPE(StrD_CoordSys),      INTENT(INOUT) :: CoordSys       ! The coordinate systems to be deallocated
-
-INTEGER(IntKi),           INTENT(OUT)   :: ErrStat        ! Error status
-CHARACTER(*),             INTENT(OUT)   :: ErrMsg         ! Err msg
-
-
-   ! local variables
-
-CHARACTER(200), PARAMETER          :: ErrTxt = 'coordinate system arrays in SUBROUTINE CoordSys_Dealloc.'
-
-
-   ! Initialize ErrStat and ErrMsg
-
-ErrStat = ErrID_None
-ErrMsg  = ''
-
-
-  ! Deallocate coordinate system arrays:
-
-IF ( ALLOCATED(CoordSys%i1) ) THEN  ! We'll assume that if one is allocated, all the arrays are allocated
-
-   DEALLOCATE ( CoordSys%i1, CoordSys%i2, CoordSys%i3, STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-   IF ( ErrStat /= 0 )  THEN
-      ErrStat = ErrID_Info
-      ErrMsg  = 'Error deallocating the i1, i2, and i3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   END IF
-
-   DEALLOCATE ( CoordSys%j1, CoordSys%j2, CoordSys%j3, STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-   IF ( ErrStat /= 0 )  THEN
-      ErrStat = ErrID_Info
-      ErrMsg  = 'Error deallocating the j1, j2, and j3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   END IF
-
-
-   DEALLOCATE ( CoordSys%m1, CoordSys%m2, CoordSys%m3, STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-   IF ( ErrStat /= 0 )  THEN
-      ErrStat = ErrID_Info
-      ErrMsg  = 'Error deallocating the m1, m2, and m3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   END IF
-
-
-   DEALLOCATE ( CoordSys%n1, CoordSys%n2, CoordSys%n3, STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-   IF ( ErrStat /= 0 )  THEN
-      ErrStat = ErrID_Info
-      ErrMsg  = 'Error deallocating the n1, n2, and n3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   END IF
-
-
-   DEALLOCATE ( CoordSys%t1, CoordSys%t2, CoordSys%t3, STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-   IF ( ErrStat /= 0 )  THEN
-      ErrStat = ErrID_Info
-      ErrMsg  = 'Error deallocating the t1, t2, and t3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   END IF
-
-
-   DEALLOCATE ( CoordSys%te1, CoordSys%te2, CoordSys%te3, STAT=ErrStat ) !this argument doesn't work in IVF 10.1: , ERRMSG=ErrMsg
-   IF ( ErrStat /= 0 )  THEN
-      ErrStat = ErrID_Info
-      ErrMsg  = 'Error deallocating the te1, te2, and te3 '//TRIM(ErrTxt)//' '//TRIM(ErrMsg)
-   END IF
-
-END IF
-
-
-
-RETURN
-END SUBROUTINE CoordSys_Dealloc
-!=======================================================================
+!SUBROUTINE DrvTrTrq ( p_StrD, p_Ctrl, LSS_Spd, GBoxTrq )
 SUBROUTINE DrvTrTrq ( p_StrD, LSS_Spd, GBoxTrq )
 
 
@@ -2576,6 +2496,7 @@ IMPLICIT                        NONE
 
    ! Passed variables:
 TYPE(StrD_ParameterType),INTENT(IN) :: p_StrD                                    ! Parameters of the structural dynamics module
+!TYPE(Ctrl_ParameterType),INTENT(IN) :: p_Ctrl                                    ! Parameters of the controls module
 REAL(ReKi), INTENT(OUT)      :: GBoxTrq                                         ! Gearbox torque on the LSS side in N-m (output).
 REAL(ReKi), INTENT(IN )      :: LSS_Spd                                         ! LSS speed in rad/sec (input).
 
@@ -3084,7 +3005,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    USE            General                                   ! contains file units, too
    USE            InitCond
    USE            Linear
-   USE            Output
    USE            TurbCont
 
    INTEGER,       INTENT(OUT) :: ErrStat                    ! Determines if an error was encountered
@@ -3155,7 +3075,7 @@ SUBROUTINE FAST_Terminate( ErrStat )
    !-------------------------------------------------------------------------------------------------
    ! Close any open files
    !-------------------------------------------------------------------------------------------------
-   CALL CloseEcho()           ! NWTC Library
+!   CALL CloseEcho( UnEc )           ! NWTC Library
 
 
    CLOSE( UnIn )     !20      ! I/O unit number for the input files.
@@ -3484,15 +3404,14 @@ SUBROUTINE FAST_Initialize(p,x,y,OtherState,InputFileData)
    !       the (L)th DOF acceleration is zero.
 
 
-USE                             EnvCond
-USE                             FloatingPlatform, ONLY:InitFltngPtfmLd
 USE                             General
 USE                             InitCond
-USE                             Output
-USE                             Platform
 USE                             SimCont
-USE                             Waves, ONLY:InitWaves
 USE                             FAST_IO_Subs, ONLY: ChckOutLst
+
+USE HydroVals
+USE FloatingPlatform, ONLY:InitFltngPtfmLd
+USE Waves, ONLY:InitWaves
 
 IMPLICIT                        NONE
 
@@ -3597,12 +3516,12 @@ DO K = 1,p%NumBl   ! Loop through all blades
    p%DOF_Flag( DOF_BF(K,2) ) = InputFileData%FlapDOF2
    p%DOF_Flag( DOF_BE(K,1) ) = InputFileData%EdgeDOF
 
-   p%DOF_Desc( DOF_BF(K,1) ) = '1st flapwise bending-mode DOF of blade '//TRIM(Int2LStr( K ))// &
-                             ' (internal DOF index = DOF_BF('         //TRIM(Int2LStr( K ))//',1))'
-   p%DOF_Desc( DOF_BE(K,1) ) = '1st edgewise bending-mode DOF of blade '//TRIM(Int2LStr( K ))// &
-                             ' (internal DOF index = DOF_BE('         //TRIM(Int2LStr( K ))//',1))'
-   p%DOF_Desc( DOF_BF(K,2) ) = '2nd flapwise bending-mode DOF of blade '//TRIM(Int2LStr( K ))// &
-                             ' (internal DOF index = DOF_BF('         //TRIM(Int2LStr( K ))//',2))'
+   p%DOF_Desc( DOF_BF(K,1) ) = '1st flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
+                             ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',1))'
+   p%DOF_Desc( DOF_BE(K,1) ) = '1st edgewise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
+                             ' (internal DOF index = DOF_BE('         //TRIM(Num2LStr( K ))//',1))'
+   p%DOF_Desc( DOF_BF(K,2) ) = '2nd flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
+                             ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',2))'
 
 ENDDO          ! K - All blades
 
@@ -3887,7 +3806,7 @@ ENDIF
 RETURN
 END SUBROUTINE FAST_Initialize
 !=======================================================================
-SUBROUTINE PtfmLoading(x)
+SUBROUTINE PtfmLoading(x, PtfmAM, PtfmFt)
 
 
    ! This routine computes the platform loading; that is PtfmAM(1:6,1:6)
@@ -3895,7 +3814,6 @@ SUBROUTINE PtfmLoading(x)
 
 USE                             FloatingPlatform, ONLY:FltngPtfmLd
 USE                             General
-USE                             Platform
 USE                             SimCont
 
 IMPLICIT                        NONE
@@ -3903,149 +3821,44 @@ IMPLICIT                        NONE
 
    ! passed variables
 
-TYPE(StrD_ContinuousStateType),INTENT(IN)       :: x                          ! The structural dynamics module's continuous states
+TYPE(StrD_ContinuousStateType),INTENT(IN)  :: x                          ! The structural dynamics module's continuous states
+REAL(ReKi),INTENT(OUT)                     :: PtfmAM (6,6)               ! Platform added mass matrix.
+REAL(ReKi),INTENT(OUT)                     :: PtfmFt   (6)               ! The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the platform force at the platform reference (point Z) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the platform moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()'s.
 
    ! Local variables:
 
-REAL(ReKi), PARAMETER        :: SymTol   = 9.999E-4                             ! Tolerance used to determine if matrix PtfmAM is symmetric.
+!REAL(ReKi), PARAMETER        :: SymTol   = 9.999E-4                     ! Tolerance used to determine if matrix PtfmAM is symmetric.
 
-INTEGER(4)                   :: I                                               ! Loops through all platform DOFs.
-INTEGER(4)                   :: J                                               ! Loops through all platform DOFs.
+INTEGER(4)                   :: I                                        ! Loops through all platform DOFs.
+INTEGER(4)                   :: J                                        ! Loops through all platform DOFs.
 
 
 
-SELECT CASE ( PtfmModel )  ! Which platform model are we using?
+IF ( PtfmModel == 0 .OR. PtfmLdMod == 0 ) THEN           ! No platform or no platform loading
+   PtfmAM = 0.0_ReKi 
+   PtfmFt = 0.0_ReKi   
+ELSEIF ( PtfmLdMod == 1 ) THEN                           ! User-defined platform loading (all platform models)
 
-CASE ( 0 )                 ! None!
+   CALL UserPtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, DirRoot, PtfmAM, PtfmFt )
 
+      ! Ensure that the platform added mass matrix returned by UserPtfmLd, PtfmAM, is symmetric; Abort if necessary:
+   IF ( .NOT. IsSymmetric( PtfmAM ) ) THEN
+      CALL ProgAbort ( ' The user-defined platform added mass matrix is unsymmetric.'// &
+                        '  Make sure PtfmAM returned by UserPtfmLd() is symmetric.'        )
+   END IF
+      
+ELSEIF ( PtfmModel == 3 .AND. PtfmLdMod == 9999 ) THEN    ! Undocumented loading for a floating offshore platform 
+   
+      ! CALL the undocumented time domain hydrodynamic loading and mooring system dynamics routine:
+   CALL FltngPtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, PtfmAM, PtfmFt )
 
-   ! Do nothing here since PtfmAM and PtfmFt are all initialized to zero.
+ELSE ! This shouldn't occur
+   PtfmAM = 0.0_ReKi 
+   PtfmFt = 0.0_ReKi   
+END IF   
+   
 
 
-CASE ( 1 )                 ! Onshore.
-
-
-   SELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
-
-   CASE ( 0 )                 ! None!
-
-
-   ! Do nothing here since PtfmAM and PtfmFt are all initialized to zero.
-
-
-   CASE ( 1 )                 ! User-defined platform loading.
-
-
-   ! CALL the user-defined platform loading model:
-
-      CALL UserPtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, DirRoot, PtfmAM, PtfmFt )
-
-
-   ! Ensure that the platform added mass matrix returned by UserPtfmLd,
-   !   PtfmAM, is symmetric; Abort if necessary:
-
-      DO I = 1,5        ! Loop through the 1st 5 rows (columns) of PtfmAM
-
-         DO J = (I+1),6 ! Loop through all columns (rows) passed I
-
-            IF ( ABS( PtfmAM(I,J) - PtfmAM(J,I) ) > SymTol )  &
-               CALL ProgAbort ( ' The user-defined platform added mass matrix is unsymmetric.'// &
-                                '  Make sure PtfmAM returned by UserPtfmLd() is symmetric.'        )
-
-         ENDDO          ! J - All columns (rows) passed I
-
-      ENDDO             ! I - The 1st 5 rows (columns) of PtfmAM
-
-
-   ENDSELECT
-
-
-CASE ( 2 )                 ! Fixed bottom offshore.
-
-
-   SELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
-
-   CASE ( 0 )                 ! None!
-
-
-   ! Do nothing here since PtfmAM and PtfmFt are all initialized to zero.
-
-
-   CASE ( 1 )                 ! User-defined platform loading.
-
-
-   ! CALL the user-defined platform loading model:
-
-      CALL UserPtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, DirRoot, PtfmAM, PtfmFt )
-
-
-   ! Ensure that the platform added mass matrix returned by UserPtfmLd,
-   !   PtfmAM, is symmetric; Abort if necessary:
-
-      DO I = 1,5        ! Loop through the 1st 5 rows (columns) of PtfmAM
-
-         DO J = (I+1),6 ! Loop through all columns (rows) passed I
-
-            IF ( ABS( PtfmAM(I,J) - PtfmAM(J,I) ) > SymTol )  &
-               CALL ProgAbort ( ' The user-defined platform added mass matrix is unsymmetric.'// &
-                                '  Make sure PtfmAM returned by UserPtfmLd() is symmetric.'        )
-
-         ENDDO          ! J - All columns (rows) passed I
-
-      ENDDO             ! I - The 1st 5 rows (columns) of PtfmAM
-
-
-   ENDSELECT
-
-
-CASE ( 3 )                 ! Floating offshore.
-
-
-   SELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
-
-   CASE ( 0 )                 ! None!
-
-
-   ! Do nothing here since PtfmAM and PtfmFt are all initialized to zero.
-
-
-   CASE ( 1 )                 ! User-defined platform loading.
-
-
-   ! CALL the user-defined platform loading model:
-
-      CALL UserPtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, DirRoot, PtfmAM, PtfmFt )
-
-
-   ! Ensure that the platform added mass matrix returned by UserPtfmLd,
-   !   PtfmAM, is symmetric; Abort if necessary:
-
-      DO I = 1,5        ! Loop through the 1st 5 rows (columns) of PtfmAM
-
-         DO J = (I+1),6 ! Loop through all columns (rows) passed I
-
-            IF ( ABS( PtfmAM(I,J) - PtfmAM(J,I) ) > SymTol )  &
-               CALL ProgAbort ( ' The user-defined platform added mass matrix is unsymmetric.'// &
-                                '  Make sure PtfmAM returned by UserPtfmLd() is symmetric.'        )
-
-         ENDDO          ! J - All columns (rows) passed I
-
-      ENDDO             ! I - The 1st 5 rows (columns) of PtfmAM
-
-
-   CASE ( 9999 )              ! Undocumented loading for a floating platform.
-
-
-   ! CALL the undocumented time domain hydrodynamic loading and mooring system
-   !   dynamics routine:
-
-      CALL FltngPtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, PtfmAM, PtfmFt )
-
-
-   ENDSELECT
-
-
-ENDSELECT
 
 RETURN
 END SUBROUTINE PtfmLoading
@@ -4152,12 +3965,9 @@ SUBROUTINE RtHS( p, x, OtherState, u, AugMatOut )
 
 USE                             AeroElem
 USE                             DriveTrain
-USE                             EnvCond
 USE                             General
 USE                             InitCond
 USE                             NacelleYaw
-USE                             Output
-USE                             Platform
 USE                             SimCont
 USE                             TailAero
 USE                             TipBrakes
@@ -5984,8 +5794,7 @@ ENDIF
    ! Let's compute the platform loading; that is PtfmAM(1:6,1:6), and
    !   PtfmFt(1:6):
 
-CALL PtfmLoading( x )
-
+CALL PtfmLoading( x, u%PtfmAM, u%PtfmFt )
 
    ! Compute the partial platform forces and moments (including those
    !   associated with the QD2T()'s and those that are not) at the platform
@@ -6004,21 +5813,21 @@ OtherState%RtHS%PFZHydro = 0.0
 OtherState%RtHS%PMXHydro = 0.0
 DO I = 1,p%DOFs%NPYE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
 
-   OtherState%RtHS%PFZHydro(p%DOFs%PYE(I),:) = - PtfmAM(DOF_Sg,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
-                                        - PtfmAM(DOF_Sw,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
-                                        - PtfmAM(DOF_Hv,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
-   OtherState%RtHS%PMXHydro(p%DOFs%PYE(I),:) = - PtfmAM(DOF_R ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
-                                        - PtfmAM(DOF_P ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
-                                        - PtfmAM(DOF_Y ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
+   OtherState%RtHS%PFZHydro(p%DOFs%PYE(I),:) = - u%PtfmAM(DOF_Sg,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
+                                        - u%PtfmAM(DOF_Sw,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
+                                        - u%PtfmAM(DOF_Hv,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
+   OtherState%RtHS%PMXHydro(p%DOFs%PYE(I),:) = - u%PtfmAM(DOF_R ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
+                                        - u%PtfmAM(DOF_P ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
+                                        - u%PtfmAM(DOF_Y ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
 
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
 
-OtherState%RtHS%FZHydrot = PtfmFt(DOF_Sg)*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
-         + PtfmFt(DOF_Sw)*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
-         + PtfmFt(DOF_Hv)*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
-OtherState%RtHS%MXHydrot = PtfmFt(DOF_R )*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
-         + PtfmFt(DOF_P )*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
-         + PtfmFt(DOF_Y )*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
+OtherState%RtHS%FZHydrot = u%PtfmFt(DOF_Sg)*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
+         + u%PtfmFt(DOF_Sw)*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
+         + u%PtfmFt(DOF_Hv)*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
+OtherState%RtHS%MXHydrot = u%PtfmFt(DOF_R )*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
+         + u%PtfmFt(DOF_P )*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
+         + u%PtfmFt(DOF_Y )*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
 
 
 
@@ -7612,7 +7421,6 @@ SUBROUTINE TimeMarch( p_StrD, x_StrD, OtherSt_StrD, u_StrD, y_StrD, ErrStat, Err
 
 !USE                             General, ONLY : UnOuBin
 USE General, ONLY: RootName
-USE                             Output
 USE                             SimCont
 USE                             FAST_IO_Subs       ! WrOutHdr(),  SimStatus(), WrOutput()
 USE                             NOISE              ! PredictNoise(), WriteAveSpecOut()
@@ -7782,7 +7590,7 @@ REAL(ReKi), INTENT(OUT )     :: TwrFt     (6)                                   
 
    ! Local variables:
 
-REAL(ReKi), PARAMETER        :: SymTol   = 9.999E-4                             ! Tolerance used to determine if matrix PtfmAM is symmetric.
+!REAL(ReKi), PARAMETER        :: SymTol   = 9.999E-4                             ! Tolerance used to determine if matrix PtfmAM is symmetric.
 REAL(ReKi)                   :: X        (6)                                    ! The 3 components of the translational displacement (in m  ) of the current tower node and the 3 components of the rotational displacement       (in rad  ) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
 REAL(ReKi)                   :: XD       (6)                                    ! The 3 components of the translational velocity     (in m/s) of the current tower node and the 3 components of the rotational (angular) velocity (in rad/s) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
 
@@ -7856,18 +7664,10 @@ CASE ( 2 )                 ! Fixed bottom offshore.
 
    ! Ensure that the tower element added mass matrix returned by UserTwrLd,
    !   TwrAM, is symmetric; Abort if necessary:
-
-      DO I = 1,5        ! Loop through the 1st 5 rows (columns) of TwrAM
-
-         DO J = (I+1),6 ! Loop through all columns (rows) passed I
-
-            IF ( ABS( TwrAM(I,J) - TwrAM(J,I) ) > SymTol )  &
-               CALL ProgAbort ( ' The user-defined tower element added mass matrix is unsymmetric.'// &
-                                '  Make sure TwrAM returned by UserTwrLd() is symmetric.'               )
-
-         ENDDO          ! J - All columns (rows) passed I
-
-      ENDDO             ! I - The 1st 5 rows (columns) of TwrAM
+   IF (.NOT. IsSymmetric( TwrAM ) ) THEN
+      CALL ProgAbort ( ' The user-defined tower element added mass matrix is unsymmetric.'// &
+                       '  Make sure TwrAM returned by UserTwrLd() is symmetric.'               )
+   END IF
 
 
    ENDSELECT

@@ -1,0 +1,151 @@
+###################################################################################################################################
+# Registry for Controls in the FAST Modularization Framework
+# This Registry file is used to create MODULE Controls_Types  which contains all of the user-defined types needed in Controls.
+# It also contains copy, destroy, pack, and unpack routines associated with each defined data types.
+# See the NWTC Programmer's Handbook for further information on the format/contents of this file.
+#
+# Entries are of the form
+# <keyword>	<ModuleName/ModName>	<TypeName>	<FieldType>	<FieldName>	<Dims>	<IO>	<DNAME>	<DESCRIP>	<UNITS>
+#
+# Use ^ as a shortcut for the value in the same column from the previous line.
+###################################################################################################################################
+
+#bjj NOTE: All variables initialized here should be double-checked that they are properly initialized in the new framework (i.e. can run twice)
+
+# ...... Include files (definitions from NWTC Library) ............................................................................
+# make sure that the file name does not have any trailing white spaces!
+include	Registry_NWTC_Library.txt
+
+# ..... Input file data ...........................................................................................................
+# This is data defined in the Input File for this module (or could otherwise be passed in)
+typedef	Controls/Ctrl	Ctrl_InputFile	IntKi	DummyVal	-	-	-		-
+
+
+
+
+
+# ..... Internal data types .......................................................................................................
+
+# ..... Internal data types: Coordinate Systems ...................................................................................
+
+
+
+# ..... Initialization data .......................................................................................................
+# Define inputs that the initialization routine may need here:
+typedef	^	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"	-
+
+# Define outputs from the initialization routine here:
+typedef	^	InitOutputType	CHARACTER(10)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
+typedef	^	^	CHARACTER(10)	WriteOutputUnt	{:}	-	-	"Units of the output-to-file channels"	-
+typedef	^	^	ProgDesc	Ver	-	-	-	"This module's name, version, and date"	-
+
+# ..... States ....................................................................................................................
+# Define continuous (differentiable) states here:
+typedef	^	ContinuousStateType	ReKi	DummyContState	-	-	-	"Remove this variable if you have continuous states"	-
+
+# Define discrete (nondifferentiable) states here:
+typedef	^	DiscreteStateType	ReKi	DummyDiscState	-	-	-	"Remove this variable if you have discrete states"	-
+
+# Define constraint states here:
+typedef	^	ConstraintStateType	ReKi	DummyConstrState	-	-	-	"Remove this variable if you have constraint states"	-
+
+# Define "other" states (any data that are not considered actual states) here:
+typedef	^	OtherStateType	ReKi	DummyOtherState	-	-	-	"Coordinate systems in the FAST framework"	-
+
+# ..... Parameters ................................................................................................................
+# Define parameters here:
+# Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
+typedef	^	ParameterType	DbKi	DT	-	-	-	"Time step for continuous state integration & discrete state update"	seconds
+# parameters from DriveTrain
+typedef	^	^	ReKi	ElecPwr	-	-	-	"Electrical power, W"
+typedef	^	^	ReKi	GenCTrq	-	-	-	"Constant generator torque"
+typedef	^	^	ReKi	GenSpRZT	-	-	-	"Difference between rated and zero-torque generator speeds for SIG"
+#typedef	^	^	ReKi	GenSpRat	-	-	-	"Rated generator speed"
+#typedef	^	^	ReKi	GenSpZT	-	-	-	"Zero-torque generator speed"
+typedef	^	^	ReKi	GenTrq	-	-	-	"Electrical generator torque"
+typedef	^	^	ReKi	HSSBrDT	-	-	-	"Time it takes for HSS brake to reach full deployment once deployed"
+typedef	^	^	ReKi	HSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-). !bjj: used to be local variable in FAST.f90/Subroutine DrvTrTrq()"
+typedef	^	^	ReKi	HSSBrTqF	-	-	-	"Fully deployed HSS brake torque"
+typedef	^	^	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"
+typedef	^	^	ReKi	HSSBrTrqC	-	-	-	"A copy of the value of HSSBrTrq calculated in SUBROUTINE DrvTrTrq()"
+typedef	^	^	ReKi	SIG_PORt	-	-	-	"Pull-out ratio (Tpullout/Trated)"
+typedef	^	^	ReKi	SIG_POSl	-	-	-	"Pullout slip"
+typedef	^	^	ReKi	SIG_POTq	-	-	-	"Pullout torque"
+typedef	^	^	ReKi	SIG_RtSp	-	-	-	"Rated speed"
+typedef	^	^	ReKi	SIG_RtTq	-	-	-	"Rated torque"
+typedef	^	^	ReKi	SIG_SlPc	-	-	-	"Rated generator slip percentage"
+typedef	^	^	ReKi	SIG_Slop	-	-	-	"Torque/Speed slope for simple induction generator"
+typedef	^	^	ReKi	SIG_SySp	-	-	-	"Synchronous (zero-torque) generator speed"
+typedef	^	^	ReKi	TEC_A0	-	-	-	"A0 term for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_C0	-	-	-	"C0 term for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_C1	-	-	-	"C1 term for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_C2	-	-	-	"C2 term for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_Freq	-	-	-	"Line frequency for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_K1	-	-	-	"K1 term for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_K2	-	-	-	"K2 term for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_MR	-	-	-	"Magnetizing reactance for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_Re1	-	-	-	"Thevenin's equivalent stator resistance (ohms)"
+typedef	^	^	ReKi	TEC_RLR	-	-	-	"Rotor leakage reactance for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_RRes	-	-	-	"Rotor resistance for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_SLR	-	-	-	"Stator leakage reactance for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_SRes	-	-	-	"Stator resistance for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_SySp	-	-	-	"Synchronous speed for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_V1a	-	-	-	"Source voltage for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_VLL	-	-	-	"Line-to-line RMS voltage for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	TEC_Xe1	-	-	-	"Thevenin's equivalent stator leakage reactance (ohms)"
+typedef	^	^	IntKi	TEC_NPol	-	-	-	"Number of poles for Thevenin-equivalent circuit"
+# parameters from TurbCont
+typedef	^	^	ReKi	BlPitch	{:}	-	-	"Initial and current blade pitch angles"
+typedef	^	^	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"
+typedef	^	^	ReKi	BlPitchF	{:}	-	-	"Final blade pitch"
+typedef	^	^	ReKi	BlPitchFrct	{:}	-	-	"Blade pitch angle fractions used for the override pitch maneuver calculation"
+typedef	^	^	ReKi	BlPitchI	{:}	-	-	"Initial blade pitch angles at the start of the override pitch maneuver"
+typedef	^	^	ReKi	NacYawF	-	-	-	"Final yaw angle after override yaw maneuver"
+typedef	^	^	ReKi	SpdGenOn	-	-	-	"Generator speed to turn on the generator for a startup"
+typedef	^	^	ReKi	TBDepISp	{:}	-	-	"Deployment-initiation speed for the tip brakes"
+typedef	^	^	ReKi	THSSBrDp	-	-	-	"Time to initiate deployment of the shaft brake"	s
+typedef	^	^	ReKi	THSSBrFl	-	-	-	"Time at which shaft brake is fully deployed"	s
+typedef	^	^	ReKi	TiDynBrk	-	-	-	"Time to initiate deployment of the dynamic generator brake"	s
+typedef	^	^	ReKi	TimGenOf	-	-	-	"Time to turn off generator for braking or modeling a run-away"	s
+typedef	^	^	ReKi	TimGenOn	-	-	-	"Time to turn on generator for startup"	s
+typedef	^	^	ReKi	TPCOn	-	-	-	"Time to enable active pitch control"	s
+typedef	^	^	ReKi	TPitManE	{:}	-	-	"Time to end pitch maneuvers for each blade"	s
+typedef	^	^	ReKi	TPitManS	{:}	-	-	"Time to start pitch maneuvers for each blade"	s
+typedef	^	^	ReKi	TTpBrDp	{:}	-	-	"Times to initiate deployment of tip brakes"	s
+typedef	^	^	ReKi	TTpBrFl	{:}	-	-	"Times at which tip brakes are fully deployed"	s
+typedef	^	^	ReKi	TYawManE	-	-	-	"Time to end override yaw maneuver"	s
+typedef	^	^	ReKi	TYawManS	-	-	-	"Time to start override yaw maneuver"	s
+typedef	^	^	ReKi	TYCOn	-	-	-	"Time to enable active yaw control"	s
+typedef	^	^	ReKi	VS_Rgn2K	-	-	-	"Generator torque constant in Region 2 (HSS side)"	N-m/rpm^2
+typedef	^	^	ReKi	VS_RtGnSp	-	-	-	"Rated generator speed (HSS side)"	rpm
+typedef	^	^	ReKi	VS_RtTq	-	-	-	"Rated generator torque/constant generator torque in Region 3 (HSS side)"	N-m
+typedef	^	^	ReKi	VS_Slope	-	-	-	"Torque/speed slope of region 2 1/2 induction generator"
+typedef	^	^	ReKi	VS_SlPc	-	-	-	"Rated generator slip percentage in Region 2 1/2"	%
+typedef	^	^	ReKi	VS_SySp	-	-	-	"Synchronous speed of region 2 1/2 induction generator"
+typedef	^	^	ReKi	VS_TrGnSp	-	-	-	"Transitional generator speed between regions 2 and 2 1/2"
+typedef	^	^	ReKi	YawPosCom	-	-	-	"Commanded yaw angle from user-defined routines"	rad
+typedef	^	^	ReKi	YawRateCom	-	-	-	"Commanded yaw rate  from user-defined routines"	rad/s
+typedef	^	^	IntKi	GenModel	-	-	-	"Generator model"
+typedef	^	^	IntKi	HSSBrMode	-	-	-	"HSS brake model"
+typedef	^	^	IntKi	PCMode	-	-	-	"Pitch control mode"
+typedef	^	^	IntKi	VSContrl	-	-	-	"Variable-speed-generator control switch"
+typedef	^	^	IntKi	YCMode	-	-	-	"Yaw control mode"
+typedef	^	^	LOGICAL	BegPitMan	{:}	-	-	".TRUE. before the override pitch manuever has begun (begin pitch manuever)"
+typedef	^	^	LOGICAL	GenTiStp	-	-	-	"Stop generator based upon T: time or F: generator power = 0"
+typedef	^	^	LOGICAL	GenTiStr	-	-	-	"Start generator based upon T: time or F: generator speed"
+
+
+
+# ..... Inputs ....................................................................................................................
+# Define inputs that are contained on the mesh here:
+#typedef	^	InputType	MeshType	MeshedInput	-	-	-	"Meshed input data"	-
+# Define inputs that are not on this mesh here:
+typedef	^	InputType	IntKi	DummyInput	-	-	-	"Remove this variable if you have input data"	-
+
+
+
+# ..... Outputs ...................................................................................................................
+# Define outputs that are contained on the mesh here:
+#typedef	^	OutputType	MeshType	MeshedOutput	-	-	-	"Meshed output data"	-
+# Define outputs that are not on this mesh here:
+typedef	^	OutputType	ReKi	WriteOutput	{:}	-	-	"Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt"

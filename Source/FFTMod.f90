@@ -77,7 +77,7 @@ MODULE FFT_Module
 !remove   ! This module is NEW:
 !remove    USE                                       Precision
 ! We need the Precision module and the Abort() and
-! Int2LStr() functions from the NWTC_IO module.
+! Num2LStr() functions from the NWTC_IO module.
 
      USE                                  NWTC_Library
 
@@ -423,10 +423,10 @@ CONTAINS
     LOGICAL               :: DividesN1(NFact)       ! Does this factor divide NTR-1?
 
 !remove   ! This variable is NEW:
-!remove    CHARACTER(11), EXTERNAL :: Int2LStr             ! A function to convert an interger to a left-justified string.
+!remove    CHARACTER(11), EXTERNAL :: Num2LStr             ! A function to convert an interger to a left-justified string.
 
     IF ( NumPrimes > NFact )  THEN
-        CALL ProgAbort ( 'In the call to PSF, NumPrimes must be less than '//TRIM( Int2LStr( NFact ) )//'.' )
+        CALL ProgAbort ( 'In the call to PSF, NumPrimes must be less than '//TRIM( Num2LStr( NFact ) )//'.' )
     ENDIF
 
     DividesN1(:) = .FALSE.                          ! We need to check all of the primes the first time through

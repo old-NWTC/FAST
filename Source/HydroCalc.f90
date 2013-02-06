@@ -567,7 +567,7 @@ CONTAINS
       
       IF ( nSeeds /= 2 ) THEN
          CALL ProgWarn( ' The random number generator in use differs from the original code provided by NREL. This pRNG uses ' &
-                                  //TRIM(Int2LStr(nSeeds))//' seeds instead of the 2 in the HydroDyn input file.')
+                                  //TRIM(Num2LStr(nSeeds))//' seeds instead of the 2 in the HydroDyn input file.')
       END IF
 
       ALLOCATE ( TmpWaveSeeds ( nSeeds ), STAT=Sttus)
@@ -1991,7 +1991,7 @@ CONTAINS
    IF ( .NOT. ALLOCATED ( WaveAcc0 )                           )  THEN
       CALL ProgAbort ( ' Routine InitWaves() must be called before routine WaveAcceleration().' )
    ELSEIF ( ( IWaveKin   < 1 ) .OR. ( IWaveKin   > NWaveKin0 ) )  THEN
-      CALL ProgAbort ( ' Point '//TRIM( Int2LStr( IWaveKin ) )//' is not one of the'  // &
+      CALL ProgAbort ( ' Point '//TRIM( Num2LStr( IWaveKin ) )//' is not one of the'  // &
                    ' points where the incident wave kinematics have been computed.'         )
    ELSEIF ( ( KDirection < 1 ) .OR. ( KDirection > 3         ) )  THEN
       CALL ProgAbort ( ' KDirection must be 1, 2, or 3 in routine WaveAcceleration().'          )
@@ -2038,7 +2038,7 @@ CONTAINS
    IF ( .NOT. ALLOCATED ( WaveElev ) )  THEN
       CALL ProgAbort ( ' Routine InitWaves() must be called before routine WaveElevation().' )
    ELSEIF ( ( IWaveElev < 1 ) .OR. ( IWaveElev > NWaveElev ) )  THEN
-      CALL ProgAbort ( ' Point '//TRIM( Int2LStr( IWaveElev ) )//' is not one of the'  // &
+      CALL ProgAbort ( ' Point '//TRIM( Num2LStr( IWaveElev ) )//' is not one of the'  // &
                    ' designated points where the wave elevation has been computed.'     )
    ENDIF
 
@@ -2135,7 +2135,7 @@ CONTAINS
    IF ( .NOT. ALLOCATED ( WaveVel0 )                           )  THEN
       CALL ProgAbort ( ' Routine InitWaves() must be called before routine WaveVelocity().' )
    ELSEIF ( ( IWaveKin   < 1 ) .OR. ( IWaveKin   > NWaveKin0 ) )  THEN
-      CALL ProgAbort ( ' Point '//TRIM( Int2LStr( IWaveKin ) )//' is not one of the'  // &
+      CALL ProgAbort ( ' Point '//TRIM( Num2LStr( IWaveKin ) )//' is not one of the'  // &
                    ' points where the incident wave kinematics have been computed.'     )
    ELSEIF ( ( KDirection < 1 ) .OR. ( KDirection > 3         ) )  THEN
       CALL ProgAbort ( ' KDirection must be 1, 2, or 3 in routine WaveVelocity().'          )
@@ -2249,7 +2249,7 @@ CONTAINS
    IF ( .NOT. ALLOCATED ( LAnchHTe )                )  THEN
       CALL ProgAbort ( ' Routine InitFltngPtfmLd() must be called before routine AnchorTension().' )
    ELSEIF ( ( ILine < 1 ) .OR. ( ILine > NumLines ) )  THEN
-      CALL ProgAbort ( ' Mooring line '//TRIM( Int2LStr( ILine ) )//' has not been analyzed.' )
+      CALL ProgAbort ( ' Mooring line '//TRIM( Num2LStr( ILine ) )//' has not been analyzed.' )
    ENDIF
 
 
@@ -2293,7 +2293,7 @@ CONTAINS
    IF ( .NOT. ALLOCATED ( LFairHTe )                )  THEN
       CALL ProgAbort ( ' Routine InitFltngPtfmLd() must be called before routine FairleadTension().' )
    ELSEIF ( ( ILine < 1 ) .OR. ( ILine > NumLines ) )  THEN
-      CALL ProgAbort ( ' Mooring line '//TRIM( Int2LStr( ILine ) )//' has not been analyzed.' )
+      CALL ProgAbort ( ' Mooring line '//TRIM( Num2LStr( ILine ) )//' has not been analyzed.' )
    ENDIF
 
 
@@ -4381,7 +4381,7 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
       CALL ProgAbort ( ' "'//TRIM(WAMITFile)//'.1" must contain both the zero- and infinite-frequency limits of added mass.' )
    ELSEIF ( HighFreq > RdtnOmegaMax      )  THEN   ! .TRUE. if the highest frequency component (not counting infinity) in the WAMIT file is greater than RdtnOmegaMax
       CALL ProgAbort ( ' Based on the frequency range found in "'//TRIM(WAMITFile)//'.1",'       // &
-                   ' RdtnDT must be set smaller than '//TRIM(Flt2LStr( Pi/HighFreq ))//' sec'// &
+                   ' RdtnDT must be set smaller than '//TRIM(Num2LStr( Pi/HighFreq ))//' sec'// &
                    ' in order to accurately compute the radiation impulse response functions.'    )
    ENDIF
 
@@ -4751,9 +4751,9 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    IF ( .NOT. ALLOCATED ( LNodesPi )                   )  THEN
       CALL ProgAbort ( ' Routine InitFltngPtfmLd() must be called before routine LinePosition().' )
    ELSEIF ( ( ILine < 1 ) .OR. ( ILine > NumLines  )   )  THEN
-      CALL ProgAbort ( ' Mooring line '//TRIM( Int2LStr( ILine ) )//' has not been analyzed.' )
+      CALL ProgAbort ( ' Mooring line '//TRIM( Num2LStr( ILine ) )//' has not been analyzed.' )
    ELSEIF ( ( JNode < 1 ) .OR. ( JNode > LineNodes )   )  THEN
-      CALL ProgAbort ( ' Line node '   //TRIM( Int2LStr( Jnode ) )//' has not been analyzed.' )
+      CALL ProgAbort ( ' Line node '   //TRIM( Num2LStr( Jnode ) )//' has not been analyzed.' )
    ELSEIF ( ( KDirection < 1 ) .OR. ( KDirection > 3 ) )  THEN
       CALL ProgAbort ( ' KDirection must be 1, 2, or 3 in routine LinePosition().'          )
    ENDIF
@@ -4797,9 +4797,9 @@ Stff(6,:) = (/       0.0,       0.0, 0.0, 0.0, 0.0, 0.0 /)  !JASON: VALUES FOR M
    IF ( .NOT. ALLOCATED ( LNodesTe )                 )  THEN
       CALL ProgAbort ( ' Routine InitFltngPtfmLd() must be called before routine LineTension().' )
    ELSEIF ( ( ILine < 1 ) .OR. ( ILine > NumLines  ) )  THEN
-      CALL ProgAbort ( ' Mooring line '//TRIM( Int2LStr( ILine ) )//' has not been analyzed.' )
+      CALL ProgAbort ( ' Mooring line '//TRIM( Num2LStr( ILine ) )//' has not been analyzed.' )
    ELSEIF ( ( JNode < 1 ) .OR. ( JNode > LineNodes ) )  THEN
-      CALL ProgAbort ( ' Line node '   //TRIM( Int2LStr( Jnode ) )//' has not been analyzed.' )
+      CALL ProgAbort ( ' Line node '   //TRIM( Num2LStr( Jnode ) )//' has not been analyzed.' )
    ENDIF
 
 

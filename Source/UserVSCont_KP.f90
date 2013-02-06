@@ -151,7 +151,7 @@ IF ( SFLAG )  THEN
       IF ( I > 1 ) THEN
          IF ( RPMSCH(I) <= RPMSCH(I-1) ) THEN
             CALL ProgWarn('RPM schedule must be increasing in file spd_trq.dat. Schedule will be stopped at ' &
-                                   //TRIM(Flt2LStr(RPMSCH(I-1)))//' RPM.')
+                                   //TRIM(Num2LStr(RPMSCH(I-1)))//' RPM.')
             EXIT
          END IF
       END IF

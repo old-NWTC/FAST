@@ -72,7 +72,6 @@ CONTAINS
 SUBROUTINE PredictNoise( p_StrD, te1, te2, te3, rS )
 
 USE                             AeroElem
-USE                             Output
 USE                             SimCont
 USE                             AeroDyn
 
@@ -1153,7 +1152,6 @@ SUBROUTINE WrNoiseOutHdr(p)
 USE StructDyn_Types
 
 USE                             General
-USE                             Output
 
     ! AeroDyn modules
 USE                             AeroDyn
@@ -1515,7 +1513,6 @@ END SUBROUTINE WriteAveSpecOut
 SUBROUTINE InflowNoise(U,Chord,d,RObs,THETA,PHI,SPLti,p_StrD)
 
 
-USE                             EnvCond
 
 IMPLICIT                        NONE
 

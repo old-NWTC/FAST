@@ -149,12 +149,12 @@ IF ( INITFLAG )  THEN
 
 20 CALL WrScr( 'Error while reading constants from pitch.ipt file'     )
    CALL WrScr( 'Encountered end of file while reading constants'       )
-   CALL WrScr( 'Number of constants expected: '//TRIM(Int2LStr(NCNST)) )
-   CALL WrScr( 'Number of constants found:    '//TRIM(Int2LStr(I-1  )) )
+   CALL WrScr( 'Number of constants expected: '//TRIM(Num2LStr(NCNST)) )
+   CALL WrScr( 'Number of constants found:    '//TRIM(Num2LStr(I-1  )) )
    CALL ProgAbort( 'Check your pitch.ipt file.' )
 
 
-30 CALL WrScr( 'Error in specification of transfer function #'//TRIM(Int2LStr(NR)) )
+30 CALL WrScr( 'Error in specification of transfer function #'//TRIM(Num2LStr(NR)) )
    CALL ProgAbort( 'Check your pitch.ipt file.' )
 
 
@@ -167,8 +167,8 @@ IF ( INITFLAG )  THEN
    IF( NR-1 /= NSZ )  THEN
       CALL WrScr( 'Error in pitch.ipt file'                           )
       CALL WrScr( 'Incorrect number of transfer functions '           )
-      CALL WrScr( 'Number that were read:     '//TRIM(Int2LStr(NR-1)) )
-      CALL WrScr( 'Number that were expected: '//TRIM(Int2LStr(NSZ )) )
+      CALL WrScr( 'Number that were read:     '//TRIM(Num2LStr(NR-1)) )
+      CALL WrScr( 'Number that were expected: '//TRIM(Num2LStr(NSZ )) )
       CALL ProgAbort( 'Check your pitch.ipt file.' )
    ENDIF
 

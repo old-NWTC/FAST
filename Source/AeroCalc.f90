@@ -16,7 +16,6 @@ USE GlueCodeVars
    
    ! FAST Modules:
 
-USE                           EnvCond
 USE                           Noise
 USE                           SimCont !DT, TMax
 
@@ -43,7 +42,7 @@ INTEGER                    :: ErrStat
 
    ! Write data read in from ADFile into MODULEs used by FAST:
 
-p_StrD%BldNodes = NumADBldNodes
+p_StrD%BldNodes = SIZE( ADAeroMarkers%Blade, 1 )
 
 IF (.NOT. ALLOCATED(p_StrD%RNodes)) THEN
    ALLOCATE ( p_StrD%RNodes(p_StrD%BldNodes) , STAT=Sttus )
@@ -89,7 +88,7 @@ ENDIF
 
 p_StrD%RNodes   = ADAeroMarkers%Blade(:,1)%Position(3) + p_StrD%HubRad         ! ADAeroMarkers contains relative markers after initialization
 p_StrD%DRNodes(1) = 2.0*( p_StrD%RNodes(1) - p_StrD%HubRad )
-DO IElm = 2,NumADBldNodes
+DO IElm = 2,p_StrD%BldNodes
    p_StrD%DRNodes(IElm) = 2.0*( p_StrD%RNodes(IElm) - p_StrD%RNodes(IElm-1) ) - p_StrD%DRNodes(IElm-1)
 END DO
 p_StrD%Chord    = C
@@ -123,8 +122,8 @@ IF ( CompAero )  THEN
 
    IF ( ABS( p_StrD%FASTHH - AD_RefHt ) > 0.1*( p_StrD%FASTHH ) )  THEN  !bjj: I believe that this should not be done in the future
 
-      CALL ProgWarn( ' The FAST hub height ('//TRIM(Flt2LStr( p_StrD%FASTHH ))//') and AeroDyn input'// &
-                    ' reference hub height ('//TRIM(Flt2LStr(AD_RefHt))//') differ by more than 10%.' )
+      CALL ProgWarn( ' The FAST hub height ('//TRIM(Num2LStr( p_StrD%FASTHH ))//') and AeroDyn input'// &
+                    ' reference hub height ('//TRIM(Num2LStr(AD_RefHt))//') differ by more than 10%.' )
    ENDIF
 
 ENDIF
@@ -148,7 +147,6 @@ USE GlueCodeVars
 USE                             General
 USE                             SimCont
 USE                             TailAero
-USE                             EnvCond
 
 
    ! AeroDyn Modules

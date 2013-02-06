@@ -77,11 +77,10 @@ SUBROUTINE MakeACF(p_StrD)
 
 USE                             ADAMSInput
 
-USE                             EnvCond
 USE                             General
-USE                             Output
 USE                             SimCont
 USE                             TurbCont
+USE HydroVals
 
 
 IMPLICIT                        NONE
@@ -169,7 +168,7 @@ IF ( p_StrD%DOF_Flag(DOF_GeAz)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, 
 DO K = 1,p_StrD%NumBl ! Loop through all blades
 
    IF ( ( ( PCMode /= 0 ) .AND. ( TPCOn < TMax ) ) .OR. ( TPitManS(K) < TMax ) )  &
-      WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = '//TRIM(Int2LStr( 10000*K ))
+      WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = '//TRIM(Num2LStr( 10000*K ))
 
 ENDDO          ! K - Blades
 
@@ -184,9 +183,9 @@ ENDDO          ! K - Blades
 
 IF ( p_StrD%DOF_Flag(DOF_TFA1) )  THEN   ! Tower flexibility is enabled.
 
-   WRITE    (UnAC,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Int2LStr(           1300 + 1        ))//', '// &
-                                                            TRIM(Int2LStr(           1300 + p_StrD%TwrNodes ))
-   WRITE    (UnAC,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Int2LStr(           1500            ))
+   WRITE    (UnAC,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Num2LStr(           1300 + 1        ))//', '// &
+                                                            TRIM(Num2LStr(           1300 + p_StrD%TwrNodes ))
+   WRITE    (UnAC,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Num2LStr(           1500            ))
 
 ENDIF
 
@@ -194,10 +193,10 @@ IF ( p_StrD%DOF_Flag( DOF_BF(1,1) ) )  THEN   ! Blade flexibility is enabled.
 
    DO K = 1,p_StrD%NumBl       ! Loop through all the blades
 
-      WRITE (   UnAC,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Int2LStr( 10000*K + 3000 + 1        ))//', '// &
-                                                               TRIM(Int2LStr( 10000*K + 3000 + p_StrD%BldNodes ))
+      WRITE (   UnAC,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Num2LStr( 10000*K + 3000 + 1        ))//', '// &
+                                                               TRIM(Num2LStr( 10000*K + 3000 + p_StrD%BldNodes ))
       IF ( p_StrD%TipMass(K) /= 0.0 )  &
-         WRITE (UnAC,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Int2LStr( 10000*K + 5000            ))
+         WRITE (UnAC,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Num2LStr( 10000*K + 5000            ))
 
    ENDDO                ! K - blades
 
@@ -208,8 +207,8 @@ ENDIF
 
 IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we are using the undocumented monopile or platform features .AND. SaveGrphcs is enabled, but not with GH Bladed wave data
 
-   WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, RANGE = '//TRIM(Int2LStr( 100900 + 0         ))//', '// &
-                                                          TRIM(Int2LStr( 100900 + NFreeSrfc ))
+   WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, RANGE = '//TRIM(Num2LStr( 100900 + 0         ))//', '// &
+                                                          TRIM(Num2LStr( 100900 + NFreeSrfc ))
 
 ENDIF
 
@@ -248,13 +247,11 @@ SUBROUTINE MakeACF_LIN( p, InputFileData )
    !   files as model parameters.
 
 
-USE                             EnvCond
 USE                             General
 USE                             InitCond
-USE                             Output
-USE                             Platform
 USE                             SimCont
 USE                             TipBrakes
+USE HydroVals
 
 
 IMPLICIT                        NONE
@@ -321,7 +318,7 @@ IF ( CompAero )  THEN
    DO K = 1,p%NumBl       ! Loop through all blades
       DO J = 1,p%BldNodes ! Loop through the blade nodes/elements
 
-         WRITE (UnAL,FmtText  )  'GFORCE/'//TRIM(Int2LStr( 10000*K + 1000 + 10*J ))// &
+         WRITE (UnAL,FmtText  )  'GFORCE/'//TRIM(Num2LStr( 10000*K + 1000 + 10*J ))// &
                                  ', FX = 0\ FY = 0\ FZ = 0\ TX = 0\ TY = 0\ TZ = 0\'
 
       ENDDO             ! J - Blade nodes/elements
@@ -336,7 +333,7 @@ IF ( ( TBDrConN /= 0.0 ) .OR. ( TBDrConD /= 0.0 ) )  THEN   ! Only removed when 
 
    DO K = 1,p%NumBl       ! Loop through all blades
 
-      WRITE (UnAL,FmtText  )  'VFORCE/'//TRIM(Int2LStr( 10000*K + 7100 ))//', FX = 0\ FY = 0\ FZ = 0\'
+      WRITE (UnAL,FmtText  )  'VFORCE/'//TRIM(Num2LStr( 10000*K + 7100 ))//', FX = 0\ FY = 0\ FZ = 0\'
 
    ENDDO                ! K - Blades
 
@@ -401,9 +398,9 @@ IF ( p%DOF_Flag(DOF_DrTr)   )  WRITE (UnAL,FmtText  )  'DEACTIVATE/MOTION, ID = 
 
 IF ( p%DOF_Flag(DOF_TFA1) )  THEN   ! Tower flexibility is enabled.
 
-   WRITE    (   UnAL,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Int2LStr(           1300 + 1        ))//', '// &
-                                                               TRIM(Int2LStr(           1300 + p%TwrNodes ))
-   WRITE    (   UnAL,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Int2LStr(           1500            ))
+   WRITE    (   UnAL,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Num2LStr(           1300 + 1        ))//', '// &
+                                                               TRIM(Num2LStr(           1300 + p%TwrNodes ))
+   WRITE    (   UnAL,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Num2LStr(           1500            ))
 
 ENDIF
 
@@ -411,10 +408,10 @@ IF ( p%DOF_Flag( DOF_BF(1,1) ) )  THEN   ! Blade flexibility is enabled.
 
    DO K = 1,p%NumBl       ! Loop through all the blades
 
-      WRITE (   UnAL,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Int2LStr( 10000*K + 3000 + 1        ))//', '// &
-                                                               TRIM(Int2LStr( 10000*K + 3000 + p%BldNodes ))
+      WRITE (   UnAL,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Num2LStr( 10000*K + 3000 + 1        ))//', '// &
+                                                               TRIM(Num2LStr( 10000*K + 3000 + p%BldNodes ))
       IF ( p%TipMass(K) /= 0.0 )  &
-         WRITE (UnAL,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Int2LStr( 10000*K + 5000            ))
+         WRITE (UnAL,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Num2LStr( 10000*K + 5000            ))
 
    ENDDO                ! K - blades
 
@@ -467,17 +464,15 @@ USE                             AeroDyn  !to get the unit number for AeroDyn... 
 
 USE                             ADAMSInput
 USE                             DriveTrain
-USE                             EnvCond
 USE                             General
 USE                             InitCond
 USE                             NacelleYaw
-USE                             Output
-USE                             Platform
 USE                             SimCont
 USE                             TailAero
 USE                             TipBrakes
 USE                             TurbCont
 USE                             FASTSubs    !SetCoordSy
+USE HydroVals
 
 
 IMPLICIT                        NONE
@@ -684,14 +679,14 @@ ENDIF
 
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''CalcOuts_V'''
-WRITE (UnAD,FmtText  )  'VARIABLE/'//TRIM(Int2LStr(CalcOuts_V))//', FUNCTION = USER(1)'
+WRITE (UnAD,FmtText  )  'VARIABLE/'//TRIM(Num2LStr(CalcOuts_V))//', FUNCTION = USER(1)'
 !WRITE (UnAD,FmtText  )  'VARIABLE/1'
-!WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Flt2LStr( p%AzimB1Up ))//', '//TRIM(Flt2LStr( p%GBRatio ))// &
-!                        ', '//TRIM(Flt2LStr( p%AvgNrmTpRd ))//', '//TRIM(Flt2LStr( p%ProjArea ))//               &
-!                        ', '//TRIM(Int2LStr( CompAeroI  ))//', '//TRIM(Int2LStr( CompHydroI ))//             &
-!                        ', '//TRIM(Int2LStr( TabDelimI  ))//', '//TRIM(Int2LStr( p%NumBl      ))//','
-!WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( p%BldNodes   ))//', '//TRIM(Int2LStr( p%TwrNodes   ))//             &
-!                        ', '//TRIM(Flt2LStr( p%TipRad     ))//', '//TRIM(Flt2LStr( p%GenIner    ))//' )'
+!WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( p%AzimB1Up ))//', '//TRIM(Num2LStr( p%GBRatio ))// &
+!                        ', '//TRIM(Num2LStr( p%AvgNrmTpRd ))//', '//TRIM(Num2LStr( p%ProjArea ))//               &
+!                        ', '//TRIM(Num2LStr( CompAeroI  ))//', '//TRIM(Num2LStr( CompHydroI ))//             &
+!                        ', '//TRIM(Num2LStr( TabDelimI  ))//', '//TRIM(Num2LStr( p%NumBl      ))//','
+!WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( p%BldNodes   ))//', '//TRIM(Num2LStr( p%TwrNodes   ))//             &
+!                        ', '//TRIM(Num2LStr( p%TipRad     ))//', '//TRIM(Num2LStr( p%GenIner    ))//' )'
 
 
 
@@ -745,7 +740,7 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
 
       DO I = 1,NumLines ! Loop through all mooring lines
          WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''Anchor', I, '_M'''
-         WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( 700 + I ))
+         WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( 700 + I ))
          WRITE (UnAD,FmtText     )  ', PART = 1'
          WRITE (UnAD,FmtTRTRTR   )  ', QP = ', LAnchxi(I), ', ', LAnchyi(I), ', ', LAnchzi(I)   ! NOTE: PtfmRef = 0.0 in this equation
          WRITE (UnAD,FmtText     )  ', REULER = 0D, 0D, 0D'
@@ -774,7 +769,7 @@ WRITE (UnAD,FmtText  )  '!------------------ Ground: Floating Aero and Hydro for
 DO J = 1,p%TwrNodes ! Loop through the blade nodes / elements
    TmpID = 800 + J
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'FloatingAeroHydro_M'''
-   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtText     )  ', PART = 1'
    WRITE (UnAD,FmtText     )  ', FLOATING'
 ENDDO             ! J - Blade nodes / elements
@@ -786,14 +781,14 @@ DO K = 1,p%NumBl       ! Loop through all blades
    DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
       TmpID = K*100 + J
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Bld', K , 'Sec', J, 'FloatingAero_M'''
-      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtText          )  ', PART = 1'
       WRITE (UnAD,FmtText          )  ', FLOATING'
    ENDDO             ! J - Blade nodes / elements
 
    TmpID = 500 + K
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, 'FloatingAero_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', PART = 1'
    WRITE (UnAD,FmtText   )  ', FLOATING'
 
@@ -821,7 +816,7 @@ IF ( CompHydro )  THEN  ! .TRUE. if we are using the undocumented monopile or pl
    WRITE (UnAD,FmtText  )  ', CIRCLE'
    WRITE (UnAD,FmtText  )  ', CM = 20'
    WRITE (UnAD,FmtTR    )  ', RADIUS = ', MAX( p%TipRad, MaxLRadAnch )
-   WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
 ENDIF
@@ -856,7 +851,7 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
       TmpID  = 100900 + I
       TmpID2 = 100800 + I
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , 'OnGround_M'''
-      WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID - 100000 ))
+      WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID - 100000 ))
       WRITE (UnAD,FmtText     )  ', PART = 1'
       WRITE (UnAD,FmtTRTRTR   )  ', QP = ', ( I*FrSrfcSpc - TmpLength )*CWaveDir + TmpLength*SWaveDir, &
                                  ', '     , ( I*FrSrfcSpc - TmpLength )*SWaveDir - TmpLength*CWaveDir, ', ', p%PtfmRef
@@ -866,11 +861,11 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
    ! Free surface PART:
 
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , '_P'''
-      WRITE (UnAD,FmtText     )  'PART/'//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  'PART/'//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR   )  ', QG = ', ( I*FrSrfcSpc - TmpLength )*CWaveDir + TmpLength*SWaveDir, &
                                  ', '     , ( I*FrSrfcSpc - TmpLength )*SWaveDir - TmpLength*CWaveDir, ', ', p%PtfmRef
       WRITE (UnAD,FmtTRTRTR   )  ', REULER = ', WaveDir*D2R, ', ', 0.0, ', ', 0.0
-      WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTR       )  ', MASS = ', SmllNmbr
       WRITE (UnAD,FmtTRTRTR   )  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
 
@@ -878,15 +873,15 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
    ! First free surface MARKER attached to the PART:
 
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , 'Ref1_M'''
-      WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Num2LStr( TmpID ))
 
 
    ! Second free surface MARKER attached to the PART:
 
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , 'Ref2_M'''
-      WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 2.0*TmpLength, ', ', 0.0
       WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 
@@ -894,33 +889,33 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
    ! Free surface elevation JOINT and MOTION:
 
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , '_J'''
-      WRITE (UnAD,FmtText     )  'JOINT/'//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  'JOINT/'//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtText     )  ', TRANSLATIONAL'
-      WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtText     )  ', J = '//TRIM(Int2LStr( TmpID - 100000 ))
+      WRITE (UnAD,FmtText     )  ', I = '//TRIM(Num2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  ', J = '//TRIM(Num2LStr( TmpID - 100000 ))
 
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , 'Demand_V'''
-      WRITE (UnAD,FmtText     )  'VARIABLE/'//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  'VARIABLE/'//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtText     )  ', FUNCTION = USER( 0 )'
 
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , 'Error_V'''
-      WRITE (UnAD,FmtText     )  'VARIABLE/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText     )  ', FUNCTION = VARVAL('//TRIM(Int2LStr( TmpID ))//') '// &
-                                 '- DZ('//TRIM(Int2LStr( TmpID ))//','//TRIM(Int2LStr( TmpID - 100000 ))//',10)'
+      WRITE (UnAD,FmtText     )  'VARIABLE/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText     )  ', FUNCTION = VARVAL('//TRIM(Num2LStr( TmpID ))//') '// &
+                                 '- DZ('//TRIM(Num2LStr( TmpID ))//','//TRIM(Num2LStr( TmpID - 100000 ))//',10)'
 
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , 'Actuator_SF'''
-      WRITE (UnAD,FmtText     )  'SFORCE/'//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  'SFORCE/'//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtText     )  ', TRANSLATION'
       WRITE (UnAD,FmtText     )  ', ACTIONONLY'
-      WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtText     )  ', J = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtText     )  ', FUNCTION = '//TRIM(Flt2LStr( 0.0009868617 ))//'*VARVAL('//TRIM(Int2LStr( TmpID2 ))//')'// &  ! NOTE: 0.0009868617kN/m     = 0.001*  Mass*NaturalFrequency^2            = 0.001*  (9.999E-4kg)*(5Hz)^2     = 0.001*  (9.999E-4kg)*(31.41593rad/s)^2
-                                           ' - '//TRIM(Flt2LStr( 0.0000439779 ))//'*VZ('//TRIM(Int2LStr( TmpID ))//',0,10,0)'    ! NOTE: 0.0000439779kN/(m/s) = 0.001*2*Mass*NaturalFrequency*DampingRatio = 0.001*2*(9.999E-4kg)*(5Hz)*(0.7) = 0.001*2*(9.999E-4kg)*(31.41593rad/s)*(0.7)
+      WRITE (UnAD,FmtText     )  ', I = '//TRIM(Num2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  ', J = '//TRIM(Num2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  ', FUNCTION = '//TRIM(Num2LStr( 0.0009868617 ))//'*VARVAL('//TRIM(Num2LStr( TmpID2 ))//')'// &  ! NOTE: 0.0009868617kN/m     = 0.001*  Mass*NaturalFrequency^2            = 0.001*  (9.999E-4kg)*(5Hz)^2     = 0.001*  (9.999E-4kg)*(31.41593rad/s)^2
+                                           ' - '//TRIM(Num2LStr( 0.0000439779 ))//'*VZ('//TRIM(Num2LStr( TmpID ))//',0,10,0)'    ! NOTE: 0.0000439779kN/(m/s) = 0.001*2*Mass*NaturalFrequency*DampingRatio = 0.001*2*(9.999E-4kg)*(5Hz)*(0.7) = 0.001*2*(9.999E-4kg)*(31.41593rad/s)*(0.7)
 
       WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , 'Locked_MO'''
-      WRITE (UnAD,FmtText     )  'MOTION/'//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtText     )  ', J = '//TRIM(Int2LStr( TmpID - 100000 ))
+      WRITE (UnAD,FmtText     )  'MOTION/'//TRIM(Num2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  ', I = '//TRIM(Num2LStr( TmpID ))
+      WRITE (UnAD,FmtText     )  ', J = '//TRIM(Num2LStr( TmpID - 100000 ))
       WRITE (UnAD,FmtText     )  ', Z'
       WRITE (UnAD,FmtText     )  ', DISPLACEMENT'
       WRITE (UnAD,FmtText     )  ', FUNCTION = 0'  ! Lock free surface PART at the MSL
@@ -930,10 +925,10 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
 
       IF ( I > 0 )  THEN   ! All but the zero'th point
          WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''FreeSrfc', I , '_G'''
-         WRITE (UnAD,FmtText     )  'GRAPHICS/'//TRIM(Int2LStr( TmpID ))
-         WRITE (UnAD,FmtText     )  ', OUTLINE = '//TRIM(Int2LStr( TmpID      ))//', '//TRIM(Int2LStr( TmpID2    ))// &
-                                    ', '          //TRIM(Int2LStr( TmpID2 - 1 ))//', '//TRIM(Int2LStr( TmpID - 1 ))// &
-                                    ', '          //TRIM(Int2LStr( TmpID      ))
+         WRITE (UnAD,FmtText     )  'GRAPHICS/'//TRIM(Num2LStr( TmpID ))
+         WRITE (UnAD,FmtText     )  ', OUTLINE = '//TRIM(Num2LStr( TmpID      ))//', '//TRIM(Num2LStr( TmpID2    ))// &
+                                    ', '          //TRIM(Num2LStr( TmpID2 - 1 ))//', '//TRIM(Num2LStr( TmpID - 1 ))// &
+                                    ', '          //TRIM(Num2LStr( TmpID      ))
       ENDIF
 
 
@@ -949,7 +944,7 @@ ELSE
    WRITE (UnAD,FmtText  )  ', CIRCLE'
    WRITE (UnAD,FmtText  )  ', CM = 1'
    WRITE (UnAD,FmtTR    )  ', RADIUS = ', p%TipRad
-   WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
 ENDIF
@@ -981,72 +976,72 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro .AND. SaveGrphcs )  THEN  ! .TRUE. if we
 
             TmpID  = 100000*I + 700 + J
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, '_PM'''
-            WRITE (UnAD,FmtText            )  'POINT_MASS/'//TRIM(Int2LStr( TmpID ))
+            WRITE (UnAD,FmtText            )  'POINT_MASS/'//TRIM(Num2LStr( TmpID ))
             WRITE (UnAD,FmtTRTRTR          )  ', QG = ', LAnchxi(I) + TmpVec(1)*J/( NLnNodes + 1 ), &
                                               ', '     , LAnchyi(I) - TmpVec(3)*J/( NLnNodes + 1 ), &
                                               ', '     , LAnchzi(I) + TmpVec(2)*J/( NLnNodes + 1 )    ! NOTE: PtfmRef = 0.0 in this equation
             WRITE (UnAD,FmtText            )  ', REULER = 0D, 0D, 0D'
-            WRITE (UnAD,FmtText            )  ', CM = '//TRIM(Int2LStr( TmpID ))
+            WRITE (UnAD,FmtText            )  ', CM = '//TRIM(Num2LStr( TmpID ))
             WRITE (UnAD,FmtTR              )  ', MASS = ', SmllNmbr
 
    ! Mooring line node center of mass:
 
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, 'CM_M'''
-            WRITE (UnAD,FmtText            )  'MARKER/'//TRIM(Int2LStr( TmpID ))
-            WRITE (UnAD,FmtText            )  ', POINT_MASS = '//TRIM(Int2LStr( TmpID ))
+            WRITE (UnAD,FmtText            )  'MARKER/'//TRIM(Num2LStr( TmpID ))
+            WRITE (UnAD,FmtText            )  ', POINT_MASS = '//TRIM(Num2LStr( TmpID ))
 
 
    ! Nodal position control:
 
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, 'Floating_M'''
-            WRITE (UnAD,FmtText            )  'MARKER/'//TRIM(Int2LStr( TmpID + 1000 ))
+            WRITE (UnAD,FmtText            )  'MARKER/'//TRIM(Num2LStr( TmpID + 1000 ))
             WRITE (UnAD,FmtText            )  ', PART = 1'
             WRITE (UnAD,FmtText            )  ', FLOATING'
 
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, 'Demandxi_V'''
-            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Int2LStr( TmpID + 1000 ))
+            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Num2LStr( TmpID + 1000 ))
             WRITE (UnAD,FmtText            )  ', FUNCTION = USER( 0 )'
 
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, 'Demandyi_V'''
-            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Int2LStr( TmpID + 2000 ))
+            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Num2LStr( TmpID + 2000 ))
             WRITE (UnAD,FmtText            )  ', FUNCTION = USER( 0 )'
 
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, 'Demandzi_V'''
-            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Int2LStr( TmpID + 3000 ))
+            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Num2LStr( TmpID + 3000 ))
             WRITE (UnAD,FmtText            )  ', FUNCTION = USER( 0 )'
 
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, 'Errorxi_V'''
-            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Int2LStr( TmpID + 4000 ))
-            WRITE (UnAD,FmtText            )  ', FUNCTION = VARVAL('//TRIM(Int2LStr( TmpID + 1000 ))//') '// &
-                                              '- DX('//TRIM(Int2LStr( TmpID ))//',10,10)'
+            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Num2LStr( TmpID + 4000 ))
+            WRITE (UnAD,FmtText            )  ', FUNCTION = VARVAL('//TRIM(Num2LStr( TmpID + 1000 ))//') '// &
+                                              '- DX('//TRIM(Num2LStr( TmpID ))//',10,10)'
 
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, 'Erroryi_V'''
-            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Int2LStr( TmpID + 5000 ))
-            WRITE (UnAD,FmtText            )  ', FUNCTION = VARVAL('//TRIM(Int2LStr( TmpID + 2000 ))//') '// &
-                                              '- DY('//TRIM(Int2LStr( TmpID ))//',10,10)'
+            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Num2LStr( TmpID + 5000 ))
+            WRITE (UnAD,FmtText            )  ', FUNCTION = VARVAL('//TRIM(Num2LStr( TmpID + 2000 ))//') '// &
+                                              '- DY('//TRIM(Num2LStr( TmpID ))//',10,10)'
 
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, 'Errorzi_V'''
-            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Int2LStr( TmpID + 6000 ))
-            WRITE (UnAD,FmtText            )  ', FUNCTION = VARVAL('//TRIM(Int2LStr( TmpID + 3000 ))//') '// &
-                                              '- DZ('//TRIM(Int2LStr( TmpID ))//',10,10)'
+            WRITE (UnAD,FmtText            )  'VARIABLE/'//TRIM(Num2LStr( TmpID + 6000 ))
+            WRITE (UnAD,FmtText            )  ', FUNCTION = VARVAL('//TRIM(Num2LStr( TmpID + 3000 ))//') '// &
+                                              '- DZ('//TRIM(Num2LStr( TmpID ))//',10,10)'
 
             WRITE (UnAD,'(A,I2.2,A,I2.2,A)')  '!                             adams_view_name=''Line', I, 'Node', J, 'Actuator_VF'''
-            WRITE (UnAD,FmtText            )  'VFORCE/'//TRIM(Int2LStr( TmpID ))
-            WRITE (UnAD,FmtText            )  ', I = '//TRIM(Int2LStr( TmpID ))
-            WRITE (UnAD,FmtText            )  ', JFLOAT = '//TRIM(Int2LStr( TmpID + 1000 ))
-            WRITE (UnAD,FmtText            )  ', RM = '//TRIM(Int2LStr( TmpID ))
-            WRITE (UnAD,FmtText            )  ', FX = '//TRIM(Flt2LStr( 0.0009868617 ))// &  ! NOTE: 0.0009868617kN/m     = 0.001*  Mass*NaturalFrequency^2            = 0.001*  (9.999E-4kg)*(5Hz)^2     = 0.001*  (9.999E-4kg)*(31.41593rad/s)^2
-                                                      '*VARVAL('//TRIM(Int2LStr( TmpID + 4000 ))//')'// &
-                                                  ' - '//TRIM(Flt2LStr( 0.0000439779 ))// &  ! NOTE: 0.0000439779kN/(m/s) = 0.001*2*Mass*NaturalFrequency*DampingRatio = 0.001*2*(9.999E-4kg)*(5Hz)*(0.7) = 0.001*2*(9.999E-4kg)*(31.41593rad/s)*(0.7)
-                                                      '*VX('//TRIM(Int2LStr( TmpID ))//',0,10,0)\'
-            WRITE (UnAD,FmtText            )  ', FY = '//TRIM(Flt2LStr( 0.0009868617 ))// &  ! NOTE: 0.0009868617kN/m     = 0.001*  Mass*NaturalFrequency^2            = 0.001*  (9.999E-4kg)*(5Hz)^2     = 0.001*  (9.999E-4kg)*(31.41593rad/s)^2
-                                                      '*VARVAL('//TRIM(Int2LStr( TmpID + 5000 ))//')'// &
-                                                  ' - '//TRIM(Flt2LStr( 0.0000439779 ))// &  ! NOTE: 0.0000439779kN/(m/s) = 0.001*2*Mass*NaturalFrequency*DampingRatio = 0.001*2*(9.999E-4kg)*(5Hz)*(0.7) = 0.001*2*(9.999E-4kg)*(31.41593rad/s)*(0.7)
-                                                      '*VY('//TRIM(Int2LStr( TmpID ))//',0,10,0)\'
-            WRITE (UnAD,FmtText            )  ', FZ = '//TRIM(Flt2LStr( 0.0009868617 ))// &  ! NOTE: 0.0009868617kN/m     = 0.001*  Mass*NaturalFrequency^2            = 0.001*  (9.999E-4kg)*(5Hz)^2     = 0.001*  (9.999E-4kg)*(31.41593rad/s)^2
-                                                      '*VARVAL('//TRIM(Int2LStr( TmpID + 6000 ))//')'// &
-                                                  ' - '//TRIM(Flt2LStr( 0.0000439779 ))// &  ! NOTE: 0.0000439779kN/(m/s) = 0.001*2*Mass*NaturalFrequency*DampingRatio = 0.001*2*(9.999E-4kg)*(5Hz)*(0.7) = 0.001*2*(9.999E-4kg)*(31.41593rad/s)*(0.7)
-                                                      '*VZ('//TRIM(Int2LStr( TmpID ))//',0,10,0)'
+            WRITE (UnAD,FmtText            )  'VFORCE/'//TRIM(Num2LStr( TmpID ))
+            WRITE (UnAD,FmtText            )  ', I = '//TRIM(Num2LStr( TmpID ))
+            WRITE (UnAD,FmtText            )  ', JFLOAT = '//TRIM(Num2LStr( TmpID + 1000 ))
+            WRITE (UnAD,FmtText            )  ', RM = '//TRIM(Num2LStr( TmpID ))
+            WRITE (UnAD,FmtText            )  ', FX = '//TRIM(Num2LStr( 0.0009868617 ))// &  ! NOTE: 0.0009868617kN/m     = 0.001*  Mass*NaturalFrequency^2            = 0.001*  (9.999E-4kg)*(5Hz)^2     = 0.001*  (9.999E-4kg)*(31.41593rad/s)^2
+                                                      '*VARVAL('//TRIM(Num2LStr( TmpID + 4000 ))//')'// &
+                                                  ' - '//TRIM(Num2LStr( 0.0000439779 ))// &  ! NOTE: 0.0000439779kN/(m/s) = 0.001*2*Mass*NaturalFrequency*DampingRatio = 0.001*2*(9.999E-4kg)*(5Hz)*(0.7) = 0.001*2*(9.999E-4kg)*(31.41593rad/s)*(0.7)
+                                                      '*VX('//TRIM(Num2LStr( TmpID ))//',0,10,0)\'
+            WRITE (UnAD,FmtText            )  ', FY = '//TRIM(Num2LStr( 0.0009868617 ))// &  ! NOTE: 0.0009868617kN/m     = 0.001*  Mass*NaturalFrequency^2            = 0.001*  (9.999E-4kg)*(5Hz)^2     = 0.001*  (9.999E-4kg)*(31.41593rad/s)^2
+                                                      '*VARVAL('//TRIM(Num2LStr( TmpID + 5000 ))//')'// &
+                                                  ' - '//TRIM(Num2LStr( 0.0000439779 ))// &  ! NOTE: 0.0000439779kN/(m/s) = 0.001*2*Mass*NaturalFrequency*DampingRatio = 0.001*2*(9.999E-4kg)*(5Hz)*(0.7) = 0.001*2*(9.999E-4kg)*(31.41593rad/s)*(0.7)
+                                                      '*VY('//TRIM(Num2LStr( TmpID ))//',0,10,0)\'
+            WRITE (UnAD,FmtText            )  ', FZ = '//TRIM(Num2LStr( 0.0009868617 ))// &  ! NOTE: 0.0009868617kN/m     = 0.001*  Mass*NaturalFrequency^2            = 0.001*  (9.999E-4kg)*(5Hz)^2     = 0.001*  (9.999E-4kg)*(31.41593rad/s)^2
+                                                      '*VARVAL('//TRIM(Num2LStr( TmpID + 6000 ))//')'// &
+                                                  ' - '//TRIM(Num2LStr( 0.0000439779 ))// &  ! NOTE: 0.0000439779kN/(m/s) = 0.001*2*Mass*NaturalFrequency*DampingRatio = 0.001*2*(9.999E-4kg)*(5Hz)*(0.7) = 0.001*2*(9.999E-4kg)*(31.41593rad/s)*(0.7)
+                                                      '*VZ('//TRIM(Num2LStr( TmpID ))//',0,10,0)'
 
          ENDDO             ! J - All the nodes per line for mooring line GRAPHICS
 
@@ -1054,12 +1049,12 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro .AND. SaveGrphcs )  THEN  ! .TRUE. if we
    ! Mooring line GRAPHICS:
 
          WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''Line', I, '_G'''
-         WRITE (UnAD,FmtText     )  'GRAPHICS/'//TRIM(Int2LStr(    100000*I + 700     ))
-         WRITE (UnAD,FmtText     )  ', OUTLINE = '//TRIM(Int2LStr(            700 + I ))//','
+         WRITE (UnAD,FmtText     )  'GRAPHICS/'//TRIM(Num2LStr(    100000*I + 700     ))
+         WRITE (UnAD,FmtText     )  ', OUTLINE = '//TRIM(Num2LStr(            700 + I ))//','
          DO J = 1,NLnNodes ! Loop through all the nodes per line for mooring line GRAPHICS
-            WRITE (UnAD,FmtText  )  ', '          //TRIM(Int2LStr( 100000*I + 700 + J ))//','
+            WRITE (UnAD,FmtText  )  ', '          //TRIM(Num2LStr( 100000*I + 700 + J ))//','
          ENDDO             ! J - All the nodes per line for mooring line GRAPHICS
-         WRITE (UnAD,FmtText     )  ', '          //TRIM(Int2LStr(           1700 + I ))
+         WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr(           1700 + I ))
 
 
       ENDDO             ! I - All mooring lines
@@ -1119,7 +1114,7 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
 
       DO I = 1,NumLines ! Loop through all mooring lines
          WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''Fairlead', I, '_M'''
-         WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( 1700 + I ))
+         WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( 1700 + I ))
          WRITE (UnAD,FmtText     )  ', PART = 1000'
          WRITE (UnAD,FmtTRTRTR   )  ', QP = ', LFairxt(I), ', ', LFairyt(I), ', ', LFairzt(I)   ! NOTE: PtfmRef = 0.0 in this equation
          WRITE (UnAD,FmtText     )  ', REULER = 0D, 0D, 0D'
@@ -1136,9 +1131,9 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
    WRITE (UnAD,FmtText  )  ', CYLINDER'
    WRITE (UnAD,FmtText  )  ', CM = 1100'
    WRITE (UnAD,FmtTR    )  ', LENGTH = ', p%TwrDraft - PtfmDraft ! NOTE: TwrDraft <= 0.0 in this equation
-   WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Num2LStr( NSides ))
    WRITE (UnAD,FmtTR    )  ', RADIUS = ', 0.5*PtfmDiam
-   WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 !JASON:THIS CHANGED FOR ITI BARGE:   WRITE (UnAD,FmtText  )  ', BOX'           !JASON:THIS CHANGED FOR ITI BARGE:
 !JASON:THIS CHANGED FOR ITI BARGE:   WRITE (UnAD,FmtText  )  ', CORNER = 1705' !JASON:THIS CHANGED FOR ITI BARGE:
 !JASON:THIS CHANGED FOR ITI BARGE:   WRITE (UnAD,FmtText  )  ', X = 40'        !JASON:THIS CHANGED FOR ITI BARGE:
@@ -1180,9 +1175,9 @@ WRITE (UnAD,FmtText  )  'GRAPHICS/1400'
 WRITE (UnAD,FmtText  )  ', CYLINDER'
 WRITE (UnAD,FmtText  )  ', CM = 1100'
 WRITE (UnAD,FmtTR    )  ', LENGTH = ', p%TwrRBHt
-WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Num2LStr( NSides ))
 WRITE (UnAD,FmtTR    )  ', RADIUS = ', TwrBaseRad
-WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
    ! Tower segments:
@@ -1196,8 +1191,8 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
       ! same orientation as 1100 (which is the same as 1000 orientation), but in platform (reference point)      
    TmpID2  = 1900 + J      
    WRITE (UnAD,'(A,I2.2,A)') "!                             adams_view_name='UndeflTowerSec", J, "_M'"
-   WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( 1000 )) !PlatformRef_M
+   WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Num2LStr( 1000 )) !PlatformRef_M
    WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', p%rZT0zt + p%HNodes(J) 
    WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
    ! PART and elastic axis:
@@ -1208,26 +1203,26 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    TmpVec1 = TmpVec + CoordSys%t1(J,:)
    TmpVec2 = TmpVec + CoordSys%t2(J,:)
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, '_P'''
-   WRITE (UnAD,FmtText     )  'PART/'//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText     )  'PART/'//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR   )  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the tower
    WRITE (UnAD,FmtTRTRTR   )  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! section using the
    WRITE (UnAD,FmtTRTRTR   )  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
-   WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Int2LStr( 1500 + J ))
+   WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Num2LStr( 1500 + J ))
    WRITE (UnAD,FmtTR       )  ', MASS = ', p%MassT(J)*p%DHNodes(J) + SmllNmbr
    WRITE (UnAD,FmtTRTRTR   )  ', IP = ', ( ( p%InerTFA(J) + p%InerTSS(J) )*p%DHNodes(J) ) + SmllNmbr, ', ', &
                               ( p%InerTFA(J)*p%DHNodes(J) ) + ThnBarI + SmllNmbr, ', ', ( p%InerTSS(J)*p%DHNodes(J) ) + ThnBarI + SmllNmbr
 
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'Elastic_M'''
-   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID ))
-   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID ))
+   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Num2LStr( TmpID ))
 
 
    ! Aerodynamic and hydrodynamic MARKERs:
 
    TmpID2 = 1800 + J
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'AeroHydro_M'''
-   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtText     )  ', QP = 0, 0, 0'
    WRITE (UnAD,FmtText     )  ', REULER = 90D, 90D, 90D'
 
@@ -1236,27 +1231,27 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
 
    TmpID2 = 1200 + J
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'Graphics_M'''
-   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR   )  ', QP = ', -0.5*p%DHNodes(J), ', ', 0.0, ', ', 0.0
    WRITE (UnAD,FmtText     )  ', REULER = 90D, 90D, 90D'
 
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, '_G'''
-   WRITE (UnAD,FmtText     )  'GRAPHICS/'//TRIM(Int2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText     )  'GRAPHICS/'//TRIM(Num2LStr( TmpID2 ))
    WRITE (UnAD,FmtText     )  ', CYLINDER'
-   WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Int2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Num2LStr( TmpID2 ))
    WRITE (UnAD,FmtTR       )  ', LENGTH = ', p%DHNodes(J)
-   WRITE (UnAD,FmtText     )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText     )  ', SIDES = '//TRIM(Num2LStr( NSides ))
    WRITE (UnAD,FmtTR       )  ', RADIUS = ', TwrBaseRad + ( TwrTopRad - TwrBaseRad )*p%HNodesNorm(J) ! Linearly interpolate the tower base and tower top radii.
-   WRITE (UnAD,FmtText     )  ', SEG = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText     )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
    ! Bottom (for connection to the segment below if rigid):
 
    TmpID2 = 1300 + J
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TwrSec', J, 'ToTwrSecBelow_M'''
-   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR   )  ', QP = ', -0.5*p%DHNodes(J), ', ', 0.0, ', ', 0.0
    WRITE (UnAD,FmtText     )  ', REULER = 0D, 0D, 0D'
 
@@ -1265,8 +1260,8 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
 
    TmpID2 = 1400 + J
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TwrSec', J, 'ToTwrSecAbove_M'''
-   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR   )  ', QP = ', 0.5*p%DHNodes(J), ', ', 0.0, ', ', 0.0
    WRITE (UnAD,FmtText     )  ', REULER = 0D, 0D, 0D'
 
@@ -1275,8 +1270,8 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
 
    TmpID2 = 1500 + J
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'CM_M'''
-   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText     )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText     )  ', PART = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR   )  ', QP = ', 0.0, ', ', -p%cgOffTSS(J), ', ', p%cgOffTFA(J)
    WRITE (UnAD,FmtText     )  ', REULER = 0D, 0D, 0D'
 
@@ -1404,20 +1399,20 @@ WRITE (UnAD,FmtText  )  'GRAPHICS/2000'
 WRITE (UnAD,FmtText  )  ', FRUSTUM'
 WRITE (UnAD,FmtText  )  ', CM = 2020'
 WRITE (UnAD,FmtTR    )  ', LENGTH = ', NacLength
-WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Num2LStr( NSides ))
 WRITE (UnAD,FmtTR    )  ', TOP = ', NacRadTop
 WRITE (UnAD,FmtTR    )  ', BOTTOM = ', NacRadBot
-WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''Twr2Shft_G'''
 WRITE (UnAD,FmtText  )  'GRAPHICS/2010'
 WRITE (UnAD,FmtText  )  ', FRUSTUM'
 WRITE (UnAD,FmtText  )  ', CM = 2010'
 WRITE (UnAD,FmtTR    )  ', LENGTH = ', -InputFileData%Twr2Shft
-WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Num2LStr( NSides ))
 WRITE (UnAD,FmtTR    )  ', TOP = ', 0.5*TwrTopRad
 WRITE (UnAD,FmtTR    )  ', BOTTOM = ',  TwrTopRad
-WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
 
@@ -1489,9 +1484,9 @@ IF ( TmpLength /= 0.0 )  THEN                                                   
    WRITE (UnAD,FmtText  )  ', CYLINDER'
    WRITE (UnAD,FmtText  )  ', CM = 5020'
    WRITE (UnAD,FmtTR    )  ', LENGTH = ', TmpLength
-   WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Num2LStr( NSides ))
    WRITE (UnAD,FmtTR    )  ', RADIUS = ', BoomRad
-   WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 ENDIF
 
 
@@ -1807,7 +1802,7 @@ WRITE (UnAD,FmtText  )  ', REULER = 90D, 90D, 90D'
 DO K = 1,p%NumBl ! Loop through all blades
    TmpID = 3050 + K
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''Blade', K, 'AzimRef_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', PART = 3000'
    WRITE (UnAD,FmtText   )  ', QP = 0, 0, 0'
    WRITE (UnAD,FmtTRTRTR )  ', REULER = ', 90.0*D2R, ', ', 90.0*D2R, ', ', 90.0*D2R + p%TwoPiNB*(K-1)
@@ -1827,9 +1822,9 @@ WRITE (UnAD,FmtText  )  'GRAPHICS/3000'
 WRITE (UnAD,FmtText  )  ', CYLINDER'
 WRITE (UnAD,FmtText  )  ', CM = 3020'
 WRITE (UnAD,FmtTR    )  ', LENGTH = ', LSSLength
-WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Num2LStr( NSides ))
 WRITE (UnAD,FmtTR    )  ', RADIUS = ', LSSRad
-WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
    ! High-speed shaft:
@@ -1887,9 +1882,9 @@ WRITE (UnAD,FmtText  )  'GRAPHICS/3100'
 WRITE (UnAD,FmtText  )  ', CYLINDER'
 WRITE (UnAD,FmtText  )  ', CM = 3120'
 WRITE (UnAD,FmtTR    )  ', LENGTH = ', HSSLength
-WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Num2LStr( NSides ))
 WRITE (UnAD,FmtTR    )  ', RADIUS = ', HSSRad
-WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
    ! Generator:
@@ -1938,9 +1933,9 @@ WRITE (UnAD,FmtText  )  'GRAPHICS/3200'
 WRITE (UnAD,FmtText  )  ', CYLINDER'
 WRITE (UnAD,FmtText  )  ', CM = 3220'
 WRITE (UnAD,FmtTR    )  ', LENGTH = ', GenLength
-WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Num2LStr( NSides ))
 WRITE (UnAD,FmtTR    )  ', RADIUS = ', GenRad
-WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Int2LStr( NSides ))
+WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
    ! Teeter pin:
@@ -2033,7 +2028,7 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    TmpID = 4000 + K
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''Coned', K, 'CS_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID )) ! MARKER/400K is equivalent to the coned coordinate system for blade K: X = XcK, Y = YcK, Z = ZcK
+   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID )) ! MARKER/400K is equivalent to the coned coordinate system for blade K: X = XcK, Y = YcK, Z = ZcK
    WRITE (UnAD,FmtText   )  ', PART = 4000'
    WRITE (UnAD,FmtText   )  ', QP = 0, 0, 0'                                                                               ! Orient the coned
    WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( CoordSys%i3(K,:), CoordSys%g1 ), ', ', &
@@ -2051,7 +2046,7 @@ DO K = 1,p%NumBl ! Loop through all blades
    TmpVec1 = TmpVec + CoordSys%i3(K,:)
    TmpVec2 = TmpVec + CoordSys%i1(K,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchBr', K, 'Bottom_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', PART = 4000'
    WRITE (UnAD,FmtTRTRTR )  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%g1 ), ', ', DOT_PRODUCT( TmpVec , CoordSys%g2 ), ', ', &
                                        DOT_PRODUCT( TmpVec , CoordSys%g3 )  ! Orient the pitch
@@ -2068,7 +2063,7 @@ DO K = 1,p%NumBl ! Loop through all blades
    TmpVec1 = TmpVec - CoordSys%i2(K,:)
    TmpVec2 = TmpVec + CoordSys%i3(K,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchRef', K, '_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', PART = 4000'
    WRITE (UnAD,FmtTRTRTR )  ', QP = ', DOT_PRODUCT( TmpVec , CoordSys%g1 ), ', ', &
                                        DOT_PRODUCT( TmpVec , CoordSys%g2 ), ', ', &
@@ -2085,13 +2080,13 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    TmpID = 4000 + K
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''Hub', K, '_G'''
-   WRITE (UnAD,FmtText   )  'GRAPHICS/'//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'GRAPHICS/'//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', CYLINDER'
-   WRITE (UnAD,FmtText   )  ', CM = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  ', CM = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTR     )  ', LENGTH = ', p%HubRad
-   WRITE (UnAD,FmtText   )  ', SIDES = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText   )  ', SIDES = '//TRIM(Num2LStr( NSides ))
    WRITE (UnAD,FmtTR     )  ', RADIUS = ', HubCylRad
-   WRITE (UnAD,FmtText   )  ', SEG = '//TRIM(Int2LStr( NSides ))
+   WRITE (UnAD,FmtText   )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
 ENDDO          ! K - Blades
@@ -2117,11 +2112,11 @@ DO K = 1,p%NumBl       ! Loop through all blades
    TmpVec1 = TmpVec + CoordSys%j3(K,:)
    TmpVec2 = TmpVec + CoordSys%j1(K,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchPlate', K, '_P'''
-   WRITE (UnAD,FmtText   )  'PART/'//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'PART/'//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR )  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)  ! Orient the pitch
    WRITE (UnAD,FmtTRTRTR )  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)  ! plate using the
    WRITE (UnAD,FmtTRTRTR )  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)  ! 3-point method
-   WRITE (UnAD,FmtText   )  ', CM = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  ', CM = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTR     )  ', MASS = ', SmllNmbr
    WRITE (UnAD,FmtTRTRTR )  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
 
@@ -2129,16 +2124,16 @@ DO K = 1,p%NumBl       ! Loop through all blades
    ! Pitch plate center of mass - blade coordinate system:
 
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''Blade', K, 'CS_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID ))   ! MARKER/K0000 is equivalent to the blade K coordinate system: X = XbK, Y = YbK, Z = ZbK
-   WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID ))   ! MARKER/K0000 is equivalent to the blade K coordinate system: X = XbK, Y = YbK, Z = ZbK
+   WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Num2LStr( TmpID ))
 
 
    ! Connection to 1st blade element
 
    TmpID2 = 10000*K + 4000
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchPlate', K, 'ToBldSec01_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', QP = 0, 0, 0'
    WRITE (UnAD,FmtTRTRTR )  ', REULER = ', -p%ThetaS(K,1), ', ', PiBy2, ', ', PiBy2
 
@@ -2147,8 +2142,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID2  = 10000*K + 9100 ! was 4030 + K
       WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''UndeflBld', K, 'Tip_M'''
-      WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', p%TipRad-p%HubRad
       WRITE (UnAD,FmtText   )  ', REULER = 0D, 0D, 0D'
 
@@ -2217,8 +2212,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID2  = 10000*K + 9000 + J 
       WRITE (UnAD,'(A,I1,A,I2.2,A)') "!                             adams_view_name='UndeflBld", K, "Sec", J, "_M'"
-      WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( 10000*K ))
+      WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Num2LStr( 10000*K ))
       WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', p%RNodes(J)
       WRITE (UnAD,FmtText   )  ', REULER = 0D, 0D, 0D'
 
@@ -2257,11 +2252,11 @@ DO K = 1,p%NumBl       ! Loop through all blades
       TmpVec1 = TmpVec - CoordSys%te2(K,J,:)
       TmpVec2 = TmpVec + CoordSys%te3(K,J,:)
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, '_P'''
-      WRITE (UnAD,FmtText          )  'PART/'//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  'PART/'//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR        )  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2)   ! Orient the blade
       WRITE (UnAD,FmtTRTRTR        )  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2)   ! section using the
       WRITE (UnAD,FmtTRTRTR        )  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2)   ! 3-point method
-      WRITE (UnAD,FmtText          )  ', CM = '//TRIM(Int2LStr( 10000*K + 5000 + J ))
+      WRITE (UnAD,FmtText          )  ', CM = '//TRIM(Num2LStr( 10000*K + 5000 + J ))
 !JASON: THIS MASS CALCULATION SHOULD USE DRNodesGRA SINCE THE MASS OF A SHEARED ELEMENT WOULD BE MORE THAN A STRAIGHT ELEMENT.  FOR EXAMPLE, IF THERE WAS A LINEAR PRESWEEP IN A BEAM, THEN THE MASS OF THE BEAM WOULD BE 1/COS(ANGLE) TIMES THE MASS OF AN EQUIVALENT STRAIGHT BEAM (SINCE THE LENGTH OF A THE SWEPT BEAM WOULD BE 1/COS(ANGLE) TIMES THE LENGTH OF THE STRAIGHT BEAM).  THE SAME LENGTH SHOULD BE USED IN THE CALCULATION OF THE STIFFNESS TERMS IN THE FIELD STATMENT.  THE MASS CALCULATION PERFORMED BELOW IS WHAT APPEARED IN KIRK PIERCE'S VERSION OF ADAMS/WT AND I DON'T LIKE IT (BUT I USED IT FOR CONSISTENCY WITH THE OLD CODE)!!!
       WRITE (UnAD,FmtTR            )  ', MASS = ', p%MassB(K,J)*p%DRNodes(J) + SmllNmbr
       WRITE (UnAD,FmtTRTRTR        )  ', IP = ', ( ( p%InerBFlp(K,J) + p%InerBEdg(K,J) )*p%DRNodes(J) ) + SmllNmbr, ', ', &
@@ -2269,16 +2264,16 @@ DO K = 1,p%NumBl       ! Loop through all blades
                                       ( p%InerBFlp(K,J)*p%DRNodes(J) ) + ThnBarI + SmllNmbr
 
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'Ref_M'''
-      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Num2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Num2LStr( TmpID ))
 
 
    ! Aerodynamic MARKERS:
 
       TmpID2 = 10000*K + 1000 + J*10
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'Aero_M'''
-      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0, ', ', 0.0, ', ', ( 0.25 - p%AeroCent(K,J) )*p%Chord(J)
       WRITE (UnAD,FmtText          )  ', REULER = 0D, 0D, 0D'
 
@@ -2287,15 +2282,15 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID2 = 10000*K + 2000 + J
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'Graphics_M'''
-      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR        )  ', QP = ', -0.5*DRNodesGRA(J), ', ', -0.5*ThkOvrChrd*p%Chord(J), ', ', -0.75*p%Chord(J)  ! The pitch axis (reference axis) is at 25% chord
       WRITE (UnAD,FmtText          )  ', REULER = 0D, 0D, 0D'
 
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, '_G'''
-      WRITE (UnAD,FmtText          )  'GRAPHICS/'//TRIM(Int2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  'GRAPHICS/'//TRIM(Num2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', BOX'
-      WRITE (UnAD,FmtText          )  ', CORNER = '//TRIM(Int2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', CORNER = '//TRIM(Num2LStr( TmpID2 ))
       WRITE (UnAD,FmtTR            )  ', X = ', DRNodesGRA(J)
       WRITE (UnAD,FmtTR            )  ', Y = ', ThkOvrChrd*p%Chord(J)
       WRITE (UnAD,FmtTR            )  ', Z = ', p%Chord(J)
@@ -2305,8 +2300,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID2 = 10000*K + 3000 + J
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Bld', K, 'Sec', J, 'ToBldSecBelow_M'''
-      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Num2LStr( TmpID ))
       IF ( J == 1 )  THEN        ! Innermost blade element
          WRITE (UnAD,FmtTRTRTR     )  ', QP = ', DOT_PRODUCT( -    EAVec(K,J,:)                     ,  CoordSys%te3(K,J,:) ), &
                        ', ', -p%EAOffBFlp(K,J)   + DOT_PRODUCT( -    EAVec(K,J,:)                     , -CoordSys%te1(K,J,:) ), &
@@ -2334,8 +2329,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID2 = 10000*K + 4000 + J
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Bld', K, 'Sec', J, 'ToBldSecAbove_M'''
-      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Num2LStr( TmpID ))
       IF ( J == p%BldNodes )  THEN ! Outermost blade element
          WRITE (UnAD,FmtTRTRTR   )  ', QP = ', DOT_PRODUCT(     EAVec(K,J+1,:)                       ,  CoordSys%te3(K,J,:) ), &
                       ', ', -p%EAOffBFlp(K,J)  + DOT_PRODUCT(     EAVec(K,J+1,:)                       , -CoordSys%te1(K,J,:) ), &
@@ -2363,8 +2358,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID2 = 10000*K + 5000 + J
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'CM_M'''
-      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0, ', ', -p%cgOffBFlp(K,J), ', ', -p%cgOffBEdg(K,J)
       WRITE (UnAD,FmtTRTRTR        )  ', REULER = ', 0.0, ', ', p%AeroTwst(J) - p%ThetaS(K,J), ', ', 0.0    ! Use the same orientation as the structural axis
 
@@ -2377,8 +2372,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
       TmpID2 = 10000*K + 6000 + J
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Blade', K, 'Sec', J, 'EA_M'''
-      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Int2LStr( TmpID ))
+      WRITE (UnAD,FmtText          )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', PART = '//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR        )  ', QP = ', 0.0                                                                , ', ', &
                                           -p%EAOffBFlp(K,J)                                                           , ', ', &
                                           -p%EAOffBEdg(K,J)                                                                     ! Orient the EA
@@ -2395,8 +2390,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
       TmpVec1 = CoordSys%j3(K,:)
       TmpVec2 = CoordSys%j1(K,:)
       WRITE (UnAD,'(A,I1,A,I2.2,A)') "!                             adams_view_name='Bld", K, "Sec", J, "ZeroTwist_M'"
-      WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Int2LStr( TmpID )) !10000*K+J
+      WRITE (UnAD,FmtText   )      'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Num2LStr( TmpID )) !10000*K+J
       WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', 0.0
       WRITE (UnAD,FmtTRTRTR )  ', ZP = ', DOT_PRODUCT( TmpVec1,  CoordSys%te3(K,J,:) ), ', ', &
                                           DOT_PRODUCT( TmpVec1, -CoordSys%te1(K,J,:) ), ', ', &
@@ -2420,11 +2415,11 @@ DO K = 1,p%NumBl       ! Loop through all blades
    TmpVec1 = TmpVec - CoordSys%n2(K,p%BldNodes,:)
    TmpVec2 = TmpVec + CoordSys%n3(K,p%BldNodes,:)
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, '_P'''
-   WRITE (UnAD,FmtText   )  'PART/'//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'PART/'//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTRTRTR )  ', QG = ', TmpVec (1), ', ', -TmpVec (3), ', ', TmpVec (2) ! Orient the tip brake using the
    WRITE (UnAD,FmtTRTRTR )  ', ZG = ', TmpVec1(1), ', ', -TmpVec1(3), ', ', TmpVec1(2) ! 3-point method.  Make sure it
    WRITE (UnAD,FmtTRTRTR )  ', XG = ', TmpVec2(1), ', ', -TmpVec2(3), ', ', TmpVec2(2) ! is aligned with the outermost blade element.
-   WRITE (UnAD,FmtText   )  ', CM = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  ', CM = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtTR     )  ', MASS = ', p%TipMass(K) + SmllNmbr
    WRITE (UnAD,FmtTRTRTR )  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
 
@@ -2432,16 +2427,16 @@ DO K = 1,p%NumBl       ! Loop through all blades
    ! Tip brake center of mass:
 
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, 'CM_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID ))
-   WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Num2LStr( TmpID ))
 
 
    ! Tip brake, zero-twist MARKER (i.e., the FAST blade K coordinate system originating at the tip):
 
    TmpID2 = 10000*K + 7100
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, 'ZeroTwist_M'''
-   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Int2LStr( TmpID ))
+   WRITE (UnAD,FmtText   )  'MARKER/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText   )  ', PART = '//TRIM(Num2LStr( TmpID ))
    WRITE (UnAD,FmtText   )  ', QP = 0, 0, 0'
 
 
@@ -2516,20 +2511,20 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    TmpID  = 1400 + J - 1   ! ID of the MARKER on the top    of tower element J - 1.
    TmpID2 = 1300 + J       ! ID of the MARKER on the bottom of tower element J.
    WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TwrSec', J, 'ToTwrSecBelow_J'''
-   WRITE (UnAD,FmtText     )  'JOINT/'//TRIM(Int2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText     )  'JOINT/'//TRIM(Num2LStr( TmpID2 ))
    WRITE (UnAD,FmtText     )  ', FIXED'
-   WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText     )  ', J = '//TRIM(Int2LStr( TmpID  ))
+   WRITE (UnAD,FmtText     )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText     )  ', J = '//TRIM(Num2LStr( TmpID  ))
 
 ENDDO             ! J - Tower nodes/elements
 
 TmpID  = 1400 + p%TwrNodes   ! ID of the MARKER on the top    of the uppermost tower element.
 TmpID2 = 1500              ! ID of the MARKER on the bottom of the tower top.
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TowerTopToTwrSecBelow_J'''
-WRITE (UnAD,FmtText  )  'JOINT/'//TRIM(Int2LStr( TmpID2 ))
+WRITE (UnAD,FmtText  )  'JOINT/'//TRIM(Num2LStr( TmpID2 ))
 WRITE (UnAD,FmtText  )  ', FIXED'
-WRITE (UnAD,FmtText  )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-WRITE (UnAD,FmtText  )  ', J = '//TRIM(Int2LStr( TmpID  ))
+WRITE (UnAD,FmtText  )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+WRITE (UnAD,FmtText  )  ', J = '//TRIM(Num2LStr( TmpID  ))
 
 
    ! Yaw Bearing:
@@ -2695,14 +2690,14 @@ DO K = 1,p%NumBl ! Loop through all blades
    TmpID  = 10000*K
    TmpID2 = 4010 + K
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchBr', K, '_J'''
-   WRITE (UnAD,FmtText   )  'JOINT/'//TRIM(Int2LStr( TmpID  )) ! NOTE:the (+) rotation about this joint is in the (-) pitch direction!
+   WRITE (UnAD,FmtText   )  'JOINT/'//TRIM(Num2LStr( TmpID  )) ! NOTE:the (+) rotation about this joint is in the (-) pitch direction!
    WRITE (UnAD,FmtText   )  ', REVOLUTE'
-   WRITE (UnAD,FmtText   )  ', I = '//TRIM(Int2LStr( TmpID  ))
-   WRITE (UnAD,FmtText   )  ', J = '//TRIM(Int2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText   )  ', I = '//TRIM(Num2LStr( TmpID  ))
+   WRITE (UnAD,FmtText   )  ', J = '//TRIM(Num2LStr( TmpID2 ))
 
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''PitchBr', K, '_MO'''
-   WRITE (UnAD,FmtText   )  'MOTION/'//TRIM(Int2LStr( TmpID  ))
-   WRITE (UnAD,FmtText   )  ', JOINT = '//TRIM(Int2LStr( TmpID  ))
+   WRITE (UnAD,FmtText   )  'MOTION/'//TRIM(Num2LStr( TmpID  ))
+   WRITE (UnAD,FmtText   )  ', JOINT = '//TRIM(Num2LStr( TmpID  ))
    WRITE (UnAD,FmtText   )  ', ROTATION'
    WRITE (UnAD,FmtText   )  ', DISPLACEMENT'
    WRITE (UnAD,FmtTR     )  ', FUNCTION = ', -BlPitch(K)
@@ -2726,19 +2721,19 @@ DO K = 1,p%NumBl ! Loop through all blades
       TmpID  = 10000*K + 4000 + J - 1  ! ID of the MARKER on the top    of blade element J - 1.
       TmpID2 = 10000*K + 3000 + J      ! ID of the MARKER on the bottom of blade element J.
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Bld', K, 'Sec', J, 'ToBldSecBelow_J'''
-      WRITE (UnAD,FmtText          )  'JOINT/'//TRIM(Int2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  'JOINT/'//TRIM(Num2LStr( TmpID2 ))
       WRITE (UnAD,FmtText          )  ', FIXED'
-      WRITE (UnAD,FmtText          )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText          )  ', J = '//TRIM(Int2LStr( TmpID  ))
+      WRITE (UnAD,FmtText          )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', J = '//TRIM(Num2LStr( TmpID  ))
    ENDDO             ! J - Blade nodes/elements
 
    TmpID  = 10000*K + 4000 + p%BldNodes  ! ID of the MARKER on the top    of the outermost blade element.
    TmpID2 = 10000*K + 5000             ! ID of the MARKER on the bottom of the tip brake.
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, 'TobldSecBelow_J'''
-   WRITE (UnAD,FmtText   )  'JOINT/'//TRIM(Int2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText   )  'JOINT/'//TRIM(Num2LStr( TmpID2 ))
    WRITE (UnAD,FmtText   )  ', FIXED'
-   WRITE (UnAD,FmtText   )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText   )  ', J = '//TRIM(Int2LStr( TmpID  ))
+   WRITE (UnAD,FmtText   )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText   )  ', J = '//TRIM(Num2LStr( TmpID  ))
 
 ENDDO          ! K - Blades
 
@@ -2780,7 +2775,7 @@ CASE ( 1 )                 ! Onshore.
       WRITE (UnAD,FmtText  )  ', I = 1000'
       WRITE (UnAD,FmtText  )  ', JFLOAT = 800'
       WRITE (UnAD,FmtText  )  ', RM = 1000'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( PtfmLdMod ))//' )'
+      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( PtfmLdMod ))//' )'
 
 
    ENDSELECT
@@ -2803,7 +2798,7 @@ CASE ( 2 )                 ! Fixed bottom offshore.
       WRITE (UnAD,FmtText  )  ', I = 1000'
       WRITE (UnAD,FmtText  )  ', JFLOAT = 800'
       WRITE (UnAD,FmtText  )  ', RM = 1000'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( PtfmLdMod ))//' )'
+      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( PtfmLdMod ))//' )'
 
 
    ENDSELECT
@@ -2826,7 +2821,7 @@ CASE ( 3 )                 ! Floating offshore.
       WRITE (UnAD,FmtText  )  ', I = 1000'
       WRITE (UnAD,FmtText  )  ', JFLOAT = 800'
       WRITE (UnAD,FmtText  )  ', RM = 1000'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( PtfmLdMod ))//' )'
+      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( PtfmLdMod ))//' )'
 
 
    CASE ( 9999 )              ! Undocumented loading for a floating platform.
@@ -2836,21 +2831,21 @@ CASE ( 3 )                 ! Floating offshore.
       WRITE (UnAD,FmtText  )  ', I = 1000'
       WRITE (UnAD,FmtText  )  ', JFLOAT = 800'
       WRITE (UnAD,FmtText  )  ', RM = 1000'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( PtfmLdMod ))// &
-                              ', '//TRIM(Flt2LStr( PtfmVol0    ))//', '//TRIM(Int2LStr( PtfmNodes   ))//              &
-                              ', '//TRIM(Flt2LStr( PtfmDraft   ))//', '//TRIM(Flt2LStr( PtfmDiam    ))//              &
-                              ', '//TRIM(Flt2LStr( PtfmCD      ))//', '//TRIM(Flt2LStr( RdtnTMax    ))//              &
-                              ', '//TRIM(Flt2LStr( RdtnDT      ))//', '//TRIM(Flt2LStr( WtrDens     ))//','
-      WRITE (UnAD,FmtText  )  ', '//TRIM(Flt2LStr( WtrDpth     ))//', '//TRIM(Int2LStr( WaveMod     ))//              &
-                              ', '//TRIM(Flt2LStr( WaveTMax    ))//', '//TRIM(Flt2LStr( WaveDT      ))//              &
-                              ', '//TRIM(Flt2LStr( WaveHs      ))//', '//TRIM(Flt2LStr( WaveTp      ))//              &
-                              ', '//TRIM(Flt2LStr( WavePkShp   ))//', '//TRIM(Flt2LStr( WaveDir     ))//              &
-                              ', '//TRIM(Int2LStr( WaveSeed(1) ))//', '//TRIM(Int2LStr( WaveSeed(2) ))//','
-      WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( CurrMod     ))//', '//TRIM(Flt2LStr( CurrSSV0    ))//              &
-                              ', '//TRIM(Flt2LStr( CurrSSDir   ))//', '//TRIM(Flt2LStr( CurrNSRef   ))//              &
-                              ', '//TRIM(Flt2LStr( CurrNSV0    ))//', '//TRIM(Flt2LStr( CurrNSDir   ))//              &
-                              ', '//TRIM(Flt2LStr( CurrDIV     ))//', '//TRIM(Flt2LStr( CurrDIDir   ))//              &
-                              ', '//TRIM(Flt2LStr( p%Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//' )'
+      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( PtfmLdMod ))// &
+                              ', '//TRIM(Num2LStr( PtfmVol0    ))//', '//TRIM(Num2LStr( PtfmNodes   ))//              &
+                              ', '//TRIM(Num2LStr( PtfmDraft   ))//', '//TRIM(Num2LStr( PtfmDiam    ))//              &
+                              ', '//TRIM(Num2LStr( PtfmCD      ))//', '//TRIM(Num2LStr( RdtnTMax    ))//              &
+                              ', '//TRIM(Num2LStr( RdtnDT      ))//', '//TRIM(Num2LStr( WtrDens     ))//','
+      WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( WtrDpth     ))//', '//TRIM(Num2LStr( WaveMod     ))//              &
+                              ', '//TRIM(Num2LStr( WaveTMax    ))//', '//TRIM(Num2LStr( WaveDT      ))//              &
+                              ', '//TRIM(Num2LStr( WaveHs      ))//', '//TRIM(Num2LStr( WaveTp      ))//              &
+                              ', '//TRIM(Num2LStr( WavePkShp   ))//', '//TRIM(Num2LStr( WaveDir     ))//              &
+                              ', '//TRIM(Num2LStr( WaveSeed(1) ))//', '//TRIM(Num2LStr( WaveSeed(2) ))//','
+      WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( CurrMod     ))//', '//TRIM(Num2LStr( CurrSSV0    ))//              &
+                              ', '//TRIM(Num2LStr( CurrSSDir   ))//', '//TRIM(Num2LStr( CurrNSRef   ))//              &
+                              ', '//TRIM(Num2LStr( CurrNSV0    ))//', '//TRIM(Num2LStr( CurrNSDir   ))//              &
+                              ', '//TRIM(Num2LStr( CurrDIV     ))//', '//TRIM(Num2LStr( CurrDIDir   ))//              &
+                              ', '//TRIM(Num2LStr( p%Gravity     ))//', '//TRIM(Num2LStr( NFreeSrfc   ))//' )'
 
 
    ! Create an ARRAY statement to hold the mooring line data:
@@ -2860,49 +2855,49 @@ CASE ( 3 )                 ! Floating offshore.
 
       IF ( LineMod == 1 )  THEN  ! .TRUE if we have standard quasi-static mooring lines; store the mooring line data into the ARRAY
 
-         WRITE (UnAD,FmtText        )  ', IC, SIZE = '//TRIM(Int2LStr( 12*NumLines + 1 )) ! Specify a list of constants.  The ARRAY contains all 12 columns of mooring line data for each of the NumLines mooring lines + 1 extra element to contain the value of NLnNodes
+         WRITE (UnAD,FmtText        )  ', IC, SIZE = '//TRIM(Num2LStr( 12*NumLines + 1 )) ! Specify a list of constants.  The ARRAY contains all 12 columns of mooring line data for each of the NumLines mooring lines + 1 extra element to contain the value of NLnNodes
          DO I = 1,NumLines ! Loop through all mooring lines
             IF ( I == 1        )  THEN ! First line
-               WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Flt2LStr( LAnchxi  (I) ))//','
+               WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Num2LStr( LAnchxi  (I) ))//','
             ELSE                       ! All other lines
-               WRITE (UnAD,FmtText  )  ', '          //TRIM(Flt2LStr( LAnchxi  (I) ))//','
+               WRITE (UnAD,FmtText  )  ', '          //TRIM(Num2LStr( LAnchxi  (I) ))//','
             ENDIF
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LAnchyi  (I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LAnchyi  (I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LAnchzi  (I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LAnchzi  (I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LFairxt  (I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LFairxt  (I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LFairyt  (I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LFairyt  (I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LFairzt  (I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LFairzt  (I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LUnstrLen(I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LUnstrLen(I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LDiam    (I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LDiam    (I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LMassDen (I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LMassDen (I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LEAStff  (I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LEAStff  (I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LSeabedCD(I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LSeabedCD(I) ))//','
          ENDDO             ! I - All mooring lines
          DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Flt2LStr( LTenTol  (I) ))//','
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LTenTol  (I) ))//','
          ENDDO             ! I - All mooring lines
          IF ( SaveGrphcs )  THEN ! .TRUE. if GRAPHICS output is saved in an ADAMS analysis.
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Int2LStr( NLnNodes     ))
+            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( NLnNodes     ))
          ELSE                    ! No GRAPHICS output; thus, there are no line nodes to be viewed
             WRITE (UnAD,FmtText     )  ', 0'
          ENDIF
@@ -2910,7 +2905,7 @@ CASE ( 3 )                 ! Floating offshore.
       ELSE                       ! We must have user-defined or no mooring lines; store NumLines as the sole element in the ARRAY
 
          WRITE (UnAD,FmtText        )  ', IC, SIZE = 1'
-         WRITE (UnAD,FmtText        )  ', NUMBERS = '//TRIM(Int2LStr( NumLines ))
+         WRITE (UnAD,FmtText        )  ', NUMBERS = '//TRIM(Num2LStr( NumLines ))
 
       ENDIF
 
@@ -2956,9 +2951,9 @@ CMatrix(6,2) = CMatrix(2,6)
 CMatrix(5,3) = CMatrix(3,5)
 
 WRITE (UnAD,'(A,I2.2,A)'   )  '!                             adams_view_name=''TwrSec', 1, 'ToTwrSecBelow_F'''
-WRITE (UnAD,FmtText        )  'FIELD/'//TRIM(Int2LStr( TmpID2 ))
-WRITE (UnAD,FmtText        )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-WRITE (UnAD,FmtText        )  ', J = '//TRIM(Int2LStr( TmpID  ))
+WRITE (UnAD,FmtText        )  'FIELD/'//TRIM(Num2LStr( TmpID2 ))
+WRITE (UnAD,FmtText        )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+WRITE (UnAD,FmtText        )  ', J = '//TRIM(Num2LStr( TmpID  ))
 WRITE (UnAD,FmtText        )  ', CMATRIX = '
 WRITE (UnAD,FmtTRTRTRTRTRTR)  ', ', CMatrix(1,1), ', ', CMatrix(2,1), ', ', CMatrix(3,1), &
                               ', ', CMatrix(4,1), ', ', CMatrix(5,1), ', ', CMatrix(6,1)
@@ -3020,9 +3015,9 @@ DO J = 2,p%TwrNodes ! Loop through all but the innermost tower nodes/elements
    CMatrix(5,3) = CMatrix(3,5)
 
    WRITE (UnAD,'(A,I2.2,A)'   )  '!                             adams_view_name=''TwrSec', J, 'ToTwrSecBelow_F'''
-   WRITE (UnAD,FmtText        )  'FIELD/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText        )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText        )  ', J = '//TRIM(Int2LStr( TmpID  ))
+   WRITE (UnAD,FmtText        )  'FIELD/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText        )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText        )  ', J = '//TRIM(Num2LStr( TmpID  ))
    WRITE (UnAD,FmtText        )  ', CMATRIX = '
    WRITE (UnAD,FmtTRTRTRTRTRTR)  ', ', CMatrix(1,1), ', ', CMatrix(2,1), ', ', CMatrix(3,1), &
                                  ', ', CMatrix(4,1), ', ', CMatrix(5,1), ', ', CMatrix(6,1)
@@ -3084,9 +3079,9 @@ CMatrix(6,2) = CMatrix(2,6)
 CMatrix(5,3) = CMatrix(3,5)
 
 WRITE (UnAD,FmtText        )  '!                             adams_view_name=''TowerTopToTwrSecBelow_F'''
-WRITE (UnAD,FmtText        )  'FIELD/'//TRIM(Int2LStr( TmpID2 ))
-WRITE (UnAD,FmtText        )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-WRITE (UnAD,FmtText        )  ', J = '//TRIM(Int2LStr( TmpID  ))
+WRITE (UnAD,FmtText        )  'FIELD/'//TRIM(Num2LStr( TmpID2 ))
+WRITE (UnAD,FmtText        )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+WRITE (UnAD,FmtText        )  ', J = '//TRIM(Num2LStr( TmpID  ))
 WRITE (UnAD,FmtText        )  ', CMATRIX = '
 WRITE (UnAD,FmtTRTRTRTRTRTR)  ', ', CMatrix(1,1), ', ', CMatrix(2,1), ', ', CMatrix(3,1), &
                               ', ', CMatrix(4,1), ', ', CMatrix(5,1), ', ', CMatrix(6,1)
@@ -3149,26 +3144,26 @@ CASE ( 2 )                 ! Fixed bottom offshore.
          TmpID  =  800 + J ! ID of the FLOATING MARKER of the current tower element.
          TmpID2 = 1800 + J ! ID of the associated aerodynamic and hydrodynamic MARKER fixed in the current tower element.
          WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'AeroHydro_GF'''
-         WRITE (UnAD,FmtText     )  'GFORCE/'//TRIM(Int2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Int2LStr( TmpID  ))
-         WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
-!         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( p%TwrLdMod ))// &
-         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', 0'// &
-                                    ', '//TRIM(Int2LStr( p%TwrNodes    ))//', '//TRIM(Flt2LStr( p%TwrDraft    ))//             &
-                                    ', '//TRIM(Flt2LStr( WtrDens     ))//', '//TRIM(Flt2LStr( WtrDpth     ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Int2LStr( WaveMod     ))//', '//TRIM(Int2LStr( WaveStMod   ))//             &
-                                    ', '//TRIM(Flt2LStr( WaveTMax    ))//', '//TRIM(Flt2LStr( WaveDT      ))//             &
-                                    ', '//TRIM(Flt2LStr( WaveHs      ))//', '//TRIM(Flt2LStr( WaveTp      ))//             &
-                                    ', '//TRIM(Flt2LStr( WavePkShp   ))//', '//TRIM(Flt2LStr( WaveDir     ))//             &
-                                    ', '//TRIM(Int2LStr( WaveSeed(1) ))//', '//TRIM(Int2LStr( WaveSeed(2) ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Int2LStr( CurrMod     ))//', '//TRIM(Flt2LStr( CurrSSV0    ))//             &
-                                    ', '//TRIM(Flt2LStr( CurrSSDir   ))//', '//TRIM(Flt2LStr( CurrNSRef   ))//             &
-                                    ', '//TRIM(Flt2LStr( CurrNSV0    ))//', '//TRIM(Flt2LStr( CurrNSDir   ))//             &
-                                    ', '//TRIM(Flt2LStr( CurrDIV     ))//', '//TRIM(Flt2LStr( CurrDIDir   ))//             &
-                                    ', '//TRIM(Flt2LStr( p%Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( p%DiamT(J)    ))//', '//TRIM(Flt2LStr( p%CAT(J)    ))//             &
-                                    ', '//TRIM(Flt2LStr( p%CDT(J)    ))                                     //' )'
+         WRITE (UnAD,FmtText     )  'GFORCE/'//TRIM(Num2LStr( TmpID2 ))
+         WRITE (UnAD,FmtText     )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+         WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Num2LStr( TmpID  ))
+         WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Num2LStr( TmpID2 ))
+!         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( p%TwrLdMod ))// &
+         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', 0'// &
+                                    ', '//TRIM(Num2LStr( p%TwrNodes    ))//', '//TRIM(Num2LStr( p%TwrDraft    ))//             &
+                                    ', '//TRIM(Num2LStr( WtrDens     ))//', '//TRIM(Num2LStr( WtrDpth     ))//','
+         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( WaveMod     ))//', '//TRIM(Num2LStr( WaveStMod   ))//             &
+                                    ', '//TRIM(Num2LStr( WaveTMax    ))//', '//TRIM(Num2LStr( WaveDT      ))//             &
+                                    ', '//TRIM(Num2LStr( WaveHs      ))//', '//TRIM(Num2LStr( WaveTp      ))//             &
+                                    ', '//TRIM(Num2LStr( WavePkShp   ))//', '//TRIM(Num2LStr( WaveDir     ))//             &
+                                    ', '//TRIM(Num2LStr( WaveSeed(1) ))//', '//TRIM(Num2LStr( WaveSeed(2) ))//','
+         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( CurrMod     ))//', '//TRIM(Num2LStr( CurrSSV0    ))//             &
+                                    ', '//TRIM(Num2LStr( CurrSSDir   ))//', '//TRIM(Num2LStr( CurrNSRef   ))//             &
+                                    ', '//TRIM(Num2LStr( CurrNSV0    ))//', '//TRIM(Num2LStr( CurrNSDir   ))//             &
+                                    ', '//TRIM(Num2LStr( CurrDIV     ))//', '//TRIM(Num2LStr( CurrDIDir   ))//             &
+                                    ', '//TRIM(Num2LStr( p%Gravity     ))//', '//TRIM(Num2LStr( NFreeSrfc   ))//','
+         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( p%DiamT(J)    ))//', '//TRIM(Num2LStr( p%CAT(J)    ))//             &
+                                    ', '//TRIM(Num2LStr( p%CDT(J)    ))                                     //' )'
       ENDDO             ! J - Tower nodes/elements
 
 
@@ -3178,23 +3173,23 @@ CASE ( 2 )                 ! Fixed bottom offshore.
          TmpID  =  800 + J ! ID of the FLOATING MARKER of the current tower element.
          TmpID2 = 1800 + J ! ID of the associated aerodynamic and hydrodynamic MARKER fixed in the current tower element.
          WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'AeroHydro_GF'''
-         WRITE (UnAD,FmtText     )  'GFORCE/'//TRIM(Int2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Int2LStr( TmpID  ))
-         WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Int2LStr( PtfmModel ))//', '//TRIM(Int2LStr( p%TwrLdMod ))// &
-                                    ', '//TRIM(Int2LStr( p%TwrNodes    ))//', '//TRIM(Flt2LStr( p%TwrDraft    ))//             &
-                                    ', '//TRIM(Flt2LStr( WtrDens     ))//', '//TRIM(Flt2LStr( WtrDpth     ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Int2LStr( WaveMod     ))//', '//TRIM(Int2LStr( WaveStMod   ))//             &
-                                    ', '//TRIM(Flt2LStr( WaveTMax    ))//', '//TRIM(Flt2LStr( WaveDT      ))//             &
-                                    ', '//TRIM(Flt2LStr( WaveHs      ))//', '//TRIM(Flt2LStr( WaveTp      ))//             &
-                                    ', '//TRIM(Flt2LStr( WavePkShp   ))//', '//TRIM(Flt2LStr( WaveDir     ))//             &
-                                    ', '//TRIM(Int2LStr( WaveSeed(1) ))//', '//TRIM(Int2LStr( WaveSeed(2) ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Int2LStr( CurrMod     ))//', '//TRIM(Flt2LStr( CurrSSV0    ))//             &
-                                    ', '//TRIM(Flt2LStr( CurrSSDir   ))//', '//TRIM(Flt2LStr( CurrNSRef   ))//             &
-                                    ', '//TRIM(Flt2LStr( CurrNSV0    ))//', '//TRIM(Flt2LStr( CurrNSDir   ))//             &
-                                    ', '//TRIM(Flt2LStr( CurrDIV     ))//', '//TRIM(Flt2LStr( CurrDIDir   ))//             &
-                                    ', '//TRIM(Flt2LStr( p%Gravity     ))//', '//TRIM(Int2LStr( NFreeSrfc   ))//' )'
+         WRITE (UnAD,FmtText     )  'GFORCE/'//TRIM(Num2LStr( TmpID2 ))
+         WRITE (UnAD,FmtText     )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+         WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Num2LStr( TmpID  ))
+         WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Num2LStr( TmpID2 ))
+         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( p%TwrLdMod ))// &
+                                    ', '//TRIM(Num2LStr( p%TwrNodes    ))//', '//TRIM(Num2LStr( p%TwrDraft    ))//             &
+                                    ', '//TRIM(Num2LStr( WtrDens     ))//', '//TRIM(Num2LStr( WtrDpth     ))//','
+         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( WaveMod     ))//', '//TRIM(Num2LStr( WaveStMod   ))//             &
+                                    ', '//TRIM(Num2LStr( WaveTMax    ))//', '//TRIM(Num2LStr( WaveDT      ))//             &
+                                    ', '//TRIM(Num2LStr( WaveHs      ))//', '//TRIM(Num2LStr( WaveTp      ))//             &
+                                    ', '//TRIM(Num2LStr( WavePkShp   ))//', '//TRIM(Num2LStr( WaveDir     ))//             &
+                                    ', '//TRIM(Num2LStr( WaveSeed(1) ))//', '//TRIM(Num2LStr( WaveSeed(2) ))//','
+         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( CurrMod     ))//', '//TRIM(Num2LStr( CurrSSV0    ))//             &
+                                    ', '//TRIM(Num2LStr( CurrSSDir   ))//', '//TRIM(Num2LStr( CurrNSRef   ))//             &
+                                    ', '//TRIM(Num2LStr( CurrNSV0    ))//', '//TRIM(Num2LStr( CurrNSDir   ))//             &
+                                    ', '//TRIM(Num2LStr( CurrDIV     ))//', '//TRIM(Num2LStr( CurrDIDir   ))//             &
+                                    ', '//TRIM(Num2LStr( p%Gravity     ))//', '//TRIM(Num2LStr( NFreeSrfc   ))//' )'
       ENDDO             ! J - Tower nodes/elements
 
 
@@ -3219,21 +3214,21 @@ WRITE (UnAD,FmtText  )  '!---------------------------------- Bed Plate ---------
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''YawPosDemand_V'''
 WRITE (UnAD,FmtText  )  'VARIABLE/2011'
-WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( YCMode ))//', '//TRIM(Flt2LStr( TYCOn ))// &
-                        ', '//TRIM(Flt2LStr( DT        ))//', '//TRIM(Flt2LStr( TYawManS ))//            &
-                        ', '//TRIM(Flt2LStr( TYawManE  ))//', '//TRIM(Flt2LStr( NacYawF  ))//            &
-                        ', '//TRIM(Flt2LStr( YawNeut ))//' )'
-!                        ', '//TRIM(Flt2LStr( YawNeut   ))//', '//TRIM(Int2LStr( p%NumBl    ))//            &
-!                        ', '//TRIM(Int2LStr( CompAeroI ))//' )'
+WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( YCMode ))//', '//TRIM(Num2LStr( TYCOn ))// &
+                        ', '//TRIM(Num2LStr( DT        ))//', '//TRIM(Num2LStr( TYawManS ))//            &
+                        ', '//TRIM(Num2LStr( TYawManE  ))//', '//TRIM(Num2LStr( NacYawF  ))//            &
+                        ', '//TRIM(Num2LStr( YawNeut ))//' )'
+!                        ', '//TRIM(Num2LStr( YawNeut   ))//', '//TRIM(Num2LStr( p%NumBl    ))//            &
+!                        ', '//TRIM(Num2LStr( CompAeroI ))//' )'
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''YawRateDemand_V'''
 WRITE (UnAD,FmtText  )  'VARIABLE/2012'
-WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( YCMode ))//', '//TRIM(Flt2LStr( TYCOn ))// &
-                        ', '//TRIM(Flt2LStr( DT        ))//', '//TRIM(Flt2LStr( TYawManS ))//            &
-                        ', '//TRIM(Flt2LStr( TYawManE  ))//', '//TRIM(Flt2LStr( NacYawF  ))//            &
-                        ', '//TRIM(Flt2LStr( YawNeut ))//' )'
-!                        ', '//TRIM(Flt2LStr( YawNeut   ))//', '//TRIM(Int2LStr( p%NumBl    ))//            &
-!                        ', '//TRIM(Int2LStr( CompAeroI ))//' )'
+WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( YCMode ))//', '//TRIM(Num2LStr( TYCOn ))// &
+                        ', '//TRIM(Num2LStr( DT        ))//', '//TRIM(Num2LStr( TYawManS ))//            &
+                        ', '//TRIM(Num2LStr( TYawManE  ))//', '//TRIM(Num2LStr( NacYawF  ))//            &
+                        ', '//TRIM(Num2LStr( YawNeut ))//' )'
+!                        ', '//TRIM(Num2LStr( YawNeut   ))//', '//TRIM(Num2LStr( p%NumBl    ))//            &
+!                        ', '//TRIM(Num2LStr( CompAeroI ))//' )'
 
 WRITE (UnAD,FmtText  )  '!                             adams_view_name=''YawPosError_V'''
 WRITE (UnAD,FmtText  )  'VARIABLE/2013'
@@ -3248,8 +3243,8 @@ WRITE (UnAD,FmtText  )  'SFORCE/2010'
 WRITE (UnAD,FmtText  )  ', ROTATION'
 WRITE (UnAD,FmtText  )  ', I = 2010'
 WRITE (UnAD,FmtText  )  ', J = 1010'
-WRITE (UnAD,FmtText  )  ', FUNCTION = -'//TRIM(Flt2LStr( p%YawSpr *0.001 ))//'*VARVAL(2013) - '// &
-                                          TRIM(Flt2LStr( p%YawDamp*0.001 ))//'*VARVAL(2014)'
+WRITE (UnAD,FmtText  )  ', FUNCTION = -'//TRIM(Num2LStr( p%YawSpr *0.001 ))//'*VARVAL(2013) - '// &
+                                          TRIM(Num2LStr( p%YawDamp*0.001 ))//'*VARVAL(2014)'
 
 
 
@@ -3281,41 +3276,41 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlUSSP ))//': 0, 0,'
-   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( p%TFrlUSSpr*0.001 ))//'*( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlUSSP ))//' ) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Num2LStr( p%TFrlUSSP ))//': 0, 0,'
+   WRITE (UnAD,FmtText  )  ', -'//TRIM(Num2LStr( p%TFrlUSSpr*0.001 ))//'*( AZ(5040,2040) - '//TRIM(Num2LStr( p%TFrlUSSP ))//' ) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlDSSpr_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/5042'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlDSSP ))//':'
-   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( p%TFrlDSSpr*0.001 ))// &
-                           '*( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlDSSP ))//' ), 0, 0 )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Num2LStr( p%TFrlDSSP ))//':'
+   WRITE (UnAD,FmtText  )  ', -'//TRIM(Num2LStr( p%TFrlDSSpr*0.001 ))// &
+                           '*( AZ(5040,2040) - '//TRIM(Num2LStr( p%TFrlDSSP ))//' ), 0, 0 )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlUSDmp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/5043'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlUSDP ))// &
-                           ': 0, 0, -'//TRIM(Flt2LStr( p%TFrlUSDmp*0.001 ))//'*WZ(5040,2040,2040) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Num2LStr( p%TFrlUSDP ))// &
+                           ': 0, 0, -'//TRIM(Num2LStr( p%TFrlUSDmp*0.001 ))//'*WZ(5040,2040,2040) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlDSDmp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/5044'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Flt2LStr( p%TFrlDSDP ))// &
-                           ': -'//TRIM(Flt2LStr( p%TFrlDSDmp*0.001 ))//'*WZ(5040,2040,2040), 0, 0 )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(5040,2040) - '//TRIM(Num2LStr( p%TFrlDSDP ))// &
+                           ': -'//TRIM(Num2LStr( p%TFrlDSDmp*0.001 ))//'*WZ(5040,2040,2040), 0, 0 )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TFrlCoulombDamp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/5045'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 5040'
    WRITE (UnAD,FmtText  )  ', J = 2040'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(5040,2040,2040): '//TRIM(Flt2LStr( p%TFrlCDmp*0.001 ))// &
-                           ', 0, -'//TRIM(Flt2LStr( p%TFrlCDmp*0.001 ))//' )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(5040,2040,2040): '//TRIM(Num2LStr( p%TFrlCDmp*0.001 ))// &
+                           ', 0, -'//TRIM(Num2LStr( p%TFrlCDmp*0.001 ))//' )'
 
 
 CASE ( 2 )              ! User-defined tail-furl spring/damper model.
@@ -3358,8 +3353,8 @@ IF ( CompAero )  THEN   ! AeroDyn will be used; therefore, add GFORCE statements
       WRITE (UnAD,FmtText  )  ', I = 5110'
       WRITE (UnAD,FmtText  )  ', JFLOAT = 500'
       WRITE (UnAD,FmtText  )  ', RM = 5110'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( TFinMod ))//', '//TRIM(Int2LStr( TFinNFoil ))//', '// &
-                                                     TRIM(Flt2LStr( TFinArea ))//', '//TRIM(Int2LStr( SubAxI ))//' )'
+      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( TFinMod ))//', '//TRIM(Num2LStr( TFinNFoil ))//', '// &
+                                                     TRIM(Num2LStr( TFinArea ))//', '//TRIM(Num2LStr( SubAxI ))//' )'
 
 
    CASE ( 2 )              ! User-defined tail fin aerodynamics model.
@@ -3369,7 +3364,7 @@ IF ( CompAero )  THEN   ! AeroDyn will be used; therefore, add GFORCE statements
       WRITE (UnAD,FmtText  )  ', I = 5110'
       WRITE (UnAD,FmtText  )  ', JFLOAT = 500'
       WRITE (UnAD,FmtText  )  ', RM = 5110'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( TFinMod ))//' )'
+      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( TFinMod ))//' )'
 
 
    ENDSELECT
@@ -3407,41 +3402,41 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlUSSP ))//': 0, 0,'
-   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( p%RFrlUSSpr*0.001 ))//'*( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlUSSP ))//' ) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Num2LStr( p%RFrlUSSP ))//': 0, 0,'
+   WRITE (UnAD,FmtText  )  ', -'//TRIM(Num2LStr( p%RFrlUSSpr*0.001 ))//'*( AZ(2130,2030) - '//TRIM(Num2LStr( p%RFrlUSSP ))//' ) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlDSSpr_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/2132'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlDSSP ))//':'
-   WRITE (UnAD,FmtText  )  ', -'//TRIM(Flt2LStr( p%RFrlDSSpr*0.001 ))// &
-                           '*( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlDSSP ))//' ), 0, 0 )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Num2LStr( p%RFrlDSSP ))//':'
+   WRITE (UnAD,FmtText  )  ', -'//TRIM(Num2LStr( p%RFrlDSSpr*0.001 ))// &
+                           '*( AZ(2130,2030) - '//TRIM(Num2LStr( p%RFrlDSSP ))//' ), 0, 0 )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlUSDmp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/2133'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlUSDP ))// &
-                           ': 0, 0, -'//TRIM(Flt2LStr( p%RFrlUSDmp*0.001 ))//'*WZ(2130,2030,2030) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Num2LStr( p%RFrlUSDP ))// &
+                           ': 0, 0, -'//TRIM(Num2LStr( p%RFrlUSDmp*0.001 ))//'*WZ(2130,2030,2030) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlDSDmp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/2134'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Flt2LStr( p%RFrlDSDP ))// &
-                           ': -'//TRIM(Flt2LStr( p%RFrlDSDmp*0.001 ))//'*WZ(2130,2030,2030), 0, 0 )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( AZ(2130,2030) - '//TRIM(Num2LStr( p%RFrlDSDP ))// &
+                           ': -'//TRIM(Num2LStr( p%RFrlDSDmp*0.001 ))//'*WZ(2130,2030,2030), 0, 0 )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''RFrlCoulombDamp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/2135'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 2130'
    WRITE (UnAD,FmtText  )  ', J = 2030'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(2130,2030,2030): '//TRIM(Flt2LStr( p%RFrlCDmp*0.001 ))// &
-                           ', 0, -'//TRIM(Flt2LStr( p%RFrlCDmp*0.001 ))//' )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(2130,2030,2030): '//TRIM(Num2LStr( p%RFrlCDmp*0.001 ))// &
+                           ', 0, -'//TRIM(Num2LStr( p%RFrlCDmp*0.001 ))//' )'
 
 
 CASE ( 2 )              ! User-defined rotor-furl spring/damper model.
@@ -3494,35 +3489,35 @@ IF ( p%DOF_Flag(DOF_GeAz) )  THEN  ! Only include the generator models if the ge
    WRITE (UnAD,FmtText        )  ', ROTATION'
    WRITE (UnAD,FmtText        )  ', I = 3150'
    WRITE (UnAD,FmtText        )  ', J = 2050'
-   WRITE (UnAD,FmtText        )  ', FUNCTION = USER( '//TRIM(Int2LStr( GenTiStrp ))//', '//TRIM(Flt2LStr( SpdGenOn ))// &
-                                 ', '//TRIM(Flt2LStr( TimGenOn ))//', '//TRIM(Flt2LStr( TimGenOf ))//                   &
-                                 ', '//TRIM(Int2LStr( VSContrl ))//', 0, 0, '                                               !p%GBRatio & p%NumBl no longer necessary to send, but I'm not going to renumber the rest of the parameters
-!                                 ', '//TRIM(Int2LStr( VSContrl ))//', '//TRIM(Flt2LStr( p%GBRatio  ))//                   &
-!                                 ', '//TRIM(Int2LStr( p%NumBl    ))//','
+   WRITE (UnAD,FmtText        )  ', FUNCTION = USER( '//TRIM(Num2LStr( GenTiStrp ))//', '//TRIM(Num2LStr( SpdGenOn ))// &
+                                 ', '//TRIM(Num2LStr( TimGenOn ))//', '//TRIM(Num2LStr( TimGenOf ))//                   &
+                                 ', '//TRIM(Num2LStr( VSContrl ))//', 0, 0, '                                               !p%GBRatio & p%NumBl no longer necessary to send, but I'm not going to renumber the rest of the parameters
+!                                 ', '//TRIM(Num2LStr( VSContrl ))//', '//TRIM(Num2LStr( p%GBRatio  ))//                   &
+!                                 ', '//TRIM(Num2LStr( p%NumBl    ))//','
    SELECT CASE ( VSContrl )               ! Are we using variable-speed control?
    CASE ( 0 )                             ! No variable-speed control.  Using a generator model.
       SELECT CASE ( GenModel )            ! Which generator model are we using?
       CASE ( 1 )                          ! Simple induction-generator model.
-         WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( GenModel ))//', '//TRIM(Flt2LStr( p%GenEff   ))//                   &
-                                 ', '//TRIM(Flt2LStr( SIG_SySp ))//', '//TRIM(Flt2LStr( SIG_POSl ))//                   &
-                                 ', '//TRIM(Flt2LStr( SIG_POTq ))//', '//TRIM(Flt2LStr( SIG_Slop ))//' )'
+         WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( GenModel ))//', '//TRIM(Num2LStr( p%GenEff   ))//                   &
+                                 ', '//TRIM(Num2LStr( SIG_SySp ))//', '//TRIM(Num2LStr( SIG_POSl ))//                   &
+                                 ', '//TRIM(Num2LStr( SIG_POTq ))//', '//TRIM(Num2LStr( SIG_Slop ))//' )'
       CASE ( 2 )                          ! Thevenin-equivalent generator model.
-         WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( GenModel ))//', '//TRIM(Flt2LStr( TEC_Freq ))//                   &
-                                 ', '//TRIM(Int2LStr( TEC_NPol ))//', '//TRIM(Flt2LStr( TEC_SRes ))//                   &
-                                 ', '//TRIM(Flt2LStr( TEC_RRes ))//', '//TRIM(Flt2LStr( TEC_VLL  ))//                   &
-                                 ', '//TRIM(Flt2LStr( TEC_SLR  ))//', '//TRIM(Flt2LStr( TEC_RLR  ))//                   &
-                                 ', '//TRIM(Flt2LStr( TEC_MR ))//' )'
+         WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( GenModel ))//', '//TRIM(Num2LStr( TEC_Freq ))//                   &
+                                 ', '//TRIM(Num2LStr( TEC_NPol ))//', '//TRIM(Num2LStr( TEC_SRes ))//                   &
+                                 ', '//TRIM(Num2LStr( TEC_RRes ))//', '//TRIM(Num2LStr( TEC_VLL  ))//                   &
+                                 ', '//TRIM(Num2LStr( TEC_SLR  ))//', '//TRIM(Num2LStr( TEC_RLR  ))//                   &
+                                 ', '//TRIM(Num2LStr( TEC_MR ))//' )'
       CASE ( 3 )                          ! User-defined generator model.
-         WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( GenModel ))//', '//TRIM(Flt2LStr( p%GenEff ))//                     &
-                                 ', '//TRIM(Flt2LStr( DT       ))//' )'
+         WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( GenModel ))//', '//TRIM(Num2LStr( p%GenEff ))//                     &
+                                 ', '//TRIM(Num2LStr( DT       ))//' )'
       ENDSELECT
    CASE ( 1 )                             ! Simple variable-speed control.
-      WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( p%GenEff   ))//', '//TRIM(Flt2LStr( VS_RtGnSp ))//                  &
-                                 ', '//TRIM(Flt2LStr( VS_RtTq  ))//', '//TRIM(Flt2LStr( VS_Rgn2K  ))//                  &
-                                 ', '//TRIM(Flt2LStr( VS_Slope ))//', '//TRIM(Flt2LStr( VS_TrGnSp ))//                  &
-                                 ', '//TRIM(Flt2LStr( VS_SySp  ))//' )'
+      WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( p%GenEff   ))//', '//TRIM(Num2LStr( VS_RtGnSp ))//                  &
+                                 ', '//TRIM(Num2LStr( VS_RtTq  ))//', '//TRIM(Num2LStr( VS_Rgn2K  ))//                  &
+                                 ', '//TRIM(Num2LStr( VS_Slope ))//', '//TRIM(Num2LStr( VS_TrGnSp ))//                  &
+                                 ', '//TRIM(Num2LStr( VS_SySp  ))//' )'
    CASE ( 2 )                             ! User-defined variable-speed control.
-      WRITE (UnAD,FmtText     )  ', '//TRIM(Flt2LStr( p%GenEff   ))//', '//TRIM(Flt2LStr( DT ))//' )'
+      WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( p%GenEff   ))//', '//TRIM(Num2LStr( DT ))//' )'
    ENDSELECT
 
 ENDIF
@@ -3549,11 +3544,11 @@ IF ( ( p%DOF_Flag(DOF_GeAz) ) .AND. ( TMax > THSSBrDp ) )  THEN  ! .TRUE. if the
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 3150'
    WRITE (UnAD,FmtText  )  ', J = 2050'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Int2LStr( HSSBrMode ))//', '//TRIM(Flt2LStr( THSSBrDp ))// &
-                           ', '//TRIM(Flt2LStr( HSSBrTqF ))//', '//TRIM(Flt2LStr( HSSBrDT ))//                    &
-                           ', '//TRIM(Flt2LStr( DT       ))//' )'
-!                           ', '//TRIM(Flt2LStr( DT       ))//', '//TRIM(Flt2LStr( GBRatio ))//                    &
-!                           ', '//TRIM(Int2LStr( p%NumBl    ))//' )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( HSSBrMode ))//', '//TRIM(Num2LStr( THSSBrDp ))// &
+                           ', '//TRIM(Num2LStr( HSSBrTqF ))//', '//TRIM(Num2LStr( HSSBrDT ))//                    &
+                           ', '//TRIM(Num2LStr( DT       ))//' )'
+!                           ', '//TRIM(Num2LStr( DT       ))//', '//TRIM(Num2LStr( GBRatio ))//                    &
+!                           ', '//TRIM(Num2LStr( p%NumBl    ))//' )'
 
 ENDIF
 
@@ -3577,34 +3572,34 @@ CASE ( 1 )              ! Standard (using inputs from the primary FAST input fil
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 4010'
    WRITE (UnAD,FmtText  )  ', J = 3310'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Flt2LStr( p%TeetSStp ))//': 0, 0,'
-   WRITE (UnAD,FmtText  )  ', -SIGN( '//TRIM(Flt2LStr( p%TeetSSSp*0.001 ))//'*( ABS(AZ(4010,3310)) - '// &
-                           TRIM(Flt2LStr( p%TeetSStp ))//' ), AZ(4010,3310) ) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Num2LStr( p%TeetSStp ))//': 0, 0,'
+   WRITE (UnAD,FmtText  )  ', -SIGN( '//TRIM(Num2LStr( p%TeetSSSp*0.001 ))//'*( ABS(AZ(4010,3310)) - '// &
+                           TRIM(Num2LStr( p%TeetSStp ))//' ), AZ(4010,3310) ) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TeetHrdStp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/4012'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 4010'
    WRITE (UnAD,FmtText  )  ', J = 3310'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Flt2LStr( p%TeetHStP ))//': 0, 0,'
-   WRITE (UnAD,FmtText  )  ', -SIGN( '//TRIM(Flt2LStr( p%TeetHSSp*0.001 ))//'*( ABS(AZ(4010,3310)) - '// &
-                           TRIM(Flt2LStr( p%TeetHStP ))//' ), AZ(4010,3310) ) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Num2LStr( p%TeetHStP ))//': 0, 0,'
+   WRITE (UnAD,FmtText  )  ', -SIGN( '//TRIM(Num2LStr( p%TeetHSSp*0.001 ))//'*( ABS(AZ(4010,3310)) - '// &
+                           TRIM(Num2LStr( p%TeetHStP ))//' ), AZ(4010,3310) ) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TeetDamp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/4013'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 4010'
    WRITE (UnAD,FmtText  )  ', J = 3310'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Flt2LStr( p%TeetDmpP ))//': 0, 0, -'// &
-                           TRIM(Flt2LStr( p%TeetDmp*0.001 ))//'*WZ(4010,3310,3310) )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( ABS(AZ(4010,3310)) - '//TRIM(Num2LStr( p%TeetDmpP ))//': 0, 0, -'// &
+                           TRIM(Num2LStr( p%TeetDmp*0.001 ))//'*WZ(4010,3310,3310) )'
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''TeetCoulombDamp_SF'''
    WRITE (UnAD,FmtText  )  'SFORCE/4014'
    WRITE (UnAD,FmtText  )  ', ROTATION'
    WRITE (UnAD,FmtText  )  ', I = 4010'
    WRITE (UnAD,FmtText  )  ', J = 3310'
-   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(4010,3310,3310): '//TRIM(Flt2LStr( p%TeetCDmp*0.001 ))//', 0, -'// &
-                           TRIM(Flt2LStr( p%TeetCDmp*0.001 ))//' )'
+   WRITE (UnAD,FmtText  )  ', FUNCTION = IF( WZ(4010,3310,3310): '//TRIM(Num2LStr( p%TeetCDmp*0.001 ))//', 0, -'// &
+                           TRIM(Num2LStr( p%TeetCDmp*0.001 ))//' )'
 
 
 CASE ( 2 )              ! User-defined teeter spring/damper model.
@@ -3631,29 +3626,29 @@ DO K = 1,p%NumBl ! Loop through all blades
    TmpID2 = 4010 + K
 
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''Pitch', K, 'Demand_V'''
-   WRITE (UnAD,FmtText   )  'VARIABLE/'//TRIM(Int2LStr( TmpID     ))
-   WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Int2LStr( PCMode ))//', '//TRIM(Flt2LStr( TPCOn ))// &
-                            ', '//TRIM(Flt2LStr( DT ))//','
-!                            ', '//TRIM(Flt2LStr( DT          ))//', '//TRIM(Flt2LStr( p%GBRatio     ))//       &
-!                            ', '//TRIM(Int2LStr( p%NumBl       ))//','
+   WRITE (UnAD,FmtText   )  'VARIABLE/'//TRIM(Num2LStr( TmpID     ))
+   WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Num2LStr( PCMode ))//', '//TRIM(Num2LStr( TPCOn ))// &
+                            ', '//TRIM(Num2LStr( DT ))//','
+!                            ', '//TRIM(Num2LStr( DT          ))//', '//TRIM(Num2LStr( p%GBRatio     ))//       &
+!                            ', '//TRIM(Num2LStr( p%NumBl       ))//','
                             
-   WRITE (UnAD,FmtText   )  ', '//TRIM(Flt2LStr( TPitManS(K) ))//                                            &
-                            ', '//TRIM(Flt2LStr( TPitManE(K) ))//', '//TRIM(Flt2LStr( BlPitchF(K) ))//' )'
+   WRITE (UnAD,FmtText   )  ', '//TRIM(Num2LStr( TPitManS(K) ))//                                            &
+                            ', '//TRIM(Num2LStr( TPitManE(K) ))//', '//TRIM(Num2LStr( BlPitchF(K) ))//' )'
 
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''Pitch', K, 'Error_V'''
-   WRITE (UnAD,FmtText   )  'VARIABLE/'//TRIM(Int2LStr( TmpID + 1 ))
-   WRITE (UnAD,FmtText   )  ', FUNCTION = VARVAL('//TRIM(Int2LStr( TmpID ))//') - AZ('//TRIM(Int2LStr( TmpID2 ))// &
-                            ','//TRIM(Int2LStr( TmpID ))//')'
+   WRITE (UnAD,FmtText   )  'VARIABLE/'//TRIM(Num2LStr( TmpID + 1 ))
+   WRITE (UnAD,FmtText   )  ', FUNCTION = VARVAL('//TRIM(Num2LStr( TmpID ))//') - AZ('//TRIM(Num2LStr( TmpID2 ))// &
+                            ','//TRIM(Num2LStr( TmpID ))//')'
 
    WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''Pitch', K, 'Actuator_SF'''
-   WRITE (UnAD,FmtText   )  'SFORCE/'  //TRIM(Int2LStr( TmpID     ))
+   WRITE (UnAD,FmtText   )  'SFORCE/'  //TRIM(Num2LStr( TmpID     ))
    WRITE (UnAD,FmtText   )  ', ROTATION'
-   WRITE (UnAD,FmtText   )  ', I = '   //TRIM(Int2LStr( TmpID     ))
-   WRITE (UnAD,FmtText   )  ', J = '   //TRIM(Int2LStr( TmpID2    ))
-   WRITE (UnAD,FmtText   )  ', FUNCTION = -'//TRIM(Flt2LStr( BPActrSpr*0.001 ))//                &
-                            '*VARVAL('//TRIM(Int2LStr( TmpID + 1 ))//') - '//                    &
-                            TRIM(Flt2LStr( BPActrDmp*0.001 ))//'*WZ('//TRIM(Int2LStr( TmpID ))// &
-                            ','//TRIM(Int2LStr( TmpID2 ))//','//TRIM(Int2LStr( TmpID2 ))//')'
+   WRITE (UnAD,FmtText   )  ', I = '   //TRIM(Num2LStr( TmpID     ))
+   WRITE (UnAD,FmtText   )  ', J = '   //TRIM(Num2LStr( TmpID2    ))
+   WRITE (UnAD,FmtText   )  ', FUNCTION = -'//TRIM(Num2LStr( BPActrSpr*0.001 ))//                &
+                            '*VARVAL('//TRIM(Num2LStr( TmpID + 1 ))//') - '//                    &
+                            TRIM(Num2LStr( BPActrDmp*0.001 ))//'*WZ('//TRIM(Num2LStr( TmpID ))// &
+                            ','//TRIM(Num2LStr( TmpID2 ))//','//TRIM(Num2LStr( TmpID2 ))//')'
 
 ENDDO          ! K - Blades
 
@@ -3703,9 +3698,9 @@ DO K = 1,p%NumBl       ! Loop through all blades
    CMatrix(6,4) = CMatrix(4,6)                              !
 
    WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Bld', K, 'Sec', 1, 'ToBldSecBelow_F'''
-   WRITE (UnAD,FmtText          )  'FIELD/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText          )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText          )  ', J = '//TRIM(Int2LStr( TmpID  ))
+   WRITE (UnAD,FmtText          )  'FIELD/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText          )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText          )  ', J = '//TRIM(Num2LStr( TmpID  ))
    WRITE (UnAD,FmtText          )  ', CMATRIX = '
    WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', CMatrix(1,1), ', ', CMatrix(2,1), ', ', CMatrix(3,1), &
                                    ', ', CMatrix(4,1), ', ', CMatrix(5,1), ', ', CMatrix(6,1)
@@ -3775,9 +3770,9 @@ DO K = 1,p%NumBl       ! Loop through all blades
       CMatrix(6,4) = CMatrix(4,6)                              !
 
       WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Bld', K, 'Sec', J, 'ToBldSecBelow_F'''
-      WRITE (UnAD,FmtText          )  'FIELD/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText          )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText          )  ', J = '//TRIM(Int2LStr( TmpID  ))
+      WRITE (UnAD,FmtText          )  'FIELD/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText          )  ', J = '//TRIM(Num2LStr( TmpID  ))
       WRITE (UnAD,FmtText          )  ', CMATRIX = '
       WRITE (UnAD,FmtTRTRTRTRTRTR  )  ', ', CMatrix(1,1), ', ', CMatrix(2,1), ', ', CMatrix(3,1), &
                                       ', ', CMatrix(4,1), ', ', CMatrix(5,1), ', ', CMatrix(6,1)
@@ -3846,9 +3841,9 @@ DO K = 1,p%NumBl       ! Loop through all blades
    CMatrix(6,4) = CMatrix(4,6)                              !
 
    WRITE (UnAD,'(A,I1,A)'     )  '!                             adams_view_name=''TipBrake', K, 'ToBldSecBelow_F'''
-   WRITE (UnAD,FmtText        )  'FIELD/'//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText        )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-   WRITE (UnAD,FmtText        )  ', J = '//TRIM(Int2LStr( TmpID  ))
+   WRITE (UnAD,FmtText        )  'FIELD/'//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText        )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+   WRITE (UnAD,FmtText        )  ', J = '//TRIM(Num2LStr( TmpID  ))
    WRITE (UnAD,FmtText        )  ', CMATRIX = '
    WRITE (UnAD,FmtTRTRTRTRTRTR)  ', ', CMatrix(1,1), ', ', CMatrix(2,1), ', ', CMatrix(3,1), &
                                  ', ', CMatrix(4,1), ', ', CMatrix(5,1), ', ', CMatrix(6,1)
@@ -3899,10 +3894,10 @@ IF ( CompAero )  THEN   ! AeroDyn will be used; therefore, add GFORCE statements
          TmpID  = K*100 + J               ! ID of the FLOATING MARKER of the current blade element.
          TmpID2 = 10000*K + 1000 + 10*J   ! ID of the associated aerodynamic MARKER fixed in the current blade element.
          WRITE (UnAD,'(A,I1,A,I2.2,A)')  '!                             adams_view_name=''Bld', K, 'Sec', J, 'Aero_GF'''
-         WRITE (UnAD,FmtText          )  'GFORCE/'//TRIM(Int2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText          )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText          )  ', JFLOAT = '//TRIM(Int2LStr( TmpID  ))
-         WRITE (UnAD,FmtText          )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
+         WRITE (UnAD,FmtText          )  'GFORCE/'//TRIM(Num2LStr( TmpID2 ))
+         WRITE (UnAD,FmtText          )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+         WRITE (UnAD,FmtText          )  ', JFLOAT = '//TRIM(Num2LStr( TmpID  ))
+         WRITE (UnAD,FmtText          )  ', RM = '//TRIM(Num2LStr( TmpID2 ))
          WRITE (UnAD,'(A,I1,A,I2,A)'  )  ', FUNCTION = USER( ', K, ', ', J, ' )'
 
       ENDDO             ! J - Blade nodes/elements
@@ -3927,17 +3922,17 @@ IF ( ( TBDrConN /= 0.0 ) .OR. ( TBDrConD /= 0.0 ) )  THEN   ! Only added when TB
       TmpID2 = 10000*K + 7100    ! ID of the untwisted MARKER of the current blade tip brake.
 
       WRITE (UnAD,'(A,I1,A)')  '!                             adams_view_name=''TipBrake', K, 'Drag_VF'''
-      WRITE (UnAD,FmtText   )  'VFORCE/'//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText   )  ', I = '//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText   )  ', JFLOAT = '//TRIM(Int2LStr( TmpID ))
-      WRITE (UnAD,FmtText   )  ', RM = '//TRIM(Int2LStr( TmpID2 ))
-      WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Flt2LStr( TBDrConN ))//', '//TRIM(Flt2LStr( TBDrConD ))// &
-                               ', '//TRIM(Flt2LStr( TpBrDT      ))//', '//TRIM(Flt2LStr( TTpBrDp(K) ))//             &
-                               ', '//TRIM(Flt2LStr( TBDepISp(K) ))//' )'
-!      WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Int2LStr( p%NumBl ))//', '//TRIM(Flt2LStr( TBDrConN ))// &
-!                               ', '//TRIM(Flt2LStr( TBDrConD ))//', '//TRIM(Flt2LStr( TpBrDT ))//                 &
-!                               ', '//TRIM(Int2LStr( CompAeroI   ))//', '//TRIM(Flt2LStr( TTpBrDp(K) ))//          &
-!                               ', '//TRIM(Flt2LStr( TBDepISp(K) ))//' )'
+      WRITE (UnAD,FmtText   )  'VFORCE/'//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText   )  ', I = '//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText   )  ', JFLOAT = '//TRIM(Num2LStr( TmpID ))
+      WRITE (UnAD,FmtText   )  ', RM = '//TRIM(Num2LStr( TmpID2 ))
+      WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Num2LStr( TBDrConN ))//', '//TRIM(Num2LStr( TBDrConD ))// &
+                               ', '//TRIM(Num2LStr( TpBrDT      ))//', '//TRIM(Num2LStr( TTpBrDp(K) ))//             &
+                               ', '//TRIM(Num2LStr( TBDepISp(K) ))//' )'
+!      WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Num2LStr( p%NumBl ))//', '//TRIM(Num2LStr( TBDrConN ))// &
+!                               ', '//TRIM(Num2LStr( TBDrConD ))//', '//TRIM(Num2LStr( TpBrDT ))//                 &
+!                               ', '//TRIM(Num2LStr( CompAeroI   ))//', '//TRIM(Num2LStr( TTpBrDp(K) ))//          &
+!                               ', '//TRIM(Num2LStr( TBDepISp(K) ))//' )'
 
    ENDDO                ! K - Blades
 
@@ -4015,7 +4010,7 @@ DO K = 1,p%NumBl       ! Loop through all blades
    !       USER-defined multiple airfoil table interpolations.  If the user wants to use   
    !       Reynolds Number interpolation (RENUM), then this value should remain at zero!
 
-   CALL MakeADM_WrICArrays ( IDCntrl(:,K), IDCntrl_A(K), p%BldNodes, UnAD,  "IDCntrl_A"//TRIM(Int2LStr(K)) )
+   CALL MakeADM_WrICArrays ( IDCntrl(:,K), IDCntrl_A(K), p%BldNodes, UnAD,  "IDCntrl_A"//TRIM(Num2LStr(K)) )
 END DO   
 !------------
 
@@ -4023,17 +4018,17 @@ IF ( ( NWaveKin /= 0 ) .AND. CompHydro )  THEN  ! .TRUE. if we are using the und
 
    WRITE (UnAD,FmtText  )  '!                             adams_view_name=''WaveKinNd_A'''
    WRITE (UnAD,FmtText  )  'ARRAY/4'
-   WRITE (UnAD,FmtText  )  ', IC, SIZE = '//TRIM(Int2LStr( NWaveKin ))  ! Specify a list of constants.  The number of elements in the ARRAY is NWaveKin
+   WRITE (UnAD,FmtText  )  ', IC, SIZE = '//TRIM(Num2LStr( NWaveKin ))  ! Specify a list of constants.  The number of elements in the ARRAY is NWaveKin
    IF ( NWaveKin == 1 )  THEN ! Only one wave kinematics sensor  selected
-      WRITE (      UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( WaveKinNd(1) ))
+      WRITE (      UnAD,FmtText  )  ', NUMBERS = '//TRIM(Num2LStr( WaveKinNd(1) ))
    ELSE                       ! Multiple wave kinematics sensors selected
       DO I = 1,NWaveKin ! Loop through all nodes with wave kinematics sensors for output.
          IF ( I == NWaveKin )  THEN ! Last node
-            WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( WaveKinNd(I) ))
+            WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( WaveKinNd(I) ))
          ELSEIF ( I == 1   )  THEN  ! First node
-            WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Int2LStr( WaveKinNd(I) ))//','
+            WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Num2LStr( WaveKinNd(I) ))//','
          ELSE                       ! All nodes
-            WRITE (UnAD,FmtText  )  ', '//TRIM(Int2LStr( WaveKinNd(I) ))//','
+            WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( WaveKinNd(I) ))//','
          ENDIF
       ENDDO             ! All nodes with wave kinematics sensors for output.
    ENDIF
@@ -4165,8 +4160,8 @@ SUBROUTINE MakeADM_WrICArrays(Ary, AryID, AryLen, Un, AryName)
    IF ( AryLen /= 0 )  THEN
 
       WRITE (Un,'(A)'  )  "!                             adams_view_name='"//TRIM(AryName)//"'"
-      WRITE (Un,'(A)'  )  'ARRAY/'//TRIM(Int2LStr(AryID))
-      WRITE (Un,'(A)'  )  ', IC, SIZE = '//TRIM(Int2LStr( AryLen ))   ! Specify a list of constants.  The number of elements in the ARRAY is AryLen
+      WRITE (Un,'(A)'  )  'ARRAY/'//TRIM(Num2LStr(AryID))
+      WRITE (Un,'(A)'  )  ', IC, SIZE = '//TRIM(Num2LStr( AryLen ))   ! Specify a list of constants.  The number of elements in the ARRAY is AryLen
 
       TmpStartTxt = ', NUMBERS = '                    ! write this for the first element
       TmpEndTxt   = ','                               ! write this for all but the last element
@@ -4174,7 +4169,7 @@ SUBROUTINE MakeADM_WrICArrays(Ary, AryID, AryLen, Un, AryName)
       DO I = 1,AryLen                                 ! Loop through all elements
          IF ( I == AryLen )  TmpEndTxt = ''           ! write this for the last element
 
-         WRITE (Un,'(A)')  TRIM(TmpStartTxt)//TRIM(Int2LStr( Ary(I) ))//TRIM(TmpEndTxt) 
+         WRITE (Un,'(A)')  TRIM(TmpStartTxt)//TRIM(Num2LStr( Ary(I) ))//TRIM(TmpEndTxt) 
          
          TmpStartTxt = ', '                           ! write this for all but the first element
       END DO
@@ -4210,8 +4205,8 @@ SUBROUTINE MakeADM_WrICArraysR(Ary, AryID, AryLen, Un, AryName)
    IF ( AryLen /= 0 )  THEN
 
       WRITE (Un,'(A)'  )  "!                             adams_view_name='"//TRIM(AryName)//"'"
-      WRITE (Un,'(A)'  )  'ARRAY/'//TRIM(Int2LStr(AryID))
-      WRITE (Un,'(A)'  )  ', IC, SIZE = '//TRIM(Int2LStr( AryLen ))   ! Specify a list of constants.  The number of elements in the ARRAY is AryLen
+      WRITE (Un,'(A)'  )  'ARRAY/'//TRIM(Num2LStr(AryID))
+      WRITE (Un,'(A)'  )  ', IC, SIZE = '//TRIM(Num2LStr( AryLen ))   ! Specify a list of constants.  The number of elements in the ARRAY is AryLen
 
       TmpStartTxt = ', NUMBERS = '                    ! write this for the first element
       TmpEndTxt   = ','                               ! write this for all but the last element
@@ -4242,7 +4237,7 @@ SUBROUTINE MakeADM_WrString(Str, StrID, Un, StrName)
 
 
    WRITE (Un,'(A)'    ) "!                             adams_view_name='"//TRIM(StrName)//"'"
-   WRITE (Un,'(A,A)' ) "STRING/", TRIM(Int2LStr(StrID))
+   WRITE (Un,'(A,A)' ) "STRING/", TRIM(Num2LStr(StrID))
    WRITE (Un,'(A)'    ) ", STRING = "//TRIM( Str )
 
 END SUBROUTINE MakeADM_WrString
