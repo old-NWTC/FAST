@@ -7,6 +7,8 @@ MODULE StructDyn_Parameters
 
    USE NWTC_Library
 
+   REAL(ReKi), PARAMETER            :: SmallAngleLimit_Deg  =  15.0                     ! Largest input angle considered "small" (check in input file), degrees
+   
 
       ! Parameters related to degrees of freedom (formerly MODULE DOFs)
 
@@ -38,8 +40,8 @@ MODULE StructDyn_Parameters
 
 
    INTEGER(IntKi), PARAMETER        :: DOF_Teet = 22 !DOF_TFrl + 2*(NumBE+NumBF)+ 1    ! DOF index for rotor-teeter
-  
-   
+
+
 
    INTEGER(IntKi), PARAMETER        :: NPA      =  9                                   ! Number of DOFs that contribute to the angular velocity of the tail (body A) in the inertia frame.
    INTEGER(IntKi), PARAMETER        :: NPB      =  7                                   ! Number of DOFs that contribute to the angular velocity of the tower top / baseplate (body B) in the inertia frame.
@@ -58,8 +60,8 @@ MODULE StructDyn_Parameters
    INTEGER(IntKi), PARAMETER        :: PL(NPL)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr /)           ! Array of DOF indices (pointers) that contribute to the angular velocity of the low-speed shaft                                           (body L) in the inertia frame.
    INTEGER(IntKi), PARAMETER        :: PG(NPG)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz /)                     ! Array of DOF indices (pointers) that contribute to the angular velocity of the generator                                                 (body G) in the inertia frame.
    INTEGER(IntKi), PARAMETER        :: PA(NPA)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_TFrl /)                               ! Array of DOF indices (pointers) that contribute to the angular velocity of the tail                                                      (body A) in the inertia frame.
-   
-   
+
+
 
 
       ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
@@ -79,17 +81,17 @@ MODULE StructDyn_Parameters
    INTEGER(IntKi), PARAMETER        :: OutStrLen  = 10                                  ! number of characters allowed in the output data headers
    INTEGER(IntKi), PARAMETER        :: OutStrLenM = OutStrLen-1                         ! number of characters allowed in the output data headers, excluding a minus sign or "M"
 
-   
+
      ! Parameters:
 
 
      ! Indices for computing output channels:
-     ! NOTES: 
+     ! NOTES:
      !    (1) These parameters are in the order stored in "OutListParameters.xlsx"
      !    (2) Array AllOuts() must be dimensioned to the value of the largest output parameter
      !    (3) If an index (MaxOutPts) ever becomes greater or equal to 1000, the logic to create ARRAY/1 in the FAST-to-ADAMS preprocessor will have to be changed.
 
-     !  Time: 
+     !  Time:
 
    INTEGER, PARAMETER             :: Time      =    0
 
@@ -1226,7 +1228,7 @@ MODULE StructDyn_Parameters
 
      ! The maximum number of output channels which can be output by the code.
    INTEGER, PARAMETER             :: MaxOutPts =  986
-   
+
 
 INTEGER,  PARAMETER          :: TipDxc( 3)  = (/TipDxc1,  TipDxc2,  TipDxc3/)
 INTEGER,  PARAMETER          :: TipDyc( 3)  = (/TipDyc1,  TipDyc2,  TipDyc3/)
@@ -1284,7 +1286,7 @@ INTEGER,  PARAMETER          :: SpnFLzb(9,3) = RESHAPE( (/ &
                                     Spn1FLzb2,Spn2FLzb2,Spn3FLzb2,Spn4FLzb2,Spn5FLzb2,Spn6FLzb2,Spn7FLzb2,Spn8FLzb2,Spn9FLzb2, &
                                     Spn1FLzb3,Spn2FLzb3,Spn3FLzb3,Spn4FLzb3,Spn5FLzb3,Spn6FLzb3,Spn7FLzb3,Spn8FLzb3,Spn9FLzb3  &
                                 /), (/9, 3/) )
-                                
+
 INTEGER,  PARAMETER          :: SpnMLxb(9,3) = RESHAPE( (/ &
                                     Spn1MLxb1,Spn2MLxb1,Spn3MLxb1,Spn4MLxb1,Spn5MLxb1,Spn6MLxb1,Spn7MLxb1,Spn8MLxb1,Spn9MLxb1, &
                                     Spn1MLxb2,Spn2MLxb2,Spn3MLxb2,Spn4MLxb2,Spn5MLxb2,Spn6MLxb2,Spn7MLxb2,Spn8MLxb2,Spn9MLxb2, &
@@ -1300,7 +1302,7 @@ INTEGER,  PARAMETER          :: SpnMLzb(9,3) = RESHAPE( (/ &
                                     Spn1MLzb2,Spn2MLzb2,Spn3MLzb2,Spn4MLzb2,Spn5MLzb2,Spn6MLzb2,Spn7MLzb2,Spn8MLzb2,Spn9MLzb2, &
                                     Spn1MLzb3,Spn2MLzb3,Spn3MLzb3,Spn4MLzb3,Spn5MLzb3,Spn6MLzb3,Spn7MLzb3,Spn8MLzb3,Spn9MLzb3  &
                                 /), (/9, 3/) )
-                                
+
 INTEGER,  PARAMETER          :: SpnTDxb(9,3) = RESHAPE( (/ &
                                     Spn1TDxb1,Spn2TDxb1,Spn3TDxb1,Spn4TDxb1,Spn5TDxb1,Spn6TDxb1,Spn7TDxb1,Spn8TDxb1,Spn9TDxb1, &
                                     Spn1TDxb2,Spn2TDxb2,Spn3TDxb2,Spn4TDxb2,Spn5TDxb2,Spn6TDxb2,Spn7TDxb2,Spn8TDxb2,Spn9TDxb2, &
@@ -1333,7 +1335,7 @@ INTEGER,  PARAMETER          :: SpnRDzb(9,3) = RESHAPE( (/ &
                                     Spn1RDzb3,Spn2RDzb3,Spn3RDzb3,Spn4RDzb3,Spn5RDzb3,Spn6RDzb3,Spn7RDzb3,Spn8RDzb3,Spn9RDzb3  &
                                 /), (/9, 3/) )
 
-                                
+
 INTEGER,  PARAMETER          :: TwHtALxt(9) = (/ &
                                     TwHt1ALxt,TwHt2ALxt,TwHt3ALxt,TwHt4ALxt,TwHt5ALxt,TwHt6ALxt,TwHt7ALxt,TwHt8ALxt,TwHt9ALxt /)
 INTEGER,  PARAMETER          :: TwHtALyt(9) = (/ &
@@ -1885,282 +1887,6 @@ SUBROUTINE StrD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_res
 END SUBROUTINE StrD_CalcConstrStateResidual
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! WE ARE NOT YET IMPLEMENTING THE JACOBIANS...
-!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!!----------------------------------------------------------------------------------------------------------------------------------
-!SUBROUTINE StrD_JacobianPInput( Time, u, p, x, xd, z, OtherState, dYdu, dXdu, dXddu, dZdu, ErrStat, ErrMsg )
-!! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) equations
-!! with respect to the inputs (u). The partial derivatives dY/du, dX/du, dXd/du, and DZ/du are returned.
-!!..................................................................................................................................
-!
-!      REAL(DbKi),                                INTENT(IN   )           :: Time       ! Current simulation time in seconds
-!      TYPE(StrD_InputType),                   INTENT(IN   )           :: u          ! Inputs at Time
-!      TYPE(StrD_ParameterType),               INTENT(IN   )           :: p          ! Parameters
-!      TYPE(StrD_ContinuousStateType),         INTENT(IN   )           :: x          ! Continuous states at Time
-!      TYPE(StrD_DiscreteStateType),           INTENT(IN   )           :: xd         ! Discrete states at Time
-!      TYPE(StrD_ConstraintStateType),         INTENT(IN   )           :: z          ! Constraint states at Time
-!      TYPE(StrD_OtherStateType),              INTENT(INOUT)           :: OtherState ! Other/optimization states
-!      TYPE(StrD_PartialOutputPInputType),     INTENT(  OUT), OPTIONAL :: dYdu       ! Partial derivatives of output equations
-!                                                                                       !   (Y) with respect to the inputs (u)
-!      TYPE(StrD_PartialContStatePInputType),  INTENT(  OUT), OPTIONAL :: dXdu       ! Partial derivatives of continuous state
-!                                                                                       !   equations (X) with respect to inputs (u)
-!      TYPE(StrD_PartialDiscStatePInputType),  INTENT(  OUT), OPTIONAL :: dXddu      ! Partial derivatives of discrete state
-!                                                                                       !   equations (Xd) with respect to inputs (u)
-!      TYPE(StrD_PartialConstrStatePInputType),INTENT(  OUT), OPTIONAL :: dZdu       ! Partial derivatives of constraint state
-!                                                                                       !   equations (Z) with respect to inputs (u)
-!      INTEGER(IntKi),                            INTENT(  OUT)           :: ErrStat    ! Error status of the operation
-!      CHARACTER(*),                              INTENT(  OUT)           :: ErrMsg     ! Error message if ErrStat /= ErrID_None
-!
-!
-!         ! Initialize ErrStat
-!
-!      ErrStat = ErrID_None
-!      ErrMsg  = ""
-!
-!
-!      IF ( PRESENT( dYdu ) ) THEN
-!
-!         ! Calculate the partial derivative of the output equations (Y) with respect to the inputs (u) here:
-!
-!         dYdu%DummyOutput%DummyInput = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dXdu ) ) THEN
-!
-!         ! Calculate the partial derivative of the continuous state equations (X) with respect to the inputs (u) here:
-!
-!         dXdu%DummyContState%DummyInput = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dXddu ) ) THEN
-!
-!         ! Calculate the partial derivative of the discrete state equations (Xd) with respect to the inputs (u) here:
-!
-!         dXddu%DummyDiscState%DummyInput = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dZdu ) ) THEN
-!
-!         ! Calculate the partial derivative of the constraint state equations (Z) with respect to the inputs (u) here:
-!
-!         dZdu%DummyConstrState%DummyInput = 0
-!
-!      END IF
-!
-!
-!END SUBROUTINE StrD_JacobianPInput
-!!----------------------------------------------------------------------------------------------------------------------------------
-!SUBROUTINE StrD_JacobianPContState( Time, u, p, x, xd, z, OtherState, dYdx, dXdx, dXddx, dZdx, ErrStat, ErrMsg )
-!! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) equations
-!! with respect to the continuous states (x). The partial derivatives dY/dx, dX/dx, dXd/dx, and DZ/dx are returned.
-!!..................................................................................................................................
-!
-!      REAL(DbKi),                                    INTENT(IN   )           :: Time       ! Current simulation time in seconds
-!      TYPE(StrD_InputType),                       INTENT(IN   )           :: u          ! Inputs at Time
-!      TYPE(StrD_ParameterType),                   INTENT(IN   )           :: p          ! Parameters
-!      TYPE(StrD_ContinuousStateType),             INTENT(IN   )           :: x          ! Continuous states at Time
-!      TYPE(StrD_DiscreteStateType),               INTENT(IN   )           :: xd         ! Discrete states at Time
-!      TYPE(StrD_ConstraintStateType),             INTENT(IN   )           :: z          ! Constraint states at Time
-!      TYPE(StrD_OtherStateType),                  INTENT(INOUT)           :: OtherState ! Other/optimization states
-!      TYPE(StrD_PartialOutputPContStateType),     INTENT(  OUT), OPTIONAL :: dYdx       ! Partial derivatives of output equations
-!                                                                                           !   (Y) with respect to the continuous
-!                                                                                           !   states (x)
-!      TYPE(StrD_PartialContStatePContStateType),  INTENT(  OUT), OPTIONAL :: dXdx       ! Partial derivatives of continuous state
-!                                                                                           !   equations (X) with respect to
-!                                                                                           !   the continuous states (x)
-!      TYPE(StrD_PartialDiscStatePContStateType),  INTENT(  OUT), OPTIONAL :: dXddx      ! Partial derivatives of discrete state
-!                                                                                           !   equations (Xd) with respect to
-!                                                                                           !   the continuous states (x)
-!      TYPE(StrD_PartialConstrStatePContStateType),INTENT(  OUT), OPTIONAL :: dZdx       ! Partial derivatives of constraint state
-!                                                                                           !   equations (Z) with respect to
-!                                                                                           !   the continuous states (x)
-!      INTEGER(IntKi),                                INTENT(  OUT)           :: ErrStat    ! Error status of the operation
-!      CHARACTER(*),                                  INTENT(  OUT)           :: ErrMsg     ! Error message if ErrStat /= ErrID_None
-!
-!
-!         ! Initialize ErrStat
-!
-!      ErrStat = ErrID_None
-!      ErrMsg  = ""
-!
-!
-!
-!      IF ( PRESENT( dYdx ) ) THEN
-!
-!         ! Calculate the partial derivative of the output equations (Y) with respect to the continuous states (x) here:
-!
-!         dYdx%DummyOutput%DummyContState = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dXdx ) ) THEN
-!
-!         ! Calculate the partial derivative of the continuous state equations (X) with respect to the continuous states (x) here:
-!
-!         dXdx%DummyContState%DummyContState = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dXddx ) ) THEN
-!
-!         ! Calculate the partial derivative of the discrete state equations (Xd) with respect to the continuous states (x) here:
-!
-!         dXddx%DummyDiscState%DummyContState = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dZdx ) ) THEN
-!
-!
-!         ! Calculate the partial derivative of the constraint state equations (Z) with respect to the continuous states (x) here:
-!
-!         dZdx%DummyConstrState%DummyContState = 0
-!
-!      END IF
-!
-!
-!   END SUBROUTINE StrD_JacobianPContState
-!!----------------------------------------------------------------------------------------------------------------------------------
-!SUBROUTINE StrD_JacobianPDiscState( Time, u, p, x, xd, z, OtherState, dYdxd, dXdxd, dXddxd, dZdxd, ErrStat, ErrMsg )
-!! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) equations
-!! with respect to the discrete states (xd). The partial derivatives dY/dxd, dX/dxd, dXd/dxd, and DZ/dxd are returned.
-!!..................................................................................................................................
-!
-!      REAL(DbKi),                                    INTENT(IN   )           :: Time       ! Current simulation time in seconds
-!      TYPE(StrD_InputType),                       INTENT(IN   )           :: u          ! Inputs at Time
-!      TYPE(StrD_ParameterType),                   INTENT(IN   )           :: p          ! Parameters
-!      TYPE(StrD_ContinuousStateType),             INTENT(IN   )           :: x          ! Continuous states at Time
-!      TYPE(StrD_DiscreteStateType),               INTENT(IN   )           :: xd         ! Discrete states at Time
-!      TYPE(StrD_ConstraintStateType),             INTENT(IN   )           :: z          ! Constraint states at Time
-!      TYPE(StrD_OtherStateType),                  INTENT(INOUT)           :: OtherState ! Other/optimization states
-!      TYPE(StrD_PartialOutputPDiscStateType),     INTENT(  OUT), OPTIONAL :: dYdxd      ! Partial derivatives of output equations
-!                                                                                           !  (Y) with respect to the discrete
-!                                                                                           !  states (xd)
-!      TYPE(StrD_PartialContStatePDiscStateType),  INTENT(  OUT), OPTIONAL :: dXdxd      ! Partial derivatives of continuous state
-!                                                                                           !   equations (X) with respect to the
-!                                                                                           !   discrete states (xd)
-!      TYPE(StrD_PartialDiscStatePDiscStateType),  INTENT(  OUT), OPTIONAL :: dXddxd     ! Partial derivatives of discrete state
-!                                                                                           !   equations (Xd) with respect to the
-!                                                                                           !   discrete states (xd)
-!      TYPE(StrD_PartialConstrStatePDiscStateType),INTENT(  OUT), OPTIONAL :: dZdxd      ! Partial derivatives of constraint state
-!                                                                                           !   equations (Z) with respect to the
-!                                                                                           !   discrete states (xd)
-!      INTEGER(IntKi),                                INTENT(  OUT)           :: ErrStat    ! Error status of the operation
-!      CHARACTER(*),                                  INTENT(  OUT)           :: ErrMsg     ! Error message if ErrStat /= ErrID_None
-!
-!
-!         ! Initialize ErrStat
-!
-!      ErrStat = ErrID_None
-!      ErrMsg  = ""
-!
-!
-!      IF ( PRESENT( dYdxd ) ) THEN
-!
-!         ! Calculate the partial derivative of the output equations (Y) with respect to the discrete states (xd) here:
-!
-!         dYdxd%DummyOutput%DummyDiscState = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dXdxd ) ) THEN
-!
-!         ! Calculate the partial derivative of the continuous state equations (X) with respect to the discrete states (xd) here:
-!
-!         dXdxd%DummyContState%DummyDiscState = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dXddxd ) ) THEN
-!
-!         ! Calculate the partial derivative of the discrete state equations (Xd) with respect to the discrete states (xd) here:
-!
-!         dXddxd%DummyDiscState%DummyDiscState = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dZdxd ) ) THEN
-!
-!         ! Calculate the partial derivative of the constraint state equations (Z) with respect to the discrete states (xd) here:
-!
-!         dZdxd%DummyConstrState%DummyDiscState = 0
-!
-!      END IF
-!
-!
-!
-!END SUBROUTINE StrD_JacobianPDiscState
-!!----------------------------------------------------------------------------------------------------------------------------------
-!SUBROUTINE StrD_JacobianPConstrState( Time, u, p, x, xd, z, OtherState, dYdz, dXdz, dXddz, dZdz, ErrStat, ErrMsg )
-!! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete- (Xd), and constraint-state (Z) equations
-!! with respect to the constraint states (z). The partial derivatives dY/dz, dX/dz, dXd/dz, and DZ/dz are returned.
-!!..................................................................................................................................
-!
-!      REAL(DbKi),                                      INTENT(IN   )           :: Time       ! Current simulation time in seconds
-!      TYPE(StrD_InputType),                         INTENT(IN   )           :: u          ! Inputs at Time
-!      TYPE(StrD_ParameterType),                     INTENT(IN   )           :: p          ! Parameters
-!      TYPE(StrD_ContinuousStateType),               INTENT(IN   )           :: x          ! Continuous states at Time
-!      TYPE(StrD_DiscreteStateType),                 INTENT(IN   )           :: xd         ! Discrete states at Time
-!      TYPE(StrD_ConstraintStateType),               INTENT(IN   )           :: z          ! Constraint states at Time
-!      TYPE(StrD_OtherStateType),                    INTENT(INOUT)           :: OtherState ! Other/optimization states
-!      TYPE(StrD_PartialOutputPConstrStateType),     INTENT(  OUT), OPTIONAL :: dYdz       ! Partial derivatives of output
-!                                                                                             !  equations (Y) with respect to the
-!                                                                                             !  constraint states (z)
-!      TYPE(StrD_PartialContStatePConstrStateType),  INTENT(  OUT), OPTIONAL :: dXdz       ! Partial derivatives of continuous
-!                                                                                             !  state equations (X) with respect to
-!                                                                                             !  the constraint states (z)
-!      TYPE(StrD_PartialDiscStatePConstrStateType),  INTENT(  OUT), OPTIONAL :: dXddz      ! Partial derivatives of discrete state
-!                                                                                             !  equations (Xd) with respect to the
-!                                                                                             !  constraint states (z)
-!      TYPE(StrD_PartialConstrStatePConstrStateType),INTENT(  OUT), OPTIONAL :: dZdz       ! Partial derivatives of constraint
-!                                                                                             ! state equations (Z) with respect to
-!                                                                                             !  the constraint states (z)
-!      INTEGER(IntKi),                                  INTENT(  OUT)           :: ErrStat    ! Error status of the operation
-!      CHARACTER(*),                                    INTENT(  OUT)           :: ErrMsg     ! Error message if ErrStat /= ErrID_None
-!
-!
-!         ! Initialize ErrStat
-!
-!      ErrStat = ErrID_None
-!      ErrMsg  = ""
-!
-!      IF ( PRESENT( dYdz ) ) THEN
-!
-!            ! Calculate the partial derivative of the output equations (Y) with respect to the constraint states (z) here:
-!
-!         dYdz%DummyOutput%DummyConstrState = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dXdz ) ) THEN
-!
-!            ! Calculate the partial derivative of the continuous state equations (X) with respect to the constraint states (z) here:
-!
-!         dXdz%DummyContState%DummyConstrState = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dXddz ) ) THEN
-!
-!            ! Calculate the partial derivative of the discrete state equations (Xd) with respect to the constraint states (z) here:
-!
-!         dXddz%DummyDiscState%DummyConstrState = 0
-!
-!      END IF
-!
-!      IF ( PRESENT( dZdz ) ) THEN
-!
-!            ! Calculate the partial derivative of the constraint state equations (Z) with respect to the constraint states (z) here:
-!
-!         dZdz%DummyConstrState%DummyConstrState = 0
-!
-!      END IF
-!
-!
-!END SUBROUTINE StrD_JacobianPConstrState
-!!----------------------------------------------------------------------------------------------------------------------------------
 
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE StrD_ReadInput( InputFileName, InputFileData, ErrStat, ErrMsg )
@@ -2180,14 +1906,30 @@ SUBROUTINE StrD_ReadInput( InputFileName, InputFileData, ErrStat, ErrMsg )
 
    INTEGER(IntKi)                         :: UnIn           ! Unit number for the input file
    INTEGER(IntKi)                         :: UnEcho         ! Unit number for the echo file
+   INTEGER(IntKi)                         :: ErrStat2       ! The error status code
+   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2        ! The error message, if an error occurred
 
+   LOGICAL :: ReadAdmVals
+   
+   
+   
+   
    ErrStat = ErrID_None
    ErrMsg  = ''
 
-   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
-
+   !CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+   !IF ( ErrStat >= AbortErrLev ) RETURN
+   !
 !===================== FAST_Input
+
+   ReadAdmVals = .TRUE. !BJJ: FIX THIS: ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 )
+
+   !CALL ReadTowerFile( InputFileData, TwrFile, ReadAdmVals, UnEcho, ErrStat2, ErrMsg2 )
+   !IF ( ErrStat2 /= ErrID_None ) THEN
+   !   IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
+   !   CALL WrScr(ErrMsg)
+   !END IF
+   !
 
    CALL ExitThisRoutine(ErrID_None, '')
 
@@ -2209,13 +1951,13 @@ CONTAINS
       IF ( ErrStat /= ErrID_None ) THEN
          ErrMsg = 'Error in StrD_ReadInput: '//TRIM(ErrMsg)
       END IF
-      
+
       !.........................................................................................................................
       ! Close file
       !.........................................................................................................................
       CLOSE(UnIn)
 
-      
+
    END SUBROUTINE ExitThisRoutine
 
 
@@ -2277,21 +2019,21 @@ SUBROUTINE StrD_InitDOFs( p, ErrStat, ErrMsg )
 ! This subroutine initialized the ActiveDOF data type
 !..................................................................................................................................
 
-!   TYPE(ActiveDOFs),         INTENT(INOUT)    :: DOFs           ! ActiveDOF data 
+!   TYPE(ActiveDOFs),         INTENT(INOUT)    :: DOFs           ! ActiveDOF data
    TYPE(StrD_ParameterType), INTENT(INOUT)    :: p              ! The module's parameter data
    INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code
    CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
 
       ! Local variables
    INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
-      
+
       ! Initialize variables
 
    ErrStat = ErrID_None
    ErrMsg  = ''
 
-   
-   
+
+
       ! BJJ: note that this method will cause an error if allocating data that has already been allocated...
 
    ALLOCATE ( p%DOFs%NPSBE(p%NumBl), p%DOFs%NPSE(p%NumBl),  STAT=ErrStat )
@@ -2300,28 +2042,28 @@ SUBROUTINE StrD_InitDOFs( p, ErrStat, ErrMsg )
       RETURN
    ENDIF
 
-   
+
    ALLOCATE ( p%DOFs%PCE(p%NDOF), p%DOFs%PDE(p%NDOF), p%DOFs%PIE(p%NDOF), STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PCE, PDE, and PIE arrays.' )
       RETURN
    ENDIF
-   
-   
+
+
    ALLOCATE (  p%DOFs%PTTE(p%NDOF), p%DOFs%PTE(p%NDOF), p%DOFs%PS(p%NDOF), STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PTTE, PTE, and PS arrays.' )
       RETURN
    ENDIF
 
-   
+
    ALLOCATE ( p%DOFs%PUE(p%NDOF), p%DOFs%PYE(p%NDOF),  STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs PUE and PYE arrays.' )
       RETURN
    ENDIF
 
-   
+
 !bjj was   ALLOCATE ( p%DOFs%PSBE(p%NumBl,3), p%DOFs%PSE(p%NumBl,p%NDOF),  STAT=ErrStat )
    ALLOCATE ( p%DOFs%PSBE(p%NumBl,(NumBE+NumBF)), p%DOFs%PSE(p%NumBl,p%NDOF),  STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
@@ -2329,21 +2071,21 @@ SUBROUTINE StrD_InitDOFs( p, ErrStat, ErrMsg )
       RETURN
    ENDIF
 
-   
+
    ALLOCATE ( p%DOFs%SrtPS(p%NDOF), p%DOFs%SrtPSNAUG(p%NAug),  p%DOFs%Diag(p%NDOF), STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveAOFs SrtPS, SrtPSNAUG, and Diag arrays.' )
       RETURN
    ENDIF
-   
+
 
    !...............................................................................................................................
 ! BJJ: these are now parameters....
 
    !...............................................................................................................................
-   
+
       ! Allocate and Initialize arrays for DOFS that contribute to the angular velocity of the hub and blade elements
-   
+
    IF ( p%NumBl == 2 )  THEN ! 2-blader
       p%NPH = 12                         ! Number of DOFs that contribute to the angular velocity of the hub            (body H) in the inertia frame.
       p%NPM = 15                         ! Number of DOFs that contribute to the angular velocity of the blade elements (body M) in the inertia frame.
@@ -2351,24 +2093,24 @@ SUBROUTINE StrD_InitDOFs( p, ErrStat, ErrMsg )
       p%NPH = 11                         ! Number of DOFs that contribute to the angular velocity of the hub            (body H) in the inertia frame.
       p%NPM = 14                         ! Number of DOFs that contribute to the angular velocity of the blade elements (body M) in the inertia frame.
    ENDIF
-        
+
 
    ALLOCATE ( p%PH(p%NPH),  p%PM(p%NumBl,p%NPM), STAT=ErrStat )
    IF ( ErrStat /= 0 )  THEN
       CALL ExitThisRoutine( ErrID_Fatal, ' Could not allocate memory for the ActiveDOFs PH and PM arrays.' )
       RETURN
-   ENDIF     
-  
+   ENDIF
+
       ! Array of DOF indices (pointers) that contribute to the angular velocity of the hub (body H) in the inertia frame:
-   p%PH(1:11) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr /) 
-   
+   p%PH(1:11) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr /)
+
    IF ( p%NumBl == 2 )  THEN ! 2-blader (add DOF_Teet to the arrays)
 
       p%PH(12) = DOF_Teet
-      
+
          ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements (body M) in the inertia frame:
       DO K = 1,p%NumBl ! Loop through all blades
-         p%PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, DOF_Teet, & 
+         p%PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, DOF_Teet, &
                            DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                                   /)
       ENDDO          ! K - All blades
 
@@ -2376,15 +2118,15 @@ SUBROUTINE StrD_InitDOFs( p, ErrStat, ErrMsg )
 
          ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements (body M) in the inertia frame:
       DO K = 1,p%NumBl ! Loop through all blades
-         p%PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, &           
+         p%PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, &
                            DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                         /)
       ENDDO          ! K - All blades
 
    ENDIF
 
-   
-   
-   
+
+
+
 CONTAINS
    !............................................................................................................................
    SUBROUTINE ExitThisRoutine(ErrID,Msg)
@@ -2424,7 +2166,7 @@ FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
    INTEGER(IntKi), INTENT(IN )    :: Deriv                     ! Which derivative to compute Deriv = 0 (regular function SHP), 1 (D(SHP)/DZ), 2 (D2(SHP)/DZ2)
    INTEGER(IntKi), INTENT(OUT)    :: ErrStat                   ! A error level that indicates if/what error occurred
    CHARACTER(*),   INTENT(OUT)    :: ErrMsg                    ! A message indicating the error if one occurred
-      
+
 
       ! Local variables:
 
@@ -2432,11 +2174,11 @@ FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
    INTEGER(IntKi)                 :: I                         ! Counts through polynomial array.
    INTEGER(IntKi)                 :: J                         ! I+1
    INTEGER(IntKi)                 :: Swtch(0:2)                ! Corresponds to which derivative to compute.  Sets all portions of the coefficient = 0 except those that are relevant.
-   
+
 
    IF ( Deriv < 0 .OR. Deriv > 2 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = 'Function SHP input Deriv='//TRIM(Num2LStr(Deriv))//' is invalid. Deriv must be 0, 1, or 2.' 
+      ErrMsg  = 'Function SHP input Deriv='//TRIM(Num2LStr(Deriv))//' is invalid. Deriv must be 0, 1, or 2.'
       RETURN
    ELSEIF ( Fract < 0.0_ReKi .OR. Fract > 1.0_ReKi ) THEN
       ErrStat = ErrID_Warn
@@ -2444,7 +2186,7 @@ FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
    ELSE
       ErrStat = ErrID_None
    END IF
-      
+
    Swtch        = 0 ! Initialize Swtch(:) to 0
    Swtch(Deriv) = 1
    SHP          = 0.0
@@ -2452,7 +2194,7 @@ FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
    DO I = 1,SIZE(ModShpAry,DIM=1,KIND=IntKi) ! =2,PolyOrd
       J = I + 1
       CoefTmp = Swtch(0) + Swtch(1)*J + Swtch(2)*I*J
-         
+
       IF ( (J == 2) .AND. (Deriv == 2) ) THEN !bjj this could be removed as Fract**0 = 1 (0**0 = 1 in Fortran)
          SHP =       ModShpAry(I)*CoefTmp                         /( FlexL**Deriv )
       ELSE
@@ -2461,7 +2203,7 @@ FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
    ENDDO !I
 
    RETURN
-   
+
 END FUNCTION SHP
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE CoordSys_Alloc( CoordSys, p, ErrStat, ErrMsg )
@@ -2559,7 +2301,7 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
    TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
    TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
    CHARACTER(*),             INTENT(IN)     :: BldFile                             ! Name of the blade input file data
-   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file 
+   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
    INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
 
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
@@ -2567,13 +2309,13 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
 
 
       ! Local variables:
-   
+
    REAL(ReKi)                   :: AdjBlMs                                         ! Factor to adjust blade mass density.
    REAL(ReKi)                   :: AdjEdSt                                         ! Factor to adjust edge stiffness.
    REAL(ReKi)                   :: AdjFlSt                                         ! Factor to adjust flap stiffness.
 
    REAL(ReKi)                   :: TmpRAry(17)                                     ! Temporary variable to read table from file (up to 17 columns)
-   
+
    INTEGER(IntKi)               :: I                                               ! A generic DO index.
    INTEGER( IntKi )             :: UnIn                                            ! Unit number for reading file
    INTEGER( IntKi )             :: NInputCols                                      ! Number of columns to be read from the file
@@ -2623,14 +2365,14 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
    CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%NBlInpSt, 'NBlInpSt', 'Number of blade input stations', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   
 
-      ! Allocate the arrays based on this NBlInpSt input 
+
+      ! Allocate the arrays based on this NBlInpSt input
    CALL Alloc_BladeInputProperties( BladeKInputFileData, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-   
+
       ! CalcBMode - Calculate blade mode shapes (switch).
 
    !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
@@ -2668,7 +2410,7 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-   
+
       ! FlStTunr(1) - Blade flapwise modal stiffness tuners.
 
    CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%FlStTunr, SIZE(BladeKInputFileData%FlStTunr), 'FlStTunr', &
@@ -2702,9 +2444,9 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
       IF ( ErrStat >= AbortErrLev ) RETURN
 
 
-   
+
          ! Check the locally-defined adjustment factors: AdjBlMs, AdjFlSt, AdjEdSt
-   
+
       IF ( AdjBlMs <= 0.0_ReKi ) THEN
          CALL CheckError( ErrID_Warn, ' AdjBlMs must be greater than zero.' )
          IF ( ErrStat >= AbortErrLev ) RETURN
@@ -2714,11 +2456,11 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
          CALL CheckError( ErrID_Warn, ' AdjFlSt must be greater than zero.' )
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
-   
+
       IF ( AdjEdSt <= 0.0_ReKi ) THEN
          CALL CheckError( ErrID_Warn, ' AdjEdSt must be greater than zero.' )
          IF ( ErrStat >= AbortErrLev ) RETURN
-      END IF   
+      END IF
 
 
    !  -------------- DISTRIBUTED BLADE PROPERTIES ---------------------------------
@@ -2746,7 +2488,7 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
       NInputCols = 17
    ELSE
       NInputCols = 6
-   END IF   
+   END IF
 
 
    DO I=1,BladeKInputFileData%NBlInpSt
@@ -2761,7 +2503,7 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
       BladeKInputFileData%BMassDen(I) = TmpRAry(4)*AdjBlMs  ! Apply the correction factors to the elemental data.
       BladeKInputFileData%FlpStff( I) = TmpRAry(5)*AdjFlSt  ! Apply the correction factors to the elemental data.
       BladeKInputFileData%EdgStff( I) = TmpRAry(6)*AdjEdSt  ! Apply the correction factors to the elemental data.
-   
+
       IF ( NInputCols > 6 ) THEN
          BladeKInputFileData%GJStff(   I) = TmpRAry( 7)
          BladeKInputFileData%EAStff(   I) = TmpRAry( 8)
@@ -2774,7 +2516,7 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
          BladeKInputFileData%EdgcgOf(  I) = TmpRAry(15)
          BladeKInputFileData%FlpEAOf(  I) = TmpRAry(16)
          BladeKInputFileData%EdgEAOf(  I) = TmpRAry(17)
-      END IF        
+      END IF
    ENDDO ! I
 
 
@@ -2807,7 +2549,7 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
 
 
       ! BldEdgSh - Blade-edge mode shape coefficients.
-   
+
    CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldEdgSh, SIZE(BladeKInputFileData%BldEdgSh), 'BldEdgSh', &
                      'Blade-edge mode shape coefficients', ErrStat2, UnEc )
       ErrMsg2 = ' Error reading BldEdgSh array from '//TRIM(BldFile)//'.'
@@ -2817,7 +2559,7 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
 
 
    !  -------------- END OF FILE --------------------------------------------
-   
+
       ! Close the blade file.
 
    CLOSE ( UnIn )
@@ -2829,31 +2571,31 @@ CONTAINS
    SUBROUTINE CheckError(ErrID,Msg)
    ! This subroutine sets the error message and level
    !...............................................................................................................................
-   
+
          ! Passed arguments
       INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
       CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-      
-      
+
+
       !............................................................................................................................
-      ! Set error status/message; 
+      ! Set error status/message;
       !............................................................................................................................
-   
+
       IF ( ErrID /= ErrID_None ) THEN
-      
+
          ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
-         
+
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close file, deallocate local arrays
          !.........................................................................................................................
          IF ( ErrStat >= AbortErrLev ) THEN
             CLOSE( UnIn )
-         END IF        
-         
-      END IF                  
-            
-         
+         END IF
+
+      END IF
+
+
    END SUBROUTINE CheckError
 
 END SUBROUTINE ReadBladeFile
@@ -2866,14 +2608,14 @@ SUBROUTINE Alloc_BladeInputProperties( BladeKInputFileData, ErrStat, ErrMsg )
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat        ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg         ! Err msg
 
-   
+
    IF ( BladeKInputFileData%NBlInpSt < 1 )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating arrays for blade input properties: NBlInpSt must be at least 1.' 
+      ErrMsg = ' Error allocating arrays for blade input properties: NBlInpSt must be at least 1.'
       RETURN
    END IF
-   
-   
+
+
       ! Allocate the arrays.
 
    CALL AllocAry  ( BladeKInputFileData%BlFract,  BladeKInputFileData%NBlInpSt, 'BlFract'  , ErrStat, ErrMsg )
@@ -2911,25 +2653,25 @@ SUBROUTINE Alloc_BladeInputProperties( BladeKInputFileData, ErrStat, ErrMsg )
    CALL AllocAry  ( BladeKInputFileData%EdgEAOf,  BladeKInputFileData%NBlInpSt, 'EdgEAOf'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 
-   
+
       ! BJJ: note that these used to be allocated 2:PolyOrd  :
-   
+
    CALL AllocAry  ( BladeKInputFileData%BldFl1Sh,  PolyOrd-1, 'BldFl1Sh'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( BladeKInputFileData%BldFl2Sh,  PolyOrd-1, 'BldFl2Sh'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( BladeKInputFileData%BldEdgSh,  PolyOrd-1, 'BldEdgSh'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
-   
-   
+
+
 END SUBROUTINE Alloc_BladeInputProperties
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrMsg )
+SUBROUTINE ValidateBladeData ( BladeKInputFileData, ChkAdmVals, ErrStat, ErrMsg )
 ! This routine checks the blade file input data for errors
 !----------------------------------------------------------------------------------------------------------------------------------
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+!   TYPE(StrD_ParameterType), INTENT(IN   )  :: p                                   ! Parameters of the structural dynamics module
    TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
-   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated 
+   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
 
@@ -2941,19 +2683,19 @@ SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrM
 
    ErrStat = ErrID_None
    ErrMsg= ''
-   
-   
+
+
       ! Check that BlFract goes from 0.0 to 1.0 in increasing order:
-   
+
    IF ( .NOT. EqualRealNos( BladeKInputFileData%BlFract(1), 0.0_ReKi ) ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract(1) must be 0.0.'
-   END IF 
+   END IF
 
    IF ( BladeKInputFileData%NBlInpSt /= 1 .AND. &
       .NOT. EqualRealNos( BladeKInputFileData%BlFract(BladeKInputFileData%NBlInpSt), 1.0_ReKi )  ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.' 
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.'
    END IF
 
    DO I = 2,BladeKInputFileData%NBlInpSt
@@ -2961,112 +2703,112 @@ SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrM
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
                                                       //TRIM( Num2LStr(I-1) )//').'
-         
+
       ENDIF
-   END DO 
-   
+   END DO
+
 
 
    DO I = 1,BladeKInputFileData%NBlInpSt
-   
+
          ! Check that AerCen is contained in [0.0, 1.0]:
       IF ( ( BladeKInputFileData%AerCen(I) ) < 0.0_ReKi .OR. ( BladeKInputFileData%AerCen(I) > 1.0_ReKi ) )  THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  AerCen('//TRIM( Num2LStr( I ) )//') must be between 0 and 1 (inclusive).'
       END IF
-      
+
          ! Check that StrcTwst is contained in (-180.0, 180.0]:
       IF ( ( BladeKInputFileData%StrcTwst(I) <= -180.0_ReKi ) .OR. ( BladeKInputFileData%StrcTwst(I) > 180.0_ReKi ) )  THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  StrcTwst('//TRIM( Num2LStr( I ) ) // &
                      ') must be greater than -180 and less than or equal to 180.'
       END IF
-   
+
          ! Check that BMassDen is contained in (0.0, inf):
       IF ( BladeKInputFileData%BMassDen(I) <= 0.0_ReKi )  THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  BMassDen('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
       END IF
-      
+
          ! Check that FlpStff is contained in (0.0, inf):
       IF ( BladeKInputFileData%FlpStff (I) <= 0.0_ReKi )  THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
       END IF
-   
+
          ! Check that EdgStff is contained in (0.0, inf):
       IF ( BladeKInputFileData%EdgStff (I) <= 0.0_ReKi )  THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
       END IF
-   
+
    END DO
-   
-   
+
+
    IF ( ChkAdmVals ) THEN  ! Check values for Adams input
 
-      
+
          ! The reference axis must be coincident with the pitch axis at the blade root (I == 1):
       IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(1), 0.0_ReKi ) .OR. &
             .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(1), 0.0_ReKi )      )  THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  Both PrecrvRef(1) and PreswpRef(1) must be zero '//&
                             '(the reference axis must be coincident with the pitch axis at the blade root).'
-      END IF       
+      END IF
 
-      
+
       DO I = 1,BladeKInputFileData%NBlInpSt
-   
+
             ! Check that GJStff is contained in (0.0, inf):
          IF ( BladeKInputFileData%GJStff(I) <= 0.0_ReKi )  THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  GJStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
          END IF
-         
+
             ! Check that EAStff is contained in (0.0, inf):
          IF ( BladeKInputFileData%EAStff(I) <= 0.0_ReKi )  THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  EAStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
          END IF
-         
+
             ! Check that Alpha is contained in (-1.0, 1):
          IF ( ( BladeKInputFileData%Alpha(I) <= -1.0_ReKi ) .OR. ( BladeKInputFileData%Alpha(I) >= 1.0_ReKi ) )  THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  Alpha('//TRIM( Num2LStr( I ) )//') (the blade flap/twist'// &
                          ' coupling coefficient) must be between -1 and 1 (exclusive).'
          END IF
-         
+
             ! Check that FlpIner is contained in [0.0, inf):
          IF ( BladeKInputFileData%FlpIner(I) <  0.0_ReKi )  THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
          END IF
-         
+
             ! Check that EdgIner is contained in [0.0, inf):
          IF ( BladeKInputFileData%EdgIner(I) <  0.0_ReKi )  THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
          END IF
-                           
+
             ! Check that PrecrvRef is 0.0 for Adams models:
          IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(I), 0.0_ReKi) )  THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  PrecrvRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
          END IF
-         
+
             ! Check that GJStff is contained in (0.0, inf):
          IF ( .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(I), 0.0_ReKi) )  THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  PreswpRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
          END IF
-         
+
       END DO
-               
+
    END IF  ! check for Adams models
-   
-      
-      ! Check that the blade damping is not negative:  
-      
+
+
+      ! Check that the blade damping is not negative:
+
    IF ( ANY( BladeKInputFileData%BldFlDmp < 0.0_ReKi ) ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldFlDmp must not be negative.'
@@ -3076,36 +2818,36 @@ SUBROUTINE ValidateBladeData ( p, BladeKInputFileData, ChkAdmVals, ErrStat, ErrM
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldEdDmp must not be negative.'
    END IF
-   
+
 
       ! Check that the stiffness tuner isn't negative:
-      
+
    IF ( ANY( BladeKInputFileData%FlStTunr <= 0.0_ReKi ) ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlStTunr must be greater than zero.'
    END IF
 
-   
-   
+
+
       ! Check that the mode shape coefficients are valid:
-   
+
    CALL ValidateModeShapeCoeffs(BladeKInputFileData%BldFl1Sh, 'blade flap mode 1', ErrStat2, ErrMsg2 )
    IF ( ErrStat2 /= ErrID_None ) THEN
       ErrStat = MAX(ErrStat2, ErrStat)
       ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF 
-   
+   END IF
+
    CALL ValidateModeShapeCoeffs(BladeKInputFileData%BldFl2Sh, 'blade flap mode 2', ErrStat2, ErrMsg2 )
    IF ( ErrStat2 /= ErrID_None ) THEN
       ErrStat = MAX(ErrStat2, ErrStat)
       ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF     
+   END IF
 
    CALL ValidateModeShapeCoeffs(BladeKInputFileData%BldEdgSh, 'blade edge', ErrStat2, ErrMsg2 )
    IF ( ErrStat2 /= ErrID_None ) THEN
       ErrStat = MAX(ErrStat2, ErrStat)
       ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF  
+   END IF
 
 
 END SUBROUTINE ValidateBladeData
@@ -3120,12 +2862,12 @@ SUBROUTINE ValidateModeShapeCoeffs( Coeffs, ShpDesc, ErrStat, ErrMsg )
 
       ! local variables
    REAL(ReKi)                               :: Displ                               ! Blade tip/tower top displacement for a mode shape
-   
+
 
       ! Check that the mode shape coefficients add to 1.0:
-     
+
    Displ = SUM( Coeffs )
-! bjj this new check seems to be a bit too restrictive for the input data:   
+! bjj this new check seems to be a bit too restrictive for the input data:
 !   IF ( .NOT. EqualRealNos( Displ, 1.0_ReKi ) ) THEN
    IF ( ABS( Displ - 1.0_ReKi ) > 0.001_ReKi ) THEN
       ErrStat = ErrID_Fatal
@@ -3133,9 +2875,9 @@ SUBROUTINE ValidateModeShapeCoeffs( Coeffs, ShpDesc, ErrStat, ErrMsg )
    ELSE
       ErrStat = ErrID_None
       ErrMsg  = ''
-   END IF  
-   
-   
+   END IF
+
+
 END SUBROUTINE ValidateModeShapeCoeffs
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
@@ -3145,10 +2887,10 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
 
    TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
    TYPE(BladeInputData),     INTENT(INOUT)  :: BladeInData(:)                      ! Program input data for all blades
-   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set 
+   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
-   
+
       ! Local variables:
    REAL(ReKi)                               :: x                                   ! Fractional location between two points in linear interpolation
    INTEGER(IntKi )                          :: K                                   ! Blade number
@@ -3157,8 +2899,8 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
 
    ErrStat = ErrID_None
    ErrMsg  = ''
-   
-   
+
+
    CALL Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 
@@ -3184,111 +2926,112 @@ SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
    !    FlpEAOf    EAOffBFlp  Blade flap elastic axis offset
    !    EdgEAOf    EAOffBEdg  Blade edge elastic axis offset
 
-   
+
       ! Define RNodesNorm() which is common to all the blades:
 
    p%RNodesNorm = p%RNodes/p%BldFlexL  ! Normalized radius to analysis nodes relative to hub ( 0 < RNodesNorm(:) < 1 )
-   
-   
+
+
       ! Perform a linear interpolation of the input data to map to the meshed data for simulation:
-    
-   DO K=1,p%NumBl      
+
+   DO K=1,p%NumBl
       InterpInd = 1
 
       DO J=1,p%BldNodes
-         
+
             ! Get the index into BlFract for all of the arrays, using the NWTC Subroutine Library
          p%AeroCent(K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%AerCen, &
                                       InterpInd, BladeInData(K)%NBlInpSt )
 
-         
-            ! The remaining arrays will have the same x value for the linear interpolation, 
+
+            ! The remaining arrays will have the same x value for the linear interpolation,
             ! so we'll do it manually (with a local subroutine) instead of calling the InterpStp routine again
          IF ( BladeInData(K)%NBlInpSt < 2 ) THEN
             x         = 1.0
             InterpInd = 0
-         ELSE         
+         ELSE
             x = ( p%RNodesNorm(J)                     - BladeInData(K)%BlFract(InterpInd) ) / &
-               ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
-         END IF 
-       
-         p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd )
+                ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
+         END IF
+
+         p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd ) !bjj: this is in degrees...
          p%MassB   (K,J) = InterpAry( x, BladeInData(K)%BMassDen, InterpInd )
          p%StiffBF (K,J) = InterpAry( x, BladeInData(K)%FlpStff , InterpInd )
          p%StiffBE (K,J) = InterpAry( x, BladeInData(K)%EdgStff , InterpInd )
-      
+
          IF ( SetAdmVals ) THEN
             p%StiffBGJ (K,J) = InterpAry( x, BladeInData(K)%GJStff   , InterpInd )
             p%StiffBEA (K,J) = InterpAry( x, BladeInData(K)%EAStff   , InterpInd )
             p%BAlpha   (K,J) = InterpAry( x, BladeInData(K)%Alpha    , InterpInd )
             p%InerBFlp (K,J) = InterpAry( x, BladeInData(K)%FlpIner  , InterpInd )
             p%InerBEdg (K,J) = InterpAry( x, BladeInData(K)%EdgIner  , InterpInd )
-            p%RefAxisxb(K,J) = InterpAry( x, BladeInData(K)%PrecrvRef, InterpInd ) 
+            p%RefAxisxb(K,J) = InterpAry( x, BladeInData(K)%PrecrvRef, InterpInd )
             p%RefAxisyb(K,J) = InterpAry( x, BladeInData(K)%PreswpRef, InterpInd )
             p%cgOffBFlp(K,J) = InterpAry( x, BladeInData(K)%FlpcgOf  , InterpInd )
             p%cgOffBEdg(K,J) = InterpAry( x, BladeInData(K)%EdgcgOf  , InterpInd )
             p%EAOffBFlp(K,J) = InterpAry( x, BladeInData(K)%FlpEAOf  , InterpInd )
             p%EAOffBEdg(K,J) = InterpAry( x, BladeInData(K)%EdgEAOf  , InterpInd )
          END IF
-      
-      
+
+
+         
       END DO ! J (Blade nodes)
-   
+
       IF ( SetAdmVals ) THEN
             ! Set the valus for the tip node
          p%RefAxisxb(K,p%TipNode) = BladeInData(K)%PrecrvRef( BladeInData(K)%NBlInpSt )
-         p%RefAxisyb(K,p%TipNode) = BladeInData(K)%PreswpRef( BladeInData(K)%NBlInpSt )  
+         p%RefAxisyb(K,p%TipNode) = BladeInData(K)%PreswpRef( BladeInData(K)%NBlInpSt )
       END IF
-   
-      
+
+
          ! Set the blade damping and stiffness tuner
       p%BldFDamp(K,:) = BladeInData(K)%BldFlDmp
       p%BldEDamp(K,:) = BladeInData(K)%BldEdDmp
       p%FStTunr (K,:) = BladeInData(K)%FlStTunr
 
-      
-      
+
+
          ! Set the mode shape arrays
        !p%CalcBModes(K) = BladeInData(K)%CalcBMode
-     
+
       p%BldEdgSh(:,K) = BladeInData(K)%BldEdgSh
       p%BldFl1Sh(:,K) = BladeInData(K)%BldFl1Sh
       p%BldFl2Sh(:,K) = BladeInData(K)%BldFl2Sh
-      
+
 
    END DO ! ( Blades )
 
-   
+
    p%ThetaS  = D2R*p%ThetaS
    p%CThetaS = COS(p%ThetaS)
    p%SThetaS = SIN(p%ThetaS)
-   
-   
+
+
 RETURN
-   
+
 
 CONTAINS
 !..................................................................................................................................
    FUNCTION InterpAry( x, YAry, Ind )
       ! This subroutine is used to interpolate the arrays more efficiently (all arrays have the same X value)
-      ! See InterpStpReal() for comparison. This assumes we already know Ind and that 
+      ! See InterpStpReal() for comparison. This assumes we already know Ind and that
       ! x = ( XVal - XAry(Ind) )/( XAry(Ind+1) - XAry(Ind) )
-      
-      
+
+
       REAL(ReKi),      INTENT(IN) :: x                ! the relative distance between Ind and Ind+ 1
       REAL(ReKi),      INTENT(IN) :: YAry (:)         ! Array of Y values to be interpolated.
-      INTEGER(IntKi) , INTENT(IN) :: Ind              ! the index into the array 
-      
+      INTEGER(IntKi) , INTENT(IN) :: Ind              ! the index into the array
+
       REAL(ReKi)                  :: InterpAry        ! the value calculated in this function
-      
+
       IF ( Ind >= SIZE(YAry) ) THEN
          InterpAry = YAry( SIZE(YAry) )
       ELSE
          InterpAry = ( YAry(Ind+1) - YAry(Ind) ) * x  + YAry(Ind)
       END IF
-      
+
    END FUNCTION InterpAry
-!..................................................................................................................................   
+!..................................................................................................................................
 END SUBROUTINE SetBladeParams
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
@@ -3296,12 +3039,12 @@ SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
 !----------------------------------------------------------------------------------------------------------------------------------
 
    TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
-   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set 
+   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
 
-         
-   
+
+
       ! Allocate arrays to hold blade data at the analysis nodes.
    CALL AllocAry  ( p%RNodesNorm,              p%BldNodes, 'RNodesNorm' , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
@@ -3320,8 +3063,8 @@ SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
    CALL AllocAry  ( p%StiffBE,     p%NumBl,    p%BldNodes, 'StiffBE'    , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 
-   
-!IF ( SetAdmVals ) THEN      
+
+!IF ( SetAdmVals ) THEN
    CALL AllocAry  ( p%StiffBGJ,    p%NumBl,    p%BldNodes, 'StiffBGJ'   , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%StiffBEA,    p%NumBl,    p%BldNodes, 'StiffBEA'   , ErrStat, ErrMsg )
@@ -3343,31 +3086,31 @@ SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
    CALL AllocAry  ( p%EAOffBFlp,   p%NumBl,    p%BldNodes, 'EAOffBFlp'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%EAOffBEdg,   p%NumBl,    p%BldNodes, 'EAOffBEdg'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
+   IF ( ErrStat /= ErrID_None ) RETURN
 !END IF
-   
+
    CALL AllocAry  ( p%BldEDamp,    p%NumBl,    NumBE,      'BldEDamp'   , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%BldFDamp,    p%NumBl,    NumBF,      'BldFDamp'   , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%FStTunr,     p%NumBl,    NumBF,      'FStTunr'    , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN        
-   
-   
+   IF ( ErrStat /= ErrID_None ) RETURN
+
+
          ! Allocate space for the mode shape arrays:
-         
+
    ALLOCATE( p%BldEdgSh(2:PolyOrd,p%NumBl), p%BldFl1Sh(2:PolyOrd,p%NumBl), p%BldFl2Sh(2:PolyOrd,p%NumBl), STAT = ErrStat )
    IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = ' Error allocating BldEdgSh, BldFl1Sh, and BldFl2Sh arrays.'
       RETURN
-   END IF   
-   
-   
-   
+   END IF
+
+
+
 END SUBROUTINE Alloc_BladeParameters
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat, ErrMsg )
+SUBROUTINE ReadTowerFile( InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat, ErrMsg )
 ! This routine reads the tower file  input.
 !----------------------------------------------------------------------------------------------------------------------------------
 
@@ -3375,24 +3118,23 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
 
       ! Passed variables:
 
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
    TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! All the data in the StructDyn input file
    CHARACTER(*),             INTENT(IN)     :: TwrFile                             ! Name of the tower input file data
-   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file 
+   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
 
+   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
-   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
 
 
       ! Local variables:
-   
+
    REAL(ReKi)                   :: AdjFASt                                         ! Factor to adjust tower fore-aft stiffness
    REAL(ReKi)                   :: AdjSSSt                                         ! Factor to adjust tower side-to-side stiffness
    REAL(ReKi)                   :: AdjTwMa                                         ! Factor to adjust tower mass density
 
    REAL(ReKi)                   :: TmpRAry(10)                                     ! Temporary variable to read table from file (up to 10 columns)
-   
+
    INTEGER(IntKi)               :: I                                               ! A generic DO index.
    INTEGER(IntKi)               :: UnIn                                            ! Unit number for reading file
    INTEGER(IntKi)               :: NInputCols                                      ! Number of columns to be read from the file
@@ -3421,7 +3163,7 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
    CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 1', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   
+
    CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 2', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
@@ -3443,12 +3185,12 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-   
-      ! Allocate the input arrays based on this NTwInpSt input 
+
+      ! Allocate the input arrays based on this NTwInpSt input
    CALL Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   
+
 
       ! CalcTMode - Calculate tower mode shapes (switch).
 
@@ -3461,21 +3203,21 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
 
       ! TwrFADmp - Tower fore-aft structural damping ratios.
 
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrFADmp, SIZE(InputFileData%TwrFADmp), 'TwrFADmp', & 
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrFADmp, SIZE(InputFileData%TwrFADmp), 'TwrFADmp', &
                                      'Tower fore-aft structural damping ratios', ErrStat2, UnEc )
       ErrMsg2 = ' Error reading TwrFADmp array from '//TRIM(TwrFile)//'.'
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-   
+
       ! TwrSSDmp - Tower side-to-side structural damping ratios.
 
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrSSDmp, SIZE(InputFileData%TwrSSDmp), 'TwrSSDmp', & 
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrSSDmp, SIZE(InputFileData%TwrSSDmp), 'TwrSSDmp', &
                                      'Tower side-to-side structural damping ratios', ErrStat2, UnEc )
       ErrMsg2 = ' Error reading TwrSSDmp array from '//TRIM(TwrFile)//'.'
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-  
+
 
    !  -------------- TOWER ADJUSTMENT FACTORS -------------------------------------
 
@@ -3487,7 +3229,7 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
 
 
       ! FAStTunr - Tower fore-aft modal stiffness tuners.
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%FAStTunr, SIZE(InputFileData%FAStTunr), 'FAStTunr', & 
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%FAStTunr, SIZE(InputFileData%FAStTunr), 'FAStTunr', &
                                      'Tower fore-aft modal stiffness tuners', ErrStat2, UnEc )
       ErrMsg2 = ' Error reading FAStTunr array from '//TRIM(TwrFile)//'.'
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -3495,7 +3237,7 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
 
 
       ! SSStTunr - Tower side-to-side modal stiffness tuners.
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%SSStTunr, SIZE(InputFileData%SSStTunr), 'SSStTunr', & 
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%SSStTunr, SIZE(InputFileData%SSStTunr), 'SSStTunr', &
                                      'Tower side-to-side modal stiffness tuners', ErrStat2, UnEc )
       ErrMsg2 = ' Error reading SSStTunr array from '//TRIM(TwrFile)//'.'
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -3526,7 +3268,7 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
 
 
          ! Check the locally-defined adjustment factors: AdjTwMa, AdjFASt, AdjSSSt
-   
+
    IF ( AdjTwMa <= 0.0_ReKi ) THEN
       CALL CheckError( ErrID_Warn, ' AdjTwMa must be greater than zero.' )
       IF ( ErrStat >= AbortErrLev ) RETURN
@@ -3536,11 +3278,11 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
       CALL CheckError( ErrID_Warn, ' AdjFASt must be greater than zero.' )
       IF ( ErrStat >= AbortErrLev ) RETURN
    END IF
-   
+
    IF ( AdjSSSt <= 0.0_ReKi ) THEN
       CALL CheckError( ErrID_Warn, ' AdjSSSt must be greater than zero.' )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   END IF   
+   END IF
 
 
    !  -------------- DISTRIBUTED TOWER PROPERTIES ---------------------------------
@@ -3549,7 +3291,7 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
    CALL ReadCom ( UnIn, TwrFile, 'heading for distributed tower parameters', ErrStat2, ErrMsg2, UnEc  )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   
+
    CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter names', ErrStat2, ErrMsg2, UnEc  )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
@@ -3566,7 +3308,7 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
       NInputCols = 10
    ELSE
       NInputCols = 4
-   END IF   
+   END IF
 
 
    DO I=1,InputFileData%NTwInpSt
@@ -3579,7 +3321,7 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
       InputFileData%TMassDen(I) = TmpRAry(2)*AdjTwMa   ! Apply the correction factors to the elemental data.
       InputFileData%TwFAStif(I) = TmpRAry(3)*AdjFASt   ! Apply the correction factors to the elemental data.
       InputFileData%TwSSStif(I) = TmpRAry(4)*AdjSSSt   ! Apply the correction factors to the elemental data.
-   
+
       IF ( NInputCols > 4 ) THEN
          InputFileData%TwGJStif(I) = TmpRAry( 5)
          InputFileData%TwEAStif(I) = TmpRAry( 6)
@@ -3587,10 +3329,10 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
          InputFileData%TwSSIner(I) = TmpRAry( 8)
          InputFileData%TwFAcgOf(I) = TmpRAry( 9)
          InputFileData%TwSScgOf(I) = TmpRAry(10)
-      END IF        
-      
-   END DO ! I   
-   
+      END IF
+
+   END DO ! I
+
 
    !  -------------- TOWER FORE-AFT MODE SHAPES -----------------------------------
 
@@ -3608,7 +3350,7 @@ SUBROUTINE ReadTowerFile( p, InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-   
+
       ! TwFAM2Sh - Tower fore-aft mode-2 shape coefficients.
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwFAM2Sh, SIZE(InputFileData%TwFAM2Sh), 'TwFAM2Sh', &
                            'Tower fore-aft mode-2 shape coefficients', ErrStat2, UnEc )
@@ -3654,41 +3396,40 @@ CONTAINS
    SUBROUTINE CheckError(ErrID,Msg)
    ! This subroutine sets the error message and level
    !...............................................................................................................................
-   
+
          ! Passed arguments
       INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
       CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-      
-      
+
+
       !............................................................................................................................
-      ! Set error status/message; 
+      ! Set error status/message;
       !............................................................................................................................
-   
+
       IF ( ErrID /= ErrID_None ) THEN
-      
+
          ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
-         
+
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close file, deallocate local arrays
          !.........................................................................................................................
          IF ( ErrStat >= AbortErrLev ) THEN
             CLOSE( UnIn )
-         END IF        
-         
-      END IF                  
-            
-         
+         END IF
+
+      END IF
+
+
    END SUBROUTINE CheckError
    !...............................................................................................................................
 END SUBROUTINE ReadTowerFile
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ValidateTowerData ( p, InputFileData, ChkAdmVals, ErrStat, ErrMsg )
+SUBROUTINE ValidateTowerData ( InputFileData, ChkAdmVals, ErrStat, ErrMsg )
 ! This routine checks the tower file input data for errors
 !----------------------------------------------------------------------------------------------------------------------------------
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
    TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! Data stored in the module's input file
-   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated 
+   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
 
@@ -3700,20 +3441,20 @@ SUBROUTINE ValidateTowerData ( p, InputFileData, ChkAdmVals, ErrStat, ErrMsg )
 
    ErrStat = ErrID_None
    ErrMsg= ''
-   
-      
-     
+
+
+
       ! Check that HtFract goes from 0.0 to 1.0 in increasing order:
-   
+
    IF ( .NOT. EqualRealNos( InputFileData%HtFract(1), 0.0_ReKi ) ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract(1) must be 0.0.'
-   END IF 
+   END IF
 
    IF ( InputFileData%NTwInpSt /= 1 .AND. &
       .NOT. EqualRealNos( InputFileData%HtFract(InputFileData%NTwInpSt), 1.0_ReKi )  ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract('//TRIM( Num2LStr( InputFileData%NTwInpSt ) )//') must be 1.0.' 
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract('//TRIM( Num2LStr( InputFileData%NTwInpSt ) )//') must be 1.0.'
    END IF
 
    DO I = 2,InputFileData%NTwInpSt
@@ -3721,19 +3462,19 @@ SUBROUTINE ValidateTowerData ( p, InputFileData, ChkAdmVals, ErrStat, ErrMsg )
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
                                                       //TRIM( Num2LStr(I-1) )//').'
-         
+
       ENDIF
-   END DO 
-   
+   END DO
+
 
       ! Check the input arrays:
 
-   DO I = 1,InputFileData%NTwInpSt   
+   DO I = 1,InputFileData%NTwInpSt
       IF ( InputFileData%TMassDen(I) <= 0.0_ReKi ) THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  TMassDen('//TRIM(Num2LStr( I ))//') must be greater than zero.'
       END IF
-      
+
       IF ( InputFileData%TwFAStif(I) <= 0.0_ReKi ) THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwFAStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
@@ -3742,40 +3483,40 @@ SUBROUTINE ValidateTowerData ( p, InputFileData, ChkAdmVals, ErrStat, ErrMsg )
       IF ( InputFileData%TwSSStif(I) <= 0.0_ReKi ) THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwSSStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
-      END IF   
+      END IF
    END DO
-   
-   
+
+
    IF (ChkAdmVals) THEN
-      
-      DO I = 1,InputFileData%NTwInpSt   
+
+      DO I = 1,InputFileData%NTwInpSt
          IF ( InputFileData%TwGJStif(I) <= 0.0_ReKi ) THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwGJStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
-         END IF   
-         
+         END IF
+
          IF ( InputFileData%TwEAStif(I) <= 0.0_ReKi ) THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwEAStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
-         END IF   
-         
+         END IF
+
          IF ( InputFileData%TwFAIner(I) <= 0.0_ReKi ) THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwFAIner('//TRIM(Num2LStr( I ))//') must be greater than zero.'
-         END IF   
-   
+         END IF
+
          IF ( InputFileData%TwSSIner(I) <= 0.0_ReKi ) THEN
             ErrStat = ErrID_Fatal
             ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwSSIner('//TRIM(Num2LStr( I ))//') must be greater than zero.'
-         END IF                     
-      END DO      
-      
+         END IF
+      END DO
+
    END IF ! Check items for Adams
-   
+
 
 
       ! Check that the tower damping (TwrFADmp) is contained in the range [0, 100]:
-           
+
    IF ( ANY( InputFileData%TwrFADmp < 0.0_ReKi ) .OR. ANY( InputFileData%TwrFADmp > 100.0_ReKi ) ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwrFADmp must be between 0 and 100 (inclusive).'
@@ -3785,10 +3526,10 @@ SUBROUTINE ValidateTowerData ( p, InputFileData, ChkAdmVals, ErrStat, ErrMsg )
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwrSSDmp must be between 0 and 100 (inclusive).'
    END IF
-      
 
-      ! Check that the tower tuners are positive numbers:      
-      
+
+      ! Check that the tower tuners are positive numbers:
+
    IF ( ANY( InputFileData%FAStTunr <= 0.0_ReKi )  ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  FAStTunr must be greater than zero.'
@@ -3797,37 +3538,37 @@ SUBROUTINE ValidateTowerData ( p, InputFileData, ChkAdmVals, ErrStat, ErrMsg )
    IF ( ANY( InputFileData%SSStTunr <= 0.0_ReKi )  ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  SSStTunr must be greater than zero.'
-   END IF  
-   
-   
-   
+   END IF
+
+
+
       ! Validate the mode shape coefficients:
-   
+
    CALL ValidateModeShapeCoeffs( InputFileData%TwFAM1Sh, 'tower fore-aft mode 1', ErrStat, ErrMsg )
    IF ( ErrStat2 /= ErrID_None ) THEN
       ErrStat = MAX(ErrStat2, ErrStat)
       ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
    END IF
-   
+
    CALL ValidateModeShapeCoeffs( InputFileData%TwFAM2Sh, 'tower fore-aft mode 2', ErrStat, ErrMsg )
    IF ( ErrStat2 /= ErrID_None ) THEN
       ErrStat = MAX(ErrStat2, ErrStat)
       ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
    END IF
-   
+
    CALL ValidateModeShapeCoeffs( InputFileData%TwSSM1Sh, 'tower side-to-side mode 1', ErrStat, ErrMsg )
    IF ( ErrStat2 /= ErrID_None ) THEN
       ErrStat = MAX(ErrStat2, ErrStat)
       ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF 
+   END IF
 
    CALL ValidateModeShapeCoeffs( InputFileData%TwSSM2Sh, 'tower side-to-side mode 2', ErrStat, ErrMsg )
    IF ( ErrStat2 /= ErrID_None ) THEN
       ErrStat = MAX(ErrStat2, ErrStat)
       ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF 
-   
-   
+   END IF
+
+
 END SUBROUTINE ValidateTowerData
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
@@ -3838,14 +3579,14 @@ SUBROUTINE Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat            ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg             ! Error message
 
-   
+
    IF ( InputFileData%NTwInpSt < 1 )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating arrays for tower input properties: NTwInpSt must be at least 1.' 
+      ErrMsg = ' Error allocating arrays for tower input properties: NTwInpSt must be at least 1.'
       RETURN
    END IF
-   
-   
+
+
       ! Allocate the arrays.
 
    CALL AllocAry  ( InputFileData%HtFract,   InputFileData%NTwInpSt, 'HtFract'   , ErrStat, ErrMsg )
@@ -3867,10 +3608,10 @@ SUBROUTINE Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
    CALL AllocAry  ( InputFileData%TwFAcgOf,  InputFileData%NTwInpSt, 'TwFAcgOf'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( InputFileData%TwSScgOf,  InputFileData%NTwInpSt, 'TwSScgOf'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN 
+   IF ( ErrStat /= ErrID_None ) RETURN
 
-   
-      ! BJJ: note that these used to be allocated 2:PolyOrd  :   
+
+      ! BJJ: note that these used to be allocated 2:PolyOrd  :
    CALL AllocAry  ( InputFileData%TwFAM1Sh,  PolyOrd-1, 'TwFAM1Sh'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( InputFileData%TwFAM2Sh,  PolyOrd-1, 'TwFAM2Sh'  , ErrStat, ErrMsg )
@@ -3879,8 +3620,8 @@ SUBROUTINE Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( InputFileData%TwSSM2Sh,  PolyOrd-1, 'TwSSM2Sh'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
- 
-   
+
+
 END SUBROUTINE Alloc_TowerInputProperties
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
@@ -3888,13 +3629,13 @@ SUBROUTINE Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
 !----------------------------------------------------------------------------------------------------------------------------------
 
    TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
-   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set 
+   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
 
-         
-   
-   
+
+
+
       ! Allocate arrays to hold tower data at the analysis nodes.
    CALL AllocAry  ( p%HNodesNorm,    p%TwrNodes, 'HNodesNorm', ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
@@ -3903,13 +3644,13 @@ SUBROUTINE Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
    CALL AllocAry  ( p%DHNodes,       p%TwrNodes, 'DHNodes'   , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%MassT,         p%TwrNodes, 'MassT'     , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN      
+   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%StiffTFA,      p%TwrNodes, 'StiffTFA'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%StiffTSS,      p%TwrNodes, 'StiffTSS'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
-   
-!IF ( SetAdmVals ) THEN      
+
+!IF ( SetAdmVals ) THEN
    CALL AllocAry  ( p%StiffTGJ,      p%TwrNodes, 'StiffTGJ'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%StiffTEA,      p%TwrNodes, 'StiffTEA'  , ErrStat, ErrMsg )
@@ -3924,27 +3665,27 @@ SUBROUTINE Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 !END IF
 
-      ! these are for HydroDyn? 
+      ! these are for HydroDyn?
    CALL AllocAry  ( p%DiamT,         p%TwrNodes, 'DiamT'     , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%CAT,           p%TwrNodes, 'CAT'       , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%CDT,           p%TwrNodes, 'CDT'       , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN     
-      
-  
-   
+   IF ( ErrStat /= ErrID_None ) RETURN
+
+
+
    !      ! Allocate space for the mode shape arrays:
-   !      
+   !
    !ALLOCATE( p%BldEdgSh(2:PolyOrd,p%NumBl), p%BldFl1Sh(2:PolyOrd,p%NumBl), p%BldFl2Sh(2:PolyOrd,p%NumBl), STAT = ErrStat )
    !IF ( ErrStat /= 0 ) THEN
    !   ErrStat = ErrID_Fatal
    !   ErrMsg  = ' Error allocating BldEdgSh, BldFl1Sh, and BldFl2Sh arrays.'
    !   RETURN
-   !END IF   
-   
-   
-   
+   !END IF
+
+
+
 END SUBROUTINE Alloc_TowerParameters
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SetTowerParams( p, InputFileData, SetAdmVals, ErrStat, ErrMsg  )
@@ -3956,10 +3697,10 @@ SUBROUTINE SetTowerParams( p, InputFileData, SetAdmVals, ErrStat, ErrMsg  )
 
 
       ! Passed variables
-   
+
    TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                            ! Parameters of the structural dynamics module
    TYPE(StrD_InputFile),     INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
-   LOGICAL,                  INTENT(IN)     :: SetAdmVals                   ! Logical to determine if Adams inputs should be set 
+   LOGICAL,                  INTENT(IN)     :: SetAdmVals                   ! Logical to determine if Adams inputs should be set
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
 
@@ -3970,35 +3711,35 @@ SUBROUTINE SetTowerParams( p, InputFileData, SetAdmVals, ErrStat, ErrMsg  )
    INTEGER(IntKi)                           :: InterpInd                    ! Index for the interpolation routine
 
 
-      ! Initialize data      
+      ! Initialize data
    ErrStat = ErrID_None
    ErrMsg  = ''
-      
+
    CALL Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
-   
-   
-   !...............................................................................................................................   
+
+
+   !...............................................................................................................................
    ! Define the tower discretization arrays:
-   !...............................................................................................................................   
+   !...............................................................................................................................
 
       ! DHNodes (Let's use constant-spaced nodes for now, but the rest of the code is written to handle variable-spaced nodes--
       !          this will be a future input!):
    p%DHNodes = p%TwrFlexL/p%TwrNodes
-   
+
       ! HNodes:
-   p%HNodes(1) = 0.5*p%DHNodes(1)     
+   p%HNodes(1) = 0.5*p%DHNodes(1)
    DO J=2,p%TwrNodes
-      p%HNodes(J) = p%HNodes( J - 1 ) + 0.5*( p%DHNodes(J) + p%DHNodes( J - 1 ) )      
+      p%HNodes(J) = p%HNodes( J - 1 ) + 0.5*( p%DHNodes(J) + p%DHNodes( J - 1 ) )
    END DO
-   
+
       ! HNodesNorm:
    p%HNodesNorm = p%HNodes/p%TwrFlexL
-         
-   
-   !...............................................................................................................................   
+
+
+   !...............................................................................................................................
    ! Interpolate the input data to the tower discretization
-   !...............................................................................................................................   
+   !...............................................................................................................................
    ! Array definitions:
 
    !    Input      Interp    Description
@@ -4016,63 +3757,1069 @@ SUBROUTINE SetTowerParams( p, InputFileData, SetAdmVals, ErrStat, ErrMsg  )
 
    InterpInd = 1
 
-     
+
    DO J=1,p%TwrNodes
 
          ! Get the index into HtFract for all of the arrays, using the NWTC Subroutine Library
       p%MassT     (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TMassDen, InterpInd, InputFileData%NTwInpSt )
       p%StiffTFA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAStif, InterpInd, InputFileData%NTwInpSt )
-      p%StiffTSS  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSSStif, InterpInd, InputFileData%NTwInpSt )           
-      
+      p%StiffTSS  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSSStif, InterpInd, InputFileData%NTwInpSt )
+
       IF ( SetAdmVals )  THEN          ! An ADAMS model will be created; thus, read in all the cols.
-         p%StiffTGJ  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwGJStif, InterpInd, InputFileData%NTwInpSt )           
-         p%StiffTEA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwEAStif, InterpInd, InputFileData%NTwInpSt )           
-         p%InerTFA   (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAIner, InterpInd, InputFileData%NTwInpSt )           
-         p%InerTSS   (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSSIner, InterpInd, InputFileData%NTwInpSt )           
-         p%cgOffTFA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAcgOf, InterpInd, InputFileData%NTwInpSt )           
-         p%cgOffTSS  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSScgOf, InterpInd, InputFileData%NTwInpSt )           
-      END IF      
-      
+         p%StiffTGJ  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwGJStif, InterpInd, InputFileData%NTwInpSt )
+         p%StiffTEA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwEAStif, InterpInd, InputFileData%NTwInpSt )
+         p%InerTFA   (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAIner, InterpInd, InputFileData%NTwInpSt )
+         p%InerTSS   (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSSIner, InterpInd, InputFileData%NTwInpSt )
+         p%cgOffTFA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAcgOf, InterpInd, InputFileData%NTwInpSt )
+         p%cgOffTSS  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSScgOf, InterpInd, InputFileData%NTwInpSt )
+      END IF
+
    END DO ! J
 
-   
-   
-   !...............................................................................................................................   
+
+
+   !...............................................................................................................................
    ! Set other tower parameters:
-   !...............................................................................................................................   
+   !...............................................................................................................................
 
    p%TTopNode = p%TwrNodes + 1
-   
+
 
       ! these are for HydroDyn ?
    p%DiamT(:) = InputFileData%TwrDiam
    p%CAT(:)   = InputFileData%TwrCA
    p%CDT(:)   = InputFileData%TwrCD
-        
-   
+
+
 RETURN
-   
+
 
 CONTAINS
 !..................................................................................................................................
    FUNCTION InterpAry( x, YAry, Ind )
       ! This subroutine is used to interpolate the arrays more efficiently (all arrays have the same X value)
-      ! See InterpStpReal() for comparison. This assumes we already know Ind and that 
+      ! See InterpStpReal() for comparison. This assumes we already know Ind and that
       ! x = ( XVal - XAry(Ind) )/( XAry(Ind+1) - XAry(Ind) )
-      
-      
+
+
       REAL(ReKi),      INTENT(IN) :: x                ! the relative distance between Ind and Ind+ 1
       REAL(ReKi),      INTENT(IN) :: YAry (:)         ! Array of Y values to be interpolated.
-      INTEGER(IntKi) , INTENT(IN) :: Ind              ! the index into the array 
-      
+      INTEGER(IntKi) , INTENT(IN) :: Ind              ! the index into the array
+
       REAL(ReKi)                  :: InterpAry        ! the value calculated in this function
-      
+
       InterpAry = ( YAry(Ind+1) - YAry(Ind) ) * x  + YAry(Ind)
-      
-   END FUNCTION InterpAry   
-   
+
+   END FUNCTION InterpAry
+
 END SUBROUTINE SetTowerParams
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg  )
+! This routine validates the furling inputs.
+!----------------------------------------------------------------------------------------------------------------------------------
+
+      ! Passed variables:
+
+   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! All the data in the StructDyn input file
+
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+
+      ! Local variables:
+   CHARACTER(1024)                          :: TmpMsg                              ! a temporary message (so I don't have to keep typing the same error message)
+   REAL(ReKi)                               :: SmallAngleLimit_Rad                 ! Largest input angle considered "small" (check in input file), radians
+   
+
+      ! Initialize error status and angle limit defined locally (in correct units)
+      
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+   SmallAngleLimit_Rad = SmallAngleLimit_Deg*D2R                                 
+
+   
+      ! note that all angles are assumed to be in radians here:
+
+      ! Check that angles are in the range (-pi, pi] radians (i.e., (-180, 180] degrees ):
+      ! NOTE: these are local subroutines, with ErrStat and ErrMsg INTENT(INOUT)
+
+   CALL CheckAngle180Range( InputFileData%RotFurl,  'RotFurl',  ErrStat, ErrMsg )
+   CALL CheckAngle180Range( InputFileData%TailFurl, 'TailFurl', ErrStat, ErrMsg )
+   CALL CheckAngle180Range( InputFileData%TFinSkew, 'TFinSkew', ErrStat, ErrMsg )
+   CALL CheckAngle180Range( InputFileData%TFinBank, 'TFinBank', ErrStat, ErrMsg )
+   CALL CheckAngle180Range( InputFileData%RFrlSkew, 'RFrlSkew', ErrStat, ErrMsg )
+   CALL CheckAngle180Range( InputFileData%TFrlSkew, 'TFrlSkew', ErrStat, ErrMsg )
+
+   CALL CheckAngle180Range( InputFileData%RFrlUSSP, 'RFrlUSSP', ErrStat, ErrMsg )
+   CALL CheckAngle180Range( InputFileData%TFrlUSSP, 'TFrlUSSP', ErrStat, ErrMsg )
+   CALL CheckAngle180Range( InputFileData%RFrlUSDP, 'RFrlUSDP', ErrStat, ErrMsg )
+   CALL CheckAngle180Range( InputFileData%TFrlUSDP, 'TFrlUSDP', ErrStat, ErrMsg )
+
+   CALL CheckAngle180Range( InputFileData%RFrlDSSP, 'RFrlDSSP', ErrStat, ErrMsg )
+   IF ( InputFileData%RFrlDSSP > InputFileData%RFrlUSSP ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  RFrlDSSP must not be larger than RFrlUSSP'
+   END IF
+
+   CALL CheckAngle180Range( InputFileData%RFrlDSDP, 'RFrlDSDP', ErrStat, ErrMsg )
+   IF ( InputFileData%RFrlDSDP > InputFileData%RFrlUSDP ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  RFrlDSDP must not be larger than RFrlUSDP'
+   END IF
+
+   CALL CheckAngle180Range( InputFileData%TFrlDSSP, 'TFrlDSSP', ErrStat, ErrMsg )
+   IF ( InputFileData%TFrlDSSP > InputFileData%TFrlUSSP ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TFrlDSSP must not be larger than TFrlUSSP'
+   END IF
+
+   CALL CheckAngle180Range( InputFileData%TFrlDSDP, 'TFrlDSDP', ErrStat, ErrMsg )
+   IF ( InputFileData%TFrlDSDP > InputFileData%TFrlUSDP ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TFrlDSDP must not be larger than TFrlUSDP'
+   END IF
+
+
+      ! Check that tilt angles are in the range [-pi/2, pi/2] radians (i.e., [-90, 90] degrees ):
+
+   CALL CheckAngle90Range( InputFileData%TFinTilt, 'TFinTilt', ErrStat, ErrMsg )
+   CALL CheckAngle90Range( InputFileData%RFrlTilt, 'RFrlTilt', ErrStat, ErrMsg )
+   CALL CheckAngle90Range( InputFileData%TFrlTilt, 'TFrlTilt', ErrStat, ErrMsg )
+
+
+      ! Check for violations of the small-angle assumption (15-degree limit, using radians):
+
+   IF ( ( InputFileData%ShftSkew < -SmallAngleLimit_Rad ) .OR. ( InputFileData%ShftSkew > SmallAngleLimit_Rad ) )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  ShftSkew should only be used to skew the shaft a few degrees away from the zero-yaw ' &
+                //'position and must not be used as a replacement for the yaw angle. '&
+                //'ShftSkew must be between -'//TRIM(Num2LStr(SmallAngleLimit_Rad))//' and ' &
+                                              //TRIM(Num2LStr(SmallAngleLimit_Rad))//' radians.'
+   END IF
+
+
+      ! Warn if tail is defined upwind of the tower:
+
+   IF ( InputFileData%BoomCMxn < 0.0_ReKi )  THEN   ! Print out warning when tail boom CM defined upwind of the tower.
+      ErrStat = MAX(ErrID_Warn,ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  WARNING: Tail boom CM is defined upwind of the tower (BoomCMxn < 0).'
+   ENDIF
+
+   IF ( InputFileData%TFinCMxn < 0.0_ReKi )  THEN   ! Print out warning when tail fin CM defined upwind of the tower.
+      ErrStat = MAX(ErrID_Warn,ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  WARNING: Tail fin CM is defined upwind of the tower (TFinCMxn < 0).'
+   ENDIF
+
+   IF ( InputFileData%TFinCPxn < 0.0_ReKi )  THEN   ! Print out warning when tail fin CP defined upwind of the tower.
+      ErrStat = MAX(ErrID_Warn,ErrStat)
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  WARNING: Tail fin CP is defined upwind of the tower (TFinCPxn < 0).'
+   ENDIF
+
+
+      ! Check that mass, inertias, damping, etc. values aren't negative:
+
+   CALL CheckNegative( InputFileData%RFrlMass, 'RFrlMass', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%BoomMass, 'BoomMass', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TFinMass, 'TFinMass', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%RFrlIner, 'RFrlIner', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TFrlIner, 'TFrlIner', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%RFrlSpr,  'RFrlSpr',  ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%RFrlDmp,  'RFrlDmp',  ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%RFrlCDmp, 'RFrlCDmp', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%RFrlUSSpr,'RFrlUSSpr',ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%RFrlDSSpr,'RFrlDSSpr',ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%RFrlUSDmp,'RFrlUSDmp',ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%RFrlDSDmp,'RFrlDSDmp',ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TFrlSpr,  'TFrlSpr',  ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TFrlDmp,  'TFrlDmp',  ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TFrlCDmp, 'TFrlCDmp', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TFrlUSSpr,'TFrlUSSpr',ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TFrlDSSpr,'TFrlDSSpr',ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TFrlUSDmp,'TFrlUSDmp',ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TFrlDSDmp,'TFrlDSDmp',ErrStat, ErrMsg )
+
+
+      ! Check that furling models are valid:
+
+   IF ( InputFileData%TFrlMod < 0 .OR. InputFileData%TFrlMod > 2 )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TFrlMod must be 0, 1, or 2.'
+   END IF
+
+   IF ( InputFileData%RFrlMod < 0 .OR. InputFileData%RFrlMod > 2 )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  RFrlMod must be 0, 1, or 2.'
+   END IF
+
+
+   !   ! bjj: THESE ARE checks for tail fin aerodynamics, which should be in aerodyn, in my opinion
+   !CALL CheckNegative( TFinArea,               'TFinArea',ErrStat, ErrMsg )
+   !
+   !IF ( TFinMod < 0 .OR. TFinMod > 2 )  THEN
+   !   ErrStat = ErrID_Fatal
+   !   ErrMsg  = TRIM(ErrMsg)//NewLine//'  TFinMod must be 0, 1, or 2.'
+   !END IF
+
+
+   RETURN
+
+CONTAINS
+   !-------------------------------------------------------------------------------------------------------------------------------
+   SUBROUTINE CheckAngle180Range( Var, VarDesc, ErrStat, ErrMsg )
+   ! This routine checks that an angle is in the range (-pi, pi] radians. If not, ErrStat = ErrID_Fatal
+   ! Note that all values are assumed to be in radians, even if read in degrees (-180 deg, 180 deg]
+   !-------------------------------------------------------------------------------------------------------------------------------
+   REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
+   CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
+   INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
+   CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is not in specified range
+
+   
+      IF ( ( Var <= -pi ) .OR. ( Var > pi ) )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine// &
+                   '  '//TRIM(VarDesc)//' must be greater than -pi radians and less than or equal to pi radians '// &
+                                        '(i.e., in the range (-180, 180] degrees).'
+      END IF
+
+   END SUBROUTINE CheckAngle180Range
+   !-------------------------------------------------------------------------------------------------------------------------------
+   SUBROUTINE CheckAngle90Range( Var, VarDesc, ErrStat, ErrMsg )
+   ! This routine checks that an angle is in the range [-pi/2, pi/2] radians. If not, ErrStat = ErrID_Fatal
+   ! Note that all values are assumed to be in radians, even if read in degrees ( [-90 deg, 90 deg] )
+   !-------------------------------------------------------------------------------------------------------------------------------
+   REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
+   CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
+   INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
+   CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is not in specified range
+
+      IF ( ABS( Var ) > PiBy2 )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine// &
+                   '  '//TRIM(VarDesc)//' must be between -pi/2 and pi/2 radians (i.e., in the range [-90, 90] degrees).'
+      END IF
+
+   END SUBROUTINE CheckAngle90Range
+   !-------------------------------------------------------------------------------------------------------------------------------
+   SUBROUTINE CheckNegative( Var, VarDesc, ErrStat, ErrMsg )
+   ! This routine checks that an value is in the range [0, inf). If not, ErrStat = ErrID_Fatal
+   !-------------------------------------------------------------------------------------------------------------------------------
+   REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
+   CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
+   INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
+   CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is not in specified range
+
+      IF (  Var < 0.0_ReKi )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = TRIM(ErrMsg)//NewLine// &
+                   '  '//TRIM(VarDesc)//' must not be negative.'
+      END IF
+
+   END SUBROUTINE CheckNegative
+
+
+END SUBROUTINE ValidateFurlData
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ReadFurlFile( InputFileData, FurlFile, UnEc, ErrStat, ErrMsg  )
+! This routine reads the furling file input and converts units as appropriate.
+!----------------------------------------------------------------------------------------------------------------------------------
+
+   IMPLICIT                        NONE
+
+      ! Passed variables:
+
+   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! All the data in the StructDyn input file
+   CHARACTER(*),             INTENT(IN)     :: FurlFile                            ! Name of the furling input file data
+
+   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+
+      ! Local variables:
+
+   INTEGER(IntKi)               :: UnIn                                            ! Unit number for reading file
+   INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
+   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
+
+
+      ! Get an available unit number for the file.
+
+   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Open the furling input file.
+
+   CALL OpenFInpFile ( UnIn, FurlFile, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Add a separator to the echo file if appropriate.
+
+   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Furling input data from file "'//TRIM( FurlFile )//'":'
+
+
+   !  -------------- FILE HEADER ---------------------------------------------------
+
+   CALL ReadCom ( UnIn, FurlFile, 'unused tower furling header line 1', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, FurlFile, 'unused tower furling header line 2', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, FurlFile, 'unused tower furling header line 3', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- Furling FEATURE SWITCHES  --------------------------------------
+
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'degree of freedom switches (cont)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlDOF - Rotor-furl DOF.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDOF, 'RFrlDOF', 'Rotor-furl DOF', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlDOF - Tail-furl DOF.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDOF, 'TFrlDOF', 'Tail-furl DOF', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- Furling INITIAL CONDITIONS ------------------------------------
+
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'initial conditions (cont)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RotFurl - Initial or fixed rotor-furl angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RotFurl, 'RotFurl', 'Initial or fixed rotor-furl angle', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      InputFileData%RotFurl   = InputFileData%RotFurl  *D2R
+
+
+      ! TailFurl - Initial or fixed tail-furl angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TailFurl, 'TailFurl', 'Initial or fixed tail-furl angle',  &
+                  ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      InputFileData%TailFurl  = InputFileData%TailFurl *D2R
+      
+
+   !  -------------- TURBINE CONFIGURATION (CONT) ---------------------------------
+
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'turbine configuration (cont)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Yaw2Shft - Lateral distance from yaw axis to rotor shaft.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%Yaw2Shft, 'Yaw2Shft',  &
+                  'Lateral distance from yaw axis to rotor shaft', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! ShftSkew - Rotor shaft skew angle (read in degrees and converted to radians here).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%ShftSkew, 'ShftSkew', 'Rotor shaft skew angle', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%ShftSkew  = InputFileData%ShftSkew *D2R
+      
+
+      ! RFrlCMxn - Downwind distance from tower-top to CM of structure that furls with the rotor (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMxn, 'RFrlCMxn',  &
+                  'Downwind distance from tower-top to rotor-furl CM', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlCMyn - Lateral  distance from tower-top to CM of structure that furls with the rotor (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMyn, 'RFrlCMyn',  &
+                  'Lateral  distance from tower-top to rotor-furl CM', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlCMzn - Vertical distance from tower-top to CM of structure that furls with the rotor (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMzn, 'RFrlCMzn',  &
+                  'Vertical distance from tower-top to rotor-furl CM', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BoomCMxn - Downwind distance from tower-top to tail boom CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMxn, 'BoomCMxn',  &
+                  'Downwind distance from tower-top to tail boom CM', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BoomCMyn - Lateral  distance from tower-top to tail boom CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMyn, 'BoomCMyn',  &
+                  'Lateral  distance from tower-top to tail boom CM', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BoomCMzn - Vertical distance from tower-top to tail boom CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMzn, 'BoomCMzn', &
+                   'Vertical distance from tower-top to tail boom CM', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCMxn - Downwind distance from tower-top to tail fin CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMxn, 'TFinCMxn', &
+                   'Downwind distance from tower-top to tail fin CM', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCMyn - Lateral  distance from tower-top to tail fin CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMyn, 'TFinCMyn', &
+                   'Lateral  distance from tower-top to tail fin CM', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCMzn - Vertical distance from tower-top to tail fin CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMzn, 'TFinCMzn', &
+                   'Vertical distance from tower-top to tail fin CM', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCPxn - Downwind distance from tower-top to tail fin CP.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPxn, 'TFinCPxn', &
+                  'Downwind distance from tower-top to tail fin CP', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCPyn - Lateral  distance from tower-top to tail fin CP.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPyn, 'TFinCPyn', &
+                  'Lateral  distance from tower-top to tail fin CP', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCPzn - Vertical distance from tower-top to tail fin CP.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPzn, 'TFinCPzn', &
+                  'Vertical distance from tower-top to tail fin CP', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinSkew - Tail fin chordline skew angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinSkew, 'TFinSkew', 'Tail fin chordline skew angle', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFinSkew  = InputFileData%TFinSkew*D2R
+
+
+      ! TFinTilt - Tail fin chordline tilt angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinTilt, 'TFinTilt', 'Tail fin chordline tilt angle', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFinTilt  = InputFileData%TFinTilt *D2R
+      
+
+      ! TFinBank - Tail fin planform  bank angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinBank, 'TFinBank', 'Tail fin planform  bank angle', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      InputFileData%TFinBank  = InputFileData%TFinBank *D2R
+
+
+      ! RFrlPntxn - Downwind distance from tower-top to arbitrary point on rotor-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntxn, 'RFrlPntxn', &
+                  'Downwind distance from tower-top to arbitrary point on rotor-furl axis', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlPntyn - Lateral  distance from tower-top to arbitrary point on rotor-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntyn, 'RFrlPntyn', &
+                  'Lateral  distance from tower-top to arbitrary point on rotor-furl axis', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlPntzn - Vertical distance from tower-top to arbitrary point on rotor-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntzn, 'RFrlPntzn', &
+                  'Vertical distance from tower-top to arbitrary point on rotor-furl axis', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlSkew - Rotor-furl axis skew angle (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlSkew, 'RFrlSkew', 'Rotor-furl axis skew angle', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlSkew  = InputFileData%RFrlSkew*D2R
+
+      
+      ! RFrlTilt - Rotor-furl axis tilt angle (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlTilt, 'RFrlTilt', 'Rotor-furl axis tilt angle', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlTilt  = InputFileData%RFrlTilt*D2R
+
+      
+      ! TFrlPntxn - Downwind distance from tower-top to arbitrary point on tail-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntxn, 'TFrlPntxn', &
+                  'Downwind distance from tower-top to arbitrary point on tail-furl axis', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlPntyn - Lateral  distance from tower-top to arbitrary point on tail-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntyn, 'TFrlPntyn', &
+                  'Lateral  distance from tower-top to arbitrary point on tail-furl axis', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlPntzn - Vertical distance from tower-top to arbitrary point on tail-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntzn, 'TFrlPntzn', &
+                  'Vertical distance from tower-top to arbitrary point on tail-furl axis', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlSkew - Tail-furl axis skew angle (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlSkew, 'TFrlSkew', 'Tail-furl axis skew angle', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlSkew  = InputFileData%TFrlSkew *D2R
+
+      
+      ! TFrlTilt - Tail-furl axis tilt angle (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlTilt, 'TFrlTilt', 'Tail-furl axis tilt angle', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      InputFileData%TFrlTilt  = InputFileData%TFrlTilt *D2R
+
+
+   !  -------------- MASS AND INERTIA (CONT) --------------------------------------
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'mass and inertia (cont)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! RFrlMass - Mass of structure that furls with the rotor (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlMass, 'RFrlMass', 'Rotor-furl mass', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! BoomMass - Tail boom mass.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomMass, 'BoomMass', 'Tail boom mass',ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinMass - Tail fin mass.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinMass, 'TFinMass', 'Tail fin mass', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlIner - Inertia of structure that furls with the rotor about the rotor-furl axis (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlIner, 'RFrlIner', 'Rotor-furl inertia about rotor-furl axis', &
+                                            ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlIner - Tail boom inertia about tail-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlIner, 'TFrlIner', 'Tail boom inertia about tail-furl axis', &
+                  ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   !  -------------- ROTOR-FURL ---------------------------------------------------
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'rotor-furl', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlMod - Rotor-furl spring/damper model switch.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlMod, 'RFrlMod', 'Rotor-furl spring/damper model switch', &
+                  ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlSpr - Rotor-furl spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlSpr, 'RFrlSpr', 'Rotor-furl spring constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlDmp - Rotor-furl damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDmp, 'RFrlDmp', 'Rotor-furl damping constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlCDmp - Rotor-furl rate-independent Coulomb-damping moment.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCDmp, 'RFrlCDmp', 'Rotor-furl rate-independent Coulomb-damping moment', &
+                                                         ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlUSSP - Rotor-furl up-stop spring position (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSSP, 'RFrlUSSP', 'Rotor-furl up-stop spring position', &
+                  ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlUSSP  = InputFileData%RFrlUSSP*D2R
+      
+
+      ! RFrlDSSP - Rotor-furl down-stop spring position (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSSP, 'RFrlDSSP', 'Rotor-furl down-stop spring position', &
+                  ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlDSSP  = InputFileData%RFrlDSSP*D2R
+      
+
+      ! RFrlUSSpr - Rotor-furl up-stop spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSSpr, 'RFrlUSSpr', 'Rotor-furl up-stop spring constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlDSSpr - Rotor-furl down-stop spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSSpr, 'RFrlDSSpr', 'Rotor-furl down-stop spring constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlUSDP - Rotor-furl up-stop damper position (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSDP, 'RFrlUSDP', 'Rotor-furl up-stop damper position', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlUSDP  = InputFileData%RFrlUSDP*D2R
+      
+
+      ! RFrlDSDP - Rotor-furl down-stop damper position (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSDP, 'RFrlDSDP', 'Rotor-furl down-stop damper position', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlDSDP  = InputFileData%RFrlDSDP*D2R
+      
+
+      ! RFrlUSDmp - Rotor-furl up-stop damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSDmp, 'RFrlUSDmp', 'Rotor-furl up-stop damping constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlDSDmp - Rotor-furl down-stop damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSDmp, 'RFrlDSDmp', 'Rotor-furl down-stop damping constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- TAIL-FURL ----------------------------------------------------
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'tail-furl', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlMod - Tail-furl spring/damper model switch.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlMod, 'TFrlMod', 'Tail-furl spring/damper model switch', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlSpr - Tail-furl spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlSpr, 'TFrlSpr', 'Tail-furl spring constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlDmp - Tail-furl damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDmp, 'TFrlDmp', 'Tail-furl damping constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlCDmp - Tail-furl rate-independent Coulomb-damping moment.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlCDmp, 'TFrlCDmp', 'Tail-furl rate-independent Coulomb-damping moment', &
+                                                                                ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlUSSP - Tail-furl up-stop spring position (read as degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSSP, 'TFrlUSSP', 'Tail-furl up-stop spring position', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlUSSP  = InputFileData%TFrlUSSP*D2R
+
+      
+      ! TFrlDSSP - Tail-furl down-stop spring position (read as degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSSP, 'TFrlDSSP', 'Tail-furl down-stop spring position', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlDSSP  = InputFileData%TFrlDSSP*D2R
+
+      
+      ! TFrlUSSpr - Tail-furl up-stop spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSSpr, 'TFrlUSSpr', 'Tail-furl up-stop spring constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlDSSpr - Tail-furl down-stop spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSSpr, 'TFrlDSSpr', 'Tail-furl down-stop spring constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlUSDP - Tail-furl up-stop damper position.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSDP, 'TFrlUSDP', 'Tail-furl up-stop damper position', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlUSDP  = InputFileData%TFrlUSDP*D2R
+
+      
+      ! TFrlDSDP - Tail-furl down-stop damper position (read as degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSDP, 'TFrlDSDP', 'Tail-furl down-stop damper position', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlDSDP  = InputFileData%TFrlDSDP*D2R   
+
+      
+      ! TFrlUSDmp - Tail-furl up-stop damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSDmp, 'TFrlUSDmp', 'Tail-furl up-stop damping constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlDSDmp - Tail-furl down-stop damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSDmp, 'TFrlDSDmp', 'Tail-furl down-stop damping constant', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !!  -------------- TAIL FIN AERODYNAMICS ----------------------------------------
+   !! bjj: this should be in aerodyn:
+   !
+   !   ! Skip the comment line.
+   !
+   !CALL ReadCom ( UnIn, FurlFile, 'tail fin aerodynamics', ErrStat2, ErrMsg2, UnEc  )
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !
+   !   ! TFinMod - Tail fin aerodynamics model switch.
+   !
+   !CALL ReadVar ( UnIn, FurlFile, TFinMod, 'TFinMod', 'Tail fin aerodynamics model switch', ErrStat2, ErrMsg2, UnEc  )
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !
+   !   ! TFinNFoil - Tail fin airfoil number.
+   !
+   !CALL ReadVar ( UnIn, FurlFile, TFinNFoil, 'TFinNFoil', 'Tail fin airfoil number', ErrStat2, ErrMsg2, UnEc  )
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !
+   !   ! TFinArea - Tail fin planform area.
+   !
+   !CALL ReadVar ( UnIn, FurlFile, TFinArea, 'TFinArea', 'Tail fin planform area', ErrStat2, ErrMsg2, UnEc  )
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !
+   !   ! SubAxInd - Subtract rotor axial induction?
+   !
+   !CALL ReadVar ( UnIn, FurlFile, SubAxInd, 'SubAxInd', 'Subtract rotor axial induction?', ErrStat2, ErrMsg2, UnEc  )
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Close the FAST furling file:
+
+   CLOSE ( UnIn )
+
+   RETURN
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnIn )
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError
+   !...............................................................................................................................
+END SUBROUTINE ReadFurlFile
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SetFurlParams( p, InputFileData, ErrStat, ErrMsg  )
+! This takes the furling input file data and sets the corresponding furling parameters.
+!----------------------------------------------------------------------------------------------------------------------------------
+
+   IMPLICIT                        NONE
+
+
+      ! Passed variables
+
+   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                            ! Parameters of the structural dynamics module
+   TYPE(StrD_InputFile),     INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
+
+      ! Local variables:
+
+   REAL(ReKi)                               :: x                            ! Fractional location between two points in linear interpolation
+   INTEGER(IntKi )                          :: J                            ! Index for the node arrays
+   INTEGER(IntKi)                           :: InterpInd                    ! Index for the interpolation routine
+
+
+      ! Initialize error data
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+   
+   
+      ! Direct copy of InputFileData to parameters
+      
+   p%RFrlMass = InputFileData%RFrlMass
+   p%BoomMass = InputFileData%BoomMass
+   p%TFinMass = InputFileData%TFinMass   
+   p%TFrlIner = InputFileData%TFrlIner   
+   
+   p%RFrlMod  = InputFileData%RFrlMod
+   p%TFrlMod  = InputFileData%TFrlMod
+   
+   p%RFrlSpr  = InputFileData%RFrlSpr
+   p%RFrlDmp  = InputFileData%RFrlDmp
+   p%RFrlCDmp = InputFileData%RFrlCDmp
+   p%RFrlUSSP = InputFileData%RFrlUSSP
+   p%RFrlDSSP = InputFileData%RFrlDSSP
+   p%RFrlDSSpr= InputFileData%RFrlDSSpr
+   p%RFrlUSSpr= InputFileData%RFrlUSSpr
+   p%RFrlUSDP = InputFileData%RFrlUSDP
+   p%RFrlDSDP = InputFileData%RFrlDSDP
+   p%RFrlUSDmp= InputFileData%RFrlUSDmp
+   p%RFrlDSDmp= InputFileData%RFrlDSDmp
+      
+   p%TFrlSpr  = InputFileData%TFrlSpr
+   p%TFrlDmp  = InputFileData%TFrlDmp
+   p%TFrlCDmp = InputFileData%TFrlCDmp
+   p%TFrlUSSP = InputFileData%TFrlUSSP
+   p%TFrlDSSP = InputFileData%TFrlDSSP
+   p%TFrlUSSpr= InputFileData%TFrlUSSpr
+   p%TFrlDSSpr= InputFileData%TFrlDSSpr
+   p%TFrlUSDP = InputFileData%TFrlUSDP
+   p%TFrlDSDP = InputFileData%TFrlDSDP
+   p%TFrlUSDmp= InputFileData%TFrlUSDmp
+   p%TFrlDSDmp= InputFileData%TFrlDSDmp
+   
+   p%RFrlPntxn = InputFileData%RFrlPntxn
+   p%RFrlPntyn = InputFileData%RFrlPntyn
+   p%RFrlPntzn = InputFileData%RFrlPntzn
+   
+   p%TFrlPntxn = InputFileData%TFrlPntxn
+   p%TFrlPntyn = InputFileData%TFrlPntyn
+   p%TFrlPntzn = InputFileData%TFrlPntzn
+
+
+      ! Store sine/cosine values instead of some input angles:
+   
+   p%CShftSkew = COS( InputFileData%ShftSkew )
+   p%SShftSkew = SIN( InputFileData%ShftSkew )
+
+   p%CTFinSkew = COS( InputFileData%TFinSkew )
+   p%STFinSkew = SIN( InputFileData%TFinSkew )
+   p%CTFinTilt = COS( InputFileData%TFinTilt )
+   p%STFinTilt = SIN( InputFileData%TFinTilt )
+   p%CTFinBank = COS( InputFileData%TFinBank )
+   p%STFinBank = SIN( InputFileData%TFinBank )
+
+   p%CRFrlSkew = COS( InputFileData%RFrlSkew )
+   p%SRFrlSkew = SIN( InputFileData%RFrlSkew )
+   p%CRFrlTilt = COS( InputFileData%RFrlTilt )
+   p%SRFrlTilt = SIN( InputFileData%RFrlTilt )
+
+   p%CTFrlSkew = COS( InputFileData%TFrlSkew )
+   p%STFrlSkew = SIN( InputFileData%TFrlSkew )
+   p%CTFrlTilt = COS( InputFileData%TFrlTilt )
+   p%STFrlTilt = SIN( InputFileData%TFrlTilt )
+
+   
+      ! Common multiplications of sines and cosines:
+
+   p%CRFrlSkw2 = p%CRFrlSkew**2
+   p%SRFrlSkw2 = p%SRFrlSkew**2
+   p%CSRFrlSkw = p%CRFrlSkew*p%SRFrlSkew
+   p%CRFrlTlt2 = p%CRFrlTilt**2
+   p%SRFrlTlt2 = p%SRFrlTilt**2
+   p%CSRFrlTlt = p%CRFrlTilt*p%SRFrlTilt
+
+   p%CTFrlSkw2 = p%CTFrlSkew**2
+   p%STFrlSkw2 = p%STFrlSkew**2
+   p%CSTFrlSkw = p%CTFrlSkew*p%STfrlSkew
+   p%CTFrlTlt2 = p%CTFrlTilt**2
+   p%STFrlTlt2 = p%STFrlTilt**2
+   p%CSTFrlTlt = p%CTFrlTilt*p%STFrlTilt
+
+
+      ! Calculate some positions:   
+   
+   p%rWIxn     = InputFileData%BoomCMxn - p%TFrlPntxn
+   p%rWIyn     = InputFileData%BoomCMyn - p%TFrlPntyn
+   p%rWIzn     = InputFileData%BoomCMzn - p%TFrlPntzn
+
+   p%rWJxn     = InputFileData%TFinCMxn - p%TFrlPntxn
+   p%rWJyn     = InputFileData%TFinCMyn - p%TFrlPntyn
+   p%rWJzn     = InputFileData%TFinCMzn - p%TFrlPntzn
+
+   p%rWKxn     = InputFileData%TFinCPxn - p%TFrlPntxn
+   p%rWKyn     = InputFileData%TFinCPyn - p%TFrlPntyn
+   p%rWKzn     = InputFileData%TFinCPzn - p%TFrlPntzn
+
+   p%rVDxn     = InputFileData%RFrlCMxn - p%RFrlPntxn
+   p%rVDyn     = InputFileData%RFrlCMyn - p%RFrlPntyn
+   p%rVDzn     = InputFileData%RFrlCMzn - p%RFrlPntzn
+
+   p%rVPxn     =                        - p%RFrlPntxn
+   p%rVPyn     = InputFileData%Yaw2Shft - p%RFrlPntyn   
+   
+   
+END SUBROUTINE SetFurlParams
 
 END MODULE StructDyn
 !**********************************************************************************************************************************

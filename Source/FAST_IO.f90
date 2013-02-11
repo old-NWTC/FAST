@@ -1433,7 +1433,7 @@ SUBROUTINE GetBladeInputs ( BldFile, p, InputFileData, UnEc, ErrStat, ErrMsg )
       
    DO K = 1,p%NumBl   
       
-      CALL ValidateBladeData (        p, InputFileData%InpBl(K), ReadAdmVals, ErrStat2, ErrMsg2 )
+      CALL ValidateBladeData ( InputFileData%InpBl(K), ReadAdmVals, ErrStat2, ErrMsg2 )
       IF ( ErrStat /= ErrID_None ) THEN
          ErrMsg  = ' Errors in blade '//TRIM(Num2LStr(K))//' input data: '//NewLine//TRIM(ErrMsg2)
          ErrStat = MAX(ErrStat, ErrStat2)
@@ -1479,7 +1479,7 @@ INTEGER(IntKi),           INTENT(IN)       :: UnEc                            ! 
    ! Local variables:
 
 INTEGER(4)                   :: IOS                                           ! I/O status returned from the read statement.
-
+INTEGER                      :: I  ! loop counter
 
 
    ! Open the FAST furling input file:
@@ -1489,492 +1489,19 @@ CALL OpenFInpFile ( UnIn, FurlFile )
 
    ! Add a separator to the echo file if appropriate.
 
-IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Furling input data from file "'//TRIM( FurlFile )//'":'
+IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Tail Furl Aerodynamics input data from file "'//TRIM( FurlFile )//'":'
 
 
 
 !  -------------- HEADER -------------------------------------------------------
-
-
-   ! Skip the header.
-
-READ (UnIn,'(//)',IOSTAT=IOS)
-
-IF ( IOS < 0 )  THEN
-   CALL PremEOF ( FurlFile , 'unused FAST furling-file header' )
-ENDIF
-
-
-
-!  -------------- FEATURE SWITCHES (CONT) --------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, FurlFile, 'degree of freedom switches (cont)', UnEc=UnEc  )
-
-
-   ! RFrlDOF - Rotor-furl DOF.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDOF, 'RFrlDOF', 'Rotor-furl DOF', UnEc=UnEc )
-
-
-   ! TFrlDOF - Tail-furl DOF.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDOF, 'TFrlDOF', 'Tail-furl DOF', UnEc=UnEc )
-
-
-
-!  -------------- INITIAL CONDITIONS (CONT) ------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, FurlFile, 'initial conditions (cont)', UnEc=UnEc  )
-
-
-   ! RotFurl - Initial or fixed rotor-furl angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RotFurl, 'RotFurl', 'Initial or fixed rotor-furl angle', UnEc=UnEc )
-
-IF ( ( InputFileData%RotFurl <= -180.0 ) .OR. ( InputFileData%RotFurl > 180.0 ) )  &
-   CALL ProgAbort ( ' RotFurl must be greater than -180 and less than or equal to 180.' )
-
-
-   ! TailFurl - Initial or fixed tail-furl angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TailFurl, 'TailFurl', 'Initial or fixed tail-furl angle', UnEc=UnEc )
-
-IF ( ( InputFileData%TailFurl <= -180.0 ) .OR. ( InputFileData%TailFurl > 180.0 ) )  &
-   CALL ProgAbort ( ' TailFurl must be greater than -180 and less than or equal to 180.' )
-
-
-
-!  -------------- TURBINE CONFIGURATION (CONT) ---------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, FurlFile, 'turbine configuration (cont)', UnEc=UnEc  )
-
-
-   ! Yaw2Shft - Lateral distance from yaw axis to rotor shaft.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%Yaw2Shft, 'Yaw2Shft', 'Lateral distance from yaw axis to rotor shaft', UnEc=UnEc )
-
-
-   ! ShftSkew - Rotor shaft skew angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%ShftSkew, 'ShftSkew', 'Rotor shaft skew angle', UnEc=UnEc )
-
-IF ( ( InputFileData%ShftSkew < -15.0 ) .OR. ( InputFileData%ShftSkew > 15.0 ) )  &
-   CALL ProgAbort ( ' ShftSkew should only be used to skew the shaft a few degrees away from the zero-yaw position'//             &
-                ' and must not be used as a replacement for the yaw angle.  ShftSkew must be between -15 and 15 (inclusive).'   )
-
-
-   ! RFrlCMxn - Downwind distance from tower-top to CM of structure that furls with the rotor (not including rotor).
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMxn, 'RFrlCMxn', 'Downwind distance from tower-top to rotor-furl CM', UnEc=UnEc )
-
-
-   ! RFrlCMyn - Lateral  distance from tower-top to CM of structure that furls with the rotor (not including rotor).
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMyn, 'RFrlCMyn', 'Lateral  distance from tower-top to rotor-furl CM', UnEc=UnEc )
-
-
-   ! RFrlCMzn - Vertical distance from tower-top to CM of structure that furls with the rotor (not including rotor).
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMzn, 'RFrlCMzn', 'Vertical distance from tower-top to rotor-furl CM', UnEc=UnEc )
-
-
-   ! BoomCMxn - Downwind distance from tower-top to tail boom CM.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMxn, 'BoomCMxn', 'Downwind distance from tower-top to tail boom CM', UnEc=UnEc )
-
-IF ( InputFileData%BoomCMxn < 0.0 )  THEN   ! Print out warning when tail boom CM defined upwind of the tower.
-   CALL ProgWarn( '  Tail boom CM defined upwind of the tower (BoomCMxn < 0). Check for possible errors in file "'&
-                  //TRIM( FurlFile )//'". ' )
-
-ENDIF
-
-
-   ! BoomCMyn - Lateral  distance from tower-top to tail boom CM.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMyn, 'BoomCMyn', 'Lateral  distance from tower-top to tail boom CM', UnEc=UnEc )
-
-
-   ! BoomCMzn - Vertical distance from tower-top to tail boom CM.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMzn, 'BoomCMzn', 'Vertical distance from tower-top to tail boom CM', UnEc=UnEc )
-
-
-   ! TFinCMxn - Downwind distance from tower-top to tail fin CM.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMxn, 'TFinCMxn', 'Downwind distance from tower-top to tail fin CM', UnEc=UnEc  )
-
-IF ( InputFileData%TFinCMxn < 0.0 )  THEN   ! Print out warning when tail fin CM defined upwind of the tower.
-   CALL UsrAlarm
-
-   CALL WrScr1(' WARNING: ')
-   CALL WrScr ('  Tail fin CM defined upwind of the tower (TFinCMxn < 0). ')
-   CALL WrScr ('  Check for possible errors in file "'//TRIM( FurlFile )//'". ')
-ENDIF
-
-
-   ! TFinCMyn - Lateral  distance from tower-top to tail fin CM.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMyn, 'TFinCMyn', 'Lateral  distance from tower-top to tail fin CM', UnEc=UnEc  )
-
-
-   ! TFinCMzn - Vertical distance from tower-top to tail fin CM.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMzn, 'TFinCMzn', 'Vertical distance from tower-top to tail fin CM', UnEc=UnEc  )
-
-
-   ! TFinCPxn - Downwind distance from tower-top to tail fin CP.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPxn, 'TFinCPxn', 'Downwind distance from tower-top to tail fin CP', UnEc=UnEc  )
-
-IF ( InputFileData%TFinCPxn < 0.0 )  THEN   ! Print out warning when tail fin CP defined upwind of the tower.
-   CALL UsrAlarm
-
-   CALL WrScr1(' WARNING: ')
-   CALL WrScr ('  Tail fin CP defined upwind of the tower (TFinCPxn < 0). ')
-   CALL WrScr ('  Check for possible errors in file "'//TRIM( FurlFile )//'". ')
-ENDIF
-
-
-   ! TFinCPyn - Lateral  distance from tower-top to tail fin CP.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPyn, 'TFinCPyn', 'Lateral  distance from tower-top to tail fin CP', UnEc=UnEc  )
-
-
-   ! TFinCPzn - Vertical distance from tower-top to tail fin CP.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPzn, 'TFinCPzn', 'Vertical distance from tower-top to tail fin CP', UnEc=UnEc  )
-
-
-   ! TFinSkew - Tail fin chordline skew angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinSkew, 'TFinSkew', 'Tail fin chordline skew angle', UnEc=UnEc  )
-
-IF ( ( InputFileData%TFinSkew <= -180.0 ) .OR. ( InputFileData%TFinSkew > 180.0 ) )  &
-   CALL ProgAbort ( ' TFinSkew must be greater than -180 and less than or equal to 180.' )
-
-
-   ! TFinTilt - Tail fin chordline tilt angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinTilt, 'TFinTilt', 'Tail fin chordline tilt angle', UnEc=UnEc  )
-
-IF ( ( InputFileData%TFinTilt < -90.0 ) .OR. ( InputFileData%TFinTilt > 90.0 ) )  CALL ProgAbort ( ' TFinTilt must be between -90 and 90 (inclusive).' )
-
-
-   ! TFinBank - Tail fin planform  bank angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinBank, 'TFinBank', 'Tail fin planform  bank angle', UnEc=UnEc  )
-
-IF ( ( InputFileData%TFinBank <= -180.0 ) .OR. ( InputFileData%TFinBank > 180.0 ) )  &
-   CALL ProgAbort ( ' TFinBank must be greater than -180 and less than or equal to 180.' )
-
-
-   ! RFrlPntxn - Downwind distance from tower-top to arbitrary point on rotor-furl axis.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntxn, 'RFrlPntxn', 'Downwind distance from tower-top to arbitrary point on rotor-furl axis', UnEc=UnEc  )
-
-
-   ! RFrlPntyn - Lateral  distance from tower-top to arbitrary point on rotor-furl axis.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntyn, 'RFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on rotor-furl axis', UnEc=UnEc  )
-
-
-   ! RFrlPntzn - Vertical distance from tower-top to arbitrary point on rotor-furl axis.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntzn, 'RFrlPntzn', 'Vertical distance from tower-top to arbitrary point on rotor-furl axis', UnEc=UnEc  )
-
-
-   ! RFrlSkew - Rotor-furl axis skew angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlSkew, 'RFrlSkew', 'Rotor-furl axis skew angle', UnEc=UnEc  )
-
-IF ( ( InputFileData%RFrlSkew <= -180.0 ) .OR. ( InputFileData%RFrlSkew > 180.0 ) )  &
-   CALL ProgAbort ( ' RFrlSkew must be greater than -180 and less than or equal to 180.' )
-
-
-   ! RFrlTilt - Rotor-furl axis tilt angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlTilt, 'RFrlTilt', 'Rotor-furl axis tilt angle', UnEc=UnEc  )
-
-IF ( ( InputFileData%RFrlTilt < -90.0 ) .OR. ( InputFileData%RFrlTilt > 90.0 ) )  &
-              CALL ProgAbort ( ' RFrlTilt must be between -90 and 90 (inclusive).' )
-
-
-   ! TFrlPntxn - Downwind distance from tower-top to arbitrary point on tail-furl axis.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntxn, 'TFrlPntxn', 'Downwind distance from tower-top to arbitrary point on tail-furl axis', UnEc=UnEc  )
-
-
-   ! TFrlPntyn - Lateral  distance from tower-top to arbitrary point on tail-furl axis.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntyn, 'TFrlPntyn', 'Lateral  distance from tower-top to arbitrary point on tail-furl axis', UnEc=UnEc  )
-
-
-   ! TFrlPntzn - Vertical distance from tower-top to arbitrary point on tail-furl axis.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntzn, 'TFrlPntzn', 'Vertical distance from tower-top to arbitrary point on tail-furl axis', UnEc=UnEc  )
-
-
-   ! TFrlSkew - Tail-furl axis skew angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlSkew, 'TFrlSkew', 'Tail-furl axis skew angle', UnEc=UnEc  )
-
-IF ( ( InputFileData%TFrlSkew <= -180.0 ) .OR. ( InputFileData%TFrlSkew > 180.0 ) )  &
-   CALL ProgAbort ( ' TFrlSkew must be greater than -180 and less than or equal to 180.' )
-
-
-   ! TFrlTilt - Tail-furl axis tilt angle.
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlTilt, 'TFrlTilt', 'Tail-furl axis tilt angle', UnEc=UnEc  )
-
-IF ( ( InputFileData%TFrlTilt < -90.0 ) .OR. ( InputFileData%TFrlTilt > 90.0 ) )  CALL ProgAbort ( ' TFrlTilt must be between -90 and 90 (inclusive).' )
-
-
-
-!  -------------- MASS AND INERTIA (CONT) --------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, FurlFile, 'mass and inertia (cont)', UnEc=UnEc   )
-
-   ! RFrlMass - Mass of structure that furls with the rotor (not including rotor).
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlMass, 'RFrlMass', 'Rotor-furl mass', UnEc=UnEc  )
-
-IF ( p%RFrlMass < 0.0 )  CALL ProgAbort ( ' RFrlMass must not be negative.' )
-
-
-   ! BoomMass - Tail boom mass.
-
-CALL ReadVar ( UnIn, FurlFile, p%BoomMass, 'BoomMass', 'Tail boom mass', UnEc=UnEc  )
-
-IF ( p%BoomMass < 0.0 )  CALL ProgAbort ( ' BoomMass must not be negative.'  )
-
-
-   ! TFinMass - Tail fin mass.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFinMass, 'TFinMass', 'Tail fin mass', UnEc=UnEc  )
-
-IF ( p%TFinMass < 0.0 )  CALL ProgAbort ( ' TFinMass must not be negative.' )
-
-
-   ! RFrlIner - Inertia of structure that furls with the rotor about the rotor-furl axis (not including rotor).
-
-CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlIner, 'RFrlIner', 'Rotor-furl inertia about rotor-furl axis', UnEc=UnEc  )
-
-IF ( InputFileData%RFrlIner < 0.0 )  CALL ProgAbort ( ' RFrlIner must not be negative.' )
-
-
-   ! TFrlIner - Tail boom inertia about tail-furl axis.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlIner, 'TFrlIner', 'Tail boom inertia about tail-furl axis', UnEc=UnEc  )
-
-IF ( p%TFrlIner < 0.0 )  CALL ProgAbort ( ' TFrlIner must not be negative.' )
-
-
-
-!  -------------- ROTOR-FURL ---------------------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, FurlFile, 'rotor-furl', UnEc=UnEc  )
-
-
-   ! RFrlMod - Rotor-furl spring/damper model switch.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlMod, 'RFrlMod', 'Rotor-furl spring/damper model switch', UnEc=UnEc  )
-
-IF ( ( p%RFrlMod /= 0 ) .AND. ( p%RFrlMod /= 1 ) .AND. ( p%RFrlMod /= 2 ) )  CALL ProgAbort ( ' RFrlMod must be 0, 1, or 2.' )
-
-
-   ! RFrlSpr - Rotor-furl spring constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlSpr, 'RFrlSpr', 'Rotor-furl spring constant', UnEc=UnEc  )
-
-IF ( p%RFrlSpr < 0.0 )  CALL ProgAbort ( ' RFrlSpr must not be negative.' )
-
-
-   ! RFrlDmp - Rotor-furl damping constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlDmp, 'RFrlDmp', 'Rotor-furl damping constant', UnEc=UnEc  )
-
-IF ( p%RFrlDmp < 0.0 )  CALL ProgAbort ( ' RFrlDmp must not be negative.' )
-
-
-   ! RFrlCDmp - Rotor-furl rate-independent Coulomb-damping moment.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlCDmp, 'RFrlCDmp', 'Rotor-furl rate-independent Coulomb-damping moment', UnEc=UnEc  )
-
-IF ( p%RFrlCDmp < 0.0 )  CALL ProgAbort ( ' RFrlCDmp must not be negative.' )
-
-
-   ! RFrlUSSP - Rotor-furl up-stop spring position.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlUSSP, 'RFrlUSSP', 'Rotor-furl up-stop spring position', UnEc=UnEc  )
-
-IF ( ( p%RFrlUSSP <= -180.0 ) .OR. ( p%RFrlUSSP > 180.0 ) )  &
-   CALL ProgAbort ( ' RFrlUSSP must be greater than -180 and less than or equal to 180.' )
-
-
-   ! RFrlDSSP - Rotor-furl down-stop spring position.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlDSSP, 'RFrlDSSP', 'Rotor-furl down-stop spring position', UnEc=UnEc  )
-
-IF ( ( p%RFrlDSSP <= -180.0 ) .OR. ( p%RFrlDSSP > p%RFrlUSSP ) )  &
-   CALL ProgAbort ( ' RFrlDSSP must be greater than -180 and less than or equal to RFrlUSSP.'  )
-
-
-   ! RFrlUSSpr - Rotor-furl up-stop spring constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlUSSpr, 'RFrlUSSpr', 'Rotor-furl up-stop spring constant', UnEc=UnEc  )
-
-IF ( p%RFrlUSSpr < 0.0 )  CALL ProgAbort ( ' RFrlUSSpr must not be negative.' )
-
-
-   ! RFrlDSSpr - Rotor-furl down-stop spring constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlDSSpr, 'RFrlDSSpr', 'Rotor-furl down-stop spring constant', UnEc=UnEc  )
-
-IF ( p%RFrlDSSpr < 0.0 )  CALL ProgAbort ( ' RFrlDSSpr must not be negative.' )
-
-
-   ! RFrlUSDP - Rotor-furl up-stop damper position.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlUSDP, 'RFrlUSDP', 'Rotor-furl up-stop damper position', UnEc=UnEc  )
-
-IF ( ( p%RFrlUSDP <= -180.0 ) .OR. ( p%RFrlUSDP > 180.0 ) )  &
-   CALL ProgAbort ( ' RFrlUSDP must be greater than -180 and less than or equal to 180.' )
-
-
-   ! RFrlDSDP - Rotor-furl down-stop damper position.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlDSDP, 'RFrlDSDP', 'Rotor-furl down-stop damper position', UnEc=UnEc  )
-
-IF ( ( p%RFrlDSDP <= -180.0 ) .OR. ( p%RFrlDSDP > p%RFrlUSDP ) )  &
-   CALL ProgAbort ( ' RFrlDSDP must be greater than -180 and less than or equal to RFrlUSDP.' )
-
-
-   ! RFrlUSDmp - Rotor-furl up-stop damping constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlUSDmp, 'RFrlUSDmp', 'Rotor-furl up-stop damping constant', UnEc=UnEc  )
-
-IF ( p%RFrlUSDmp < 0.0 )  CALL ProgAbort ( ' RFrlUSDmp must not be negative.' )
-
-
-   ! RFrlDSDmp - Rotor-furl down-stop damping constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%RFrlDSDmp, 'RFrlDSDmp', 'Rotor-furl down-stop damping constant', UnEc=UnEc  )
-
-IF ( p%RFrlDSDmp < 0.0 )  CALL ProgAbort ( ' RFrlDSDmp must not be negative.' )
-
-
-
-!  -------------- TAIL-FURL ----------------------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, FurlFile, 'tail-furl', UnEc=UnEc  )
-
-
-   ! TFrlMod - Tail-furl spring/damper model switch.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlMod, 'TFrlMod', 'Tail-furl spring/damper model switch', UnEc=UnEc  )
-
-IF ( ( p%TFrlMod /= 0 ) .AND. ( p%TFrlMod /= 1 ) .AND. ( p%TFrlMod /= 2 ) )  CALL ProgAbort ( ' TFrlMod must be 0, 1, or 2.' )
-
-
-   ! TFrlSpr - Tail-furl spring constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlSpr, 'TFrlSpr', 'Tail-furl spring constant', UnEc=UnEc  )
-
-IF ( p%TFrlSpr < 0.0 )  CALL ProgAbort ( ' TFrlSpr must not be negative.' )
-
-
-   ! TFrlDmp - Tail-furl damping constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlDmp, 'TFrlDmp', 'Tail-furl damping constant', UnEc=UnEc  )
-
-IF ( p%TFrlDmp < 0.0 )  CALL ProgAbort ( ' TFrlDmp must not be negative.' )
-
-
-   ! TFrlCDmp - Tail-furl rate-independent Coulomb-damping moment.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlCDmp, 'TFrlCDmp', 'Tail-furl rate-independent Coulomb-damping moment', UnEc=UnEc  )
-
-IF ( p%TFrlCDmp < 0.0 )  CALL ProgAbort ( ' TFrlCDmp must not be negative.' )
-
-
-   ! TFrlUSSP - Tail-furl up-stop spring position.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlUSSP, 'TFrlUSSP', 'Tail-furl up-stop spring position', UnEc=UnEc  )
-
-IF ( ( p%TFrlUSSP <= -180.0 ) .OR. ( p%TFrlUSSP > 180.0 ) )  &
-   CALL ProgAbort ( ' TFrlUSSP must be greater than -180 and less than or equal to 180.' )
-
-
-   ! TFrlDSSP - Tail-furl down-stop spring position.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlDSSP, 'TFrlDSSP', 'Tail-furl down-stop spring position', UnEc=UnEc  )
-
-IF ( ( p%TFrlDSSP <= -180.0 ) .OR. ( p%TFrlDSSP > p%TFrlUSSP ) )  &
-   CALL ProgAbort ( ' TFrlDSSP must be greater than -180 and less than or equal to TFrlUSSP.'  )
-
-
-   ! TFrlUSSpr - Tail-furl up-stop spring constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlUSSpr, 'TFrlUSSpr', 'Tail-furl up-stop spring constant', UnEc=UnEc  )
-
-IF ( p%TFrlUSSpr < 0.0 )  CALL ProgAbort ( ' TFrlUSSpr must not be negative.' )
-
-
-   ! TFrlDSSpr - Tail-furl down-stop spring constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlDSSpr, 'TFrlDSSpr', 'Tail-furl down-stop spring constant', UnEc=UnEc  )
-
-IF ( p%TFrlDSSpr < 0.0 )  CALL ProgAbort ( ' TFrlDSSpr must not be negative.' )
-
-
-   ! TFrlUSDP - Tail-furl up-stop damper position.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlUSDP, 'TFrlUSDP', 'Tail-furl up-stop damper position', UnEc=UnEc  )
-
-IF ( ( p%TFrlUSDP <= -180.0 ) .OR. ( p%TFrlUSDP > 180.0 ) )  &
-   CALL ProgAbort ( ' TFrlUSDP must be greater than -180 and less than or equal to 180.' )
-
-
-   ! TFrlDSDP - Tail-furl down-stop damper position.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlDSDP, 'TFrlDSDP', 'Tail-furl down-stop damper position', UnEc=UnEc  )
-
-IF ( ( p%TFrlDSDP <= -180.0 ) .OR. ( p%TFrlDSDP > p%TFrlUSDP ) )  &
-   CALL ProgAbort ( ' TFrlDSDP must be greater than -180 and less than or equal to TFrlUSDP.' )
-
-
-   ! TFrlUSDmp - Tail-furl up-stop damping constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlUSDmp, 'TFrlUSDmp', 'Tail-furl up-stop damping constant', UnEc=UnEc  )
-
-IF ( p%TFrlUSDmp < 0.0 )  CALL ProgAbort ( ' TFrlUSDmp must not be negative.' )
-
-
-   ! TFrlDSDmp - Tail-furl down-stop damping constant.
-
-CALL ReadVar ( UnIn, FurlFile, p%TFrlDSDmp, 'TFrlDSDmp', 'Tail-furl down-stop damping constant', UnEc=UnEc  )
-
-IF ( p%TFrlDSDmp < 0.0 )  CALL ProgAbort ( ' TFrlDSDmp must not be negative.' )
-
-
+! BJJ: This file was read by the Structural Dynamics module, so we'll skip what 
+! was already read. We're only going to read the tail fin aerodynamics, which 
+! is a hack for now. 
+! And we're not going to echo the first 69 lines, either (we already did). 
+
+DO I = 1,69
+   CALL ReadCom ( UnIn, FurlFile, 'tail fin aerodynamics'  )
+END DO
 
 !  -------------- TAIL FIN AERODYNAMICS ----------------------------------------
 
@@ -5234,94 +4761,28 @@ ENDIF
 
 IF ( InputFileData%Furling )  THEN
 
+   CALL ReadFurlFile( InputFileData, FurlFile, EchoUn,  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) THEN
+      IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
+      CALL WrScr(ErrMsg)
+   END IF
+
+   CALL ValidateFurlData ( InputFileData, ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) THEN
+      IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
+      CALL WrScr(ErrMsg)
+   END IF
+
+   CALL SetFurlParams( p, InputFileData, ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) THEN
+      IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
+      CALL WrScr(ErrMsg)
+   END IF
+   
+   
+      ! this remains a hack for the tail-fin aerodynamics:
+   
    CALL GetFurl( InputFileData, p, EchoUn  )
-
-   p%RFrlPntxn = InputFileData%RFrlPntxn
-   p%RFrlPntyn = InputFileData%RFrlPntyn
-   p%RFrlPntzn = InputFileData%RFrlPntzn
-   
-   p%TFrlPntxn = InputFileData%TFrlPntxn
-   p%TFrlPntyn = InputFileData%TFrlPntyn
-   p%TFrlPntzn = InputFileData%TFrlPntzn
-
-   
-   InputFileData%RotFurl   = InputFileData%RotFurl  *D2R
-   InputFileData%TailFurl  = InputFileData%TailFurl *D2R
-
-   InputFileData%ShftSkew  = InputFileData%ShftSkew *D2R
-
-   InputFileData%TFinSkew  = InputFileData%TFinSkew *D2R
-   InputFileData%TFinTilt  = InputFileData%TFinTilt *D2R
-   InputFileData%TFinBank  = InputFileData%TFinBank *D2R
-
-   InputFileData%RFrlSkew  = InputFileData%RFrlSkew *D2R
-   InputFileData%RFrlTilt  = InputFileData%RFrlTilt *D2R
-
-   InputFileData%TFrlSkew  = InputFileData%TFrlSkew *D2R
-   InputFileData%TFrlTilt  = InputFileData%TFrlTilt *D2R
-
-   p%RFrlUSSP  = p%RFrlUSSP *D2R
-   p%RFrlDSSP  = p%RFrlDSSP *D2R
-   p%RFrlUSDP  = p%RFrlUSDP *D2R
-   p%RFrlDSDP  = p%RFrlDSDP *D2R
-
-   p%TFrlUSSP  = p%TFrlUSSP *D2R
-   p%TFrlDSSP  = p%TFrlDSSP *D2R
-   p%TFrlUSDP  = p%TFrlUSDP *D2R
-   p%TFrlDSDP  = p%TFrlDSDP *D2R
-
-   p%CShftSkew = COS( InputFileData%ShftSkew )
-   p%SShftSkew = SIN( InputFileData%ShftSkew )
-
-   p%CTFinSkew = COS( InputFileData%TFinSkew )
-   p%STFinSkew = SIN( InputFileData%TFinSkew )
-   p%CTFinTilt = COS( InputFileData%TFinTilt )
-   p%STFinTilt = SIN( InputFileData%TFinTilt )
-   p%CTFinBank = COS( InputFileData%TFinBank )
-   p%STFinBank = SIN( InputFileData%TFinBank )
-
-   p%CRFrlSkew = COS( InputFileData%RFrlSkew )
-   p%SRFrlSkew = SIN( InputFileData%RFrlSkew )
-   p%CRFrlTilt = COS( InputFileData%RFrlTilt )
-   p%SRFrlTilt = SIN( InputFileData%RFrlTilt )
-
-   p%CTFrlSkew = COS( InputFileData%TFrlSkew )
-   p%STFrlSkew = SIN( InputFileData%TFrlSkew )
-   p%CTFrlTilt = COS( InputFileData%TFrlTilt )
-   p%STFrlTilt = SIN( InputFileData%TFrlTilt )
-
-   p%CRFrlSkw2 = p%CRFrlSkew*p%CRFrlSkew
-   p%SRFrlSkw2 = p%SRFrlSkew*p%SRFrlSkew
-   p%CSRFrlSkw = p%CRFrlSkew*p%SRFrlSkew
-   p%CRFrlTlt2 = p%CRFrlTilt*p%CRFrlTilt
-   p%SRFrlTlt2 = p%SRFrlTilt*p%SRFrlTilt
-   p%CSRFrlTlt = p%CRFrlTilt*p%SRFrlTilt
-
-   p%CTFrlSkw2 = p%CTFrlSkew*p%CTFrlSkew
-   p%STFrlSkw2 = p%STFrlSkew*p%STFrlSkew
-   p%CSTFrlSkw = p%CTFrlSkew*p%STfrlSkew
-   p%CTFrlTlt2 = p%CTFrlTilt*p%CTFrlTilt
-   p%STFrlTlt2 = p%STFrlTilt*p%STFrlTilt
-   p%CSTFrlTlt = p%CTFrlTilt*p%STFrlTilt
-
-   p%rWIxn     = InputFileData%BoomCMxn - p%TFrlPntxn
-   p%rWIyn     = InputFileData%BoomCMyn - p%TFrlPntyn
-   p%rWIzn     = InputFileData%BoomCMzn - p%TFrlPntzn
-
-   p%rWJxn     = InputFileData%TFinCMxn - p%TFrlPntxn
-   p%rWJyn     = InputFileData%TFinCMyn - p%TFrlPntyn
-   p%rWJzn     = InputFileData%TFinCMzn - p%TFrlPntzn
-
-   p%rWKxn     = InputFileData%TFinCPxn - p%TFrlPntxn
-   p%rWKyn     = InputFileData%TFinCPyn - p%TFrlPntyn
-   p%rWKzn     = InputFileData%TFinCPzn - p%TFrlPntzn
-
-   p%rVDxn     = InputFileData%RFrlCMxn - p%RFrlPntxn
-   p%rVDyn     = InputFileData%RFrlCMyn - p%RFrlPntyn
-   p%rVDzn     = InputFileData%RFrlCMzn - p%RFrlPntzn
-
-   p%rVPxn     =                        - p%RFrlPntxn
-   p%rVPyn     = InputFileData%Yaw2Shft - p%RFrlPntyn
 
    SQRTTFinA = SQRT( TFinArea )
 
@@ -5480,13 +4941,13 @@ p%ProjArea   = Pi*( p%AvgNrmTpRd**2 )      ! Swept area of the rotor projected o
 
    ! Read the tower data.
 
-CALL ReadTowerFile(      p, InputFileData, TwrFile, ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ), EchoUn,  ErrStat, ErrMsg )
+CALL ReadTowerFile( InputFileData, TwrFile, ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ), EchoUn,  ErrStat, ErrMsg )
 IF ( ErrStat /= ErrID_None ) THEN
    IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
    CALL WrScr(ErrMsg)
 END IF
 
-CALL ValidateTowerData ( p, InputFileData, ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ), ErrStat, ErrMsg )
+CALL ValidateTowerData ( InputFileData, ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ), ErrStat, ErrMsg )
 IF ( ErrStat /= ErrID_None ) THEN
    IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
    CALL WrScr(ErrMsg)
@@ -5747,7 +5208,7 @@ CHARACTER( 9)                :: FmtTitl   = '(//,1X,A)'                         
 CHARACTER( 3)                :: FmtTxt    = '(A)'                               ! Format for outputting pure text.
 CHARACTER(99)                :: RotorType                                       ! Text description of rotor.
 
-
+CHARACTER(30)                :: OutPFmt                                         ! Format to print list of selected output channels to summary file
 
    ! Open the summary file and give it a heading.
 
@@ -6043,8 +5504,8 @@ ENDDO ! K
 
 
 !bjj: put this in the summary file, no? was in echo file   
-   WRITE (UnSu,'(//,A,/)')  'Requested Outputs:'
    OutPFmt = '( I4, 3X,A '//TRIM(Num2LStr(OutStrLen))//',1 X, A'//TRIM(Num2LStr(OutStrLen))//' )'
+   WRITE (UnSu,'(//,A,/)')  'Requested Outputs:'
    WRITE (UnSu,"(/, '  Col  Parameter  Units', /, '  ---  ---------  -----')")
    DO I = 0,p%NumOuts
       WRITE (UnSu,OutPFmt)  I, p%OutParam(I)%Name, p%OutParam(I)%Units
