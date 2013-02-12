@@ -63,13 +63,13 @@ SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, D
 
 
 USE                            NWTC_Library
-
+use StructDyn_Types
 
 IMPLICIT                       NONE
 
 
    ! Passed Variables:
-
+!type(strd_outputtype), intent(in), optional :: y_StrD
 INTEGER(4), INTENT(IN )      :: NumBl                                        ! Number of blades, (-).
 
 REAL(ReKi), INTENT(IN )     :: DelGenTrq                                     ! Pertubation in generator torque used during FAST linearization (zero otherwise), N-m.

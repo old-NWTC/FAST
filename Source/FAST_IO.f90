@@ -4,7 +4,9 @@ MODULE FAST_IO_Subs
    USE   StructDyn_Parameters
    USE   StructDyn_Types
    USE   StructDyn
-
+use Controls
+use Controls_Types
+   
    USE GlueCodeVars
    
 CONTAINS
@@ -3449,7 +3451,7 @@ CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmHvDOF, 'PtfmHvDOF', 'Platform h
 
    ! PtfmRDOF - Platform roll tilt rotation DOF.
 
-CALL ReadVar ( UnIn, PtfmFile, p%DOF_Flag(DOF_R   ), 'PtfmRDOF', 'Platform roll DOF', UnEc=UnEc )
+CALL ReadVar ( UnIn, PtfmFile, InputFileData%PtfmRDOF, 'PtfmRDOF', 'Platform roll DOF', UnEc=UnEc )
 
 
    ! PtfmPDOF - Platform pitch tilt rotation DOF.
@@ -4683,7 +4685,7 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetPtfm
 !=======================================================================
-SUBROUTINE FAST_Input( p, OtherState, InputFileData, ErrStat, ErrMsg )
+SUBROUTINE FAST_Input( p, p_ctrl, OtherState, InputFileData, ErrStat, ErrMsg )
 
 
    ! This routine reads the input files and does some preliminary processing.
@@ -4714,6 +4716,7 @@ IMPLICIT                        NONE
 
    ! passed variables
 TYPE(StrD_ParameterType), INTENT(INOUT) :: p                                 ! Parameter data type for structural dynamics module
+TYPE(Ctrl_ParameterType), INTENT(INOUT) :: p_Ctrl                            ! Parameter data type for controls module
 TYPE(StrD_OtherStateType),INTENT(INOUT) :: OtherState                        ! Other State data type for Structural dynamics module
 TYPE(StrD_InputFile),     INTENT(OUT)   :: InputFileData                     ! all the data in the StructDyn input file
 INTEGER,          INTENT(OUT),OPTIONAL  :: ErrStat                           ! Error status
@@ -5170,6 +5173,11 @@ ENDIF
 IF ( EchoUn > 0 ) CLOSE ( EchoUn )
 
 
+   ! bjj: these should be moved later...
+p_Ctrl%NumBl   = p%NumBl   
+p_Ctrl%GBRatio = p%GBRatio
+p_Ctrl%GBoxEff = p%GBoxEff
+p_Ctrl%GenEff  = p%GenEff
 
 RETURN
 END SUBROUTINE FAST_Input

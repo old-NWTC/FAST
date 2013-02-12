@@ -216,7 +216,7 @@ CHARACTER(1024), PARAMETER   :: DLL_InFile        = 'DISCON.IN'
 
 END MODULE BladedDLLParameters
 !=======================================================================
-SUBROUTINE BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTrq, YawRateCom, y )
+SUBROUTINE BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTrq, YawRateCom, y_StrD )
 
 
    ! This SUBROUTINE is used to call a master controller implemented as
@@ -233,9 +233,9 @@ SUBROUTINE BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTrq, Y
 USE                             BladedDLLParameters
 USE                             DLL_Interface
 USE                             NWTC_Library    !ProgName
-USE                             Output
 
 USE StructDyn_Types
+USE StructDyn_Parameters
 
 IMPLICIT                        NONE
 
@@ -408,8 +408,8 @@ IF ( ( y_StrD%AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make 
    avrSWAP(30) = y_StrD%AllOuts( RootMyc1)*1000.                ! Blade 1 root out-of-plane bending moment (Nm)
    avrSWAP(31) = y_StrD%AllOuts( RootMyc2)*1000.                ! Blade 2 root out-of-plane bending moment (Nm)
    avrSWAP(32) = y_StrD%AllOuts( RootMyc3)*1000.                ! Blade 3 root out-of-plane bending moment (Nm)
-   avrSWAP(33) = y_StrD%y_StrD%AllOuts(PtchPMzc2)*D2R                  ! Blade 2 pitch angle (rad)
-   avrSWAP(34) = AllOuts(PtchPMzc3)*D2R                  ! Blade 3 pitch angle (rad)
+   avrSWAP(33) = y_StrD%AllOuts(PtchPMzc2)*D2R                  ! Blade 2 pitch angle (rad)
+   avrSWAP(34) = y_StrD%AllOuts(PtchPMzc3)*D2R                  ! Blade 3 pitch angle (rad)
    avrSWAP(35) = GenState_SAVE                           ! Generator contactor (-)
    avrSWAP(36) = BrkState_SAVE                           ! Shaft brake status: 0 = off, 1 = on (full) (-)
    avrSWAP(37) = y_StrD%AllOuts(   YawPzn)*D2R &
@@ -670,7 +670,7 @@ CALL BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTorq, YawRat
 RETURN
 END SUBROUTINE UserHSSBr
 !=======================================================================
-SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr, y_StrD )
 
 
    ! This example variable-speed torque control SUBROUTINE is used to
@@ -682,13 +682,14 @@ SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, D
 
 
 USE                           NWTC_Library
+use StructDyn_Types
 
 
 IMPLICIT                        NONE
 
 
    ! Passed Variables:
-
+TYPE(strd_outputtype), INTENT(IN) :: y_StrD
 INTEGER(IntKi), INTENT(IN )  :: NumBl                                           ! Number of blades, (-).
 
 REAL(ReKi), INTENT(IN )      :: DelGenTrq                                       ! Pertubation in generator torque used during FAST linearization (zero otherwise), N-m.
@@ -713,7 +714,7 @@ REAL(ReKi)                   :: YawRateCom                                      
 
    ! Call the DLL interface routine to get GenTrq:
 
-CALL BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTrq, YawRateCom )
+CALL BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTrq, YawRateCom, y_StrD )
 
 
    ! Add-in the pertubation of generator torque:
@@ -745,9 +746,7 @@ SUBROUTINE UserYawCont ( YawPos, YawRate, WindDir, YawError, NumBl, ZTime, DT, D
    !   package.  The interface routine BladedDLLInterface(), in turn,
    !   contains a call to the Bladed-style DLL.
 
-
-USE                             Output
-
+USE NWTC_Library
 
 IMPLICIT                        NONE
 
@@ -785,7 +784,8 @@ LOGICAL,    SAVE             :: FirstPas          = .TRUE.                      
 
 IF ( FirstPas )  THEN
 
-   LastTime      = y_StrD%AllOuts(Time) - DT
+!   LastTime      = y_StrD%AllOuts(Time) - DT
+   LastTime      = ZTime - DT
    LastYawPosCom = YawPos
 
    FirstPas      = .FALSE. ! Don't enter here again!
@@ -801,13 +801,15 @@ CALL BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTrq, YawRate
 
    ! Integrate to find the command nacelle-yaw angular position, YawPosCom:
 
-YawPosCom     = LastYawPosCom + YawRateCom*( y_StrD%AllOuts(Time) - LastTime )
+!YawPosCom     = LastYawPosCom + YawRateCom*( y_StrD%AllOuts(Time) - LastTime )
+YawPosCom     = LastYawPosCom + YawRateCom*( ZTime - LastTime )
 
 
 
    ! Reset the value of LastTime and LastYawPosCom to the current values:
 
-LastTime      = y_StrD%AllOuts(Time)
+!LastTime      = y_StrD%AllOuts(Time)
+LastTime      = ZTime
 LastYawPosCom = YawPosCom
 
 

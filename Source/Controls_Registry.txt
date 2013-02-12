@@ -33,6 +33,7 @@ typedef	Controls/Ctrl	Ctrl_InputFile	IntKi	DummyVal	-	-	-		-
 # ..... Initialization data .......................................................................................................
 # Define inputs that the initialization routine may need here:
 typedef	^	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"	-
+typedef	^	^	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
 
 # Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(10)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
@@ -94,6 +95,9 @@ typedef	^	^	ReKi	TEC_V1a	-	-	-	"Source voltage for Thevenin-equivalent circuit"
 typedef	^	^	ReKi	TEC_VLL	-	-	-	"Line-to-line RMS voltage for Thevenin-equivalent circuit"
 typedef	^	^	ReKi	TEC_Xe1	-	-	-	"Thevenin's equivalent stator leakage reactance (ohms)"
 typedef	^	^	IntKi	TEC_NPol	-	-	-	"Number of poles for Thevenin-equivalent circuit"
+typedef	^	^	ReKi	GBRatio	-	-	-	"Gearbox ratio"
+typedef	^	^	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"
+typedef	^	^	ReKi	GenEff	-	-	-	"Generator efficiency"
 # parameters from TurbCont
 typedef	^	^	ReKi	BlPitch	{:}	-	-	"Initial and current blade pitch angles"
 typedef	^	^	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"
@@ -133,8 +137,8 @@ typedef	^	^	IntKi	YCMode	-	-	-	"Yaw control mode"
 typedef	^	^	LOGICAL	BegPitMan	{:}	-	-	".TRUE. before the override pitch manuever has begun (begin pitch manuever)"
 typedef	^	^	LOGICAL	GenTiStp	-	-	-	"Stop generator based upon T: time or F: generator power = 0"
 typedef	^	^	LOGICAL	GenTiStr	-	-	-	"Start generator based upon T: time or F: generator speed"
-
-
+# parameters from TurbCont
+typedef	^	^	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:

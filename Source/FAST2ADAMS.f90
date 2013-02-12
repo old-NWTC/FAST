@@ -447,7 +447,7 @@ CLOSE ( UnAL )
 RETURN
 END SUBROUTINE MakeACF_LIN
 !=======================================================================
-SUBROUTINE MakeADM(p,x,OtherState, InputFileData)
+SUBROUTINE MakeADM(p,p_Ctrl,x,OtherState, InputFileData)
 
 
    ! This routine generates an ADAMS dataset file (.adm) using the
@@ -480,6 +480,7 @@ IMPLICIT                        NONE
    ! passed variables
 
 TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             ! Parameters of the structural dynamics module
+TYPE(Ctrl_ParameterType),        INTENT(IN)    :: p_Ctrl                        ! The parameters of the controls module
 TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
 !TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
 TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for Structural dynamics module
@@ -3498,7 +3499,7 @@ IF ( p%DOF_Flag(DOF_GeAz) )  THEN  ! Only include the generator models if the ge
    CASE ( 0 )                             ! No variable-speed control.  Using a generator model.
       SELECT CASE ( GenModel )            ! Which generator model are we using?
       CASE ( 1 )                          ! Simple induction-generator model.
-         WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( GenModel ))//', '//TRIM(Num2LStr( p%GenEff   ))//                   &
+         WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( GenModel ))//', '//TRIM(Num2LStr( p_Ctrl%GenEff   ))//                   &
                                  ', '//TRIM(Num2LStr( SIG_SySp ))//', '//TRIM(Num2LStr( SIG_POSl ))//                   &
                                  ', '//TRIM(Num2LStr( SIG_POTq ))//', '//TRIM(Num2LStr( SIG_Slop ))//' )'
       CASE ( 2 )                          ! Thevenin-equivalent generator model.
@@ -3508,16 +3509,16 @@ IF ( p%DOF_Flag(DOF_GeAz) )  THEN  ! Only include the generator models if the ge
                                  ', '//TRIM(Num2LStr( TEC_SLR  ))//', '//TRIM(Num2LStr( TEC_RLR  ))//                   &
                                  ', '//TRIM(Num2LStr( TEC_MR ))//' )'
       CASE ( 3 )                          ! User-defined generator model.
-         WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( GenModel ))//', '//TRIM(Num2LStr( p%GenEff ))//                     &
+         WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( GenModel ))//', '//TRIM(Num2LStr( p_Ctrl%GenEff ))//                     &
                                  ', '//TRIM(Num2LStr( DT       ))//' )'
       ENDSELECT
    CASE ( 1 )                             ! Simple variable-speed control.
-      WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( p%GenEff   ))//', '//TRIM(Num2LStr( VS_RtGnSp ))//                  &
+      WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( p_Ctrl%GenEff   ))//', '//TRIM(Num2LStr( VS_RtGnSp ))//                  &
                                  ', '//TRIM(Num2LStr( VS_RtTq  ))//', '//TRIM(Num2LStr( VS_Rgn2K  ))//                  &
                                  ', '//TRIM(Num2LStr( VS_Slope ))//', '//TRIM(Num2LStr( VS_TrGnSp ))//                  &
                                  ', '//TRIM(Num2LStr( VS_SySp  ))//' )'
    CASE ( 2 )                             ! User-defined variable-speed control.
-      WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( p%GenEff   ))//', '//TRIM(Num2LStr( DT ))//' )'
+      WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( p_Ctrl%GenEff   ))//', '//TRIM(Num2LStr( DT ))//' )'
    ENDSELECT
 
 ENDIF

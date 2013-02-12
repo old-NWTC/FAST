@@ -5,6 +5,9 @@ MODULE FASTSubs
    USE   StructDyn_Parameters
    USE   StructDyn
 
+   USE   Controls_Types
+   USE   Controls
+   
    USE GlueCodeVars
    
    
@@ -2479,7 +2482,7 @@ RETURN
 END SUBROUTINE Control
 !=======================================================================
 !SUBROUTINE DrvTrTrq ( p_StrD, p_Ctrl, LSS_Spd, GBoxTrq )
-SUBROUTINE DrvTrTrq ( p_StrD, LSS_Spd, GBoxTrq )
+SUBROUTINE DrvTrTrq ( p, LSS_Spd, GBoxTrq )
 
 
    ! This routine calculates the drive-train torque.
@@ -2495,8 +2498,8 @@ IMPLICIT                        NONE
 
 
    ! Passed variables:
-TYPE(StrD_ParameterType),INTENT(IN) :: p_StrD                                    ! Parameters of the structural dynamics module
-!TYPE(Ctrl_ParameterType),INTENT(IN) :: p_Ctrl                                    ! Parameters of the controls module
+TYPE(Ctrl_ParameterType),INTENT(IN) :: p                                        ! Parameters of the controls module
+!TYPE(StrD_outputType),INTENT(IN),optional :: y_StrD                                    ! outputs of the structural dynamics module
 REAL(ReKi), INTENT(OUT)      :: GBoxTrq                                         ! Gearbox torque on the LSS side in N-m (output).
 REAL(ReKi), INTENT(IN )      :: LSS_Spd                                         ! LSS speed in rad/sec (input).
 
@@ -2521,7 +2524,7 @@ LOGICAL,    SAVE             :: Off4Good = .FALSE.                              
 
    ! Calculate the generator speed.
 
-HSS_Spd = p_StrD%GBRatio*LSS_Spd
+HSS_Spd = p%GBRatio*LSS_Spd
 
 
    ! See if the generator is on line.
@@ -2580,9 +2583,9 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
 
    ! bjj: um... I don't see any difference here:
          IF ( GenTrq > 0.0 )  THEN
-            ElecPwr = GenTrq*HSS_Spd*p_StrD%GenEff
+            ElecPwr = GenTrq*HSS_Spd*p%GenEff
          ELSE
-            ElecPwr = GenTrq*HSS_Spd/p_StrD%GenEff
+            ElecPwr = GenTrq*HSS_Spd/p%GenEff
          ENDIF
 
 
@@ -2609,7 +2612,7 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
       CASE ( 3 )                          ! User-defined generator model.
 
 
-         CALL UserGen ( HSS_Spd, p_StrD%GBRatio, p_StrD%NumBl, ZTime, DT, p_StrD%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+         CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
 
 
       ENDSELECT
@@ -2634,13 +2637,13 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
    ! It's not possible to motor using this control scheme,
    !   so the generator efficiency is always subtractive.
 
-      ElecPwr = GenTrq*HSS_Spd*p_StrD%GenEff
+      ElecPwr = GenTrq*HSS_Spd*p%GenEff
 
 
    CASE ( 2 )                             ! User-defined variable-speed control for routine UserVSCont().
 
 
-      CALL UserVSCont ( HSS_Spd, p_StrD%GBRatio, p_StrD%NumBl, ZTime, DT, p_StrD%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+      CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
 
 
    CASE ( 3 )                             ! User-defined variable-speed control from Simulink or Labview.
@@ -2664,9 +2667,9 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
    !   or subtractive for generating power.
 
       IF ( GenTrq > 0.0 )  THEN
-         ElecPwr = GenTrq*HSS_Spd*p_StrD%GenEff
+         ElecPwr = GenTrq*HSS_Spd*p%GenEff
       ELSE
-         ElecPwr = GenTrq*HSS_Spd/p_StrD%GenEff
+         ElecPwr = GenTrq*HSS_Spd/p%GenEff
       ENDIF
 
 
@@ -2716,7 +2719,7 @@ ELSE                             ! HSS brake deployed.
 
    CASE ( 2 )                                ! User-defined HSS brake model.
 
-      CALL UserHSSBr ( GenTrq, ElecPwr, HSS_Spd, p_StrD%GBRatio, p_StrD%NumBl, ZTime, DT, DirRoot, HSSBrFrac )
+      CALL UserHSSBr ( GenTrq, ElecPwr, HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, DirRoot, HSSBrFrac )
 
       IF ( ( HSSBrFrac < 0.0 ) .OR. ( HSSBrFrac > 1.0 ) )  &   ! 0 (off) <= HSSBrFrac <= 1 (full); else Abort.
          CALL ProgAbort ( ' HSSBrFrac must be between 0.0 (off) and 1.0 (full) (inclusive).  Fix logic in routine UserHSSBr().' )
@@ -2747,7 +2750,7 @@ HSSBrTrqC = HSSBrTrq
    !   the gearbox.  The gearbox efficiency effects, however, are included in
    !   FAST.f90/RtHS().
 
-GBoxTrq = ( GenTrq + HSSBrTrq )*p_StrD%GBRatio
+GBoxTrq = ( GenTrq + HSSBrTrq )*p%GBRatio
 
 
 
@@ -3956,7 +3959,7 @@ ENDSELECT
 RETURN
 END SUBROUTINE RFurling
 !=======================================================================
-SUBROUTINE RtHS( p, x, OtherState, u, AugMatOut )
+SUBROUTINE RtHS( p, p_Ctrl, x, OtherState, u, AugMatOut )
 
 
    ! This routine is used to set up and solve the equations of motion
@@ -3980,6 +3983,7 @@ IMPLICIT                        NONE
    ! Passed variables
 
 TYPE(StrD_ParameterType),      INTENT(IN)       :: p                            ! The parameters of the structural dynamics module
+TYPE(Ctrl_ParameterType),      INTENT(IN)       :: p_Ctrl                       ! The parameters of the controls module
 TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x                            ! The structural dynamics module's continuous states
 TYPE(StrD_OtherStateType),     INTENT(INOUT)    :: OtherState                   ! Other State data type for Structural dynamics module
 REAL(ReKi), OPTIONAL,          INTENT(OUT)      :: AugMatOut (p%NDOF,p%NAug)    ! The augmented matrix used for the solution of the QD2T()s.
@@ -5879,7 +5883,7 @@ MomXAllt = OtherState%RtHS%MomX0Trbt + OtherState%RtHS%MXHydrot + TmpVec2 + TmpV
 CALL Teeter  ( p, OtherState%RtHS%TeetAng, OtherState%RtHS%TeetAngVel, TeetMom ) ! Compute moment from teeter     springs and dampers, TeetMom; NOTE: TeetMom will be zero for a 3-blader since TeetAng = TeetAngVel = 0
 CALL RFurling( p, x%QT(DOF_RFrl),          x%QDT(DOF_RFrl),            RFrlMom ) ! Compute moment from rotor-furl springs and dampers, RFrlMom
 CALL TFurling( p, x%QT(DOF_TFrl),          x%QDT(DOF_TFrl),            TFrlMom ) ! Compute moment from tail-furl  springs and dampers, TFrlMom
-CALL DrvTrTrq( p,                          x%QDT(DOF_GeAz),            GBoxTrq ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
+CALL DrvTrTrq( p_Ctrl,                     x%QDT(DOF_GeAz),            GBoxTrq ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
 
 
    ! Now that all of the partial loads have been found, lets fill in the
@@ -6958,7 +6962,7 @@ p%DOFs%SrtPSNAUG ( p%DOFs%NActvDOF + 1 ) = p%NAug
 RETURN
 END SUBROUTINE SetEnabledDOFIndexArrays
 !=======================================================================
-SUBROUTINE Solver( p, x, y, OtherState, u )
+SUBROUTINE Solver( p, p_ctrl,x, y, OtherState, u )
 
 
    ! Solver solves the equations of motion by marching in time using a
@@ -6977,6 +6981,7 @@ IMPLICIT                        NONE
    ! Subroutine arguments (Passed variables):
 
 TYPE(StrD_ParameterType),      INTENT(IN)       :: p                           ! The parameters of the structural dynamics module
+TYPE(Ctrl_ParameterType),      INTENT(IN)       :: p_ctrl                      ! The parameters of the controls module
 TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x                           ! The structural dynamics module's continuous states
 TYPE(StrD_OtherStateType),     INTENT(INOUT)    :: OtherState                  ! The structural dynamics "other" states (including CoordSys coordinate systems)
 TYPE(StrD_OutputType),         INTENT(INOUT)    :: y                           ! System outputs of the structural dynamics module
@@ -7056,7 +7061,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    x%QT  = OtherState%Q (:,OtherState%IC(1))
    x%QDT = OtherState%QD(:,OtherState%IC(1))
 
-   CALL RtHS( p, x, OtherState, u )
+   CALL RtHS( p, p_ctrl, x, OtherState, u )
 
 
    ! Compute intermediate functions to estimate next Q and QD.
@@ -7070,7 +7075,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, x, OtherState, u )
+   CALL RtHS( p, p_ctrl, x, OtherState, u )
 
 
    ! Repeat above steps for each ZK, ZKD:
@@ -7084,7 +7089,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, x, OtherState, u )
+   CALL RtHS( p, p_ctrl, x, OtherState, u )
 
 
    DO I = 1,p%NDOF  ! Loop through all DOFs
@@ -7096,7 +7101,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, x, OtherState, u )
+   CALL RtHS( p, p_ctrl, x, OtherState, u )
 
 
    ! Compute best estimate for Q, QD at next time step using
@@ -7144,7 +7149,7 @@ ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corre
    x%QT  = OtherState%Q (:,OtherState%IC(NMX))
    x%QDT = OtherState%QD(:,OtherState%IC(NMX))
 
-   CALL RtHS( p, x, OtherState, u, AugMat )
+   CALL RtHS( p, p_ctrl, x, OtherState, u, AugMat )
    
 
    OtherState%QD2(:,OtherState%IC(NMX)) = OtherState%QD2T
@@ -7182,7 +7187,7 @@ ENDIF
 x%QT  = OtherState%Q (:,OtherState%IC(NMX))
 x%QDT = OtherState%QD(:,OtherState%IC(NMX))
 
-CALL RtHS( p, x, OtherState, u, AugMat )
+CALL RtHS( p, p_ctrl, x, OtherState, u, AugMat )
 
 OtherState%QD2(:,OtherState%IC(NMX)) = OtherState%QD2T
 
@@ -7412,7 +7417,7 @@ ENDSELECT
 RETURN
 END SUBROUTINE TFurling
 !=======================================================================
-SUBROUTINE TimeMarch( p_StrD, x_StrD, OtherSt_StrD, u_StrD, y_StrD, ErrStat, ErrMsg  )
+SUBROUTINE TimeMarch( p_StrD, p_Ctrl, x_StrD, OtherSt_StrD, u_StrD, y_StrD, ErrStat, ErrMsg  )
 
 
    ! TimeMarch controls the execution of the typical time-marching
@@ -7430,6 +7435,7 @@ IMPLICIT                        NONE
 
    ! passed variables
 TYPE(StrD_ParameterType),      INTENT(IN)       :: p_StrD                     ! The parameters of the structural dynamics module
+TYPE(Ctrl_ParameterType),      INTENT(IN)       :: p_Ctrl                     ! The parameters of the controls module
 TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x_StrD                     ! The structural dynamics module's continuous states
 TYPE(StrD_OtherStateType),     INTENT(INOUT)    :: OtherSt_StrD               ! The structural dynamics "other" states (including CoordSys coordinate systems)
 TYPE(StrD_OutputType),         INTENT(INOUT)    :: y_StrD                     ! System outputs of the structural dynamics module
@@ -7478,7 +7484,7 @@ DO
 
    ! Call predictor-corrector routine:
 
-   CALL Solver( p_StrD, x_StrD, y_StrD, OtherSt_StrD, u_StrD  )
+   CALL Solver( p_StrD, p_Ctrl, x_StrD, y_StrD, OtherSt_StrD, u_StrD  )
 
 
    ! Make sure the rotor azimuth is not greater or equal to 360 degrees: (can't we do a mod here?)
