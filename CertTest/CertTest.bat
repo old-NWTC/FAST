@@ -16,7 +16,6 @@ rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
 
 @SET FAST=..\FAST.exe
 rem @SET FAST=..\FAST_Debug.exe
-rem @SET FAST=CALL FAST
 @SET DateTime=DateTime.exe
 @SET Editor=NotePad.EXE
 
@@ -115,7 +114,8 @@ rem Run FAST.
 
 IF ERRORLEVEL 1  GOTO ERROR
 
-@IF NOT EXIST Test%TEST%.out  GOTO ERROR
+@IF NOT EXIST Test%TEST%.out   GOTO ERROR
+@IF NOT EXIST Test%TEST%.outb  GOTO ERROR
 
 rem Crunch the FAST output.
 %CRUNCH% Test%TEST%.cru
@@ -183,7 +183,7 @@ rem Run FAST.
 
 IF ERRORLEVEL 1  GOTO ERROR
 
-@IF NOT EXIST Test%TEST%.out  GOTO ERROR
+@IF NOT EXIST Test%TEST%.outb  GOTO ERROR
 
 rem Crunch the FAST output.
 %CRUNCH% Test%TEST%.cru

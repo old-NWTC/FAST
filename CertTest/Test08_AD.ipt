@@ -7,7 +7,7 @@ SWIRL                                  IndModel - Induction-factor model [NONE o
    0.005                               AToler   - Induction-factor tolerance (convergence criteria) (-)
 PRANDtl                                TLModel  - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
 NONE                                   HLModel  - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquoted string)
-"Wind\AOC\Shr11_30.wnd"                WindFile - Name of file containing wind data (quoted string)
+"Wind/AOC/Shr11_30.wnd"                WindFile - Name of file containing wind data (quoted string)
   25.0                                 HH       - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)
    0.3                                 TwrShad  - Tower-shadow velocity deficit (-)
    0.2                                 ShadHWid - Tower-shadow half width (m)
@@ -16,11 +16,11 @@ NONE                                   HLModel  - Hub-loss model (EQUIL only) [P
    1.4639e-5                           KinVisc  - Kinematic air viscosity (m^2/sec)
    0.005                               DTAero   - Time interval for aerodynamic calculations (sec)
    5                                   NumFoil  - Number of airfoil files (-)
-"AeroData\AOC\S814_1.DAT "             FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
-"AeroData\AOC\S814_15.DAT"
-"AeroData\AOC\S812_15.DAT"
-"AeroData\AOC\S812_2.DAT "
-"AeroData\AOC\S813_15.DAT"
+"AeroData/AOC/S814_1.DAT "             FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
+"AeroData/AOC/S814_15.DAT"
+"AeroData/AOC/S812_15.DAT"
+"AeroData/AOC/S812_2.DAT "
+"AeroData/AOC/S813_15.DAT"
   10                                   BldNodes - Number of blade nodes used for analysis (-)
 RNodes   AeroTwst DRNodes Chord NFoil PrnElm
 0.5150   7.690  0.4700  0.494   1   NOPRINT

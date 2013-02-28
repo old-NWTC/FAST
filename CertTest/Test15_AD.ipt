@@ -7,7 +7,7 @@ SWIRL                                  IndModel - Induction-factor model [NONE o
    0.005                               AToler   - Induction-factor tolerance (convergence criteria) (-)
 PRANDtl                                TLModel  - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
 NONE                                   HLModel  - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquoted string)
-"Wind\SWRT\EOG_01_R.wnd"               WindFile - Name of file containing wind data (quoted string)
+"Wind/SWRT/EOG_01_R.wnd"               WindFile - Name of file containing wind data (quoted string)
   34.6189                              HH       - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)
    0.0                                 TwrShad  - Tower-shadow velocity deficit (-)
 9999.9                                 ShadHWid - Tower-shadow half width (m)
@@ -16,10 +16,10 @@ NONE                                   HLModel  - Hub-loss model (EQUIL only) [P
    1.5100E-05                          KinVisc  - Kinematic air viscosity (m^2/sec)
    1.0000E-03                          DTAero   - Time interval for aerodynamic calculations (sec)
    4                                   NumFoil  - Number of airfoil files (-)
-"AeroData\SWRT\TailPlate.dat"          FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
-"AeroData\SWRT\SH3052Mod_AllRe_Hanley.dat"
-"AeroData\SWRT\SH3052Mod_AllRe_Elem14_Hanley.dat"
-"AeroData\SWRT\SH3052Mod_AllRe_Elem15_Hanley.dat"
+"AeroData/SWRT/TailPlate.dat"          FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
+"AeroData/SWRT/SH3052Mod_AllRe_Hanley.dat"
+"AeroData/SWRT/SH3052Mod_AllRe_Elem14_Hanley.dat"
+"AeroData/SWRT/SH3052Mod_AllRe_Elem15_Hanley.dat"
   15                                   BldNodes - Number of blade nodes used for analysis (-)
 RNodes    AeroTwst  DRNodes  Chord  NFoil  PrnElm
 0.3896    0.00      0.1731   0.213  2      NOPRINT

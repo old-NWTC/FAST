@@ -7,7 +7,7 @@ SWIRL                                  IndModel - Induction-factor model [NONE o
    0.005                               AToler   - Induction-factor tolerance (convergence criteria) (-)
 PRANDtl                                TLModel  - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
 PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquoted string)
-"Wind\UAE_VI\PwrCrv.wnd"               WindFile - Name of file containing wind data (quoted string)
+"Wind/UAE_VI/PwrCrv.wnd"               WindFile - Name of file containing wind data (quoted string)
   12.192                               HH       - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)
    0.0                                 TwrShad  - Tower-shadow velocity deficit (-)
    0.4                                 ShadHWid - Tower-shadow half width (m)
@@ -16,16 +16,16 @@ PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [P
    1.4639e-5                           KinVisc  - Kinematic air viscosity (m^2/sec)
    0.004                               DTAero   - Time interval for aerodynamic calculations (sec)
   10                                   NUMFOIL  - Number of different airfoil tables that will be read
-"AeroData\UAE_VI\cylinder.dat"         FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
-"AeroData\UAE_VI\Mod_S809_129.dat"
-"AeroData\UAE_VI\Mod_S809_185.dat"
-"AeroData\UAE_VI\Mod_S809_242.dat"
-"AeroData\UAE_VI\Mod_S809_298.dat"
-"AeroData\UAE_VI\Mod_S809_354.dat"
-"AeroData\UAE_VI\Mod_S809_410.dat"
-"AeroData\UAE_VI\Mod_S809_600.dat"
-"AeroData\UAE_VI\Mod_S809_800.dat"
-"AeroData\UAE_VI\Mod_S809_Outboard.dat"
+"AeroData/UAE_VI/cylinder.dat"         FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
+"AeroData/UAE_VI/Mod_S809_129.dat"
+"AeroData/UAE_VI/Mod_S809_185.dat"
+"AeroData/UAE_VI/Mod_S809_242.dat"
+"AeroData/UAE_VI/Mod_S809_298.dat"
+"AeroData/UAE_VI/Mod_S809_354.dat"
+"AeroData/UAE_VI/Mod_S809_410.dat"
+"AeroData/UAE_VI/Mod_S809_600.dat"
+"AeroData/UAE_VI/Mod_S809_800.dat"
+"AeroData/UAE_VI/Mod_S809_Outboard.dat"
   21                                   BldNodes - Number of blade nodes used for analysis (-)
 RNodes  AeroTwst  DRNodes   Chord   NFoil  PrnElm
 0.5680    0.000    0.2721   0.219     1    NOPRINT

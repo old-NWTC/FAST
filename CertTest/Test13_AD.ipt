@@ -7,7 +7,7 @@ SWIRL                                  IndModel - Induction-factor model [NONE o
    0.005                               AToler   - Induction-factor tolerance (convergence criteria) (-)
 PRANDtl                                TLModel  - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
 PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquoted string)
-"Wind\WP_Baseline\84m_12mps"           WindFile - Name of file containing wind data (quoted string)
+"Wind/WP_Baseline/84m_12mps"           WindFile - Name of file containing wind data (quoted string)
   84.2876                              HH       - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)
    0.0                                 TwrShad  - Tower-shadow velocity deficit (-)
 9999.9                                 ShadHWid - Tower-shadow half width (m)
@@ -16,10 +16,10 @@ PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [P
    1.4639E-5                           KinVisc  - Kinematic air viscosity (m^2/sec)
    0.005                               DTAero   - Time interval for aerodynamic calculations (sec)
    4                                   NumFoil  - Number of airfoil files (-)
-"AeroData\WP_Baseline\cylinder.dat"    FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
-"AeroData\WP_Baseline\s818_2703.dat"
-"AeroData\WP_Baseline\s825_2103.dat"
-"AeroData\WP_Baseline\s826_1603.dat"
+"AeroData/WP_Baseline/cylinder.dat"    FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
+"AeroData/WP_Baseline/s818_2703.dat"
+"AeroData/WP_Baseline/s825_2103.dat"
+"AeroData/WP_Baseline/s826_1603.dat"
   15                                   BldNodes - Number of blade nodes used for analysis (-)
 RNodes    AeroTwst  DRNodes  Chord  NFoil  PrnElm
  2.85833  11.10     2.21667  1.949  1      NOPRINT
