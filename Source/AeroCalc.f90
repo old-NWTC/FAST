@@ -29,14 +29,12 @@ TYPE(StrD_ParameterType),  INTENT(INOUT)  :: p_StrD                      ! The p
 
 
    ! Local variables:
+REAL(ReKi)                 :: AD_RefHt
+REAL(ReKi)                 :: InpPosition(3)
 
+INTEGER                    :: ErrStat
 INTEGER(4)                 :: IELM
 INTEGER(4)                 :: Sttus                                     ! Status returned from an allocation request.
-
-REAL(ReKi)                 :: InpPosition(3)
-REAL(ReKi)                 :: AD_RefHt
-INTEGER                    :: ErrStat
-
 
 
 
@@ -96,7 +94,6 @@ p_StrD%CAeroTwst(:) = ADAeroMarkers%Blade(:,1)%Orientation(1,1)
 p_StrD%SAeroTwst(:) = ADAeroMarkers%Blade(:,1)%Orientation(2,1)
 p_StrD%AeroTwst( :) = ATAN2( p_StrD%SAeroTwst(:), p_StrD%CAeroTwst(:) )
 
-
 AD_RefHt = AD_GetConstant('RefHt', ErrStat)
 p_StrD%AirDens  = AD_GetConstant('AirDensity', ErrStat)
 
@@ -107,7 +104,7 @@ p_StrD%AirDens  = AD_GetConstant('AirDensity', ErrStat)
 IF ( CompNoise )  THEN  ! Yes, noise will be computed.
    InpPosition = (/ 0.0, 0.0, p_StrD%FASTHH /)
 
-   CALL Noise_CalcTI( REAL(0.0, ReKi), TMax, DT, InpPosition )
+   CALL Noise_CalcTI( REAL(0.0, ReKi), REAL(TMax, ReKi), REAL(DT, ReKi), InpPosition )
 
    KinViscosity = AD_GetConstant( 'KinVisc', ErrStat )      ! this variable stored in the Noise module.  The Noise module should be rewritten so that this is part of an initialization routine.
 
@@ -203,7 +200,6 @@ CASE ( 1 )              ! Standard (using inputs from the FAST furling input fil
 
    ! Compute wind velocity at tail fin center-of-pressure in AeroDyn ground
    !   coordinate system:
-
 
    WindVelEK(:) = AD_WindVelocityWithDisturbance( (/TFinCPxi,  TFinCPyi, TFinCPzi - p%PtfmRef /) )
 

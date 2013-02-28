@@ -148,7 +148,7 @@ CONTAINS
 
       ! Local Variables:
 
-   POINTER ( DLL_ProcAddr, DLL_Procedure )
+   POINTER ( DLL_ProcAddr, DLL_Procedure )      ! POINTER-INTEGER is different than the Fortran 90/95 POINTER statement; EXTENSION TO FORTRAN 95 STANDARD; this is INTEGER(4) on IA-32 and INTEGER(8) in Integ 64 and IA-64
 
 
       ! DLL Interface:
@@ -194,7 +194,7 @@ USE                             Precision
 INTEGER(4), PARAMETER        :: N                 = 0                           ! No. of points in torque-speed look-up table: 0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0 (-)
 INTEGER(4), PARAMETER        :: Ptch_Cntrl        = 0                           ! Pitch control: 0 = collective, 1 = individual (-)
 
-REAL(ReKi), PARAMETER        :: DTCntrl           = 0.0001                      ! Communication interval for controller (sec) (this works in conjunction with FAST's time step (DT) the same way DTAero in AeroDyn works with FAST--see the FAST User's Guide description of DTAero for more information)
+REAL(DbKi), PARAMETER        :: DTCntrl           = 0.0001                      ! Communication interval for controller (sec) (this works in conjunction with FAST's time step (DT) the same way DTAero in AeroDyn works with FAST--see the FAST User's Guide description of DTAero for more information)
 REAL(ReKi), PARAMETER        :: Gain_OM           = 0.0                         ! Optimal mode gain (Nm/(rad/s)^2)
 REAL(ReKi), PARAMETER        :: GenPwr_Dem        = 0.0                         ! Demanded power (W)
 REAL(ReKi), PARAMETER        :: GenSpd_Dem        = 0.0                         ! Demanded generator speed above rated (rad/s)
@@ -210,9 +210,25 @@ REAL(ReKi), PARAMETER        :: PtchRate_Max      = 0.0                         
 REAL(ReKi), PARAMETER        :: PtchRate_Min      = 0.0                         ! Minimum pitch rate (most negative value allowed) (rad/s)
 REAL(ReKi), PARAMETER        :: NacYaw_North      = 0.0                         ! Reference yaw angle of the nacelle when the upwind end points due North (rad)
 
+!moved these variables here so that we can restart the dll: (they should be moved appropriately in the future)
+LOGICAL,SAVE                 :: FirstPas_Yaw      = .TRUE.
+LOGICAL,SAVE                 :: FirstPas_Pitch    = .TRUE.
+
 CHARACTER(1024), PARAMETER   :: DLL_FileName      = 'DISCON.dll'                ! The name of the DLL file including the full path to the current working directory.
 CHARACTER(1024), PARAMETER   :: DLL_ProcName      = 'DISCON'                    ! The name of the procedure in the DLL that will be called.
 CHARACTER(1024), PARAMETER   :: DLL_InFile        = 'DISCON.IN'
+
+CONTAINS
+!----------------------------------------------------------------------
+SUBROUTINE DLL_Terminate()
+
+   FirstPas_Yaw    = .TRUE.
+   FirstPas_Pitch  = .TRUE.
+   
+!bjj: call freelibrary() from kernel32????
+   
+END SUBROUTINE DLL_Terminate
+
 
 END MODULE BladedDLLParameters
 !=======================================================================
@@ -299,17 +315,25 @@ EQUIVALENCE (iOutName, cOutName)
 
    ! ALLOCATE and initilize the BlPitchCom_SAVE first pass only:
 
-IF ( FirstPas .AND. ( .NOT. ALLOCATED(BlPitchCom_SAVE) ) )  THEN
+IF ( FirstPas_Pitch ) THEN
 
+   IF ( ALLOCATED(BlPitchCom_SAVE) ) DEALLOCATE(BlPitchCom_SAVE)
+   
    ALLOCATE ( BlPitchCom_SAVE(NumBl) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
       CALL ProgAbort ( ' Error allocating memory for the BlPitchCom_SAVE array.' )
    ENDIF
 
    BlPitchCom_SAVE = 0.0
+   GenTrq_SAVE       = 0.0                         
+   LastTime          = 0.0_DbKi                         
+   YawRateCom_SAVE   = 0.0
+   BrkState_SAVE     = 0
+   GenState_SAVE     = 1
+   FirstPas          = .TRUE.                      ! We want to still initialize the DLL pointer/target
 
-   ! Don't set FirstPas = .FALSE. here yet, since FirstPas is also needed in
-   !   the next block of code.
+   FirstPas_Pitch    = .FALSE.                     ! Don't enter here again!
+
 
 ENDIF
 
@@ -325,10 +349,11 @@ ENDIF
    !       is called at every time step when DTCntrl = DT, even in the presence
    !       of numerical precision errors.
 
-IF ( ( y_StrD%AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make sure time has incremented a controller time step.
+IF ( ( y_StrD%AllOuts(Time)*OnePlusEps  - LastTime ) >=REAL( DTCntrl, ReKi) )  THEN  ! Make sure time has incremented a controller time step.
 
 !!bjj: remove this!!!
 !write(71,'(4(f20.10,2x))'), AllOuts(Time), LastTime, AllOuts(Time)*OnePlusEps  - LastTime, DTCntrl
+
    ! Initialize the avrSWAP array to zero:
 
    avrSWAP     = 0.0
@@ -518,21 +543,15 @@ IF ( ( y_StrD%AllOuts(Time)*OnePlusEps  - LastTime ) >= DTCntrl )  THEN  ! Make 
    ENDDO
 
    IF (     NINT( avrSWAP( 1) ) == -1 )  THEN                           ! DLL-requested termination of the simulation
-!bjj: IVF12 bug requires this change:
-!      CALL WrScr ( 'STOP requested by '//TRIM(DLL_FileName)//': ' )
-      CALL WrScr ( 'STOP requested by DISCON.DLL: ' )
+      CALL WrScr ( 'STOP requested by '//TRIM(DLL_FileName)//': ' )
       CALL ProgAbort       ( cMessage                                                  )
    ELSEIF ( aviFAIL < 0 )  THEN                                         ! Error in DLL; ProgAbort program
-!bjj: IVF12 bug requires this change:
-!      CALL WrScr ( 'ERROR message from '//TRIM(DLL_FileName)//': ' )
-      CALL WrScr ( 'ERROR message from DISCON.DLL: ' )
+      CALL WrScr ( 'ERROR message from '//TRIM(DLL_FileName)//': ' )
       CALL ProgAbort       ( cMessage                                                  )
    ELSEIF ( aviFAIL > 0 )  THEN                                         ! Write warning message to screen
-!bjj: IVF12 bug requires this change (it crashes with string concatenation here for some reason-only in Release mode, not Debug):
-!      CALL WrScr ( 'WARNING message from '//TRIM(DLL_FileName)//': ' )
-      CALL WrScr ( 'WARNING message from DISCON.DLL: ' )
+      CALL WrScr ( 'WARNING message from '//TRIM(DLL_FileName)//': ' )
       CALL WrScr ( cMessage                                           )
-      CALL WrScr ( ' ' )                                                ! Writing a blank line here so that WrOver() in SimStatus doesn't make it look so strange
+      CALL WrScr( ' ' )
    ELSEIF ( ( GenState_SAVE /= 0 ) .AND. ( GenState_SAVE /= 1 ) )  THEN ! Generator contactor indicates something other than off or main; abort program
       CALL ProgAbort ( ' Only off and main generators supported in '//TRIM( ProgName )//'.  Set avrSWAP(35) to 0 or 1 in '//    &
                                                                                                    TRIM(DLL_FileName)//'.'      )
@@ -594,13 +613,13 @@ IMPLICIT                        NONE
 INTEGER(IntKi), INTENT(IN )  :: NumBl                                           ! Number of blades, (-).
 
 REAL(ReKi), INTENT(IN )      :: BlPitch   (NumBl)                               ! Current values of the blade pitch angles, rad.
-REAL(ReKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
+REAL(DbKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
 REAL(ReKi), INTENT(IN )      :: ElecPwr                                         ! Electrical power, watts.
 REAL(ReKi), INTENT(IN )      :: GBRatio                                         ! Gearbox ratio, (-).
 REAL(ReKi), INTENT(IN )      :: HSS_Spd                                         ! HSS speed, rad/s.
 REAL(ReKi), INTENT(OUT)      :: BlPitchCom(NumBl)                               ! Commanded blade pitch angles (demand pitch angles), rad.
 REAL(ReKi), INTENT(IN )      :: TwrAccel                                        ! Tower Acceleration, m/s^2.
-REAL(ReKi), INTENT(IN )      :: ZTime                                           ! Current simulation time, sec.
+REAL(DbKi), INTENT(IN )      :: ZTime                                           ! Current simulation time, sec.
 
 CHARACTER(1024), INTENT(IN ) :: DirRoot                                         ! The name of the root file including the full path to the current working directory.  This may be useful if you want this routine to write a permanent record of what it does to be stored with the simulation results: the results should be stored in a file whose name (including path) is generated by appending any suitable extension to DirRoot.
 
@@ -642,13 +661,13 @@ IMPLICIT                        NONE
 
 INTEGER(IntKi), INTENT(IN )  :: NumBl                                           ! Number of blades, (-).
 
-REAL(ReKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
+REAL(DbKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
 REAL(ReKi), INTENT(IN )      :: ElecPwr                                         ! Electrical power (account for losses), watts.
 REAL(ReKi), INTENT(IN )      :: GBRatio                                         ! Gearbox ratio, (-).
 REAL(ReKi), INTENT(IN )      :: GenTrq                                          ! Electrical generator torque, N-m.
 REAL(ReKi), INTENT(IN )      :: HSS_Spd                                         ! HSS speed, rad/s.
 REAL(ReKi), INTENT(OUT)      :: HSSBrFrac                                       ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-).
-REAL(ReKi), INTENT(IN )      :: ZTime                                           ! Current simulation time, sec.
+REAL(DbKi), INTENT(IN )      :: ZTime                                           ! Current simulation time, sec.
 
 CHARACTER(1024), INTENT(IN ) :: DirRoot                                         ! The name of the root file including the full path to the current working directory.  This may be useful if you want this routine to write a permanent record of what it does to be stored with the simulation results: the results should be stored in a file whose name (including path) is generated by appending any suitable extension to DirRoot.
 
@@ -693,13 +712,13 @@ TYPE(strd_outputtype), INTENT(IN) :: y_StrD
 INTEGER(IntKi), INTENT(IN )  :: NumBl                                           ! Number of blades, (-).
 
 REAL(ReKi), INTENT(IN )      :: DelGenTrq                                       ! Pertubation in generator torque used during FAST linearization (zero otherwise), N-m.
-REAL(ReKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
+REAL(DbKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
 REAL(ReKi), INTENT(OUT)      :: ElecPwr                                         ! Electrical power (account for losses), watts.
 REAL(ReKi), INTENT(IN )      :: GBRatio                                         ! Gearbox ratio, (-).
 REAL(ReKi), INTENT(IN )      :: GenEff                                          ! Generator efficiency, (-).
 REAL(ReKi), INTENT(OUT)      :: GenTrq                                          ! Electrical generator torque, N-m.
 REAL(ReKi), INTENT(IN )      :: HSS_Spd                                         ! HSS speed, rad/s.
-REAL(ReKi), INTENT(IN )      :: ZTime                                           ! Current simulation time, sec.
+REAL(DbKi), INTENT(IN )      :: ZTime                                           ! Current simulation time, sec.
 
 CHARACTER(1024), INTENT(IN ) :: DirRoot                                         ! The name of the root file including the full path to the current working directory.  This may be useful if you want this routine to write a permanent record of what it does to be stored with the simulation results: the results should be stored in a file whose name (including path) is generated by appending any suitable extension to DirRoot.
 
@@ -748,6 +767,8 @@ SUBROUTINE UserYawCont ( YawPos, YawRate, WindDir, YawError, NumBl, ZTime, DT, D
 
 USE NWTC_Library
 
+!bjj this is a temporary fix, which should be replaced once the user control routines are separated out.
+USE                             BladedDLLParameters, ONLY: FirstPas_Yaw
 IMPLICIT                        NONE
 
 
@@ -755,14 +776,14 @@ IMPLICIT                        NONE
 
 INTEGER(IntKi), INTENT(IN )  :: NumBl                                           ! Number of blades, (-).
 
-REAL(ReKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
+REAL(DbKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
 REAL(ReKi), INTENT(IN )      :: WindDir                                         ! Current horizontal hub-height wind direction (positive about the zi-axis), rad.
 REAL(ReKi), INTENT(IN )      :: YawError                                        ! Current nacelle-yaw error estimate (positve about the zi-axis), rad.
 REAL(ReKi), INTENT(IN )      :: YawPos                                          ! Current nacelle-yaw angular position, rad.
 REAL(ReKi), INTENT(OUT)      :: YawPosCom                                       ! Commanded nacelle-yaw angular position (demand yaw angle), rad.
 REAL(ReKi), INTENT(IN )      :: YawRate                                         ! Current nacelle-yaw angular rate, rad/s.
 REAL(ReKi), INTENT(OUT)      :: YawRateCom                                      ! Commanded nacelle-yaw angular rate (demand yaw rate), rad/s.
-REAL(ReKi), INTENT(IN )      :: ZTime                                           ! Current simulation time, sec.
+REAL(DbKi), INTENT(IN )      :: ZTime                                           ! Current simulation time, sec.
 
 CHARACTER(1024), INTENT(IN ) :: DirRoot                                         ! The name of the root file including the full path to the current working directory.  This may be useful if you want this routine to write a permanent record of what it does to be stored with the simulation results: the results should be stored in a file whose name (including path) is generated by appending any suitable extension to DirRoot.
 
@@ -772,23 +793,22 @@ CHARACTER(1024), INTENT(IN ) :: DirRoot                                         
 REAL(ReKi)                   :: BlPitchCom(NumBl)                               ! Commanded blade pitch angles (demand pitch angles), rad. -- NOT used by this routine
 REAL(ReKi)                   :: GenTrq                                          ! Electrical generator torque, N-m. -- NOT used by this routine
 REAL(ReKi)                   :: HSSBrFrac                                       ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-). -- NOT used by this routine
-REAL(ReKi), SAVE             :: LastTime                                        ! The simulation time at the end of the last call to this routine, sec.
+REAL(DbKi), SAVE             :: LastTime                                        ! The simulation time at the end of the last call to this routine, sec.
 REAL(ReKi), SAVE             :: LastYawPosCom                                   ! Commanded nacelle-yaw angular position (demand yaw angle) computed during the lass call to this routine, rad.
 
-LOGICAL,    SAVE             :: FirstPas          = .TRUE.                      ! When .TRUE., indicates we're on the first pass.
 
 
 
    ! Let's initialize the values of LastTime and LastYawPosCom on the first
    !   pass only:
 
-IF ( FirstPas )  THEN
+IF ( FirstPas_Yaw )  THEN
 
 !   LastTime      = y_StrD%AllOuts(Time) - DT
    LastTime      = ZTime - DT
    LastYawPosCom = YawPos
 
-   FirstPas      = .FALSE. ! Don't enter here again!
+   FirstPas_Yaw  = .FALSE. ! Don't enter here again!
 
 ENDIF
 

@@ -642,9 +642,6 @@ USE                             Linear
 USE                             SimCont
 USE                             TailAero
 USE                             TurbCont
-
-USE Waves, ONLY:WaveElevation, WaveVelocity, WaveAcceleration
-USE FloatingPlatform, ONLY:AnchorTension, FairleadTension
 USE AeroDyn
 USE HydroVals
 
@@ -666,16 +663,12 @@ TYPE(StrD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed
 
    ! Local variables:
 
-REAL(ReKi)                   :: AnchTe                                          ! Instantaneous effective tension in a mooring line at the anchor   (N  )
-REAL(ReKi)                   :: AnchTeAng                                       ! Instantaneous vertical angle    of a mooring line at the anchor   (rad)
 REAL(ReKi)                   :: AngAccEB  (3)                                   ! Angular acceleration of the base plate                                                (body B) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngAccER  (3)                                   ! Angular acceleration of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngAccEX  (3)                                   ! Angular acceleration of the platform                                                  (body X) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: ComDenom                                        ! Common denominator used in several expressions.
 REAL(ReKi)                   :: CThrstys                                        ! Estimate of the ys-location of the center of thrust.
 REAL(ReKi)                   :: CThrstzs                                        ! Estimate of the zs-location of the center of thrust.
-REAL(ReKi)                   :: FairTe                                          ! Instantaneous effective tension in a mooring line at the fairlead (N  )
-REAL(ReKi)                   :: FairTeAng                                       ! Instantaneous vertical angle    of a mooring line at the fairlead (rad)
 REAL(ReKi)                   :: FrcMGagB  (3)                                   ! Total force at the blade element   (body M) / blade strain gage location            (point S) due to the blade above the strain gage.
 REAL(ReKi)                   :: FrcFGagT  (3)                                   ! Total force at the tower element   (body F) / tower strain gage location            (point T) due to the nacelle and rotor and tower above the strain gage.
 REAL(ReKi)                   :: FrcONcRt  (3)                                   ! Total force at the yaw bearing (point O  ) due to the nacelle, generator, and rotor.
@@ -834,7 +827,7 @@ MomH0B   = 0.001*MomH0B
 
    ! Define the output channel specifying the current simulation time:
 
-y%AllOuts(  Time) = ZTime
+y%AllOuts(  Time) = REAL( ZTime, ReKi )
 
 
 IF ( CompAero )  THEN   ! AeroDyn has been used
@@ -842,7 +835,7 @@ IF ( CompAero )  THEN   ! AeroDyn has been used
 
    ! Wind Motions:
 
-   HHWndVec(:) = AD_GetUndisturbedWind( ZTime, (/REAL(0.0, ReKi), REAL(0.0, ReKi), p%FASTHH /), ErrStat )
+   HHWndVec(:) = AD_GetUndisturbedWind( REAL(ZTime, ReKi), (/REAL(0.0, ReKi), REAL(0.0, ReKi), p%FASTHH /), ErrStat )
 
    y%AllOuts(  WindVxi) = HHWndVec(1)
    y%AllOuts(  WindVyi) = HHWndVec(2)
@@ -868,25 +861,6 @@ IF ( CompAero )  THEN   ! AeroDyn has been used
 
 ENDIF
 
-IF ( CompHydro )  THEN  ! Hydrodynamics have been used
-
-
-   ! Wave Motions:
-
-   y%AllOuts(WaveElev ) = WaveElevation ( 1, ZTime )
-
-   DO I = 1, NWaveKin
-
-         y%AllOuts( WaveVxi(I) ) = WaveVelocity     ( WaveKinNd(I), 1, ZTime )
-         y%AllOuts( WaveVyi(I) ) = WaveVelocity     ( WaveKinNd(I), 2, ZTime )
-         y%AllOuts( WaveVzi(I) ) = WaveVelocity     ( WaveKinNd(I), 3, ZTime )
-         y%AllOuts( WaveAxi(I) ) = WaveAcceleration ( WaveKinNd(I), 1, ZTime )
-         y%AllOuts( WaveAyi(I) ) = WaveAcceleration ( WaveKinNd(I), 2, ZTime )
-         y%AllOuts( WaveAzi(I) ) = WaveAcceleration ( WaveKinNd(I), 3, ZTime )
-
-   END DO
-
-END IF
 
 
    ! Blade (1-3) Tip Motions:
@@ -1371,21 +1345,6 @@ y%AllOuts(  PtfmMxi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z1 )
 y%AllOuts(  PtfmMyi) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%z3 )
 y%AllOuts(  PtfmMzi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z2 )
 
-
-IF ( CompHydro )  THEN  ! Hydrodynamics have been used
-
-
-   ! Mooring Line Loads:
-   DO I = 1,NumLines
-      CALL FairleadTension ( I, FairTe, FairTeAng )
-      CALL AnchorTension   ( I, AnchTe, AnchTeAng )
-      y%AllOuts( FairTen(I) ) = FairTe   *0.001   ! Convert to kN
-      y%AllOuts( FairAng(I) ) = FairTeAng*R2D     ! Convert to degrees
-      y%AllOuts( AnchTen(I) ) = AnchTe   *0.001   ! Convert to kN
-      y%AllOuts( AnchAng(I) ) = AnchTeAng*R2D     ! Convert to degrees
-   END DO
-
-END IF
 
 
    ! Internal p%DOFs outputs:
@@ -2275,7 +2234,7 @@ IF ( ZTime >= TYCOn )  THEN   ! Time now to enable active yaw control.
 
       IF ( CompAero )  THEN   ! AeroDyn has been used.
 
-         HHWndVec(:) = AD_GetUndisturbedWind( ZTime, (/ REAL(0.0, ReKi), REAL(0.0, ReKi), p%FASTHH /), ErrStat )
+         HHWndVec(:) = AD_GetUndisturbedWind( REAL(ZTime, ReKi), (/ REAL(0.0, ReKi), REAL(0.0, ReKi), p%FASTHH /), ErrStat )
 
          WindDir  = ATAN2( HHWndVec(2), HHWndVec(1) )
          YawError = WindDir - x%QT(DOF_Yaw) - x%QT(DOF_Y)
@@ -3010,6 +2969,9 @@ SUBROUTINE FAST_Terminate( ErrStat )
    USE            Linear
    USE            TurbCont
 
+!add for bladed dll   USE            BladedDLLParameters
+
+   
    INTEGER,       INTENT(OUT) :: ErrStat                    ! Determines if an error was encountered
 
    !-------------------------------------------------------------------------------------------------
@@ -3091,6 +3053,12 @@ SUBROUTINE FAST_Terminate( ErrStat )
    CLOSE( UnNoSpec ) !27      ! I/O unit number for the noise spectr output file.
    CLOSE( UnNoSPL )  !28      ! I/O unit number for the noise SPL output file.
 !   CLOSE( UnOuBin )  !29      ! I/O unit number for the binary output file.
+
+   !-------------------------------------------------------------------------------------------------
+   ! Reset stored variables
+   !-------------------------------------------------------------------------------------------------
+!add for bladed dll    CALL DLL_Terminate()
+
 
    !-------------------------------------------------------------------------------------------------
    ! Reset the initialization flag
@@ -3409,12 +3377,12 @@ SUBROUTINE FAST_Initialize(p,x,y,OtherState,InputFileData)
 
 USE                             General
 USE                             InitCond
+USE                             FAST_Hydro !HydroDyn
 USE                             SimCont
 USE                             FAST_IO_Subs, ONLY: ChckOutLst
 
 USE HydroVals
 USE FloatingPlatform, ONLY:InitFltngPtfmLd
-USE Waves, ONLY:InitWaves
 
 IMPLICIT                        NONE
 
@@ -3430,18 +3398,18 @@ TYPE(StrD_InputFile),            INTENT(IN   ) :: InputFileData                 
 
    ! Local variables:
 
-REAL(ReKi), ALLOCATABLE      :: DZNodesPtfm(:)                                  ! Length of variable-length support platform elements (meters)
-
 REAL(ReKi)                   :: InitQE1                                         ! Initial value of the 1st blade edge DOF
 REAL(ReKi)                   :: InitQF1                                         ! Initial value of the 1st blade flap DOF
 REAL(ReKi)                   :: InitQF2                                         ! Initial value of the 2nd blade flap DOF
 
-REAL(ReKi), ALLOCATABLE      :: WaveKinzi0 (:)                                  ! zi-coordinates for points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed; these are relative to the mean see level (meters)
+
+TYPE(HD_InitDataType)        :: HydroDyn_InitData                               ! Data required to initialize HydroDyn
+INTEGER                      :: ErrStat                                         ! Error status code
 INTEGER(4)                   :: I                                               ! Loops through all DOFs.
 INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
 INTEGER(4)                   :: K                                               ! Loops through blades.
 
-INTEGER(4)                   :: NWaveKin0                                       ! Number of points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed (-)
+
 INTEGER(IntKi)               :: Sttus                                           ! Status returned by an attempted allocation.
 
 CHARACTER(1024)              :: ErrMsg                                          ! Message when error occurs
@@ -3703,108 +3671,74 @@ CALL SetEnabledDOFIndexArrays( p )
    ! Initialize the variables associated with the incident waves and
    !   hydrodynamic loading, if necessary:
 
-IF (     ( PtfmModel == 2 ) .AND. CompHydro )  THEN   ! .TRUE. if we have a fixed bottom offshore turbine and we are using the undocumented monopile features.
+IF ( CompHydro ) THEN
+
+      ! Initialize HydroDyn
+
+   HydroDyn_InitData%Gravity     = p%Gravity      ! m/s^2   
+   HydroDyn_InitData%FileName    = HDFile    
+   HydroDyn_InitData%OutRootName = RootName     !CALL GetRoot( HydroDyn_InitData%FileName, HydroDyn_InitData%OutRootName )
+
+   HD_ConfigMarkers%Substructure%Position = (/0._ReKi, 0._ReKi, 0._ReKi/)   
+
+   CALL HD_Init(HydroDyn_InitData, HD_ConfigMarkers, HD_AllMarkers, HydroDyn_data, ErrStat)
 
 
-   ! Increase the value of WaveTMax to ensure that the maximum value within
-   !   array WaveTime is at least as large as TMax+DT:
+      ! get the mapping of the Hydro markers to the structural markers.  For now, we require that they
+      ! be the same (otherwise, we must change RtHS() to interpolate the hydro loads to the correct structural
+      ! markers.
 
-   IF ( ( WaveTMax - WaveDT ) < ( TMax + DT ) )  WaveTMax = TMax + WaveDT + DT   ! NOTE: The + WaveDT is needed because the internal array WaveTime has a maximum value of WaveTMax - WaveDT; the + DT is needed since the simulation time can reach TMax + DT in ADAMS.
 
+      ! BJJ this is a hack job for now.  We need to actually determine if the loads are tower (per-unit-length) or platform (lumped-sum)
+   HD_TwrNodes = .FALSE.
+   ErrStat = 0
 
-   ! Determine the zi-coordinates for points along a vertical line passing
-   !   through the platform reference point where the incident wave kinematics
-   !   will be computed.  These are the vertical locations of the undeflected
-   !   tower nodes relative to the mean sea level when the support platform is
-   !   undisplaced:
+   IF ( SIZE( HD_AllMarkers%Substructure ) ==  1        ) THEN !.AND. LUMPED-SUM LOAD  (otherwise, we can't have tower loads with only 1 element)
 
-   NWaveKin0 = p%TwrNodes
+      DO J=1,3
+         IF ( .NOT. EqualRealNos( HD_AllMarkers%Substructure(1)%Position(J), HD_ConfigMarkers%Substructure%Position(J) ) ) THEN
+            CALL ProgAbort( ' FAST and HydroDyn must have the same substructure node.', TrapErrors = .TRUE. )
+            ErrStat = 1
+            EXIT
+         END IF
+      END DO
 
-   ALLOCATE ( WaveKinzi0 (NWaveKin0) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort(' Error allocating memory for the WaveKinzi0 array.')
+   ELSEIF ( SIZE( HD_AllMarkers%Substructure ) ==  p%TwrNodes )  THEN ! .AND. PER-UNIT-LENGTH LOADS
+
+         ! We currently require that the tower nodes in FAST be the same as in HydroDyn
+      DO J=1,p%TwrNodes      
+         IF ( .NOT. EqualRealNos( p%HNodes(J) + p%TwrRBHt - p%TwrDraft, HD_AllMarkers%Substructure(J)%Position(3) ) ) THEN
+            CALL ProgAbort( ' FAST and HydroDyn must have the same tower nodes.', TrapErrors = .TRUE. )
+            ErrStat = 1
+            EXIT     ! Exit the DO loop
+         ELSEIF ( .NOT. EqualRealNos( 0.0_ReKi, HD_AllMarkers%Substructure(J)%Position(1) ) ) THEN
+            CALL ProgAbort( ' HydroDyn tower markers must have X = 0 m.', TrapErrors = .TRUE. )
+            ErrStat = 1
+            EXIT     ! Exit the DO loop
+         ELSEIF ( .NOT. EqualRealNos( 0.0_ReKi, HD_AllMarkers%Substructure(J)%Position(2) ) ) THEN
+            CALL ProgAbort( ' HydroDyn tower markers must have Y = 0 m.', TrapErrors = .TRUE. )
+            ErrStat = 1
+            EXIT     ! Exit the DO loop
+         ENDIF
+      END DO !J: TwrNodes
+
+      HD_TwrNodes = .TRUE.
+
+   ELSE
+      CALL ProgAbort ( " Unable to discern HydroDyn's discretization.", TrapErrors = .TRUE. )
+      ErrStat = 1
    ENDIF
 
-   DO J = 1,NWaveKin0   ! Loop through the tower nodes / elements
-      WaveKinzi0(J) = p%TwrRBHt + p%HNodes(J) - p%TwrDraft
-   ENDDO                ! J - Tower nodes / elements
 
+   IF (ErrStat /= 0) CALL ProgAbort( ' Error in FAST.f90/Initialize().' )
 
-   ! Initialize the variables used in the undocumented time domain hydrodynamic
-   !   loading routines:
+! bjj: can we still do this test?   
+!   ! Increase the value of WaveTMax to ensure that the maximum value within
+!   !   array WaveTime is at least as large as TMax+DT:
+!
+!   IF ( ( WaveTMax - WaveDT ) < ( TMax + DT ) )  WaveTMax = TMax + WaveDT + DT   ! NOTE: The + WaveDT is needed because the internal array WaveTime has a maximum value of WaveTMax - WaveDT; the + DT is needed since the simulation time can reach TMax + DT in ADAMS.
 
-   CALL InitWaves ( WtrDens   , WtrDpth   , WaveMod  , WaveStMod, &
-                    WaveTMax  , WaveDT    , WaveHs   , WaveTp   , &
-                    WavePkShp , WaveDir   , WaveSeed , GHWvFile , &
-                    CurrMod   , CurrSSV0  , CurrSSDir, CurrNSRef, &
-                    CurrNSV0  , CurrNSDir , CurrDIV  , CurrDIDir, &
-                    NWaveKin0 , WaveKinzi0, p%DHNodes  , NWaveElev, &
-                    WaveElevxi, WaveElevyi, p%Gravity  , DirRoot      )
-
-
-ELSEIF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN   ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
-
-
-   ! Increase the value of WaveTMax to ensure that the maximum value within
-   !   array WaveTime is at least as large as TMax+DT:
-
-   IF ( ( WaveTMax - WaveDT ) < ( TMax + DT ) )  WaveTMax = TMax + WaveDT + DT   ! NOTE: The + WaveDT is needed because the internal array WaveTime has a maximum value of WaveTMax - WaveDT; the + DT is needed since the simulation time can reach TMax + DT in ADAMS.
-
-
-   ! Determine the zi-coordinates for points along a vertical line passing
-   !   through the platform reference point where the incident wave kinematics
-   !   will be computed.  These are the vertical locations of the support
-   !   platform nodes relative to the mean sea level when the support platform
-   !   is undisplaced.  Also, determine the lengths of the elements
-   !   corresponding to these nodes:
-
-   NWaveKin0 = PtfmNodes
-
-   ALLOCATE ( DZNodesPtfm(NWaveKin0) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort(' Error allocating memory for the DZNodesPtfm array.')
-   ENDIF
-
-   ALLOCATE ( WaveKinzi0 (NWaveKin0) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort(' Error allocating memory for the WaveKinzi0 array.')
-   ENDIF
-
-   DO J = 1,NWaveKin0   ! Loop through the platform nodes / elements
-      DZNodesPtfm(J) = PtfmDraft/NWaveKin0   ! Lets used constant-spaced nodes for now, but the rest of the code is written to handle variable-spaced nodes--this will be a future input.
-      IF ( J == 1 ) THEN   ! Lowest analysis point
-         WaveKinzi0(J) = 0.5*DZNodesPtfm(J) - PtfmDraft
-      ELSE                 ! All other analysis points
-         WaveKinzi0(J) = WaveKinzi0( J - 1 ) + 0.5*( DZNodesPtfm(J) + DZNodesPtfm( J - 1 ) )
-      ENDIF
-   ENDDO                ! J - Platform nodes / elements
-
-
-   ! Initialize the variables used in the undocumented time domain hydrodynamic
-   !   loading and mooring system dynamics routines:
-
-   CALL InitWaves       ( WtrDens   , WtrDpth   , WaveMod    , WaveStMod, &
-                          WaveTMax  , WaveDT    , WaveHs     , WaveTp   , &
-                          WavePkShp , WaveDir   , WaveSeed   , GHWvFile , &
-                          CurrMod   , CurrSSV0  , CurrSSDir  , CurrNSRef, &
-                          CurrNSV0  , CurrNSDir , CurrDIV    , CurrDIDir, &
-                          NWaveKin0 , WaveKinzi0, DZNodesPtfm, NWaveElev, &
-                          WaveElevxi, WaveElevyi, p%Gravity    , DirRoot      )
-   CALL InitFltngPtfmLd ( WAMITFile , PtfmVol0  , PtfmDiam   , PtfmCD   , &
-                          RdtnTMax  , RdtnDT    , NumLines   , LineMod  , &
-                          LAnchxi   , LAnchyi   , LAnchzi    , LFairxt  , &
-                          LFairyt   , LFairzt   , LUnstrLen  , LDiam    , &
-                          LMassDen  , LEAStff   , LSeabedCD  , LTenTol  , &
-                          LineNodes , LSNodes   , OtherState%Q(1:6,1)       )
-
-   IF (ALLOCATED( DZNodesPtfm ) ) DEALLOCATE( DZNodesPtfm )
-   IF (ALLOCATED( WaveKinzi0 ) )  DEALLOCATE( WaveKinzi0 )
-
-
-ENDIF
-
-
-
+END IF   ! CompHydro
 
 RETURN
 END SUBROUTINE FAST_Initialize
@@ -3815,7 +3749,7 @@ SUBROUTINE PtfmLoading(x, PtfmAM, PtfmFt)
    ! This routine computes the platform loading; that is PtfmAM(1:6,1:6)
    !   and PtfmFt(1:6).
 
-USE                             FloatingPlatform, ONLY:FltngPtfmLd
+USE                             FAST_Hydro
 USE                             General
 USE                             SimCont
 
@@ -3837,10 +3771,23 @@ INTEGER(4)                   :: J                                        ! Loops
 
 
 
-IF ( PtfmModel == 0 .OR. PtfmLdMod == 0 ) THEN           ! No platform or no platform loading
-   PtfmAM = 0.0_ReKi 
-   PtfmFt = 0.0_ReKi   
-ELSEIF ( PtfmLdMod == 1 ) THEN                           ! User-defined platform loading (all platform models)
+
+   SELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
+
+   CASE ( 0 )                 ! None!
+
+
+   ! set PtfmAM and PtfmFt to zero
+      
+      PtfmAM = 0.0
+      PtfmFt = 0.0
+      
+
+   CASE ( 1 )                 ! User-defined platform loading.
+
+
+   ! CALL the user-defined platform loading model:
+
 
    CALL UserPtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, DirRoot, PtfmAM, PtfmFt )
 
@@ -3850,17 +3797,22 @@ ELSEIF ( PtfmLdMod == 1 ) THEN                           ! User-defined platform
                         '  Make sure PtfmAM returned by UserPtfmLd() is symmetric.'        )
    END IF
       
-ELSEIF ( PtfmModel == 3 .AND. PtfmLdMod == 9999 ) THEN    ! Undocumented loading for a floating offshore platform 
-   
-      ! CALL the undocumented time domain hydrodynamic loading and mooring system dynamics routine:
-   CALL FltngPtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, PtfmAM, PtfmFt )
 
-ELSE ! This shouldn't occur
-   PtfmAM = 0.0_ReKi 
-   PtfmFt = 0.0_ReKi   
-END IF   
    
 
+
+
+   ENDSELECT
+
+
+
+IF ( CompHydro .AND. .NOT. HD_TwrNodes ) THEN ! bjj: make sure these are point measurements, not per unit length!!!
+
+   PtfmAM      = PtfmAM      + HD_AllLoads%Substructure(1)%AddedMass
+   PtfmFt(1:3) = PtfmFt(1:3) + HD_AllLoads%Substructure(1)%Force
+   PtfmFt(4:6) = PtfmFt(4:6) + HD_AllLoads%Substructure(1)%Moment
+
+END IF
 
 
 RETURN
@@ -3968,6 +3920,7 @@ SUBROUTINE RtHS( p, p_Ctrl, x, OtherState, u, AugMatOut )
 
 USE                             AeroElem
 USE                             DriveTrain
+USE                             FAST_Hydro
 USE                             General
 USE                             InitCond
 USE                             NacelleYaw
@@ -3998,7 +3951,6 @@ REAL(ReKi)                   :: AngAccEGt (3)                                   
 REAL(ReKi)                   :: AngAccEHt (3)                                   ! Portion of the angular acceleration of the hub                                                       (body H) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: AngAccELt (3)                                   ! Portion of the angular acceleration of the low-speed shaft                                           (body L) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: AngAccENt (3)                                   ! Portion of the angular acceleration of the nacelle                                                   (body N) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
-
 REAL(ReKi)                   :: AngPosEX  (3)                                   ! Angular position of the platform                   (body X) in the inertial frame (body E for earth).
 REAL(ReKi)                   :: AngVelEA  (3)                                   ! Angular velocity of the tail                                                      (body A) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: AngVelEG  (3)                                   ! Angular velocity of the generator                                                 (body G) in the inertia frame (body E for earth).
@@ -4036,12 +3988,10 @@ REAL(ReKi)                   :: LinAccEWt (3)                                   
 REAL(ReKi)                   :: LinAccEYt (3)                                   ! Portion of the linear acceleration of the platform center of mass                                                         (point Y) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: LinVelEK  (3)                                   ! Linear velocity of tail fin center-of-pressure        (point K) in the inertia frame.
 REAL(ReKi)                   :: LinVelES  (3)                                   ! Linear velocity of current point on the current blade (point S) in the inertia frame.
-REAL(ReKi)                   :: LinVelEPYaw(3)                                  ! This is the linear velocity of the hub in the inertia frame due solely to yaw and rotor-furl effects
 REAL(ReKi)                   :: LinVelHS  (3)                                   ! Relative linear velocity of the current point on the current blade (point S) in the hub frame (body H)
 REAL(ReKi)                   :: LinVelXO  (3)                                   ! Relative linear velocity of the tower-top / base plate             (point O) in the platform  (body X).
 REAL(ReKi)                   :: LinVelXT  (3)                                   ! Relative linear velocity of the current point on the tower         (point T) in the platform  (body X).
 REAL(ReKi)                   :: MomLPRot  (3)                                   ! The total moment on the low-speed shaft at point P caused by the rotor.
-REAL(ReKi)                   :: PLinVelHS (3,3)                                 ! Partial  linear velocity of the current point on the current blade (point S) in the hub frame (body H) (this is like a relative partial linear velocity).
 REAL(ReKi)                   :: rAerCen   (3)                                   ! Position vector from inertial frame origin to current blade analysis node aerodynamic center.
 REAL(ReKi)                   :: RFrlMom                                         ! The total rotor-furl spring and damper moment.
 REAL(ReKi)                   :: rK        (3)                                   ! Position vector from inertial frame origin to tail fin center of pressure (point K).
@@ -4063,7 +4013,6 @@ REAL(ReKi)                   :: rWI       (3)                                   
 REAL(ReKi)                   :: rWJ       (3)                                   ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J).
 REAL(ReKi)                   :: rWK       (3)                                   ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K).
 REAL(ReKi)                   :: rSAerCen  (3)                                   ! Position vector from a blade analysis node (point S) on the current blade to the aerodynamic center associated with the element.
-
 REAL(ReKi)                   :: rZT0      (3)                                   ! Position vector from platform reference (point Z) to tower base (point T(0)).
 REAL(ReKi)                   :: rZY       (3)                                   ! Position vector from platform reference (point Z) to platform mass center (point Y).
 REAL(ReKi)                   :: TeetMom                                         ! The total moment supplied by the stop, spring, and damper of the teeter mechanism.
@@ -4999,7 +4948,7 @@ OtherState%RtHS%MomLPRott = TmpVec2 + TmpVec3 - p%Hubg1Iner*OtherState%CoordSys%
    ! Call AeroDyn to calculate aerodynamic forces
    !-------------------------------------------------------------------------------------------------
 
-IF ( CompAero ) ADAeroLoads = AD_CalculateLoads( ZTime, ADAeroMarkers, ADInterfaceComponents, ADIntrfaceOptions, ErrStat )
+IF ( CompAero ) ADAeroLoads = AD_CalculateLoads( REAL(ZTime, ReKi), ADAeroMarkers, ADInterfaceComponents, ADIntrfaceOptions, ErrStat )
 
 
 DO K = 1,p%NumBl ! Loop through all blades
@@ -5582,9 +5531,60 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
    ENDDO          ! I - all DOFs associated with the angular motion of the platform (body X)
 
 
+END DO ! J
+
+!----------------------------------------------------------------------------------------------------
+! Calculate hydrodynamic loads from HydroDyn
+!----------------------------------------------------------------------------------------------------  
+IF ( CompHydro ) THEN
+
+      ! Set the markers required for HydroDyn
+ 
+   IF ( HD_TwrNodes ) THEN
+      
+         ! Set the tower markers required for HydroDyn  (note this is for only the tower loading per unit length (not platform point source) !!!!!
+         
+      DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
+         HD_AllMarkers%Substructure(J)%Position       = (/ OtherState%RtHS%rT( J,1), -1.*OtherState%RtHS%rT( J,3),&
+                                                           OtherState%RtHS%rT( J,2) - p%PtfmRef /)
+         
+         CALL SmllRotTrans( 'Tower', OtherState%RtHS%AngPosEF(J,1), -1.*OtherState%RtHS%AngPosEF(J,3), OtherState%RtHS%AngPosEF(J,2), &        
+                                                                           HD_AllMarkers%Substructure(J)%Orientation )
+                            
+         HD_AllMarkers%Substructure(J)%TranslationVel = (/ LinVelET(J,1), -1.*LinVelET(J,3), LinVelET(J,2) /) 
+         HD_AllMarkers%Substructure(J)%RotationVel    = (/ AngVelEF(J,1), -1.*AngVelEF(J,3), AngVelEF(J,2) /)
+      END DO
+
+   ELSE
+   
+         ! Set the platform markers required for HydroDyn (note this is for only the tower loading per unit length (not platform point source) !!!!!
+   
+      J = SIZE( HD_AllMarkers%Substructure, 1)
+      
+      HD_AllMarkers%Substructure(J)%Position      = (/ x%QT(DOF_Sg),x%QT(DOF_Sw),x%QT(DOF_Hv) /)      
+      CALL SmllRotTrans( 'Platform',                   x%QT(DOF_R ),x%QT(DOF_P ),x%QT(DOF_Y ),HD_AllMarkers%Substructure(J)%Orientation)
+                           
+      HD_AllMarkers%Substructure(J)%TranslationVel= (/ x%QDT(DOF_Sg),x%QDT(DOF_Sw),x%QDT(DOF_Hv) /)  
+      HD_AllMarkers%Substructure(J)%RotationVel   = (/ x%QDT(DOF_R ),x%QDT(DOF_P ),x%QDT(DOF_Y ) /)            
+      
+   END IF      
+   
+      ! Get the loads from HydroDyn
+
+   CALL HD_CalculateLoads( ZTime,  HD_AllMarkers,  HydroDyn_data, HD_AllLoads,  ErrStat )
+
+   IF ( ErrStat /= 0 ) THEN
+      CALL ProgAbort( ' Error calculating hydrodynamic loads in HydroDyn.' )
+   END IF
+   
+END IF
+
 !----------------------------------------------------------------------------------------------------
 ! Calculate tower loads (aerodynamic and hydrodynamic)
 !----------------------------------------------------------------------------------------------------
+
+DO J = 1,p%TwrNodes
+
    ! Calculate the aerodynamic forces and moments per unit length at the
    !   current tower element:
    ! NOTE: FTAero(J,:) = aerodynamic force per unit length acting on tower node J.
@@ -6177,15 +6177,15 @@ CONTAINS
 
       ! Passed Variables:
 
-   REAL(ReKi), INTENT(IN )      :: BrakEnd                                         ! Time at which brakes are fully deployed
-   REAL(ReKi), INTENT(IN )      :: BrakStrt                                        ! Time at which brakes are first deployed
+   REAL(DbKi), INTENT(IN )      :: BrakEnd                                         ! Time at which brakes are fully deployed
+   REAL(DbKi), INTENT(IN )      :: BrakStrt                                        ! Time at which brakes are first deployed
    REAL(ReKi)                   :: TBFract                                         ! This function.
-   REAL(ReKi), INTENT(IN )      :: ZTTmp                                           ! Current time
+   REAL(DbKi), INTENT(IN )      :: ZTTmp                                           ! Current time
 
 
       ! Local Variables.
 
-   REAL(ReKi)                   :: TmpVar                                          ! A temporary variable
+   REAL(DbKi)                   :: TmpVar                                          ! A temporary variable
 
 
 
@@ -7448,7 +7448,7 @@ CHARACTER(*),                  INTENT(OUT)      :: ErrMsg                     ! 
 
    ! Local variables.
 
-REAL(ReKi)                                      :: TiLstPrn  = 0.0                           ! The time of the last print.
+REAL(DbKi)                   :: TiLstPrn  = 0.0                                 ! The time of the last print.
 
 
    ! Allocate space for coordinate systems
@@ -7564,8 +7564,9 @@ SUBROUTINE TwrLoading ( JNode, X1 , X2 , X3 , X4 , X5 , X6 , &
    !   TwrAM(1:6,1:6) and TwrFt(1:6).
 
 
+USE                             FAST_Hydro
+
 USE                             General
-USE                             FixedBottomSupportStructure, ONLY:MorisonTwrLd
 USE                             SimCont
 
 IMPLICIT                        NONE
@@ -7627,21 +7628,6 @@ TwrFt = 0.0_ReKi
    ! Compute the tower hydrodynamic loading for the current tower node /
    !   element:
 
-SELECT CASE ( PtfmModel )  ! Which platform model are we using?
-
-CASE ( 0 )                 ! None!
-
-
-   ! Do nothing here since TwrAM and TwrFt are all initialized to zero.
-
-
-CASE ( 1 )                 ! Onshore.
-
-
-   ! Do nothing here since TwrAM and TwrFt are all initialized to zero.
-
-
-CASE ( 2 )                 ! Fixed bottom offshore.
 
 
    SELECT CASE ( p%TwrLdMod )   ! Which tower loading model are we using?
@@ -7649,19 +7635,13 @@ CASE ( 2 )                 ! Fixed bottom offshore.
    CASE ( 0 )                 ! None!
 
 
-   ! Do nothing here since TwrAM and TwrFt are all initialized to zero.
+   ! Set TwrAM and TwrFt to 0
+
+      TwrAM = 0.0
+      TwrFt = 0.0
 
 
-   CASE ( 1 )                 ! Undocumented hydrodynamic loading using Morison's equation.
-
-
-   ! CALL the undocumented Morison's equation tower loading model:
-
-      CALL MorisonTwrLd ( JNode, p%DiamT(JNode), p%CAT(JNode), p%CDT(JNode), X, XD, ZTime, TwrAM, TwrFt )
-
-
-   CASE ( 2 )                 ! User-defined tower loading.
-
+   CASE ( 1 )                 ! User-defined tower loading.   
 
    ! CALL the user-defined tower loading model:
 
@@ -7679,13 +7659,17 @@ CASE ( 2 )                 ! Fixed bottom offshore.
    ENDSELECT
 
 
-CASE ( 3 )                 ! Floating offshore.
 
 
-   ! Do nothing here since TwrAM and TwrFt are all initialized to zero.
+IF ( CompHydro .AND. HD_TwrNodes ) THEN 
+   TwrAM      = TwrAM      + HD_AllLoads%Substructure(JNode)%AddedMass
+   TwrFt(1:3) = TwrFt(1:3) + HD_AllLoads%Substructure(JNode)%Force
+   TwrFt(4:6) = TwrFt(4:6) + HD_AllLoads%Substructure(JNode)%Moment
+
+!   CALL MorisonTwrLd ( JNode, DiamT(JNode), CAT(JNode), CDT(JNode), X, XD, ZTime, TwrAM, TwrFt )
+END IF
 
 
-ENDSELECT
 
 
 

@@ -62,7 +62,7 @@ MODULE FAST2ADAMSSubs
    
 !------------------------------------------------------------------------------
 
-   CHARACTER(7), PARAMETER :: ProgVerOfA2AD = "v13.01."  ! version of A2AD that is required to run this dataset
+   CHARACTER(7), PARAMETER :: ProgVerOfA2AD = "v14.00."  ! version of A2AD that is required to run this dataset
    CHARACTER(6)            :: OutNameID                  ! temporary string to hold the integer name for output names and units (this should be a local variable)
    
 
@@ -115,13 +115,8 @@ WRITE (UnAC,FmtText  )  TRIM( RootName )//'_ADAMS'
 
 
    ! Specify the INTEGRATOR properties:
-!bjj: JMJ wants this removed for release!!!!   
-!IF ( CompHydro ) THEN !ALLOW error an order of magnitude greater for this case 
-!   WRITE (UnAC,FmtTRT   )  'INTEGRATOR/GSTIFF, ERROR = 0.010, HMAX = ', DT, ', INTERPOLATE = ON'
-!ELSE
-   WRITE (UnAC,FmtTRT   )  'INTEGRATOR/GSTIFF, ERROR = 0.001, HMAX = ', DT, ', INTERPOLATE = ON'
-!END IF
 
+   WRITE (UnAC,FmtTRT   )  'INTEGRATOR/GSTIFF, ERROR = 0.001, HMAX = ', DT, ', INTERPOLATE = ON'
 !JASON: Make ERROR an input!--Do this when you add variable-step size integration in FAST!
 
 
@@ -205,7 +200,7 @@ ENDIF
    ! DEACTIVATE the MOTION statements for the translational DOFs of the free
    !   surface if necessary:
 
-IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we are using the undocumented monopile or platform features .AND. SaveGrphcs is enabled, but not with GH Bladed wave data
+IF ( CompHydro .AND. SaveGrphcs  )  THEN ! .TRUE. if we are using the undocumented monopile or platform features .AND. SaveGrphcs is enabled
 
    WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, RANGE = '//TRIM(Num2LStr( 100900 + 0         ))//', '// &
                                                           TRIM(Num2LStr( 100900 + NFreeSrfc ))
@@ -253,6 +248,8 @@ USE                             SimCont
 USE                             TipBrakes
 USE HydroVals
 
+USE                             FAST_Hydro
+
 
 IMPLICIT                        NONE
 
@@ -265,6 +262,7 @@ TYPE(StrD_InputFile),    INTENT(IN) :: InputFileData                            
 INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
 INTEGER(4)                   :: K                                               ! Loops through blades.
 
+INTEGER                      :: ErrStat
 
 CHARACTER( 3)                :: FmtText   = '(A)'                               ! Format for outputting pure text.
 CHARACTER(10)                :: FmtTR     = '(A,ES13.6)'                        ! Format for outputting text then a real value.
@@ -276,14 +274,13 @@ CHARACTER(19)                :: FmtTRTR   = '(A,ES13.6,A,ES13.6)'               
    !    variant.
    ! Make sure FAST aborts if any of the following conditions are met:
 
-IF ( ( WaveMod  /= 0   ) .AND. CompHydro )  &
-   CALL ProgAbort ( ' An ADAMS control file for a LINEAR analysis can''t be built when using incident wave kinematics.'// &
-                    '  Set WaveMod to 0 or MakeLINacf to False.'                                                           )
+   IF ( CompHydro ) THEN
+      IF ( .NOT. HD_CheckLin(HydroDyn_data,ErrStat) ) THEN
+         CALL ProgAbort ( " An ADAMS control file for a LINEAR analysis can't be built with the current "//&
+                          "HydroDyn settings. Fix the HydroDyn inputs or set MakeLINacf to False."  )
+      END IF
+   END IF 
 
-
-IF ( ( RdtnTMax /= 0.0 ) .AND. CompHydro )  &
-   CALL ProgAbort ( ' An ADAMS control file for a LINEAR analysis can''t be built when using wave radiation damping.'// &
-                    '  Set RdtnTMax to 0.0 or MakeLINacf to False.'                                                       )
 
    ! Open the ADAMS control file and give it a heading:
 
@@ -464,6 +461,7 @@ USE                             AeroDyn  !to get the unit number for AeroDyn... 
 
 USE                             ADAMSInput
 USE                             DriveTrain
+USE                             FAST_Hydro
 USE                             General
 USE                             InitCond
 USE                             NacelleYaw
@@ -513,6 +511,9 @@ REAL(ReKi)                   :: TmpVec    (3)                                   
 REAL(ReKi)                   :: TmpVec1   (3)                                   ! A temporary vector used in various computations.
 REAL(ReKi)                   :: TmpVec2   (3)                                   ! A temporary vector used in various computations.
 REAL(ReKi)                   :: TransMat  (3,3)                                 ! The resulting transformation matrix due to three orthogonal rotations, (-).
+
+REAL(ReKi)                   :: WaveDir                                         ! Wave heading direction (in radians).
+REAL(ReKi)                   :: WtrDpth                                         ! Water depth (meters).
 
 INTEGER(4)                   :: CompAeroI                                       ! An INTEGER representing what is in CompAero: = 0 if CompAero = .FALSE., 1 if CompAero = .TRUE.
 INTEGER(4)                   :: CompHydroI                                      ! An INTEGER representing what is in CompHydro: = 0 if CompHydro = .FALSE., 1 if CompHydro = .TRUE.
@@ -658,6 +659,8 @@ ENDIF
 
 IF ( CompHydro )  THEN
    CompHydroI = 1
+   WtrDpth = HD_GetValue('WaterDepth', HydroDyn_data, Sttus)
+   
 ELSE
    CompHydroI = 0
 ENDIF
@@ -690,6 +693,24 @@ WRITE (UnAD,FmtText  )  'VARIABLE/'//TRIM(Num2LStr(CalcOuts_V))//', FUNCTION = U
 !                        ', '//TRIM(Num2LStr( p%TipRad     ))//', '//TRIM(Num2LStr( p%GenIner    ))//' )'
 
 
+
+
+!bjj start of proposed change v7.01.00a-bjj AE
+
+   ! create a dummy DGSE element for compatability with Adams 2010 (which no longer supports INFARY and INFFNC)
+   ! definition created by Andy Elliott, MSC, Dec 2010.
+WRITE (UnAD,FmtText  )  '!=============================== DUMMY GSE ====================================='
+WRITE (UnAD, '(A)' )    'VARIABLE/'//TRIM(Int2LStr(DGSEdummy_V  ))//', FUNCTION = 1.0'
+WRITE (UnAD, '(A)' )    'ARRAY/'   //TRIM(Int2LStr(DGSEdummyU_A ))//', U,  SIZE = 1, VARIABLES = '//TRIM(Int2LStr(DGSEdummy_V))  ! Inputs
+WRITE (UnAD, '(A)' )    'ARRAY/'   //TRIM(Int2LStr(DGSEdummyY_A ))//', Y,  SIZE = 1'                                             ! Outputs
+WRITE (UnAD, '(A)' )    'ARRAY/'   //TRIM(Int2LStr(DGSEdummyX_A ))//', X,  SIZE = 1'                                             ! States
+WRITE (UnAD, '(A)' )    'ARRAY/'   //TRIM(Int2LStr(DGSEdummyIC_A))//', IC, SIZE = 1, NUMBERS = 0'                                ! Initial conditions
+WRITE (UnAD, '(A)' )    'GSE/'     //TRIM(Int2LStr(A2AD_GSE     ))//', NO = 1, FUNCTION = USER(1)\'                              ! 1 output equation (NO)
+WRITE (UnAD, '(A)' )    ', U  = '  //TRIM(Int2LStr(DGSEdummyU_A ))
+WRITE (UnAD, '(A)' )    ', Y  = '  //TRIM(Int2LStr(DGSEdummyY_A ))
+WRITE (UnAD, '(A)' )    ', XD = '  //TRIM(Int2LStr(DGSEdummyX_A ))//', ND = 1'                                                   ! 1 discrete state (ND)
+WRITE (UnAD, '(A)' )    ', ICD= '  //TRIM(Int2LStr(DGSEdummyIC_A))//', SAMPLE_PERIOD=1' !bjj: could we define SAMPLE_PERIOD so that we don't have to call SET_DGSE_UPDATE() ????
+!bjj end of proposed change v7.01.00a-bjj AE
 
    ! Begin defining PARTs, MARKERs, and GRAPHICS:
 
@@ -734,7 +755,7 @@ WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0           , ', ', 0.0            , ', ', 
 WRITE (UnAD,FmtTRTRTR)  ', ZP = ', CoordSys%a2(1), ', ', -CoordSys%a2(3), ', ', CoordSys%a2(2)  ! orientation MARKER
 WRITE (UnAD,FmtTRTRTR)  ', XP = ', CoordSys%a1(1), ', ', -CoordSys%a1(3), ', ', CoordSys%a1(2)  ! using the 3-point method
 
-IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
+IF ( CompHydro )  THEN ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
    IF ( LineMod == 1 )  THEN                    ! .TRUE if we have standard quasi-static mooring lines; store the mooring line data into the ARRAY
 
    ! Anchors:
@@ -816,7 +837,8 @@ IF ( CompHydro )  THEN  ! .TRUE. if we are using the undocumented monopile or pl
    WRITE (UnAD,FmtText  )  'GRAPHICS/20'
    WRITE (UnAD,FmtText  )  ', CIRCLE'
    WRITE (UnAD,FmtText  )  ', CM = 20'
-   WRITE (UnAD,FmtTR    )  ', RADIUS = ', MAX( p%TipRad, MaxLRadAnch )
+!JASON:THIS CHANGED FOR ITI BARGE:   WRITE (UnAD,FmtText  )  ', RADIUS = 425'  !JASON:THIS CHANGED FOR ITI BARGE:
+   WRITE (UnAD,FmtTR    )  ', RADIUS = ', MAX( p%TipRad, HD_GetValue( 'MaxLRadAnch', HydroDyn_data, Sttus ) )
    WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 
 
@@ -824,7 +846,7 @@ ENDIF
 
 
 !JASON: MOVE THE ADAMS STATEMENTS TO THE PROPER LOCATIONS WITHIN THE ADM FILE ONCE WE DOCUMENT THIS FEATURE!!!!!
-IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we are using the undocumented monopile or platform features .AND. SaveGrphcs is enabled, but not with GH Bladed wave data
+IF ( CompHydro .AND. SaveGrphcs  )  THEN ! .TRUE. if we are using the undocumented monopile or platform features .AND. SaveGrphcs is enabled
 
 
    ! Those on the free surface of the water:
@@ -840,8 +862,11 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
                                           ' surface GRAPHICS statements.  Set FrSrfcSpc >= 2*TipRad/99.' )
 
    TmpLength = 0.5*NFreeSrfc*FrSrfcSpc ! The distance in the xi/yi plane between the inertial frame reference point and the line of MARKERs representing the incident wave propogation heading direction.
-   CWaveDir  = COS( D2R*WaveDir )
-   SWaveDir  = SIN( D2R*WaveDir )
+
+   WaveDir   = D2R*HD_GetValue('WaveDir',HydroDyn_Data,Sttus)
+
+   CWaveDir  = COS( WaveDir )
+   SWaveDir  = SIN( WaveDir )
 
 
    DO I = 0,NFreeSrfc   ! Loop through all points on free surface (including the zero'th point) where the elevation of the incident waves will be computed
@@ -856,7 +881,7 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
       WRITE (UnAD,FmtText     )  ', PART = 1'
       WRITE (UnAD,FmtTRTRTR   )  ', QP = ', ( I*FrSrfcSpc - TmpLength )*CWaveDir + TmpLength*SWaveDir, &
                                  ', '     , ( I*FrSrfcSpc - TmpLength )*SWaveDir - TmpLength*CWaveDir, ', ', p%PtfmRef
-      WRITE (UnAD,FmtTRTRTR   )  ', REULER = ', WaveDir*D2R, ', ', 0.0, ', ', 0.0
+      WRITE (UnAD,FmtTRTRTR   )  ', REULER = ', WaveDir, ', ', 0.0, ', ', 0.0
 
 
    ! Free surface PART:
@@ -865,7 +890,7 @@ IF ( CompHydro .AND. SaveGrphcs .AND. ( WaveMod /= 4 ) )  THEN ! .TRUE. if we ar
       WRITE (UnAD,FmtText     )  'PART/'//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTRTRTR   )  ', QG = ', ( I*FrSrfcSpc - TmpLength )*CWaveDir + TmpLength*SWaveDir, &
                                  ', '     , ( I*FrSrfcSpc - TmpLength )*SWaveDir - TmpLength*CWaveDir, ', ', p%PtfmRef
-      WRITE (UnAD,FmtTRTRTR   )  ', REULER = ', WaveDir*D2R, ', ', 0.0, ', ', 0.0
+      WRITE (UnAD,FmtTRTRTR   )  ', REULER = ', WaveDir, ', ', 0.0, ', ', 0.0
       WRITE (UnAD,FmtText     )  ', CM = '//TRIM(Num2LStr( TmpID ))
       WRITE (UnAD,FmtTR       )  ', MASS = ', SmllNmbr
       WRITE (UnAD,FmtTRTRTR   )  ', IP = ', SmllNmbr, ', ', SmllNmbr, ', ', SmllNmbr
@@ -951,7 +976,10 @@ ELSE
 ENDIF
 
 
-IF ( ( PtfmModel == 3 ) .AND. CompHydro .AND. SaveGrphcs )  THEN  ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features .AND. SaveGrphcs is enabled.
+
+!JASON: MOVE THE ADAMS STATEMENTS TO THE PROPER LOCATIONS WITHIN THE ADM FILE ONCE WE DOCUMENT THIS FEATURE!!!!!
+!JASON: WHAT DO WE DO HERE DURING LINEARIZATION????
+IF ( CompHydro .AND. SaveGrphcs )  THEN  ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features .AND. SaveGrphcs is enabled.
    IF ( LineMod == 1 )  THEN                                      ! .TRUE if we have standard quasi-static mooring lines; store the mooring line data into the ARRAY
 
    ! Those on the mooring lines:
@@ -1107,7 +1135,7 @@ WRITE (UnAD,FmtText  )  ', PART = 1000'
 WRITE (UnAD,FmtTRTRTR)  ', QP = ', 0.0, ', ', 0.0, ', ', p%RefTwrHt
 WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
 
-IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
+IF ( CompHydro )  THEN ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
 
    IF ( LineMod == 1 )  THEN  ! .TRUE if we have standard quasi-static mooring lines; store the mooring line data into the ARRAY
 
@@ -1133,7 +1161,7 @@ IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating off
    WRITE (UnAD,FmtText  )  ', CM = 1100'
    WRITE (UnAD,FmtTR    )  ', LENGTH = ', p%TwrDraft - PtfmDraft ! NOTE: TwrDraft <= 0.0 in this equation
    WRITE (UnAD,FmtText  )  ', SIDES = '//TRIM(Num2LStr( NSides ))
-   WRITE (UnAD,FmtTR    )  ', RADIUS = ', 0.5*PtfmDiam
+   WRITE (UnAD,FmtTR    )  ', RADIUS = ', 0.5*HD_GetValue('PtfmDiam',HydroDyn_data,Sttus)
    WRITE (UnAD,FmtText  )  ', SEG = '//TRIM(Num2LStr( NSides ))
 !JASON:THIS CHANGED FOR ITI BARGE:   WRITE (UnAD,FmtText  )  ', BOX'           !JASON:THIS CHANGED FOR ITI BARGE:
 !JASON:THIS CHANGED FOR ITI BARGE:   WRITE (UnAD,FmtText  )  ', CORNER = 1705' !JASON:THIS CHANGED FOR ITI BARGE:
@@ -1188,7 +1216,6 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
 
    WRITE (UnAD,'(A,I2.2,A)')  '!--------------------------- Tower: Tower Section ', J, ' ---------------------------'
 
-
       ! same orientation as 1100 (which is the same as 1000 orientation), but in platform (reference point)      
    TmpID2  = 1900 + J      
    WRITE (UnAD,'(A,I2.2,A)') "!                             adams_view_name='UndeflTowerSec", J, "_M'"
@@ -1196,6 +1223,8 @@ DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
    WRITE (UnAD,FmtText   )      ', PART = '//TRIM(Num2LStr( 1000 )) !PlatformRef_M
    WRITE (UnAD,FmtTRTRTR )  ', QP = ', 0.0, ', ', 0.0, ', ', p%rZT0zt + p%HNodes(J) 
    WRITE (UnAD,FmtText  )  ', REULER = 0D, 0D, 0D'
+
+
    ! PART and elastic axis:
 
    TmpID = 1100 + J
@@ -2056,7 +2085,6 @@ DO K = 1,p%NumBl ! Loop through all blades
    WRITE (UnAD,FmtTRTRTR )  ', XP = ', DOT_PRODUCT( TmpVec2, CoordSys%g1 ), ', ', DOT_PRODUCT( TmpVec2, CoordSys%g2 ), ', ', &
                                        DOT_PRODUCT( TmpVec2, CoordSys%g3 )  ! 3-point method
 
-
    ! Pitch reference MARKERS (fixed in hub):
 
    TmpID = 4091 + K*100
@@ -2751,170 +2779,19 @@ WRITE (UnAD,FmtText  )  '!=================================== FORCES ===========
 
 WRITE (UnAD,FmtText  )  '!------------------------------ Support Platform -------------------------------'
 
-SELECT CASE ( PtfmModel )  ! Which platform model are we using?
-
-CASE ( 0 )                 ! None!
-
-
-   ! Do nothing here!
-
-
-CASE ( 1 )                 ! Onshore.
-
-
-   SELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
-
-   CASE ( 0 )                 ! None!
-
-   ! Do nothing here!
-
-
-   CASE ( 1 )                 ! User-defined platform loading.
+IF ( PtfmLdMod > 0 .OR. ( CompHydro .AND. .NOT. HD_TwrNodes ) ) THEN  ! User-defined platform loading.
 
       WRITE (UnAD,FmtText  )  '!                             adams_view_name=''PlatformLoading_GF'''
       WRITE (UnAD,FmtText  )  'GFORCE/1000'
       WRITE (UnAD,FmtText  )  ', I = 1000'
       WRITE (UnAD,FmtText  )  ', JFLOAT = 800'
       WRITE (UnAD,FmtText  )  ', RM = 1000'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( PtfmLdMod ))//' )'
+      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmLdMod ))//' )'
 
-
-   ENDSELECT
-
-
-CASE ( 2 )                 ! Fixed bottom offshore.
-
-
-   SELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
-
-   CASE ( 0 )                 ! None!
-
-   ! Do nothing here!
-
-
-   CASE ( 1 )                 ! User-defined platform loading.
-
-      WRITE (UnAD,FmtText  )  '!                             adams_view_name=''PlatformLoading_GF'''
-      WRITE (UnAD,FmtText  )  'GFORCE/1000'
-      WRITE (UnAD,FmtText  )  ', I = 1000'
-      WRITE (UnAD,FmtText  )  ', JFLOAT = 800'
-      WRITE (UnAD,FmtText  )  ', RM = 1000'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( PtfmLdMod ))//' )'
-
-
-   ENDSELECT
-
-
-CASE ( 3 )                 ! Floating offshore.
-
-
-   SELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
-
-   CASE ( 0 )                 ! None!
-
-   ! Do nothing here!
-
-
-   CASE ( 1 )                 ! User-defined platform loading.
-
-      WRITE (UnAD,FmtText  )  '!                             adams_view_name=''PlatformLoading_GF'''
-      WRITE (UnAD,FmtText  )  'GFORCE/1000'
-      WRITE (UnAD,FmtText  )  ', I = 1000'
-      WRITE (UnAD,FmtText  )  ', JFLOAT = 800'
-      WRITE (UnAD,FmtText  )  ', RM = 1000'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( PtfmLdMod ))//' )'
-
-
-   CASE ( 9999 )              ! Undocumented loading for a floating platform.
-
-      WRITE (UnAD,FmtText  )  '!                             adams_view_name=''PlatformLoading_GF'''
-      WRITE (UnAD,FmtText  )  'GFORCE/1000'
-      WRITE (UnAD,FmtText  )  ', I = 1000'
-      WRITE (UnAD,FmtText  )  ', JFLOAT = 800'
-      WRITE (UnAD,FmtText  )  ', RM = 1000'
-      WRITE (UnAD,FmtText  )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( PtfmLdMod ))// &
-                              ', '//TRIM(Num2LStr( PtfmVol0    ))//', '//TRIM(Num2LStr( PtfmNodes   ))//              &
-                              ', '//TRIM(Num2LStr( PtfmDraft   ))//', '//TRIM(Num2LStr( PtfmDiam    ))//              &
-                              ', '//TRIM(Num2LStr( PtfmCD      ))//', '//TRIM(Num2LStr( RdtnTMax    ))//              &
-                              ', '//TRIM(Num2LStr( RdtnDT      ))//', '//TRIM(Num2LStr( WtrDens     ))//','
-      WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( WtrDpth     ))//', '//TRIM(Num2LStr( WaveMod     ))//              &
-                              ', '//TRIM(Num2LStr( WaveTMax    ))//', '//TRIM(Num2LStr( WaveDT      ))//              &
-                              ', '//TRIM(Num2LStr( WaveHs      ))//', '//TRIM(Num2LStr( WaveTp      ))//              &
-                              ', '//TRIM(Num2LStr( WavePkShp   ))//', '//TRIM(Num2LStr( WaveDir     ))//              &
-                              ', '//TRIM(Num2LStr( WaveSeed(1) ))//', '//TRIM(Num2LStr( WaveSeed(2) ))//','
-      WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( CurrMod     ))//', '//TRIM(Num2LStr( CurrSSV0    ))//              &
-                              ', '//TRIM(Num2LStr( CurrSSDir   ))//', '//TRIM(Num2LStr( CurrNSRef   ))//              &
-                              ', '//TRIM(Num2LStr( CurrNSV0    ))//', '//TRIM(Num2LStr( CurrNSDir   ))//              &
-                              ', '//TRIM(Num2LStr( CurrDIV     ))//', '//TRIM(Num2LStr( CurrDIDir   ))//              &
-                              ', '//TRIM(Num2LStr( p%Gravity     ))//', '//TRIM(Num2LStr( NFreeSrfc   ))//' )'
-
-
-   ! Create an ARRAY statement to hold the mooring line data:
-
-      WRITE (UnAD,FmtText           )  '!                             adams_view_name=''MooringLines_A'''
-      WRITE (UnAD,FmtText           )  'ARRAY/1000'
-
-      IF ( LineMod == 1 )  THEN  ! .TRUE if we have standard quasi-static mooring lines; store the mooring line data into the ARRAY
-
-         WRITE (UnAD,FmtText        )  ', IC, SIZE = '//TRIM(Num2LStr( 12*NumLines + 1 )) ! Specify a list of constants.  The ARRAY contains all 12 columns of mooring line data for each of the NumLines mooring lines + 1 extra element to contain the value of NLnNodes
-         DO I = 1,NumLines ! Loop through all mooring lines
-            IF ( I == 1        )  THEN ! First line
-               WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Num2LStr( LAnchxi  (I) ))//','
-            ELSE                       ! All other lines
-               WRITE (UnAD,FmtText  )  ', '          //TRIM(Num2LStr( LAnchxi  (I) ))//','
             ENDIF
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LAnchyi  (I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LAnchzi  (I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LFairxt  (I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LFairyt  (I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LFairzt  (I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LUnstrLen(I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LDiam    (I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LMassDen (I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LEAStff  (I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LSeabedCD(I) ))//','
-         ENDDO             ! I - All mooring lines
-         DO I = 1,NumLines ! Loop through all mooring lines
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( LTenTol  (I) ))//','
-         ENDDO             ! I - All mooring lines
-         IF ( SaveGrphcs )  THEN ! .TRUE. if GRAPHICS output is saved in an ADAMS analysis.
-            WRITE (UnAD,FmtText     )  ', '          //TRIM(Num2LStr( NLnNodes     ))
-         ELSE                    ! No GRAPHICS output; thus, there are no line nodes to be viewed
-            WRITE (UnAD,FmtText     )  ', 0'
-         ENDIF
-
-      ELSE                       ! We must have user-defined or no mooring lines; store NumLines as the sole element in the ARRAY
-
-         WRITE (UnAD,FmtText        )  ', IC, SIZE = 1'
-         WRITE (UnAD,FmtText        )  ', NUMBERS = '//TRIM(Num2LStr( NumLines ))
-
-      ENDIF
 
 
-   ENDSELECT
-
-
-ENDSELECT
+!bjj: figure out how to handle mooring line data graphics!
 
 
    ! Tower segment stiffness and damping:
@@ -3115,31 +2992,8 @@ WRITE (UnAD,FmtTRTRTR      )  ', LENGTH = ', TmpLength, ', 0.0, 0.0, ', 0.0, ', 
 
 WRITE (UnAD,FmtText  )  '!------------------------------------ Tower ------------------------------------'
 
-SELECT CASE ( PtfmModel )  ! Which platform model are we using?
+   IF ( p%TwrLdMod == 1 .OR. ( CompHydro .AND. HD_TwrNodes ) ) THEN        ! User-defined tower loading.
 
-CASE ( 0 )                 ! None!
-
-
-   ! Do nothing here!
-
-
-CASE ( 1 )                 ! Onshore.
-
-
-   ! Do nothing here!
-
-
-CASE ( 2 )                 ! Fixed bottom offshore.
-
-
-   SELECT CASE ( p%TwrLdMod )   ! Which tower loading model are we using?
-
-   CASE ( 0 )                 ! None!
-
-   ! Do nothing here!
-
-
-   CASE ( 1 )                 ! Undocumented hydrodynamic loading using Morison's equation.
 
       DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
          TmpID  =  800 + J ! ID of the FLOATING MARKER of the current tower element.
@@ -3149,62 +3003,12 @@ CASE ( 2 )                 ! Fixed bottom offshore.
          WRITE (UnAD,FmtText     )  ', I = '//TRIM(Num2LStr( TmpID2 ))
          WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Num2LStr( TmpID  ))
          WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Num2LStr( TmpID2 ))
-!         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( p%TwrLdMod ))// &
-         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', 0'// &
-                                    ', '//TRIM(Num2LStr( p%TwrNodes    ))//', '//TRIM(Num2LStr( p%TwrDraft    ))//             &
-                                    ', '//TRIM(Num2LStr( WtrDens     ))//', '//TRIM(Num2LStr( WtrDpth     ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( WaveMod     ))//', '//TRIM(Num2LStr( WaveStMod   ))//             &
-                                    ', '//TRIM(Num2LStr( WaveTMax    ))//', '//TRIM(Num2LStr( WaveDT      ))//             &
-                                    ', '//TRIM(Num2LStr( WaveHs      ))//', '//TRIM(Num2LStr( WaveTp      ))//             &
-                                    ', '//TRIM(Num2LStr( WavePkShp   ))//', '//TRIM(Num2LStr( WaveDir     ))//             &
-                                    ', '//TRIM(Num2LStr( WaveSeed(1) ))//', '//TRIM(Num2LStr( WaveSeed(2) ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( CurrMod     ))//', '//TRIM(Num2LStr( CurrSSV0    ))//             &
-                                    ', '//TRIM(Num2LStr( CurrSSDir   ))//', '//TRIM(Num2LStr( CurrNSRef   ))//             &
-                                    ', '//TRIM(Num2LStr( CurrNSV0    ))//', '//TRIM(Num2LStr( CurrNSDir   ))//             &
-                                    ', '//TRIM(Num2LStr( CurrDIV     ))//', '//TRIM(Num2LStr( CurrDIDir   ))//             &
-                                    ', '//TRIM(Num2LStr( p%Gravity     ))//', '//TRIM(Num2LStr( NFreeSrfc   ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( p%DiamT(J)    ))//', '//TRIM(Num2LStr( p%CAT(J)    ))//             &
-                                    ', '//TRIM(Num2LStr( p%CDT(J)    ))                                     //' )'
+         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( 1 )'
+
+!bjj: do we need gravity here, too (and the file name?)                                    
       ENDDO             ! J - Tower nodes/elements
 
-
-   CASE ( 2 )                 ! User-defined tower loading.
-
-      DO J = 1,p%TwrNodes ! Loop through the tower nodes/elements
-         TmpID  =  800 + J ! ID of the FLOATING MARKER of the current tower element.
-         TmpID2 = 1800 + J ! ID of the associated aerodynamic and hydrodynamic MARKER fixed in the current tower element.
-         WRITE (UnAD,'(A,I2.2,A)')  '!                             adams_view_name=''TowerSec', J, 'AeroHydro_GF'''
-         WRITE (UnAD,FmtText     )  'GFORCE/'//TRIM(Num2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', I = '//TRIM(Num2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', JFLOAT = '//TRIM(Num2LStr( TmpID  ))
-         WRITE (UnAD,FmtText     )  ', RM = '//TRIM(Num2LStr( TmpID2 ))
-         WRITE (UnAD,FmtText     )  ', FUNCTION = USER( '//TRIM(Num2LStr( PtfmModel ))//', '//TRIM(Num2LStr( p%TwrLdMod ))// &
-                                    ', '//TRIM(Num2LStr( p%TwrNodes    ))//', '//TRIM(Num2LStr( p%TwrDraft    ))//             &
-                                    ', '//TRIM(Num2LStr( WtrDens     ))//', '//TRIM(Num2LStr( WtrDpth     ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( WaveMod     ))//', '//TRIM(Num2LStr( WaveStMod   ))//             &
-                                    ', '//TRIM(Num2LStr( WaveTMax    ))//', '//TRIM(Num2LStr( WaveDT      ))//             &
-                                    ', '//TRIM(Num2LStr( WaveHs      ))//', '//TRIM(Num2LStr( WaveTp      ))//             &
-                                    ', '//TRIM(Num2LStr( WavePkShp   ))//', '//TRIM(Num2LStr( WaveDir     ))//             &
-                                    ', '//TRIM(Num2LStr( WaveSeed(1) ))//', '//TRIM(Num2LStr( WaveSeed(2) ))//','
-         WRITE (UnAD,FmtText     )  ', '//TRIM(Num2LStr( CurrMod     ))//', '//TRIM(Num2LStr( CurrSSV0    ))//             &
-                                    ', '//TRIM(Num2LStr( CurrSSDir   ))//', '//TRIM(Num2LStr( CurrNSRef   ))//             &
-                                    ', '//TRIM(Num2LStr( CurrNSV0    ))//', '//TRIM(Num2LStr( CurrNSDir   ))//             &
-                                    ', '//TRIM(Num2LStr( CurrDIV     ))//', '//TRIM(Num2LStr( CurrDIDir   ))//             &
-                                    ', '//TRIM(Num2LStr( p%Gravity     ))//', '//TRIM(Num2LStr( NFreeSrfc   ))//' )'
-      ENDDO             ! J - Tower nodes/elements
-
-
-   ENDSELECT
-
-
-CASE ( 3 )                 ! Floating offshore.
-
-
-   ! Do nothing here!
-
-
-ENDSELECT
-
+   END IF
 
 
 
@@ -3930,10 +3734,6 @@ IF ( ( TBDrConN /= 0.0 ) .OR. ( TBDrConD /= 0.0 ) )  THEN   ! Only added when TB
       WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Num2LStr( TBDrConN ))//', '//TRIM(Num2LStr( TBDrConD ))// &
                                ', '//TRIM(Num2LStr( TpBrDT      ))//', '//TRIM(Num2LStr( TTpBrDp(K) ))//             &
                                ', '//TRIM(Num2LStr( TBDepISp(K) ))//' )'
-!      WRITE (UnAD,FmtText   )  ', FUNCTION = USER( '//TRIM(Num2LStr( p%NumBl ))//', '//TRIM(Num2LStr( TBDrConN ))// &
-!                               ', '//TRIM(Num2LStr( TBDrConD ))//', '//TRIM(Num2LStr( TpBrDT ))//                 &
-!                               ', '//TRIM(Num2LStr( CompAeroI   ))//', '//TRIM(Num2LStr( TTpBrDp(K) ))//          &
-!                               ', '//TRIM(Num2LStr( TBDepISp(K) ))//' )'
 
    ENDDO                ! K - Blades
 
@@ -3966,25 +3766,10 @@ WRITE (UnAD,FmtText  )  ', TIME = SECOND'
 
 
 
-   ! Specify the execution control SENSORs:
-
-WRITE (UnAD,FmtText  )  '!============================== EXECUTION CONTROL =============================='
-
-
-   ! Tell AeroDyn the successful completion of a time step:
-
-WRITE (UnAD,FmtText  )  '!                             adams_view_name=''AeroDyn_S'''
-WRITE (UnAD,FmtText  )  'SENSOR/1'
-WRITE (UnAD,FmtText  )  ', VALUE = 1.0'
-WRITE (UnAD,FmtText  )  ', EQ'
-WRITE (UnAD,FmtText  )  ', ERROR = 0.001'
-WRITE (UnAD,FmtText  )  ', HALT'
-WRITE (UnAD,FmtText  )  ', PRINT'
-WRITE (UnAD,FmtText  )  ', FUNCTION = USER( 1.0 )'
 
 
 
-   ! Specify the analysis settings (i.e., what files should be created) ond output parameters:
+   ! Specify the analysis settings (i.e., what files should be created) and output parameters:
 
 WRITE (UnAD,FmtText  )  '!========================= ANALYSIS SETTINGS / OUTPUT =========================='
 
@@ -3994,7 +3779,7 @@ WRITE (UnAD,FmtText  )  '!========================= ANALYSIS SETTINGS / OUTPUT =
 CALL MakeADM_WrICArraysR( (/ REAL(p%NumBl,ReKi),   REAL(p%BldNodes,ReKi), REAL(p%TwrNodes,ReKi),   REAL(p%NBlGages,ReKi),  & 
                              REAL(p%NTwGages,ReKi),REAL(p%NumOuts,ReKi),     &    ! bjj if linearizing, set NumOuts = 0 here ???
                              REAL(CompAeroI,ReKi), REAL(CompHydroI,ReKi), REAL(TabDelimI,ReKi),  p%AzimB1Up,           p%GBRatio,   &
-                             p%TipRad,               TStart             , REAL(PtfmLdMod),       REAL(p%TwrLdMod),     p%ProjArea,  &
+                             p%TipRad,             REAL(TStart,ReKi)    , REAL(PtfmLdMod),       REAL(p%TwrLdMod),     p%ProjArea,  &
                              p%AvgNrmTpRd,         p%GenIner            , REAL(OutFileFmt,ReKi)             /), &
                                      ModelConstants_A, 19       , UnAD, "ModelConstants_A" )             
                                               
@@ -4013,28 +3798,8 @@ DO K = 1,p%NumBl       ! Loop through all blades
 
    CALL MakeADM_WrICArrays ( IDCntrl(:,K), IDCntrl_A(K), p%BldNodes, UnAD,  "IDCntrl_A"//TRIM(Num2LStr(K)) )
 END DO   
-!------------
 
-IF ( ( NWaveKin /= 0 ) .AND. CompHydro )  THEN  ! .TRUE. if we are using the undocumented monopile or platform features
 
-   WRITE (UnAD,FmtText  )  '!                             adams_view_name=''WaveKinNd_A'''
-   WRITE (UnAD,FmtText  )  'ARRAY/4'
-   WRITE (UnAD,FmtText  )  ', IC, SIZE = '//TRIM(Num2LStr( NWaveKin ))  ! Specify a list of constants.  The number of elements in the ARRAY is NWaveKin
-   IF ( NWaveKin == 1 )  THEN ! Only one wave kinematics sensor  selected
-      WRITE (      UnAD,FmtText  )  ', NUMBERS = '//TRIM(Num2LStr( WaveKinNd(1) ))
-   ELSE                       ! Multiple wave kinematics sensors selected
-      DO I = 1,NWaveKin ! Loop through all nodes with wave kinematics sensors for output.
-         IF ( I == NWaveKin )  THEN ! Last node
-            WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( WaveKinNd(I) ))
-         ELSEIF ( I == 1   )  THEN  ! First node
-            WRITE (UnAD,FmtText  )  ', NUMBERS = '//TRIM(Num2LStr( WaveKinNd(I) ))//','
-         ELSE                       ! All nodes
-            WRITE (UnAD,FmtText  )  ', '//TRIM(Num2LStr( WaveKinNd(I) ))//','
-         ENDIF
-      ENDDO             ! All nodes with wave kinematics sensors for output.
-   ENDIF
-
-ENDIF
 
 
 
@@ -4045,24 +3810,13 @@ ENDIF
 CALL MakeADM_WrString( TRIM(ProgVerOfA2AD),        ProgVerOfA2AD_SG, UnAD, "ProgVerOfA2AD_SG"   )
 CALL MakeADM_WrString( TRIM( FTitle ),             FTitle_SG,        UnAD, "FTitle_SG"          )
 CALL MakeADM_WrString( TRIM( p%OutFmt ),           OutFmt_SG,        UnAD, "OutFmt_SG"          )
-!CALL MakeADM_WrString( TRIM( HDFile ),             HDIptFile_SG,     UnAD, "HDIptFile_SG"       )
-
-
-IF ( ( WaveMod   == 4 ) .AND. CompHydro )  THEN ! .TRUE if we are to use GH Bladed wave data.
-   WRITE (UnAD,FmtText     )  '!                             adams_view_name=''GHWvFile_SG'''
-   WRITE (UnAD,FmtText     )  'STRING/31'
-   WRITE (UnAD,FmtText     )  ', STRING = '//TRIM( GHWvFile )           ! The root name of GH Bladed files containing wave data.
-ENDIF
-
-IF ( ( PtfmModel == 3 ) .AND. CompHydro )  THEN ! .TRUE. if we have floating offshore turbine and we are using the undocumented platform features.
-   WRITE (UnAD,FmtText     )  '!                             adams_view_name=''WAMITFile_SG'''
-   WRITE (UnAD,FmtText     )  'STRING/32'
-   WRITE (UnAD,FmtText     )  ', STRING = '//TRIM( WAMITFile )          ! Root name of WAMIT output files.
-ENDIF
-
-
+CALL MakeADM_WrString( TRIM( HDFile ),             HDIptFile_SG,     UnAD, "HDIptFile_SG"       )
 CALL MakeADM_WrString( TRIM( ADFile ),             ADIptFile_SG,     UnAD, "ADIptFile_SG"       )
 CALL MakeADM_WrString( TRIM( RootName )//'_ADAMS', RootName_SG,      UnAD, "RootName_SG"        )
+
+
+
+
 
 DO I = 0,p%NumOuts  ! Loop through all selected output channels (plus time)
 

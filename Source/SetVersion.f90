@@ -9,7 +9,6 @@ SUBROUTINE SetVersion
 USE GlueCodeVars
 USE                             NWTC_Library
 
-USE                             FloatingPlatform, ONLY: OC3HywindMods
 
 IMPLICIT                        NONE
 
@@ -47,12 +46,6 @@ ELSEIF( ReKi /= SiKi )  THEN  ! Compiled using something other than single preci
    ProgVer = TRIM(ProgVer)//'-Compiled using '//Prcsn//' precision'
 
 ENDIF
-
-
-
-IF ( OC3HywindMods ) THEN
-   ProgVer = TRIM(ProgVer)//' with OC3 Hywind Modifications'
-END IF
 
 
 
