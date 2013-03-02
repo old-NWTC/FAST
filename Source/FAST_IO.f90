@@ -16,7 +16,7 @@ SUBROUTINE AeroInput(p_StrD)
 !----------------------------------------------------------------------------------------------------
 
    USE                     AeroElem !,   ONLY: ADAeroMarkers, ADCurrentOutputs, ADIntrfaceOptions, ADFirstLoop, Prev_Aero_t
-   USE                     General,    ONLY: RootName, ADFile, SumPrint
+   USE                     General,    ONLY: RootName, SumPrint
 
 
    USE                     AeroDyn
@@ -1214,7 +1214,7 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetADAMS
 !=======================================================================
-SUBROUTINE GetBladeInputs ( BldFile, p, InputFileData, UnEc, ErrStat, ErrMsg )
+SUBROUTINE GetBladeInputs ( BldFile, MeshFile, p, InputFileData, UnEc, ErrStat, ErrMsg )
    ! This routine reads the data from the input file, validates it,
    ! and then sets the blade parameters. 
    ! It replaces former subroutines GetBlade and InterpBld, as well
@@ -1229,6 +1229,7 @@ SUBROUTINE GetBladeInputs ( BldFile, p, InputFileData, UnEc, ErrStat, ErrMsg )
    TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
    TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! Input file data Data for Blade K stored in the module's input file
    CHARACTER(*),             INTENT(IN)     :: BldFile(:)                          ! The array of file names containing blade information
+   CHARACTER(*),             INTENT(IN)     :: MeshFile                            ! The file names containing blade mesh information (for now, the aerodyn primary file)
    INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
 
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! The error ID
@@ -1249,7 +1250,15 @@ SUBROUTINE GetBladeInputs ( BldFile, p, InputFileData, UnEc, ErrStat, ErrMsg )
    ReadAdmVals = ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 )  ! If an ADAMS model will be created; thus, read in all the cols. 
 
 
+      
       ! Allocate space for the input file data
+   ALLOCATE( InputFileData%InpBlMesh( 1 ), STAT=ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating InpBlMesh array.'
+      RETURN
+   END IF
+   
    ALLOCATE( InputFileData%InpBl( p%NumBl ), STAT=ErrStat )
    IF ( ErrStat /= 0 ) THEN
       ErrStat = ErrID_Fatal
@@ -1257,7 +1266,17 @@ SUBROUTINE GetBladeInputs ( BldFile, p, InputFileData, UnEc, ErrStat, ErrMsg )
       RETURN
    END IF
    
-
+   
+   ! Get the blade discretization here:   
+   CALL ReadBladeMeshFile( InputFileData%InpBlMesh(1), ADFile, UnEc, ErrStat2, ErrMsg2 )
+      IF ( ErrStat2 /= ErrID_None ) THEN
+         ErrMsg  = TRIM(ErrMsg)//NewLine//' Errors reading blade mesh input file ('//TRIM(ADFile)//'): '//NewLine//TRIM(ErrMsg2)
+         ErrStat = MAX(ErrStat, ErrStat2)
+         IF ( ErrStat > AbortErrLev ) RETURN
+      END IF
+   
+      
+   
       ! Read the input file(s)
    ReadFile = .TRUE.
    DO K = 1,p%NumBl   
@@ -1312,7 +1331,7 @@ SUBROUTINE GetBladeInputs ( BldFile, p, InputFileData, UnEc, ErrStat, ErrMsg )
    
       ! Now set the parameters based on the input data:
       
-   CALL SetBladeParams( p, InputFileData%InpBl, ReadAdmVals, ErrStat2, ErrMsg2 )      
+   CALL SetBladeParams( p, InputFileData%InpBl, InputFileData%InpBlMesh, ReadAdmVals, ErrStat2, ErrMsg2 )      
    IF ( ErrStat /= ErrID_None ) THEN
       ErrMsg  = ' Error Setting '//NewLine//TRIM(ErrMsg2)
       ErrStat = MAX(ErrStat, ErrStat2)
@@ -1439,7 +1458,8 @@ INTEGER(4)                   :: I                                               
 INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
 INTEGER(4)                   :: L                                               ! A generic index.
 
-
+INTEGER(IntKi)               :: ErrStat
+CHARACTER(1024)              :: ErrMsg
 
 
    ! Open the FAST linearization input file:
@@ -1649,8 +1669,10 @@ IF ( ( NDisturbs > 0 ) .AND. ( .NOT. CompAero ) )  &
 
    ! Disturbnc - List   of wind disturbances.
 
-CALL ReadAry( UnIn, LinFile, Disturbnc, NDisturbs, 'Disturbnc', 'List of wind disturbances' )
-
+CALL ReadAry( UnIn, LinFile, Disturbnc, NDisturbs, 'Disturbnc', 'List of wind disturbances', ErrStat, ErrMsg )
+IF ( ErrStat /= ErrID_None ) THEN
+   CALL ProgAbort( ErrMsg )
+END IF
 
 DO I=1,NDisturbs  ! Loop through all wind disturbances
 
@@ -3179,7 +3201,7 @@ IF ( ( p%NTwGages < 0 ) .OR. ( p%NTwGages > 9 ) )  CALL ProgAbort ( ' NTwGages m
 
    ! TwrGagNd - List of tower nodes that have strain gages.
 
-CALL ReadAry( UnIn, PriFile, p%TwrGagNd, p%NTwGages, 'TwrGagNd', 'List of tower nodes that have strain gages', UnEc=UnEc )
+CALL ReadAry( UnIn, PriFile, p%TwrGagNd, p%NTwGages, 'TwrGagNd', 'List of tower nodes that have strain gages', ErrStat, ErrMsg, UnEc )
    
 
    ! NBlGages - Number of blade "strain-gage" output stations.
@@ -3191,7 +3213,7 @@ IF ( ( p%NBlGages < 0 ) .OR. ( p%NBlGages > 9 ) )  CALL ProgAbort ( ' NBlGages m
 
    ! BldGagNd - List of blade nodes that have strain gages.
 
-CALL ReadAry( UnIn, PriFile, p%BldGagNd, p%NBlGages, 'BldGagNd', 'List of blade nodes that have strain gages', UnEc=UnEc )
+CALL ReadAry( UnIn, PriFile, p%BldGagNd, p%NBlGages, 'BldGagNd', 'List of blade nodes that have strain gages', ErrStat, ErrMsg, UnEc )
 
 
    ! Skip the comment line.
@@ -3811,18 +3833,14 @@ DO I=1,p%NTwGages
 ENDDO ! I
 
 
-!  -------------- AERODYN PARAMETERS -------------------------------------------
 
+!  -------------- BLADE PARAMETERS ---------------------------------------------
 
-   ! Get the AeroDyn input now.
-
-CALL AeroInput(p)             ! Read in the ADFile
-
-
-   ! Make sure TFinNFoil is an existing airfoil number:
-
-IF ( ( TFinNFoil < 1 ) .OR. ( TFinNFoil > NumFoil ) )  &
-   CALL ProgAbort ( ' TFinNFoil must be between 1 and NumFoil (inclusive).' )
+CALL GetBladeInputs ( BldFile, ADFile, p, InputFileData, EchoUn, ErrStat, ErrMsg )
+IF ( ErrStat /= ErrID_None ) THEN
+   IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
+   CALL WrScr(ErrMsg)
+END IF
 
 
    ! Check to see if all BldGagNd(:) analysis points are existing analysis points:
@@ -3838,34 +3856,6 @@ ENDDO ! I
 IF ( ( p%PSpnElN < 1 ) .OR. ( p%PSpnElN > p%BldNodes ) )  &
    CALL ProgAbort(' PSpnElN must be between 1 and '//TRIM( Num2LStr( p%BldNodes ) )//' (inclusive).' )
 
-
-
-   ! Convert RNodes to be relative to the hub:
-
-p%RNodes = p%RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < p%BldFlexL )
-
-
-   ! Compute the index for the blade tip and tower top nodes:
-
-p%TipNode  = p%BldNodes + 1
-
-
-!  -------------- BLADE PARAMETERS ---------------------------------------------
-
-CALL GetBladeInputs ( BldFile, p, InputFileData, EchoUn, ErrStat, ErrMsg )
-IF ( ErrStat /= ErrID_None ) THEN
-   IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
-   CALL WrScr(ErrMsg)
-END IF
-
-!  -------------- NOISE --------------------------------------------------------
-
-IF ( CompNoise .AND. ( AnalMode == 1 ) .AND. ( ADAMSPrep /= 2 ) )  THEN ! We will be computing aerodynamic noise.
-!JASON: Change this to "IF ( CompAero .AND. ( AnalMode == 1 ) )  THEN" if you can get ADAMS to compute noise as well as FAST.
-
-   CALL NoiseInput(UnIn, NoiseFile, p)                         ! Read in the noise parameters from NoiseFile.
-
-ENDIF
 
 
 
@@ -4007,6 +3997,36 @@ ENDIF
    ! Close echo file, if appropriate.
 
 IF ( EchoUn > 0 ) CLOSE ( EchoUn )
+
+
+
+
+!  -------------- AERODYN PARAMETERS -------------------------------------------
+
+
+   ! Get the AeroDyn input now.
+
+CALL AeroInput(p)             ! Read in the ADFile
+
+
+   ! Make sure TFinNFoil is an existing airfoil number:
+
+IF ( ( TFinNFoil < 1 ) .OR. ( TFinNFoil > NumFoil ) )  &
+   CALL ProgAbort ( ' TFinNFoil must be between 1 and NumFoil (inclusive).' )
+
+
+!  -------------- NOISE --------------------------------------------------------
+
+IF ( CompNoise .AND. ( AnalMode == 1 ) .AND. ( ADAMSPrep /= 2 ) )  THEN ! We will be computing aerodynamic noise.
+!JASON: Change this to "IF ( CompAero .AND. ( AnalMode == 1 ) )  THEN" if you can get ADAMS to compute noise as well as FAST.
+
+   CALL NoiseInput(UnIn, NoiseFile, p)                         ! Read in the noise parameters from NoiseFile.
+
+ENDIF
+
+
+
+!  -------------- CONTROL ------------------------------------------------------
 
 
    ! bjj: these should be moved later...

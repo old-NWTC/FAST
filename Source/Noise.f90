@@ -10,6 +10,7 @@ USE GlueCodeVars
 ! The subroutines should be changed to avoid this problem!!!
 ! IMPLICIT                        NONE
 
+REAL(ReKi)                   :: AirDensity                                      ! Air density = RHO
 
 REAL(ReKi)                   :: AlphaNoise                                      ! angle of attack for each element used in noise calculation
 REAL(ReKi)                   :: ALPRAT       = 1.0                              ! TIP LIFT CURVE SLOPE and(Default = 1.0)
@@ -1578,7 +1579,7 @@ DO I=1,NFrequency
    ENDIF
    WaveNumber = PI*FrequencyCenter(I)*Chord/U
    Beta2 = 1-Mach*Mach
-   SPLhigh = 10.*LOG10(p_StrD%AirDens*p_StrD%AirDens*C0*C0*LTurb*(d/2.)/(RObs*RObs)*(Mach**3)*Ums* &
+   SPLhigh = 10.*LOG10(AirDensity*AirDensity*C0*C0*LTurb*(d/2.)/(RObs*RObs)*(Mach**3)*Ums* &
              (WaveNumber**3)*(1+WaveNumber**2)**(-7./3.)*Directivity) + 58.4
    Sears = 1/(2*PI*WaveNumber/Beta2+1/(1+2.4*WaveNumber/Beta2))
    LFC = 10*Sears*Mach*WaveNumber*WaveNumber/Beta2

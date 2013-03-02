@@ -9,7 +9,7 @@ SUBROUTINE Set_FAST_Params( p_StrD )
 
    ! AeroDyn Modules:
 
-USE                           Blade,      ONLY: C, DR
+USE                           Blade,      ONLY: C
 USE                           AeroDyn
 USE StructDyn_Types
 USE GlueCodeVars
@@ -38,64 +38,10 @@ INTEGER(4)                 :: Sttus                                     ! Status
 
 
 
-   ! Write data read in from ADFile into MODULEs used by FAST:
+!   ! Write data read in from ADFile into MODULEs used by FAST:
 
-p_StrD%BldNodes = SIZE( ADAeroMarkers%Blade, 1 )
-
-IF (.NOT. ALLOCATED(p_StrD%RNodes)) THEN
-   ALLOCATE ( p_StrD%RNodes(p_StrD%BldNodes) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the RNodes array.' )
-   ENDIF
-ENDIF
-
-IF (.NOT. ALLOCATED(p_StrD%DRNodes)) THEN
-   ALLOCATE ( p_StrD%DRNodes(p_StrD%BldNodes) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the DRNodes array.' )
-   ENDIF
-ENDIF
-
-IF (.NOT. ALLOCATED(p_StrD%Chord)) THEN
-   ALLOCATE ( p_StrD%Chord(p_StrD%BldNodes) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the Chord array.' )
-   ENDIF
-ENDIF
-
-IF (.NOT. ALLOCATED(p_StrD%AeroTwst)) THEN
-   ALLOCATE ( p_StrD%AeroTwst(p_StrD%BldNodes) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the AeroTwst array.' )
-   ENDIF
-ENDIF
-
-IF (.NOT. ALLOCATED(p_StrD%CAeroTwst)) THEN
-   ALLOCATE ( p_StrD%CAeroTwst(p_StrD%BldNodes) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the CAeroTwst array.' )
-   ENDIF
-ENDIF
-
-IF (.NOT. ALLOCATED(p_StrD%SAeroTwst)) THEN
-   ALLOCATE ( p_StrD%SAeroTwst(p_StrD%BldNodes) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the SAeroTwst array.' )
-   ENDIF
-ENDIF
-
-p_StrD%RNodes   = ADAeroMarkers%Blade(:,1)%Position(3) + p_StrD%HubRad         ! ADAeroMarkers contains relative markers after initialization
-p_StrD%DRNodes(1) = 2.0*( p_StrD%RNodes(1) - p_StrD%HubRad )
-DO IElm = 2,p_StrD%BldNodes
-   p_StrD%DRNodes(IElm) = 2.0*( p_StrD%RNodes(IElm) - p_StrD%RNodes(IElm-1) ) - p_StrD%DRNodes(IElm-1)
-END DO
-p_StrD%Chord    = C
-p_StrD%CAeroTwst(:) = ADAeroMarkers%Blade(:,1)%Orientation(1,1)
-p_StrD%SAeroTwst(:) = ADAeroMarkers%Blade(:,1)%Orientation(2,1)
-p_StrD%AeroTwst( :) = ATAN2( p_StrD%SAeroTwst(:), p_StrD%CAeroTwst(:) )
-
-AD_RefHt = AD_GetConstant('RefHt', ErrStat)
 p_StrD%AirDens  = AD_GetConstant('AirDensity', ErrStat)
+
 
 
   ! Let's compute the turbulence intensity and average wind speed for the
@@ -107,7 +53,7 @@ IF ( CompNoise )  THEN  ! Yes, noise will be computed.
    CALL Noise_CalcTI( REAL(0.0, ReKi), REAL(TMax, ReKi), REAL(DT, ReKi), InpPosition )
 
    KinViscosity = AD_GetConstant( 'KinVisc', ErrStat )      ! this variable stored in the Noise module.  The Noise module should be rewritten so that this is part of an initialization routine.
-
+   AirDensity   = AD_GetConstant('AirDensity', ErrStat)
 ENDIF
 
 
@@ -116,6 +62,7 @@ ENDIF
 IF ( CompAero )  THEN
 
    ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
+   AD_RefHt = AD_GetConstant('RefHt', ErrStat)
 
    IF ( ABS( p_StrD%FASTHH - AD_RefHt ) > 0.1*( p_StrD%FASTHH ) )  THEN  !bjj: I believe that this should not be done in the future
 

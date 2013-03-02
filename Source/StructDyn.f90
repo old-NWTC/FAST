@@ -2386,7 +2386,8 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
 
    DO I=1,BladeKInputFileData%NBlInpSt
 
-      CALL ReadAry( UnIn, BldFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Blade input station table', ErrStat2, UnEc )
+      CALL ReadAry( UnIn, BldFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Blade input station table', &
+                    ErrStat2, ErrMsg2, UnEc )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -2493,13 +2494,38 @@ CONTAINS
 
 END SUBROUTINE ReadBladeFile
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Alloc_BladeMeshInputProperties( BladeKInputFileMesh, ErrStat, ErrMsg )
+! This routine allocates arrays for the blade mesh properties from the input file
+!----------------------------------------------------------------------------------------------------------------------------------
+
+   TYPE(StrD_BladeMeshInputData), INTENT(INOUT)  :: BladeKInputFileMesh      ! Data for Blade K stored in the module's input file
+   INTEGER(IntKi),                INTENT(OUT)    :: ErrStat                  ! Error status
+   CHARACTER(*),                  INTENT(OUT)    :: ErrMsg                   ! Err msg
+
+
+   IF ( BladeKInputFileMesh%BldNodes < 1 )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating arrays for blade mesh input properties: BldNodes must be at least 1.'
+      RETURN
+   END IF
+
+   CALL AllocAry  ( BladeKInputFileMesh%RNodes,   BladeKInputFileMesh%BldNodes, 'RNodes'  , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileMesh%AeroTwst, BladeKInputFileMesh%BldNodes, 'AeroTwst', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( BladeKInputFileMesh%Chord,    BladeKInputFileMesh%BldNodes, 'Chord'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN       
+   
+
+END SUBROUTINE Alloc_BladeMeshInputProperties
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Alloc_BladeInputProperties( BladeKInputFileData, ErrStat, ErrMsg )
 ! This routine allocates arrays for the blade properties from the input file
 !----------------------------------------------------------------------------------------------------------------------------------
 
-   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
-   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat        ! Error status
-   CHARACTER(*),             INTENT(OUT)    :: ErrMsg         ! Err msg
+   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData      ! Data for Blade K stored in the module's input file
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                  ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                   ! Err message
 
 
    IF ( BladeKInputFileData%NBlInpSt < 1 )  THEN
@@ -2773,30 +2799,66 @@ SUBROUTINE ValidateModeShapeCoeffs( Coeffs, ShpDesc, ErrStat, ErrMsg )
 
 END SUBROUTINE ValidateModeShapeCoeffs
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SetBladeParams( p, BladeInData, SetAdmVals, ErrStat, ErrMsg )
+SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, SetAdmVals, ErrStat, ErrMsg )
 ! This takes the blade input file data and sets the corresponding blade parameters, performing linear interpolation of the
 ! input data to the specified blade mesh.
 !----------------------------------------------------------------------------------------------------------------------------------
 
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
-   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeInData(:)                      ! Program input data for all blades
-   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set
-   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
-   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+   TYPE(StrD_ParameterType),      INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
+   TYPE(BladeInputData),          INTENT(INOUT)  :: BladeInData(:)                      ! Program input data for all blades
+   TYPE(StrD_BladeMeshInputData), INTENT(INOUT)  :: BladeMeshData(:)                    ! Program input mesh data for all blades
+   LOGICAL,                       INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set
+   INTEGER(IntKi),                INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),                  INTENT(OUT)    :: ErrMsg                              ! Error message
 
       ! Local variables:
-   REAL(ReKi)                               :: x                                   ! Fractional location between two points in linear interpolation
-   INTEGER(IntKi )                          :: K                                   ! Blade number
-   INTEGER(IntKi )                          :: J                                   ! Index for the node arrays
-   INTEGER(IntKi)                           :: InterpInd                           ! Index for the interpolation routine
+   REAL(ReKi)                                    :: x                                   ! Fractional location between two points in linear interpolation
+   INTEGER(IntKi )                               :: K                                   ! Blade number
+   INTEGER(IntKi )                               :: J                                   ! Index for the node arrays
+   INTEGER(IntKi)                                :: InterpInd                           ! Index for the interpolation routine
 
    ErrStat = ErrID_None
    ErrMsg  = ''
 
+   !assumes the following parameters are previously defined...
+   !   p%HubRad
+   !   p%BldFlexL
+   
+   !
+   
+   
+      ! Write data read in from Mesh (ADFile):
+  
+   DO K=1,1 ! we're going to assume the discretization is the same for all blades 
 
+      p%BldNodes = BladeMeshData(K)%BldNodes 
+   
+      p%TipNode  = p%BldNodes + 1    ! The index for the blade tip and tower top nodes
+   END DO
+
+      ! Allocate arrays for the blade parameters being set in this routine:
+      
    CALL Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 
+   
+   DO K=1,1 ! we're going to assume the discretization is the same for all blades 
+
+      p%RNodes   = BladeMeshData(K)%RNodes - p%HubRad   ! Radius to blade analysis nodes relative to root ( 0 < RNodes(:) < p%BldFlexL ) (Convert RNodes to be relative to the hub)
+
+      p%DRNodes(1) = 2.0*p%RNodes(1)
+      DO J = 2,p%BldNodes
+         p%DRNodes(J) = 2.0*( p%RNodes(J) - p%RNodes(J-1) ) - p%DRNodes(J-1)
+      END DO
+   
+      p%Chord     = BladeMeshData(K)%Chord
+      p%AeroTwst  = BladeMeshData(K)%AeroTwst
+      p%CAeroTwst = COS(p%AeroTwst)
+      p%SAeroTwst = SIN(p%AeroTwst)
+      
+   END DO
+      
+   
    ! Array definitions:
 
    !    Input      Interp    Description
@@ -2936,8 +2998,23 @@ SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
 
-
-
+   
+      ! Allocate arrays to hold the blade analysis nodes.
+   CALL AllocAry  ( p%RNodes,             p%BldNodes, 'RNodes'   , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%DRNodes,            p%BldNodes, 'DRNodes'  , ErrStat, ErrMsg )
+   
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%Chord,              p%BldNodes, 'Chord'    , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%AeroTwst,           p%BldNodes, 'AeroTwst' , ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%CAeroTwst,          p%BldNodes, 'CAeroTwst', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry  ( p%SAeroTwst,          p%BldNodes, 'SAeroTwst', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   
+   
       ! Allocate arrays to hold blade data at the analysis nodes.
    CALL AllocAry  ( p%RNodesNorm,              p%BldNodes, 'RNodesNorm' , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
@@ -3206,7 +3283,8 @@ SUBROUTINE ReadTowerFile( InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat, Er
 
    DO I=1,InputFileData%NTwInpSt
 
-      CALL ReadAry( UnIn, TwrFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Tower input station table', ErrStat2, UnEc )
+      CALL ReadAry( UnIn, TwrFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Tower input station table', &
+                    ErrStat2, ErrMsg2, UnEc )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -3558,13 +3636,13 @@ SUBROUTINE Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 !END IF
 
-      ! these are for HydroDyn?
-   CALL AllocAry  ( p%DiamT,         p%TwrNodes, 'DiamT'     , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%CAT,           p%TwrNodes, 'CAT'       , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%CDT,           p%TwrNodes, 'CDT'       , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+   !   ! these are for HydroDyn?
+   !CALL AllocAry  ( p%DiamT,         p%TwrNodes, 'DiamT'     , ErrStat, ErrMsg )
+   !IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry  ( p%CAT,           p%TwrNodes, 'CAT'       , ErrStat, ErrMsg )
+   !IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry  ( p%CDT,           p%TwrNodes, 'CDT'       , ErrStat, ErrMsg )
+   !IF ( ErrStat /= ErrID_None ) RETURN
 
 
 
@@ -3678,11 +3756,11 @@ SUBROUTINE SetTowerParams( p, InputFileData, SetAdmVals, ErrStat, ErrMsg  )
    p%TTopNode = p%TwrNodes + 1
 
 
-      ! these are for HydroDyn ?
-   p%DiamT(:) = InputFileData%TwrDiam
-   p%CAT(:)   = InputFileData%TwrCA
-   p%CDT(:)   = InputFileData%TwrCD
-
+   !   ! these are for HydroDyn ?
+   !p%DiamT(:) = InputFileData%TwrDiam
+   !p%CAT(:)   = InputFileData%TwrCA
+   !p%CDT(:)   = InputFileData%TwrCD
+   !
 
 RETURN
 
@@ -4713,7 +4791,155 @@ SUBROUTINE SetFurlParams( p, InputFileData, ErrStat, ErrMsg  )
    
    
 END SUBROUTINE SetFurlParams
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrMsg )
 
+
+   ! This routine reads in the AeroDyn v13.00.00 input file to get the
+   !   blade discretization used in the structural dynamics module.
+
+
+   IMPLICIT                        NONE
+
+      ! Passed variables
+
+   TYPE(StrD_BladeMeshInputData), INTENT(INOUT)  :: BladeKInputFileMesh                 ! All the data in the StructDyn input file
+   CHARACTER(*),                  INTENT(IN)     :: MeshFile                            ! Name of the AeroDyn input file data (for mesh)
+
+   INTEGER(IntKi),                INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+   INTEGER(IntKi),                INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),                  INTENT(OUT)    :: ErrMsg                              ! Error message
+
+      ! Local variables:
+   INTEGER(IntKi), PARAMETER    :: NInputCols = 4                                       ! Number of input columns to be read from the file
+   REAL(ReKi)                   :: TmpRAry(NInputCols)                                  ! Temporary variable to read table from file
+   INTEGER(IntKi)               :: I                                                    ! loop counter
+   INTEGER(IntKi)               :: NumFoil                                              ! number of airfoil lines to read
+   INTEGER(IntKi)               :: UnIn                                                 ! Unit number for reading file
+     
+   INTEGER(IntKi)               :: ErrStat2                                             ! Temporary Error status
+   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                              ! Temporary Err msg
+
+
+
+      ! Get an available unit number for the file.
+
+   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Open the AeroDyn input file.
+
+   CALL OpenFInpFile ( UnIn, MeshFile, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Add a separator to the echo file if appropriate.
+
+   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Mesh input data from (AeroDyn input) file "'//TRIM( MeshFile )//'":'
+ 
+
+   !  -------------- HEADER -------------------------------------------------------
+   ! BJJ: This file is AeroDyn's input file. Until we decide on a format for the 
+   ! structural dynamics input, we will get this information from AeroDyn like we
+   ! used to.
+
+   DO I = 1,17
+      CALL ReadCom ( UnIn, MeshFile, 'AeroDyn input (for structural dynamics mesh)', ErrStat2, ErrMsg2  )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END DO
+
+   CALL ReadVar ( UnIn, MeshFile, NumFoil, 'NumFoil', &
+                  'Number of airfoil lines to skip in AeroDyn input (for structural dynamics mesh)', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   DO I = 1,NumFoil
+      CALL ReadCom ( UnIn, MeshFile, 'AeroDyn input (for structural dynamics mesh)', ErrStat2, ErrMsg2  )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END DO
+
+      
+  !  -------------- Blade Mesh Data --------------------------------------------------
+ 
+      ! Read in the number of blade elements
+   CALL ReadVar( UnIn, MeshFile, BladeKInputFileMesh%BldNodes, 'BldNodes', 'Number of blade elements', ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! Allocate the arrays to store input 
+   CALL Alloc_BladeMeshInputProperties( BladeKInputFileMesh, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+      ! Read comment line for the element table
+   CALL ReadCom( UnIn, MeshFile, 'Blade element table headers', ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   DO I = 1, BladeKInputFileMesh%BldNodes
+   
+      CALL ReadAry( UnIn, MeshFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Blade element input table', ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+
+         BladeKInputFileMesh%RNodes(  I) = TmpRAry(1)
+         BladeKInputFileMesh%AeroTwst(I) = TmpRAry(2)*D2R  !Convert input file data (degrees) to radians
+         BladeKInputFileMesh%Chord(   I) = TmpRAry(4)
+      
+   END DO
+   
+      !bjj: move this to a validation routine:
+   IF ( ANY( BladeKInputFileMesh%Chord < 0.0_ReKi ) ) THEN
+      CALL CheckError( ErrID_Fatal, 'Chord length must be larger than 0 meters.' )
+      RETURN
+   END IF
+   
+   
+      ! Close the input file:
+
+   CLOSE ( UnIn )
+   RETURN
+
+
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnIn )
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError
+   !...............................................................................................................................
+
+END SUBROUTINE ReadBladeMeshFile
+!----------------------------------------------------------------------------------------------------------------------------------
 END MODULE StructDyn
 !**********************************************************************************************************************************
 
