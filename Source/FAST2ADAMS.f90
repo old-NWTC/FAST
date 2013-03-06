@@ -1,8 +1,8 @@
 MODULE FAST2ADAMSSubs
 
    USE   NWTC_Library
-   USE   StructDyn_Types
-   USE   StructDyn_Parameters
+   USE   ElastoDyn_Types
+   USE   ElastoDyn_Parameters
 
    USE GlueCodeVars
    
@@ -68,7 +68,7 @@ MODULE FAST2ADAMSSubs
 
 CONTAINS
 !=======================================================================
-SUBROUTINE MakeACF(p_StrD)
+SUBROUTINE MakeACF(p_ED)
 
 
    ! This routine generates an ADAMS control file (.acf) for an ADAMS
@@ -86,7 +86,7 @@ USE HydroVals
 IMPLICIT                        NONE
 
    ! passed variables
-TYPE(StrD_ParameterType),INTENT(IN) :: p_StrD                                    ! Parameters of the structural dynamics module
+TYPE(ED_ParameterType),INTENT(IN) :: p_ED                                    ! Parameters of the structural dynamics module
 
 
    ! Local variables.
@@ -129,9 +129,9 @@ WRITE (UnAC,FmtTRTR  )  'SIMULATE/DYNAMICS, END = ', DT, ', DTOUT = ', DT*DecFac
    ! DEACTIVATE the MOTION statements for the translational platform DOFs if
    !   the corresponding DOFs are enabled:
 
-IF ( p_StrD%DOF_Flag(DOF_Sg  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1001'
-IF ( p_StrD%DOF_Flag(DOF_Sw  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1002'
-IF ( p_StrD%DOF_Flag(DOF_Hv  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1003'
+IF ( p_ED%DOF_Flag(DOF_Sg  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1001'
+IF ( p_ED%DOF_Flag(DOF_Sw  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1002'
+IF ( p_ED%DOF_Flag(DOF_Hv  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 1003'
 
 
    ! DEACTIVATE the JPRIM statement for the rotational platform DOFs if the
@@ -140,19 +140,19 @@ IF ( p_StrD%DOF_Flag(DOF_Hv  ) )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID
    !   must all be set to the same value, a requirement enforced in routine
    !   MakeADM()]:
 
-IF ( p_StrD%DOF_Flag(DOF_R   )  )  WRITE (UnAC,FmtText  )  'DEACTIVATE/JPRIM, ID = 1000'
+IF ( p_ED%DOF_Flag(DOF_R   )  )  WRITE (UnAC,FmtText  )  'DEACTIVATE/JPRIM, ID = 1000'
 
 
    ! DEACTIVATE the MOTION statements for the yaw, rotor-furl, tail-furl, HSS,
    !   and teeter bearings and the drivetrain LSS/HSS lock if the corresponding
    !   DOFs are enabled:
 
-IF ( p_StrD%DOF_Flag(DOF_Yaw )   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 2010'
-IF ( p_StrD%DOF_Flag(DOF_TFrl)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 5040'
-IF ( p_StrD%DOF_Flag(DOF_RFrl)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 2130'
-IF ( p_StrD%DOF_Flag(DOF_Teet)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 4010'
-IF ( p_StrD%DOF_Flag(DOF_DrTr)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 3020'
-IF ( p_StrD%DOF_Flag(DOF_GeAz)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 3150'
+IF ( p_ED%DOF_Flag(DOF_Yaw )   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 2010'
+IF ( p_ED%DOF_Flag(DOF_TFrl)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 5040'
+IF ( p_ED%DOF_Flag(DOF_RFrl)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 2130'
+IF ( p_ED%DOF_Flag(DOF_Teet)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 4010'
+IF ( p_ED%DOF_Flag(DOF_DrTr)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 3020'
+IF ( p_ED%DOF_Flag(DOF_GeAz)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = 3150'
 
 
    ! Turn off fixed pitch MOTION; use advanced, individual blade pitch control
@@ -160,7 +160,7 @@ IF ( p_StrD%DOF_Flag(DOF_GeAz)   )  WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, 
    ! Only do this if we will be modifying the blade pitch angles during
    !   our run.
 
-DO K = 1,p_StrD%NumBl ! Loop through all blades
+DO K = 1,p_ED%NumBl ! Loop through all blades
 
    IF ( ( ( PCMode /= 0 ) .AND. ( TPCOn < TMax ) ) .OR. ( TPitManS(K) < TMax ) )  &
       WRITE (UnAC,FmtText  )  'DEACTIVATE/MOTION, ID = '//TRIM(Num2LStr( 10000*K ))
@@ -176,21 +176,21 @@ ENDDO          ! K - Blades
    !   elements together during the initial condition solution eliminates
    !   this problem.
 
-IF ( p_StrD%DOF_Flag(DOF_TFA1) )  THEN   ! Tower flexibility is enabled.
+IF ( p_ED%DOF_Flag(DOF_TFA1) )  THEN   ! Tower flexibility is enabled.
 
    WRITE    (UnAC,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Num2LStr(           1300 + 1        ))//', '// &
-                                                            TRIM(Num2LStr(           1300 + p_StrD%TwrNodes ))
+                                                            TRIM(Num2LStr(           1300 + p_ED%TwrNodes ))
    WRITE    (UnAC,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Num2LStr(           1500            ))
 
 ENDIF
 
-IF ( p_StrD%DOF_Flag( DOF_BF(1,1) ) )  THEN   ! Blade flexibility is enabled.
+IF ( p_ED%DOF_Flag( DOF_BF(1,1) ) )  THEN   ! Blade flexibility is enabled.
 
-   DO K = 1,p_StrD%NumBl       ! Loop through all the blades
+   DO K = 1,p_ED%NumBl       ! Loop through all the blades
 
       WRITE (   UnAC,FmtText  )  'DEACTIVATE/JOINT, RANGE = '//TRIM(Num2LStr( 10000*K + 3000 + 1        ))//', '// &
-                                                               TRIM(Num2LStr( 10000*K + 3000 + p_StrD%BldNodes ))
-      IF ( p_StrD%TipMass(K) /= 0.0 )  &
+                                                               TRIM(Num2LStr( 10000*K + 3000 + p_ED%BldNodes ))
+      IF ( p_ED%TipMass(K) /= 0.0 )  &
          WRITE (UnAC,FmtText  )  'DEACTIVATE/JOINT, ID = '//TRIM(   Num2LStr( 10000*K + 5000            ))
 
    ENDDO                ! K - blades
@@ -254,8 +254,8 @@ USE                             FAST_Hydro
 IMPLICIT                        NONE
 
    ! passed variables
-TYPE(StrD_ParameterType),INTENT(IN) :: p                                        ! Parameters of the structural dynamics module
-TYPE(StrD_InputFile),    INTENT(IN) :: InputFileData                            ! Input file data of the structural dynamics module
+TYPE(ED_ParameterType),INTENT(IN) :: p                                        ! Parameters of the structural dynamics module
+TYPE(ED_InputFile),    INTENT(IN) :: InputFileData                            ! Input file data of the structural dynamics module
 
    ! Local variables.
 
@@ -477,12 +477,12 @@ IMPLICIT                        NONE
 
    ! passed variables
 
-TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             ! Parameters of the structural dynamics module
+TYPE(ED_ParameterType),        INTENT(IN)    :: p                             ! Parameters of the structural dynamics module
 TYPE(Ctrl_ParameterType),        INTENT(IN)    :: p_Ctrl                        ! The parameters of the controls module
-TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
-!TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
-TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for Structural dynamics module
-TYPE(StrD_InputFile),            INTENT(IN)    :: InputFileData                 ! Data stored in the module's input file
+TYPE(ED_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
+!TYPE(ED_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
+TYPE(ED_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for Structural dynamics module
+TYPE(ED_InputFile),            INTENT(IN)    :: InputFileData                 ! Data stored in the module's input file
 
 
    ! Local variables:
@@ -535,7 +535,7 @@ CHARACTER(28)                :: FmtTRTRTR = '(A,ES13.6,A,ES13.6,A,ES13.6)'      
 CHARACTER(55)                :: FmtTRTRTRTRTRTR = '(A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4)' ! Format for outputting text, a real value, text, a real value, text, a real value, text, a real value, text, a real value, text, and (you guessed it!) a real value.
 
 
-TYPE(StrD_CoordSys)          :: CoordSys                                         ! coordinate systems
+TYPE(ED_CoordSys)          :: CoordSys                                         ! coordinate systems
 
 INTEGER(IntKi)               :: ErrStat                                          ! Error status flag
 CHARACTER(1024)              :: ErrMsg                                           ! Error message

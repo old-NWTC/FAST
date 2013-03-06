@@ -1,7 +1,7 @@
 MODULE Noise
 
 USE                             NWTC_Library
-USE StructDyn_Types
+USE ElastoDyn_Types
 USE GlueCodeVars
 
 !bjj: several subroutines have default FORTRAN typing:
@@ -70,18 +70,18 @@ REAL(ReKi), DIMENSION(NFrequency) :: FrequencyCenter = &    ! Center frequency o
 
 CONTAINS
 !====================================================================================================
-SUBROUTINE PredictNoise( p_StrD, te1, te2, te3, rS )
+SUBROUTINE PredictNoise( p_ED, te1, te2, te3, rS )
 
 USE                             AeroElem
 USE                             SimCont
 USE                             AeroDyn
 
-USE StructDyn_Types
+USE ElastoDyn_Types
 
 IMPLICIT                        NONE
 
    ! passed variables
-TYPE(StrD_ParameterType), INTENT(IN)  :: p_StrD                                 ! Parameters of the structural dynamics module
+TYPE(ED_ParameterType), INTENT(IN)  :: p_ED                                 ! Parameters of the structural dynamics module
 REAL(ReKi),               INTENT(IN)  :: te1(:,:,:)                             ! te1(K,J,:) = vector / direction te1 for node J of blade K (used to calc. noise)
 REAL(ReKi),               INTENT(IN)  :: te2(:,:,:)                             ! te2(K,J,:) = vector / direction te2 for node J of blade K (used to calc. noise)
 REAL(ReKi),               INTENT(IN)  :: te3(:,:,:)                             ! te3(K,J,:) = vector / direction te3 for node J of blade K (used to calc. noise)
@@ -122,9 +122,9 @@ INTEGER                       :: ErrStat
 
 ! Calculate observer distance and directivity angles
 
-CALL CalcObserve( p_StrD, te1, te2, te3, rS )
+CALL CalcObserve( p_ED, te1, te2, te3, rS )
 
-DO K = 1, p_StrD%NumBl
+DO K = 1, p_ED%NumBl
 
 
 !     FOR EACH BLADE SEGMENT, MAKE A NOISE PREDICTION ACCORDING
@@ -132,7 +132,7 @@ DO K = 1, p_StrD%NumBl
 !     THE LAST SEGMENT ONLY.
 !     ---------------------------------------------------------
 
-   DO III=1,p_StrD%BldNodes
+   DO III=1,p_ED%BldNodes
 
         UNoise = SQRT( AD_GetCurrentValue('W2',ErrStat, IBlade=K, IElement=III) )
 
@@ -141,24 +141,24 @@ DO K = 1, p_StrD%NumBl
         AlphaNoise = ABS( R2D * AD_GetCurrentValue('ALPHA',ErrStat, IBlade=K, IElement=III) )
 
         IF ( ILAM .AND. ( ITRIP .EQ. 0 ) )                                     &
-         CALL LBLVS(AlphaNoise,p_StrD%Chord(III),UNoise,SPLLBL, &
-                 ChordAngleTE(K,III),SpanAngleTE(K,III),p_StrD%DRNodes(III),rTEtoObserve(K,III))
+         CALL LBLVS(AlphaNoise,p_ED%Chord(III),UNoise,SPLLBL, &
+                 ChordAngleTE(K,III),SpanAngleTE(K,III),p_ED%DRNodes(III),rTEtoObserve(K,III))
 
         IF ( ITURB )                                              &
-         CALL TBLTE(AlphaNoise,p_StrD%Chord(III),UNoise,SPLP,       &
-                SPLS,SPLALPH,SPLTBL,ChordAngleTE(K,III),SpanAngleTE(K,III),p_StrD%DRNodes(III),rTEtoObserve(K,III))
+         CALL TBLTE(AlphaNoise,p_ED%Chord(III),UNoise,SPLP,       &
+                SPLS,SPLALPH,SPLTBL,ChordAngleTE(K,III),SpanAngleTE(K,III),p_ED%DRNodes(III),rTEtoObserve(K,III))
 
         IF ( IBLUNT )                                            &
-         CALL BLUNT(AlphaNoise,p_StrD%Chord(III),UNoise,SPLBLNT,   &
-                  ChordAngleTE(K,III),SpanAngleTE(K,III),p_StrD%DRNodes(III),rTEtoObserve(K,III),TEThick(III),TEAngle(III))
+         CALL BLUNT(AlphaNoise,p_ED%Chord(III),UNoise,SPLBLNT,   &
+                  ChordAngleTE(K,III),SpanAngleTE(K,III),p_ED%DRNodes(III),rTEtoObserve(K,III),TEThick(III),TEAngle(III))
 
-        IF ( ITIP .AND. ( III .EQ. p_StrD%BldNodes ) )                       &
-          CALL TIPNOIS(AlphaNoise,ALPRAT,p_StrD%Chord(III),UNoise,SPLTIP,      &
+        IF ( ITIP .AND. ( III .EQ. p_ED%BldNodes ) )                       &
+          CALL TIPNOIS(AlphaNoise,ALPRAT,p_ED%Chord(III),UNoise,SPLTIP,      &
                        ChordAngleTE(K,III),SpanAngleTE(K,III),rTEtoObserve(K,III))
 
         IF ( IInflow )  &
-          CALL InflowNoise(UNoise,p_StrD%Chord(III),p_StrD%DRNodes(III),rLEtoObserve(K,III), &
-                            ChordAngleLE(K,III),SpanAngleLE(K,III),SPLti, p_StrD)
+          CALL InflowNoise(UNoise,p_ED%Chord(III),p_ED%DRNodes(III),rLEtoObserve(K,III), &
+                            ChordAngleLE(K,III),SpanAngleLE(K,III),SPLti, p_ED)
 
 
 !      ADD IN THIS SEGMENT'S CONTRIBUTION ON A MEAN-SQUARE
@@ -207,7 +207,7 @@ DO K = 1, p_StrD%NumBl
             AvePressure (4,I) = AvePressure (4,I) + PBLNT
           ENDIF
 
-          IF ( ITIP .AND. ( III .EQ. p_StrD%BldNodes ) )  THEN
+          IF ( ITIP .AND. ( III .EQ. p_ED%BldNodes ) )  THEN
             PTip = 10.**(SPLTIP(I)/10.)
             PtotalTip = PtotalTip + PTip
             Ptotal = Ptotal + PTip
@@ -1150,7 +1150,7 @@ SUBROUTINE WrNoiseOutHdr(p)
 
    ! This routine generates the header for the noise output files.
 
-USE StructDyn_Types
+USE ElastoDyn_Types
 
 USE                             General
 
@@ -1160,7 +1160,7 @@ USE                             AeroDyn
 IMPLICIT                        NONE
 
    ! passed variables
-TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             ! Parameters of the structural dynamics module
+TYPE(ED_ParameterType),        INTENT(IN)    :: p                             ! Parameters of the structural dynamics module
 
    ! Local variables.
 
@@ -1259,7 +1259,7 @@ WRITE (UnNoSpec, Frmt)'ONE-THIRD OCTAVE','SOUND PRESSURE LEVELS','              
 RETURN
 END SUBROUTINE WrNoiseOutHdr
 !====================================================================================================
-SUBROUTINE NoiseInput(UnIn, NoiseFile, p_StrD)
+SUBROUTINE NoiseInput(UnIn, NoiseFile, p_ED)
 
    ! This routine reads the noise input files.
 
@@ -1267,7 +1267,7 @@ SUBROUTINE NoiseInput(UnIn, NoiseFile, p_StrD)
 IMPLICIT                        NONE
 
    ! passed variables
-TYPE(StrD_ParameterType), INTENT(IN)  :: p_StrD                                 ! Parameters of the structural dynamics module
+TYPE(ED_ParameterType), INTENT(IN)  :: p_ED                                 ! Parameters of the structural dynamics module
 INTEGER, INTENT(IN)       :: UnIn
 CHARACTER(*),INTENT(IN)   :: NoiseFile
 
@@ -1279,12 +1279,12 @@ INTEGER(4)                   :: Sttus                                           
 
    ! Allocates some of the input arrays
 
-ALLOCATE ( TEThick(p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( TEThick(p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the TEThick array.' )
 ENDIF
 
-ALLOCATE ( TEAngle(p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( TEAngle(p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the TEAngle array.' )
 ENDIF
@@ -1310,7 +1310,7 @@ CALL OpenFInpFile (UnIn,NoiseFile)
       READ(UnIn,*) RObserve(1), RObserve(2), RObserve(3)
       READ(UnIn,*)
       READ(UnIn,*)
-      DO I = 1, p_StrD%BldNodes
+      DO I = 1, p_ED%BldNodes
          READ(UnIn,*)TEThick(I),TEAngle(I)
       ENDDO
 
@@ -1318,25 +1318,25 @@ CLOSE (UnIn)
 RETURN
 END SUBROUTINE NoiseInput
 !====================================================================================================
-SUBROUTINE WriteSPLOut(p_StrD, AzimuthOut)
+SUBROUTINE WriteSPLOut(p_ED, AzimuthOut)
 
 
 USE                             General, ONLY: UnNoSPL
 USE                             SimCont, ONLY : ZTime
 
-USE StructDyn_Types
+USE ElastoDyn_Types
 
 IMPLICIT                        NONE
 
    ! passed variables
 
-TYPE(StrD_ParameterType),INTENT(IN)      :: p_StrD                               ! The parameters of the structural dynamics module
-REAL(ReKi), INTENT(IN)                   :: AzimuthOut                           ! Azimuth angle
+TYPE(ED_ParameterType),INTENT(IN)      :: p_ED                               ! The parameters of the structural dynamics module
+REAL(ReKi), INTENT(IN)                 :: AzimuthOut                           ! Azimuth angle
 
 
    ! Local variables
 
-REAL(ReKi)                   :: OASPLout (p_StrD%NumBl,p_StrD%BldNodes)         ! Overall sound pressure level to output
+REAL(ReKi)                   :: OASPLout (p_ED%NumBl,p_ED%BldNodes)         ! Overall sound pressure level to output
 
 INTEGER(4)                   :: I                                               ! A generic index for DO loops.
 INTEGER(4)                   :: J                                               ! A generic index for DO loops.
@@ -1365,26 +1365,26 @@ CASE DEFAULT
    OASPLout = OASPL
 END SELECT
 
-!AzimuthOut = MOD( ( x_StrD%QT(DOF_GeAz) + x_StrD%QT(DOF_DrTr) )*R2D + AzimB1Up + 90.0, 360.0 ).  This is the same as AllOuts(LSSTipPxa).
+!AzimuthOut = MOD( ( x_ED%QT(DOF_GeAz) + x_ED%QT(DOF_DrTr) )*R2D + AzimB1Up + 90.0, 360.0 ).  This is the same as AllOuts(LSSTipPxa).
 
 
 !bjj:  note that if SIZE(OASPLout) > 200, this won't print everything:
 
 Frmt = '(F8.3,A,F8.3,200(:,A ,F8.3))'
 
-WRITE(UnNoSPL,Frmt)  ZTime, p_StrD%Delim, AzimuthOut,( (p_StrD%Delim, OASPLout(J,I), &
+WRITE(UnNoSPL,Frmt)  ZTime, p_ED%Delim, AzimuthOut,( (p_ED%Delim, OASPLout(J,I), &
                                   I = 1,SIZE(OASPLout,DIM=2)), J = 1,SIZE(OASPLout,DIM=1) )
 
 
 ! Debug
-!WRITE(199,Frmt)  ZTime, Delim, AzimuthOut,(( Delim, SpanAngleTE( J,I), I = 1,p_StrD%BldNodes), J = 1, p_StrD%NumBl)
-!WRITE(299,Frmt)  ZTime, Delim, AzimuthOut,(( Delim, ChordAngleTE(J,I), I = 1,p_StrD%BldNodes), J = 1, p_StrD%NumBl)
+!WRITE(199,Frmt)  ZTime, Delim, AzimuthOut,(( Delim, SpanAngleTE( J,I), I = 1,p_ED%BldNodes), J = 1, p_ED%NumBl)
+!WRITE(299,Frmt)  ZTime, Delim, AzimuthOut,(( Delim, ChordAngleTE(J,I), I = 1,p_ED%BldNodes), J = 1, p_ED%NumBl)
 
 RETURN
 END SUBROUTINE WriteSPLOut
 
 !====================================================================================================
-SUBROUTINE CalcObserve( p_StrD, te1, te2, te3, rS )
+SUBROUTINE CalcObserve( p_ED, te1, te2, te3, rS )
 
 
 USE                             SimCont
@@ -1393,7 +1393,7 @@ USE                             SimCont
 IMPLICIT                        NONE
 
    ! Passed variables
-TYPE(StrD_ParameterType),INTENT(IN) :: p_StrD                                    ! Parameters of the structural dynamics module
+TYPE(ED_ParameterType),INTENT(IN) :: p_ED                                    ! Parameters of the structural dynamics module
    
 REAL(ReKi), INTENT(IN)        :: te1(:,:,:)                                     ! te1(K,J,:) = vector / direction te1 for node J of blade K (used to calc. noise)
 REAL(ReKi), INTENT(IN)        :: te2(:,:,:)                                     ! te2(K,J,:) = vector / direction te2 for node J of blade K (used to calc. noise)
@@ -1420,20 +1420,20 @@ INTEGER(4)                   :: J                                               
 
 ! Transform RObserve to the internal a coordinate system
 RObserveInt (1) = RObserve (1)
-RObserveInt (2) = RObserve (3) + p_StrD%PtfmRef
+RObserveInt (2) = RObserve (3) + p_ED%PtfmRef
 RObserveInt (3) =-RObserve (2)
 
-   DO J = 1, p_StrD%NumBl
-      DO I = 1, p_StrD%BldNodes
+   DO J = 1, p_ED%NumBl
+      DO I = 1, p_ED%BldNodes
 
           ! Calculate position vector of trailing edge from tower base in trailing edge coordinate system
           rSTE (1) = DOT_PRODUCT(te1(J,I,:),rS(J,I,:))
-          rSTE (2) = DOT_PRODUCT(te2(J,I,:),rS(J,I,:)) + 0.75*p_StrD%Chord(I)
+          rSTE (2) = DOT_PRODUCT(te2(J,I,:),rS(J,I,:)) + 0.75*p_ED%Chord(I)
           rSTE (3) = DOT_PRODUCT(te3(J,I,:),rS(J,I,:))
 
           ! Calculate position vector of leading edge from tower base in trailing edge coordinate system
           rSLE (1) = rSTE (1)
-          rSLE (2) = rSTE (2) - p_StrD%Chord(I)
+          rSLE (2) = rSTE (2) - p_ED%Chord(I)
           rSLE (3) = rSTE (3)
 
           ! Calculate position vector of observer from tower base in trailing edge coordinate system
@@ -1511,7 +1511,7 @@ RETURN
 END SUBROUTINE WriteAveSpecOut
 
 !====================================================================================================
-SUBROUTINE InflowNoise(U,Chord,d,RObs,THETA,PHI,SPLti,p_StrD)
+SUBROUTINE InflowNoise(U,Chord,d,RObs,THETA,PHI,SPLti,p_ED)
 
 
 
@@ -1519,7 +1519,7 @@ IMPLICIT                        NONE
 
    ! passed variables:
    
-TYPE(StrD_ParameterType),       INTENT(  IN)  :: p_StrD           ! Parameters of the structural dynamics module
+TYPE(ED_ParameterType),       INTENT(  IN)  :: p_ED           ! Parameters of the structural dynamics module
 
    ! local variables
 
@@ -1554,8 +1554,8 @@ ELSE
     RETURN
 ENDIF
 
-IF (p_StrD%FASTHH < 30.0) THEN
-    LTurb = 3.5*0.7*p_StrD%FASTHH ! Prediction sensitive to this parameter!
+IF (p_ED%FASTHH < 30.0) THEN
+    LTurb = 3.5*0.7*p_ED%FASTHH ! Prediction sensitive to this parameter!
 ELSE
     LTurb = 3.5*21.
 ENDIF
@@ -1622,37 +1622,37 @@ SUBROUTINE Noise_CalcTI (Time_Start, Time_End, delta_time, InputPosition)
    RETURN
 END SUBROUTINE Noise_CalcTI
 !====================================================================================================
-SUBROUTINE AllocNoise( p_StrD )
+SUBROUTINE AllocNoise( p_ED )
 
 
 IMPLICIT                        NONE
 
    ! Passed variables
-TYPE(StrD_ParameterType),INTENT(IN) :: p_StrD                                    ! Parameters of the structural dynamics module
+TYPE(ED_ParameterType),INTENT(IN) :: p_ED                                    ! Parameters of the structural dynamics module
 
    ! local variables
 INTEGER(4)                   :: Sttus                                           ! Status returned by an attempted allocation.
 
 
-ALLOCATE ( ChordAngleTE(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( ChordAngleTE(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the ChordAngleTE array.' )
 ENDIF
 ChordAngleTE = 0.0
 
-ALLOCATE ( SpanAngleTE(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( SpanAngleTE(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the SpanAngleTE array.' )
 ENDIF
 SpanAngleTE = 0.0
 
-ALLOCATE ( ChordAngleLE(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( ChordAngleLE(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the ChordAngleLE array.' )
 ENDIF
 ChordAngleLE = 0.0
 
-ALLOCATE ( SpanAngleLE(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( SpanAngleLE(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the SpanAngleTE array.' )
 ENDIF
@@ -1670,67 +1670,67 @@ IF ( Sttus /= 0 )  THEN
 ENDIF
 AveSPL = 0.0
 
-ALLOCATE ( OASPLLBL(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( OASPLLBL(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the OASPLLBL array.' )
 ENDIF
 OASPLLBL = 0.0
 
-ALLOCATE ( OASPLTBLP(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( OASPLTBLP(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the OASPLTBLP array.' )
 ENDIF
 OASPLTBLP = 0.0
 
-ALLOCATE ( OASPLTBLS(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( OASPLTBLS(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the OASPLTBLS array.' )
 ENDIF
 OASPLTBLS = 0.0
 
-ALLOCATE ( OASPLSep(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( OASPLSep(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the OASPLSep array.' )
 ENDIF
 OASPLSep = 0.0
 
-ALLOCATE ( OASPLTBLAll(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( OASPLTBLAll(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the OASPLAll array.' )
 ENDIF
 OASPLTBLAll = 0.0
 
-ALLOCATE ( OASPLBlunt(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( OASPLBlunt(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the OASPLBlunt array.' )
 ENDIF
 OASPLBlunt = 0.0
 
-ALLOCATE ( OASPLTip(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( OASPLTip(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the OASPLTip array.' )
 ENDIF
 OASPLTip = 0.0
 
-ALLOCATE ( OASPLInflow(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( OASPLInflow(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the OASPLTip array.' )
 ENDIF
 OASPLInflow = 0.0
 
-ALLOCATE ( OASPL(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( OASPL(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the OASPL array.' )
 ENDIF
 OASPL = 0.0
 
-ALLOCATE ( rTEtoObserve(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( rTEtoObserve(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the rTEtoObserve array.' )
 ENDIF
 rTEtoObserve = 0.0
 
-ALLOCATE ( rLEtoObserve(p_StrD%NumBl,p_StrD%BldNodes) , STAT=Sttus )
+ALLOCATE ( rLEtoObserve(p_ED%NumBl,p_ED%BldNodes) , STAT=Sttus )
 IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the rLEtoObserve array.' )
 ENDIF

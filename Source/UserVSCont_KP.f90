@@ -63,7 +63,7 @@ SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, D
 
 
 USE                            NWTC_Library
-use StructDyn_Types
+!use ElastoDyn_Types
 
 IMPLICIT                       NONE
 

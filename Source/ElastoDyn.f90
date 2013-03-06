@@ -1,5 +1,5 @@
 
-MODULE StructDyn_Parameters
+MODULE ElastoDyn_Parameters
 
       ! This module contains definitions of compile-time PARAMETERS for the StrucyDyn module.
       ! Every variable defined here MUST have the PARAMETER attribute.
@@ -1295,108 +1295,110 @@ INTEGER,  PARAMETER          :: TwHtRPzi(9) = (/ &
 
 
 
-END MODULE StructDyn_Parameters
+END MODULE ElastoDyn_Parameters
 !**********************************************************************************************************************************
 !**********************************************************************************************************************************
-! The StructDyn.f90, StructDyn_Types.f90, and StructDyn_Parameters.f90 files make up the StructDyn module of the
-! FAST Modularization Framework. StructDyn_Types is auto-generated based on FAST_Registry.txt.
+! The ElastoDyn.f90, ElastoDyn_Types.f90, and ElastoDyn_Parameters.f90 files make up the ElastoDyn module of the
+! FAST Modularization Framework. ElastoDyn_Types is auto-generated based on FAST_Registry.txt.
 !
 !..................................................................................................................................
 ! LICENSING
 ! Copyright (C) 2012  National Renewable Energy Laboratory
 !
-!    This file is part of StructDyn.
+!    This file is part of ElastoDyn.
 !
-!    StructDyn is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as
+!    ElastoDyn is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as
 !    published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 !
 !    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 !    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 !
-!    You should have received a copy of the GNU General Public License along with StructDyn.
+!    You should have received a copy of the GNU General Public License along with ElastoDyn.
 !    If not, see <http://www.gnu.org/licenses/>.
 !
 !**********************************************************************************************************************************
-MODULE StructDyn
+MODULE ElastoDyn
 
    USE NWTC_Library
 
-   USE StructDyn_Parameters
-   USE StructDyn_Types
+   USE ElastoDyn_Parameters
+   USE ElastoDyn_Types
 
 
    IMPLICIT NONE
 
 !BJJ REMOVE FOR NOW:   PRIVATE
 
-   TYPE(ProgDesc), PARAMETER  :: StrD_Ver = ProgDesc( 'StructDyn', 'v1.00.00a-bjj', '01-January-2013' )
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.00.00a-bjj', '31-March-2013' )
 
 
 
       ! ..... Public Subroutines ...................................................................................................
 
-   PUBLIC :: StrD_Init                           ! Initialization routine
-   PUBLIC :: StrD_End                            ! Ending routine (includes clean up)
+   PUBLIC :: ED_Init                           ! Initialization routine
+   PUBLIC :: ED_End                            ! Ending routine (includes clean up)
 
-   PUBLIC :: StrD_UpdateStates                   ! Loose coupling routine for solving for constraint states, integrating
-                                                 !   continuous states, and updating discrete states
-   PUBLIC :: StrD_CalcOutput                     ! Routine for computing outputs
+   PUBLIC :: ED_UpdateStates                   ! Loose coupling routine for solving for constraint states, integrating
+                                               !   continuous states, and updating discrete states
+   PUBLIC :: ED_CalcOutput                     ! Routine for computing outputs
 
-   PUBLIC :: StrD_CalcConstrStateResidual        ! Tight coupling routine for returning the constraint state residual
-   PUBLIC :: StrD_CalcContStateDeriv             ! Tight coupling routine for computing derivatives of continuous states
-   PUBLIC :: StrD_UpdateDiscState                ! Tight coupling routine for updating discrete states
+   PUBLIC :: ED_CalcConstrStateResidual        ! Tight coupling routine for returning the constraint state residual
+   PUBLIC :: ED_CalcContStateDeriv             ! Tight coupling routine for computing derivatives of continuous states
+   PUBLIC :: ED_UpdateDiscState                ! Tight coupling routine for updating discrete states
 
-   !PUBLIC :: StrD_JacobianPInput                 ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                              !   (Xd), and constraint-state (Z) equations all with respect to the inputs (u)
-   !PUBLIC :: StrD_JacobianPContState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                              !   (Xd), and constraint-state (Z) equations all with respect to the continuous
-   !                                              !   states (x)
-   !PUBLIC :: StrD_JacobianPDiscState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                              !   (Xd), and constraint-state (Z) equations all with respect to the discrete
-   !                                              !   states (xd)
-   !PUBLIC :: StrD_JacobianPConstrState           ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
-   !                                              !   (Xd), and constraint-state (Z) equations all with respect to the constraint
-   !                                              !   states (z)
+   !PUBLIC :: ED_JacobianPInput                 ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+   !                                            !   (Xd), and constraint-state (Z) equations all with respect to the inputs (u)
+   !PUBLIC :: ED_JacobianPContState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+   !                                            !   (Xd), and constraint-state (Z) equations all with respect to the continuous
+   !                                            !   states (x)
+   !PUBLIC :: ED_JacobianPDiscState             ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+   !                                            !   (Xd), and constraint-state (Z) equations all with respect to the discrete
+   !                                            !   states (xd)
+   !PUBLIC :: ED_JacobianPConstrState           ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
+   !                                            !   (Xd), and constraint-state (Z) equations all with respect to the constraint
+   !                                            !   states (z)
 
 
 CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrStat, ErrMsg )
+SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrStat, ErrMsg )
 ! This routine is called at the start of the simulation to perform initialization steps.
 ! The parameters are set here and not changed during the simulation.
 ! The initial states and initial guess for the input are defined.
 !..................................................................................................................................
 
-      TYPE(StrD_InitInputType),       INTENT(IN   )  :: InitInp     ! Input data for initialization routine
-      TYPE(StrD_InputType),           INTENT(  OUT)  :: u           ! An initial guess for the input; input mesh must be defined
-      TYPE(StrD_ParameterType),       INTENT(  OUT)  :: p           ! Parameters
-      TYPE(StrD_ContinuousStateType), INTENT(  OUT)  :: x           ! Initial continuous states
-      TYPE(StrD_DiscreteStateType),   INTENT(  OUT)  :: xd          ! Initial discrete states
-      TYPE(StrD_ConstraintStateType), INTENT(  OUT)  :: z           ! Initial guess of the constraint states
-      TYPE(StrD_OtherStateType),      INTENT(  OUT)  :: OtherState  ! Initial other/optimization states
-      TYPE(StrD_OutputType),          INTENT(  OUT)  :: y           ! Initial system outputs (outputs are not calculated;
-                                                                    !   only the output mesh is initialized)
-      REAL(DbKi),                     INTENT(INOUT)  :: Interval    ! Coupling interval in seconds: the rate that
-                                                                    !   (1) StrD_UpdateStates() is called in loose coupling &
-                                                                    !   (2) StrD_UpdateDiscState() is called in tight coupling.
-                                                                    !   Input is the suggested time from the glue code;
-                                                                    !   Output is the actual coupling interval that will be used
-                                                                    !   by the glue code.
-      TYPE(StrD_InitOutputType),      INTENT(  OUT)  :: InitOut     ! Output for initialization routine
-      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      TYPE(ED_InitInputType),       INTENT(IN   )  :: InitInp     ! Input data for initialization routine
+      TYPE(ED_InputType),           INTENT(  OUT)  :: u           ! An initial guess for the input; input mesh must be defined
+      TYPE(ED_ParameterType),       INTENT(  OUT)  :: p           ! Parameters
+      TYPE(ED_ContinuousStateType), INTENT(  OUT)  :: x           ! Initial continuous states
+      TYPE(ED_DiscreteStateType),   INTENT(  OUT)  :: xd          ! Initial discrete states
+      TYPE(ED_ConstraintStateType), INTENT(  OUT)  :: z           ! Initial guess of the constraint states
+      TYPE(ED_OtherStateType),      INTENT(  OUT)  :: OtherState  ! Initial other/optimization states
+      TYPE(ED_OutputType),          INTENT(  OUT)  :: y           ! Initial system outputs (outputs are not calculated;
+                                                                  !   only the output mesh is initialized)
+      REAL(DbKi),                   INTENT(INOUT)  :: Interval    ! Coupling interval in seconds: the rate that
+                                                                  !   (1) ED_UpdateStates() is called in loose coupling &
+                                                                  !   (2) ED_UpdateDiscState() is called in tight coupling.
+                                                                  !   Input is the suggested time from the glue code;
+                                                                  !   Output is the actual coupling interval that will be used
+                                                                  !   by the glue code.
+      TYPE(ED_InitOutputType),      INTENT(  OUT)  :: InitOut     ! Output for initialization routine
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
          ! Local variables
 
-      TYPE(StrD_InputFile)                           :: InputFileData  ! Data stored in the module's input file
+      TYPE(ED_InputFile)                           :: InputFileData  ! Data stored in the module's input file
+      LOGICAL                                      :: GetAdamsVals   ! Determines if we should read Adams values and create (update) an Adams model
 
 
-
-         ! Initialize ErrStat
+         ! Initialize variables
 
       ErrStat = ErrID_None
       ErrMsg  = ""
+      
+      GetAdamsVals = InitInp%AdamsUnit > 0            ! get Adams values only if the unit number is positive
 
 
          ! Initialize the NWTC Subroutine Library
@@ -1405,19 +1407,17 @@ SUBROUTINE StrD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
 
          ! Display the module information
 
-      CALL DispNVD( StrD_Ver )
+      CALL DispNVD( ED_Ver )
 
 
          ! Read the input file and validate the data
 
-!      CALL StrD_ReadInput( InitInp%InputFile, InputFileData, ErrStat, ErrMsg )
-!      CALL StrD_ValidateInput( InputFileData, p, ErrStat, ErrMsg )
-
-
-      CALL StrD_InitDOFs( p, ErrStat, ErrMsg )
-
+      CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, ErrStat, ErrMsg )
+      CALL ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
 
          ! Define parameters here:
+      CALL ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )     
+      CALL InitDOFs( p, ErrStat, ErrMsg )
 
 
       p%DT  = Interval
@@ -1453,21 +1453,21 @@ SUBROUTINE StrD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
        !Interval = p%DT
 
 
-END SUBROUTINE StrD_Init
+END SUBROUTINE ED_Init
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
+SUBROUTINE ED_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 ! This routine is called at the end of the simulation.
 !..................................................................................................................................
 
-      TYPE(StrD_InputType),           INTENT(INOUT)  :: u           ! System inputs
-      TYPE(StrD_ParameterType),       INTENT(INOUT)  :: p           ! Parameters
-      TYPE(StrD_ContinuousStateType), INTENT(INOUT)  :: x           ! Continuous states
-      TYPE(StrD_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Discrete states
-      TYPE(StrD_ConstraintStateType), INTENT(INOUT)  :: z           ! Constraint states
-      TYPE(StrD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(StrD_OutputType),          INTENT(INOUT)  :: y           ! System outputs
-      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      TYPE(ED_InputType),           INTENT(INOUT)  :: u           ! System inputs
+      TYPE(ED_ParameterType),       INTENT(INOUT)  :: p           ! Parameters
+      TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           ! Continuous states
+      TYPE(ED_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Discrete states
+      TYPE(ED_ConstraintStateType), INTENT(INOUT)  :: z           ! Constraint states
+      TYPE(ED_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(ED_OutputType),          INTENT(INOUT)  :: y           ! System outputs
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
 
@@ -1486,56 +1486,56 @@ SUBROUTINE StrD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
          ! Destroy the input data:
 
-      CALL StrD_DestroyInput( u, ErrStat, ErrMsg )
+      CALL ED_DestroyInput( u, ErrStat, ErrMsg )
 
 
          ! Destroy the parameter data:
 
-      CALL StrD_DestroyParam( p, ErrStat, ErrMsg )
+      CALL ED_DestroyParam( p, ErrStat, ErrMsg )
 
 
          ! Destroy the state data:
 
-      CALL StrD_DestroyContState(   x,           ErrStat, ErrMsg )
-      CALL StrD_DestroyDiscState(   xd,          ErrStat, ErrMsg )
-      CALL StrD_DestroyConstrState( z,           ErrStat, ErrMsg )
-      CALL StrD_DestroyOtherState(  OtherState,  ErrStat, ErrMsg )
+      CALL ED_DestroyContState(   x,           ErrStat, ErrMsg )
+      CALL ED_DestroyDiscState(   xd,          ErrStat, ErrMsg )
+      CALL ED_DestroyConstrState( z,           ErrStat, ErrMsg )
+      CALL ED_DestroyOtherState(  OtherState,  ErrStat, ErrMsg )
 
 
          ! Destroy the output data:
 
-      CALL StrD_DestroyOutput( y, ErrStat, ErrMsg )
+      CALL ED_DestroyOutput( y, ErrStat, ErrMsg )
 
 
 
 
-END SUBROUTINE StrD_End
+END SUBROUTINE ED_End
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+SUBROUTINE ED_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 ! Loose coupling routine for solving for constraint states, integrating continuous states, and updating discrete states
 ! Constraint states are solved for input Time; Continuous and discrete states are updated for Time + Interval
 !..................................................................................................................................
 
-      REAL(DbKi),                      INTENT(IN   ) :: Time        ! Current simulation time in seconds
-      TYPE(StrD_InputType),            INTENT(IN   ) :: u           ! Inputs at Time
-      TYPE(StrD_ParameterType),        INTENT(IN   ) :: p           ! Parameters
-      TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x           ! Input: Continuous states at Time;
-                                                                    !   Output: Continuous states at Time + Interval
-      TYPE(StrD_DiscreteStateType),    INTENT(INOUT) :: xd          ! Input: Discrete states at Time;
-                                                                    !   Output: Discrete states at Time  + Interval
-      TYPE(StrD_ConstraintStateType),  INTENT(INOUT) :: z           ! Input: Initial guess of constraint states at Time;
-                                                                    !   Output: Constraint states at Time
-      TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState  ! Other/optimization states
-      INTEGER(IntKi),                  INTENT(  OUT) :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                    INTENT(  OUT) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      REAL(DbKi),                    INTENT(IN   ) :: Time        ! Current simulation time in seconds
+      TYPE(ED_InputType),            INTENT(IN   ) :: u           ! Inputs at Time
+      TYPE(ED_ParameterType),        INTENT(IN   ) :: p           ! Parameters
+      TYPE(ED_ContinuousStateType),  INTENT(INOUT) :: x           ! Input: Continuous states at Time;
+                                                                  !   Output: Continuous states at Time + Interval
+      TYPE(ED_DiscreteStateType),    INTENT(INOUT) :: xd          ! Input: Discrete states at Time;
+                                                                  !   Output: Discrete states at Time  + Interval
+      TYPE(ED_ConstraintStateType),  INTENT(INOUT) :: z           ! Input: Initial guess of constraint states at Time;
+                                                                  !   Output: Constraint states at Time
+      TYPE(ED_OtherStateType),       INTENT(INOUT) :: OtherState  ! Other/optimization states
+      INTEGER(IntKi),                INTENT(  OUT) :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                  INTENT(  OUT) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
          ! Local variables
 
-      TYPE(StrD_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at Time
-      TYPE(StrD_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
+      TYPE(ED_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at Time
+      TYPE(ED_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
 
-      INTEGER(IntKi)                                 :: ErrStat2    ! Error status of the operation (occurs after initial error)
-      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
+      INTEGER(IntKi)                               :: ErrStat2    ! Error status of the operation (occurs after initial error)
+      CHARACTER(LEN(ErrMsg))                       :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
 
          ! Initialize ErrStat
 
@@ -1549,9 +1549,9 @@ SUBROUTINE StrD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
          ! Check if the z guess is correct and update z with a new guess.
          ! Iterate until the value is within a given tolerance.
 
-      CALL StrD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
+      CALL ED_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) THEN
-         CALL StrD_DestroyConstrState( z_Residual, ErrStat2, ErrMsg2)
+         CALL ED_DestroyConstrState( z_Residual, ErrStat2, ErrMsg2)
          ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
          RETURN
       END IF
@@ -1560,9 +1560,9 @@ SUBROUTINE StrD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
       !
       !  z =
       !
-      !  CALL StrD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
+      !  CALL ED_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
       !  IF ( ErrStat >= AbortErrLev ) THEN
-      !     CALL StrD_DestroyConstrState( z_Residual, ErrStat2, ErrMsg2)
+      !     CALL ED_DestroyConstrState( z_Residual, ErrStat2, ErrMsg2)
       !     ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
       !     RETURN
       !  END IF
@@ -1572,28 +1572,28 @@ SUBROUTINE StrD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
 
          ! Destroy z_Residual because it is not necessary for the rest of the subroutine:
 
-      CALL StrD_DestroyConstrState( z_Residual, ErrStat, ErrMsg)
+      CALL ED_DestroyConstrState( z_Residual, ErrStat, ErrMsg)
       IF ( ErrStat >= AbortErrLev ) RETURN
 
 
 
          ! Get first time derivatives of continuous states (dxdt):
 
-      CALL StrD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
+      CALL ED_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) THEN
-         CALL StrD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+         CALL ED_DestroyContState( dxdt, ErrStat2, ErrMsg2)
          ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
          RETURN
       END IF
 
 
          ! Update discrete states:
-         !   Note that xd [discrete state] is changed in StrD_UpdateDiscState(), so StrD_CalcOutput(),
-         !   StrD_CalcContStateDeriv(), and StrD_CalcConstrStates() must be called first (see above).
+         !   Note that xd [discrete state] is changed in ED_UpdateDiscState(), so ED_CalcOutput(),
+         !   ED_CalcContStateDeriv(), and ED_CalcConstrStates() must be called first (see above).
 
-      CALL StrD_UpdateDiscState(Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+      CALL ED_UpdateDiscState(Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) THEN
-         CALL StrD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+         CALL ED_DestroyContState( dxdt, ErrStat2, ErrMsg2)
          ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
          RETURN
       END IF
@@ -1606,28 +1606,28 @@ SUBROUTINE StrD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
 
          ! Destroy dxdt because it is not necessary for the rest of the subroutine
 
-      CALL StrD_DestroyContState( dxdt, ErrStat, ErrMsg)
+      CALL ED_DestroyContState( dxdt, ErrStat, ErrMsg)
       IF ( ErrStat >= AbortErrLev ) RETURN
 
 
 
-END SUBROUTINE StrD_UpdateStates
+END SUBROUTINE ED_UpdateStates
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
+SUBROUTINE ED_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 ! Routine for computing outputs, used in both loose and tight coupling.
 !..................................................................................................................................
 
-      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(StrD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
-      TYPE(StrD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(StrD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(StrD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-      TYPE(StrD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
-      TYPE(StrD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(StrD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
-                                                                    !   nectivity information does not have to be recalculated)
-      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      TYPE(ED_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+      TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+      TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
+      TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+      TYPE(ED_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(ED_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
+                                                                  !   nectivity information does not have to be recalculated)
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
 
@@ -1691,22 +1691,22 @@ SUBROUTINE StrD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
 
    RETURN
 
-END SUBROUTINE StrD_CalcOutput
+END SUBROUTINE ED_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
+SUBROUTINE ED_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
 ! Tight coupling routine for computing derivatives of continuous states
 !..................................................................................................................................
 
-      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(StrD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
-      TYPE(StrD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(StrD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(StrD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-      TYPE(StrD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
-      TYPE(StrD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(StrD_ContinuousStateType), INTENT(  OUT)  :: dxdt        ! Continuous state derivatives at Time
-      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      TYPE(ED_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+      TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+      TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
+      TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+      TYPE(ED_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(ED_ContinuousStateType), INTENT(  OUT)  :: dxdt        ! Continuous state derivatives at Time
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1720,22 +1720,22 @@ SUBROUTINE StrD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrS
 !      dxdt%DummyContState = 0
 
 
-END SUBROUTINE StrD_CalcContStateDeriv
+END SUBROUTINE ED_CalcContStateDeriv
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_UpdateDiscState( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+SUBROUTINE ED_UpdateDiscState( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 ! Tight coupling routine for updating discrete states
 !..................................................................................................................................
 
-      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(StrD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
-      TYPE(StrD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(StrD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(StrD_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Input: Discrete states at Time;
-                                                                       !   Output: Discrete states at Time + Interval
-      TYPE(StrD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
-      TYPE(StrD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      TYPE(ED_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+      TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+      TYPE(ED_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Input: Discrete states at Time;
+                                                                  !   Output: Discrete states at Time + Interval
+      TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+      TYPE(ED_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1748,23 +1748,23 @@ SUBROUTINE StrD_UpdateDiscState( Time, u, p, x, xd, z, OtherState, ErrStat, ErrM
 
       ! StateData%DiscState =
 
-END SUBROUTINE StrD_UpdateDiscState
+END SUBROUTINE ED_UpdateDiscState
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_residual, ErrStat, ErrMsg )
+SUBROUTINE ED_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_residual, ErrStat, ErrMsg )
 ! Tight coupling routine for solving for the residual of the constraint state equations
 !..................................................................................................................................
 
-      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(StrD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
-      TYPE(StrD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(StrD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(StrD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-      TYPE(StrD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time (possibly a guess)
-      TYPE(StrD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(StrD_ConstraintStateType), INTENT(  OUT)  :: z_residual  ! Residual of the constraint state equations using
-                                                                    !     the input values described above
-      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      TYPE(ED_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+      TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+      TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
+      TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time (possibly a guess)
+      TYPE(ED_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+      TYPE(ED_ConstraintStateType), INTENT(  OUT)  :: z_residual  ! Residual of the constraint state equations using
+                                                                  !     the input values described above
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1777,22 +1777,27 @@ SUBROUTINE StrD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_res
 
       z_residual%DummyConstrState = 0
 
-END SUBROUTINE StrD_CalcConstrStateResidual
+END SUBROUTINE ED_CalcConstrStateResidual
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! WE ARE NOT YET IMPLEMENTING THE JACOBIANS...
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_ReadInput( InputFileName, InputFileData, ErrStat, ErrMsg )
-! This subroutine reads the input file and stores all the data in the StrD_InputFile structure.
+SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, ErrStat, ErrMsg )
+! This subroutine reads the input file and stores all the data in the ED_InputFile structure.
 ! It does not perform data validation.
 !..................................................................................................................................
 
       ! Passed variables
 
    CHARACTER(*), INTENT(IN)               :: InputFileName  ! Name of the input file
+   CHARACTER(*), INTENT(IN)               :: MeshFile       ! File that contains the blade mesh information (AeroDyn input file for now) -- later this info will be defined in one of the ED input files.
 
-   TYPE(StrD_InputFile), INTENT(OUT)      :: InputFileData  ! Data stored in the module's input file
+   !BJJ MODIFIED HERE ONLY FOR TESTING:
+!   TYPE(ED_InputFile),   INTENT(OUT)      :: InputFileData  ! Data stored in the module's input file
+   TYPE(ED_InputFile),   INTENT(inOUT)      :: InputFileData  ! Data stored in the module's input file
+
    INTEGER(IntKi),       INTENT(OUT)      :: ErrStat        ! The error status code
+   LOGICAL,              INTENT(IN)       :: ReadAdmVals    ! Determines if we should read the Adams-only values
    CHARACTER(*),         INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
 
       ! local variables
@@ -1802,71 +1807,156 @@ SUBROUTINE StrD_ReadInput( InputFileName, InputFileData, ErrStat, ErrMsg )
    INTEGER(IntKi)                         :: ErrStat2       ! The error status code
    CHARACTER(LEN(ErrMsg))                 :: ErrMsg2        ! The error message, if an error occurred
 
-   LOGICAL :: ReadAdmVals
+   CHARACTER(1024)                        :: BldFile(MaxBl) ! File that contains the blade information (specified in the primary input file)
+   CHARACTER(1024)                        :: FurlFile       ! File that contains the furl information (specified in the primary input file)
+   CHARACTER(1024)                        :: TwrFile        ! File that contains the tower information (specified in the primary input file)
    
-   
-   
+      ! initialize values: 
    
    ErrStat = ErrID_None
    ErrMsg  = ''
+   UnEcho  = -1
 
-   !CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
-   !IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-!===================== FAST_Input
+      ! get the primary/platform input-file data
+   
+   CALL ReadPrimaryFile( InputFileName, InputFileData, BldFile, FurlFile, TwrFile, UnEcho, ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
 
-   ReadAdmVals = .TRUE. !BJJ: FIX THIS: ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 )
+      ! get the furling input-file data
+      
+   IF ( InputFileData%Furling )  THEN   
+      CALL ReadFurlFile( FurlFile, InputFileData, UnEcho, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   ELSE   ! initialize all of the data that would be read by ReadFurlFile()       
+      InputFileData%RFrlDOF   = .FALSE.
+      InputFileData%TFrlDOF   = .FALSE.
+      InputFileData%RotFurl   = 0.0_ReKi  ! Radians
+      InputFileData%TailFurl  = 0.0_ReKi
+      InputFileData%Yaw2Shft  = 0.0
+      InputFileData%ShftSkew  = 0.0
+      InputFileData%RFrlCMxn  = 0.0
+      InputFileData%RFrlCMyn  = 0.0
+      InputFileData%RFrlCMzn  = 0.0
+      InputFileData%BoomCMxn  = 0.0
+      InputFileData%BoomCMyn  = 0.0
+      InputFileData%BoomCMzn  = 0.0
+      InputFileData%TFinCMxn  = 0.0
+      InputFileData%TFinCMyn  = 0.0
+      InputFileData%TFinCMzn  = 0.0
+      InputFileData%TFinCPxn  = 0.0
+      InputFileData%TFinCPyn  = 0.0
+      InputFileData%TFinCPzn  = 0.0
+      InputFileData%TFinSkew  = 0.0
+      InputFileData%TFinTilt  = 0.0
+      InputFileData%TFinBank  = 0.0
+      InputFileData%RFrlPntxn = 0.0
+      InputFileData%RFrlPntyn = 0.0
+      InputFileData%RFrlPntzn = 0.0
+      InputFileData%RFrlSkew  = 0.0
+      InputFileData%RFrlTilt  = 0.0
+      InputFileData%TFrlPntxn = 0.0
+      InputFileData%TFrlPntyn = 0.0
+      InputFileData%TFrlPntzn = 0.0
+      InputFileData%TFrlSkew  = 0.0
+      InputFileData%TFrlTilt  = 0.0
+      InputFileData%RFrlMass  = 0.0
+      InputFileData%BoomMass  = 0.0
+      InputFileData%TFinMass  = 0.0
+      InputFileData%RFrlIner  = 0.0
+      InputFileData%TFrlIner  = 0.0
+      InputFileData%RFrlMod   = 0
+      InputFileData%RFrlSpr   = 0.0
+      InputFileData%RFrlDmp   = 0.0
+      InputFileData%RFrlCDmp  = 0.0
+      InputFileData%RFrlUSSP  = 0.0
+      InputFileData%RFrlDSSP  = 0.0
+      InputFileData%RFrlUSSpr = 0.0
+      InputFileData%RFrlDSSpr = 0.0
+      InputFileData%RFrlUSDP  = 0.0
+      InputFileData%RFrlDSDP  = 0.0
+      InputFileData%RFrlUSDmp = 0.0
+      InputFileData%RFrlDSDmp = 0.0
+      InputFileData%TFrlMod   = 0
+      InputFileData%TFrlSpr   = 0.0
+      InputFileData%TFrlDmp   = 0.0
+      InputFileData%TFrlCDmp  = 0.0
+      InputFileData%TFrlUSSP  = 0.0
+      InputFileData%TFrlDSSP  = 0.0
+      InputFileData%TFrlUSSpr = 0.0
+      InputFileData%TFrlDSSpr = 0.0
+      InputFileData%TFrlUSDP  = 0.0
+      InputFileData%TFrlDSDP  = 0.0
+      InputFileData%TFrlUSDmp = 0.0
+      InputFileData%TFrlDSDmp = 0.0
+   END IF
+   
+   
+      ! get the blade input-file data
 
-   !CALL ReadTowerFile( InputFileData, TwrFile, ReadAdmVals, UnEcho, ErrStat2, ErrMsg2 )
-   !IF ( ErrStat2 /= ErrID_None ) THEN
-   !   IF ( ErrStat >= AbortErrLev ) CALL ProgAbort( ErrMsg )
-   !   CALL WrScr(ErrMsg)
-   !END IF
-   !
-
-   CALL ExitThisRoutine(ErrID_None, '')
-
+   CALL ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEcho, ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      
+      ! get the tower input-file data
+      
+   CALL ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEcho,  ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+        
 
 CONTAINS
-   !............................................................................................................................
-   SUBROUTINE ExitThisRoutine(ErrID,Msg)
-   ! This subroutine cleans up all the allocatable arrays, closes the file, and sets the error status/message
-   !............................................................................................................................
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
 
          ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error ID (ErrStat)
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
       CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
 
-         ! Set error status/message
 
-      ErrStat = ErrID
-      ErrMsg  = Msg
-      IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg = 'Error in StrD_ReadInput: '//TRIM(ErrMsg)
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+         END IF
+
       END IF
 
-      !.........................................................................................................................
-      ! Close file
-      !.........................................................................................................................
-      CLOSE(UnIn)
 
+   END SUBROUTINE CheckError     
 
-   END SUBROUTINE ExitThisRoutine
-
-
-END SUBROUTINE StrD_ReadInput
+END SUBROUTINE ED_ReadInput
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_ValidateInput( InputFileData, p, ErrStat, ErrMsg )
+SUBROUTINE ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
 ! This subroutine validates the input file data
 !..................................................................................................................................
 
-   TYPE(StrD_InputFile),     INTENT(IN)       :: InputFileData  ! Data stored in the module's input file
-   TYPE(StrD_ParameterType), INTENT(INOUT)    :: p              ! The module's parameter data
-   INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code
-   CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
+   TYPE(ED_InputFile),       INTENT(IN)       :: InputFileData       ! Data stored in the module's input file
+   INTEGER(IntKi),           INTENT(OUT)      :: ErrStat             ! The error status code
+   CHARACTER(*),             INTENT(OUT)      :: ErrMsg              ! The error message, if an error occurred
 
-      ! local variables
-
+      ! Local variables:
+   INTEGER(IntKi)                             :: I                   ! Loop counter
+   INTEGER(IntKi)                             :: K                   ! Blade number
+   INTEGER(IntKi)                             :: ErrStat2            ! Temporary error ID
+   LOGICAL                                    :: ReadAdmVals         ! determines if an Adams model will be created (do we read/check all the inputs?)
+   LOGICAL                                    :: ReadFile            ! determines if an input file for a blade is the same as the file for the previous blade
+   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2             ! Temporary message describing error
 
 
       ! Initialize variables
@@ -1882,38 +1972,244 @@ SUBROUTINE StrD_ValidateInput( InputFileData, p, ErrStat, ErrMsg )
   ! CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
 
 !!!!!!!!!!!!!!!!!
+  
+      ! validate the primary input data
+   
+   
+      ! validate the furling input data
+   
+   CALL ValidateFurlData ( InputFileData, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      
+   
+      ! validate the blade input data
+
+   DO K = 1,InputFileData%NumBl         
+      CALL ValidateBladeData ( InputFileData%InpBl(K), ErrStat2, ErrMsg2 )
+         CALL CheckError( ErrStat2, ' Errors in blade '//TRIM(Num2LStr(K))//' input data: '//NewLine//TRIM(ErrMsg2) )
+   END DO
+   
+      
+      ! validate the tower input data
+  
+   CALL ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+  
+   
+      ! validate the Output parameters:
+  ! CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
+      
+      
+      ! Check to see if all TwrGagNd(:) analysis points are existing analysis points:
+
+   IF ( ANY(InputFileData%TwrGagNd < 1_IntKi) .OR. ANY(InputFileData%TwrGagNd > InputFileData%TwrNodes) ) THEN      
+         CALL CheckError( ErrID_Fatal, ' All TwrGagNd values must be between 1 and '//&
+                        TRIM( Num2LStr( InputFileData%TwrNodes ) )//' (inclusive).' )   
+   END IF      
+   
+   
+      ! Check to see if all BldGagNd(:) analysis points are existing analysis points:
+
+   IF ( ANY(InputFileData%BldGagNd < 1_IntKi) .OR. ANY(InputFileData%BldGagNd > InputFileData%BldNodes) ) THEN      
+         CALL CheckError( ErrID_Fatal, ' All BldGagNd values must be between 1 and '//&
+                        TRIM( Num2LStr( InputFileData%BldNodes ) )//' (inclusive).' )   
+   END IF   
+   
+
 
 CONTAINS
-   !............................................................................................................................
-   SUBROUTINE ExitThisRoutine(ErrID,Msg)
-   ! This subroutine cleans up all the allocatable arrays, closes the file, and sets the error status/message
-   !............................................................................................................................
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
 
          ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error ID (ErrStat)
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
       CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
 
-         ! Set error status/message
 
-      ErrStat = ErrID
-      ErrMsg  = Msg
-      IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg = 'Error in StrD_ValidateInput: '//TRIM(ErrMsg)
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
       END IF
 
 
-
-   END SUBROUTINE ExitThisRoutine
-
-
-END SUBROUTINE StrD_ValidateInput
+   END SUBROUTINE CheckError     
+END SUBROUTINE ED_ValidateInput
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE StrD_InitDOFs( p, ErrStat, ErrMsg )
+SUBROUTINE ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )
+! This subroutine sets the parameters, based on the data stored in InputFileData
+!..................................................................................................................................
+
+   TYPE(ED_InputFile),       INTENT(IN)       :: InputFileData  ! Data stored in the module's input file
+   TYPE(ED_ParameterType),   INTENT(INOUT)    :: p              ! The module's parameter data
+   INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code
+   CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
+
+      ! Local variables
+   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
+   INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID
+   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
+
+      ! Initialize variables
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+      
+   
+      ! Set parameters from primary input file        
+   p%NumBl = InputFileData%NumBl
+
+   IF ( p%NumBl == 2 )  THEN
+      p%NDOF = 22
+   ELSE
+      p%NDOF = 24
+   ENDIF
+
+   p%NAug = p%NDOF + 1
+   
+   CALL AllocAry( p%DOF_Flag, p%NDOF, 'DOF_Flag', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   CALL AllocAry( p%DOF_Desc, p%NDOF, 'DOF_Desc', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   
+   
+   p%rZT0zt    = p%TwrRBHt + p%PtfmRef  - p%TwrDraft                               ! zt-component of position vector rZT0.
+   p%RefTwrHt  = p%TowerHt + p%PtfmRef                                             ! Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef).
+   p%TwrFlexL  = p%TowerHt + p%TwrDraft - p%TwrRBHt                                ! Height / length of the flexible portion of the tower.
+   p%BldFlexL  = p%TipRad               - p%HubRad                                 ! Length of the flexible portion of the blade.
+   p%TwoPiNB   = TwoPi/p%NumBl                                                     ! 2*Pi/NumBl is used in RtHS().
+   
+
+   CALL AllocAry( p%CosPreC, p%NumBl, 'CosPreC', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL AllocAry( p%SinPreC, p%NumBl, 'SinPreC', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   
+   p%CosPreC  = COS( p%Precone )
+   p%SinPreC  = SIN( p%Precone )
+   p%CosDel3  = COS( InputFileData%Delta3 )
+   p%SinDel3  = SIN( InputFileData%Delta3 )   
+   
+   
+
+      ! Calculate the average tip radius normal to the shaft (AvgNrmTpRd)
+      !   and the swept area of the rotor (ProjArea):
+
+   p%AvgNrmTpRd = p%TipRad*SUM(p%CosPreC)/p%NumBl     ! Average tip radius normal to the saft.
+   p%ProjArea   = pi*( p%AvgNrmTpRd**2 )              ! Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft).
+
+   p%TwrNodes  = InputFileData%TwrNodes
+   p%TwrGagNd  = InputFileData%TwrGagNd
+   p%BldNodes  = InputFileData%BldNodes   
+   p%BldGagNd  = InputFileData%BldGagNd
+   p%RotSpeed  = InputFileData%RotSpeed               ! Rotor speed in rad/sec.
+   p%CShftTilt = COS( InputFileData%ShftTilt )
+   p%SShftTilt = SIN( InputFileData%ShftTilt )
+   
+   p%FASTHH    = p%TowerHt + InputFileData%Twr2Shft + p%OverHang*p%SShftTilt
+
+   
+   IF ( p%NumBl == 2 )  THEN
+      p%DOF_Flag(DOF_Teet) = InputFileData%TeetDOF
+      p%DOF_Desc(DOF_Teet) = 'Hub teetering DOF (internal DOF index = DOF_Teet)'      
+   END IF ! 
+   
+
+   DO K = 1,p%NumBl   
+      p%DOF_Flag( DOF_BF(K,1) ) = InputFileData%FlapDOF1      
+      p%DOF_Desc( DOF_BF(K,1) ) = '1st flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
+                                  ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',1))'
+
+      p%DOF_Flag( DOF_BE(K,1) ) = InputFileData%EdgeDOF
+      p%DOF_Desc( DOF_BE(K,1) ) = '1st edgewise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
+                                  ' (internal DOF index = DOF_BE('         //TRIM(Num2LStr( K ))//',1))'
+
+      p%DOF_Flag( DOF_BF(K,2) ) = InputFileData%FlapDOF2
+      p%DOF_Desc( DOF_BF(K,2) ) = '2nd flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
+                                  ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',2))'
+   ENDDO          ! K - All blades   
+   
+   ! plus everything else from FAST_Initialize
+
+   
+   
+      ! Set furling parameters
+      
+   CALL SetFurlParams( p, InputFileData, ErrStat, ErrMsg )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+
+      ! Set blade parameters
+      
+   CALL SetBladeParams( p, InputFileData%InpBl, InputFileData%InpBlMesh, ErrStat2, ErrMsg2 )      
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      
+      ! Set tower parameters
+      
+   CALL SetTowerParams( p, InputFileData, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   
+
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError
+
+END SUBROUTINE ED_SetParameters
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE InitDOFs( p, ErrStat, ErrMsg )
 ! This subroutine initialized the ActiveDOF data type
+! it assumes that p%NumBl, p%NAug, and p%NDOF are set
 !..................................................................................................................................
 
 !   TYPE(ActiveDOFs),         INTENT(INOUT)    :: DOFs           ! ActiveDOF data
-   TYPE(StrD_ParameterType), INTENT(INOUT)    :: p              ! The module's parameter data
+   TYPE(ED_ParameterType),   INTENT(INOUT)    :: p              ! The module's parameter data
    INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code
    CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
 
@@ -2003,8 +2299,8 @@ SUBROUTINE StrD_InitDOFs( p, ErrStat, ErrMsg )
 
          ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements (body M) in the inertia frame:
       DO K = 1,p%NumBl ! Loop through all blades
-         p%PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, DOF_Teet, &
-                           DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                                   /)
+         p%PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, &
+                        DOF_Teet,  DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)          /)
       ENDDO          ! K - All blades
 
    ELSE                    ! 3-blader
@@ -2012,11 +2308,10 @@ SUBROUTINE StrD_InitDOFs( p, ErrStat, ErrMsg )
          ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements (body M) in the inertia frame:
       DO K = 1,p%NumBl ! Loop through all blades
          p%PM(K,:) = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_RFrl, DOF_GeAz, DOF_DrTr, &
-                           DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)                                                         /)
+                                   DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)         /)
       ENDDO          ! K - All blades
 
    ENDIF
-
 
 
 
@@ -2035,19 +2330,19 @@ CONTAINS
       ErrStat = ErrID
       ErrMsg  = Msg
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg = 'Error in StrD_AllocDOFs: '//TRIM(ErrMsg)
+         ErrMsg = 'Error in InitDOFs: '//TRIM(ErrMsg)
       END IF
 
 
    END SUBROUTINE ExitThisRoutine
 
 
-END SUBROUTINE StrD_InitDOFs
+END SUBROUTINE InitDOFs
 !----------------------------------------------------------------------------------------------------------------------------------
 FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
 ! SHP calculates the Derive-derivative of the shape function ModShpAry at Fract.
 ! NOTE: This function only works for Deriv = 0, 1, or 2.
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
       ! Passed variables:
 
@@ -2100,15 +2395,15 @@ FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
 END FUNCTION SHP
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE CoordSys_Alloc( CoordSys, p, ErrStat, ErrMsg )
-
-   ! This subroutine allocates the coordinate systems in the StrD_CoordSys type.
+! This subroutine allocates the coordinate systems in the ED_CoordSys type.
+!..................................................................................................................................
 
 IMPLICIT NONE
 
    ! passed arguments
 
-TYPE(StrD_CoordSys),      INTENT(OUT) :: CoordSys       ! The coordinate systems, with arrays to be allocated
-TYPE(StrD_ParameterType), INTENT(IN)  :: p              ! Parameters of the structural dynamics module
+TYPE(ED_CoordSys),        INTENT(OUT) :: CoordSys       ! The coordinate systems, with arrays to be allocated
+TYPE(ED_ParameterType),   INTENT(IN)  :: p              ! Parameters of the structural dynamics module
 
 INTEGER(IntKi),           INTENT(OUT) :: ErrStat        ! Error status
 CHARACTER(*),             INTENT(OUT) :: ErrMsg         ! Err msg
@@ -2181,17 +2476,141 @@ END IF
 RETURN
 END SUBROUTINE CoordSys_Alloc
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, ErrStat, ErrMsg )
-
-
-      ! This routine reads a blade file.
+SUBROUTINE ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEc, ErrStat, ErrMsg )
+! This routine reads the data from the blade and mesh inputs files.
+! This routines assumes that InputFileData%NumBl has already been set.
+!..................................................................................................................................
+   
 
    IMPLICIT                        NONE
 
 
       ! Passed variables:
 
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+!   TYPE(ED_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+   TYPE(ED_InputFile),     INTENT(INOUT)  :: InputFileData                       ! Input file data Data for Blade K stored in the module's input file
+   CHARACTER(*),           INTENT(IN)     :: BldFile(:)                          ! The array of file names containing blade information
+   CHARACTER(*),           INTENT(IN)     :: MeshFile                            ! The file names containing blade mesh information (for now, the aerodyn primary file)
+   INTEGER(IntKi),         INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+
+   INTEGER(IntKi),         INTENT(OUT)    :: ErrStat                             ! The error ID
+   CHARACTER(*),           INTENT(OUT)    :: ErrMsg                              ! Message describing error
+   LOGICAL,                INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
+
+
+      ! Local variables:
+   INTEGER(IntKi)                         :: K                                   ! Blade number
+   INTEGER(IntKi)                         :: ErrStat2                            ! Temporary error ID
+   LOGICAL                                :: ReadFile                            ! determines if an input file for a blade is the same as the file for the previous blade
+   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2                             ! Temporary message describing error
+
+
+      ! Initialize variables
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+      
+   
+      ! Allocate space for the input file data
+   ALLOCATE( InputFileData%InpBlMesh( 1_IntKi ), STAT=ErrStat2 )              ! for now, we're assuming the discretization is the same on all blades
+   IF ( ErrStat2 /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating InpBl array'
+      RETURN
+   END IF  
+   
+   ALLOCATE( InputFileData%InpBl( InputFileData%NumBl ), STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating InpBl array'
+      RETURN
+   END IF
+   
+   
+   
+      ! Get the blade discretization here:   
+   CALL ReadBladeMeshFile( InputFileData%InpBlMesh(1), MeshFile, UnEc, ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF ( ErrStat >= AbortErrLev ) RETURN
+         
+   
+      ! Read the input file(s) for all of the blades:
+   ReadFile = .TRUE.
+   DO K = 1,InputFileData%NumBl   
+   
+      IF ( ReadFile ) THEN
+      
+            ! Add a separator to the echo file if appropriate.
+
+         IF ( UnEc > 0 )  THEN
+            WRITE (UnEc,'(//,A,/)')  'Blade '//TRIM( Num2LStr( K ) )//' input data from file "'//TRIM( BldFile(K) )//'":'
+         END IF 
+         
+         CALL ReadBladeFile( BldFile(K), InputFileData%InpBl(K), ReadAdmVals, UnEc, ErrStat2, ErrMsg2 )
+            CALL CheckError(ErrStat2,' Errors reading blade '//TRIM(Num2LStr(K))//' input file ('//TRIM(BldFile(K))//'): '&
+                                    //NewLine//TRIM(ErrMsg2))
+            IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ELSE 
+              
+         CALL ED_CopyBladeInputData( InputFileData%InpBl(K-1), InputFileData%InpBl(K), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )  
+            CALL CheckError(ErrStat2,' Errors copying blade '//TRIM(Num2LStr(K-1))//' input file data: '//NewLine//TRIM(ErrMsg2))
+            IF ( ErrStat >= AbortErrLev ) RETURN
+               ! bjj: we could just read the file again...            
+
+      END IF      
+
+         ! If the next file is the same as this one, don't read it again:
+         
+      IF ( K /= InputFileData%NumBl ) ReadFile = BldFile(K) /= BldFile( K + 1 )
+    
+   END DO
+         
+
+   RETURN
+   
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError   
+   
+END SUBROUTINE ReadBladeInputs
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrStat, ErrMsg )
+! This routine reads a blade input file.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+
+      ! Passed variables:
+
    TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
    CHARACTER(*),             INTENT(IN)     :: BldFile                             ! Name of the blade input file data
    LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
@@ -2260,8 +2679,8 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
       IF ( ErrStat >= AbortErrLev ) RETURN
 
 
-      ! Allocate the arrays based on this NBlInpSt input
-   CALL Alloc_BladeInputProperties( BladeKInputFileData, ErrStat2, ErrMsg2 )
+      ! .......... Allocate the arrays based on this NBlInpSt input ..........
+   CALL Alloc_BladeInputProperties( BladeKInputFileData, ReadAdmVals, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -2393,7 +2812,7 @@ SUBROUTINE ReadBladeFile ( BldFile, p, BladeKInputFileData, ReadAdmVals, UnEc, E
 
       BladeKInputFileData%BlFract( I) = TmpRAry(1)
       BladeKInputFileData%AerCen(  I) = TmpRAry(2)
-      BladeKInputFileData%StrcTwst(I) = TmpRAry(3)
+      BladeKInputFileData%StrcTwst(I) = TmpRAry(3)*D2R      ! Input in degrees; converted to radians here
       BladeKInputFileData%BMassDen(I) = TmpRAry(4)*AdjBlMs  ! Apply the correction factors to the elemental data.
       BladeKInputFileData%FlpStff( I) = TmpRAry(5)*AdjFlSt  ! Apply the correction factors to the elemental data.
       BladeKInputFileData%EdgStff( I) = TmpRAry(6)*AdjEdSt  ! Apply the correction factors to the elemental data.
@@ -2496,9 +2915,9 @@ END SUBROUTINE ReadBladeFile
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Alloc_BladeMeshInputProperties( BladeKInputFileMesh, ErrStat, ErrMsg )
 ! This routine allocates arrays for the blade mesh properties from the input file
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
-   TYPE(StrD_BladeMeshInputData), INTENT(INOUT)  :: BladeKInputFileMesh      ! Data for Blade K stored in the module's input file
+   TYPE(ED_BladeMeshInputData),   INTENT(INOUT)  :: BladeKInputFileMesh      ! Data for Blade K stored in the module's input file
    INTEGER(IntKi),                INTENT(OUT)    :: ErrStat                  ! Error status
    CHARACTER(*),                  INTENT(OUT)    :: ErrMsg                   ! Err msg
 
@@ -2519,11 +2938,12 @@ SUBROUTINE Alloc_BladeMeshInputProperties( BladeKInputFileMesh, ErrStat, ErrMsg 
 
 END SUBROUTINE Alloc_BladeMeshInputProperties
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Alloc_BladeInputProperties( BladeKInputFileData, ErrStat, ErrMsg )
+SUBROUTINE Alloc_BladeInputProperties( BladeKInputFileData, AllocAdams, ErrStat, ErrMsg )
 ! This routine allocates arrays for the blade properties from the input file
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
    TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData      ! Data for Blade K stored in the module's input file
+   LOGICAL,                  INTENT(IN)     :: AllocAdams               ! Logical to determine if we should allocate the arrays only used for Adams
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                  ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                   ! Err message
 
@@ -2549,30 +2969,34 @@ SUBROUTINE Alloc_BladeInputProperties( BladeKInputFileData, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( BladeKInputFileData%EdgStff,  BladeKInputFileData%NBlInpSt, 'EdgStff'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%GJStff,   BladeKInputFileData%NBlInpSt, 'GJStff'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%EAStff,   BladeKInputFileData%NBlInpSt, 'EAStff'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%Alpha,    BladeKInputFileData%NBlInpSt, 'Alpha'    , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%FlpIner,  BladeKInputFileData%NBlInpSt, 'FlpIner'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%EdgIner,  BladeKInputFileData%NBlInpSt, 'EdgIner'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%PrecrvRef,BladeKInputFileData%NBlInpSt, 'PrecrvRef', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%PreswpRef,BladeKInputFileData%NBlInpSt, 'PreswpRef', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%FlpcgOf,  BladeKInputFileData%NBlInpSt, 'FlpcgOf'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%EdgcgOf,  BladeKInputFileData%NBlInpSt, 'EdgcgOf'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%FlpEAOf,  BladeKInputFileData%NBlInpSt, 'FlpEAOf'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%EdgEAOf,  BladeKInputFileData%NBlInpSt, 'EdgEAOf'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
 
 
+   IF ( AllocAdams ) THEN
+      CALL AllocAry  ( BladeKInputFileData%GJStff,   BladeKInputFileData%NBlInpSt, 'GJStff'   , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%EAStff,   BladeKInputFileData%NBlInpSt, 'EAStff'   , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%Alpha,    BladeKInputFileData%NBlInpSt, 'Alpha'    , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%FlpIner,  BladeKInputFileData%NBlInpSt, 'FlpIner'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%EdgIner,  BladeKInputFileData%NBlInpSt, 'EdgIner'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%PrecrvRef,BladeKInputFileData%NBlInpSt, 'PrecrvRef', ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%PreswpRef,BladeKInputFileData%NBlInpSt, 'PreswpRef', ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%FlpcgOf,  BladeKInputFileData%NBlInpSt, 'FlpcgOf'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%EdgcgOf,  BladeKInputFileData%NBlInpSt, 'EdgcgOf'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%FlpEAOf,  BladeKInputFileData%NBlInpSt, 'FlpEAOf'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( BladeKInputFileData%EdgEAOf,  BladeKInputFileData%NBlInpSt, 'EdgEAOf'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN            
+   END IF
+   
+   
       ! BJJ: note that these used to be allocated 2:PolyOrd  :
 
    CALL AllocAry  ( BladeKInputFileData%BldFl1Sh,  PolyOrd-1, 'BldFl1Sh'  , ErrStat, ErrMsg )
@@ -2585,12 +3009,10 @@ SUBROUTINE Alloc_BladeInputProperties( BladeKInputFileData, ErrStat, ErrMsg )
 
 END SUBROUTINE Alloc_BladeInputProperties
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ValidateBladeData ( BladeKInputFileData, ChkAdmVals, ErrStat, ErrMsg )
+SUBROUTINE ValidateBladeData ( BladeKInputFileData, ErrStat, ErrMsg )
 ! This routine checks the blade file input data for errors
-!----------------------------------------------------------------------------------------------------------------------------------
-!   TYPE(StrD_ParameterType), INTENT(IN   )  :: p                                   ! Parameters of the structural dynamics module
-   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
-   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated
+!..................................................................................................................................
+   TYPE(BladeInputData),     INTENT(IN)     :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
 
@@ -2627,7 +3049,6 @@ SUBROUTINE ValidateBladeData ( BladeKInputFileData, ChkAdmVals, ErrStat, ErrMsg 
    END DO
 
 
-
    DO I = 1,BladeKInputFileData%NBlInpSt
 
          ! Check that AerCen is contained in [0.0, 1.0]:
@@ -2636,8 +3057,8 @@ SUBROUTINE ValidateBladeData ( BladeKInputFileData, ChkAdmVals, ErrStat, ErrMsg 
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  AerCen('//TRIM( Num2LStr( I ) )//') must be between 0 and 1 (inclusive).'
       END IF
 
-         ! Check that StrcTwst is contained in (-180.0, 180.0]:
-      IF ( ( BladeKInputFileData%StrcTwst(I) <= -180.0_ReKi ) .OR. ( BladeKInputFileData%StrcTwst(I) > 180.0_ReKi ) )  THEN
+         ! Check that StrcTwst is contained in (-pi,pi] radians ( i.e., (-180.0, 180.0] degrees):
+      IF ( ( BladeKInputFileData%StrcTwst(I) <= -pi ) .OR. ( BladeKInputFileData%StrcTwst(I) > pi ) )  THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = TRIM(ErrMsg)//NewLine//'  StrcTwst('//TRIM( Num2LStr( I ) ) // &
                      ') must be greater than -180 and less than or equal to 180.'
@@ -2664,8 +3085,9 @@ SUBROUTINE ValidateBladeData ( BladeKInputFileData, ChkAdmVals, ErrStat, ErrMsg 
    END DO
 
 
-   IF ( ChkAdmVals ) THEN  ! Check values for Adams input
-
+      ! Check values for Adams input
+      
+   IF ( ALLOCATED(BladeKInputFileData%GJStff) ) THEN  ! We assume that if GJStff is allocated, we are using ADAMS inputs
 
          ! The reference axis must be coincident with the pitch axis at the blade root (I == 1):
       IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(1), 0.0_ReKi ) .OR. &
@@ -2773,7 +3195,7 @@ END SUBROUTINE ValidateBladeData
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ValidateModeShapeCoeffs( Coeffs, ShpDesc, ErrStat, ErrMsg )
 ! This routine checks that the mode shape coefficients add to 1.0, within numerical tolerance.
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
    REAL(ReKi),               INTENT(IN )    :: Coeffs(:)                           ! Mode shape coefficients
    CHARACTER(*),             INTENT(IN)     :: ShpDesc                             ! Description of the mode shape for the error message
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
@@ -2799,15 +3221,15 @@ SUBROUTINE ValidateModeShapeCoeffs( Coeffs, ShpDesc, ErrStat, ErrMsg )
 
 END SUBROUTINE ValidateModeShapeCoeffs
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, SetAdmVals, ErrStat, ErrMsg )
+SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
 ! This takes the blade input file data and sets the corresponding blade parameters, performing linear interpolation of the
 ! input data to the specified blade mesh.
-!----------------------------------------------------------------------------------------------------------------------------------
+! This routine assumes p%HubRad and p%BldFlexL are already set.
+!..................................................................................................................................
 
-   TYPE(StrD_ParameterType),      INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
-   TYPE(BladeInputData),          INTENT(INOUT)  :: BladeInData(:)                      ! Program input data for all blades
-   TYPE(StrD_BladeMeshInputData), INTENT(INOUT)  :: BladeMeshData(:)                    ! Program input mesh data for all blades
-   LOGICAL,                       INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set
+   TYPE(ED_ParameterType),        INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
+   TYPE(BladeInputData),          INTENT(IN)     :: BladeInData(:)                      ! Program input data for all blades
+   TYPE(ED_BladeMeshInputData),   INTENT(IN)     :: BladeMeshData(:)                    ! Program input mesh data for all blades
    INTEGER(IntKi),                INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),                  INTENT(OUT)    :: ErrMsg                              ! Error message
 
@@ -2816,18 +3238,17 @@ SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, SetAdmVals, ErrStat, E
    INTEGER(IntKi )                               :: K                                   ! Blade number
    INTEGER(IntKi )                               :: J                                   ! Index for the node arrays
    INTEGER(IntKi)                                :: InterpInd                           ! Index for the interpolation routine
+   LOGICAL                                       :: SetAdmVals                          ! Logical to determine if Adams inputs should be set
 
+      ! initialize variables
    ErrStat = ErrID_None
    ErrMsg  = ''
 
-   !assumes the following parameters are previously defined...
-   !   p%HubRad
-   !   p%BldFlexL
-   
-   !
-   
-   
-      ! Write data read in from Mesh (ADFile):
+   SetAdmVals = ALLOCATED( BladeInData(1)%GJStff )
+      
+   ! ..............................................................................................................................   
+   ! Set the blade discretization information here:
+   ! ..............................................................................................................................   
   
    DO K=1,1 ! we're going to assume the discretization is the same for all blades 
 
@@ -2836,7 +3257,7 @@ SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, SetAdmVals, ErrStat, E
       p%TipNode  = p%BldNodes + 1    ! The index for the blade tip and tower top nodes
    END DO
 
-      ! Allocate arrays for the blade parameters being set in this routine:
+      ! .......... Allocate arrays for the blade parameters being set in this routine ..........:
       
    CALL Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
@@ -2858,6 +3279,10 @@ SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, SetAdmVals, ErrStat, E
       
    END DO
       
+   
+   ! ..............................................................................................................................   
+   ! Interpolate the blade properties to this discretization:
+   ! ..............................................................................................................................   
    
    ! Array definitions:
 
@@ -2909,7 +3334,7 @@ SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, SetAdmVals, ErrStat, E
                 ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
          END IF
 
-         p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd ) !bjj: this is in degrees...
+         p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd )
          p%MassB   (K,J) = InterpAry( x, BladeInData(K)%BMassDen, InterpInd )
          p%StiffBF (K,J) = InterpAry( x, BladeInData(K)%FlpStff , InterpInd )
          p%StiffBE (K,J) = InterpAry( x, BladeInData(K)%EdgStff , InterpInd )
@@ -2956,8 +3381,6 @@ SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, SetAdmVals, ErrStat, E
 
    END DO ! ( Blades )
 
-
-   p%ThetaS  = D2R*p%ThetaS
    p%CThetaS = COS(p%ThetaS)
    p%SThetaS = SIN(p%ThetaS)
 
@@ -2989,12 +3412,12 @@ CONTAINS
 !..................................................................................................................................
 END SUBROUTINE SetBladeParams
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
+SUBROUTINE Alloc_BladeParameters( p, AllocAdams, ErrStat, ErrMsg )
 ! This routine allocates arrays for the blade parameters.
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
-   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set
+   TYPE(ED_ParameterType),   INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
+   LOGICAL,                  INTENT(IN)     :: AllocAdams                          ! Logical to determine if Adams inputs should be allocated
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
 
@@ -3034,30 +3457,30 @@ SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 
 
-!IF ( SetAdmVals ) THEN
-   CALL AllocAry  ( p%StiffBGJ,    p%NumBl,    p%BldNodes, 'StiffBGJ'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%StiffBEA,    p%NumBl,    p%BldNodes, 'StiffBEA'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%BAlpha,      p%NumBl,    p%BldNodes, 'BAlpha'     , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%InerBFlp,    p%NumBl,    p%BldNodes, 'InerBFlp'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%InerBEdg,    p%NumBl,    p%BldNodes, 'InerBEdg'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%RefAxisxb,   p%NumBl,    p%TipNode,  'RefAxisxb'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%RefAxisyb,   p%NumBl,    p%TipNode,  'RefAxisyb'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%cgOffBFlp,   p%NumBl,    p%BldNodes, 'cgOffBFlp'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%cgOffBEdg,   p%NumBl,    p%BldNodes, 'cgOffBEdg'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%EAOffBFlp,   p%NumBl,    p%BldNodes, 'EAOffBFlp'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%EAOffBEdg,   p%NumBl,    p%BldNodes, 'EAOffBEdg'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-!END IF
+   IF ( AllocAdams ) THEN
+      CALL AllocAry  ( p%StiffBGJ,    p%NumBl,    p%BldNodes, 'StiffBGJ'   , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%StiffBEA,    p%NumBl,    p%BldNodes, 'StiffBEA'   , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%BAlpha,      p%NumBl,    p%BldNodes, 'BAlpha'     , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%InerBFlp,    p%NumBl,    p%BldNodes, 'InerBFlp'   , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%InerBEdg,    p%NumBl,    p%BldNodes, 'InerBEdg'   , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%RefAxisxb,   p%NumBl,    p%TipNode,  'RefAxisxb'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%RefAxisyb,   p%NumBl,    p%TipNode,  'RefAxisyb'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%cgOffBFlp,   p%NumBl,    p%BldNodes, 'cgOffBFlp'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%cgOffBEdg,   p%NumBl,    p%BldNodes, 'cgOffBEdg'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%EAOffBFlp,   p%NumBl,    p%BldNodes, 'EAOffBFlp'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%EAOffBEdg,   p%NumBl,    p%BldNodes, 'EAOffBEdg'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+   END IF
 
    CALL AllocAry  ( p%BldEDamp,    p%NumBl,    NumBE,      'BldEDamp'   , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
@@ -3080,21 +3503,20 @@ SUBROUTINE Alloc_BladeParameters( p, SetAdmVals, ErrStat, ErrMsg )
 
 END SUBROUTINE Alloc_BladeParameters
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadTowerFile( InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat, ErrMsg )
+SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, ErrMsg )
 ! This routine reads the tower file  input.
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
    IMPLICIT                        NONE
 
       ! Passed variables:
 
-   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! All the data in the StructDyn input file
-   CHARACTER(*),             INTENT(IN)     :: TwrFile                             ! Name of the tower input file data
-   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
-
-   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+   CHARACTER(*),             INTENT(IN)     :: TwrFile                             ! Name of the tower input file data
+   TYPE(ED_InputFile),       INTENT(INOUT)  :: InputFileData                       ! All the data in the ElastoDyn input file
 
 
       ! Local variables:
@@ -3157,7 +3579,7 @@ SUBROUTINE ReadTowerFile( InputFileData, TwrFile, ReadAdmVals, UnEc, ErrStat, Er
 
 
       ! Allocate the input arrays based on this NTwInpSt input
-   CALL Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
+   CALL Alloc_TowerInputProperties( InputFileData, ReadAdmVals, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -3396,13 +3818,12 @@ CONTAINS
    !...............................................................................................................................
 END SUBROUTINE ReadTowerFile
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ValidateTowerData ( InputFileData, ChkAdmVals, ErrStat, ErrMsg )
+SUBROUTINE ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
 ! This routine checks the tower file input data for errors
-!----------------------------------------------------------------------------------------------------------------------------------
-   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! Data stored in the module's input file
-   LOGICAL,                  INTENT(IN)     :: ChkAdmVals                          ! Logical to determine if Adams inputs should be validated
-   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
-   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+!..................................................................................................................................
+   TYPE(ED_InputFile),     INTENT(IN   )    :: InputFileData                       ! Data stored in the module's input file
+   INTEGER(IntKi),         INTENT(  OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),           INTENT(  OUT)    :: ErrMsg                              ! Error message
 
       ! local variables
    INTEGER                                  :: I                                   ! Loop counter
@@ -3457,8 +3878,9 @@ SUBROUTINE ValidateTowerData ( InputFileData, ChkAdmVals, ErrStat, ErrMsg )
       END IF
    END DO
 
-
-   IF (ChkAdmVals) THEN
+      ! Check Adams inputs
+      
+   IF ( ALLOCATED( InputFileData%TwGJStif ) ) THEN ! Assume that all of the Adams tower data is allocated
 
       DO I = 1,InputFileData%NTwInpSt
          IF ( InputFileData%TwGJStif(I) <= 0.0_ReKi ) THEN
@@ -3542,11 +3964,12 @@ SUBROUTINE ValidateTowerData ( InputFileData, ChkAdmVals, ErrStat, ErrMsg )
 
 END SUBROUTINE ValidateTowerData
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
+SUBROUTINE Alloc_TowerInputProperties( InputFileData, AllocAdams, ErrStat, ErrMsg )
 ! This routine allocates arrays for the tower properties from the input file
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
-   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData      ! All the data in the StructDyn input file
+   TYPE(ED_InputFile),       INTENT(INOUT)  :: InputFileData      ! All the data in the ElastoDyn input file
+   LOGICAL,                  INTENT(IN)     :: AllocAdams         ! Determines if the columns for Adams data will be read
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat            ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg             ! Error message
 
@@ -3568,19 +3991,22 @@ SUBROUTINE Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( InputFileData%TwSSStif,  InputFileData%NTwInpSt, 'TwSSStif'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( InputFileData%TwGJStif,  InputFileData%NTwInpSt, 'TwGJStif'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( InputFileData%TwEAStif,  InputFileData%NTwInpSt, 'TwEAStif'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( InputFileData%TwFAIner,  InputFileData%NTwInpSt, 'TwFAIner'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( InputFileData%TwSSIner,  InputFileData%NTwInpSt, 'TwSSIner'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( InputFileData%TwFAcgOf,  InputFileData%NTwInpSt, 'TwFAcgOf'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( InputFileData%TwSScgOf,  InputFileData%NTwInpSt, 'TwSScgOf'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
 
+   IF ( AllocAdams ) THEN
+      CALL AllocAry  ( InputFileData%TwGJStif,  InputFileData%NTwInpSt, 'TwGJStif'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( InputFileData%TwEAStif,  InputFileData%NTwInpSt, 'TwEAStif'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( InputFileData%TwFAIner,  InputFileData%NTwInpSt, 'TwFAIner'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( InputFileData%TwSSIner,  InputFileData%NTwInpSt, 'TwSSIner'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( InputFileData%TwFAcgOf,  InputFileData%NTwInpSt, 'TwFAcgOf'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( InputFileData%TwSScgOf,  InputFileData%NTwInpSt, 'TwSScgOf'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+   END IF
+      
 
       ! BJJ: note that these used to be allocated 2:PolyOrd  :
    CALL AllocAry  ( InputFileData%TwFAM1Sh,  PolyOrd-1, 'TwFAM1Sh'  , ErrStat, ErrMsg )
@@ -3595,12 +4021,12 @@ SUBROUTINE Alloc_TowerInputProperties( InputFileData, ErrStat, ErrMsg )
 
 END SUBROUTINE Alloc_TowerInputProperties
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
+SUBROUTINE Alloc_TowerParameters( p, AllocAdams, ErrStat, ErrMsg )
 ! This routine allocates arrays for the tower parameters.
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
-   LOGICAL,                  INTENT(IN)     :: SetAdmVals                          ! Logical to determine if Adams inputs should be set
+   TYPE(ED_ParameterType),   INTENT(INOUT)  :: p                                   ! The parameters of the structural dynamics module
+   LOGICAL,                  INTENT(IN)     :: AllocAdams                          ! Logical to determine if Adams inputs should be allocated
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Err msg
 
@@ -3621,20 +4047,20 @@ SUBROUTINE Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
    CALL AllocAry  ( p%StiffTSS,      p%TwrNodes, 'StiffTSS'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 
-!IF ( SetAdmVals ) THEN
-   CALL AllocAry  ( p%StiffTGJ,      p%TwrNodes, 'StiffTGJ'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%StiffTEA,      p%TwrNodes, 'StiffTEA'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%InerTFA,       p%TwrNodes, 'InerTFA'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%InerTSS,       p%TwrNodes, 'InerTSS'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%cgOffTFA,      p%TwrNodes, 'cgOffTFA'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%cgOffTSS,      p%TwrNodes, 'cgOffTSS'  , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-!END IF
+   IF ( AllocAdams ) THEN
+      CALL AllocAry  ( p%StiffTGJ,      p%TwrNodes, 'StiffTGJ'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%StiffTEA,      p%TwrNodes, 'StiffTEA'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%InerTFA,       p%TwrNodes, 'InerTFA'   , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%InerTSS,       p%TwrNodes, 'InerTSS'   , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%cgOffTFA,      p%TwrNodes, 'cgOffTFA'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+      CALL AllocAry  ( p%cgOffTSS,      p%TwrNodes, 'cgOffTSS'  , ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+   END IF
 
    !   ! these are for HydroDyn?
    !CALL AllocAry  ( p%DiamT,         p%TwrNodes, 'DiamT'     , ErrStat, ErrMsg )
@@ -3659,19 +4085,18 @@ SUBROUTINE Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
 
 END SUBROUTINE Alloc_TowerParameters
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SetTowerParams( p, InputFileData, SetAdmVals, ErrStat, ErrMsg  )
+SUBROUTINE SetTowerParams( p, InputFileData, ErrStat, ErrMsg  )
 ! This takes the tower input file data and sets the corresponding tower parameters, performing linear interpolation of the
 ! input data to the specified tower mesh.
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
    IMPLICIT                        NONE
 
 
       ! Passed variables
 
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                            ! Parameters of the structural dynamics module
-   TYPE(StrD_InputFile),     INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
-   LOGICAL,                  INTENT(IN)     :: SetAdmVals                   ! Logical to determine if Adams inputs should be set
+   TYPE(ED_ParameterType),   INTENT(INOUT)  :: p                            ! Parameters of the structural dynamics module
+   TYPE(ED_InputFile),       INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
 
@@ -3680,11 +4105,13 @@ SUBROUTINE SetTowerParams( p, InputFileData, SetAdmVals, ErrStat, ErrMsg  )
    REAL(ReKi)                               :: x                            ! Fractional location between two points in linear interpolation
    INTEGER(IntKi )                          :: J                            ! Index for the node arrays
    INTEGER(IntKi)                           :: InterpInd                    ! Index for the interpolation routine
+   LOGICAL                                  :: SetAdmVals                   ! Logical to determine if Adams inputs should be set
 
 
       ! Initialize data
-   ErrStat = ErrID_None
-   ErrMsg  = ''
+   ErrStat   = ErrID_None
+   ErrMsg    = ''
+   SetAdmVals = ALLOCATED( InputFileData%TwGJStif )
 
    CALL Alloc_TowerParameters( p, SetAdmVals, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
@@ -3735,18 +4162,19 @@ SUBROUTINE SetTowerParams( p, InputFileData, SetAdmVals, ErrStat, ErrMsg  )
       p%MassT     (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TMassDen, InterpInd, InputFileData%NTwInpSt )
       p%StiffTFA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAStif, InterpInd, InputFileData%NTwInpSt )
       p%StiffTSS  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSSStif, InterpInd, InputFileData%NTwInpSt )
-
-      IF ( SetAdmVals )  THEN          ! An ADAMS model will be created; thus, read in all the cols.
+   END DO ! J
+   
+   
+   IF ( SetAdmVals )  THEN          ! An ADAMS model will be created; thus, read in all the cols.
+      DO J=1,p%TwrNodes      
          p%StiffTGJ  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwGJStif, InterpInd, InputFileData%NTwInpSt )
          p%StiffTEA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwEAStif, InterpInd, InputFileData%NTwInpSt )
          p%InerTFA   (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAIner, InterpInd, InputFileData%NTwInpSt )
          p%InerTSS   (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSSIner, InterpInd, InputFileData%NTwInpSt )
          p%cgOffTFA  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwFAcgOf, InterpInd, InputFileData%NTwInpSt )
          p%cgOffTSS  (J) = InterpStp( p%HNodesNorm(J), InputFileData%HtFract, InputFileData%TwSScgOf, InterpInd, InputFileData%NTwInpSt )
-      END IF
-
-   END DO ! J
-
+      END DO ! J
+   END IF
 
 
    !...............................................................................................................................
@@ -3785,13 +4213,13 @@ CONTAINS
 
 END SUBROUTINE SetTowerParams
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg  )
+SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
 ! This routine validates the furling inputs.
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
       ! Passed variables:
 
-   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! All the data in the StructDyn input file
+   TYPE(ED_InputFile),       INTENT(IN)     :: InputFileData                       ! All the data in the ElastoDyn input file
 
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
@@ -3938,7 +4366,7 @@ CONTAINS
    SUBROUTINE CheckAngle180Range( Var, VarDesc, ErrStat, ErrMsg )
    ! This routine checks that an angle is in the range (-pi, pi] radians. If not, ErrStat = ErrID_Fatal
    ! Note that all values are assumed to be in radians, even if read in degrees (-180 deg, 180 deg]
-   !-------------------------------------------------------------------------------------------------------------------------------
+   !...............................................................................................................................
    REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
    CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
    INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
@@ -3957,7 +4385,7 @@ CONTAINS
    SUBROUTINE CheckAngle90Range( Var, VarDesc, ErrStat, ErrMsg )
    ! This routine checks that an angle is in the range [-pi/2, pi/2] radians. If not, ErrStat = ErrID_Fatal
    ! Note that all values are assumed to be in radians, even if read in degrees ( [-90 deg, 90 deg] )
-   !-------------------------------------------------------------------------------------------------------------------------------
+   !...............................................................................................................................
    REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
    CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
    INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
@@ -3973,7 +4401,7 @@ CONTAINS
    !-------------------------------------------------------------------------------------------------------------------------------
    SUBROUTINE CheckNegative( Var, VarDesc, ErrStat, ErrMsg )
    ! This routine checks that an value is in the range [0, inf). If not, ErrStat = ErrID_Fatal
-   !-------------------------------------------------------------------------------------------------------------------------------
+   !...............................................................................................................................
    REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
    CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
    INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
@@ -3986,24 +4414,22 @@ CONTAINS
       END IF
 
    END SUBROUTINE CheckNegative
-
-
+   !-------------------------------------------------------------------------------------------------------------------------------
 END SUBROUTINE ValidateFurlData
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadFurlFile( InputFileData, FurlFile, UnEc, ErrStat, ErrMsg  )
+SUBROUTINE ReadFurlFile( FurlFile, InputFileData, UnEc, ErrStat, ErrMsg  )
 ! This routine reads the furling file input and converts units as appropriate.
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
    IMPLICIT                        NONE
 
       ! Passed variables:
 
-   TYPE(StrD_InputFile),     INTENT(INOUT)  :: InputFileData                       ! All the data in the StructDyn input file
-   CHARACTER(*),             INTENT(IN)     :: FurlFile                            ! Name of the furling input file data
-
-   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+   TYPE(ED_InputFile),       INTENT(INOUT)  :: InputFileData                       ! All the data in the ElastoDyn input file
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+   CHARACTER(*),             INTENT(IN)     :: FurlFile                            ! Name of the furling input file data
 
       ! Local variables:
 
@@ -4054,7 +4480,6 @@ SUBROUTINE ReadFurlFile( InputFileData, FurlFile, UnEc, ErrStat, ErrMsg  )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-
       ! RFrlDOF - Rotor-furl DOF.
 
    CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDOF, 'RFrlDOF', 'Rotor-furl DOF', ErrStat2, ErrMsg2, UnEc )
@@ -4085,7 +4510,7 @@ SUBROUTINE ReadFurlFile( InputFileData, FurlFile, UnEc, ErrStat, ErrMsg  )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
-      InputFileData%RotFurl   = InputFileData%RotFurl  *D2R
+      InputFileData%RotFurl   = InputFileData%RotFurl*D2R
 
 
       ! TailFurl - Initial or fixed tail-furl angle (read in degrees, converted to radians here)
@@ -4095,7 +4520,7 @@ SUBROUTINE ReadFurlFile( InputFileData, FurlFile, UnEc, ErrStat, ErrMsg  )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
-      InputFileData%TailFurl  = InputFileData%TailFurl *D2R
+      InputFileData%TailFurl  = InputFileData%TailFurl*D2R
       
 
    !  -------------- TURBINE CONFIGURATION (CONT) ---------------------------------
@@ -4661,15 +5086,15 @@ END SUBROUTINE ReadFurlFile
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SetFurlParams( p, InputFileData, ErrStat, ErrMsg  )
 ! This takes the furling input file data and sets the corresponding furling parameters.
-!----------------------------------------------------------------------------------------------------------------------------------
+!..................................................................................................................................
 
    IMPLICIT                        NONE
 
 
       ! Passed variables
 
-   TYPE(StrD_ParameterType), INTENT(INOUT)  :: p                            ! Parameters of the structural dynamics module
-   TYPE(StrD_InputFile),     INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
+   TYPE(ED_ParameterType),   INTENT(INOUT)  :: p                            ! Parameters of the structural dynamics module
+   TYPE(ED_InputFile),       INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
 
@@ -4786,24 +5211,30 @@ SUBROUTINE SetFurlParams( p, InputFileData, ErrStat, ErrMsg  )
    p%rVDyn     = InputFileData%RFrlCMyn - p%RFrlPntyn
    p%rVDzn     = InputFileData%RFrlCMzn - p%RFrlPntzn
 
-   p%rVPxn     =                        - p%RFrlPntxn
+   p%rVPxn     =        0.0_ReKi        - p%RFrlPntxn
    p%rVPyn     = InputFileData%Yaw2Shft - p%RFrlPntyn   
    
+   
+      ! Note: These positions are also used for non-furling machines:
+      
+   p%rVPzn     = InputFileData%Twr2Shft - p%RFrlPntzn 
+   p%rVIMUxn   = InputFileData%NcIMUxn  - p%RFrlPntxn 
+   p%rVIMUyn   = InputFileData%NcIMUyn  - p%RFrlPntyn 
+   p%rVIMUzn   = InputFileData%NcIMUzn  - p%RFrlPntzn   
    
 END SUBROUTINE SetFurlParams
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrMsg )
-
-
-   ! This routine reads in the AeroDyn v13.00.00 input file to get the
-   !   blade discretization used in the structural dynamics module.
+! This routine reads in the AeroDyn v13.00.00 input file to get the
+!   blade discretization used in the structural dynamics module.
+!..................................................................................................................................
 
 
    IMPLICIT                        NONE
 
       ! Passed variables
 
-   TYPE(StrD_BladeMeshInputData), INTENT(INOUT)  :: BladeKInputFileMesh                 ! All the data in the StructDyn input file
+   TYPE(ED_BladeMeshInputData),   INTENT(INOUT)  :: BladeKInputFileMesh                 ! All the data in the ElastoDyn input file
    CHARACTER(*),                  INTENT(IN)     :: MeshFile                            ! Name of the AeroDyn input file data (for mesh)
 
    INTEGER(IntKi),                INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
@@ -4940,6 +5371,153 @@ CONTAINS
 
 END SUBROUTINE ReadBladeMeshFile
 !----------------------------------------------------------------------------------------------------------------------------------
-END MODULE StructDyn
+SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile, UnEc, ErrStat, ErrMsg )
+! This routine reads in the AeroDyn v13.00.00 input file to get the
+!   blade discretization used in the structural dynamics module.
+!..................................................................................................................................
+
+
+   IMPLICIT                        NONE
+
+      ! Passed variables
+   INTEGER(IntKi),     INTENT(INOUT)  :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+   INTEGER(IntKi),     INTENT(OUT)    :: ErrStat                             ! Error status
+
+   CHARACTER(*),       INTENT(IN)     :: InputFile                           ! Name of the file containing the primary input data
+   CHARACTER(*),       INTENT(OUT)    :: ErrMsg                              ! Error message
+   CHARACTER(*),       INTENT(OUT)    :: TwrFile                             ! name of the file containing tower inputs
+   CHARACTER(*),       INTENT(OUT)    :: FurlFile                            ! name of the file containing furling inputs
+   CHARACTER(*),       INTENT(OUT)    :: BldFile(MaxBl)                      ! name of the files containing blade inputs
+
+   TYPE(ED_InputFile), INTENT(INOUT)  :: InputFileData                       ! All the data in the ElastoDyn input file
+   
+      ! Local variables:
+   INTEGER(IntKi)               :: I                                         ! loop counter
+   INTEGER(IntKi)               :: UnIn                                      ! Unit number for reading file
+     
+   INTEGER(IntKi)               :: ErrStat2                                  ! Temporary Error status
+   LOGICAL                      :: Echo                                    ! Determines if an echo file should be written
+   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                   ! Temporary Error message
+
+
+
+      ! Get an available unit number for the file.
+
+   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Open the Primary input file.
+
+   CALL OpenFInpFile ( UnIn, InputFile, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Add a separator to the echo file if appropriate.
+
+   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Input data from '//ED_Ver%Name//' file "'//TRIM( InputFile )//'":'
+ 
+
+   !  -------------- HEADER -------------------------------------------------------
+   ! NumBl: line 9
+   ! platform = line 132
+   ! tower: line 135
+   ! furling line 142
+   ! blades: lines 158-160
+   
+   DO I = 1,5
+      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2  )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END DO
+
+   CALL ReadVar ( UnIn, InputFile, Echo, 'Echo', 'Echo to file?', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      IF ( Echo ) THEN
+!         CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat2, ErrMsg2, ED_Ver )
+         CALL OpenEcho ( UnEc, 'Temp.ech', ErrStat2, ErrMsg2, ED_Ver )
+            CALL CheckError( ErrStat2, ErrMsg2 )
+            IF ( ErrStat >= AbortErrLev ) RETURN
+      END IF
+   
+   DO I = 7,134
+      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2  )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END DO
+
+   CALL ReadVar ( UnIn, InputFile, TwrFile, 'TwrFile', 'Name of the tower file', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   DO I = 136,142
+      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2  )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END DO
+   
+   CALL ReadVar ( UnIn, InputFile, FurlFile, 'FurlFile', 'Name of the furling file', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   DO I = 144,157
+      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2  )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END DO
+
+   DO I = 1,3   
+      CALL ReadVar ( UnIn, InputFile, BldFile(I), 'BldFile', 'Name of the blade file', ErrStat2, ErrMsg2 )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END DO
+   
+            
+      ! Close the input file:
+!PRINT *, 'Twr:', TRIM(TwrFile)
+!PRINT *, 'Furl:', TRIM(FurlFile)
+!PRINT *, 'Blades:', TRIM(BldFile(1)),TRIM(BldFile(2)),TRIM(BldFile(3))
+   CLOSE ( UnIn )
+   RETURN
+
+
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnIn )
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError
+   !...............................................................................................................................
+
+END SUBROUTINE ReadPrimaryFile
+!----------------------------------------------------------------------------------------------------------------------------------
+END MODULE ElastoDyn
 !**********************************************************************************************************************************
 

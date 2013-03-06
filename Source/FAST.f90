@@ -1,9 +1,9 @@
 MODULE FASTSubs
 
    USE   NWTC_Library
-   USE   StructDyn_Types
-   USE   StructDyn_Parameters
-   USE   StructDyn
+   USE   ElastoDyn_Types
+   USE   ElastoDyn_Parameters
+   USE   ElastoDyn
 
    USE   Controls_Types
    USE   Controls
@@ -31,10 +31,10 @@ IMPLICIT                        NONE
 
    ! Passed variables.
 
-TYPE(StrD_ParameterType),        INTENT(INOUT) :: p                             ! Parameters of the structural dynamics module
-TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
-TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
-TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for the structural dynamics module
+TYPE(ED_ParameterType),        INTENT(INOUT) :: p                             ! Parameters of the structural dynamics module
+TYPE(ED_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
+TYPE(ED_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
+TYPE(ED_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for the structural dynamics module
 
 
    ! Local variables.
@@ -201,29 +201,6 @@ IF (.NOT. ALLOCATED( p%rSAerCenn2 ) ) THEN
    ENDIF
 ENDIF
 
-IF (.NOT. ALLOCATED( p%DOF_Flag ) ) THEN
-   ALLOCATE ( p%DOF_Flag(p%NDOF) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the DOF_Flag array.' )
-   ENDIF
-ENDIF
-
-!bjj removed this feature: 7.02.x
-!IF (.NOT. ALLOCATED( DOF_FlagInit ) ) THEN
-!   ALLOCATE ( DOF_FlagInit(p%NDOF) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the DOF_FlagInit array.' )
-!   ENDIF
-!ENDIF
-
-IF (.NOT. ALLOCATED( p%DOF_Desc ) ) THEN
-   ALLOCATE ( p%DOF_Desc(p%NDOF) , STAT=Sttus )
-   IF ( Sttus /= 0 )  THEN
-      CALL ProgAbort ( ' Error allocating memory for the DOF_Desc array.' )
-   ENDIF
-ENDIF
-
-
 
 IF (.NOT. ALLOCATED( OtherState%QD2 ) ) THEN
    ALLOCATE ( OtherState%QD2(p%NDOF,NMX) , STAT=Sttus )
@@ -271,13 +248,6 @@ IF (.NOT. ALLOCATED( OtherState%RtHS%AngPosXF ) ) THEN
 ENDIF
 
 
-!IF (.NOT. ALLOCATED( LinAccES ) ) THEN
-!   ALLOCATE ( LinAccES(p%NumBl,p%TipNode,3) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the LinAccES array.' )
-!   ENDIF
-!ENDIF
-!
 IF (.NOT. ALLOCATED( OtherState%RtHS%LinAccESt ) ) THEN
    ALLOCATE ( OtherState%RtHS%LinAccESt(p%NumBl,p%TipNode,3) , STAT=Sttus )
    IF ( Sttus /= 0 )  THEN
@@ -285,12 +255,6 @@ IF (.NOT. ALLOCATED( OtherState%RtHS%LinAccESt ) ) THEN
    ENDIF
 ENDIF
 
-!IF (.NOT. ALLOCATED( LinAccET ) ) THEN
-!   ALLOCATE ( LinAccET(p%TwrNodes,3) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the LinAccET array.' )
-!   ENDIF
-!ENDIF
 
 IF (.NOT. ALLOCATED( OtherState%RtHS%LinAccETt ) ) THEN
    ALLOCATE ( OtherState%RtHS%LinAccETt(p%TwrNodes,3) , STAT=Sttus )
@@ -299,13 +263,6 @@ IF (.NOT. ALLOCATED( OtherState%RtHS%LinAccETt ) ) THEN
    ENDIF
 ENDIF
 
-
-!IF (.NOT. ALLOCATED( FrcS0B ) ) THEN
-!   ALLOCATE ( FrcS0B(p%NumBl,3) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the FrcS0B array.' )
-!   ENDIF
-!ENDIF
 
 IF (.NOT. ALLOCATED( OtherState%RtHS%PFrcS0B ) ) THEN
    ALLOCATE ( OtherState%RtHS%PFrcS0B(p%NumBl,p%NDOF,3) , STAT=Sttus )
@@ -321,12 +278,6 @@ IF (.NOT. ALLOCATED( OtherState%RtHS%FrcS0Bt ) ) THEN
    ENDIF
 ENDIF
 
-!IF (.NOT. ALLOCATED( MomH0B ) ) THEN
-!   ALLOCATE ( MomH0B(p%NumBl,3) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the MomH0B array.' )
-!   ENDIF
-!ENDIF
 
 IF (.NOT. ALLOCATED( OtherState%RtHS%PMomH0B ) ) THEN
    ALLOCATE ( OtherState%RtHS%PMomH0B(p%NumBl,p%NDOF,3) , STAT=Sttus )
@@ -457,19 +408,6 @@ IF (.NOT. ALLOCATED( OtherState%RtHS%MFAero ) ) THEN
    ENDIF
 ENDIF
 
-!IF (.NOT. ALLOCATED( FTHydro ) ) THEN
-!   ALLOCATE ( FTHydro(p%TwrNodes,3) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the FTHydro array.' )
-!   ENDIF
-!ENDIF
-
-!IF (.NOT. ALLOCATED( MFHydro ) ) THEN
-!   ALLOCATE ( MFHydro(p%TwrNodes,3) , STAT=Sttus )
-!   IF ( Sttus /= 0 )  THEN
-!      CALL ProgAbort ( ' Error allocating memory for the MFHydro array.' )
-!   ENDIF
-!ENDIF
 
 IF (.NOT. ALLOCATED( OtherState%RtHS%PFTHydro ) ) THEN
    ALLOCATE ( OtherState%RtHS%PFTHydro(p%TwrNodes,p%NDOF,3) , STAT=Sttus )
@@ -606,14 +544,6 @@ IF (.NOT. ALLOCATED( x%QT ) ) THEN
 ENDIF
 
 
-
-
-   ! Allocate noise arrays:
-
-CALL AllocNoise( p )
-
-
-
 RETURN
 END SUBROUTINE Alloc
 !=======================================================================
@@ -649,13 +579,13 @@ USE HydroVals
 IMPLICIT                        NONE
 
    ! passed variables:
-TYPE(StrD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
-TYPE(StrD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-TYPE(StrD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-!TYPE(StrD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-!TYPE(StrD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
-TYPE(StrD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states (The coordinate systems previously calculated)
-TYPE(StrD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
+TYPE(ED_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+!TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
+!TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+TYPE(ED_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states (The coordinate systems previously calculated)
+TYPE(ED_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
                                                               !   nectivity information does not have to be recalculated)
 !INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
 !CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
@@ -1482,8 +1412,8 @@ IMPLICIT                        NONE
 
    ! Passed variables
 
-TYPE(StrD_ParameterType),        INTENT(INOUT)    :: p                             ! Parameters of the structural dynamics module
-TYPE(StrD_InputFile),            INTENT(IN)       :: InputFileData                 ! all the data in the StructDyn input file
+TYPE(ED_ParameterType),        INTENT(INOUT)    :: p                             ! Parameters of the structural dynamics module
+TYPE(ED_InputFile),            INTENT(IN)       :: InputFileData                 ! all the data in the ElastoDyn input file
 
 
    ! Local variables.
@@ -2173,9 +2103,9 @@ USE                             AeroDyn
 IMPLICIT                        NONE
 
    ! Passed variables:
-TYPE(StrD_ParameterType),      INTENT(IN)    :: p                               ! Parameters of the structural dynamics module
-TYPE(StrD_ContinuousStateType),INTENT(INOUT) :: x                               ! The structural dynamics module's continuous states
-TYPE(StrD_OtherStateType),     INTENT(INOUT) :: OtherState                      ! Other State data type for Structural dynamics module
+TYPE(ED_ParameterType),      INTENT(IN)    :: p                               ! Parameters of the structural dynamics module
+TYPE(ED_ContinuousStateType),INTENT(INOUT) :: x                               ! The structural dynamics module's continuous states
+TYPE(ED_OtherStateType),     INTENT(INOUT) :: OtherState                      ! Other State data type for Structural dynamics module
 REAL(ReKi)                                   :: b1(3)                           ! Vector / direction b1 (=  xp from the IEC coord. system)
 
    ! Local variables:
@@ -2440,7 +2370,7 @@ BlPitch = BlPitchCom
 RETURN
 END SUBROUTINE Control
 !=======================================================================
-!SUBROUTINE DrvTrTrq ( p_StrD, p_Ctrl, LSS_Spd, GBoxTrq )
+!SUBROUTINE DrvTrTrq ( p_ED, p_Ctrl, LSS_Spd, GBoxTrq )
 SUBROUTINE DrvTrTrq ( p, LSS_Spd, GBoxTrq )
 
 
@@ -2458,7 +2388,7 @@ IMPLICIT                        NONE
 
    ! Passed variables:
 TYPE(Ctrl_ParameterType),INTENT(IN) :: p                                        ! Parameters of the controls module
-!TYPE(StrD_outputType),INTENT(IN),optional :: y_StrD                                    ! outputs of the structural dynamics module
+!TYPE(ED_outputType),INTENT(IN),optional :: y_ED                                    ! outputs of the structural dynamics module
 REAL(ReKi), INTENT(OUT)      :: GBoxTrq                                         ! Gearbox torque on the LSS side in N-m (output).
 REAL(ReKi), INTENT(IN )      :: LSS_Spd                                         ! LSS speed in rad/sec (input).
 
@@ -2743,8 +2673,8 @@ IMPLICIT                        NONE
    ! Passed variables:
 
 CHARACTER(9), INTENT(IN )    :: Integrator                                      ! A string holding the current integrator being used.
-TYPE(StrD_ParameterType),  INTENT(IN)   :: p                                    ! The parameters of the structural dynamics module
-TYPE(StrD_OtherStateType), INTENT(INOUT):: OtherState                           ! Other State data type for Structural dynamics module
+TYPE(ED_ParameterType),  INTENT(IN)   :: p                                    ! The parameters of the structural dynamics module
+TYPE(ED_OtherStateType), INTENT(INOUT):: OtherState                           ! Other State data type for Structural dynamics module
 REAL(ReKi),                INTENT(INOUT):: AugMat   (p%NDOF,p%NAug)             ! The augmented matrix used for the solution of the QD2T()s.
 
 
@@ -3092,8 +3022,8 @@ REAL(ReKi), INTENT(OUT)      :: InitQF1                                         
 REAL(ReKi), INTENT(OUT)      :: InitQF2                                         ! Initial flap deflection for mode 2 (output).
 
 INTEGER(4), INTENT(IN )      :: K                                               ! Blade number (input).
-TYPE(StrD_ParameterType),  INTENT(IN)  :: p                                     ! The parameters of the structural dynamics module
-TYPE(StrD_InputFile),            INTENT(IN   ) :: InputFileData                 ! all the data in the StructDyn input file
+TYPE(ED_ParameterType),  INTENT(IN)  :: p                                     ! The parameters of the structural dynamics module
+TYPE(ED_InputFile),            INTENT(IN   ) :: InputFileData                 ! all the data in the ElastoDyn input file
 
 
    ! Local variables:
@@ -3389,11 +3319,11 @@ IMPLICIT                        NONE
 
    ! Passed variables
 
-TYPE(StrD_ParameterType),        INTENT(INOUT) :: p                             ! Parameters of the structural dynamics module
-TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
-TYPE(StrD_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
-TYPE(StrD_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for the structural dynamics module
-TYPE(StrD_InputFile),            INTENT(IN   ) :: InputFileData                 ! all the data in the StructDyn input file
+TYPE(ED_ParameterType),        INTENT(INOUT) :: p                             ! Parameters of the structural dynamics module
+TYPE(ED_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
+TYPE(ED_OutputType),           INTENT(INOUT) :: y                             ! System outputs of the structural dynamics module
+TYPE(ED_OtherStateType),       INTENT(INOUT) :: OtherState                    ! Other State data type for the structural dynamics module
+TYPE(ED_InputFile),            INTENT(IN   ) :: InputFileData                 ! all the data in the ElastoDyn input file
 
 
    ! Local variables:
@@ -3416,7 +3346,7 @@ CHARACTER(1024)              :: ErrMsg                                          
 
 
 
-   ! Check to see if any inputted output channels are ill-conditioned, set values for p_StrD%OutParam(:), and initialize y%WriteOutputs:
+   ! Check to see if any inputted output channels are ill-conditioned, set values for p_ED%OutParam(:), and initialize y%WriteOutputs:
 
 CALL ChckOutLst( InputFileData%OutList, p, y, Sttus, ErrMsg )
 IF ( Sttus /= ErrID_None ) THEN
@@ -3429,10 +3359,10 @@ END IF
 
 CALL Alloc(p,x,y, OtherState)
 
-   ! Initialize the DOF data
-CALL StrD_InitDOFs( p, Sttus, ErrMsg )
-IF ( Sttus > AbortErrLev ) CALL ProgAbort( ErrMsg )
-
+!   ! Initialize the DOF data
+!CALL ED_InitDOFs( p, Sttus, ErrMsg )
+!IF ( Sttus > AbortErrLev ) CALL ProgAbort( ErrMsg )
+!
 
    ! Initialize the IC array: = CSHIFT( (/NMX, NMX-1, ... , 1 /), -1 )
 
@@ -3483,16 +3413,6 @@ DO K = 1,p%NumBl   ! Loop through all blades
    OtherState%QD( DOF_BF(K,2), 1 ) = 0.0
    OtherState%QD( DOF_BE(K,1), 1 ) = 0.0
 
-   p%DOF_Flag( DOF_BF(K,1) ) = InputFileData%FlapDOF1
-   p%DOF_Flag( DOF_BF(K,2) ) = InputFileData%FlapDOF2
-   p%DOF_Flag( DOF_BE(K,1) ) = InputFileData%EdgeDOF
-
-   p%DOF_Desc( DOF_BF(K,1) ) = '1st flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
-                             ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',1))'
-   p%DOF_Desc( DOF_BE(K,1) ) = '1st edgewise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
-                             ' (internal DOF index = DOF_BE('         //TRIM(Num2LStr( K ))//',1))'
-   p%DOF_Desc( DOF_BF(K,2) ) = '2nd flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
-                             ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',2))'
 
 ENDDO          ! K - All blades
 
@@ -3507,10 +3427,6 @@ IF ( p%NumBl == 2 )  THEN
 
    OtherState%Q (DOF_Teet,1) = InputFileData%TeetDefl
    OtherState%QD(DOF_Teet,1) = 0.0
-
-   p%DOF_Flag(DOF_Teet) = InputFileData%TeetDOF
-
-   p%DOF_Desc(DOF_Teet) = 'Hub teetering DOF (internal DOF index = DOF_Teet)'
 
 ENDIF
 
@@ -3554,7 +3470,6 @@ OtherState%Q (DOF_RFrl,1) = InputFileData%RotFurl
 OtherState%QD(DOF_RFrl,1) = 0.0
 
 p%DOF_Flag(DOF_RFrl) = InputFileData%RFrlDOF
-
 p%DOF_Desc(DOF_RFrl) = 'Rotor-furl DOF (internal DOF index = DOF_RFrl)'
 
 
@@ -3758,7 +3673,7 @@ IMPLICIT                        NONE
 
    ! passed variables
 
-TYPE(StrD_ContinuousStateType),INTENT(IN)  :: x                          ! The structural dynamics module's continuous states
+TYPE(ED_ContinuousStateType),INTENT(IN)  :: x                          ! The structural dynamics module's continuous states
 REAL(ReKi),INTENT(OUT)                     :: PtfmAM (6,6)               ! Platform added mass matrix.
 REAL(ReKi),INTENT(OUT)                     :: PtfmFt   (6)               ! The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the platform force at the platform reference (point Z) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the platform moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()'s.
 
@@ -3833,7 +3748,7 @@ IMPLICIT                        NONE
 
 
    ! Passed Variables:
-TYPE(StrD_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
+TYPE(ED_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
 
 REAL(ReKi), INTENT(IN )      :: RFrlDef                                         ! The rotor-furl deflection, x%QT(DOF_RFrl).
 REAL(ReKi), INTENT(OUT)      :: RFrlMom                                         ! The total moment supplied by the springs, and dampers.
@@ -3935,14 +3850,14 @@ IMPLICIT                        NONE
 
    ! Passed variables
 
-TYPE(StrD_ParameterType),      INTENT(IN)       :: p                            ! The parameters of the structural dynamics module
+TYPE(ED_ParameterType),      INTENT(IN)       :: p                            ! The parameters of the structural dynamics module
 TYPE(Ctrl_ParameterType),      INTENT(IN)       :: p_Ctrl                       ! The parameters of the controls module
-TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x                            ! The structural dynamics module's continuous states
-TYPE(StrD_OtherStateType),     INTENT(INOUT)    :: OtherState                   ! Other State data type for Structural dynamics module
+TYPE(ED_ContinuousStateType),INTENT(INOUT)    :: x                            ! The structural dynamics module's continuous states
+TYPE(ED_OtherStateType),     INTENT(INOUT)    :: OtherState                   ! Other State data type for Structural dynamics module
 REAL(ReKi), OPTIONAL,          INTENT(OUT)      :: AugMatOut (p%NDOF,p%NAug)    ! The augmented matrix used for the solution of the QD2T()s.
 
 !bjj: should be type IN only: (change when AeroDyn and HydroDyn are not called from this routine)
-TYPE(StrD_InputType),           INTENT( INOUT)  :: u           ! The inputs for the structural dynamics module
+TYPE(ED_InputType),           INTENT( INOUT)  :: u           ! The inputs for the structural dynamics module
 
    ! Local variables:
 
@@ -4979,7 +4894,7 @@ DO K = 1,p%NumBl ! Loop through all blades
          TBDrCon    = TBDrConN
 
       ENDIF
-!---- end of the controller: returns TBDrCon, or N and D part of structdyn, return 0<=TBFrac<=1, consistant with other controllers
+!---- end of the controller: returns TBDrCon, or N and D part of ElastoDyn, return 0<=TBFrac<=1, consistant with other controllers
 
 
       OtherState%RtHS%FSTipDrag(K,:) = OtherState%CoordSys%m2(K,p%BldNodes,:)*SIGN( 0.5*p%AirDens*LinVelESm2(K)*LinVelESm2(K)*TBDrCon, -1.*LinVelESm2(K) )
@@ -6230,10 +6145,10 @@ IMPLICIT                        NONE
 
    ! Subroutine arguments (passed variables)
 
-TYPE(StrD_CoordSys),            INTENT(INOUT) :: CoordSys                      ! The coordinate systems to be set
+TYPE(ED_CoordSys),            INTENT(INOUT) :: CoordSys                      ! The coordinate systems to be set
 TYPE(RtHndSide),                INTENT(INOUT) :: RtHSdat                       ! data from the RtHndSid module
-TYPE(StrD_ParameterType),       INTENT(IN)    :: p                             ! The module's parameters
-TYPE(StrD_ContinuousStateType), INTENT(IN)    :: x                             ! The module's continuous states
+TYPE(ED_ParameterType),       INTENT(IN)    :: p                             ! The module's parameters
+TYPE(ED_ContinuousStateType), INTENT(IN)    :: x                             ! The module's continuous states
 
 
    ! Local variables
@@ -6545,7 +6460,7 @@ IMPLICIT                        NONE
 
 
    ! passed variables
-TYPE(StrD_ParameterType), INTENT(INOUT)   :: p                                  ! Parameters of the structural dynamics module
+TYPE(ED_ParameterType), INTENT(INOUT)   :: p                                  ! Parameters of the structural dynamics module
 !TYPE(ActiveDOFs),         INTENT(INOUT)   :: DOF                                ! Active DOFs (from other/optimization states)
 
 
@@ -6980,12 +6895,12 @@ IMPLICIT                        NONE
 
    ! Subroutine arguments (Passed variables):
 
-TYPE(StrD_ParameterType),      INTENT(IN)       :: p                           ! The parameters of the structural dynamics module
+TYPE(ED_ParameterType),      INTENT(IN)       :: p                           ! The parameters of the structural dynamics module
 TYPE(Ctrl_ParameterType),      INTENT(IN)       :: p_ctrl                      ! The parameters of the controls module
-TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x                           ! The structural dynamics module's continuous states
-TYPE(StrD_OtherStateType),     INTENT(INOUT)    :: OtherState                  ! The structural dynamics "other" states (including CoordSys coordinate systems)
-TYPE(StrD_OutputType),         INTENT(INOUT)    :: y                           ! System outputs of the structural dynamics module
-TYPE(StrD_InputType),          INTENT(INOUT)    :: u                           ! System inputs of the structural dynamics module 
+TYPE(ED_ContinuousStateType),INTENT(INOUT)    :: x                           ! The structural dynamics module's continuous states
+TYPE(ED_OtherStateType),     INTENT(INOUT)    :: OtherState                  ! The structural dynamics "other" states (including CoordSys coordinate systems)
+TYPE(ED_OutputType),         INTENT(INOUT)    :: y                           ! System outputs of the structural dynamics module
+TYPE(ED_InputType),          INTENT(INOUT)    :: u                           ! System inputs of the structural dynamics module 
 
 
    ! Local variables:
@@ -7236,7 +7151,7 @@ IMPLICIT                        NONE
 
 
    ! Passed Variables:
-TYPE(StrD_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
+TYPE(ED_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
 REAL(ReKi), INTENT(IN )      :: TeetDef                                         ! The teeter deflection, x%QT(DOF_Teet).
 REAL(ReKi), INTENT(OUT)      :: TeetMom                                         ! The total moment supplied by the stop, spring, and damper.
 REAL(ReKi), INTENT(IN )      :: TeetRate                                        ! The teeter rate, x%QDT(DOF_Teet).
@@ -7339,7 +7254,7 @@ IMPLICIT                        NONE
 
 
    ! Passed Variables:
-TYPE(StrD_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
+TYPE(ED_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
 
 REAL(ReKi), INTENT(IN )      :: TFrlDef                                         ! The tail-furl deflection, QT(DOF_TFrl).
 REAL(ReKi), INTENT(OUT)      :: TFrlMom                                         ! The total moment supplied by the springs, and dampers.
@@ -7417,7 +7332,7 @@ ENDSELECT
 RETURN
 END SUBROUTINE TFurling
 !=======================================================================
-SUBROUTINE TimeMarch( p_StrD, p_Ctrl, x_StrD, OtherSt_StrD, u_StrD, y_StrD, ErrStat, ErrMsg  )
+SUBROUTINE TimeMarch( p_ED, p_Ctrl, x_ED, OtherSt_ED, u_ED, y_ED, ErrStat, ErrMsg  )
 
 
    ! TimeMarch controls the execution of the typical time-marching
@@ -7434,12 +7349,12 @@ IMPLICIT                        NONE
 
 
    ! passed variables
-TYPE(StrD_ParameterType),      INTENT(IN)       :: p_StrD                     ! The parameters of the structural dynamics module
+TYPE(ED_ParameterType),      INTENT(IN)       :: p_ED                     ! The parameters of the structural dynamics module
 TYPE(Ctrl_ParameterType),      INTENT(IN)       :: p_Ctrl                     ! The parameters of the controls module
-TYPE(StrD_ContinuousStateType),INTENT(INOUT)    :: x_StrD                     ! The structural dynamics module's continuous states
-TYPE(StrD_OtherStateType),     INTENT(INOUT)    :: OtherSt_StrD               ! The structural dynamics "other" states (including CoordSys coordinate systems)
-TYPE(StrD_OutputType),         INTENT(INOUT)    :: y_StrD                     ! System outputs of the structural dynamics module
-TYPE(StrD_InputType),          INTENT(INOUT)    :: u_StrD                     ! System inputs of the structural dynamics module
+TYPE(ED_ContinuousStateType),INTENT(INOUT)    :: x_ED                     ! The structural dynamics module's continuous states
+TYPE(ED_OtherStateType),     INTENT(INOUT)    :: OtherSt_ED               ! The structural dynamics "other" states (including CoordSys coordinate systems)
+TYPE(ED_OutputType),         INTENT(INOUT)    :: y_ED                     ! System outputs of the structural dynamics module
+TYPE(ED_InputType),          INTENT(INOUT)    :: u_ED                     ! System inputs of the structural dynamics module
 
 
 INTEGER(IntKi),                INTENT(OUT)      :: ErrStat                    ! Error status
@@ -7453,7 +7368,7 @@ REAL(DbKi)                   :: TiLstPrn  = 0.0                                 
 
    ! Allocate space for coordinate systems
 
-CALL CoordSys_Alloc( OtherSt_StrD%CoordSys, p_StrD, ErrStat, ErrMsg )
+CALL CoordSys_Alloc( OtherSt_ED%CoordSys, p_ED, ErrStat, ErrMsg )
 
 IF (ErrStat /= ErrID_none) THEN
    CALL WrScr( ' Error in SUBROUTINE TimeMarch: ' )
@@ -7467,7 +7382,7 @@ END IF
 
    ! Set up output file format.
 
-CALL WrOutHdr( p_StrD )
+CALL WrOutHdr( p_ED )
 
 
    ! Start simulation.  Initialize the simulation status.
@@ -7484,13 +7399,13 @@ DO
 
    ! Call predictor-corrector routine:
 
-   CALL Solver( p_StrD, p_Ctrl, x_StrD, y_StrD, OtherSt_StrD, u_StrD  )
+   CALL Solver( p_ED, p_Ctrl, x_ED, y_ED, OtherSt_ED, u_ED  )
 
 
    ! Make sure the rotor azimuth is not greater or equal to 360 degrees: (can't we do a mod here?)
 
-   IF ( ( OtherSt_StrD%Q(DOF_GeAz,OtherSt_StrD%IC(1)) + OtherSt_StrD%Q(DOF_DrTr,OtherSt_StrD%IC(1)) ) >= TwoPi )  THEN
-          OtherSt_StrD%Q(DOF_GeAz,OtherSt_StrD%IC(1)) = OtherSt_StrD%Q(DOF_GeAz,OtherSt_StrD%IC(1)) - TwoPi
+   IF ( ( OtherSt_ED%Q(DOF_GeAz,OtherSt_ED%IC(1)) + OtherSt_ED%Q(DOF_DrTr,OtherSt_ED%IC(1)) ) >= TwoPi )  THEN
+          OtherSt_ED%Q(DOF_GeAz,OtherSt_ED%IC(1)) = OtherSt_ED%Q(DOF_GeAz,OtherSt_ED%IC(1)) - TwoPi
    ENDIF
 
 
@@ -7502,16 +7417,16 @@ DO
 
    ! Compute all of the output channels and fill in the WriteOutput() array:
 
-   CALL CalcOuts( p_StrD, x_StrD, y_StrD, OtherSt_StrD, u_StrD  )
-!   CALL StrD_CalcOutput( REAL(ZTime,DbKi), u, p_StrD, x_StrD, xd, z, OtherSt_StrD, y_StrD, ErrStat, ErrMsg )
+   CALL CalcOuts( p_ED, x_ED, y_ED, OtherSt_ED, u_ED  )
+!   CALL ED_CalcOutput( REAL(ZTime,DbKi), u, p_ED, x_ED, xd, z, OtherSt_ED, y_ED, ErrStat, ErrMsg )
 
    ! Check to see if we should output data this time step:
 
    IF ( ZTime >= TStart )  THEN
-      IF ( CompNoise                 )  CALL PredictNoise( p_StrD,                    OtherSt_StrD%CoordSys%te1, &
-                                                           OtherSt_StrD%CoordSys%te2, OtherSt_StrD%CoordSys%te3, &
-                                                           OtherSt_StrD%RtHS%rS )
-      IF ( MOD( Step, DecFact ) == 0 )  CALL WrOutput( p_StrD, y_StrD )
+      IF ( CompNoise                 )  CALL PredictNoise( p_ED,                    OtherSt_ED%CoordSys%te1, &
+                                                           OtherSt_ED%CoordSys%te2, OtherSt_ED%CoordSys%te3, &
+                                                           OtherSt_ED%RtHS%rS )
+      IF ( MOD( Step, DecFact ) == 0 )  CALL WrOutput( p_ED, y_ED )
    ENDIF
 
 
@@ -7539,7 +7454,7 @@ ENDDO
    ! Output the binary file if requested
 
 IF (WrBinOutFile) THEN
-   CALL WrBinFAST(TRIM(RootName)//'.outb', OutputFileFmtID, FileDesc, p_StrD%OutParam(:)%Name, p_StrD%OutParam(:)%Units, TimeData, &
+   CALL WrBinFAST(TRIM(RootName)//'.outb', OutputFileFmtID, FileDesc, p_ED%OutParam(:)%Name, p_ED%OutParam(:)%Units, TimeData, &
                      AllOutData(:,1:CurrOutStep), ErrStat, ErrMsg)
 
    IF ( ErrStat /= ErrID_None ) THEN
@@ -7589,7 +7504,7 @@ REAL(ReKi), INTENT(IN )      :: XD6                                             
 
 INTEGER(4), INTENT(IN )      :: JNode                                           ! The number of the current tower node / element. [1 to TwrNodes]
 
-TYPE(StrD_ParameterType), INTENT(IN)  :: p                                      ! Parameters of the structural dynamics module;  bjj: remove this in new framework
+TYPE(ED_ParameterType), INTENT(IN)  :: p                                      ! Parameters of the structural dynamics module;  bjj: remove this in new framework
 
 REAL(ReKi), INTENT(OUT )     :: TwrAM     (6,6)                                 ! Added mass matrix of the current tower element per unit length.
 REAL(ReKi), INTENT(OUT )     :: TwrFt     (6)                                   ! The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower element (point T) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the tower moment acting at the current tower element (body F) / (point T) per unit length associated with everything but the QD2T()'s.

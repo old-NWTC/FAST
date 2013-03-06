@@ -1,5 +1,5 @@
 !=======================================================================
-SUBROUTINE Set_FAST_Params( p_StrD )
+SUBROUTINE Set_FAST_Params( p_ED )
 
 
    ! Set variables based on AeroDyn inputs
@@ -11,7 +11,7 @@ SUBROUTINE Set_FAST_Params( p_StrD )
 
 USE                           Blade,      ONLY: C
 USE                           AeroDyn
-USE StructDyn_Types
+USE ElastoDyn_Types
 USE GlueCodeVars
    
    ! FAST Modules:
@@ -25,7 +25,7 @@ USE                           AeroElem !, ONLY: NumADBldNodes, AD_AeroMarker
 IMPLICIT                      NONE
 
    ! Passed variables:
-TYPE(StrD_ParameterType),  INTENT(INOUT)  :: p_StrD                      ! The parameters of the structural dynamics module
+TYPE(ED_ParameterType),  INTENT(INOUT)  :: p_ED                      ! The parameters of the structural dynamics module
 
 
    ! Local variables:
@@ -40,7 +40,7 @@ INTEGER(4)                 :: Sttus                                     ! Status
 
 !   ! Write data read in from ADFile into MODULEs used by FAST:
 
-p_StrD%AirDens  = AD_GetConstant('AirDensity', ErrStat)
+p_ED%AirDens  = AD_GetConstant('AirDensity', ErrStat)
 
 
 
@@ -48,7 +48,7 @@ p_StrD%AirDens  = AD_GetConstant('AirDensity', ErrStat)
   !   turbulent inflow noise calculation:
 
 IF ( CompNoise )  THEN  ! Yes, noise will be computed.
-   InpPosition = (/ 0.0, 0.0, p_StrD%FASTHH /)
+   InpPosition = (/ 0.0, 0.0, p_ED%FASTHH /)
 
    CALL Noise_CalcTI( REAL(0.0, ReKi), REAL(TMax, ReKi), REAL(DT, ReKi), InpPosition )
 
@@ -64,9 +64,9 @@ IF ( CompAero )  THEN
    ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
    AD_RefHt = AD_GetConstant('RefHt', ErrStat)
 
-   IF ( ABS( p_StrD%FASTHH - AD_RefHt ) > 0.1*( p_StrD%FASTHH ) )  THEN  !bjj: I believe that this should not be done in the future
+   IF ( ABS( p_ED%FASTHH - AD_RefHt ) > 0.1*( p_ED%FASTHH ) )  THEN  !bjj: I believe that this should not be done in the future
 
-      CALL ProgWarn( ' The FAST hub height ('//TRIM(Num2LStr( p_StrD%FASTHH ))//') and AeroDyn input'// &
+      CALL ProgWarn( ' The FAST hub height ('//TRIM(Num2LStr( p_ED%FASTHH ))//') and AeroDyn input'// &
                     ' reference hub height ('//TRIM(Num2LStr(AD_RefHt))//') differ by more than 10%.' )
    ENDIF
 
@@ -84,8 +84,8 @@ SUBROUTINE TFinAero( TFinCPxi, TFinCPyi, TFinCPzi, TFinCPVx, TFinCPVy, TFinCPVz,
 
 
    ! FAST Modules:
-USE StructDyn_Types
-USE StructDyn_Parameters
+USE ElastoDyn_Types
+USE ElastoDyn_Parameters
 USE GlueCodeVars
    
 USE                             General
@@ -112,9 +112,9 @@ REAL(ReKi), INTENT(IN )      :: TFinCPxi                                        
 REAL(ReKi), INTENT(IN )      :: TFinCPyi                                        ! Lateral  distance from the inertial frame origin to the tail fin center-of-pressure (m)
 REAL(ReKi), INTENT(IN )      :: TFinCPzi                                        ! Vertical distance from the inertial frame origin to the tail fin center-of-pressure (m)
 
-TYPE(StrD_CoordSys), INTENT(IN)                :: CoordSys                      ! Coordinate systems of the structural dynamics module
-TYPE(StrD_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
-TYPE(StrD_ParameterType),        INTENT(IN)    :: p                             ! The parameters of the structural dynamics module
+TYPE(ED_CoordSys), INTENT(IN)                :: CoordSys                      ! Coordinate systems of the structural dynamics module
+TYPE(ED_ContinuousStateType),  INTENT(INOUT) :: x                             ! Continuous states of the structural dynamics module
+TYPE(ED_ParameterType),        INTENT(IN)    :: p                             ! The parameters of the structural dynamics module
 
    ! Local variables:
 
