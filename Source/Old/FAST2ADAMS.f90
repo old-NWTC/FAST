@@ -1495,6 +1495,7 @@ WRITE (UnAD,FmtTRTRTR)  ', XP = ', -p%CTFrlSkew*p%STFrlTilt, ', ', -p%STFrlSkew*
 
 
    ! Tail boom graphics:
+!bjj add here: SQRTTFinA = SQRT( TFinArea )
 
 TmpVec1 = p%rWKxn*CoordSys%tf1 + p%rWKzn*CoordSys%tf2 - p%rWKyn*CoordSys%tf3 - 0.25*SQRTTFinA*CoordSys%p2   ! z-axis along the boom - directed from the specified point on the tail-furl axis to a point just below the tail fin CM and just downwind (along p1) of TailFinOutline5_M
 TmpVec2 = CoordSys%tfa                                                                                ! This is chosen somewhat arbitrarily (only the z-axis matters) - I chose tfa since it is very unlikely that the the boom-axis will lie along the tail-furl axis
@@ -3998,3 +3999,342 @@ SUBROUTINE MakeADM_WrString(Str, StrID, Un, StrName)
 END SUBROUTINE MakeADM_WrString
 !=======================================================================
 END MODULE FAST2ADAMSSubs
+
+
+SUBROUTINE GetADAMS( p, UnEc )
+
+
+   ! This routine reads in the ADAMS-specific parameters from ADAMSFile
+   !   and validates the input.
+
+
+USE                             ADAMSInput
+USE                             General
+
+
+IMPLICIT                        NONE
+
+   ! passed variables
+TYPE(ED_ParameterType), INTENT(IN)  :: p                                      ! Parameters of the structural dynamics module
+INTEGER(IntKi), INTENT(IN)            :: UnEc                                   ! Unit number for echo file (if > 0 )
+
+   ! Local variables:
+
+INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
+
+
+
+   ! Open the ADAMS input file:
+
+CALL OpenFInpFile ( UnIn, ADAMSFile )
+
+
+   ! Add a separator to the echo file if appropriate:
+
+IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'ADAMS input data from file "'//TRIM( ADAMSFile )//'":'
+
+
+
+!  -------------- HEADER -------------------------------------------------------
+
+
+   ! Skip the header.
+CALL ReadCom(UnIn, ADAMSFile, 'unused ADAMS file header 1', UnEc=UnEc )
+CALL ReadCom(UnIn, ADAMSFile, 'unused ADAMS file header 2', UnEc=UnEc )
+CALL ReadCom(UnIn, ADAMSFile, 'unused ADAMS file header 3', UnEc=UnEc )
+
+
+
+!  -------------- FEATURE SWITCHES ---------------------------------------------
+
+
+   ! Skip the comment line.
+CALL ReadCom ( UnIn, ADAMSFile, 'feature switches', UnEc=UnEc   )
+
+   ! SaveGrphcs - Save GRAPHICS output.
+
+CALL ReadVar ( UnIn, ADAMSFile, SaveGrphcs, 'SaveGrphcs', 'Save GRAPHICS output', UnEc=UnEc  )
+
+
+   ! MakeLINacf - Make ADAMS/LINEAR control command file.
+
+CALL ReadVar ( UnIn, ADAMSFile, MakeLINacf, 'MakeLINacf', 'Make ADAMS/LINEAR control command file', UnEc=UnEc  )
+
+IF ( MakeLINacf .AND. ( .NOT. SaveGrphcs ) )  &
+   CALL ProgAbort ( ' SaveGrphcs must be True if MakeLINacf is True.' )
+
+
+
+!  -------------- DAMPING PARAMETERS -------------------------------------------
+
+
+   ! Skip the comment line.
+
+CALL ReadCom ( UnIn, ADAMSFile, 'damping parameters', UnEc=UnEc   )
+
+
+   ! CRatioTGJ - Tower torsional damping ratio.
+
+CALL ReadVar ( UnIn, ADAMSFile, CRatioTGJ, 'CRatioTGJ', 'Tower torsional damping ratio', UnEc=UnEc  )
+
+IF ( CRatioTGJ < 0.0 )  CALL ProgAbort ( ' CRatioTGJ must not be less than zero.' )
+
+
+   ! CRatioTEA - Tower extensional damping ratio.
+
+CALL ReadVar ( UnIn, ADAMSFile, CRatioTEA, 'CRatioTEA', 'Tower extensional damping ratio', UnEc=UnEc  )
+
+IF ( CRatioTEA < 0.0 )  CALL ProgAbort ( ' CRatioTEA must not be less than zero.' )
+
+
+   ! CRatioBGJ - Blade torsional damping ratio.
+
+CALL ReadVar ( UnIn, ADAMSFile, CRatioBGJ, 'CRatioBGJ', 'Blade torsional damping ratio', UnEc=UnEc  )
+
+IF ( CRatioBGJ < 0.0 )  CALL ProgAbort ( ' CRatioBGJ must not be less than zero.' )
+
+
+   ! CRatioBEA - Blade extensional damping ratio.
+
+CALL ReadVar ( UnIn, ADAMSFile, CRatioBEA, 'CRatioBEA', 'Blade extensional damping ratio', UnEc=UnEc  )
+
+IF ( CRatioBEA < 0.0 )  CALL ProgAbort ( ' CRatioBEA must not be less than zero.' )
+
+
+
+!  -------------- BLADE PITCH ACTUATOR PARAMETERS ------------------------------
+
+
+   ! Skip the comment line.
+
+CALL ReadCom ( UnIn, ADAMSFile, 'blade pitch actuator parameters', UnEc=UnEc   )
+
+   ! BPActrSpr - Blade pitch actuator spring constant.
+
+CALL ReadVar ( UnIn, ADAMSFile, BPActrSpr, 'BPActrSpr', 'Blade pitch actuator spring constant', UnEc=UnEc  )
+
+IF ( BPActrSpr < 0.0 )  CALL ProgAbort ( ' BPActrSpr must not be less than zero.' )
+
+
+   ! BPActrDmp - Blade pitch actuator damping constant.
+
+CALL ReadVar ( UnIn, ADAMSFile, BPActrDmp, 'BPActrDmp', 'Blade pitch actuator damping constant', UnEc=UnEc  )
+
+IF ( BPActrDmp < 0.0 )  CALL ProgAbort ( ' BPActrSpr must not be less than zero.' )
+
+
+
+!  -------------- GRAPHICS PARAMETERS ------------------------------------------
+
+
+   ! Skip the comment line.
+
+CALL ReadCom ( UnIn, ADAMSFile, 'GRAPHICS parameters', UnEc=UnEc   )
+
+   ! NSides - Number of sides.
+
+CALL ReadVar ( UnIn, ADAMSFile, NSides, 'NSides', 'Number of sides', UnEc=UnEc  )
+
+IF ( ( NSides < 0 ) .OR. ( NSides > 99999 ) )  &
+   CALL ProgAbort ( ' NSides must be between 0 and 99,999 (inclusive).' )
+
+
+   ! TwrBaseRad - Tower base radius.
+
+CALL ReadVar ( UnIn, ADAMSFile, TwrBaseRad, 'TwrBaseRad', 'Tower base radius', UnEc=UnEc  )
+
+IF ( TwrBaseRad < 0.0 )  CALL ProgAbort ( ' TwrBaseRad must not be less than zero.' )
+
+
+   ! TwrTopRad - Tower top radius.
+
+CALL ReadVar ( UnIn, ADAMSFile, TwrTopRad, 'TwrTopRad', 'Tower top radius', UnEc=UnEc  )
+
+IF ( TwrTopRad < 0.0 )  CALL ProgAbort ( ' TwrTopRad must not be less than zero.' )
+
+
+   ! NacLength - Nacelle length.
+
+CALL ReadVar ( UnIn, ADAMSFile, NacLength, 'NacLength', 'Nacelle length', UnEc=UnEc  )
+
+IF ( ( NacLength < 0.0 ) .OR. ( NacLength > 2.0*ABS(p%OverHang) ) )  &
+   CALL ProgAbort ( ' NacLength must be between zero and 2*ABS(OverHang) (inclusive).' )
+
+
+   ! NacRadBot - Bottom radius of nacelle.
+
+CALL ReadVar ( UnIn, ADAMSFile, NacRadBot, 'NacRadBot', 'Bottom radius of nacelle', UnEc=UnEc  )
+
+IF ( NacRadBot < 0.0 )  CALL ProgAbort ( ' NacRadBot must not be less than zero.' )
+
+
+   ! NacRadTop - Top radius of nacelle.
+
+CALL ReadVar ( UnIn, ADAMSFile, NacRadTop, 'NacRadTop', 'Top radius of nacelle', UnEc=UnEc  )
+
+IF ( NacRadTop < 0.0 )  CALL ProgAbort ( ' NacRadTop must not be less than zero.' )
+
+
+   ! GBoxLength - Gearbox length.
+
+CALL ReadVar ( UnIn, ADAMSFile, GBoxLength, 'GBoxLength', 'Gearbox length', UnEc=UnEc  )
+
+IF ( GBoxLength < 0.0 )  CALL ProgAbort ( ' GBoxLength must not be less than zero.' )
+
+
+   ! GenLength - Generator length.
+
+CALL ReadVar ( UnIn, ADAMSFile, GenLength, 'GenLength', 'Generator length', UnEc=UnEc  )
+
+IF ( GenLength < 0.0 )  CALL ProgAbort ( ' GenLength must not be less than zero.' )
+
+
+   ! HSSLength - High-speed shaft length.
+
+CALL ReadVar ( UnIn, ADAMSFile, HSSLength, 'HSSLength', 'High-speed shaft length', UnEc=UnEc  )
+
+IF ( HSSLength < 0.0 )  CALL ProgAbort ( ' HSSLength must not be less than zero.' )
+
+
+   ! LSSLength - Low-speed shaft length.
+
+CALL ReadVar ( UnIn, ADAMSFile, LSSLength, 'LSSLength', 'Low-speed shaft length', UnEc=UnEc  )
+
+IF ( LSSLength < 0.0 )  CALL ProgAbort ( ' LSSLength must not be less than zero.' )
+
+
+   ! GenRad - Generator radius.
+
+CALL ReadVar ( UnIn, ADAMSFile, GenRad, 'GenRad', 'Generator radius', UnEc=UnEc  )
+
+IF ( GenRad < 0.0 )  CALL ProgAbort ( ' GenRad must not be less than zero.' )
+
+
+   ! HSSRad - High-speed shaft radius.
+
+CALL ReadVar ( UnIn, ADAMSFile, HSSRad, 'HSSRad', 'High-speed shaft radius', UnEc=UnEc  )
+
+IF ( HSSRad < 0.0 )  CALL ProgAbort ( ' HSSRad must not be less than zero.' )
+
+
+   ! LSSRad - Low-speed shaft radius.
+
+CALL ReadVar ( UnIn, ADAMSFile, LSSRad, 'LSSRad', 'Low-speed shaft radius', UnEc=UnEc  )
+
+IF ( LSSRad < 0.0 )  CALL ProgAbort ( ' LSSRad must not be less than zero.' )
+
+
+   ! HubCylRad - Hub cylinder radius.
+
+CALL ReadVar ( UnIn, ADAMSFile, HubCylRad, 'HubCylRad', 'Hub cylinder radius', UnEc=UnEc  )
+
+IF ( HubCylRad < 0.0 )  CALL ProgAbort ( ' HubCylRad must not be less than zero.' )
+
+
+   ! ThkOvrChrd - Thickness over chord ratio.
+
+CALL ReadVar ( UnIn, ADAMSFile, ThkOvrChrd, 'ThkOvrChrd', 'Thickness over chord ratio', UnEc=UnEc  )
+
+IF ( ThkOvrChrd < 0.0 )  CALL ProgAbort ( ' ThkOvrChrd must not be less than zero.' )
+
+
+   ! BoomRad - Tail boom radius.
+
+CALL ReadVar ( UnIn, ADAMSFile, BoomRad, 'Boom', 'Tail boom radius', UnEc=UnEc  )
+
+IF ( BoomRad < 0.0 )  CALL ProgAbort ( ' BoomRad must not be less than zero.' )
+
+
+
+   ! Let's convert the sign of several variables as appropriate:
+
+NacLength = SIGN( NacLength,  p%OverHang )
+LSSLength = SIGN( LSSLength,  p%OverHang )
+HSSLength = SIGN( HSSLength, -p%OverHang )
+GenLength = SIGN( GenLength, -p%OverHang )
+
+
+
+   ! Close the ADAMS file.
+
+CLOSE ( UnIn )
+
+
+
+RETURN
+END SUBROUTINE GetADAMS
+!=======================================================================
+
+
+   ! Read in the furling parameter file if necessary, calculate some parameters
+   !   that are not input directly, and convert units where appropriate:
+
+IF ( InputFileData%Furling )  THEN
+
+      ! this remains a hack for the tail-fin aerodynamics:
+   
+   CALL GetFurl( InputFileData, p, EchoUn  )
+
+   SQRTTFinA = SQRT( TFinArea )
+  
+
+ENDIF
+
+SQRTTFinA = SQRT( TFinArea )
+
+
+
+!!  -------------- ADAMS --------------------------------------------------------
+!
+!IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! Create equivalent ADAMS model.
+!
+!   CALL GetADAMS( p, EchoUn )                                        ! Read in the ADAMS-specific parameters from ADAMSFile.
+!
+!ENDIF
+
+
+!=======================================================================
+MODULE ADAMSInput
+
+
+   ! This MODULE stores FAST-to-ADAMS, ADAMS-specifc input parameters.
+
+
+USE                             Precision
+
+
+REAL(ReKi)                   :: BoomRad                                         ! Radius of the tail boom used for tail boom GRAPHICS.
+REAL(ReKi)                   :: BPActrDmp                                       ! Blade pitch actuator damping          constant, (N-m/rad/s).
+REAL(ReKi)                   :: BPActrSpr                                       ! Blade pitch actuator spring stiffness constant, (N-m/rad).
+REAL(ReKi)                   :: CRatioBEA                                       ! The ratio of CMatrix to KMatrix for the blade extensional deflection.
+REAL(ReKi)                   :: CRatioBGJ                                       ! The ratio of CMatrix to KMatrix for the blade torsion     deflection.
+REAL(ReKi)                   :: CRatioTEA                                       ! The ratio of CMatrix to KMatrix for the tower extensional deflection.
+REAL(ReKi)                   :: CRatioTGJ                                       ! The ratio of CMatrix to KMatrix for the tower torsion     deflection.
+REAL(ReKi), PARAMETER        :: FrSrfcSpc =  5.0                                ! Distance between points on the still water level plane along the incident wave propogation heading direction for depicting the free surface where the elevation of the incident waves will be computed used for free surface GRAPHICS. (meters)  !JASON: MAKE THIS AN ACTUAL INPUT TO THE PROGRAM IN ADAMSFile WHEN YOU DOCUMENT THESE ROUTINES!!!!!
+REAL(ReKi)                   :: GBoxLength                                      ! Length, width, height of the gearbox for gearbox GRAPHICS.
+REAL(ReKi)                   :: GenLength                                       ! Length of the generator used for gen. GRAPHICS.
+REAL(ReKi)                   :: GenRad                                          ! Radius of the generator used for gen. GRAPHICS.
+REAL(ReKi)                   :: HubCylRad                                       ! Radius of hub cylincder used for hub GRAPHICS.
+REAL(ReKi)                   :: HSSLength                                       ! Length of high-speed shaft for HSS GRAPHICS.
+REAL(ReKi)                   :: HSSRad                                          ! Radius of the high-speed shaft used for HSS GRAPHICS.
+REAL(ReKi)                   :: LSSLength                                       ! Length of low-speed shaft for LSS GRAPHICS.
+REAL(ReKi)                   :: LSSRad                                          ! Radius of the low-speed shaft used for LSS GRAPHICS.
+REAL(ReKi)                   :: NacLength                                       ! Length of nacelle used for the nacelle GRAPHICS.
+REAL(ReKi)                   :: NacRadBot                                       ! Bottom radius of nacelle FRUSTUM used for the nacelle GRAPHICS.
+REAL(ReKi)                   :: NacRadTop                                       ! Top    radius of nacelle FRUSTUM used for the nacelle GRAPHICS.
+REAL(ReKi)                   :: ThkOvrChrd                                      ! Ratio of blade thickness to blade chord used for blade element GRAPHICS.
+REAL(ReKi)                   :: TwrBaseRad                                      ! Tower base radius used for linearly tapered tower GRAPHICS.
+REAL(ReKi)                   :: TwrTopRad                                       ! Tower top  radius used for linearly tapered tower GRAPHICS.
+
+INTEGER(4)                   :: NFreeSrfc = -1                                  ! Number of points on free surface (not including the zero'th point) where the elevation of the incident waves will be computed (computed every FrSrfcSpc meters along the incident wave propogation heading direction for a length of the rotor diameter).
+INTEGER(4)                   :: NLnNodes  = 10                                  ! Number of nodes per line for mooring line GRAPHICS.  !JASON: MAKE THIS AN ACTUAL INPUT TO THE PROGRAM IN ADAMSFile WHEN YOU DOCUMENT THESE ROUTINES!!!!!
+INTEGER(4)                   :: NSides                                          ! The number of sides used in GRAPHICS CYLINDER and FRUSTUM statements.
+
+LOGICAL                      :: MakeLINacf                                      ! Switch for making an ADAMS/LINEAR control command file.  To prevent an ADAMS/LINEAR control command file to be made, and to not include the RESULTS statement in the ADAMS dataset, set to .FALSE.
+LOGICAL                      :: SaveGrphcs                                      ! Switch to determine whether or note GRAPHICS output is saved in an ADAMS analysis.
+
+
+
+END MODULE ADAMSInput
+!=======================================================================
+

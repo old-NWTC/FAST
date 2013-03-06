@@ -24,7 +24,6 @@ USE                             InitCond
 USE                             SimCont
 USE                             TurbCont
 
-USE                             NOISE !AllocNoise
 
 IMPLICIT                        NONE
 
@@ -568,9 +567,7 @@ SUBROUTINE CalcOuts( p,x,y,OtherState, u )
 
 
 USE                             DriveTrain
-USE                             Linear
 USE                             SimCont
-USE                             TailAero
 USE                             TurbCont
 USE AeroDyn
 USE HydroVals
@@ -781,13 +778,13 @@ IF ( CompAero )  THEN   ! AeroDyn has been used
 
    ! Tail Fin Element Aerodynamics:
 
-   y%AllOuts(TFinAlpha) = TFinAOA*R2D
-   y%AllOuts(TFinCLift) = TFinCL
-   y%AllOuts(TFinCDrag) = TFinCD
-   y%AllOuts(TFinDnPrs) = TFinQ
-   y%AllOuts(TFinCPFx ) = TFinKFx*0.001
-   y%AllOuts(TFinCPFy ) = TFinKFy*0.001
-
+   !y%AllOuts(TFinAlpha) = TFinAOA*R2D
+   !y%AllOuts(TFinCLift) = TFinCL
+   !y%AllOuts(TFinCDrag) = TFinCD
+   !y%AllOuts(TFinDnPrs) = TFinQ
+   !y%AllOuts(TFinCPFx ) = TFinKFx*0.001
+   !y%AllOuts(TFinCPFy ) = TFinKFy*0.001
+   !
 
 ENDIF
 
@@ -868,13 +865,13 @@ ENDIF
 
    ! Shaft Motions:
 
-IF ( IgnoreMOD )  THEN  ! Don't use MOD when computing y%AllOuts(LSSTipPxa) and y%AllOuts(LSSGagPxa) -- IgnoreMOD is needed when computing CMat for output measurements during FAST linearization.
-   y%AllOuts(LSSTipPxa) =      ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) )*R2D + p%AzimB1Up + 90.0
-   y%AllOuts(LSSGagPxa) =        x%QT (DOF_GeAz)                     *R2D + p%AzimB1Up + 90.0
-ELSE                    ! Do    use MOD when computing y%AllOuts(LSSTipPxa) and y%AllOuts(LSSGagPxa)
+!IF ( IgnoreMOD )  THEN  ! Don't use MOD when computing y%AllOuts(LSSTipPxa) and y%AllOuts(LSSGagPxa) -- IgnoreMOD is needed when computing CMat for output measurements during FAST linearization.
+!   y%AllOuts(LSSTipPxa) =      ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) )*R2D + p%AzimB1Up + 90.0
+!   y%AllOuts(LSSGagPxa) =        x%QT (DOF_GeAz)                     *R2D + p%AzimB1Up + 90.0
+!ELSE                    ! Do    use MOD when computing y%AllOuts(LSSTipPxa) and y%AllOuts(LSSGagPxa)
    y%AllOuts(LSSTipPxa) = MOD( ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) )*R2D + p%AzimB1Up + 90.0, 360.0 )
    y%AllOuts(LSSGagPxa) = MOD(   x%QT (DOF_GeAz)                     *R2D + p%AzimB1Up + 90.0, 360.0 )
-ENDIF
+!ENDIF
 y%AllOuts(   LSSTipVxa) =    ( x%QDT (DOF_GeAz) +  x%QDT (DOF_DrTr) )*RPS2RPM
 y%AllOuts(   LSSTipAxa) =    (   OtherState%QD2T(DOF_GeAz) +    OtherState%QD2T(DOF_DrTr) )*R2D
 y%AllOuts(   LSSGagVxa) =      x%QDT (DOF_GeAz)                      *RPS2RPM
@@ -1118,11 +1115,11 @@ IF ( y%AllOuts(LSShftFxa) /= 0.0 )  THEN ! .TRUE. if the denominator in the foll
    CThrstys = -y%AllOuts(LSSTipMzs)/y%AllOuts(LSShftFxa)  ! Estimate of the ys-location of the center of thrust
    CThrstzs =  y%AllOuts(LSSTipMys)/y%AllOuts(LSShftFxa)  ! Estimate of the zs-location of the center of thrust
 
-   IF ( IgnoreMOD )  THEN  ! Don't use MOD when computing y%AllOuts(CThrstAzm) -- IgnoreMOD is needed when computing CMat for azimuth measurements during FAST linearization.
-      y%AllOuts(CThrstAzm) =      ATAN2( -CThrstzs, -CThrstys )*R2D + 360.0 + p%AzimB1Up + 90.0
-   ELSE                    ! Do    use MOD when computing y%AllOuts(CThrstAzm)
+   !IF ( IgnoreMOD )  THEN  ! Don't use MOD when computing y%AllOuts(CThrstAzm) -- IgnoreMOD is needed when computing CMat for azimuth measurements during FAST linearization.
+   !   y%AllOuts(CThrstAzm) =      ATAN2( -CThrstzs, -CThrstys )*R2D + 360.0 + p%AzimB1Up + 90.0
+   !ELSE                    ! Do    use MOD when computing y%AllOuts(CThrstAzm)
       y%AllOuts(CThrstAzm) = MOD( ATAN2( -CThrstzs, -CThrstys )*R2D + 360.0 + p%AzimB1Up + 90.0, 360.0 )
-   ENDIF
+   !ENDIF
    y%AllOuts(   CThrstRad) = MIN( 1.0, SQRT( CThrstys*CThrstys + CThrstzs*CThrstzs )/p%AvgNrmTpRd )
 
 ELSE
@@ -2379,7 +2376,6 @@ SUBROUTINE DrvTrTrq ( p, LSS_Spd, GBoxTrq )
 
 USE                             DriveTrain
 USE                             General
-USE                             Linear
 USE                             SimCont
 USE                             TurbCont
 
@@ -2464,7 +2460,7 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
          ELSE
             GenTrq  = Slip*SIG_Slop
          ENDIF
-         GenTrq     = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
+         !GenTrq     = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
 
 
    ! The generator efficiency is either additive for motoring,
@@ -2485,7 +2481,7 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
 
          GenTrq   = TEC_A0*TEC_VLL*TEC_VLL*SlipRat &
                     /( TEC_C0 + TEC_C1*SlipRat + TEC_C2*SlipRat*SlipRat )
-         GenTrq   = GenTrq + DelGenTrq ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
+         !GenTrq   = GenTrq + DelGenTrq ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
 
          ComDenom = ( TEC_Re1 - TEC_RRes/SlipRat )**2 + ( TEC_Xe1 + TEC_RLR )**2
          Current2 = CMPLX(  TEC_V1a*( TEC_Re1 - TEC_RRes/SlipRat )/ComDenom , &
@@ -2501,7 +2497,8 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
       CASE ( 3 )                          ! User-defined generator model.
 
 
-         CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+!        CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+         CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, 0.0_ReKi, DirRoot, GenTrq, ElecPwr )
 
 
       ENDSELECT
@@ -2520,7 +2517,7 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
          GenTrq = VS_Slope*( HSS_Spd - VS_SySp )
       ENDIF
 
-      GenTrq  = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
+      !GenTrq  = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
 
 
    ! It's not possible to motor using this control scheme,
@@ -2532,7 +2529,8 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
    CASE ( 2 )                             ! User-defined variable-speed control for routine UserVSCont().
 
 
-      CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+!      CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+      CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, 0.0_ReKi, DirRoot, GenTrq, ElecPwr )
 
 
    CASE ( 3 )                             ! User-defined variable-speed control from Simulink or Labview.
@@ -2896,7 +2894,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
    USE            AeroElem
    USE            General                                   ! contains file units, too
    USE            InitCond
-   USE            Linear
    USE            TurbCont
 
 !add for bladed dll   USE            BladedDLLParameters
@@ -2939,12 +2936,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
       ! MODULE InitCond
 
    IF ( ALLOCATED(BlPitchInit                        ) ) DEALLOCATE(BlPitchInit                        )
-
-      ! MODULE Linear
-
-   IF ( ALLOCATED(QD2op                              ) ) DEALLOCATE(QD2op                              )
-   IF ( ALLOCATED(QDop                               ) ) DEALLOCATE(QDop                               )
-   IF ( ALLOCATED(Qop                                ) ) DEALLOCATE(Qop                                )
 
 
       ! MODULE Output
@@ -3840,7 +3831,6 @@ USE                             General
 USE                             InitCond
 USE                             NacelleYaw
 USE                             SimCont
-USE                             TailAero
 USE                             TipBrakes
 USE                             TurbCont
 
@@ -5161,35 +5151,10 @@ OtherState%RtHS%MomNGnRtt = OtherState%RtHS%MomLPRott + TmpVec2 + TmpVec3 + TmpV
           -  p%GenIner*OtherState%CoordSys%c1 *DOT_PRODUCT( OtherState%CoordSys%c1 , AngAccEGt )
 
 
-
    ! Let's compute the tail aerodynamic loads, if necessary:
-
-IF ( CompAero )  THEN   ! Calculate the tail aerodynamic forces using AeroDyn.
-
-
-   ! Compute TFinKFx, TFinKFy, and TFinKMz:
-
-   CALL TFinAero( rK(1), -rK(3), rK(2),                  &
-                  DOT_PRODUCT( LinVelEK,  OtherState%CoordSys%p1 ), &
-                  DOT_PRODUCT( LinVelEK, -OtherState%CoordSys%p3 ), &
-                  DOT_PRODUCT( LinVelEK,  OtherState%CoordSys%p2 ), OtherState%CoordSys, x, p )
-
-
-   ! Vectorize these values into FKAero and MAAero:
-
-   FKAero = TFinKFx*OtherState%CoordSys%p1 - TFinKFy*OtherState%CoordSys%p3
-   MAAero = TFinKMz*OtherState%CoordSys%p2
-
-
-ELSE                    ! Wind turbine in vacuum, no aerodynamic forces.
-
 
    FKAero = 0.0
    MAAero = 0.0
-
-
-ENDIF
-
 
 
    ! Define the partial forces and moments (including those associated with
@@ -7343,7 +7308,6 @@ SUBROUTINE TimeMarch( p_ED, p_Ctrl, x_ED, OtherSt_ED, u_ED, y_ED, ErrStat, ErrMs
 USE General, ONLY: RootName
 USE                             SimCont
 USE                             FAST_IO_Subs       ! WrOutHdr(),  SimStatus(), WrOutput()
-USE                             NOISE              ! PredictNoise(), WriteAveSpecOut()
 
 IMPLICIT                        NONE
 
@@ -7423,9 +7387,6 @@ DO
    ! Check to see if we should output data this time step:
 
    IF ( ZTime >= TStart )  THEN
-      IF ( CompNoise                 )  CALL PredictNoise( p_ED,                    OtherSt_ED%CoordSys%te1, &
-                                                           OtherSt_ED%CoordSys%te2, OtherSt_ED%CoordSys%te3, &
-                                                           OtherSt_ED%RtHS%rS )
       IF ( MOD( Step, DecFact ) == 0 )  CALL WrOutput( p_ED, y_ED )
    ENDIF
 
@@ -7461,10 +7422,6 @@ IF (WrBinOutFile) THEN
       CALL WrScr( 'Error '//Num2LStr(ErrStat)//' writing binary output file: '//TRIM(ErrMsg) )
    END IF
 END IF
-
-   ! Output noise if desired:
-
-IF ( CompNoise )  CALL WriteAveSpecOut
 
 
 

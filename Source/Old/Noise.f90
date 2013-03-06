@@ -1774,3 +1774,67 @@ END SUBROUTINE Noise_Terminate
 
 END MODULE Noise
 
+!----------------------------
+! logic from FAST
+
+   ! Open and create noise file (WrOutHdr):
+
+IF ( CompNoise )  CALL WrNoiseOutHdr(p_ED)
+
+   ! Output noise if desired (WrOutput):
+
+IF ( CompNoise )  CALL WriteSPLOut( p_ED, y_ED%AllOuts(LSSTipPxa) )
+
+   ! Output noise if desired (TimeMarch):
+
+IF ( CompNoise )  CALL WriteAveSpecOut
+
+! I/O
+
+!IF ( CompNoise .AND. ( AnalMode == 1 ) .AND. ( ADAMSPrep /= 2 ) )  THEN ! We will be computing aerodynamic noise.
+!!JASON: Change this to "IF ( CompAero .AND. ( AnalMode == 1 ) )  THEN" if you can get ADAMS to compute noise as well as FAST.
+!
+!   CALL NoiseInput(UnIn, NoiseFile, p)                         ! Read in the noise parameters from NoiseFile.
+!      
+!   CALL AllocNoise( p )                                        ! Allocate noise arrays for simulation.
+!
+!ENDIF
+
+
+IF ( CompNoise .AND. ( .NOT. CompAero ) )  &
+   CALL ProgAbort ( ' CompAero must be True if CompNoise is True.' )
+
+IF ( CompNoise .AND. ( AnalMode == 2 ) )  THEN  ! Print out warning that noise will not be computed when linearizing FAST
+   CALL WrScr1(' NOTE: Noise will not be computed during the FAST linearization process, even though CompNoise is enabled.')
+ENDIF
+
+IF ( LEN_TRIM( NoiseFile ) == 0 .AND. CompNoise)  CALL ProgAbort ( ' NoiseFile must not be an empty string.' )
+IF ( PathIsRelative( NoiseFile ) ) NoiseFile = TRIM(PriPath)//TRIM(NoiseFile)
+
+IF ( CompNoise )  THEN
+   WRITE (UnSu,FmtTxt)  ' Enabled    Computation of aeroacoustics.'
+ELSE
+   WRITE (UnSu,FmtTxt)  ' Disabled   Computation of aeroacoustics.'
+ENDIF
+
+  ! Let's compute the turbulence intensity and average wind speed for the
+  !   turbulent inflow noise calculation (init):
+
+IF ( CompNoise )  THEN  ! Yes, noise will be computed.
+   InpPosition = (/ 0.0, 0.0, p_ED%FASTHH /)
+
+   CALL Noise_CalcTI( REAL(0.0, ReKi), REAL(TMax, ReKi), REAL(DT, ReKi), InpPosition )
+
+   KinViscosity = AD_GetConstant( 'KinVisc', ErrStat )      ! this variable stored in the Noise module.  The Noise module should be rewritten so that this is part of an initialization routine.
+   AirDensity   = AD_GetConstant('AirDensity', ErrStat)
+ENDIF
+
+
+
+   IF ( ZTime >= TStart )  THEN
+      IF ( CompNoise                 )  CALL PredictNoise( p_ED,                    OtherSt_ED%CoordSys%te1, &
+                                                           OtherSt_ED%CoordSys%te2, OtherSt_ED%CoordSys%te3, &
+                                                           OtherSt_ED%RtHS%rS )
+
+   END IF
+   

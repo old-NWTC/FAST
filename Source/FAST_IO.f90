@@ -951,753 +951,6 @@ SUBROUTINE ChckOutLst(OutList, p_ED, y, ErrStat, ErrMsg )
 RETURN
 END SUBROUTINE ChckOutLst
 !=======================================================================
-SUBROUTINE GetADAMS( p, UnEc )
-
-
-   ! This routine reads in the ADAMS-specific parameters from ADAMSFile
-   !   and validates the input.
-
-
-USE                             ADAMSInput
-USE                             General
-
-
-IMPLICIT                        NONE
-
-   ! passed variables
-TYPE(ED_ParameterType), INTENT(IN)  :: p                                      ! Parameters of the structural dynamics module
-INTEGER(IntKi), INTENT(IN)            :: UnEc                                   ! Unit number for echo file (if > 0 )
-
-   ! Local variables:
-
-INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-
-
-
-   ! Open the ADAMS input file:
-
-CALL OpenFInpFile ( UnIn, ADAMSFile )
-
-
-   ! Add a separator to the echo file if appropriate:
-
-IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'ADAMS input data from file "'//TRIM( ADAMSFile )//'":'
-
-
-
-!  -------------- HEADER -------------------------------------------------------
-
-
-   ! Skip the header.
-CALL ReadCom(UnIn, ADAMSFile, 'unused ADAMS file header 1', UnEc=UnEc )
-CALL ReadCom(UnIn, ADAMSFile, 'unused ADAMS file header 2', UnEc=UnEc )
-CALL ReadCom(UnIn, ADAMSFile, 'unused ADAMS file header 3', UnEc=UnEc )
-
-
-
-!  -------------- FEATURE SWITCHES ---------------------------------------------
-
-
-   ! Skip the comment line.
-CALL ReadCom ( UnIn, ADAMSFile, 'feature switches', UnEc=UnEc   )
-
-   ! SaveGrphcs - Save GRAPHICS output.
-
-CALL ReadVar ( UnIn, ADAMSFile, SaveGrphcs, 'SaveGrphcs', 'Save GRAPHICS output', UnEc=UnEc  )
-
-
-   ! MakeLINacf - Make ADAMS/LINEAR control command file.
-
-CALL ReadVar ( UnIn, ADAMSFile, MakeLINacf, 'MakeLINacf', 'Make ADAMS/LINEAR control command file', UnEc=UnEc  )
-
-IF ( MakeLINacf .AND. ( .NOT. SaveGrphcs ) )  &
-   CALL ProgAbort ( ' SaveGrphcs must be True if MakeLINacf is True.' )
-
-
-
-!  -------------- DAMPING PARAMETERS -------------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, ADAMSFile, 'damping parameters', UnEc=UnEc   )
-
-
-   ! CRatioTGJ - Tower torsional damping ratio.
-
-CALL ReadVar ( UnIn, ADAMSFile, CRatioTGJ, 'CRatioTGJ', 'Tower torsional damping ratio', UnEc=UnEc  )
-
-IF ( CRatioTGJ < 0.0 )  CALL ProgAbort ( ' CRatioTGJ must not be less than zero.' )
-
-
-   ! CRatioTEA - Tower extensional damping ratio.
-
-CALL ReadVar ( UnIn, ADAMSFile, CRatioTEA, 'CRatioTEA', 'Tower extensional damping ratio', UnEc=UnEc  )
-
-IF ( CRatioTEA < 0.0 )  CALL ProgAbort ( ' CRatioTEA must not be less than zero.' )
-
-
-   ! CRatioBGJ - Blade torsional damping ratio.
-
-CALL ReadVar ( UnIn, ADAMSFile, CRatioBGJ, 'CRatioBGJ', 'Blade torsional damping ratio', UnEc=UnEc  )
-
-IF ( CRatioBGJ < 0.0 )  CALL ProgAbort ( ' CRatioBGJ must not be less than zero.' )
-
-
-   ! CRatioBEA - Blade extensional damping ratio.
-
-CALL ReadVar ( UnIn, ADAMSFile, CRatioBEA, 'CRatioBEA', 'Blade extensional damping ratio', UnEc=UnEc  )
-
-IF ( CRatioBEA < 0.0 )  CALL ProgAbort ( ' CRatioBEA must not be less than zero.' )
-
-
-
-!  -------------- BLADE PITCH ACTUATOR PARAMETERS ------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, ADAMSFile, 'blade pitch actuator parameters', UnEc=UnEc   )
-
-   ! BPActrSpr - Blade pitch actuator spring constant.
-
-CALL ReadVar ( UnIn, ADAMSFile, BPActrSpr, 'BPActrSpr', 'Blade pitch actuator spring constant', UnEc=UnEc  )
-
-IF ( BPActrSpr < 0.0 )  CALL ProgAbort ( ' BPActrSpr must not be less than zero.' )
-
-
-   ! BPActrDmp - Blade pitch actuator damping constant.
-
-CALL ReadVar ( UnIn, ADAMSFile, BPActrDmp, 'BPActrDmp', 'Blade pitch actuator damping constant', UnEc=UnEc  )
-
-IF ( BPActrDmp < 0.0 )  CALL ProgAbort ( ' BPActrSpr must not be less than zero.' )
-
-
-
-!  -------------- GRAPHICS PARAMETERS ------------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, ADAMSFile, 'GRAPHICS parameters', UnEc=UnEc   )
-
-   ! NSides - Number of sides.
-
-CALL ReadVar ( UnIn, ADAMSFile, NSides, 'NSides', 'Number of sides', UnEc=UnEc  )
-
-IF ( ( NSides < 0 ) .OR. ( NSides > 99999 ) )  &
-   CALL ProgAbort ( ' NSides must be between 0 and 99,999 (inclusive).' )
-
-
-   ! TwrBaseRad - Tower base radius.
-
-CALL ReadVar ( UnIn, ADAMSFile, TwrBaseRad, 'TwrBaseRad', 'Tower base radius', UnEc=UnEc  )
-
-IF ( TwrBaseRad < 0.0 )  CALL ProgAbort ( ' TwrBaseRad must not be less than zero.' )
-
-
-   ! TwrTopRad - Tower top radius.
-
-CALL ReadVar ( UnIn, ADAMSFile, TwrTopRad, 'TwrTopRad', 'Tower top radius', UnEc=UnEc  )
-
-IF ( TwrTopRad < 0.0 )  CALL ProgAbort ( ' TwrTopRad must not be less than zero.' )
-
-
-   ! NacLength - Nacelle length.
-
-CALL ReadVar ( UnIn, ADAMSFile, NacLength, 'NacLength', 'Nacelle length', UnEc=UnEc  )
-
-IF ( ( NacLength < 0.0 ) .OR. ( NacLength > 2.0*ABS(p%OverHang) ) )  &
-   CALL ProgAbort ( ' NacLength must be between zero and 2*ABS(OverHang) (inclusive).' )
-
-
-   ! NacRadBot - Bottom radius of nacelle.
-
-CALL ReadVar ( UnIn, ADAMSFile, NacRadBot, 'NacRadBot', 'Bottom radius of nacelle', UnEc=UnEc  )
-
-IF ( NacRadBot < 0.0 )  CALL ProgAbort ( ' NacRadBot must not be less than zero.' )
-
-
-   ! NacRadTop - Top radius of nacelle.
-
-CALL ReadVar ( UnIn, ADAMSFile, NacRadTop, 'NacRadTop', 'Top radius of nacelle', UnEc=UnEc  )
-
-IF ( NacRadTop < 0.0 )  CALL ProgAbort ( ' NacRadTop must not be less than zero.' )
-
-
-   ! GBoxLength - Gearbox length.
-
-CALL ReadVar ( UnIn, ADAMSFile, GBoxLength, 'GBoxLength', 'Gearbox length', UnEc=UnEc  )
-
-IF ( GBoxLength < 0.0 )  CALL ProgAbort ( ' GBoxLength must not be less than zero.' )
-
-
-   ! GenLength - Generator length.
-
-CALL ReadVar ( UnIn, ADAMSFile, GenLength, 'GenLength', 'Generator length', UnEc=UnEc  )
-
-IF ( GenLength < 0.0 )  CALL ProgAbort ( ' GenLength must not be less than zero.' )
-
-
-   ! HSSLength - High-speed shaft length.
-
-CALL ReadVar ( UnIn, ADAMSFile, HSSLength, 'HSSLength', 'High-speed shaft length', UnEc=UnEc  )
-
-IF ( HSSLength < 0.0 )  CALL ProgAbort ( ' HSSLength must not be less than zero.' )
-
-
-   ! LSSLength - Low-speed shaft length.
-
-CALL ReadVar ( UnIn, ADAMSFile, LSSLength, 'LSSLength', 'Low-speed shaft length', UnEc=UnEc  )
-
-IF ( LSSLength < 0.0 )  CALL ProgAbort ( ' LSSLength must not be less than zero.' )
-
-
-   ! GenRad - Generator radius.
-
-CALL ReadVar ( UnIn, ADAMSFile, GenRad, 'GenRad', 'Generator radius', UnEc=UnEc  )
-
-IF ( GenRad < 0.0 )  CALL ProgAbort ( ' GenRad must not be less than zero.' )
-
-
-   ! HSSRad - High-speed shaft radius.
-
-CALL ReadVar ( UnIn, ADAMSFile, HSSRad, 'HSSRad', 'High-speed shaft radius', UnEc=UnEc  )
-
-IF ( HSSRad < 0.0 )  CALL ProgAbort ( ' HSSRad must not be less than zero.' )
-
-
-   ! LSSRad - Low-speed shaft radius.
-
-CALL ReadVar ( UnIn, ADAMSFile, LSSRad, 'LSSRad', 'Low-speed shaft radius', UnEc=UnEc  )
-
-IF ( LSSRad < 0.0 )  CALL ProgAbort ( ' LSSRad must not be less than zero.' )
-
-
-   ! HubCylRad - Hub cylinder radius.
-
-CALL ReadVar ( UnIn, ADAMSFile, HubCylRad, 'HubCylRad', 'Hub cylinder radius', UnEc=UnEc  )
-
-IF ( HubCylRad < 0.0 )  CALL ProgAbort ( ' HubCylRad must not be less than zero.' )
-
-
-   ! ThkOvrChrd - Thickness over chord ratio.
-
-CALL ReadVar ( UnIn, ADAMSFile, ThkOvrChrd, 'ThkOvrChrd', 'Thickness over chord ratio', UnEc=UnEc  )
-
-IF ( ThkOvrChrd < 0.0 )  CALL ProgAbort ( ' ThkOvrChrd must not be less than zero.' )
-
-
-   ! BoomRad - Tail boom radius.
-
-CALL ReadVar ( UnIn, ADAMSFile, BoomRad, 'Boom', 'Tail boom radius', UnEc=UnEc  )
-
-IF ( BoomRad < 0.0 )  CALL ProgAbort ( ' BoomRad must not be less than zero.' )
-
-
-
-   ! Let's convert the sign of several variables as appropriate:
-
-NacLength = SIGN( NacLength,  p%OverHang )
-LSSLength = SIGN( LSSLength,  p%OverHang )
-HSSLength = SIGN( HSSLength, -p%OverHang )
-GenLength = SIGN( GenLength, -p%OverHang )
-
-
-
-   ! Close the ADAMS file.
-
-CLOSE ( UnIn )
-
-
-
-RETURN
-END SUBROUTINE GetADAMS
-!=======================================================================
-!SUBROUTINE GetBladeInputs ( BldFile, MeshFile, p, InputFileData, UnEc, ErrStat, ErrMsg )
-!   ! This routine reads the data from the input file, validates it,
-!   ! and then sets the blade parameters. 
-!   ! It replaces former subroutines GetBlade and InterpBld, as well
-!   ! as some of the logic around when those routines were called in FAST.f90
-!   
-!
-!   IMPLICIT                        NONE
-!
-!
-!      ! Passed variables:
-!
-!   TYPE(ED_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
-!   TYPE(ED_InputFile),     INTENT(INOUT)  :: InputFileData                       ! Input file data Data for Blade K stored in the module's input file
-!   CHARACTER(*),             INTENT(IN)     :: BldFile(:)                          ! The array of file names containing blade information
-!   CHARACTER(*),             INTENT(IN)     :: MeshFile                            ! The file names containing blade mesh information (for now, the aerodyn primary file)
-!   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
-!
-!   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! The error ID
-!   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Message describing error
-!
-!
-!      ! Local variables:
-!   INTEGER(IntKi)                           :: K                                   ! Blade number
-!   INTEGER(IntKi)                           :: ErrStat2                            ! Temporary error ID
-!   LOGICAL                                  :: ReadAdmVals                         ! determines if an Adams model will be created (do we read/check all the inputs?)
-!   LOGICAL                                  :: ReadFile                            ! determines if an input file for a blade is the same as the file for the previous blade
-!   CHARACTER(LEN(ErrMsg))                   :: ErrMsg2                             ! Temporary message describing error
-!
-!
-!      ! Initialize variables
-!   ErrStat = ErrID_None
-!   ErrMsg  = ''
-!   ReadAdmVals = ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 )  ! If an ADAMS model will be created; thus, read in all the cols. 
-!
-!
-!      
-!      ! Allocate space for the input file data
-!   ALLOCATE( InputFileData%InpBlMesh( 1 ), STAT=ErrStat )
-!   IF ( ErrStat /= 0 ) THEN
-!      ErrStat = ErrID_Fatal
-!      ErrMsg = ' Error allocating InpBlMesh array.'
-!      RETURN
-!   END IF
-!   
-!   ALLOCATE( InputFileData%InpBl( p%NumBl ), STAT=ErrStat )
-!   IF ( ErrStat /= 0 ) THEN
-!      ErrStat = ErrID_Fatal
-!      ErrMsg = ' Error allocating InpBl array.'
-!      RETURN
-!   END IF
-!   
-!   
-!   ! Get the blade discretization here:   
-!   CALL ReadBladeMeshFile( InputFileData%InpBlMesh(1), ADFile, UnEc, ErrStat2, ErrMsg2 )
-!      IF ( ErrStat2 /= ErrID_None ) THEN
-!         ErrMsg  = TRIM(ErrMsg)//NewLine//' Errors reading blade mesh input file ('//TRIM(ADFile)//'): '//NewLine//TRIM(ErrMsg2)
-!         ErrStat = MAX(ErrStat, ErrStat2)
-!         IF ( ErrStat > AbortErrLev ) RETURN
-!      END IF
-!   
-!      
-!   
-!      ! Read the input file(s)
-!   ReadFile = .TRUE.
-!   DO K = 1,p%NumBl   
-!   
-!      IF ( ReadFile ) THEN
-!      
-!            ! Add a separator to the echo file if appropriate.
-!
-!         IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Blade '//TRIM( Num2LStr( K ) )//' input data from file "'//TRIM( BldFile(K) )//'":'
-!
-!         CALL ReadBladeFile( BldFile(K), p, InputFileData%InpBl(K), ReadAdmVals, UnEc, ErrStat2, ErrMsg2 )
-!         IF ( ErrStat2 /= ErrID_None ) THEN
-!            ErrMsg  = TRIM(ErrMsg)//NewLine//' Errors reading blade '//TRIM(Num2LStr(K))//' input file ('//TRIM(BldFile(K))//'): '//NewLine//TRIM(ErrMsg2)
-!            ErrStat = MAX(ErrStat, ErrStat2)
-!            IF ( ErrStat > AbortErrLev ) RETURN
-!         END IF
-!      
-!      ELSE 
-!         
-!         !InputFileData%InpBl(K) = InputFileData%InpBl(K-1):
-!      
-!         CALL ED_CopyBladeInputData( InputFileData%InpBl(K-1), InputFileData%InpBl(K), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )  
-!         IF ( ErrStat2 /= ErrID_None ) THEN
-!               ! we could just read the file again...            
-!            ErrMsg  = TRIM(ErrMsg)//NewLine//' Errors copying blade '//TRIM(Num2LStr(K-1))//' input file data: '//NewLine//TRIM(ErrMsg2)
-!            ErrStat = MAX(ErrStat, ErrStat2)
-!            IF ( ErrStat > AbortErrLev ) RETURN
-!         END IF
-!
-!      END IF      
-!
-!         ! If the next file is the same as this one, don't read it again:
-!         
-!      IF ( K /= p%NumBl ) ReadFile = BldFile(K) /= BldFile( K + 1 )
-!    
-!   END DO
-!    
-!   
-!      ! Check that the data from the input files is valid:   
-!      
-!   DO K = 1,p%NumBl   
-!      
-!      CALL ValidateBladeData ( InputFileData%InpBl(K), ReadAdmVals, ErrStat2, ErrMsg2 )
-!      IF ( ErrStat /= ErrID_None ) THEN
-!         ErrMsg  = ' Errors in blade '//TRIM(Num2LStr(K))//' input data: '//NewLine//TRIM(ErrMsg2)
-!         ErrStat = MAX(ErrStat, ErrStat2)
-!         IF ( ErrStat > AbortErrLev ) RETURN
-!      END IF      
-!  
-!   END DO
-!   
-!   
-!      ! Now set the parameters based on the input data:
-!      
-!   CALL SetBladeParams( p, InputFileData%InpBl, InputFileData%InpBlMesh, ReadAdmVals, ErrStat2, ErrMsg2 )      
-!   IF ( ErrStat /= ErrID_None ) THEN
-!      ErrMsg  = ' Error Setting '//NewLine//TRIM(ErrMsg2)
-!      ErrStat = MAX(ErrStat, ErrStat2)
-!      IF ( ErrStat > AbortErrLev ) RETURN
-!   END IF      
-!   
-!
-!   RETURN
-!END SUBROUTINE GetBladeInputs
-!=======================================================================
-SUBROUTINE GetFurl( InputFileData, p, UnEc )
-
-
-   ! This routine reads in the FAST furling input parameters from
-   !   FurlFile and validates the input.
-
-
-USE                             General
-USE                             InitCond
-USE                             TailAero
-
-
-IMPLICIT                        NONE
-
-   ! Passed variables
-TYPE(ED_InputFile),     INTENT(INOUT)    :: InputFileData                   ! Data stored in the module's input file
-TYPE(ED_ParameterType), INTENT(INOUT)    :: p                               ! The module's parameters
-INTEGER(IntKi),           INTENT(IN)       :: UnEc                            ! I/O unit for echo file. If present and > 0, write to UnEc
-
-
-   ! Local variables:
-
-INTEGER(4)                   :: IOS                                           ! I/O status returned from the read statement.
-INTEGER                      :: I  ! loop counter
-
-
-   ! Open the FAST furling input file:
-
-CALL OpenFInpFile ( UnIn, FurlFile )
-
-
-   ! Add a separator to the echo file if appropriate.
-
-IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Tail Fin Aerodynamics input data from file "'//TRIM( FurlFile )//'":'
-
-
-
-!  -------------- HEADER -------------------------------------------------------
-! BJJ: This file was read by the Structural Dynamics module, so we'll skip what 
-! was already read. We're only going to read the tail fin aerodynamics, which 
-! is a hack for now. 
-! And we're not going to echo the first 69 lines, either (we already did). 
-
-DO I = 1,69
-   CALL ReadCom ( UnIn, FurlFile, 'tail fin aerodynamics'  )
-END DO
-
-!  -------------- TAIL FIN AERODYNAMICS ----------------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, FurlFile, 'tail fin aerodynamics', UnEc=UnEc  )
-
-
-   ! TFinMod - Tail fin aerodynamics model switch.
-
-CALL ReadVar ( UnIn, FurlFile, TFinMod, 'TFinMod', 'Tail fin aerodynamics model switch', UnEc=UnEc  )
-
-IF ( ( TFinMod /= 0 ) .AND. ( TFinMod /= 1 ) .AND. ( TFinMod /= 2 ) )  CALL ProgAbort ( ' TFinMod must be 0, 1, or 2.' )
-
-
-   ! TFinNFoil - Tail fin airfoil number.
-
-CALL ReadVar ( UnIn, FurlFile, TFinNFoil, 'TFinNFoil', 'Tail fin airfoil number', UnEc=UnEc  )
-
-
-   ! TFinArea - Tail fin planform area.
-
-CALL ReadVar ( UnIn, FurlFile, TFinArea, 'TFinArea', 'Tail fin planform area', UnEc=UnEc  )
-
-IF ( TFinArea < 0.0 )  CALL ProgAbort ( ' TFinArea must not be negative.' )
-
-
-   ! SubAxInd - Subtract rotor axial induction?
-
-CALL ReadVar ( UnIn, FurlFile, SubAxInd, 'SubAxInd', 'Subtract rotor axial induction?', UnEc=UnEc  )
-
-
-
-   ! Close the FAST furling file:
-
-CLOSE ( UnIn )
-
-
-
-RETURN
-END SUBROUTINE GetFurl
-!=======================================================================
-SUBROUTINE GetLin(p_ED, InputFileData, UnEc)
-
-
-   ! This routine reads in the FAST linearization input parameters from
-   !   LinFile and validates the input.
-
-
-USE                             General
-USE                             Linear
-USE                             TurbCont
-
-
-IMPLICIT                        NONE
-
-
-   ! Passed variables
-
-TYPE(ED_ParameterType),  INTENT(IN)    :: p_ED                        ! Parameters of the structural dynamics module
-TYPE(ED_InputFile),      INTENT(INOUT) :: InputFileData                   ! Data stored in the module's input file
-INTEGER(IntKi),            INTENT(IN)    :: UnEc                            ! I/O unit for echo file. If present and > 0, write to UnEc
-
-   ! Local variables:
-
-INTEGER(4)                   :: I                                               ! A generic index.
-INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-INTEGER(4)                   :: L                                               ! A generic index.
-
-INTEGER(IntKi)               :: ErrStat
-CHARACTER(1024)              :: ErrMsg
-
-
-   ! Open the FAST linearization input file:
-
-CALL OpenFInpFile ( UnIn, LinFile )
-
-
-   ! Add a separator to the echo file if appropriate:
-
-IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'FAST linearization input data from file "'//TRIM( LinFile )//'":'
-
-
-
-!  -------------- HEADER -------------------------------------------------------
-
-
-   ! Skip the header.
-
-READ (UnIn,'(//)',IOSTAT=IOS)
-
-IF ( IOS < 0 )  THEN
-   CALL PremEOF ( LinFile , 'unused FAST linearization-file header' )
-ENDIF
-
-
-
-!  -------------- PERIODIC STEADY STATE SOLUTION -------------------------------
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, LinFile, 'Periodic steady state solution', UnEc=UnEc )
-
-
-   ! CalcStdy - Calculate periodic steady state condition.
-
-CALL ReadVar ( UnIn, LinFile, CalcStdy, 'CalcStdy', 'Calculate periodic steady state condition' )
-
-
-IF ( CalcStdy )  THEN   ! Only read in these variables if we will be computing a steady state solution
-
-
-   ! TrimCase - Trim case.
-
-   IF ( InputFileData%GenDOF )  THEN  ! Only read in TrimCase if we will be computing a steady state solution with a variable speed generator
-
-      CALL ReadVar ( UnIn, LinFile, TrimCase, 'TrimCase', 'Trim Case' )
-
-      IF ( ( TrimCase < 1 ) .OR. ( TrimCase > 3 ) )  CALL ProgAbort ( ' TrimCase must be 1, 2, or 3.' )
-      IF ( ( TrimCase == 3 ) )  THEN   ! We will be trimming rotor collective blade pitch
-
-         IF (    BlPitch(1) /= BlPitch(2) )  &
-               CALL ProgAbort ( ' All blade pitch angles must be identical when trimming with collective blade pitch.' )
-         IF ( p_ED%NumBl == 3 )  THEN ! 3-blader
-            IF ( BlPitch(1) /= BlPitch(3) )  &
-               CALL ProgAbort ( ' All blade pitch angles must be identical when trimming with collective blade pitch.' )
-         ENDIF
-
-      ENDIF
-
-   ELSE                 ! Don't read in TrimCase since we wont be computing a steady state solution with a variable speed generator
-
-      CALL ReadCom ( UnIn, LinFile, 'unused TrimCase', UnEc=UnEc )
-
-   ENDIF
-
-
-   ! DispTol - Convergence tolerance for the 2-norm of displacements in the periodic steady state calculation.
-
-   CALL ReadVar ( UnIn, LinFile, DispTol, 'DispTol', 'Convergence tolerance for displacements', UnEc=UnEc )
-
-   IF ( DispTol <= 0.0 )  CALL ProgAbort ( ' DispTol must be greater than 0.' )
-
-
-   ! VelTol  - Convergence tolerance for the 2-norm of velocities    in the periodic steady state calculation.
-
-   CALL ReadVar ( UnIn, LinFile, VelTol, 'VelTol', 'Convergence tolerance for velocities', UnEc=UnEc )
-
-   IF ( VelTol <= 0.0 )  CALL ProgAbort ( ' VelTol must be greater than 0.' )
-
-
-ELSE                    ! Don't read in these variables since we wont be computing a steady state solution
-
-
-   CALL ReadCom ( UnIn, LinFile, 'unused TrimCase', UnEc=UnEc )
-   CALL ReadCom ( UnIn, LinFile, 'unused DispTol', UnEc=UnEc )
-   CALL ReadCom ( UnIn, LinFile, 'unused VelTol', UnEc=UnEc )
-
-
-ENDIF
-
-
-
-!  -------------- MODEL LINEARIZATION ------------------------------------------
-
-
-   ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, LinFile, 'Model linearization', UnEc=UnEc )
-
-
-   ! NAzimStep - Number of azimuth steps in periodic linearized model.
-
-CALL ReadVar ( UnIn, LinFile, NAzimStep, 'NAzimStep', 'Number of azimuth steps in periodic linearized model', UnEc=UnEc )
-
-IF ( NAzimStep <= 0 )  CALL ProgAbort ( ' NAzimStep must be greater than 0.' )
-
-
-   ! MdlOrder - Order of output linearized model.
-
-CALL ReadVar ( UnIn, LinFile, MdlOrder, 'MdlOrder', 'Order of output linearized model', UnEc=UnEc )
-
-IF ( ( MdlOrder < 1 ) .OR. ( MdlOrder > 2 ) )  CALL ProgAbort ( ' MdlOrder must be 1 or 2.' )
-
-
-
-!  -------------- INPUTS AND DISTURBANCES --------------------------------------
-
-
-   ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, LinFile, 'Inputs and disturbances', UnEc=UnEc )
-
-
-   ! NInputs - Number of control inputs.
-
-CALL ReadVar ( UnIn, LinFile, NInputs, 'NInputs', 'Number of control inputs', UnEc=UnEc )
-
-IF ( p_ED%NumBl == 3 )  THEN ! 3-blader
-   IF ( ( NInputs < 0 ) .OR. ( NInputs  > 7 ) )  CALL ProgAbort ( ' NInputs must be between 0 and 7 (inclusive) for 3-blader.' )
-ELSE                    ! 2-blader
-   IF ( ( NInputs < 0 ) .OR. ( NInputs  > 6 ) )  CALL ProgAbort ( ' NInputs must be between 0 and 6 (inclusive) for 2-blader.' )
-ENDIF
-
-
-   ! CntrlInpt - List of control inputs.
-
-READ (UnIn,*,IOSTAT=IOS)  ( CntrlInpt(I), I=1,NInputs )
-
-IF ( IOS < 0 )  THEN
-   CALL PremEOF ( LinFile , 'CntrlInpt' )
-ELSEIF ( IOS > 0 )  THEN
-   CALL WrScr1 ( ' Invalid numerical input for file "'//TRIM( LinFile )//'.' )
-   CALL ProgAbort  ( ' The error occurred while trying to read the CntrlInpt array.' )
-ENDIF
-
-IF ( UnEc > 0 )  THEN
-   WRITE (UnEc,"(15X,A,T27,' - ',A)")  'CntrlInpt', 'List of control inputs'
-   WRITE (UnEc,'(7(I4,:))')  ( CntrlInpt(I), I=1,NInputs )
-ENDIF
-
-IF ( p_ED%NumBl == 3 )  THEN ! 3-blader
-
-
-   DO I=1,NInputs ! Loop through all control inputs
-
-      IF ( ( CntrlInpt(I) <  1 ) .OR. ( CntrlInpt(I) > 7 ) )  &
-         CALL ProgAbort  ( ' All CntrlInpt values must be between 1 and 7 (inclusive) for 3-blader.' )
-
-      IF (   CntrlInpt(I) == 4 )  THEN ! Rotor collective blade pitch is a control input
-         IF ( ( BlPitch(1) /= BlPitch(2) ) .OR. ( BlPitch(1) /= BlPitch(3) ) )  &
-            CALL ProgAbort ( ' All blade pitch angles must be identical when collective blade pitch is a control input.' )
-      ENDIF
-
-      DO L=1,I-1  ! Loop through all previous control inputs
-         IF ( CntrlInpt(I) == CntrlInpt(L) ) &  ! .TRUE. if CntrlInpt(I) is listed twice in array CntrlInpt; therefore Abort.
-            CALL ProgAbort  ( ' CntrlInpt value '//TRIM(Num2LStr( CntrlInpt(I) ))//                                             &
-                          ' is listed twice in array CntrlInpt.  Change the value of CntrlInpt('//TRIM(Num2LStr( I ))//').'   )
-      ENDDO       ! L - All previous control inputs
-
-   ENDDO          ! I - All control inputs
-
-
-ELSE                    ! 2-blader
-
-
-   DO I=1,NInputs ! Loop through all control inputs
-
-      IF ( ( CntrlInpt(I) <  1 ) .OR. ( CntrlInpt(I) > 6 ) )  &
-         CALL ProgAbort  ( ' All CntrlInpt values must be between 1 and 6 (inclusive) for 2-blader.' )
-
-      IF (   CntrlInpt(I) == 4 )  THEN ! Rotor collective blade pitch is a control input
-         IF ( BlPitch(1) /= BlPitch(2) )  &
-            CALL ProgAbort ( ' All blade pitch angles must be identical when collective blade pitch is a control input.' )
-      ENDIF
-
-      DO L=1,I-1  ! Loop through all previous control inputs
-         IF ( CntrlInpt(I) == CntrlInpt(L) ) &  ! .TRUE. if CntrlInpt(I) is listed twice in array CntrlInpt; therefore Abort.
-            CALL ProgAbort  ( ' CntrlInpt value '//TRIM(Num2LStr( CntrlInpt(I) ))//                                             &
-                          ' is listed twice in array CntrlInpt.  Change the value of CntrlInpt('//TRIM(Num2LStr( I ))//').'   )
-      ENDDO       ! L - All previous control inputs
-
-   ENDDO          ! I - All control inputs
-
-
-ENDIF
-
-
-   ! NDisturbs - Number of wind disturbances.
-
-CALL ReadVar ( UnIn, LinFile, NDisturbs, 'NDisturbs', 'Number of wind disturbances' )
-
-IF ( ( NDisturbs < 0 ) .OR.  ( NDisturbs  > 7 ) )  CALL ProgAbort ( ' NDisturbs must be between 0 and 7 (inclusive).' )
-IF ( ( NDisturbs > 0 ) .AND. ( .NOT. CompAero ) )  &
-   CALL ProgAbort ( ' There can be no wind disturbances if CompAero is False.  Set NDisturbs to 0 or CompAero to True.' )
-
-
-   ! Disturbnc - List   of wind disturbances.
-
-CALL ReadAry( UnIn, LinFile, Disturbnc, NDisturbs, 'Disturbnc', 'List of wind disturbances', ErrStat, ErrMsg )
-IF ( ErrStat /= ErrID_None ) THEN
-   CALL ProgAbort( ErrMsg )
-END IF
-
-DO I=1,NDisturbs  ! Loop through all wind disturbances
-
-   IF ( ( Disturbnc(I) < 1 ) .OR. ( Disturbnc(I) > 7 ) )  &
-      CALL ProgAbort  ( ' All Disturbnc values must be between 1 and 7 (inclusive).' )
-
-   DO L=1,I-1  ! Loop through all previous wind disturbances
-      IF ( Disturbnc(I) == Disturbnc(L) ) &  ! .TRUE. if Disturbnc(I) is listed twice in array Disturbnc; therefore Abort.
-         CALL ProgAbort  ( ' Disturbnc value '//TRIM(Num2LStr( Disturbnc(I) ))//                                             &
-                       ' is listed twice in array Disturbnc.  Change the value of Disturbnc('//TRIM(Num2LStr( I ))//').'   )
-   ENDDO       ! L - All previous wind disturbances
-
-ENDDO             ! I - All wind disturbances
-
-
-
-   ! Close the FAST linearization file.
-
-CLOSE ( UnIn )
-
-
-
-RETURN
-END SUBROUTINE GetLin
-!=======================================================================
 SUBROUTINE GetPrimary( InputFileData, p, ErrStat, ErrMsg, UnEc )
 
 
@@ -1707,7 +960,6 @@ SUBROUTINE GetPrimary( InputFileData, p, ErrStat, ErrMsg, UnEc )
 USE                             Drivetrain
 USE                             General
 USE                             InitCond
-USE                             Linear
 USE                             NacelleYaw
 USE                             SimCont
 USE                             TipBrakes
@@ -2284,13 +1536,6 @@ CALL ReadVar ( UnIn, PriFile, CompAero, 'CompAero', 'Compute aerodynamic forces'
    ! CompNoise - Compute aerodynamic noise.
 
 CALL ReadVar ( UnIn, PriFile, CompNoise, 'CompNoise', 'Compute aerodynamic noise', UnEc=UnEc )
-
-IF ( CompNoise .AND. ( .NOT. CompAero ) )  &
-   CALL ProgAbort ( ' CompAero must be True if CompNoise is True.' )
-
-IF ( CompNoise .AND. ( AnalMode == 2 ) )  THEN  ! Print out warning that noise will not be computed when linearizing FAST
-   CALL WrScr1(' NOTE: Noise will not be computed during the FAST linearization process, even though CompNoise is enabled.')
-ENDIF
 
 
 
@@ -2873,6 +2118,7 @@ YawNeut   = D2R*YawNeut                                                         
    ! Furling - Read in additional model properties for furling turbine.
 
 CALL ReadVar ( UnIn, PriFile, InputFileData%Furling, 'Furling', 'Read in additional model properties for furling turbine', UnEc=UnEc )
+InputFileData%Furling = .FALSE.
 
 IF ( InputFileData%Furling .AND. ( p%OverHang > 0.0 ) )  THEN   ! Print out warning when downwind turbine is modeled with furling.
    CALL UsrAlarm
@@ -3071,8 +2317,6 @@ IF ( PathIsRelative( ADFile ) ) ADFile = TRIM(PriPath)//TRIM(ADFile)
 
 CALL ReadVar ( UnIn, PriFile, NoiseFile, 'NoiseFile', 'Name of file containing aerodynamic noise parameters', UnEc=UnEc )
 
-IF ( LEN_TRIM( NoiseFile ) == 0 .AND. CompNoise)  CALL ProgAbort ( ' NoiseFile must not be an empty string.' )
-IF ( PathIsRelative( NoiseFile ) ) NoiseFile = TRIM(PriPath)//TRIM(NoiseFile)
 
 
 !  -------------- ADAMS INPUT FILE PARAMETERS ----------------------------------
@@ -3542,10 +2786,8 @@ SUBROUTINE FAST_Input( p, p_ctrl, OtherState, InputFileData, ErrStat, ErrMsg )
 USE                             DriveTrain
 USE                             General
 USE                             InitCond
-USE                             Linear
 USE                             NacelleYaw
 USE                             SimCont
-USE                             TailAero
 USE                             TipBrakes
 USE                             TurbCont
 
@@ -3557,7 +2799,6 @@ USE                             Airfoil,        ONLY: NumFoil
 USE                             InducedVel,     ONLY: AToler
 USE                             Switch,         ONLY: DSTALL, DYNINFL, DYNINIT
 
-USE                             Noise  !NoiseInput()
 
 IMPLICIT                        NONE
 
@@ -3653,31 +2894,9 @@ CALL InitDOFs( p, ErrStat, ErrMsg )
 !---------------- END ED_INIT -------------------------------------
 
 
-   ! Read in the furling parameter file if necessary, calculate some parameters
-   !   that are not input directly, and convert units where appropriate:
-
-IF ( InputFileData%Furling )  THEN
-
-      ! this remains a hack for the tail-fin aerodynamics:
-   
-   CALL GetFurl( InputFileData, p, EchoUn  )
-
-   SQRTTFinA = SQRT( TFinArea )
-  
-
-ENDIF
-
-
    ! Calculate some parameters that are not input directly.  Convert units if appropriate.
 
 DT24      = DT/24.0_DbKi                                                        ! Time-step parameter needed for Solver().
-!p%rZT0zt    = p%TwrRBHt + p%PtfmRef - p%TwrDraft                                ! zt-component of position vector rZT0.
-!p%RefTwrHt  = p%TowerHt + p%PtfmRef                                             ! Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef).
-!p%TwrFlexL  = p%TowerHt + p%TwrDraft - p%TwrRBHt                                ! Height / length of the flexible portion of the tower.
-!p%BldFlexL  = p%TipRad               - p%HubRad                                 ! Length of the flexible portion of the blade.
-!p%TwoPiNB   = TwoPi/p%NumBl                                                     ! 2*Pi/NumBl is used in RtHS().
-!
-!p%FASTHH    = p%TowerHt + InputFileData%Twr2Shft + p%OverHang*p%SShftTilt
 p%GBoxEff   = p%GBoxEff*0.01
 p%GenEff    = p%GenEff *0.01
 
@@ -3750,25 +2969,13 @@ ENDIF
 
    ! Initialize this variable to zero:
 
-!SumCosPreC = 0.0
-
 DO K=1,p%NumBl
    BlPitch    (K) = BlPitch (K)*D2R
    BlPitchF   (K) = BlPitchF(K)*D2R
    BlPitchInit(K) = BlPitch (K)
    BegPitMan  (K) = .TRUE.
    TTpBrFl    (K) = TTpBrDp (K) + TpBrDT
-   !SumCosPreC     = SumCosPreC + p%CosPreC(K)
 ENDDO ! K
-
-
-!   ! Calculate the average tip radius normal to the shaft (AvgNrmTpRd)
-!   !   and the swept area of the rotor (ProjArea):
-!
-!p%AvgNrmTpRd = p%TipRad*SumCosPreC/p%NumBl   ! Average tip radius normal to the saft.
-!p%ProjArea   = Pi*( p%AvgNrmTpRd**2 )      ! Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft).
-!
-
 
 
 !  -------------- BLADE PARAMETERS ---------------------------------------------
@@ -3781,138 +2988,6 @@ IF ( ( p%PSpnElN < 1 ) .OR. ( p%PSpnElN > p%BldNodes ) )  &
 
 
 
-!  -------------- ADAMS --------------------------------------------------------
-
-IF ( ( ADAMSPrep == 2 ) .OR. ( ADAMSPrep == 3 ) )  THEN  ! Create equivalent ADAMS model.
-
-   CALL GetADAMS( p, EchoUn )                                        ! Read in the ADAMS-specific parameters from ADAMSFile.
-
-ENDIF
-
-
-
-!  -------------- FAST LINEARIZATION CONTROL -----------------------------------
-
-IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearization analysis
-
-   CALL GetLin( p, InputFileData, EchoUn )                           ! Read in the FAST linearization parameters from LinFile.
-
-
-   ! FAST linearization wont work for all possible input settings.
-   ! Make sure FAST aborts if any of the following conditions are met:
-
-   ! Conditions on FAST inputs:
-
-   IF ( YCMode /= 0                         )  &
-      CALL ProgAbort ( ' FAST can''t linearize a model with yaw control enabled.  Set YCMode to 0.' )
-   IF ( TYawManS <= TMax                    )  &
-      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set TYawManS > TMax.' )
-   IF ( PCMode /= 0                         )  &
-      CALL ProgAbort ( ' FAST can''t linearize a model with pitch control enabled.  Set PCMode to 0.' )
-   IF ( .NOT. GenTiStr                      )  &
-      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set GenTiStr to True and TimGenOn to 0.0.' )
-   IF ( TimGenOn /= 0.0                     )  &
-      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set GenTiStr to True and TimGenOn to 0.0.' )
-   IF ( .NOT. GenTiStp                      )  &
-      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set GenTiStp to True and TimGenOf > TMax.' )
-   IF ( TimGenOf <= TMax                    )  &
-      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set GenTiStp to True and TimGenOf > TMax.' )
-   IF ( THSSBrDp <= TMax                    )  &
-      CALL ProgAbort ( ' FAST can''t linearize a model during a high-speed shaft brake shutdown event.  Set THSSBrDp > TMax.' )
-!JASON:USE THIS CONDITION WHEN YOU ADD CODE/LOGIC FOR TiDynBrk:   IF ( TiDynBrk <= TMax                    )  CALL ProgAbort ( ' FAST can''t linearize a model during a dynamic generator brake shutdown event.  Set TiDynBrk > TMax.' )
-   DO K = 1,p%NumBl       ! Loop through all blades
-      IF ( TTpBrDp (K) <= TMax              )  &
-         CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.'// &
-                      '  Set TTpBrDp( '//TRIM(Num2LStr(K))//') > TMax.'                )
-      IF ( TBDepISp(K) <= 10.0*p%RotSpeed     )  &
-         CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.'// &
-                      '  Set TBDepISp('//TRIM(Num2LStr(K))//') >> RotSpeed.'           )
-      IF ( TPitManS(K) <= TMax              )  &
-         CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.'// &
-                      '  Set TPitManS('//TRIM(Num2LStr(K))//') > TMax.'                )
-   ENDDO                ! K - Blades
-   IF ( CompNoise                           )  &
-      CALL ProgAbort ( ' FAST can''t linearize a model and compute noise at the same time.  Set CompNoise to False.' )
-
-
-   IF ( CompHydro ) THEN
-      IF ( .NOT. HD_CheckLin(HydroDyn_data,Sttus) ) THEN
-         CALL ProgAbort ( " FAST can't linearize a model with the current HydroDyn settings."  )
-      END IF
-   END IF      
-   
-
-   ! NOTE: There is one additional requirement, which is that there must be at
-   !       least one DOF enabled in order to run a linearization analysis.
-   !       This condition is commented out below.  Instead of here, this
-   !       condition is checked in PROGRAM FAST(), since variable OtherState%NActvDOF has
-   !       not been defined yet.  I would like to test all of the conditions
-   !       in one place, but oh well :-(.
-!   IF ( OtherState%NActvDOF == 0                       )  CALL ProgAbort ( ' FAST can''t linearize a model with no DOFs.  Enable at least one DOF.' )
-
-   ! Conditions on AeroDyn inputs:
-   ! NOTE: I overwrite the value of AToler internally but force the users to
-   !       change the values of StallMod and InfModel themselves.  This may
-   !       appear contradictory in implementation.  However, the reason I do
-   !       this is because I want the users to be aware of the conditions on
-   !       StallMod and InfModel, whereas I don't care if they know about the
-   !       conditions on AToler (this condition is less important).
-
-   IF ( DSTALL .AND. CompAero                   )  &
-      CALL ProgAbort ( ' FAST can''t linearize the model when dynamic stall is engaged.  Set StallMod to STEADY.' )
-   IF ( ( DYNINFL .OR. DYNINIT ) .AND. CompAero )  &
-      CALL ProgAbort ( ' FAST can''t linearize the model when DYNamic INflow is engaged.  Set InfModel to EQUIL.' ) ! .TRUE. if DYNamic INflow model is engaged.
-   IF ( AToler > 1.0E-6                         )  THEN  ! We need a tight requirement on AToler in order to avoid numerical errors in AeroDyn during linearization.  This was discovered K. Stol when developing SymDyn.
-      CALL WrScr1( ' NOTE: AToler changed from '//TRIM(Num2LStr(ATOLER))//                   &
-                   ' to 1E-6 in order to reduce numerical errors during FAST linearization.'   )
-      AToler = 1.0E-6
-   ENDIF
-
-
-   ! Determine whether we will try to find a periodic steady state solution
-   !   (rotor spinning) or a static equilibrium solution (rotor parked).  If
-   !   periodic, adjust the time increment, DT, so that there are an integer
-   !   multiple of them in one Period.  For parked rotors (static equilibrium
-   !   solutions), make the 2-norm convergence tests occur only every 1 second.
-   !   Also if parked, change NAzimStep to unity:
-
-   IF ( p%RotSpeed == 0.0 )  THEN        ! Rotor is parked, therefore we will find a static equilibrium position.
-
-      NStep  = CEILING(    1.0_DbKi / DT )  ! Make each iteration one second long
-
-      IF ( NAzimStep /= 1 )  CALL WrScr1( ' NOTE: NAzimStep changed from '//TRIM(Num2LStr(NAzimStep))//            &
-                                          ' to 1 since RotSpeed = 0 and the steady solution will not be periodic.'   )
-      NAzimStep = 1
-
-      IF ( InputFileData%GenDOF         )  CALL WrScr1( ' NOTE: GenDOF changed from True to False since RotSpeed = 0'// &
-                                          ' meaning the generator is locked in place.'                      )
-      InputFileData%GenDOF = .FALSE.
-
-   ELSE                                ! Rotor is spinning, therefore we will find a periodic steady state solution.
-
-      Period = TwoPi / p%RotSpeed
-      NStep  = CEILING( Period / DT )  ! The number of time steps (an integer) in one period
-
-      DT     = Period / NStep          ! Update DT so that there is an integer multiple of them in one period
-      DT24   = DT/24.0                 ! Update DT24 since it is used in SUBROUTINE Solver()
-
-   ENDIF
-
-
-   ! Allocate the arrays holding the operating point values:
-
-   CALL AllocAry( Qop, p%NDOF,   NAzimStep, 'Qop',   ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL AllocAry( QDop, p%NDOF,  NAzimStep, 'QDop',  ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL AllocAry( QD2op, p%NDOF, NAzimStep, 'QD2op', ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
-
-ENDIF
-
-
 !  -------------- FINISHING UP -------------------------------------------------
 
 
@@ -3921,32 +2996,12 @@ ENDIF
 IF ( EchoUn > 0 ) CLOSE ( EchoUn )
 
 
-
-
 !  -------------- AERODYN PARAMETERS -------------------------------------------
 
 
    ! Get the AeroDyn input now.
 
 CALL AeroInput(p)             ! Read in the ADFile
-
-
-   ! Make sure TFinNFoil is an existing airfoil number:
-
-IF ( ( TFinNFoil < 1 ) .OR. ( TFinNFoil > NumFoil ) )  &
-   CALL ProgAbort ( ' TFinNFoil must be between 1 and NumFoil (inclusive).' )
-
-
-!  -------------- NOISE --------------------------------------------------------
-
-IF ( CompNoise .AND. ( AnalMode == 1 ) .AND. ( ADAMSPrep /= 2 ) )  THEN ! We will be computing aerodynamic noise.
-!JASON: Change this to "IF ( CompAero .AND. ( AnalMode == 1 ) )  THEN" if you can get ADAMS to compute noise as well as FAST.
-
-   CALL NoiseInput(UnIn, NoiseFile, p)                         ! Read in the noise parameters from NoiseFile.
-      
-   CALL AllocNoise( p )                                        ! Allocate noise arrays for simulation.
-
-ENDIF
 
 
 
@@ -4158,12 +3213,6 @@ ELSE
    WRITE (UnSu,FmtTxt)  ' Disabled   Computation of hydrodynamic loads.'
 ENDIF
 
-
-IF ( CompNoise )  THEN
-   WRITE (UnSu,FmtTxt)  ' Enabled    Computation of aeroacoustics.'
-ELSE
-   WRITE (UnSu,FmtTxt)  ' Disabled   Computation of aeroacoustics.'
-ENDIF
 
 
    ! Time steps.
@@ -4470,7 +3519,6 @@ USE                             General
 USE                             AeroDyn
 USE                             SimCont, ONLY: TMax,DT !BJJ perhaps we should do this a better way
 
-USE                             Noise     !WrNoiseOutHdr
 
 IMPLICIT                        NONE
 
@@ -4559,13 +3607,6 @@ END IF
 
 
 
-
-   ! Open and create noise file:
-
-IF ( CompNoise )  CALL WrNoiseOutHdr(p_ED)
-
-
-
 RETURN
 END SUBROUTINE WrOutHdr
 !=======================================================================
@@ -4578,7 +3619,6 @@ SUBROUTINE WrOutput(p_ED,y_ED)
 USE                             General
 
 USE                             AeroGenSubs, ONLY: ElemOut
-USE                             NOISE, ONLY: WriteSPLOut  !SUBROUTINE
 
 IMPLICIT                        NONE
 
@@ -4627,13 +3667,6 @@ END IF
    ! Generate AeroDyn's element data if desired:
 
 CALL ElemOut()
-
-
-
-   ! Output noise if desired:
-
-IF ( CompNoise )  CALL WriteSPLOut( p_ED, y_ED%AllOuts(LSSTipPxa) )
-
 
 
 RETURN

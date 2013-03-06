@@ -1825,6 +1825,7 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, Er
       
 
       ! get the furling input-file data
+   InputFileData%Furling = .FALSE.              ! Furling is not supported in this version of ElastoDyn
       
    IF ( InputFileData%Furling )  THEN   
       CALL ReadFurlFile( FurlFile, InputFileData, UnEcho, ErrStat2, ErrMsg2 )
@@ -1894,7 +1895,7 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, Er
    END IF
    
    
-      ! get the blade input-file data
+      ! get the blade input-file data (from blade and mesh files)
 
    CALL ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEcho, ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)

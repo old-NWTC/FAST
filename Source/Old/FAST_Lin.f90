@@ -2525,3 +2525,431 @@ RETURN
 END SUBROUTINE Linearize
 !=======================================================================
 END MODULE FAST_Lin_Subs
+
+
+SUBROUTINE GetLin(p_ED, InputFileData, UnEc)
+
+
+   ! This routine reads in the FAST linearization input parameters from
+   !   LinFile and validates the input.
+
+
+USE                             General
+USE                             Linear
+USE                             TurbCont
+
+
+IMPLICIT                        NONE
+
+
+   ! Passed variables
+
+TYPE(ED_ParameterType),  INTENT(IN)    :: p_ED                        ! Parameters of the structural dynamics module
+TYPE(ED_InputFile),      INTENT(INOUT) :: InputFileData                   ! Data stored in the module's input file
+INTEGER(IntKi),            INTENT(IN)    :: UnEc                            ! I/O unit for echo file. If present and > 0, write to UnEc
+
+   ! Local variables:
+
+INTEGER(4)                   :: I                                               ! A generic index.
+INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
+INTEGER(4)                   :: L                                               ! A generic index.
+
+INTEGER(IntKi)               :: ErrStat
+CHARACTER(1024)              :: ErrMsg
+
+
+   ! Open the FAST linearization input file:
+
+CALL OpenFInpFile ( UnIn, LinFile )
+
+
+   ! Add a separator to the echo file if appropriate:
+
+IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'FAST linearization input data from file "'//TRIM( LinFile )//'":'
+
+
+
+!  -------------- HEADER -------------------------------------------------------
+
+
+   ! Skip the header.
+
+READ (UnIn,'(//)',IOSTAT=IOS)
+
+IF ( IOS < 0 )  THEN
+   CALL PremEOF ( LinFile , 'unused FAST linearization-file header' )
+ENDIF
+
+
+
+!  -------------- PERIODIC STEADY STATE SOLUTION -------------------------------
+
+
+   ! Skip the comment line.
+
+CALL ReadCom ( UnIn, LinFile, 'Periodic steady state solution', UnEc=UnEc )
+
+
+   ! CalcStdy - Calculate periodic steady state condition.
+
+CALL ReadVar ( UnIn, LinFile, CalcStdy, 'CalcStdy', 'Calculate periodic steady state condition' )
+
+
+IF ( CalcStdy )  THEN   ! Only read in these variables if we will be computing a steady state solution
+
+
+   ! TrimCase - Trim case.
+
+   IF ( InputFileData%GenDOF )  THEN  ! Only read in TrimCase if we will be computing a steady state solution with a variable speed generator
+
+      CALL ReadVar ( UnIn, LinFile, TrimCase, 'TrimCase', 'Trim Case' )
+
+      IF ( ( TrimCase < 1 ) .OR. ( TrimCase > 3 ) )  CALL ProgAbort ( ' TrimCase must be 1, 2, or 3.' )
+      IF ( ( TrimCase == 3 ) )  THEN   ! We will be trimming rotor collective blade pitch
+
+         IF (    BlPitch(1) /= BlPitch(2) )  &
+               CALL ProgAbort ( ' All blade pitch angles must be identical when trimming with collective blade pitch.' )
+         IF ( p_ED%NumBl == 3 )  THEN ! 3-blader
+            IF ( BlPitch(1) /= BlPitch(3) )  &
+               CALL ProgAbort ( ' All blade pitch angles must be identical when trimming with collective blade pitch.' )
+         ENDIF
+
+      ENDIF
+
+   ELSE                 ! Don't read in TrimCase since we wont be computing a steady state solution with a variable speed generator
+
+      CALL ReadCom ( UnIn, LinFile, 'unused TrimCase', UnEc=UnEc )
+
+   ENDIF
+
+
+   ! DispTol - Convergence tolerance for the 2-norm of displacements in the periodic steady state calculation.
+
+   CALL ReadVar ( UnIn, LinFile, DispTol, 'DispTol', 'Convergence tolerance for displacements', UnEc=UnEc )
+
+   IF ( DispTol <= 0.0 )  CALL ProgAbort ( ' DispTol must be greater than 0.' )
+
+
+   ! VelTol  - Convergence tolerance for the 2-norm of velocities    in the periodic steady state calculation.
+
+   CALL ReadVar ( UnIn, LinFile, VelTol, 'VelTol', 'Convergence tolerance for velocities', UnEc=UnEc )
+
+   IF ( VelTol <= 0.0 )  CALL ProgAbort ( ' VelTol must be greater than 0.' )
+
+
+ELSE                    ! Don't read in these variables since we wont be computing a steady state solution
+
+
+   CALL ReadCom ( UnIn, LinFile, 'unused TrimCase', UnEc=UnEc )
+   CALL ReadCom ( UnIn, LinFile, 'unused DispTol', UnEc=UnEc )
+   CALL ReadCom ( UnIn, LinFile, 'unused VelTol', UnEc=UnEc )
+
+
+ENDIF
+
+
+
+!  -------------- MODEL LINEARIZATION ------------------------------------------
+
+
+   ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, LinFile, 'Model linearization', UnEc=UnEc )
+
+
+   ! NAzimStep - Number of azimuth steps in periodic linearized model.
+
+CALL ReadVar ( UnIn, LinFile, NAzimStep, 'NAzimStep', 'Number of azimuth steps in periodic linearized model', UnEc=UnEc )
+
+IF ( NAzimStep <= 0 )  CALL ProgAbort ( ' NAzimStep must be greater than 0.' )
+
+
+   ! MdlOrder - Order of output linearized model.
+
+CALL ReadVar ( UnIn, LinFile, MdlOrder, 'MdlOrder', 'Order of output linearized model', UnEc=UnEc )
+
+IF ( ( MdlOrder < 1 ) .OR. ( MdlOrder > 2 ) )  CALL ProgAbort ( ' MdlOrder must be 1 or 2.' )
+
+
+
+!  -------------- INPUTS AND DISTURBANCES --------------------------------------
+
+
+   ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, LinFile, 'Inputs and disturbances', UnEc=UnEc )
+
+
+   ! NInputs - Number of control inputs.
+
+CALL ReadVar ( UnIn, LinFile, NInputs, 'NInputs', 'Number of control inputs', UnEc=UnEc )
+
+IF ( p_ED%NumBl == 3 )  THEN ! 3-blader
+   IF ( ( NInputs < 0 ) .OR. ( NInputs  > 7 ) )  CALL ProgAbort ( ' NInputs must be between 0 and 7 (inclusive) for 3-blader.' )
+ELSE                    ! 2-blader
+   IF ( ( NInputs < 0 ) .OR. ( NInputs  > 6 ) )  CALL ProgAbort ( ' NInputs must be between 0 and 6 (inclusive) for 2-blader.' )
+ENDIF
+
+
+   ! CntrlInpt - List of control inputs.
+
+READ (UnIn,*,IOSTAT=IOS)  ( CntrlInpt(I), I=1,NInputs )
+
+IF ( IOS < 0 )  THEN
+   CALL PremEOF ( LinFile , 'CntrlInpt' )
+ELSEIF ( IOS > 0 )  THEN
+   CALL WrScr1 ( ' Invalid numerical input for file "'//TRIM( LinFile )//'.' )
+   CALL ProgAbort  ( ' The error occurred while trying to read the CntrlInpt array.' )
+ENDIF
+
+IF ( UnEc > 0 )  THEN
+   WRITE (UnEc,"(15X,A,T27,' - ',A)")  'CntrlInpt', 'List of control inputs'
+   WRITE (UnEc,'(7(I4,:))')  ( CntrlInpt(I), I=1,NInputs )
+ENDIF
+
+IF ( p_ED%NumBl == 3 )  THEN ! 3-blader
+
+
+   DO I=1,NInputs ! Loop through all control inputs
+
+      IF ( ( CntrlInpt(I) <  1 ) .OR. ( CntrlInpt(I) > 7 ) )  &
+         CALL ProgAbort  ( ' All CntrlInpt values must be between 1 and 7 (inclusive) for 3-blader.' )
+
+      IF (   CntrlInpt(I) == 4 )  THEN ! Rotor collective blade pitch is a control input
+         IF ( ( BlPitch(1) /= BlPitch(2) ) .OR. ( BlPitch(1) /= BlPitch(3) ) )  &
+            CALL ProgAbort ( ' All blade pitch angles must be identical when collective blade pitch is a control input.' )
+      ENDIF
+
+      DO L=1,I-1  ! Loop through all previous control inputs
+         IF ( CntrlInpt(I) == CntrlInpt(L) ) &  ! .TRUE. if CntrlInpt(I) is listed twice in array CntrlInpt; therefore Abort.
+            CALL ProgAbort  ( ' CntrlInpt value '//TRIM(Num2LStr( CntrlInpt(I) ))//                                             &
+                          ' is listed twice in array CntrlInpt.  Change the value of CntrlInpt('//TRIM(Num2LStr( I ))//').'   )
+      ENDDO       ! L - All previous control inputs
+
+   ENDDO          ! I - All control inputs
+
+
+ELSE                    ! 2-blader
+
+
+   DO I=1,NInputs ! Loop through all control inputs
+
+      IF ( ( CntrlInpt(I) <  1 ) .OR. ( CntrlInpt(I) > 6 ) )  &
+         CALL ProgAbort  ( ' All CntrlInpt values must be between 1 and 6 (inclusive) for 2-blader.' )
+
+      IF (   CntrlInpt(I) == 4 )  THEN ! Rotor collective blade pitch is a control input
+         IF ( BlPitch(1) /= BlPitch(2) )  &
+            CALL ProgAbort ( ' All blade pitch angles must be identical when collective blade pitch is a control input.' )
+      ENDIF
+
+      DO L=1,I-1  ! Loop through all previous control inputs
+         IF ( CntrlInpt(I) == CntrlInpt(L) ) &  ! .TRUE. if CntrlInpt(I) is listed twice in array CntrlInpt; therefore Abort.
+            CALL ProgAbort  ( ' CntrlInpt value '//TRIM(Num2LStr( CntrlInpt(I) ))//                                             &
+                          ' is listed twice in array CntrlInpt.  Change the value of CntrlInpt('//TRIM(Num2LStr( I ))//').'   )
+      ENDDO       ! L - All previous control inputs
+
+   ENDDO          ! I - All control inputs
+
+
+ENDIF
+
+
+   ! NDisturbs - Number of wind disturbances.
+
+CALL ReadVar ( UnIn, LinFile, NDisturbs, 'NDisturbs', 'Number of wind disturbances' )
+
+IF ( ( NDisturbs < 0 ) .OR.  ( NDisturbs  > 7 ) )  CALL ProgAbort ( ' NDisturbs must be between 0 and 7 (inclusive).' )
+IF ( ( NDisturbs > 0 ) .AND. ( .NOT. CompAero ) )  &
+   CALL ProgAbort ( ' There can be no wind disturbances if CompAero is False.  Set NDisturbs to 0 or CompAero to True.' )
+
+
+   ! Disturbnc - List   of wind disturbances.
+
+CALL ReadAry( UnIn, LinFile, Disturbnc, NDisturbs, 'Disturbnc', 'List of wind disturbances', ErrStat, ErrMsg )
+IF ( ErrStat /= ErrID_None ) THEN
+   CALL ProgAbort( ErrMsg )
+END IF
+
+DO I=1,NDisturbs  ! Loop through all wind disturbances
+
+   IF ( ( Disturbnc(I) < 1 ) .OR. ( Disturbnc(I) > 7 ) )  &
+      CALL ProgAbort  ( ' All Disturbnc values must be between 1 and 7 (inclusive).' )
+
+   DO L=1,I-1  ! Loop through all previous wind disturbances
+      IF ( Disturbnc(I) == Disturbnc(L) ) &  ! .TRUE. if Disturbnc(I) is listed twice in array Disturbnc; therefore Abort.
+         CALL ProgAbort  ( ' Disturbnc value '//TRIM(Num2LStr( Disturbnc(I) ))//                                             &
+                       ' is listed twice in array Disturbnc.  Change the value of Disturbnc('//TRIM(Num2LStr( I ))//').'   )
+   ENDDO       ! L - All previous wind disturbances
+
+ENDDO             ! I - All wind disturbances
+
+
+
+   ! Close the FAST linearization file.
+
+CLOSE ( UnIn )
+
+
+
+RETURN
+END SUBROUTINE GetLin
+!=======================================================================
+
+
+!!  -------------- FAST LINEARIZATION CONTROL -----------------------------------
+!
+!IF ( ( AnalMode == 2 ) .AND. ( ADAMSPrep /= 2 ) )  THEN  ! Run a FAST linearization analysis
+!
+!   CALL GetLin( p, InputFileData, EchoUn )                           ! Read in the FAST linearization parameters from LinFile.
+!
+!
+!   ! FAST linearization wont work for all possible input settings.
+!   ! Make sure FAST aborts if any of the following conditions are met:
+!
+!   ! Conditions on FAST inputs:
+!
+!   IF ( YCMode /= 0                         )  &
+!      CALL ProgAbort ( ' FAST can''t linearize a model with yaw control enabled.  Set YCMode to 0.' )
+!   IF ( TYawManS <= TMax                    )  &
+!      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set TYawManS > TMax.' )
+!   IF ( PCMode /= 0                         )  &
+!      CALL ProgAbort ( ' FAST can''t linearize a model with pitch control enabled.  Set PCMode to 0.' )
+!   IF ( .NOT. GenTiStr                      )  &
+!      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set GenTiStr to True and TimGenOn to 0.0.' )
+!   IF ( TimGenOn /= 0.0                     )  &
+!      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set GenTiStr to True and TimGenOn to 0.0.' )
+!   IF ( .NOT. GenTiStp                      )  &
+!      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set GenTiStp to True and TimGenOf > TMax.' )
+!   IF ( TimGenOf <= TMax                    )  &
+!      CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.  Set GenTiStp to True and TimGenOf > TMax.' )
+!   IF ( THSSBrDp <= TMax                    )  &
+!      CALL ProgAbort ( ' FAST can''t linearize a model during a high-speed shaft brake shutdown event.  Set THSSBrDp > TMax.' )
+!!JASON:USE THIS CONDITION WHEN YOU ADD CODE/LOGIC FOR TiDynBrk:   IF ( TiDynBrk <= TMax                    )  CALL ProgAbort ( ' FAST can''t linearize a model during a dynamic generator brake shutdown event.  Set TiDynBrk > TMax.' )
+!   DO K = 1,p%NumBl       ! Loop through all blades
+!      IF ( TTpBrDp (K) <= TMax              )  &
+!         CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.'// &
+!                      '  Set TTpBrDp( '//TRIM(Num2LStr(K))//') > TMax.'                )
+!      IF ( TBDepISp(K) <= 10.0*p%RotSpeed     )  &
+!         CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.'// &
+!                      '  Set TBDepISp('//TRIM(Num2LStr(K))//') >> RotSpeed.'           )
+!      IF ( TPitManS(K) <= TMax              )  &
+!         CALL ProgAbort ( ' FAST can''t linearize a model with time-varying controls.'// &
+!                      '  Set TPitManS('//TRIM(Num2LStr(K))//') > TMax.'                )
+!   ENDDO                ! K - Blades
+!   IF ( CompNoise                           )  &
+!      CALL ProgAbort ( ' FAST can''t linearize a model and compute noise at the same time.  Set CompNoise to False.' )
+!
+!
+!   IF ( CompHydro ) THEN
+!      IF ( .NOT. HD_CheckLin(HydroDyn_data,Sttus) ) THEN
+!         CALL ProgAbort ( " FAST can't linearize a model with the current HydroDyn settings."  )
+!      END IF
+!   END IF      
+!   
+!
+!   ! NOTE: There is one additional requirement, which is that there must be at
+!   !       least one DOF enabled in order to run a linearization analysis.
+!   !       This condition is commented out below.  Instead of here, this
+!   !       condition is checked in PROGRAM FAST(), since variable OtherState%NActvDOF has
+!   !       not been defined yet.  I would like to test all of the conditions
+!   !       in one place, but oh well :-(.
+!!   IF ( OtherState%NActvDOF == 0                       )  CALL ProgAbort ( ' FAST can''t linearize a model with no DOFs.  Enable at least one DOF.' )
+!
+!   ! Conditions on AeroDyn inputs:
+!   ! NOTE: I overwrite the value of AToler internally but force the users to
+!   !       change the values of StallMod and InfModel themselves.  This may
+!   !       appear contradictory in implementation.  However, the reason I do
+!   !       this is because I want the users to be aware of the conditions on
+!   !       StallMod and InfModel, whereas I don't care if they know about the
+!   !       conditions on AToler (this condition is less important).
+!
+!   IF ( DSTALL .AND. CompAero                   )  &
+!      CALL ProgAbort ( ' FAST can''t linearize the model when dynamic stall is engaged.  Set StallMod to STEADY.' )
+!   IF ( ( DYNINFL .OR. DYNINIT ) .AND. CompAero )  &
+!      CALL ProgAbort ( ' FAST can''t linearize the model when DYNamic INflow is engaged.  Set InfModel to EQUIL.' ) ! .TRUE. if DYNamic INflow model is engaged.
+!   IF ( AToler > 1.0E-6                         )  THEN  ! We need a tight requirement on AToler in order to avoid numerical errors in AeroDyn during linearization.  This was discovered K. Stol when developing SymDyn.
+!      CALL WrScr1( ' NOTE: AToler changed from '//TRIM(Num2LStr(ATOLER))//                   &
+!                   ' to 1E-6 in order to reduce numerical errors during FAST linearization.'   )
+!      AToler = 1.0E-6
+!   ENDIF
+!
+!
+!   ! Determine whether we will try to find a periodic steady state solution
+!   !   (rotor spinning) or a static equilibrium solution (rotor parked).  If
+!   !   periodic, adjust the time increment, DT, so that there are an integer
+!   !   multiple of them in one Period.  For parked rotors (static equilibrium
+!   !   solutions), make the 2-norm convergence tests occur only every 1 second.
+!   !   Also if parked, change NAzimStep to unity:
+!
+!   IF ( p%RotSpeed == 0.0 )  THEN        ! Rotor is parked, therefore we will find a static equilibrium position.
+!
+!      NStep  = CEILING(    1.0_DbKi / DT )  ! Make each iteration one second long
+!
+!      IF ( NAzimStep /= 1 )  CALL WrScr1( ' NOTE: NAzimStep changed from '//TRIM(Num2LStr(NAzimStep))//            &
+!                                          ' to 1 since RotSpeed = 0 and the steady solution will not be periodic.'   )
+!      NAzimStep = 1
+!
+!      IF ( InputFileData%GenDOF         )  CALL WrScr1( ' NOTE: GenDOF changed from True to False since RotSpeed = 0'// &
+!                                          ' meaning the generator is locked in place.'                      )
+!      InputFileData%GenDOF = .FALSE.
+!
+!   ELSE                                ! Rotor is spinning, therefore we will find a periodic steady state solution.
+!
+!      Period = TwoPi / p%RotSpeed
+!      NStep  = CEILING( Period / DT )  ! The number of time steps (an integer) in one period
+!
+!      DT     = Period / NStep          ! Update DT so that there is an integer multiple of them in one period
+!      DT24   = DT/24.0                 ! Update DT24 since it is used in SUBROUTINE Solver()
+!
+!   ENDIF
+!
+!
+!   ! Allocate the arrays holding the operating point values:
+!
+!   CALL AllocAry( Qop, p%NDOF,   NAzimStep, 'Qop',   ErrStat, ErrMsg )
+!   IF ( ErrStat >= AbortErrLev ) RETURN
+!
+!   CALL AllocAry( QDop, p%NDOF,  NAzimStep, 'QDop',  ErrStat, ErrMsg )
+!   IF ( ErrStat >= AbortErrLev ) RETURN
+!
+!   CALL AllocAry( QD2op, p%NDOF, NAzimStep, 'QD2op', ErrStat, ErrMsg )
+!   IF ( ErrStat >= AbortErrLev ) RETURN
+!
+!ENDIF
+
+!=======================================================================
+MODULE Linear
+
+
+   ! This MODULE stores variables for a FAST linearization analysis.
+
+
+USE                             Precision
+
+
+REAL(ReKi)                   :: AbsQDNorm = 0.0                                 ! 2-norm of the absolute difference between the velocites     of two consecutive periods.
+REAL(ReKi)                   :: AbsQNorm  = 0.0                                 ! 2-norm of the absolute difference between the displacements of two consecutive periods.
+REAL(ReKi)                   :: DelGenTrq = 0.0                                 ! Pertubation in generator torque using during FAST linearization (zero otherwise).
+REAL(ReKi)                   :: DispTol                                         ! Convergence tolerance for the 2-norm of the absolute difference between the displacements of two consecutive periods (rad).
+REAL(ReKi)                   :: Period                                          ! Steady state period of solution.
+REAL(ReKi), ALLOCATABLE      :: QD2op    (:,:)                                  ! Periodic steady state operating accelerations.
+REAL(ReKi), ALLOCATABLE      :: QDop     (:,:)                                  ! Periodic steady state operating velocities.
+REAL(ReKi), ALLOCATABLE      :: Qop      (:,:)                                  ! Periodic steady state operating displacements.
+REAL(ReKi)                   :: VelTol                                          ! Convergence tolerance for the 2-norm of the absolute difference between the velocities    of two consecutive periods (rad/s).
+
+INTEGER(4)                   :: CntrlInpt(7)                                    ! List   of control inputs [1 to NInputs] {1: nacelle yaw angle, 2: nacelle yaw rate, 3: generator torque, 4: collective blade pitch, 5: individual pitch of blade 1, 6: individual pitch of blade 2, 7: individual pitch of blade 3 [unavailable for 2-bladed turbines]} (-) [unused if NInputs=0]
+INTEGER(4)                   :: Disturbnc(7)                                    ! List   of input wind disturbances [1 to NDisturbs] {1: horizontal hub-height wind speed, 2: horizontal wind direction, 3: vertical wind speed, 4: horizontal wind shear, 5: vertical power law wind shear, 6: linear vertical wind shear, 7: horizontal hub-height wind gust} (-) [unused if NDisturbs=0]
+INTEGER(4)                   :: Iteration = 0                                   ! Current iteration (number of periods to convergence)
+INTEGER(4)                   :: MdlOrder                                        ! Order of output linearized model (1: 1st order A, B, Bd; 2: 2nd order M, C, K, F, Fd) (switch)
+INTEGER(4)                   :: NAzimStep                                       ! Number of azimuth steps in periodic linearized model (-).
+INTEGER(4)                   :: NDisturbs                                       ! Number of wind disturbances [0 to 7] (-)
+INTEGER(4)                   :: NInputs                                         ! Number of control inputs [0 (none) or 1 to 4+NumBl] (-)
+INTEGER(4)                   :: NStep                                           ! Number of time steps in one Period.
+INTEGER(4)                   :: TrimCase                                        ! Trim case {1: find nacelle yaw, 2: find generator torque, 3: find collective blade pitch} (switch) [used only when CalcStdy=True and GenDOF=True]
+
+LOGICAL                      :: CalcStdy                                        ! Calculate periodic steady state condition (False: linearize about zero) (switch).
+LOGICAL                      :: IgnoreMOD = .FALSE.                             ! Ignore the use of function MOD in SUBROUTINE CalcOuts()?
+
+
+END MODULE Linear
+!=======================================================================
