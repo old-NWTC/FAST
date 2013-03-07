@@ -876,8 +876,8 @@ y%AllOuts(   LSSTipVxa) =    ( x%QDT (DOF_GeAz) +  x%QDT (DOF_DrTr) )*RPS2RPM
 y%AllOuts(   LSSTipAxa) =    (   OtherState%QD2T(DOF_GeAz) +    OtherState%QD2T(DOF_DrTr) )*R2D
 y%AllOuts(   LSSGagVxa) =      x%QDT (DOF_GeAz)                      *RPS2RPM
 y%AllOuts(   LSSGagAxa) =        OtherState%QD2T(DOF_GeAz)                      *R2D
-y%AllOuts(     HSShftV) = p%GBRatio*y%AllOuts(LSSGagVxa)
-y%AllOuts(     HSShftA) = p%GBRatio*y%AllOuts(LSSGagAxa)
+y%AllOuts(     HSShftV) = ABS(p%GBRatio)*y%AllOuts(LSSGagVxa)
+y%AllOuts(     HSShftA) = ABS(p%GBRatio)*y%AllOuts(LSSGagAxa)
 IF ( y%AllOuts(  WindVxi) /= 0.0 )  THEN  ! .TRUE. if the denominator in the following equation is not zero.
 
    y%AllOuts(TipSpdRat) =      ( x%QDT (DOF_GeAz) + x%QDT (DOF_DrTr) )*p%AvgNrmTpRd / y%AllOuts(  WindVxi)
@@ -1154,8 +1154,8 @@ y%AllOuts(LSSGagMzs) = y%AllOuts(LSSTipMzs) - p%ShftGagL*y%AllOuts(LSShftFys)
 
    ! Generator and High-Speed Shaft Loads:
 
-y%AllOuts( HSShftTq) = y%AllOuts(LSShftMxa)*OtherState%RtHS%GBoxEffFac/p%GBRatio
-y%AllOuts(HSShftPwr) = y%AllOuts( HSShftTq)*p%GBRatio*x%QDT(DOF_GeAz)
+y%AllOuts( HSShftTq) = y%AllOuts(LSShftMxa)*OtherState%RtHS%GBoxEffFac/ABS(p%GBRatio)
+y%AllOuts(HSShftPwr) = y%AllOuts( HSShftTq)*ABS(p%GBRatio)*x%QDT(DOF_GeAz)
 y%AllOuts(  HSSBrTq) = 0.001*HSSBrTrq
 y%AllOuts(    GenTq) = 0.001*GenTrq
 y%AllOuts(   GenPwr) = 0.001*ElecPwr
@@ -1506,13 +1506,13 @@ DO K = 1,p%NumBl          ! Loop through the blades
 ENDDO    ! K - Blades
 
 
-   ! Calculate the generator direction using GBRevers:
-
-IF ( InputFileData%GBRevers )  THEN   ! HSS and LSS rotate in opposite directions
-   p%GenDir = -1
-ELSE                    ! HSS and LSS rotate in the same direction
-   p%GenDir =  1
-ENDIF
+!   ! Calculate the generator direction using GBRevers:
+!
+!IF ( InputFileData%GBRevers )  THEN   ! HSS and LSS rotate in opposite directions
+!   p%GenDir = -1
+!ELSE                    ! HSS and LSS rotate in the same direction
+!   p%GenDir =  1
+!ENDIF
 
 
    ! Calculate the structure that furls with the rotor inertia term:
@@ -2298,8 +2298,8 @@ IF ( ZTime >= TPCOn )  THEN   ! Time now to enable active pitch control.
 
    ! Call the user-defined pitch control routine:
 
-      CALL PitchCntrl ( BlPitch, ElecPwr, p%GBRatio*x%QDT(DOF_GeAz), p%GBRatio, TwrAccel, p%NumBl, ZTime, DT, DirRoot, BlPitchCom )
-
+      CALL PitchCntrl ( BlPitch, ElecPwr, ABS(p%GBRatio)*x%QDT(DOF_GeAz), p%GBRatio, TwrAccel, p%NumBl, ZTime, DT, DirRoot, BlPitchCom )
+!bjj check the ABS around both arguments here!
 
    CASE ( 2 )              ! User-defined from Simulink or Labview.
 
@@ -2409,7 +2409,7 @@ LOGICAL,    SAVE             :: Off4Good = .FALSE.                              
 
    ! Calculate the generator speed.
 
-HSS_Spd = p%GBRatio*LSS_Spd
+HSS_Spd = ABS(p%GBRatio)*LSS_Spd
 
 
    ! See if the generator is on line.
@@ -2500,7 +2500,7 @@ IF ( GenOnLin )  THEN                     ! Generator is on line.
 !        CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
          CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, ZTime, DT, p%GenEff, 0.0_ReKi, DirRoot, GenTrq, ElecPwr )
 
-
+!bjj check the ABS here (above)
       ENDSELECT
 
 
@@ -2637,7 +2637,7 @@ HSSBrTrqC = HSSBrTrq
    !   the gearbox.  The gearbox efficiency effects, however, are included in
    !   FAST.f90/RtHS().
 
-GBoxTrq = ( GenTrq + HSSBrTrq )*p%GBRatio
+GBoxTrq = ( GenTrq + HSSBrTrq )*ABS(p%GBRatio)
 
 
 
@@ -2794,7 +2794,7 @@ ENDDO             ! I - All active (enabled) DOFs
 
    ! Find the HSSBrTrq necessary to bring about this force:
 
-HSSBrTrq = HSSBrTrqC + ( ( OgnlGeAzRo(p%NAug) - RqdFrcGeAz )*OtherState%RtHS%GBoxEffFac/p%GBRatio )
+HSSBrTrq = HSSBrTrqC + ( ( OgnlGeAzRo(p%NAug) - RqdFrcGeAz )*OtherState%RtHS%GBoxEffFac/ABS(p%GBRatio) )
 
 
    ! Make sure this new HSSBrTrq isn't larger in absolute magnitude than
@@ -3323,6 +3323,7 @@ REAL(ReKi)                   :: InitQE1                                         
 REAL(ReKi)                   :: InitQF1                                         ! Initial value of the 1st blade flap DOF
 REAL(ReKi)                   :: InitQF2                                         ! Initial value of the 2nd blade flap DOF
 
+REAL(ReKi)                   :: QAzimInit                                       ! Initial value of the internal generator azimuth DOF (Q(DOF_GeAz)).
 
 TYPE(HD_InitDataType)        :: HydroDyn_InitData                               ! Data required to initialize HydroDyn
 INTEGER                      :: ErrStat                                         ! Error status code
@@ -4267,7 +4268,7 @@ IF ( p%NumBl == 2 )  THEN ! 2-blader
 ENDIF
 
 PAngVelEG(       :,0,:) = OtherState%RtHS%PAngVelER(:,0,:)
-PAngVelEG(DOF_GeAz,0,:) = p%GenDir*p%GBRatio*OtherState%CoordSys%c1
+PAngVelEG(DOF_GeAz,0,:) = p%GBRatio*OtherState%CoordSys%c1
  AngVelEG               =  OtherState%RtHS%AngVelER + x%QDT(DOF_GeAz)*PAngVelEG(DOF_GeAz,0,:)
 
 PAngVelEA(       :,0,:) = PAngVelEN(:,0,:)

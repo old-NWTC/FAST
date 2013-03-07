@@ -1400,6 +1400,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       
       GetAdamsVals = InitInp%AdamsUnit > 0            ! get Adams values only if the unit number is positive
 
+      p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(ED_Ver%Name) ! all of the output file names from this module will end with '_ElastoDyn'
+
 
          ! Initialize the NWTC Subroutine Library
 
@@ -1412,7 +1414,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
          ! Read the input file and validate the data
 
-      CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, ErrStat, ErrMsg )
+      CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, p%RootName, ErrStat, ErrMsg )
       CALL ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
 
          ! Define parameters here:
@@ -1420,7 +1422,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL InitDOFs( p, ErrStat, ErrMsg )
 
 
-      p%DT  = Interval
+      p%ED_DT  = Interval
 
 
          ! Define initial system states here:
@@ -1782,7 +1784,7 @@ END SUBROUTINE ED_CalcConstrStateResidual
 ! WE ARE NOT YET IMPLEMENTING THE JACOBIANS...
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, ErrStat, ErrMsg )
+SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, OutFileRoot, ErrStat, ErrMsg )
 ! This subroutine reads the input file and stores all the data in the ED_InputFile structure.
 ! It does not perform data validation.
 !..................................................................................................................................
@@ -1791,6 +1793,7 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, Er
 
    CHARACTER(*), INTENT(IN)               :: InputFileName  ! Name of the input file
    CHARACTER(*), INTENT(IN)               :: MeshFile       ! File that contains the blade mesh information (AeroDyn input file for now) -- later this info will be defined in one of the ED input files.
+   CHARACTER(*), INTENT(IN)               :: OutFileRoot    ! The rootname of all the output files written by this routine.
 
    !BJJ MODIFIED HERE ONLY FOR TESTING:
 !   TYPE(ED_InputFile),   INTENT(OUT)      :: InputFileData  ! Data stored in the module's input file
@@ -1815,11 +1818,12 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, Er
    
    ErrStat = ErrID_None
    ErrMsg  = ''
-   UnEcho  = -1
 
-      ! get the primary/platform input-file data
    
-   CALL ReadPrimaryFile( InputFileName, InputFileData, BldFile, FurlFile, TwrFile, UnEcho, ErrStat2, ErrMsg2 )
+      ! get the primary/platform input-file data
+      ! sets UnEcho, BldFile, FurlFile, TwrFile
+   
+   CALL ReadPrimaryFile( InputFileName, InputFileData, BldFile, FurlFile, TwrFile, OutFileRoot, UnEcho, ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF ( ErrStat >= AbortErrLev ) RETURN
       
@@ -1934,6 +1938,7 @@ CONTAINS
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................
          IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnEcho )
          END IF
 
       END IF
@@ -2011,9 +2016,9 @@ SUBROUTINE ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
    
       ! Check to see if all BldGagNd(:) analysis points are existing analysis points:
 
-   IF ( ANY(InputFileData%BldGagNd < 1_IntKi) .OR. ANY(InputFileData%BldGagNd > InputFileData%BldNodes) ) THEN      
+   IF ( ANY(InputFileData%BldGagNd < 1_IntKi) .OR. ANY(InputFileData%BldGagNd > InputFileData%InpBlMesh(1)%BldNodes) ) THEN      
          CALL CheckError( ErrID_Fatal, ' All BldGagNd values must be between 1 and '//&
-                        TRIM( Num2LStr( InputFileData%BldNodes ) )//' (inclusive).' )   
+                        TRIM( Num2LStr( InputFileData%InpBlMesh(1)%BldNodes ) )//' (inclusive).' )   
    END IF   
    
 
@@ -2116,7 +2121,7 @@ SUBROUTINE ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )
 
    p%TwrNodes  = InputFileData%TwrNodes
    p%TwrGagNd  = InputFileData%TwrGagNd
-   p%BldNodes  = InputFileData%BldNodes   
+   !p%BldNodes  = InputFileData%BldNodes   
    p%BldGagNd  = InputFileData%BldGagNd
    p%RotSpeed  = InputFileData%RotSpeed               ! Rotor speed in rad/sec.
    p%CShftTilt = COS( InputFileData%ShftTilt )
@@ -2476,443 +2481,6 @@ END IF
 
 RETURN
 END SUBROUTINE CoordSys_Alloc
-!----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEc, ErrStat, ErrMsg )
-! This routine reads the data from the blade and mesh inputs files.
-! This routines assumes that InputFileData%NumBl has already been set.
-!..................................................................................................................................
-   
-
-   IMPLICIT                        NONE
-
-
-      ! Passed variables:
-
-!   TYPE(ED_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
-   TYPE(ED_InputFile),     INTENT(INOUT)  :: InputFileData                       ! Input file data Data for Blade K stored in the module's input file
-   CHARACTER(*),           INTENT(IN)     :: BldFile(:)                          ! The array of file names containing blade information
-   CHARACTER(*),           INTENT(IN)     :: MeshFile                            ! The file names containing blade mesh information (for now, the aerodyn primary file)
-   INTEGER(IntKi),         INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
-
-   INTEGER(IntKi),         INTENT(OUT)    :: ErrStat                             ! The error ID
-   CHARACTER(*),           INTENT(OUT)    :: ErrMsg                              ! Message describing error
-   LOGICAL,                INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
-
-
-      ! Local variables:
-   INTEGER(IntKi)                         :: K                                   ! Blade number
-   INTEGER(IntKi)                         :: ErrStat2                            ! Temporary error ID
-   LOGICAL                                :: ReadFile                            ! determines if an input file for a blade is the same as the file for the previous blade
-   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2                             ! Temporary message describing error
-
-
-      ! Initialize variables
-   ErrStat = ErrID_None
-   ErrMsg  = ''
-      
-   
-      ! Allocate space for the input file data
-   ALLOCATE( InputFileData%InpBlMesh( 1_IntKi ), STAT=ErrStat2 )              ! for now, we're assuming the discretization is the same on all blades
-   IF ( ErrStat2 /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating InpBl array'
-      RETURN
-   END IF  
-   
-   ALLOCATE( InputFileData%InpBl( InputFileData%NumBl ), STAT=ErrStat2 )
-   IF ( ErrStat2 /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating InpBl array'
-      RETURN
-   END IF
-   
-   
-   
-      ! Get the blade discretization here:   
-   CALL ReadBladeMeshFile( InputFileData%InpBlMesh(1), MeshFile, UnEc, ErrStat2, ErrMsg2 )
-      CALL CheckError(ErrStat2,ErrMsg2)
-      IF ( ErrStat >= AbortErrLev ) RETURN
-         
-   
-      ! Read the input file(s) for all of the blades:
-   ReadFile = .TRUE.
-   DO K = 1,InputFileData%NumBl   
-   
-      IF ( ReadFile ) THEN
-      
-            ! Add a separator to the echo file if appropriate.
-
-         IF ( UnEc > 0 )  THEN
-            WRITE (UnEc,'(//,A,/)')  'Blade '//TRIM( Num2LStr( K ) )//' input data from file "'//TRIM( BldFile(K) )//'":'
-         END IF 
-         
-         CALL ReadBladeFile( BldFile(K), InputFileData%InpBl(K), ReadAdmVals, UnEc, ErrStat2, ErrMsg2 )
-            CALL CheckError(ErrStat2,' Errors reading blade '//TRIM(Num2LStr(K))//' input file ('//TRIM(BldFile(K))//'): '&
-                                    //NewLine//TRIM(ErrMsg2))
-            IF ( ErrStat >= AbortErrLev ) RETURN
-      
-      ELSE 
-              
-         CALL ED_CopyBladeInputData( InputFileData%InpBl(K-1), InputFileData%InpBl(K), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )  
-            CALL CheckError(ErrStat2,' Errors copying blade '//TRIM(Num2LStr(K-1))//' input file data: '//NewLine//TRIM(ErrMsg2))
-            IF ( ErrStat >= AbortErrLev ) RETURN
-               ! bjj: we could just read the file again...            
-
-      END IF      
-
-         ! If the next file is the same as this one, don't read it again:
-         
-      IF ( K /= InputFileData%NumBl ) ReadFile = BldFile(K) /= BldFile( K + 1 )
-    
-   END DO
-         
-
-   RETURN
-   
-CONTAINS
-   !...............................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level
-   !...............................................................................................................................
-
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-
-      !............................................................................................................................
-      ! Set error status/message;
-      !............................................................................................................................
-
-      IF ( ErrID /= ErrID_None ) THEN
-
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
-         ErrStat = MAX(ErrStat, ErrID)
-
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close file, deallocate local arrays
-         !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) THEN
-            
-         END IF
-
-      END IF
-
-
-   END SUBROUTINE CheckError   
-   
-END SUBROUTINE ReadBladeInputs
-!----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrStat, ErrMsg )
-! This routine reads a blade input file.
-!..................................................................................................................................
-
-   IMPLICIT                        NONE
-
-
-      ! Passed variables:
-
-   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
-   CHARACTER(*),             INTENT(IN)     :: BldFile                             ! Name of the blade input file data
-   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
-   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
-
-   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
-   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
-
-
-      ! Local variables:
-
-   REAL(ReKi)                   :: AdjBlMs                                         ! Factor to adjust blade mass density.
-   REAL(ReKi)                   :: AdjEdSt                                         ! Factor to adjust edge stiffness.
-   REAL(ReKi)                   :: AdjFlSt                                         ! Factor to adjust flap stiffness.
-
-   REAL(ReKi)                   :: TmpRAry(17)                                     ! Temporary variable to read table from file (up to 17 columns)
-
-   INTEGER(IntKi)               :: I                                               ! A generic DO index.
-   INTEGER( IntKi )             :: UnIn                                            ! Unit number for reading file
-   INTEGER( IntKi )             :: NInputCols                                      ! Number of columns to be read from the file
-   INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
-
-
-
-   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Open the input file for blade K.
-
-   CALL OpenFInpFile ( UnIn, BldFile, ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-   !  -------------- HEADER -------------------------------------------------------
-
-      ! Ship the header.
-
-   CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 1', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 2', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 3', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   !  -------------- BLADE PARAMETERS ---------------------------------------------
-
-
-      ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, BldFile, 'blade parameters', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! NBlInpSt - Number of blade input stations.
-
-   CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%NBlInpSt, 'NBlInpSt', 'Number of blade input stations', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! .......... Allocate the arrays based on this NBlInpSt input ..........
-   CALL Alloc_BladeInputProperties( BladeKInputFileData, ReadAdmVals, ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! CalcBMode - Calculate blade mode shapes (switch).
-
-   !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-   !JASON:CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%CalcBMode, 'CalcBMode', 'Calculate blade mode shapes', ErrStat2, ErrMsg2, UnEc )
-   CALL ReadCom ( UnIn, BldFile, 'currently ignored CalcBMode', ErrStat2, ErrMsg2, UnEc  )
-      BladeKInputFileData%CalcBMode = .FALSE.
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! BldFlDmp - Blade structural damping ratios in flapwise direction.
-
-   CALL ReadAryLines( UnIn, BldFile, BladeKInputFileData%BldFlDmp, SIZE(BladeKInputFileData%BldFlDmp), 'BldFlDmp', &
-                                       'Blade structural damping ratios in flapwise direction', ErrStat2, UnEc  )
-      ErrMsg2 = ' Error reading BldFlDmp array from '//TRIM(BldFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! BldEdDmp - Blade structural damping ratios in edgewise direction.
-
-   CALL ReadAryLines( UnIn, BldFile, BladeKInputFileData%BldEdDmp, SIZE(BladeKInputFileData%BldEdDmp), 'BldEdDmp', &
-                                       'Blade structural damping ratios in edgewise direction', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading BldEdDmp array from '//TRIM(BldFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   !  -------------- BLADE ADJUSTMENT FACTORS -------------------------------------
-
-
-      ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, BldFile, 'blade adjustment factors', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! FlStTunr(1) - Blade flapwise modal stiffness tuners.
-
-   CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%FlStTunr, SIZE(BladeKInputFileData%FlStTunr), 'FlStTunr', &
-                                                  'Blade flapwise modal stiffness tuners', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading FlStTunr array from '//TRIM(BldFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! AdjBlMs - Factor to adjust blade mass density.
-
-   CALL ReadVar ( UnIn, BldFile, AdjBlMs, 'AdjBlMs', 'Factor to adjust blade mass density', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! AdjFlSt - Factor to adjust blade flap stiffness.
-
-   CALL ReadVar ( UnIn, BldFile, AdjFlSt, 'AdjFlSt', 'Factor to adjust blade flap stiffness', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! AdjEdSt - Factor to adjust blade edge stiffness.
-
-   CALL ReadVar ( UnIn, BldFile, AdjEdSt, 'AdjEdSt', 'Factor to adjust blade edge stiffness', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-         ! Check the locally-defined adjustment factors: AdjBlMs, AdjFlSt, AdjEdSt
-
-      IF ( AdjBlMs <= 0.0_ReKi ) THEN
-         CALL CheckError( ErrID_Warn, ' AdjBlMs must be greater than zero.' )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      END IF
-
-      IF ( AdjFlSt <= 0.0_ReKi ) THEN
-         CALL CheckError( ErrID_Warn, ' AdjFlSt must be greater than zero.' )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      END IF
-
-      IF ( AdjEdSt <= 0.0_ReKi ) THEN
-         CALL CheckError( ErrID_Warn, ' AdjEdSt must be greater than zero.' )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      END IF
-
-
-   !  -------------- DISTRIBUTED BLADE PROPERTIES ---------------------------------
-
-
-      ! Skip the comment lines.
-
-   CALL ReadCom ( UnIn, BldFile, 'distributed blade parameters'     , ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, BldFile, 'distributed-blade-parameter names', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, BldFile, 'distributed-blade-parameter units', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! Read the table.
-
-   IF ( ReadAdmVals ) THEN
-      NInputCols = 17
-   ELSE
-      NInputCols = 6
-   END IF
-
-
-   DO I=1,BladeKInputFileData%NBlInpSt
-
-      CALL ReadAry( UnIn, BldFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Blade input station table', &
-                    ErrStat2, ErrMsg2, UnEc )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-
-      BladeKInputFileData%BlFract( I) = TmpRAry(1)
-      BladeKInputFileData%AerCen(  I) = TmpRAry(2)
-      BladeKInputFileData%StrcTwst(I) = TmpRAry(3)*D2R      ! Input in degrees; converted to radians here
-      BladeKInputFileData%BMassDen(I) = TmpRAry(4)*AdjBlMs  ! Apply the correction factors to the elemental data.
-      BladeKInputFileData%FlpStff( I) = TmpRAry(5)*AdjFlSt  ! Apply the correction factors to the elemental data.
-      BladeKInputFileData%EdgStff( I) = TmpRAry(6)*AdjEdSt  ! Apply the correction factors to the elemental data.
-
-      IF ( NInputCols > 6 ) THEN
-         BladeKInputFileData%GJStff(   I) = TmpRAry( 7)
-         BladeKInputFileData%EAStff(   I) = TmpRAry( 8)
-         BladeKInputFileData%Alpha(    I) = TmpRAry( 9)
-         BladeKInputFileData%FlpIner(  I) = TmpRAry(10)
-         BladeKInputFileData%EdgIner(  I) = TmpRAry(11)
-         BladeKInputFileData%PrecrvRef(I) = TmpRAry(12)
-         BladeKInputFileData%PreswpRef(I) = TmpRAry(13)
-         BladeKInputFileData%FlpcgOf(  I) = TmpRAry(14)
-         BladeKInputFileData%EdgcgOf(  I) = TmpRAry(15)
-         BladeKInputFileData%FlpEAOf(  I) = TmpRAry(16)
-         BladeKInputFileData%EdgEAOf(  I) = TmpRAry(17)
-      END IF
-   ENDDO ! I
-
-
-
-   !  -------------- BLADE MODE SHAPES --------------------------------------------
-
-
-      ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, BldFile, 'blade mode shapes', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! BldFl1Sh - Blade-flap mode-1 shape coefficients.
-   CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldFl1Sh, SIZE(BladeKInputFileData%BldFl1Sh), 'BldFl1Sh', &
-                           'Blade-flap mode-1 shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading BldFl1Sh array from '//TRIM(BldFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! BldFl2Sh - Blade-flap mode-2 shape coefficients.
-
-   CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldFl2Sh, SIZE(BladeKInputFileData%BldFl2Sh), 'BldFl2Sh', &
-                    'Blade-flap mode-2 shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading BldFl2Sh array from '//TRIM(BldFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! BldEdgSh - Blade-edge mode shape coefficients.
-
-   CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldEdgSh, SIZE(BladeKInputFileData%BldEdgSh), 'BldEdgSh', &
-                     'Blade-edge mode shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading BldEdgSh array from '//TRIM(BldFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-   !  -------------- END OF FILE --------------------------------------------
-
-      ! Close the blade file.
-
-   CLOSE ( UnIn )
-   RETURN
-
-
-CONTAINS
-   !...............................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level
-   !...............................................................................................................................
-
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-
-      !............................................................................................................................
-      ! Set error status/message;
-      !............................................................................................................................
-
-      IF ( ErrID /= ErrID_None ) THEN
-
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
-         ErrStat = MAX(ErrStat, ErrID)
-
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close file, deallocate local arrays
-         !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) THEN
-            CLOSE( UnIn )
-         END IF
-
-      END IF
-
-
-   END SUBROUTINE CheckError
-
-END SUBROUTINE ReadBladeFile
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Alloc_BladeMeshInputProperties( BladeKInputFileMesh, ErrStat, ErrMsg )
 ! This routine allocates arrays for the blade mesh properties from the input file
@@ -3501,323 +3069,7 @@ SUBROUTINE Alloc_BladeParameters( p, AllocAdams, ErrStat, ErrMsg )
    END IF
 
 
-
 END SUBROUTINE Alloc_BladeParameters
-!----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, ErrMsg )
-! This routine reads the tower file  input.
-!..................................................................................................................................
-
-   IMPLICIT                        NONE
-
-      ! Passed variables:
-
-   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
-   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
-   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
-   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
-   CHARACTER(*),             INTENT(IN)     :: TwrFile                             ! Name of the tower input file data
-   TYPE(ED_InputFile),       INTENT(INOUT)  :: InputFileData                       ! All the data in the ElastoDyn input file
-
-
-      ! Local variables:
-
-   REAL(ReKi)                   :: AdjFASt                                         ! Factor to adjust tower fore-aft stiffness
-   REAL(ReKi)                   :: AdjSSSt                                         ! Factor to adjust tower side-to-side stiffness
-   REAL(ReKi)                   :: AdjTwMa                                         ! Factor to adjust tower mass density
-
-   REAL(ReKi)                   :: TmpRAry(10)                                     ! Temporary variable to read table from file (up to 10 columns)
-
-   INTEGER(IntKi)               :: I                                               ! A generic DO index.
-   INTEGER(IntKi)               :: UnIn                                            ! Unit number for reading file
-   INTEGER(IntKi)               :: NInputCols                                      ! Number of columns to be read from the file
-   INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
-
-
-
-   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Open the tower input file.
-
-   CALL OpenFInpFile ( UnIn, TwrFile, ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Add a separator to the echo file if appropriate.
-   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Tower input data from file "'//TRIM( TwrFile )//'":'
-
-
-   !  -------------- FILE HEADER ---------------------------------------------------
-
-   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 1', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 2', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 3', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   !  -------------- TOWER PARAMETERS ---------------------------------------------
-
-   CALL ReadCom ( UnIn, TwrFile, 'heading for tower parameters', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! NTwInpSt - Number of tower input stations.
-
-   CALL ReadVar ( UnIn, TwrFile, InputFileData%NTwInpSt, 'NTwInpSt', 'Number of tower input stations', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Allocate the input arrays based on this NTwInpSt input
-   CALL Alloc_TowerInputProperties( InputFileData, ReadAdmVals, ErrStat, ErrMsg )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! CalcTMode - Calculate tower mode shapes (switch).
-
-   !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-   !JASON:CALL ReadVar ( UnIn, TwrFile, InputFileData%CalcTMode, 'CalcTMode', 'Calculate tower mode shapes', ErrStat2, ErrMsg2 )
-   CALL ReadCom ( UnIn, TwrFile, 'currently ignored CalcTMode', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TwrFADmp - Tower fore-aft structural damping ratios.
-
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrFADmp, SIZE(InputFileData%TwrFADmp), 'TwrFADmp', &
-                                     'Tower fore-aft structural damping ratios', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwrFADmp array from '//TRIM(TwrFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TwrSSDmp - Tower side-to-side structural damping ratios.
-
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrSSDmp, SIZE(InputFileData%TwrSSDmp), 'TwrSSDmp', &
-                                     'Tower side-to-side structural damping ratios', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwrSSDmp array from '//TRIM(TwrFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-   !  -------------- TOWER ADJUSTMENT FACTORS -------------------------------------
-
-
-      ! Skip the comment line.
-   CALL ReadCom ( UnIn, TwrFile, 'heading for tower adjustment factors', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! FAStTunr - Tower fore-aft modal stiffness tuners.
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%FAStTunr, SIZE(InputFileData%FAStTunr), 'FAStTunr', &
-                                     'Tower fore-aft modal stiffness tuners', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading FAStTunr array from '//TRIM(TwrFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! SSStTunr - Tower side-to-side modal stiffness tuners.
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%SSStTunr, SIZE(InputFileData%SSStTunr), 'SSStTunr', &
-                                     'Tower side-to-side modal stiffness tuners', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading SSStTunr array from '//TRIM(TwrFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! AdjTwMa - Factor to adjust tower mass density.
-
-   CALL ReadVar ( UnIn, TwrFile, AdjTwMa, 'AdjTwMa', 'Factor to adjust tower mass density', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! AdjFASt - Factor to adjust tower fore-aft stiffness.
-
-   CALL ReadVar ( UnIn, TwrFile, AdjFASt, 'AdjFASt', 'Factor to adjust tower fore-aft stiffness', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! AdjSSSt - Factor to adjust tower side-to-side stiffness.
-
-   CALL ReadVar ( UnIn, TwrFile, AdjSSSt, 'AdjSSSt', 'Factor to adjust tower side-to-side stiffness', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-         ! Check the locally-defined adjustment factors: AdjTwMa, AdjFASt, AdjSSSt
-
-   IF ( AdjTwMa <= 0.0_ReKi ) THEN
-      CALL CheckError( ErrID_Warn, ' AdjTwMa must be greater than zero.' )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-   END IF
-
-   IF ( AdjFASt <= 0.0_ReKi ) THEN
-      CALL CheckError( ErrID_Warn, ' AdjFASt must be greater than zero.' )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-   END IF
-
-   IF ( AdjSSSt <= 0.0_ReKi ) THEN
-      CALL CheckError( ErrID_Warn, ' AdjSSSt must be greater than zero.' )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-   END IF
-
-
-   !  -------------- DISTRIBUTED TOWER PROPERTIES ---------------------------------
-
-      ! Skip the comment lines.
-   CALL ReadCom ( UnIn, TwrFile, 'heading for distributed tower parameters', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter names', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter units', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! Read the table.
-
-   IF ( ReadAdmVals ) THEN
-      NInputCols = 10
-   ELSE
-      NInputCols = 4
-   END IF
-
-
-   DO I=1,InputFileData%NTwInpSt
-
-      CALL ReadAry( UnIn, TwrFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Tower input station table', &
-                    ErrStat2, ErrMsg2, UnEc )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%HtFract( I) = TmpRAry(1)
-      InputFileData%TMassDen(I) = TmpRAry(2)*AdjTwMa   ! Apply the correction factors to the elemental data.
-      InputFileData%TwFAStif(I) = TmpRAry(3)*AdjFASt   ! Apply the correction factors to the elemental data.
-      InputFileData%TwSSStif(I) = TmpRAry(4)*AdjSSSt   ! Apply the correction factors to the elemental data.
-
-      IF ( NInputCols > 4 ) THEN
-         InputFileData%TwGJStif(I) = TmpRAry( 5)
-         InputFileData%TwEAStif(I) = TmpRAry( 6)
-         InputFileData%TwFAIner(I) = TmpRAry( 7)
-         InputFileData%TwSSIner(I) = TmpRAry( 8)
-         InputFileData%TwFAcgOf(I) = TmpRAry( 9)
-         InputFileData%TwSScgOf(I) = TmpRAry(10)
-      END IF
-
-   END DO ! I
-
-
-   !  -------------- TOWER FORE-AFT MODE SHAPES -----------------------------------
-
-
-      ! Skip the comment line.
-   CALL ReadCom ( UnIn, TwrFile, 'heading for tower fore-aft mode shapes', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TwFAM1Sh - Tower fore-aft mode-1 shape coefficients.
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwFAM1Sh, SIZE(InputFileData%TwFAM1Sh), 'TwFAM1Sh', &
-                           'Tower fore-aft mode-1 shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwFAM1Sh array from '//TRIM(TwrFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TwFAM2Sh - Tower fore-aft mode-2 shape coefficients.
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwFAM2Sh, SIZE(InputFileData%TwFAM2Sh), 'TwFAM2Sh', &
-                           'Tower fore-aft mode-2 shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwFAM2Sh array from '//TRIM(TwrFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-   !  -------------- TOWER SIDE-TO-SIDE MODE SHAPES -------------------------------
-
-
-      ! Skip the comment line.
-   CALL ReadCom ( UnIn, TwrFile, 'heading for tower side-to-side mode shapes', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! TwSSM1Sh - Tower side-to-side mode-1 shape coefficients.
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwSSM1Sh, SIZE(InputFileData%TwSSM1Sh), 'TwSSM1Sh', &
-                           'Tower side-to-side mode-1 shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwSSM1Sh array from '//TRIM(TwrFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-
-      ! TwSSM2Sh - Tower side-to-side mode-2 shape coefficients.
-   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwSSM2Sh, SIZE(InputFileData%TwSSM2Sh), 'TwSSM2Sh', &
-                           'Tower side-to-side mode-2 shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwSSM2Sh array from '//TRIM(TwrFile)//'.'
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Close the tower file.
-   CLOSE ( UnIn )
-
-
-   RETURN
-CONTAINS
-   !...............................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level
-   !...............................................................................................................................
-
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-
-      !............................................................................................................................
-      ! Set error status/message;
-      !............................................................................................................................
-
-      IF ( ErrID /= ErrID_None ) THEN
-
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
-         ErrStat = MAX(ErrStat, ErrID)
-
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close file, deallocate local arrays
-         !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) THEN
-            CLOSE( UnIn )
-         END IF
-
-      END IF
-
-
-   END SUBROUTINE CheckError
-   !...............................................................................................................................
-END SUBROUTINE ReadTowerFile
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
 ! This routine checks the tower file input data for errors
@@ -4418,673 +3670,6 @@ CONTAINS
    !-------------------------------------------------------------------------------------------------------------------------------
 END SUBROUTINE ValidateFurlData
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadFurlFile( FurlFile, InputFileData, UnEc, ErrStat, ErrMsg  )
-! This routine reads the furling file input and converts units as appropriate.
-!..................................................................................................................................
-
-   IMPLICIT                        NONE
-
-      ! Passed variables:
-
-   TYPE(ED_InputFile),       INTENT(INOUT)  :: InputFileData                       ! All the data in the ElastoDyn input file
-   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
-   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
-   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
-   CHARACTER(*),             INTENT(IN)     :: FurlFile                            ! Name of the furling input file data
-
-      ! Local variables:
-
-   INTEGER(IntKi)               :: UnIn                                            ! Unit number for reading file
-   INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
-   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
-
-
-      ! Get an available unit number for the file.
-
-   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Open the furling input file.
-
-   CALL OpenFInpFile ( UnIn, FurlFile, ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Add a separator to the echo file if appropriate.
-
-   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Furling input data from file "'//TRIM( FurlFile )//'":'
-
-
-   !  -------------- FILE HEADER ---------------------------------------------------
-
-   CALL ReadCom ( UnIn, FurlFile, 'unused tower furling header line 1', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, FurlFile, 'unused tower furling header line 2', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL ReadCom ( UnIn, FurlFile, 'unused tower furling header line 3', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-   !  -------------- Furling FEATURE SWITCHES  --------------------------------------
-
-
-      ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, FurlFile, 'degree of freedom switches (cont)', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! RFrlDOF - Rotor-furl DOF.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDOF, 'RFrlDOF', 'Rotor-furl DOF', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlDOF - Tail-furl DOF.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDOF, 'TFrlDOF', 'Tail-furl DOF', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-   !  -------------- Furling INITIAL CONDITIONS ------------------------------------
-
-
-      ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, FurlFile, 'initial conditions (cont)', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RotFurl - Initial or fixed rotor-furl angle (read in degrees, converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RotFurl, 'RotFurl', 'Initial or fixed rotor-furl angle', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-      
-      InputFileData%RotFurl   = InputFileData%RotFurl*D2R
-
-
-      ! TailFurl - Initial or fixed tail-furl angle (read in degrees, converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TailFurl, 'TailFurl', 'Initial or fixed tail-furl angle',  &
-                  ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-      
-      InputFileData%TailFurl  = InputFileData%TailFurl*D2R
-      
-
-   !  -------------- TURBINE CONFIGURATION (CONT) ---------------------------------
-
-
-      ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, FurlFile, 'turbine configuration (cont)', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Yaw2Shft - Lateral distance from yaw axis to rotor shaft.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%Yaw2Shft, 'Yaw2Shft',  &
-                  'Lateral distance from yaw axis to rotor shaft', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! ShftSkew - Rotor shaft skew angle (read in degrees and converted to radians here).
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%ShftSkew, 'ShftSkew', 'Rotor shaft skew angle', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%ShftSkew  = InputFileData%ShftSkew *D2R
-      
-
-      ! RFrlCMxn - Downwind distance from tower-top to CM of structure that furls with the rotor (not including rotor).
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMxn, 'RFrlCMxn',  &
-                  'Downwind distance from tower-top to rotor-furl CM', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlCMyn - Lateral  distance from tower-top to CM of structure that furls with the rotor (not including rotor).
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMyn, 'RFrlCMyn',  &
-                  'Lateral  distance from tower-top to rotor-furl CM', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlCMzn - Vertical distance from tower-top to CM of structure that furls with the rotor (not including rotor).
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMzn, 'RFrlCMzn',  &
-                  'Vertical distance from tower-top to rotor-furl CM', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! BoomCMxn - Downwind distance from tower-top to tail boom CM.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMxn, 'BoomCMxn',  &
-                  'Downwind distance from tower-top to tail boom CM', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! BoomCMyn - Lateral  distance from tower-top to tail boom CM.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMyn, 'BoomCMyn',  &
-                  'Lateral  distance from tower-top to tail boom CM', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! BoomCMzn - Vertical distance from tower-top to tail boom CM.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMzn, 'BoomCMzn', &
-                   'Vertical distance from tower-top to tail boom CM', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFinCMxn - Downwind distance from tower-top to tail fin CM.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMxn, 'TFinCMxn', &
-                   'Downwind distance from tower-top to tail fin CM', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFinCMyn - Lateral  distance from tower-top to tail fin CM.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMyn, 'TFinCMyn', &
-                   'Lateral  distance from tower-top to tail fin CM', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFinCMzn - Vertical distance from tower-top to tail fin CM.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMzn, 'TFinCMzn', &
-                   'Vertical distance from tower-top to tail fin CM', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFinCPxn - Downwind distance from tower-top to tail fin CP.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPxn, 'TFinCPxn', &
-                  'Downwind distance from tower-top to tail fin CP', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFinCPyn - Lateral  distance from tower-top to tail fin CP.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPyn, 'TFinCPyn', &
-                  'Lateral  distance from tower-top to tail fin CP', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFinCPzn - Vertical distance from tower-top to tail fin CP.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPzn, 'TFinCPzn', &
-                  'Vertical distance from tower-top to tail fin CP', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFinSkew - Tail fin chordline skew angle (read in degrees, converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinSkew, 'TFinSkew', 'Tail fin chordline skew angle', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%TFinSkew  = InputFileData%TFinSkew*D2R
-
-
-      ! TFinTilt - Tail fin chordline tilt angle (read in degrees, converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinTilt, 'TFinTilt', 'Tail fin chordline tilt angle', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%TFinTilt  = InputFileData%TFinTilt *D2R
-      
-
-      ! TFinBank - Tail fin planform  bank angle (read in degrees, converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinBank, 'TFinBank', 'Tail fin planform  bank angle', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-      
-      InputFileData%TFinBank  = InputFileData%TFinBank *D2R
-
-
-      ! RFrlPntxn - Downwind distance from tower-top to arbitrary point on rotor-furl axis.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntxn, 'RFrlPntxn', &
-                  'Downwind distance from tower-top to arbitrary point on rotor-furl axis', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlPntyn - Lateral  distance from tower-top to arbitrary point on rotor-furl axis.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntyn, 'RFrlPntyn', &
-                  'Lateral  distance from tower-top to arbitrary point on rotor-furl axis', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlPntzn - Vertical distance from tower-top to arbitrary point on rotor-furl axis.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntzn, 'RFrlPntzn', &
-                  'Vertical distance from tower-top to arbitrary point on rotor-furl axis', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlSkew - Rotor-furl axis skew angle (read in degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlSkew, 'RFrlSkew', 'Rotor-furl axis skew angle', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%RFrlSkew  = InputFileData%RFrlSkew*D2R
-
-      
-      ! RFrlTilt - Rotor-furl axis tilt angle (read in degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlTilt, 'RFrlTilt', 'Rotor-furl axis tilt angle', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%RFrlTilt  = InputFileData%RFrlTilt*D2R
-
-      
-      ! TFrlPntxn - Downwind distance from tower-top to arbitrary point on tail-furl axis.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntxn, 'TFrlPntxn', &
-                  'Downwind distance from tower-top to arbitrary point on tail-furl axis', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlPntyn - Lateral  distance from tower-top to arbitrary point on tail-furl axis.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntyn, 'TFrlPntyn', &
-                  'Lateral  distance from tower-top to arbitrary point on tail-furl axis', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlPntzn - Vertical distance from tower-top to arbitrary point on tail-furl axis.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntzn, 'TFrlPntzn', &
-                  'Vertical distance from tower-top to arbitrary point on tail-furl axis', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlSkew - Tail-furl axis skew angle (read in degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlSkew, 'TFrlSkew', 'Tail-furl axis skew angle', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%TFrlSkew  = InputFileData%TFrlSkew *D2R
-
-      
-      ! TFrlTilt - Tail-furl axis tilt angle (read in degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlTilt, 'TFrlTilt', 'Tail-furl axis tilt angle', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-      
-      InputFileData%TFrlTilt  = InputFileData%TFrlTilt *D2R
-
-
-   !  -------------- MASS AND INERTIA (CONT) --------------------------------------
-
-      ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, FurlFile, 'mass and inertia (cont)', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! RFrlMass - Mass of structure that furls with the rotor (not including rotor).
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlMass, 'RFrlMass', 'Rotor-furl mass', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! BoomMass - Tail boom mass.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomMass, 'BoomMass', 'Tail boom mass',ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFinMass - Tail fin mass.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinMass, 'TFinMass', 'Tail fin mass', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlIner - Inertia of structure that furls with the rotor about the rotor-furl axis (not including rotor).
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlIner, 'RFrlIner', 'Rotor-furl inertia about rotor-furl axis', &
-                                            ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlIner - Tail boom inertia about tail-furl axis.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlIner, 'TFrlIner', 'Tail boom inertia about tail-furl axis', &
-                  ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   !  -------------- ROTOR-FURL ---------------------------------------------------
-
-      ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, FurlFile, 'rotor-furl', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlMod - Rotor-furl spring/damper model switch.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlMod, 'RFrlMod', 'Rotor-furl spring/damper model switch', &
-                  ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlSpr - Rotor-furl spring constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlSpr, 'RFrlSpr', 'Rotor-furl spring constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlDmp - Rotor-furl damping constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDmp, 'RFrlDmp', 'Rotor-furl damping constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlCDmp - Rotor-furl rate-independent Coulomb-damping moment.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCDmp, 'RFrlCDmp', 'Rotor-furl rate-independent Coulomb-damping moment', &
-                                                         ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlUSSP - Rotor-furl up-stop spring position (read in degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSSP, 'RFrlUSSP', 'Rotor-furl up-stop spring position', &
-                  ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%RFrlUSSP  = InputFileData%RFrlUSSP*D2R
-      
-
-      ! RFrlDSSP - Rotor-furl down-stop spring position (read in degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSSP, 'RFrlDSSP', 'Rotor-furl down-stop spring position', &
-                  ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%RFrlDSSP  = InputFileData%RFrlDSSP*D2R
-      
-
-      ! RFrlUSSpr - Rotor-furl up-stop spring constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSSpr, 'RFrlUSSpr', 'Rotor-furl up-stop spring constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlDSSpr - Rotor-furl down-stop spring constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSSpr, 'RFrlDSSpr', 'Rotor-furl down-stop spring constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlUSDP - Rotor-furl up-stop damper position (read in degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSDP, 'RFrlUSDP', 'Rotor-furl up-stop damper position', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%RFrlUSDP  = InputFileData%RFrlUSDP*D2R
-      
-
-      ! RFrlDSDP - Rotor-furl down-stop damper position (read in degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSDP, 'RFrlDSDP', 'Rotor-furl down-stop damper position', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%RFrlDSDP  = InputFileData%RFrlDSDP*D2R
-      
-
-      ! RFrlUSDmp - Rotor-furl up-stop damping constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSDmp, 'RFrlUSDmp', 'Rotor-furl up-stop damping constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! RFrlDSDmp - Rotor-furl down-stop damping constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSDmp, 'RFrlDSDmp', 'Rotor-furl down-stop damping constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-   !  -------------- TAIL-FURL ----------------------------------------------------
-
-      ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, FurlFile, 'tail-furl', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlMod - Tail-furl spring/damper model switch.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlMod, 'TFrlMod', 'Tail-furl spring/damper model switch', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlSpr - Tail-furl spring constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlSpr, 'TFrlSpr', 'Tail-furl spring constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlDmp - Tail-furl damping constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDmp, 'TFrlDmp', 'Tail-furl damping constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlCDmp - Tail-furl rate-independent Coulomb-damping moment.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlCDmp, 'TFrlCDmp', 'Tail-furl rate-independent Coulomb-damping moment', &
-                                                                                ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlUSSP - Tail-furl up-stop spring position (read as degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSSP, 'TFrlUSSP', 'Tail-furl up-stop spring position', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%TFrlUSSP  = InputFileData%TFrlUSSP*D2R
-
-      
-      ! TFrlDSSP - Tail-furl down-stop spring position (read as degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSSP, 'TFrlDSSP', 'Tail-furl down-stop spring position', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%TFrlDSSP  = InputFileData%TFrlDSSP*D2R
-
-      
-      ! TFrlUSSpr - Tail-furl up-stop spring constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSSpr, 'TFrlUSSpr', 'Tail-furl up-stop spring constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlDSSpr - Tail-furl down-stop spring constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSSpr, 'TFrlDSSpr', 'Tail-furl down-stop spring constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlUSDP - Tail-furl up-stop damper position.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSDP, 'TFrlUSDP', 'Tail-furl up-stop damper position', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%TFrlUSDP  = InputFileData%TFrlUSDP*D2R
-
-      
-      ! TFrlDSDP - Tail-furl down-stop damper position (read as degrees and converted to radians here)
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSDP, 'TFrlDSDP', 'Tail-furl down-stop damper position', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%TFrlDSDP  = InputFileData%TFrlDSDP*D2R   
-
-      
-      ! TFrlUSDmp - Tail-furl up-stop damping constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSDmp, 'TFrlUSDmp', 'Tail-furl up-stop damping constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! TFrlDSDmp - Tail-furl down-stop damping constant.
-
-   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSDmp, 'TFrlDSDmp', 'Tail-furl down-stop damping constant', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-   !!  -------------- TAIL FIN AERODYNAMICS ----------------------------------------
-   !! bjj: this should be in aerodyn:
-   !
-   !   ! Skip the comment line.
-   !
-   !CALL ReadCom ( UnIn, FurlFile, 'tail fin aerodynamics', ErrStat2, ErrMsg2, UnEc  )
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !
-   !   ! TFinMod - Tail fin aerodynamics model switch.
-   !
-   !CALL ReadVar ( UnIn, FurlFile, TFinMod, 'TFinMod', 'Tail fin aerodynamics model switch', ErrStat2, ErrMsg2, UnEc  )
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !
-   !   ! TFinNFoil - Tail fin airfoil number.
-   !
-   !CALL ReadVar ( UnIn, FurlFile, TFinNFoil, 'TFinNFoil', 'Tail fin airfoil number', ErrStat2, ErrMsg2, UnEc  )
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !
-   !   ! TFinArea - Tail fin planform area.
-   !
-   !CALL ReadVar ( UnIn, FurlFile, TFinArea, 'TFinArea', 'Tail fin planform area', ErrStat2, ErrMsg2, UnEc  )
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !
-   !   ! SubAxInd - Subtract rotor axial induction?
-   !
-   !CALL ReadVar ( UnIn, FurlFile, SubAxInd, 'SubAxInd', 'Subtract rotor axial induction?', ErrStat2, ErrMsg2, UnEc  )
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-
-
-      ! Close the FAST furling file:
-
-   CLOSE ( UnIn )
-
-   RETURN
-CONTAINS
-   !...............................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level
-   !...............................................................................................................................
-
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-
-      !............................................................................................................................
-      ! Set error status/message;
-      !............................................................................................................................
-
-      IF ( ErrID /= ErrID_None ) THEN
-
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
-         ErrStat = MAX(ErrStat, ErrID)
-
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close file, deallocate local arrays
-         !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) THEN
-            CLOSE( UnIn )
-         END IF
-
-      END IF
-
-
-   END SUBROUTINE CheckError
-   !...............................................................................................................................
-END SUBROUTINE ReadFurlFile
-!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SetFurlParams( p, InputFileData, ErrStat, ErrMsg  )
 ! This takes the furling input file data and sets the corresponding furling parameters.
 !..................................................................................................................................
@@ -5224,6 +3809,443 @@ SUBROUTINE SetFurlParams( p, InputFileData, ErrStat, ErrMsg  )
    p%rVIMUzn   = InputFileData%NcIMUzn  - p%RFrlPntzn   
    
 END SUBROUTINE SetFurlParams
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEc, ErrStat, ErrMsg )
+! This routine reads the data from the blade and mesh inputs files.
+! This routines assumes that InputFileData%NumBl has already been set.
+!..................................................................................................................................
+   
+
+   IMPLICIT                        NONE
+
+
+      ! Passed variables:
+
+!   TYPE(ED_ParameterType), INTENT(INOUT)  :: p                                   ! Parameters of the structural dynamics module
+   TYPE(ED_InputFile),     INTENT(INOUT)  :: InputFileData                       ! Input file data Data for Blade K stored in the module's input file
+   CHARACTER(*),           INTENT(IN)     :: BldFile(:)                          ! The array of file names containing blade information
+   CHARACTER(*),           INTENT(IN)     :: MeshFile                            ! The file names containing blade mesh information (for now, the aerodyn primary file)
+   INTEGER(IntKi),         INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+
+   INTEGER(IntKi),         INTENT(OUT)    :: ErrStat                             ! The error ID
+   CHARACTER(*),           INTENT(OUT)    :: ErrMsg                              ! Message describing error
+   LOGICAL,                INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
+
+
+      ! Local variables:
+   INTEGER(IntKi)                         :: K                                   ! Blade number
+   INTEGER(IntKi)                         :: ErrStat2                            ! Temporary error ID
+   LOGICAL                                :: ReadFile                            ! determines if an input file for a blade is the same as the file for the previous blade
+   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2                             ! Temporary message describing error
+
+
+      ! Initialize variables
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+      
+   
+      ! Allocate space for the input file data
+   ALLOCATE( InputFileData%InpBlMesh( 1_IntKi ), STAT=ErrStat2 )              ! for now, we're assuming the discretization is the same on all blades
+   IF ( ErrStat2 /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating InpBl array'
+      RETURN
+   END IF  
+   
+   ALLOCATE( InputFileData%InpBl( InputFileData%NumBl ), STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating InpBl array'
+      RETURN
+   END IF
+   
+   
+   
+      ! Get the blade discretization here:   
+   CALL ReadBladeMeshFile( InputFileData%InpBlMesh(1), MeshFile, UnEc, ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF ( ErrStat >= AbortErrLev ) RETURN
+         
+   
+      ! Read the input file(s) for all of the blades:
+   ReadFile = .TRUE.
+   DO K = 1,InputFileData%NumBl   
+   
+      IF ( ReadFile ) THEN
+      
+            ! Add a separator to the echo file if appropriate.
+
+         IF ( UnEc > 0 )  THEN
+            WRITE (UnEc,'(//,A,/)')  'Blade '//TRIM( Num2LStr( K ) )//' input data from file "'//TRIM( BldFile(K) )//'":'
+         END IF 
+         
+         CALL ReadBladeFile( BldFile(K), InputFileData%InpBl(K), ReadAdmVals, UnEc, ErrStat2, ErrMsg2 )
+            CALL CheckError(ErrStat2,' Errors reading blade '//TRIM(Num2LStr(K))//' input file ('//TRIM(BldFile(K))//'): '&
+                                    //NewLine//TRIM(ErrMsg2))
+            IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ELSE 
+              
+         CALL ED_CopyBladeInputData( InputFileData%InpBl(K-1), InputFileData%InpBl(K), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )  
+            CALL CheckError(ErrStat2,' Errors copying blade '//TRIM(Num2LStr(K-1))//' input file data: '//NewLine//TRIM(ErrMsg2))
+            IF ( ErrStat >= AbortErrLev ) RETURN
+               ! bjj: we could just read the file again...            
+
+      END IF      
+
+         ! If the next file is the same as this one, don't read it again:
+         
+      IF ( K /= InputFileData%NumBl ) ReadFile = BldFile(K) /= BldFile( K + 1 )
+    
+   END DO
+         
+
+   RETURN
+   
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError   
+   
+END SUBROUTINE ReadBladeInputs
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrStat, ErrMsg )
+! This routine reads a blade input file.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+
+      ! Passed variables:
+
+   TYPE(BladeInputData),     INTENT(INOUT)  :: BladeKInputFileData                 ! Data for Blade K stored in the module's input file
+   CHARACTER(*),             INTENT(IN)     :: BldFile                             ! Name of the blade input file data
+   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
+   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+
+
+      ! Local variables:
+
+   REAL(ReKi)                   :: AdjBlMs                                         ! Factor to adjust blade mass density.
+   REAL(ReKi)                   :: AdjEdSt                                         ! Factor to adjust edge stiffness.
+   REAL(ReKi)                   :: AdjFlSt                                         ! Factor to adjust flap stiffness.
+
+   REAL(ReKi)                   :: TmpRAry(17)                                     ! Temporary variable to read table from file (up to 17 columns)
+
+   INTEGER(IntKi)               :: I                                               ! A generic DO index.
+   INTEGER( IntKi )             :: UnIn                                            ! Unit number for reading file
+   INTEGER( IntKi )             :: NInputCols                                      ! Number of columns to be read from the file
+   INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
+   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
+
+
+
+   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Open the input file for blade K.
+
+   CALL OpenFInpFile ( UnIn, BldFile, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- HEADER -------------------------------------------------------
+
+      ! Ship the header.
+
+   CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 1', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 2', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 3', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   !  -------------- BLADE PARAMETERS ---------------------------------------------
+
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, BldFile, 'blade parameters', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NBlInpSt - Number of blade input stations.
+
+   CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%NBlInpSt, 'NBlInpSt', 'Number of blade input stations', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! .......... Allocate the arrays based on this NBlInpSt input ..........
+   CALL Alloc_BladeInputProperties( BladeKInputFileData, ReadAdmVals, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! CalcBMode - Calculate blade mode shapes (switch).
+
+   !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
+   !JASON:CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%CalcBMode, 'CalcBMode', 'Calculate blade mode shapes', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom ( UnIn, BldFile, 'currently ignored CalcBMode', ErrStat2, ErrMsg2, UnEc  )
+      BladeKInputFileData%CalcBMode = .FALSE.
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BldFlDmp - Blade structural damping ratios in flapwise direction.
+
+   CALL ReadAryLines( UnIn, BldFile, BladeKInputFileData%BldFlDmp, SIZE(BladeKInputFileData%BldFlDmp), 'BldFlDmp', &
+                                       'Blade structural damping ratios in flapwise direction', ErrStat2, UnEc  )
+      ErrMsg2 = ' Error reading BldFlDmp array from '//TRIM(BldFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! BldEdDmp - Blade structural damping ratios in edgewise direction.
+
+   CALL ReadAryLines( UnIn, BldFile, BladeKInputFileData%BldEdDmp, SIZE(BladeKInputFileData%BldEdDmp), 'BldEdDmp', &
+                                       'Blade structural damping ratios in edgewise direction', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading BldEdDmp array from '//TRIM(BldFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   !  -------------- BLADE ADJUSTMENT FACTORS -------------------------------------
+
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, BldFile, 'blade adjustment factors', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! FlStTunr(1) - Blade flapwise modal stiffness tuners.
+
+   CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%FlStTunr, SIZE(BladeKInputFileData%FlStTunr), 'FlStTunr', &
+                                                  'Blade flapwise modal stiffness tuners', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading FlStTunr array from '//TRIM(BldFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! AdjBlMs - Factor to adjust blade mass density.
+
+   CALL ReadVar ( UnIn, BldFile, AdjBlMs, 'AdjBlMs', 'Factor to adjust blade mass density', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! AdjFlSt - Factor to adjust blade flap stiffness.
+
+   CALL ReadVar ( UnIn, BldFile, AdjFlSt, 'AdjFlSt', 'Factor to adjust blade flap stiffness', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! AdjEdSt - Factor to adjust blade edge stiffness.
+
+   CALL ReadVar ( UnIn, BldFile, AdjEdSt, 'AdjEdSt', 'Factor to adjust blade edge stiffness', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+         ! Check the locally-defined adjustment factors: AdjBlMs, AdjFlSt, AdjEdSt
+
+      IF ( AdjBlMs <= 0.0_ReKi ) THEN
+         CALL CheckError( ErrID_Warn, ' AdjBlMs must be greater than zero.' )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      END IF
+
+      IF ( AdjFlSt <= 0.0_ReKi ) THEN
+         CALL CheckError( ErrID_Warn, ' AdjFlSt must be greater than zero.' )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      END IF
+
+      IF ( AdjEdSt <= 0.0_ReKi ) THEN
+         CALL CheckError( ErrID_Warn, ' AdjEdSt must be greater than zero.' )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      END IF
+
+
+   !  -------------- DISTRIBUTED BLADE PROPERTIES ---------------------------------
+
+
+      ! Skip the comment lines.
+
+   CALL ReadCom ( UnIn, BldFile, 'distributed blade parameters'     , ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, BldFile, 'distributed-blade-parameter names', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, BldFile, 'distributed-blade-parameter units', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! Read the table.
+
+   IF ( ReadAdmVals ) THEN
+      NInputCols = 17
+   ELSE
+      NInputCols = 6
+   END IF
+
+
+   DO I=1,BladeKInputFileData%NBlInpSt
+
+      CALL ReadAry( UnIn, BldFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Blade input station table', &
+                    ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+
+      BladeKInputFileData%BlFract( I) = TmpRAry(1)
+      BladeKInputFileData%AerCen(  I) = TmpRAry(2)
+      BladeKInputFileData%StrcTwst(I) = TmpRAry(3)*D2R      ! Input in degrees; converted to radians here
+      BladeKInputFileData%BMassDen(I) = TmpRAry(4)*AdjBlMs  ! Apply the correction factors to the elemental data.
+      BladeKInputFileData%FlpStff( I) = TmpRAry(5)*AdjFlSt  ! Apply the correction factors to the elemental data.
+      BladeKInputFileData%EdgStff( I) = TmpRAry(6)*AdjEdSt  ! Apply the correction factors to the elemental data.
+
+      IF ( NInputCols > 6 ) THEN
+         BladeKInputFileData%GJStff(   I) = TmpRAry( 7)
+         BladeKInputFileData%EAStff(   I) = TmpRAry( 8)
+         BladeKInputFileData%Alpha(    I) = TmpRAry( 9)
+         BladeKInputFileData%FlpIner(  I) = TmpRAry(10)
+         BladeKInputFileData%EdgIner(  I) = TmpRAry(11)
+         BladeKInputFileData%PrecrvRef(I) = TmpRAry(12)
+         BladeKInputFileData%PreswpRef(I) = TmpRAry(13)
+         BladeKInputFileData%FlpcgOf(  I) = TmpRAry(14)
+         BladeKInputFileData%EdgcgOf(  I) = TmpRAry(15)
+         BladeKInputFileData%FlpEAOf(  I) = TmpRAry(16)
+         BladeKInputFileData%EdgEAOf(  I) = TmpRAry(17)
+      END IF
+   ENDDO ! I
+
+
+
+   !  -------------- BLADE MODE SHAPES --------------------------------------------
+
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, BldFile, 'blade mode shapes', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BldFl1Sh - Blade-flap mode-1 shape coefficients.
+   CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldFl1Sh, SIZE(BladeKInputFileData%BldFl1Sh), 'BldFl1Sh', &
+                           'Blade-flap mode-1 shape coefficients', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading BldFl1Sh array from '//TRIM(BldFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BldFl2Sh - Blade-flap mode-2 shape coefficients.
+
+   CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldFl2Sh, SIZE(BladeKInputFileData%BldFl2Sh), 'BldFl2Sh', &
+                    'Blade-flap mode-2 shape coefficients', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading BldFl2Sh array from '//TRIM(BldFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BldEdgSh - Blade-edge mode shape coefficients.
+
+   CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldEdgSh, SIZE(BladeKInputFileData%BldEdgSh), 'BldEdgSh', &
+                     'Blade-edge mode shape coefficients', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading BldEdgSh array from '//TRIM(BldFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+   !  -------------- END OF FILE --------------------------------------------
+
+      ! Close the blade file.
+
+   CLOSE ( UnIn )
+   RETURN
+
+
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnIn )
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError
+
+END SUBROUTINE ReadBladeFile
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrMsg )
 ! This routine reads in the AeroDyn v13.00.00 input file to get the
@@ -5372,16 +4394,960 @@ CONTAINS
 
 END SUBROUTINE ReadBladeMeshFile
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile, UnEc, ErrStat, ErrMsg )
-! This routine reads in the AeroDyn v13.00.00 input file to get the
-!   blade discretization used in the structural dynamics module.
+SUBROUTINE ReadFurlFile( FurlFile, InputFileData, UnEc, ErrStat, ErrMsg  )
+! This routine reads the furling file input and converts units as appropriate.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+      ! Passed variables:
+
+   TYPE(ED_InputFile),       INTENT(INOUT)  :: InputFileData                       ! All the data in the ElastoDyn input file
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+   CHARACTER(*),             INTENT(IN)     :: FurlFile                            ! Name of the furling input file data
+
+      ! Local variables:
+
+   INTEGER(IntKi)               :: UnIn                                            ! Unit number for reading file
+   INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
+   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
+
+
+      ! Get an available unit number for the file.
+
+   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Open the furling input file.
+
+   CALL OpenFInpFile ( UnIn, FurlFile, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Add a separator to the echo file if appropriate.
+
+   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Furling input data from file "'//TRIM( FurlFile )//'":'
+
+
+   !  -------------- FILE HEADER ---------------------------------------------------
+
+   CALL ReadCom ( UnIn, FurlFile, 'unused tower furling header line 1', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, FurlFile, 'unused tower furling header line 2', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, FurlFile, 'unused tower furling header line 3', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- Furling FEATURE SWITCHES  --------------------------------------
+
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'degree of freedom switches (cont)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! RFrlDOF - Rotor-furl DOF.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDOF, 'RFrlDOF', 'Rotor-furl DOF (flag)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlDOF - Tail-furl DOF.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDOF, 'TFrlDOF', 'Tail-furl DOF (flag)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- Furling INITIAL CONDITIONS ------------------------------------
+
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'initial conditions (cont)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RotFurl - Initial or fixed rotor-furl angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RotFurl, 'RotFurl', 'Initial or fixed rotor-furl angle (deg)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      InputFileData%RotFurl   = InputFileData%RotFurl*D2R
+
+
+      ! TailFurl - Initial or fixed tail-furl angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TailFurl, 'TailFurl', 'Initial or fixed tail-furl angle (deg)',  &
+                  ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      InputFileData%TailFurl  = InputFileData%TailFurl*D2R
+      
+
+   !  -------------- TURBINE CONFIGURATION (CONT) ---------------------------------
+
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'turbine configuration (cont)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Yaw2Shft - Lateral distance from yaw axis to rotor shaft.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%Yaw2Shft, 'Yaw2Shft',  &
+                  'Lateral distance from yaw axis to rotor shaft (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! ShftSkew - Rotor shaft skew angle (read in degrees and converted to radians here).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%ShftSkew, 'ShftSkew', 'Rotor shaft skew angle (deg)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%ShftSkew  = InputFileData%ShftSkew *D2R
+      
+
+      ! RFrlCMxn - Downwind distance from tower-top to CM of structure that furls with the rotor (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMxn, 'RFrlCMxn',  &
+                  'Downwind distance from tower-top to rotor-furl CM (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlCMyn - Lateral  distance from tower-top to CM of structure that furls with the rotor (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMyn, 'RFrlCMyn',  &
+                  'Lateral  distance from tower-top to rotor-furl CM (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlCMzn - Vertical distance from tower-top to CM of structure that furls with the rotor (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCMzn, 'RFrlCMzn',  &
+                  'Vertical distance from tower-top to rotor-furl CM (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BoomCMxn - Downwind distance from tower-top to tail boom CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMxn, 'BoomCMxn',  &
+                  'Downwind distance from tower-top to tail boom CM (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BoomCMyn - Lateral  distance from tower-top to tail boom CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMyn, 'BoomCMyn',  &
+                  'Lateral  distance from tower-top to tail boom CM (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! BoomCMzn - Vertical distance from tower-top to tail boom CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomCMzn, 'BoomCMzn', &
+                   'Vertical distance from tower-top to tail boom CM (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCMxn - Downwind distance from tower-top to tail fin CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMxn, 'TFinCMxn', &
+                   'Downwind distance from tower-top to tail fin CM (m)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCMyn - Lateral  distance from tower-top to tail fin CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMyn, 'TFinCMyn', &
+                   'Lateral  distance from tower-top to tail fin CM (m)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCMzn - Vertical distance from tower-top to tail fin CM.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCMzn, 'TFinCMzn', &
+                   'Vertical distance from tower-top to tail fin CM (m)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCPxn - Downwind distance from tower-top to tail fin CP.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPxn, 'TFinCPxn', &
+                  'Downwind distance from tower-top to tail fin CP (m)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCPyn - Lateral  distance from tower-top to tail fin CP.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPyn, 'TFinCPyn', &
+                  'Lateral  distance from tower-top to tail fin CP (m)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinCPzn - Vertical distance from tower-top to tail fin CP.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinCPzn, 'TFinCPzn', &
+                  'Vertical distance from tower-top to tail fin CP (m)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinSkew - Tail fin chordline skew angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinSkew, 'TFinSkew', 'Tail fin chordline skew angle (deg)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFinSkew  = InputFileData%TFinSkew*D2R
+
+
+      ! TFinTilt - Tail fin chordline tilt angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinTilt, 'TFinTilt', 'Tail fin chordline tilt angle (deg)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFinTilt  = InputFileData%TFinTilt *D2R
+      
+
+      ! TFinBank - Tail fin planform  bank angle (read in degrees, converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinBank, 'TFinBank', 'Tail fin planform  bank angle (deg)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      InputFileData%TFinBank  = InputFileData%TFinBank *D2R
+
+
+      ! RFrlPntxn - Downwind distance from tower-top to arbitrary point on rotor-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntxn, 'RFrlPntxn', &
+                  'Downwind distance from tower-top to arbitrary point on rotor-furl axis (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlPntyn - Lateral  distance from tower-top to arbitrary point on rotor-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntyn, 'RFrlPntyn', &
+                  'Lateral  distance from tower-top to arbitrary point on rotor-furl axis (m)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlPntzn - Vertical distance from tower-top to arbitrary point on rotor-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlPntzn, 'RFrlPntzn', &
+                  'Vertical distance from tower-top to arbitrary point on rotor-furl axis (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlSkew - Rotor-furl axis skew angle (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlSkew, 'RFrlSkew', 'Rotor-furl axis skew angle (deg)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlSkew  = InputFileData%RFrlSkew*D2R
+
+      
+      ! RFrlTilt - Rotor-furl axis tilt angle (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlTilt, 'RFrlTilt', 'Rotor-furl axis tilt angle (deg)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlTilt  = InputFileData%RFrlTilt*D2R
+
+      
+      ! TFrlPntxn - Downwind distance from tower-top to arbitrary point on tail-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntxn, 'TFrlPntxn', &
+                  'Downwind distance from tower-top to arbitrary point on tail-furl axis (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlPntyn - Lateral  distance from tower-top to arbitrary point on tail-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntyn, 'TFrlPntyn', &
+                  'Lateral  distance from tower-top to arbitrary point on tail-furl axis (m)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlPntzn - Vertical distance from tower-top to arbitrary point on tail-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlPntzn, 'TFrlPntzn', &
+                  'Vertical distance from tower-top to arbitrary point on tail-furl axis (m)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlSkew - Tail-furl axis skew angle (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlSkew, 'TFrlSkew', 'Tail-furl axis skew angle (deg)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlSkew  = InputFileData%TFrlSkew *D2R
+
+      
+      ! TFrlTilt - Tail-furl axis tilt angle (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlTilt, 'TFrlTilt', 'Tail-furl axis tilt angle (deg)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      InputFileData%TFrlTilt  = InputFileData%TFrlTilt *D2R
+
+
+   !  -------------- MASS AND INERTIA (CONT) --------------------------------------
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'mass and inertia (cont)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! RFrlMass - Mass of structure that furls with the rotor (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlMass, 'RFrlMass', 'Rotor-furl mass (kg)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! BoomMass - Tail boom mass.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%BoomMass, 'BoomMass', 'Tail boom mass (kg)',ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFinMass - Tail fin mass.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFinMass, 'TFinMass', 'Tail fin mass (kg)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlIner - Inertia of structure that furls with the rotor about the rotor-furl axis (not including rotor).
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlIner, 'RFrlIner', 'Rotor-furl inertia about rotor-furl axis (kg m^2)', &
+                                            ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlIner - Tail boom inertia about tail-furl axis.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlIner, 'TFrlIner', 'Tail boom inertia about tail-furl axis (kg m^2)', &
+                  ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   !  -------------- ROTOR-FURL ---------------------------------------------------
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'Section heading: Rotor-Furl', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlMod - Rotor-furl spring/damper model switch.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlMod, 'RFrlMod', 'Rotor-furl spring/damper model switch', &
+                  ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlSpr - Rotor-furl spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlSpr, 'RFrlSpr', 'Rotor-furl spring constant (N-m/rad)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlDmp - Rotor-furl damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDmp, 'RFrlDmp', 'Rotor-furl damping constant (N-m/(rad/s))', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlCDmp - Rotor-furl rate-independent Coulomb-damping moment.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlCDmp, 'RFrlCDmp', 'Rotor-furl rate-independent Coulomb-damping moment (N-m)', &
+                                                         ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlUSSP - Rotor-furl up-stop spring position (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSSP, 'RFrlUSSP', 'Rotor-furl up-stop spring position (deg)', &
+                  ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlUSSP  = InputFileData%RFrlUSSP*D2R
+      
+
+      ! RFrlDSSP - Rotor-furl down-stop spring position (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSSP, 'RFrlDSSP', 'Rotor-furl down-stop spring position (deg)', &
+                  ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlDSSP  = InputFileData%RFrlDSSP*D2R
+      
+
+      ! RFrlUSSpr - Rotor-furl up-stop spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSSpr, 'RFrlUSSpr', 'Rotor-furl up-stop spring constant (N-m/rad)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlDSSpr - Rotor-furl down-stop spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSSpr, 'RFrlDSSpr', 'Rotor-furl down-stop spring constant (N-m/rad)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlUSDP - Rotor-furl up-stop damper position (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSDP, 'RFrlUSDP', 'Rotor-furl up-stop damper position (deg)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlUSDP  = InputFileData%RFrlUSDP*D2R
+      
+
+      ! RFrlDSDP - Rotor-furl down-stop damper position (read in degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSDP, 'RFrlDSDP', 'Rotor-furl down-stop damper position (deg)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%RFrlDSDP  = InputFileData%RFrlDSDP*D2R
+      
+
+      ! RFrlUSDmp - Rotor-furl up-stop damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlUSDmp, 'RFrlUSDmp', 'Rotor-furl up-stop damping constant (N-m/(rad/s))', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! RFrlDSDmp - Rotor-furl down-stop damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%RFrlDSDmp, 'RFrlDSDmp', 'Rotor-furl down-stop damping constant (N-m/(rad/s))', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- TAIL-FURL ----------------------------------------------------
+
+      ! Skip the comment line.
+
+   CALL ReadCom ( UnIn, FurlFile, 'tail-furl', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlMod - Tail-furl spring/damper model switch.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlMod, 'TFrlMod', 'Tail-furl spring/damper model switch', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlSpr - Tail-furl spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlSpr, 'TFrlSpr', 'Tail-furl spring constant (N-m/rad)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlDmp - Tail-furl damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDmp, 'TFrlDmp', 'Tail-furl damping constant (N-m/(rad/s))', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlCDmp - Tail-furl rate-independent Coulomb-damping moment.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlCDmp, 'TFrlCDmp', 'Tail-furl rate-independent Coulomb-damping moment (N-m)', &
+                                                                                ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlUSSP - Tail-furl up-stop spring position (read as degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSSP, 'TFrlUSSP', 'Tail-furl up-stop spring position (deg)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlUSSP  = InputFileData%TFrlUSSP*D2R
+
+      
+      ! TFrlDSSP - Tail-furl down-stop spring position (read as degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSSP, 'TFrlDSSP', 'Tail-furl down-stop spring position (deg)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlDSSP  = InputFileData%TFrlDSSP*D2R
+
+      
+      ! TFrlUSSpr - Tail-furl up-stop spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSSpr, 'TFrlUSSpr', 'Tail-furl up-stop spring constant (N-m/rad)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlDSSpr - Tail-furl down-stop spring constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSSpr, 'TFrlDSSpr', 'Tail-furl down-stop spring constant (N-m/rad)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlUSDP - Tail-furl up-stop damper position.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSDP, 'TFrlUSDP', 'Tail-furl up-stop damper position (deg)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlUSDP  = InputFileData%TFrlUSDP*D2R
+
+      
+      ! TFrlDSDP - Tail-furl down-stop damper position (read as degrees and converted to radians here)
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSDP, 'TFrlDSDP', 'Tail-furl down-stop damper position (deg)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%TFrlDSDP  = InputFileData%TFrlDSDP*D2R   
+
+      
+      ! TFrlUSDmp - Tail-furl up-stop damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlUSDmp, 'TFrlUSDmp', 'Tail-furl up-stop damping constant (N-m/(rad/s))', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TFrlDSDmp - Tail-furl down-stop damping constant.
+
+   CALL ReadVar ( UnIn, FurlFile, InputFileData%TFrlDSDmp, 'TFrlDSDmp', 'Tail-furl down-stop damping constant (N-m/(rad/s))', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! Close the ElastoDyn furling file:
+
+   CLOSE ( UnIn )
+
+   RETURN
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnIn )
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError
+   !...............................................................................................................................
+END SUBROUTINE ReadFurlFile
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, ErrMsg )
+! This routine reads the tower file  input.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+      ! Passed variables:
+
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   INTEGER(IntKi),           INTENT(IN)     :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+   LOGICAL,                  INTENT(IN)     :: ReadAdmVals                         ! Logical to determine if Adams inputs should be read from file
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+   CHARACTER(*),             INTENT(IN)     :: TwrFile                             ! Name of the tower input file data
+   TYPE(ED_InputFile),       INTENT(INOUT)  :: InputFileData                       ! All the data in the ElastoDyn input file
+
+
+      ! Local variables:
+
+   REAL(ReKi)                   :: AdjFASt                                         ! Factor to adjust tower fore-aft stiffness
+   REAL(ReKi)                   :: AdjSSSt                                         ! Factor to adjust tower side-to-side stiffness
+   REAL(ReKi)                   :: AdjTwMa                                         ! Factor to adjust tower mass density
+
+   REAL(ReKi)                   :: TmpRAry(10)                                     ! Temporary variable to read table from file (up to 10 columns)
+
+   INTEGER(IntKi)               :: I                                               ! A generic DO index.
+   INTEGER(IntKi)               :: UnIn                                            ! Unit number for reading file
+   INTEGER(IntKi)               :: NInputCols                                      ! Number of columns to be read from the file
+   INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error status
+   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary Err msg
+
+
+
+   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Open the tower input file.
+
+   CALL OpenFInpFile ( UnIn, TwrFile, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Add a separator to the echo file if appropriate.
+   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Tower input data from file "'//TRIM( TwrFile )//'":'
+
+
+   !  -------------- FILE HEADER ---------------------------------------------------
+
+   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 1', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 2', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 3', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   !  -------------- TOWER PARAMETERS ---------------------------------------------
+
+   CALL ReadCom ( UnIn, TwrFile, 'heading for tower parameters', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! NTwInpSt - Number of tower input stations.
+
+   CALL ReadVar ( UnIn, TwrFile, InputFileData%NTwInpSt, 'NTwInpSt', 'Number of tower input stations', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Allocate the input arrays based on this NTwInpSt input
+   CALL Alloc_TowerInputProperties( InputFileData, ReadAdmVals, ErrStat, ErrMsg )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! CalcTMode - Calculate tower mode shapes (switch).
+
+   !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
+   !JASON:CALL ReadVar ( UnIn, TwrFile, InputFileData%CalcTMode, 'CalcTMode', 'Calculate tower mode shapes', ErrStat2, ErrMsg2 )
+   CALL ReadCom ( UnIn, TwrFile, 'currently ignored CalcTMode', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TwrFADmp - Tower fore-aft structural damping ratios.
+
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrFADmp, SIZE(InputFileData%TwrFADmp), 'TwrFADmp', &
+                                     'Tower fore-aft structural damping ratios (%)', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading TwrFADmp array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TwrSSDmp - Tower side-to-side structural damping ratios.
+
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrSSDmp, SIZE(InputFileData%TwrSSDmp), 'TwrSSDmp', &
+                                     'Tower side-to-side structural damping ratios (%)', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading TwrSSDmp array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- TOWER ADJUSTMENT FACTORS -------------------------------------
+
+
+      ! Skip the comment line.
+   CALL ReadCom ( UnIn, TwrFile, 'heading for tower adjustment factors', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! FAStTunr - Tower fore-aft modal stiffness tuners.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%FAStTunr, SIZE(InputFileData%FAStTunr), 'FAStTunr', &
+                                     'Tower fore-aft modal stiffness tuners (-)', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading FAStTunr array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! SSStTunr - Tower side-to-side modal stiffness tuners.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%SSStTunr, SIZE(InputFileData%SSStTunr), 'SSStTunr', &
+                                     'Tower side-to-side modal stiffness tuners (-)', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading SSStTunr array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! AdjTwMa - Factor to adjust tower mass density.
+
+   CALL ReadVar ( UnIn, TwrFile, AdjTwMa, 'AdjTwMa', 'Factor to adjust tower mass density (-)', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! AdjFASt - Factor to adjust tower fore-aft stiffness.
+
+   CALL ReadVar ( UnIn, TwrFile, AdjFASt, 'AdjFASt', 'Factor to adjust tower fore-aft stiffness (-)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! AdjSSSt - Factor to adjust tower side-to-side stiffness.
+
+   CALL ReadVar ( UnIn, TwrFile, AdjSSSt, 'AdjSSSt', 'Factor to adjust tower side-to-side stiffness (-)', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+         ! Check the locally-defined adjustment factors: AdjTwMa, AdjFASt, AdjSSSt
+
+   IF ( AdjTwMa <= 0.0_ReKi ) THEN
+      CALL CheckError( ErrID_Warn, ' AdjTwMa must be greater than zero.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF
+
+   IF ( AdjFASt <= 0.0_ReKi ) THEN
+      CALL CheckError( ErrID_Warn, ' AdjFASt must be greater than zero.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF
+
+   IF ( AdjSSSt <= 0.0_ReKi ) THEN
+      CALL CheckError( ErrID_Warn, ' AdjSSSt must be greater than zero.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF
+
+
+   !  -------------- DISTRIBUTED TOWER PROPERTIES ---------------------------------
+
+      ! Skip the comment lines.
+   CALL ReadCom ( UnIn, TwrFile, 'heading for distributed tower parameters', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter names', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL ReadCom ( UnIn, TwrFile, 'distributed-tower-parameter units', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! Read the table.
+
+   IF ( ReadAdmVals ) THEN
+      NInputCols = 10
+   ELSE
+      NInputCols = 4
+   END IF
+
+
+   DO I=1,InputFileData%NTwInpSt
+
+      CALL ReadAry( UnIn, TwrFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Tower input station table', &
+                    ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%HtFract( I) = TmpRAry(1)
+      InputFileData%TMassDen(I) = TmpRAry(2)*AdjTwMa   ! Apply the correction factors to the elemental data.
+      InputFileData%TwFAStif(I) = TmpRAry(3)*AdjFASt   ! Apply the correction factors to the elemental data.
+      InputFileData%TwSSStif(I) = TmpRAry(4)*AdjSSSt   ! Apply the correction factors to the elemental data.
+
+      IF ( NInputCols > 4 ) THEN
+         InputFileData%TwGJStif(I) = TmpRAry( 5)
+         InputFileData%TwEAStif(I) = TmpRAry( 6)
+         InputFileData%TwFAIner(I) = TmpRAry( 7)
+         InputFileData%TwSSIner(I) = TmpRAry( 8)
+         InputFileData%TwFAcgOf(I) = TmpRAry( 9)
+         InputFileData%TwSScgOf(I) = TmpRAry(10)
+      END IF
+
+   END DO ! I
+
+
+   !  -------------- TOWER FORE-AFT MODE SHAPES -----------------------------------
+
+
+      ! Skip the comment line.
+   CALL ReadCom ( UnIn, TwrFile, 'heading for tower fore-aft mode shapes', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TwFAM1Sh - Tower fore-aft mode-1 shape coefficients.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwFAM1Sh, SIZE(InputFileData%TwFAM1Sh), 'TwFAM1Sh', &
+                           'Tower fore-aft mode-1 shape coefficients (-)', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading TwFAM1Sh array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! TwFAM2Sh - Tower fore-aft mode-2 shape coefficients.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwFAM2Sh, SIZE(InputFileData%TwFAM2Sh), 'TwFAM2Sh', &
+                           'Tower fore-aft mode-2 shape coefficients  (-)', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading TwFAM2Sh array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+   !  -------------- TOWER SIDE-TO-SIDE MODE SHAPES -------------------------------
+
+
+      ! Skip the comment line.
+   CALL ReadCom ( UnIn, TwrFile, 'heading for tower side-to-side mode shapes', ErrStat2, ErrMsg2, UnEc  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! TwSSM1Sh - Tower side-to-side mode-1 shape coefficients.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwSSM1Sh, SIZE(InputFileData%TwSSM1Sh), 'TwSSM1Sh', &
+                           'Tower side-to-side mode-1 shape coefficients (-)', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading TwSSM1Sh array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+
+      ! TwSSM2Sh - Tower side-to-side mode-2 shape coefficients.
+   CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwSSM2Sh, SIZE(InputFileData%TwSSM2Sh), 'TwSSM2Sh', &
+                           'Tower side-to-side mode-2 shape coefficients (-)', ErrStat2, UnEc )
+      ErrMsg2 = ' Error reading TwSSM2Sh array from '//TRIM(TwrFile)//'.'
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! Close the tower file.
+   CLOSE ( UnIn )
+
+
+   RETURN
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnIn )
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError
+   !...............................................................................................................................
+END SUBROUTINE ReadTowerFile
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile, OutFileRoot, UnEc, ErrStat, ErrMsg )
+! This routine reads in the primary ElastoDyn input file and places the values it reads in the InputFileData structure.
+!   It opens an echo file if requested and returns the (still-open) echo file to the calling routine.
+!   It also returns the names of the BldFile, FurlFile, and TrwFile for further reading of inputs.
 !..................................................................................................................................
 
 
    IMPLICIT                        NONE
 
       ! Passed variables
-   INTEGER(IntKi),     INTENT(INOUT)  :: UnEc                                ! I/O unit for echo file. If present and > 0, write to UnEc
+   INTEGER(IntKi),     INTENT(OUT)    :: UnEc                                ! I/O unit for echo file. If > 0, file is open for writing.
    INTEGER(IntKi),     INTENT(OUT)    :: ErrStat                             ! Error status
 
    CHARACTER(*),       INTENT(IN)     :: InputFile                           ! Name of the file containing the primary input data
@@ -5389,6 +5355,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    CHARACTER(*),       INTENT(OUT)    :: TwrFile                             ! name of the file containing tower inputs
    CHARACTER(*),       INTENT(OUT)    :: FurlFile                            ! name of the file containing furling inputs
    CHARACTER(*),       INTENT(OUT)    :: BldFile(MaxBl)                      ! name of the files containing blade inputs
+   CHARACTER(*),       INTENT(IN)     :: OutFileRoot                         ! The rootname of the echo file, possibly opened in this routine
 
    TYPE(ED_InputFile), INTENT(INOUT)  :: InputFileData                       ! All the data in the ElastoDyn input file
    
@@ -5397,11 +5364,12 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    INTEGER(IntKi)               :: UnIn                                      ! Unit number for reading file
      
    INTEGER(IntKi)               :: ErrStat2                                  ! Temporary Error status
-   LOGICAL                      :: Echo                                    ! Determines if an echo file should be written
+   LOGICAL                      :: Echo                                      ! Determines if an echo file should be written
    CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                   ! Temporary Error message
+   CHARACTER(1024)              :: PriPath                                   ! Path name of the primary file
+   CHARACTER(1024)              :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
 
-
-
+   
       ! Get an available unit number for the file.
 
    CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
@@ -5413,13 +5381,81 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    CALL OpenFInpFile ( UnIn, InputFile, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      
+   CALL GetPath( InputFile, PriPath )    ! Input files will be relative to the path where the primary input file is located.
 
-
-      ! Add a separator to the echo file if appropriate.
-
-   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Input data from '//ED_Ver%Name//' file "'//TRIM( InputFile )//'":'
- 
-
+   !
+   !! Read the lines up/including to the "Echo" simulation control variable
+   !! If echo is FALSE, don't write these lines to the echo file. 
+   !! If Echo is TRUE, rewind and write on the second try.
+   !
+   !I    = 1
+   !Echo = .FALSE.
+   !UnEc = -1
+   !DO 
+   !!-------------------------- HEADER ---------------------------------------------
+   !
+   !   CALL ReadCom( UnIn, InputFile,                   'File Header: Module Version (line 1)', ErrStat2, ErrMsg2, UnEc )
+   !      CALL CheckError( ErrStat2, ErrMsg2 )
+   !      IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !   CALL ReadStr( UnIn, InputFile, FTitle, 'FTitle', 'File Header: File Description (line 2)', ErrStat2, ErrMsg2, UnEc )
+   !      CALL CheckError( ErrStat2, ErrMsg2 )
+   !      IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !
+   !!-------------------------- SIMULATION CONTROL PARAMETERS ----------------------
+   !
+   !   CALL ReadCom( UnIn, InputFile, 'Section header: Simulation Control', ErrStat2, ErrMsg2, UnEc )
+   !      CALL CheckError( ErrStat2, ErrMsg2 )
+   !      IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !      ! Echo - Echo input to "echo.out".
+   !
+   !   CALL ReadVar( UnIn, InputFile, Echo, 'Echo',   'Echo switch', ErrStat2, ErrMsg2, UnEc )
+   !      CALL CheckError( ErrStat2, ErrMsg2 )
+   !      IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !
+   !   IF (.NOT. Echo .OR. I > 1) EXIT !exit this loop
+   !
+   !      ! Otherwise, open the echo file, then rewind the input file and echo everything we've read
+   !   
+   !   I = I + 1         ! make sure we do this only once (increment counter that says how many times we've read this file)
+   !
+   !   CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat2, ErrMsg2, ED_Ver )
+   !      CALL CheckError( ErrStat2, ErrMsg2 )
+   !      IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !   CALL WrScr( ' Heading of the '//TRIM(ED_Ver%Name)//' input file: '//TRIM( FTitle ) )      
+   !   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Data from '//TRIM(ED_Ver%Name)//' primary input file "'//TRIM( InputFile )//'":'
+   !
+   !   REWIND( UnIn, IOSTAT=ErrStat2 )   
+   !      CALL CheckError( ErrID_Fatal, 'Error rewinding file "'//TRIM(InputFile)//'".' )
+   !      IF ( ErrStat >= AbortErrLev ) RETURN
+   !   
+   !END DO    
+   !                          
+   !CALL ReadVar( UnIn, InputFile, InputFileData%ED_DT, 'ED_DT',  'Integration time step (s)', ErrStat2, ErrMsg2, UnEc )
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !!-------------------------- ENVIRONMENTAL CONDITION ----------------------
+   !
+   !CALL ReadCom( UnIn, InputFile, 'Section header: Environmental Condition', ErrStat2, ErrMsg2, UnEc )
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN
+   !
+   !
+   !CALL ReadVar( UnIn, InputFile, InputFileData%Gravity, 'Gravity',  'Gravity (m/s^2)', ErrStat2, ErrMsg2, UnEc )
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN
+   !      
+   !
+   !!-------------------------- ENVIRONMENTAL CONDITION ----------------------
+      
+      
    !  -------------- HEADER -------------------------------------------------------
    ! NumBl: line 9
    ! platform = line 132
@@ -5428,12 +5464,12 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    ! blades: lines 158-160
    
    DO I = 1,5
-      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2  )
+      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2, UnEc  )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
    END DO
 
-   CALL ReadVar ( UnIn, InputFile, Echo, 'Echo', 'Echo to file?', ErrStat2, ErrMsg2 )
+   CALL ReadVar ( UnIn, InputFile, Echo, 'Echo', 'Echo to file?', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       IF ( Echo ) THEN
@@ -5444,33 +5480,33 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       END IF
    
    DO I = 7,134
-      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2  )
+      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2, UnEc  )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
    END DO
 
-   CALL ReadVar ( UnIn, InputFile, TwrFile, 'TwrFile', 'Name of the tower file', ErrStat2, ErrMsg2 )
+   CALL ReadVar ( UnIn, InputFile, TwrFile, 'TwrFile', 'Name of the tower file', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
    
    DO I = 136,142
-      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2  )
+      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2, UnEc  )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
    END DO
    
-   CALL ReadVar ( UnIn, InputFile, FurlFile, 'FurlFile', 'Name of the furling file', ErrStat2, ErrMsg2 )
+   CALL ReadVar ( UnIn, InputFile, FurlFile, 'FurlFile', 'Name of the furling file', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
    DO I = 144,157
-      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2  )
+      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2, UnEc  )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
    END DO
 
    DO I = 1,3   
-      CALL ReadVar ( UnIn, InputFile, BldFile(I), 'BldFile', 'Name of the blade file', ErrStat2, ErrMsg2 )
+      CALL ReadVar ( UnIn, InputFile, BldFile(I), 'BldFile', 'Name of the blade file', ErrStat2, ErrMsg2, UnEc )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
    END DO

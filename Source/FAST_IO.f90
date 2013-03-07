@@ -1868,14 +1868,15 @@ IF ( ( p%GenEff < 0.0 ) .OR. ( p%GenEff > 100.0 ) )  CALL ProgAbort ( ' GenEff m
 
 CALL ReadVar ( UnIn, PriFile, p%GBRatio, 'GBRatio', 'Gearbox ratio', UnEc=UnEc )
 
-IF ( p%GBRatio <= 0.0 )  CALL ProgAbort ( ' GBRatio must be greater than 0.' )
+!IF ( p%GBRatio <= 0.0 )  CALL ProgAbort ( ' GBRatio must be greater than 0.' )
 
 
-!JASON: ELIMINATE THIS INPUT BY ALLOWING p%GBRatio TO BE NEGATIVE!!!!!<--ACTUALLY, DON'T DO THIS SINCE WE ALWAYS WANT THE HSS SPEED TO REMAIN POSITIVE AND THE TORQUE TO DEPEND ON WHETHER WE ARE PRODUCING POWER OR MOTORING UP.
-   ! GBRevers - Gearbox reversal flag.
-
-CALL ReadVar ( UnIn, PriFile, InputFileData%GBRevers, 'GBRevers', 'Gearbox reversal flag', UnEc=UnEc )
-
+!!JASON: ELIMINATE THIS INPUT BY ALLOWING p%GBRatio TO BE NEGATIVE!!!!!<--ACTUALLY, DON'T DO THIS SINCE WE ALWAYS WANT THE HSS SPEED TO REMAIN POSITIVE AND THE TORQUE TO DEPEND ON WHETHER WE ARE PRODUCING POWER OR MOTORING UP.
+!   ! GBRevers - Gearbox reversal flag.
+!
+!CALL ReadVar ( UnIn, PriFile, InputFileData%GBRevers, 'GBRevers', 'Gearbox reversal flag', UnEc=UnEc )
+!
+CALL ReadCom ( UnIn, PriFile, 'unused Gearbox reversal flag', UnEc=UnEc )
 
    ! HSSBrTqF - Fully deployed HSS brake torque.
 
@@ -2823,13 +2824,13 @@ INTEGER(IntKi)               :: EchoUn
 
 
 
-      TYPE(ED_InitInputType)        :: InitInp     ! Input data for initialization routine
-      TYPE(ED_InputType)            :: u           ! An initial guess for the input; input mesh must be defined
-      TYPE(ED_ContinuousStateType)  :: x           ! Initial continuous states
-      TYPE(ED_DiscreteStateType)    :: xd          ! Initial discrete states
-      TYPE(ED_ConstraintStateType)  :: z           ! Initial guess of the constraint states
-      TYPE(ED_OutputType)           :: y           ! Initial system outputs (outputs are not calculated; only the output mesh is initialized)
-      TYPE(ED_InitOutputType)       :: InitOut     ! Output for initialization routine
+      !TYPE(ED_InitInputType)        :: InitInp     ! Input data for initialization routine
+      !TYPE(ED_InputType)            :: u           ! An initial guess for the input; input mesh must be defined
+      !TYPE(ED_ContinuousStateType)  :: x           ! Initial continuous states
+      !TYPE(ED_DiscreteStateType)    :: xd          ! Initial discrete states
+      !TYPE(ED_ConstraintStateType)  :: z           ! Initial guess of the constraint states
+      !TYPE(ED_OutputType)           :: y           ! Initial system outputs (outputs are not calculated; only the output mesh is initialized)
+      !TYPE(ED_InitOutputType)       :: InitOut     ! Output for initialization routine
 
       
 
@@ -2885,7 +2886,7 @@ CALL DispNVD( ED_Ver )
 
    ! Read the input file and validate the data
 
-CALL ED_ReadInput( PriFile, ADFile, InputFileData, .TRUE., ErrStat, ErrMsg )
+CALL ED_ReadInput( PriFile, ADFile, InputFileData, .TRUE., RootName, ErrStat, ErrMsg )
 CALL ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
 
    ! Define parameters here:

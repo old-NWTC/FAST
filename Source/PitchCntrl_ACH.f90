@@ -196,7 +196,7 @@ CASE ( 2 )                 ! Region 2 control = power control
 
 CASE ( 3 )                 ! Region 3 control = speed control
 
-   TFInput = HSS_Spd/GBRatio*RPS2RPM   ! LSS speed at gearbox entrance, rpm
+   TFInput = HSS_Spd/ABS(GBRatio)*RPS2RPM   ! LSS speed at gearbox entrance, rpm
 
 
 CASE DEFAULT               ! None of the above
