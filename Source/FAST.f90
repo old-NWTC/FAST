@@ -5,8 +5,8 @@ MODULE FASTSubs
    USE   ElastoDyn_Parameters
    USE   ElastoDyn
 
-   USE   Controls_Types
-   USE   Controls
+   USE   ServoDyn_Types
+   USE   ServoDyn
    
    USE GlueCodeVars
    
@@ -2367,7 +2367,7 @@ BlPitch = BlPitchCom
 RETURN
 END SUBROUTINE Control
 !=======================================================================
-!SUBROUTINE DrvTrTrq ( p_ED, p_Ctrl, LSS_Spd, GBoxTrq )
+!SUBROUTINE DrvTrTrq ( p_ED, p_SrvD, LSS_Spd, GBoxTrq )
 SUBROUTINE DrvTrTrq ( p, LSS_Spd, GBoxTrq )
 
 
@@ -2383,7 +2383,7 @@ IMPLICIT                        NONE
 
 
    ! Passed variables:
-TYPE(Ctrl_ParameterType),INTENT(IN) :: p                                        ! Parameters of the controls module
+TYPE(SrvD_ParameterType),INTENT(IN) :: p                                        ! Parameters of the ServoDyn module
 !TYPE(ED_outputType),INTENT(IN),optional :: y_ED                                    ! outputs of the structural dynamics module
 REAL(ReKi), INTENT(OUT)      :: GBoxTrq                                         ! Gearbox torque on the LSS side in N-m (output).
 REAL(ReKi), INTENT(IN )      :: LSS_Spd                                         ! LSS speed in rad/sec (input).
@@ -3818,7 +3818,7 @@ ENDSELECT
 RETURN
 END SUBROUTINE RFurling
 !=======================================================================
-SUBROUTINE RtHS( p, p_Ctrl, x, OtherState, u, AugMatOut )
+SUBROUTINE RtHS( p, p_SrvD, x, OtherState, u, AugMatOut )
 
 
    ! This routine is used to set up and solve the equations of motion
@@ -3842,7 +3842,7 @@ IMPLICIT                        NONE
    ! Passed variables
 
 TYPE(ED_ParameterType),      INTENT(IN)       :: p                            ! The parameters of the structural dynamics module
-TYPE(Ctrl_ParameterType),      INTENT(IN)       :: p_Ctrl                       ! The parameters of the controls module
+TYPE(SrvD_ParameterType),      INTENT(IN)       :: p_SrvD                       ! The parameters of the ServoDyn module
 TYPE(ED_ContinuousStateType),INTENT(INOUT)    :: x                            ! The structural dynamics module's continuous states
 TYPE(ED_OtherStateType),     INTENT(INOUT)    :: OtherState                   ! Other State data type for Structural dynamics module
 REAL(ReKi), OPTIONAL,          INTENT(OUT)      :: AugMatOut (p%NDOF,p%NAug)    ! The augmented matrix used for the solution of the QD2T()s.
@@ -5764,7 +5764,7 @@ MomXAllt = OtherState%RtHS%MomX0Trbt + OtherState%RtHS%MXHydrot + TmpVec2 + TmpV
 CALL Teeter  ( p, OtherState%RtHS%TeetAng, OtherState%RtHS%TeetAngVel, TeetMom ) ! Compute moment from teeter     springs and dampers, TeetMom; NOTE: TeetMom will be zero for a 3-blader since TeetAng = TeetAngVel = 0
 CALL RFurling( p, x%QT(DOF_RFrl),          x%QDT(DOF_RFrl),            RFrlMom ) ! Compute moment from rotor-furl springs and dampers, RFrlMom
 CALL TFurling( p, x%QT(DOF_TFrl),          x%QDT(DOF_TFrl),            TFrlMom ) ! Compute moment from tail-furl  springs and dampers, TFrlMom
-CALL DrvTrTrq( p_Ctrl,                     x%QDT(DOF_GeAz),            GBoxTrq ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
+CALL DrvTrTrq( p_SrvD,                     x%QDT(DOF_GeAz),            GBoxTrq ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
 
 
    ! Now that all of the partial loads have been found, lets fill in the
@@ -6843,7 +6843,7 @@ p%DOFs%SrtPSNAUG ( p%DOFs%NActvDOF + 1 ) = p%NAug
 RETURN
 END SUBROUTINE SetEnabledDOFIndexArrays
 !=======================================================================
-SUBROUTINE Solver( p, p_ctrl,x, y, OtherState, u )
+SUBROUTINE Solver( p, p_SrvD,x, y, OtherState, u )
 
 
    ! Solver solves the equations of motion by marching in time using a
@@ -6862,7 +6862,7 @@ IMPLICIT                        NONE
    ! Subroutine arguments (Passed variables):
 
 TYPE(ED_ParameterType),      INTENT(IN)       :: p                           ! The parameters of the structural dynamics module
-TYPE(Ctrl_ParameterType),      INTENT(IN)       :: p_ctrl                      ! The parameters of the controls module
+TYPE(SrvD_ParameterType),      INTENT(IN)       :: p_SrvD                      ! The parameters of the ServoDyn module
 TYPE(ED_ContinuousStateType),INTENT(INOUT)    :: x                           ! The structural dynamics module's continuous states
 TYPE(ED_OtherStateType),     INTENT(INOUT)    :: OtherState                  ! The structural dynamics "other" states (including CoordSys coordinate systems)
 TYPE(ED_OutputType),         INTENT(INOUT)    :: y                           ! System outputs of the structural dynamics module
@@ -6942,7 +6942,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    x%QT  = OtherState%Q (:,OtherState%IC(1))
    x%QDT = OtherState%QD(:,OtherState%IC(1))
 
-   CALL RtHS( p, p_ctrl, x, OtherState, u )
+   CALL RtHS( p, p_SrvD, x, OtherState, u )
 
 
    ! Compute intermediate functions to estimate next Q and QD.
@@ -6956,7 +6956,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, p_ctrl, x, OtherState, u )
+   CALL RtHS( p, p_SrvD, x, OtherState, u )
 
 
    ! Repeat above steps for each ZK, ZKD:
@@ -6970,7 +6970,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, p_ctrl, x, OtherState, u )
+   CALL RtHS( p, p_SrvD, x, OtherState, u )
 
 
    DO I = 1,p%NDOF  ! Loop through all DOFs
@@ -6982,7 +6982,7 @@ IF ( Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the si
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( p, p_ctrl, x, OtherState, u )
+   CALL RtHS( p, p_SrvD, x, OtherState, u )
 
 
    ! Compute best estimate for Q, QD at next time step using
@@ -7030,7 +7030,7 @@ ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corre
    x%QT  = OtherState%Q (:,OtherState%IC(NMX))
    x%QDT = OtherState%QD(:,OtherState%IC(NMX))
 
-   CALL RtHS( p, p_ctrl, x, OtherState, u, AugMat )
+   CALL RtHS( p, p_SrvD, x, OtherState, u, AugMat )
    
 
    OtherState%QD2(:,OtherState%IC(NMX)) = OtherState%QD2T
@@ -7068,7 +7068,7 @@ ENDIF
 x%QT  = OtherState%Q (:,OtherState%IC(NMX))
 x%QDT = OtherState%QD(:,OtherState%IC(NMX))
 
-CALL RtHS( p, p_ctrl, x, OtherState, u, AugMat )
+CALL RtHS( p, p_SrvD, x, OtherState, u, AugMat )
 
 OtherState%QD2(:,OtherState%IC(NMX)) = OtherState%QD2T
 
@@ -7298,10 +7298,10 @@ ENDSELECT
 RETURN
 END SUBROUTINE TFurling
 !=======================================================================
-SUBROUTINE TimeMarch( p_ED, p_Ctrl, x_ED, OtherSt_ED, u_ED, y_ED, ErrStat, ErrMsg  )
+SUBROUTINE TimeMarch( p_ED, p_SrvD, x_ED, OtherSt_ED, u_ED, y_ED, ErrStat, ErrMsg  )
 
 
-   ! TimeMarch controls the execution of the typical time-marching
+   ! TimeMarch ServoDyn the execution of the typical time-marching
    !   simulation of the FAST code.
 
 
@@ -7315,7 +7315,7 @@ IMPLICIT                        NONE
 
    ! passed variables
 TYPE(ED_ParameterType),      INTENT(IN)       :: p_ED                     ! The parameters of the structural dynamics module
-TYPE(Ctrl_ParameterType),      INTENT(IN)       :: p_Ctrl                     ! The parameters of the controls module
+TYPE(SrvD_ParameterType),      INTENT(IN)       :: p_SrvD                     ! The parameters of the ServoDyn module
 TYPE(ED_ContinuousStateType),INTENT(INOUT)    :: x_ED                     ! The structural dynamics module's continuous states
 TYPE(ED_OtherStateType),     INTENT(INOUT)    :: OtherSt_ED               ! The structural dynamics "other" states (including CoordSys coordinate systems)
 TYPE(ED_OutputType),         INTENT(INOUT)    :: y_ED                     ! System outputs of the structural dynamics module
@@ -7364,7 +7364,7 @@ DO
 
    ! Call predictor-corrector routine:
 
-   CALL Solver( p_ED, p_Ctrl, x_ED, y_ED, OtherSt_ED, u_ED  )
+   CALL Solver( p_ED, p_SrvD, x_ED, y_ED, OtherSt_ED, u_ED  )
 
 
    ! Make sure the rotor azimuth is not greater or equal to 360 degrees: (can't we do a mod here?)

@@ -1,6 +1,6 @@
 ###################################################################################################################################
-# Registry for Controls in the FAST Modularization Framework
-# This Registry file is used to create MODULE Controls_Types  which contains all of the user-defined types needed in Controls.
+# Registry for ServoDyn in the FAST Modularization Framework
+# This Registry file is used to create MODULE ServoDyn_Types  which contains all of the user-defined types needed in ServoDyn.
 # It also contains copy, destroy, pack, and unpack routines associated with each defined data types.
 # See the NWTC Programmer's Handbook for further information on the format/contents of this file.
 #
@@ -18,7 +18,7 @@ include	Registry_NWTC_Library.txt
 
 # ..... Input file data ...........................................................................................................
 # This is data defined in the Input File for this module (or could otherwise be passed in)
-typedef	Controls/Ctrl	Ctrl_InputFile	IntKi	DummyVal	-	-	-		-
+typedef	ServoDyn/SrvD	SrvD_InputFile	IntKi	DummyVal	-	-	-		-
 
 
 
@@ -26,7 +26,6 @@ typedef	Controls/Ctrl	Ctrl_InputFile	IntKi	DummyVal	-	-	-		-
 
 # ..... Internal data types .......................................................................................................
 
-# ..... Internal data types: Coordinate Systems ...................................................................................
 
 
 
@@ -64,7 +63,7 @@ typedef	^	^	ReKi	GenSpRZT	-	-	-	"Difference between rated and zero-torque genera
 #typedef	^	^	ReKi	GenSpRat	-	-	-	"Rated generator speed"
 #typedef	^	^	ReKi	GenSpZT	-	-	-	"Zero-torque generator speed"
 typedef	^	^	ReKi	GenTrq	-	-	-	"Electrical generator torque"
-typedef	^	^	ReKi	HSSBrDT	-	-	-	"Time it takes for HSS brake to reach full deployment once deployed"
+typedef	^	^	DbKi	HSSBrDT	-	-	-	"Time it takes for HSS brake to reach full deployment once deployed"	seconds
 typedef	^	^	ReKi	HSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-). !bjj: used to be local variable in FAST.f90/Subroutine DrvTrTrq()"
 typedef	^	^	ReKi	HSSBrTqF	-	-	-	"Fully deployed HSS brake torque"
 typedef	^	^	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"
@@ -95,8 +94,8 @@ typedef	^	^	ReKi	TEC_V1a	-	-	-	"Source voltage for Thevenin-equivalent circuit"
 typedef	^	^	ReKi	TEC_VLL	-	-	-	"Line-to-line RMS voltage for Thevenin-equivalent circuit"
 typedef	^	^	ReKi	TEC_Xe1	-	-	-	"Thevenin's equivalent stator leakage reactance (ohms)"
 typedef	^	^	IntKi	TEC_NPol	-	-	-	"Number of poles for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	GBRatio	-	-	-	"Gearbox ratio"
-typedef	^	^	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"
+typedef	^	^	ReKi	GBRatio	-	-	-	"Gearbox ratio"	"shouldn't need to be here ((only in structural)"
+typedef	^	^	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"	"shouldn't need to be here ((only in structural)"
 typedef	^	^	ReKi	GenEff	-	-	-	"Generator efficiency"
 # parameters from TurbCont
 typedef	^	^	ReKi	BlPitch	{:}	-	-	"Initial and current blade pitch angles"
@@ -107,19 +106,19 @@ typedef	^	^	ReKi	BlPitchI	{:}	-	-	"Initial blade pitch angles at the start of th
 typedef	^	^	ReKi	NacYawF	-	-	-	"Final yaw angle after override yaw maneuver"
 typedef	^	^	ReKi	SpdGenOn	-	-	-	"Generator speed to turn on the generator for a startup"
 typedef	^	^	ReKi	TBDepISp	{:}	-	-	"Deployment-initiation speed for the tip brakes"
-typedef	^	^	ReKi	THSSBrDp	-	-	-	"Time to initiate deployment of the shaft brake"	s
-typedef	^	^	ReKi	THSSBrFl	-	-	-	"Time at which shaft brake is fully deployed"	s
-typedef	^	^	ReKi	TiDynBrk	-	-	-	"Time to initiate deployment of the dynamic generator brake"	s
-typedef	^	^	ReKi	TimGenOf	-	-	-	"Time to turn off generator for braking or modeling a run-away"	s
-typedef	^	^	ReKi	TimGenOn	-	-	-	"Time to turn on generator for startup"	s
-typedef	^	^	ReKi	TPCOn	-	-	-	"Time to enable active pitch control"	s
-typedef	^	^	ReKi	TPitManE	{:}	-	-	"Time to end pitch maneuvers for each blade"	s
-typedef	^	^	ReKi	TPitManS	{:}	-	-	"Time to start pitch maneuvers for each blade"	s
-typedef	^	^	ReKi	TTpBrDp	{:}	-	-	"Times to initiate deployment of tip brakes"	s
-typedef	^	^	ReKi	TTpBrFl	{:}	-	-	"Times at which tip brakes are fully deployed"	s
-typedef	^	^	ReKi	TYawManE	-	-	-	"Time to end override yaw maneuver"	s
-typedef	^	^	ReKi	TYawManS	-	-	-	"Time to start override yaw maneuver"	s
-typedef	^	^	ReKi	TYCOn	-	-	-	"Time to enable active yaw control"	s
+typedef	^	^	DbKi	THSSBrDp	-	-	-	"Time to initiate deployment of the shaft brake"	s
+typedef	^	^	DbKi	THSSBrFl	-	-	-	"Time at which shaft brake is fully deployed"	s
+typedef	^	^	DbKi	TiDynBrk	-	-	-	"Time to initiate deployment of the dynamic generator brake"	s
+typedef	^	^	DbKi	TimGenOf	-	-	-	"Time to turn off generator for braking or modeling a run-away"	s
+typedef	^	^	DbKi	TimGenOn	-	-	-	"Time to turn on generator for startup"	s
+typedef	^	^	DbKi	TPCOn	-	-	-	"Time to enable active pitch control"	s
+typedef	^	^	DbKi	TPitManE	{:}	-	-	"Time to end pitch maneuvers for each blade"	s
+typedef	^	^	DbKi	TPitManS	{:}	-	-	"Time to start pitch maneuvers for each blade"	s
+typedef	^	^	DbKi	TTpBrDp	{:}	-	-	"Times to initiate deployment of tip brakes"	s
+typedef	^	^	DbKi	TTpBrFl	{:}	-	-	"Times at which tip brakes are fully deployed"	s
+typedef	^	^	DbKi	TYawManE	-	-	-	"Time to end override yaw maneuver"	s
+typedef	^	^	DbKi	TYawManS	-	-	-	"Time to start override yaw maneuver"	s
+typedef	^	^	DbKi	TYCOn	-	-	-	"Time to enable active yaw control"	s
 typedef	^	^	ReKi	VS_Rgn2K	-	-	-	"Generator torque constant in Region 2 (HSS side)"	N-m/rpm^2
 typedef	^	^	ReKi	VS_RtGnSp	-	-	-	"Rated generator speed (HSS side)"	rpm
 typedef	^	^	ReKi	VS_RtTq	-	-	-	"Rated generator torque/constant generator torque in Region 3 (HSS side)"	N-m

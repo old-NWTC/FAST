@@ -46,9 +46,6 @@ typedef	^	^	ReKi	BldFl1Sh	{:}	-	-	"Blade-flap-mode-1 shape coefficients"
 typedef	^	^	ReKi	BldFl2Sh	{:}	-	-	"Blade-flap-mode-2 shape coefficients"
 typedef	^	^	ReKi	BldEdgSh	{:}	-	-	"Blade-edge-mode shape coefficients"
 typedef	^	^	LOGICAL	CalcBMode	-	-	-	"T: calculate blade mode shapes internally, F: use blade mode shapes from the blade file"
-#typedef	^	^	ReKi	AdjBlMs	-	-	-	"Factor to adjust blade mass density"
-#typedef	^	^	ReKi	AdjEdSt	-	-	-	"Factor to adjust edge stiffness"
-#typedef	^	^	ReKi	AdjFlSt	-	-	-	"Factor to adjust flap stiffness"
 
 # ..... Blade Mesh Input file data ...........................................................................................................
 typedef	ElastoDyn/ED	ED_BladeMeshInputData	IntKi	BldNodes	-	-	-	"Number of blade nodes used for analysis"	-
@@ -59,60 +56,107 @@ typedef	^	^	ReKi	Chord	{:}	-	-	"Chord of the blade at the analysis nodes"
 
 # ..... Input file data ...........................................................................................................
 # This is data defined in the Input File for this module (or could otherwise be passed in)
-#typedef	^	ED_InputFile	ReKi	BlPitchInit	{:}	-	-	"Initial blade pitch angles at the start of the simulation"
-#typedef	^	ED_InputFile	ReKi	NacYaw	-	-	-	"Initial or fixed nacelle-yaw angle"
-#typedef	^	ED_InputFile	ReKi	QAzimInit	-	-	-	"Initial value of the internal generator azimuth DOF (Q(DOF_GeAz))"
-typedef	ElastoDyn/ED	ED_InputFile	ReKi	Azimuth	-	-	-	"Initial azimuth angle for blade 1"
-typedef	^	ED_InputFile	IntKi	BldGagNd	9	-	-	"Nodes closest to the blade strain gages"
-#typedef	^	ED_InputFile	IntKi	BldNodes	-	-	-	"Number of blade nodes used in the analysis"	-
-typedef	^	ED_InputFile	ReKi	Delta3	-	0.0	-	"Delta-3 angle for teetering rotors"
-typedef	^	ED_InputFile	LOGICAL	DrTrDOF	-	-	-	"Drivetrain rotational-flexibility DOF"
-typedef	ElastoDyn/ED	ED_InputFile	DbKi	ED_DT	{:}	-	-	"Requested integration time for ElastoDyn"	-
-typedef	^	ED_InputFile	LOGICAL	EdgeDOF	-	-	-	"Edgewise blade mode DOF"
-typedef	^	ED_InputFile	LOGICAL	FlapDOF1	-	-	-	"First flapwise blade mode DOF"
-typedef	^	ED_InputFile	LOGICAL	FlapDOF2	-	-	-	"Second flapwise blade mode DOF"
-typedef	^	ED_InputFile	LOGICAL	Furling	-	-	-	"Read in additional model properties for furling turbine?"
-typedef	^	ED_InputFile	LOGICAL	GBRevers	-	-	-	"Gearbox reversal flag"
-typedef	^	ED_InputFile	LOGICAL	GenDOF	-	-	-	"Generator DOF"
-typedef	^	ED_InputFile	ReKi	HubIner	-	-	-	"Hub inertia about teeter axis (2-blader) or rotor axis (3-blader)"
-typedef	^	ED_InputFile	BladeInputData	InpBl	{:}	-	-	"Input data for individual blades"	-
-typedef	^	ED_InputFile	ED_BladeMeshInputData	InpBlMesh	{:}	-	-	"Input data for blade discretizations (could be on each blade)"
-typedef	^	ED_InputFile	ReKi	IPDefl	-	-	-	"Initial in-plane blade-tip deflection"
-typedef	^	ED_InputFile	ReKi	NacYIner	-	-	-	"Nacelle yaw inertia"
-typedef	^	ED_InputFile	ReKi	NcIMUxn	-	-	-	"Downwind distance from the tower-top to the nacelle IMU"
-typedef	^	ED_InputFile	ReKi	NcIMUyn	-	-	-	"Lateral distance from the tower-top to the nacelle IMU"
-typedef	^	ED_InputFile	ReKi	NcIMUzn	-	-	-	"Vertical distance from the tower-top to the nacelle IMU"
-typedef	^	ED_InputFile	IntKi	NumBl	-	-	-	"Number of blades"
-typedef	^	ED_InputFile	ReKi	OoPDefl	-	-	-	"Initial out-of-plane blade-tip displacement"
-typedef	ElastoDyn/ED	ED_InputFile	CHARACTER(10)	OutList	{:}	-	-	"List of user-requested output channels"
-typedef	^	ED_InputFile	ReKi	PtfmCM	-	0.0	-	"Downward distance from the ground [onshore] or MSL [offshore] to the platform CM. (Initialized to zero b/c not all models read in PtfmFile)"
-typedef	^	ED_InputFile	ReKi	PtfmHeave	-	0.0	-	"Initial or fixed vertical heave translational displacement of platform (Initialized to zero b/c not all models will read in PtfmFile)"
-typedef	^	ED_InputFile	LOGICAL	PtfmHvDOF	-	.FALSE.	-	"Platform vertical heave translation DOF (Initialized to .FALSE. b/c not all models will read in PtfmFile)"
-typedef	^	ED_InputFile	LOGICAL	PtfmPDOF	-	.FALSE.	-	"Platform pitch tilt rotation DOF (Initialized to .FALSE. b/c not all models will read in PtfmFile)"
-typedef	^	ED_InputFile	ReKi	PtfmPitch	-	0.0	-	"Initial or fixed pitch tilt rotational displacement of platform. (Initialized to zero b/c not all models will read in PtfmFile)"
-typedef	^	ED_InputFile	LOGICAL	PtfmRDOF	-	.FALSE.	-	"Platform roll tilt rotation DOF (Initialized to .FALSE. b/c not all models will read in PtfmFile)"
-typedef	^	ED_InputFile	ReKi	PtfmRoll	-	0.0	-	"Initial or fixed roll tilt rotational displacement of platform. (Initialized to zero b/c not all models will read in PtfmFile)"	radians
-typedef	^	ED_InputFile	LOGICAL	PtfmSgDOF	-	.FALSE.	-	"Platform horizontal surge translation DOF (Initialized to .FALSE. b/c not all models will read in PtfmFile)"
-typedef	^	ED_InputFile	ReKi	PtfmSurge	-	0.0	-	"Initial or fixed horizontal surge translational displacement of platform. (Initialized to zero b/c not all models will read in PtfmFile)"	radians
-typedef	^	ED_InputFile	ReKi	PtfmSway	-	0.0	-	"Initial or fixed horizontal sway translational displacement of platform. (Initialized to zero b/c not all models will read in PtfmFile)"	radians
-typedef	^	ED_InputFile	LOGICAL	PtfmSwDOF	-	.FALSE.	-	"Platform horizontal sway translation DOF (Initialized to .FALSE. b/c not all models will read in PtfmFile)"
-typedef	^	ED_InputFile	ReKi	PtfmYaw	-	0.0	-	"Initial or fixed yaw rotational displacement of platform. (Initialized to zero b/c not all models will read in PtfmFile)"
-typedef	^	ED_InputFile	LOGICAL	PtfmYDOF	-	.FALSE.	-	"Platform yaw rotation DOF (Initialized to .FALSE. b/c not all models will read in PtfmFile)"
-typedef	^	ED_InputFile	ReKi	RotSpeed	-	-	-	"Initial or fixed rotor speed"	rad/sec
+# ..... Primary Input file data ...........................................................................................................
+typedef	ElastoDyn/ED	ED_InputFile	DbKi	ED_DT	-	-	-	"Requested integration time for ElastoDyn"	seconds
+typedef	^	ED_InputFile	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
+typedef	^	ED_InputFile	LOGICAL	FlapDOF1	-	-	-	"First flapwise blade mode DOF"	-
+typedef	^	ED_InputFile	LOGICAL	FlapDOF2	-	-	-	"Second flapwise blade mode DOF"	-
+typedef	^	ED_InputFile	LOGICAL	EdgeDOF	-	-	-	"Edgewise blade mode DOF"	-
+typedef	^	ED_InputFile	LOGICAL	TeetDOF	-	-	-	"Rotor-teeter DOF"	-
+typedef	^	ED_InputFile	LOGICAL	DrTrDOF	-	-	-	"Drivetrain rotational-flexibility DOF"	-
+typedef	^	ED_InputFile	LOGICAL	GenDOF	-	-	-	"Generator DOF"	-
+typedef	^	ED_InputFile	LOGICAL	YawDOF	-	-	-	"Nacelle-yaw DOF"	-
+typedef	^	ED_InputFile	LOGICAL	TwFADOF1	-	-	-	"First tower fore-aft bending-mode DOF"	-
+typedef	^	ED_InputFile	LOGICAL	TwFADOF2	-	-	-	"Second tower fore-aft bending-mode DOF"	-
+typedef	^	ED_InputFile	LOGICAL	TwSSDOF1	-	-	-	"First tower side-to-side bending-mode DOF"	-
+typedef	^	ED_InputFile	LOGICAL	TwSSDOF2	-	-	-	"Second tower side-to-side bending-mode DOF"	-
+typedef	^	ED_InputFile	LOGICAL	PtfmSgDOF	-	-	-	"Platform horizontal surge translation DOF"	-
+typedef	^	ED_InputFile	LOGICAL	PtfmSwDOF	-	-	-	"Platform horizontal sway translation DOF"	-
+typedef	^	ED_InputFile	LOGICAL	PtfmHvDOF	-	-	-	"Platform vertical heave translation DOF"	-
+typedef	^	ED_InputFile	LOGICAL	PtfmRDOF	-	-	-	"Platform roll tilt rotation DOF"	-
+typedef	^	ED_InputFile	LOGICAL	PtfmPDOF	-	-	-	"Platform pitch tilt rotation DOF"	-
+typedef	^	ED_InputFile	LOGICAL	PtfmYDOF	-	-	-	"Platform yaw rotation DOF"	-
+typedef	^	ED_InputFile	ReKi	OoPDefl	-	-	-	"Initial out-of-plane blade-tip displacement"	meters
+typedef	^	ED_InputFile	ReKi	IPDefl	-	-	-	"Initial in-plane blade-tip deflection"	meters
+typedef	^	ED_InputFile	ReKi	BlPitch	{:}	-	-	"Initial blade pitch angles"	radians
+typedef	^	ED_InputFile	ReKi	TeetDefl	-	-	-	"Initial teeter angle"	radians
+typedef	^	ED_InputFile	ReKi	Azimuth	-	-	-	"Initial azimuth angle for blade 1"	degrees????
+typedef	^	ED_InputFile	ReKi	RotSpeed	-	-	-	"Initial rotor speed"	rad/sec
+#typedef	^	ED_InputFile	ReKi	NacYaw	-	-	-	"Initial nacelle-yaw angle"	radians
+typedef	^	ED_InputFile	ReKi	TTDspFA	-	-	-	"Initial fore-aft tower-top displacement"	meters
+typedef	^	ED_InputFile	ReKi	TTDspSS	-	-	-	"Initial side-to-side tower-top displacement"	meters
+typedef	^	ED_InputFile	ReKi	PtfmSurge	-	-	-	"Initial horizontal surge translational displacement of platform"	meters
+typedef	^	ED_InputFile	ReKi	PtfmSway	-	-	-	"Initial horizontal sway translational displacement of platform"	meters
+typedef	^	ED_InputFile	ReKi	PtfmHeave	-	-	-	"Initial vertical heave translational displacement of platform"	meters
+typedef	^	ED_InputFile	ReKi	PtfmRoll	-	-	-	"Initial roll tilt rotational displacement of platform"	radians
+typedef	^	ED_InputFile	ReKi	PtfmPitch	-	-	-	"Initial pitch tilt rotational displacement of platform"	radians
+typedef	^	ED_InputFile	ReKi	PtfmYaw	-	-	-	"Initial yaw rotational displacement of platform"	radians
+typedef	^	ED_InputFile	IntKi	NumBl	-	-	-	"Number of blades"	-
+typedef	^	ED_InputFile	ReKi	TipRad	-	-	-	"Preconed blade-tip radius (distance from the rotor apex to the blade tip)"	meters
+typedef	^	ED_InputFile	ReKi	HubRad	-	-	-	"Preconed hub radius (distance from the rotor apex to the blade root)"	meters
+typedef	^	ED_InputFile	ReKi	PreCone	{:}	-	-	"Rotor precone angles"	radians
+typedef	^	ED_InputFile	ReKi	HubCM	-	-	-	"Distance from rotor apex to hub mass"	meters
+typedef	^	ED_InputFile	ReKi	UndSling	-	-	-	"Undersling length"	meters
+typedef	^	ED_InputFile	ReKi	Delta3	-	0.0	-	"Delta-3 angle for teetering rotors"	radians
 typedef	^	ED_InputFile	ReKi	ShftTilt	-	-	-	"Rotor shaft tilt angle"	radians
-typedef	^	ED_InputFile	LOGICAL	TabDelim	-	-	-	"Flag to cause tab-delimited output"	-
-typedef	^	ED_InputFile	ReKi	TeetDefl	-	0.0	-	"Initial or fixed teeter angle. (Initialized to zero b/c the 3-blader requires it to be zero)"
-typedef	^	ED_InputFile	LOGICAL	TeetDOF	-	.FALSE.	-	"Rotor-teeter DOF (Initialized to .FALSE. b/c the 3-blader requires it to be .FALSE.)"
-typedef	^	ED_InputFile	ReKi	TTDspFA	-	-	-	"Initial fore-aft tower-top displacement"
-typedef	^	ED_InputFile	ReKi	TTDspSS	-	-	-	"Initial side-to-side tower-top displacement"
-typedef	^	ED_InputFile	LOGICAL	TwFADOF1	-	-	-	"First tower fore-aft bending-mode DOF"
-typedef	^	ED_InputFile	LOGICAL	TwFADOF2	-	-	-	"Second tower fore-aft bending-mode DOF"
-typedef	^	ED_InputFile	ReKi	Twr2Shft	-	0.0	-	"Vertical distance from the tower-top to the rotor shaft"
-typedef	^	ED_InputFile	IntKi	TwrGagNd	9	-	-	"Nodes closest to the tower strain gages"
-typedef	^	ED_InputFile	IntKi	TwrNodes	-	-	-	"Number of tower nodes used in the analysis"
-typedef	^	ED_InputFile	LOGICAL	TwSSDOF1	-	-	-	"First tower side-to-side bending-mode DOF"
-typedef	^	ED_InputFile	LOGICAL	TwSSDOF2	-	-	-	"Second tower side-to-side bending-mode DOF"
-typedef	^	ED_InputFile	LOGICAL	YawDOF	-	-	-	"Nacelle-yaw DOF"
+typedef	^	ED_InputFile	ReKi	OverHang	-	-	-	"Distance from yaw axis to rotor apex or teeter pin"	meters
+typedef	^	ED_InputFile	ReKi	ShftGagL	-	-	-	"Distance from hub or teeter pin to shaft strain gages"	meters
+typedef	^	ED_InputFile	ReKi	NacCMxn	-	-	-	"Downwind distance from tower-top to nacelle CM"	meters
+typedef	^	ED_InputFile	ReKi	NacCMyn	-	-	-	"Lateral distance from tower-top to nacelle CM"	meters
+typedef	^	ED_InputFile	ReKi	NacCMzn	-	-	-	"Vertical distance from tower-top to nacelle CM"	meters
+typedef	^	ED_InputFile	ReKi	NcIMUxn	-	-	-	"Downwind distance from the tower-top to the nacelle IMU"	meters
+typedef	^	ED_InputFile	ReKi	NcIMUyn	-	-	-	"Lateral distance from the tower-top to the nacelle IMU"	meters
+typedef	^	ED_InputFile	ReKi	NcIMUzn	-	-	-	"Vertical distance from the tower-top to the nacelle IMU"	meters
+typedef	^	ED_InputFile	ReKi	Twr2Shft	-	0.0	-	"Vertical distance from the tower-top to the rotor shaft"	meters
+typedef	^	ED_InputFile	ReKi	TowerHt	-	-	-	"Height of tower above ground level"	meters
+typedef	^	ED_InputFile	ReKi	TwrDraft	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection"	meters
+typedef	^	ED_InputFile	ReKi	TwrRBHt	-	-	-	"Tower rigid base height"	meters
+typedef	^	ED_InputFile	ReKi	PtfmCM	-	0.0	-	"Downward distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
+typedef	^	ED_InputFile	ReKi	PtfmRef	-	0.0	-	"Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point"	meters
+typedef	^	ED_InputFile	ReKi	AzimB1Up	-	-	-	"Azimuth value to use for I/O when blade 1 points up"	degrees
+typedef	^	ED_InputFile	ReKi	TipMass	{:}	-	-	"Tip-brake masses"	kg
+typedef	^	ED_InputFile	ReKi	HubMass	-	-	-	"Hub mass"	kg
+typedef	^	ED_InputFile	ReKi	HubIner	-	-	-	"Hub inertia about teeter axis (2-blader) or rotor axis (3-blader)"	"kg m^2"
+typedef	^	ED_InputFile	ReKi	GenIner	-	-	-	"Generator inertia about HSS"	"kg m^2"
+typedef	^	ED_InputFile	ReKi	NacMass	-	-	-	"Nacelle mass"	kg
+typedef	^	ED_InputFile	ReKi	NacYIner	-	-	-	"Nacelle yaw inertia"	"kg m^2"
+typedef	^	ED_InputFile	ReKi	YawBrMass	-	-	-	"Yaw bearing mass"	kg
+typedef	^	ED_InputFile	ReKi	PtfmMass	-	-	-	"Platform mass"	kg
+typedef	^	ED_InputFile	ReKi	PtfmRIner	-	-	-	"Platform inertia for roll tilt rotation about the platform CM"	"kg m^2"
+typedef	^	ED_InputFile	ReKi	PtfmPIner	-	-	-	"Platform inertia for pitch tilt rotation about the platform CM"	"kg m^2"
+typedef	^	ED_InputFile	ReKi	PtfmYIner	-	-	-	"Platform inertia for yaw rotation about the platform CM"	"kg m^2"
+typedef	^	ED_InputFile	ED_BladeMeshInputData	InpBlMesh	{:}	-	-	"Input data for blade discretizations (could be on each blade)"	"see BladeMeshInputData"
+typedef	^	ED_InputFile	BladeInputData	InpBl	{:}	-	-	"Input data for individual blades"	"see BladeInputData type"
+typedef	^	ED_InputFile	IntKi	TeetMod	-	-	-	"Rotor-teeter spring/damper model switch"	-
+typedef	^	ED_InputFile	ReKi	TeetDmpP	-	-	-	"Rotor-teeter damper position"	radians
+typedef	^	ED_InputFile	ReKi	TeetDmp	-	-	-	"Rotor-teeter damping constant"	N-m/(rad/s)
+typedef	^	ED_InputFile	ReKi	TeetCDmp	-	-	-	"Rotor-teeter rate-independent Coulomb-damping"	N-m
+typedef	^	ED_InputFile	ReKi	TeetSStP	-	-	-	"Rotor-teeter soft-stop position"	radians
+typedef	^	ED_InputFile	ReKi	TeetHStP	-	-	-	"Rotor-teeter hard-stop position"	radians
+typedef	^	ED_InputFile	ReKi	TeetSSSp	-	-	-	"Rotor-teeter soft-stop linear-spring constant"	N-m/rad
+typedef	^	ED_InputFile	ReKi	TeetHSSp	-	-	-	"Rotor-teeter hard-stop linear-spring constant"	N-m/rad
+typedef	^	ED_InputFile	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"	%
+typedef	^	ED_InputFile	ReKi	GBRatio	-	-	-	"Gearbox ratio"	-
+#typedef	^	ED_InputFile	LOGICAL	GBRevers	-	-	-	"Gearbox reversal flag"	-
+typedef	^	ED_InputFile	ReKi	DTTorSpr	-	-	-	"Drivetrain torsional spring"	N-m/rad
+typedef	^	ED_InputFile	ReKi	DTTorDmp	-	-	-	"Drivetrain torsional damper"	N-m/(rad/s)
+typedef	^	ED_InputFile	LOGICAL	Furling	-	-	-	"Use Additional Furling parameters?"	?? NECESSARY?
+typedef	^	ED_InputFile	ReKi	YawSpr	-	-	-	"Nacelle-yaw spring constant"	N-m/rad
+typedef	^	ED_InputFile	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"	N-m/(rad/s)
+typedef	^	ED_InputFile	IntKi	TwrNodes	-	-	-	"Number of tower nodes used in the analysis"	-
+typedef	^	ED_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName>_ElastoDyn.sum"	-
+typedef	^	ED_InputFile	IntKi	ED_OutFile	-	-	-	"Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both)"	-
+#typedef	^	ED_InputFile	IntKi	OutFileFmt	-	-	-	"Format for module tabular (time-marching) output: (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both)"	-
+typedef	^	ED_InputFile	LOGICAL	TabDelim	-	-	-	"Flag to cause tab-delimited text output (delimited by space otherwise)"	-
+typedef	^	ED_InputFile	CHARACTER(20)	OutFmt	-	-	-	"Format used for module's text tabult output (except time); resulting field should be 10 characters"	-
+typedef	^	ED_InputFile	DbKi	Tstart	-	-	-	"Time to start module's tabular output"	seconds
+typedef	^	ED_InputFile	IntKi	DecFact	-	-	-	"Decimation factor for module's tabular output (1=output every step)"	-
+typedef	^	ED_InputFile	IntKi	NTwGages	-	-	-	"Number of tower strain gages"	-
+typedef	^	ED_InputFile	IntKi	TwrGagNd	9	-	-	"Nodes closest to the tower strain gages"	-
+typedef	^	ED_InputFile	IntKi	NBlGages	-	-	-	"Number of blade strain gages"	-
+typedef	^	ED_InputFile	IntKi	BldGagNd	9	-	-	"Nodes closest to the blade strain gages"	-
+typedef	^	ED_InputFile	IntKi	NumOuts	-	0	-	"Number of parameters in the output list (number of outputs requested)"	-
+typedef	^	ED_InputFile	CHARACTER(10)	OutList	{:}	-	-	"List of user-requested output channels"	-
 
 # ..... Tower Input file data ...........................................................................................................
 typedef	^	ED_InputFile	IntKi	NTwInpSt	-	-	-	"Number of tower input stations"	-
@@ -196,12 +240,6 @@ typedef	^	ED_InputFile	ReKi	TFrlUSDP	-	-	-	"Tail-furl up-stop damper position"	r
 typedef	^	ED_InputFile	ReKi	TFrlDSDP	-	-	-	"Tail-furl down-stop damper position"	radians
 typedef	^	ED_InputFile	ReKi	TFrlUSDmp	-	-	-	"Tail-furl up-stop damping constant"	N-m/(rad/s)
 typedef	^	ED_InputFile	ReKi	TFrlDSDmp	-	-	-	"Tail-furl down-stop damping constant"	N-m/(rad/s)
-
-
-
-
-
-
 
 
 
@@ -691,7 +729,7 @@ typedef	^	^	ReKi	DTTorSpr	-	-	-	"Drivetrain torsional spring"
 typedef	^	^	ReKi	GBRatio	-	-	-	"Gearbox ratio"
 typedef	^	^	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"
 typedef	^	^	ReKi	GenEff	-	-	-	"Generator efficiency"	"shouldn't need to be here (only in controls)"
-typedef	^	^	IntKi	GenDir	-	-	-	"Direction of the generator = +/- 1 (+ 1 = same direction as LSS; -1 = opposite direction of LSS)"
+#typedef	^	^	IntKi	GenDir	-	-	-	"Direction of the generator = +/- 1 (+ 1 = same direction as LSS; -1 = opposite direction of LSS)"
 # parameters from Initial Conditions
 typedef	^	^	ReKi	RotSpeed	-	-	-	"Initial or fixed rotor speed"	rad/sec
 # Misc parameters

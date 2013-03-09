@@ -4,8 +4,8 @@ MODULE FAST_IO_Subs
    USE   ElastoDyn_Parameters
    USE   ElastoDyn_Types
    USE   ElastoDyn
-use Controls
-use Controls_Types
+use ServoDyn
+use ServoDyn_Types
    
    USE GlueCodeVars
    
@@ -1307,7 +1307,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the TTpBrDp array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, TTpBrDp, p%NumBl, 'TTpBrDp', 'Time to initiate deployment of tip brakes', UnEc=UnEc )
+CALL ReadAryLines ( UnIn, PriFile, TTpBrDp, p%NumBl, 'TTpBrDp', 'Time to initiate deployment of tip brakes', ErrStat, ErrMsg, UnEc=UnEc )
 
 DO K=1,p%NumBl
    IF ( TTpBrDp(K) < 0.0   )  THEN
@@ -1327,7 +1327,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the TBDepISp array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, TBDepISp, p%NumBl, 'TBDepISp', 'Deployment-initiation speed for the tip brakes', UnEc=UnEc )
+CALL ReadAryLines ( UnIn, PriFile, TBDepISp, p%NumBl, 'TBDepISp', 'Deployment-initiation speed for the tip brakes', ErrStat, ErrMsg, UnEc=UnEc )
 
 DO K=1,p%NumBl
    IF ( TBDepISp(K) < 0.0 )  THEN
@@ -1367,7 +1367,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the TPitManS array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, TPitManS, p%NumBl, 'TPitManS', 'Time to start pitch maneuvers', UnEc=UnEc )
+CALL ReadAryLines ( UnIn, PriFile, TPitManS, p%NumBl, 'TPitManS', 'Time to start pitch maneuvers', ErrStat, ErrMsg, UnEc=UnEc )
 
 DO K=1,p%NumBl
    IF ( TPitManS(K) < 0.0 )  CALL ProgAbort ( ' TPitManS('//TRIM( Num2LStr( K ) )//') must not be negative.' )
@@ -1385,7 +1385,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the TPitManE array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, TPitManE, p%NumBl, 'TPitManE', 'Time to end pitch maneuvers', UnEc=UnEc )
+CALL ReadAryLines ( UnIn, PriFile, TPitManE, p%NumBl, 'TPitManE', 'Time to end pitch maneuvers', ErrStat, ErrMsg,  UnEc=UnEc )
 
 DO K=1,p%NumBl
    IF ( TPitManE(K) <TPitManS(K) )  &
@@ -1404,7 +1404,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BlPitch array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, BlPitch, p%NumBl, 'BlPitch', 'Initial pitch angle', UnEc=UnEc )
+CALL ReadAryLines ( UnIn, PriFile, BlPitch, p%NumBl, 'BlPitch', 'Initial pitch angle', ErrStat, ErrMsg, UnEc=UnEc )
 
 DO K=1,p%NumBl
    IF ( ( BlPitch(K) <= -180.0 ) .OR. ( BlPitch(K) > 180.0 ) )  THEN
@@ -1424,7 +1424,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BlPitchF array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, BlPitchF, p%NumBl, 'BlPitchF', 'Final pitch angle for maneuvers', UnEc=UnEc )
+CALL ReadAryLines ( UnIn, PriFile, BlPitchF, p%NumBl, 'BlPitchF', 'Final pitch angle for maneuvers', ErrStat, ErrMsg, UnEc=UnEc )
 
 IF ( p%NumBl == 2 )  THEN
    CALL ReadCom ( UnIn, PriFile, 'unused BlPitchF(3)', UnEc=UnEc )
@@ -1740,7 +1740,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the PreCone array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, p%PreCone, p%NumBl, 'PreCone', 'Blade coning angle', UnEc=UnEc )
+CALL ReadAryLines ( UnIn, PriFile, p%PreCone, p%NumBl, 'PreCone', 'Blade coning angle', ErrStat, ErrMsg, UnEc=UnEc )
 
 DO K=1,p%NumBl
    IF ( ( p%PreCone(K) <= -90.0 ) .OR. ( p%PreCone(K) >= 90.0 ) )  THEN
@@ -1799,7 +1799,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the TipMass array.' )
 ENDIF
 
-CALL ReadAryLines ( UnIn, PriFile, p%TipMass, p%NumBl, 'TipMass', 'Tip-brake mass', UnEc=UnEc )
+CALL ReadAryLines ( UnIn, PriFile, p%TipMass, p%NumBl, 'TipMass', 'Tip-brake mass', ErrStat, ErrMsg, UnEc=UnEc )
 
 DO K=1,p%NumBl
    IF ( p%TipMass(K) < 0.0 )  THEN
@@ -2274,7 +2274,7 @@ IF ( Sttus /= 0 )  THEN
    CALL ProgAbort ( ' Error allocating memory for the BldFile array.' )
 ENDIF
 
-CALL ReadAryLines( UnIn, PriFile, BldFile, p%NumBl, 'BldFile', 'Names of files containing blade properties', UnEc=UnEc )
+CALL ReadAryLines( UnIn, PriFile, BldFile, p%NumBl, 'BldFile', 'Names of files containing blade properties', ErrStat, ErrMsg, UnEc=UnEc )
 
 DO K=1,p%NumBl
    IF ( LEN_TRIM( BldFile(K) ) == 0 )  THEN
@@ -2776,7 +2776,7 @@ CLOSE ( UnIn )
 RETURN
 END SUBROUTINE GetPtfm
 !=======================================================================
-SUBROUTINE FAST_Input( p, p_ctrl, OtherState, InputFileData, ErrStat, ErrMsg )
+SUBROUTINE FAST_Input( p, p_SrvD, OtherState, InputFileData, ErrStat, ErrMsg )
 
 
    ! This routine reads the input files and does some preliminary processing.
@@ -2805,7 +2805,7 @@ IMPLICIT                        NONE
 
    ! passed variables
 TYPE(ED_ParameterType), INTENT(INOUT) :: p                                 ! Parameter data type for structural dynamics module
-TYPE(Ctrl_ParameterType), INTENT(INOUT) :: p_Ctrl                            ! Parameter data type for controls module
+TYPE(SrvD_ParameterType), INTENT(INOUT) :: p_SrvD                            ! Parameter data type for ServoDyn module
 TYPE(ED_OtherStateType),INTENT(INOUT) :: OtherState                        ! Other State data type for Structural dynamics module
 TYPE(ED_InputFile),     INTENT(OUT)   :: InputFileData                     ! all the data in the ElastoDyn input file
 INTEGER,          INTENT(OUT),OPTIONAL  :: ErrStat                           ! Error status
@@ -3010,10 +3010,10 @@ CALL AeroInput(p)             ! Read in the ADFile
 
 
    ! bjj: these should be moved later...
-p_Ctrl%NumBl   = p%NumBl   
-p_Ctrl%GBRatio = p%GBRatio
-p_Ctrl%GBoxEff = p%GBoxEff
-p_Ctrl%GenEff  = p%GenEff
+p_SrvD%NumBl   = p%NumBl   
+p_SrvD%GBRatio = p%GBRatio
+p_SrvD%GBoxEff = p%GBoxEff
+p_SrvD%GenEff  = p%GenEff
 
 RETURN
 END SUBROUTINE FAST_Input

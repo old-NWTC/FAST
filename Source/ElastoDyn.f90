@@ -4032,8 +4032,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
       ! BldFlDmp - Blade structural damping ratios in flapwise direction.
 
    CALL ReadAryLines( UnIn, BldFile, BladeKInputFileData%BldFlDmp, SIZE(BladeKInputFileData%BldFlDmp), 'BldFlDmp', &
-                                       'Blade structural damping ratios in flapwise direction', ErrStat2, UnEc  )
-      ErrMsg2 = ' Error reading BldFlDmp array from '//TRIM(BldFile)//'.'
+                                       'Blade structural damping ratios in flapwise direction', ErrStat2, ErrMsg2, UnEc  )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -4042,8 +4041,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
       ! BldEdDmp - Blade structural damping ratios in edgewise direction.
 
    CALL ReadAryLines( UnIn, BldFile, BladeKInputFileData%BldEdDmp, SIZE(BladeKInputFileData%BldEdDmp), 'BldEdDmp', &
-                                       'Blade structural damping ratios in edgewise direction', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading BldEdDmp array from '//TRIM(BldFile)//'.'
+                                       'Blade structural damping ratios in edgewise direction', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -4060,8 +4058,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
       ! FlStTunr(1) - Blade flapwise modal stiffness tuners.
 
    CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%FlStTunr, SIZE(BladeKInputFileData%FlStTunr), 'FlStTunr', &
-                                                  'Blade flapwise modal stiffness tuners', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading FlStTunr array from '//TRIM(BldFile)//'.'
+                                                  'Blade flapwise modal stiffness tuners', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -4180,8 +4177,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
 
       ! BldFl1Sh - Blade-flap mode-1 shape coefficients.
    CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldFl1Sh, SIZE(BladeKInputFileData%BldFl1Sh), 'BldFl1Sh', &
-                           'Blade-flap mode-1 shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading BldFl1Sh array from '//TRIM(BldFile)//'.'
+                           'Blade-flap mode-1 shape coefficients', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -4189,8 +4185,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
       ! BldFl2Sh - Blade-flap mode-2 shape coefficients.
 
    CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldFl2Sh, SIZE(BladeKInputFileData%BldFl2Sh), 'BldFl2Sh', &
-                    'Blade-flap mode-2 shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading BldFl2Sh array from '//TRIM(BldFile)//'.'
+                    'Blade-flap mode-2 shape coefficients', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -4198,8 +4193,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
       ! BldEdgSh - Blade-edge mode shape coefficients.
 
    CALL ReadAryLines ( UnIn, BldFile, BladeKInputFileData%BldEdgSh, SIZE(BladeKInputFileData%BldEdgSh), 'BldEdgSh', &
-                     'Blade-edge mode shape coefficients', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading BldEdgSh array from '//TRIM(BldFile)//'.'
+                     'Blade-edge mode shape coefficients', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5115,8 +5109,7 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
       ! TwrFADmp - Tower fore-aft structural damping ratios.
 
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrFADmp, SIZE(InputFileData%TwrFADmp), 'TwrFADmp', &
-                                     'Tower fore-aft structural damping ratios (%)', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwrFADmp array from '//TRIM(TwrFile)//'.'
+                                     'Tower fore-aft structural damping ratios (%)', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5124,8 +5117,7 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
       ! TwrSSDmp - Tower side-to-side structural damping ratios.
 
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrSSDmp, SIZE(InputFileData%TwrSSDmp), 'TwrSSDmp', &
-                                     'Tower side-to-side structural damping ratios (%)', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwrSSDmp array from '//TRIM(TwrFile)//'.'
+                                     'Tower side-to-side structural damping ratios (%)', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5141,16 +5133,14 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
 
       ! FAStTunr - Tower fore-aft modal stiffness tuners.
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%FAStTunr, SIZE(InputFileData%FAStTunr), 'FAStTunr', &
-                                     'Tower fore-aft modal stiffness tuners (-)', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading FAStTunr array from '//TRIM(TwrFile)//'.'
+                                     'Tower fore-aft modal stiffness tuners (-)', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
 
       ! SSStTunr - Tower side-to-side modal stiffness tuners.
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%SSStTunr, SIZE(InputFileData%SSStTunr), 'SSStTunr', &
-                                     'Tower side-to-side modal stiffness tuners (-)', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading SSStTunr array from '//TRIM(TwrFile)//'.'
+                                     'Tower side-to-side modal stiffness tuners (-)', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5257,16 +5247,14 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
 
       ! TwFAM1Sh - Tower fore-aft mode-1 shape coefficients.
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwFAM1Sh, SIZE(InputFileData%TwFAM1Sh), 'TwFAM1Sh', &
-                           'Tower fore-aft mode-1 shape coefficients (-)', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwFAM1Sh array from '//TRIM(TwrFile)//'.'
+                           'Tower fore-aft mode-1 shape coefficients (-)', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
 
       ! TwFAM2Sh - Tower fore-aft mode-2 shape coefficients.
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwFAM2Sh, SIZE(InputFileData%TwFAM2Sh), 'TwFAM2Sh', &
-                           'Tower fore-aft mode-2 shape coefficients  (-)', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwFAM2Sh array from '//TRIM(TwrFile)//'.'
+                           'Tower fore-aft mode-2 shape coefficients  (-)', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5283,8 +5271,7 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
 
       ! TwSSM1Sh - Tower side-to-side mode-1 shape coefficients.
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwSSM1Sh, SIZE(InputFileData%TwSSM1Sh), 'TwSSM1Sh', &
-                           'Tower side-to-side mode-1 shape coefficients (-)', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwSSM1Sh array from '//TRIM(TwrFile)//'.'
+                           'Tower side-to-side mode-1 shape coefficients (-)', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5292,8 +5279,7 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
 
       ! TwSSM2Sh - Tower side-to-side mode-2 shape coefficients.
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwSSM2Sh, SIZE(InputFileData%TwSSM2Sh), 'TwSSM2Sh', &
-                           'Tower side-to-side mode-2 shape coefficients (-)', ErrStat2, UnEc )
-      ErrMsg2 = ' Error reading TwSSM2Sh array from '//TRIM(TwrFile)//'.'
+                           'Tower side-to-side mode-2 shape coefficients (-)', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5361,6 +5347,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    
       ! Local variables:
    INTEGER(IntKi)               :: I                                         ! loop counter
+   INTEGER(IntKi)               :: NumOuts                                   ! Number of output channel names read from the file 
    INTEGER(IntKi)               :: UnIn                                      ! Unit number for reading file
      
    INTEGER(IntKi)               :: ErrStat2                                  ! Temporary Error status
@@ -5368,7 +5355,6 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                   ! Temporary Error message
    CHARACTER(1024)              :: PriPath                                   ! Path name of the primary file
    CHARACTER(1024)              :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
-
    
       ! Get an available unit number for the file.
 
@@ -5385,137 +5371,663 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       
    CALL GetPath( InputFile, PriPath )    ! Input files will be relative to the path where the primary input file is located.
 
-   !
-   !! Read the lines up/including to the "Echo" simulation control variable
-   !! If echo is FALSE, don't write these lines to the echo file. 
-   !! If Echo is TRUE, rewind and write on the second try.
-   !
-   !I    = 1
-   !Echo = .FALSE.
-   !UnEc = -1
-   !DO 
-   !!-------------------------- HEADER ---------------------------------------------
-   !
-   !   CALL ReadCom( UnIn, InputFile,                   'File Header: Module Version (line 1)', ErrStat2, ErrMsg2, UnEc )
-   !      CALL CheckError( ErrStat2, ErrMsg2 )
-   !      IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !   CALL ReadStr( UnIn, InputFile, FTitle, 'FTitle', 'File Header: File Description (line 2)', ErrStat2, ErrMsg2, UnEc )
-   !      CALL CheckError( ErrStat2, ErrMsg2 )
-   !      IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !
-   !!-------------------------- SIMULATION CONTROL PARAMETERS ----------------------
-   !
-   !   CALL ReadCom( UnIn, InputFile, 'Section header: Simulation Control', ErrStat2, ErrMsg2, UnEc )
-   !      CALL CheckError( ErrStat2, ErrMsg2 )
-   !      IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !      ! Echo - Echo input to "echo.out".
-   !
-   !   CALL ReadVar( UnIn, InputFile, Echo, 'Echo',   'Echo switch', ErrStat2, ErrMsg2, UnEc )
-   !      CALL CheckError( ErrStat2, ErrMsg2 )
-   !      IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !
-   !   IF (.NOT. Echo .OR. I > 1) EXIT !exit this loop
-   !
-   !      ! Otherwise, open the echo file, then rewind the input file and echo everything we've read
-   !   
-   !   I = I + 1         ! make sure we do this only once (increment counter that says how many times we've read this file)
-   !
-   !   CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat2, ErrMsg2, ED_Ver )
-   !      CALL CheckError( ErrStat2, ErrMsg2 )
-   !      IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !   CALL WrScr( ' Heading of the '//TRIM(ED_Ver%Name)//' input file: '//TRIM( FTitle ) )      
-   !   IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Data from '//TRIM(ED_Ver%Name)//' primary input file "'//TRIM( InputFile )//'":'
-   !
-   !   REWIND( UnIn, IOSTAT=ErrStat2 )   
-   !      CALL CheckError( ErrID_Fatal, 'Error rewinding file "'//TRIM(InputFile)//'".' )
-   !      IF ( ErrStat >= AbortErrLev ) RETURN
-   !   
-   !END DO    
-   !                          
-   !CALL ReadVar( UnIn, InputFile, InputFileData%ED_DT, 'ED_DT',  'Integration time step (s)', ErrStat2, ErrMsg2, UnEc )
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !!-------------------------- ENVIRONMENTAL CONDITION ----------------------
-   !
-   !CALL ReadCom( UnIn, InputFile, 'Section header: Environmental Condition', ErrStat2, ErrMsg2, UnEc )
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-   !
-   !
-   !CALL ReadVar( UnIn, InputFile, InputFileData%Gravity, 'Gravity',  'Gravity (m/s^2)', ErrStat2, ErrMsg2, UnEc )
-   !   CALL CheckError( ErrStat2, ErrMsg2 )
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-   !      
-   !
-   !!-------------------------- ENVIRONMENTAL CONDITION ----------------------
-      
-      
-   !  -------------- HEADER -------------------------------------------------------
-   ! NumBl: line 9
-   ! platform = line 132
-   ! tower: line 135
-   ! furling line 142
-   ! blades: lines 158-160
-   
-   DO I = 1,5
-      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2, UnEc  )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-   END DO
-
-   CALL ReadVar ( UnIn, InputFile, Echo, 'Echo', 'Echo to file?', ErrStat2, ErrMsg2, UnEc )
+      ! Allocate arrays for input, based on maximum allowed number of blades and outputs
+   CALL AllocAry( InputFileData%BlPitch, MaxBl, 'BlPitch input array', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-      IF ( Echo ) THEN
-!         CALL OpenEcho ( UnEc, TRIM(RootName)//'.ech', ErrStat2, ErrMsg2, ED_Ver )
-         CALL OpenEcho ( UnEc, 'Temp.ech', ErrStat2, ErrMsg2, ED_Ver )
-            CALL CheckError( ErrStat2, ErrMsg2 )
-            IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL AllocAry( InputFileData%PreCone, MaxBl, 'Precone input array', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+   CALL AllocAry( InputFileData%TipMass, MaxBl, 'TipMass input array', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   CALL AllocAry( InputFileData%OutList, MaxOutPts, "ElastoDyn Input File's Outlist", ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      
+   ! Read the lines up/including to the "Echo" simulation control variable
+   ! If echo is FALSE, don't write these lines to the echo file. 
+   ! If Echo is TRUE, rewind and write on the second try.
+   
+   I    = 1
+   Echo = .FALSE.
+   UnEc = -1
+   DO 
+   !-------------------------- HEADER ---------------------------------------------
+   
+      CALL ReadCom( UnIn, InputFile, 'File header: Module Version (line 1)', ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+      CALL ReadStr( UnIn, InputFile, FTitle, 'FTitle', 'File Header: File Description (line 2)', ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   
+   !---------------------- SIMULATION CONTROL --------------------------------------
+   
+      CALL ReadCom( UnIn, InputFile, 'Section header: Simulation Control', ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+         ! Echo - Echo input to "<RootName>.ech".
+   
+      CALL ReadVar( UnIn, InputFile, Echo, 'Echo',   'Echo switch', ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   
+      IF (.NOT. Echo .OR. I > 1) EXIT !exit this loop
+   
+         ! Otherwise, open the echo file, then rewind the input file and echo everything we've read
+      
+      I = I + 1         ! make sure we do this only once (increment counter that says how many times we've read this file)
+   
+      CALL OpenEcho ( UnEc, TRIM(OutFileRoot)//'.ech', ErrStat2, ErrMsg2, ED_Ver )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+      CALL WrScr( ' Heading of the '//TRIM(ED_Ver%Name)//' input file: '//TRIM( FTitle ) )      
+      IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Data from '//TRIM(ED_Ver%Name)//' primary input file "'//TRIM( InputFile )//'":'
+   
+      REWIND( UnIn, IOSTAT=ErrStat2 )   
+         CALL CheckError( ErrID_Fatal, 'Error rewinding file "'//TRIM(InputFile)//'".' )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      
+   END DO    
+                             
+
+      ! ED_DT - Requested integration time for ElastoDyn (seconds):
+   CALL ReadVar( UnIn, InputFile, InputFileData%ED_DT, "ED_DT", "Requested integration time for ElastoDyn (seconds)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN   
+      
+   !---------------------- ENVIRONMENTAL CONDITION ---------------------------------
+   
+   CALL ReadCom( UnIn, InputFile, 'Section header: Environmental Condition', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   
+      ! Gravity - Gravitational acceleration (m/s^2):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Gravity, "Gravity", "Gravitational acceleration (m/s^2)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN         
+   
+   !---------------------- FEATURE FLAGS -------------------------------------------
+
+   CALL ReadCom( UnIn, InputFile, 'Section header: Feature Flags', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+      ! FlapDOF1 - First flapwise blade mode DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%FlapDOF1, "FlapDOF1", "First flapwise blade mode DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! FlapDOF2 - Second flapwise blade mode DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%FlapDOF2, "FlapDOF2", "Second flapwise blade mode DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! EdgeDOF - Edgewise blade mode DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%EdgeDOF, "EdgeDOF", "Edgewise blade mode DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TeetDOF - Rotor-teeter DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetDOF, "TeetDOF", "Rotor-teeter DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! DrTrDOF - Drivetrain rotational-flexibility DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%DrTrDOF, "DrTrDOF", "Drivetrain rotational-flexibility DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! GenDOF - Generator DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%GenDOF, "GenDOF", "Generator DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! YawDOF - Nacelle-yaw DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%YawDOF, "YawDOF", "Nacelle-yaw DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TwFADOF1 - First tower fore-aft bending-mode DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TwFADOF1, "TwFADOF1", "First tower fore-aft bending-mode DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TwFADOF2 - Second tower fore-aft bending-mode DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TwFADOF2, "TwFADOF2", "Second tower fore-aft bending-mode DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TwSSDOF1 - First tower side-to-side bending-mode DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TwSSDOF1, "TwSSDOF1", "First tower side-to-side bending-mode DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TwSSDOF2 - Second tower side-to-side bending-mode DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TwSSDOF2, "TwSSDOF2", "Second tower side-to-side bending-mode DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmSgDOF - Platform horizontal surge translation DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmSgDOF, "PtfmSgDOF", "Platform horizontal surge translation DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmSwDOF - Platform horizontal sway translation DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmSwDOF, "PtfmSwDOF", "Platform horizontal sway translation DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmHvDOF - Platform vertical heave translation DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmHvDOF, "PtfmHvDOF", "Platform vertical heave translation DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmRDOF - Platform roll tilt rotation DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmRDOF, "PtfmRDOF", "Platform roll tilt rotation DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmPDOF - Platform pitch tilt rotation DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmPDOF, "PtfmPDOF", "Platform pitch tilt rotation DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmYDOF - Platform yaw rotation DOF (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmYDOF, "PtfmYDOF", "Platform yaw rotation DOF (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   
+   !---------------------- INITIAL CONDITIONS --------------------------------------
+
+   CALL ReadCom( UnIn, InputFile, 'Section header: Initial Conditions', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN  
+   
+      ! OoPDefl - Initial out-of-plane blade-tip displacement (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%OoPDefl, "OoPDefl", "Initial out-of-plane blade-tip displacement (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! IPDefl - Initial in-plane blade-tip deflection (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%IPDefl, "IPDefl", "Initial in-plane blade-tip deflection (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! BlPitch - Initial blade pitch angles (deg) (read from file in degrees and converted to radians here):
+   CALL ReadAryLines( UnIn, InputFile, InputFileData%BlPitch, MaxBl, "BlPitch", "Initial blade pitch angles (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%BlPitch = InputFileData%BlPitch*D2R
+
+      ! TeetDefl - Initial teeter angle (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetDefl, "TeetDefl", "Initial teeter angle (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%TeetDefl = InputFileData%TeetDefl*D2R
+
+      ! Azimuth - Initial azimuth angle for blade 1 (degrees????):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Azimuth, "Azimuth", "Initial azimuth angle for blade 1 (degrees????)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! RotSpeed - Initial rotor speed (rad/sec):
+   CALL ReadVar( UnIn, InputFile, InputFileData%RotSpeed, "RotSpeed", "Initial rotor speed (rad/sec)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TTDspFA - Initial fore-aft tower-top displacement (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TTDspFA, "TTDspFA", "Initial fore-aft tower-top displacement (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TTDspSS - Initial side-to-side tower-top displacement (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TTDspSS, "TTDspSS", "Initial side-to-side tower-top displacement (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmSurge - Initial horizontal surge translational displacement of platform (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmSurge, "PtfmSurge", "Initial horizontal surge translational displacement of platform (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmSway - Initial horizontal sway translational displacement of platform (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmSway, "PtfmSway", "Initial horizontal sway translational displacement of platform (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmHeave - Initial vertical heave translational displacement of platform (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmHeave, "PtfmHeave", "Initial vertical heave translational displacement of platform (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmRoll - Initial roll tilt rotational displacement of platform (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmRoll, "PtfmRoll", "Initial roll tilt rotational displacement of platform (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%PtfmRoll = InputFileData%PtfmRoll*D2R
+
+      ! PtfmPitch - Initial pitch tilt rotational displacement of platform (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmPitch, "PtfmPitch", "Initial pitch tilt rotational displacement of platform (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%PtfmPitch = InputFileData%PtfmPitch*D2R
+
+      ! PtfmYaw - Initial yaw rotational displacement of platform (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmYaw, "PtfmYaw", "Initial yaw rotational displacement of platform (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%PtfmYaw = InputFileData%PtfmYaw*D2R
+   
+   !---------------------- TURBINE CONFIGURATION -----------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section header: Turbine Configuration', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! NumBl - Number of blades (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NumBl, "NumBl", "Number of blades (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TipRad - Preconed blade-tip radius (distance from the rotor apex to the blade tip) (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TipRad, "TipRad", "Preconed blade-tip radius (distance from the rotor apex to the blade tip) (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! HubRad - Preconed hub radius (distance from the rotor apex to the blade root) (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%HubRad, "HubRad", "Preconed hub radius (distance from the rotor apex to the blade root) (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PreCone - Rotor precone angles (deg) (read from file in degrees and converted to radians here):
+   CALL ReadAryLines( UnIn, InputFile, InputFileData%PreCone, MaxBl, "PreCone", "Rotor precone angles (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%PreCone = InputFileData%PreCone*D2R
+
+      ! HubCM - Distance from rotor apex to hub mass (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%HubCM, "HubCM", "Distance from rotor apex to hub mass (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! UndSling - Undersling length (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%UndSling, "UndSling", "Undersling length (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! Delta3 - Delta-3 angle for teetering rotors (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Delta3, "Delta3", "Delta-3 angle for teetering rotors (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%Delta3 = InputFileData%Delta3*D2R
+
+      ! ShftTilt - Rotor shaft tilt angle (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%ShftTilt, "ShftTilt", "Rotor shaft tilt angle (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%ShftTilt = InputFileData%ShftTilt*D2R
+
+      ! OverHang - Distance from yaw axis to rotor apex or teeter pin (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%OverHang, "OverHang", "Distance from yaw axis to rotor apex or teeter pin (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! ShftGagL - Distance from hub or teeter pin to shaft strain gages (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%ShftGagL, "ShftGagL", "Distance from hub or teeter pin to shaft strain gages (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NacCMxn - Downwind distance from tower-top to nacelle CM (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NacCMxn, "NacCMxn", "Downwind distance from tower-top to nacelle CM (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NacCMyn - Lateral distance from tower-top to nacelle CM (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NacCMyn, "NacCMyn", "Lateral distance from tower-top to nacelle CM (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NacCMzn - Vertical distance from tower-top to nacelle CM (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NacCMzn, "NacCMzn", "Vertical distance from tower-top to nacelle CM (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NcIMUxn - Downwind distance from the tower-top to the nacelle IMU (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NcIMUxn, "NcIMUxn", "Downwind distance from the tower-top to the nacelle IMU (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NcIMUyn - Lateral distance from the tower-top to the nacelle IMU (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NcIMUyn, "NcIMUyn", "Lateral distance from the tower-top to the nacelle IMU (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NcIMUzn - Vertical distance from the tower-top to the nacelle IMU (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NcIMUzn, "NcIMUzn", "Vertical distance from the tower-top to the nacelle IMU (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! Twr2Shft - Vertical distance from the tower-top to the rotor shaft (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Twr2Shft, "Twr2Shft", "Vertical distance from the tower-top to the rotor shaft (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TowerHt - Height of tower above ground level (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TowerHt, "TowerHt", "Height of tower above ground level (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TwrDraft - Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TwrDraft, "TwrDraft", "Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TwrRBHt - Tower rigid base height (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TwrRBHt, "TwrRBHt", "Tower rigid base height (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmCM - Downward distance from the ground [onshore] or MSL [offshore] to the platform CM (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmCM, "PtfmCM", "Downward distance from the ground [onshore] or MSL [offshore] to the platform CM (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmRef - Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmRef, "PtfmRef", "Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point (meters)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! AzimB1Up - Azimuth value to use for I/O when blade 1 points up (degrees):
+   CALL ReadVar( UnIn, InputFile, InputFileData%AzimB1Up, "AzimB1Up", "Azimuth value to use for I/O when blade 1 points up (degrees)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   !---------------------- MASS AND INERTIA ----------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section header: Mass and Inertia', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! TipMass - Tip-brake masses (kg):
+   CALL ReadAryLines( UnIn, InputFile, InputFileData%TipMass, MaxBl, "TipMass", "Tip-brake masses (kg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! HubMass - Hub mass (kg):
+   CALL ReadVar( UnIn, InputFile, InputFileData%HubMass, "HubMass", "Hub mass (kg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! HubIner - Hub inertia about teeter axis (2-blader) or rotor axis (3-blader) (kg m^2):
+   CALL ReadVar( UnIn, InputFile, InputFileData%HubIner, "HubIner", "Hub inertia about teeter axis (2-blader) or rotor axis (3-blader) (kg m^2)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! GenIner - Generator inertia about HSS (kg m^2):
+   CALL ReadVar( UnIn, InputFile, InputFileData%GenIner, "GenIner", "Generator inertia about HSS (kg m^2)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NacMass - Nacelle mass (kg):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NacMass, "NacMass", "Nacelle mass (kg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NacYIner - Nacelle yaw inertia (kg m^2):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NacYIner, "NacYIner", "Nacelle yaw inertia (kg m^2)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! YawBrMass - Yaw bearing mass (kg):
+   CALL ReadVar( UnIn, InputFile, InputFileData%YawBrMass, "YawBrMass", "Yaw bearing mass (kg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmMass - Platform mass (kg):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmMass, "PtfmMass", "Platform mass (kg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmRIner - Platform inertia for roll tilt rotation about the platform CM (kg m^2):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmRIner, "PtfmRIner", "Platform inertia for roll tilt rotation about the platform CM (kg m^2)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmPIner - Platform inertia for pitch tilt rotation about the platform CM (kg m^2):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmPIner, "PtfmPIner", "Platform inertia for pitch tilt rotation about the platform CM (kg m^2)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! PtfmYIner - Platform inertia for yaw rotation about the platform CM (kg m^2):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmYIner, "PtfmYIner", "Platform inertia for yaw rotation about the platform CM (kg m^2)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+   !---------------------- BLADE ---------------------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section header: Blade', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN     
+      
+      ! InpBl - Blade file Input data for individual blades (see BladeInputData type):
+   DO I = 1,MaxBl
+      CALL ReadVar ( UnIn, InputFile, BldFile(I), 'BldFile('//TRIM(Num2Lstr(I))//')', 'Name of the file containing properties for blade '//TRIM(Num2Lstr(I)), ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      IF ( PathIsRelative( BldFile(I) ) ) BldFile(I) = TRIM(PriPath)//TRIM(BldFile(I))         
+   END DO
+   
+   !---------------------- ROTOR-TEETER --------------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section header: Rotor-Teeter', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! TeetMod - Rotor-teeter spring/damper model switch (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetMod, "TeetMod", "Rotor-teeter spring/damper model switch (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TeetDmpP - Rotor-teeter damper position (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetDmpP, "TeetDmpP", "Rotor-teeter damper position (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%TeetDmpP = InputFileData%TeetDmpP*D2R
+
+      ! TeetDmp - Rotor-teeter damping constant (N-m/(rad/s)):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetDmp, "TeetDmp", "Rotor-teeter damping constant (N-m/(rad/s))", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TeetCDmp - Rotor-teeter rate-independent Coulomb-damping (N-m):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetCDmp, "TeetCDmp", "Rotor-teeter rate-independent Coulomb-damping (N-m)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TeetSStP - Rotor-teeter soft-stop position (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetSStP, "TeetSStP", "Rotor-teeter soft-stop position (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%TeetSStP = InputFileData%TeetSStP*D2R
+
+      ! TeetHStP - Rotor-teeter hard-stop position (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetHStP, "TeetHStP", "Rotor-teeter hard-stop position (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%TeetHStP = InputFileData%TeetHStP*D2R
+
+      ! TeetSSSp - Rotor-teeter soft-stop linear-spring constant (N-m/rad):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetSSSp, "TeetSSSp", "Rotor-teeter soft-stop linear-spring constant (N-m/rad)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TeetHSSp - Rotor-teeter hard-stop linear-spring constant (N-m/rad):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TeetHSSp, "TeetHSSp", "Rotor-teeter hard-stop linear-spring constant (N-m/rad)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+   !---------------------- DRIVETRAIN ----------------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section header: Drivetrain', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+      ! GBoxEff - Gearbox efficiency (%):
+   CALL ReadVar( UnIn, InputFile, InputFileData%GBoxEff, "GBoxEff", "Gearbox efficiency (%)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! GBRatio - Gearbox ratio (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%GBRatio, "GBRatio", "Gearbox ratio (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! DTTorSpr - Drivetrain torsional spring (N-m/rad):
+   CALL ReadVar( UnIn, InputFile, InputFileData%DTTorSpr, "DTTorSpr", "Drivetrain torsional spring (N-m/rad)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! DTTorDmp - Drivetrain torsional damper (N-m/(rad/s)):
+   CALL ReadVar( UnIn, InputFile, InputFileData%DTTorDmp, "DTTorDmp", "Drivetrain torsional damper (N-m/(rad/s))", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+   !---------------------- FURLING -------------------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section header: Furling', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! Furling - Use Additional Furling parameters? (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Furling, "Furling", "Use Additional Furling parameters? (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! FurlFile - Name of the file containing furling parameters:
+   CALL ReadVar ( UnIn, InputFile, FurlFile, 'FurlFile', 'Name of the file containing furling parameters', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( FurlFile ) ) FurlFile = TRIM(PriPath)//TRIM(FurlFile)         
+      
+      
+   !---------------------- NACELLE-YAW ---------------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section header: Nacelle-Yaw', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! YawSpr - Nacelle-yaw spring constant (N-m/rad):
+   CALL ReadVar( UnIn, InputFile, InputFileData%YawSpr, "YawSpr", "Nacelle-yaw spring constant (N-m/rad)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! YawDamp - Nacelle-yaw constant (N-m/(rad/s)):
+   CALL ReadVar( UnIn, InputFile, InputFileData%YawDamp, "YawDamp", "Nacelle-yaw constant (N-m/(rad/s))", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+   !---------------------- TOWER ---------------------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section header: Tower', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TwrNodes - Number of tower nodes used in the analysis (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TwrNodes, "TwrNodes", "Number of tower nodes used in the analysis (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! TwrFile - Name of the file containing tower properties:
+   CALL ReadVar ( UnIn, InputFile, TwrFile, 'TwrFile', 'Name of the file containing tower properties', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( TwrFile ) ) TwrFile = TRIM(PriPath)//TRIM(TwrFile)         
+      
+   !---------------------- OUTPUT --------------------------------------------------         
+   CALL ReadCom( UnIn, InputFile, 'Section header: Output', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+
+      ! SumPrint - Print summary data to <RootName>_ElastoDyn.sum (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%SumPrint, "SumPrint", "Print summary data to <RootName>_ElastoDyn.sum (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! ED_OutFile - Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%ED_OutFile, "ED_OutFile", "Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   !   ! OutFileFmt - Format for module tabular (time-marching) output: (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both):
+   !CALL ReadVar( UnIn, InputFile, InputFileData%OutFileFmt, "OutFileFmt", "Format for module tabular (time-marching) output: (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both)", ErrStat2, ErrMsg2, UnEc)
+   !   CALL CheckError( ErrStat2, ErrMsg2 )
+   !   IF ( ErrStat >= AbortErrLev ) RETURN      
+      
+      ! TabDelim - Flag to cause tab-delimited text output (delimited by space otherwise) (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TabDelim, "TabDelim", "Flag to cause tab-delimited text output (delimited by space otherwise) (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! OutFmt - Format used for module's text tabult output (except time); resulting field should be 10 characters (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%OutFmt, "OutFmt", "Format used for module's text tabular output (except time); resulting field should be 10 characters (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! Tstart - Time to start module's tabular output (seconds):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Tstart, "Tstart", "Time to start module's tabular output (seconds)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! DecFact - Decimation factor for module's tabular output (1=output every step) (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%DecFact, "DecFact", "Decimation factor for module's tabular output (1=output every step) (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! NTwGages - Number of tower strain gages (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NTwGages, "NTwGages", "Number of tower strain gages (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      IF ( InputFileData%NTwGages > SIZE(InputFileData%TwrGagNd) ) THEN
+         CALL CheckError( ErrID_Warn, ' Warning: number of tower strain gages exceeds '// &
+                                      TRIM(Num2LStr(SIZE(InputFileData%TwrGagNd)))//'.')
+         InputFileData%NTwGages = SIZE(InputFileData%TwrGagNd)
       END IF
-   
-   DO I = 7,134
-      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2, UnEc  )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-   END DO
-
-   CALL ReadVar ( UnIn, InputFile, TwrFile, 'TwrFile', 'Name of the tower file', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-   
-   DO I = 136,142
-      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2, UnEc  )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-   END DO
-   
-   CALL ReadVar ( UnIn, InputFile, FurlFile, 'FurlFile', 'Name of the furling file', ErrStat2, ErrMsg2, UnEc )
+      
+      ! TwrGagNd - Nodes closest to the tower strain gages (-):
+   CALL ReadAry( UnIn, InputFile, InputFileData%TwrGagNd, InputFileData%NTwGages, "TwrGagNd", "Nodes closest to the tower strain gages (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-   DO I = 144,157
-      CALL ReadCom ( UnIn, InputFile, 'Comments line', ErrStat2, ErrMsg2, UnEc  )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-   END DO
+      ! NBlGages - Number of blade strain gages (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NBlGages, "NBlGages", "Number of blade strain gages (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
-   DO I = 1,3   
-      CALL ReadVar ( UnIn, InputFile, BldFile(I), 'BldFile', 'Name of the blade file', ErrStat2, ErrMsg2, UnEc )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-   END DO
-   
-            
-      ! Close the input file:
-!PRINT *, 'Twr:', TRIM(TwrFile)
-!PRINT *, 'Furl:', TRIM(FurlFile)
-!PRINT *, 'Blades:', TRIM(BldFile(1)),TRIM(BldFile(2)),TRIM(BldFile(3))
+      IF ( InputFileData%NBlGages > SIZE(InputFileData%BldGagNd) ) THEN
+         CALL CheckError( ErrID_Warn, ' Warning: number of blade strain gages exceeds '//&
+                                        TRIM(Num2LStr(SIZE(InputFileData%BldGagNd))) //'.')
+         InputFileData%NBlGages = SIZE(InputFileData%BldGagNd)
+      END IF
+      
+      ! BldGagNd - Nodes closest to the blade strain gages (-):
+   CALL ReadAry( UnIn, InputFile, InputFileData%BldGagNd, InputFileData%NBlGages, "BldGagNd", "Nodes closest to the blade strain gages (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! OutList - List of user-requested output channels (-):
+   CALL ReadOutputList ( UnIn, InputFile, InputFileData%OutList, InputFileData%NumOuts, 'OutList', "List of user-requested output channels", ErrStat2, ErrMsg2, UnEc  )     ! Routine in NWTC Subroutine Library
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN     
+      
+   !---------------------- END OF FILE -----------------------------------------
+      
    CLOSE ( UnIn )
    RETURN
 
@@ -5537,7 +6049,7 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//NewLine//' Error in ElastoDyn ReadPrimaryFile: '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
