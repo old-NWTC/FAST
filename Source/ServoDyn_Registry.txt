@@ -18,9 +18,56 @@ include	Registry_NWTC_Library.txt
 
 # ..... Input file data ...........................................................................................................
 # This is data defined in the Input File for this module (or could otherwise be passed in)
-typedef	ServoDyn/SrvD	SrvD_InputFile	IntKi	DummyVal	-	-	-		-
-
-
+# ..... Primary Input file data ...........................................................................................................
+typedef	ServoDyn/SrvD	SrvD_InputFile	DbKi	DT	-	-	-	"Communication interval for controllers"	s
+typedef	^	SrvD_InputFile	IntKi	PCMode	-	-	-	"Pitch control mode"	-
+typedef	^	SrvD_InputFile	DbKi	TPCOn	-	-	-	"Time to enable active pitch control [unused when PCMode=0]"	s
+typedef	^	SrvD_InputFile	DbKi	TPitManS	3	-	-	"Time to start override pitch maneuver for blade (K) and end standard pitch control"	s
+typedef	^	SrvD_InputFile	DbKi	TPitManE	3	-	-	"Time at which override pitch maneuver for blade (K) reaches final pitch"	s
+typedef	^	SrvD_InputFile	ReKi	BlPitchF	3	-	-	"Blade (K) final pitch for pitch maneuvers"	degrees
+typedef	^	SrvD_InputFile	IntKi	VSContrl	-	-	-	"Variable-speed control mode"	-
+typedef	^	SrvD_InputFile	IntKi	GenModel	-	-	-	"Generator model [used only when VSContrl=0]"	-
+typedef	^	SrvD_InputFile	ReKi	GenEff	-	-	-	"Generator efficiency [ignored by the Thevenin and user-defined generator models]"	%
+typedef	^	SrvD_InputFile	LOGICAL	GenTiStr	-	-	-	"Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn}"	-
+typedef	^	SrvD_InputFile	LOGICAL	GenTiStp	-	-	-	"Method to stop the generator {T: timed using TimGenOf, F: when generator power = 0}"	-
+typedef	^	SrvD_InputFile	ReKi	SpdGenOn	-	-	-	"Generator speed to turn on the generator for a startup (HSS speed) [used only when GenTiStr=False]"	rpm
+typedef	^	SrvD_InputFile	DbKi	TimGenOn	-	-	-	"Time to turn on the generator for a startup [used only when GenTiStr=True]"	s
+typedef	^	SrvD_InputFile	DbKi	TimGenOf	-	-	-	"Time to turn off the generator [used only when GenTiStp=True]"	s
+typedef	^	SrvD_InputFile	ReKi	VS_RtGnSp	-	-	-	"Rated generator speed for simple variable-speed generator control (HSS side) [used only when VSContrl=1]"	rpm
+typedef	^	SrvD_InputFile	ReKi	VS_RtTq	-	-	-	"Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) [used only when VSContrl=1]"	N-m
+typedef	^	SrvD_InputFile	ReKi	VS_Rgn2K	-	-	-	"Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) [used only when VSContrl=1]"	N-m/rpm^2
+typedef	^	SrvD_InputFile	ReKi	VS_SlPc	-	-	-	"Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control [used only when VSContrl=1]"	%
+typedef	^	SrvD_InputFile	ReKi	SIG_SlPc	-	-	-	"Rated generator slip percentage [used only when VSContrl=0 and GenModel=1]"	%
+typedef	^	SrvD_InputFile	ReKi	SIG_SySp	-	-	-	"Synchronous (zero-torque) generator speed [used only when VSContrl=0 and GenModel=1]"	rpm
+typedef	^	SrvD_InputFile	ReKi	SIG_RtTq	-	-	-	"Rated torque [used only when VSContrl=0 and GenModel=1]"	N-m
+typedef	^	SrvD_InputFile	ReKi	SIG_PORt	-	-	-	"Pull-out ratio (Tpullout/Trated) [used only when VSContrl=0 and GenModel=1]"	-
+typedef	^	SrvD_InputFile	ReKi	TEC_Freq	-	-	-	"Line frequency [50 or 60] [used only when VSContrl=0 and GenModel=2]"	Hz
+typedef	^	SrvD_InputFile	ReKi	TEC_NPol	-	-	-	"Number of poles [even integer > 0] [used only when VSContrl=0 and GenModel=2]"	-
+typedef	^	SrvD_InputFile	ReKi	TEC_SRes	-	-	-	"Stator resistance [used only when VSContrl=0 and GenModel=2]"	ohms
+typedef	^	SrvD_InputFile	ReKi	TEC_RRes	-	-	-	"Rotor resistance [used only when VSContrl=0 and GenModel=2]"	ohms
+typedef	^	SrvD_InputFile	ReKi	TEC_VLL	-	-	-	"Line-to-line RMS voltage [used only when VSContrl=0 and GenModel=2]"	volts
+typedef	^	SrvD_InputFile	ReKi	TEC_SLR	-	-	-	"Stator leakage reactance [used only when VSContrl=0 and GenModel=2]"	ohms
+typedef	^	SrvD_InputFile	ReKi	TEC_RLR	-	-	-	"Rotor leakage reactance [used only when VSContrl=0 and GenModel=2]"	ohms
+typedef	^	SrvD_InputFile	ReKi	TEC_MR	-	-	-	"Magnetizing reactance [used only when VSContrl=0 and GenModel=2]"	ohms
+typedef	^	SrvD_InputFile	IntKi	HSSBrMode	-	-	-	"HSS brake model"	-
+typedef	^	SrvD_InputFile	DbKi	THSSBrDp	-	-	-	"Time to initiate deployment of the HSS brake"	s
+typedef	^	SrvD_InputFile	DbKi	HSSBrDT	-	-	-	"Time for HSS-brake to reach full deployment once initiated [used only when HSSBrMode=1]"	sec
+typedef	^	SrvD_InputFile	ReKi	HSSBrTqF	-	-	-	"Fully deployed HSS-brake torque"	N-m
+typedef	^	SrvD_InputFile	IntKi	YCMode	-	-	-	"Yaw control mode"	-
+typedef	^	SrvD_InputFile	DbKi	TYCOn	-	-	-	"Time to enable active yaw control [unused when YCMode=0]"	s
+typedef	^	SrvD_InputFile	ReKi	YawNeut	-	-	-	"Neutral yaw position--yaw spring force is zero at this yaw"	degrees
+typedef	^	SrvD_InputFile	ReKi	YawSpr	-	-	-	"Nacelle-yaw spring constant"	N-m/rad
+typedef	^	SrvD_InputFile	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"	N-m/(rad/s)
+typedef	^	SrvD_InputFile	DbKi	TYawManS	-	-	-	"Time to start override yaw maneuver and end standard yaw control"	s
+typedef	^	SrvD_InputFile	DbKi	TYawManE	-	-	-	"Time at which override yaw maneuver reaches final yaw angle"	s
+typedef	^	SrvD_InputFile	ReKi	NacYawF	-	-	-	"Final yaw angle for override yaw maneuvers"	degrees
+typedef	^	SrvD_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName>.fsm?"	-
+typedef	^	SrvD_InputFile	IntKi	OutFile	-	-	-	"Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both)"	-
+typedef	^	SrvD_InputFile	LOGICAL	TabDelim	-	-	-	"Use tab delimiters in text tabular output file?"	-
+typedef	^	SrvD_InputFile	CHARACTER(20)	OutFmt	-	-	-	"Format used for text tabular output (except time)"	-
+typedef	^	SrvD_InputFile	DbKi	Tstart	-	-	-	"Time to start module's tabular output"	seconds
+typedef	^	SrvD_InputFile	IntKi	NumOuts	-	-	-	"Number of parameters in the output list (number of outputs requested)"	-
+typedef	^	SrvD_InputFile	CHARACTER(10)	OutList	{:}	-	-	"List of user-requested output channels"	-
 
 
 
@@ -33,6 +80,7 @@ typedef	ServoDyn/SrvD	SrvD_InputFile	IntKi	DummyVal	-	-	-		-
 # Define inputs that the initialization routine may need here:
 typedef	^	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"	-
 typedef	^	^	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
+typedef	^	^	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"	-
 
 # Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(10)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
@@ -136,6 +184,11 @@ typedef	^	^	IntKi	YCMode	-	-	-	"Yaw control mode"
 typedef	^	^	LOGICAL	BegPitMan	{:}	-	-	".TRUE. before the override pitch manuever has begun (begin pitch manuever)"
 typedef	^	^	LOGICAL	GenTiStp	-	-	-	"Stop generator based upon T: time or F: generator power = 0"
 typedef	^	^	LOGICAL	GenTiStr	-	-	-	"Start generator based upon T: time or F: generator speed"
+# parameters for output
+typedef	^	^	IntKi	NumOuts	-	-	-	"Number of parameters in the output list (number of outputs requested)"	-
+typedef	^	^	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"	-
+typedef	^	^	OutParmType	OutParam	{:}	-	-	"Names and units (and other characteristics) of all requested output parameters"	-
+typedef	^	^	CHARACTER(1)	Delim	-	-	-	"Column delimiter for output text files"	-
 # parameters from TurbCont
 typedef	^	^	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
 

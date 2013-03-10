@@ -2892,6 +2892,8 @@ CALL ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
    ! Define parameters here:
 CALL ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )         
 CALL InitDOFs( p, ErrStat, ErrMsg )
+
+CALL Alloc_CoordSys( OtherState%CoordSys, p, ErrStat, ErrMsg )
 !---------------- END ED_INIT -------------------------------------
 
 

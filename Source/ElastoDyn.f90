@@ -1392,6 +1392,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       TYPE(ED_InputFile)                           :: InputFileData  ! Data stored in the module's input file
       LOGICAL                                      :: GetAdamsVals   ! Determines if we should read Adams values and create (update) an Adams model
 
+!bjj: ERROR CHECKING HERE!!!!
 
          ! Initialize variables
 
@@ -1422,7 +1423,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL InitDOFs( p, ErrStat, ErrMsg )
 
 
-      p%ED_DT  = Interval
+      p%DT  = Interval
 
 
          ! Define initial system states here:
@@ -1449,12 +1450,25 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       !InitOut%WriteOutputUnt = (/ '(s)',  '(-)'     /)
       !
 
+   InitOut%Ver = ED_Ver
+
+      
          ! If you want to choose your own rate instead of using what the glue code suggests, tell the glue code the rate at which
          !   this module must be called here:
 
        !Interval = p%DT
 
+      ! Initialize Other State data:
+   ! Allocate space for coordinate systems
 
+   CALL Alloc_CoordSys( OtherState%CoordSys, p, ErrStat, ErrMsg )
+     
+       
+       
+       ! Destroy the InputFileData structure (deallocate arrays)
+       
+   CALL ED_DestroyInputFile(InputFileData, ErrStat, ErrMsg )
+       
 END SUBROUTINE ED_Init
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
@@ -1911,7 +1925,11 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, Ou
    CALL ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEcho,  ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF ( ErrStat >= AbortErrLev ) RETURN
+   
       
+      ! close the echo file (if opened)
+      
+   IF ( UnEcho > 0 ) CLOSE( UnEcho )
         
 
 CONTAINS
@@ -1938,7 +1956,7 @@ CONTAINS
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................
          IF ( ErrStat >= AbortErrLev ) THEN
-            CLOSE( UnEcho )
+            IF ( UnEcho > 0 ) CLOSE( UnEcho )
          END IF
 
       END IF
@@ -2400,7 +2418,7 @@ FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
 
 END FUNCTION SHP
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE CoordSys_Alloc( CoordSys, p, ErrStat, ErrMsg )
+SUBROUTINE Alloc_CoordSys( CoordSys, p, ErrStat, ErrMsg )
 ! This subroutine allocates the coordinate systems in the ED_CoordSys type.
 !..................................................................................................................................
 
@@ -2417,7 +2435,7 @@ CHARACTER(*),             INTENT(OUT) :: ErrMsg         ! Err msg
 
    ! local variables
 
-CHARACTER(200), PARAMETER        :: ErrTxt = 'coordinate system arrays in SUBROUTINE CoordSys_Alloc.'
+CHARACTER(200), PARAMETER        :: ErrTxt = 'coordinate system arrays in SUBROUTINE Alloc_CoordSys.'
 
 
    ! Initialize ErrStat and ErrMsg
@@ -2480,7 +2498,7 @@ END IF
 
 
 RETURN
-END SUBROUTINE CoordSys_Alloc
+END SUBROUTINE Alloc_CoordSys
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Alloc_BladeMeshInputProperties( BladeKInputFileMesh, ErrStat, ErrMsg )
 ! This routine allocates arrays for the blade mesh properties from the input file
@@ -5356,6 +5374,12 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    CHARACTER(1024)              :: PriPath                                   ! Path name of the primary file
    CHARACTER(1024)              :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
    
+      ! Initialize some variables:
+   Echo = .FALSE.
+   UnEc = -1                             ! Echo file not opened, yet
+   CALL GetPath( InputFile, PriPath )    ! Input files will be relative to the path where the primary input file is located.
+
+   
       ! Get an available unit number for the file.
 
    CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
@@ -5366,10 +5390,8 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
 
    CALL OpenFInpFile ( UnIn, InputFile, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      IF ( ErrStat >= AbortErrLev ) RETURN     
       
-      
-   CALL GetPath( InputFile, PriPath )    ! Input files will be relative to the path where the primary input file is located.
 
       ! Allocate arrays for input, based on maximum allowed number of blades and outputs
    CALL AllocAry( InputFileData%BlPitch, MaxBl, 'BlPitch input array', ErrStat2, ErrMsg2 )
@@ -5393,24 +5415,19 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    ! If echo is FALSE, don't write these lines to the echo file. 
    ! If Echo is TRUE, rewind and write on the second try.
    
-   I    = 1
-   Echo = .FALSE.
-   UnEc = -1
+   I    = 1 ! the number of times we've read the file (used for the Echo variable)
    DO 
    !-------------------------- HEADER ---------------------------------------------
-   
-      CALL ReadCom( UnIn, InputFile, 'File header: Module Version (line 1)', ErrStat2, ErrMsg2, UnEc )
+      CALL ReadCom( UnIn, InputFile, 'File Header: Module Version (line 1)', ErrStat2, ErrMsg2, UnEc )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
    
       CALL ReadStr( UnIn, InputFile, FTitle, 'FTitle', 'File Header: File Description (line 2)', ErrStat2, ErrMsg2, UnEc )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
-   
-   
-   !---------------------- SIMULATION CONTROL --------------------------------------
-   
-      CALL ReadCom( UnIn, InputFile, 'Section header: Simulation Control', ErrStat2, ErrMsg2, UnEc )
+      
+   !---------------------- SIMULATION CONTROL --------------------------------------   
+      CALL ReadCom( UnIn, InputFile, 'Section Header: Simulation Control', ErrStat2, ErrMsg2, UnEc )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
    
@@ -5441,26 +5458,23 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    END DO    
                              
 
-      ! ED_DT - Requested integration time for ElastoDyn (seconds):
-   CALL ReadVar( UnIn, InputFile, InputFileData%ED_DT, "ED_DT", "Requested integration time for ElastoDyn (seconds)", ErrStat2, ErrMsg2, UnEc)
+      ! DT - Requested integration time for ElastoDyn (seconds):
+   CALL ReadVar( UnIn, InputFile, InputFileData%DT, "DT", "Requested integration time for ElastoDyn (seconds)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN   
       
    !---------------------- ENVIRONMENTAL CONDITION ---------------------------------
-   
-   CALL ReadCom( UnIn, InputFile, 'Section header: Environmental Condition', ErrStat2, ErrMsg2, UnEc )
+      CALL ReadCom( UnIn, InputFile, 'Section Header: Environmental Condition', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   
-   
+      
       ! Gravity - Gravitational acceleration (m/s^2):
    CALL ReadVar( UnIn, InputFile, InputFileData%Gravity, "Gravity", "Gravitational acceleration (m/s^2)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN         
    
-   !---------------------- FEATURE FLAGS -------------------------------------------
-
-   CALL ReadCom( UnIn, InputFile, 'Section header: Feature Flags', ErrStat2, ErrMsg2, UnEc )
+   !---------------------- DEGREES OF FREEDOM --------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Feature Flags', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
    
@@ -5548,11 +5562,9 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    CALL ReadVar( UnIn, InputFile, InputFileData%PtfmYDOF, "PtfmYDOF", "Platform yaw rotation DOF (flag)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
-   
+  
    !---------------------- INITIAL CONDITIONS --------------------------------------
-
-   CALL ReadCom( UnIn, InputFile, 'Section header: Initial Conditions', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Initial Conditions', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN  
    
@@ -5632,7 +5644,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    InputFileData%PtfmYaw = InputFileData%PtfmYaw*D2R
    
    !---------------------- TURBINE CONFIGURATION -----------------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section header: Turbine Configuration', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Turbine Configuration', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
@@ -5673,12 +5685,11 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       IF ( ErrStat >= AbortErrLev ) RETURN
    InputFileData%Delta3 = InputFileData%Delta3*D2R
 
-      ! ShftTilt - Rotor shaft tilt angle (deg) (read from file in degrees and converted to radians here):
-   CALL ReadVar( UnIn, InputFile, InputFileData%ShftTilt, "ShftTilt", "Rotor shaft tilt angle (deg)", ErrStat2, ErrMsg2, UnEc)
+      ! AzimB1Up - Azimuth value to use for I/O when blade 1 points up (degrees):
+   CALL ReadVar( UnIn, InputFile, InputFileData%AzimB1Up, "AzimB1Up", "Azimuth value to use for I/O when blade 1 points up (degrees)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   InputFileData%ShftTilt = InputFileData%ShftTilt*D2R
-
+      
       ! OverHang - Distance from yaw axis to rotor apex or teeter pin (meters):
    CALL ReadVar( UnIn, InputFile, InputFileData%OverHang, "OverHang", "Distance from yaw axis to rotor apex or teeter pin (meters)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -5688,6 +5699,12 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    CALL ReadVar( UnIn, InputFile, InputFileData%ShftGagL, "ShftGagL", "Distance from hub or teeter pin to shaft strain gages (meters)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! ShftTilt - Rotor shaft tilt angle (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%ShftTilt, "ShftTilt", "Rotor shaft tilt angle (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%ShftTilt = InputFileData%ShftTilt*D2R
 
       ! NacCMxn - Downwind distance from tower-top to nacelle CM (meters):
    CALL ReadVar( UnIn, InputFile, InputFileData%NacCMxn, "NacCMxn", "Downwind distance from tower-top to nacelle CM (meters)", ErrStat2, ErrMsg2, UnEc)
@@ -5729,13 +5746,13 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! TwrDraft - Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection (meters):
-   CALL ReadVar( UnIn, InputFile, InputFileData%TwrDraft, "TwrDraft", "Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection (meters)", ErrStat2, ErrMsg2, UnEc)
+      ! TwrRBHt - Tower rigid base height (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TwrRBHt, "TwrRBHt", "Tower rigid base height (meters)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! TwrRBHt - Tower rigid base height (meters):
-   CALL ReadVar( UnIn, InputFile, InputFileData%TwrRBHt, "TwrRBHt", "Tower rigid base height (meters)", ErrStat2, ErrMsg2, UnEc)
+      ! TwrDraft - Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TwrDraft, "TwrDraft", "Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection (meters)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5749,13 +5766,8 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! AzimB1Up - Azimuth value to use for I/O when blade 1 points up (degrees):
-   CALL ReadVar( UnIn, InputFile, InputFileData%AzimB1Up, "AzimB1Up", "Azimuth value to use for I/O when blade 1 points up (degrees)", ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-   
    !---------------------- MASS AND INERTIA ----------------------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section header: Mass and Inertia', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Mass and Inertia', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
@@ -5815,7 +5827,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       IF ( ErrStat >= AbortErrLev ) RETURN
       
    !---------------------- BLADE ---------------------------------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section header: Blade', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Blade', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN     
       
@@ -5828,7 +5840,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    END DO
    
    !---------------------- ROTOR-TEETER --------------------------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section header: Rotor-Teeter', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Rotor-Teeter', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
@@ -5876,7 +5888,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       IF ( ErrStat >= AbortErrLev ) RETURN
       
    !---------------------- DRIVETRAIN ----------------------------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section header: Drivetrain', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Drivetrain', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
    
@@ -5901,7 +5913,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       IF ( ErrStat >= AbortErrLev ) RETURN
       
    !---------------------- FURLING -------------------------------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section header: Furling', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Furling', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
@@ -5915,25 +5927,9 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
    IF ( PathIsRelative( FurlFile ) ) FurlFile = TRIM(PriPath)//TRIM(FurlFile)         
-      
-      
-   !---------------------- NACELLE-YAW ---------------------------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section header: Nacelle-Yaw', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! YawSpr - Nacelle-yaw spring constant (N-m/rad):
-   CALL ReadVar( UnIn, InputFile, InputFileData%YawSpr, "YawSpr", "Nacelle-yaw spring constant (N-m/rad)", ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! YawDamp - Nacelle-yaw constant (N-m/(rad/s)):
-   CALL ReadVar( UnIn, InputFile, InputFileData%YawDamp, "YawDamp", "Nacelle-yaw constant (N-m/(rad/s))", ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-      
+                  
    !---------------------- TOWER ---------------------------------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section header: Tower', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Tower', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -5949,22 +5945,21 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    IF ( PathIsRelative( TwrFile ) ) TwrFile = TRIM(PriPath)//TRIM(TwrFile)         
       
    !---------------------- OUTPUT --------------------------------------------------         
-   CALL ReadCom( UnIn, InputFile, 'Section header: Output', ErrStat2, ErrMsg2, UnEc )
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
 
       ! SumPrint - Print summary data to <RootName>_ElastoDyn.sum (flag):
    CALL ReadVar( UnIn, InputFile, InputFileData%SumPrint, "SumPrint", "Print summary data to <RootName>_ElastoDyn.sum (flag)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! ED_OutFile - Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) (-):
-   CALL ReadVar( UnIn, InputFile, InputFileData%ED_OutFile, "ED_OutFile", "Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) (-)", ErrStat2, ErrMsg2, UnEc)
+      ! OutFile - Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%OutFile, "OutFile", "Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-   !   ! OutFileFmt - Format for module tabular (time-marching) output: (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both):
+   !    OutFileFmt - Format for module tabular (time-marching) output: (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both):
    !CALL ReadVar( UnIn, InputFile, InputFileData%OutFileFmt, "OutFileFmt", "Format for module tabular (time-marching) output: (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both)", ErrStat2, ErrMsg2, UnEc)
    !   CALL CheckError( ErrStat2, ErrMsg2 )
    !   IF ( ErrStat >= AbortErrLev ) RETURN      

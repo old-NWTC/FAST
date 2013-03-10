@@ -57,7 +57,7 @@ typedef	^	^	ReKi	Chord	{:}	-	-	"Chord of the blade at the analysis nodes"
 # ..... Input file data ...........................................................................................................
 # This is data defined in the Input File for this module (or could otherwise be passed in)
 # ..... Primary Input file data ...........................................................................................................
-typedef	ElastoDyn/ED	ED_InputFile	DbKi	ED_DT	-	-	-	"Requested integration time for ElastoDyn"	seconds
+typedef	ElastoDyn/ED	ED_InputFile	DbKi	DT	-	-	-	"Requested integration time for ElastoDyn"	seconds
 typedef	^	ED_InputFile	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
 typedef	^	ED_InputFile	LOGICAL	FlapDOF1	-	-	-	"First flapwise blade mode DOF"	-
 typedef	^	ED_InputFile	LOGICAL	FlapDOF2	-	-	-	"Second flapwise blade mode DOF"	-
@@ -141,14 +141,12 @@ typedef	^	ED_InputFile	ReKi	GBRatio	-	-	-	"Gearbox ratio"	-
 typedef	^	ED_InputFile	ReKi	DTTorSpr	-	-	-	"Drivetrain torsional spring"	N-m/rad
 typedef	^	ED_InputFile	ReKi	DTTorDmp	-	-	-	"Drivetrain torsional damper"	N-m/(rad/s)
 typedef	^	ED_InputFile	LOGICAL	Furling	-	-	-	"Use Additional Furling parameters?"	?? NECESSARY?
-typedef	^	ED_InputFile	ReKi	YawSpr	-	-	-	"Nacelle-yaw spring constant"	N-m/rad
-typedef	^	ED_InputFile	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"	N-m/(rad/s)
 typedef	^	ED_InputFile	IntKi	TwrNodes	-	-	-	"Number of tower nodes used in the analysis"	-
 typedef	^	ED_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName>_ElastoDyn.sum"	-
-typedef	^	ED_InputFile	IntKi	ED_OutFile	-	-	-	"Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both)"	-
+typedef	^	ED_InputFile	IntKi	OutFile	-	-	-	"Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both)"	-
 #typedef	^	ED_InputFile	IntKi	OutFileFmt	-	-	-	"Format for module tabular (time-marching) output: (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both)"	-
 typedef	^	ED_InputFile	LOGICAL	TabDelim	-	-	-	"Flag to cause tab-delimited text output (delimited by space otherwise)"	-
-typedef	^	ED_InputFile	CHARACTER(20)	OutFmt	-	-	-	"Format used for module's text tabult output (except time); resulting field should be 10 characters"	-
+typedef	^	ED_InputFile	CHARACTER(20)	OutFmt	-	-	-	"Format used for module's text tabular output (except time); resulting field should be 10 characters"	-
 typedef	^	ED_InputFile	DbKi	Tstart	-	-	-	"Time to start module's tabular output"	seconds
 typedef	^	ED_InputFile	IntKi	DecFact	-	-	-	"Decimation factor for module's tabular output (1=output every step)"	-
 typedef	^	ED_InputFile	IntKi	NTwGages	-	-	-	"Number of tower strain gages"	-
@@ -472,7 +470,7 @@ typedef	^	^	ReKi	QD2T	{:}	-	-	"Solution (acceleration) vector; the first time de
 # ..... Parameters ................................................................................................................
 # Define parameters here:
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
-typedef	^	ParameterType	DbKi	ED_DT	-	-	-	"Time step for continuous state integration & discrete state update"	seconds
+typedef	^	ParameterType	DbKi	DT	-	-	-	"Time step for continuous state integration & discrete state update"	seconds
 typedef	^	^	IntKi	BldNodes	-	0	-	"Number of blade nodes used in the analysis"	-
 typedef	^	^	IntKi	TipNode	-	0	-	"Index of the additional node located at the blade tip = BldNodes + 1"	-
 typedef	^	^	IntKi	NDOF	-	0	-	"Number of total degrees of freedom (DOFs)"	-

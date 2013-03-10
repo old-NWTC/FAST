@@ -7331,19 +7331,6 @@ CHARACTER(*),                  INTENT(OUT)      :: ErrMsg                     ! 
 REAL(DbKi)                   :: TiLstPrn  = 0.0                                 ! The time of the last print.
 
 
-   ! Allocate space for coordinate systems
-
-CALL CoordSys_Alloc( OtherSt_ED%CoordSys, p_ED, ErrStat, ErrMsg )
-
-IF (ErrStat /= ErrID_none) THEN
-   CALL WrScr( ' Error in SUBROUTINE TimeMarch: ' )
-   CALL WrScr( '   '//TRIM(ErrMsg) )
-   IF ( ErrStat >= AbortErrLev ) THEN
-      CALL ProgAbort( "" )
-   END IF
-END IF
-
-
 
    ! Set up output file format.
 
