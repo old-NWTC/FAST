@@ -42,7 +42,7 @@ typedef	^	SrvD_InputFile	ReKi	SIG_SySp	-	-	-	"Synchronous (zero-torque) generato
 typedef	^	SrvD_InputFile	ReKi	SIG_RtTq	-	-	-	"Rated torque [used only when VSContrl=0 and GenModel=1]"	N-m
 typedef	^	SrvD_InputFile	ReKi	SIG_PORt	-	-	-	"Pull-out ratio (Tpullout/Trated) [used only when VSContrl=0 and GenModel=1]"	-
 typedef	^	SrvD_InputFile	ReKi	TEC_Freq	-	-	-	"Line frequency [50 or 60] [used only when VSContrl=0 and GenModel=2]"	Hz
-typedef	^	SrvD_InputFile	ReKi	TEC_NPol	-	-	-	"Number of poles [even integer > 0] [used only when VSContrl=0 and GenModel=2]"	-
+typedef	^	SrvD_InputFile	IntKi	TEC_NPol	-	-	-	"Number of poles [even integer > 0] [used only when VSContrl=0 and GenModel=2]"	-
 typedef	^	SrvD_InputFile	ReKi	TEC_SRes	-	-	-	"Stator resistance [used only when VSContrl=0 and GenModel=2]"	ohms
 typedef	^	SrvD_InputFile	ReKi	TEC_RRes	-	-	-	"Rotor resistance [used only when VSContrl=0 and GenModel=2]"	ohms
 typedef	^	SrvD_InputFile	ReKi	TEC_VLL	-	-	-	"Line-to-line RMS voltage [used only when VSContrl=0 and GenModel=2]"	volts
@@ -65,6 +65,7 @@ typedef	^	SrvD_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName
 typedef	^	SrvD_InputFile	IntKi	OutFile	-	-	-	"Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both)"	-
 typedef	^	SrvD_InputFile	LOGICAL	TabDelim	-	-	-	"Use tab delimiters in text tabular output file?"	-
 typedef	^	SrvD_InputFile	CHARACTER(20)	OutFmt	-	-	-	"Format used for text tabular output (except time)"	-
+#typedef	^	SrvD_InputFile	IntKi	OutFileFmt	-	-	-	"Format for module tabular (time-marching) output: {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}"	-
 typedef	^	SrvD_InputFile	DbKi	Tstart	-	-	-	"Time to start module's tabular output"	seconds
 typedef	^	SrvD_InputFile	IntKi	NumOuts	-	-	-	"Number of parameters in the output list (number of outputs requested)"	-
 typedef	^	SrvD_InputFile	CHARACTER(10)	OutList	{:}	-	-	"List of user-requested output channels"	-
@@ -81,6 +82,7 @@ typedef	^	SrvD_InputFile	CHARACTER(10)	OutList	{:}	-	-	"List of user-requested o
 typedef	^	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"	-
 typedef	^	^	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
 typedef	^	^	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"	-
+typedef	^	^	ReKi	BlPitchInit	-	-	-	"Initial blade pitch"	-
 
 # Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(10)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-

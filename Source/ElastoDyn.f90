@@ -1416,24 +1416,41 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
          ! Read the input file and validate the data
 
       CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, p%RootName, ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) THEN
+         CALL WrScr( ErrMsg )
+         RETURN
+      END IF
       CALL ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
-
+      IF ( ErrStat /= ErrID_None ) THEN
+         CALL WrScr( ErrMsg )
+         RETURN
+      END IF
+      
          ! Define parameters here:
       CALL ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )     
-      CALL InitDOFs( p, ErrStat, ErrMsg )
-
+      IF ( ErrStat /= ErrID_None ) THEN
+         CALL WrScr( ErrMsg )
+         RETURN
+      END IF
 
       p%DT  = Interval
 
 
          ! Define initial system states here:
 
-      xd%DummyDiscState          = 0
-      z%DummyConstrState         = 0
+               
+      xd%DummyDiscState          = 0                                             ! we don't have discrete states
+      z%DummyConstrState         = 0                                             ! we don't have constraint states
+      
+      CALL Init_ContStates( x, p, InputFileData, ErrStat, ErrMsg )               ! initialize the continuous states
+      IF ( ErrStat /= ErrID_None ) THEN
+         CALL WrScr( ErrMsg )
+         RETURN
+      END IF
 
-      ! x =
-      ! OtherState =
+      CALL Init_OtherStates( OtherState, p, InputFileData, ErrStat, ErrMsg )      ! initialize the other states
 
+      
          ! Define initial guess for the system inputs here:
 
 !      u%DummyInput = 0
@@ -1441,15 +1458,26 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
          ! Define system output initializations (set up mesh) here:
 
-      !y%WriteOutput = 0
-      !
+   ALLOCATE ( y%AllOuts(0:MaxOutPts) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'Error allocating memory for the AllOuts array.'
+      RETURN
+   ENDIF
+   y%AllOuts = 0.0      
 
          ! Define initialization-routine output here:
 
       !InitOut%WriteOutputHdr = (/ 'Time      ', 'Column2   ' /)
       !InitOut%WriteOutputUnt = (/ '(s)',  '(-)'     /)
       !
-
+   ALLOCATE ( y%WriteOutput(0:p%NumOuts) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'Error allocating memory for the ElastoDyn WriteOutput array.' 
+      RETURN
+   ENDIF
+      
    InitOut%Ver = ED_Ver
 
       
@@ -1989,25 +2017,18 @@ SUBROUTINE ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
    ErrMsg  = ''
 
 
-!!!!!!!!!!!!!!!!!!!
-      ! Check to see if any inputted output channels are ill-conditioned (and if so, Abort)
-   !    and set values for OutParam(:):
-
-  ! CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
-
-!!!!!!!!!!!!!!!!!
   
       ! validate the primary input data
+   CALL ValidatePrimaryData( InputFileData, ErrStat2, ErrMsg2 )   
+      CALL CheckError( ErrStat2, ErrMsg2 )
    
-   
-      ! validate the furling input data
-   
+      
+      ! validate the furling input data   
    CALL ValidateFurlData ( InputFileData, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       
    
       ! validate the blade input data
-
    DO K = 1,InputFileData%NumBl         
       CALL ValidateBladeData ( InputFileData%InpBl(K), ErrStat2, ErrMsg2 )
          CALL CheckError( ErrStat2, ' Errors in blade '//TRIM(Num2LStr(K))//' input data: '//NewLine//TRIM(ErrMsg2) )
@@ -2015,7 +2036,6 @@ SUBROUTINE ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
    
       
       ! validate the tower input data
-  
    CALL ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
   
@@ -2024,20 +2044,6 @@ SUBROUTINE ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
   ! CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
       
       
-      ! Check to see if all TwrGagNd(:) analysis points are existing analysis points:
-
-   IF ( ANY(InputFileData%TwrGagNd < 1_IntKi) .OR. ANY(InputFileData%TwrGagNd > InputFileData%TwrNodes) ) THEN      
-         CALL CheckError( ErrID_Fatal, ' All TwrGagNd values must be between 1 and '//&
-                        TRIM( Num2LStr( InputFileData%TwrNodes ) )//' (inclusive).' )   
-   END IF      
-   
-   
-      ! Check to see if all BldGagNd(:) analysis points are existing analysis points:
-
-   IF ( ANY(InputFileData%BldGagNd < 1_IntKi) .OR. ANY(InputFileData%BldGagNd > InputFileData%InpBlMesh(1)%BldNodes) ) THEN      
-         CALL CheckError( ErrID_Fatal, ' All BldGagNd values must be between 1 and '//&
-                        TRIM( Num2LStr( InputFileData%InpBlMesh(1)%BldNodes ) )//' (inclusive).' )   
-   END IF   
    
 
 
@@ -2089,109 +2095,32 @@ SUBROUTINE ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )
       
    
       ! Set parameters from primary input file        
-   p%NumBl = InputFileData%NumBl
-
-   IF ( p%NumBl == 2 )  THEN
-      p%NDOF = 22
-   ELSE
-      p%NDOF = 24
-   ENDIF
-
-   p%NAug = p%NDOF + 1
-   
-   CALL AllocAry( p%DOF_Flag, p%NDOF, 'DOF_Flag', ErrStat2, ErrMsg2 )
+   CALL SetPrimaryParameters( p, InputFileData, ErrStat2, ErrMsg2  )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   CALL AllocAry( p%DOF_Desc, p%NDOF, 'DOF_Desc', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+         
    
-   
-   
-   p%rZT0zt    = p%TwrRBHt + p%PtfmRef  - p%TwrDraft                               ! zt-component of position vector rZT0.
-   p%RefTwrHt  = p%TowerHt + p%PtfmRef                                             ! Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef).
-   p%TwrFlexL  = p%TowerHt + p%TwrDraft - p%TwrRBHt                                ! Height / length of the flexible portion of the tower.
-   p%BldFlexL  = p%TipRad               - p%HubRad                                 ! Length of the flexible portion of the blade.
-   p%TwoPiNB   = TwoPi/p%NumBl                                                     ! 2*Pi/NumBl is used in RtHS().
-   
-
-   CALL AllocAry( p%CosPreC, p%NumBl, 'CosPreC', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   CALL AllocAry( p%SinPreC, p%NumBl, 'SinPreC', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-   
-   p%CosPreC  = COS( p%Precone )
-   p%SinPreC  = SIN( p%Precone )
-   p%CosDel3  = COS( InputFileData%Delta3 )
-   p%SinDel3  = SIN( InputFileData%Delta3 )   
-   
-   
-
-      ! Calculate the average tip radius normal to the shaft (AvgNrmTpRd)
-      !   and the swept area of the rotor (ProjArea):
-
-   p%AvgNrmTpRd = p%TipRad*SUM(p%CosPreC)/p%NumBl     ! Average tip radius normal to the saft.
-   p%ProjArea   = pi*( p%AvgNrmTpRd**2 )              ! Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft).
-
-   p%TwrNodes  = InputFileData%TwrNodes
-   p%TwrGagNd  = InputFileData%TwrGagNd
-   !p%BldNodes  = InputFileData%BldNodes   
-   p%BldGagNd  = InputFileData%BldGagNd
-   p%RotSpeed  = InputFileData%RotSpeed               ! Rotor speed in rad/sec.
-   p%CShftTilt = COS( InputFileData%ShftTilt )
-   p%SShftTilt = SIN( InputFileData%ShftTilt )
-   
-   p%FASTHH    = p%TowerHt + InputFileData%Twr2Shft + p%OverHang*p%SShftTilt
-
-   
-   IF ( p%NumBl == 2 )  THEN
-      p%DOF_Flag(DOF_Teet) = InputFileData%TeetDOF
-      p%DOF_Desc(DOF_Teet) = 'Hub teetering DOF (internal DOF index = DOF_Teet)'      
-   END IF ! 
-   
-
-   DO K = 1,p%NumBl   
-      p%DOF_Flag( DOF_BF(K,1) ) = InputFileData%FlapDOF1      
-      p%DOF_Desc( DOF_BF(K,1) ) = '1st flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
-                                  ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',1))'
-
-      p%DOF_Flag( DOF_BE(K,1) ) = InputFileData%EdgeDOF
-      p%DOF_Desc( DOF_BE(K,1) ) = '1st edgewise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
-                                  ' (internal DOF index = DOF_BE('         //TRIM(Num2LStr( K ))//',1))'
-
-      p%DOF_Flag( DOF_BF(K,2) ) = InputFileData%FlapDOF2
-      p%DOF_Desc( DOF_BF(K,2) ) = '2nd flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
-                                  ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',2))'
-   ENDDO          ! K - All blades   
-   
-   ! plus everything else from FAST_Initialize
-
-   
-   
-      ! Set furling parameters
-      
-   CALL SetFurlParams( p, InputFileData, ErrStat, ErrMsg )
+      ! Set furling parameters      
+   CALL SetFurlParameters( p, InputFileData, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
    
 
-      ! Set blade parameters
-      
-   CALL SetBladeParams( p, InputFileData%InpBl, InputFileData%InpBlMesh, ErrStat2, ErrMsg2 )      
+      ! Set blade parameters      
+   CALL SetBladeParameters( p, InputFileData%InpBl, InputFileData%InpBlMesh, ErrStat2, ErrMsg2 )      
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
       
-      ! Set tower parameters
-      
-   CALL SetTowerParams( p, InputFileData, ErrStat2, ErrMsg2 )
+      ! Set tower parameters      
+   CALL SetTowerParameters( p, InputFileData, ErrStat2, ErrMsg2 ) ! It requires p%TwrFlexL, and p%TwrNodes to be set first.
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
    
+      
+      ! Set the remaining (calculuated) parameters (basically the former Coeff routine)
+   CALL SetOtherParameters( p, InputFileData, ErrStat2, ErrMsg2 ) ! requires MANY things to be set first
+      
    
 
 CONTAINS
@@ -2227,12 +2156,13 @@ CONTAINS
 
 END SUBROUTINE ED_SetParameters
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE InitDOFs( p, ErrStat, ErrMsg )
-! This subroutine initialized the ActiveDOF data type
-! it assumes that p%NumBl, p%NAug, and p%NDOF are set
+SUBROUTINE Init_DOFparameters( InputFileData, p, ErrStat, ErrMsg )
+! This subroutine initializes the ActiveDOF data type as well as the variables related to DOFs, including p%NAug and p%NDOF.
+! It assumes that p%NumBl is set.
 !..................................................................................................................................
 
 !   TYPE(ActiveDOFs),         INTENT(INOUT)    :: DOFs           ! ActiveDOF data
+   TYPE(ED_InputFile),       INTENT(IN)       :: InputFileData  ! Data stored in the module's input file
    TYPE(ED_ParameterType),   INTENT(INOUT)    :: p              ! The module's parameter data
    INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code
    CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
@@ -2246,6 +2176,77 @@ SUBROUTINE InitDOFs( p, ErrStat, ErrMsg )
    ErrMsg  = ''
 
 
+   IF ( p%NumBl == 2 )  THEN
+      p%NDOF = 22
+   ELSE
+      p%NDOF = 24
+   ENDIF
+   
+   p%NAug = p%NDOF + 1
+
+   ! ...........................................................................................................................
+   ! allocate and set DOF_Flag and DOF_Desc   
+   ! ...........................................................................................................................
+   CALL AllocAry( p%DOF_Flag, p%NDOF,   'DOF_Flag',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%DOF_Desc, p%NDOF,   'DOF_Desc',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   
+   
+   IF ( p%NumBl == 2 )  THEN ! the 3rd blade overwrites the DOF_Teet position of the array, so don't use an "ELSE" for this statement
+      p%DOF_Flag(DOF_Teet) = InputFileData%TeetDOF   
+      p%DOF_Desc(DOF_Teet) = 'Hub teetering DOF (internal DOF index = DOF_Teet)'  
+   END IF ! 
+   
+
+   DO K = 1,p%NumBl   
+      p%DOF_Flag( DOF_BF(K,1) ) = InputFileData%FlapDOF1      
+      p%DOF_Desc( DOF_BF(K,1) ) = '1st flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
+                                  ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',1))'
+
+      p%DOF_Flag( DOF_BE(K,1) ) = InputFileData%EdgeDOF
+      p%DOF_Desc( DOF_BE(K,1) ) = '1st edgewise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
+                                  ' (internal DOF index = DOF_BE('         //TRIM(Num2LStr( K ))//',1))'
+
+      p%DOF_Flag( DOF_BF(K,2) ) = InputFileData%FlapDOF2
+      p%DOF_Desc( DOF_BF(K,2) ) = '2nd flapwise bending-mode DOF of blade '//TRIM(Num2LStr( K ))// &
+                                  ' (internal DOF index = DOF_BF('         //TRIM(Num2LStr( K ))//',2))'
+   ENDDO          ! K - All blades   
+       
+   p%DOF_Flag(DOF_DrTr) = InputFileData%DrTrDOF
+   p%DOF_Desc(DOF_DrTr) = 'Drivetrain rotational-flexibility DOF (internal DOF index = DOF_DrTr)'
+   p%DOF_Flag(DOF_GeAz) = InputFileData%GenDOF
+   p%DOF_Desc(DOF_GeAz) = 'Variable speed generator DOF (internal DOF index = DOF_GeAz)'
+   p%DOF_Flag(DOF_RFrl) = InputFileData%RFrlDOF
+   p%DOF_Desc(DOF_RFrl) = 'Rotor-furl DOF (internal DOF index = DOF_RFrl)'
+   p%DOF_Flag(DOF_TFrl) = InputFileData%TFrlDOF
+   p%DOF_Desc(DOF_TFrl) = 'Tail-furl DOF (internal DOF index = DOF_TFrl)'
+   p%DOF_Flag(DOF_Yaw ) = InputFileData%YawDOF
+   p%DOF_Desc(DOF_Yaw ) = 'Nacelle yaw DOF (internal DOF index = DOF_Yaw)'
+   p%DOF_Flag(DOF_TFA1) = InputFileData%TwFADOF1
+   p%DOF_Desc(DOF_TFA1) = '1st tower fore-aft bending mode DOF (internal DOF index = DOF_TFA1)'
+   p%DOF_Flag(DOF_TSS1) = InputFileData%TwSSDOF1
+   p%DOF_Desc(DOF_TSS1) = '1st tower side-to-side bending mode DOF (internal DOF index = DOF_TSS1)'
+   p%DOF_Flag(DOF_TFA2) = InputFileData%TwFADOF2
+   p%DOF_Desc(DOF_TFA2) = '2nd tower fore-aft bending mode DOF (internal DOF index = DOF_TFA2)'
+   p%DOF_Flag(DOF_TSS2) = InputFileData%TwSSDOF2
+   p%DOF_Desc(DOF_TSS2) = '2nd tower side-to-side bending mode DOF (internal DOF index = DOF_TSS2)'
+   p%DOF_Flag(DOF_Sg  ) = InputFileData%PtfmSgDOF
+   p%DOF_Desc(DOF_Sg  ) = 'Platform horizontal surge translation DOF (internal DOF index = DOF_Sg)'
+   p%DOF_Flag(DOF_Sw  ) = InputFileData%PtfmSwDOF
+   p%DOF_Desc(DOF_Sw  ) = 'Platform horizontal sway translation DOF (internal DOF index = DOF_Sw)'
+   p%DOF_Flag(DOF_Hv  ) = InputFileData%PtfmHvDOF
+   p%DOF_Desc(DOF_Hv  ) = 'Platform vertical heave translation DOF (internal DOF index = DOF_Hv)'
+   p%DOF_Flag(DOF_R   ) = InputFileData%PtfmRDOF
+   p%DOF_Desc(DOF_R   ) = 'Platform roll tilt rotation DOF (internal DOF index = DOF_R)'
+   p%DOF_Flag(DOF_P   ) = InputFileData%PtfmPDOF
+   p%DOF_Desc(DOF_P   ) = 'Platform pitch tilt rotation DOF (internal DOF index = DOF_P)'
+   p%DOF_Flag(DOF_Y   ) = InputFileData%PtfmYDOF
+   p%DOF_Desc(DOF_Y   ) = 'Platform yaw rotation DOF (internal DOF index = DOF_Y)'
+      
+   ! ...........................................................................................................................
+   ! allocate the arrays stored in the p%DOFs structure:
+   ! ...........................................................................................................................
 
       ! BJJ: note that this method will cause an error if allocating data that has already been allocated...
 
@@ -2293,11 +2294,17 @@ SUBROUTINE InitDOFs( p, ErrStat, ErrMsg )
 
 
    !...............................................................................................................................
-! BJJ: these are now parameters....
-
+   ! Allocate and Initialize arrays for DOFS that contribute to the angular velocity of the hub and blade elements
    !...............................................................................................................................
-
-      ! Allocate and Initialize arrays for DOFS that contribute to the angular velocity of the hub and blade elements
+   ! Define arrays of DOF indices (pointers) that contribute to the angular 
+   !   velocities of each rigid body of the wind turbine in the inertia frame:
+   ! NOTE: We must include ALL of the appropriate DOF indices in these arrays,
+   !       not just the indices of the enabled DOFs, since disabling a DOF only
+   !       implies that each DOF acceleration is zero--it does not imply
+   !       that each DOF velocity is zero (for example, consider disabled
+   !       generator DOF, which still spins at constant speed).
+      
+   
 
    IF ( p%NumBl == 2 )  THEN ! 2-blader
       p%NPH = 12                         ! Number of DOFs that contribute to the angular velocity of the hub            (body H) in the inertia frame.
@@ -2327,7 +2334,7 @@ SUBROUTINE InitDOFs( p, ErrStat, ErrMsg )
                         DOF_Teet,  DOF_BF(K,1) , DOF_BE(K,1)    , DOF_BF(K,2)          /)
       ENDDO          ! K - All blades
 
-   ELSE                    ! 3-blader
+   ELSE  ! 3-blader
 
          ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements (body M) in the inertia frame:
       DO K = 1,p%NumBl ! Loop through all blades
@@ -2338,7 +2345,14 @@ SUBROUTINE InitDOFs( p, ErrStat, ErrMsg )
    ENDIF
 
 
+   !...............................................................................................................................
+   ! Calculate the number of active (enabled) DOFs in the model, p%DOFs%NActvDOF:
+   !...............................................................................................................................
+   CALL SetEnabledDOFIndexArrays( p )
 
+   RETURN
+   
+   
 CONTAINS
    !............................................................................................................................
    SUBROUTINE ExitThisRoutine(ErrID,Msg)
@@ -2354,14 +2368,13 @@ CONTAINS
       ErrStat = ErrID
       ErrMsg  = Msg
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg = 'Error in InitDOFs: '//TRIM(ErrMsg)
+         ErrMsg = 'Error in Init_DOFparameters: '//TRIM(ErrMsg)
       END IF
 
 
    END SUBROUTINE ExitThisRoutine
 
-
-END SUBROUTINE InitDOFs
+END SUBROUTINE Init_DOFparameters
 !----------------------------------------------------------------------------------------------------------------------------------
 FUNCTION SHP(Fract, FlexL, ModShpAry, Deriv, ErrStat, ErrMsg)
 ! SHP calculates the Derive-derivative of the shape function ModShpAry at Fract.
@@ -2808,7 +2821,7 @@ SUBROUTINE ValidateModeShapeCoeffs( Coeffs, ShpDesc, ErrStat, ErrMsg )
 
 END SUBROUTINE ValidateModeShapeCoeffs
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
+SUBROUTINE SetBladeParameters( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
 ! This takes the blade input file data and sets the corresponding blade parameters, performing linear interpolation of the
 ! input data to the specified blade mesh.
 ! This routine assumes p%HubRad and p%BldFlexL are already set.
@@ -2959,8 +2972,6 @@ SUBROUTINE SetBladeParams( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
 
 
          ! Set the mode shape arrays
-       !p%CalcBModes(K) = BladeInData(K)%CalcBMode
-
       p%BldEdgSh(:,K) = BladeInData(K)%BldEdgSh
       p%BldFl1Sh(:,K) = BladeInData(K)%BldFl1Sh
       p%BldFl2Sh(:,K) = BladeInData(K)%BldFl2Sh
@@ -2997,7 +3008,7 @@ CONTAINS
 
    END FUNCTION InterpAry
 !..................................................................................................................................
-END SUBROUTINE SetBladeParams
+END SUBROUTINE SetBladeParameters
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Alloc_BladeParameters( p, AllocAdams, ErrStat, ErrMsg )
 ! This routine allocates arrays for the blade parameters.
@@ -3356,9 +3367,255 @@ SUBROUTINE Alloc_TowerParameters( p, AllocAdams, ErrStat, ErrMsg )
 
 END SUBROUTINE Alloc_TowerParameters
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SetTowerParams( p, InputFileData, ErrStat, ErrMsg  )
+SUBROUTINE SetOtherParameters( p, InputFileData, ErrStat, ErrMsg )
+! This routine sets the remaining parameters (replacing the former FAST Initialize routine), first allocating necessary arrays. 
+! It requires p%NDOF, p%NumBl, p%TTopNode, p%TipNode to be set before calling this routine.
+!..................................................................................................................................
+
+   TYPE(ED_InputFile),       INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
+   TYPE(ED_ParameterType),   INTENT(INOUT)  :: p                            ! The parameters of the structural dynamics module
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Err msg
+ 
+   
+
+   
+      ! Allocate the arrays needed in the Coeff routine:
+      
+   CALL AllocAry( p%AxRedTFA, 2,       2_IntKi, p%TTopNode,         'AxRedTFA',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%AxRedTSS, 2,       2_IntKi, p%TTopNode,         'AxRedTSS',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%AxRedBld, p%NumBl, 3_IntKi, 3_IntKi, p%TipNode, 'AxRedBld',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%BldCG,    p%NumBl,                              'BldCG',     ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%KBF,      p%NumBl, 2_IntKi, 2_IntKi,            'KBF',       ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%KBE,      p%NumBl, 1_IntKi, 1_IntKi,            'KBE',       ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%CBF,      p%NumBl, 2_IntKi, 2_IntKi,            'CBF',       ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%CBE,      p%NumBl, 1_IntKi, 1_IntKi,            'CBE',       ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%SecondMom,p%NumBl,                              'SecondMom', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%FirstMom, p%NumBl,                              'FirstMom',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%FreqBE,   p%NumBl, NumBE, 3_IntKi,              'FreqBE',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%FreqBF,   p%NumBl, NumBF, 3_IntKi,              'FreqBF',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%BldMass,  p%NumBl,                              'BldMass',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+!bjj remove these two:   (we're going to get rid of these variables)
+  CALL AllocAry( p%rSAerCenn1,p%NumBl,p%BldNodes,  'rSAerCenn1',  ErrStat, ErrMsg )
+  IF ( ErrStat /= ErrID_None ) RETURN
+  CALL AllocAry( p%rSAerCenn2,p%NumBl,p%BldNodes,  'rSAerCenn2',  ErrStat, ErrMsg )
+  IF ( ErrStat /= ErrID_None ) RETURN
+   
+  
+   ALLOCATE ( p%TwrFASF(2,p%TTopNode,0:2) , STAT=ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating TwrFASF array.'
+      RETURN
+   END IF
+
+   ALLOCATE ( p%TwrSSSF(2,p%TTopNode,0:2) , STAT=ErrStat   )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating TwrSSSF array.'
+      RETURN
+   END IF
+
+   ALLOCATE ( p%TwistedSF(p%NumBl,2,3,p%TipNode,0:2) , STAT=ErrStat )
+   IF ( ErrStat /= 0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating TwistedSF array.'
+      RETURN
+   END IF
+   
+   
+   CALL Coeff(p, InputFileData, ErrStat, ErrMsg)   
+   IF ( ErrStat /= ErrID_None ) RETURN
+  
+   
+END SUBROUTINE SetOtherParameters
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Alloc_OtherState( OtherState, p, ErrStat, ErrMsg  )
+! This routine allocates arrays in the RtHndSide data structure.
+! It requires p%TwrNodes, p%NumBl, p%TipNode, p%NDOF, p%BldNodes to be set before calling this routine.
+!..................................................................................................................................
+
+   TYPE(ED_OtherStateType),  INTENT(INOUT)  :: OtherState                   ! other/optimization states
+   TYPE(ED_ParameterType),   INTENT(IN)     :: p                            ! Parameters of the structural dynamics module
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
+
+  
+   CALL Alloc_RtHS( OtherState%RtHS, p, ErrStat, ErrMsg  )
+   IF (ErrStat /= ErrID_None ) RETURN
+     
+   CALL AllocAry( OtherState%QD2T, p%NDOF,   'OtherState%QD2T',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   
+      ! for loose coupling:
+   CALL AllocAry( OtherState%IC,  NMX,   'IC',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   
+!bjj: we probably should make these a Continuous State type:   
+   CALL AllocAry( OtherState%Q,    p%NDOF, NMX,   'OtherState%Q',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( OtherState%QD,   p%NDOF, NMX,   'OtherState%QD',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( OtherState%QD2,  p%NDOF, NMX,   'OtherState%QD2',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+  
+   
+END SUBROUTINE Alloc_OtherState
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
+! This routine allocates arrays in the RtHndSide data structure.
+! It requires p%TwrNodes, p%NumBl, p%TipNode, p%NDOF, p%BldNodes to be set before calling this routine.
+!..................................................................................................................................
+
+   TYPE(RtHndSide),          INTENT(INOUT)  :: RtHS                         ! RtHndSide data type
+   TYPE(ED_ParameterType),   INTENT(IN)     :: p                            ! Parameters of the structural dynamics module
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
+
+   ! local variables:
+   INTEGER(IntKi),   PARAMETER              :: Dims = 3                     ! The position arrays all must be allocated with a dimension for X,Y,and Z
+
+      
+   CALL AllocAry( RtHS%AngPosEF, p%TwrNodes,         Dims, 'AngPosEF',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%AngPosXF, p%TwrNodes,         Dims, 'AngPosXF',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%LinAccESt,p%NumBl, p%TipNode, Dims, 'LinAccESt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%LinAccETt,p%TwrNodes,         Dims, 'LinAccETt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcS0B,  p%NumBl,p%NDOF,     Dims, 'PFrcS0B',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%FrcS0Bt,  p%NumBl,            Dims, 'FrcS0Bt',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomH0B,  p%NumBl, p%NDOF,    Dims, 'PMomH0B',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%MomH0Bt,  p%NumBl,            Dims, 'MomH0Bt',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcPRot,  p%NDOF,            Dims, 'PFrcPRot',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomLPRot, p%NDOF,            Dims, 'PMomLPRot', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomNGnRt, p%NDOF,            Dims, 'PMomNGnRt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PMomNTail, p%NDOF,            Dims, 'PMomNTail', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PFrcONcRt, p%NDOF,            Dims, 'PFrcONcRt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PMomBNcRt, p%NDOF,            Dims, 'PMomBNcRt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PFrcT0Trb, p%NDOF,            Dims, 'PFrcT0Trb', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PMomX0Trb, p%NDOF,            Dims, 'PMomX0Trb', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%FSAero,    p%NumBl,p%BldNodes,Dims, 'FSAero',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%MMAero,    p%NumBl,p%BldNodes,Dims, 'MMAero',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%FSTipDrag, p%NumBl,           Dims, 'FSTipDrag', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%rS,        p%NumBl,p%TipNode, Dims, 'rS',        ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%rS0S,      p%NumBl,p%TipNode, Dims, 'rS0S',      ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%AngPosHM,  p%NumBl,p%TipNode, Dims, 'AngPosHM',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%FTAero,    p%TwrNodes,        Dims, 'FTAero',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%MFAero,    p%TwrNodes,        Dims, 'MFAero',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PFTHydro,  p%TwrNodes, p%NDOF,Dims, 'PFTHydro',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PMFHydro,  p%TwrNodes, p%NDOF,Dims, 'PMFHydro',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%FTHydrot,  p%TwrNodes,        Dims, 'FTHydrot',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%MFHydrot,  p%TwrNodes,        Dims, 'MFHydrot',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%rZT,       p%TwrNodes,        Dims, 'rZT',       ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%rT,        p%TwrNodes,        Dims, 'rT',        ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%rT0T,      p%TwrNodes,        Dims, 'rT0T',      ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   
+
+      ! These are allocated to start numbering a dimension with 0 instead of 1:
+   ALLOCATE ( RtHS%PAngVelEB(p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelEB array.' 
+      RETURN
+   ENDIF
+
+   ALLOCATE ( RtHS%PAngVelER(p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelER array.' 
+      RETURN
+   ENDIF
+
+   ALLOCATE ( RtHS%PAngVelEX(p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelEX array.' 
+      RETURN
+   ENDIF
+
+   ALLOCATE ( RtHS%PLinVelEIMU(p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PLinVelEIMU array.' 
+      RETURN
+   ENDIF
+
+   ALLOCATE ( RtHS%PLinVelEO(p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PLinVelEO array.' 
+      RETURN
+   ENDIF
+
+   ALLOCATE ( RtHS%PLinVelES(p%NumBl,p%TipNode,p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PLinVelES array.' 
+      RETURN
+   ENDIF
+
+   ALLOCATE ( RtHS%PLinVelET(p%TwrNodes,p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PLinVelET array.' 
+      RETURN
+   ENDIF
+
+   ALLOCATE ( RtHS%PLinVelEZ(p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PLinVelEZ array.' 
+      RETURN
+   ENDIF
+   
+END SUBROUTINE Alloc_RtHS
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SetTowerParameters( p, InputFileData, ErrStat, ErrMsg  )
 ! This takes the tower input file data and sets the corresponding tower parameters, performing linear interpolation of the
 ! input data to the specified tower mesh.
+! It requires p%TwrFlexL, and p%TwrNodes to be set first.
 !..................................................................................................................................
 
    IMPLICIT                        NONE
@@ -3452,8 +3709,7 @@ SUBROUTINE SetTowerParams( p, InputFileData, ErrStat, ErrMsg  )
    ! Set other tower parameters:
    !...............................................................................................................................
 
-   p%TTopNode = p%TwrNodes + 1
-
+   p%TTopNode = p%TwrNodes + 1 
 
    !   ! these are for HydroDyn ?
    !p%DiamT(:) = InputFileData%TwrDiam
@@ -3482,7 +3738,7 @@ CONTAINS
 
    END FUNCTION InterpAry
 
-END SUBROUTINE SetTowerParams
+END SUBROUTINE SetTowerParameters
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
 ! This routine validates the furling inputs.
@@ -3558,7 +3814,7 @@ SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
 
       ! Check for violations of the small-angle assumption (15-degree limit, using radians):
 
-   IF ( ( InputFileData%ShftSkew < -SmallAngleLimit_Rad ) .OR. ( InputFileData%ShftSkew > SmallAngleLimit_Rad ) )  THEN
+   IF ( ABS( InputFileData%ShftSkew ) > SmallAngleLimit_Rad )  THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = TRIM(ErrMsg)//NewLine//'  ShftSkew should only be used to skew the shaft a few degrees away from the zero-yaw ' &
                 //'position and must not be used as a replacement for the yaw angle. '&
@@ -3653,42 +3909,9 @@ CONTAINS
 
    END SUBROUTINE CheckAngle180Range
    !-------------------------------------------------------------------------------------------------------------------------------
-   SUBROUTINE CheckAngle90Range( Var, VarDesc, ErrStat, ErrMsg )
-   ! This routine checks that an angle is in the range [-pi/2, pi/2] radians. If not, ErrStat = ErrID_Fatal
-   ! Note that all values are assumed to be in radians, even if read in degrees ( [-90 deg, 90 deg] )
-   !...............................................................................................................................
-   REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
-   CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
-   INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
-   CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is not in specified range
-
-      IF ( ABS( Var ) > PiBy2 )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine// &
-                   '  '//TRIM(VarDesc)//' must be between -pi/2 and pi/2 radians (i.e., in the range [-90, 90] degrees).'
-      END IF
-
-   END SUBROUTINE CheckAngle90Range
-   !-------------------------------------------------------------------------------------------------------------------------------
-   SUBROUTINE CheckNegative( Var, VarDesc, ErrStat, ErrMsg )
-   ! This routine checks that an value is in the range [0, inf). If not, ErrStat = ErrID_Fatal
-   !...............................................................................................................................
-   REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
-   CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
-   INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
-   CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is not in specified range
-
-      IF (  Var < 0.0_ReKi )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine// &
-                   '  '//TRIM(VarDesc)//' must not be negative.'
-      END IF
-
-   END SUBROUTINE CheckNegative
-   !-------------------------------------------------------------------------------------------------------------------------------
-END SUBROUTINE ValidateFurlData
+ END SUBROUTINE ValidateFurlData
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SetFurlParams( p, InputFileData, ErrStat, ErrMsg  )
+SUBROUTINE SetFurlParameters( p, InputFileData, ErrStat, ErrMsg  )
 ! This takes the furling input file data and sets the corresponding furling parameters.
 !..................................................................................................................................
 
@@ -3826,7 +4049,194 @@ SUBROUTINE SetFurlParams( p, InputFileData, ErrStat, ErrMsg  )
    p%rVIMUyn   = InputFileData%NcIMUyn  - p%RFrlPntyn 
    p%rVIMUzn   = InputFileData%NcIMUzn  - p%RFrlPntzn   
    
-END SUBROUTINE SetFurlParams
+END SUBROUTINE SetFurlParameters
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
+! This takes the primary input file data and sets the corresponding parameters.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+
+      ! Passed variables
+
+   TYPE(ED_ParameterType),   INTENT(INOUT)  :: p                            ! Parameters of the structural dynamics module
+   TYPE(ED_InputFile),       INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
+
+
+      ! Initialize error data
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+   !p%Twr2Shft  = InputFileData%Twr2Shft
+   !p%HubIner   = InputFileData%HubIner
+   !p%NacYIner  = InputFileData%NacYIner
+
+   !...............................................................................................................................
+   ! Direct copy of variables:
+   !...............................................................................................................................     
+   p%NumBl     = InputFileData%NumBl
+   p%TipRad    = InputFileData%TipRad
+   p%HubRad    = InputFileData%HubRad
+
+   p%TwrNodes  = InputFileData%TwrNodes
+   
+   p%DT        = InputFileData%DT
+   p%Gravity   = InputFileData%Gravity
+   p%OverHang  = InputFileData%OverHang
+   p%ShftGagL  = InputFileData%ShftGagL
+   p%TowerHt   = InputFileData%TowerHt
+   p%TwrRBHt   = InputFileData%TwrRBHt
+   p%TwrDraft  = InputFileData%TwrDraft
+   p%PtfmRef   = InputFileData%PtfmRef
+   p%TipMass   = InputFileData%TipMass
+   p%HubMass   = InputFileData%HubMass
+   p%GenIner   = InputFileData%GenIner
+   p%NacMass   = InputFileData%NacMass
+   p%YawBrMass = InputFileData%YawBrMass
+   p%PtfmMass  = InputFileData%PtfmMass
+   p%PtfmRIner = InputFileData%PtfmRIner
+   p%PtfmPIner = InputFileData%PtfmPIner
+   p%PtfmYIner = InputFileData%PtfmYIner
+   p%GBoxEff   = InputFileData%GBoxEff
+   p%GBRatio   = InputFileData%GBRatio
+   p%DTTorSpr  = InputFileData%DTTorSpr
+   p%DTTorDmp  = InputFileData%DTTorDmp 
+     
+   
+   p%NTwGages  = InputFileData%NTwGages
+   p%TwrGagNd  = InputFileData%TwrGagNd
+   p%NBlGages  = InputFileData%NBlGages
+   p%BldGagNd  = InputFileData%BldGagNd
+   !p%OutFile   = InputFileData%OutFile
+   !p%OutFileFmt= InputFileData%OutFileFmt !wrbinoutput, wrtxtoutput???
+   p%OutFmt    = InputFileData%OutFmt 
+   p%Tstart    = InputFileData%Tstart
+   !p%DecFact   = InputFileData%DecFact
+   p%NumOuts   = InputFileData%NumOuts
+   
+   IF ( p%NumBl == 2 ) THEN
+      p%UndSling = InputFileData%UndSling    
+      p%TeetMod  = InputFileData%TeetMod
+      p%TeetDmpP = InputFileData%TeetDmpP
+      p%TeetDmp  = InputFileData%TeetDmp
+      p%TeetCDmp = InputFileData%TeetCDmp
+      p%TeetSStP = InputFileData%TeetSStP
+      p%TeetHStP = InputFileData%TeetHStP
+      p%TeetSSSp = InputFileData%TeetSSSp
+      p%TeetHSSp = InputFileData%TeetHSSp
+   ELSE ! Three-bladed turbines don't use these parameters, so set them to zero.
+      p%UndSling = 0.0         
+      p%TeetMod  = 0
+      p%TeetDmpP = 0.0
+      p%TeetDmp  = 0.0
+      p%TeetCDmp = 0.0
+      p%TeetSStP = 0.0      
+      p%TeetHStP = 0.0
+      p%TeetSSSp = 0.0
+      p%TeetHSSp = 0.0
+   END IF
+   
+   
+      ! initialize all of the DOF parameters:
+   CALL Init_DOFparameters( InputFileData, p, ErrStat, ErrMsg ) !sets p%NDOF and p%NAug
+      
+      ! Set parameters for output channels:
+   CALL SetOutParam(InputFileData%OutList, p, ErrStat, ErrMsg ) ! requires: p%NumOuts, p%NumBl, p%NBlGages, p%NTwGages; sets: p%OutParam.
+
+   IF ( InputFileData%TabDelim ) THEN
+      p%Delim = TAB
+   ELSE
+      p%Delim = ' '
+   END IF 
+   
+   !...............................................................................................................................
+   ! Calculate some indirect inputs:
+   !...............................................................................................................................
+   p%TwoPiNB   = TwoPi/p%NumBl                                                     ! 2*Pi/NumBl is used in RtHS().
+   
+   p%rZT0zt    = p%TwrRBHt + p%PtfmRef  - p%TwrDraft                               ! zt-component of position vector rZT0.
+   p%RefTwrHt  = p%TowerHt + p%PtfmRef                                             ! Vertical distance between ElastoDyn's undisplaced tower height (variable TowerHt) and ElastoDyn's inertia frame reference point (variable PtfmRef).
+   p%TwrFlexL  = p%TowerHt + p%TwrDraft - p%TwrRBHt                                ! Height / length of the flexible portion of the tower.
+   p%BldFlexL  = p%TipRad               - p%HubRad                                 ! Length of the flexible portion of the blade.
+   
+   p%rZYzt     = p%PtfmRef  - InputFileData%PtfmCM
+
+   !...............................................................................................................................
+   ! set cosine and sine of Precone and Delta3 angles:
+   !...............................................................................................................................
+   CALL AllocAry( p%CosPreC,  p%NumBl,                              'CosPreC',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( p%SinPreC,  p%NumBl,                              'SinPreC',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   
+   p%CosPreC  = COS( InputFileData%Precone(1:p%NumBl) )
+   p%SinPreC  = SIN( InputFileData%Precone(1:p%NumBl) )
+   p%CosDel3  = COS( InputFileData%Delta3 )
+   p%SinDel3  = SIN( InputFileData%Delta3 )   
+      
+   !...............................................................................................................................
+
+      ! Calculate the average tip radius normal to the shaft (AvgNrmTpRd)
+      !   and the swept area of the rotor (ProjArea):
+
+   p%AvgNrmTpRd = p%TipRad*SUM(p%CosPreC)/p%NumBl     ! Average tip radius normal to the saft.
+   p%ProjArea   = pi*( p%AvgNrmTpRd**2 )              ! Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft).
+
+   p%RotSpeed  = InputFileData%RotSpeed               ! Rotor speed in rad/sec.
+   p%CShftTilt = COS( InputFileData%ShftTilt )
+   p%SShftTilt = SIN( InputFileData%ShftTilt )
+   
+   p%FASTHH    = p%TowerHt + InputFileData%Twr2Shft + p%OverHang*p%SShftTilt
+
+   
+      ! Direct copy of InputFileData to parameters
+      
+   !p%FlapDOF1  = InputFileData%FlapDOF1
+   !p%FlapDOF2  = InputFileData%FlapDOF2
+   !p%EdgeDOF   = InputFileData%EdgeDOF
+   !p%TeetDOF   = InputFileData%TeetDOF
+   !p%DrTrDOF   = InputFileData%DrTrDOF
+   !p%GenDOF    = InputFileData%GenDOF
+   !p%YawDOF    = InputFileData%YawDOF
+   !p%TwFADOF1  = InputFileData%TwFADOF1
+   !p%TwFADOF2  = InputFileData%TwFADOF2
+   !p%TwSSDOF1  = InputFileData%TwSSDOF1
+   !p%TwSSDOF2  = InputFileData%TwSSDOF2
+   !p%PtfmSgDOF = InputFileData%PtfmSgDOF
+   !p%PtfmSwDOF = InputFileData%PtfmSwDOF
+   !p%PtfmHvDOF = InputFileData%PtfmHvDOF
+   !p%PtfmRDOF  = InputFileData%PtfmRDOF
+   !p%PtfmPDOF  = InputFileData%PtfmPDOF
+   !p%PtfmYDOF  = InputFileData%PtfmYDOF
+   !p%Azimuth   = InputFileData%Azimuth
+   p%RotSpeed  = InputFileData%RotSpeed
+   !p%TTDspFA   = InputFileData%TTDspFA
+   !p%TTDspSS   = InputFileData%TTDspSS
+   !p%PtfmSurge = InputFileData%PtfmSurge
+   !p%PtfmSway  = InputFileData%PtfmSway
+   !p%PtfmHeave = InputFileData%PtfmHeave
+   !p%PtfmRoll  = InputFileData%PtfmRoll
+   !p%PtfmPitch = InputFileData%PtfmPitch
+   !p%PtfmYaw   = InputFileData%PtfmYaw   
+   p%HubCM     = InputFileData%HubCM
+   p%AzimB1Up  = InputFileData%AzimB1Up
+   
+   p%NacCMxn   = InputFileData%NacCMxn
+   p%NacCMyn   = InputFileData%NacCMyn
+   p%NacCMzn   = InputFileData%NacCMzn
+   !p%NcIMUxn   = InputFileData%NcIMUxn
+   !p%NcIMUyn   = InputFileData%NcIMUyn
+   !p%NcIMUzn   = InputFileData%NcIMUzn
+         
+   
+   ! plus everything else from FAST_Initialize
+   
+   
+      
+END SUBROUTINE SetPrimaryParameters
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEc, ErrStat, ErrMsg )
 ! This routine reads the data from the blade and mesh inputs files.
@@ -4036,15 +4446,6 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-
-      ! CalcBMode - Calculate blade mode shapes (switch).
-
-   !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-   !JASON:CALL ReadVar ( UnIn, BldFile, BladeKInputFileData%CalcBMode, 'CalcBMode', 'Calculate blade mode shapes', ErrStat2, ErrMsg2, UnEc )
-   CALL ReadCom ( UnIn, BldFile, 'currently ignored CalcBMode', ErrStat2, ErrMsg2, UnEc  )
-      BladeKInputFileData%CalcBMode = .FALSE.
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
 
 
       ! BldFlDmp - Blade structural damping ratios in flapwise direction.
@@ -5115,15 +5516,6 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
       IF ( ErrStat >= AbortErrLev ) RETURN
 
 
-      ! CalcTMode - Calculate tower mode shapes (switch).
-
-   !JASON: ADD LOGIC FOR THIS NEW VARIABLE:
-   !JASON:CALL ReadVar ( UnIn, TwrFile, InputFileData%CalcTMode, 'CalcTMode', 'Calculate tower mode shapes', ErrStat2, ErrMsg2 )
-   CALL ReadCom ( UnIn, TwrFile, 'currently ignored CalcTMode', ErrStat2, ErrMsg2, UnEc  )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
-
       ! TwrFADmp - Tower fore-aft structural damping ratios.
 
    CALL ReadAryLines ( UnIn, TwrFile, InputFileData%TwrFADmp, SIZE(InputFileData%TwrFADmp), 'TwrFADmp', &
@@ -5590,15 +5982,17 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       IF ( ErrStat >= AbortErrLev ) RETURN
    InputFileData%TeetDefl = InputFileData%TeetDefl*D2R
 
-      ! Azimuth - Initial azimuth angle for blade 1 (degrees????):
-   CALL ReadVar( UnIn, InputFile, InputFileData%Azimuth, "Azimuth", "Initial azimuth angle for blade 1 (degrees????)", ErrStat2, ErrMsg2, UnEc)
+      ! Azimuth - Initial azimuth angle for blade 1 (degrees) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Azimuth, "Azimuth", "Initial azimuth angle for blade 1 (degrees)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%Azimuth = InputFileData%Azimuth*D2R
 
-      ! RotSpeed - Initial rotor speed (rad/sec):
-   CALL ReadVar( UnIn, InputFile, InputFileData%RotSpeed, "RotSpeed", "Initial rotor speed (rad/sec)", ErrStat2, ErrMsg2, UnEc)
+      ! RotSpeed - Initial rotor speed (RPM) (read in RPM and converted to rad/sec here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%RotSpeed, "RotSpeed", "Initial rotor speed (RPM)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%RotSpeed = InputFileData%RotSpeed*RPM2RPS
 
       ! TTDspFA - Initial fore-aft tower-top displacement (meters):
    CALL ReadVar( UnIn, InputFile, InputFileData%TTDspFA, "TTDspFA", "Initial fore-aft tower-top displacement (meters)", ErrStat2, ErrMsg2, UnEc)
@@ -5685,10 +6079,11 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       IF ( ErrStat >= AbortErrLev ) RETURN
    InputFileData%Delta3 = InputFileData%Delta3*D2R
 
-      ! AzimB1Up - Azimuth value to use for I/O when blade 1 points up (degrees):
+      ! AzimB1Up - Azimuth value to use for I/O when blade 1 points up (degrees) (read from file in degrees and converted to radians here):
    CALL ReadVar( UnIn, InputFile, InputFileData%AzimB1Up, "AzimB1Up", "Azimuth value to use for I/O when blade 1 points up (degrees)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%AzimB1Up = InputFileData%AzimB1Up*D2R
       
       ! OverHang - Distance from yaw axis to rotor apex or teeter pin (meters):
    CALL ReadVar( UnIn, InputFile, InputFileData%OverHang, "OverHang", "Distance from yaw axis to rotor apex or teeter pin (meters)", ErrStat2, ErrMsg2, UnEc)
@@ -5892,10 +6287,11 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
    
-      ! GBoxEff - Gearbox efficiency (%):
+      ! GBoxEff - Gearbox efficiency (%) (read from file in % and converted to fraction here):
    CALL ReadVar( UnIn, InputFile, InputFileData%GBoxEff, "GBoxEff", "Gearbox efficiency (%)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%GBoxEff = InputFileData%GBoxEff*0.01  
 
       ! GBRatio - Gearbox ratio (-):
    CALL ReadVar( UnIn, InputFile, InputFileData%GBRatio, "GBRatio", "Gearbox ratio (-)", ErrStat2, ErrMsg2, UnEc)
@@ -6016,6 +6412,11 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
+   !---------------------- OUTLIST  --------------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: OutList', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
       ! OutList - List of user-requested output channels (-):
    CALL ReadOutputList ( UnIn, InputFile, InputFileData%OutList, InputFileData%NumOuts, 'OutList', "List of user-requested output channels", ErrStat2, ErrMsg2, UnEc  )     ! Routine in NWTC Subroutine Library
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -6059,9 +6460,2569 @@ CONTAINS
 
    END SUBROUTINE CheckError
    !...............................................................................................................................
-
 END SUBROUTINE ReadPrimaryFile
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
+! This routine validates the inputs from the primary input file.
+! note that all angles are assumed to be in radians in this routine:
+!..................................................................................................................................
+
+      ! Passed variables:
+
+   TYPE(ED_InputFile),       INTENT(IN)     :: InputFileData                       ! All the data in the ElastoDyn input file
+
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+
+      ! Local variables:
+   REAL(ReKi)                               :: SmallAngleLimit_Rad                 ! Largest input angle considered "small" (check in input file), radians
+   INTEGER(IntKi)                           :: K                                   ! blade number
+   INTEGER(IntKi)                           :: FmtWidth                            ! width of the field returned by the specified OutFmt
+   INTEGER(IntKi)                           :: ErrStat2                            ! Temporary error status
+   CHARACTER(LEN(ErrMsg))                   :: ErrMsg2                             ! Temporary rror message
+
+   
+      ! Initialize error status and angle limit defined locally (in correct units)
+      
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+   SmallAngleLimit_Rad = SmallAngleLimit_Deg*D2R                                 
+
+      ! Make sure the number of blades is valid:
+   IF ( ( InputFileData%NumBl < 2 ) .OR. ( InputFileData%NumBl > 3 ) ) THEN
+      CALL SetErrors( ErrID_Fatal, 'NumBl must be either 2 or 3.')
+   END IF
+
+      ! Don't allow these parameters to be negative (i.e., they must be in the range (0,inf)):
+   CALL CheckNegative( InputFileData%Gravity,   'Gravity',   ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%RotSpeed,  'RotSpeed',  ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%TipRad,    'TipRad',    ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%HubRad,    'HubRad',    ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%DTTorSpr,  'DTTorSpr',  ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%DTTorDmp,  'DTTorDmp',  ErrStat, ErrMsg )
+   
+   CALL CheckNegative( InputFileData%PtfmMass,  'PtfmMass',  ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%PtfmRIner, 'PtfmRIner', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%PtfmPIner, 'PtfmPIner', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%PtfmYIner, 'PtfmYIner', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%YawBrMass, 'YawBrMass', ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%NacMass,   'NacMass',   ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%HubMass,   'HubMass',   ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%Twr2Shft,  'Twr2Shft',  ErrStat, ErrMsg )
+
+   DO K=1,InputFileData%NumBl
+      CALL CheckNegative( InputFileData%TipMass(K), 'TipMass('//TRIM( Num2LStr( K ) )//')',   ErrStat, ErrMsg )
+   ENDDO ! K
+   
+   CALL CheckNegative( InputFileData%NacYIner,  'NacYIner',  ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%GenIner,   'GenIner',   ErrStat, ErrMsg )
+   CALL CheckNegative( InputFileData%HubIner,   'HubIner',   ErrStat, ErrMsg )
+
+      ! Check that TowerHt is in the range [0,inf):   
+   IF ( InputFileData%TowerHt <= 0.0_ReKi )     CALL SetErrors( ErrID_Fatal, 'TowerHt must be greater than zero.' )
+   
+      ! Check that these integers are in appropriate ranges:   
+   IF ( InputFileData%TwrNodes < 1_IntKi ) CALL SetErrors( ErrID_Fatal, 'TwrNodes must not be less than 1.' )
+
+   
+      ! warn if 2nd modes are enabled without their corresponding 1st modes
+      
+   IF ( InputFileData%FlapDOF2 .AND. ( .NOT. InputFileData%FlapDOF1 ) )  THEN  ! Print out warning when flap mode 1 is not enabled and flap mode 2 is enabled
+      CALL SetErrors( ErrID_Warn, '2nd blade flap mode is enabled without the 1st. '//&
+                    ' This designation is recommended only for debugging purposes.')
+   ENDIF
+   
+   IF ( InputFileData%TwFADOF2 .AND. ( .NOT. InputFileData%TwFADOF1 ) )  THEN  ! Print out warning when tower fore-aft mode 1 is not enabled and fore-aft mode 2 is enabled
+      CALL SetErrors( ErrID_Warn, '2nd tower fore-aft mode is enabled without the 1st. '//&
+                    ' This designation is recommended only for debugging purposes.')
+   ENDIF
+   
+   IF ( InputFileData%TwSSDOF2 .AND. ( .NOT. InputFileData%TwSSDOF1 ) )  THEN  ! Print out warning when tower side-to-side mode 1 is not enabled and side-to-side mode 2 is enabled
+      CALL SetErrors( ErrID_Warn, '2nd tower side-to-side mode is enabled without the 1st. '//&
+                    ' This designation is recommended only for debugging purposes.')
+   ENDIF
+
+
+      ! Check that turbine configuration makes sense:
+
+   IF ( InputFileData%Furling ) THEN
+      IF ( InputFileData%OverHang > 0.0_ReKi )  THEN   ! Print out warning when downwind turbine is modeled with furling.
+         CALL SetErrors( ErrID_Warn, 'Furling designation (Furling = True) specified for downwind rotor '// &
+                    'configuration (OverHang > 0). Check for possible errors in the input file(s).')
+      END IF      
+   ENDIF      
+      
+   IF ( InputFileData%TwrRBHt >= ( InputFileData%TowerHt + InputFileData%TwrDraft ) ) THEN
+      CALL SetErrors( ErrID_Fatal, 'TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.')
+   ELSE
+      CALL CheckNegative( InputFileData%TwrRBHt, 'TwrRBHt', ErrStat, ErrMsg ) 
+   END IF
+   
+   IF ( InputFileData%PtfmCM  < InputFileData%TwrDraft ) &
+      CALL SetErrors( ErrID_Fatal, 'PtfmCM must not be less than TwrDraft.')
+   IF ( InputFileData%PtfmRef < InputFileData%TwrDraft ) &
+      CALL SetErrors( ErrID_Fatal, 'PtfmRef must not be less than TwrDraft.')
+   IF ( InputFileData%HubRad >= InputFileData%TipRad ) &
+      CALL SetErrors( ErrID_Fatal, 'HubRad must be less than TipRad.' )
+   IF ( InputFileData%TwrDraft <= -1.*InputFileData%TowerHt ) &
+      CALL SetErrors( ErrID_Fatal, 'TwrDraft must be greater than -TowerHt.' )
+      
+   IF ( InputFileData%TowerHt + InputFileData%Twr2Shft + InputFileData%OverHang*SIN(InputFileData%ShftTilt) &
+                              <= InputFileData%TipRad )  THEN
+      CALL SetErrors( ErrID_Fatal, 'TowerHt + Twr2Shft + OverHang*SIN(ShftTilt) must be greater than TipRad.' )
+   END IF
+   
+
+   IF ( InputFileData%NumBl == 2_IntKi )  THEN
+      IF ( ( InputFileData%TeetDefl <= -pi ) .OR. ( InputFileData%TeetDefl > pi ) )  &
+         CALL SetErrors( ErrID_Fatal, 'TeetDefl must be in the range (-pi, pi] radians (i.e., [-180,180] degrees).' )
+
+      IF ( ABS( InputFileData%Delta3 ) >= PiBy2 )  &
+         CALL SetErrors( ErrID_Fatal, 'Delta3 must be in the range (pi/2, pi/2) radians (i.e., (-90, 90) degrees).' )
+
+      IF ( ( InputFileData%TeetSStP < 0.0_ReKi ) .OR. ( InputFileData%TeetSStP > pi ) )  &
+         CALL SetErrors( ErrID_Fatal, 'TeetSStP must be in the range [0, pi] radians (i.e., [0,180] degrees).' )
+
+      IF ( ( InputFileData%TeetDmpP < 0.0_ReKi ) .OR. ( InputFileData%TeetDmpP > pi ) )  &
+         CALL SetErrors( ErrID_Fatal, 'TeetDmpP must be in the range [0, pi] radians (i.e., [0,180] degrees).' )
+
+      IF ( ( InputFileData%TeetHStP < InputFileData%TeetSStP ) .OR. ( InputFileData%TeetHStP > pi ) )  &
+         CALL SetErrors( ErrID_Fatal, 'TeetHStP must be in the range [TeetSStP, pi] radians (i.e., [TeetSStP, 180] degrees).' )
+   
+      IF ( ( InputFileData%TeetMod /= 0_IntKi ) .AND. ( InputFileData%TeetMod /= 1_IntKi ) .AND. &
+           ( InputFileData%TeetMod /= 2_IntKi ) )  &
+         CALL SetErrors( ErrID_Fatal, 'TeetMod must be 0, 1, or 2.' )
+
+      CALL CheckNegative( InputFileData%TeetDmp,   'TeetDmp',   ErrStat, ErrMsg )
+      CALL CheckNegative( InputFileData%TeetCDmp,  'TeetCDmp',  ErrStat, ErrMsg )
+      CALL CheckNegative( InputFileData%TeetSSSp,  'TeetSSSp',  ErrStat, ErrMsg )
+      CALL CheckNegative( InputFileData%TeetHSSp,  'TeetHSSp',  ErrStat, ErrMsg )   
+   ENDIF
+
+      ! check these angles for appropriate ranges:
+   IF ( ( InputFileData%NacYaw <= -pi ) .OR. ( InputFileData%NacYaw > pi ) ) &
+      CALL SetErrors( ErrID_Fatal, 'NacYaw must be in the range (-pi, pi] radians (i.e., (-90, 90] degrees).' )
+   IF ( ( InputFileData%Azimuth  < 0.0_ReKi ) .OR. ( InputFileData%Azimuth  >= TwoPi ) ) &
+      CALL SetErrors( ErrID_Fatal, 'Azimuth must be in the range [0, 2pi) radians (i.e., [0, 360) degrees).' )
+   IF ( ( InputFileData%AzimB1Up < 0.0_ReKi ) .OR. ( InputFileData%AzimB1Up >= TwoPi ) )  &
+      CALL SetErrors( ErrID_Fatal, 'AzimB1Up must be in the range [0, 2pi) radians (i.e., [0, 360) degrees).' )
+
+   DO K=1,InputFileData%NumBl
+      IF ( ( InputFileData%BlPitch(K) <= -pi ) .OR. ( InputFileData%BlPitch(K) > pi ) )  THEN
+         CALL SetErrors( ErrID_Fatal, 'BlPitch('//TRIM(Num2LStr(K))//')'//' must be greater than -pi radians and '// &
+                                      'less than or equal to pi radians (i.e., in the range (-180, 180] degrees).' )
+      END IF      
+      IF ( ABS( InputFileData%PreCone(K) ) >= PiBy2 )  &
+         CALL SetErrors( ErrID_Fatal, 'PreCone('//TRIM( Num2LStr( K ) )//') must be in the range (-pi/2, pi/2) '//&
+                                      'radians (i.e., (-90, 90) degrees).' )
+   END DO
+   
+      ! Check that these angles are in the range [-pi/2, pi/2] radians (i.e., [-90, 90] degrees ):
+   CALL CheckAngle90Range( InputFileData%ShftTilt, 'ShftTilt', ErrStat, ErrMsg ) 
+
+
+      ! Check for violations of the small-angle assumption (15-degree limit, using radians):
+   IF ( ABS( InputFileData%PtfmRoll ) > SmallAngleLimit_Rad ) THEN
+      CALL SetErrors( ErrID_Fatal, 'PtfmRoll must be between -'//TRIM(Num2LStr(SmallAngleLimit_Rad))//' and ' &
+                                                               //TRIM(Num2LStr(SmallAngleLimit_Rad))//' radians.' )
+   END IF
+
+   IF ( ABS( InputFileData%PtfmPitch ) > SmallAngleLimit_Rad ) THEN
+      CALL SetErrors( ErrID_Fatal, 'PtfmPitch must be between -'//TRIM(Num2LStr(SmallAngleLimit_Rad))//' and ' &
+                                                                //TRIM(Num2LStr(SmallAngleLimit_Rad))//' radians.' )
+   END IF   
+    
+   IF ( ABS( InputFileData%PtfmYaw ) > SmallAngleLimit_Rad ) THEN
+      CALL SetErrors( ErrID_Fatal, 'PtfmYaw must be between -'//TRIM(Num2LStr(SmallAngleLimit_Rad))//' and ' &
+                                                              //TRIM(Num2LStr(SmallAngleLimit_Rad))//' radians.' )
+   END IF      
+      
+      ! Check the output parameters:
+   IF ( InputFileData%DecFact < 1_IntKi )  CALL SetErrors( ErrID_Fatal, 'DecFact must be greater than 0.' )
+   
+   IF ( ( InputFileData%NTwGages < 0_IntKi ) .OR. ( InputFileData%NTwGages > 9_IntKi ) )  &
+         CALL SetErrors( ErrID_Fatal, 'NTwGages must be between 0 and 9 (inclusive).' )
+   
+   IF ( ( InputFileData%NBlGages < 0_IntKi ) .OR. ( InputFileData%NBlGages > 9_IntKi ) )  &
+         CALL SetErrors( ErrID_Fatal, 'NBlGages must be between 0 and 9 (inclusive).' )
+
+      ! Check to see if all TwrGagNd(:) analysis points are existing analysis points:
+
+   IF ( ANY(InputFileData%TwrGagNd < 1_IntKi) .OR. ANY(InputFileData%TwrGagNd > InputFileData%TwrNodes) ) THEN      
+         CALL SetErrors( ErrID_Fatal, ' All TwrGagNd values must be between 1 and '//&
+                        TRIM( Num2LStr( InputFileData%TwrNodes ) )//' (inclusive).' )   
+   END IF      
+     
+      ! Check to see if all BldGagNd(:) analysis points are existing analysis points:
+      
+   IF ( ANY(InputFileData%BldGagNd < 1_IntKi) .OR. ANY(InputFileData%BldGagNd > InputFileData%InpBlMesh(1)%BldNodes) ) THEN      
+         CALL SetErrors( ErrID_Fatal, ' All BldGagNd values must be between 1 and '//&
+                        TRIM( Num2LStr( InputFileData%InpBlMesh(1)%BldNodes ) )//' (inclusive).' )   
+   END IF   
+   
+
+   !IF ( ( PtfmLdMod /= 0 ) .AND. ( PtfmLdMod /= 1 ) )  CALL ProgAbort ( ' PtfmLdMod must be 0 or 1.' )      
+  
+      ! Check that InputFileData%OutFmt is a valid format specifier and will fit over the column headings
+   CALL ChkRealFmtStr( InputFileData%OutFmt, 'OutFmt', FmtWidth, ErrStat2, ErrMsg2 )   
+   IF ( ErrStat /= ErrID_None ) CALL SetErrors(ErrStat2, ErrMsg2 )
+   IF ( FmtWidth /= OutStrLen ) CALL SetErrors(ErrID_Warn, 'OutFmt produces a column width of '//TRIM(Num2LStr(FmtWidth))//&
+                                                           ' instead of '//TRIM(Num2LStr(OutStrLen))//' characters.' )
+
+   RETURN
+
+CONTAINS
+   !-------------------------------------------------------------------------------------------------------------------------------
+   SUBROUTINE SetErrors( ErrStat3, ErrMsg3 )
+   ! This routine sets the error message and flag when an error has occurred
+   !...............................................................................................................................
+   INTEGER(IntKi), INTENT(IN) :: ErrStat3     ! Error status for this error
+   CHARACTER(*),   INTENT(IN) :: ErrMsg3      ! Error message for this error
+
+      ErrStat = MAX( ErrStat, ErrStat3 )
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  '//TRIM(ErrMsg3)
+
+   END SUBROUTINE SetErrors
+   !-------------------------------------------------------------------------------------------------------------------------------
+END SUBROUTINE ValidatePrimaryData
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CheckNegative( Var, VarDesc, ErrStat, ErrMsg )
+! This routine checks that an value is in the range [0, inf). If not, ErrStat = ErrID_Fatal
+! Note that ErrStat and ErrMsg are INTENT(INOUT).
+!..................................................................................................................................
+REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
+CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
+INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
+CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is not in specified range
+
+   IF (  Var < 0.0_ReKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine// &
+                  '  '//TRIM(VarDesc)//' must not be negative.'
+   END IF
+
+END SUBROUTINE CheckNegative
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CheckAngle90Range( Var, VarDesc, ErrStat, ErrMsg )
+! This routine checks that an angle is in the range [-pi/2, pi/2] radians. If not, ErrStat = ErrID_Fatal
+! Note that all values are assumed to be in radians, even if read in degrees ( [-90 deg, 90 deg] )
+! Note that ErrStat and ErrMsg are INTENT(INOUT).
+!...............................................................................................................................
+REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
+CHARACTER(*),   INTENT(IN)    :: VarDesc     ! Description of variable (used in error message)
+INTEGER(IntKi), INTENT(INOUT) :: ErrStat     ! Error status to update if Var is not in specified range
+CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is not in specified range
+
+   IF ( ABS( Var ) > PiBy2 )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = TRIM(ErrMsg)//NewLine// &
+                  '  '//TRIM(VarDesc)//' must be between -pi/2 and pi/2 radians (i.e., in the range [-90, 90] degrees).'
+   END IF
+
+END SUBROUTINE CheckAngle90Range
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Init_ContStates( x, p, InputFileData, ErrStat, ErrMsg  )
+! This routine initializes the continuous states of the module.
+! It assumes the parameters are set and that InputFileData contains initial conditions for the continuous states.
+!..................................................................................................................................
+   TYPE(ED_ContinuousStateType), INTENT(OUT)    :: x              ! Initial continuous states
+   TYPE(ED_ParameterType),       INTENT(IN)     :: p              ! Parameters of the structural dynamics module
+   TYPE(ED_InputFile),           INTENT(IN)     :: InputFileData  ! Data stored in the module's input file   
+   INTEGER(IntKi),               INTENT(OUT)    :: ErrStat        ! Error status
+   CHARACTER(*),                 INTENT(OUT)    :: ErrMsg         ! Error message
+
+   
+      ! First allocate the arrays stored here:
+      
+   CALL AllocAry( x%QT, p%NDOF,   'QT',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+
+   CALL AllocAry( x%QDT, p%NDOF,  'QDT',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+      
+
+END SUBROUTINE Init_ContStates
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Init_OtherStates( OtherState, p, InputFileData, ErrStat, ErrMsg  )
+! This routine initializes the other states of the module.
+! It assumes the parameters are set and that InputFileData contains initial conditions for the continuous states.
+!..................................................................................................................................
+   TYPE(ED_OtherStateType),      INTENT(OUT)    :: OtherState        ! Initial other states
+   TYPE(ED_ParameterType),       INTENT(IN)     :: p                 ! Parameters of the structural dynamics module
+   TYPE(ED_InputFile),           INTENT(IN)     :: InputFileData    ! Data stored in the module's input file   
+   INTEGER(IntKi),               INTENT(OUT)    :: ErrStat           ! Error status
+   CHARACTER(*),                 INTENT(OUT)    :: ErrMsg            ! Error message
+
+      ! local variables
+   REAL(ReKi)                                   :: InitQE1(p%NumBl)  ! Initial value of the 1st blade edge DOF
+   REAL(ReKi)                                   :: InitQF1(p%NumBl)  ! Initial value of the 1st blade flap DOF
+   REAL(ReKi)                                   :: InitQF2(p%NumBl)  ! Initial value of the 2nd blade flap DOF
+   INTEGER(IntKi)                               :: I                 ! loop counter      
+   
+   
+      ! First allocate the arrays stored here:
+      
+   CALL Alloc_OtherState( OtherState, p, ErrStat, ErrMsg )
+   IF (ErrStat /= ErrID_None) RETURN
+   
+      ! Now initialize the IC array = CSHIFT( (/NMX, NMX-1, ... , 1 /), -1 )
+      ! this keeps track of the position in the array of continuous states (stored in other states)
+
+   OtherState%IC(1) = 1
+   DO I = 2,NMX
+      OtherState%IC(I) = OtherState%IC(1) - I + 1 + NMX
+   ENDDO      
+   
+   
+      ! Initialize the accelerations to zero.
+
+   OtherState%QD2 = 0.0_ReKi
+   
+   
+      ! Calculate/apply the initial blade DOF values to the corresponding DOFs.
+
+   CALL InitBlDefl ( p, InputFileData, InitQF1, InitQF2, InitQE1, ErrStat, ErrMsg  )
+
+   OtherState%Q ( DOF_BF(:,1), 1 ) = InitQF1   ! These come from InitBlDefl().
+   OtherState%Q ( DOF_BF(:,2), 1 ) = InitQF2   ! These come from InitBlDefl().
+   OtherState%Q ( DOF_BE(:,1), 1 ) = InitQE1   ! These come from InitBlDefl().
+   OtherState%QD( DOF_BF(:,1), 1 ) = 0.0
+   OtherState%QD( DOF_BF(:,2), 1 ) = 0.0
+   OtherState%QD( DOF_BE(:,1), 1 ) = 0.0
+
+      ! Teeter Motion
+
+   IF ( p%NumBl == 2 )  THEN !note, DOF_Teet doesn't exist for 3-bladed turbine, so don't include an ELSE here
+
+      ! Set initial teeter angle to TeetDefl and initial teeter angular velocity to 0.
+
+      OtherState%Q (DOF_Teet,1) = InputFileData%TeetDefl
+      OtherState%QD(DOF_Teet,1) = 0.0
+   ENDIF
+
+      ! Generator azimuth
+
+      ! Set initial generator azimuth angle.  Turn rotor on, whether it is
+      !   fixed or variable speed.  If it is fixed speed, set up the
+      !   fixed rpm.
+
+   !JASON: CHANGE THESE MOD() FUNCTIONS INTO MODULO() FUNCTIONS SO THAT YOU CAN ELIMINATE ADDING 360:
+   OtherState%Q (DOF_GeAz,1) = MOD( (InputFileData%Azimuth - p%AzimB1Up)*R2D + 270.0 + 360.0, 360.0 )*D2R   ! Internal position of blade 1
+   OtherState%QD(DOF_GeAz,1) = p%RotSpeed                                               ! Rotor speed in rad/sec.
+
+   
+      ! Shaft compliance
+
+   ! The initial shaft compliance displacements and velocities are all zero.
+   !   They will remain zero if the drivetrain DOF is disabled:
+
+   OtherState%Q (DOF_DrTr,1) = 0.0
+   OtherState%QD(DOF_DrTr,1) = 0.0
+   
+
+   
+   
+      ! Rotor-furl motion
+
+      ! Set initial rotor-furl angle to RotFurl.  If rotor-furl is off, this
+      !   becomes a fixed rotor-furl angle.
+
+   OtherState%Q (DOF_RFrl,1) = InputFileData%RotFurl
+   OtherState%QD(DOF_RFrl,1) = 0.0
+
+
+
+      ! Tail-furl motion
+
+      ! Set initial tail-furl angle to TailFurl.  If tail-furl is off, this becomes a fixed tail-furl angle.
+
+   OtherState%Q (DOF_TFrl,1) = InputFileData%TailFurl
+   OtherState%QD(DOF_TFrl,1) = 0.0
+
+
+
+      ! Yaw Motion
+
+      ! Set initial yaw angle to NacYaw.  If yaw is off, this becomes a fixed yaw angle.
+
+   OtherState%Q (DOF_Yaw ,1) = InputFileData%NacYaw
+   OtherState%QD(DOF_Yaw ,1) = 0.0
+
+
+
+      ! Tower motion
+
+      ! Assign all the displacements to mode 1 unless it is disabled.  If mode 1
+      !   is disabled and mode 2 is enabled, assign all displacements to mode 2.
+      ! If both modes are disabled, set the displacements to zero.
+
+   OtherState%Q   (DOF_TFA1,1) =  0.0
+   OtherState%Q   (DOF_TSS1,1) =  0.0
+   OtherState%Q   (DOF_TFA2,1) =  0.0
+   OtherState%Q   (DOF_TSS2,1) =  0.0
+
+   IF (    InputFileData%TwFADOF1 )  THEN   ! First fore-aft tower mode is enabled.
+      OtherState%Q(DOF_TFA1,1) =  InputFileData%TTDspFA
+   ELSEIF( InputFileData%TwFADOF2 )  THEN   ! Second fore-aft tower mode is enabled, but first is not.
+      OtherState%Q(DOF_TFA2,1) =  InputFileData%TTDspFA
+   ENDIF
+
+   IF (    InputFileData%TwSSDOF1 )  THEN   ! First side-to-side tower mode is enabled.
+      OtherState%Q(DOF_TSS1,1) = -InputFileData%TTDspSS
+   ELSEIF( InputFileData%TwSSDOF2 )  THEN   ! Second side-to-side tower mode is enabled, but first is not.
+      OtherState%Q(DOF_TSS2,1) = -InputFileData%TTDspSS
+   ENDIF
+
+   OtherState%QD  (DOF_TFA1,1) =  0.0
+   OtherState%QD  (DOF_TSS1,1) =  0.0
+   OtherState%QD  (DOF_TFA2,1) =  0.0
+   OtherState%QD  (DOF_TSS2,1) =  0.0
+
+
+
+      ! Platform Motion
+
+      ! Set initial platform displacements.  If platform DOFs are off, these
+      !   become fixed platform displacements.
+
+   OtherState%Q (DOF_Sg  ,1) = InputFileData%PtfmSurge
+   OtherState%Q (DOF_Sw  ,1) = InputFileData%PtfmSway
+   OtherState%Q (DOF_Hv  ,1) = InputFileData%PtfmHeave
+   OtherState%Q (DOF_R   ,1) = InputFileData%PtfmRoll
+   OtherState%Q (DOF_P   ,1) = InputFileData%PtfmPitch
+   OtherState%Q (DOF_Y   ,1) = InputFileData%PtfmYaw
+   OtherState%QD(DOF_Sg  ,1) = 0.0
+   OtherState%QD(DOF_Sw  ,1) = 0.0
+   OtherState%QD(DOF_Hv  ,1) = 0.0
+   OtherState%QD(DOF_R   ,1) = 0.0
+   OtherState%QD(DOF_P   ,1) = 0.0
+   OtherState%QD(DOF_Y   ,1) = 0.0
+
+
+   
+   
+      ! We will initialize the continuous states stored here as we compute them
+      
+      
+      
+
+END SUBROUTINE Init_OtherStates
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
+! This routine checks to see if any inputted output channels (stored in the OutList(:)) are invalid. It returns a 
+! warning if any of the channels are not available outputs from the module.
+!  It assigns the settings for OutParam(:) (i.e, the index, name, and units of the output channels, WriteOutput(:)).
+!  the sign is set to 
+! It requires that these variables are set: p%NumBl, p%NBlGages, p%NTwGages, p%NumOuts
+! and it sets the values of p%OutParam.
+!.................................................................................................................................. 
+   
+   IMPLICIT                        NONE
+
+
+      ! Passed variables
+      
+   CHARACTER(OutStrLen),      INTENT(IN)     :: OutList(:)                        ! The list out user-requested outputs
+   TYPE(ED_ParameterType),    INTENT(INOUT)  :: p                                 ! The parameters of the structural dynamics module
+   INTEGER(IntKi),            INTENT(OUT)    :: ErrStat                           ! The error status code; If not present code aborts
+   CHARACTER(*),              INTENT(OUT)    :: ErrMsg                            ! The error message, if an error occurred 
+    
+   
+      ! Local variables.
+
+   INTEGER                      :: I                                               ! Generic loop-counting index.
+   INTEGER                      :: J                                               ! Generic loop-counting index.
+   INTEGER                      :: INDX                                            ! Index for valid arrays.
+  
+   LOGICAL                      :: CheckOutListAgain                               ! Flag used to determine if output parameter starting with "M" is valid (or the negative of another parameter)
+   
+   CHARACTER(OutStrLen)         :: OutListTmp                                      ! A string to temporarily hold OutList(I)
+   
+
+! NOTE: The following lines of code were generated by a Matlab script called "Write_ChckOutLst.m"
+!      using the parameters listed in the "OutListParameters.xlsx" Excel file. Any changes to these 
+!      lines should be modified in the Matlab script and/or Excel worksheet as necessary. 
+! This code was generated by Write_ChckOutLst.m at 14-Feb-2013 13:25:07.
+   CHARACTER(OutStrLenM1), PARAMETER  :: ValidParamAry(1019) =  (/ &                         ! This lists the names of the allowed parameters, which must be sorted alphabetically
+                               "AZIMUTH  ","BLDPITCH1","BLDPITCH2","BLDPITCH3","BLPITCH1 ","BLPITCH2 ","BLPITCH3 ", &
+                               "CTHRSTARM","CTHRSTAZM","CTHRSTRAD","GENACCEL ","GENCP    ","GENCQ    ","GENPWR   ", &
+                               "GENSPEED ","GENTQ    ","HORWINDV ","HORWNDDIR","HSSBRTQ  ","HSSHFTA  ","HSSHFTCP ", &
+                               "HSSHFTCQ ","HSSHFTPWR","HSSHFTTQ ","HSSHFTV  ","IPDEFL1  ","IPDEFL2  ","IPDEFL3  ", &
+                               "LSSGAGA  ","LSSGAGAXA","LSSGAGAXS","LSSGAGFXA","LSSGAGFXS","LSSGAGFYA","LSSGAGFYS", &
+                               "LSSGAGFZA","LSSGAGFZS","LSSGAGMXA","LSSGAGMXS","LSSGAGMYA","LSSGAGMYS","LSSGAGMZA", &
+                               "LSSGAGMZS","LSSGAGP  ","LSSGAGPXA","LSSGAGPXS","LSSGAGV  ","LSSGAGVXA","LSSGAGVXS", &
+                               "LSSHFTCP ","LSSHFTCQ ","LSSHFTCT ","LSSHFTFXA","LSSHFTFXS","LSSHFTFYA","LSSHFTFYS", &
+                               "LSSHFTFZA","LSSHFTFZS","LSSHFTMXA","LSSHFTMXS","LSSHFTPWR","LSSHFTTQ ","LSSTIPA  ", &
+                               "LSSTIPAXA","LSSTIPAXS","LSSTIPMYA","LSSTIPMYS","LSSTIPMZA","LSSTIPMZS","LSSTIPP  ", &
+                               "LSSTIPPXA","LSSTIPPXS","LSSTIPV  ","LSSTIPVXA","LSSTIPVXS","NACYAW   ","NACYAWA  ", &
+                               "NACYAWERR","NACYAWP  ","NACYAWV  ","NCIMURAXS","NCIMURAYS","NCIMURAZS","NCIMURVXS", &
+                               "NCIMURVYS","NCIMURVZS","NCIMUTAXS","NCIMUTAYS","NCIMUTAZS","NCIMUTVXS","NCIMUTVYS", &
+                               "NCIMUTVZS","OOPDEFL1 ","OOPDEFL2 ","OOPDEFL3 ","PTCHDEFL1","PTCHDEFL2","PTCHDEFL3", &
+                               "PTCHPMZB1","PTCHPMZB2","PTCHPMZB3","PTCHPMZC1","PTCHPMZC2","PTCHPMZC3","PTFMFXI  ", &
+                               "PTFMFXT  ","PTFMFYI  ","PTFMFYT  ","PTFMFZI  ","PTFMFZT  ","PTFMHEAVE","PTFMMXI  ", &
+                               "PTFMMXT  ","PTFMMYI  ","PTFMMYT  ","PTFMMZI  ","PTFMMZT  ","PTFMPITCH","PTFMRAXI ", &
+                               "PTFMRAXT ","PTFMRAYI ","PTFMRAYT ","PTFMRAZI ","PTFMRAZT ","PTFMRDXI ","PTFMRDYI ", &
+                               "PTFMRDZI ","PTFMROLL ","PTFMRVXI ","PTFMRVXT ","PTFMRVYI ","PTFMRVYT ","PTFMRVZI ", &
+                               "PTFMRVZT ","PTFMSURGE","PTFMSWAY ","PTFMTAXI ","PTFMTAXT ","PTFMTAYI ","PTFMTAYT ", &
+                               "PTFMTAZI ","PTFMTAZT ","PTFMTDXI ","PTFMTDXT ","PTFMTDYI ","PTFMTDYT ","PTFMTDZI ", &
+                               "PTFMTDZT ","PTFMTVXI ","PTFMTVXT ","PTFMTVYI ","PTFMTVYT ","PTFMTVZI ","PTFMTVZT ", &
+                               "PTFMYAW  ","QD2_B1E1 ","QD2_B1F1 ","QD2_B1F2 ","QD2_B2E1 ","QD2_B2F1 ","QD2_B2F2 ", &
+                               "QD2_B3E1 ","QD2_B3F1 ","QD2_B3F2 ","QD2_DRTR ","QD2_GEAZ ","QD2_HV   ","QD2_P    ", &
+                               "QD2_R    ","QD2_RFRL ","QD2_SG   ","QD2_SW   ","QD2_TEET ","QD2_TFA1 ","QD2_TFA2 ", &
+                               "QD2_TFRL ","QD2_TSS1 ","QD2_TSS2 ","QD2_Y    ","QD2_YAW  ","QD_B1E1  ","QD_B1F1  ", &
+                               "QD_B1F2  ","QD_B2E1  ","QD_B2F1  ","QD_B2F2  ","QD_B3E1  ","QD_B3F1  ","QD_B3F2  ", &
+                               "QD_DRTR  ","QD_GEAZ  ","QD_HV    ","QD_P     ","QD_R     ","QD_RFRL  ","QD_SG    ", &
+                               "QD_SW    ","QD_TEET  ","QD_TFA1  ","QD_TFA2  ","QD_TFRL  ","QD_TSS1  ","QD_TSS2  ", &
+                               "QD_Y     ","QD_YAW   ","Q_B1E1   ","Q_B1F1   ","Q_B1F2   ","Q_B2E1   ","Q_B2F1   ", &
+                               "Q_B2F2   ","Q_B3E1   ","Q_B3F1   ","Q_B3F2   ","Q_DRTR   ","Q_GEAZ   ","Q_HV     ", &
+                               "Q_P      ","Q_R      ","Q_RFRL   ","Q_SG     ","Q_SW     ","Q_TEET   ","Q_TFA1   ", &
+                               "Q_TFA2   ","Q_TFRL   ","Q_TSS1   ","Q_TSS2   ","Q_Y      ","Q_YAW    ","RFRLBRM  ", &
+                               "ROLLDEFL1","ROLLDEFL2","ROLLDEFL3","ROOTFXB1 ","ROOTFXB2 ","ROOTFXB3 ","ROOTFXC1 ", &
+                               "ROOTFXC2 ","ROOTFXC3 ","ROOTFYB1 ","ROOTFYB2 ","ROOTFYB3 ","ROOTFYC1 ","ROOTFYC2 ", &
+                               "ROOTFYC3 ","ROOTFZB1 ","ROOTFZB2 ","ROOTFZB3 ","ROOTFZC1 ","ROOTFZC2 ","ROOTFZC3 ", &
+                               "ROOTMEDG1","ROOTMEDG2","ROOTMEDG3","ROOTMFLP1","ROOTMFLP2","ROOTMFLP3","ROOTMIP1 ", &
+                               "ROOTMIP2 ","ROOTMIP3 ","ROOTMOOP1","ROOTMOOP2","ROOTMOOP3","ROOTMXB1 ","ROOTMXB2 ", &
+                               "ROOTMXB3 ","ROOTMXC1 ","ROOTMXC2 ","ROOTMXC3 ","ROOTMYB1 ","ROOTMYB2 ","ROOTMYB3 ", &
+                               "ROOTMYC1 ","ROOTMYC2 ","ROOTMYC3 ","ROOTMZB1 ","ROOTMZB2 ","ROOTMZB3 ","ROOTMZC1 ", &
+                               "ROOTMZC2 ","ROOTMZC3 ","ROTACCEL ","ROTCP    ","ROTCQ    ","ROTCT    ","ROTFURL  ", &
+                               "ROTFURLA ","ROTFURLP ","ROTFURLV ","ROTPWR   ","ROTSPEED ","ROTTEETA ","ROTTEETP ", &
+                               "ROTTEETV ","ROTTHRUST","ROTTORQ  ","SPN1ALXB1","SPN1ALXB2","SPN1ALXB3","SPN1ALYB1", &
+                               "SPN1ALYB2","SPN1ALYB3","SPN1ALZB1","SPN1ALZB2","SPN1ALZB3","SPN1FLXB1","SPN1FLXB2", &
+                               "SPN1FLXB3","SPN1FLYB1","SPN1FLYB2","SPN1FLYB3","SPN1FLZB1","SPN1FLZB2","SPN1FLZB3", &
+                               "SPN1MLXB1","SPN1MLXB2","SPN1MLXB3","SPN1MLYB1","SPN1MLYB2","SPN1MLYB3","SPN1MLZB1", &
+                               "SPN1MLZB2","SPN1MLZB3","SPN1RDXB1","SPN1RDXB2","SPN1RDXB3","SPN1RDYB1","SPN1RDYB2", &
+                               "SPN1RDYB3","SPN1RDZB1","SPN1RDZB2","SPN1RDZB3","SPN1TDXB1","SPN1TDXB2","SPN1TDXB3", &
+                               "SPN1TDYB1","SPN1TDYB2","SPN1TDYB3","SPN1TDZB1","SPN1TDZB2","SPN1TDZB3","SPN2ALXB1", &
+                               "SPN2ALXB2","SPN2ALXB3","SPN2ALYB1","SPN2ALYB2","SPN2ALYB3","SPN2ALZB1","SPN2ALZB2", &
+                               "SPN2ALZB3","SPN2FLXB1","SPN2FLXB2","SPN2FLXB3","SPN2FLYB1","SPN2FLYB2","SPN2FLYB3", &
+                               "SPN2FLZB1","SPN2FLZB2","SPN2FLZB3","SPN2MLXB1","SPN2MLXB2","SPN2MLXB3","SPN2MLYB1", &
+                               "SPN2MLYB2","SPN2MLYB3","SPN2MLZB1","SPN2MLZB2","SPN2MLZB3","SPN2RDXB1","SPN2RDXB2", &
+                               "SPN2RDXB3","SPN2RDYB1","SPN2RDYB2","SPN2RDYB3","SPN2RDZB1","SPN2RDZB2","SPN2RDZB3", &
+                               "SPN2TDXB1","SPN2TDXB2","SPN2TDXB3","SPN2TDYB1","SPN2TDYB2","SPN2TDYB3","SPN2TDZB1", &
+                               "SPN2TDZB2","SPN2TDZB3","SPN3ALXB1","SPN3ALXB2","SPN3ALXB3","SPN3ALYB1","SPN3ALYB2", &
+                               "SPN3ALYB3","SPN3ALZB1","SPN3ALZB2","SPN3ALZB3","SPN3FLXB1","SPN3FLXB2","SPN3FLXB3", &
+                               "SPN3FLYB1","SPN3FLYB2","SPN3FLYB3","SPN3FLZB1","SPN3FLZB2","SPN3FLZB3","SPN3MLXB1", &
+                               "SPN3MLXB2","SPN3MLXB3","SPN3MLYB1","SPN3MLYB2","SPN3MLYB3","SPN3MLZB1","SPN3MLZB2", &
+                               "SPN3MLZB3","SPN3RDXB1","SPN3RDXB2","SPN3RDXB3","SPN3RDYB1","SPN3RDYB2","SPN3RDYB3", &
+                               "SPN3RDZB1","SPN3RDZB2","SPN3RDZB3","SPN3TDXB1","SPN3TDXB2","SPN3TDXB3","SPN3TDYB1", &
+                               "SPN3TDYB2","SPN3TDYB3","SPN3TDZB1","SPN3TDZB2","SPN3TDZB3","SPN4ALXB1","SPN4ALXB2", &
+                               "SPN4ALXB3","SPN4ALYB1","SPN4ALYB2","SPN4ALYB3","SPN4ALZB1","SPN4ALZB2","SPN4ALZB3", &
+                               "SPN4FLXB1","SPN4FLXB2","SPN4FLXB3","SPN4FLYB1","SPN4FLYB2","SPN4FLYB3","SPN4FLZB1", &
+                               "SPN4FLZB2","SPN4FLZB3","SPN4MLXB1","SPN4MLXB2","SPN4MLXB3","SPN4MLYB1","SPN4MLYB2", &
+                               "SPN4MLYB3","SPN4MLZB1","SPN4MLZB2","SPN4MLZB3","SPN4RDXB1","SPN4RDXB2","SPN4RDXB3", &
+                               "SPN4RDYB1","SPN4RDYB2","SPN4RDYB3","SPN4RDZB1","SPN4RDZB2","SPN4RDZB3","SPN4TDXB1", &
+                               "SPN4TDXB2","SPN4TDXB3","SPN4TDYB1","SPN4TDYB2","SPN4TDYB3","SPN4TDZB1","SPN4TDZB2", &
+                               "SPN4TDZB3","SPN5ALXB1","SPN5ALXB2","SPN5ALXB3","SPN5ALYB1","SPN5ALYB2","SPN5ALYB3", &
+                               "SPN5ALZB1","SPN5ALZB2","SPN5ALZB3","SPN5FLXB1","SPN5FLXB2","SPN5FLXB3","SPN5FLYB1", &
+                               "SPN5FLYB2","SPN5FLYB3","SPN5FLZB1","SPN5FLZB2","SPN5FLZB3","SPN5MLXB1","SPN5MLXB2", &
+                               "SPN5MLXB3","SPN5MLYB1","SPN5MLYB2","SPN5MLYB3","SPN5MLZB1","SPN5MLZB2","SPN5MLZB3", &
+                               "SPN5RDXB1","SPN5RDXB2","SPN5RDXB3","SPN5RDYB1","SPN5RDYB2","SPN5RDYB3","SPN5RDZB1", &
+                               "SPN5RDZB2","SPN5RDZB3","SPN5TDXB1","SPN5TDXB2","SPN5TDXB3","SPN5TDYB1","SPN5TDYB2", &
+                               "SPN5TDYB3","SPN5TDZB1","SPN5TDZB2","SPN5TDZB3","SPN6ALXB1","SPN6ALXB2","SPN6ALXB3", &
+                               "SPN6ALYB1","SPN6ALYB2","SPN6ALYB3","SPN6ALZB1","SPN6ALZB2","SPN6ALZB3","SPN6FLXB1", &
+                               "SPN6FLXB2","SPN6FLXB3","SPN6FLYB1","SPN6FLYB2","SPN6FLYB3","SPN6FLZB1","SPN6FLZB2", &
+                               "SPN6FLZB3","SPN6MLXB1","SPN6MLXB2","SPN6MLXB3","SPN6MLYB1","SPN6MLYB2","SPN6MLYB3", &
+                               "SPN6MLZB1","SPN6MLZB2","SPN6MLZB3","SPN6RDXB1","SPN6RDXB2","SPN6RDXB3","SPN6RDYB1", &
+                               "SPN6RDYB2","SPN6RDYB3","SPN6RDZB1","SPN6RDZB2","SPN6RDZB3","SPN6TDXB1","SPN6TDXB2", &
+                               "SPN6TDXB3","SPN6TDYB1","SPN6TDYB2","SPN6TDYB3","SPN6TDZB1","SPN6TDZB2","SPN6TDZB3", &
+                               "SPN7ALXB1","SPN7ALXB2","SPN7ALXB3","SPN7ALYB1","SPN7ALYB2","SPN7ALYB3","SPN7ALZB1", &
+                               "SPN7ALZB2","SPN7ALZB3","SPN7FLXB1","SPN7FLXB2","SPN7FLXB3","SPN7FLYB1","SPN7FLYB2", &
+                               "SPN7FLYB3","SPN7FLZB1","SPN7FLZB2","SPN7FLZB3","SPN7MLXB1","SPN7MLXB2","SPN7MLXB3", &
+                               "SPN7MLYB1","SPN7MLYB2","SPN7MLYB3","SPN7MLZB1","SPN7MLZB2","SPN7MLZB3","SPN7RDXB1", &
+                               "SPN7RDXB2","SPN7RDXB3","SPN7RDYB1","SPN7RDYB2","SPN7RDYB3","SPN7RDZB1","SPN7RDZB2", &
+                               "SPN7RDZB3","SPN7TDXB1","SPN7TDXB2","SPN7TDXB3","SPN7TDYB1","SPN7TDYB2","SPN7TDYB3", &
+                               "SPN7TDZB1","SPN7TDZB2","SPN7TDZB3","SPN8ALXB1","SPN8ALXB2","SPN8ALXB3","SPN8ALYB1", &
+                               "SPN8ALYB2","SPN8ALYB3","SPN8ALZB1","SPN8ALZB2","SPN8ALZB3","SPN8FLXB1","SPN8FLXB2", &
+                               "SPN8FLXB3","SPN8FLYB1","SPN8FLYB2","SPN8FLYB3","SPN8FLZB1","SPN8FLZB2","SPN8FLZB3", &
+                               "SPN8MLXB1","SPN8MLXB2","SPN8MLXB3","SPN8MLYB1","SPN8MLYB2","SPN8MLYB3","SPN8MLZB1", &
+                               "SPN8MLZB2","SPN8MLZB3","SPN8RDXB1","SPN8RDXB2","SPN8RDXB3","SPN8RDYB1","SPN8RDYB2", &
+                               "SPN8RDYB3","SPN8RDZB1","SPN8RDZB2","SPN8RDZB3","SPN8TDXB1","SPN8TDXB2","SPN8TDXB3", &
+                               "SPN8TDYB1","SPN8TDYB2","SPN8TDYB3","SPN8TDZB1","SPN8TDZB2","SPN8TDZB3","SPN9ALXB1", &
+                               "SPN9ALXB2","SPN9ALXB3","SPN9ALYB1","SPN9ALYB2","SPN9ALYB3","SPN9ALZB1","SPN9ALZB2", &
+                               "SPN9ALZB3","SPN9FLXB1","SPN9FLXB2","SPN9FLXB3","SPN9FLYB1","SPN9FLYB2","SPN9FLYB3", &
+                               "SPN9FLZB1","SPN9FLZB2","SPN9FLZB3","SPN9MLXB1","SPN9MLXB2","SPN9MLXB3","SPN9MLYB1", &
+                               "SPN9MLYB2","SPN9MLYB3","SPN9MLZB1","SPN9MLZB2","SPN9MLZB3","SPN9RDXB1","SPN9RDXB2", &
+                               "SPN9RDXB3","SPN9RDYB1","SPN9RDYB2","SPN9RDYB3","SPN9RDZB1","SPN9RDZB2","SPN9RDZB3", &
+                               "SPN9TDXB1","SPN9TDXB2","SPN9TDXB3","SPN9TDYB1","SPN9TDYB2","SPN9TDYB3","SPN9TDZB1", &
+                               "SPN9TDZB2","SPN9TDZB3","TAILFURL ","TAILFURLA","TAILFURLP","TAILFURLV","TEETAYA  ", &
+                               "TEETDEFL ","TEETPYA  ","TEETVYA  ","TFINALPHA","TFINCDRAG","TFINCLIFT","TFINCPFX ", &
+                               "TFINCPFY ","TFINDNPRS","TFRLBRM  ","TIP2TWR1 ","TIP2TWR2 ","TIP2TWR3 ","TIPALXB1 ", &
+                               "TIPALXB2 ","TIPALXB3 ","TIPALYB1 ","TIPALYB2 ","TIPALYB3 ","TIPALZB1 ","TIPALZB2 ", &
+                               "TIPALZB3 ","TIPCLRNC1","TIPCLRNC2","TIPCLRNC3","TIPDXB1  ","TIPDXB2  ","TIPDXB3  ", &
+                               "TIPDXC1  ","TIPDXC2  ","TIPDXC3  ","TIPDYB1  ","TIPDYB2  ","TIPDYB3  ","TIPDYC1  ", &
+                               "TIPDYC2  ","TIPDYC3  ","TIPDZB1  ","TIPDZB2  ","TIPDZB3  ","TIPDZC1  ","TIPDZC2  ", &
+                               "TIPDZC3  ","TIPRDXB1 ","TIPRDXB2 ","TIPRDXB3 ","TIPRDYB1 ","TIPRDYB2 ","TIPRDYB3 ", &
+                               "TIPRDZB1 ","TIPRDZB2 ","TIPRDZB3 ","TIPRDZC1 ","TIPRDZC2 ","TIPRDZC3 ","TIPSPDRAT", &
+                               "TOTWINDV ","TSR      ","TTDSPAX  ","TTDSPFA  ","TTDSPPTCH","TTDSPROLL","TTDSPSS  ", &
+                               "TTDSPTWST","TWHT1ALXT","TWHT1ALYT","TWHT1ALZT","TWHT1FLXT","TWHT1FLYT","TWHT1FLZT", &
+                               "TWHT1MLXT","TWHT1MLYT","TWHT1MLZT","TWHT1RDXT","TWHT1RDYT","TWHT1RDZT","TWHT1RPXI", &
+                               "TWHT1RPYI","TWHT1RPZI","TWHT1TDXT","TWHT1TDYT","TWHT1TDZT","TWHT1TPXI","TWHT1TPYI", &
+                               "TWHT1TPZI","TWHT2ALXT","TWHT2ALYT","TWHT2ALZT","TWHT2FLXT","TWHT2FLYT","TWHT2FLZT", &
+                               "TWHT2MLXT","TWHT2MLYT","TWHT2MLZT","TWHT2RDXT","TWHT2RDYT","TWHT2RDZT","TWHT2RPXI", &
+                               "TWHT2RPYI","TWHT2RPZI","TWHT2TDXT","TWHT2TDYT","TWHT2TDZT","TWHT2TPXI","TWHT2TPYI", &
+                               "TWHT2TPZI","TWHT3ALXT","TWHT3ALYT","TWHT3ALZT","TWHT3FLXT","TWHT3FLYT","TWHT3FLZT", &
+                               "TWHT3MLXT","TWHT3MLYT","TWHT3MLZT","TWHT3RDXT","TWHT3RDYT","TWHT3RDZT","TWHT3RPXI", &
+                               "TWHT3RPYI","TWHT3RPZI","TWHT3TDXT","TWHT3TDYT","TWHT3TDZT","TWHT3TPXI","TWHT3TPYI", &
+                               "TWHT3TPZI","TWHT4ALXT","TWHT4ALYT","TWHT4ALZT","TWHT4FLXT","TWHT4FLYT","TWHT4FLZT", &
+                               "TWHT4MLXT","TWHT4MLYT","TWHT4MLZT","TWHT4RDXT","TWHT4RDYT","TWHT4RDZT","TWHT4RPXI", &
+                               "TWHT4RPYI","TWHT4RPZI","TWHT4TDXT","TWHT4TDYT","TWHT4TDZT","TWHT4TPXI","TWHT4TPYI", &
+                               "TWHT4TPZI","TWHT5ALXT","TWHT5ALYT","TWHT5ALZT","TWHT5FLXT","TWHT5FLYT","TWHT5FLZT", &
+                               "TWHT5MLXT","TWHT5MLYT","TWHT5MLZT","TWHT5RDXT","TWHT5RDYT","TWHT5RDZT","TWHT5RPXI", &
+                               "TWHT5RPYI","TWHT5RPZI","TWHT5TDXT","TWHT5TDYT","TWHT5TDZT","TWHT5TPXI","TWHT5TPYI", &
+                               "TWHT5TPZI","TWHT6ALXT","TWHT6ALYT","TWHT6ALZT","TWHT6FLXT","TWHT6FLYT","TWHT6FLZT", &
+                               "TWHT6MLXT","TWHT6MLYT","TWHT6MLZT","TWHT6RDXT","TWHT6RDYT","TWHT6RDZT","TWHT6RPXI", &
+                               "TWHT6RPYI","TWHT6RPZI","TWHT6TDXT","TWHT6TDYT","TWHT6TDZT","TWHT6TPXI","TWHT6TPYI", &
+                               "TWHT6TPZI","TWHT7ALXT","TWHT7ALYT","TWHT7ALZT","TWHT7FLXT","TWHT7FLYT","TWHT7FLZT", &
+                               "TWHT7MLXT","TWHT7MLYT","TWHT7MLZT","TWHT7RDXT","TWHT7RDYT","TWHT7RDZT","TWHT7RPXI", &
+                               "TWHT7RPYI","TWHT7RPZI","TWHT7TDXT","TWHT7TDYT","TWHT7TDZT","TWHT7TPXI","TWHT7TPYI", &
+                               "TWHT7TPZI","TWHT8ALXT","TWHT8ALYT","TWHT8ALZT","TWHT8FLXT","TWHT8FLYT","TWHT8FLZT", &
+                               "TWHT8MLXT","TWHT8MLYT","TWHT8MLZT","TWHT8RDXT","TWHT8RDYT","TWHT8RDZT","TWHT8RPXI", &
+                               "TWHT8RPYI","TWHT8RPZI","TWHT8TDXT","TWHT8TDYT","TWHT8TDZT","TWHT8TPXI","TWHT8TPYI", &
+                               "TWHT8TPZI","TWHT9ALXT","TWHT9ALYT","TWHT9ALZT","TWHT9FLXT","TWHT9FLYT","TWHT9FLZT", &
+                               "TWHT9MLXT","TWHT9MLYT","TWHT9MLZT","TWHT9RDXT","TWHT9RDYT","TWHT9RDZT","TWHT9RPXI", &
+                               "TWHT9RPYI","TWHT9RPZI","TWHT9TDXT","TWHT9TDYT","TWHT9TDZT","TWHT9TPXI","TWHT9TPYI", &
+                               "TWHT9TPZI","TWRBSFXT ","TWRBSFYT ","TWRBSFZT ","TWRBSMXT ","TWRBSMYT ","TWRBSMZT ", &
+                               "TWRCLRNC1","TWRCLRNC2","TWRCLRNC3","TWSTDEFL1","TWSTDEFL2","TWSTDEFL3","UWIND    ", &
+                               "VERWNDDIR","VWIND    ","WINDVXI  ","WINDVYI  ","WINDVZI  ","WWIND    ","YAWACCEL ", &
+                               "YAWAZN   ","YAWAZP   ","YAWBRFXN ","YAWBRFXP ","YAWBRFYN ","YAWBRFYP ","YAWBRFZN ", &
+                               "YAWBRFZP ","YAWBRMXN ","YAWBRMXP ","YAWBRMYN ","YAWBRMYP ","YAWBRMZN ","YAWBRMZP ", &
+                               "YAWBRRAXP","YAWBRRAYP","YAWBRRAZP","YAWBRRDXT","YAWBRRDYT","YAWBRRDZT","YAWBRRVXP", &
+                               "YAWBRRVYP","YAWBRRVZP","YAWBRTAXP","YAWBRTAYP","YAWBRTAZP","YAWBRTDXP","YAWBRTDXT", &
+                               "YAWBRTDYP","YAWBRTDYT","YAWBRTDZP","YAWBRTDZT","YAWMOM   ","YAWPOS   ","YAWPZN   ", &
+                               "YAWPZP   ","YAWRATE  ","YAWVZN   ","YAWVZP   "/)
+   INTEGER(IntKi), PARAMETER :: ParamIndxAry(1019) =  (/ &                          ! This lists the index into AllOuts(:) of the allowed parameters ValidParamAry(:)
+                                LSSTipPxa , PtchPMzc1 , PtchPMzc2 , PtchPMzc3 , PtchPMzc1 , PtchPMzc2 , PtchPMzc3 , &
+                                CThrstRad , CThrstAzm , CThrstRad ,   HSShftA ,     GenCp ,     GenCq ,    GenPwr , &
+                                  HSShftV ,     GenTq ,  HorWindV , HorWndDir ,   HSSBrTq ,   HSShftA ,  HSShftCp , &
+                                 HSShftCq , HSShftPwr ,  HSShftTq ,   HSShftV ,   TipDyc1 ,   TipDyc2 ,   TipDyc3 , &
+                                LSSGagAxa , LSSGagAxa , LSSGagAxa , LSShftFxa , LSShftFxa , LSShftFya , LSShftFys , &
+                                LSShftFza , LSShftFzs , LSShftMxa , LSShftMxa , LSSGagMya , LSSGagMys , LSSGagMza , &
+                                LSSGagMzs , LSSGagPxa , LSSGagPxa , LSSGagPxa , LSSGagVxa , LSSGagVxa , LSSGagVxa , &
+                                    RotCp ,     RotCq ,     RotCt , LSShftFxa , LSShftFxa , LSShftFya , LSShftFys , &
+                                LSShftFza , LSShftFzs , LSShftMxa , LSShftMxa ,    RotPwr , LSShftMxa , LSSTipAxa , &
+                                LSSTipAxa , LSSTipAxa , LSSTipMya , LSSTipMys , LSSTipMza , LSSTipMzs , LSSTipPxa , &
+                                LSSTipPxa , LSSTipPxa , LSSTipVxa , LSSTipVxa , LSSTipVxa ,    YawPzn ,    YawAzn , &
+                                NacYawErr ,    YawPzn ,    YawVzn , NcIMURAxs , NcIMURAys , NcIMURAzs , NcIMURVxs , &
+                                NcIMURVys , NcIMURVzs , NcIMUTAxs , NcIMUTAys , NcIMUTAzs , NcIMUTVxs , NcIMUTVys , &
+                                NcIMUTVzs ,   TipDxc1 ,   TipDxc2 ,   TipDxc3 ,  TipRDyb1 ,  TipRDyb2 ,  TipRDyb3 , &
+                                PtchPMzc1 , PtchPMzc2 , PtchPMzc3 , PtchPMzc1 , PtchPMzc2 , PtchPMzc3 ,   PtfmFxi , &
+                                  PtfmFxt ,   PtfmFyi ,   PtfmFyt ,   PtfmFzi ,   PtfmFzt ,  PtfmTDzi ,   PtfmMxi , &
+                                  PtfmMxt ,   PtfmMyi ,   PtfmMyt ,   PtfmMzi ,   PtfmMzt ,  PtfmRDyi ,  PtfmRAxi , &
+                                 PtfmRAxt ,  PtfmRAyi ,  PtfmRAyt ,  PtfmRAzi ,  PtfmRAzt ,  PtfmRDxi ,  PtfmRDyi , &
+                                 PtfmRDzi ,  PtfmRDxi ,  PtfmRVxi ,  PtfmRVxt ,  PtfmRVyi ,  PtfmRVyt ,  PtfmRVzi , &
+                                 PtfmRVzt ,  PtfmTDxi ,  PtfmTDyi ,  PtfmTAxi ,  PtfmTAxt ,  PtfmTAyi ,  PtfmTAyt , &
+                                 PtfmTAzi ,  PtfmTAzt ,  PtfmTDxi ,  PtfmTDxt ,  PtfmTDyi ,  PtfmTDyt ,  PtfmTDzi , &
+                                 PtfmTDzt ,  PtfmTVxi ,  PtfmTVxt ,  PtfmTVyi ,  PtfmTVyt ,  PtfmTVzi ,  PtfmTVzt , &
+                                 PtfmRDzi ,  QD2_B1E1 ,  QD2_B1F1 ,  QD2_B1F2 ,  QD2_B2E1 ,  QD2_B2F1 ,  QD2_B2F2 , &
+                                 QD2_B3E1 ,  QD2_B3F1 ,  QD2_B3F2 ,  QD2_DrTr ,  QD2_GeAz ,    QD2_Hv ,     QD2_P , &
+                                    QD2_R ,  QD2_RFrl ,    QD2_Sg ,    QD2_Sw ,  QD2_Teet ,  QD2_TFA1 ,  QD2_TFA2 , &
+                                 QD2_TFrl ,  QD2_TSS1 ,  QD2_TSS2 ,     QD2_Y ,   QD2_Yaw ,   QD_B1E1 ,   QD_B1F1 , &
+                                  QD_B1F2 ,   QD_B2E1 ,   QD_B2F1 ,   QD_B2F2 ,   QD_B3E1 ,   QD_B3F1 ,   QD_B3F2 , &
+                                  QD_DrTr ,   QD_GeAz ,     QD_Hv ,      QD_P ,      QD_R ,   QD_RFrl ,     QD_Sg , &
+                                    QD_Sw ,   QD_Teet ,   QD_TFA1 ,   QD_TFA2 ,   QD_TFrl ,   QD_TSS1 ,   QD_TSS2 , &
+                                     QD_Y ,    QD_Yaw ,    Q_B1E1 ,    Q_B1F1 ,    Q_B1F2 ,    Q_B2E1 ,    Q_B2F1 , &
+                                   Q_B2F2 ,    Q_B3E1 ,    Q_B3F1 ,    Q_B3F2 ,    Q_DrTr ,    Q_GeAz ,      Q_Hv , &
+                                      Q_P ,       Q_R ,    Q_RFrl ,      Q_Sg ,      Q_Sw ,    Q_Teet ,    Q_TFA1 , &
+                                   Q_TFA2 ,    Q_TFrl ,    Q_TSS1 ,    Q_TSS2 ,       Q_Y ,     Q_Yaw ,   RFrlBrM , &
+                                 TipRDxb1 ,  TipRDxb2 ,  TipRDxb3 ,  RootFxb1 ,  RootFxb2 ,  RootFxb3 ,  RootFxc1 , &
+                                 RootFxc2 ,  RootFxc3 ,  RootFyb1 ,  RootFyb2 ,  RootFyb3 ,  RootFyc1 ,  RootFyc2 , &
+                                 RootFyc3 ,  RootFzc1 ,  RootFzc2 ,  RootFzc3 ,  RootFzc1 ,  RootFzc2 ,  RootFzc3 , &
+                                 RootMxb1 ,  RootMxb2 ,  RootMxb3 ,  RootMyb1 ,  RootMyb2 ,  RootMyb3 ,  RootMxc1 , &
+                                 RootMxc2 ,  RootMxc3 ,  RootMyc1 ,  RootMyc2 ,  RootMyc3 ,  RootMxb1 ,  RootMxb2 , &
+                                 RootMxb3 ,  RootMxc1 ,  RootMxc2 ,  RootMxc3 ,  RootMyb1 ,  RootMyb2 ,  RootMyb3 , &
+                                 RootMyc1 ,  RootMyc2 ,  RootMyc3 ,  RootMzc1 ,  RootMzc2 ,  RootMzc3 ,  RootMzc1 , &
+                                 RootMzc2 ,  RootMzc3 , LSSTipAxa ,     RotCp ,     RotCq ,     RotCt ,  RotFurlP , &
+                                 RotFurlA ,  RotFurlP ,  RotFurlV ,    RotPwr , LSSTipVxa ,   TeetAya ,   TeetPya , &
+                                  TeetVya , LSShftFxa , LSShftMxa , Spn1ALxb1 , Spn1ALxb2 , Spn1ALxb3 , Spn1ALyb1 , &
+                                Spn1ALyb2 , Spn1ALyb3 , Spn1ALzb1 , Spn1ALzb2 , Spn1ALzb3 , Spn1FLxb1 , Spn1FLxb2 , &
+                                Spn1FLxb3 , Spn1FLyb1 , Spn1FLyb2 , Spn1FLyb3 , Spn1FLzb1 , Spn1FLzb2 , Spn1FLzb3 , &
+                                Spn1MLxb1 , Spn1MLxb2 , Spn1MLxb3 , Spn1MLyb1 , Spn1MLyb2 , Spn1MLyb3 , Spn1MLzb1 , &
+                                Spn1MLzb2 , Spn1MLzb3 , Spn1RDxb1 , Spn1RDxb2 , Spn1RDxb3 , Spn1RDyb1 , Spn1RDyb2 , &
+                                Spn1RDyb3 , Spn1RDzb1 , Spn1RDzb2 , Spn1RDzb3 , Spn1TDxb1 , Spn1TDxb2 , Spn1TDxb3 , &
+                                Spn1TDyb1 , Spn1TDyb2 , Spn1TDyb3 , Spn1TDzb1 , Spn1TDzb2 , Spn1TDzb3 , Spn2ALxb1 , &
+                                Spn2ALxb2 , Spn2ALxb3 , Spn2ALyb1 , Spn2ALyb2 , Spn2ALyb3 , Spn2ALzb1 , Spn2ALzb2 , &
+                                Spn2ALzb3 , Spn2FLxb1 , Spn2FLxb2 , Spn2FLxb3 , Spn2FLyb1 , Spn2FLyb2 , Spn2FLyb3 , &
+                                Spn2FLzb1 , Spn2FLzb2 , Spn2FLzb3 , Spn2MLxb1 , Spn2MLxb2 , Spn2MLxb3 , Spn2MLyb1 , &
+                                Spn2MLyb2 , Spn2MLyb3 , Spn2MLzb1 , Spn2MLzb2 , Spn2MLzb3 , Spn2RDxb1 , Spn2RDxb2 , &
+                                Spn2RDxb3 , Spn2RDyb1 , Spn2RDyb2 , Spn2RDyb3 , Spn2RDzb1 , Spn2RDzb2 , Spn2RDzb3 , &
+                                Spn2TDxb1 , Spn2TDxb2 , Spn2TDxb3 , Spn2TDyb1 , Spn2TDyb2 , Spn2TDyb3 , Spn2TDzb1 , &
+                                Spn2TDzb2 , Spn2TDzb3 , Spn3ALxb1 , Spn3ALxb2 , Spn3ALxb3 , Spn3ALyb1 , Spn3ALyb2 , &
+                                Spn3ALyb3 , Spn3ALzb1 , Spn3ALzb2 , Spn3ALzb3 , Spn3FLxb1 , Spn3FLxb2 , Spn3FLxb3 , &
+                                Spn3FLyb1 , Spn3FLyb2 , Spn3FLyb3 , Spn3FLzb1 , Spn3FLzb2 , Spn3FLzb3 , Spn3MLxb1 , &
+                                Spn3MLxb2 , Spn3MLxb3 , Spn3MLyb1 , Spn3MLyb2 , Spn3MLyb3 , Spn3MLzb1 , Spn3MLzb2 , &
+                                Spn3MLzb3 , Spn3RDxb1 , Spn3RDxb2 , Spn3RDxb3 , Spn3RDyb1 , Spn3RDyb2 , Spn3RDyb3 , &
+                                Spn3RDzb1 , Spn3RDzb2 , Spn3RDzb3 , Spn3TDxb1 , Spn3TDxb2 , Spn3TDxb3 , Spn3TDyb1 , &
+                                Spn3TDyb2 , Spn3TDyb3 , Spn3TDzb1 , Spn3TDzb2 , Spn3TDzb3 , Spn4ALxb1 , Spn4ALxb2 , &
+                                Spn4ALxb3 , Spn4ALyb1 , Spn4ALyb2 , Spn4ALyb3 , Spn4ALzb1 , Spn4ALzb2 , Spn4ALzb3 , &
+                                Spn4FLxb1 , Spn4FLxb2 , Spn4FLxb3 , Spn4FLyb1 , Spn4FLyb2 , Spn4FLyb3 , Spn4FLzb1 , &
+                                Spn4FLzb2 , Spn4FLzb3 , Spn4MLxb1 , Spn4MLxb2 , Spn4MLxb3 , Spn4MLyb1 , Spn4MLyb2 , &
+                                Spn4MLyb3 , Spn4MLzb1 , Spn4MLzb2 , Spn4MLzb3 , Spn4RDxb1 , Spn4RDxb2 , Spn4RDxb3 , &
+                                Spn4RDyb1 , Spn4RDyb2 , Spn4RDyb3 , Spn4RDzb1 , Spn4RDzb2 , Spn4RDzb3 , Spn4TDxb1 , &
+                                Spn4TDxb2 , Spn4TDxb3 , Spn4TDyb1 , Spn4TDyb2 , Spn4TDyb3 , Spn4TDzb1 , Spn4TDzb2 , &
+                                Spn4TDzb3 , Spn5ALxb1 , Spn5ALxb2 , Spn5ALxb3 , Spn5ALyb1 , Spn5ALyb2 , Spn5ALyb3 , &
+                                Spn5ALzb1 , Spn5ALzb2 , Spn5ALzb3 , Spn5FLxb1 , Spn5FLxb2 , Spn5FLxb3 , Spn5FLyb1 , &
+                                Spn5FLyb2 , Spn5FLyb3 , Spn5FLzb1 , Spn5FLzb2 , Spn5FLzb3 , Spn5MLxb1 , Spn5MLxb2 , &
+                                Spn5MLxb3 , Spn5MLyb1 , Spn5MLyb2 , Spn5MLyb3 , Spn5MLzb1 , Spn5MLzb2 , Spn5MLzb3 , &
+                                Spn5RDxb1 , Spn5RDxb2 , Spn5RDxb3 , Spn5RDyb1 , Spn5RDyb2 , Spn5RDyb3 , Spn5RDzb1 , &
+                                Spn5RDzb2 , Spn5RDzb3 , Spn5TDxb1 , Spn5TDxb2 , Spn5TDxb3 , Spn5TDyb1 , Spn5TDyb2 , &
+                                Spn5TDyb3 , Spn5TDzb1 , Spn5TDzb2 , Spn5TDzb3 , Spn6ALxb1 , Spn6ALxb2 , Spn6ALxb3 , &
+                                Spn6ALyb1 , Spn6ALyb2 , Spn6ALyb3 , Spn6ALzb1 , Spn6ALzb2 , Spn6ALzb3 , Spn6FLxb1 , &
+                                Spn6FLxb2 , Spn6FLxb3 , Spn6FLyb1 , Spn6FLyb2 , Spn6FLyb3 , Spn6FLzb1 , Spn6FLzb2 , &
+                                Spn6FLzb3 , Spn6MLxb1 , Spn6MLxb2 , Spn6MLxb3 , Spn6MLyb1 , Spn6MLyb2 , Spn6MLyb3 , &
+                                Spn6MLzb1 , Spn6MLzb2 , Spn6MLzb3 , Spn6RDxb1 , Spn6RDxb2 , Spn6RDxb3 , Spn6RDyb1 , &
+                                Spn6RDyb2 , Spn6RDyb3 , Spn6RDzb1 , Spn6RDzb2 , Spn6RDzb3 , Spn6TDxb1 , Spn6TDxb2 , &
+                                Spn6TDxb3 , Spn6TDyb1 , Spn6TDyb2 , Spn6TDyb3 , Spn6TDzb1 , Spn6TDzb2 , Spn6TDzb3 , &
+                                Spn7ALxb1 , Spn7ALxb2 , Spn7ALxb3 , Spn7ALyb1 , Spn7ALyb2 , Spn7ALyb3 , Spn7ALzb1 , &
+                                Spn7ALzb2 , Spn7ALzb3 , Spn7FLxb1 , Spn7FLxb2 , Spn7FLxb3 , Spn7FLyb1 , Spn7FLyb2 , &
+                                Spn7FLyb3 , Spn7FLzb1 , Spn7FLzb2 , Spn7FLzb3 , Spn7MLxb1 , Spn7MLxb2 , Spn7MLxb3 , &
+                                Spn7MLyb1 , Spn7MLyb2 , Spn7MLyb3 , Spn7MLzb1 , Spn7MLzb2 , Spn7MLzb3 , Spn7RDxb1 , &
+                                Spn7RDxb2 , Spn7RDxb3 , Spn7RDyb1 , Spn7RDyb2 , Spn7RDyb3 , Spn7RDzb1 , Spn7RDzb2 , &
+                                Spn7RDzb3 , Spn7TDxb1 , Spn7TDxb2 , Spn7TDxb3 , Spn7TDyb1 , Spn7TDyb2 , Spn7TDyb3 , &
+                                Spn7TDzb1 , Spn7TDzb2 , Spn7TDzb3 , Spn8ALxb1 , Spn8ALxb2 , Spn8ALxb3 , Spn8ALyb1 , &
+                                Spn8ALyb2 , Spn8ALyb3 , Spn8ALzb1 , Spn8ALzb2 , Spn8ALzb3 , Spn8FLxb1 , Spn8FLxb2 , &
+                                Spn8FLxb3 , Spn8FLyb1 , Spn8FLyb2 , Spn8FLyb3 , Spn8FLzb1 , Spn8FLzb2 , Spn8FLzb3 , &
+                                Spn8MLxb1 , Spn8MLxb2 , Spn8MLxb3 , Spn8MLyb1 , Spn8MLyb2 , Spn8MLyb3 , Spn8MLzb1 , &
+                                Spn8MLzb2 , Spn8MLzb3 , Spn8RDxb1 , Spn8RDxb2 , Spn8RDxb3 , Spn8RDyb1 , Spn8RDyb2 , &
+                                Spn8RDyb3 , Spn8RDzb1 , Spn8RDzb2 , Spn8RDzb3 , Spn8TDxb1 , Spn8TDxb2 , Spn8TDxb3 , &
+                                Spn8TDyb1 , Spn8TDyb2 , Spn8TDyb3 , Spn8TDzb1 , Spn8TDzb2 , Spn8TDzb3 , Spn9ALxb1 , &
+                                Spn9ALxb2 , Spn9ALxb3 , Spn9ALyb1 , Spn9ALyb2 , Spn9ALyb3 , Spn9ALzb1 , Spn9ALzb2 , &
+                                Spn9ALzb3 , Spn9FLxb1 , Spn9FLxb2 , Spn9FLxb3 , Spn9FLyb1 , Spn9FLyb2 , Spn9FLyb3 , &
+                                Spn9FLzb1 , Spn9FLzb2 , Spn9FLzb3 , Spn9MLxb1 , Spn9MLxb2 , Spn9MLxb3 , Spn9MLyb1 , &
+                                Spn9MLyb2 , Spn9MLyb3 , Spn9MLzb1 , Spn9MLzb2 , Spn9MLzb3 , Spn9RDxb1 , Spn9RDxb2 , &
+                                Spn9RDxb3 , Spn9RDyb1 , Spn9RDyb2 , Spn9RDyb3 , Spn9RDzb1 , Spn9RDzb2 , Spn9RDzb3 , &
+                                Spn9TDxb1 , Spn9TDxb2 , Spn9TDxb3 , Spn9TDyb1 , Spn9TDyb2 , Spn9TDyb3 , Spn9TDzb1 , &
+                                Spn9TDzb2 , Spn9TDzb3 , TailFurlP , TailFurlA , TailFurlP , TailFurlV ,   TeetAya , &
+                                  TeetPya ,   TeetPya ,   TeetVya , TFinAlpha , TFinCDrag , TFinCLift ,  TFinCPFx , &
+                                 TFinCPFy , TFinDnPrs ,   TFrlBrM , TipClrnc1 , TipClrnc2 , TipClrnc3 ,  TipALxb1 , &
+                                 TipALxb2 ,  TipALxb3 ,  TipALyb1 ,  TipALyb2 ,  TipALyb3 ,  TipALzb1 ,  TipALzb2 , &
+                                 TipALzb3 , TipClrnc1 , TipClrnc2 , TipClrnc3 ,   TipDxb1 ,   TipDxb2 ,   TipDxb3 , &
+                                  TipDxc1 ,   TipDxc2 ,   TipDxc3 ,   TipDyb1 ,   TipDyb2 ,   TipDyb3 ,   TipDyc1 , &
+                                  TipDyc2 ,   TipDyc3 ,   TipDzc1 ,   TipDzc2 ,   TipDzc3 ,   TipDzc1 ,   TipDzc2 , &
+                                  TipDzc3 ,  TipRDxb1 ,  TipRDxb2 ,  TipRDxb3 ,  TipRDyb1 ,  TipRDyb2 ,  TipRDyb3 , &
+                                 TipRDzc1 ,  TipRDzc2 ,  TipRDzc3 ,  TipRDzc1 ,  TipRDzc2 ,  TipRDzc3 , TipSpdRat , &
+                                 TotWindV , TipSpdRat , YawBrTDzt , YawBrTDxt , YawBrRDyt , YawBrRDxt , YawBrTDyt , &
+                                YawBrRDzt , TwHt1ALxt , TwHt1ALyt , TwHt1ALzt , TwHt1FLxt , TwHt1FLyt , TwHt1FLzt , &
+                                TwHt1MLxt , TwHt1MLyt , TwHt1MLzt , TwHt1RDxt , TwHt1RDyt , TwHt1RDzt , TwHt1RPxi , &
+                                TwHt1RPyi , TwHt1RPzi , TwHt1TDxt , TwHt1TDyt , TwHt1TDzt , TwHt1TPxi , TwHt1TPyi , &
+                                TwHt1TPzi , TwHt2ALxt , TwHt2ALyt , TwHt2ALzt , TwHt2FLxt , TwHt2FLyt , TwHt2FLzt , &
+                                TwHt2MLxt , TwHt2MLyt , TwHt2MLzt , TwHt2RDxt , TwHt2RDyt , TwHt2RDzt , TwHt2RPxi , &
+                                TwHt2RPyi , TwHt2RPzi , TwHt2TDxt , TwHt2TDyt , TwHt2TDzt , TwHt2TPxi , TwHt2TPyi , &
+                                TwHt2TPzi , TwHt3ALxt , TwHt3ALyt , TwHt3ALzt , TwHt3FLxt , TwHt3FLyt , TwHt3FLzt , &
+                                TwHt3MLxt , TwHt3MLyt , TwHt3MLzt , TwHt3RDxt , TwHt3RDyt , TwHt3RDzt , TwHt3RPxi , &
+                                TwHt3RPyi , TwHt3RPzi , TwHt3TDxt , TwHt3TDyt , TwHt3TDzt , TwHt3TPxi , TwHt3TPyi , &
+                                TwHt3TPzi , TwHt4ALxt , TwHt4ALyt , TwHt4ALzt , TwHt4FLxt , TwHt4FLyt , TwHt4FLzt , &
+                                TwHt4MLxt , TwHt4MLyt , TwHt4MLzt , TwHt4RDxt , TwHt4RDyt , TwHt4RDzt , TwHt4RPxi , &
+                                TwHt4RPyi , TwHt4RPzi , TwHt4TDxt , TwHt4TDyt , TwHt4TDzt , TwHt4TPxi , TwHt4TPyi , &
+                                TwHt4TPzi , TwHt5ALxt , TwHt5ALyt , TwHt5ALzt , TwHt5FLxt , TwHt5FLyt , TwHt5FLzt , &
+                                TwHt5MLxt , TwHt5MLyt , TwHt5MLzt , TwHt5RDxt , TwHt5RDyt , TwHt5RDzt , TwHt5RPxi , &
+                                TwHt5RPyi , TwHt5RPzi , TwHt5TDxt , TwHt5TDyt , TwHt5TDzt , TwHt5TPxi , TwHt5TPyi , &
+                                TwHt5TPzi , TwHt6ALxt , TwHt6ALyt , TwHt6ALzt , TwHt6FLxt , TwHt6FLyt , TwHt6FLzt , &
+                                TwHt6MLxt , TwHt6MLyt , TwHt6MLzt , TwHt6RDxt , TwHt6RDyt , TwHt6RDzt , TwHt6RPxi , &
+                                TwHt6RPyi , TwHt6RPzi , TwHt6TDxt , TwHt6TDyt , TwHt6TDzt , TwHt6TPxi , TwHt6TPyi , &
+                                TwHt6TPzi , TwHt7ALxt , TwHt7ALyt , TwHt7ALzt , TwHt7FLxt , TwHt7FLyt , TwHt7FLzt , &
+                                TwHt7MLxt , TwHt7MLyt , TwHt7MLzt , TwHt7RDxt , TwHt7RDyt , TwHt7RDzt , TwHt7RPxi , &
+                                TwHt7RPyi , TwHt7RPzi , TwHt7TDxt , TwHt7TDyt , TwHt7TDzt , TwHt7TPxi , TwHt7TPyi , &
+                                TwHt7TPzi , TwHt8ALxt , TwHt8ALyt , TwHt8ALzt , TwHt8FLxt , TwHt8FLyt , TwHt8FLzt , &
+                                TwHt8MLxt , TwHt8MLyt , TwHt8MLzt , TwHt8RDxt , TwHt8RDyt , TwHt8RDzt , TwHt8RPxi , &
+                                TwHt8RPyi , TwHt8RPzi , TwHt8TDxt , TwHt8TDyt , TwHt8TDzt , TwHt8TPxi , TwHt8TPyi , &
+                                TwHt8TPzi , TwHt9ALxt , TwHt9ALyt , TwHt9ALzt , TwHt9FLxt , TwHt9FLyt , TwHt9FLzt , &
+                                TwHt9MLxt , TwHt9MLyt , TwHt9MLzt , TwHt9RDxt , TwHt9RDyt , TwHt9RDzt , TwHt9RPxi , &
+                                TwHt9RPyi , TwHt9RPzi , TwHt9TDxt , TwHt9TDyt , TwHt9TDzt , TwHt9TPxi , TwHt9TPyi , &
+                                TwHt9TPzi ,  TwrBsFxt ,  TwrBsFyt ,  TwrBsFzt ,  TwrBsMxt ,  TwrBsMyt ,  TwrBsMzt , &
+                                TipClrnc1 , TipClrnc2 , TipClrnc3 ,  TipRDzc1 ,  TipRDzc2 ,  TipRDzc3 ,   WindVxi , &
+                                VerWndDir ,   WindVyi ,   WindVxi ,   WindVyi ,   WindVzi ,   WindVzi ,    YawAzn , &
+                                   YawAzn ,    YawAzn ,  YawBrFxn ,  YawBrFxp ,  YawBrFyn ,  YawBrFyp ,  YawBrFzn , &
+                                 YawBrFzn ,  YawBrMxn ,  YawBrMxp ,  YawBrMyn ,  YawBrMyp ,  YawBrMzn ,  YawBrMzn , &
+                                YawBrRAxp , YawBrRAyp , YawBrRAzp , YawBrRDxt , YawBrRDyt , YawBrRDzt , YawBrRVxp , &
+                                YawBrRVyp , YawBrRVzp , YawBrTAxp , YawBrTAyp , YawBrTAzp , YawBrTDxp , YawBrTDxt , &
+                                YawBrTDyp , YawBrTDyt , YawBrTDzp , YawBrTDzt ,  YawBrMzn ,    YawPzn ,    YawPzn , &
+                                   YawPzn ,    YawVzn ,    YawVzn ,    YawVzn /)
+   CHARACTER(OutStrLen), PARAMETER :: ParamUnitsAry(1019) =  (/ &                         ! This lists the units corresponding to the allowed parameters
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(-)       ","(deg)     ","(-)       ","(deg/s^2) ","(-)       ","(-)       ","(kW)      ", &
+                               "(rpm)     ","(kN·m)    ","(m/s)     ","(deg)     ","(kN·m)    ","(deg/s^2) ","(-)       ", &
+                               "(-)       ","(kW)      ","(kN·m)    ","(rpm)     ","(m)       ","(m)       ","(m)       ", &
+                               "(deg/s^2) ","(deg/s^2) ","(deg/s^2) ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(rpm)     ","(rpm)     ","(rpm)     ", &
+                               "(-)       ","(-)       ","(-)       ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN·m)    ","(kN·m)    ","(kW)      ","(kN·m)    ","(deg/s^2) ", &
+                               "(deg/s^2) ","(deg/s^2) ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(rpm)     ","(rpm)     ","(rpm)     ","(deg)     ","(deg/s^2) ", &
+                               "(deg)     ","(deg)     ","(deg/s)   ","(deg/s^2) ","(deg/s^2) ","(deg/s^2) ","(deg/s)   ", &
+                               "(deg/s)   ","(deg/s)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s)     ","(m/s)     ", &
+                               "(m/s)     ","(m)       ","(m)       ","(m)       ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(m)       ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg/s^2) ", &
+                               "(deg/s^2) ","(deg/s^2) ","(deg/s^2) ","(deg/s^2) ","(deg/s^2) ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg/s)   ","(deg/s)   ","(deg/s)   ","(deg/s)   ","(deg/s)   ", &
+                               "(deg/s)   ","(m)       ","(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s)     ","(m/s)     ","(m/s)     ","(m/s)     ","(m/s)     ","(m/s)     ", &
+                               "(deg)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(rad/s^2) ","(rad/s^2) ","(m/s^2)   ","(rad/s^2) ", &
+                               "(rad/s^2) ","(rad/s^2) ","(m/s^2)   ","(m/s^2)   ","(rad/s^2) ","(m/s^2)   ","(m/s^2)   ", &
+                               "(rad/s^2) ","(m/s^2)   ","(m/s^2)   ","(rad/s^2) ","(rad/s^2) ","(m/s)     ","(m/s)     ", &
+                               "(m/s)     ","(m/s)     ","(m/s)     ","(m/s)     ","(m/s)     ","(m/s)     ","(m/s)     ", &
+                               "(rad/s)   ","(rad/s)   ","(m/s)     ","(rad/s)   ","(rad/s)   ","(rad/s)   ","(m/s)     ", &
+                               "(m/s)     ","(rad/s)   ","(m/s)     ","(m/s)     ","(rad/s)   ","(m/s)     ","(m/s)     ", &
+                               "(rad/s)   ","(rad/s)   ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(rad)     ","(rad)     ","(m)       ", &
+                               "(rad)     ","(rad)     ","(rad)     ","(m)       ","(m)       ","(rad)     ","(m)       ", &
+                               "(m)       ","(rad)     ","(m)       ","(m)       ","(rad)     ","(rad)     ","(kN·m)    ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(deg/s^2) ","(-)       ","(-)       ","(-)       ","(deg)     ", &
+                               "(deg/s^2) ","(deg)     ","(deg/s)   ","(kW)      ","(rpm)     ","(deg/s^2) ","(deg)     ", &
+                               "(deg/s)   ","(kN)      ","(kN·m)    ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN)      ","(kN)      ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(deg)     ","(deg/s^2) ","(deg)     ","(deg/s)   ","(deg/s^2) ", &
+                               "(deg)     ","(deg)     ","(deg/s)   ","(deg)     ","(-)       ","(-)       ","(kN)      ", &
+                               "(kN)      ","(Pa)      ","(kN·m)    ","(m)       ","(m)       ","(m)       ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(-)       ", &
+                               "(m/s)     ","(-)       ","(m)       ","(m)       ","(deg)     ","(deg)     ","(m)       ", &
+                               "(deg)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN·m)    ","(kN·m)    ","(kN·m)    ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg)     ","(m)       ","(m)       ","(m)       ","(m)       ","(m)       ", &
+                               "(m)       ","(kN)      ","(kN)      ","(kN)      ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(m)       ","(m)       ","(m)       ","(deg)     ","(deg)     ","(deg)     ","(m/s)     ", &
+                               "(deg)     ","(m/s)     ","(m/s)     ","(m/s)     ","(m/s)     ","(m/s)     ","(deg/s^2) ", &
+                               "(deg/s^2) ","(deg/s^2) ","(kN)      ","(kN)      ","(kN)      ","(kN)      ","(kN)      ", &
+                               "(kN)      ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
+                               "(deg/s^2) ","(deg/s^2) ","(deg/s^2) ","(deg)     ","(deg)     ","(deg)     ","(deg/s)   ", &
+                               "(deg/s)   ","(deg/s)   ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ", &
+                               "(m)       ","(m)       ","(m)       ","(m)       ","(kN·m)    ","(deg)     ","(deg)     ", &
+                               "(deg)     ","(deg/s)   ","(deg/s)   ","(deg/s)   "/)
+   LOGICAL                  :: InvalidOutput(0:MaxOutPts)                        ! This array determines if the output channel is valid for this configuration
+
+      ! initialize values
+   ErrStat = ErrID_none
+   ErrMsg  = ""
+
+   InvalidOutput            = .FALSE.
+!End of code generated by Matlab script
+
+!BJJ: THE FOLLOWING USED TO BE PART OF THE SCRIPT, BUT I REWROTE IT TO BE MORE EFFICIENT
+   
+   !IF ( .NOT. CompAero ) THEN
+   !   InvalidOutput(  WindVxi) = .TRUE.
+   !   InvalidOutput(  WindVyi) = .TRUE.
+   !   InvalidOutput(  WindVzi) = .TRUE.
+   !   InvalidOutput( TotWindV) = .TRUE.
+   !   InvalidOutput( HorWindV) = .TRUE.
+   !   InvalidOutput(HorWndDir) = .TRUE.
+   !   InvalidOutput(VerWndDir) = .TRUE.
+   !   
+   !   InvalidOutput(TipSpdRat) = .TRUE.
+   !   InvalidOutput(NacYawErr) = .TRUE.
+   !   
+   !   InvalidOutput(    RotCq) = .TRUE.
+   !   InvalidOutput(    RotCp) = .TRUE.
+   !   InvalidOutput(    RotCt) = .TRUE.
+   !   InvalidOutput( HSShftCq) = .TRUE.
+   !   InvalidOutput( HSShftCp) = .TRUE.
+   !   InvalidOutput(    GenCq) = .TRUE.
+   !   InvalidOutput(    GenCp) = .TRUE.
+   !   InvalidOutput(TFinAlpha) = .TRUE.
+   !   InvalidOutput(TFinCLift) = .TRUE.
+   !   InvalidOutput(TFinCDrag) = .TRUE.
+   !   InvalidOutput(TFinDnPrs) = .TRUE.
+   !   InvalidOutput( TFinCPFx) = .TRUE.
+   !   InvalidOutput( TFinCPFy) = .TRUE.
+   !END IF
+                            
+   DO I = p%NumBl+1,3  ! Invalid blades
+      
+         ! motions
+      
+      InvalidOutput(   TipDxc(  I) ) = .TRUE.
+      InvalidOutput(   TipDyc(  I) ) = .TRUE.
+      InvalidOutput(   TipDzc(  I) ) = .TRUE.
+      InvalidOutput(   TipDxb(  I) ) = .TRUE.
+      InvalidOutput(   TipDyb(  I) ) = .TRUE.
+      InvalidOutput(  TipALxb(  I) ) = .TRUE.
+      InvalidOutput(  TipALyb(  I) ) = .TRUE.
+      InvalidOutput(  TipALzb(  I) ) = .TRUE.
+      InvalidOutput(  TipRDxb(  I) ) = .TRUE.
+      InvalidOutput(  TipRDyb(  I) ) = .TRUE.
+      InvalidOutput(  TipRDzc(  I) ) = .TRUE.
+      InvalidOutput( TipClrnc(  I) ) = .TRUE.
+
+         ! loads
+         
+      InvalidOutput(  RootFxc(  I) ) = .TRUE.
+      InvalidOutput(  RootFyc(  I) ) = .TRUE.
+      InvalidOutput(  RootFzc(  I) ) = .TRUE.
+      InvalidOutput(  RootFxb(  I) ) = .TRUE.
+      InvalidOutput(  RootFyb(  I) ) = .TRUE.
+      InvalidOutput(  RootMxc(  I) ) = .TRUE.
+      InvalidOutput(  RootMyc(  I) ) = .TRUE.
+      InvalidOutput(  RootMzc(  I) ) = .TRUE.
+      InvalidOutput(  RootMxb(  I) ) = .TRUE.
+      InvalidOutput(  RootMyb(  I) ) = .TRUE.
+
+         ! Blade node motions
+ 
+      InvalidOutput(  SpnALxb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnALyb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnALzb(:,I) ) = .TRUE.
+
+      InvalidOutput(  SpnTDxb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnTDyb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnTDzb(:,I) ) = .TRUE.
+
+      InvalidOutput(  SpnRDxb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnRDyb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnRDzb(:,I) ) = .TRUE.
+
+         ! Blade node loads
+                  
+      InvalidOutput(  SpnMLxb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnMLyb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnMLzb(:,I) ) = .TRUE.
+
+      InvalidOutput(  SpnFLxb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnFLyb(:,I) ) = .TRUE.
+      InvalidOutput(  SpnFLzb(:,I) ) = .TRUE.
+
+   END DO
+
+                                     
+   DO I = 1,p%NumBl    
+      
+      DO J = p%NBlGages+1,9 ! Invalid blade gages
+
+         InvalidOutput(  SpnALxb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnALyb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnALzb(J,I) ) = .TRUE.
+
+         InvalidOutput(  SpnTDxb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnTDyb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnTDzb(J,I) ) = .TRUE.
+
+         InvalidOutput(  SpnRDxb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnRDyb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnRDzb(J,I) ) = .TRUE.
+
+            ! Loads
+            
+         InvalidOutput(  SpnMLxb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnMLyb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnMLzb(J,I) ) = .TRUE.
+            
+         InvalidOutput(  SpnFLxb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnFLyb(J,I) ) = .TRUE.
+         InvalidOutput(  SpnFLzb(J,I) ) = .TRUE.
+
+
+      END DO !J
+      
+   END DO !I
+   
+   DO J = p%NTwGages+1,9 !Invalid tower gages
+
+         ! Motions
+         
+      InvalidOutput( TwHtALxt(J) ) = .TRUE.
+      InvalidOutput( TwHtALyt(J) ) = .TRUE.
+      InvalidOutput( TwHtALzt(J) ) = .TRUE.
+
+      InvalidOutput( TwHtTDxt(J) ) = .TRUE.
+      InvalidOutput( TwHtTDyt(J) ) = .TRUE.
+      InvalidOutput( TwHtTDzt(J) ) = .TRUE.
+
+      InvalidOutput( TwHtRDxt(J) ) = .TRUE.
+      InvalidOutput( TwHtRDyt(J) ) = .TRUE.
+      InvalidOutput( TwHtRDzt(J) ) = .TRUE.
+
+      InvalidOutput( TwHtTPxi(J) ) = .TRUE.
+      InvalidOutput( TwHtTPyi(J) ) = .TRUE.
+      InvalidOutput( TwHtTPzi(J) ) = .TRUE.
+
+      InvalidOutput( TwHtRPxi(J) ) = .TRUE.
+      InvalidOutput( TwHtRPyi(J) ) = .TRUE.
+      InvalidOutput( TwHtRPzi(J) ) = .TRUE.
+
+         ! Loads
+
+      InvalidOutput( TwHtMLxt(J) ) = .TRUE.
+      InvalidOutput( TwHtMLyt(J) ) = .TRUE.
+      InvalidOutput( TwHtMLzt(J) ) = .TRUE.
+
+      InvalidOutput( TwHtFLxt(J) ) = .TRUE.
+      InvalidOutput( TwHtFLyt(J) ) = .TRUE.
+      InvalidOutput( TwHtFLzt(J) ) = .TRUE.
+
+   END DO      
+
+   IF ( p%NumBl < 3_IntKi ) THEN
+      InvalidOutput(PtchPMzc3) = .TRUE.
+      
+      InvalidOutput(   Q_B3E1) = .TRUE.
+      InvalidOutput(   Q_B3F1) = .TRUE.
+      InvalidOutput(   Q_B3F2) = .TRUE.
+      
+      InvalidOutput(  QD_B3E1) = .TRUE.
+      InvalidOutput(  QD_B3F1) = .TRUE.
+      InvalidOutput(  QD_B3F2) = .TRUE.
+   
+      InvalidOutput( QD2_B3E1) = .TRUE.
+      InvalidOutput( QD2_B3F1) = .TRUE.
+      InvalidOutput( QD2_B3F2) = .TRUE.
+   ELSE IF ( p%NumBl > 2_IntKi ) THEN
+      InvalidOutput(  TeetPya) = .TRUE.
+      InvalidOutput(  TeetVya) = .TRUE.
+      InvalidOutput(  TeetAya) = .TRUE.
+
+      InvalidOutput(   Q_Teet) = .TRUE.
+      InvalidOutput(  QD_Teet) = .TRUE.
+      InvalidOutput( QD2_Teet) = .TRUE.
+   END IF
+         
+            
+   ALLOCATE ( p%OutParam(0:p%NumOuts) , STAT=ErrStat )
+   IF ( ErrStat /= 0 )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating memory for the ElastoDyn OutParam array.'
+      RETURN
+   ENDIF
+     
+   !-------------------------------------------------------------------------------------------------
+   ! Set index, name, and units for the output channels
+   ! If a selected output channel is not available in this module, set error flag.
+   !-------------------------------------------------------------------------------------------------     
+   
+      ! Set index, name, and units for the time output channel:
+   
+   p%OutParam(0)%Indx  = Time      !
+   p%OutParam(0)%Name  = 'Time'    ! OutParam(0) is the time channel by default.
+   p%OutParam(0)%Units = '(s)'     !
+   p%OutParam(0)%SignM = 1
+      
+   
+      ! Set index, name, and units for all of the output channels.
+      ! If a selected output channel is not available by this module set ErrStat = ErrID_Warn.
+   
+   DO I = 1,p%NumOuts
+   
+      p%OutParam(I)%Name  = OutList(I)   
+      OutListTmp          = OutList(I)
+   
+      ! Reverse the sign (+/-) of the output channel if the user prefixed the
+      !   channel name with a '-', '_', 'm', or 'M' character indicating "minus".
+   
+      
+      CheckOutListAgain = .FALSE.
+      
+      IF      ( INDEX( '-_', OutListTmp(1:1) ) > 0 ) THEN
+         p%OutParam(I)%SignM = -1                         ! ex, '-TipDxc1' causes the sign of TipDxc1 to be switched.
+         OutListTmp          = OutListTmp(2:)
+      ELSE IF ( INDEX( 'mM', OutListTmp(1:1) ) > 0 ) THEN ! We'll assume this is a variable name for now, (if not, we will check later if OutListTmp(2:) is also a variable name)
+         CheckOutListAgain   = .TRUE.
+         p%OutParam(I)%SignM = 1
+      ELSE
+         p%OutParam(I)%SignM = 1
+      END IF          
+      
+      CALL Conv2UC( OutListTmp )    ! Convert OutListTmp to upper case
+   
+   
+      Indx = IndexCharAry( OutListTmp(1:OutStrLenM1), ValidParamAry )
+      
+      
+         ! If it started with an "M" (CheckOutListAgain) we didn't find the value in our list (Indx < 1)
+         
+      IF ( CheckOutListAgain .AND. Indx < 1 ) THEN    ! Let's assume that "M" really meant "minus" and then test again         
+         p%OutParam(I)%SignM = -1                     ! ex, 'MTipDxc1' causes the sign of TipDxc1 to be switched.
+         OutListTmp          = OutListTmp(2:)
+         
+         Indx = IndexCharAry( OutListTmp(1:OutStrLenM1), ValidParamAry )         
+      END IF
+            
+      
+      IF ( Indx > 0 ) THEN ! we found the channel name
+         p%OutParam(I)%Indx     = ParamIndxAry(Indx)
+         IF ( InvalidOutput( ParamIndxAry(Indx) ) ) THEN  ! but, it isn't valid for this turbine configuration
+            p%OutParam(I)%Units = 'INVALID'   
+            p%OutParam(I)%SignM = 0
+         ELSE
+            p%OutParam(I)%Units = ParamUnitsAry(Indx) ! it's a valid output
+         END IF
+      ELSE ! this channel isn't valid
+         p%OutParam(I)%Indx  = Time                 ! pick any valid channel (I just picked "Time" here because it's universal)
+         p%OutParam(I)%Units = 'INVALID'            
+         p%OutParam(I)%SignM = 0                    ! multiply all results by zero 
+         
+         ErrStat = ErrID_Warn
+         ErrMsg  = p%OutParam(I)%Name//' is not an available output channel. '//TRIM(ErrMsg)
+      END IF
+      
+   END DO                
+   
+   RETURN
+END SUBROUTINE SetOutParam
+!----------------------------------------------------------------------------------------------------------------------------------  
+SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
+! This routine is used to compute rotor (blade and hub) properties:
+!   KBF(), KBE(), CBF(), CBE(), FreqBF(), FreqBE(), AxRedBld(),
+!   TwistedSF(), BldMass(), FirstMom(), SecondMom(), BldCG(),
+!   RotMass, RotIner, Hubg1Iner, Hubg2Iner, rSAerCenn1(), and
+!   rSAerCenn2()
+! tower properties:
+!   KTFA(), KTSS(), CTFA(), CTSS(), FreqTFA(), FreqTSS(),
+!   AxRedTFA(), AxRedTSS(), TwrFASF(), TwrSSSF(), TwrMass, and
+!   TwrTpMass
+! structure that furls with the rotor (not including rotor) properties:
+!   RrfaIner
+! tail boom properties:
+!   AtfaIner
+! and nacelle properties:
+!   Nacd2Iner
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+
+      ! Passed variables
+
+   TYPE(ED_ParameterType),        INTENT(INOUT)    :: p                             ! Parameters of the structural dynamics module
+   TYPE(ED_InputFile),            INTENT(IN)       :: InputFileData                 ! all the data in the ElastoDyn input file
+   INTEGER(IntKi),                INTENT(OUT)      :: ErrStat                       ! Error status
+   CHARACTER(1024),               INTENT(OUT)      :: ErrMsg                        ! Error message when ErrStat =/ ErrID_None
+
+
+      ! Local variables.
+
+   REAL(ReKi)                   :: AxRdBld   (3,3)                                 ! Temporary result holding the current addition to the p%AxRedBld() array.
+   REAL(ReKi)                   :: AxRdBldOld(3,3)                                 ! Previous AxRdBld (i.e., AxRdBld from the previous node)
+   REAL(ReKi)                   :: AxRdTFA   (2,2)                                 ! Temporary result holding the current addition to the AxRedTFA() array.
+   REAL(ReKi)                   :: AxRdTFAOld(2,2)                                 ! Previous AxRdTFA (i.e., AxRdTFA from the previous node)
+   REAL(ReKi)                   :: AxRdTSS   (2,2)                                 ! Temporary result holding the current addition to the AxRedTSS() array.
+   REAL(ReKi)                   :: AxRdTSSOld(2,2)                                 ! Previous AxRdTSS (i.e., AxRdTSS from the previous node)
+   REAL(ReKi)                   :: TmpDist                                         ! Temporary distance used in the calculation of the aero center locations.
+   REAL(ReKi)                   :: TmpDistj1                                       ! Temporary distance used in the calculation of the aero center locations.
+   REAL(ReKi)                   :: TmpDistj2                                       ! Temporary distance used in the calculation of the aero center locations.
+   REAL(ReKi)                   :: ElMassOld                                       ! Previous ElmntMass (i.e., ElmntMass from the previous node)
+   REAL(ReKi)                   :: ElmntMass                                       ! (Temporary) mass of an element.
+   REAL(ReKi)                   :: ElmntStff                                       ! (Temporary) stiffness of an element.
+   REAL(ReKi)                   :: ElStffFA                                        ! (Temporary) tower fore-aft stiffness of an element
+   REAL(ReKi)                   :: ElStffSS                                        ! (Temporary) tower side-to-side  stiffness of an element
+   REAL(ReKi)                   :: FMomAbvNd (p%NumBl,p%BldNodes)                  ! FMomAbvNd(K,J) = portion of the first moment of blade K about the rotor centerline (not root, like FirstMom(K)) associated with everything above node J (including tip brake masses).
+   REAL(ReKi)                   :: KBECent   (p%NumBl,1,1)                         ! Centrifugal-term of generalized edgewise stiffness of the blades.
+   REAL(ReKi)                   :: KBFCent   (p%NumBl,2,2)                         ! Centrifugal-term of generalized flapwise stiffness of the blades.
+   REAL(ReKi)                   :: KTFAGrav  (2,2)                                 ! Gravitational-term of generalized fore-aft stiffness of the tower.
+   REAL(ReKi)                   :: KTSSGrav  (2,2)                                 ! Gravitational-term of generalized side-to-side stiffness of the tower.
+   REAL(ReKi)                   :: MBE       (p%NumBl,1,1)                         ! Generalized edgewise mass of the blades.
+   REAL(ReKi)                   :: MBF       (p%NumBl,2,2)                         ! Generalized flapwise mass of the blades.
+   REAL(ReKi)                   :: MTFA      (2,2)                                 ! Generalized fore-aft mass of the tower.
+   REAL(ReKi)                   :: MTSS      (2,2)                                 ! Generalized side-to-side mass of the tower.
+   REAL(ReKi)                   :: Shape                                           ! Temporary result holding a value from the SHP function
+   REAL(ReKi)                   :: Shape1                                          ! Temporary result holding a value from the SHP function
+   REAL(ReKi)                   :: Shape2                                          ! Temporary result holding a value from the SHP function
+   REAL(ReKi)                   :: TMssAbvNd (p%TwrNodes)                          ! Portion of the tower mass associated with everything above node J (including tower-top effects)
+   REAL(ReKi)                   :: TwstdSF   (2,3,0:1)                             ! Temperory result holding the current addition to the TwistedSF() array.
+   REAL(ReKi)                   :: TwstdSFOld(2,3,0:1)                             ! Previous TwstdSF (i.e., TwstdSF from the previous node)
+
+   INTEGER(IntKi)               :: I                                               ! Generic index.
+   INTEGER(IntKi)               :: J                                               ! Loops through nodes / elements.
+   INTEGER(IntKi)               :: K                                               ! Loops through blades.
+   INTEGER(IntKi)               :: L                                               ! Generic index
+
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+   
+   !...............................................................................................................................
+   ! Calculate the distances from point S on a blade to the aerodynamic center in the j1 and j2 directions:
+   !...............................................................................................................................
+
+      !bjj: we're getting rid of rSAerCenn*, but I'll just set these to 0 now:
+   !DO K = 1,p%NumBl          ! Loop through the blades
+   !
+   !   DO J = 1,p%BldNodes    ! Loop through the blade nodes / elements
+   !
+   !      TmpDist           = ( p%AeroCent(K,J) - 0.25 )*p%Chord(J)   ! Distance along the chordline from point S (25% chord) to the aerodynamic center of the blade element J--positive towards the trailing edge.
+   !      TmpDistj1         = TmpDist*p%SAeroTwst(J)                ! Distance along the j1-axis   from point S (25% chord) to the aerodynamic center of the blade element J
+   !      TmpDistj2         = TmpDist*p%CAeroTwst(J)                ! Distance along the j2-axis   from point S (25% chord) to the aerodynamic center of the blade element J
+   !      p%rSAerCenn1(K,J) = TmpDistj1*p%CThetaS(K,J) - TmpDistj2*p%SThetaS(K,J)
+   !      p%rSAerCenn2(K,J) = TmpDistj1*p%SThetaS(K,J) + TmpDistj2*p%CThetaS(K,J)
+   !
+   !   ENDDO ! J - Blade nodes / elements
+   !
+   !ENDDO    ! K - Blades
+   p%rSAerCenn1 = 0.0
+   p%rSAerCenn2 = 0.0
+   
+   !...............................................................................................................................
+   ! Calculate the structure that furls with the rotor inertia term:
+   !...............................................................................................................................
+
+   p%RrfaIner  = InputFileData%RFrlIner - p%RFrlMass*(      (p%rVDxn**2    )*( 1.0 - p%CRFrlSkw2*p%CRFrlTlt2 ) &
+                                     +    (p%rVDzn**2    )*                    p%CRFrlTlt2   &
+                                     +    (p%rVDyn**2    )*( 1.0 - p%SRFrlSkw2*p%CRFrlTlt2 ) &
+                                     - 2.0*p%rVDxn*p%rVDzn*        p%CRFrlSkew*p%CSRFrlTlt   &
+                                     - 2.0*p%rVDxn*p%rVDyn*        p%CSRFrlSkw*p%CRFrlTlt2   &
+                                     - 2.0*p%rVDzn*p%rVDyn*        p%SRFrlSkew*p%CSRFrlTlt     )
+   IF ( p%RrfaIner < 0.0 )   THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' RFrlIner must not be less than RFrlMass*( perpendicular distance between rotor-furl'// &
+               ' axis and CM of the structure that furls with the rotor [not including rotor] )^2.'
+      RETURN
+   END IF   
+
+   !...............................................................................................................................
+   ! Calculate the tail boom inertia term:
+   !...............................................................................................................................
+
+   p%AtfaIner  = p%TFrlIner - p%BoomMass*(   p%rWIxn*p%rWIxn*( 1.0 - p%CTFrlSkw2*p%CTFrlTlt2 ) &
+                                       +     p%rWIzn*p%rWIzn*                    p%CTFrlTlt2   &
+                                       +     p%rWIyn*p%rWIyn*( 1.0 - p%STFrlSkw2*p%CTFrlTlt2 ) &
+                                       - 2.0*p%rWIxn*p%rWIzn*        p%CTFrlSkew*p%CSTFrlTlt   &
+                                       - 2.0*p%rWIxn*p%rWIyn*        p%CSTFrlSkw*p%CTFrlTlt2   &
+                                       - 2.0*p%rWIzn*p%rWIyn*        p%STFrlSkew*p%CSTFrlTlt     )
+   IF ( p%AtfaIner < 0.0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' TFrlIner must not be less than BoomMass*( perpendicular distance between tail-furl'// &
+                                        ' axis and tail boom CM )^2.'                           
+      RETURN
+   ENDIF
+   
+   !...............................................................................................................................
+   ! Calculate the nacelle inertia terms:
+   !...............................................................................................................................
+
+   p%Nacd2Iner = InputFileData%NacYIner - p%NacMass*( p%NacCMxn**2 + p%NacCMyn**2 ) ! Nacelle inertia about the d2-axis
+   IF ( p%Nacd2Iner < 0.0 ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' NacYIner must not be less than NacMass*( NacCMxn^2 + NacCMyn^2 ).'
+      RETURN
+   END IF   
+
+      ! Calculate hub inertia about its centerline passing through its c.g..
+      !   This calculation assumes that the hub for a 2-blader is essentially
+      !   a uniform cylinder whose centerline is transverse through the cylinder
+      !   passing through its c.g..  That is, for a 2-blader, Hubg1Iner =
+      !   Hubg2Iner is the inertia of the hub about both the g1- and g2- axes.  For
+      !   3-bladers, Hubg1Iner is simply equal to HubIner and Hubg2Iner is zero.
+      ! Also, Initialize RotMass and RotIner to associated hub properties:
+
+   IF ( p%NumBl == 2 )  THEN ! 2-blader
+      p%Hubg1Iner = ( InputFileData%HubIner - p%HubMass*( ( p%UndSling - p%HubCM )**2 ) )/( p%CosDel3**2 )
+      p%Hubg2Iner = p%Hubg1Iner
+      IF ( p%Hubg1Iner < 0.0 ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg = ' HubIner must not be less than HubMass*( UndSling - HubCM )^2 for 2-blader.'
+         RETURN
+      END IF      
+   ELSE                    ! 3-blader
+      p%Hubg1Iner = InputFileData%HubIner
+      p%Hubg2Iner = 0.0
+   ENDIF
+
+   p%RotMass   = p%HubMass
+   p%RotIner   = p%Hubg1Iner
+
+
+   !...............................................................................................................................
+
+      ! Initialize several variables to 0.0:
+
+   p%KBF     = 0.0
+   p%KBE     = 0.0
+   KBFCent   = 0.0
+   KBECent   = 0.0
+
+   p%TwrMass = 0.0
+   p%KTFA    = 0.0
+   p%KTSS    = 0.0
+   KTFAGrav  = 0.0
+   KTSSGrav  = 0.0
+
+
+
+   DO K = 1,p%NumBl          ! Loop through the blades
+
+
+      ! Initialize BldMass(), FirstMom(), and SecondMom() using TipMass() effects:
+
+      p%BldMass  (K) = p%TipMass(K)
+      p%FirstMom (K) = p%TipMass(K)*p%BldFlexL
+      p%SecondMom(K) = p%TipMass(K)*p%BldFlexL*p%BldFlexL
+
+
+      DO J = p%BldNodes,1,-1 ! Loop through the blade nodes / elements in reverse
+
+
+      ! Calculate the mass of the current element
+
+         ElmntMass    = p%MassB(K,J)*p%DRNodes(J)                        ! Mass of blade element J
+
+
+      ! Integrate to find some blade properties which will be output in .fsm
+
+         p%BldMass  (K) = p%BldMass  (K) + ElmntMass
+         p%FirstMom (K) = p%FirstMom (K) + ElmntMass*p%RNodes(J)
+         p%SecondMom(K) = p%SecondMom(K) + ElmntMass*p%RNodes(J)*p%RNodes(J)
+
+
+      ! Integrate to find FMomAbvNd:
+
+         FMomAbvNd   (K,J) = ( 0.5*ElmntMass )*( p%HubRad + p%RNodes(J  ) + 0.5*p%DRNodes(J  ) )
+
+         IF ( J == p%BldNodes )  THEN ! Outermost blade element
+      ! Add the TipMass() effects:
+
+            FMomAbvNd(K,J) = FmomAbvNd(K,J) + p%TipMass(K)*p%TipRad
+         ELSE                       ! All other blade elements
+      ! Add to FMomAbvNd(K,J) the effects from the (not yet used) portion of element J+1
+
+            FMomAbvNd(K,J) = FMomAbvNd(K,J) + FMomAbvNd(K,J+1) &
+                           + ( 0.5*ElMassOld )*( p%HubRad + p%RNodes(J+1) - 0.5*p%DRNodes(J+1) )
+         ENDIF
+
+
+      ! Store the mass of the current element (this will be used for the next element)
+
+         ElMassOld    = ElmntMass
+
+
+      ENDDO ! J - Blade nodes / elements in reverse
+
+
+      ! Calculate BldCG() using FirstMom() and BldMass(); and calculate
+      !   RotMass and RotIner:
+
+      p%BldCG    (K) = p%FirstMom (K) / p%BldMass    (K)
+      p%RotMass      = p%RotMass      + p%BldMass    (K)
+      p%RotIner      = p%RotIner      + ( p%SecondMom(K) + p%BldMass  (K)*p%HubRad*( 2.0*p%BldCG(K) + p%HubRad ) )*( p%CosPreC(K)**2 )
+   ENDDO ! K - Blades
+
+
+
+   DO K = 1,p%NumBl          ! Loop through the blades
+
+
+      ! Initialize the generalized blade masses using tip mass effects:
+
+      MBF(K,1,1) = p%TipMass(K)
+      MBF(K,2,2) = p%TipMass(K)
+      MBE(K,1,1) = p%TipMass(K)
+
+
+      DO J = 1,p%BldNodes    ! Loop through the blade nodes / elements
+
+
+      ! Integrate to find the generalized mass of the blade (including tip mass effects).
+      !   Ignore the cross-correlation terms of MBF (i.e. MBF(i,j) where i /= j) since
+      !   these terms will never be used.
+
+         ElmntMass     = p%MassB(K,J)*p%DRNodes(J)                          ! Mass of blade element J
+
+         Shape1 = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldFl1Sh(:,K), 0, ErrStat, ErrMsg )
+         Shape2 = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldFl2Sh(:,K), 0, ErrStat, ErrMsg )
+         MBF    (K,1,1) = MBF    (K,1,1) + ElmntMass*Shape1*Shape1
+         MBF    (K,2,2) = MBF    (K,2,2) + ElmntMass*Shape2*Shape2
+
+         Shape  = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldEdgSh(:,K), 0, ErrStat, ErrMsg )
+         MBE    (K,1,1) = MBE    (K,1,1) + ElmntMass*Shape *Shape
+
+
+      ! Integrate to find the generalized stiffness of the blade (not including centrifugal
+      !    effects).
+
+         ElmntStff      = p%StiffBF(K,J)*p%DRNodes(J)                       ! Flapwise stiffness of blade element J
+         Shape1 = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
+         Shape2 = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
+         p%KBF    (K,1,1) = p%KBF    (K,1,1) + ElmntStff*Shape1*Shape1
+         p%KBF    (K,1,2) = p%KBF    (K,1,2) + ElmntStff*Shape1*Shape2
+         p%KBF    (K,2,1) = p%KBF    (K,2,1) + ElmntStff*Shape2*Shape1
+         p%KBF    (K,2,2) = p%KBF    (K,2,2) + ElmntStff*Shape2*Shape2
+
+         ElmntStff      = p%StiffBE(K,J)*p%DRNodes(J)                       ! Edgewise stiffness of blade element J
+         Shape  = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
+         p%KBE    (K,1,1) = p%KBE    (K,1,1) + ElmntStff*Shape *Shape
+
+
+      ! Integrate to find the centrifugal-term of the generalized flapwise and edgewise
+      !   stiffness of the blades.  Ignore the cross-correlation terms of KBFCent (i.e.
+      !   KBFCent(i,j) where i /= j) since these terms will never be used.
+
+         ElmntStff      = FMomAbvNd(K,J)*p%DRNodes(J)*p%RotSpeed**2   ! Centrifugal stiffness of blade element J
+
+         Shape1 = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldFl1Sh(:,K), 1, ErrStat, ErrMsg )
+         Shape2 = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldFl2Sh(:,K), 1, ErrStat, ErrMsg )
+         KBFCent(K,1,1) = KBFCent(K,1,1) + ElmntStff*Shape1*Shape1
+         KBFCent(K,2,2) = KBFCent(K,2,2) + ElmntStff*Shape2*Shape2
+
+         Shape  = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldEdgSh(:,K), 1, ErrStat, ErrMsg )
+         KBECent(K,1,1) = KBECent(K,1,1) + ElmntStff*Shape *Shape
+
+
+      ! Calculate the 2nd derivatives of the twisted shape functions:
+
+         Shape  = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
+         p%TwistedSF(K,1,1,J,2) =  Shape*p%CThetaS(K,J)                  ! 2nd deriv. of Phi1(J) for blade K
+         p%TwistedSF(K,2,1,J,2) = -Shape*p%SThetaS(K,J)                  ! 2nd deriv. of Psi1(J) for blade K
+
+         Shape  = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
+         p%TwistedSF(K,1,2,J,2) =  Shape*p%CThetaS(K,J)                  ! 2nd deriv. of Phi2(J) for blade K
+         p%TwistedSF(K,2,2,J,2) = -Shape*p%SThetaS(K,J)                  ! 2nd deriv. of Psi2(J) for blade K
+
+         Shape  = SHP( p%RNodesNorm(J), p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
+         p%TwistedSF(K,1,3,J,2) =  Shape*p%SThetaS(K,J)                  ! 2nd deriv. of Phi3(J) for blade K
+         p%TwistedSF(K,2,3,J,2) =  Shape*p%CThetaS(K,J)                  ! 2nd deriv. of Psi3(J) for blade K
+
+
+      ! Integrate to find the 1st derivatives of the twisted shape functions:
+
+         DO I = 1,2     ! Loop through Phi and Psi
+            DO L = 1,3  ! Loop through all blade DOFs
+               TwstdSF     (  I,L,  1) = p%TwistedSF(K,I,L,J,2)*0.5*p%DRNodes(J)
+               p%TwistedSF   (K,I,L,J,1) = TwstdSF   ( I,L,  1)
+            ENDDO       ! L - All blade DOFs
+         ENDDO          ! I - Phi and Psi
+
+         IF ( J /= 1 )  THEN  ! All but the innermost blade element
+      ! Add the effects from the (not yet used) portion of element J-1
+
+            DO I = 1,2     ! Loop through Phi and Psi
+               DO L = 1,3  ! Loop through all blade DOFs
+                  p%TwistedSF(K,I,L,J,1) = p%TwistedSF(K,I,L,J,1) + p%TwistedSF(K,I,L,J-1,1) &
+                                       + TwstdSFOld( I,L,  1)
+               ENDDO       ! L - All blade DOFs
+            ENDDO          ! I - Phi and Psi
+         ENDIF
+
+
+      ! Integrate to find the twisted shape functions themselves (i.e., their zeroeth derivative):
+
+         DO I = 1,2     ! Loop through Phi and Psi
+            DO L = 1,3  ! Loop through all blade DOFs
+               TwstdSF     (  I,L,  0) = p%TwistedSF(K,I,L,J,1)*0.5*p%DRNodes(J)
+               p%TwistedSF   (K,I,L,J,0) = TwstdSF   ( I,L,  0)
+            ENDDO       ! L - All blade DOFs
+         ENDDO          ! I - Phi and Psi
+
+         IF ( J /= 1 )  THEN  ! All but the innermost blade element
+      ! Add the effects from the (not yet used) portion of element J-1
+
+            DO I = 1,2     ! Loop through Phi and Psi
+               DO L = 1,3  ! Loop through all blade DOFs
+                  p%TwistedSF(K,I,L,J,0) = p%TwistedSF(K,I,L,J,0) + p%TwistedSF(K,I,L,J-1,0) &
+                                       + TwstdSFOld( I,L,  0)
+               ENDDO       ! L - All blade DOFs
+            ENDDO          ! I - Phi and Psi
+         ENDIF
+
+
+      ! Integrate to find the blade axial reduction shape functions:
+
+         DO I = 1,3     ! Loop through all blade DOFs
+            DO L = 1,3  ! Loop through all blade DOFs
+               AxRdBld    (  I,L  ) = 0.5*p%DRNodes(J)*(                          &
+                                      p%TwistedSF(K,1,I,J,1)*p%TwistedSF(K,1,L,J,1) &
+                                    + p%TwistedSF(K,2,I,J,1)*p%TwistedSF(K,2,L,J,1) )
+               p%AxRedBld   (K,I,L,J) = AxRdBld(I,L)
+            ENDDO       ! L - All blade DOFs
+         ENDDO          ! I - All blade DOFs
+
+         IF ( J /= 1 )  THEN  ! All but the innermost blade element
+      ! Add the effects from the (not yet used) portion of element J-1
+
+            DO I = 1,3     ! Loop through all blade DOFs
+               DO L = 1,3  ! Loop through all blade DOFs
+                  p%AxRedBld(K,I,L,J) = p%AxRedBld(K,I,L,J) + p%AxRedBld(K,I,L,J-1)   &
+                                    + AxRdBldOld(I,L)
+               ENDDO       ! L - All blade DOFs
+            ENDDO          ! I - All blade DOFs
+         ENDIF
+
+
+      ! Store the TwstdSF and AxRdBld terms of the current element (these will be used for the next element)
+
+         TwstdSFOld = TwstdSF
+         AxRdBldOld = AxRdBld
+
+
+      ENDDO ! J - Blade nodes / elements
+
+
+      ! Apply the flapwise modal stiffness tuners of the blades to KBF():
+
+      DO I = 1,2     ! Loop through flap DOFs
+         DO L = 1,2  ! Loop through flap DOFs
+            p%KBF(K,I,L) = SQRT( p%FStTunr(K,I)*p%FStTunr(K,L) )*p%KBF(K,I,L)
+         ENDDO       ! L - Flap DOFs
+      ENDDO          ! I - Flap DOFs
+
+
+      ! Calculate the blade natural frequencies:
+
+
+      DO I = 1,NumBF     ! Loop through flap DOFs
+         p%FreqBF(K,I,1) = Inv2Pi*SQRT(   p%KBF(K,I,I)                   /( MBF(K,I,I) - p%TipMass(K) ) )   ! Natural blade I-flap frequency w/o centrifugal stiffening nor     tip mass effects
+         p%FreqBF(K,I,2) = Inv2Pi*SQRT(   p%KBF(K,I,I)                   /  MBF(K,I,I)                )     ! Natural blade I-flap frequency w/o centrifugal stiffening, but w/ tip mass effects
+         p%FreqBF(K,I,3) = Inv2Pi*SQRT( ( p%KBF(K,I,I) + KBFCent(K,I,I) )/  MBF(K,I,I)                )     ! Natural blade I-flap frequency w/  centrifugal stiffening and     tip mass effects
+      ENDDO          ! I - Flap DOFs
+
+      p%FreqBE   (K,1,1) = Inv2Pi*SQRT(   p%KBE(K,1,1)                   /( MBE(K,1,1) - p%TipMass(K) ) )   ! Natural blade 1-edge frequency w/o centrifugal stiffening nor      tip mass effects
+      p%FreqBE   (K,1,2) = Inv2Pi*SQRT(   p%KBE(K,1,1)                   /  MBE(K,1,1)                )     ! Natural Blade 1-edge frequency w/o  centrifugal stiffening, but w/ tip mass effects
+      p%FreqBE   (K,1,3) = Inv2Pi*SQRT( ( p%KBE(K,1,1) + KBECent(K,1,1) )/  MBE(K,1,1)                )     ! Natural Blade 1-edge frequency w/  centrifugal stiffening and      tip mass effects
+
+
+      ! Calculate the generalized damping of the blades:
+
+      DO I = 1,NumBF     ! Loop through flap DOFs
+         DO L = 1,NumBF  ! Loop through flap DOFs
+            p%CBF(K,I,L) = ( 0.01*p%BldFDamp(K,L) )*p%KBF(K,I,L)/( Pi*p%FreqBF(K,L,1) )
+         ENDDO       ! L - Flap DOFs
+      ENDDO          ! I - Flap DOFs
+
+      p%CBE      (K,1,1) = ( 0.01*p%BldEDamp(K,1) )*p%KBE(K,1,1)/( Pi*p%FreqBE(K,1,1) )
+
+
+      ! Calculate the 2nd derivatives of the twisted shape functions at the tip:
+
+      Shape  = SHP( 1.0, p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
+      p%TwistedSF(K,1,1,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi1(p%TipNode) for blade K
+      p%TwistedSF(K,2,1,p%TipNode,2) = -Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi1(p%TipNode) for blade K
+
+      Shape  = SHP( 1.0, p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
+      p%TwistedSF(K,1,2,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi2(p%TipNode) for blade K
+      p%TwistedSF(K,2,2,p%TipNode,2) = -Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi2(p%TipNode) for blade K
+
+      Shape  = SHP( 1.0, p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
+      p%TwistedSF(K,1,3,p%TipNode,2) =  Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi3(p%TipNode) for blade K
+      p%TwistedSF(K,2,3,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi3(p%TipNode) for blade K
+
+
+      ! Integrate to find the 1st and zeroeth derivatives of the twisted shape functions
+      !   at the tip:
+
+      DO I = 1,2     ! Loop through Phi and Psi
+         DO L = 1,3  ! Loop through all blade DOFs
+            p%TwistedSF(K,I,L,p%TipNode,1) = p%TwistedSF(K,I,L,p%BldNodes,1) + TwstdSFOld(I,L,1)
+            p%TwistedSF(K,I,L,p%TipNode,0) = p%TwistedSF(K,I,L,p%BldNodes,0) + TwstdSFOld(I,L,0)
+         ENDDO       ! L - All blade DOFs
+      ENDDO          ! I - Phi and Psi
+
+
+      ! Integrate to find the blade axial reduction shape functions at the tip:
+
+      DO I = 1,3     ! Loop through all blade DOFs
+         DO L = 1,3  ! Loop through all blade DOFs
+            p%AxRedBld(K,I,L,p%TipNode) = p%AxRedBld(K,I,L,p%BldNodes) + AxRdBldOld(I,L)
+         ENDDO       ! L - All blade DOFs
+      ENDDO          ! I - All blade DOFs
+
+
+   ENDDO ! K - Blades
+
+
+
+      ! Calculate the tower-top mass:
+
+   p%TwrTpMass = p%RotMass + p%RFrlMass + p%BoomMass + p%TFinMass + p%NacMass + p%YawBrMass
+
+
+   DO J = p%TwrNodes,1,-1 ! Loop through the tower nodes / elements in reverse
+
+
+      ! Calculate the mass of the current element
+
+      ElmntMass    = p%MassT(J)*p%DHNodes(J)     ! Mass of tower element J
+
+
+      ! Integrate to find the tower mass which will be output in .fsm
+
+      p%TwrMass      = p%TwrMass + ElmntMass
+
+
+      ! Integrate to find TMssAbvNd:
+
+      TMssAbvNd   (J) = 0.5*ElmntMass
+
+      IF ( J == p%TwrNodes )  THEN ! Uppermost tower element
+      ! Add the TwrTpMass effects:
+
+         TMssAbvNd(J) = TMssAbvNd(J) + p%TwrTpMass
+      ELSE                       ! All other tower elements
+      ! Add to TMssAbvNd(J) the effects from the (not yet used) portion of element J+1
+
+         TMssAbvNd(J) = 0.5*ElMassOld + TMssAbvNd(J) + TMssAbvNd(J+1)
+      ENDIF
+
+
+      ! Store the mass of the current element (this will be used for the next element)
+
+      ElMassOld    = ElmntMass
+
+
+   ENDDO ! J - Tower nodes / elements in reverse
+
+
+
+      ! Initialize the generalized tower masses using tower-top mass effects:
+
+   DO I = 1,2  ! Loop through all tower modes in a single direction
+      MTFA(I,I) = p%TwrTpMass
+      MTSS(I,I) = p%TwrTpMass
+   ENDDO       ! I - All tower modes in a single direction
+
+
+   DO J = 1,p%TwrNodes    ! Loop through the tower nodes / elements
+
+
+      ! Calculate the tower shape functions (all derivatives):
+
+      p%TwrFASF(1,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM1Sh(:), 2, ErrStat, ErrMsg )
+      p%TwrFASF(2,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM2Sh(:), 2, ErrStat, ErrMsg )
+      p%TwrFASF(1,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM1Sh(:), 1, ErrStat, ErrMsg )
+      p%TwrFASF(2,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM2Sh(:), 1, ErrStat, ErrMsg )
+      p%TwrFASF(1,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM1Sh(:), 0, ErrStat, ErrMsg )
+      p%TwrFASF(2,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwFAM2Sh(:), 0, ErrStat, ErrMsg )
+
+      p%TwrSSSF(1,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM1Sh(:), 2, ErrStat, ErrMsg )
+      p%TwrSSSF(2,J,2) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM2Sh(:), 2, ErrStat, ErrMsg )
+      p%TwrSSSF(1,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM1Sh(:), 1, ErrStat, ErrMsg )
+      p%TwrSSSF(2,J,1) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM2Sh(:), 1, ErrStat, ErrMsg )
+      p%TwrSSSF(1,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM1Sh(:), 0, ErrStat, ErrMsg )
+      p%TwrSSSF(2,J,0) = SHP( p%HNodesNorm(J), p%TwrFlexL, InputFileData%TwSSM2Sh(:), 0, ErrStat, ErrMsg )
+
+
+      ! Integrate to find the generalized mass of the tower (including tower-top mass effects).
+      !   Ignore the cross-correlation terms of MTFA (i.e. MTFA(i,j) where i /= j) and MTSS
+      !   since these terms will never be used.
+
+      ElmntMass      = p%MassT(J)*p%DHNodes(J)                           ! Mass of tower element J
+
+      DO I = 1,2     ! Loop through all tower DOFs in one direction
+         MTFA  (I,I) = MTFA  (I,I) + ElmntMass*p%TwrFASF(I,J,0)**2
+         MTSS  (I,I) = MTSS  (I,I) + ElmntMass*p%TwrSSSF(I,J,0)**2
+      ENDDO          ! I - through all tower DOFs in one direction
+
+
+      ! Integrate to find the generalized stiffness of the tower (not including gravitational
+      !    effects).
+
+      ElStffFA       = p%StiffTFA(J)*p%DHNodes(J)                        ! Fore-aft stiffness of tower element J
+      ElStffSS       = p%StiffTSS(J)*p%DHNodes(J)                        ! Side-to-side stiffness of tower element J
+
+      DO I = 1,2     ! Loop through all tower DOFs in one direction
+         DO L = 1,2  ! Loop through all tower DOFs in one direction
+            p%KTFA (I,L) = p%KTFA    (I,L) + ElStffFA *p%TwrFASF(I,J,2)*p%TwrFASF(L,J,2)
+            p%KTSS (I,L) = p%KTSS    (I,L) + ElStffSS *p%TwrSSSF(I,J,2)*p%TwrSSSF(L,J,2)
+         ENDDO       ! L - All tower DOFs in one direction
+      ENDDO          ! I - through all tower DOFs in one direction
+
+
+      ! Integrate to find the gravitational-term of the generalized stiffness of the tower.
+      !   Ignore the cross-correlation terms of KTFAGrav (i.e. KTFAGrav(i,j) where i /= j)
+      !   and KTSSGrav since these terms will never be used.
+
+      ElmntStff      = -TMssAbvNd(J)*p%DHNodes(J)*p%Gravity              ! Gravitational stiffness of tower element J
+
+      DO I = 1,2     ! Loop through all tower DOFs in one direction
+         KTFAGrav(I,I) = KTFAGrav(I,I) + ElmntStff*p%TwrFASF(I,J,1)**2
+         KTSSGrav(I,I) = KTSSGrav(I,I) + ElmntStff*p%TwrSSSF(I,J,1)**2
+      ENDDO
+
+
+      ! Integrate to find the tower axial reduction shape functions:
+
+      DO I = 1,2     ! Loop through all tower DOFs in one direction
+         DO L = 1,2  ! Loop through all tower DOFs in one direction
+            AxRdTFA (I,L) = 0.5*p%DHNodes(J)*p%TwrFASF(I,J,1)*p%TwrFASF(L,J,1)
+            AxRdTSS (I,L) = 0.5*p%DHNodes(J)*p%TwrSSSF(I,J,1)*p%TwrSSSF(L,J,1)
+
+            p%AxRedTFA(I,L,J) = AxRdTFA(I,L)
+            p%AxRedTSS(I,L,J) = AxRdTSS(I,L)
+         ENDDO       ! L - All tower DOFs in one direction
+      ENDDO
+
+      IF ( J /= 1 )  THEN  ! All but the lowermost tower element
+      ! Add the effects from the (not yet used) portion of element J-1
+
+         DO I = 1,2     ! Loop through all tower DOFs in one direction
+            DO L = 1,2  ! Loop through all tower DOFs in one direction
+               p%AxRedTFA(I,L,J) = p%AxRedTFA(I,L,J) + p%AxRedTFA(I,L,J-1)+ AxRdTFAOld(I,L)
+               p%AxRedTSS(I,L,J) = p%AxRedTSS(I,L,J) + p%AxRedTSS(I,L,J-1)+ AxRdTSSOld(I,L)
+            ENDDO       ! L - All tower DOFs in one direction
+         ENDDO
+      ENDIF
+
+
+      ! Store the AxRdTFA and AxRdTSS terms of the current element (these will be used for the next element)
+
+      AxRdTFAOld = AxRdTFA
+      AxRdTSSOld = AxRdTSS
+
+
+   ENDDO ! J - Tower nodes / elements
+
+
+   ! Apply the modal stiffness tuners of the tower to KTFA() and KTSS():
+
+   DO I = 1,2     ! Loop through all tower DOFs in one direction
+      DO L = 1,2  ! Loop through all tower DOFs in one direction
+         p%KTFA(I,L) = SQRT( InputFileData%FAStTunr(I)*InputFileData%FAStTunr(L) )*p%KTFA(I,L)
+
+         p%KTSS(I,L) = SQRT( InputFileData%SSStTunr(I)*InputFileData%SSStTunr(L) )*p%KTSS(I,L)
+      ENDDO       ! L - All tower DOFs in one direction
+   ENDDO          ! I - through all tower DOFs in one direction
+
+
+      ! Calculate the tower natural frequencies:
+
+   DO I = 1,2     ! Loop through all tower DOFs in one direction
+      p%FreqTFA(I,1) = Inv2Pi*SQRT(   p%KTFA(I,I)                  /( MTFA(I,I) - p%TwrTpMass ) )  ! Natural tower I-fore-aft frequency w/o gravitational destiffening nor tower-top mass effects
+      p%FreqTFA(I,2) = Inv2Pi*SQRT( ( p%KTFA(I,I) + KTFAGrav(I,I) )/  MTFA(I,I)               )  ! Natural tower I-fore-aft frequency w/  gravitational destiffening and tower-top mass effects
+      p%FreqTSS(I,1) = Inv2Pi*SQRT(   p%KTSS(I,I)                  /( MTSS(I,I) - p%TwrTpMass ) )  ! Natural tower I-side-to-side frequency w/o gravitational destiffening nor tower-top mass effects
+      p%FreqTSS(I,2) = Inv2Pi*SQRT( ( p%KTSS(I,I) + KTSSGrav(I,I) )/  MTSS(I,I)               )  ! Natural tower I-side-to-side frequency w/  gravitational destiffening and tower-top mass effects
+   ENDDO          ! I - All tower DOFs in one direction
+
+
+      ! Calculate the generalized damping of the tower:
+
+   DO I = 1,2     ! Loop through all tower DOFs in one direction
+      DO L = 1,2  ! Loop through all tower DOFs in one direction
+         p%CTFA(I,L) = ( 0.01*InputFileData%TwrFADmp(L) )*p%KTFA(I,L)/( Pi*p%FreqTFA(L,1) )
+
+         p%CTSS(I,L) = ( 0.01*InputFileData%TwrSSDmp(L) )*p%KTSS(I,L)/( Pi*p%FreqTSS(L,1) )
+      ENDDO       ! L - All tower DOFs in one direction
+   ENDDO          ! I - All tower DOFs in one direction
+
+
+      ! Calculate the tower shape functions (all derivatives) at the tower-top:
+
+   p%TwrFASF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrFASF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrFASF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrFASF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrFASF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrFASF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 0, ErrStat, ErrMsg )
+
+   p%TwrSSSF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrSSSF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrSSSF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrSSSF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrSSSF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrSSSF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 0, ErrStat, ErrMsg )
+
+
+      ! Integrate to find the tower axial reduction shape functions at the tower-top:
+
+   DO I = 1,2     ! Loop through all tower DOFs in one direction
+      DO L = 1,2  ! Loop through all tower DOFs in one direction
+         p%AxRedTFA(I,L,p%TTopNode) = p%AxRedTFA(I,L,p%TwrNodes)+ AxRdTFAOld(I,L)
+         p%AxRedTSS(I,L,p%TTopNode) = p%AxRedTSS(I,L,p%TwrNodes)+ AxRdTSSOld(I,L)
+      ENDDO       ! L - All tower DOFs in one direction
+   ENDDO
+
+
+      ! Calculate the turbine mass:
+
+   p%TurbMass  = p%TwrTpMass + p%TwrMass
+
+
+   RETURN
+END SUBROUTINE Coeff
+!----------------------------------------------------------------------------------------------------------------------------------  
+SUBROUTINE InitBlDefl ( p, InputFileData, InitQF1, InitQF2, InitQE1, ErrStat, ErrMsg )
+! This routine calculates the initial blade deflections.
+! Base the intial values of the blade DOFs, INITQF1, INITQF2, and
+!   INITQE1, on OoPDefl and IPDefl.
+! Write messages to the screen if the specified initial tip displacements
+!  are incompatible with the enabled DOFs.
+!..................................................................................................................................
+
+
+      IMPLICIT                        NONE
+
+      ! Passed variables:
+   TYPE(ED_ParameterType),  INTENT(IN)  :: p                                       ! parameters of the structural dynamics module
+   TYPE(ED_InputFile),      INTENT(IN)  :: InputFileData                           ! all the data in the ElastoDyn input file
+
+   REAL(ReKi),              INTENT(OUT) :: InitQE1(p%NumBl)                        ! Initial edge deflection (output).
+   REAL(ReKi),              INTENT(OUT) :: InitQF1(p%NumBl)                        ! Initial flap deflection for mode 1 (output).
+   REAL(ReKi),              INTENT(OUT) :: InitQF2(p%NumBl)                        ! Initial flap deflection for mode 2 (output).
+
+   INTEGER(IntKi),          INTENT(OUT) :: ErrStat                                 ! Error status
+   CHARACTER(1024),         INTENT(OUT) :: ErrMsg                                  ! Error message when ErrStat =/ ErrID_None
+   
+
+      ! Local variables:
+   REAL(ReKi)                   :: A(2,3)                                          ! Augmented matrix for solution of initial deflections.
+   REAL(ReKi)                   :: CosPitch                                        ! Cosine of the pitch for this blade.
+   REAL(ReKi)                   :: Det                                             ! Determinate of right-hand side of A.
+   REAL(ReKi)                   :: SinPitch                                        ! Sine of the pitch for this blade.
+   REAL(ReKi)                   :: TotResid                                        ! Generator torque.
+
+   INTEGER(IntKi)               :: K                                               ! Blade number
+
+      ! some warning messages
+   CHARACTER(*), PARAMETER      :: Approx   = ' An approximate characterization of the specified blade deflection will be made.'
+   CHARACTER(*), PARAMETER      :: BadIP    = ' Initial blade in-plane tip displacement will be ignored.'
+   CHARACTER(*), PARAMETER      :: BadOoP   = ' Initial blade out-of-plane tip displacement will be ignored.'
+   CHARACTER(*), PARAMETER      :: Ignore   = ' All initial blade tip displacements will be ignored.'
+
+
+      ! Initialize variables
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+   InitQE1 = 0.0
+   InitQF1 = 0.0
+   InitQF2 = 0.0
+   !bjj: replace InitQF1 and InitQF2 with an array to avoid so much duplication of logic here...
+   
+   DO K=1,p%NumBl
+
+         ! Calculate the array of deflections(???).
+
+      CosPitch = COS( InputFileData%BlPitch(K) )
+      SinPitch = SIN( InputFileData%BlPitch(K) )
+
+      A(1,2) =  p%TwistedSF(K,1,3,p%TipNode,0)*CosPitch + p%TwistedSF(K,2,3,p%TipNode,0)*SinPitch
+      A(2,2) = -p%TwistedSF(K,1,3,p%TipNode,0)*SinPitch + p%TwistedSF(K,2,3,p%TipNode,0)*CosPitch
+      A(1,3) =  InputFileData%OoPDefl
+      A(2,3) =  InputFileData%IPDefl
+
+      IF ( InputFileData%FlapDOF1 )  THEN                                ! Blade flap mode 1 is enabled
+
+         A(1,1) =  p%TwistedSF(K,1,1,p%TipNode,0)*CosPitch + p%TwistedSF(K,2,1,p%TipNode,0)*SinPitch
+         A(2,1) = -p%TwistedSF(K,1,1,p%TipNode,0)*SinPitch + p%TwistedSF(K,2,1,p%TipNode,0)*CosPitch
+
+         DET = ( A(1,1)*A(2,2) - A(1,2)*A(2,1) )
+
+         IF ( .NOT. EqualRealNos( DET, 0.0_ReKi ) ) THEN                  ! Apply all flap deflection to mode 1
+
+            InitQF1(K) = ( A(1,3)*A(2,2) - A(1,2)*A(2,3) )/DET
+            InitQE1(K) = ( A(1,1)*A(2,3) - A(1,3)*A(2,1) )/DET
+
+         ELSEIF ( .NOT. InputFileData%EdgeDOF )  THEN                     ! Blade edge mode 1 is not enabled which caused DET = 0.
+
+            InitQE1(K) = 0.0
+
+            IF ( .NOT. EqualRealNos( A(1,1), 0.0_ReKi ) )  THEN
+               IF ( .NOT. EqualRealNos( A(2,1), 0.0_ReKi ) )  THEN        ! Find a solution of the 2 equations in 1 variable that
+                                                                          !  minimizes the sum of the squares of the equation's residuals.
+
+                  InitQF1(K) = ( A(1,1)*A(1,3) + A(2,1)*A(2,3) )/( A(1,1)**2 + A(2,1)**2 )
+
+                  TotResid = SQRT( ( A(1,1)*InitQF1(K) - A(1,3) )**2 + ( A(2,1)*InitQF1(K) - A(2,3) )**2 )
+
+                  IF ( .NOT. EqualRealNos( TotResid, 0.0_ReKi ) ) THEN
+                     CALL CheckError( ErrID_Warn, Approx )
+                  ENDIF
+
+               ELSE !A(1,1) /= 0; A(2,1) == 0
+
+                  InitQF1(K) = A(1,3)/A(1,1)
+
+                  IF ( .NOT. EqualRealNos( InputFileData%IPDefl,  0.0_ReKi ) )  THEN
+                     CALL CheckError( ErrID_Warn, BadIP )
+                  ENDIF          
+            
+               ENDIF
+
+            ELSE ! A(1,1) == 0
+
+               IF ( .NOT. EqualRealNos( InputFileData%OoPDefl, 0.0_ReKi ) ) THEN
+                  CALL CheckError( ErrID_Warn, BadOoP )
+               END IF  
+            
+               IF ( .NOT. EqualRealNos( A(2,1), 0.0_ReKi ) )   THEN
+                  InitQF1(K) = A(2,3)/A(2,1)
+               ELSE
+                  InitQF1(K) = 0.0
+            
+                  IF ( .NOT. EqualRealNos( InputFileData%IPDefl,  0.0_ReKi ) )  THEN
+                     CALL CheckError( ErrID_Warn, BadIP )
+                  ENDIF          
+
+               ENDIF
+            ENDIF
+
+         ELSE                                     ! It is impossible to find any "good" solution, so ignore the initial tip displacements
+
+            InitQF1(K) = 0.0
+            InitQE1(K) = 0.0
+
+            IF ( ( InputFileData%OoPDefl /= 0.0 ) .OR. ( InputFileData%IPDefl /= 0.0 ) )  THEN
+               CALL CheckError( ErrID_Warn, Ignore )
+            ENDIF
+
+         ENDIF
+
+      ELSE                                        ! Blade flap mode 1 is not enabled.
+
+         InitQF1(K) = 0.0
+
+         IF ( InputFileData%FlapDOF2 )  THEN                    ! Blade flap mode 2 is enabled.
+
+            A(1,1) =  p%TwistedSF(K,1,2,p%TipNode,0)*CosPitch + p%TwistedSF(K,2,2,p%TipNode,0)*SinPitch
+            A(2,1) = -p%TwistedSF(K,1,2,p%TipNode,0)*SinPitch + p%TwistedSF(K,2,2,p%TipNode,0)*CosPitch
+
+            DET = ( A(1,1)*A(2,2) - A(1,2)*A(2,1) )
+
+            IF ( .NOT. EqualRealNos( DET, 0.0_ReKi ) ) THEN      ! Apply all flap deflection to mode 2
+               InitQF2 = ( A(1,3)*A(2,2) - A(1,2)*A(2,3) )/DET
+               InitQE1 = ( A(1,1)*A(2,3) - A(1,3)*A(2,1) )/DET
+
+            ELSEIF ( .NOT. InputFileData%EdgeDOF )  THEN          ! Blade edge mode 1 is not enabled which caused DET = 0.
+
+               InitQE1(K) = 0.0
+
+               IF ( .NOT. EqualRealNos( A(1,1), 0.0_ReKi ) )  THEN
+                  IF ( .NOT. EqualRealNos( A(2,1), 0.0_ReKi ) )   THEN      ! Find a solution of the 2 equations in 1 variable that
+                                                                            !  minimizes the sum of the squares of the equation's residuals
+                     InitQF2(K) = ( A(1,1)*A(1,3) + A(2,1)*A(2,3) )/( A(1,1)**2 + A(2,1)**2 )
+
+                     TotResid = SQRT( ( A(1,1)*InitQF2(K) - A(1,3))**2 + ( A(2,1)*InitQF2(K) - A(2,3) )**2 )
+
+                     IF ( .NOT. EqualRealNos( TotResid, 0.0_ReKi ) )  THEN
+                        CALL CheckError( ErrID_Warn, Approx )
+                     ENDIF
+                  ELSE
+                     InitQF2(K) = A(1,3)/A(1,1)
+
+                     IF ( .NOT. EqualRealNos( InputFileData%IPDefl, 0.0_ReKi ) ) THEN
+                        CALL CheckError( ErrID_Warn, BadIP )
+                     ENDIF
+                  ENDIF
+               ELSE
+                  IF ( .NOT. EqualRealNos( InputFileData%OoPDefl, 0.0_ReKi ) ) THEN
+                     CALL CheckError( ErrID_Warn, BadOoP )
+                  END IF       
+            
+                  IF ( .NOT. EqualRealNos( A(2,1), 0.0_ReKi ) )  THEN
+                     InitQF2(K) = A(2,3)/A(2,1)               
+                  ELSE
+                     InitQF2(K) = 0.0
+
+                     IF ( .NOT. EqualRealNos( InputFileData%IPDefl, 0.0_ReKi ) )  THEN
+                        CALL CheckError( ErrID_Warn, BadIP )
+                     ENDIF
+               
+                  ENDIF
+               ENDIF
+
+            ELSE                                  ! It is impossible to find any "good" solution, so ignore
+                                                  ! the initial tip displacements.
+               InitQF2(K) = 0.0
+               InitQE1(K) = 0.0
+
+               IF ( .NOT. EqualRealNos( InputFileData%OoPDefl,  0.0_ReKi ) .OR. &
+                    .NOT. EqualRealNos( InputFileData%IPDefl,   0.0_ReKi ) )  THEN
+                  CALL CheckError( ErrID_Warn, Ignore )               
+                ENDIF
+            ENDIF
+
+         ELSE                                     ! Blade flap mode 2 is not enabled.
+
+            InitQF2(K) = 0.0
+
+            IF ( .NOT. EqualRealNos( A(1,2), 0.0_ReKi ) )  THEN
+
+               IF ( .NOT. EqualRealNos( A(2,2), 0.0_ReKi ) )  THEN         ! Find a solution of the 2 equations in 1 variable that minimizes
+                                                                           !  the sum of the squares of the equation's residuals.
+                  InitQE1(K) = ( A(1,2)*A(1,3) + A(2,2)*A(2,3) )/( A(1,2)**2 + A(2,2)**2 )
+
+                  TotResid = SQRT( ( A(1,2)*InitQE1(K) - A(1,3) )**2 + ( A(2,2)*InitQE1(K) - A(2,3) )**2)
+
+                  IF ( .NOT. EqualRealNos( TotResid, 0.0_ReKi ) )  THEN
+                     CALL CheckError( ErrID_Warn, Approx )               
+                  ENDIF
+
+               ELSE
+
+                  InitQE1(K) = A(1,3)/A(1,2)
+
+                  IF ( .NOT. EqualRealNos( InputFileData%IPDefl, 0.0_ReKi ) )  THEN
+                     CALL CheckError( ErrID_Warn, BadIP )               
+                  ENDIF
+
+               ENDIF
+
+            ELSE
+
+               IF ( .NOT. EqualRealNos( InputFileData%OoPDefl, 0.0_ReKi ) ) THEN
+                  CALL CheckError( ErrID_Warn, BadOoP )
+               END IF 
+                  
+               IF ( .NOT. EqualRealNos( A(2,2), 0.0_ReKi ) )  THEN
+                  InitQE1(K) = A(2,3)/A(2,2)
+               ELSE
+                  InitQE1(K) = 0.0             
+            
+                  IF ( .NOT. EqualRealNos( InputFileData%IPDefl,  0.0_ReKi ) )  THEN
+                     CALL CheckError( ErrID_Warn, BadIP )
+                  ENDIF
+
+               ENDIF
+
+            ENDIF
+
+         ENDIF
+
+      ENDIF
+
+   END DO !K
+
+   RETURN
+CONTAINS   
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' Blade '//TRIM(Num2LStr(K))// &
+                     ' initial blade tip displacements are Incompat with enabled DOFs: '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError     
+   
+END SUBROUTINE InitBlDefl
+!----------------------------------------------------------------------------------------------------------------------------------  
+SUBROUTINE SetEnabledDOFIndexArrays( p )
+! This routine is used create arrays of DOF indices (pointers / (vector susbscript arrays) that contribute to the QD2T-related
+!   linear accelerations of various points within the system in the inertia frame, based on which DOFs are presently enabled.
+! NOTE: The order in which the DOFs are tested within this routine and hence the order in which the DOF indices appear in the
+!       vector subscript arrays, determines the order in which the states will appear in the linearized model created by FAST
+!       when AnalMode == 2.  This order is not necessarily sorted from smallest to largest DOF index.
+! bjj: note that this routine is now called only in the initialization routine. It is not available during time simulation.
+!----------------------------------------------------------------------------------------------------------------------------------  
+
+   IMPLICIT                        NONE
+
+
+      ! passed variables
+   TYPE(ED_ParameterType), INTENT(INOUT)   :: p                                  ! Parameters of the structural dynamics module
+
+      ! Local Variables:
+   INTEGER(IntKi)                   :: I                                          ! Loops through all DOFs.
+   INTEGER(IntKi)                   :: K                                          ! Loops through blades.
+
+
+
+      ! Initialize total counts to zero.
+
+   p%DOFs%NActvDOF = 0
+   p%DOFs%NPCE     = 0
+   p%DOFs%NPDE     = 0
+   p%DOFs%NPIE     = 0
+   p%DOFs%NPTTE    = 0
+   p%DOFs%NPTE     = 0
+   p%DOFs%NPSBE(:) = 0
+   p%DOFs%NPSE (:) = 0
+   p%DOFs%NPUE     = 0
+   p%DOFs%NPYE     = 0
+
+
+      ! Test each DOF and include the appropriate indices in the subscript arrays
+      !  and total counts:
+
+   IF ( p%DOF_Flag(DOF_Sg  ) )  THEN  ! Platform surge.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+      p%DOFs%NPYE     = p%DOFs%NPYE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_Sg
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_Sg
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_Sg
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_Sg
+      p%DOFs%PTE     (  p%DOFs%NPTE    ) = DOF_Sg
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_Sg
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_Sg
+      p%DOFs%PYE     (  p%DOFs%NPYE    ) = DOF_Sg
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_Sw  ) )  THEN  ! Platform sway.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+      p%DOFs%NPYE     = p%DOFs%NPYE     + 1
+
+       p%DOFs%PS     (  p%DOFs%NActvDOF) = DOF_Sw
+       p%DOFs%PCE    (  p%DOFs%NPCE    ) = DOF_Sw
+       p%DOFs%PDE    (  p%DOFs%NPDE    ) = DOF_Sw
+       p%DOFs%PIE    (  p%DOFs%NPIE    ) = DOF_Sw
+       p%DOFs%PTE    (  p%DOFs%NPTE    ) = DOF_Sw
+       p%DOFs%PSE    (:,p%DOFs%NPSE (:)) = DOF_Sw
+       p%DOFs%PUE    (  p%DOFs%NPUE    ) = DOF_Sw
+       p%DOFs%PYE    (  p%DOFs%NPYE    ) = DOF_Sw
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_Hv  ) )  THEN  ! Platform heave.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+      p%DOFs%NPYE     = p%DOFs%NPYE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_Hv
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_Hv
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_Hv
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_Hv
+      p%DOFs%PTE     (  p%DOFs%NPTE    ) = DOF_Hv
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_Hv
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_Hv
+      p%DOFs%PYE     (  p%DOFs%NPYE    ) = DOF_Hv
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_R   ) )  THEN  ! Platform roll.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+      p%DOFs%NPYE     = p%DOFs%NPYE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_R
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_R
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_R
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_R
+      p%DOFs%PTE     (  p%DOFs%NPTE    ) = DOF_R
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_R
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_R
+      p%DOFs%PYE     (  p%DOFs%NPYE    ) = DOF_R
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_P   ) )  THEN  ! Platform pitch.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+      p%DOFs%NPYE     = p%DOFs%NPYE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_P
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_P
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_P
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_P
+      p%DOFs%PTE     (  p%DOFs%NPTE    ) = DOF_P
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_P
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_P
+      p%DOFs%PYE     (  p%DOFs%NPYE    ) = DOF_P
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_Y   ) )  THEN  ! Platform yaw.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+      p%DOFs%NPYE     = p%DOFs%NPYE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_Y
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_Y
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_Y
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_Y
+      p%DOFs%PTE     (  p%DOFs%NPTE    ) = DOF_Y
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_Y
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_Y
+      p%DOFs%PYE     (  p%DOFs%NPYE    ) = DOF_Y
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_TFA1) )  THEN  ! 1st tower fore-aft.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTTE    = p%DOFs%NPTTE    + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_TFA1
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_TFA1
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_TFA1
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_TFA1
+      p%DOFs%PTTE    (  p%DOFs%NPTTE   ) = DOF_TFA1
+      p%DOFs%PTE     (  p%DOFs%NPTE    ) = DOF_TFA1
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_TFA1
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_TFA1
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_TSS1) )  THEN  ! 1st tower side-to-side.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTTE    = p%DOFs%NPTTE    + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_TSS1
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_TSS1
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_TSS1
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_TSS1
+      p%DOFs%PTTE    (  p%DOFs%NPTTE   ) = DOF_TSS1
+      p%DOFs%PTE     (  p%DOFs%NPTE    ) = DOF_TSS1
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_TSS1
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_TSS1
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_TFA2) )  THEN  ! 2nd tower fore-aft.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTTE    = p%DOFs%NPTTE    + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_TFA2
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_TFA2
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_TFA2
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_TFA2
+      p%DOFs%PTTE    (  p%DOFs%NPTTE   ) = DOF_TFA2
+      p%DOFs%PTE     (  p%DOFs%NPTE    ) = DOF_TFA2
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_TFA2
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_TFA2
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_TSS2) )  THEN  ! 2nd tower side-to-side.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPTTE    = p%DOFs%NPTTE    + 1
+      p%DOFs%NPTE     = p%DOFs%NPTE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_TSS2
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_TSS2
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_TSS2
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_TSS2
+      p%DOFs%PTTE    (  p%DOFs%NPTTE   ) = DOF_TSS2
+      p%DOFs%PTE     (  p%DOFs%NPTE    ) = DOF_TSS2
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_TSS2
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_TSS2
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_Yaw ) )  THEN  ! Nacelle yaw.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+      p%DOFs%NPUE     = p%DOFs%NPUE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_Yaw
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_Yaw
+      p%DOFs%PDE     (  p%DOFs%NPDE    ) = DOF_Yaw
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_Yaw
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_Yaw
+      p%DOFs%PUE     (  p%DOFs%NPUE    ) = DOF_Yaw
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_TFrl) )  THEN  ! Tail-furl.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPIE     = p%DOFs%NPIE     + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_TFrl
+      p%DOFs%PIE     (  p%DOFs%NPIE    ) = DOF_TFrl
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_RFrl) )  THEN  ! Rotor-furl.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPDE     = p%DOFs%NPDE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+
+      p%DOFs%PS     (  p%DOFs%NActvDOF) = DOF_RFrl
+      p%DOFs%PCE    (  p%DOFs%NPCE    ) = DOF_RFrl
+      p%DOFs%PDE    (  p%DOFs%NPDE    ) = DOF_RFrl
+      p%DOFs%PSE    (:,p%DOFs%NPSE (:)) = DOF_RFrl
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_GeAz) )  THEN  ! Generator azimuth.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_GeAz
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_GeAz
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_GeAz
+
+   ENDIF
+
+
+   IF ( p%DOF_Flag(DOF_DrTr) )  THEN  ! Drivetrain torsion.
+
+      p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+      p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+      p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+
+      p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_DrTr
+      p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_DrTr
+      p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_DrTr
+
+   ENDIF
+
+
+   IF ( p%NumBl == 2 )  THEN
+      IF ( p%DOF_Flag(DOF_Teet   ) )  THEN  ! Rotor-teeter.
+
+         p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+         p%DOFs%NPCE     = p%DOFs%NPCE     + 1
+         p%DOFs%NPSE (:) = p%DOFs%NPSE (:) + 1
+
+         p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_Teet
+         p%DOFs%PCE     (  p%DOFs%NPCE    ) = DOF_Teet
+         p%DOFs%PSE     (:,p%DOFs%NPSE (:)) = DOF_Teet
+
+      ENDIF
+   ENDIF
+
+
+   DO K = 1,p%NumBl ! Loop through all blades
+      IF ( p%DOF_Flag(DOF_BF(K,1)) )  THEN  ! 1st blade flap.
+
+         p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+         p%DOFs%NPSBE(K) = p%DOFs%NPSBE(K) + 1
+         p%DOFs%NPSE (K) = p%DOFs%NPSE (K) + 1
+
+         p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_BF(K,1)
+         p%DOFs%PSBE    (K,p%DOFs%NPSBE(K)) = DOF_BF(K,1)
+         p%DOFs%PSE     (K,p%DOFs%NPSE (K)) = DOF_BF(K,1)
+
+      ENDIF
+   ENDDO          ! K - Blades
+
+
+   DO K = 1,p%NumBl ! Loop through all blades
+      IF ( p%DOF_Flag(DOF_BE(K,1)) )  THEN  ! 1st blade edge.
+
+         p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+         p%DOFs%NPSBE(K) = p%DOFs%NPSBE(K) + 1
+         p%DOFs%NPSE (K) = p%DOFs%NPSE (K) + 1
+
+         p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_BE(K,1)
+         p%DOFs%PSBE    (K,p%DOFs%NPSBE(K)) = DOF_BE(K,1)
+         p%DOFs%PSE     (K,p%DOFs%NPSE (K)) = DOF_BE(K,1)
+
+      ENDIF
+   ENDDO          ! K - Blades
+
+
+   DO K = 1,p%NumBl ! Loop through all blades
+      IF ( p%DOF_Flag(DOF_BF(K,2)) )  THEN  ! 2nd blade flap.
+
+         p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+         p%DOFs%NPSBE(K) = p%DOFs%NPSBE(K) + 1
+         p%DOFs%NPSE (K) = p%DOFs%NPSE (K) + 1
+
+         p%DOFs%PS      (  p%DOFs%NActvDOF) = DOF_BF(K,2)
+         p%DOFs%PSBE    (K,p%DOFs%NPSBE(K)) = DOF_BF(K,2)
+         p%DOFs%PSE     (K,p%DOFs%NPSE (K)) = DOF_BF(K,2)
+
+      ENDIF
+   ENDDO          ! K - Blades
+
+
+
+      ! Compute the sorted (from smallest to largest p%DOFs index) version of PS(),
+      !   SrtPS(), and SrtPSNAUG().  At the same time compute Diag(), which is an
+      !   array containing the indices of SrtPS() associated with each enabled
+      !   DOF; that is, SrtPS(Diag(I)) = I:
+      ! NOTE: This calculation is recomputing NActvDOF as computed above.  This is
+      !       of no concern however, since the resulting value will be the same.
+
+   p%DOFs%NActvDOF = 0
+   DO I = 1,p%NDOF  ! Loop through all DOFs
+      IF ( p%DOF_Flag(I) )  THEN   ! .TRUE. if the corresponding DOF is enabled
+
+         p%DOFs%NActvDOF = p%DOFs%NActvDOF + 1
+
+         p%DOFs%SrtPS     (p%DOFs%NActvDOF) = I
+         p%DOFs%SrtPSNAUG (p%DOFs%NActvDOF) = I
+         p%DOFs%Diag      (I           ) = p%DOFs%NActvDOF
+
+      ENDIF
+   ENDDO          ! I - All DOFs
+
+   p%DOFs%SrtPSNAUG ( p%DOFs%NActvDOF + 1 ) = p%NAug
+
+
+   RETURN
+END SUBROUTINE SetEnabledDOFIndexArrays
+!----------------------------------------------------------------------------------------------------------------------------------  
+
 END MODULE ElastoDyn
 !**********************************************************************************************************************************
 

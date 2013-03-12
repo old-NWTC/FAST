@@ -30,7 +30,10 @@ MODULE ServoDyn
    PRIVATE
 
    TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.00.00', '31-March-2013' )
-   INTEGER(IntKi), PARAMETER            :: MaxBl = 3
+!   INTEGER(IntKi), PARAMETER            :: MaxBl = 3
+   LOGICAL, PARAMETER                   :: Cmpl4SFun  = .FALSE.                            ! Is the module being compiled as an S-Function for Simulink?
+   LOGICAL, PARAMETER                   :: Cmpl4LV    = .FALSE.                            ! Is the module being compiled for Labview?
+
 
       ! ..... Public Subroutines ...................................................................................................
 
@@ -95,7 +98,8 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       ErrMsg  = ""
 
       p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(SrvD_Ver%Name) ! all of the output file names from this module will end with '_ModuleName'
-
+      p%NumBl    = InitInp%NumBl
+      
          ! Initialize the NWTC Subroutine Library
 
       CALL NWTC_Init( )
@@ -104,16 +108,30 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
 
       CALL DispNVD( SrvD_Ver )
 
-
+         
+      
          ! Read the input file and validate the data
-
       CALL SrvD_ReadInput( InitInp%InputFile, InputFileData, p%RootName, ErrStat, ErrMsg )
-      !CALL SrvD_ValidateInput( InputFileData, ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) THEN
+         CALL WrScr( ErrMsg )
+         RETURN
+      END IF
+      
+      CALL ValidatePrimaryData( InputFileData, InitInp%NumBl, ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) THEN
+         CALL WrScr( ErrMsg )
+         RETURN
+      END IF
 
+      
          ! Define parameters here:
-      !CALL SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )           
+      CALL SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )           
+      IF ( ErrStat /= ErrID_None ) THEN
+         CALL WrScr( ErrMsg )
+         RETURN
+      END IF
+      
 
-         ! Define parameters here:
 
       p%DT  = Interval
 
@@ -899,6 +917,11 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    !   CALL CheckError( ErrStat2, ErrMsg2 )
    !   IF ( ErrStat >= AbortErrLev ) RETURN
 
+   !---------------------- OUTLIST  --------------------------------------------
+      CALL ReadCom( UnIn, InputFile, 'Section Header: OutList', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
       ! OutList - List of user-requested output channels (-):
    CALL ReadOutputList ( UnIn, InputFile, InputFileData%OutList, InputFileData%NumOuts, 'OutList', "List of user-requested output channels", ErrStat2, ErrMsg2, UnEc  )     ! Routine in NWTC Subroutine Library
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -907,7 +930,6 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    !---------------------- END OF FILE -----------------------------------------
       
    CLOSE ( UnIn )
-   IF ( UnEc > 0 ) CLOSE ( UnEc )
    RETURN
 
 
@@ -944,9 +966,294 @@ CONTAINS
 
    END SUBROUTINE CheckError
    !...............................................................................................................................
-
 END SUBROUTINE ReadPrimaryFile      
-      
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
+! This takes the primary input file data and sets the corresponding parameters.
+!..................................................................................................................................
 
+   IMPLICIT                        NONE
+
+
+      ! Passed variables
+
+   TYPE(SrvD_ParameterType), INTENT(INOUT)  :: p                            ! Module's parameters
+   TYPE(SrvD_InputFile),     INTENT(IN)     :: InputFileData                ! Data stored in the module's input file
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
+
+
+      ! Initialize error data
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+   
+   
+      ! Direct copy of InputFileData to parameters
+      
+      
+      
+!ALLOCATE ( p%TTpBrDp(p%NumBl) , STAT=Sttus )
+!ALLOCATE ( p%TBDepISp(p%NumBl) , STAT=Sttus )
+!ALLOCATE ( p%TPitManS(p%NumBl) , STAT=Sttus )
+!ALLOCATE ( p%TPitManE(p%NumBl) , STAT=Sttus )
+!ALLOCATE ( p%BlPitch(p%NumBl) , STAT=Sttus )
+!ALLOCATE ( p%BlPitchF(p%NumBl) , STAT=Sttus )
+!
+
+
+END SUBROUTINE SetPrimaryParameters
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
+! This routine validates the inputs from the primary input file.
+!..................................................................................................................................
+      
+      ! Passed variables:
+
+   TYPE(SrvD_InputFile),     INTENT(IN)     :: InputFileData                       ! All the data in the ElastoDyn input file
+   INTEGER(IntKi),           INTENT(IN)     :: NumBl                               ! Number of blades
+   INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
+   CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
+
+   
+      ! local variables
+   INTEGER(IntKi)                           :: K                                   ! Blade number
+   
+      ! Some special checks based on whether inputs will come from external source (e.g., Simulink, LabVIEW)
+   IF ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV ) THEN
+      IF ( InputFileData%YCMode == 2_IntKi )  THEN
+         CALL SetErrors( ErrID_Fatal, 'YCMode can only equal 2 when ServoDyn is interfaced with Simulink or Labview.'// &
+                   '  Set YCMode to 0 or 1 or interface ServoDyn with Simulink or Labview.' )          
+      END IF
+      IF ( InputFileData%PCMode == 2_IntKi )  THEN
+         CALL SetErrors( ErrID_Fatal, 'PCMode can only equal 2 when ServoDyn is interfaced with Simulink or Labview.'// &
+                   '  Set PCMode to 0 or 1 or interface ServoDyn with Simulink or Labview.' )          
+      END IF
+      
+      IF ( InputFileData%VSContrl == 3 )  THEN
+         CALL SetErrors( ErrID_Fatal, 'VSContrl can only equal 3 when ServoDyn is interfaced with Simulink or Labview.'// &
+                '  Set VSContrl to 0, 1, or 2 or interface ServoDyn with Simulink or Labview.' )
+      END IF
+         
+   ELSE
+      
+      IF ( InputFileData%YCMode == 2_IntKi .AND. .NOT. EqualRealNos( InputFileData%TYCOn, 0.0_DbKi ) )  THEN
+         CALL SetErrors( ErrID_Fatal, 'Yaw control must be enabled at time zero when implemented in Simulink or Labview.'//&
+                '  Set TYCon to 0.0, set YCMode to 0 or 1, or use the standard version of ServoDyn.' )
+      END IF
+      
+      IF ( InputFileData%PCMode == 2_IntKi .AND. .NOT. EqualRealNos( InputFileData%TPCOn, 0.0_DbKi ) )  THEN
+         CALL SetErrors( ErrID_Fatal, 'Pitch control must be enabled at time zero when implemented in Simulink or Labview.'//&
+                '  Set TPCon to 0.0, set PCMode to 0 or 1, or use the standard version of ServoDyn.' )
+      END IF           
+      
+      IF ( InputFileData%VSContrl == 3_IntKi  ) THEN  !we don't know TMax anymore...
+         
+         IF ( .NOT. InputFileData%GenTiStr .OR. .NOT. EqualRealNos( InputFileData%TimGenOn, 0.0_DbKi ) )  THEN
+            CALL SetErrors( ErrID_Fatal, 'Variable-speed, generator torque control must be enabled at time zero when '//&
+               'implemented in Simulink or Labview. Set GenTiStr to True and TimGenOn to 0.0, set VSContrl to 0, 1, or 2,'//&
+               ' or use the standard version of ServoDyn.' )
+         END IF
+         
+         IF ( .NOT. InputFileData%GenTiStp ) THEN
+!         IF ( .NOT. InputFileData%GenTiStp .OR. InputFileData%TimGenOf <= TMax ) THEN
+            CALL SetErrors( ErrID_Fatal, 'Variable-speed, generator torque control must not be disabled during simulation'//&
+                ' when implemented in Simulink or Labview. Set GenTiStp to True and TimGenOf > TMax, '//                    &
+                ' set VSContrl to 0, 1, or 2, or use the standard version of ServoDyn.'   )
+         END IF         
+         
+      END IF         
+           
+      !IF ( Cmpl4SFun .AND. ( InputFileData%THSSBrDp <= TMax ) )  THEN
+      !   CALL SetErrors( ErrID_Fatal, 'A high-speed shaft brake shutdown event can''t be initiated when ServoDyn is '// &
+      !                'interfaced  with Simulink. Set THSSBrDp > TMax or use the standard version of ServoDyn.'        )
+      !ENDIF
+      !
+   END IF
+   
+   IF ( .NOT. Cmpl4LV .AND. InputFileData%HSSBrMode == 3_IntKi )  THEN
+      CALL SetErrors( ErrID_Fatal, 'HSSBrMode can be 3 only when when implemented in Labview.' )
+   ENDIF      
+
+
+      ! checks for yaw control:
+   IF ( ( InputFileData%YCMode < 0_IntKi ) .OR. ( InputFileData%YCMode > 2_IntKi ) )  THEN
+      CALL SetErrors( ErrID_Fatal, 'YCMode must be 0, 1, or 2.' )
+   ENDIF
+
+   IF ( InputFileData%TYCOn < 0.0_DbKi )  THEN
+      CALL SetErrors( ErrID_Fatal, 'TYCOn must not be negative.' )
+   ENDIF
+
+      ! checks for pitch control:      
+   IF ( ( InputFileData%PCMode < 0 ) .OR. ( InputFileData%PCMode > 2 ) )  THEN
+      CALL SetErrors( ErrID_Fatal, 'PCMode must be 0, 1, or 2.' )
+   ENDIF
+
+   IF ( InputFileData%TPCOn < 0.0_DbKi )  THEN
+      CALL SetErrors( ErrID_Fatal, 'TPCOn must not be negative.' )
+   ENDIF
+
+   IF ( NumBl > SIZE(InputFileData%TPitManS,1) ) CALL SetErrors( ErrID_Fatal, 'Number of blades exceeds input values.')
+   
+   DO K=1,MIN(NumBl,SIZE(InputFileData%TPitManS))
+      !IF ( InputFileData%TTpBrDp(K)  < 0.0_DbKi ) &
+      !   CALL SetErrors( ErrID_Fatal, 'TTpBrDp(' //TRIM( Num2LStr( K ) )//') must not be negative.' )
+      !IF ( InputFileData%TBDepISp(K) < 0.0_DbKi ) &
+      !   CALL SetErrors( ErrID_Fatal, 'TBDepISp('//TRIM( Num2LStr( K ) )//') must not be negative.' )
+      IF ( InputFileData%TPitManS(K) < 0.0_DbKi ) &
+         CALL SetErrors( ErrID_Fatal, 'TPitManS('//TRIM( Num2LStr( K ) )//') must not be negative.' )   
+      IF ( InputFileData%TPitManE(K) < InputFileData%TPitManS(K) ) CALL SetErrors( ErrID_Fatal, &
+                          'TPitManE('//TRIM( Num2LStr(K) )//') must not be less than TPitManS('//TRIM( Num2LStr(K) )//').' )
+   ENDDO ! K   
+   
+!??? IF ( ( BlPitchInit(K) <= -pi ) .OR. ( BlPitchInit(K) > pi ) )  &
+!      CALL SetErrors( ErrID_Fatal, 'BlPitchInit('//TRIM( Num2LStr( K ) )//') must be in the range (-pi,pi] radians (i.e., (-180,180] degrees).' )
+!   
+   
+      ! checks for generator and torque control:           
+   IF ( ( InputFileData%VSContrl < 0_IntKi ) .OR. ( InputFileData%VSContrl > 3_IntKi ) )  THEN
+      CALL SetErrors( ErrID_Fatal, 'VSContrl must be either 0, 1, 2, or 3.' )
+   ENDIF
+   
+   IF ( InputFileData%SpdGenOn < 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'SpdGenOn must not be negative.' )
+   IF ( InputFileData%TimGenOn < 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TimGenOn must not be negative.' )
+   IF ( InputFileData%TimGenOf < 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TimGenOf must not be negative.' )
+   
+      ! checks for variable-speed torque control:           
+   IF ( InputFileData%VSContrl == 1_IntKi ) THEN
+      IF ( InputFileData%VS_RtGnSp <= 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'VS_RtGnSp must be greater than zero.' )
+      IF ( InputFileData%VS_RtTq   < 0.0_ReKi  )  CALL SetErrors( ErrID_Fatal, 'VS_RtTq must not be negative.' )
+      IF ( InputFileData%VS_Rgn2K  < 0.0_ReKi  )  CALL SetErrors( ErrID_Fatal, 'VS_Rgn2K must not be negative.' )
+      IF ( InputFileData%VS_Rgn2K*InputFileData%VS_RtGnSp**2 >  InputFileData%VS_RtTq )  &
+         CALL SetErrors( ErrID_Fatal, 'VS_Rgn2K*VS_RtGnSp^2 must not be greater than VS_RtTq.' )
+      IF ( InputFileData%VS_SlPc  <= 0.0_ReKi  )  CALL SetErrors( ErrID_Fatal, 'VS_SlPc must be greater than zero.' )
+   END IF
+
+      ! checks for generator models (VSControl == 0):           
+   IF ( InputFileData%VSContrl == 0_IntKi ) THEN
+      
+      IF ( InputFileData%GenModel < 1_IntKi .OR. InputFileData%GenModel > 3_IntKi )  THEN
+         CALL SetErrors( ErrID_Fatal, 'GenModel must be either 1, 2, or 3.' )
+      ENDIF            
+      
+         ! checks for simple induction generator (VSControl=0 & GenModel=1):      
+      IF ( InputFileData%GenModel == 1_IntKi ) THEN
+         IF ( InputFileData%SIG_SlPc <= 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'SIG_SlPc must be greater than zero.' )
+         IF ( InputFileData%SIG_SySp <= 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'SIG_SySp must be greater than zero.' )
+         IF ( InputFileData%SIG_RtTq <= 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'SIG_RtTq must be greater than zero.' )
+         IF ( InputFileData%SIG_PORt <  1.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'SIG_PORt must not be less than 1.' )
+      END IF
+
+         ! checks for Thevenin-equivalent induction generator (VSControl=0 & GenModel=2):      
+      IF ( InputFileData%GenModel == 2_IntKi ) THEN
+         IF ( InputFileData%TEC_Freq <= 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'TEC_Freq must be greater than zero.' )
+         IF ( InputFileData%TEC_NPol <= 0_IntKi .OR. MOD( InputFileData%TEC_NPol, 2_IntKi ) /= 0_IntKi ) &
+                                     CALL SetErrors( ErrID_Fatal, 'TEC_NPol must be an even number greater than zero.' )
+         IF ( InputFileData%TEC_SRes <= 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'TEC_SRes must be greater than zero.' )
+         IF ( InputFileData%TEC_RRes <= 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'TEC_RRes must be greater than zero.' )
+         IF ( InputFileData%TEC_VLL  <= 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'TEC_VLL must be greater than zero.'  )
+         IF ( InputFileData%TEC_SLR  <= 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'TEC_SLR must be greater than zero.'  )
+         IF ( InputFileData%TEC_RLR  <= 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'TEC_RLR must be greater than zero.'  )
+         IF ( InputFileData%TEC_MR   <= 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'TEC_MR must be greater than zero.'   )
+      END IF      
+      
+   END IF
+   
+      
+      ! checks for high-speed shaft brake:       
+   IF ( InputFileData%HSSBrMode < 1_IntKi .OR. InputFileData%HSSBrMode > 3_IntKi )  &
+                                             CALL SetErrors( ErrID_Fatal, 'HSSBrMode must be 1, 2 or 3.' )
+   IF ( InputFileData%THSSBrDp < 0.0_DbKi )  CALL SetErrors( ErrID_Fatal, 'THSSBrDp must not be negative.' )
+   IF ( InputFileData%HSSBrDT  < 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'HSSBrDT must not be negative.'  )
+   IF ( InputFileData%HSSBrTqF < 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'HSSBrTqF must not be negative.' )
+
+      ! checks for nacelle-yaw control:
+   IF ( InputFileData%TYawManS < 0.0_DbKi )  CALL SetErrors( ErrID_Fatal, 'TYawManS must not be negative.' )
+   IF ( InputFileData%TYawManE < InputFileData%TYawManS ) CALL SetErrors( ErrID_Fatal, 'TYawManE must not be less than TYawManS.')
+   
+
+   IF ( InputFileData%YawSpr  < 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'YawSpr must not be negative.' )
+   IF ( InputFileData%YawDamp < 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'YawDamp must not be negative.' )
+   IF ( InputFileData%YawNeut <= -pi  .OR.  InputFileData%YawNeut > pi )  &
+      CALL SetErrors( ErrID_Fatal, 'YawNeut must be in the range (-pi, pi] radians (i.e., (-180,180] degrees).' )
+      
+   RETURN
+
+CONTAINS
+   !-------------------------------------------------------------------------------------------------------------------------------
+   SUBROUTINE SetErrors( ErrStat3, ErrMsg3 )
+   ! This routine sets the error message and flag when an error has occurred
+   !...............................................................................................................................
+   INTEGER(IntKi), INTENT(IN) :: ErrStat3     ! Error status for this error
+   CHARACTER(*),   INTENT(IN) :: ErrMsg3      ! Error message for this error
+
+      ErrStat = MAX( ErrStat, ErrStat3 )
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  '//TRIM(ErrMsg3)
+
+   END SUBROUTINE SetErrors
+   !-------------------------------------------------------------------------------------------------------------------------------      
+END SUBROUTINE ValidatePrimaryData
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
+! This subroutine sets the parameters, based on the data stored in InputFileData
+!..................................................................................................................................
+
+   TYPE(SrvD_InputFile),     INTENT(IN)       :: InputFileData  ! Data stored in the module's input file
+   TYPE(SrvD_ParameterType), INTENT(INOUT)    :: p              ! The module's parameter data
+   INTEGER(IntKi),           INTENT(OUT)      :: ErrStat        ! The error status code
+   CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
+
+      ! Local variables
+   INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
+   INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID
+   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
+
+      ! Initialize variables
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+      
+   
+      ! Set parameters from primary input file        
+   CALL SetPrimaryParameters( p, InputFileData, ErrStat2, ErrMsg2  )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+         
+   
+
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError
+
+END SUBROUTINE SrvD_SetParameters
+!----------------------------------------------------------------------------------------------------------------------------------
 END MODULE ServoDyn
 !**********************************************************************************************************************************
