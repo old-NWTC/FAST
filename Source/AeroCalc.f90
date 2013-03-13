@@ -38,25 +38,7 @@ INTEGER(4)                 :: Sttus                                     ! Status
 
 
 
-   ! Write data read in from ADFile into MODULEs used by FAST:
 
-p_ED%AirDens  = AD_GetConstant('AirDensity', ErrStat)
-
-
-   ! Set up other parameters only if we need them
-
-IF ( CompAero )  THEN
-
-   ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
-   AD_RefHt = AD_GetConstant('RefHt', ErrStat)
-
-   IF ( ABS( p_ED%FASTHH - AD_RefHt ) > 0.1*( p_ED%FASTHH ) )  THEN  !bjj: I believe that this should not be done in the future
-
-      CALL ProgWarn( ' The FAST hub height ('//TRIM(Num2LStr( p_ED%FASTHH ))//') and AeroDyn input'// &
-                    ' reference hub height ('//TRIM(Num2LStr(AD_RefHt))//') differ by more than 10%.' )
-   ENDIF
-
-ENDIF
 
 
 RETURN

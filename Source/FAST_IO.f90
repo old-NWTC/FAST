@@ -11,34 +11,77 @@ use ServoDyn_Types
    
 CONTAINS
 !====================================================================================================
-SUBROUTINE AeroInput(p_ED)
+SUBROUTINE GetVersion(ProgVer)
+! This routine returns a string describing the glue code and some of the compilation options we're using.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+
+   ! Passed Variables:
+
+   CHARACTER(1024), INTENT(OUT)  :: ProgVer                                           ! String containing a description of the as-compiled precision.
+
+
+   
+   ProgVer = TRIM(GetNVD(FAST_Ver))//' (compiled using '
+
+   ! determine precision
+      IF ( ReKi == SiKi )  THEN     ! Single precision
+         ProgVer = TRIM(ProgVer)//'SINGLE'
+      ELSEIF ( ReKi == R8Ki )  THEN ! Double precision
+         ProgVer = TRIM(ProgVer)//'DOUBLE'
+      ELSE                          ! Unknown precision
+         ProgVer = TRIM(ProgVer)//'UNKNOWN'
+      ENDIF
+
+   ProgVer = TRIM(ProgVer)//' precision'
+
+
+   ! determine if we've done some other modifications
+      IF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
+         ProgVer = TRIM(ProgVer)//' as S-Function for Simulink'  
+      ELSEIF ( Cmpl4LV )  THEN     ! FAST has been compiled as a DLL for Labview
+         ProgVer = TRIM(ProgVer)//' as a DLL for Labview'
+      ENDIF
+
+      !IF ( OC3HywindMods ) THEN
+      !   ProgVer = TRIM(ProgVer)//' with OC3 Hywind Modifications'
+      !END IF
+            
+   ProgVer = TRIM(ProgVer)//')'
+   
+
+   RETURN
+END SUBROUTINE GetVersion
+!====================================================================================================
+
+SUBROUTINE AeroInput(InputFile, p_ED, p_FAST)
 ! This subroutine sets up the information needed to initialize AeroDyn, then initializes AeroDyn
 !----------------------------------------------------------------------------------------------------
 
-   USE                     AeroElem !,   ONLY: ADAeroMarkers, ADCurrentOutputs, ADIntrfaceOptions, ADFirstLoop, Prev_Aero_t
-   USE                     General,    ONLY: RootName, SumPrint
-
-
+   USE                     AeroDyn_Types !,   ONLY: ADAeroMarkers, ADCurrentOutputs, ADIntrfaceOptions, ADFirstLoop, Prev_Aero_t   
    USE                     AeroDyn
 
    IMPLICIT NONE
 
    ! Passed variables:
-   TYPE(ED_ParameterType),  INTENT(INOUT)  :: p_ED      ! The parameters of the structural dynamics module
+   TYPE(ED_ParameterType),  INTENT(IN)  :: p_ED             ! The parameters of the structural dynamics module
+   TYPE(FAST_ParameterType),INTENT(IN)  :: p_FAST           ! The parameters of the glue code
    
       ! Local variables
 
    TYPE(AD_InitOptions)       :: ADOptions                  ! Options for AeroDyn
    INTEGER                    :: NumADBldNodes              ! Number of blade nodes in AeroDyn
-
+   REAL(ReKi)                 :: AD_RefHt
    
    INTEGER                    :: ErrStat
 
 
       ! Set up the AeroDyn parameters
-   ADOptions%ADInputFile      = ADFile
-   ADOptions%OutRootName      = RootName
-   ADOptions%WrSumFile        = SumPrint
+   ADOptions%ADInputFile      = p_FAST%ADFile
+   ADOptions%OutRootName      = p_FAST%RootName
+   ADOptions%WrSumFile        = p_FAST%SumPrint
    
    
       ! Hub position and orientation (relative here, but does not need to be)
@@ -113,289 +156,432 @@ SUBROUTINE AeroInput(p_ED)
 !      IF ( Sttus /= 0 ) CALL ProgAbort ( ' Error allocating memory for ADIntrfaceOptions%MulTabLoc array.' )
 !   END IF
 
+   
+      ! Check that the hub-heights are Set up other parameters only if we need them
 
-   CALL Set_FAST_Params( p_ED )
+   IF ( CompAero )  THEN
 
+      ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
+      AD_RefHt = AD_GetConstant('RefHt', ErrStat)
+
+      IF ( ABS( p_ED%FASTHH - AD_RefHt ) > 0.1*( p_ED%FASTHH ) )  THEN  !bjj: I believe that this should not be done in the future
+
+         CALL ProgWarn( ' The ElastoDyn hub height ('//TRIM(Num2LStr( p_ED%FASTHH ))//') and AeroDyn input'// &
+                       ' reference hub height ('//TRIM(Num2LStr(AD_RefHt))//') differ by more than 10%.' )
+      ENDIF
+
+   ENDIF   
+   
+   
    RETURN
 END SUBROUTINE AeroInput
 !====================================================================================================
-SUBROUTINE FAST_Begin( InFile, InFileRoot, InFileRootAbs )
+SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
+! This subroutine checks for command-line arguments, gets the root name of the input files 
+! (including full path name), and creates the names of the output files.
+!..................................................................................................................................
 
-
-   ! This subroutine checks for command-line arguments, gets the root name of the input files 
-   ! (including full path name), and creates the names of the output files.
-
-
-
-IMPLICIT                        NONE
+      IMPLICIT                        NONE
 
    ! Passed variables
    
-CHARACTER(*), INTENT(INOUT)  :: InFile                                          ! A CHARACTER string containing the name of the input file
-CHARACTER(*), INTENT(OUT)    :: InFileRoot                                      ! A CHARACTER string containing the root name of the input file (may be a relative path)
-CHARACTER(*), INTENT(OUT)    :: InFileRootAbs                                   ! A CHARACTER string containing the root name of the input file, including the full path
+   TYPE(FAST_ParameterType), INTENT(INOUT)         :: p                 ! The parameter data for the FAST (glue-code) simulation   
+   INTEGER(IntKi),           INTENT(OUT)           :: ErrStat           ! Error status
+   CHARACTER(*),             INTENT(OUT)           :: ErrMsg            ! Error message
+   CHARACTER(*),             INTENT(IN), OPTIONAL  :: InFile            ! A CHARACTER string containing the name of the primary FAST input file (if not present, we'll get it from the command line)
 
+      ! Local variables
 
-   ! Local variables.
+   REAL(DbKi)                   :: TmpTime                              ! A temporary variable for error checking      
+   INTEGER                      :: Stat                                 ! The status of the call to GET_CWD
+   CHARACTER(1024)              :: DirName                              ! A CHARACTER string containing the path of the current working directory
+   CHARACTER(1024)              :: InputFile                            ! A CHARACTER string containing the name of the primary FAST input file
+   CHARACTER(1024)              :: CompiledVer                          ! A string describing the FAST version as well as some of the compile options we're using
 
-INTEGER                      :: Stat                                            ! The status of the call to GET_CWD
-CHARACTER(1024)              :: DirName                                         ! A CHARACTER string containing the path of the current working directory.
-
-
-
-
-
-   ! Check for command line arguments.  Maybe the user specified an input file name.
-   ! Don't perform this check when interfaced with Simulink or Labview:
-
-IF ( .NOT. Cmpl4SFun .AND. .NOT. Cmpl4LV  )  CALL CheckArgs( InFile )
-
-CALL GetRoot( InFile, InFileRoot )
-
-
-   ! Let's create a root file name variable, DirRoot, which includes the full
-   !   path to the current working directory.
-
-IF ( PathIsRelative(InFileRoot) ) THEN
-   CALL Get_CWD  ( DirName, Stat )
-   IF (Stat /= 0) CALL ProgAbort('Error retreiving current working directory.')
+         
+      ! Initialize some variables
+   ErrStat = ErrID_None
+   ErrMsg = ''
+         
    
-   InFileRootAbs = TRIM( DirName )//PathSep//TRIM( InFileRoot )
-ELSE
-   InFileRootAbs = InFileRoot
-END IF   
+
+      ! Tell our nice users what they're running
+   CALL GetVersion( CompiledVer )
+   CALL WrScr( CompiledVer )
+      
+   
+      ! Get the name of the input file from the command line if it isn't an input to this routine
+   
+   IF ( PRESENT(InFile) ) THEN 
+      InputFile = InFile
+   ELSE ! get it from the command line
+      CALL CheckArgs( InputFile )
+   END IF
+   
+      ! Determine the root name of the primary file (will be used for output files)
+   CALL GetRoot( InputFile, p%OutFileRoot, ErrStat )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( Cmpl4SFun )  p%OutFileRoot = TRIM( p%OutFileRoot )//'_SFunc'
 
 
-   ! Let's create the name of the output file.
+   ! Let's create a root file name variable, DirRoot, which includes the full path to the current working directory.
+   ! bjj: not really sure this is necessary... why can't we use a relative path?
 
-IF ( Cmpl4SFun )  InFileRoot = TRIM( InFileRoot )//'_SFunc'
+   p%DirRoot  = p%OutFileRoot
+
+   IF ( PathIsRelative(p%DirRoot) ) THEN
+      CALL Get_CWD  ( DirName, Stat )
+      IF (Stat /= 0) THEN
+         CALL SetErrors( ErrID_Warn, 'Error retreiving current working directory. DirRoot will contain a relative path.' )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      ELSE        
+         p%DirRoot = TRIM( DirName )//PathSep//TRIM( p%DirRoot )
+      END IF
+   END IF   
 
 
-RETURN
-END SUBROUTINE FAST_Begin
+      ! Read the primary file for the glue code:
+   CALL FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
+
+   
+      ! Do some error checking:
+   IF ( p%TMax < 0.0_DbKi  )  THEN
+      CALL SetErrors( ErrID_Fatal, 'TMax must not be a negative number.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   ELSE IF ( p%TMax < p%TStart )  THEN
+      CALL SetErrors( ErrID_Fatal, 'TMax must not be less than TStart.' )
+      RETURN
+   END IF
+         
+   IF ( p%DT <= 0.0_DbKi )  THEN
+      CALL SetErrors( ErrID_Fatal, 'DT must be greater than 0.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   ELSE ! Test DT and TMax to ensure numerical stability -- HINT: see the use of OnePlusEps
+      TmpTime = p%TMax*EPSILON(p%DT)
+      IF ( p%DT <= TmpTime ) THEN
+         CALL SetErrors( ErrID_Fatal, 'DT must be greater than '//TRIM ( Num2LStr( TmpTime ) )//' seconds.' )
+         RETURN
+      END IF         
+   END IF
+   
+   IF ( p%WrTxtOutFile .AND. ( p%TMax > 9999.999_DbKi ) )  THEN
+      CALL ProgAbort ( ' TMax must not exceed 9999.999 seconds with text tabular (time-marching) output files.' )
+   END IF   
+
+   IF ( p%TStart   <  0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TStart must not be less than 0 seconds.' )   
+   IF ( p%SttsTime <= 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'SttsTime must be greater than 0 seconds.' )
+      
+   
+!.....   
+p%SumPrint = .TRUE.  !are we going to keep this? (used now for AeroDyn)
+!.....   
+
+
+   RETURN
+CONTAINS
+   !-------------------------------------------------------------------------------------------------------------------------------
+   SUBROUTINE SetErrors( ErrStat3, ErrMsg3 )
+   ! This routine sets the error message and flag when an error has occurred
+   !...............................................................................................................................
+   INTEGER(IntKi), INTENT(IN) :: ErrStat3     ! Error status for this error
+   CHARACTER(*),   INTENT(IN) :: ErrMsg3      ! Error message for this error
+
+      ErrStat = MAX( ErrStat, ErrStat3 )
+      ErrMsg  = TRIM(ErrMsg)//NewLine//'  '//TRIM(ErrMsg3)
+
+   END SUBROUTINE SetErrors
+   !-------------------------------------------------------------------------------------------------------------------------------      
+END SUBROUTINE FAST_Init
 !=======================================================================
-SUBROUTINE GetPrimary( InputFileData, p, ErrStat, ErrMsg, UnEc )
+SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
+! This routine reads in the primary FAST input file, does some validation, and places the values it reads in the 
+!   parameter structure (p). It prints to an echo file if requested.
+!..................................................................................................................................
 
 
-   ! This routine reads the primary parameter file and validates the input.
+   IMPLICIT                        NONE
 
+      ! Passed variables
+   TYPE(FAST_ParameterType), INTENT(INOUT) :: p                               ! The parameter data for the FAST (glue-code) simulation
+   INTEGER(IntKi),           INTENT(OUT)   :: ErrStat                         ! Error status
 
-USE                             Drivetrain
-USE                             General
-USE                             InitCond
-USE                             NacelleYaw
-USE                             SimCont
-USE                             TipBrakes
-USE                             TurbCont
+   CHARACTER(*),             INTENT(IN)    :: InputFile                       ! Name of the file containing the primary input data
+   CHARACTER(*),             INTENT(OUT)   :: ErrMsg                          ! Error message
+   
+      ! Local variables:
+   INTEGER(IntKi)                :: I                                         ! loop counter
+   INTEGER(IntKi)                :: NumOuts                                   ! Number of output channel names read from the file 
+   INTEGER(IntKi)                :: UnIn                                      ! Unit number for reading file
+   INTEGER(IntKi)                :: UnEc                                      ! I/O unit for echo file. If > 0, file is open for writing.
+     
+   INTEGER(IntKi)                :: ErrStat2                                  ! Temporary Error status
+   INTEGER(IntKi)                :: FmtWidth                                  ! width of the field returned by the specified OutFmt
+   INTEGER(IntKi)                :: OutFileFmt                                ! An integer that indicates what kind of tabular output should be generated (1=text, 2=binary, 3=both)
+   LOGICAL                       :: Echo                                      ! Determines if an echo file should be written
+   LOGICAL                       :: TabDelim                                  ! Determines if text output should be delimited by tabs (true) or space (false)
+   CHARACTER(LEN(ErrMsg))        :: ErrMsg2                                   ! Temporary Error message
+   CHARACTER(1024)               :: PriPath                                   ! Path name of the primary file
+   CHARACTER(1024)               :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
 
-IMPLICIT                        NONE
-
-   ! Passed variables
-TYPE(ED_InputFile),     INTENT(OUT)      :: InputFileData                   ! Data stored in the module's input file
-TYPE(ED_ParameterType), INTENT(INOUT)    :: p                               ! The module's parameter data
-INTEGER(IntKi),           INTENT(OUT)      :: ErrStat                         ! The error status code 
-CHARACTER(*),             INTENT(OUT)      :: ErrMsg                          ! The error message, if an error occurred 
-INTEGER(IntKi),           INTENT(OUT)      :: UnEc                            ! unit number for echo file   
-
-   ! Local variables.
-
-INTEGER(4)                   :: I                                               ! A generic index.
-INTEGER(4)                   :: IOS                                             ! I/O status returned from the read statement.
-INTEGER(4)                   :: K                                               ! Blade number.
-INTEGER(4)                   :: Sttus                                           ! Status returned from an allocation request.
-INTEGER(IntKi)               :: OutFileFmt                                      ! The switch indicating the format (text/binary) for the tabular output file(s)
-LOGICAL                      :: WrEcho
-
-CHARACTER(1024)              :: Comment                                         ! String to temporarily hold the comment line.
-CHARACTER(  35), PARAMETER   :: Frmt      = "( 2X, L11, 2X, A, T30, ' - ', A )" ! Output format for logical parameters. (matches NWTC Subroutine Library format)
-CHARACTER(1024)              :: PriPath                                         ! The path to the primary input file
-CHARACTER(1024)              :: Msg                                             ! Temporary error message
-
-
-ErrMsg = ''
-
-   ! Note that all the errors in reading from the input file are ErrID_Fatal
    
    
-   ! Open the primary input file.
+      ! Initialize some variables:
+   UnEc = -1
+   Echo = .FALSE.                        ! Don't echo until we've read the "Echo" flag
+   CALL GetPath( InputFile, PriPath )    ! Input files will be relative to the path where the primary input file is located.
 
-CALL OpenFInpFile ( UnIn, PriFile, ErrStat, ErrMsg )
-IF ( ErrStat >= AbortErrLev ) RETURN   
-
-CALL GetPath( PriFile, PriPath )    ! Input files will be relative to the path where the primary input file is located.
-
-
-
-   ! TMax - Total run time.
-
-CALL ReadVar ( UnIn, PriFile, TMax, 'TMax', 'Total run time', UnEc=UnEc  )
-
-IF ( TMax < 0.0  )  CALL ProgAbort ( ' TMax must not be a negative number.' )
-
-   ! DT - Integration time step.
-
-CALL ReadVar ( UnIn, PriFile, DT, 'DT', 'Integration time step', UnEc=UnEc  )
-
-IF ( DT <= 0.0_DbKi )  CALL ProgAbort ( ' DT must be greater than 0.' )
-IF ( DT <= TMax*EPSILON(DT) )  CALL ProgAbort ( ' DT must be greater than '//TRIM ( Num2LStr( TMax*EPSILON(DT) ) )//' seconds.' ) ! Test DT and TMax to ensure numerical stability -- HINT: see the use of OnePlusEps.
-
-
-
-IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%OoPDefl /= 0.0 ) )  &
-   CALL ProgAbort ( ' Initial out-of-plane blade-tip displacements must be zero when FAST is interfaced with Simulink'// &
-                ' or Labview. Set OoPDefl to 0.0 or use the standard version of FAST.'                )
-
-IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%IPDefl  /= 0.0 ) )  &
-   CALL ProgAbort ( ' Initial in-plane blade-tip displacements must be zero when FAST is interfaced with Simulink'// &
-                ' or Labview. Set IPDefl to 0.0 or use the standard version of FAST.'                 )
-
-IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%TTDspFA /= 0.0 ) )  &
-   CALL ProgAbort ( ' Initial fore-aft tower-top displacements must be zero when FAST is interfaced with Simulink'// &
-                ' or Labview. Set TTDspFA to 0.0 or use the standard version of FAST.'               )
-
-IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%TTDspSS /= 0.0 ) )  &
-   CALL ProgAbort ( ' Initial side-to-side tower-top displacements must be zero when FAST is interfaced with Simulink'// &
-                ' or Labview. Set TTDspSS to 0.0 or use the standard version of FAST.'                      )
-
-
-IF ( ( p%GBoxEff <= 0.0 ) .OR. ( p%GBoxEff > 100.0 ) ) THEN
-   CALL ProgAbort ( ' GBoxEff must be greater than 0 and less than or equal to 100.' )
-END IF   
-
-IF ( ( p%GenEff < 0.0 ) .OR. ( p%GenEff > 100.0 ) )  CALL ProgAbort ( ' GenEff must be between 0 and 100 (inclusive).' )
-
-
-IF ( p%TwrLdMod /= 0 .AND. p%TwrLdMod /= 1 ) THEN
-   CALL ProgAbort ( ' TwrLdMod must be either 0 or 1.' )
-END IF   
-
-
-!  -------------- TIP-BRAKE PARAMETERS -----------------------------------------
-
-IF ( TBDrConN < 0.0 )  CALL ProgAbort ( ' TBDrConN must not be negative.' )
-IF ( TBDrConD < TBDrConN )  CALL ProgAbort( ' TBDrConD must not be less than TBDrConN.' )
-IF ( TpBrDT < 0.0 )  CALL ProgAbort ( ' TpBrDT must not be negative.' )
-
-
-!  -------------- AERODYN INPUT FILE PARAMETERS -------------------------------
-   ! ADFile - Name of file containing AeroDyn parameters.
-
-CALL ReadVar( UnIn, PriFile, ADFile, 'ADFile', 'Name of file containing AeroDyn parameters', UnEc=UnEc )
-
-!  -------------- OUTPUT PARAMETERS --------------------------------------------
-
-
-   ! Skip the comment line.
-
-   CALL ReadCom ( UnIn, PriFile, 'output parameters', UnEc=UnEc )
-
-
-   ! SumPrint - Print summary data to "*.fsm".
-
-CALL ReadVar ( UnIn, PriFile, SumPrint, 'SumPrint', 'Print summary data to "*.fsm"', UnEc=UnEc )
-
-
-   ! OutFileFmt - Format for output file(s).
-
-CALL ReadVar ( UnIn, PriFile, OutFileFmt, 'OutFileFmt', 'Format for output file(s)', UnEc=UnEc )
-SELECT CASE (OutFileFmt)
-   CASE (1_IntKi)
-      WrBinOutFile = .FALSE.
-      WrTxtOutFile = .TRUE.
-   CASE (2_IntKi)
-      WrBinOutFile = .TRUE.
-      WrTxtOutFile = .FALSE.
-   CASE (3_IntKi)
-      WrBinOutFile = .TRUE.
-      WrTxtOutFile = .TRUE.
-   CASE DEFAULT
-     CALL ProgAbort ( ' OutFileFmt must be 1, 2, or 3.' )
-END SELECT
-
-IF ( WrTxtOutFile .AND. ( TMax > 9999.999 ) )  THEN
-   CALL ProgAbort ( ' TMax must not exceed 9999.999 seconds with text tabular (time-marching) output files.' )
-END IF   
-
-
-   ! TabDelim - Generate a tab-delimited output file.
-
-CALL ReadVar ( UnIn, PriFile, InputFileData%TabDelim, 'TabDelim', 'Use tab delimiters in text output file', UnEc=UnEc )
-
-   ! set the delimiter
    
-IF ( InputFileData%TabDelim ) THEN
-   p%Delim = TAB
-ELSE
-   p%Delim = ' '
-END IF      
+      ! Get an available unit number for the file.
+
+   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
 
 
-   ! OutFmt - Output format for tabular data.
+      ! Open the Primary input file.
 
-CALL ReadVar ( UnIn, PriFile, p%OutFmt, 'OutFmt', 'Output format for text tabular data', UnEc=UnEc )
-
-IF ( LEN_TRIM( p%OutFmt ) == 0 )  CALL ProgAbort ( ' OutFmt must not be an empty string.' )
-
-
-   ! TStart - Time to start tabular output.
-
-CALL ReadVar ( UnIn, PriFile, TStart, 'TStart', 'Time to begin tabular output', UnEc=UnEc )
-
-IF ( TStart < 0.0  )  CALL ProgAbort ( ' TStart must not be less than 0.' )
-IF ( TMax < TStart )  CALL ProgAbort ( ' TMax must not be less than TStart.' )
-
-
-   ! DecFact - Decimation factor for tabular output.
-
-CALL ReadVar ( UnIn, PriFile, DecFact, 'DecFact', 'Decimation factor for tabular output', UnEc=UnEc )
-
-IF ( DecFact < 1 )  CALL ProgAbort ( ' DecFact must be greater than 0.' )
-
-
-   ! SttsTime - Amount of time between screen status messages.
-
-CALL ReadVar ( UnIn, PriFile, SttsTime, 'SttsTime', 'Amount of time between screen status messages', UnEc=UnEc )
-
-IF ( SttsTime <= 0.0_DbKi )  CALL ProgAbort ( ' SttsTime must be greater than 0.' )
-
-
-
-   ! Skip the comment line.
-
-CALL ReadCom ( UnIn, PriFile, 'output-parameters list', UnEc=UnEc )
-
-
-   ! OutList - Output parameter list.
-  
-CALL AllocAry( InputFileData%OutList, MaxOutPts, "ElastoDyn InputFile's Outlist", ErrStat, ErrMsg )
-IF ( ErrStat >= AbortErrLev ) RETURN
+   CALL OpenFInpFile ( UnIn, InputFile, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+                  
+      
+   ! Read the lines up/including to the "Echo" simulation control variable
+   ! If echo is FALSE, don't write these lines to the echo file. 
+   ! If Echo is TRUE, rewind and write on the second try.
    
-   InputFileData%OutList = ''   ! Initialize OutList(:) to ''.
+   I = 1 !set the number of times we've read the file
+   DO 
+   !-------------------------- HEADER ---------------------------------------------
+   
+      CALL ReadCom( UnIn, InputFile, 'File header: Module Version (line 1)', ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+      CALL ReadStr( UnIn, InputFile, FTitle, 'FTitle', 'File Header: File Description (line 2)', ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   
+   !---------------------- SIMULATION CONTROL --------------------------------------
+      CALL ReadCom( UnIn, InputFile, 'Section Header: Simulation Control', ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+         ! Echo - Echo input data to <RootName>.ech (flag):
+      CALL ReadVar( UnIn, InputFile, Echo, "Echo", "Echo input data to <RootName>.ech (flag)", ErrStat2, ErrMsg2, UnEc)
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   
+      IF (.NOT. Echo .OR. I > 1) EXIT !exit this loop
+   
+         ! Otherwise, open the echo file, then rewind the input file and echo everything we've read
+      
+      I = I + 1         ! make sure we do this only once (increment counter that says how many times we've read this file)
+   
+      CALL OpenEcho ( UnEc, TRIM(OutFileRoot)//'.ech', ErrStat2, ErrMsg2, SrvD_Ver )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   
+      CALL WrScr( ' Heading of the '//TRIM(FAST_Ver%Name)//' input file: '//TRIM( FTitle ) )      
+      IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Data from '//TRIM(FAST_Ver%Name)//' primary input file "'//TRIM( InputFile )//'":'
+   
+      REWIND( UnIn, IOSTAT=ErrStat2 )   
+         CALL CheckError( ErrID_Fatal, 'Error rewinding file "'//TRIM(InputFile)//'".' )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      
+   END DO    
+                                             
 
-   ! Lets read in all of the lines containing output parameters and store them in OutList(:).
-   ! The end of this list (and the end of the output file) is specified with the line
-   !    beginning with END.
+      ! TMax - Total run time (s):
+   CALL ReadVar( UnIn, InputFile, p%TMax, "TMax", "Total run time (s)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
-CALL ReadOutputList ( UnIn, PriFile, InputFileData%OutList, p%NumOuts, 'OutList', 'Output list', ErrStat, ErrMsg, UnEc  )     ! Routine in NWTC Subroutine Library
-IF ( ErrStat >= AbortErrLev ) RETURN
+      ! DT - Recommended module time step (s):
+   CALL ReadVar( UnIn, InputFile, p%DT, "DT", "Recommended module time step (s)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
-   ! Check to make sure some outputs have been entered when time-marching;
-   !   if not, ProgAbort:
+   !---------------------- FEATURE FLAGS -------------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Feature Flags', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! CompAero - Compute aerodynamic forces (flag):
+   CALL ReadVar( UnIn, InputFile, p%CompAero, "CompAero", "Compute aerodynamic forces (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
-IF ( ( p%NumOuts == 0 ) .AND. ( AnalMode == 1 ) )  THEN
-   CALL ProgAbort ( ' No output channels specified!' )
-ENDIF
+      ! CompServo - Compute servodynamics (flag):
+   CALL ReadVar( UnIn, InputFile, p%CompServo, "CompServo", "Compute servodynamics (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! CompHydro - Compute hydrodynamics forces (flag):
+   CALL ReadVar( UnIn, InputFile, p%CompHydro, "CompHydro", "Compute hydrodynamics forces (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! CompSub - Compute sub-structural dynamics (flag):
+   CALL ReadVar( UnIn, InputFile, p%CompSub, "CompSub", "Compute sub-structural dynamics (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! CompUserPtfmLd - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag):
+   CALL ReadVar( UnIn, InputFile, p%CompUserPtfmLd, "CompUserPtfmLd", "Compute additional platform loading (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! CompUserTwrLd - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag):
+   CALL ReadVar( UnIn, InputFile, p%CompUserTwrLd, "CompUserTwrLd", "Compute additional tower loading (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   !---------------------- INPUT FILES ---------------------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Input Files', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN      
+      
+      ! EDFile - Name of file containing ElastoDyn input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%EDFile, "EDFile", "Name of file containing ElastoDyn input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( p%EDFile ) ) p%EDFile = TRIM(PriPath)//TRIM(p%EDFile)         
+
+      ! ADFile - Name of file containing AeroDyn input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%ADFile, "ADFile", "Name of file containing AeroDyn input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( p%ADFile ) ) p%ADFile = TRIM(PriPath)//TRIM(p%ADFile)         
+
+      ! SrvDFile - Name of file containing ServoDyn input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%SrvDFile, "SrvDFile", "Name of file containing ServoDyn input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( p%SrvDFile ) ) p%SrvDFile = TRIM(PriPath)//TRIM(p%SrvDFile)         
+
+      ! HDFile - Name of file containing HydroDyn input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%HDFile, "HDFile", "Name of file containing HydroDyn input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( p%HDFile ) ) p%HDFile = TRIM(PriPath)//TRIM(p%HDFile)         
+
+      ! SDFile - Name of file containing SubDyn input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%SDFile, "SDFile", "Name of file containing SubDyn input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( p%SDFile ) ) p%SDFile = TRIM(PriPath)//TRIM(p%SDFile)         
+
+   !---------------------- OUTPUT --------------------------------------------------         
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! SttsTime - Amount of time between screen status messages (s):
+   CALL ReadVar( UnIn, InputFile, p%SttsTime, "SttsTime", "Amount of time between screen status messages (s)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN            
+
+      ! DT_Out - Time step for tabular output (s):
+   CALL ReadVar( UnIn, InputFile, p%DT_Out, "DT_Out", "Time step for tabular output (s)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! TStart - Time to begin tabular output (s):
+   CALL ReadVar( UnIn, InputFile, p%TStart, "TStart", "Time to begin tabular output (s)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! OutFileFmt - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (-):
+   CALL ReadVar( UnIn, InputFile, OutFileFmt, "OutFileFmt", "Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      SELECT CASE (OutFileFmt)
+         CASE (1_IntKi)
+            p%WrBinOutFile = .FALSE.
+            p%WrTxtOutFile = .TRUE.
+         CASE (2_IntKi)
+            p%WrBinOutFile = .TRUE.
+            p%WrTxtOutFile = .FALSE.
+         CASE (3_IntKi)
+            p%WrBinOutFile = .TRUE.
+            p%WrTxtOutFile = .TRUE.
+         CASE DEFAULT
+           CALL CheckError( ErrID_Fatal, " FAST's OutFileFmt must be 1, 2, or 3." )
+           RETURN
+      END SELECT
+
+      ! TabDelim - Use tab delimiters in text tabular output file? (flag):
+   CALL ReadVar( UnIn, InputFile, TabDelim, "TabDelim", "Use tab delimiters in text tabular output file? (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      IF ( TabDelim ) THEN
+         p%Delim = TAB
+      ELSE
+         p%Delim = ' '
+      END IF
+   
+
+      ! OutFmt - Format used for text tabular output (except time).  Resulting field should be 10 characters. (-):
+   CALL ReadVar( UnIn, InputFile, p%OutFmt, "OutFmt", "Format used for text tabular output (except time).  Resulting field should be 10 characters. (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
 
+      ! Check that InputFileData%OutFmt is a valid format specifier and will fit over the column headings
+   CALL ChkRealFmtStr( p%OutFmt, 'OutFmt', FmtWidth, ErrStat2, ErrMsg2 )   
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+            
+      IF ( FmtWidth /= OutStrLen ) CALL CheckError( ErrID_Warn, 'OutFmt produces a column width of '// &
+            TRIM(Num2LStr(FmtWidth))//' instead of '//TRIM(Num2LStr(OutStrLen))//' characters.' )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
+   !---------------------- END OF FILE -----------------------------------------
+      
+   CLOSE ( UnIn )
+   IF ( UnEc > 0 ) CLOSE ( UnEc )
+   RETURN
 
-   ! Close primary input file.
 
-CLOSE ( UnIn )
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
 
 
-RETURN
-END SUBROUTINE GetPrimary
-!=======================================================================
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         ErrMsg = TRIM(ErrMsg)//NewLine//' Error in FAST_ReadPrimaryFile: '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close file, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CLOSE( UnIn )
+            IF ( UnEc > 0 ) CLOSE ( UnEc )
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError
+   !...............................................................................................................................
+END SUBROUTINE FAST_ReadPrimaryFile      
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FAST_Input( p, p_SrvD, OtherState, InputFileData, ErrStat, ErrMsg )
 
 
@@ -405,15 +591,12 @@ SUBROUTINE FAST_Input( p, p_SrvD, OtherState, InputFileData, ErrStat, ErrMsg )
    ! FAST Modules:
 
 USE                             DriveTrain
-USE                             General
 USE                             InitCond
 USE                             NacelleYaw
-USE                             SimCont
 USE                             TipBrakes
 USE                             TurbCont
 
-USE HydroVals
-USE                             FAST_Hydro
+!USE HydroDyn_Types
 
    ! AeroDyn Modules:
 USE                             Airfoil,        ONLY: NumFoil
@@ -434,105 +617,19 @@ CHARACTER(*),     INTENT(OUT),OPTIONAL  :: ErrMsg                            ! E
    ! Local variables.
 
 REAL(ReKi)                   :: ComDenom                                        ! Common denominator used in computation of TEC model coefficients
-REAL(ReKi)                   :: SumCosPreC                                      ! SUM( CosPreC(K) ) for K = 1,NumBl
 
 INTEGER(4)                   :: I                                               ! A generic index for DO loops.
 INTEGER(4)                   :: K                                               ! Index for blade number.
 INTEGER(4)                   :: Sttus                                           ! Status of an attempted array allocation.
 
-INTEGER(IntKi)               :: EchoUn
 
-
-
-      !TYPE(ED_InitInputType)        :: InitInp     ! Input data for initialization routine
-      !TYPE(ED_InputType)            :: u           ! An initial guess for the input; input mesh must be defined
-      !TYPE(ED_ContinuousStateType)  :: x           ! Initial continuous states
-      !TYPE(ED_DiscreteStateType)    :: xd          ! Initial discrete states
-      !TYPE(ED_ConstraintStateType)  :: z           ! Initial guess of the constraint states
-      !TYPE(ED_OutputType)           :: y           ! Initial system outputs (outputs are not calculated; only the output mesh is initialized)
-      !TYPE(ED_InitOutputType)       :: InitOut     ! Output for initialization routine
-
-      
-
-!  -------------- PRIMARY PARAMETERS -------------------------------------------
-
-
-
-!   ! Read the primary parameter file (set EchoUn here):
-!
-!CALL GetPrimary( InputFileData, p, ErrStat, ErrMsg, EchoUn )
-!
-!
-!!!---------------- START ED_INIT -------------------------------------
-!!InitInp%ADInputFile = ADFile
-!!InitInp%InputFile = PriFile
-!!CALL ED_Init( InitInp, u, p, x, xd, z, OtherState, y, DT, InitOut, ErrStat, ErrMsg )
-!
-!CALL DispNVD( ED_Ver )
-!
-!   ! Read the input file and validate the data
-!
-!CALL ED_ReadInput( PriFile, ADFile, InputFileData, .TRUE., RootName, ErrStat, ErrMsg )
-!CALL ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
-!
-!   ! Define parameters here:
-!CALL ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )         
-!CALL InitDOFs( p, ErrStat, ErrMsg )
-!
-!CALL Alloc_CoordSys( OtherState%CoordSys, p, ErrStat, ErrMsg )
-!!---------------- END ED_INIT -------------------------------------
-!
 
    ! Calculate some parameters that are not input directly.  Convert units if appropriate.
 
 DT24      = DT/24.0_DbKi                                                        ! Time-step parameter needed for Solver().
-p%GenEff  = p%GenEff *0.01
 
-SpdGenOn  = SpdGenOn*RPM2RPS
-TBDepISp  = TBDepISp*RPM2RPS
-THSSBrFl  = THSSBrDp + HSSBrDT
+!TBDepISp  = TBDepISp*RPM2RPS
 
-IF ( VSContrl == 1 )  THEN       ! Simple variable-speed control
-
-   VS_RtGnSp = VS_RtGnSp*  RPM2RPS                                                                    ! Convert rated speed to rad/sec.
-   VS_Rgn2K  = VS_Rgn2K /( RPM2RPS*RPM2RPS )                                                          ! Convert Region 2 torque constant to Nm/(rad/sec)^2.
-   VS_SySp   = VS_RtGnSp/( 1.0 +  0.01*VS_SlPc )                                                      ! Synchronous speed of region 2 1/2 induction generator.
-   IF ( VS_SlPc < SQRT(EPSILON(VS_SlPc) ) ) THEN                                                      ! We don't have a region 2 so we'll use VS_TrGnSp = VS_RtGnSp
-      VS_Slope = 9999.9
-      VS_TrGnSp = VS_RtGnSp
-   ELSE
-      VS_Slope  = VS_RtTq  /( VS_RtGnSp - VS_SySp )                                                   ! Torque/speed slope of region 2 1/2 induction generator.
-      IF ( ABS(VS_Rgn2K) < EPSILON(VS_SlPc) )  THEN  ! .TRUE. if the Region 2 torque is flat, and thus, the denominator in the ELSE condition is zero
-         VS_TrGnSp = VS_SySp                                                                                ! Transitional generator speed between regions 2 and 2 1/2.
-      ELSE                          ! .TRUE. if the Region 2 torque is quadratic with speed
-         VS_TrGnSp = ( VS_Slope - SQRT( VS_Slope*( VS_Slope - 4.0*VS_Rgn2K*VS_SySp ) ) )/( 2.0*VS_Rgn2K )   ! Transitional generator speed between regions 2 and 2 1/2.
-      ENDIF
-   END IF
-
-
-ELSEIF ( GenModel == 1 )  THEN   ! Simple induction generator
-
-   SIG_SySp  = SIG_SySp*RPM2RPS                                                 ! Convert synchronous speed to rad/sec.
-   SIG_RtSp  = SIG_SySp*( 1.0 + 0.01*SIG_SlPc )                                 ! Rated speed.
-   SIG_POSl  = SIG_PORt*( SIG_RtSp - SIG_SySp )                                 ! Pullout slip.
-   SIG_POTq  = SIG_RtTq*SIG_PORt                                                ! Pullout torque.
-   SIG_Slop  = SIG_RtTq/( SIG_RtSp - SIG_SySp )                                 ! SIG torque/speed slope.
-
-ELSEIF ( GenModel == 2 )  THEN   ! Thevenin-equivalent generator
-
-   ComDenom  = TEC_SRes**2 + ( TEC_SLR + TEC_MR )**2                            ! common denominator used in many of the following equations
-   TEC_Re1   = TEC_SRes*( TEC_MR**2 )/ComDenom                                  ! Thevenin's equivalent stator resistance (ohms)
-   TEC_Xe1   = TEC_MR*( TEC_SRes**2 + TEC_SLR*( TEC_SLR + TEC_MR) )/ComDenom    ! Thevenin's equivalent stator leakage reactance (ohms)
-   TEC_V1a   = TEC_MR*TEC_VLL/SQRT( 3.0*ComDenom )                              ! Thevenin equivalent source voltage.
-   TEC_SySp  = 4.0*Pi*TEC_Freq/TEC_NPol                                         ! Thevenin equivalent synchronous speed.
-   TEC_K1    = ( TEC_Xe1 + TEC_RLR )**2                                         ! Thevenin equivalent K1 term.
-   TEC_K2    = ( TEC_MR**2 )/ComDenom                                           ! Thevenin equivalent K2 term.
-   TEC_A0    = TEC_RRes*TEC_K2/TEC_SySp                                         ! Thevenin equivalent A0 term.
-   TEC_C0    = TEC_RRes**2                                                      ! Thevenin equivalent C0 term.
-   TEC_C1    = -2.0*TEC_Re1*TEC_RRes                                            ! Thevenin equivalent C1 term.
-   TEC_C2    = TEC_Re1**2 + TEC_K1                                              ! Thevenin equivalent C2 term.
-
-ENDIF
 
 
 
@@ -567,31 +664,7 @@ ENDDO ! K
 
 
 
-!  -------------- FINISHING UP -------------------------------------------------
 
-
-   ! Close echo file, if appropriate.
-
-IF ( EchoUn > 0 ) CLOSE ( EchoUn )
-
-
-!  -------------- AERODYN PARAMETERS -------------------------------------------
-
-
-   ! Get the AeroDyn input now.
-
-CALL AeroInput(p)             ! Read in the ADFile
-
-
-
-!  -------------- CONTROL ------------------------------------------------------
-
-
-   ! bjj: these should be moved later...
-p_SrvD%NumBl   = p%NumBl   
-p_SrvD%GBRatio = p%GBRatio
-p_SrvD%GBoxEff = p%GBoxEff
-p_SrvD%GenEff  = p%GenEff
 
 RETURN
 END SUBROUTINE FAST_Input
@@ -603,8 +676,6 @@ SUBROUTINE PrintSum( p, OtherState )
    !  the input data and interpolated flexible body data.
 
 USE                             AeroDyn
-USE                             General
-USE                             SimCont
 
 
 IMPLICIT                        NONE
@@ -631,6 +702,8 @@ CHARACTER( 3)                :: FmtTxt    = '(A)'                               
 CHARACTER(99)                :: RotorType                                       ! Text description of rotor.
 
 CHARACTER(30)                :: OutPFmt                                         ! Format to print list of selected output channels to summary file
+
+INTEGER(4)                   :: UnSu      = 22                                  ! I/O unit number for the summary output file.
 
    ! Open the summary file and give it a heading.
 
@@ -917,85 +990,84 @@ ENDDO ! K
    END DO             
 ! END IF ! Echo
 
+close(unsu)
 
 RETURN
 END SUBROUTINE PrintSum
 !=======================================================================
-SUBROUTINE RunTimes()
+SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
 
 
    ! This routine displays a message that gives that status of the simulation
    !  and the predicted end time of day.
 
 
-USE                             General
-USE                             SimCont
+   IMPLICIT                        NONE
 
-IMPLICIT                        NONE
+      ! Passed variables
+
+   INTEGER                      :: StrtTime (8)                                    ! Start time of simulation
+   REAL                         :: UsrTime1                                        ! User CPU time for simulation initialization.
+   REAL(DbKi)                   :: ZTime                                           ! The final simulation time (not necessarially TMax)
+
+      ! Local variables
+
+   REAL                         :: ClckTime                                        ! Elapsed clock time for the simulation phase of the run.
+   REAL                         :: Factor                                          ! Ratio of seconds to a specified time period.
+   REAL                         :: TRatio                                          ! Ration of simulation time to elapsed clock time.
+
+   REAL                         :: UsrTime                                         ! User CPU time for entire run.
+   INTEGER                      :: EndTimes (8)                                    ! An array holding the ending clock time of the simulation.
+
+   CHARACTER( 8)                :: TimePer
 
 
-   ! Local variables.
+      ! Get the end times to compare with start times.
 
-REAL(ReKi)                   :: ClckTime                                        ! Elapsed clock time for the simulation phase of the run.
-REAL(ReKi)                   :: Factor                                          ! Ratio of seconds to a specified time period.
-REAL(ReKi)                   :: TRatio                                          ! Ration of simulation time to elapsed clock time.
-
-REAL(4)                      :: UsrTime                                         ! User CPU time for entire run.
-
-INTEGER(4)                   :: EndTimes (8)                                    ! An array holding the ending clock time of the simulation.
-
-CHARACTER( 8)                :: TimePer
-
-
-   ! Get the end times to compare with start times.
-
-CALL DATE_AND_TIME ( VALUES=EndTimes )
-CALL CPU_TIME ( UsrTime )
+   CALL DATE_AND_TIME ( VALUES=EndTimes )
+   CALL CPU_TIME ( UsrTime )
 
 
    ! Calculate the elapsed wall-clock time in seconds.
    
 !bjj: I think this calculation will be wrong at certain times (e.g. if it's near midnight on the last day of the month), but to my knowledge, no one has complained...
 
-ClckTime =  0.001*( EndTimes(8) - StrtTime(8) ) + ( EndTimes(7) - StrtTime(7) ) + 60.0*( EndTimes(6) - StrtTime(6) ) &
-         + 3600.0*( EndTimes(5) - StrtTime(5) ) + 86400.0*( EndTimes(3) - StrtTime(3) )  
+   ClckTime =  0.001*( EndTimes(8) - StrtTime(8) ) + ( EndTimes(7) - StrtTime(7) ) + 60.0*( EndTimes(6) - StrtTime(6) ) &
+            + 3600.0*( EndTimes(5) - StrtTime(5) ) + 86400.0*( EndTimes(3) - StrtTime(3) )  
          
 
+      ! Calculate CPU times.
 
-   ! Calculate CPU times.
-
-UsrTime  = UsrTime - UsrTime1
+   UsrTime  = UsrTime - UsrTime1
 
 
-IF ( UsrTime /= 0.0 )  THEN
+   IF ( .NOT. EqualRealNos( UsrTime, 0.0 ) )  THEN
 
-   TRatio = ZTime / UsrTime
+      TRatio = ZTime / UsrTime
 
-   IF     ( UsrTime > 86400.0 )  THEN
-      Factor = 1.0/86400.0
-      TimePer = ' days'
-   ELSEIF ( UsrTime >  3600.0 )  THEN
-      Factor = 1.0/3600.0
-      TimePer = ' hours'
-   ELSEIF ( UsrTime >    60.0 )  THEN
-      Factor = 1.0/60.0
-      TimePer = ' minutes'
-   ELSE
-      Factor = 1.0
-      TimePer = ' seconds'
+      IF     ( UsrTime > 86400.0 )  THEN
+         Factor = 1.0/86400.0
+         TimePer = ' days'
+      ELSEIF ( UsrTime >  3600.0 )  THEN
+         Factor = 1.0/3600.0
+         TimePer = ' hours'
+      ELSEIF ( UsrTime >    60.0 )  THEN
+         Factor = 1.0/60.0
+         TimePer = ' minutes'
+      ELSE
+         Factor = 1.0
+         TimePer = ' seconds'
+      ENDIF
+
+      CALL WrOver( '                                                                                   ' )
+      CALL WrScr1( ' Total Real Time:       '//TRIM( Num2LStr( Factor*ClckTime      ) )//TRIM( TimePer ) )
+      CALL WrScr ( ' Total CPU Time:        '//TRIM( Num2LStr( Factor*UsrTime       ) )//TRIM( TimePer ) )
+      CALL WrScr ( ' Simulated Time:        '//TRIM( Num2LStr( Factor*REAL( ZTime ) ) )//TRIM( TimePer ) )
+      CALL WrScr ( ' Time Ratio (Sim/CPU):  '//TRIM( Num2LStr( TRatio ) ) )
+
    ENDIF
 
-   CALL WrOver( '                                                                                   ' )
-   CALL WrScr1( ' Total Real Time:       '//TRIM( Num2LStr( Factor*ClckTime      ) )//TRIM( TimePer ) )
-   CALL WrScr ( ' Total CPU Time:        '//TRIM( Num2LStr( Factor*UsrTime       ) )//TRIM( TimePer ) )
-   CALL WrScr ( ' Simulated Time:        '//TRIM( Num2LStr( Factor*REAL( ZTime ) ) )//TRIM( TimePer ) )
-   CALL WrScr ( ' Time Ratio (Sim/CPU):  '//TRIM( Num2LStr( TRatio ) ) )
-
-
-ENDIF
-
-
-RETURN
+   RETURN
 END SUBROUTINE RunTimes
 !=======================================================================
 SUBROUTINE SimStatus
@@ -1004,8 +1076,6 @@ SUBROUTINE SimStatus
    ! This routine displays a message that gives that status of the simulation
    !  and the predicted end time of day.
 
-
-USE                             SimCont
 
 IMPLICIT                        NONE
 
@@ -1094,9 +1164,7 @@ SUBROUTINE WrOutHdr(p_ED)
    ! This routine generates the header for the primary output file.
 
 
-USE                             General
 USE                             AeroDyn
-USE                             SimCont, ONLY: TMax,DT !BJJ perhaps we should do this a better way
 
 
 IMPLICIT                        NONE
@@ -1194,8 +1262,6 @@ SUBROUTINE WrOutput(p_ED,y_ED)
 
    ! This routine writes output to the primary output file.
 
-
-USE                             General
 
 USE                             AeroGenSubs, ONLY: ElemOut
 

@@ -32,10 +32,8 @@ SUBROUTINE CalcOuts( p,x,y,OtherState, u )
 
 
 USE                             DriveTrain
-USE                             SimCont
 USE                             TurbCont
 USE AeroDyn
-USE HydroVals
 
 
 IMPLICIT                        NONE
@@ -850,10 +848,8 @@ SUBROUTINE Control( p, x, OtherState, b1 )
 
 
 USE                             DriveTrain
-USE                             General
 USE                             InitCond
 USE                             NacelleYaw
-USE                             SimCont
 USE                             TurbCont
 
 
@@ -1137,8 +1133,6 @@ SUBROUTINE DrvTrTrq ( p, LSS_Spd, GBoxTrq )
 
 
 USE                             DriveTrain
-USE                             General
-USE                             SimCont
 USE                             TurbCont
 
 IMPLICIT                        NONE
@@ -1424,7 +1418,6 @@ USE                             Switch
    ! FAST MODULES:
 
 USE                             DriveTrain
-USE                             SimCont
 
 
 IMPLICIT                        NONE
@@ -1653,8 +1646,7 @@ SUBROUTINE FAST_Terminate( ErrStat )
 ! This subroutine is called at program termination.  It deallocates variables and closes files.
 !----------------------------------------------------------------------------------------------------
 
-   USE            AeroElem
-   USE            General                                   ! contains file units, too
+   USE            AeroDyn_Types
    USE            InitCond
    USE            TurbCont
 
@@ -1690,11 +1682,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
 
 
-      ! MODULE General
-
-   IF ( ALLOCATED(BldFile                            ) ) DEALLOCATE(BldFile                            )
-
-
       ! MODULE InitCond
 
    IF ( ALLOCATED(BlPitchInit                        ) ) DEALLOCATE(BlPitchInit                        )
@@ -1708,17 +1695,17 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
       ! MODULE TurbCont
 
-   IF ( ALLOCATED(BlPitch                            ) ) DEALLOCATE(BlPitch                            )
-   IF ( ALLOCATED(BlPitchCom                         ) ) DEALLOCATE(BlPitchCom                         )
-   IF ( ALLOCATED(BlPitchF                           ) ) DEALLOCATE(BlPitchF                           )
-   IF ( ALLOCATED(BlPitchFrct                        ) ) DEALLOCATE(BlPitchFrct                        )
-   IF ( ALLOCATED(BlPitchI                           ) ) DEALLOCATE(BlPitchI                           )
-   IF ( ALLOCATED(TBDepISp                           ) ) DEALLOCATE(TBDepISp                           )
-   IF ( ALLOCATED(TPitManE                           ) ) DEALLOCATE(TPitManE                           )
-   IF ( ALLOCATED(TPitManS                           ) ) DEALLOCATE(TPitManS                           )
-   IF ( ALLOCATED(TTpBrDp                            ) ) DEALLOCATE(TTpBrDp                            )
-   IF ( ALLOCATED(TTpBrFl                            ) ) DEALLOCATE(TTpBrFl                            )
-   IF ( ALLOCATED(BegPitMan                          ) ) DEALLOCATE(BegPitMan                          )
+   !IF ( ALLOCATED(BlPitch                            ) ) DEALLOCATE(BlPitch                            )
+   !IF ( ALLOCATED(BlPitchCom                         ) ) DEALLOCATE(BlPitchCom                         )
+   !IF ( ALLOCATED(BlPitchF                           ) ) DEALLOCATE(BlPitchF                           )
+   !IF ( ALLOCATED(BlPitchFrct                        ) ) DEALLOCATE(BlPitchFrct                        )
+   !IF ( ALLOCATED(BlPitchI                           ) ) DEALLOCATE(BlPitchI                           )
+   !IF ( ALLOCATED(TBDepISp                           ) ) DEALLOCATE(TBDepISp                           )
+   !IF ( ALLOCATED(TPitManE                           ) ) DEALLOCATE(TPitManE                           )
+   !IF ( ALLOCATED(TPitManS                           ) ) DEALLOCATE(TPitManS                           )
+   !IF ( ALLOCATED(TTpBrDp                            ) ) DEALLOCATE(TTpBrDp                            )
+   !IF ( ALLOCATED(TTpBrFl                            ) ) DEALLOCATE(TTpBrFl                            )
+   !IF ( ALLOCATED(BegPitMan                          ) ) DEALLOCATE(BegPitMan                          )
 
    !-------------------------------------------------------------------------------------------------
    ! Close any open files
@@ -1728,7 +1715,6 @@ SUBROUTINE FAST_Terminate( ErrStat )
 
    CLOSE( UnIn )     !20      ! I/O unit number for the input files.
    CLOSE( UnOu )     !21      ! I/O unit number for the tabular output file.
-   CLOSE( UnSu )     !22      ! I/O unit number for the summary output file.
 
    !-------------------------------------------------------------------------------------------------
    ! Reset stored variables
@@ -1754,14 +1740,9 @@ SUBROUTINE FAST_Initialize(p,x,y,OtherState,InputFileData)
    !       the (L)th DOF acceleration is zero.
 
 
-USE                             General
 USE                             InitCond
-USE                             FAST_Hydro !HydroDyn
-USE                             SimCont
+USE                             HydroDyn_Types !HydroDyn
 use                             TurbCont
-
-USE HydroVals
-USE FloatingPlatform, ONLY:InitFltngPtfmLd
 
 IMPLICIT                        NONE
 
@@ -1898,9 +1879,7 @@ SUBROUTINE PtfmLoading(x, PtfmAM, PtfmFt)
    ! This routine computes the platform loading; that is PtfmAM(1:6,1:6)
    !   and PtfmFt(1:6).
 
-USE                             FAST_Hydro
-USE                             General
-USE                             SimCont
+USE                             HydroDyn_Types
 
 IMPLICIT                        NONE
 
@@ -1920,38 +1899,27 @@ INTEGER(4)                   :: J                                        ! Loops
 
 
 
+   IF ( CompUserPtfmLd ) THEN
 
-   SELECT CASE ( PtfmLdMod )  ! Which platform loading model are we using?
-
-   CASE ( 0 )                 ! None!
+      ! CALL the user-defined platform loading model:
 
 
-   ! set PtfmAM and PtfmFt to zero
+      CALL User_PtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, DirRoot, PtfmAM, PtfmFt )
+
+         ! Ensure that the platform added mass matrix returned by UserPtfmLd, PtfmAM, is symmetric; Abort if necessary:
+      IF ( .NOT. IsSymmetric( PtfmAM ) ) THEN
+         CALL ProgAbort ( ' The user-defined platform added mass matrix is unsymmetric.'// &
+                           '  Make sure PtfmAM returned by UserPtfmLd() is symmetric.'        )
+      END IF      
+         
+   ELSE
+      
+      ! set PtfmAM and PtfmFt to zero
       
       PtfmAM = 0.0
       PtfmFt = 0.0
       
-
-   CASE ( 1 )                 ! User-defined platform loading.
-
-
-   ! CALL the user-defined platform loading model:
-
-
-   CALL UserPtfmLd ( x%QT(1:6), x%QDT(1:6), ZTime, DirRoot, PtfmAM, PtfmFt )
-
-      ! Ensure that the platform added mass matrix returned by UserPtfmLd, PtfmAM, is symmetric; Abort if necessary:
-   IF ( .NOT. IsSymmetric( PtfmAM ) ) THEN
-      CALL ProgAbort ( ' The user-defined platform added mass matrix is unsymmetric.'// &
-                        '  Make sure PtfmAM returned by UserPtfmLd() is symmetric.'        )
    END IF
-      
-
-   
-
-
-
-   ENDSELECT
 
 
 
@@ -1972,10 +1940,6 @@ SUBROUTINE RFurling( p, RFrlDef, RFrlRate, RFrlMom )
 
    ! This routine computes the rotor-furl moment due to rotor-furl deflection
    !   and rate.
-
-
-USE                             General
-USE                             SimCont
 
 
 IMPLICIT                        NONE
@@ -2067,13 +2031,11 @@ SUBROUTINE RtHS( p, p_SrvD, x, OtherState, u, AugMatOut )
    !   for a particular time step.
 
 
-USE                             AeroElem
+USE                             AeroDyn_Types
 USE                             DriveTrain
 USE                             FAST_Hydro
-USE                             General
 USE                             InitCond
 USE                             NacelleYaw
-USE                             SimCont
 USE                             TipBrakes
 USE                             TurbCont
 
@@ -4345,7 +4307,6 @@ SUBROUTINE SetCoordSy( CoordSys, RtHSdat, p, x )
    ! It also sets the TeeterAng and TeetAngVel for this time step.
 
 
-USE                             SimCont, ONLY: ZTime
 USE                             TurbCont
 
 
@@ -4656,7 +4617,6 @@ SUBROUTINE Solver( p, p_SrvD,x, y, OtherState, u )
    !   velocities.
 
 
-USE                             SimCont
 USE                             TurbCont
 
 
@@ -4913,8 +4873,6 @@ SUBROUTINE Teeter( p, TeetDef, TeetRate, TeetMom )
    !   and rate.
 
 
-USE                             General
-USE                             SimCont
 
 
 IMPLICIT                        NONE
@@ -5016,8 +4974,6 @@ SUBROUTINE TFurling( p, TFrlDef, TFrlRate, TFrlMom )
    !   and rate.
 
 
-USE                             General
-USE                             SimCont
 
 
 IMPLICIT                        NONE
@@ -5109,9 +5065,6 @@ SUBROUTINE TimeMarch( p_ED, p_SrvD, x_ED, OtherSt_ED, u_ED, y_ED, ErrStat, ErrMs
    !   simulation of the FAST code.
 
 
-!USE                             General, ONLY : UnOuBin
-USE General, ONLY: RootName
-USE                             SimCont
 USE                             FAST_IO_Subs       ! WrOutHdr(),  SimStatus(), WrOutput()
 
 IMPLICIT                        NONE
@@ -5131,20 +5084,6 @@ CHARACTER(*),                  INTENT(OUT)      :: ErrMsg                     ! 
 
 
    ! Local variables.
-
-REAL(DbKi)                   :: TiLstPrn  = 0.0                                 ! The time of the last print.
-
-
-
-   ! Set up output file format.
-
-CALL WrOutHdr( p_ED )
-
-
-   ! Start simulation.  Initialize the simulation status.
-
-CALL WrScr1 ( '' )
-CALL SimStatus
 
 
 
@@ -5196,25 +5135,9 @@ DO
 
    ! If we've reached TMax, exit the DO loop:
 
-   IF ( ZTime > TMax .OR. Cmpl4LV )  EXIT
+   IF ( ZTime > TMax )  EXIT
 
 ENDDO
-
-
-   ! We're done!
-
-
-   ! Output the binary file if requested
-
-IF (WrBinOutFile) THEN
-   CALL WrBinFAST(TRIM(RootName)//'.outb', OutputFileFmtID, FileDesc, p_ED%OutParam(:)%Name, p_ED%OutParam(:)%Units, TimeData, &
-                     AllOutData(:,1:CurrOutStep), ErrStat, ErrMsg)
-
-   IF ( ErrStat /= ErrID_None ) THEN
-      CALL WrScr( 'Error '//Num2LStr(ErrStat)//' writing binary output file: '//TRIM(ErrMsg) )
-   END IF
-END IF
-
 
 
 RETURN
@@ -5228,10 +5151,8 @@ SUBROUTINE TwrLoading ( JNode, X1 , X2 , X3 , X4 , X5 , X6 , &
    !   TwrAM(1:6,1:6) and TwrFt(1:6).
 
 
-USE                             FAST_Hydro
+USE                             HydroDyn_Types
 
-USE                             General
-USE                             SimCont
 
 IMPLICIT                        NONE
 
@@ -5294,35 +5215,28 @@ TwrFt = 0.0_ReKi
 
 
 
-   SELECT CASE ( p%TwrLdMod )   ! Which tower loading model are we using?
+   IF ( CompUserTwrLd ) THEN  ! Are we getting additional loads from UserTwrLd?
 
-   CASE ( 0 )                 ! None!
+         ! CALL the user-defined tower loading model:
 
+      CALL UserTwrLd ( JNode, X, XD, ZTime, DirRoot, TwrAM, TwrFt )
 
+      ! Ensure that the tower element added mass matrix returned by UserTwrLd,
+      !   TwrAM, is symmetric; Abort if necessary:
+      IF (.NOT. IsSymmetric( TwrAM ) ) THEN
+         CALL ProgAbort ( ' The user-defined tower element added mass matrix is unsymmetric.'// &
+                          '  Make sure TwrAM returned by UserTwrLd() is symmetric.'               )
+      END IF
+
+   ELSE
+      
    ! Set TwrAM and TwrFt to 0
 
       TwrAM = 0.0
       TwrFt = 0.0
 
-
-   CASE ( 1 )                 ! User-defined tower loading.   
-
-   ! CALL the user-defined tower loading model:
-
-      CALL UserTwrLd ( JNode, X, XD, ZTime, DirRoot, TwrAM, TwrFt )
-
-
-   ! Ensure that the tower element added mass matrix returned by UserTwrLd,
-   !   TwrAM, is symmetric; Abort if necessary:
-   IF (.NOT. IsSymmetric( TwrAM ) ) THEN
-      CALL ProgAbort ( ' The user-defined tower element added mass matrix is unsymmetric.'// &
-                       '  Make sure TwrAM returned by UserTwrLd() is symmetric.'               )
    END IF
-
-
-   ENDSELECT
-
-
+   
 
 
 IF ( CompHydro .AND. HD_TwrNodes ) THEN 

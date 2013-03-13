@@ -31,8 +31,8 @@ MODULE ServoDyn
 
    TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.00.00', '31-March-2013' )
 !   INTEGER(IntKi), PARAMETER            :: MaxBl = 3
-   LOGICAL, PARAMETER                   :: Cmpl4SFun  = .FALSE.                            ! Is the module being compiled as an S-Function for Simulink?
-   LOGICAL, PARAMETER                   :: Cmpl4LV    = .FALSE.                            ! Is the module being compiled for Labview?
+   LOGICAL, PARAMETER, PUBLIC           :: Cmpl4SFun  = .FALSE.                            ! Is the module being compiled as an S-Function for Simulink?
+   LOGICAL, PARAMETER, PUBLIC           :: Cmpl4LV    = .FALSE.                            ! Is the module being compiled for Labview?
 
 
       ! ..... Public Subroutines ...................................................................................................
@@ -548,7 +548,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    CHARACTER(*),       INTENT(OUT)     :: ErrMsg                              ! Error message
    CHARACTER(*),       INTENT(IN)      :: OutFileRoot                         ! The rootname of the echo file, possibly opened in this routine
 
-   TYPE(SrvD_InputFile), INTENT(INOUT) :: InputFileData                       ! All the data in the ElastoDyn input file
+   TYPE(SrvD_InputFile), INTENT(INOUT) :: InputFileData                       ! All the data in the ServoDyn input file
    
       ! Local variables:
    INTEGER(IntKi)                :: I                                         ! loop counter
@@ -680,10 +680,11 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! GenEff - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%):
+      ! GenEff - Generator efficiency [ignored by the Thevenin and user-defined generator models] (%) (read in percent and converted to a fraction here):
    CALL ReadVar( UnIn, InputFile, InputFileData%GenEff, "GenEff", "Generator efficiency [ignored by the Thevenin and user-defined generator models] (%)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%GenEff = InputFileData%GenEff*0.01      
 
       ! GenTiStr - Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn} (flag):
    CALL ReadVar( UnIn, InputFile, InputFileData%GenTiStr, "GenTiStr", "Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn} (flag)", ErrStat2, ErrMsg2, UnEc)
@@ -695,10 +696,11 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! SpdGenOn - Generator speed to turn on the generator for a startup (HSS speed) [used only when GenTiStr=False] (rpm):
+      ! SpdGenOn - Generator speed to turn on the generator for a startup (HSS speed) [used only when GenTiStr=False] (rpm) (read in rpm and converted to rad/sec here):
    CALL ReadVar( UnIn, InputFile, InputFileData%SpdGenOn, "SpdGenOn", "Generator speed to turn on the generator for a startup (HSS speed) [used only when GenTiStr=False] (rpm)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%SpdGenOn = InputFileData%SpdGenOn*RPM2RPS
 
       ! TimGenOn - Time to turn on the generator for a startup [used only when GenTiStr=True] (s):
    CALL ReadVar( UnIn, InputFile, InputFileData%TimGenOn, "TimGenOn", "Time to turn on the generator for a startup [used only when GenTiStr=True] (s)", ErrStat2, ErrMsg2, UnEc)
@@ -715,40 +717,46 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
-      ! VS_RtGnSp - Rated generator speed for simple variable-speed generator control (HSS side) [used only when VSContrl=1] (rpm):
+      ! VS_RtGnSp - Rated generator speed for simple variable-speed generator control (HSS side) [used only when VSContrl=1] (rpm) (read in rpm and converted to rad/sec here):
    CALL ReadVar( UnIn, InputFile, InputFileData%VS_RtGnSp, "VS_RtGnSp", "Rated generator speed for simple variable-speed generator control (HSS side) [used only when VSContrl=1] (rpm)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
+   InputFileData%VS_RtGnSp = InputFileData%VS_RtGnSp*RPM2RPS
+      
       ! VS_RtTq - Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) [used only when VSContrl=1] (N-m):
    CALL ReadVar( UnIn, InputFile, InputFileData%VS_RtTq, "VS_RtTq", "Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) [used only when VSContrl=1] (N-m)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! VS_Rgn2K - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) [used only when VSContrl=1] (N-m/rpm^2):
+      ! VS_Rgn2K - Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) [used only when VSContrl=1] (N-m/rpm^2) (read in N-m/rpm^2 and converted to N-m/(rad/s)^2 here:
    CALL ReadVar( UnIn, InputFile, InputFileData%VS_Rgn2K, "VS_Rgn2K", "Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) [used only when VSContrl=1] (N-m/rpm^2)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%VS_Rgn2K = InputFileData%VS_Rgn2K/( RPM2RPS**2 )
 
-      ! VS_SlPc - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control [used only when VSContrl=1] (%):
+      ! VS_SlPc - Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control [used only when VSContrl=1] (%) (read in percent and converted to a fraction here):
    CALL ReadVar( UnIn, InputFile, InputFileData%VS_SlPc, "VS_SlPc", "Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control [used only when VSContrl=1] (%)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN     
-      
+   InputFileData%VS_SlPc = InputFileData%VS_SlPc*.01
+   
    !---------------------- SIMPLE INDUCTION GENERATOR ------------------------------
    CALL ReadCom( UnIn, InputFile, 'Section Header: Simple Induction Generator', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
       
-      ! SIG_SlPc - Rated generator slip percentage [used only when VSContrl=0 and GenModel=1] (%):
+      ! SIG_SlPc - Rated generator slip percentage [used only when VSContrl=0 and GenModel=1] (%) (read in percent and converted to a fraction here):
    CALL ReadVar( UnIn, InputFile, InputFileData%SIG_SlPc, "SIG_SlPc", "Rated generator slip percentage [used only when VSContrl=0 and GenModel=1] (%)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%SIG_SlPc = InputFileData%SIG_SlPc*.01
 
-      ! SIG_SySp - Synchronous (zero-torque) generator speed [used only when VSContrl=0 and GenModel=1] (rpm):
+      ! SIG_SySp - Synchronous (zero-torque) generator speed [used only when VSContrl=0 and GenModel=1] (rpm) (read in rpm and convert to rad/sec here):
    CALL ReadVar( UnIn, InputFile, InputFileData%SIG_SySp, "SIG_SySp", "Synchronous (zero-torque) generator speed [used only when VSContrl=0 and GenModel=1] (rpm)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%SIG_SySp = InputFileData%SIG_SySp*RPM2RPS  
+      
 
       ! SIG_RtTq - Rated torque [used only when VSContrl=0 and GenModel=1] (N-m):
    CALL ReadVar( UnIn, InputFile, InputFileData%SIG_RtTq, "SIG_RtTq", "Rated torque [used only when VSContrl=0 and GenModel=1] (N-m)", ErrStat2, ErrMsg2, UnEc)
@@ -958,7 +966,7 @@ CONTAINS
          !.........................................................................................................................
          IF ( ErrStat >= AbortErrLev ) THEN
             CLOSE( UnIn )
-            IF ( UnEc > 0 ) CLOSE ( UnEc )
+!            IF ( UnEc > 0 ) CLOSE ( UnEc )
          END IF
 
       END IF
@@ -1000,6 +1008,12 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
 !ALLOCATE ( p%BlPitchF(p%NumBl) , STAT=Sttus )
 !
 
+   IF ( InputFileData%TabDelim ) THEN
+      p%Delim = TAB
+   ELSE
+      p%Delim = ' '
+   END IF 
+
 
 END SUBROUTINE SetPrimaryParameters
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -1009,7 +1023,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
       
       ! Passed variables:
 
-   TYPE(SrvD_InputFile),     INTENT(IN)     :: InputFileData                       ! All the data in the ElastoDyn input file
+   TYPE(SrvD_InputFile),     INTENT(IN)     :: InputFileData                       ! All the data in the ServoDyn input file
    INTEGER(IntKi),           INTENT(IN)     :: NumBl                               ! Number of blades
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                             ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                              ! Error message
@@ -1085,7 +1099,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
    ENDIF
 
       ! checks for pitch control:      
-   IF ( ( InputFileData%PCMode < 0 ) .OR. ( InputFileData%PCMode > 2 ) )  THEN
+   IF ( ( InputFileData%PCMode < 0_IntKi ) .OR. ( InputFileData%PCMode > 2_IntKi ) )  THEN
       CALL SetErrors( ErrID_Fatal, 'PCMode must be 0, 1, or 2.' )
    ENDIF
 
@@ -1118,6 +1132,10 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
    IF ( InputFileData%SpdGenOn < 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'SpdGenOn must not be negative.' )
    IF ( InputFileData%TimGenOn < 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TimGenOn must not be negative.' )
    IF ( InputFileData%TimGenOf < 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TimGenOf must not be negative.' )
+   IF ( InputFileData%GenEff   < 0.0_ReKi ) .OR. ( InputFileData%GenEff > 1.0_ReKi ) )  THEN
+      CALL SetErrors( ErrID_Fatal, 'GenEff must be in the range [0, 1] (i.e., [0, 100] percent)' )
+   END IF
+   
    
       ! checks for variable-speed torque control:           
    IF ( InputFileData%VSContrl == 1_IntKi ) THEN
@@ -1208,6 +1226,11 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID
    CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
 
+   REAL(ReKi)                   :: SIG_RtSp                                        ! Rated speed.
+   REAL(ReKi)                   :: TEC_K1                                          ! K1 term for Thevenin-equivalent circuit.
+   REAL(ReKi)                   :: TEC_K2                                          ! K2 term for Thevenin-equivalent circuit.
+
+   
       ! Initialize variables
 
    ErrStat = ErrID_None
@@ -1220,8 +1243,69 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
          
-   
+      !.............................................
+      ! Set generator and torque control parameters:
+      !.............................................
+   p%HSSBrDT   = InputFileData%HSSBrDT
+   p%THSSBrFl  = InputFileData%THSSBrDp + InputFileData%HSSBrDT   ! Time at which shaft brake is fully deployed
+      
+   SELECT CASE ( p%VSContrl )      
+   CASE ( 0_IntKi )  ! None
+      
+      IF ( p%GenModel == 1_IntKi )     THEN   ! Simple induction generator
 
+           SIG_RtSp  = InputFileData%SIG_SySp*( 1.0 + InputFileData%SIG_SlPc )                                 ! Rated speed
+         p%SIG_POSl  = InputFileData%SIG_PORt*( SIG_RtSp - InputFileData%SIG_SySp )                                 ! Pullout slip
+         p%SIG_POTq  = InputFileData%SIG_RtTq*InputFileData%SIG_PORt                                                ! Pullout torque
+         p%SIG_Slop  = InputFileData%SIG_RtTq/( SIG_RtSp - InputFileData%SIG_SySp )                                 ! SIG torque/speed slope
+
+         p%SIG_SySp = InputFileData%SIG_SySp
+      ELSEIF ( p%GenModel == 2_IntKi )  THEN   ! Thevenin-equivalent induction generator
+
+         ComDenom  = InputFileData%TEC_SRes**2 + ( InputFileData%TEC_SLR + InputFileData%TEC_MR )**2                            ! common denominator used in many of the following equations
+         
+         p%TEC_Re1   = InputFileData%TEC_SRes*( InputFileData%TEC_MR**2 )/ComDenom                                  ! Thevenin's equivalent stator resistance (ohms)
+         p%TEC_Xe1   = InputFileData%TEC_MR*( InputFileData%TEC_SRes**2 + InputFileData%TEC_SLR*( TEC_SLR + InputFileData%TEC_MR) )/ComDenom    ! Thevenin's equivalent stator leakage reactance (ohms)
+         p%TEC_V1a   = InputFileData%TEC_MR*InputFileData%TEC_VLL/SQRT( 3.0*ComDenom )                              ! Thevenin equivalent source voltage
+         p%TEC_SySp  = 4.0*Pi*InputFileData%TEC_Freq/InputFileData%TEC_NPol                                         ! Thevenin equivalent synchronous speed
+           TEC_K1    = ( p%TEC_Xe1 + InputFileData%TEC_RLR )**2                                         ! Thevenin equivalent K1 term
+           TEC_K2    = ( InputFileData%TEC_MR**2 )/ComDenom                                           ! Thevenin equivalent K2 term
+         p%TEC_A0    = InputFileData%TEC_RRes*TEC_K2/p%TEC_SySp                                         ! Thevenin equivalent A0 term
+         p%TEC_C0    = InputFileData%TEC_RRes**2                                                      ! Thevenin equivalent C0 term
+         p%TEC_C1    = -2.0*p%TEC_Re1*InputFileData%TEC_RRes                                            ! Thevenin equivalent C1 term
+         p%TEC_C2    = p%TEC_Re1**2 + TEC_K1                                              ! Thevenin equivalent C2 term
+
+         p%TEC_MR    = InputFileData%TEC_MR
+         p%TEC_RLR   = InputFileData%TEC_RLR
+         p%TEC_RRes  = InputFileData%TEC_RRes
+         p%TEC_SRes  = InputFileData%TEC_SRes
+         p%TEC_VLL   = InputFileData%TEC_VLL
+
+      ENDIF
+         
+      
+   CASE ( 1_IntKi ) ! Simple variable-speed control
+      
+      VS_SySp   = VS_RtGnSp/( 1.0 +  InputFileData%VS_SlPc )                                                 ! Synchronous speed of region 2 1/2 induction generator.
+      IF ( VS_SlPc < SQRT(EPSILON(VS_SlPc) ) ) THEN                                                      ! We don't have a region 2 so we'll use VS_TrGnSp = VS_RtGnSp
+         VS_Slope = 9999.9
+         VS_TrGnSp = VS_RtGnSp
+      ELSE
+         VS_Slope  = VS_RtTq  /( VS_RtGnSp - VS_SySp )                                                   ! Torque/speed slope of region 2 1/2 induction generator.
+         IF ( ABS(InputFileData%VS_Rgn2K) < EPSILON(VS_SlPc) )  THEN  ! .TRUE. if the Region 2 torque is flat, and thus, the denominator in the ELSE condition is zero
+            VS_TrGnSp = VS_SySp                                                                                ! Transitional generator speed between regions 2 and 2 1/2.
+         ELSE                          ! .TRUE. if the Region 2 torque is quadratic with speed
+            VS_TrGnSp = ( VS_Slope - SQRT( VS_Slope*( VS_Slope - 4.0*InputFileData%VS_Rgn2K*VS_SySp ) ) )/( 2.0*InputFileData%VS_Rgn2K )   ! Transitional generator speed between regions 2 and 2 1/2.
+         ENDIF
+      END IF
+   
+   END SELECT 
+      
+      !.............................................
+      !.............................................
+   
+   
+   
 CONTAINS
    !...............................................................................................................................
    SUBROUTINE CheckError(ErrID,Msg)

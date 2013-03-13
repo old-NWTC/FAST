@@ -24,21 +24,21 @@ typedef	^	SrvD_InputFile	IntKi	PCMode	-	-	-	"Pitch control mode"	-
 typedef	^	SrvD_InputFile	DbKi	TPCOn	-	-	-	"Time to enable active pitch control [unused when PCMode=0]"	s
 typedef	^	SrvD_InputFile	DbKi	TPitManS	3	-	-	"Time to start override pitch maneuver for blade (K) and end standard pitch control"	s
 typedef	^	SrvD_InputFile	DbKi	TPitManE	3	-	-	"Time at which override pitch maneuver for blade (K) reaches final pitch"	s
-typedef	^	SrvD_InputFile	ReKi	BlPitchF	3	-	-	"Blade (K) final pitch for pitch maneuvers"	degrees
+typedef	^	SrvD_InputFile	ReKi	BlPitchF	3	-	-	"Blade (K) final pitch for pitch maneuvers"	radians
 typedef	^	SrvD_InputFile	IntKi	VSContrl	-	-	-	"Variable-speed control mode"	-
 typedef	^	SrvD_InputFile	IntKi	GenModel	-	-	-	"Generator model [used only when VSContrl=0]"	-
-typedef	^	SrvD_InputFile	ReKi	GenEff	-	-	-	"Generator efficiency [ignored by the Thevenin and user-defined generator models]"	%
+typedef	^	SrvD_InputFile	ReKi	GenEff	-	-	-	"Generator efficiency [ignored by the Thevenin and user-defined generator models]"	-
 typedef	^	SrvD_InputFile	LOGICAL	GenTiStr	-	-	-	"Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn}"	-
 typedef	^	SrvD_InputFile	LOGICAL	GenTiStp	-	-	-	"Method to stop the generator {T: timed using TimGenOf, F: when generator power = 0}"	-
-typedef	^	SrvD_InputFile	ReKi	SpdGenOn	-	-	-	"Generator speed to turn on the generator for a startup (HSS speed) [used only when GenTiStr=False]"	rpm
+typedef	^	SrvD_InputFile	ReKi	SpdGenOn	-	-	-	"Generator speed to turn on the generator for a startup (HSS speed) [used only when GenTiStr=False]"	rad/s
 typedef	^	SrvD_InputFile	DbKi	TimGenOn	-	-	-	"Time to turn on the generator for a startup [used only when GenTiStr=True]"	s
 typedef	^	SrvD_InputFile	DbKi	TimGenOf	-	-	-	"Time to turn off the generator [used only when GenTiStp=True]"	s
-typedef	^	SrvD_InputFile	ReKi	VS_RtGnSp	-	-	-	"Rated generator speed for simple variable-speed generator control (HSS side) [used only when VSContrl=1]"	rpm
+typedef	^	SrvD_InputFile	ReKi	VS_RtGnSp	-	-	-	"Rated generator speed for simple variable-speed generator control (HSS side) [used only when VSContrl=1]"	rad/s
 typedef	^	SrvD_InputFile	ReKi	VS_RtTq	-	-	-	"Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) [used only when VSContrl=1]"	N-m
-typedef	^	SrvD_InputFile	ReKi	VS_Rgn2K	-	-	-	"Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) [used only when VSContrl=1]"	N-m/rpm^2
-typedef	^	SrvD_InputFile	ReKi	VS_SlPc	-	-	-	"Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control [used only when VSContrl=1]"	%
-typedef	^	SrvD_InputFile	ReKi	SIG_SlPc	-	-	-	"Rated generator slip percentage [used only when VSContrl=0 and GenModel=1]"	%
-typedef	^	SrvD_InputFile	ReKi	SIG_SySp	-	-	-	"Synchronous (zero-torque) generator speed [used only when VSContrl=0 and GenModel=1]"	rpm
+typedef	^	SrvD_InputFile	ReKi	VS_Rgn2K	-	-	-	"Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) [used only when VSContrl=1]"	N-m/(rad/s)^2
+typedef	^	SrvD_InputFile	ReKi	VS_SlPc	-	-	-	"Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control [used only when VSContrl=1]"	-
+typedef	^	SrvD_InputFile	ReKi	SIG_SlPc	-	-	-	"Rated generator slip percentage [used only when VSContrl=0 and GenModel=1]"	-
+typedef	^	SrvD_InputFile	ReKi	SIG_SySp	-	-	-	"Synchronous (zero-torque) generator speed [used only when VSContrl=0 and GenModel=1]"	rad/s
 typedef	^	SrvD_InputFile	ReKi	SIG_RtTq	-	-	-	"Rated torque [used only when VSContrl=0 and GenModel=1]"	N-m
 typedef	^	SrvD_InputFile	ReKi	SIG_PORt	-	-	-	"Pull-out ratio (Tpullout/Trated) [used only when VSContrl=0 and GenModel=1]"	-
 typedef	^	SrvD_InputFile	ReKi	TEC_Freq	-	-	-	"Line frequency [50 or 60] [used only when VSContrl=0 and GenModel=2]"	Hz
@@ -51,22 +51,22 @@ typedef	^	SrvD_InputFile	ReKi	TEC_RLR	-	-	-	"Rotor leakage reactance [used only 
 typedef	^	SrvD_InputFile	ReKi	TEC_MR	-	-	-	"Magnetizing reactance [used only when VSContrl=0 and GenModel=2]"	ohms
 typedef	^	SrvD_InputFile	IntKi	HSSBrMode	-	-	-	"HSS brake model"	-
 typedef	^	SrvD_InputFile	DbKi	THSSBrDp	-	-	-	"Time to initiate deployment of the HSS brake"	s
-typedef	^	SrvD_InputFile	DbKi	HSSBrDT	-	-	-	"Time for HSS-brake to reach full deployment once initiated [used only when HSSBrMode=1]"	sec
+typedef	^	SrvD_InputFile	DbKi	HSSBrDT	-	-	-	"Time for HSS-brake to reach full deployment once initiated [used only when HSSBrMode=1]"	s
 typedef	^	SrvD_InputFile	ReKi	HSSBrTqF	-	-	-	"Fully deployed HSS-brake torque"	N-m
 typedef	^	SrvD_InputFile	IntKi	YCMode	-	-	-	"Yaw control mode"	-
 typedef	^	SrvD_InputFile	DbKi	TYCOn	-	-	-	"Time to enable active yaw control [unused when YCMode=0]"	s
-typedef	^	SrvD_InputFile	ReKi	YawNeut	-	-	-	"Neutral yaw position--yaw spring force is zero at this yaw"	degrees
+typedef	^	SrvD_InputFile	ReKi	YawNeut	-	-	-	"Neutral yaw position--yaw spring force is zero at this yaw"	radians
 typedef	^	SrvD_InputFile	ReKi	YawSpr	-	-	-	"Nacelle-yaw spring constant"	N-m/rad
 typedef	^	SrvD_InputFile	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"	N-m/(rad/s)
 typedef	^	SrvD_InputFile	DbKi	TYawManS	-	-	-	"Time to start override yaw maneuver and end standard yaw control"	s
 typedef	^	SrvD_InputFile	DbKi	TYawManE	-	-	-	"Time at which override yaw maneuver reaches final yaw angle"	s
-typedef	^	SrvD_InputFile	ReKi	NacYawF	-	-	-	"Final yaw angle for override yaw maneuvers"	degrees
+typedef	^	SrvD_InputFile	ReKi	NacYawF	-	-	-	"Final yaw angle for override yaw maneuvers"	radians
 typedef	^	SrvD_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName>.fsm?"	-
 typedef	^	SrvD_InputFile	IntKi	OutFile	-	-	-	"Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both)"	-
 typedef	^	SrvD_InputFile	LOGICAL	TabDelim	-	-	-	"Use tab delimiters in text tabular output file?"	-
 typedef	^	SrvD_InputFile	CHARACTER(20)	OutFmt	-	-	-	"Format used for text tabular output (except time)"	-
 #typedef	^	SrvD_InputFile	IntKi	OutFileFmt	-	-	-	"Format for module tabular (time-marching) output: {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}"	-
-typedef	^	SrvD_InputFile	DbKi	Tstart	-	-	-	"Time to start module's tabular output"	seconds
+typedef	^	SrvD_InputFile	DbKi	Tstart	-	-	-	"Time to start module's tabular output"	s
 typedef	^	SrvD_InputFile	IntKi	NumOuts	-	-	-	"Number of parameters in the output list (number of outputs requested)"	-
 typedef	^	SrvD_InputFile	CHARACTER(10)	OutList	{:}	-	-	"List of user-requested output channels"	-
 
@@ -107,92 +107,84 @@ typedef	^	OtherStateType	ReKi	DummyOtherState	-	-	-	"Coordinate systems in the F
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
 typedef	^	ParameterType	DbKi	DT	-	-	-	"Time step for continuous state integration & discrete state update"	seconds
 # parameters from DriveTrain
-typedef	^	^	ReKi	ElecPwr	-	-	-	"Electrical power, W"
-typedef	^	^	ReKi	GenCTrq	-	-	-	"Constant generator torque"
-typedef	^	^	ReKi	GenSpRZT	-	-	-	"Difference between rated and zero-torque generator speeds for SIG"
-#typedef	^	^	ReKi	GenSpRat	-	-	-	"Rated generator speed"
-#typedef	^	^	ReKi	GenSpZT	-	-	-	"Zero-torque generator speed"
-typedef	^	^	ReKi	GenTrq	-	-	-	"Electrical generator torque"
-typedef	^	^	DbKi	HSSBrDT	-	-	-	"Time it takes for HSS brake to reach full deployment once deployed"	seconds
-typedef	^	^	ReKi	HSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-). !bjj: used to be local variable in FAST.f90/Subroutine DrvTrTrq()"
-typedef	^	^	ReKi	HSSBrTqF	-	-	-	"Fully deployed HSS brake torque"
-typedef	^	^	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"
-typedef	^	^	ReKi	HSSBrTrqC	-	-	-	"A copy of the value of HSSBrTrq calculated in SUBROUTINE DrvTrTrq()"
-typedef	^	^	ReKi	SIG_PORt	-	-	-	"Pull-out ratio (Tpullout/Trated)"
-typedef	^	^	ReKi	SIG_POSl	-	-	-	"Pullout slip"
-typedef	^	^	ReKi	SIG_POTq	-	-	-	"Pullout torque"
-typedef	^	^	ReKi	SIG_RtSp	-	-	-	"Rated speed"
-typedef	^	^	ReKi	SIG_RtTq	-	-	-	"Rated torque"
-typedef	^	^	ReKi	SIG_SlPc	-	-	-	"Rated generator slip percentage"
-typedef	^	^	ReKi	SIG_Slop	-	-	-	"Torque/Speed slope for simple induction generator"
-typedef	^	^	ReKi	SIG_SySp	-	-	-	"Synchronous (zero-torque) generator speed"
-typedef	^	^	ReKi	TEC_A0	-	-	-	"A0 term for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_C0	-	-	-	"C0 term for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_C1	-	-	-	"C1 term for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_C2	-	-	-	"C2 term for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_Freq	-	-	-	"Line frequency for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_K1	-	-	-	"K1 term for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_K2	-	-	-	"K2 term for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_MR	-	-	-	"Magnetizing reactance for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_Re1	-	-	-	"Thevenin's equivalent stator resistance (ohms)"
-typedef	^	^	ReKi	TEC_RLR	-	-	-	"Rotor leakage reactance for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_RRes	-	-	-	"Rotor resistance for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_SLR	-	-	-	"Stator leakage reactance for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_SRes	-	-	-	"Stator resistance for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_SySp	-	-	-	"Synchronous speed for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_V1a	-	-	-	"Source voltage for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_VLL	-	-	-	"Line-to-line RMS voltage for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	TEC_Xe1	-	-	-	"Thevenin's equivalent stator leakage reactance (ohms)"
-typedef	^	^	IntKi	TEC_NPol	-	-	-	"Number of poles for Thevenin-equivalent circuit"
-typedef	^	^	ReKi	GBRatio	-	-	-	"Gearbox ratio"	"shouldn't need to be here ((only in structural)"
-typedef	^	^	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"	"shouldn't need to be here ((only in structural)"
-typedef	^	^	ReKi	GenEff	-	-	-	"Generator efficiency"
+typedef	^	ParameterType	ReKi	ElecPwr	-	-	-	"Electrical power, W"
+#typedef	^	ParameterType	ReKi	GenCTrq	-	-	-	"Constant generator torque"
+#typedef	^	ParameterType	ReKi	GenSpRZT	-	-	-	"Difference between rated and zero-torque generator speeds for SIG"
+#typedef	^	ParameterType	ReKi	GenSpRat	-	-	-	"Rated generator speed"
+#typedef	^	ParameterType	ReKi	GenSpZT	-	-	-	"Zero-torque generator speed"
+typedef	^	ParameterType	ReKi	GenTrq	-	-	-	"Electrical generator torque"
+typedef	^	ParameterType	DbKi	HSSBrDT	-	-	-	"Time it takes for HSS brake to reach full deployment once deployed"	seconds
+typedef	^	ParameterType	ReKi	HSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-). !bjj: used to be local variable in FAST.f90/Subroutine DrvTrTrq()"
+typedef	^	ParameterType	ReKi	HSSBrTqF	-	-	-	"Fully deployed HSS brake torque"
+typedef	^	ParameterType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"
+typedef	^	ParameterType	ReKi	HSSBrTrqC	-	-	-	"A copy of the value of HSSBrTrq calculated in SUBROUTINE DrvTrTrq()"
+typedef	^	ParameterType	ReKi	SIG_POSl	-	-	-	"Pullout slip"
+typedef	^	ParameterType	ReKi	SIG_POTq	-	-	-	"Pullout torque"
+typedef	^	ParameterType	ReKi	SIG_SlPc	-	-	-	"Rated generator slip percentage"
+typedef	^	ParameterType	ReKi	SIG_Slop	-	-	-	"Torque/Speed slope for simple induction generator"
+typedef	^	ParameterType	ReKi	SIG_SySp	-	-	-	"Synchronous (zero-torque) generator speed"	rad/s
+typedef	^	ParameterType	ReKi	TEC_A0	-	-	-	"A0 term for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_C0	-	-	-	"C0 term for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_C1	-	-	-	"C1 term for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_C2	-	-	-	"C2 term for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_K2	-	-	-	"K2 term for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_MR	-	-	-	"Magnetizing reactance for Thevenin-equivalent circuit"	ohms
+typedef	^	ParameterType	ReKi	TEC_Re1	-	-	-	"Thevenin's equivalent stator resistance (ohms)"	ohms
+typedef	^	ParameterType	ReKi	TEC_RLR	-	-	-	"Rotor leakage reactance for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_RRes	-	-	-	"Rotor resistance for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_SRes	-	-	-	"Stator resistance for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_SySp	-	-	-	"Synchronous speed for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_V1a	-	-	-	"Source voltage for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_VLL	-	-	-	"Line-to-line RMS voltage for Thevenin-equivalent circuit"
+typedef	^	ParameterType	ReKi	TEC_Xe1	-	-	-	"Thevenin's equivalent stator leakage reactance (ohms)"	ohms
+typedef	^	ParameterType	ReKi	GBRatio	-	-	-	"Gearbox ratio"	"shouldn't need to be here ((only in structural)"
+typedef	^	ParameterType	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"	"shouldn't need to be here ((only in structural)"
+typedef	^	ParameterType	ReKi	GenEff	-	-	-	"Generator efficiency"
 # parameters from TurbCont
-typedef	^	^	ReKi	BlPitch	{:}	-	-	"Initial and current blade pitch angles"
-typedef	^	^	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"
-typedef	^	^	ReKi	BlPitchF	{:}	-	-	"Final blade pitch"
-typedef	^	^	ReKi	BlPitchFrct	{:}	-	-	"Blade pitch angle fractions used for the override pitch maneuver calculation"
-typedef	^	^	ReKi	BlPitchI	{:}	-	-	"Initial blade pitch angles at the start of the override pitch maneuver"
-typedef	^	^	ReKi	NacYawF	-	-	-	"Final yaw angle after override yaw maneuver"
-typedef	^	^	ReKi	SpdGenOn	-	-	-	"Generator speed to turn on the generator for a startup"
-typedef	^	^	ReKi	TBDepISp	{:}	-	-	"Deployment-initiation speed for the tip brakes"
-typedef	^	^	DbKi	THSSBrDp	-	-	-	"Time to initiate deployment of the shaft brake"	s
-typedef	^	^	DbKi	THSSBrFl	-	-	-	"Time at which shaft brake is fully deployed"	s
-typedef	^	^	DbKi	TiDynBrk	-	-	-	"Time to initiate deployment of the dynamic generator brake"	s
-typedef	^	^	DbKi	TimGenOf	-	-	-	"Time to turn off generator for braking or modeling a run-away"	s
-typedef	^	^	DbKi	TimGenOn	-	-	-	"Time to turn on generator for startup"	s
-typedef	^	^	DbKi	TPCOn	-	-	-	"Time to enable active pitch control"	s
-typedef	^	^	DbKi	TPitManE	{:}	-	-	"Time to end pitch maneuvers for each blade"	s
-typedef	^	^	DbKi	TPitManS	{:}	-	-	"Time to start pitch maneuvers for each blade"	s
-typedef	^	^	DbKi	TTpBrDp	{:}	-	-	"Times to initiate deployment of tip brakes"	s
-typedef	^	^	DbKi	TTpBrFl	{:}	-	-	"Times at which tip brakes are fully deployed"	s
-typedef	^	^	DbKi	TYawManE	-	-	-	"Time to end override yaw maneuver"	s
-typedef	^	^	DbKi	TYawManS	-	-	-	"Time to start override yaw maneuver"	s
-typedef	^	^	DbKi	TYCOn	-	-	-	"Time to enable active yaw control"	s
-typedef	^	^	ReKi	VS_Rgn2K	-	-	-	"Generator torque constant in Region 2 (HSS side)"	N-m/rpm^2
-typedef	^	^	ReKi	VS_RtGnSp	-	-	-	"Rated generator speed (HSS side)"	rpm
-typedef	^	^	ReKi	VS_RtTq	-	-	-	"Rated generator torque/constant generator torque in Region 3 (HSS side)"	N-m
-typedef	^	^	ReKi	VS_Slope	-	-	-	"Torque/speed slope of region 2 1/2 induction generator"
-typedef	^	^	ReKi	VS_SlPc	-	-	-	"Rated generator slip percentage in Region 2 1/2"	%
-typedef	^	^	ReKi	VS_SySp	-	-	-	"Synchronous speed of region 2 1/2 induction generator"
-typedef	^	^	ReKi	VS_TrGnSp	-	-	-	"Transitional generator speed between regions 2 and 2 1/2"
-typedef	^	^	ReKi	YawPosCom	-	-	-	"Commanded yaw angle from user-defined routines"	rad
-typedef	^	^	ReKi	YawRateCom	-	-	-	"Commanded yaw rate  from user-defined routines"	rad/s
-typedef	^	^	IntKi	GenModel	-	-	-	"Generator model"
-typedef	^	^	IntKi	HSSBrMode	-	-	-	"HSS brake model"
-typedef	^	^	IntKi	PCMode	-	-	-	"Pitch control mode"
-typedef	^	^	IntKi	VSContrl	-	-	-	"Variable-speed-generator control switch"
-typedef	^	^	IntKi	YCMode	-	-	-	"Yaw control mode"
-typedef	^	^	LOGICAL	BegPitMan	{:}	-	-	".TRUE. before the override pitch manuever has begun (begin pitch manuever)"
-typedef	^	^	LOGICAL	GenTiStp	-	-	-	"Stop generator based upon T: time or F: generator power = 0"
-typedef	^	^	LOGICAL	GenTiStr	-	-	-	"Start generator based upon T: time or F: generator speed"
+typedef	^	ParameterType	ReKi	BlPitch	{:}	-	-	"Initial and current blade pitch angles"
+typedef	^	ParameterType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"
+typedef	^	ParameterType	ReKi	BlPitchF	{:}	-	-	"Final blade pitch"
+typedef	^	ParameterType	ReKi	BlPitchFrct	{:}	-	-	"Blade pitch angle fractions used for the override pitch maneuver calculation"
+typedef	^	ParameterType	ReKi	BlPitchI	{:}	-	-	"Initial blade pitch angles at the start of the override pitch maneuver"
+typedef	^	ParameterType	ReKi	NacYawF	-	-	-	"Final yaw angle after override yaw maneuver"
+typedef	^	ParameterType	ReKi	SpdGenOn	-	-	-	"Generator speed to turn on the generator for a startup"
+#typedef	^	ParameterType	ReKi	TBDepISp	{:}	-	-	"Deployment-initiation speed for the tip brakes"
+typedef	^	ParameterType	DbKi	THSSBrDp	-	-	-	"Time to initiate deployment of the shaft brake"	s
+typedef	^	ParameterType	DbKi	THSSBrFl	-	-	-	"Time at which shaft brake is fully deployed"	s
+typedef	^	ParameterType	DbKi	TiDynBrk	-	-	-	"Time to initiate deployment of the dynamic generator brake"	s
+typedef	^	ParameterType	DbKi	TimGenOf	-	-	-	"Time to turn off generator for braking or modeling a run-away"	s
+typedef	^	ParameterType	DbKi	TimGenOn	-	-	-	"Time to turn on generator for startup"	s
+typedef	^	ParameterType	DbKi	TPCOn	-	-	-	"Time to enable active pitch control"	s
+typedef	^	ParameterType	DbKi	TPitManE	{:}	-	-	"Time to end pitch maneuvers for each blade"	s
+typedef	^	ParameterType	DbKi	TPitManS	{:}	-	-	"Time to start pitch maneuvers for each blade"	s
+typedef	^	ParameterType	DbKi	TTpBrDp	{:}	-	-	"Times to initiate deployment of tip brakes"	s
+typedef	^	ParameterType	DbKi	TTpBrFl	{:}	-	-	"Times at which tip brakes are fully deployed"	s
+typedef	^	ParameterType	DbKi	TYawManE	-	-	-	"Time to end override yaw maneuver"	s
+typedef	^	ParameterType	DbKi	TYawManS	-	-	-	"Time to start override yaw maneuver"	s
+typedef	^	ParameterType	DbKi	TYCOn	-	-	-	"Time to enable active yaw control"	s
+typedef	^	ParameterType	ReKi	VS_RtGnSp	-	-	-	"Rated generator speed (HSS side)"	rad/s
+typedef	^	ParameterType	ReKi	VS_RtTq	-	-	-	"Rated generator torque/constant generator torque in Region 3 (HSS side)"	N-m
+typedef	^	ParameterType	ReKi	VS_Slope	-	-	-	"Torque/speed slope of region 2 1/2 induction generator"
+typedef	^	ParameterType	ReKi	VS_SlPc	-	-	-	"Rated generator slip percentage in Region 2 1/2"	%
+typedef	^	ParameterType	ReKi	VS_SySp	-	-	-	"Synchronous speed of region 2 1/2 induction generator"
+typedef	^	ParameterType	ReKi	VS_TrGnSp	-	-	-	"Transitional generator speed between regions 2 and 2 1/2"
+typedef	^	ParameterType	ReKi	YawPosCom	-	-	-	"Commanded yaw angle from user-defined routines"	rad
+typedef	^	ParameterType	ReKi	YawRateCom	-	-	-	"Commanded yaw rate  from user-defined routines"	rad/s
+typedef	^	ParameterType	IntKi	GenModel	-	-	-	"Generator model"
+typedef	^	ParameterType	IntKi	HSSBrMode	-	-	-	"HSS brake model"
+typedef	^	ParameterType	IntKi	PCMode	-	-	-	"Pitch control mode"
+typedef	^	ParameterType	IntKi	VSContrl	-	-	-	"Variable-speed-generator control switch"
+typedef	^	ParameterType	IntKi	YCMode	-	-	-	"Yaw control mode"
+typedef	^	ParameterType	LOGICAL	BegPitMan	{:}	-	-	".TRUE. before the override pitch manuever has begun (begin pitch manuever)"
+typedef	^	ParameterType	LOGICAL	GenTiStp	-	-	-	"Stop generator based upon T: time or F: generator power = 0"
+typedef	^	ParameterType	LOGICAL	GenTiStr	-	-	-	"Start generator based upon T: time or F: generator speed"
 # parameters for output
-typedef	^	^	IntKi	NumOuts	-	-	-	"Number of parameters in the output list (number of outputs requested)"	-
-typedef	^	^	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"	-
-typedef	^	^	OutParmType	OutParam	{:}	-	-	"Names and units (and other characteristics) of all requested output parameters"	-
-typedef	^	^	CHARACTER(1)	Delim	-	-	-	"Column delimiter for output text files"	-
+typedef	^	ParameterType	IntKi	NumOuts	-	-	-	"Number of parameters in the output list (number of outputs requested)"	-
+typedef	^	ParameterType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"	-
+typedef	^	ParameterType	OutParmType	OutParam	{:}	-	-	"Names and units (and other characteristics) of all requested output parameters"	-
+typedef	^	ParameterType	CHARACTER(1)	Delim	-	-	-	"Column delimiter for output text files"	-
 # parameters from TurbCont
-typedef	^	^	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
+typedef	^	ParameterType	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:

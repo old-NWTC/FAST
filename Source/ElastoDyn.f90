@@ -1389,8 +1389,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
          ! Local variables
 
-      TYPE(ED_InputFile)                           :: InputFileData  ! Data stored in the module's input file
-      LOGICAL                                      :: GetAdamsVals   ! Determines if we should read Adams values and create (update) an Adams model
+      TYPE(ED_InputFile)                           :: InputFileData           ! Data stored in the module's input file
+      LOGICAL, PARAMETER                           :: GetAdamsVals = .FALSE.  ! Determines if we should read Adams values and create (update) an Adams model
 
 !bjj: ERROR CHECKING HERE!!!!
 
@@ -1399,8 +1399,6 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       ErrStat = ErrID_None
       ErrMsg  = ""
       
-      GetAdamsVals = InitInp%AdamsUnit > 0            ! get Adams values only if the unit number is positive
-
       p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(ED_Ver%Name) ! all of the output file names from this module will end with '_ElastoDyn'
 
 
@@ -1417,12 +1415,16 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
       CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, p%RootName, ErrStat, ErrMsg )
       IF ( ErrStat /= ErrID_None ) THEN
+               !we need a routine to destroy the InputFileData structure....
+
          CALL WrScr( ErrMsg )
          RETURN
       END IF
       CALL ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
       IF ( ErrStat /= ErrID_None ) THEN
          CALL WrScr( ErrMsg )
+      !we need a routine to destroy the InputFileData structure....
+         
          RETURN
       END IF
       
@@ -1430,6 +1432,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )     
       IF ( ErrStat /= ErrID_None ) THEN
          CALL WrScr( ErrMsg )
+      !we need a routine to destroy the InputFileData structure....
+         
          RETURN
       END IF
 
@@ -1445,6 +1449,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL Init_ContStates( x, p, InputFileData, ErrStat, ErrMsg )               ! initialize the continuous states
       IF ( ErrStat /= ErrID_None ) THEN
          CALL WrScr( ErrMsg )
+      !we need a routine to destroy the InputFileData structure....
+         
          RETURN
       END IF
 
@@ -1462,6 +1468,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    IF ( ErrStat /= 0 )  THEN
       ErrStat = ErrID_Fatal
       ErrMsg = 'Error allocating memory for the AllOuts array.'
+      !we need a routine to destroy the InputFileData structure....
+      
       RETURN
    ENDIF
    y%AllOuts = 0.0      
@@ -1475,6 +1483,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    IF ( ErrStat /= 0 )  THEN
       ErrStat = ErrID_Fatal
       ErrMsg = 'Error allocating memory for the ElastoDyn WriteOutput array.' 
+      !we need a routine to destroy the InputFileData structure....
       RETURN
    ENDIF
       
@@ -4152,6 +4161,12 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
       p%Delim = ' '
    END IF 
    
+   IF ( InputFileData%TabDelim ) THEN
+      p%Delim = TAB
+   ELSE
+      p%Delim = ' '
+   END IF 
+   
    !...............................................................................................................................
    ! Calculate some indirect inputs:
    !...............................................................................................................................
@@ -5994,6 +6009,12 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       IF ( ErrStat >= AbortErrLev ) RETURN
    InputFileData%RotSpeed = InputFileData%RotSpeed*RPM2RPS
 
+      ! NacYaw - Initial nacelle-yaw angle (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NacYaw, "RotSpeed", "Initial nacelle-yaw angle (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%NacYaw = InputFileData%NacYaw*D2R   
+   
       ! TTDspFA - Initial fore-aft tower-top displacement (meters):
    CALL ReadVar( UnIn, InputFile, InputFileData%TTDspFA, "TTDspFA", "Initial fore-aft tower-top displacement (meters)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -6365,7 +6386,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! OutFmt - Format used for module's text tabult output (except time); resulting field should be 10 characters (-):
+      ! OutFmt - Format used for module's text tabular output (except time); resulting field should be 10 characters (-):
    CALL ReadVar( UnIn, InputFile, InputFileData%OutFmt, "OutFmt", "Format used for module's text tabular output (except time); resulting field should be 10 characters (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
@@ -6524,6 +6545,10 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
       ! Check that these integers are in appropriate ranges:   
    IF ( InputFileData%TwrNodes < 1_IntKi ) CALL SetErrors( ErrID_Fatal, 'TwrNodes must not be less than 1.' )
 
+      ! Check that the gearbox efficiency is valid:
+   IF ( ( InputFileData%GBoxEff <= 0.0_ReKi ) .OR. ( InputFileData%GBoxEff > 100.0 ) ) THEN
+      CALL SetErrors( ErrID_Fatal, 'GBoxEff must be in the range (0,1] (i.e., (0,100] percent).' )
+   END IF       
    
       ! warn if 2nd modes are enabled without their corresponding 1st modes
       
@@ -6661,7 +6686,6 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
    END IF   
    
 
-   !IF ( ( PtfmLdMod /= 0 ) .AND. ( PtfmLdMod /= 1 ) )  CALL ProgAbort ( ' PtfmLdMod must be 0 or 1.' )      
   
       ! Check that InputFileData%OutFmt is a valid format specifier and will fit over the column headings
    CALL ChkRealFmtStr( InputFileData%OutFmt, 'OutFmt', FmtWidth, ErrStat2, ErrMsg2 )   
@@ -6669,6 +6693,24 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
    IF ( FmtWidth /= OutStrLen ) CALL SetErrors(ErrID_Warn, 'OutFmt produces a column width of '//TRIM(Num2LStr(FmtWidth))//&
                                                            ' instead of '//TRIM(Num2LStr(OutStrLen))//' characters.' )
 
+   
+   ! bjj: figure out what to do with these checks...
+   !IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%OoPDefl /= 0.0 ) )  &
+   !   CALL ProgAbort ( ' Initial out-of-plane blade-tip displacements must be zero when ElastoDyn is interfaced with Simulink'// &
+   !                ' or Labview. Set OoPDefl to 0.0 or use the standard version of ElastoDyn.'                )
+   !
+   !IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%IPDefl  /= 0.0 ) )  &
+   !   CALL ProgAbort ( ' Initial in-plane blade-tip displacements must be zero when ElastoDyn is interfaced with Simulink'// &
+   !                ' or Labview. Set IPDefl to 0.0 or use the standard version of ElastoDyn.'                 )
+   !
+   !IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%TTDspFA /= 0.0 ) )  &
+   !   CALL ProgAbort ( ' Initial fore-aft tower-top displacements must be zero when ElastoDyn is interfaced with Simulink'// &
+   !                ' or Labview. Set TTDspFA to 0.0 or use the standard version of ElastoDyn.'               )
+   !
+   !IF ( (Cmpl4SFun .OR. Cmpl4LV) .AND. ( InputFileData%TTDspSS /= 0.0 ) )  &
+   !   CALL ProgAbort ( ' Initial side-to-side tower-top displacements must be zero when ElastoDyn is interfaced with Simulink'// &
+   !                ' or Labview. Set TTDspSS to 0.0 or use the standard version of ElastoDyn.'                      )   
+   
    RETURN
 
 CONTAINS

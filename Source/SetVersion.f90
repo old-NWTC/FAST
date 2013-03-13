@@ -1,53 +1,51 @@
 !=======================================================================
-SUBROUTINE SetVersion
+SUBROUTINE GetVersion(ProgVer)
 
 
    ! This routine sets the version number.  By doing it this way instead
    !   of the old way of initializing it in a module, we will no longer
    !   have to recompile everything every time we change versions.
 
-USE GlueCodeVars
-USE                             NWTC_Library
+   USE GlueCodeVars
+   USE                             NWTC_Library
 
 
-IMPLICIT                        NONE
+   IMPLICIT                        NONE
 
 
-   ! Local Variables:
+   ! Passed Variables:
 
-CHARACTER(6)                 :: Prcsn                                           ! String containing a description of the as-compiled precision.
-
-
-ProgName = 'FAST'
-
-ProgVer = '(v7.03.00a-bjj, 4-Dec-2012)'
+   CHARACTER(1024), INTENT(OUT)  :: ProgVer                                           ! String containing a description of the as-compiled precision.
 
 
-
-IF ( ReKi == SiKi )  THEN     ! Single precision
-   Prcsn = 'SINGLE'
-ELSEIF ( ReKi == R8Ki )  THEN ! Double precision
-   Prcsn = 'DOUBLE'
-ELSE                          ! Unknown precision
-   Prcsn = 'UNKNWN'
-ENDIF
-
-
-IF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
-
-   ProgVer = TRIM(ProgVer)//'-Compiled as S-Function for Simulink'
    
-ELSEIF ( Cmpl4LV )  THEN     ! FAST has been compiled as a DLL for Labview
+   ProgVer = TRIM(GetNVD(FAST_Ver))//' (compiled using '
+
+   ! determine precision
+      IF ( ReKi == SiKi )  THEN     ! Single precision
+         ProgVer = TRIM(ProgVer)//'SINGLE'
+      ELSEIF ( ReKi == R8Ki )  THEN ! Double precision
+         ProgVer = TRIM(ProgVer)//'DOUBLE'
+      ELSE                          ! Unknown precision
+         ProgVer = TRIM(ProgVer)//'UNKNOWN'
+      ENDIF
+
+   ProgVer = TRIM(ProgVer)//' precision'
+
+
+   ! determine if we've done some other modifications
+      IF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
+         ProgVer = TRIM(ProgVer)//' as S-Function for Simulink'  
+      ELSEIF ( Cmpl4LV )  THEN     ! FAST has been compiled as a DLL for Labview
+         ProgVer = TRIM(ProgVer)//' as a DLL for Labview'
+      ENDIF
+
+      !IF ( OC3HywindMods ) THEN
+      !   ProgVer = TRIM(ProgVer)//' with OC3 Hywind Modifications'
+      !END IF
+            
+   ProgVer = TRIM(ProgVer)//')'
    
-   ProgVer = TRIM(ProgVer)//'-Compiled as a DLL for Labview'
-   
-ELSEIF( ReKi /= SiKi )  THEN  ! Compiled using something other than single precision
 
-   ProgVer = TRIM(ProgVer)//'-Compiled using '//Prcsn//' precision'
-
-ENDIF
-
-
-
-RETURN
-END SUBROUTINE SetVersion
+   RETURN
+END SUBROUTINE GetVersion

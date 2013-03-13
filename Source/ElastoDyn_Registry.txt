@@ -81,7 +81,7 @@ typedef	^	ED_InputFile	ReKi	IPDefl	-	-	-	"Initial in-plane blade-tip deflection"
 typedef	^	ED_InputFile	ReKi	BlPitch	{:}	-	-	"Initial blade pitch angles"	radians
 typedef	^	ED_InputFile	ReKi	TeetDefl	-	-	-	"Initial teeter angle"	radians
 typedef	^	ED_InputFile	ReKi	Azimuth	-	-	-	"Initial azimuth angle for blade 1"	radians
-typedef	^	ED_InputFile	ReKi	RotSpeed	-	-	-	"Initial rotor speed"	rad/sec
+typedef	^	ED_InputFile	ReKi	RotSpeed	-	-	-	"Initial rotor speed"	rad/s
 typedef	^	ED_InputFile	ReKi	NacYaw	-	-	-	"Initial nacelle-yaw angle"	radians
 typedef	^	ED_InputFile	ReKi	TTDspFA	-	-	-	"Initial fore-aft tower-top displacement"	meters
 typedef	^	ED_InputFile	ReKi	TTDspSS	-	-	-	"Initial side-to-side tower-top displacement"	meters
@@ -438,7 +438,7 @@ typedef	^	^	ReKi	TeetAngVel	-	-	-	"Angular velocity of the teeter motion"
 # Define inputs that the initialization routine may need here:
 typedef	^	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"	-
 typedef	^	^	CHARACTER(1024)	ADInputFile	-	-	-	"Name of the AeroDyn input file (in this verison, that is where we'll get the blade mesh info"	-
-typedef	^	^	IntKi	AdamsUnit	-	-	-	"Unit number of (already-open-for-writing-text) Adams file: if <= 0, don't create Adams file"	-	"bjj: may need two of these unit numbers"
+#typedef	^	^	IntKi	AdamsUnit	-	-	-	"Unit number of (already-open-for-writing-text) Adams file: if <= 0, don't create Adams file"	-	"bjj: may need two of these unit numbers"
 typedef	^	^	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"
 
 # Define outputs from the initialization routine here:
@@ -592,7 +592,7 @@ typedef	^	^	ReKi	TwrFlexL	-	-	-	"Height / length of the flexible portion of the 
 
 typedef	^	^	ReKi	TwrSSSF	{:}{:}{:}	-	-	"Tower side-to-side shape functions"
 typedef	^	^	IntKi	TTopNode	-	-	-	"Index of the additional node located at the tower-top = TwrNodes + 1"
-typedef	^	^	IntKi	TwrLdMod	-	0	-	"Tower loading model switch"
+#typedef	^	^	IntKi	TwrLdMod	-	0	-	"Tower loading model switch"
 typedef	^	^	IntKi	TwrNodes	-	0	-	"Number of tower nodes used in the analysis"
 # parameters describing the tower (Tower), which are really just for Adams:
 typedef	^	^	ReKi	InerTFA	{:}	-	-	"Interpolated tower fore-aft (about yt-axis) mass inertia per unit length"
@@ -731,7 +731,7 @@ typedef	^	^	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"
 typedef	^	^	ReKi	GenEff	-	-	-	"Generator efficiency"	"shouldn't need to be here (only in controls)"
 #typedef	^	^	IntKi	GenDir	-	-	-	"Direction of the generator = +/- 1 (+ 1 = same direction as LSS; -1 = opposite direction of LSS)"
 # parameters from Initial Conditions
-typedef	^	^	ReKi	RotSpeed	-	-	-	"Initial or fixed rotor speed"	rad/sec
+typedef	^	^	ReKi	RotSpeed	-	-	-	"Initial or fixed rotor speed"	rad/s
 # Misc parameters
 typedef	^	^	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"
 
