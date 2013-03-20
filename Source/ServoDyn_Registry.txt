@@ -59,7 +59,7 @@ typedef	^	SrvD_InputFile	ReKi	YawNeut	-	-	-	"Neutral yaw position--yaw spring fo
 typedef	^	SrvD_InputFile	ReKi	YawSpr	-	-	-	"Nacelle-yaw spring constant"	N-m/rad
 typedef	^	SrvD_InputFile	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"	N-m/(rad/s)
 typedef	^	SrvD_InputFile	DbKi	TYawManS	-	-	-	"Time to start override yaw maneuver and end standard yaw control"	s
-typedef	^	SrvD_InputFile	DbKi	TYawManE	-	-	-	"Time at which override yaw maneuver reaches final yaw angle"	s
+typedef	^	SrvD_InputFile	ReKi	YawManRat	-	-	-	"Yaw maneuver rate (in absolute value)"	rad/s
 typedef	^	SrvD_InputFile	ReKi	NacYawF	-	-	-	"Final yaw angle for override yaw maneuvers"	radians
 typedef	^	SrvD_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName>.fsm?"	-
 typedef	^	SrvD_InputFile	IntKi	OutFile	-	-	-	"Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both)"	-
@@ -82,7 +82,7 @@ typedef	^	SrvD_InputFile	CHARACTER(10)	OutList	{:}	-	-	"List of user-requested o
 typedef	^	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"	-
 typedef	^	^	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
 typedef	^	^	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"	-
-typedef	^	^	ReKi	BlPitchInit	-	-	-	"Initial blade pitch"	-
+typedef	^	^	ReKi	BlPitchInit	{:}	-	-	"Initial blade pitch"	-
 
 # Define outputs from the initialization routine here:
 typedef	^	InitOutputType	CHARACTER(10)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
@@ -100,7 +100,13 @@ typedef	^	DiscreteStateType	ReKi	DummyDiscState	-	-	-	"Remove this variable if y
 typedef	^	ConstraintStateType	ReKi	DummyConstrState	-	-	-	"Remove this variable if you have constraint states"	-
 
 # Define "other" states (any data that are not considered actual states) here:
-typedef	^	OtherStateType	ReKi	DummyOtherState	-	-	-	"Coordinate systems in the FAST framework"	-
+typedef	^	OtherStateType	ReKi	BlPitchI	{:}	-	-	"Initial blade pitch angles at the start of the override pitch maneuver"	radians
+typedef	^	OtherStateType	DbKi	BegPitMan	{:}	-	-	"Time that the override pitch manuever actually began"	seconds
+typedef	^	OtherStateType	DbKi	BegYawMan	-	-	-	"Time that the yaw maneuver actually began"	seconds
+typedef	^	OtherStateType	ReKi	NacYawI	-	-	-	"Initial yaw angle at the start of the override yaw maneuver"	radians
+typedef	^	OtherStateType	ReKi	YawManRat	-	-	-	"Yaw rate at which override yaw maneuver head toward for final yaw angle"	rad/s
+typedef	^	OtherStateType	DbKi	TYawManE	-	-	-	"Time to end override yaw maneuver"	s
+typedef	^	OtherStateType	ReKi	BlPitchFrct	{:}	-	-	"Blade pitch angle fractions used for the override pitch maneuver calculation"	rad/s
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -141,17 +147,16 @@ typedef	^	ParameterType	ReKi	GBRatio	-	-	-	"Gearbox ratio"	"shouldn't need to be
 typedef	^	ParameterType	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"	"shouldn't need to be here ((only in structural)"
 typedef	^	ParameterType	ReKi	GenEff	-	-	-	"Generator efficiency"
 # parameters from TurbCont
-typedef	^	ParameterType	ReKi	BlPitch	{:}	-	-	"Initial and current blade pitch angles"
-typedef	^	ParameterType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"
+typedef	^	ParameterType	ReKi	BlPitchInit	{:}	-	-	"Initial blade pitch angles"	radians
+
 typedef	^	ParameterType	ReKi	BlPitchF	{:}	-	-	"Final blade pitch"
-typedef	^	ParameterType	ReKi	BlPitchFrct	{:}	-	-	"Blade pitch angle fractions used for the override pitch maneuver calculation"
-typedef	^	ParameterType	ReKi	BlPitchI	{:}	-	-	"Initial blade pitch angles at the start of the override pitch maneuver"
+
 typedef	^	ParameterType	ReKi	NacYawF	-	-	-	"Final yaw angle after override yaw maneuver"
 typedef	^	ParameterType	ReKi	SpdGenOn	-	-	-	"Generator speed to turn on the generator for a startup"
 #typedef	^	ParameterType	ReKi	TBDepISp	{:}	-	-	"Deployment-initiation speed for the tip brakes"
 typedef	^	ParameterType	DbKi	THSSBrDp	-	-	-	"Time to initiate deployment of the shaft brake"	s
 typedef	^	ParameterType	DbKi	THSSBrFl	-	-	-	"Time at which shaft brake is fully deployed"	s
-typedef	^	ParameterType	DbKi	TiDynBrk	-	-	-	"Time to initiate deployment of the dynamic generator brake"	s
+#typedef	^	ParameterType	DbKi	TiDynBrk	-	-	-	"Time to initiate deployment of the dynamic generator brake"	s
 typedef	^	ParameterType	DbKi	TimGenOf	-	-	-	"Time to turn off generator for braking or modeling a run-away"	s
 typedef	^	ParameterType	DbKi	TimGenOn	-	-	-	"Time to turn on generator for startup"	s
 typedef	^	ParameterType	DbKi	TPCOn	-	-	-	"Time to enable active pitch control"	s
@@ -159,7 +164,7 @@ typedef	^	ParameterType	DbKi	TPitManE	{:}	-	-	"Time to end pitch maneuvers for e
 typedef	^	ParameterType	DbKi	TPitManS	{:}	-	-	"Time to start pitch maneuvers for each blade"	s
 typedef	^	ParameterType	DbKi	TTpBrDp	{:}	-	-	"Times to initiate deployment of tip brakes"	s
 typedef	^	ParameterType	DbKi	TTpBrFl	{:}	-	-	"Times at which tip brakes are fully deployed"	s
-typedef	^	ParameterType	DbKi	TYawManE	-	-	-	"Time to end override yaw maneuver"	s
+
 typedef	^	ParameterType	DbKi	TYawManS	-	-	-	"Time to start override yaw maneuver"	s
 typedef	^	ParameterType	DbKi	TYCOn	-	-	-	"Time to enable active yaw control"	s
 typedef	^	ParameterType	ReKi	VS_RtGnSp	-	-	-	"Rated generator speed (HSS side)"	rad/s
@@ -175,7 +180,6 @@ typedef	^	ParameterType	IntKi	HSSBrMode	-	-	-	"HSS brake model"
 typedef	^	ParameterType	IntKi	PCMode	-	-	-	"Pitch control mode"
 typedef	^	ParameterType	IntKi	VSContrl	-	-	-	"Variable-speed-generator control switch"
 typedef	^	ParameterType	IntKi	YCMode	-	-	-	"Yaw control mode"
-typedef	^	ParameterType	LOGICAL	BegPitMan	{:}	-	-	".TRUE. before the override pitch manuever has begun (begin pitch manuever)"
 typedef	^	ParameterType	LOGICAL	GenTiStp	-	-	-	"Stop generator based upon T: time or F: generator power = 0"
 typedef	^	ParameterType	LOGICAL	GenTiStr	-	-	-	"Start generator based upon T: time or F: generator speed"
 # parameters for output
@@ -183,19 +187,29 @@ typedef	^	ParameterType	IntKi	NumOuts	-	-	-	"Number of parameters in the output 
 typedef	^	ParameterType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"	-
 typedef	^	ParameterType	OutParmType	OutParam	{:}	-	-	"Names and units (and other characteristics) of all requested output parameters"	-
 typedef	^	ParameterType	CHARACTER(1)	Delim	-	-	-	"Column delimiter for output text files"	-
-# parameters from TurbCont
+# parameters from InitInput
 typedef	^	ParameterType	IntKi	NumBl	-	-	-	"Number of blades on the turbine"
+# parameters from TurbCont
+typedef	^	ParameterType	ReKi	VS_Rgn2K	-	-	-	"Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) [used only when VSContrl=1]"	N-m/(rad/s)^2
+typedef	^	ParameterType	ReKi	YawNeut	-	-	-	"Neutral yaw position--yaw spring force is zero at this yaw"	radians
+typedef	^	ParameterType	ReKi	YawSpr	-	-	-	"Nacelle-yaw spring constant"	N-m/rad
+typedef	^	ParameterType	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"	N-m/(rad/s)
+
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:
 #typedef	^	InputType	MeshType	MeshedInput	-	-	-	"Meshed input data"	-
 # Define inputs that are not on this mesh here:
-typedef	^	InputType	IntKi	DummyInput	-	-	-	"Remove this variable if you have input data"	-
-
-
+typedef	^	InputType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
+typedef	^	InputType	ReKi	Yaw	-	-	-	"Current nacelle yaw"	radians
+typedef	^	InputType	ReKi	YawRate	-	-	-	"Current nacelle yaw rate"	rad/s
+typedef	^	InputType	ReKi	ExternalYawPosCom	-	-	-	"Commanded yaw position from Simulink or Labview"	radians
+typedef	^	InputType	ReKi	ExternalYawRateCom	-	-	-	"Commanded yaw rate from Simulink or Labview"	rad/s
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
 #typedef	^	OutputType	MeshType	MeshedOutput	-	-	-	"Meshed output data"	-
 # Define outputs that are not on this mesh here:
 typedef	^	OutputType	ReKi	WriteOutput	{:}	-	-	"Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt"
+typedef	^	OutputType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"	radians
+typedef	^	OutputType	ReKi	YawMom	-	-	-	"Torque transmitted through the yaw bearing"	N-m

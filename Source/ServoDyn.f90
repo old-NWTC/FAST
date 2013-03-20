@@ -27,7 +27,7 @@ MODULE ServoDyn
 
    IMPLICIT NONE
 
-   PRIVATE
+  ! PRIVATE
 
    TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.00.00', '31-March-2013' )
 !   INTEGER(IntKi), PARAMETER            :: MaxBl = 3
@@ -68,114 +68,144 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
 ! The initial states and initial guess for the input are defined.
 !..................................................................................................................................
 
-      TYPE(SrvD_InitInputType),       INTENT(IN   )  :: InitInp     ! Input data for initialization routine
-      TYPE(SrvD_InputType),           INTENT(  OUT)  :: u           ! An initial guess for the input; input mesh must be defined
-      TYPE(SrvD_ParameterType),       INTENT(  OUT)  :: p           ! Parameters
-      TYPE(SrvD_ContinuousStateType), INTENT(  OUT)  :: x           ! Initial continuous states
-      TYPE(SrvD_DiscreteStateType),   INTENT(  OUT)  :: xd          ! Initial discrete states
-      TYPE(SrvD_ConstraintStateType), INTENT(  OUT)  :: z           ! Initial guess of the constraint states
-      TYPE(SrvD_OtherStateType),      INTENT(  OUT)  :: OtherState  ! Initial other/optimization states
-      TYPE(SrvD_OutputType),          INTENT(  OUT)  :: y           ! Initial system outputs (outputs are not calculated;
-                                                                    !   only the output mesh is initialized)
-      REAL(DbKi),                     INTENT(INOUT)  :: Interval    ! Coupling interval in seconds: the rate that
-                                                                    !   (1) SrvD_UpdateStates() is called in loose coupling &
-                                                                    !   (2) SrvD_UpdateDiscState() is called in tight coupling.
-                                                                    !   Input is the suggested time from the glue code;
-                                                                    !   Output is the actual coupling interval that will be used
-                                                                    !   by the glue code.
-      TYPE(SrvD_InitOutputType),      INTENT(  OUT)  :: InitOut     ! Output for initialization routine
-      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   TYPE(SrvD_InitInputType),       INTENT(IN   )  :: InitInp     ! Input data for initialization routine
+   TYPE(SrvD_InputType),           INTENT(  OUT)  :: u           ! An initial guess for the input; input mesh must be defined
+   TYPE(SrvD_ParameterType),       INTENT(  OUT)  :: p           ! Parameters
+   TYPE(SrvD_ContinuousStateType), INTENT(  OUT)  :: x           ! Initial continuous states
+   TYPE(SrvD_DiscreteStateType),   INTENT(  OUT)  :: xd          ! Initial discrete states
+   TYPE(SrvD_ConstraintStateType), INTENT(  OUT)  :: z           ! Initial guess of the constraint states
+   TYPE(SrvD_OtherStateType),      INTENT(  OUT)  :: OtherState  ! Initial other/optimization states
+   TYPE(SrvD_OutputType),          INTENT(  OUT)  :: y           ! Initial system outputs (outputs are not calculated;
+                                                                  !   only the output mesh is initialized)
+   REAL(DbKi),                     INTENT(INOUT)  :: Interval    ! Coupling interval in seconds: the rate that
+                                                                  !   (1) SrvD_UpdateStates() is called in loose coupling &
+                                                                  !   (2) SrvD_UpdateDiscState() is called in tight coupling.
+                                                                  !   Input is the suggested time from the glue code;
+                                                                  !   Output is the actual coupling interval that will be used
+                                                                  !   by the glue code.
+   TYPE(SrvD_InitOutputType),      INTENT(  OUT)  :: InitOut     ! Output for initialization routine
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
-         ! local variables
+      ! local variables
 
-      TYPE(SrvD_InputFile)                           :: InputFileData  ! Data stored in the module's input file
+   TYPE(SrvD_InputFile)                           :: InputFileData  ! Data stored in the module's input file
 
 
-         ! Initialize variables
+      ! Initialize variables
 
-      ErrStat = ErrID_None
-      ErrMsg  = ""
+   ErrStat = ErrID_None
+   ErrMsg  = ""
 
-      p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(SrvD_Ver%Name) ! all of the output file names from this module will end with '_ModuleName'
-      p%NumBl    = InitInp%NumBl
       
-         ! Initialize the NWTC Subroutine Library
+      ! Initialize the NWTC Subroutine Library
 
-      CALL NWTC_Init( )
+   CALL NWTC_Init( )
 
-         ! Display the module information
+      ! Display the module information
 
-      CALL DispNVD( SrvD_Ver )
+   CALL DispNVD( SrvD_Ver )
 
          
+      !............................................................................................      
+      ! Read the input file and validate the data
+      ! (note p%NumBl and p%RootName must be set first!) 
+      !............................................................................................      
+   p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(SrvD_Ver%Name) ! all of the output file names from this module will end with '_ModuleName'
+   p%NumBl    = InitInp%NumBl         
       
-         ! Read the input file and validate the data
-      CALL SrvD_ReadInput( InitInp%InputFile, InputFileData, p%RootName, ErrStat, ErrMsg )
-      IF ( ErrStat /= ErrID_None ) THEN
-         CALL WrScr( ErrMsg )
-         RETURN
-      END IF
+   CALL SrvD_ReadInput( InitInp%InputFile, InputFileData, p%RootName, ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) THEN
+      CALL WrScr( ErrMsg )
+      RETURN
+   END IF
       
-      CALL ValidatePrimaryData( InputFileData, InitInp%NumBl, ErrStat, ErrMsg )
-      IF ( ErrStat /= ErrID_None ) THEN
-         CALL WrScr( ErrMsg )
-         RETURN
-      END IF
+   CALL ValidatePrimaryData( InputFileData, InitInp%NumBl, ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) THEN
+      CALL WrScr( ErrMsg )
+      RETURN
+   END IF
 
       
-         ! Define parameters here:
-      CALL SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )           
-      IF ( ErrStat /= ErrID_None ) THEN
-         CALL WrScr( ErrMsg )
-         RETURN
-      END IF
+      !............................................................................................
+      ! Define parameters here:
+      !............................................................................................
+   CALL SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )           
+   IF ( ErrStat /= ErrID_None ) THEN
+      CALL WrScr( ErrMsg )
+      RETURN
+   END IF
       
+   p%DT  = Interval
+
+      ! Set and verify BlPitchInit, which comes from InitInputData (not the inputfiledata)
+   CALL AllocAry( p%BlPitchInit, p%NumBl, 'BlPitchInit', ErrStat, ErrMsg )
+   p%BlPitchInit = InitInp%BlPitchInit
+
+   IF ( ANY( p%BlPitchInit <= -pi ) .OR. ANY( p%BlPitchInit > pi ) )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = 'BlPitchInit must be in the range (-pi,pi] radians (i.e., (-180,180] degrees).'
+      RETURN
+   END IF
+   
+      !............................................................................................
+      ! Define initial system states here:
+      !............................................................................................
+
+   x%DummyContState           = 0
+   xd%DummyDiscState          = 0
+   z%DummyConstrState         = 0
+   
+
+      !............................................................................................
+      ! Define initial guess for the system inputs here:
+      !............................................................................................
+
+   CALL AllocAry( u%BlPitch, p%NumBl, 'BlPitch', ErrStat, ErrMsg )
+   u%BlPitch = p%BlPitchInit
 
 
-      p%DT  = Interval
+      !............................................................................................
+      ! Define system output initializations (set up mesh) here:
+      !............................................................................................
+   CALL AllocAry( y%WriteOutput, p%NumBl, 'WriteOutput', ErrStat, ErrMsg )
+   y%WriteOutput = 0
+      
+   CALL AllocAry( y%BlPitchCom, p%NumBl, 'BlPitchCom', ErrStat, ErrMsg )
 
+      !............................................................................................
+      ! Define initialization-routine output here:
+      !............................................................................................
+   ALLOCATE( InitOut%WriteOutputHdr(p%NumOuts), InitOut%WriteOutputUnt(p%NumOuts), STAT = ErrStat )
+   IF ( ErrStat /= 0_IntKi ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating output header and units arrays in SrvD_Init'
+      RETURN
+   END IF
 
-         ! Define initial system states here:
+   !InitOut%WriteOutputHdr = (/ 'Time   ', 'Column2' /)
+   !InitOut%WriteOutputUnt = (/ '(s)',     '(-)'     /)
+   InitOut%Ver = SrvD_Ver
 
-      x%DummyContState           = 0
-      xd%DummyDiscState          = 0
-      z%DummyConstrState         = 0
-      OtherState%DummyOtherState = 0
+   
+      !............................................................................................
+      ! Initialize other states here:
+      !............................................................................................
+   CALL AllocAry( OtherState%BlPitchI,  p%NumBl,   'BlPitchI',  ErrStat, ErrMsg )
+   CALL AllocAry( OtherState%BegPitMan, p%NumBl,   'BegPitMan', ErrStat, ErrMsg )
+   CALL AllocAry( OtherState%BlPitchFrct, p%NumBl, 'BlPitchFrct', ErrStat, ErrMsg )
+      
+   OtherState%BegPitMan  = HUGE(OtherState%BegPitMan)         ! Pitch maneuvers didn't actually start, yet (pick a number larger than TPitManS)
+   OtherState%BegYawMan  = HUGE(OtherState%BegYawMan)         ! Yaw maneuver didn't actually start, yet (pick a number larger than TYawManS)
+   
+   OtherState%YawManRat = InputFileData%YawManRat  ! we change the sign of this variable later, so we'll store it as an other state instead of a parameter
+   
+      !............................................................................................
+      ! If you want to choose your own rate instead of using what the glue code suggests, tell the glue code the rate at which
+      !   this module must be called here:
+      !............................................................................................
 
-
-         ! Define initial guess for the system inputs here:
-
-      u%DummyInput = 0
-
-
-         ! Define system output initializations (set up mesh) here:
-      ALLOCATE( y%WriteOutput(p%NumOuts), STAT = ErrStat )
-      IF ( ErrStat/= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = 'Error allocating output header and units arrays in SrvD_Init'
-         RETURN
-      END IF
-
-      y%WriteOutput = 0
-
-
-         ! Define initialization-routine output here:
-      ALLOCATE( InitOut%WriteOutputHdr(p%NumOuts), InitOut%WriteOutputUnt(p%NumOuts), STAT = ErrStat )
-      IF ( ErrStat/= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = 'Error allocating output header and units arrays in SrvD_Init'
-         RETURN
-      END IF
-
-      !InitOut%WriteOutputHdr = (/ 'Time   ', 'Column2' /)
-      !InitOut%WriteOutputUnt = (/ '(s)',     '(-)'     /)
-      InitOut%Ver = SrvD_Ver
-
-         ! If you want to choose your own rate instead of using what the glue code suggests, tell the glue code the rate at which
-         !   this module must be called here:
-
-       !Interval = p%DT
+      !Interval = p%DT
 
 
 END SUBROUTINE SrvD_Init
@@ -236,27 +266,27 @@ SUBROUTINE SrvD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
 END SUBROUTINE SrvD_End
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+SUBROUTINE SrvD_UpdateStates( t, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 ! Loose coupling routine for solving for constraint states, integrating continuous states, and updating discrete states
-! Constraint states are solved for input Time; Continuous and discrete states are updated for Time + Interval
+! Constraint states are solved for input t; Continuous and discrete states are updated for t + Interval
 !..................................................................................................................................
 
-      REAL(DbKi),                      INTENT(IN   ) :: Time        ! Current simulation time in seconds
-      TYPE(SrvD_InputType),            INTENT(IN   ) :: u           ! Inputs at Time
+      REAL(DbKi),                      INTENT(IN   ) :: t           ! Current simulation time in seconds
+      TYPE(SrvD_InputType),            INTENT(IN   ) :: u           ! Inputs at t
       TYPE(SrvD_ParameterType),        INTENT(IN   ) :: p           ! Parameters
-      TYPE(SrvD_ContinuousStateType),  INTENT(INOUT) :: x           ! Input: Continuous states at Time;
-                                                                    !   Output: Continuous states at Time + Interval
-      TYPE(SrvD_DiscreteStateType),    INTENT(INOUT) :: xd          ! Input: Discrete states at Time;
-                                                                    !   Output: Discrete states at Time  + Interval
-      TYPE(SrvD_ConstraintStateType),  INTENT(INOUT) :: z           ! Input: Initial guess of constraint states at Time;
-                                                                    !   Output: Constraint states at Time
+      TYPE(SrvD_ContinuousStateType),  INTENT(INOUT) :: x           ! Input: Continuous states at t;
+                                                                    !   Output: Continuous states at t + Interval
+      TYPE(SrvD_DiscreteStateType),    INTENT(INOUT) :: xd          ! Input: Discrete states at t;
+                                                                    !   Output: Discrete states at t  + Interval
+      TYPE(SrvD_ConstraintStateType),  INTENT(INOUT) :: z           ! Input: Initial guess of constraint states at t;
+                                                                    !   Output: Constraint states at t
       TYPE(SrvD_OtherStateType),       INTENT(INOUT) :: OtherState  ! Other/optimization states
       INTEGER(IntKi),                  INTENT(  OUT) :: ErrStat     ! Error status of the operation
       CHARACTER(*),                    INTENT(  OUT) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
          ! Local variables
 
-      TYPE(SrvD_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at Time
+      TYPE(SrvD_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at t
       TYPE(SrvD_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
 
       INTEGER(IntKi)                                 :: ErrStat2    ! Error status of the operation (occurs after initial error)
@@ -274,7 +304,7 @@ SUBROUTINE SrvD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
          ! Check if the z guess is correct and update z with a new guess.
          ! Iterate until the value is within a given tolerance.
 
-      CALL SrvD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
+      CALL SrvD_CalcConstrStateResidual( t, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) THEN
          CALL SrvD_DestroyConstrState( z_Residual, ErrStat2, ErrMsg2)
          ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
@@ -285,7 +315,7 @@ SUBROUTINE SrvD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
       !
       !  z =
       !
-      !  CALL SrvD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
+      !  CALL SrvD_CalcConstrStateResidual( t, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
       !  IF ( ErrStat >= AbortErrLev ) THEN
       !     CALL SrvD_DestroyConstrState( z_Residual, ErrStat2, ErrMsg2)
       !     ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
@@ -304,7 +334,7 @@ SUBROUTINE SrvD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
 
          ! Get first time derivatives of continuous states (dxdt):
 
-      CALL SrvD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
+      CALL SrvD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) THEN
          CALL SrvD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
          ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
@@ -316,7 +346,7 @@ SUBROUTINE SrvD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
          !   Note that xd [discrete state] is changed in SrvD_UpdateDiscState(), so SrvD_CalcOutput(),
          !   SrvD_CalcContStateDeriv(), and SrvD_CalcConstrStates() must be called first (see above).
 
-      CALL SrvD_UpdateDiscState(Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+      CALL SrvD_UpdateDiscState(t, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) THEN
          CALL SrvD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
          ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
@@ -338,18 +368,18 @@ SUBROUTINE SrvD_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg 
 
 END SUBROUTINE SrvD_UpdateStates
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
+SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 ! Routine for computing outputs, used in both loose and tight coupling.
 !..................................................................................................................................
 
-      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
+      TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at t
       TYPE(SrvD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(SrvD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-      TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+      TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
+      TYPE(SrvD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
+      TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
       TYPE(SrvD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(SrvD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
+      TYPE(SrvD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at t (Input only so that mesh con-
                                                                     !   nectivity information does not have to be recalculated)
       INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
@@ -363,21 +393,24 @@ SUBROUTINE SrvD_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
 
          ! Compute outputs here:
 
+      ! Yaw control
+   CALL Yaw_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )      
+         
 
 END SUBROUTINE SrvD_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
+SUBROUTINE SrvD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
 ! Tight coupling routine for computing derivatives of continuous states
 !..................................................................................................................................
 
-      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
+      TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at t
       TYPE(SrvD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(SrvD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-      TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+      TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
+      TYPE(SrvD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
+      TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
       TYPE(SrvD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      TYPE(SrvD_ContinuousStateType), INTENT(  OUT)  :: dxdt        ! Continuous state derivatives at Time
+      TYPE(SrvD_ContinuousStateType), INTENT(  OUT)  :: dxdt        ! Continuous state derivatives at t
       INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
@@ -395,17 +428,17 @@ SUBROUTINE SrvD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrS
 
 END SUBROUTINE SrvD_CalcContStateDeriv
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_UpdateDiscState( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+SUBROUTINE SrvD_UpdateDiscState( t, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 ! Tight coupling routine for updating discrete states
 !..................................................................................................................................
 
-      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
+      TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at t
       TYPE(SrvD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(SrvD_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Input: Discrete states at Time;
-                                                                    !   Output: Discrete states at Time + Interval
-      TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+      TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
+      TYPE(SrvD_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Input: Discrete states at t;
+                                                                    !   Output: Discrete states at t + Interval
+      TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
       TYPE(SrvD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
       INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
@@ -423,16 +456,16 @@ SUBROUTINE SrvD_UpdateDiscState( Time, u, p, x, xd, z, OtherState, ErrStat, ErrM
 
 END SUBROUTINE SrvD_UpdateDiscState
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_residual, ErrStat, ErrMsg )
+SUBROUTINE SrvD_CalcConstrStateResidual( t, u, p, x, xd, z, OtherState, z_residual, ErrStat, ErrMsg )
 ! Tight coupling routine for solving for the residual of the constraint state equations
 !..................................................................................................................................
 
-      REAL(DbKi),                     INTENT(IN   )  :: Time        ! Current simulation time in seconds
-      TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+      REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
+      TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at t
       TYPE(SrvD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-      TYPE(SrvD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-      TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time (possibly a guess)
+      TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
+      TYPE(SrvD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
+      TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t (possibly a guess)
       TYPE(SrvD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
       TYPE(SrvD_ConstraintStateType), INTENT(  OUT)  :: z_residual  ! Residual of the constraint state equations using
                                                                     !     the input values described above
@@ -874,10 +907,11 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! TYawManE - Time at which override yaw maneuver reaches final yaw angle (s):
-   CALL ReadVar( UnIn, InputFile, InputFileData%TYawManE, "TYawManE", "Time at which override yaw maneuver reaches final yaw angle (s)", ErrStat2, ErrMsg2, UnEc)
+      ! YawManRat - Yaw maneuver rate (in absolute value) (deg/s) (read in degrees/second and converted to radians/second here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%YawManRat, "YawManRat", "Yaw maneuver rate (in absolute value) (deg/s)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%YawManRat = InputFileData%YawManRat*D2R
 
       ! NacYawF - Final yaw angle for override yaw maneuvers (deg) (read from file in degrees and converted to radians here):
    CALL ReadVar( UnIn, InputFile, InputFileData%NacYawF, "NacYawF", "Final yaw angle for override yaw maneuvers (deg)", ErrStat2, ErrMsg2, UnEc)
@@ -1002,11 +1036,21 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
       
 !ALLOCATE ( p%TTpBrDp(p%NumBl) , STAT=Sttus )
 !ALLOCATE ( p%TBDepISp(p%NumBl) , STAT=Sttus )
-!ALLOCATE ( p%TPitManS(p%NumBl) , STAT=Sttus )
-!ALLOCATE ( p%TPitManE(p%NumBl) , STAT=Sttus )
+
 !ALLOCATE ( p%BlPitch(p%NumBl) , STAT=Sttus )
-!ALLOCATE ( p%BlPitchF(p%NumBl) , STAT=Sttus )
+!ALLOCATE ( () , STAT=Sttus )
 !
+   CALL AllocAry( p%BlPitchF, p%NumBl, 'BlPitchF', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   p%BlPitchF = InputFileData%BlPitchF(1:p%NumBl)
+   
+   CALL AllocAry( p%TPitManS, p%NumBl, 'TPitManS', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   p%TPitManS = InputFileData%TPitManS(1:p%NumBl)
+   
+   CALL AllocAry( p%TPitManE, p%NumBl, 'TPitManE', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   p%TPitManE = InputFileData%TPitManE(1:p%NumBl)
 
    IF ( InputFileData%TabDelim ) THEN
       p%Delim = TAB
@@ -1068,16 +1112,16 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
                ' or use the standard version of ServoDyn.' )
          END IF
          
+!         IF ( .NOT. InputFileData%GenTiStp .OR. InputFileData%TimGenOf <= TMax ) THEN   !BJJ SET p%TimGenOf = HUGE() when Cmpl4SFun .OR. Cmpl4LV
          IF ( .NOT. InputFileData%GenTiStp ) THEN
-!         IF ( .NOT. InputFileData%GenTiStp .OR. InputFileData%TimGenOf <= TMax ) THEN
             CALL SetErrors( ErrID_Fatal, 'Variable-speed, generator torque control must not be disabled during simulation'//&
                 ' when implemented in Simulink or Labview. Set GenTiStp to True and TimGenOf > TMax, '//                    &
-                ' set VSContrl to 0, 1, or 2, or use the standard version of ServoDyn.'   )
+                ' set VSContrl to 0, 1, or 2, or use the standard version of ServoDyn.'   )            
          END IF         
          
       END IF         
            
-      !IF ( Cmpl4SFun .AND. ( InputFileData%THSSBrDp <= TMax ) )  THEN
+      !IF ( Cmpl4SFun .AND. ( InputFileData%THSSBrDp <= TMax ) )  THEN  !BJJ SET p%THSSBrDp = HUGE() when Cmpl4SFun
       !   CALL SetErrors( ErrID_Fatal, 'A high-speed shaft brake shutdown event can''t be initiated when ServoDyn is '// &
       !                'interfaced  with Simulink. Set THSSBrDp > TMax or use the standard version of ServoDyn.'        )
       !ENDIF
@@ -1097,7 +1141,8 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
    IF ( InputFileData%TYCOn < 0.0_DbKi )  THEN
       CALL SetErrors( ErrID_Fatal, 'TYCOn must not be negative.' )
    ENDIF
-
+   
+   
       ! checks for pitch control:      
    IF ( ( InputFileData%PCMode < 0_IntKi ) .OR. ( InputFileData%PCMode > 2_IntKi ) )  THEN
       CALL SetErrors( ErrID_Fatal, 'PCMode must be 0, 1, or 2.' )
@@ -1120,7 +1165,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
                           'TPitManE('//TRIM( Num2LStr(K) )//') must not be less than TPitManS('//TRIM( Num2LStr(K) )//').' )
    ENDDO ! K   
    
-!??? IF ( ( BlPitchInit(K) <= -pi ) .OR. ( BlPitchInit(K) > pi ) )  &
+!??? IF ( ANY( p%BlPitchInit <= -pi ) .OR. ANY( p%BlPitchInit > pi ) )  THEN
 !      CALL SetErrors( ErrID_Fatal, 'BlPitchInit('//TRIM( Num2LStr( K ) )//') must be in the range (-pi,pi] radians (i.e., (-180,180] degrees).' )
 !   
    
@@ -1132,7 +1177,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
    IF ( InputFileData%SpdGenOn < 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'SpdGenOn must not be negative.' )
    IF ( InputFileData%TimGenOn < 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TimGenOn must not be negative.' )
    IF ( InputFileData%TimGenOf < 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TimGenOf must not be negative.' )
-   IF ( InputFileData%GenEff   < 0.0_ReKi ) .OR. ( InputFileData%GenEff > 1.0_ReKi ) )  THEN
+   IF ( InputFileData%GenEff   < 0.0_ReKi  .OR.  InputFileData%GenEff > 1.0_ReKi )  THEN
       CALL SetErrors( ErrID_Fatal, 'GenEff must be in the range [0, 1] (i.e., [0, 100] percent)' )
    END IF
    
@@ -1187,7 +1232,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
 
       ! checks for nacelle-yaw control:
    IF ( InputFileData%TYawManS < 0.0_DbKi )  CALL SetErrors( ErrID_Fatal, 'TYawManS must not be negative.' )
-   IF ( InputFileData%TYawManE < InputFileData%TYawManS ) CALL SetErrors( ErrID_Fatal, 'TYawManE must not be less than TYawManS.')
+!   IF ( InputFileData%TYawManE < InputFileData%TYawManS ) CALL SetErrors( ErrID_Fatal, 'TYawManE must not be less than TYawManS.')
    
 
    IF ( InputFileData%YawSpr  < 0.0_ReKi )  CALL SetErrors( ErrID_Fatal, 'YawSpr must not be negative.' )
@@ -1222,13 +1267,15 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    CHARACTER(*),             INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
 
       ! Local variables
+   REAL(ReKi)                                 :: ComDenom       ! Common denominator of variables used in the TEC model
+   REAL(ReKi)                                 :: SIG_RtSp       ! Rated speed
+   REAL(ReKi)                                 :: TEC_K1         ! K1 term for Thevenin-equivalent circuit
+   REAL(ReKi)                                 :: TEC_K2         ! K2 term for Thevenin-equivalent circuit
+   
    INTEGER(IntKi)                             :: K              ! Loop counter (for blades)
-   INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID
+   INTEGER(IntKi)                             :: ErrStat2       ! Temporary error ID   
    CHARACTER(LEN(ErrMsg))                     :: ErrMsg2        ! Temporary message describing error
 
-   REAL(ReKi)                   :: SIG_RtSp                                        ! Rated speed.
-   REAL(ReKi)                   :: TEC_K1                                          ! K1 term for Thevenin-equivalent circuit.
-   REAL(ReKi)                   :: TEC_K2                                          ! K2 term for Thevenin-equivalent circuit.
 
    
       ! Initialize variables
@@ -1244,11 +1291,35 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN
          
       !.............................................
+      ! Pitch control parameters
+      !.............................................
+   p%PCMode   = InputFileData%PCMode
+   p%TPCOn    = InputFileData%TPCOn      
+
+      
+      !.............................................
       ! Set generator and torque control parameters:
       !.............................................
-   p%HSSBrDT   = InputFileData%HSSBrDT
-   p%THSSBrFl  = InputFileData%THSSBrDp + InputFileData%HSSBrDT   ! Time at which shaft brake is fully deployed
+   p%VSContrl  = InputFileData%VSContrl
+   p%GenModel  = InputFileData%GenModel
+   p%GenEff    = InputFileData%GenEff
+   p%GenTiStr  = InputFileData%GenTiStr
+   p%GenTiStp  = InputFileData%GenTiStp
+   p%SpdGenOn  = InputFileData%SpdGenOn
+   p%TimGenOn  = InputFileData%TimGenOn
       
+   
+   
+   IF ( Cmpl4SFun .OR. Cmpl4LV ) THEN
+      p%TimGenOf = HUGE( p%TimGenOf ) 
+      CALL CheckError( ErrID_Info, 'TimGenOf is ignored when compiled for LabVIEW or Simulink.' )
+   ELSE
+      p%TimGenOf  = InputFileData%TimGenOf
+   END IF
+   
+   
+   p%THSSBrFl  = InputFileData%THSSBrDp + InputFileData%HSSBrDT   ! Time at which shaft brake is fully deployed
+   
    SELECT CASE ( p%VSContrl )      
    CASE ( 0_IntKi )  ! None
       
@@ -1262,18 +1333,19 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
          p%SIG_SySp = InputFileData%SIG_SySp
       ELSEIF ( p%GenModel == 2_IntKi )  THEN   ! Thevenin-equivalent induction generator
 
-         ComDenom  = InputFileData%TEC_SRes**2 + ( InputFileData%TEC_SLR + InputFileData%TEC_MR )**2                            ! common denominator used in many of the following equations
+         ComDenom  = InputFileData%TEC_SRes**2 + ( InputFileData%TEC_SLR + InputFileData%TEC_MR )**2     ! common denominator used in many of the following equations
          
-         p%TEC_Re1   = InputFileData%TEC_SRes*( InputFileData%TEC_MR**2 )/ComDenom                                  ! Thevenin's equivalent stator resistance (ohms)
-         p%TEC_Xe1   = InputFileData%TEC_MR*( InputFileData%TEC_SRes**2 + InputFileData%TEC_SLR*( TEC_SLR + InputFileData%TEC_MR) )/ComDenom    ! Thevenin's equivalent stator leakage reactance (ohms)
-         p%TEC_V1a   = InputFileData%TEC_MR*InputFileData%TEC_VLL/SQRT( 3.0*ComDenom )                              ! Thevenin equivalent source voltage
-         p%TEC_SySp  = 4.0*Pi*InputFileData%TEC_Freq/InputFileData%TEC_NPol                                         ! Thevenin equivalent synchronous speed
-           TEC_K1    = ( p%TEC_Xe1 + InputFileData%TEC_RLR )**2                                         ! Thevenin equivalent K1 term
-           TEC_K2    = ( InputFileData%TEC_MR**2 )/ComDenom                                           ! Thevenin equivalent K2 term
-         p%TEC_A0    = InputFileData%TEC_RRes*TEC_K2/p%TEC_SySp                                         ! Thevenin equivalent A0 term
-         p%TEC_C0    = InputFileData%TEC_RRes**2                                                      ! Thevenin equivalent C0 term
-         p%TEC_C1    = -2.0*p%TEC_Re1*InputFileData%TEC_RRes                                            ! Thevenin equivalent C1 term
-         p%TEC_C2    = p%TEC_Re1**2 + TEC_K1                                              ! Thevenin equivalent C2 term
+         p%TEC_Re1   = InputFileData%TEC_SRes*( InputFileData%TEC_MR**2 )/ComDenom                       ! Thevenin's equivalent stator resistance (ohms)
+         p%TEC_Xe1   = InputFileData%TEC_MR*( InputFileData%TEC_SRes**2 + InputFileData%TEC_SLR* &
+                                    ( InputFileData%TEC_SLR + InputFileData%TEC_MR) )/ComDenom           ! Thevenin's equivalent stator leakage reactance (ohms)
+         p%TEC_V1a   = InputFileData%TEC_MR*InputFileData%TEC_VLL/SQRT( 3.0*ComDenom )                   ! Thevenin equivalent source voltage
+         p%TEC_SySp  = 4.0*Pi*InputFileData%TEC_Freq/InputFileData%TEC_NPol                              ! Thevenin equivalent synchronous speed
+           TEC_K1    = ( p%TEC_Xe1 + InputFileData%TEC_RLR )**2                                          ! Thevenin equivalent K1 term
+           TEC_K2    = ( InputFileData%TEC_MR**2 )/ComDenom                                              ! Thevenin equivalent K2 term
+         p%TEC_A0    = InputFileData%TEC_RRes*TEC_K2/p%TEC_SySp                                          ! Thevenin equivalent A0 term
+         p%TEC_C0    = InputFileData%TEC_RRes**2                                                         ! Thevenin equivalent C0 term
+         p%TEC_C1    = -2.0*p%TEC_Re1*InputFileData%TEC_RRes                                             ! Thevenin equivalent C1 term
+         p%TEC_C2    = p%TEC_Re1**2 + TEC_K1                                                             ! Thevenin equivalent C2 term
 
          p%TEC_MR    = InputFileData%TEC_MR
          p%TEC_RLR   = InputFileData%TEC_RLR
@@ -1286,24 +1358,54 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
       
    CASE ( 1_IntKi ) ! Simple variable-speed control
       
-      VS_SySp   = VS_RtGnSp/( 1.0 +  InputFileData%VS_SlPc )                                                 ! Synchronous speed of region 2 1/2 induction generator.
-      IF ( VS_SlPc < SQRT(EPSILON(VS_SlPc) ) ) THEN                                                      ! We don't have a region 2 so we'll use VS_TrGnSp = VS_RtGnSp
-         VS_Slope = 9999.9
-         VS_TrGnSp = VS_RtGnSp
+      p%VS_SySp   = InputFileData%VS_RtGnSp/( 1.0 +  InputFileData%VS_SlPc )                                            ! Synchronous speed of region 2 1/2 induction generator.
+      IF ( InputFileData%VS_SlPc < SQRT(EPSILON(InputFileData%VS_SlPc) ) ) THEN                                         ! We don't have a region 2 so we'll use VS_TrGnSp = VS_RtGnSp
+         p%VS_Slope = 9999.9
+         p%VS_TrGnSp = InputFileData%VS_RtGnSp
       ELSE
-         VS_Slope  = VS_RtTq  /( VS_RtGnSp - VS_SySp )                                                   ! Torque/speed slope of region 2 1/2 induction generator.
-         IF ( ABS(InputFileData%VS_Rgn2K) < EPSILON(VS_SlPc) )  THEN  ! .TRUE. if the Region 2 torque is flat, and thus, the denominator in the ELSE condition is zero
-            VS_TrGnSp = VS_SySp                                                                                ! Transitional generator speed between regions 2 and 2 1/2.
+         p%VS_Slope  = InputFileData%VS_RtTq  /( InputFileData%VS_RtGnSp - p%VS_SySp )                                  ! Torque/speed slope of region 2 1/2 induction generator.
+         IF ( ABS(InputFileData%VS_Rgn2K) < EPSILON(InputFileData%VS_SlPc) )  THEN  ! .TRUE. if the Region 2 torque is flat, and thus, the denominator in the ELSE condition is zero
+            p%VS_TrGnSp = p%VS_SySp                                                                                     ! Transitional generator speed between regions 2 and 2 1/2.
          ELSE                          ! .TRUE. if the Region 2 torque is quadratic with speed
-            VS_TrGnSp = ( VS_Slope - SQRT( VS_Slope*( VS_Slope - 4.0*InputFileData%VS_Rgn2K*VS_SySp ) ) )/( 2.0*InputFileData%VS_Rgn2K )   ! Transitional generator speed between regions 2 and 2 1/2.
+            p%VS_TrGnSp = ( p%VS_Slope - SQRT( p%VS_Slope*( p%VS_Slope - 4.0*InputFileData%VS_Rgn2K*p%VS_SySp ) ) ) &
+                              / ( 2.0*InputFileData%VS_Rgn2K )                                                          ! Transitional generator speed between regions 2 and 2 1/2.
          ENDIF
       END IF
    
+      p%VS_Rgn2K   = InputFileData%VS_Rgn2K
+      p%VS_RtGnSp  = InputFileData%VS_RtGnSp
+      p%VS_RtTq    = InputFileData%VS_RtTq
+      
    END SELECT 
       
       !.............................................
+      ! High-speed shaft brake parameters
+      !.............................................   
+   p%HSSBrMode = InputFileData%HSSBrMode
+   IF ( Cmpl4SFun ) THEN
+      p%THSSBrDp  = HUGE(p%THSSBrDp) ! Make sure this doesn't get shut off during simulation
+      CALL CheckError( ErrID_Info, 'THSSBrDp is ignored when compiled for Simulink.' )
+   ELSE      
+      p%THSSBrDp  = InputFileData%THSSBrDp
+   END IF 
+   p%HSSBrDT   = InputFileData%HSSBrDT
+   p%HSSBrTqF  = InputFileData%HSSBrTqF
+      
       !.............................................
+      ! Nacelle-yaw control parameters
+      !.............................................
+   p%YCMode   = InputFileData%YCMode
+   p%TYCOn    = InputFileData%TYCOn
+   p%TYawManS = InputFileData%TYawManS
    
+   p%NacYawF  = InputFileData%NacYawF   
+   p%YawNeut  = InputFileData%YawNeut !bjj: this should be renamed...
+   p%YawSpr   = InputFileData%YawSpr
+   p%YawDamp  = InputFileData%YawDamp
+
+   
+!removed:   
+   !p%TYawManE = InputFileData%TYawManE   
    
    
 CONTAINS
@@ -1338,6 +1440,145 @@ CONTAINS
    END SUBROUTINE CheckError
 
 END SUBROUTINE SrvD_SetParameters
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Yaw_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
+! Routine for computing the yaw output: a yaw moment. This routine is used in both loose and tight coupling.
+!..................................................................................................................................
+
+   REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
+   TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at t
+   TYPE(SrvD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+   TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
+   TYPE(SrvD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
+   TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
+   TYPE(SrvD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+   TYPE(SrvD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at t (Input only so that mesh con-
+                                                                  !   nectivity information does not have to be recalculated)
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+  
+      ! local variables      
+   REAL(ReKi)                   :: YawPosCom                                       ! Commanded yaw angle from user-defined routines, rad.
+   REAL(ReKi)                   :: YawRateCom                                      ! Commanded yaw rate  from user-defined routines, rad/s.
+
+
+INTEGER(IntKi), PARAMETER :: ControlMode_None   = 0
+INTEGER(IntKi), PARAMETER :: ControlMode_Simple = 2 
+INTEGER(IntKi), PARAMETER :: ControlMode_User   = 1
+INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3 !bjj: is this necessary (other than in the input file?); this would be needed by the glue code, not the module...
+   
+
+         ! Initialize ErrStat
+
+      ErrStat = ErrID_None
+      ErrMsg  = ""
+
+
+   !...................................................................
+   ! Calculate standard yaw position and rate commands:
+   !...................................................................
+
+         
+   IF ( t >= p%TYCOn  .AND.  p%YCMode /= ControlMode_None )  THEN   ! Time now to enable active yaw control.
+
+
+      SELECT CASE ( p%YCMode )  ! Which yaw control mode are we using? (we already took care of ControlMode_None)
+            
+         CASE ( ControlMode_Simple )            ! Simple ... BJJ: THIS IS NEW
+            !
+            !YawPosCom  = p%YawNeut
+            !YawRateCom = p%YawRateNeut
+
+            
+         CASE ( ControlMode_User )              ! User-defined from routine UserYawCont().
+         !
+         !
+         !! Calculate horizontal hub-height wind direction and the nacelle yaw error
+         !!   estimate (both positive about zi-axis); these are zero if there is no
+         !!   wind input when AeroDyn is not used:
+         !
+         !   IF ( p_FAST%CompAero )  THEN   ! AeroDyn has been used.
+         !
+         !      HHWndVec(:) = AD_GetUndisturbedWind( REAL(t, ReKi), (/ REAL(0.0, ReKi), REAL(0.0, ReKi), p_ED%FASTHH /), ErrStat )
+         !
+         !      WindDir  = ATAN2( HHWndVec(2), HHWndVec(1) )
+         !      YawError = WindDir - x_ED%QT(DOF_Yaw) - x_ED%QT(DOF_Y)
+         !
+         !   ELSE                    ! No AeroDynamics.
+         !
+         !      WindDir  = 0.0
+         !      YawError = 0.0
+         !
+         !   ENDIF
+         !
+         !! Call the user-defined yaw control routine:
+         !
+         !   CALL UserYawCont ( x_ED%QT(DOF_Yaw), x_ED%QDT(DOF_Yaw), WindDir, YawError, p%NumBl, t, DT, DirRoot, y%YawPosCom, y%YawRateCom )
+         !
+
+         CASE ( ControlMode_Extern )              ! User-defined from Simulink or Labview
+
+            YawPosCom  = u%ExternalYawPosCom
+            YawRateCom = u%ExternalYawRateCom
+
+
+      END SELECT
+
+
+   ELSE  ! Do not control yaw, maintain initial (neutral) yaw angles
+      
+         YawPosCom  = p%YawNeut
+         YawRateCom = 0.0_ReKi
+
+   ENDIF         
+         
+   !...................................................................
+   ! Override standard yaw control with a linear maneuver if necessary:
+   !...................................................................
+
+   IF ( t >= p%TYawManS )  THEN  ! Override yaw maneuver is occuring.
+
+
+      IF ( t < OtherState%BegYawMan )  THEN  ! Override yaw maneuver is just beginning (possibly again).
+
+         OtherState%NacYawI   = YawPosCom  !bjj: was u%Yaw                                               ! Store the initial (current) yaw, at the start of the yaw maneuver
+         OtherState%YawManRat = SIGN( OtherState%YawManRat, p%NacYawF - OtherState%NacYawI )             ! Modify the sign of YawManRat based on the direction of the yaw maneuever
+         OtherState%TYawManE  = p%TYawManS + ( p%NacYawF - OtherState%NacYawI ) / OtherState%YawManRat   ! Calculate the end time of the override yaw maneuver         
+
+         OtherState%BegYawMan = t                                                                        ! Let's remember when we stored this these values
+
+      ENDIF
+      
+      
+      IF ( t >= OtherState%TYawManE )  THEN   ! Override yaw maneuver has ended; yaw command is fixed at NacYawF
+
+         YawPosCom     = p%NacYawF
+         YawRateCom    = 0.0_ReKi
+
+      ELSE                             ! Override yaw maneuver in linear ramp
+
+            ! Increment the command yaw and rate using OtherState%YawManRat         
+
+         YawPosCom     = OtherState%NacYawI + OtherState%YawManRat*( t - p%TYawManS )
+         YawRateCom    = OtherState%YawManRat                                                                           
+
+      ENDIF   
+      
+   ELSE
+      
+      OtherState%BegYawMan = HUGE( OtherState%BegYawMan )      ! We haven't started the yaw maneuver (or need to restart)
+
+   ENDIF
+                
+   !...................................................................
+   ! Calculate the yaw moment:
+   !...................................................................
+      
+   y%YawMom = -  p%YawSpr *( u%Yaw     - YawPosCom  )     &          ! {-f(qd,q,t)}SpringYaw
+              -  p%YawDamp*( u%YawRate - YawRateCom )                ! {-f(qd,q,t)}DampYaw;
+   
+   
+END SUBROUTINE Yaw_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
 END MODULE ServoDyn
 !**********************************************************************************************************************************
