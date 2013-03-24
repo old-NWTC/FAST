@@ -23,7 +23,7 @@ include	Registry_NWTC_Library.txt
 # ..... Blade Input file data ...........................................................................................................
 typedef	ElastoDyn/ED	BladeInputData	IntKi	NBlInpSt	-	-	-	"Number of blade input stations"
 typedef	^	^	ReKi	BlFract	{:}	-	-	"Blade fractional radius for distributed input data"
-typedef	^	^	ReKi	AerCen	{:}	-	-	"Aerodynamic center for distributed input data"
+#typedef	^	^	ReKi	AerCen	{:}	-	-	"Aerodynamic center for distributed input data"
 typedef	^	^	ReKi	StrcTwst	{:}	-	-	"Structural twist for distributed input data"	radians
 typedef	^	^	ReKi	BMassDen	{:}	-	-	"Blade mass density for distributed input data"
 typedef	^	^	ReKi	FlpStff	{:}	-	-	"Blade flap stiffness for distributed input data"
@@ -636,7 +636,7 @@ typedef	^	ParameterType	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
 #typedef	^	ParameterType	ReKi	YawSpr	-	-	-	"Nacelle-yaw spring constant"
 #typedef	^	ParameterType	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"
 # parameters from Blade
-typedef	^	ParameterType	ReKi	AeroCent	{:}{:}	-	-	"Aerodynamic center for analysis nodes"
+#typedef	^	ParameterType	ReKi	AeroCent	{:}{:}	-	-	"Aerodynamic center for analysis nodes"
 typedef	^	ParameterType	ReKi	AeroTwst	{:}	-	-	"Aerodynamic twist of the blade at the analysis nodes"
 typedef	^	ParameterType	ReKi	AxRedBld	{:}{:}{:}{:}	-	-	"The axial-reduction terms of the blade shape function"
 typedef	^	ParameterType	ReKi	BAlpha	{:}{:}	-	-	"Interpolated blade coupling coefficient between flap and twist"
@@ -745,7 +745,7 @@ typedef	^	InputType	ReKi	TwrFt	6	-	-	The surge/xi (1), sway/yi (2), and heave/zi
 typedef	^	InputType	ReKi	PtfmAM	{6}{6}	-	-	"Platform added mass matrix"
 typedef	^	InputType	ReKi	PtfmFt	6	-	-	"The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the platform force at the platform reference (point Z) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the platform moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"
 typedef	^	InputType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"	radians
-
+typedef	^	InputType	ReKi	GBoxTrq	-	-	-	"Gearbox torque on the LSS side"	N-m
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:

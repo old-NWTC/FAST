@@ -1390,9 +1390,10 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       ! Local variables
 
    TYPE(ED_InputFile)                           :: InputFileData           ! Data stored in the module's input file
+   INTEGER(IntKi)                               :: ErrStat2                ! temporary Error status of the operation
    LOGICAL, PARAMETER                           :: GetAdamsVals = .FALSE.  ! Determines if we should read Adams values and create (update) an Adams model
+   CHARACTER(LEN(ErrMsg))                       :: ErrMsg2                 ! temporary Error message if ErrStat /= ErrID_None
 
-!bjj: ERROR CHECKING HERE!!!!
 
       ! Initialize variables for this routine
 
@@ -1402,7 +1403,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
       ! Initialize the NWTC Subroutine Library
 
-   CALL NWTC_Init( )
+   CALL NWTC_Init( EchoLibVer=.FALSE. )
 
       ! Display the module information
 
@@ -1413,31 +1414,20 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       !............................................................................................
    p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(ED_Ver%Name) ! all of the output file names from this module will end with '_ElastoDyn'
 
-   CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, p%RootName, ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) THEN
-            !we need a routine to destroy the InputFileData structure....
+   CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, p%RootName, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
-      CALL WrScr( ErrMsg )
-      RETURN
-   END IF
-   CALL ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) THEN
-      CALL WrScr( ErrMsg )
-   !we need a routine to destroy the InputFileData structure....
-         
-      RETURN
-   END IF
+   CALL ED_ValidateInput( InputFileData, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
       
       !............................................................................................
       ! Define parameters here:
       !............................................................................................
-   CALL ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )     
-   IF ( ErrStat /= ErrID_None ) THEN
-      CALL WrScr( ErrMsg )
-   !we need a routine to destroy the InputFileData structure....
-         
-      RETURN
-   END IF
+   CALL ED_SetParameters( InputFileData, p, ErrStat2, ErrMsg2 )     
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
 
    p%DT  = Interval
    
@@ -1448,30 +1438,30 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    xd%DummyDiscState          = 0                                             ! we don't have discrete states
    z%DummyConstrState         = 0                                             ! we don't have constraint states
       
-   CALL Init_ContStates( x, p, InputFileData, ErrStat, ErrMsg )               ! initialize the continuous states
-   IF ( ErrStat /= ErrID_None ) THEN
-      CALL WrScr( ErrMsg )
-   !we need a routine to destroy the InputFileData structure....
-         
-      RETURN
-   END IF
+   CALL Init_ContStates( x, p, InputFileData, ErrStat2, ErrMsg2 )             ! initialize the continuous states
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
 
       !............................................................................................
       ! Initialize other states:
       !............................................................................................
-   CALL Init_OtherStates( OtherState, p, InputFileData, ErrStat, ErrMsg )      ! initialize the other states
+   CALL Init_OtherStates( OtherState, p, InputFileData, ErrStat2, ErrMsg2 )    ! initialize the other states
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
       
    !bjj: is this a continuous state?
-   CALL AllocAry(OtherState%BlPitch, p%NumBl, 'BlPitch', ErrStat, ErrMsg )
-   IF (ErrStat /= ErrID_None) RETURN
+   CALL AllocAry(OtherState%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
    OtherState%BlPitch = InputFileData%BlPitch(1:p%NumBl)   
    
       !............................................................................................
       ! Define initial guess for the system inputs here:
       !............................................................................................
 
-   CALL AllocAry( u%BlPitchCom, p%NumBl, 'BlPitchCom', ErrStat, ErrMsg )
-   IF (ErrStat /= ErrID_None) RETURN
+   CALL AllocAry( u%BlPitchCom, p%NumBl, 'BlPitchCom', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
    u%BlPitchCom = InputFileData%BlPitch(1:p%NumBl)
 
 
@@ -1479,37 +1469,37 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       ! Define system output initializations (set up mesh) here:
       !............................................................................................
 
-   ALLOCATE ( y%AllOuts(0:MaxOutPts) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg = 'Error allocating memory for the AllOuts array.'
-      !we need a routine to destroy the InputFileData structure....
-      
+   ALLOCATE ( y%AllOuts(0:MaxOutPts) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL CheckError( ErrID_Fatal, 'Error allocating memory for the AllOuts array.' )
       RETURN
    ENDIF
-   y%AllOuts = 0.0      
+   y%AllOuts = 0.0     
+   
+   CALL AllocAry( y%WriteOutput,          p%NumOuts, 'WriteOutput', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
 
       !............................................................................................
       ! Define initialization-routine output here:
       !............................................................................................
-
-      !InitOut%WriteOutputHdr = (/ 'Time      ', 'Column2   ' /)
-      !InitOut%WriteOutputUnt = (/ '(s)',  '(-)'     /)
-      !
-   ALLOCATE ( y%WriteOutput(0:p%NumOuts) , STAT=ErrStat )
-   IF ( ErrStat /= 0 )  THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg = 'Error allocating memory for the ElastoDyn WriteOutput array.' 
-      !we need a routine to destroy the InputFileData structure....
-      RETURN
-   ENDIF
+   CALL AllocAry( InitOut%WriteOutputHdr, p%NumOuts, 'WriteOutputHdr', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+   CALL AllocAry( InitOut%WriteOutputUnt, p%NumOuts, 'WriteOutputUnt', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+   InitOut%WriteOutputHdr = p%OutParam(1:p%NumOuts)%Name
+   InitOut%WriteOutputUnt = p%OutParam(1:p%NumOuts)%Units
       
-   InitOut%Ver = ED_Ver
+   InitOut%Ver   = ED_Ver
+   InitOut%NumBl = p%NumBl
    
-   CALL AllocAry(InitOut%BlPitch, p%NumBl, 'BlPitch', ErrStat, ErrMsg )
-   IF (ErrStat /= ErrID_None) RETURN
+   CALL AllocAry(InitOut%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )   
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
    InitOut%BlPitch = InputFileData%BlPitch(1:p%NumBl)   
-   
       
       !............................................................................................
       ! If you want to choose your own rate instead of using what the glue code suggests, tell the glue code the rate at which
@@ -1521,14 +1511,52 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       ! Initialize Other State data:
    ! Allocate space for coordinate systems
 
-   CALL Alloc_CoordSys( OtherState%CoordSys, p, ErrStat, ErrMsg )
-     
-       
+   CALL Alloc_CoordSys( OtherState%CoordSys, p, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+           
        
        ! Destroy the InputFileData structure (deallocate arrays)
        
-   CALL ED_DestroyInputFile(InputFileData, ErrStat, ErrMsg )
-       
+   CALL ED_DestroyInputFile(InputFileData, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN     
+      
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+          
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'Error in ED_Init: '//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL ED_DestroyInputFile(InputFileData, ErrStat3, ErrMsg3 )
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError     
+   
 END SUBROUTINE ED_Init
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
@@ -1631,25 +1659,6 @@ SUBROUTINE ED_UpdateStates( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
          ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
          RETURN
       END IF
-
-      ! DO WHILE ( z_Residual% > tolerance )
-      !
-      !  z =
-      !
-      !  CALL ED_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
-      !  IF ( ErrStat >= AbortErrLev ) THEN
-      !     CALL ED_DestroyConstrState( z_Residual, ErrStat2, ErrMsg2)
-      !     ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
-      !     RETURN
-      !  END IF
-      !
-      ! END DO
-
-
-         ! Destroy z_Residual because it is not necessary for the rest of the subroutine:
-
-      CALL ED_DestroyConstrState( z_Residual, ErrStat, ErrMsg)
-      IF ( ErrStat >= AbortErrLev ) RETURN
 
 
 
@@ -2499,7 +2508,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    ! Place the selected output channels into the WriteOutput(:) array with the proper sign:
    !...............................................................................................................................   
 
-   DO I = 0,p%NumOuts  ! Loop through all selected output channels
+   DO I = 1,p%NumOuts  ! Loop through all selected output channels
 
       y%WriteOutput(I) = p%OutParam(I)%SignM * y%AllOuts( p%OutParam(I)%Indx )
 
@@ -2611,9 +2620,7 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, Ou
    CHARACTER(*), INTENT(IN)               :: MeshFile       ! File that contains the blade mesh information (AeroDyn input file for now) -- later this info will be defined in one of the ED input files.
    CHARACTER(*), INTENT(IN)               :: OutFileRoot    ! The rootname of all the output files written by this routine.
 
-   !BJJ MODIFIED HERE ONLY FOR TESTING:
-!   TYPE(ED_InputFile),   INTENT(OUT)      :: InputFileData  ! Data stored in the module's input file
-   TYPE(ED_InputFile),   INTENT(inOUT)      :: InputFileData  ! Data stored in the module's input file
+   TYPE(ED_InputFile),   INTENT(OUT)      :: InputFileData  ! Data stored in the module's input file
 
    INTEGER(IntKi),       INTENT(OUT)      :: ErrStat        ! The error status code
    LOGICAL,              INTENT(IN)       :: ReadAdmVals    ! Determines if we should read the Adams-only values
@@ -2751,9 +2758,10 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
-
+         
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................
@@ -2838,7 +2846,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
       END IF
@@ -2916,7 +2925,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -3335,8 +3345,8 @@ SUBROUTINE Alloc_BladeInputProperties( BladeKInputFileData, AllocAdams, ErrStat,
 
    CALL AllocAry  ( BladeKInputFileData%BlFract,  BladeKInputFileData%NBlInpSt, 'BlFract'  , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( BladeKInputFileData%AerCen,   BladeKInputFileData%NBlInpSt, 'AerCen'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry  ( BladeKInputFileData%AerCen,   BladeKInputFileData%NBlInpSt, 'AerCen'   , ErrStat, ErrMsg )
+   !IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( BladeKInputFileData%StrcTwst, BladeKInputFileData%NBlInpSt, 'StrcTwst' , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( BladeKInputFileData%BMassDen, BladeKInputFileData%NBlInpSt, 'BMassDen' , ErrStat, ErrMsg )
@@ -3405,57 +3415,48 @@ SUBROUTINE ValidateBladeData ( BladeKInputFileData, ErrStat, ErrMsg )
       ! Check that BlFract goes from 0.0 to 1.0 in increasing order:
 
    IF ( .NOT. EqualRealNos( BladeKInputFileData%BlFract(1), 0.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract(1) must be 0.0.'
+      CALL SetErrors( ErrID_Fatal,'BlFract(1) must be 0.0.')
    END IF
 
-   IF ( BladeKInputFileData%NBlInpSt /= 1 .AND. &
+   IF ( BladeKInputFileData%NBlInpSt /= 1_IntKi .AND. &
       .NOT. EqualRealNos( BladeKInputFileData%BlFract(BladeKInputFileData%NBlInpSt), 1.0_ReKi )  ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.'
+      CALL SetErrors( ErrID_Fatal,'BlFract('//TRIM( Num2LStr( BladeKInputFileData%NBlInpSt ) )//') must be 1.0.')
    END IF
 
    DO I = 2,BladeKInputFileData%NBlInpSt
       IF ( BladeKInputFileData%BlFract(I) <= BladeKInputFileData%BlFract(I-1) )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  BlFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
-                                                      //TRIM( Num2LStr(I-1) )//').'
-
+         CALL SetErrors( ErrID_Fatal,'BlFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
+                                                      //TRIM( Num2LStr(I-1) )//').')
       ENDIF
    END DO
 
 
    DO I = 1,BladeKInputFileData%NBlInpSt
 
-         ! Check that AerCen is contained in [0.0, 1.0]:
-      IF ( ( BladeKInputFileData%AerCen(I) ) < 0.0_ReKi .OR. ( BladeKInputFileData%AerCen(I) > 1.0_ReKi ) )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  AerCen('//TRIM( Num2LStr( I ) )//') must be between 0 and 1 (inclusive).'
-      END IF
+      !   ! Check that AerCen is contained in [0.0, 1.0]:
+      !IF ( ( BladeKInputFileData%AerCen(I) ) < 0.0_ReKi .OR. ( BladeKInputFileData%AerCen(I) > 1.0_ReKi ) )  THEN
+      !   CALL SetErrors( ErrID_Fatal,'AerCen('//TRIM( Num2LStr( I ) )//') must be between 0 and 1 (inclusive).')
+      !END IF
 
          ! Check that StrcTwst is contained in (-pi,pi] radians ( i.e., (-180.0, 180.0] degrees):
       IF ( ( BladeKInputFileData%StrcTwst(I) <= -pi ) .OR. ( BladeKInputFileData%StrcTwst(I) > pi ) )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  StrcTwst('//TRIM( Num2LStr( I ) ) // &
-                     ') must be greater than -180 and less than or equal to 180.'
+         CALL SetErrors( ErrID_Fatal,'StrcTwst('//TRIM( Num2LStr( I ) ) // &
+                     ') must be greater than -180 and less than or equal to 180.')
       END IF
 
          ! Check that BMassDen is contained in (0.0, inf):
       IF ( BladeKInputFileData%BMassDen(I) <= 0.0_ReKi )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  BMassDen('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+         CALL SetErrors( ErrID_Fatal,'BMassDen('//TRIM( Num2LStr( I ) )//') must be greater than zero.')
       END IF
 
          ! Check that FlpStff is contained in (0.0, inf):
       IF ( BladeKInputFileData%FlpStff (I) <= 0.0_ReKi )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+         CALL SetErrors( ErrID_Fatal,'FlpStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.')
       END IF
 
          ! Check that EdgStff is contained in (0.0, inf):
       IF ( BladeKInputFileData%EdgStff (I) <= 0.0_ReKi )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+         CALL SetErrors( ErrID_Fatal,'EdgStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.')
       END IF
 
    END DO
@@ -3468,9 +3469,8 @@ SUBROUTINE ValidateBladeData ( BladeKInputFileData, ErrStat, ErrMsg )
          ! The reference axis must be coincident with the pitch axis at the blade root (I == 1):
       IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(1), 0.0_ReKi ) .OR. &
             .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(1), 0.0_ReKi )      )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  Both PrecrvRef(1) and PreswpRef(1) must be zero '//&
-                            '(the reference axis must be coincident with the pitch axis at the blade root).'
+         CALL SetErrors( ErrID_Fatal,'Both PrecrvRef(1) and PreswpRef(1) must be zero '//&
+                            '(the reference axis must be coincident with the pitch axis at the blade root).')
       END IF
 
 
@@ -3478,45 +3478,38 @@ SUBROUTINE ValidateBladeData ( BladeKInputFileData, ErrStat, ErrMsg )
 
             ! Check that GJStff is contained in (0.0, inf):
          IF ( BladeKInputFileData%GJStff(I) <= 0.0_ReKi )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  GJStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+            CALL SetErrors( ErrID_Fatal,'GJStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.')
          END IF
 
             ! Check that EAStff is contained in (0.0, inf):
          IF ( BladeKInputFileData%EAStff(I) <= 0.0_ReKi )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  EAStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.'
+            CALL SetErrors( ErrID_Fatal,'EAStff('//TRIM( Num2LStr( I ) )//') must be greater than zero.')
          END IF
 
             ! Check that Alpha is contained in (-1.0, 1):
          IF ( ( BladeKInputFileData%Alpha(I) <= -1.0_ReKi ) .OR. ( BladeKInputFileData%Alpha(I) >= 1.0_ReKi ) )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  Alpha('//TRIM( Num2LStr( I ) )//') (the blade flap/twist'// &
-                         ' coupling coefficient) must be between -1 and 1 (exclusive).'
+            CALL SetErrors( ErrID_Fatal,'Alpha('//TRIM( Num2LStr( I ) )//') (the blade flap/twist'// &
+                         ' coupling coefficient) must be between -1 and 1 (exclusive).')
          END IF
 
             ! Check that FlpIner is contained in [0.0, inf):
          IF ( BladeKInputFileData%FlpIner(I) <  0.0_ReKi )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlpIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
+            CALL SetErrors( ErrID_Fatal,'FlpIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.')
          END IF
 
             ! Check that EdgIner is contained in [0.0, inf):
          IF ( BladeKInputFileData%EdgIner(I) <  0.0_ReKi )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  EdgIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.'
+            CALL SetErrors( ErrID_Fatal,'EdgIner('//TRIM( Num2LStr( I ) )//') must not be less than zero.')
          END IF
 
             ! Check that PrecrvRef is 0.0 for Adams models:
          IF ( .NOT. EqualRealNos( BladeKInputFileData%PrecrvRef(I), 0.0_ReKi) )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  PrecrvRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
+            CALL SetErrors( ErrID_Fatal,'PrecrvRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.')
          END IF
 
             ! Check that GJStff is contained in (0.0, inf):
          IF ( .NOT. EqualRealNos( BladeKInputFileData%PreswpRef(I), 0.0_ReKi) )  THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  PreswpRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.'
+            CALL SetErrors( ErrID_Fatal,'PreswpRef('//TRIM( Num2LStr( I ) )//') must be zero for Adams models.')
          END IF
 
       END DO
@@ -3526,47 +3519,40 @@ SUBROUTINE ValidateBladeData ( BladeKInputFileData, ErrStat, ErrMsg )
 
       ! Check that the blade damping is not negative:
 
-   IF ( ANY( BladeKInputFileData%BldFlDmp < 0.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldFlDmp must not be negative.'
-   END IF
-
-   IF ( ANY( BladeKInputFileData%BldEdDmp < 0.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  BldEdDmp must not be negative.'
-   END IF
+   IF ( ANY( BladeKInputFileData%BldFlDmp < 0.0_ReKi ) ) CALL SetErrors( ErrID_Fatal,'BldFlDmp must not be negative.')
+   IF ( ANY( BladeKInputFileData%BldEdDmp < 0.0_ReKi ) ) CALL SetErrors( ErrID_Fatal,'BldEdDmp must not be negative.')
 
 
       ! Check that the stiffness tuner isn't negative:
 
-   IF ( ANY( BladeKInputFileData%FlStTunr <= 0.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  FlStTunr must be greater than zero.'
-   END IF
-
+   IF ( ANY( BladeKInputFileData%FlStTunr <= 0.0_ReKi ) ) CALL SetErrors( ErrID_Fatal,'FlStTunr must be greater than zero.')
 
 
       ! Check that the mode shape coefficients are valid:
 
    CALL ValidateModeShapeCoeffs(BladeKInputFileData%BldFl1Sh, 'blade flap mode 1', ErrStat2, ErrMsg2 )
-   IF ( ErrStat2 /= ErrID_None ) THEN
-      ErrStat = MAX(ErrStat2, ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF
+   CALL SetErrors( ErrStat2, ErrMsg2)
 
    CALL ValidateModeShapeCoeffs(BladeKInputFileData%BldFl2Sh, 'blade flap mode 2', ErrStat2, ErrMsg2 )
-   IF ( ErrStat2 /= ErrID_None ) THEN
-      ErrStat = MAX(ErrStat2, ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF
+   CALL SetErrors( ErrStat2, ErrMsg2)
 
    CALL ValidateModeShapeCoeffs(BladeKInputFileData%BldEdgSh, 'blade edge', ErrStat2, ErrMsg2 )
-   IF ( ErrStat2 /= ErrID_None ) THEN
-      ErrStat = MAX(ErrStat2, ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF
+   CALL SetErrors( ErrStat2, ErrMsg2)
 
+CONTAINS   
+   !-------------------------------------------------------------------------------------------------------------------------------
+   SUBROUTINE SetErrors( ErrStat3, ErrMsg3 )
+   ! This routine sets the error message and flag when an error has occurred
+   !...............................................................................................................................
+   INTEGER(IntKi), INTENT(IN) :: ErrStat3     ! Error status for this error
+   CHARACTER(*),   INTENT(IN) :: ErrMsg3      ! Error message for this error
 
+      ErrStat = MAX( ErrStat, ErrStat3 )
+      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      ErrMsg  = TRIM(ErrMsg)//TRIM(ErrMsg3)
+
+   END SUBROUTINE SetErrors
+   !-------------------------------------------------------------------------------------------------------------------------------
 END SUBROUTINE ValidateBladeData
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ValidateModeShapeCoeffs( Coeffs, ShpDesc, ErrStat, ErrMsg )
@@ -3665,7 +3651,7 @@ SUBROUTINE SetBladeParameters( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
    !    Input      Interp    Description
    !    -----      ------    -----------
    !    BlFract    RNodesNorm Fractional radius (0 at root, 1 at tip)
-   !    AerCen     AeroCent   Aerodynamic center (0 at LE, 1 at TE)
+!bjj rm:   !    AerCen     AeroCent   Aerodynamic center (0 at LE, 1 at TE)
    !    StrcTwst   ThetaS     Structural twist
    !    BMassDen   MassB      Lineal mass density
    !    FlpStff    StiffBF    Flapwise stiffness
@@ -3696,13 +3682,15 @@ SUBROUTINE SetBladeParameters( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
       DO J=1,p%BldNodes
 
             ! Get the index into BlFract for all of the arrays, using the NWTC Subroutine Library
-         p%AeroCent(K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%AerCen, &
-                                      InterpInd, BladeInData(K)%NBlInpSt )
+         p%ThetaS  (K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%StrcTwst, &
+                                      InterpInd, BladeInData(K)%NBlInpSt )            
+         !p%AeroCent(K,J) = InterpStp( p%RNodesNorm(J), BladeInData(K)%BlFract, BladeInData(K)%AerCen, &
+         !                             InterpInd, BladeInData(K)%NBlInpSt )
 
 
             ! The remaining arrays will have the same x value for the linear interpolation,
             ! so we'll do it manually (with a local subroutine) instead of calling the InterpStp routine again
-         IF ( BladeInData(K)%NBlInpSt < 2 ) THEN
+         IF ( BladeInData(K)%NBlInpSt < 2_IntKi ) THEN
             x         = 1.0
             InterpInd = 0
          ELSE
@@ -3710,7 +3698,6 @@ SUBROUTINE SetBladeParameters( p, BladeInData, BladeMeshData, ErrStat, ErrMsg )
                 ( BladeInData(K)%BlFract(InterpInd+1) - BladeInData(K)%BlFract(InterpInd) )
          END IF
 
-         p%ThetaS  (K,J) = InterpAry( x, BladeInData(K)%StrcTwst, InterpInd )
          p%MassB   (K,J) = InterpAry( x, BladeInData(K)%BMassDen, InterpInd )
          p%StiffBF (K,J) = InterpAry( x, BladeInData(K)%FlpStff , InterpInd )
          p%StiffBE (K,J) = InterpAry( x, BladeInData(K)%EdgStff , InterpInd )
@@ -3815,8 +3802,8 @@ SUBROUTINE Alloc_BladeParameters( p, AllocAdams, ErrStat, ErrMsg )
       ! Allocate arrays to hold blade data at the analysis nodes.
    CALL AllocAry  ( p%RNodesNorm,              p%BldNodes, 'RNodesNorm' , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry  ( p%AeroCent,    p%NumBl,    p%BldNodes, 'AeroCent'   , ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+   !CALL AllocAry  ( p%AeroCent,    p%NumBl,    p%BldNodes, 'AeroCent'   , ErrStat, ErrMsg )
+   !IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%ThetaS,      p%NumBl,    p%BldNodes, 'ThetaS'     , ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry  ( p%CThetaS,     p%NumBl,    p%BldNodes, 'CThetaS'    , ErrStat, ErrMsg )
@@ -3896,22 +3883,17 @@ SUBROUTINE ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
 
       ! Check that HtFract goes from 0.0 to 1.0 in increasing order:
 
-   IF ( .NOT. EqualRealNos( InputFileData%HtFract(1), 0.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract(1) must be 0.0.'
-   END IF
+   IF ( .NOT. EqualRealNos( InputFileData%HtFract(1), 0.0_ReKi ) ) CALL SetErrors( ErrID_Fatal, 'HtFract(1) must be 0.0.')
 
    IF ( InputFileData%NTwInpSt /= 1 .AND. &
       .NOT. EqualRealNos( InputFileData%HtFract(InputFileData%NTwInpSt), 1.0_ReKi )  ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract('//TRIM( Num2LStr( InputFileData%NTwInpSt ) )//') must be 1.0.'
+      CALL SetErrors( ErrID_Fatal, 'HtFract('//TRIM( Num2LStr( InputFileData%NTwInpSt ) )//') must be 1.0.')
    END IF
 
    DO I = 2,InputFileData%NTwInpSt
       IF ( InputFileData%HtFract(I) <= InputFileData%HtFract(I-1) )  THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  HtFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
-                                                      //TRIM( Num2LStr(I-1) )//').'
+         CALL SetErrors( ErrID_Fatal, 'HtFract('//TRIM( Num2LStr( I ) )//') must be greater than BlFract('&
+                                                      //TRIM( Num2LStr(I-1) )//').')
 
       ENDIF
    END DO
@@ -3921,18 +3903,15 @@ SUBROUTINE ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
 
    DO I = 1,InputFileData%NTwInpSt
       IF ( InputFileData%TMassDen(I) <= 0.0_ReKi ) THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  TMassDen('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+         CALL SetErrors( ErrID_Fatal, 'TMassDen('//TRIM(Num2LStr( I ))//') must be greater than zero.')
       END IF
 
       IF ( InputFileData%TwFAStif(I) <= 0.0_ReKi ) THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwFAStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+         CALL SetErrors( ErrID_Fatal, 'TwFAStif('//TRIM(Num2LStr( I ))//') must be greater than zero.')
       END IF
 
       IF ( InputFileData%TwSSStif(I) <= 0.0_ReKi ) THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwSSStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+         CALL SetErrors( ErrID_Fatal, 'TwSSStif('//TRIM(Num2LStr( I ))//') must be greater than zero.')
       END IF
    END DO
 
@@ -3942,23 +3921,19 @@ SUBROUTINE ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
 
       DO I = 1,InputFileData%NTwInpSt
          IF ( InputFileData%TwGJStif(I) <= 0.0_ReKi ) THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwGJStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+            CALL SetErrors( ErrID_Fatal, 'TwGJStif('//TRIM(Num2LStr( I ))//') must be greater than zero.')
          END IF
 
          IF ( InputFileData%TwEAStif(I) <= 0.0_ReKi ) THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwEAStif('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+            CALL SetErrors( ErrID_Fatal, 'TwEAStif('//TRIM(Num2LStr( I ))//') must be greater than zero.')
          END IF
 
          IF ( InputFileData%TwFAIner(I) <= 0.0_ReKi ) THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwFAIner('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+            CALL SetErrors( ErrID_Fatal, 'TwFAIner('//TRIM(Num2LStr( I ))//') must be greater than zero.')
          END IF
 
          IF ( InputFileData%TwSSIner(I) <= 0.0_ReKi ) THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwSSIner('//TRIM(Num2LStr( I ))//') must be greater than zero.'
+            CALL SetErrors( ErrID_Fatal, 'TwSSIner('//TRIM(Num2LStr( I ))//') must be greater than zero.')
          END IF
       END DO
 
@@ -3969,57 +3944,52 @@ SUBROUTINE ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
       ! Check that the tower damping (TwrFADmp) is contained in the range [0, 100]:
 
    IF ( ANY( InputFileData%TwrFADmp < 0.0_ReKi ) .OR. ANY( InputFileData%TwrFADmp > 100.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwrFADmp must be between 0 and 100 (inclusive).'
+      CALL SetErrors( ErrID_Fatal, 'TwrFADmp must be between 0 and 100 (inclusive).')
    END IF
 
    IF ( ANY( InputFileData%TwrSSDmp < 0.0_ReKi ) .OR. ANY( InputFileData%TwrSSDmp > 100.0_ReKi ) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TwrSSDmp must be between 0 and 100 (inclusive).'
+      CALL SetErrors( ErrID_Fatal, 'TwrSSDmp must be between 0 and 100 (inclusive).')
    END IF
 
 
       ! Check that the tower tuners are positive numbers:
 
-   IF ( ANY( InputFileData%FAStTunr <= 0.0_ReKi )  ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  FAStTunr must be greater than zero.'
-   END IF
-
-   IF ( ANY( InputFileData%SSStTunr <= 0.0_ReKi )  ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  SSStTunr must be greater than zero.'
-   END IF
+   IF ( ANY( InputFileData%FAStTunr <= 0.0_ReKi )  ) CALL SetErrors( ErrID_Fatal, 'FAStTunr must be greater than zero.' )
+   IF ( ANY( InputFileData%SSStTunr <= 0.0_ReKi )  ) CALL SetErrors( ErrID_Fatal, 'SSStTunr must be greater than zero.' )
 
 
 
       ! Validate the mode shape coefficients:
 
-   CALL ValidateModeShapeCoeffs( InputFileData%TwFAM1Sh, 'tower fore-aft mode 1', ErrStat, ErrMsg )
-   IF ( ErrStat2 /= ErrID_None ) THEN
-      ErrStat = MAX(ErrStat2, ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF
-
-   CALL ValidateModeShapeCoeffs( InputFileData%TwFAM2Sh, 'tower fore-aft mode 2', ErrStat, ErrMsg )
-   IF ( ErrStat2 /= ErrID_None ) THEN
-      ErrStat = MAX(ErrStat2, ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF
-
-   CALL ValidateModeShapeCoeffs( InputFileData%TwSSM1Sh, 'tower side-to-side mode 1', ErrStat, ErrMsg )
-   IF ( ErrStat2 /= ErrID_None ) THEN
-      ErrStat = MAX(ErrStat2, ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF
-
-   CALL ValidateModeShapeCoeffs( InputFileData%TwSSM2Sh, 'tower side-to-side mode 2', ErrStat, ErrMsg )
-   IF ( ErrStat2 /= ErrID_None ) THEN
-      ErrStat = MAX(ErrStat2, ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-   END IF
+   CALL ValidateModeShapeCoeffs( InputFileData%TwFAM1Sh, 'tower fore-aft mode 1', ErrStat2, ErrMsg2 )
+      CALL SetErrors( ErrStat2, ErrMsg2 )
 
 
+   CALL ValidateModeShapeCoeffs( InputFileData%TwFAM2Sh, 'tower fore-aft mode 2', ErrStat2, ErrMsg2 )
+      CALL SetErrors( ErrStat2, ErrMsg2 )
+
+
+   CALL ValidateModeShapeCoeffs( InputFileData%TwSSM1Sh, 'tower side-to-side mode 1', ErrStat2, ErrMsg2 )
+      CALL SetErrors( ErrStat2, ErrMsg2 )
+
+
+   CALL ValidateModeShapeCoeffs( InputFileData%TwSSM2Sh, 'tower side-to-side mode 2', ErrStat2, ErrMsg2 )
+      CALL SetErrors( ErrStat2, ErrMsg2 )
+   
+CONTAINS   
+   !-------------------------------------------------------------------------------------------------------------------------------
+   SUBROUTINE SetErrors( ErrStat3, ErrMsg3 )
+   ! This routine sets the error message and flag when an error has occurred
+   !...............................................................................................................................
+   INTEGER(IntKi), INTENT(IN) :: ErrStat3     ! Error status for this error
+   CHARACTER(*),   INTENT(IN) :: ErrMsg3      ! Error message for this error
+
+      ErrStat = MAX( ErrStat, ErrStat3 )
+      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      ErrMsg  = TRIM(ErrMsg)//TRIM(ErrMsg3)
+
+   END SUBROUTINE SetErrors
+   !-------------------------------------------------------------------------------------------------------------------------------
 END SUBROUTINE ValidateTowerData
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Alloc_TowerInputProperties( InputFileData, AllocAdams, ErrStat, ErrMsg )
@@ -4558,26 +4528,22 @@ SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
 
    CALL CheckAngle180Range( InputFileData%RFrlDSSP, 'RFrlDSSP', ErrStat, ErrMsg )
    IF ( InputFileData%RFrlDSSP > InputFileData%RFrlUSSP ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  RFrlDSSP must not be larger than RFrlUSSP'
+      CALL SetErrors( ErrID_Fatal,'RFrlDSSP must not be larger than RFrlUSSP.')
    END IF
 
    CALL CheckAngle180Range( InputFileData%RFrlDSDP, 'RFrlDSDP', ErrStat, ErrMsg )
    IF ( InputFileData%RFrlDSDP > InputFileData%RFrlUSDP ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  RFrlDSDP must not be larger than RFrlUSDP'
+      CALL SetErrors( ErrID_Fatal,'RFrlDSDP must not be larger than RFrlUSDP.')
    END IF
 
    CALL CheckAngle180Range( InputFileData%TFrlDSSP, 'TFrlDSSP', ErrStat, ErrMsg )
    IF ( InputFileData%TFrlDSSP > InputFileData%TFrlUSSP ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TFrlDSSP must not be larger than TFrlUSSP'
+      CALL SetErrors( ErrID_Fatal,'TFrlDSSP must not be larger than TFrlUSSP.')
    END IF
 
    CALL CheckAngle180Range( InputFileData%TFrlDSDP, 'TFrlDSDP', ErrStat, ErrMsg )
    IF ( InputFileData%TFrlDSDP > InputFileData%TFrlUSDP ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TFrlDSDP must not be larger than TFrlUSDP'
+      CALL SetErrors( ErrID_Fatal,'TFrlDSDP must not be larger than TFrlUSDP.')
    END IF
 
 
@@ -4591,29 +4557,25 @@ SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
       ! Check for violations of the small-angle assumption (15-degree limit, using radians):
 
    IF ( ABS( InputFileData%ShftSkew ) > SmallAngleLimit_Rad )  THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  ShftSkew should only be used to skew the shaft a few degrees away from the zero-yaw ' &
+      CALL SetErrors( ErrID_Fatal,'ShftSkew should only be used to skew the shaft a few degrees away from the zero-yaw ' &
                 //'position and must not be used as a replacement for the yaw angle. '&
                 //'ShftSkew must be between -'//TRIM(Num2LStr(SmallAngleLimit_Rad))//' and ' &
-                                              //TRIM(Num2LStr(SmallAngleLimit_Rad))//' radians.'
+                                              //TRIM(Num2LStr(SmallAngleLimit_Rad))//' radians.' )
    END IF
 
 
       ! Warn if tail is defined upwind of the tower:
 
    IF ( InputFileData%BoomCMxn < 0.0_ReKi )  THEN   ! Print out warning when tail boom CM defined upwind of the tower.
-      ErrStat = MAX(ErrID_Warn,ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  WARNING: Tail boom CM is defined upwind of the tower (BoomCMxn < 0).'
+      CALL SetErrors( ErrID_Warn,'WARNING: Tail boom CM is defined upwind of the tower (BoomCMxn < 0).')
    ENDIF
 
    IF ( InputFileData%TFinCMxn < 0.0_ReKi )  THEN   ! Print out warning when tail fin CM defined upwind of the tower.
-      ErrStat = MAX(ErrID_Warn,ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  WARNING: Tail fin CM is defined upwind of the tower (TFinCMxn < 0).'
+      CALL SetErrors( ErrID_Warn,'WARNING: Tail fin CM is defined upwind of the tower (TFinCMxn < 0).')
    ENDIF
 
    IF ( InputFileData%TFinCPxn < 0.0_ReKi )  THEN   ! Print out warning when tail fin CP defined upwind of the tower.
-      ErrStat = MAX(ErrID_Warn,ErrStat)
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  WARNING: Tail fin CP is defined upwind of the tower (TFinCPxn < 0).'
+      CALL SetErrors( ErrID_Warn,'WARNING: Tail fin CP is defined upwind of the tower (TFinCPxn < 0).')
    ENDIF
 
 
@@ -4643,13 +4605,11 @@ SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
       ! Check that furling models are valid:
 
    IF ( InputFileData%TFrlMod < 0 .OR. InputFileData%TFrlMod > 2 )  THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  TFrlMod must be 0, 1, or 2.'
+      CALL SetErrors( ErrID_Fatal, 'TFrlMod must be 0, 1, or 2.')
    END IF
 
    IF ( InputFileData%RFrlMod < 0 .OR. InputFileData%RFrlMod > 2 )  THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  RFrlMod must be 0, 1, or 2.'
+      CALL SetErrors( ErrID_Fatal, 'RFrlMod must be 0, 1, or 2.' )
    END IF
 
 
@@ -4657,14 +4617,25 @@ SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
    !CALL CheckNegative( TFinArea,               'TFinArea',ErrStat, ErrMsg )
    !
    !IF ( TFinMod < 0 .OR. TFinMod > 2 )  THEN
-   !   ErrStat = ErrID_Fatal
-   !   ErrMsg  = TRIM(ErrMsg)//NewLine//'  TFinMod must be 0, 1, or 2.'
+   !   CALL SetErrors( ErrID_Fatal,'TFinMod must be 0, 1, or 2.')
    !END IF
 
 
    RETURN
 
 CONTAINS
+   !-------------------------------------------------------------------------------------------------------------------------------
+   SUBROUTINE SetErrors( ErrStat3, ErrMsg3 )
+   ! This routine sets the error message and flag when an error has occurred
+   !...............................................................................................................................
+   INTEGER(IntKi), INTENT(IN) :: ErrStat3     ! Error status for this error
+   CHARACTER(*),   INTENT(IN) :: ErrMsg3      ! Error message for this error
+
+      ErrStat = MAX( ErrStat, ErrStat3 )
+      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      ErrMsg  = TRIM(ErrMsg)//TRIM(ErrMsg3)
+
+   END SUBROUTINE SetErrors
    !-------------------------------------------------------------------------------------------------------------------------------
    SUBROUTINE CheckAngle180Range( Var, VarDesc, ErrStat, ErrMsg )
    ! This routine checks that an angle is in the range (-pi, pi] radians. If not, ErrStat = ErrID_Fatal
@@ -4678,8 +4649,9 @@ CONTAINS
    
       IF ( ( Var <= -pi ) .OR. ( Var > pi ) )  THEN
          ErrStat = ErrID_Fatal
-         ErrMsg  = TRIM(ErrMsg)//NewLine// &
-                   '  '//TRIM(VarDesc)//' must be greater than -pi radians and less than or equal to pi radians '// &
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg  = TRIM(ErrMsg)// &
+                   TRIM(VarDesc)//' must be greater than -pi radians and less than or equal to pi radians '// &
                                         '(i.e., in the range (-180, 180] degrees).'
       END IF
 
@@ -4841,6 +4813,7 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    INTEGER(IntKi),           INTENT(OUT)    :: ErrStat                      ! Error status
    CHARACTER(*),             INTENT(OUT)    :: ErrMsg                       ! Error message
 
+!bjj: ERROR CHECKING!!!
 
       ! Initialize error data
    ErrStat = ErrID_None
@@ -4850,6 +4823,9 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    !p%HubIner   = InputFileData%HubIner
    !p%NacYIner  = InputFileData%NacYIner
 
+   CALL AllocAry( p%TipMass, p%NumBl, 'TipMass', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+   
    !...............................................................................................................................
    ! Direct copy of variables:
    !...............................................................................................................................     
@@ -4918,15 +4894,11 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    
       ! initialize all of the DOF parameters:
    CALL Init_DOFparameters( InputFileData, p, ErrStat, ErrMsg ) !sets p%NDOF and p%NAug
+      IF (ErrStat >= AbortErrLev) RETURN
       
       ! Set parameters for output channels:
    CALL SetOutParam(InputFileData%OutList, p, ErrStat, ErrMsg ) ! requires: p%NumOuts, p%NumBl, p%NBlGages, p%NTwGages; sets: p%OutParam.
-
-   IF ( InputFileData%TabDelim ) THEN
-      p%Delim = TAB
-   ELSE
-      p%Delim = ' '
-   END IF 
+      IF (ErrStat >= AbortErrLev) RETURN
    
    IF ( InputFileData%TabDelim ) THEN
       p%Delim = TAB
@@ -5090,14 +5062,13 @@ SUBROUTINE ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEc
          END IF 
          
          CALL ReadBladeFile( BldFile(K), InputFileData%InpBl(K), ReadAdmVals, UnEc, ErrStat2, ErrMsg2 )
-            CALL CheckError(ErrStat2,' Errors reading blade '//TRIM(Num2LStr(K))//' input file ('//TRIM(BldFile(K))//'): '&
-                                    //NewLine//TRIM(ErrMsg2))
+            CALL CheckError(ErrStat2,'Errors reading blade '//TRIM(Num2LStr(K))//' input file: '//TRIM(ErrMsg2))
             IF ( ErrStat >= AbortErrLev ) RETURN
       
       ELSE 
               
          CALL ED_CopyBladeInputData( InputFileData%InpBl(K-1), InputFileData%InpBl(K), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )  
-            CALL CheckError(ErrStat2,' Errors copying blade '//TRIM(Num2LStr(K-1))//' input file data: '//NewLine//TRIM(ErrMsg2))
+            CALL CheckError(ErrStat2,'Errors copying blade '//TRIM(Num2LStr(K-1))//' input file data: '//TRIM(ErrMsg2))
             IF ( ErrStat >= AbortErrLev ) RETURN
                ! bjj: we could just read the file again...            
 
@@ -5129,7 +5100,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -5193,7 +5165,7 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
 
    !  -------------- HEADER -------------------------------------------------------
 
-      ! Ship the header.
+      ! Skip the header.
 
    CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 1', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -5203,12 +5175,8 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-   CALL ReadCom ( UnIn, BldFile, 'unused blade file header line 3', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
+      
    !  -------------- BLADE PARAMETERS ---------------------------------------------
-
 
       ! Skip the comment line.
 
@@ -5329,9 +5297,9 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
       ! Read the table.
 
    IF ( ReadAdmVals ) THEN
-      NInputCols = 17
+      NInputCols = 16
    ELSE
-      NInputCols = 6
+      NInputCols = 5
    END IF
 
 
@@ -5343,24 +5311,24 @@ SUBROUTINE ReadBladeFile ( BldFile, BladeKInputFileData, ReadAdmVals, UnEc, ErrS
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       BladeKInputFileData%BlFract( I) = TmpRAry(1)
-      BladeKInputFileData%AerCen(  I) = TmpRAry(2)
-      BladeKInputFileData%StrcTwst(I) = TmpRAry(3)*D2R      ! Input in degrees; converted to radians here
-      BladeKInputFileData%BMassDen(I) = TmpRAry(4)*AdjBlMs  ! Apply the correction factors to the elemental data.
-      BladeKInputFileData%FlpStff( I) = TmpRAry(5)*AdjFlSt  ! Apply the correction factors to the elemental data.
-      BladeKInputFileData%EdgStff( I) = TmpRAry(6)*AdjEdSt  ! Apply the correction factors to the elemental data.
+!      BladeKInputFileData%AerCen(  I) = TmpRAry(2)
+      BladeKInputFileData%StrcTwst(I) = TmpRAry(2)*D2R      ! Input in degrees; converted to radians here
+      BladeKInputFileData%BMassDen(I) = TmpRAry(3)*AdjBlMs  ! Apply the correction factors to the elemental data.
+      BladeKInputFileData%FlpStff( I) = TmpRAry(4)*AdjFlSt  ! Apply the correction factors to the elemental data.
+      BladeKInputFileData%EdgStff( I) = TmpRAry(5)*AdjEdSt  ! Apply the correction factors to the elemental data.
 
       IF ( NInputCols > 6 ) THEN
-         BladeKInputFileData%GJStff(   I) = TmpRAry( 7)
-         BladeKInputFileData%EAStff(   I) = TmpRAry( 8)
-         BladeKInputFileData%Alpha(    I) = TmpRAry( 9)
-         BladeKInputFileData%FlpIner(  I) = TmpRAry(10)
-         BladeKInputFileData%EdgIner(  I) = TmpRAry(11)
-         BladeKInputFileData%PrecrvRef(I) = TmpRAry(12)
-         BladeKInputFileData%PreswpRef(I) = TmpRAry(13)
-         BladeKInputFileData%FlpcgOf(  I) = TmpRAry(14)
-         BladeKInputFileData%EdgcgOf(  I) = TmpRAry(15)
-         BladeKInputFileData%FlpEAOf(  I) = TmpRAry(16)
-         BladeKInputFileData%EdgEAOf(  I) = TmpRAry(17)
+         BladeKInputFileData%GJStff(   I) = TmpRAry( 6)
+         BladeKInputFileData%EAStff(   I) = TmpRAry( 7)
+         BladeKInputFileData%Alpha(    I) = TmpRAry( 8)
+         BladeKInputFileData%FlpIner(  I) = TmpRAry( 9)
+         BladeKInputFileData%EdgIner(  I) = TmpRAry(10)
+         BladeKInputFileData%PrecrvRef(I) = TmpRAry(11)
+         BladeKInputFileData%PreswpRef(I) = TmpRAry(12)
+         BladeKInputFileData%FlpcgOf(  I) = TmpRAry(13)
+         BladeKInputFileData%EdgcgOf(  I) = TmpRAry(14)
+         BladeKInputFileData%FlpEAOf(  I) = TmpRAry(15)
+         BladeKInputFileData%EdgEAOf(  I) = TmpRAry(16)
       END IF
    ENDDO ! I
 
@@ -5425,7 +5393,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -5571,7 +5540,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -6200,7 +6170,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -6274,9 +6245,6 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-   CALL ReadCom ( UnIn, TwrFile, 'unused tower file header line 3', ErrStat2, ErrMsg2, UnEc )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
 
    !  -------------- TOWER PARAMETERS ---------------------------------------------
 
@@ -6498,7 +6466,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' '//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -6622,14 +6591,17 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
    
-      CALL WrScr( ' Heading of the '//TRIM(ED_Ver%Name)//' input file: '//TRIM( FTitle ) )      
-      IF ( UnEc > 0 )  WRITE (UnEc,'(//,A,/)')  'Data from '//TRIM(ED_Ver%Name)//' primary input file "'//TRIM( InputFile )//'":'
-   
+      IF ( UnEc > 0 )  WRITE (UnEc,'(/,A,/)')  'Data from '//TRIM(ED_Ver%Name)//' primary input file "'//TRIM( InputFile )//'":'   
+         
       REWIND( UnIn, IOSTAT=ErrStat2 )   
-         CALL CheckError( ErrID_Fatal, 'Error rewinding file "'//TRIM(InputFile)//'".' )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      
+         IF (ErrStat2 /= 0_IntKi ) THEN
+            CALL CheckError( ErrID_Fatal, 'Error rewinding file "'//TRIM(InputFile)//'".' )      
+            IF ( ErrStat >= AbortErrLev ) RETURN
+         END IF 
+         
    END DO    
+
+   CALL WrScr( ' Heading of the '//TRIM(ED_Ver%Name)//' input file: '//TRIM( FTitle ) )      
                              
 
       ! DT - Requested integration time for ElastoDyn (seconds):
@@ -7233,7 +7205,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' Error in ElastoDyn ReadPrimaryFile: '//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'Error in ElastoDyn ReadPrimaryFile: '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -7489,7 +7462,8 @@ CONTAINS
    CHARACTER(*),   INTENT(IN) :: ErrMsg3      ! Error message for this error
 
       ErrStat = MAX( ErrStat, ErrStat3 )
-      ErrMsg  = TRIM(ErrMsg)//NewLine//'  '//TRIM(ErrMsg3)
+      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      ErrMsg  = TRIM(ErrMsg)//TRIM(ErrMsg3)
 
    END SUBROUTINE SetErrors
    !-------------------------------------------------------------------------------------------------------------------------------
@@ -7506,8 +7480,8 @@ CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is
 
    IF (  Var < 0.0_ReKi )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine// &
-                  '  '//TRIM(VarDesc)//' must not be negative.'
+      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      ErrMsg  = TRIM(ErrMsg)//TRIM(VarDesc)//' must not be negative.'
    END IF
 
 END SUBROUTINE CheckNegative
@@ -7524,8 +7498,9 @@ CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is
 
    IF ( ABS( Var ) > PiBy2 )  THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = TRIM(ErrMsg)//NewLine// &
-                  '  '//TRIM(VarDesc)//' must be between -pi/2 and pi/2 radians (i.e., in the range [-90, 90] degrees).'
+      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      ErrMsg  = TRIM(ErrMsg)// &
+                  TRIM(VarDesc)//' must be between -pi/2 and pi/2 radians (i.e., in the range [-90, 90] degrees).'
    END IF
 
 END SUBROUTINE CheckAngle90Range
@@ -7592,12 +7567,12 @@ SUBROUTINE Init_OtherStates( OtherState, p, InputFileData, ErrStat, ErrMsg  )
 
    CALL InitBlDefl ( p, InputFileData, InitQF1, InitQF2, InitQE1, ErrStat, ErrMsg  )
 
-   OtherState%Q ( DOF_BF(:,1), 1 ) = InitQF1   ! These come from InitBlDefl().
-   OtherState%Q ( DOF_BF(:,2), 1 ) = InitQF2   ! These come from InitBlDefl().
-   OtherState%Q ( DOF_BE(:,1), 1 ) = InitQE1   ! These come from InitBlDefl().
-   OtherState%QD( DOF_BF(:,1), 1 ) = 0.0
-   OtherState%QD( DOF_BF(:,2), 1 ) = 0.0
-   OtherState%QD( DOF_BE(:,1), 1 ) = 0.0
+   OtherState%Q ( DOF_BF(1:p%NumBl,1), 1 ) = InitQF1   ! These come from InitBlDefl().
+   OtherState%Q ( DOF_BF(1:p%NumBl,2), 1 ) = InitQF2   ! These come from InitBlDefl().
+   OtherState%Q ( DOF_BE(1:p%NumBl,1), 1 ) = InitQE1   ! These come from InitBlDefl().
+   OtherState%QD( DOF_BF(1:p%NumBl,1), 1 ) = 0.0
+   OtherState%QD( DOF_BF(1:p%NumBl,2), 1 ) = 0.0
+   OtherState%QD( DOF_BE(1:p%NumBl,1), 1 ) = 0.0
 
       ! Teeter Motion
 
@@ -7715,7 +7690,7 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
 ! This routine checks to see if any inputted output channels (stored in the OutList(:)) are invalid. It returns a 
 ! warning if any of the channels are not available outputs from the module.
 !  It assigns the settings for OutParam(:) (i.e, the index, name, and units of the output channels, WriteOutput(:)).
-!  the sign is set to 
+!  the sign is set to 0 if the channel is invalid.
 ! It requires that these variables are set: p%NumBl, p%NBlGages, p%NTwGages, p%NumOuts
 ! and it sets the values of p%OutParam.
 !.................................................................................................................................. 
@@ -9382,7 +9357,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//' Blade '//TRIM(Num2LStr(K))// &
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'Blade '//TRIM(Num2LStr(K))// &
                      ' initial blade tip displacements are Incompat with enabled DOFs: '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
@@ -10161,7 +10137,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         ErrMsg = TRIM(ErrMsg)//NewLine//TRIM(Msg)
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................

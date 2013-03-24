@@ -278,37 +278,39 @@ ENDIF
 DO K = 1,p%NumBl ! Loop through all blades
 
 
-   IF ( t >= p%TPitManE(K) )  THEN      ! Override pitch maneuver has ended, blade is locked at BlPitchF.
-
-
-      y%BlPitchCom    (K) = p%BlPitchF(K)
-
-
-   ELSEIF ( t >= p%TPitManS(K) )  THEN  ! Override pitch maneuver is occuring for this blade.
+   IF ( t >= p%TPitManS(K) )  THEN  ! Override pitch maneuver is occuring for this blade.
 
 
       IF ( t < OtherState%BegPitMan(K) )  THEN  ! Override pitch maneuver is just beginning.
 
-         OtherState%BlPitchI   (K) = u%BlPitch(K)                                           ! Store the initial (current) pitch, at the start of the pitch maneuver.
+         OtherState%BlPitchI   (K) = u%BlPitch(K)                                                           ! Store the initial (current) pitch, at the start of the pitch maneuver.
 
-         OtherState%BlPitchFrct(K) = ( p%BlPitchF(K) - OtherState%BlPitchI(K) ) / &         ! Calculate the pitch rate (fraction) that will occur during the maneuver.
-                                     ( p%TPitManE(K) - p%TPitManS(K) )
-
-
-         OtherState%BegPitMan(K) = t                                              ! Don't enter this part of the IF-structure again
+         OtherState%PitManRat(K) = SIGN( OtherState%PitManRat(K), p%BlPitchF(K) - OtherState%BlPitchI(K) )   ! Modify the sign of PitManRat based on the direction of the pitch maneuever
+         OtherState%TPitManE (K) = p%TPitManS(K) + ( p%BlPitchF(K) - OtherState%BlPitchI(K) )/OtherState%PitManRat(K) ! Calculate the end time of the override pitch maneuver      
+         
+         OtherState%BegPitMan(K) = t    ! Don't enter this part of the IF-structure again (unless we're backing up in time)
 
       ENDIF
 
+      
+      IF ( t >= OtherState%TPitManE(K) )  THEN      ! Override pitch maneuver has ended, blade is locked at BlPitchF.
 
-      y%BlPitchCom    (K) = OtherState%BlPitchI(K) + OtherState%BlPitchFrct(K)*( t - p%TPitManS(K) )   ! Increment the blade pitch using BlPitchFrct
+         y%BlPitchCom(K) = p%BlPitchF(K)
+
+      ELSE  
+         
+         y%BlPitchCom(K) = OtherState%BlPitchI(K) + OtherState%PitManRat(K)*( t - p%TPitManS(K) )         ! Increment the blade pitch using PitManRat
+         
+      END IF                  
       
    ELSE
+      
       
       OtherState%BegPitMan(K) = HUGE( OtherState%BegPitMan(K) )      ! We haven't started the pitch maneuver (or will need to restart)
 
    ENDIF
 
-
+    
 ENDDO ! K - blades
 
 
@@ -322,7 +324,7 @@ RETURN
 END SUBROUTINE Control
 !=======================================================================
 !SUBROUTINE DrvTrTrq ( p_ED, p_SrvD, LSS_Spd, GBoxTrq )
-SUBROUTINE DrvTrTrq ( t, p, LSS_Spd, GBoxTrq )
+SUBROUTINE DrvTrTrq ( t, p, u, y )
 
 
    ! This routine calculates the drive-train torque.
@@ -334,11 +336,10 @@ IMPLICIT                        NONE
 
 
    ! Passed variables:
-   real(dbki), INTENT(IN) :: t !simulation time in seconds
+REAL(DbKi), INTENT(IN)              :: t                                        ! Simulation time in seconds
 TYPE(SrvD_ParameterType),INTENT(IN) :: p                                        ! Parameters of the ServoDyn module
-!TYPE(ED_outputType),INTENT(IN),optional :: y_ED                                    ! outputs of the structural dynamics module
-REAL(ReKi), INTENT(OUT)      :: GBoxTrq                                         ! Gearbox torque on the LSS side in N-m (output).
-REAL(ReKi), INTENT(IN )      :: LSS_Spd                                         ! LSS speed in rad/sec (input).
+TYPE(SrvD_OutputType),INTENT(INOUT) :: y                                        ! Outputs of the ServoDyn module
+TYPE(SrvD_InputType), INTENT(IN)    :: u                                        ! Inputs to the ServoDyn module
 
 
    ! Local variables:
@@ -361,7 +362,7 @@ LOGICAL,    SAVE             :: Off4Good = .FALSE.                              
 
    ! Calculate the generator speed.
 
-HSS_Spd = ABS(p%GBRatio)*LSS_Spd
+HSS_Spd = ABS(p%GBRatio)*u%LSS_Spd
 
 
    ! See if the generator is on line.
@@ -589,7 +590,7 @@ HSSBrTrqC = HSSBrTrq
    !   the gearbox.  The gearbox efficiency effects, however, are included in
    !   FAST.f90/RtHS().
 
-GBoxTrq = ( GenTrq + HSSBrTrq )*ABS(p%GBRatio)
+y%GBoxTrq = ( GenTrq + HSSBrTrq )*ABS(p%GBRatio)
 
 
 
@@ -1146,7 +1147,6 @@ REAL(ReKi)                   :: EwXXrZO   (3)                                   
 REAL(ReKi)                   :: EwXXrZT   (3)                                   ! = AngVelEX X rZT
 REAL(ReKi)                   :: EwXXrZY   (3)                                   ! = AngVelEX X rZY
 REAL(ReKi)                   :: GBoxEffFac2                                     ! A second gearbox efficiency factor = ( 1 / GBoxEff^SgnPrvLSTQ - 1 )
-REAL(ReKi)                   :: GBoxTrq                                         ! Gearbox torque on the LSS side in N-m.
 REAL(ReKi)                   :: LinAccECt (3)                                   ! Portion of the linear acceleration of the hub center of mass                                                              (point C) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: LinAccEDt (3)                                   ! Portion of the linear acceleration of the center of mass of the structure that furls with the rotor (not including rotor) (point D) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: LinAccEIt (3)                                   ! Portion of the linear acceleration of the tail boom center of mass                                                        (point I) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
@@ -2150,15 +2150,15 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    IF ( p_FAST%CompAero )  THEN   ! Calculate the tip drag using the built-in model.
 !--- this is the tip brake controller:
-      IF ( t >= TTpBrDp(K) )  THEN                                  ! The tip brakes have been deployed due to time.
+      IF ( t >= OtherState_SrvD%TTpBrDp(K) )  THEN                                  ! The tip brakes have been deployed due to time.
 
          TBDrCon    = TBDrConN + ( TBDrConD - TBDrConN )*&
-                      TBFract( t, TTpBrDp(K), TTpBrFl(K) )
+                      TBFract( t, OtherState_SrvD%TTpBrDp(K), OtherState_SrvD%TTpBrFl(K) )
 
-      ELSEIF ( ( x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr) ) >= TBDepISp(K) )  THEN ! The tip brakes deploy due to speed.
+      ELSEIF ( ( x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr) ) >= p_SrvD%TBDepISp(K) )  THEN ! The tip brakes deploy due to speed.
 
-         TTpBrDp(K) = t                                             ! Use the check on time the next time step.
-         TTpBrFl(K) = t + TpBrDT
+         OtherState_SrvD%TTpBrDp(K) = t                                             ! Use the check on time the next time step.
+         OtherState_SrvD%TTpBrFl(K) = t + p_SrvD%TpBrDT
 
          TBDrCon    = TBDrConN
 
@@ -2170,7 +2170,7 @@ DO K = 1,p%NumBl ! Loop through all blades
 !---- end of the controller: returns TBDrCon, or N and D part of ElastoDyn, return 0<=TBFrac<=1, consistant with other controllers
 
 
-      OtherState%RtHS%FSTipDrag(K,:) = OtherState%CoordSys%m2(K,p%BldNodes,:)*SIGN( 0.5*p%AirDens*LinVelESm2(K)*LinVelESm2(K)*TBDrCon, -1.*LinVelESm2(K) )
+      OtherState%RtHS%FSTipDrag(K,:) = OtherState%CoordSys%m2(K,p%BldNodes,:)*SIGN( 0.5*p%AirDens*(LinVelESm2(K)**2)*TBDrCon, -1.*LinVelESm2(K) )
 
    ELSE                    ! Wind turbine in vacuum, no aerodynamic forces.
 
@@ -3048,8 +3048,10 @@ MomXAllt = OtherState%RtHS%MomX0Trbt + OtherState%RtHS%MXHydrot + TmpVec2 + TmpV
 CALL Teeter  ( t, p, OtherState%RtHS%TeetAng, OtherState%RtHS%TeetAngVel, TeetMom ) ! Compute moment from teeter     springs and dampers, TeetMom; NOTE: TeetMom will be zero for a 3-blader since TeetAng = TeetAngVel = 0
 CALL RFurling( t, p, x%QT(DOF_RFrl),          x%QDT(DOF_RFrl),            RFrlMom ) ! Compute moment from rotor-furl springs and dampers, RFrlMom
 CALL TFurling( t, p, x%QT(DOF_TFrl),          x%QDT(DOF_TFrl),            TFrlMom ) ! Compute moment from tail-furl  springs and dampers, TFrlMom
-CALL DrvTrTrq( t, p_SrvD,                     x%QDT(DOF_GeAz),            GBoxTrq ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
 
+u_SrvD%LSS_Spd = x%QDT(DOF_GeAz)
+CALL DrvTrTrq( t, p_SrvD,                     u_SrvD,            y_SrvD  ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
+u%GBoxTrq = y_SrvD%GBoxTrq
 
    ! Now that all of the partial loads have been found, lets fill in the
    !   portions of the mass matrix on and below the diagonal that may be
@@ -3174,7 +3176,7 @@ IF ( p%DOF_Flag (DOF_GeAz) )  THEN
       AugMat(p%DOFs%SrtPS(I),DOF_GeAz) = -DOT_PRODUCT( PAngVelEL(DOF_GeAz,0,:), OtherState%RtHS%PMomLPRot(p%DOFs%SrtPS(I),:) )    ! [C(q,t)]H + [C(q,t)]B
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
       AugMat(DOF_GeAz,    p%NAug) =  DOT_PRODUCT( PAngVelEL(DOF_GeAz,0,:), OtherState%RtHS%MomLPRott             ) &  ! {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
-                                -  GBoxTrq                                                      ! + {-f(qd,q,t)}Gen + {-f(qd,q,t)}Brake
+                                -  u%GBoxTrq                                                      ! + {-f(qd,q,t)}Gen + {-f(qd,q,t)}Brake
 
 
    ! The previous loop (DO I = p%DOFs%Diag(DOF_GeAz),p%DOFs%NActvDOF) misses the
@@ -3249,7 +3251,7 @@ DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 ENDDO             ! I - All active (enabled) DOFs
 
 AugMat(   DOF_GeAz,    p%NAug) = AugMat(DOF_GeAz,    p%NAug) &                                            ! NOTE: TmpVec is still = ( generator inertia dyadic ) Dot ( partial angular velocity of G in E for DOF_GeAz ) in the following equation
-                             - GBoxEffFac2*( DOT_PRODUCT( AngAccEGt              , TmpVec ) + GBoxTrq )   ! {-f(qd,q,t)}GBFric
+                             - GBoxEffFac2*( DOT_PRODUCT( AngAccEGt              , TmpVec ) + u%GBoxTrq )   ! {-f(qd,q,t)}GBFric
 
 
 
