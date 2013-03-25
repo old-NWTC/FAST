@@ -117,16 +117,16 @@ typedef	^	OtherStateType	ReKi	PitManRat	{:}	-	-	"Pitch rates at which override p
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
 typedef	^	ParameterType	DbKi	DT	-	-	-	"Time step for continuous state integration & discrete state update"	seconds
 # parameters from DriveTrain
-typedef	^	ParameterType	ReKi	ElecPwr	-	-	-	"Electrical power, W"
+
 #typedef	^	ParameterType	ReKi	GenCTrq	-	-	-	"Constant generator torque"
 #typedef	^	ParameterType	ReKi	GenSpRZT	-	-	-	"Difference between rated and zero-torque generator speeds for SIG"
 #typedef	^	ParameterType	ReKi	GenSpRat	-	-	-	"Rated generator speed"
 #typedef	^	ParameterType	ReKi	GenSpZT	-	-	-	"Zero-torque generator speed"
-typedef	^	ParameterType	ReKi	GenTrq	-	-	-	"Electrical generator torque"
+
 typedef	^	ParameterType	DbKi	HSSBrDT	-	-	-	"Time it takes for HSS brake to reach full deployment once deployed"	seconds
 typedef	^	ParameterType	ReKi	HSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-). !bjj: used to be local variable in FAST.f90/Subroutine DrvTrTrq()"
 typedef	^	ParameterType	ReKi	HSSBrTqF	-	-	-	"Fully deployed HSS brake torque"
-typedef	^	ParameterType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"
+
 typedef	^	ParameterType	ReKi	HSSBrTrqC	-	-	-	"A copy of the value of HSSBrTrq calculated in SUBROUTINE DrvTrTrq()"
 typedef	^	ParameterType	ReKi	SIG_POSl	-	-	-	"Pullout slip"
 typedef	^	ParameterType	ReKi	SIG_POTq	-	-	-	"Pullout torque"
@@ -195,6 +195,8 @@ typedef	^	ParameterType	ReKi	YawNeut	-	-	-	"Neutral yaw position--yaw spring for
 typedef	^	ParameterType	ReKi	YawSpr	-	-	-	"Nacelle-yaw spring constant"	N-m/rad
 typedef	^	ParameterType	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"	N-m/(rad/s)
 typedef	^	ParameterType	DbKi	TpBrDT	-	-	-	"Time for tip-brake to reach full deployment once released"	s
+typedef	^	ParameterType	ReKi	TBDrConN	-	-	-	"Tip-brake drag constant during normal operation, Cd*Area"
+typedef	^	ParameterType	ReKi	TBDrConD	-	-	-	"Tip-brake drag constant during fully-deployed operation, Cd*Area"
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:
@@ -204,9 +206,13 @@ typedef	^	InputType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
 typedef	^	InputType	ReKi	Yaw	-	-	-	"Current nacelle yaw"	radians
 typedef	^	InputType	ReKi	YawRate	-	-	-	"Current nacelle yaw rate"	rad/s
 typedef	^	InputType	ReKi	LSS_Spd	-	-	-	"Low-speed shaft (LSS) speed"	rad/s
+typedef	^	InputType	ReKi	RotSpeed	-	-	-	"Rotor azimuth angular speed"	rad/s
 typedef	^	InputType	ReKi	ExternalYawPosCom	-	-	-	"Commanded yaw position from Simulink or Labview"	radians
 typedef	^	InputType	ReKi	ExternalYawRateCom	-	-	-	"Commanded yaw rate from Simulink or Labview"	rad/s
 typedef	^	InputType	ReKi	ExternalBlPitchCom	{:}	-	-	"Commanded blade pitch from Simulink or LabVIEW"	radians
+typedef	^	InputType	ReKi	ExternalGenTrq	-	-	-	"Electrical generator torque"	N-m
+typedef	^	InputType	ReKi	ExternalElecPwr	-	-	-	"Electrical power"	W
+typedef	^	InputType	ReKi	ExternalHSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full)"	-
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
@@ -215,4 +221,11 @@ typedef	^	InputType	ReKi	ExternalBlPitchCom	{:}	-	-	"Commanded blade pitch from 
 typedef	^	OutputType	ReKi	WriteOutput	{:}	-	-	"Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt"
 typedef	^	OutputType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"	radians
 typedef	^	OutputType	ReKi	YawMom	-	-	-	"Torque transmitted through the yaw bearing"	N-m
-typedef	^	OutputType	ReKi	GBoxTrq	-	-	-	"Gearbox torque on the LSS side"	N-m
+#typedef	^	OutputType	ReKi	GBoxTrq	-	-	-	"Gearbox torque on the LSS side"	N-m
+typedef	^	OutputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
+typedef	^	OutputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
+typedef	^	OutputType	ReKi	ElecPwr	-	-	-	"Electrical power"	W
+
+#typedef	^	OutputType	ReKi	HSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full)"
+
+typedef	^	OutputType	ReKi	TBDrCon	{:}	-	-	"Instantaneous tip-brake drag constant, Cd*Area"

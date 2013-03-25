@@ -1476,10 +1476,15 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    ENDIF
    y%AllOuts = 0.0     
    
-   CALL AllocAry( y%WriteOutput,          p%NumOuts, 'WriteOutput', ErrStat2, ErrMsg2 )
+   CALL AllocAry( y%WriteOutput, p%NumOuts, 'WriteOutput', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
+   CALL AllocAry( y%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+      
       !............................................................................................
       ! Define initialization-routine output here:
       !............................................................................................
@@ -2294,9 +2299,6 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    y%AllOuts( HSShftTq) = y%AllOuts(LSShftMxa)*OtherState%RtHS%GBoxEffFac/ABS(p%GBRatio)
    y%AllOuts(HSShftPwr) = y%AllOuts( HSShftTq)*ABS(p%GBRatio)*x%QDT(DOF_GeAz)
-   !y%AllOuts(  HSSBrTq) = 0.001*HSSBrTrq
-   !y%AllOuts(    GenTq) = 0.001*GenTrq
-   !y%AllOuts(   GenPwr) = 0.001*ElecPwr
 
    y%AllOuts(  HSSBrTq) = 0
    y%AllOuts(    GenTq) = 0
@@ -10151,8 +10153,273 @@ CONTAINS
 
 
    END SUBROUTINE CheckError
+!----------------------------------------------------------------------------------------------------------------------------------  
 END SUBROUTINE SetCoordSy
 !----------------------------------------------------------------------------------------------------------------------------------  
+SUBROUTINE RFurling( t, p, RFrlDef, RFrlRate, RFrlMom )
+! This routine computes the rotor-furl moment due to rotor-furl deflection and rate.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+
+      ! Passed Variables:
+   REAL(DbKi), INTENT(IN)              :: t                                   ! simulation time
+   TYPE(ED_ParameterType), INTENT(IN)  :: p                                   ! parameters from the structural dynamics module
+
+   REAL(ReKi), INTENT(IN )             :: RFrlDef                             ! The rotor-furl deflection, x%QT(DOF_RFrl)
+   REAL(ReKi), INTENT(OUT)             :: RFrlMom                             ! The total moment supplied by the springs, and dampers
+   REAL(ReKi), INTENT(IN )             :: RFrlRate                            ! The rotor-furl rate, x%QDT(DOF_RFrl)
+
+
+      ! Local variables:
+   REAL(ReKi)                   :: RFrlDMom                                   ! The moment supplied by the rotor-furl dampers
+   REAL(ReKi)                   :: RFrlSMom                                   ! The moment supplied by the rotor-furl springs
+
+
+   SELECT CASE ( p%RFrlMod ) ! Which rotor-furl model are we using?
+
+      CASE ( 0_IntKi )       ! None!
+
+
+         RFrlMom = 0.0
+
+
+      CASE ( 1_IntKi )        ! Standard (using inputs from the FAST furling input file).
+
+
+         ! Linear spring:
+
+         RFrlSMom = -p%RFrlSpr*RFrlDef
+
+
+         ! Add spring-stops:
+
+         IF ( RFrlDef > p%RFrlUSSP )  THEN       ! Up-stop
+            RFrlSMom = RFrlSMom - p%RFrlUSSpr*( RFrlDef - p%RFrlUSSP )
+         ELSEIF ( RFrlDef < p%RFrlDSSP )  THEN   ! Down-stop
+            RFrlSMom = RFrlSMom - p%RFrlDSSpr*( RFrlDef - p%RFrlDSSP )
+         ENDIF
+
+
+         ! Linear damper:
+
+         RFrlDMom = -p%RFrlDmp*RFrlRate
+
+
+         ! Add coulomb friction:
+
+         IF ( RFrlRate /= 0.0 )  THEN
+            RFrlDMom = RFrlDMom - SIGN( p%RFrlCDmp, RFrlRate )
+         ENDIF
+
+
+         ! Add damper-stops:
+
+         IF ( RFrlDef > p%RFrlUSDP )  THEN       ! Up-stop
+            RFrlDMom = RFrlDMom - p%RFrlUSDmp*RFrlRate
+         ELSEIF ( RFrlDef < p%RFrlDSDP )  THEN   ! Down-stop
+            RFrlDMom = RFrlDMom - p%RFrlDSDmp*RFrlRate
+         ENDIF
+
+
+         ! Total up all the moments.
+
+         RFrlMom = RFrlSMom + RFrlDMom
+
+
+      CASE ( 2_IntKi )              ! User-defined rotor-furl spring/damper model.
+
+
+         CALL UserRFrl ( RFrlDef, RFrlRate, t, p%RootName, RFrlMom )
+
+
+   END   SELECT
+
+   RETURN
+END SUBROUTINE RFurling
+!----------------------------------------------------------------------------------------------------------------------------------  
+SUBROUTINE Teeter( t, p, TeetDef, TeetRate, TeetMom )
+! This routine computes the teeter moment due to teeter deflection and rate.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+
+      ! Passed Variables:
+   REAL(DbKi), INTENT(IN)             :: t                                       ! simulation time
+   TYPE(ED_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
+   REAL(ReKi), INTENT(IN )            :: TeetDef                                 ! The teeter deflection, x%QT(DOF_Teet).
+   REAL(ReKi), INTENT(OUT)            :: TeetMom                                 ! The total moment supplied by the stop, spring, and damper.
+   REAL(ReKi), INTENT(IN )            :: TeetRate                                ! The teeter rate, x%QDT(DOF_Teet).
+
+
+      ! Local variables:
+   REAL(ReKi)                         :: AbsDef                                   ! Absolute value of the teeter deflection.
+   REAL(ReKi)                         :: SprgDef                                  ! Deflection past the spring.
+   REAL(ReKi)                         :: StopDef                                  ! Deflection past the stop.
+   REAL(ReKi)                         :: TeetDMom                                 ! The moment supplied by the damper.
+   REAL(ReKi)                         :: TeetFMom                                 ! The moment supplied by Coulomb-friction damping.
+   REAL(ReKi)                         :: TeetKMom                                 ! The moment supplied by the spring.
+   REAL(ReKi)                         :: TeetSMom                                 ! The moment supplied by the stop.
+
+
+
+   SELECT CASE ( p%TeetMod ) ! Which teeter model are we using?
+
+   CASE ( 0_IntKi )              ! None!
+
+
+      TeetMom = 0.0
+
+
+   CASE ( 1_IntKi )              ! Standard (using inputs from the primary FAST input file).
+
+
+      ! Compute the absulute value of the deflection.
+
+      AbsDef  = ABS( TeetDef )
+
+
+      ! Linear teeter spring.
+
+      SprgDef = AbsDef - p%TeetSStP
+
+      IF ( SprgDef > 0.0_ReKi )  THEN
+         TeetKMom = -SIGN( SprgDef*p%TeetSSSp, TeetDef )
+      ELSE
+         TeetKMom = 0.0
+      ENDIF
+
+
+      ! Compute teeter-stop moment if hard stop has been contacted.
+
+      StopDef = AbsDef - p%TeetHStP
+
+      IF ( StopDef > 0.0_ReKi )  THEN
+         TeetSMom = -p%TeetHSSp*SIGN( StopDef, TeetDef )
+      ELSE
+         TeetSMom = 0.0
+      ENDIF
+
+
+      ! Compute linear teeter-damper moment.
+
+      TeetDMom = -p%TeetDmp*TeetRate
+
+
+      ! Add coulomb friction to the teeter hinge.
+
+      IF ( .NOT. EqualRealNos( TeetRate, 0.0_ReKi ) )  THEN
+         TeetFMom = 0.0
+      ELSE
+         TeetFMom = -SIGN( p%TeetCDmp, TeetRate )
+      ENDIF
+
+
+      ! Total up all the moments.
+
+      TeetMom = TeetSMom + TeetDMom + TeetKMom + TeetFMom
+
+
+   CASE ( 2_IntKi )              ! User-defined teeter spring/damper model.
+
+
+      CALL UserTeet ( TeetDef, TeetRate, t, p%RootName, TeetMom )
+
+
+   END SELECT
+
+
+   RETURN
+END SUBROUTINE Teeter
+!----------------------------------------------------------------------------------------------------------------------------------  
+SUBROUTINE TFurling( t, p, TFrlDef, TFrlRate, TFrlMom )
+! This routine computes the tail-furl moment due to tail-furl deflection and rate.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+      ! Passed Variables:
+   REAL(DbKi), INTENT(IN)             :: t ! simulation time
+   TYPE(ED_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
+
+   REAL(ReKi), INTENT(IN )            :: TFrlDef                                 ! The tail-furl deflection, QT(DOF_TFrl).
+   REAL(ReKi), INTENT(OUT)            :: TFrlMom                                 ! The total moment supplied by the springs, and dampers.
+   REAL(ReKi), INTENT(IN )            :: TFrlRate                                ! The tail-furl rate, QDT(DOF_TFrl).
+
+
+      ! Local variables:
+
+   REAL(ReKi)                         :: TFrlDMom                                ! The moment supplied by the tail-furl dampers.
+   REAL(ReKi)                         :: TFrlSMom                                ! The moment supplied by the tail-furl springs.
+
+
+
+   SELECT CASE ( p%TFrlMod ) ! Which tail-furl model are we using?
+
+      CASE ( 0_IntKi )              ! None!
+
+
+         TFrlMom = 0.0
+
+
+      CASE ( 1_IntKi )              ! Standard (using inputs from the FAST furling input file).
+
+
+         ! Linear spring:
+
+         TFrlSMom = -p%TFrlSpr*TFrlDef
+
+
+         ! Add spring-stops:
+
+         IF ( TFrlDef > p%TFrlUSSP )  THEN      ! Up-stop
+            TFrlSMom = TFrlSMom - p%TFrlUSSpr*( TFrlDef - p%TFrlUSSP )
+         ELSEIF ( TFrlDef < p%TFrlDSSP )  THEN  ! Down-stop
+            TFrlSMom = TFrlSMom - p%TFrlDSSpr*( TFrlDef - p%TFrlDSSP )
+         ENDIF
+
+
+         ! Linear damper:
+
+         TFrlDMom = -p%TFrlDmp*TFrlRate
+
+
+         ! Add coulomb friction:
+
+         IF ( .NOT. EqualRealNos( TFrlRate, 0.0_ReKi) )  THEN
+            TFrlDMom = TFrlDMom - SIGN( p%TFrlCDmp, TFrlRate )
+         ENDIF
+
+
+         ! Add damper-stops:
+
+         IF ( TFrlDef > p%TFrlUSDP )  THEN      ! Up-stop
+            TFrlDMom = TFrlDMom - p%TFrlUSDmp*TFrlRate
+         ELSEIF ( TFrlDef < p%TFrlDSDP )  THEN  ! Down-stop
+            TFrlDMom = TFrlDMom - p%TFrlDSDmp*TFrlRate
+         ENDIF
+
+
+         ! Total up all the moments.
+
+         TFrlMom = TFrlSMom + TFrlDMom
+
+
+      CASE ( 2 )              ! User-defined tail-furl spring/damper model.
+
+
+         CALL UserTFrl ( TFrlDef, TFrlRate, t, p%RootName, TFrlMom )
+
+
+   END SELECT
+
+
+   RETURN
+END SUBROUTINE TFurling
+!----------------------------------------------------------------------------------------------------------------------------------  
+
 END MODULE ElastoDyn
 !**********************************************************************************************************************************
 

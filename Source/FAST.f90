@@ -17,13 +17,11 @@ MODULE FASTSubs
    
 CONTAINS
 !=======================================================================
+!----------------------------------------------------------------------------------------------------------------------------------  
 SUBROUTINE Control( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg,   p_ED, x_ED, OtherState_ED )
 
 
    ! This is the main control routine.
-
-
-USE                             DriveTrain
 
 USE                             AeroDyn
 
@@ -67,127 +65,7 @@ CHARACTER(1024)              :: ErrMsg
  CALL Yaw_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
 
-!   ! Control yaw if requested:
-!
-!IF ( t >= p%TYCOn )  THEN   ! Time now to enable active yaw control.
-!
-!
-!   SELECT CASE ( p%YCMode )  ! Which yaw control mode are we using?
-!
-!   CASE ( 0 )              ! None!
-!
-!
-!   ! Use the initial yaw angle and rate:
-!
-!      IF ( p_ED%DOF_Flag(DOF_Yaw) )  THEN   ! Yaw DOF is currently enabled (use FAST's built-in actuator initial conditions).
-!
-!         y%YawPosCom  = p%YawNeut
-!         y%YawRateCom = p%YawRateNeut
-!
-!      ELSE                             ! Yaw DOF is currently disabled (no built-in actuator) (use FAST's initial yaw conditions).
-!
-!         y%YawPosCom  = NacYaw
-!         y%YawRateCom = 0.0
-!
-!      ENDIF
-!
-!
-!   CASE ( 1 )              ! User-defined from routine UserYawCont().
-!
-!
-!   ! Calculate horizontal hub-height wind direction and the nacelle yaw error
-!   !   estimate (both positive about zi-axis); these are zero if there is no
-!   !   wind input when AeroDyn is not used:
-!
-!      IF ( p_FAST%CompAero )  THEN   ! AeroDyn has been used.
-!
-!         HHWndVec(:) = AD_GetUndisturbedWind( REAL(t, ReKi), (/ REAL(0.0, ReKi), REAL(0.0, ReKi), p_ED%FASTHH /), ErrStat )
-!
-!         WindDir  = ATAN2( HHWndVec(2), HHWndVec(1) )
-!         YawError = WindDir - x_ED%QT(DOF_Yaw) - x_ED%QT(DOF_Y) ! = wind direction - nacelle yaw - platform yaw
-!
-!      ELSE                    ! No AeroDynamics.
-!
-!         WindDir  = 0.0
-!         YawError = 0.0
-!
-!      ENDIF
-!
-!
-!   ! Call the user-defined yaw control routine:
-!
-!      CALL UserYawCont ( x_ED%QT(DOF_Yaw), x_ED%QDT(DOF_Yaw), WindDir, YawError, p%NumBl, t, DT, DirRoot, y%YawPosCom, y%YawRateCom )
-!
-!
-!   CASE ( 2 )              ! User-defined from Simulink or Labview.
-!
-!
-!   ! Do nothing here since yaw angle and yaw rate are defined externally from Simulink or Labview.
-!
-!
-!   ENDSELECT
-!
-!
-!ELSE                          ! Do not control yaw yet, maintain initial yaw angles.
-!
-!
-!   ! Use the initial yaw angle and rate:
-!
-!   IF ( p_ED%DOF_Flag(DOF_Yaw) )  THEN   ! Yaw DOF is currently enabled (use FAST's built-in actuator initial conditions).
-!
-!      y%YawPosCom  = p%YawNeut
-!      y%YawRateCom = p%YawRateNeut
-!
-!   ELSE                             ! Yaw DOF is currently disabled (no built-in actuator) (use FAST's initial yaw conditions).
-!
-!      y%YawPosCom  = NacYaw
-!      y%YawRateCom = 0.0
-!
-!   ENDIF
-!
-!
-!ENDIF
-!
-!
-!
-!
-!   ! Override standard yaw control with a linear maneuver if necessary:
-!
-!IF ( t >= p%TYawManS )  THEN  ! Override yaw maneuver is occuring.
-!
-!
-!   IF ( BegYawMan )  THEN  ! Override yaw maneuver is just beginning.
-!
-!      NacYawI    = x_ED%QT(DOF_Yaw)                               ! Store the initial (current) yaw, at the start of the yaw maneuver.
-!
-!      YawManRat  = SIGN( YawManRat, NacYawF - NacYawI )        ! Modify the sign of YawManRat based on the direction of the yaw maneuever
-!
-!      TYawManE   = p%TYawManS + ( p%NacYawF - NacYawI )/YawManRat  ! Calculate the end time of the override yaw maneuver
-!
-!      !
-!      !NacYawFrct = ( p%NacYawF  - NacYawI  ) / &                 ! Calculate the yaw rate (fraction) that will occur during the maneuver.
-!      !             ( p%TYawManE - p%TYawManS )
-!      !
-!
-!      BegYawMan  = .FALSE.                                     ! Don't enter this part of the IF-structure again
-!
-!   ENDIF
-!
-!   IF ( t >= p%TYawManE )  THEN   ! Override yaw maneuver has ended; yaw command is fixed at NacYawF
-!
-!      YawPosCom     = p%NacYawF
-!      YawRateCom    = 0.0
-!
-!   ELSE                             ! Override yaw maneuver in linear ramp
-!
-!      YawPosCom     = NacYawI + YawManRat*( t - p%TYawManS ) ! Increment the command yaw
-!      YawRateCom    = YawManRat                                !   and rate using YawManRat                                  
-!
-!   ENDIF
-!
-!
-!ENDIF
-!
+
 
 !bjj: not sure what to do with this....
 !
@@ -250,7 +128,7 @@ IF ( t >= p%TPCOn )  THEN   ! Time now to enable active pitch control.
 
    ! Call the user-defined pitch control routine:
 
-      CALL PitchCntrl ( OtherState_ED%BlPitch, ElecPwr, ABS(p%GBRatio)*x_ED%QDT(DOF_GeAz), p_ED%GBRatio, TwrAccel, p%NumBl, t, p_FAST%DT, p_FAST%DirRoot, y%BlPitchCom )
+      CALL PitchCntrl ( u%BlPitch, y%ElecPwr, ABS(p%GBRatio)*x_ED%QDT(DOF_GeAz), p_ED%GBRatio, TwrAccel, p%NumBl, t, p_FAST%DT, p_FAST%DirRoot, y%BlPitchCom )
 !bjj check the ABS around both arguments here!
 
    CASE ( 2 )              ! User-defined from Simulink or Labview.
@@ -322,282 +200,258 @@ ENDDO ! K - blades
 
 RETURN
 END SUBROUTINE Control
-!=======================================================================
-!SUBROUTINE DrvTrTrq ( p_ED, p_SrvD, LSS_Spd, GBoxTrq )
-SUBROUTINE DrvTrTrq ( t, p, u, y )
+!----------------------------------------------------------------------------------------------------------------------------------  
+SUBROUTINE DrvTrTrq ( t, p, u, y, ErrStat, ErrMsg )
+! This routine calculates the drive-train torque (outputs GenTrq, ElecPwr, and HSSBrTrq)
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
 
 
-   ! This routine calculates the drive-train torque.
+      ! Passed variables:
+   REAL(DbKi), INTENT(IN)              :: t                                        ! Simulation time in seconds
+   TYPE(SrvD_ParameterType),INTENT(IN) :: p                                        ! Parameters of the ServoDyn module
+   TYPE(SrvD_OutputType),INTENT(INOUT) :: y                                        ! Outputs of the ServoDyn module
+   TYPE(SrvD_InputType), INTENT(IN)    :: u                                        ! Inputs to the ServoDyn module
+
+   INTEGER(IntKi),               INTENT(OUT)    :: ErrStat                      ! Error status
+   CHARACTER(*),                 INTENT(OUT)    :: ErrMsg                       ! Error message
 
 
-USE                             DriveTrain
+      ! Local variables:
 
-IMPLICIT                        NONE
+   COMPLEX(ReKi)                :: Current1                                        ! Current passing through the stator (amps)
+   COMPLEX(ReKi)                :: Current2                                        ! Current passing through the rotor (amps)
+   COMPLEX(ReKi)                :: Currentm                                        ! Magnitizing current (amps)
 
-
-   ! Passed variables:
-REAL(DbKi), INTENT(IN)              :: t                                        ! Simulation time in seconds
-TYPE(SrvD_ParameterType),INTENT(IN) :: p                                        ! Parameters of the ServoDyn module
-TYPE(SrvD_OutputType),INTENT(INOUT) :: y                                        ! Outputs of the ServoDyn module
-TYPE(SrvD_InputType), INTENT(IN)    :: u                                        ! Inputs to the ServoDyn module
-
-
-   ! Local variables:
-
-COMPLEX(ReKi)                :: Current1                                        ! Current passing through the stator (amps)
-COMPLEX(ReKi)                :: Current2                                        ! Current passing through the rotor (amps)
-COMPLEX(ReKi)                :: Currentm                                        ! Magnitizing current (amps)
-
-REAL(ReKi)                   :: ComDenom                                        ! Common denominator of variables used in the TEC model
-REAL(ReKi)                   :: HSS_Spd                                         ! HSS speed in rad/sec.
-REAL(ReKi)                   :: PwrLossS                                        ! Power loss in the stator (watts)
-REAL(ReKi)                   :: PwrLossR                                        ! Power loss in the rotor (watts)
-REAL(ReKi)                   :: PwrMech                                         ! Mechanical power (watts)
-REAL(ReKi)                   :: Slip                                            ! Generator slip.
-REAL(ReKi)                   :: SlipRat                                         ! Generator slip ratio.
+   REAL(ReKi)                   :: ComDenom                                        ! Common denominator of variables used in the TEC model
+   REAL(ReKi)                   :: HSS_Spd                                         ! HSS speed in rad/sec.
+   REAL(ReKi)                   :: HSSBrFrac                                       ! Fraction of full braking torque {0 (off) <= HSSBrFrac <= 1 (full)} (-)
+   REAL(ReKi)                   :: PwrLossS                                        ! Power loss in the stator (watts)
+   REAL(ReKi)                   :: PwrLossR                                        ! Power loss in the rotor (watts)
+   REAL(ReKi)                   :: PwrMech                                         ! Mechanical power (watts)
+   REAL(ReKi)                   :: Slip                                            ! Generator slip.
+   REAL(ReKi)                   :: SlipRat                                         ! Generator slip ratio.
 
 LOGICAL,    SAVE             :: GenOnLin = .FALSE.                              ! Is the generator online?
 LOGICAL,    SAVE             :: Off4Good = .FALSE.                              ! Is the generator offline for good?
 
 
-   ! Calculate the generator speed.
+INTEGER(IntKi), PARAMETER :: ControlMode_None   = 0
+INTEGER(IntKi), PARAMETER :: ControlMode_Simple = 1 
+INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
+INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
 
-HSS_Spd = ABS(p%GBRatio)*u%LSS_Spd
+
+      ! Initialize variables
+   ErrStat = ErrID_None
+   ErrMsg  = ''
 
 
-   ! See if the generator is on line.
+      ! Calculate the generator speed.
 
-IF ( .NOT. Off4Good )  THEN
+   HSS_Spd = ABS(p%GBRatio)*u%LSS_Spd
 
-   ! The generator is either on-line or has never been turned online.
 
-   IF ( GenOnLin )  THEN   ! The generator is on-line.
+      ! See if the generator is on line.
 
-      IF ( ( p%GenTiStp ) .AND. ( t >= p%TimGenOf ) )  THEN   ! Shut-down of generator determined by time, TimGenOf
+   IF ( .NOT. Off4Good )  THEN
+
+      ! The generator is either on-line or has never been turned online.
+
+      IF ( GenOnLin )  THEN   ! The generator is on-line.
+
+         IF ( ( p%GenTiStp ) .AND. ( t >= p%TimGenOf ) )  THEN   ! Shut-down of generator determined by time, TimGenOf
+            GenOnLin = .FALSE.
+            Off4Good = .TRUE.
+         ENDIF
+
+      ELSE                    ! The generator has never been turned online.
+
+         IF ( p%GenTiStr )  THEN   ! Start-up of generator determined by time, TimGenOn
+            IF ( t >= p%TimGenOn )    GenOnLin = .TRUE.
+         ELSE                    ! Start-up of generator determined by HSS speed, SpdGenOn
+            IF ( HSS_Spd >= p%SpdGenOn )  GenOnLin = .TRUE.
+         ENDIF
+
+      ENDIF
+
+   ENDIF
+
+
+   IF ( GenOnLin )  THEN                    ! Generator is on line.
+
+
+      ! Are we doing simple variable-speed control, or using a generator model?
+
+      SELECT CASE ( p%VSContrl )               ! Are we using variable-speed control?
+
+         CASE ( ControlMode_None )                ! No variable-speed control.  Using a generator model.
+
+
+            SELECT CASE ( p%GenModel )            ! Which generator model are we using?
+
+               CASE ( 1_IntKi )                          ! Simple induction-generator model.
+
+
+                  Slip = HSS_Spd - p%SIG_SySp
+
+                  IF ( ABS( Slip ) > p%SIG_POSl  )  THEN
+                     y%GenTrq  = SIGN( p%SIG_POTq, Slip )
+                  ELSE
+                     y%GenTrq  = Slip*p%SIG_Slop
+                  ENDIF
+                  !GenTrq     = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
+
+
+            ! The generator efficiency is either additive for motoring,
+            !   or subtractive for generating power.
+
+            ! bjj: um... I don't see any difference here:
+                  IF ( y%GenTrq > 0.0 )  THEN
+                     y%ElecPwr = y%GenTrq*HSS_Spd*p%GenEff
+                  ELSE
+                     y%ElecPwr = y%GenTrq*HSS_Spd/p%GenEff
+                  ENDIF
+
+
+               CASE ( 2_IntKi )                          ! Thevenin-equivalent generator model.
+
+
+                  SlipRat  = ( HSS_Spd - p%TEC_SySp )/p%TEC_SySp
+
+                  y%GenTrq  = p%TEC_A0*(p%TEC_VLL**2)*SlipRat &
+                             /( p%TEC_C0 + p%TEC_C1*SlipRat + p%TEC_C2*(SlipRat**2) )
+
+                  ComDenom = ( p%TEC_Re1 - p%TEC_RRes/SlipRat )**2 + ( p%TEC_Xe1 + p%TEC_RLR )**2
+                  Current2 = CMPLX(  p%TEC_V1a*( p%TEC_Re1 - p%TEC_RRes/SlipRat )/ComDenom , &
+                                    -p%TEC_V1a*( p%TEC_Xe1 + p%TEC_RLR          )/ComDenom     )
+                  Currentm = CMPLX( 0.0 , -p%TEC_V1a/p%TEC_MR )
+                  Current1 = Current2 + Currentm
+                  PwrLossS = 3.0*( ( ABS( Current1 ) )**2 )*p%TEC_SRes
+                  PwrLossR = 3.0*( ( ABS( Current2 ) )**2 )*p%TEC_RRes
+                  PwrMech  = y%GenTrq*HSS_Spd
+                  y%ElecPwr  = PwrMech - PwrLossS - PwrLossR
+
+
+               CASE ( 3_IntKi )                          ! User-defined generator model.
+
+
+         !        CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+                  CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, t, p_FAST%DT, p%GenEff, 0.0_ReKi, p_FAST%DirRoot, y%GenTrq, y%ElecPwr )
+
+      !bjj check the ABS here (above)
+            END SELECT
+
+
+         CASE ( ControlMode_Simple )              ! Simple variable-speed control.
+
+
+         ! Compute the generator torque, which depends on which region we are in:
+
+            IF ( HSS_Spd >= p%VS_RtGnSp )  THEN      ! We are in region 3 - torque is constant
+               y%GenTrq = p%VS_RtTq
+            ELSEIF ( HSS_Spd < p%VS_TrGnSp )  THEN   ! We are in region 2 - torque is proportional to the square of the generator speed
+               y%GenTrq = p%VS_Rgn2K* (HSS_Spd**2)
+            ELSE                                   ! We are in region 2 1/2 - simple induction generator transition region
+               y%GenTrq = p%VS_Slope*( HSS_Spd - p%VS_SySp )
+            ENDIF
+
+            !GenTrq  = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
+
+
+         ! It's not possible to motor using this control scheme,
+         !   so the generator efficiency is always subtractive.
+
+            y%ElecPwr = y%GenTrq*HSS_Spd*p%GenEff
+
+
+         CASE ( ControlMode_User )                              ! User-defined variable-speed control for routine UserVSCont().
+
+
+      !      CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+            CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, t, p_FAST%DT, p%GenEff, 0.0_ReKi, p_FAST%DirRoot, y%GenTrq, y%ElecPwr )
+
+
+         CASE ( ControlMode_Extern )                             ! User-defined variable-speed control from Simulink or Labview.
+
+         ! No need to define GenTrq or ElecPwr here since this is defined externally
+         !   by Simulink or Labview.  Also, no reason to perturb generator torque here either,
+         !   since linearization does not work with Simulink or Labview.
+   
+            y%GenTrq  = u%ExternalGenTrq
+            y%ElecPwr = u%ExternalElecPwr      
+
+      END SELECT
+
+
+      ! Lets turn the generator offline for good if ( GenTiStp = .FALSE. ) .AND. ( ElecPwr <= 0.0 ):
+
+      IF ( ( .NOT. p%GenTiStp ) .AND. ( y%ElecPwr <= 0.0_ReKi ) ) THEN   ! Shut-down of generator determined by generator power = 0
+         y%GenTrq   = 0.0
+         y%ElecPwr  = 0.0
+
          GenOnLin = .FALSE.
          Off4Good = .TRUE.
       ENDIF
 
-   ELSE                    ! The generator has never been turned online.
+   ELSE                                     ! Generator is off line.
 
-      IF ( p%GenTiStr )  THEN   ! Start-up of generator determined by time, TimGenOn
-         IF ( t >= p%TimGenOn )    GenOnLin = .TRUE.
-      ELSE                    ! Start-up of generator determined by HSS speed, SpdGenOn
-         IF ( HSS_Spd >= p%SpdGenOn )  GenOnLin = .TRUE.
-      ENDIF
+      y%GenTrq  = 0.0
+      y%ElecPwr = 0.0
 
    ENDIF
 
-ENDIF
+
+   !.................................................................................
+   ! Calculate the fraction of applied HSS-brake torque, HSSBrFrac:
+   !.................................................................................
+
+   IF ( t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
+
+      HSSBrFrac = 0.0
+
+   ELSE                             ! HSS brake deployed.
 
 
-IF ( GenOnLin )  THEN                     ! Generator is on line.
+      SELECT CASE ( p%HSSBrMode )                 ! Which HSS brake model are we using?
 
+      CASE ( ControlMode_Simple )                 ! Simple built-in HSS brake model with linear ramp.
 
-   ! Are we doing simple variable-speed control, or using a generator model?
-
-   SELECT CASE ( p%VSContrl )               ! Are we using variable-speed control?
-
-   CASE ( 0_IntKi )                             ! No variable-speed control.  Using a generator model.
-
-
-      SELECT CASE ( p%GenModel )            ! Which generator model are we using?
-
-      CASE ( 1_IntKi )                          ! Simple induction-generator model.
-
-
-         Slip = HSS_Spd - p%SIG_SySp
-
-         IF ( ABS( Slip ) > p%SIG_POSl  )  THEN
-            GenTrq  = SIGN( p%SIG_POTq, Slip )
-         ELSE
-            GenTrq  = Slip*p%SIG_Slop
-         ENDIF
-         !GenTrq     = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
-
-
-   ! The generator efficiency is either additive for motoring,
-   !   or subtractive for generating power.
-
-   ! bjj: um... I don't see any difference here:
-         IF ( GenTrq > 0.0 )  THEN
-            ElecPwr = GenTrq*HSS_Spd*p%GenEff
-         ELSE
-            ElecPwr = GenTrq*HSS_Spd/p%GenEff
+         IF ( t < p%THSSBrFl )  THEN ! Linear ramp
+            HSSBrFrac = ( t - p%THSSBrDp )/p%HSSBrDT
+         ELSE                        ! Full braking torque
+            HSSBrFrac = 1.0
          ENDIF
 
+      CASE ( ControlMode_User )                   ! User-defined HSS brake model.
 
-      CASE ( 2_IntKi )                          ! Thevenin-equivalent generator model.
+         CALL UserHSSBr ( y%GenTrq, y%ElecPwr, HSS_Spd, p%GBRatio, p%NumBl, t, p%DT, p%RootName, HSSBrFrac )
 
+         IF ( ( HSSBrFrac < 0.0 ) .OR. ( HSSBrFrac > 1.0 ) )  THEN   ! 0 (off) <= HSSBrFrac <= 1 (full); else Abort.
+            ErrStat = ErrID_Fatal
+            ErrMsg  = 'HSSBrFrac must be between 0.0 (off) and 1.0 (full) (inclusive).  Fix logic in routine UserHSSBr().'
+            RETURN
+         END IF
+      
+      CASE ( ControlMode_Extern )                 ! HSS brake model from Labview.
 
-         SlipRat  = ( HSS_Spd - p%TEC_SySp )/p%TEC_SySp
+         HSSBrFrac = u%ExternalHSSBrFrac
 
-         GenTrq   = p%TEC_A0*(p%TEC_VLL**2)*SlipRat &
-                    /( p%TEC_C0 + p%TEC_C1*SlipRat + p%TEC_C2*(SlipRat**2) )
-         !GenTrq   = GenTrq + DelGenTrq ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
-
-         ComDenom = ( p%TEC_Re1 - p%TEC_RRes/SlipRat )**2 + ( p%TEC_Xe1 + p%TEC_RLR )**2
-         Current2 = CMPLX(  p%TEC_V1a*( p%TEC_Re1 - p%TEC_RRes/SlipRat )/ComDenom , &
-                           -p%TEC_V1a*( p%TEC_Xe1 + p%TEC_RLR          )/ComDenom     )
-         Currentm = CMPLX( 0.0 , -p%TEC_V1a/p%TEC_MR )
-         Current1 = Current2 + Currentm
-         PwrLossS = 3.0*( ( ABS( Current1 ) )**2 )*p%TEC_SRes
-         PwrLossR = 3.0*( ( ABS( Current2 ) )**2 )*p%TEC_RRes
-         PwrMech  = GenTrq*HSS_Spd
-         ElecPwr  = PwrMech - PwrLossS - PwrLossR
-
-
-      CASE ( 3_IntKi )                          ! User-defined generator model.
-
-
-!        CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
-         CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, t, p_FAST%DT, p%GenEff, 0.0_ReKi, p_FAST%DirRoot, GenTrq, ElecPwr )
-
-!bjj check the ABS here (above)
       ENDSELECT
 
 
-   CASE ( 1_IntKi )                             ! Simple variable-speed control.
-
-
-   ! Compute the generator torque, which depends on which region we are in:
-
-      IF ( HSS_Spd >= p%VS_RtGnSp )  THEN      ! We are in region 3 - torque is constant
-         GenTrq = p%VS_RtTq
-      ELSEIF ( HSS_Spd < p%VS_TrGnSp )  THEN   ! We are in region 2 - torque is proportional to the square of the generator speed
-         GenTrq = p%VS_Rgn2K* (HSS_Spd**2)
-      ELSE                                   ! We are in region 2 1/2 - simple induction generator transition region
-         GenTrq = p%VS_Slope*( HSS_Spd - p%VS_SySp )
-      ENDIF
-
-      !GenTrq  = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
-
-
-   ! It's not possible to motor using this control scheme,
-   !   so the generator efficiency is always subtractive.
-
-      ElecPwr = GenTrq*HSS_Spd*p%GenEff
-
-
-   CASE ( 2_IntKi )                             ! User-defined variable-speed control for routine UserVSCont().
-
-
-!      CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
-      CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, t, p_FAST%DT, p%GenEff, 0.0_ReKi, p_FAST%DirRoot, GenTrq, ElecPwr )
-
-
-   CASE ( 3_IntKi )                             ! User-defined variable-speed control from Simulink or Labview.
-
-
-   ! No need to define GenTrq or ElecPwr here since this is defined externally
-   !   by Simulink or Labview.  Also, no reason to perturb generator torque here either,
-   !   since linearization does not work with Simulink or Labview.
-
-
-   CASE ( 9999_IntKi )                          ! Overridden generator torque caused by trimming generator torque during a FAST linearization analysis (TrimCase == 2)
-
-
-   ! The generator torque during the trim analysis is computed in SUBROUTINE
-   !   FAST_Lin.f90/CalcSteady() and the generator torque pertubation is
-   !   computed in FAST_Lin.f90/Linearize(); thus, there is no reason to define
-   !   the generator torque here.
-
-
-   ! The generator efficiency is either additive for motoring,
-   !   or subtractive for generating power.
-
-      IF ( GenTrq > 0.0 )  THEN
-         ElecPwr = GenTrq*HSS_Spd*p%GenEff
-      ELSE
-         ElecPwr = GenTrq*HSS_Spd/p%GenEff
-      ENDIF
-
-
-   ENDSELECT
-
-
-   ! Lets turn the generator offline for good if ( GenTiStp = .FALSE. )
-   !   .AND. ( ElecPwr <= 0.0 ):
-
-   IF ( ( .NOT. p%GenTiStp ) .AND. ( ElecPwr <= 0.0 ) ) THEN   ! Shut-down of generator determined by generator power = 0
-      GenTrq   = 0.0
-      ElecPwr  = 0.0
-
-      GenOnLin = .FALSE.
-      Off4Good = .TRUE.
    ENDIF
 
-ELSE                                     ! Generator is off line.
 
-   GenTrq  = 0.0
-   ElecPwr = 0.0
+      ! Calculate the magnitude of HSS brake torque:
 
-ENDIF
+   y%HSSBrTrq = SIGN( HSSBrFrac*p%HSSBrTqF, HSS_Spd )  ! Scale the full braking torque by the brake torque fraction and make sure the brake torque resists motion.
 
-
-
-   ! Calculate the fraction of applied HSS-brake torque, HSSBrFrac:
-
-IF ( t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
-
-
-   HSSBrFrac = 0.0
-
-
-ELSE                             ! HSS brake deployed.
-
-
-   SELECT CASE ( p%HSSBrMode )                 ! Which HSS brake model are we using?
-
-   CASE ( 1 )                                ! Simple built-in HSS brake model with linear ramp.
-
-      IF ( t < p%THSSBrFl )  THEN ! Linear ramp
-         HSSBrFrac = ( t - p%THSSBrDp )/p%HSSBrDT
-      ELSE                          ! Full braking torque
-         HSSBrFrac = 1.0
-      ENDIF
-
-   CASE ( 2 )                                ! User-defined HSS brake model.
-
-      CALL UserHSSBr ( GenTrq, ElecPwr, HSS_Spd, p%GBRatio, p%NumBl, t, p_FAST%DT, p_FAST%DirRoot, HSSBrFrac )
-
-      IF ( ( HSSBrFrac < 0.0 ) .OR. ( HSSBrFrac > 1.0 ) )  &   ! 0 (off) <= HSSBrFrac <= 1 (full); else Abort.
-         CALL ProgAbort ( ' HSSBrFrac must be between 0.0 (off) and 1.0 (full) (inclusive).  Fix logic in routine UserHSSBr().' )
-
-   CASE ( 3 )                                ! HSS brake model from Labview.
-
-   ! No need to define HSSBrFrac here because this is defined externally by Labview.
-
-
-   ENDSELECT
-
-
-ENDIF
-
-
-   ! Calculate the magnitude of HSS brake torque:
-
-HSSBrTrq = SIGN( HSSBrFrac*p%HSSBrTqF, HSS_Spd )  ! Scale the full braking torque by the brake torque fraction and make sure the brake torque resists motion.
-
-
-   ! Make a copy of the current value of HSSBrTrq for future use:
-
-HSSBrTrqC = HSSBrTrq
-
-
-
-   ! Add the gearbox losses to total HSS torque and project to the LSS side of
-   !   the gearbox.  The gearbox efficiency effects, however, are included in
-   !   FAST.f90/RtHS().
-
-y%GBoxTrq = ( GenTrq + HSSBrTrq )*ABS(p%GBRatio)
-
-
-
-RETURN
+   RETURN
 END SUBROUTINE DrvTrTrq
-!=======================================================================
-SUBROUTINE FixHSSBrTq ( Integrator, p, OtherState, AugMat )
+!----------------------------------------------------------------------------------------------------------------------------------  
+SUBROUTINE FixHSSBrTq ( Integrator, p, OtherState, AugMat, HSSBrTrq  )
 
 
    ! This routine is used to adjust the HSSBrTrq value if the absolute
@@ -622,10 +476,11 @@ IMPLICIT                        NONE
 
    ! Passed variables:
 
-CHARACTER(9), INTENT(IN )    :: Integrator                                      ! A string holding the current integrator being used.
+CHARACTER(9),            INTENT(IN )  :: Integrator                           ! A string holding the current integrator being used.
 TYPE(ED_ParameterType),  INTENT(IN)   :: p                                    ! The parameters of the structural dynamics module
 TYPE(ED_OtherStateType), INTENT(INOUT):: OtherState                           ! Other State data type for Structural dynamics module
-REAL(ReKi),                INTENT(INOUT):: AugMat   (p%NDOF,p%NAug)             ! The augmented matrix used for the solution of the QD2T()s.
+REAL(ReKi),              INTENT(INOUT):: AugMat   (p%NDOF,p%NAug)             ! The augmented matrix used for the solution of the QD2T()s.
+REAL(ReKi),              INTENT(INOUT):: HSSBrTrq                             ! Instantaneous HSS brake torque
 
 
    ! Local variables:
@@ -991,104 +846,15 @@ END IF
 RETURN
 END SUBROUTINE PtfmLoading
 !=======================================================================
-SUBROUTINE RFurling( t, p, RFrlDef, RFrlRate, RFrlMom )
 
-
-   ! This routine computes the rotor-furl moment due to rotor-furl deflection
-   !   and rate.
-
-
-IMPLICIT                        NONE
-
-
-   ! Passed Variables:
-REAL(DbKi), INTENT(IN) :: t ! simulation time
-TYPE(ED_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
-
-REAL(ReKi), INTENT(IN )      :: RFrlDef                                         ! The rotor-furl deflection, x%QT(DOF_RFrl).
-REAL(ReKi), INTENT(OUT)      :: RFrlMom                                         ! The total moment supplied by the springs, and dampers.
-REAL(ReKi), INTENT(IN )      :: RFrlRate                                        ! The rotor-furl rate, x%QDT(DOF_RFrl).
-
-
-   ! Local variables:
-
-REAL(ReKi)                   :: RFrlDMom                                        ! The moment supplied by the rotor-furl dampers.
-REAL(ReKi)                   :: RFrlSMom                                        ! The moment supplied by the rotor-furl springs.
-
-
-
-SELECT CASE ( p%RFrlMod ) ! Which rotor-furl model are we using?
-
-CASE ( 0 )              ! None!
-
-
-   RFrlMom = 0.0
-
-
-CASE ( 1 )              ! Standard (using inputs from the FAST furling input file).
-
-
-   ! Linear spring:
-
-   RFrlSMom = -p%RFrlSpr*RFrlDef
-
-
-   ! Add spring-stops:
-
-   IF ( RFrlDef > p%RFrlUSSP )  THEN       ! Up-stop
-      RFrlSMom = RFrlSMom - p%RFrlUSSpr*( RFrlDef - p%RFrlUSSP )
-   ELSEIF ( RFrlDef < p%RFrlDSSP )  THEN   ! Down-stop
-      RFrlSMom = RFrlSMom - p%RFrlDSSpr*( RFrlDef - p%RFrlDSSP )
-   ENDIF
-
-
-   ! Linear damper:
-
-   RFrlDMom = -p%RFrlDmp*RFrlRate
-
-
-   ! Add coulomb friction:
-
-   IF ( RFrlRate /= 0.0 )  THEN
-      RFrlDMom = RFrlDMom - SIGN( p%RFrlCDmp, RFrlRate )
-   ENDIF
-
-
-   ! Add damper-stops:
-
-   IF ( RFrlDef > p%RFrlUSDP )  THEN       ! Up-stop
-      RFrlDMom = RFrlDMom - p%RFrlUSDmp*RFrlRate
-   ELSEIF ( RFrlDef < p%RFrlDSDP )  THEN   ! Down-stop
-      RFrlDMom = RFrlDMom - p%RFrlDSDmp*RFrlRate
-   ENDIF
-
-
-   ! Total up all the moments.
-
-   RFrlMom = RFrlSMom + RFrlDMom
-
-
-CASE ( 2 )              ! User-defined rotor-furl spring/damper model.
-
-
-   CALL UserRFrl ( RFrlDef, RFrlRate, t, p_FAST%DirRoot, RFrlMom )
-
-
-ENDSELECT
-
-
-
-RETURN
-END SUBROUTINE RFurling
 !=======================================================================
-SUBROUTINE RtHS( t, p, x, OtherState, u, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD, AugMatOut )
+SUBROUTINE RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD, AugMatOut )
 
 
    ! This routine is used to set up and solve the equations of motion
    !   for a particular time step.
 
 USE                             DriveTrain
-USE                             TipBrakes
 
 
 IMPLICIT                        NONE
@@ -1098,6 +864,7 @@ IMPLICIT                        NONE
 REAL(DbKi), INTENT(IN) :: t ! time   
 
 TYPE(ED_InputType),          INTENT( INOUT)  :: u                            ! The inputs for the structural dynamics module
+TYPE(ED_OutputType),         INTENT( INOUT)  :: y                            ! The outputs of the structural dynamics module
 TYPE(ED_ParameterType),      INTENT(IN)      :: p                            ! The parameters of the structural dynamics module
 TYPE(ED_ContinuousStateType),INTENT(INOUT)   :: x                            ! The structural dynamics module's continuous states
 TYPE(ED_OtherStateType),     INTENT(INOUT)   :: OtherState                   ! Other State data type for Structural dynamics module
@@ -1234,6 +1001,8 @@ REAL(ReKi)                   :: PMomXAll   (p%NDOF,3)                           
 REAL(ReKi)                   :: rQS        (p%NumBl,p%TipNode,3)                ! Position vector from the apex of rotation (point Q   ) to a point on a blade (point S).
 REAL(ReKi)                   :: AugMat     (p%NDOF,p%NAug)                      ! The augmented matrix used for the solution of the QD2T()s.
 
+REAL(ReKi)                   :: GBoxTrq                                         ! Gearbox torque on the LSS side in N-m (calculated from inputs).
+
    ! local integer variables
    
 INTEGER(4)                   :: I                                               ! Loops through some or all of the DOFs.
@@ -1247,14 +1016,6 @@ CHARACTER(1024) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
 
-!bjj remove this "feature" for new framework:
-!   ! Determine how many DOFs are currently enabled (this can change within
-!   !   user-defined routines) and set vector subscript arrays accordingly:
-!
-!!CALL SetEnabledDOFIndexArrays( p, OtherStateData%DOFs )
-!bjj end remove
-
-
    ! Control the turbine's yaw and pitch, except during the first time step and
    !   only during a time-marching analysis (we can't call Control during the
    !   first time step since none of the output parameters needed for feedback
@@ -1263,19 +1024,24 @@ CHARACTER(1024) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 IF ( t > 0.0_DbKi  )  THEN
    
-   u_SrvD%Yaw     = x%QT( DOF_Yaw)
-   u_SrvD%YawRate = x%QDT(DOF_Yaw)
+   y%Yaw     = x%QT( DOF_Yaw)
+   y%YawRate = x%QDT(DOF_Yaw)
+   y%BlPitch = OtherState%BlPitch
+   
+      ! map ED outputs to SrvD inputs:
+   u_SrvD%Yaw     = y%Yaw
+   u_SrvD%YawRate = y%YawRate
    
    CALL Control( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg, p, x, OtherState ) !bjj: note that OtherState%CoordSys%b1 hasn't been set yet when the simulation starts....
    
-      ! pitch commands
-   !u_ED%BlPitchCom = y%BlPitchCom
-   !OtherState_ED%BlPitch = u_ED%BlPitchCom
+      ! map SrvD outputs to ED inputs:
+   u%BlPitchCom = y_SrvD%BlPitchCom
+   u%YawMom     = y_SrvD%YawMom
    
-   OtherState%BlPitch = y_SrvD%BlPitchCom
-      
-      ! yaw commands
-      
+   
+      ! ...
+   OtherState%BlPitch = u%BlPitchCom
+            
 END IF
 
 
@@ -1317,16 +1083,16 @@ CALL SetCoordSy( t, OtherState%CoordSys, OtherState%RtHS, OtherState%BlPitch, p,
    !   that are not dependent on the distributed tower or blade parameters:
 
 OtherState%RtHS%rZ    = x%QT(DOF_Sg)* OtherState%CoordSys%z1 + x%QT(DOF_Hv)* OtherState%CoordSys%z2 - x%QT(DOF_Sw)* OtherState%CoordSys%z3                   ! Position vector from inertia frame origin to platform reference (point Z).
-rZY   =        p%rZYzt* OtherState%CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to platform mass center (point Y).
-rZT0  =       p%rZT0zt* OtherState%CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to tower base (point T(0))
+                rZY   =      p%rZYzt* OtherState%CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to platform mass center (point Y).
+                rZT0  =     p%rZT0zt* OtherState%CoordSys%a2                                                                           ! Position vector from platform reference (point Z) to tower base (point T(0))
 OtherState%RtHS%rZO   = ( x%QT(DOF_TFA1) + x%QT(DOF_TFA2)                                             )*OtherState%CoordSys%a1 &       ! Position vector from platform reference (point Z) to tower-top / base plate (point O).
-      + ( p%RefTwrHt - 0.5*(       p%AxRedTFA(1,1,p%TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
-                           +     p%AxRedTFA(2,2,p%TTopNode)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
-                           + 2.0*p%AxRedTFA(1,2,p%TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
-                           +     p%AxRedTSS(1,1,p%TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS1) &
-                           +     p%AxRedTSS(2,2,p%TTopNode)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
-                           + 2.0*p%AxRedTSS(1,2,p%TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*OtherState%CoordSys%a2 &
-      + ( x%QT(DOF_TSS1) + x%QT(DOF_TSS2)                                                 )*OtherState%CoordSys%a3
+                      + ( p%RefTwrHt - 0.5*(       p%AxRedTFA(1,1,p%TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
+                                             +     p%AxRedTFA(2,2,p%TTopNode)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
+                                             + 2.0*p%AxRedTFA(1,2,p%TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
+                                             +     p%AxRedTSS(1,1,p%TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS1) &
+                                             +     p%AxRedTSS(2,2,p%TTopNode)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
+                                             + 2.0*p%AxRedTSS(1,2,p%TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*OtherState%CoordSys%a2 &
+                       + ( x%QT(DOF_TSS1) + x%QT(DOF_TSS2)                                                 )*OtherState%CoordSys%a3
 rOU   =    p%NacCMxn*OtherState%CoordSys%d1  +  p%NacCMzn*  OtherState%CoordSys%d2  -  p%NacCMyn  *OtherState%CoordSys%d3                          ! Position vector from tower-top / base plate (point O) to nacelle center of mass (point U).
 rOV   =  p%RFrlPntxn*OtherState%CoordSys%d1  +  p%RFrlPntzn*OtherState%CoordSys%d2  -  p%RFrlPntyn*OtherState%CoordSys%d3                          ! Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V).
 rVIMU =    p%rVIMUxn*OtherState%CoordSys%rf1 +  p%rVIMUzn  *OtherState%CoordSys%rf2 -   p%rVIMUyn *OtherState%CoordSys%rf3                         ! Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU).
@@ -1422,7 +1188,6 @@ END DO !K = 1,p%NumBl
    ! the hub position should use rQ instead of rP, but the current version of AeroDyn treats
    ! teeter deflections like blade deflections:
 
-
 ADInterfaceComponents%Hub%Position(:)       = (/ rP(1), -1.*rP(3), rP(2) - p%PtfmRef /)
 
 
@@ -1437,6 +1202,11 @@ ADInterfaceComponents%Nacelle%Position(:)   = (/ OtherState%RtHS%rO(1), -1.*Othe
    ! the HubVDue2Yaw calculation:
 ADInterfaceComponents%Tower%Position(:)     = (/ OtherState%RtHS%rZ(1), -1.*OtherState%RtHS%rZ(3), OtherState%RtHS%rZ(2) - p%PtfmRef /)
 
+
+!y%HubPosition       = (/ rP(1),                 -1.*rP(3),                 rP(2)                 - p%PtfmRef /)
+!y%RotorFurlPosition = (/ rV(1),                 -1.*rV(3),                 rV(2)                 - p%PtfmRef /)
+!y%NacellePosition   = (/ OtherState%RtHS%rO(1), -1.*OtherState%RtHS%rO(3), OtherState%RtHS%rO(2) - p%PtfmRef /)
+!y%TowerPosition     = (/ OtherState%RtHS%rZ(1), -1.*OtherState%RtHS%rZ(3), OtherState%RtHS%rZ(2) - p%PtfmRef /)
 
    !-------------------------------------------------------------------------------------------------
    ! Orientations - bjj: should this be moved to SetCoordSys ?
@@ -1507,12 +1277,12 @@ OtherState%RtHS%PAngVelEX(       :,0,:) = 0.0
 OtherState%RtHS%PAngVelEX(DOF_R   ,0,:) =  OtherState%CoordSys%z1
 OtherState%RtHS%PAngVelEX(DOF_P   ,0,:) = -OtherState%CoordSys%z3
 OtherState%RtHS%PAngVelEX(DOF_Y   ,0,:) =  OtherState%CoordSys%z2
- OtherState%RtHS%AngVelEX               =             x%QDT(DOF_R   )*OtherState%RtHS%PAngVelEX(DOF_R   ,0,:) &
-                                    + x%QDT(DOF_P   )*OtherState%RtHS%PAngVelEX(DOF_P   ,0,:) &
-                                    + x%QDT(DOF_Y   )*OtherState%RtHS%PAngVelEX(DOF_Y   ,0,:)
- AngPosEX               =             x%QT (DOF_R   )*OtherState%RtHS%PAngVelEX(DOF_R   ,0,:) &
-                                    + x%QT (DOF_P   )*OtherState%RtHS%PAngVelEX(DOF_P   ,0,:) &
-                                    + x%QT (DOF_Y   )*OtherState%RtHS%PAngVelEX(DOF_Y   ,0,:)
+ OtherState%RtHS%AngVelEX               =                             x%QDT(DOF_R   )*OtherState%RtHS%PAngVelEX(DOF_R   ,0,:) &
+                                                                    + x%QDT(DOF_P   )*OtherState%RtHS%PAngVelEX(DOF_P   ,0,:) &
+                                                                    + x%QDT(DOF_Y   )*OtherState%RtHS%PAngVelEX(DOF_Y   ,0,:)
+                 AngPosEX               =                             x%QT (DOF_R   )*OtherState%RtHS%PAngVelEX(DOF_R   ,0,:) &
+                                                                    + x%QT (DOF_P   )*OtherState%RtHS%PAngVelEX(DOF_P   ,0,:) &
+                                                                    + x%QT (DOF_Y   )*OtherState%RtHS%PAngVelEX(DOF_Y   ,0,:)
 
 OtherState%RtHS%PAngVelEB(       :,0,:) = OtherState%RtHS%PAngVelEX(:,0,:)
 OtherState%RtHS%PAngVelEB(DOF_TFA1,0,:) = -p%TwrFASF(1,p%TTopNode,1)*OtherState%CoordSys%a3
@@ -1520,42 +1290,42 @@ OtherState%RtHS%PAngVelEB(DOF_TSS1,0,:) =  p%TwrSSSF(1,p%TTopNode,1)*OtherState%
 OtherState%RtHS%PAngVelEB(DOF_TFA2,0,:) = -p%TwrFASF(2,p%TTopNode,1)*OtherState%CoordSys%a3
 OtherState%RtHS%PAngVelEB(DOF_TSS2,0,:) =  p%TwrSSSF(2,p%TTopNode,1)*OtherState%CoordSys%a1
  OtherState%RtHS%AngVelEB               =  OtherState%RtHS%AngVelEX + x%QDT(DOF_TFA1)*OtherState%RtHS%PAngVelEB(DOF_TFA1,0,:) &
-                                    + x%QDT(DOF_TSS1)*OtherState%RtHS%PAngVelEB(DOF_TSS1,0,:) &
-                                    + x%QDT(DOF_TFA2)*OtherState%RtHS%PAngVelEB(DOF_TFA2,0,:) &
-                                    + x%QDT(DOF_TSS2)*OtherState%RtHS%PAngVelEB(DOF_TSS2,0,:)
- OtherState%RtHS%AngPosXB               =             x%QT (DOF_TFA1)*OtherState%RtHS%PAngVelEB(DOF_TFA1,0,:) &
-                                    + x%QT (DOF_TSS1)*OtherState%RtHS%PAngVelEB(DOF_TSS1,0,:) &
-                                    + x%QT (DOF_TFA2)*OtherState%RtHS%PAngVelEB(DOF_TFA2,0,:) &
-                                    + x%QT (DOF_TSS2)*OtherState%RtHS%PAngVelEB(DOF_TSS2,0,:)
+                                                                    + x%QDT(DOF_TSS1)*OtherState%RtHS%PAngVelEB(DOF_TSS1,0,:) &
+                                                                    + x%QDT(DOF_TFA2)*OtherState%RtHS%PAngVelEB(DOF_TFA2,0,:) &
+                                                                    + x%QDT(DOF_TSS2)*OtherState%RtHS%PAngVelEB(DOF_TSS2,0,:)
+ OtherState%RtHS%AngPosXB               =                             x%QT (DOF_TFA1)*OtherState%RtHS%PAngVelEB(DOF_TFA1,0,:) &
+                                                                    + x%QT (DOF_TSS1)*OtherState%RtHS%PAngVelEB(DOF_TSS1,0,:) &
+                                                                    + x%QT (DOF_TFA2)*OtherState%RtHS%PAngVelEB(DOF_TFA2,0,:) &
+                                                                    + x%QT (DOF_TSS2)*OtherState%RtHS%PAngVelEB(DOF_TSS2,0,:)
 
-PAngVelEN(       :,0,:) = OtherState%RtHS%PAngVelEB(:,0,:)
-PAngVelEN(DOF_Yaw ,0,:) =  OtherState%CoordSys%d2
- AngVelEN               =  OtherState%RtHS%AngVelEB + x%QDT(DOF_Yaw )*PAngVelEN(DOF_Yaw ,0,:)
+                PAngVelEN(       :,0,:) = OtherState%RtHS%PAngVelEB(:,0,:)
+                PAngVelEN(DOF_Yaw ,0,:) =  OtherState%CoordSys%d2
+                 AngVelEN               =  OtherState%RtHS%AngVelEB + x%QDT(DOF_Yaw )*PAngVelEN(DOF_Yaw ,0,:)
 
 OtherState%RtHS%PAngVelER(       :,0,:) = PAngVelEN(:,0,:)
 OtherState%RtHS%PAngVelER(DOF_RFrl,0,:) = OtherState%CoordSys%rfa
  OtherState%RtHS%AngVelER               =  AngVelEN + x%QDT(DOF_RFrl)*OtherState%RtHS%PAngVelER(DOF_RFrl,0,:)
 
-PAngVelEL(       :,0,:) = OtherState%RtHS%PAngVelER(:,0,:)
-PAngVelEL(DOF_GeAz,0,:) =  OtherState%CoordSys%c1
-PAngVelEL(DOF_DrTr,0,:) =  OtherState%CoordSys%c1
- AngVelEL               =  OtherState%RtHS%AngVelER + x%QDT(DOF_GeAz)*PAngVelEL(DOF_GeAz,0,:) &
-                                    + x%QDT(DOF_DrTr)*PAngVelEL(DOF_DrTr,0,:)
+                PAngVelEL(       :,0,:) = OtherState%RtHS%PAngVelER(:,0,:)
+                PAngVelEL(DOF_GeAz,0,:) =  OtherState%CoordSys%c1
+                PAngVelEL(DOF_DrTr,0,:) =  OtherState%CoordSys%c1
+                 AngVelEL               =  OtherState%RtHS%AngVelER + x%QDT(DOF_GeAz)*PAngVelEL(DOF_GeAz,0,:) &
+                                                                    + x%QDT(DOF_DrTr)*PAngVelEL(DOF_DrTr,0,:)
 
-PAngVelEH(       :,0,:) = PAngVelEL(:,0,:)
- AngVelEH               =  AngVelEL
+                PAngVelEH(       :,0,:) = PAngVelEL(:,0,:)
+                 AngVelEH               =  AngVelEL
 IF ( p%NumBl == 2 )  THEN ! 2-blader
-   PAngVelEH(DOF_Teet,0,:) = OtherState%CoordSys%f2
-    AngVelEH            =  AngVelEH + x%QDT(DOF_Teet)*PAngVelEH(DOF_Teet,0,:)
+                PAngVelEH(DOF_Teet,0,:) = OtherState%CoordSys%f2
+                    AngVelEH            =  AngVelEH + x%QDT(DOF_Teet)*PAngVelEH(DOF_Teet,0,:)
 ENDIF
 
-PAngVelEG(       :,0,:) = OtherState%RtHS%PAngVelER(:,0,:)
-PAngVelEG(DOF_GeAz,0,:) = p%GBRatio*OtherState%CoordSys%c1
- AngVelEG               =  OtherState%RtHS%AngVelER + x%QDT(DOF_GeAz)*PAngVelEG(DOF_GeAz,0,:)
+                PAngVelEG(       :,0,:) = OtherState%RtHS%PAngVelER(:,0,:)
+                PAngVelEG(DOF_GeAz,0,:) = p%GBRatio*OtherState%CoordSys%c1
+                 AngVelEG               =  OtherState%RtHS%AngVelER + x%QDT(DOF_GeAz)*PAngVelEG(DOF_GeAz,0,:)
 
-PAngVelEA(       :,0,:) = PAngVelEN(:,0,:)
-PAngVelEA(DOF_TFrl,0,:) = OtherState%CoordSys%tfa
- AngVelEA               =  AngVelEN + x%QDT(DOF_TFrl)*PAngVelEA(DOF_TFrl,0,:)
+                PAngVelEA(       :,0,:) = PAngVelEN(:,0,:)
+                PAngVelEA(DOF_TFrl,0,:) = OtherState%CoordSys%tfa
+                 AngVelEA               =  AngVelEN + x%QDT(DOF_TFrl)*PAngVelEA(DOF_TFrl,0,:)
 
 
    ! Note the hub rotational velocity should be AngVelEH instead AngVelEL, but AeroDyn (13.00.00)
@@ -1575,43 +1345,43 @@ OtherState%RtHS%PAngVelEX(       :,1,:) = 0.0
 OtherState%RtHS%AngAccEXt               = 0.0
 
 OtherState%RtHS%PAngVelEB(       :,1,:) =                 OtherState%RtHS%PAngVelEX(:,1,:)
-OtherState%RtHS%PAngVelEB(DOF_TFA1,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelEX,                   OtherState%RtHS%PAngVelEB(DOF_TFA1,0,:) )
-OtherState%RtHS%PAngVelEB(DOF_TSS1,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelEX,                   OtherState%RtHS%PAngVelEB(DOF_TSS1,0,:) )
-OtherState%RtHS%PAngVelEB(DOF_TFA2,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelEX,                   OtherState%RtHS%PAngVelEB(DOF_TFA2,0,:) )
-OtherState%RtHS%PAngVelEB(DOF_TSS2,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelEX,                   OtherState%RtHS%PAngVelEB(DOF_TSS2,0,:) )
-OtherState%RtHS%AngAccEBt               =                  OtherState%RtHS%AngAccEXt + x%QDT(DOF_TFA1)*OtherState%RtHS%PAngVelEB(DOF_TFA1,1,:) &
-                                                     + x%QDT(DOF_TSS1)*OtherState%RtHS%PAngVelEB(DOF_TSS1,1,:) &
-                                                     + x%QDT(DOF_TFA2)*OtherState%RtHS%PAngVelEB(DOF_TFA2,1,:) &
-                                                     + x%QDT(DOF_TSS2)*OtherState%RtHS%PAngVelEB(DOF_TSS2,1,:)
+OtherState%RtHS%PAngVelEB(DOF_TFA1,1,:) = CROSS_PRODUCT(  OtherState%RtHS%AngVelEX,                   OtherState%RtHS%PAngVelEB(DOF_TFA1,0,:) )
+OtherState%RtHS%PAngVelEB(DOF_TSS1,1,:) = CROSS_PRODUCT(  OtherState%RtHS%AngVelEX,                   OtherState%RtHS%PAngVelEB(DOF_TSS1,0,:) )
+OtherState%RtHS%PAngVelEB(DOF_TFA2,1,:) = CROSS_PRODUCT(  OtherState%RtHS%AngVelEX,                   OtherState%RtHS%PAngVelEB(DOF_TFA2,0,:) )
+OtherState%RtHS%PAngVelEB(DOF_TSS2,1,:) = CROSS_PRODUCT(  OtherState%RtHS%AngVelEX,                   OtherState%RtHS%PAngVelEB(DOF_TSS2,0,:) )
+OtherState%RtHS%AngAccEBt               =                 OtherState%RtHS%AngAccEXt + x%QDT(DOF_TFA1)*OtherState%RtHS%PAngVelEB(DOF_TFA1,1,:) &
+                                                                                    + x%QDT(DOF_TSS1)*OtherState%RtHS%PAngVelEB(DOF_TSS1,1,:) &
+                                                                                    + x%QDT(DOF_TFA2)*OtherState%RtHS%PAngVelEB(DOF_TFA2,1,:) &
+                                                                                    + x%QDT(DOF_TSS2)*OtherState%RtHS%PAngVelEB(DOF_TSS2,1,:)
 
-PAngVelEN(       :,1,:) =                 OtherState%RtHS%PAngVelEB(:,1,:)
-PAngVelEN(DOF_Yaw ,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelEB,                   PAngVelEN(DOF_Yaw ,0,:) )
-AngAccENt               =                  OtherState%RtHS%AngAccEBt + x%QDT(DOF_Yaw )*PAngVelEN(DOF_Yaw ,1,:)
+                PAngVelEN(       :,1,:) =                 OtherState%RtHS%PAngVelEB(:,1,:)
+                PAngVelEN(DOF_Yaw ,1,:) = CROSS_PRODUCT(  OtherState%RtHS%AngVelEB,                   PAngVelEN(DOF_Yaw ,0,:) )
+                AngAccENt               =                 OtherState%RtHS%AngAccEBt + x%QDT(DOF_Yaw )*PAngVelEN(DOF_Yaw ,1,:)
 
 OtherState%RtHS%PAngVelER(       :,1,:) =                 PAngVelEN(:,1,:)
-OtherState%RtHS%PAngVelER(DOF_RFrl,1,:) = CROSS_PRODUCT(   AngVelEN,                   OtherState%RtHS%PAngVelER(DOF_RFrl,0,:) )
-OtherState%RtHS%AngAccERt               =                  AngAccENt + x%QDT(DOF_RFrl)*OtherState%RtHS%PAngVelER(DOF_RFrl,1,:)
+OtherState%RtHS%PAngVelER(DOF_RFrl,1,:) = CROSS_PRODUCT(  AngVelEN,                   OtherState%RtHS%PAngVelER(DOF_RFrl,0,:) )
+OtherState%RtHS%AngAccERt               =                 AngAccENt + x%QDT(DOF_RFrl)*OtherState%RtHS%PAngVelER(DOF_RFrl,1,:)
 
-PAngVelEL(       :,1,:) =                 OtherState%RtHS%PAngVelER(:,1,:)
-PAngVelEL(DOF_GeAz,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelER,                   PAngVelEL(DOF_GeAz,0,:) )
-PAngVelEL(DOF_DrTr,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelER,                   PAngVelEL(DOF_DrTr,0,:) )
-AngAccELt               =                  OtherState%RtHS%AngAccERt + x%QDT(DOF_GeAz)*PAngVelEL(DOF_GeAz,1,:) &
-                                                     + x%QDT(DOF_DrTr)*PAngVelEL(DOF_DrTr,1,:)
+                PAngVelEL(       :,1,:) =                 OtherState%RtHS%PAngVelER(:,1,:)
+                PAngVelEL(DOF_GeAz,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelER,                   PAngVelEL(DOF_GeAz,0,:) )
+                PAngVelEL(DOF_DrTr,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelER,                   PAngVelEL(DOF_DrTr,0,:) )
+                AngAccELt               =                  OtherState%RtHS%AngAccERt + x%QDT(DOF_GeAz)*PAngVelEL(DOF_GeAz,1,:) &
+                                                                                     + x%QDT(DOF_DrTr)*PAngVelEL(DOF_DrTr,1,:)
 
-PAngVelEH(       :,1,:) = PAngVelEL(:,1,:)
-AngAccEHt               =                  AngAccELt
+                PAngVelEH(       :,1,:) = PAngVelEL(:,1,:)
+                AngAccEHt               =                  AngAccELt
 IF ( p%NumBl == 2 )  THEN ! 2-blader
-   PAngVelEH(DOF_Teet,1,:) = CROSS_PRODUCT(AngVelEH,                   PAngVelEH(DOF_Teet,0,:) )
-    AngAccEHt              =               AngAccEHt + x%QDT(DOF_Teet)*PAngVelEH(DOF_Teet,1,:)
+                PAngVelEH(DOF_Teet,1,:) = CROSS_PRODUCT(AngVelEH,                   PAngVelEH(DOF_Teet,0,:) )
+                 AngAccEHt              =               AngAccEHt + x%QDT(DOF_Teet)*PAngVelEH(DOF_Teet,1,:)
 ENDIF
 
-PAngVelEG(       :,1,:) = OtherState%RtHS%PAngVelER(:,1,:)
-PAngVelEG(DOF_GeAz,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelER,                   PAngVelEG(DOF_GeAz,0,:) )
-AngAccEGt              =                   OtherState%RtHS%AngAccERt + x%QDT(DOF_GeAz)*PAngVelEG(DOF_GeAz,1,:)
+                PAngVelEG(       :,1,:) = OtherState%RtHS%PAngVelER(:,1,:)
+                PAngVelEG(DOF_GeAz,1,:) = CROSS_PRODUCT(   OtherState%RtHS%AngVelER,                   PAngVelEG(DOF_GeAz,0,:) )
+                 AngAccEGt              =                   OtherState%RtHS%AngAccERt + x%QDT(DOF_GeAz)*PAngVelEG(DOF_GeAz,1,:)
 
-PAngVelEA(       :,1,:) = PAngVelEN(:,1,:)
-PAngVelEA(DOF_TFrl,1,:) = CROSS_PRODUCT(   AngVelEN,                   PAngVelEA(DOF_TFrl,0,:) )
-AngAccEAt               =                  AngAccENt + x%QDT(DOF_TFrl)*PAngVelEA(DOF_TFrl,1,:)
+                PAngVelEA(       :,1,:) = PAngVelEN(:,1,:)
+                PAngVelEA(DOF_TFrl,1,:) = CROSS_PRODUCT(   AngVelEN,                   PAngVelEA(DOF_TFrl,0,:) )
+                AngAccEAt               =                  AngAccENt + x%QDT(DOF_TFrl)*PAngVelEA(DOF_TFrl,1,:)
 
 
 
@@ -1622,17 +1392,17 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    PAngVelEM(K,p%TipNode,          :,0,:) = PAngVelEH(:,0,:)
    PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) = - p%TwistedSF(K,2,1,p%TipNode,1)*OtherState%CoordSys%j1(K,:) &
-                                          + p%TwistedSF(K,1,1,p%TipNode,1)*OtherState%CoordSys%j2(K,:)
+                                            + p%TwistedSF(K,1,1,p%TipNode,1)*OtherState%CoordSys%j2(K,:)
    PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:) = - p%TwistedSF(K,2,2,p%TipNode,1)*OtherState%CoordSys%j1(K,:) &
-                                          + p%TwistedSF(K,1,2,p%TipNode,1)*OtherState%CoordSys%j2(K,:)
+                                            + p%TwistedSF(K,1,2,p%TipNode,1)*OtherState%CoordSys%j2(K,:)
    PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:) = - p%TwistedSF(K,2,3,p%TipNode,1)*OtherState%CoordSys%j1(K,:) &
-                                          + p%TwistedSF(K,1,3,p%TipNode,1)*OtherState%CoordSys%j2(K,:)
+                                            + p%TwistedSF(K,1,3,p%TipNode,1)*OtherState%CoordSys%j2(K,:)
 !    AngVelHM(K,p%TipNode              ,:) =  AngVelEH + x%QDT(DOF_BF(K,1))*PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) & ! Currently
 !                                                    + x%QDT(DOF_BF(K,2))*PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:) & ! unused
 !                                                    + x%QDT(DOF_BE(K,1))*PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:)   ! calculations
-    OtherState%RtHS%AngPosHM(K,p%TipNode              ,:) =             x%QT (DOF_BF(K,1))*PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) &
-                                                    + x%QT (DOF_BF(K,2))*PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:) &
-                                                    + x%QT (DOF_BE(K,1))*PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:)
+    OtherState%RtHS%AngPosHM(K,p%TipNode,:) =        x%QT (DOF_BF(K,1))*PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) &
+                                                   + x%QT (DOF_BF(K,2))*PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:) &
+                                                   + x%QT (DOF_BE(K,1))*PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:)
 
 
    ! Define the 1st derivatives of the partial angular velocities of the tip
@@ -1674,8 +1444,7 @@ DO K = 1,p%NumBl ! Loop through all blades
 ! NOTE: These are currently unused by the code, therefore, they need not
 !       be calculated.  Thus, they are currently commented out.  If it
 !       turns out that they are ever needed (i.e., if inertias of the
-!       blade elements are ever added, etc...) simply uncomment out these
-!       computations:
+!       blade elements are ever added, etc...) simply uncomment out these computations:
 !      PAngVelEM(K,J,          :,1,:) = PAngVelEH(:,1,:)
 !      PAngVelEM(K,J,DOF_BF(K,1),1,:) = CROSS_PRODUCT(   AngVelEH, PAngVelEM(K,J,DOF_BF(K,1),0,:) )
 !      PAngVelEM(K,J,DOF_BF(K,2),1,:) = CROSS_PRODUCT(   AngVelEH, PAngVelEM(K,J,DOF_BF(K,2),0,:) )
@@ -1699,19 +1468,19 @@ END DO !K = 1,p%NumBl
    ! NOTE: PLinVelEX(I,D,:) = the Dth-derivative of the partial linear velocity
    !   of DOF I for point X in body E.
 
-EwXXrZY   = CROSS_PRODUCT( OtherState%RtHS%AngVelEX, rZY   ) !
+EwXXrZY   = CROSS_PRODUCT( OtherState%RtHS%AngVelEX,                 rZY   ) !
 EwXXrZO   = CROSS_PRODUCT( OtherState%RtHS%AngVelEX, OtherState%RtHS%rZO   ) !
-EwNXrOU   = CROSS_PRODUCT( AngVelEN, rOU   ) !
-EwNXrOV   = CROSS_PRODUCT( AngVelEN, rOV   ) !
-EwRXrVD   = CROSS_PRODUCT( OtherState%RtHS%AngVelER, rVD   ) ! Cross products
-EwRXrVIMU = CROSS_PRODUCT( OtherState%RtHS%AngVelER, rVIMU ) ! that are used
-EwRXrVP   = CROSS_PRODUCT( OtherState%RtHS%AngVelER, rVP   ) ! in the following
-EwHXrPQ   = CROSS_PRODUCT( AngVelEH, rPQ   ) ! DO...LOOPs
-EwHXrQC   = CROSS_PRODUCT( AngVelEH, rQC   ) !
-EwNXrOW   = CROSS_PRODUCT( AngVelEN, rOW   ) !
-EwAXrWI   = CROSS_PRODUCT( AngVelEA, rWI   ) !
-EwAXrWJ   = CROSS_PRODUCT( AngVelEA, rWJ   ) !
-EwAXrWK   = CROSS_PRODUCT( AngVelEA, rWK   ) !
+EwNXrOU   = CROSS_PRODUCT(                 AngVelEN,                 rOU   ) !
+EwNXrOV   = CROSS_PRODUCT(                 AngVelEN,                 rOV   ) !
+EwRXrVD   = CROSS_PRODUCT( OtherState%RtHS%AngVelER,                 rVD   ) ! Cross products
+EwRXrVIMU = CROSS_PRODUCT( OtherState%RtHS%AngVelER,                 rVIMU ) ! that are used
+EwRXrVP   = CROSS_PRODUCT( OtherState%RtHS%AngVelER,                 rVP   ) ! in the following
+EwHXrPQ   = CROSS_PRODUCT(                 AngVelEH,                 rPQ   ) ! DO...LOOPs
+EwHXrQC   = CROSS_PRODUCT(                 AngVelEH,                 rQC   ) !
+EwNXrOW   = CROSS_PRODUCT(                 AngVelEN,                 rOW   ) !
+EwAXrWI   = CROSS_PRODUCT(                 AngVelEA,                 rWI   ) !
+EwAXrWJ   = CROSS_PRODUCT(                 AngVelEA,                 rWJ   ) !
+EwAXrWK   = CROSS_PRODUCT(                 AngVelEA,                 rWK   ) !
 
 
 OtherState%RtHS%PLinVelEZ(       :,:,:) = 0.0
@@ -1719,12 +1488,12 @@ OtherState%RtHS%PLinVelEZ(DOF_Sg  ,0,:) =  OtherState%CoordSys%z1
 OtherState%RtHS%PLinVelEZ(DOF_Sw  ,0,:) = -OtherState%CoordSys%z3
 OtherState%RtHS%PLinVelEZ(DOF_Hv  ,0,:) =  OtherState%CoordSys%z2
 
- OtherState%RtHS%LinVelEZ               =              x%QDT(DOF_Sg  )*OtherState%RtHS%PLinVelEZ(DOF_Sg  ,0,:) &
-                                     + x%QDT(DOF_Sw  )*OtherState%RtHS%PLinVelEZ(DOF_Sw  ,0,:) &
-                                     + x%QDT(DOF_Hv  )*OtherState%RtHS%PLinVelEZ(DOF_Hv  ,0,:)
+ OtherState%RtHS%LinVelEZ               =   x%QDT(DOF_Sg  )*OtherState%RtHS%PLinVelEZ(DOF_Sg  ,0,:) &
+                                          + x%QDT(DOF_Sw  )*OtherState%RtHS%PLinVelEZ(DOF_Sw  ,0,:) &
+                                          + x%QDT(DOF_Hv  )*OtherState%RtHS%PLinVelEZ(DOF_Hv  ,0,:)
 
 
-PLinVelEY(       :,:,:) = OtherState%RtHS%PLinVelEZ(:,:,:)
+                PLinVelEY(       :,:,:) = OtherState%RtHS%PLinVelEZ(:,:,:)
 DO I = 1,NPX   ! Loop through all DOFs associated with the angular motion of the platform (body X)
 
    TmpVec0              = CROSS_PRODUCT(            OtherState%RtHS%PAngVelEX(PX(I)   ,0,:),     rZY  )
@@ -2138,6 +1907,10 @@ OtherState%RtHS%MomLPRott = TmpVec2 + TmpVec3 - p%Hubg1Iner*OtherState%CoordSys%
 
 IF ( p_FAST%CompAero ) ADAeroLoads = AD_CalculateLoads( REAL(t, ReKi), ADAeroMarkers, ADInterfaceComponents, ADIntrfaceOptions, ErrStat )
 
+y%RotSpeed = x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr)
+u_SrvD%RotSpeed = y%RotSpeed   
+CALL TipBrake_CalcOutput( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg )   
+
 
 DO K = 1,p%NumBl ! Loop through all blades
 
@@ -2149,28 +1922,8 @@ DO K = 1,p%NumBl ! Loop through all blades
    ! Calculate the tip drag forces if necessary:
 
    IF ( p_FAST%CompAero )  THEN   ! Calculate the tip drag using the built-in model.
-!--- this is the tip brake controller:
-      IF ( t >= OtherState_SrvD%TTpBrDp(K) )  THEN                                  ! The tip brakes have been deployed due to time.
 
-         TBDrCon    = TBDrConN + ( TBDrConD - TBDrConN )*&
-                      TBFract( t, OtherState_SrvD%TTpBrDp(K), OtherState_SrvD%TTpBrFl(K) )
-
-      ELSEIF ( ( x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr) ) >= p_SrvD%TBDepISp(K) )  THEN ! The tip brakes deploy due to speed.
-
-         OtherState_SrvD%TTpBrDp(K) = t                                             ! Use the check on time the next time step.
-         OtherState_SrvD%TTpBrFl(K) = t + p_SrvD%TpBrDT
-
-         TBDrCon    = TBDrConN
-
-      ELSE                                                              ! The tip brakes haven't been deployed yet.
-
-         TBDrCon    = TBDrConN
-
-      ENDIF
-!---- end of the controller: returns TBDrCon, or N and D part of ElastoDyn, return 0<=TBFrac<=1, consistant with other controllers
-
-
-      OtherState%RtHS%FSTipDrag(K,:) = OtherState%CoordSys%m2(K,p%BldNodes,:)*SIGN( 0.5*p%AirDens*(LinVelESm2(K)**2)*TBDrCon, -1.*LinVelESm2(K) )
+      OtherState%RtHS%FSTipDrag(K,:) = OtherState%CoordSys%m2(K,p%BldNodes,:)*SIGN( 0.5*p%AirDens*(LinVelESm2(K)**2)*y_SrvD%TBDrCon(K), -1.*LinVelESm2(K) )
 
    ELSE                    ! Wind turbine in vacuum, no aerodynamic forces.
 
@@ -3049,9 +2802,23 @@ CALL Teeter  ( t, p, OtherState%RtHS%TeetAng, OtherState%RtHS%TeetAngVel, TeetMo
 CALL RFurling( t, p, x%QT(DOF_RFrl),          x%QDT(DOF_RFrl),            RFrlMom ) ! Compute moment from rotor-furl springs and dampers, RFrlMom
 CALL TFurling( t, p, x%QT(DOF_TFrl),          x%QDT(DOF_TFrl),            TFrlMom ) ! Compute moment from tail-furl  springs and dampers, TFrlMom
 
-u_SrvD%LSS_Spd = x%QDT(DOF_GeAz)
-CALL DrvTrTrq( t, p_SrvD,                     u_SrvD,            y_SrvD  ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
-u%GBoxTrq = y_SrvD%GBoxTrq
+y%LSS_Spd = x%QDT(DOF_GeAz)
+u_SrvD%LSS_Spd = y%LSS_Spd
+CALL DrvTrTrq( t, p_SrvD, u_SrvD, y_SrvD, ErrStat, ErrMsg  ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
+IF (ErrStat /= ErrID_None) RETURN
+u%GenTrq   = y_SrvD%GenTrq
+u%HSSBrTrq = y_SrvD%HSSBrTrq
+
+
+   ! Make a copy of the current value of HSSBrTrq for future use:
+HSSBrTrqC = u%GenTrq
+
+   ! Add the gearbox losses to total HSS torque and project to the LSS side of
+   !   the gearbox.  The gearbox efficiency effects, however, are included in FAST.f90/RtHS().
+GBoxTrq    = ( u%GenTrq + u%HSSBrTrq )*ABS(p%GBRatio)
+
+
+
 
    ! Now that all of the partial loads have been found, lets fill in the
    !   portions of the mass matrix on and below the diagonal that may be
@@ -3176,7 +2943,7 @@ IF ( p%DOF_Flag (DOF_GeAz) )  THEN
       AugMat(p%DOFs%SrtPS(I),DOF_GeAz) = -DOT_PRODUCT( PAngVelEL(DOF_GeAz,0,:), OtherState%RtHS%PMomLPRot(p%DOFs%SrtPS(I),:) )    ! [C(q,t)]H + [C(q,t)]B
    ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
       AugMat(DOF_GeAz,    p%NAug) =  DOT_PRODUCT( PAngVelEL(DOF_GeAz,0,:), OtherState%RtHS%MomLPRott             ) &  ! {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
-                                -  u%GBoxTrq                                                      ! + {-f(qd,q,t)}Gen + {-f(qd,q,t)}Brake
+                                -  GBoxTrq                                                      ! + {-f(qd,q,t)}Gen + {-f(qd,q,t)}Brake
 
 
    ! The previous loop (DO I = p%DOFs%Diag(DOF_GeAz),p%DOFs%NActvDOF) misses the
@@ -3251,7 +3018,7 @@ DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 ENDDO             ! I - All active (enabled) DOFs
 
 AugMat(   DOF_GeAz,    p%NAug) = AugMat(DOF_GeAz,    p%NAug) &                                            ! NOTE: TmpVec is still = ( generator inertia dyadic ) Dot ( partial angular velocity of G in E for DOF_GeAz ) in the following equation
-                             - GBoxEffFac2*( DOT_PRODUCT( AngAccEGt              , TmpVec ) + u%GBoxTrq )   ! {-f(qd,q,t)}GBFric
+                             - GBoxEffFac2*( DOT_PRODUCT( AngAccEGt              , TmpVec ) + GBoxTrq )   ! {-f(qd,q,t)}GBFric
 
 
 
@@ -3306,82 +3073,11 @@ ENDDO             ! I - All active (enabled) DOFs
 SgnPrvLSTQ = NINT( SIGN( 1.0, DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e1 ) ) )
 
 
-!bjj removed this feature: 7.02.x
-!   ! If we are linearizing a model and DOFs were enabled or disabled within the
-!   !   user-defined routines called from RtHS(), abort:
-!
-!IF ( AnalMode == 2 )  THEN ! .TRUE. when we are in the process of linearizing the FAST model
-!
-!   DO I = 1,p%NDOF     ! Loop through all DOFs
-!      IF ( p%DOF_Flag(I) .NEQV. DOF_FlagInit(I) )  &
-!         CALL ProgAbort ( ' FAST can''t linearize a model when DOFs are being switched on-or-off from within user-defined'// &
-!                      ' routines.  Make sure no user-defined routines change the value of DOF_Flag().'                     )
-!   ENDDO             ! I - All DOFs
-!
-!ENDIF
-
-
 
 RETURN
 
-
-
-CONTAINS
-
-
-
-!=======================================================================
-   FUNCTION TBFract( ZTTmp, BrakStrt, BrakEnd )
-
-
-      ! A math S-function for the fraction of tip brake drag b/n normal and
-      !   fully deployed operation.
-
-
-
-
-   IMPLICIT                        NONE
-
-
-      ! Passed Variables:
-
-   REAL(DbKi), INTENT(IN )      :: BrakEnd                                         ! Time at which brakes are fully deployed
-   REAL(DbKi), INTENT(IN )      :: BrakStrt                                        ! Time at which brakes are first deployed
-   REAL(ReKi)                   :: TBFract                                         ! This function.
-   REAL(DbKi), INTENT(IN )      :: ZTTmp                                           ! Current time
-
-
-      ! Local Variables.
-
-   REAL(DbKi)                   :: TmpVar                                          ! A temporary variable
-
-
-
-   IF ( ZTTmp <= BrakStrt )  THEN
-
-      TBFract = 0.0
-
-   ELSEIF ( ZTTmp < BrakEnd )  THEN
-
-      TmpVar  = ( ( ZTTmp - BrakStrt )/( BrakStrt - BrakEnd ) )**2
-      TBFract = TmpVar*( 2.0 - TmpVar )
-
-   ELSE
-
-      TBFract = 1.0
-
-   ENDIF
-
-
-
-   RETURN
-   END FUNCTION TBFract
-!=======================================================================
-
-
-
 END SUBROUTINE RtHS
-!=======================================================================
+!----------------------------------------------------------------------------------------------------------------------------------  
 
 !=======================================================================
 SUBROUTINE Solver( t, n, p, x, y, OtherState, u, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
@@ -3487,7 +3183,7 @@ IF ( n < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the simul
    x%QT  = OtherState%Q (:,OtherState%IC(1))
    x%QDT = OtherState%QD(:,OtherState%IC(1))
 
-   CALL RtHS( t, p, x, OtherState, u, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
+   CALL RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
 
    ! Compute intermediate functions to estimate next Q and QD.
 
@@ -3500,7 +3196,7 @@ IF ( n < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the simul
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( t, p, x, OtherState, u, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
+   CALL RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
 
 
    ! Repeat above steps for each ZK, ZKD:
@@ -3514,7 +3210,7 @@ IF ( n < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the simul
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( t, p, x, OtherState, u, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
+   CALL RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
 
 
    DO I = 1,p%NDOF  ! Loop through all DOFs
@@ -3526,7 +3222,7 @@ IF ( n < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the simul
    ENDDO          ! I - All DOFs
 
 
-   CALL RtHS( t, p, x, OtherState, u, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
+   CALL RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
 
 
    ! Compute best estimate for Q, QD at next time step using
@@ -3574,7 +3270,7 @@ ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corre
    x%QT  = OtherState%Q (:,OtherState%IC(NMX))
    x%QDT = OtherState%QD(:,OtherState%IC(NMX))
 
-   CALL RtHS( t, p, x, OtherState, u, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD, AugMat )
+   CALL RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD, AugMat )
    
 
    OtherState%QD2(:,OtherState%IC(NMX)) = OtherState%QD2T
@@ -3600,7 +3296,7 @@ ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corre
 
     ! Make sure the HSS brake has not reversed the direction of the HSS:
 
-   IF ( p%DOF_Flag(DOF_GeAz) .AND. ( t > p_SrvD%THSSBrDp ) )  CALL FixHSSBrTq ( 'Corrector', p, OtherState, AugMat )
+   IF ( p%DOF_Flag(DOF_GeAz) .AND. ( t > p_SrvD%THSSBrDp ) )  CALL FixHSSBrTq ( 'Corrector', p, OtherState, AugMat, u%HSSBrTrq )
 
 
 ENDIF
@@ -3612,7 +3308,7 @@ ENDIF
 x%QT  = OtherState%Q (:,OtherState%IC(NMX))
 x%QDT = OtherState%QD(:,OtherState%IC(NMX))
 
-CALL RtHS( t, p, x, OtherState, u, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD, AugMat )
+CALL RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD, AugMat )
 
 OtherState%QD2(:,OtherState%IC(NMX)) = OtherState%QD2T
 
@@ -3637,7 +3333,7 @@ IF ( p%DOF_Flag(DOF_GeAz) .AND. ( t > p_SrvD%THSSBrDp ) .AND. ( n >= 3 ) )  THEN
                                                                  + 37.0*OtherState%QD2(DOF_GeAz,OtherState%IC(3)) &
                                                                  -  9.0*OtherState%QD2(DOF_GeAz,OtherState%IC(4))   )
 
-   CALL FixHSSBrTq ( 'Predictor', p, OtherState, AugMat )
+   CALL FixHSSBrTq ( 'Predictor', p, OtherState, AugMat, u%HSSBrTrq )
 
 ENDIF
 
@@ -3645,200 +3341,6 @@ ENDIF
 
 RETURN
 END SUBROUTINE Solver
-!=======================================================================
-SUBROUTINE Teeter( t, p, TeetDef, TeetRate, TeetMom )
-
-
-   ! This routine computes the teeter moment due to teeter deflection
-   !   and rate.
-
-
-
-
-IMPLICIT                        NONE
-
-
-   ! Passed Variables:
-REAL(DbKi), INTENT(IN) :: t ! simulation time
-TYPE(ED_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
-REAL(ReKi), INTENT(IN )      :: TeetDef                                         ! The teeter deflection, x%QT(DOF_Teet).
-REAL(ReKi), INTENT(OUT)      :: TeetMom                                         ! The total moment supplied by the stop, spring, and damper.
-REAL(ReKi), INTENT(IN )      :: TeetRate                                        ! The teeter rate, x%QDT(DOF_Teet).
-
-
-   ! Local variables:
-
-REAL(ReKi)                   :: AbsDef                                          ! Absolute value of the teeter deflection.
-REAL(ReKi)                   :: SprgDef                                         ! Deflection past the spring.
-REAL(ReKi)                   :: StopDef                                         ! Deflection past the stop.
-REAL(ReKi)                   :: TeetDMom                                        ! The moment supplied by the damper.
-REAL(ReKi)                   :: TeetFMom                                        ! The moment supplied by Coulomb-friction damping.
-REAL(ReKi)                   :: TeetKMom                                        ! The moment supplied by the spring.
-REAL(ReKi)                   :: TeetSMom                                        ! The moment supplied by the stop.
-
-
-
-SELECT CASE ( p%TeetMod ) ! Which teeter model are we using?
-
-CASE ( 0 )              ! None!
-
-
-   TeetMom = 0.0
-
-
-CASE ( 1 )              ! Standard (using inputs from the primary FAST input file).
-
-
-   ! Compute the absulute value of the deflection.
-
-   AbsDef  = ABS( TeetDef )
-
-
-   ! Linear teeter spring.
-
-   SprgDef = AbsDef - p%TeetSStP
-
-   IF ( SprgDef > 0.0 )  THEN
-      TeetKMom = -SIGN( SprgDef*p%TeetSSSp, TeetDef )
-   ELSE
-      TeetKMom = 0
-   ENDIF
-
-
-   ! Compute teeter-stop moment if hard stop has been contacted.
-
-   StopDef = AbsDef - p%TeetHStP
-
-   IF ( StopDef > 0.0 )  THEN
-      TeetSMom = -p%TeetHSSp*SIGN( StopDef, TeetDef )
-   ELSE
-      TeetSMom = 0.0
-   ENDIF
-
-
-   ! Compute linear teeter-damper moment.
-
-   TeetDMom = -p%TeetDmp*TeetRate
-
-
-   ! Add coulomb friction to the teeter hinge.
-
-   IF ( TeetRate == 0.0 )  THEN
-      TeetFMom = 0.0
-   ELSE
-      TeetFMom = -SIGN( p%TeetCDmp, TeetRate )
-   ENDIF
-
-
-   ! Total up all the moments.
-
-   TeetMom = TeetSMom + TeetDMom + TeetKMom + TeetFMom
-
-
-CASE ( 2 )              ! User-defined teeter spring/damper model.
-
-
-   CALL UserTeet ( TeetDef, TeetRate, t, p_FAST%DirRoot, TeetMom )
-
-
-ENDSELECT
-
-
-
-RETURN
-END SUBROUTINE Teeter
-!=======================================================================
-SUBROUTINE TFurling( t, p, TFrlDef, TFrlRate, TFrlMom )
-
-
-   ! This routine computes the tail-furl moment due to tail-furl deflection
-   !   and rate.
-
-
-
-
-IMPLICIT                        NONE
-
-
-   ! Passed Variables:
-REAL(DbKi), INTENT(IN) :: t ! simulation time
-TYPE(ED_ParameterType), INTENT(IN) :: p                                       ! parameters from the structural dynamics module
-
-REAL(ReKi), INTENT(IN )      :: TFrlDef                                         ! The tail-furl deflection, QT(DOF_TFrl).
-REAL(ReKi), INTENT(OUT)      :: TFrlMom                                         ! The total moment supplied by the springs, and dampers.
-REAL(ReKi), INTENT(IN )      :: TFrlRate                                        ! The tail-furl rate, QDT(DOF_TFrl).
-
-
-   ! Local variables:
-
-REAL(ReKi)                   :: TFrlDMom                                        ! The moment supplied by the tail-furl dampers.
-REAL(ReKi)                   :: TFrlSMom                                        ! The moment supplied by the tail-furl springs.
-
-
-
-SELECT CASE ( p%TFrlMod ) ! Which tail-furl model are we using?
-
-CASE ( 0 )              ! None!
-
-
-   TFrlMom = 0.0
-
-
-CASE ( 1 )              ! Standard (using inputs from the FAST furling input file).
-
-
-   ! Linear spring:
-
-   TFrlSMom = -p%TFrlSpr*TFrlDef
-
-
-   ! Add spring-stops:
-
-   IF ( TFrlDef > p%TFrlUSSP )  THEN      ! Up-stop
-      TFrlSMom = TFrlSMom - p%TFrlUSSpr*( TFrlDef - p%TFrlUSSP )
-   ELSEIF ( TFrlDef < p%TFrlDSSP )  THEN  ! Down-stop
-      TFrlSMom = TFrlSMom - p%TFrlDSSpr*( TFrlDef - p%TFrlDSSP )
-   ENDIF
-
-
-   ! Linear damper:
-
-   TFrlDMom = -p%TFrlDmp*TFrlRate
-
-
-   ! Add coulomb friction:
-
-   IF ( TFrlRate /= 0.0 )  THEN
-      TFrlDMom = TFrlDMom - SIGN( p%TFrlCDmp, TFrlRate )
-   ENDIF
-
-
-   ! Add damper-stops:
-
-   IF ( TFrlDef > p%TFrlUSDP )  THEN      ! Up-stop
-      TFrlDMom = TFrlDMom - p%TFrlUSDmp*TFrlRate
-   ELSEIF ( TFrlDef < p%TFrlDSDP )  THEN  ! Down-stop
-      TFrlDMom = TFrlDMom - p%TFrlDSDmp*TFrlRate
-   ENDIF
-
-
-   ! Total up all the moments.
-
-   TFrlMom = TFrlSMom + TFrlDMom
-
-
-CASE ( 2 )              ! User-defined tail-furl spring/damper model.
-
-
-   CALL UserTFrl ( TFrlDef, TFrlRate, t, p_FAST%DirRoot, TFrlMom )
-
-
-ENDSELECT
-
-
-
-RETURN
-END SUBROUTINE TFurling
 !=======================================================================
 SUBROUTINE TwrLoading ( t, JNode, X1 , X2 , X3 , X4 , X5 , X6 , &
                                XD1, XD2, XD3, XD4, XD5, XD6, p, TwrAM, TwrFt    )
