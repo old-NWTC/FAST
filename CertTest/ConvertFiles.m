@@ -27,6 +27,11 @@ templateDir = 'TemplateFiles\V8.00.x\5MW_Monopile';
 
 newHdrLines = 2;
 
+XLS_file  = '..\OutListParameters.xlsx';
+
+[~, ~, ~, ServoDyn_Channels ] = GetOutListParameters( XLS_file, 'ServoDyn' );
+[~, ~, ~, ElastoDyn_Channels] = GetOutListParameters( XLS_file, 'ElastoDyn');
+
 %BJJ: Need to convert ElastoDyn blade and tower files (fields removed,
 %etc).
 
@@ -141,6 +146,7 @@ for i= 1:17 %1:(17+5) %17+(1:5) %1:17 %
                     'CompServo',     'True';
                     'SrvDFile',      [ '"' SrvDFile '"' ];
                     'DT_Out',        DT_Out;
+                    'OutFile',       1;
                     'CompUserPtfmLd',Platform; 
                     'CompUserTwrLd', CompUserTwrLd;
                     'CompSub',       'False';
@@ -199,7 +205,43 @@ for i= 1:17 %1:(17+5) %17+(1:5) %1:17 %
         GBRatio = -1*GBRatio;
         disp('GBRatio sign being reversed.')
     end
+    
+        % Change AeroCent from the blade file table to PitchAxis
+    for k=1:NumBl
+        indx = find(strcmpi('AeroCent',BP{k}.BldPropHdr));
+        if isempty(indx)
+            disp('Warning: AeroCent not found in blade properties table.')
+        else        
+            PitchAxis = 0.5 - BP{k}.BldProp(:,indx);  
+            BP{k}.BldPropHdr = [BP{k}.BldPropHdr; 'PitchAxis'];
+            BP{k}.BldProp    = [BP{k}.BldProp PitchAxis];
+        end
+    end
+        % Get the variables from OutList and figure out which modules they need to go in
+
+    [OutList, OutListComments] = GetOutListVars(FP.OutList, FP.OutListComments);
+    numOuts = length(OutList);    
+    ED_Channel = false(numOuts,1);
+    SD_Channel = false(numOuts,1);
+    
+    if numOuts > 0
+        
+        % we'll see which of the modules these match
+        for ch=1:numOuts
+            ED_Channel(ch) = any( strcmpi(OutList{ch},ElastoDyn_Channels ) ); 
+            SD_Channel(ch) = any( strcmpi(OutList{ch},ServoDyn_Channels  ) );
+            
+            if ~(ED_Channel(ch) || SD_Channel(ch))
+                disp( ['WARNING: output channel ' OutList{ch} ' is no longer valid.']);
+            end
+        end %
                
+        
+        
+    else
+        disp(['WARNING: there are no outputs to be generated.'])
+    end
+    
 %....................................
 % TO DO           
 %....................................
@@ -207,12 +249,7 @@ for i= 1:17 %1:(17+5) %17+(1:5) %1:17 %
 
 % set YawManRat
 % set PitManRat
-
-% OutList:
-% - divvy up the outputs to their respective modules 
-% - make sure Linearization analysis prints warning if there are no
-%   outputs
-    
+   
         %....................................
         % fix the headers for the new files:
         %....................................
@@ -238,11 +275,15 @@ for i= 1:17 %1:(17+5) %17+(1:5) %1:17 %
         % ServoDyn
     template   = [templateDir filesep 'SrvD_Primary.dat'];  %template for ServoDyn primary file
     outputFile = [newDir filesep SrvDFile];
+    FP.OutList         = OutList(SD_Channel);
+    FP.OutListComments = OutListComments(SD_Channel);
     Matlab2FAST(FP,template,outputFile, 2); %contains 2 header lines
 
         % ElastoDyn (primary)
     template   = [templateDir filesep 'ED_Primary.dat'];  %template for ElastoDyn primary file
     outputFile = [newDir filesep EDFile];
+    FP.OutList         = OutList(ED_Channel);
+    FP.OutListComments = OutListComments(ED_Channel);
     Matlab2FAST(FP,template,outputFile, 2); %contains 2 header lines
         
         % ElastoDyn (tower)

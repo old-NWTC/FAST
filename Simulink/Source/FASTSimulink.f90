@@ -73,7 +73,7 @@ SUBROUTINE BlockOUTPUT(NumBl, NDOF, NumOuts, T, U, Y)
 
    Time           = REAL(T, ReKi)
 
-!call wrscr('ZTime='//TRIM(Flt2Lstr(Time))//' QT(13)='//TRIM(Flt2Lstr( QT_s(13) ))   )
+!call wrscr('ZTime='//TRIM(Num2Lstr(Time))//' QT(13)='//TRIM(Num2Lstr( QT_s(13) ))   )
 
       !----------------------------------------------------------------------------------------------
       ! Call the FAST dynamics routines for this time step
@@ -124,7 +124,7 @@ SUBROUTINE FAST_End
          ! Output the binary file if requested
       
       IF (WrBinOutFile) THEN
-         CALL WrBinOutput(UnOuBin, OutputFileFmtID, FileDesc, p%OutParam(:)%Name, OutParam(:)%Units, TimeData, & 
+         CALL WrBinOutput(TRIM(RootName)//'.outb', OutputFileFmtID, FileDesc, p%OutParam(:)%Name, OutParam(:)%Units, TimeData, & 
                            AllOutData(:,1:CurrOutStep), ErrStat, ErrMsg)
 
          IF ( ErrStat /= ErrID_None ) THEN
@@ -182,7 +182,6 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
    USE                             DriveTrain,  ONLY: GenTrq, ElecPwr
    USE                             DOFs,        ONLY: NDoF
    USE                             Output,      ONLY: TStart, DecFact, OutData, NumOuts
-   USE                             SimCont,     ONLY: DT, ZTime, Step
    USE                             TurbConf,    ONLY: NumBl
    USE                             TurbCont,    ONLY: YawPosCom, YawRateCom, BlPitchCom
    USE                             Noise,       ONLY: PredictNoise
@@ -225,7 +224,7 @@ SUBROUTINE FASTDYNAMICS (ZTime_s, QT_s, QDT_s, BlPitchCom_s, YawPosCom_s, YawRat
   ! call these routines if DT has passed?  Perhaps, we should upgrade to
   ! a "Level-2" S-Function so that we can use discrete time?
 
-   CALL RtHS( p, x, OtherState, u )
+   CALL RtHS( p, p_ctrl, x, OtherState, u )
    CALL CalcOuts( p,x,y,OtherState, u )
 
 
@@ -271,8 +270,8 @@ SUBROUTINE FAST_Init(InpFile, NumBl_S, NDOF_S, NumOuts_S)
    USE                             SimCont,        ONLY: UsrTime1
 !rm   USE                             SimCont,        ONLY: UsrTime1, UsrTime0
    USE                             FAST_IO_Subs,   ONLY: FAST_Begin, FAST_Input, PrintSum, WrOutHdr, SimStatus
-   USE                             FASTSubs,       ONLY: FAST_Initialize, CoordSys_Alloc
-   USE                             Output,         ONLY: OutputFileFmtID, FileFmtID_WithTime, NumOuts
+   USE                             FASTSubs,       ONLY: FAST_Initialize, Alloc_CoordSys
+   USE                             Output,         ONLY: NumOuts
 
    USE                             DOFs,           ONLY: NDOF
 
@@ -348,7 +347,7 @@ SUBROUTINE FAST_Init(InpFile, NumBl_S, NDOF_S, NumOuts_S)
       ! Allocate space for coordinate systems.                           [ see FAST.f90/TimeMarch() ]
       !----------------------------------------------------------------------------------------------
       
-   CALL CoordSys_Alloc( CoordSys, p, ErrStat, ErrMsg )
+   CALL Alloc_CoordSys( CoordSys, p, ErrStat, ErrMsg )
             
    IF (ErrStat /= ErrID_none) THEN
       CALL WrScr( ' Error in SUBROUTINE TimeMarch: ' )

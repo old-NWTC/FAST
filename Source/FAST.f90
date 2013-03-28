@@ -65,37 +65,6 @@ CHARACTER(1024)              :: ErrMsg
  CALL Yaw_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
 
-
-
-!bjj: not sure what to do with this....
-!
-!   ! If the yaw DOF is enabled, the command yaw angle and rate become the
-!   !   neutral yaw angle and rate in FAST's built-in second-order actuator
-!   !   model defined by inputs YawSpr and YawDamp.  If the yaw DOF is disabled
-!   !   (no yaw DOF), then the command yaw angle and rate become the actual yaw
-!   !   angle and rate (no built-in actuator) and the yaw acceleration will be
-!   !   zero.
-!   ! NOTE: I don't want to test the value of YawDOF here, since the value of
-!   !       DOF_Flag(DOF_Yaw) can be controlled by the user-defined routine:
-!
-!IF ( p_ED%DOF_Flag(DOF_Yaw) )  THEN   ! Yaw DOF is currently enabled (use FAST's built-in actuator).
-!
-!   YawNeut              = y%YawPosCom
-!   YawRateNeut          = y%YawRateCom
-!
-!ELSE                             ! Yaw DOF is currently disabled (no built-in actuator).
-!
-!   OtherState_ED%Q  (DOF_Yaw,OtherState_ED%IC(NMX)) = y%YawPosCom    ! Update the saved values
-!   OtherState_ED%QD (DOF_Yaw,OtherState_ED%IC(NMX)) = y%YawRateCom   !   used in routine Solver()
-!   x_ED%QT       (DOF_Yaw)                    = y%YawPosCom    ! Update the current, intermediate
-!   x_ED%QDT      (DOF_Yaw)                    = y%YawRateCom   !    values used in routine RtHS()
-!
-!ENDIF
-!
-!
-!
-
-
    ! ----------------------------- PITCH CONTROL ------------------------------
    ! Control pitch if requested:
 
@@ -128,8 +97,7 @@ IF ( t >= p%TPCOn )  THEN   ! Time now to enable active pitch control.
 
    ! Call the user-defined pitch control routine:
 
-      CALL PitchCntrl ( u%BlPitch, y%ElecPwr, ABS(p%GBRatio)*x_ED%QDT(DOF_GeAz), p_ED%GBRatio, TwrAccel, p%NumBl, t, p_FAST%DT, p_FAST%DirRoot, y%BlPitchCom )
-!bjj check the ABS around both arguments here!
+      CALL PitchCntrl ( u%BlPitch, y%ElecPwr, u%LSS_Spd, TwrAccel, p%NumBl, t, p%DT, p%RootName, y%BlPitchCom )
 
    CASE ( 2 )              ! User-defined from Simulink or Labview.
 
@@ -225,7 +193,6 @@ SUBROUTINE DrvTrTrq ( t, p, u, y, ErrStat, ErrMsg )
    COMPLEX(ReKi)                :: Currentm                                        ! Magnitizing current (amps)
 
    REAL(ReKi)                   :: ComDenom                                        ! Common denominator of variables used in the TEC model
-   REAL(ReKi)                   :: HSS_Spd                                         ! HSS speed in rad/sec.
    REAL(ReKi)                   :: HSSBrFrac                                       ! Fraction of full braking torque {0 (off) <= HSSBrFrac <= 1 (full)} (-)
    REAL(ReKi)                   :: PwrLossS                                        ! Power loss in the stator (watts)
    REAL(ReKi)                   :: PwrLossR                                        ! Power loss in the rotor (watts)
@@ -248,14 +215,10 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
    ErrMsg  = ''
 
 
-      ! Calculate the generator speed.
-
-   HSS_Spd = ABS(p%GBRatio)*u%LSS_Spd
-
 
       ! See if the generator is on line.
 
-   IF ( .NOT. Off4Good )  THEN
+   IF (  .NOT. Off4Good )  THEN
 
       ! The generator is either on-line or has never been turned online.
 
@@ -271,7 +234,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
          IF ( p%GenTiStr )  THEN   ! Start-up of generator determined by time, TimGenOn
             IF ( t >= p%TimGenOn )    GenOnLin = .TRUE.
          ELSE                    ! Start-up of generator determined by HSS speed, SpdGenOn
-            IF ( HSS_Spd >= p%SpdGenOn )  GenOnLin = .TRUE.
+            IF ( u%HSS_Spd >= p%SpdGenOn )  GenOnLin = .TRUE.
          ENDIF
 
       ENDIF
@@ -294,7 +257,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
                CASE ( 1_IntKi )                          ! Simple induction-generator model.
 
 
-                  Slip = HSS_Spd - p%SIG_SySp
+                  Slip = u%HSS_Spd - p%SIG_SySp
 
                   IF ( ABS( Slip ) > p%SIG_POSl  )  THEN
                      y%GenTrq  = SIGN( p%SIG_POTq, Slip )
@@ -307,18 +270,17 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
             ! The generator efficiency is either additive for motoring,
             !   or subtractive for generating power.
 
-            ! bjj: um... I don't see any difference here:
                   IF ( y%GenTrq > 0.0 )  THEN
-                     y%ElecPwr = y%GenTrq*HSS_Spd*p%GenEff
+                     y%ElecPwr = y%GenTrq * u%HSS_Spd * p%GenEff
                   ELSE
-                     y%ElecPwr = y%GenTrq*HSS_Spd/p%GenEff
+                     y%ElecPwr = y%GenTrq * u%HSS_Spd / p%GenEff
                   ENDIF
 
 
                CASE ( 2_IntKi )                          ! Thevenin-equivalent generator model.
 
 
-                  SlipRat  = ( HSS_Spd - p%TEC_SySp )/p%TEC_SySp
+                  SlipRat  = ( u%HSS_Spd - p%TEC_SySp )/p%TEC_SySp
 
                   y%GenTrq  = p%TEC_A0*(p%TEC_VLL**2)*SlipRat &
                              /( p%TEC_C0 + p%TEC_C1*SlipRat + p%TEC_C2*(SlipRat**2) )
@@ -330,15 +292,15 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
                   Current1 = Current2 + Currentm
                   PwrLossS = 3.0*( ( ABS( Current1 ) )**2 )*p%TEC_SRes
                   PwrLossR = 3.0*( ( ABS( Current2 ) )**2 )*p%TEC_RRes
-                  PwrMech  = y%GenTrq*HSS_Spd
+                  PwrMech  = y%GenTrq*u%HSS_Spd
                   y%ElecPwr  = PwrMech - PwrLossS - PwrLossR
 
 
                CASE ( 3_IntKi )                          ! User-defined generator model.
 
 
-         !        CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
-                  CALL UserGen ( HSS_Spd, p%GBRatio, p%NumBl, t, p_FAST%DT, p%GenEff, 0.0_ReKi, p_FAST%DirRoot, y%GenTrq, y%ElecPwr )
+         !        CALL UserGen ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+                  CALL UserGen ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, p%DT, p%GenEff, 0.0_ReKi, p%RootName, y%GenTrq, y%ElecPwr )
 
       !bjj check the ABS here (above)
             END SELECT
@@ -349,12 +311,12 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
 
          ! Compute the generator torque, which depends on which region we are in:
 
-            IF ( HSS_Spd >= p%VS_RtGnSp )  THEN      ! We are in region 3 - torque is constant
+            IF ( u%HSS_Spd >= p%VS_RtGnSp )  THEN      ! We are in region 3 - torque is constant
                y%GenTrq = p%VS_RtTq
-            ELSEIF ( HSS_Spd < p%VS_TrGnSp )  THEN   ! We are in region 2 - torque is proportional to the square of the generator speed
-               y%GenTrq = p%VS_Rgn2K* (HSS_Spd**2)
+            ELSEIF ( u%HSS_Spd < p%VS_TrGnSp )  THEN   ! We are in region 2 - torque is proportional to the square of the generator speed
+               y%GenTrq = p%VS_Rgn2K* (u%HSS_Spd**2)
             ELSE                                   ! We are in region 2 1/2 - simple induction generator transition region
-               y%GenTrq = p%VS_Slope*( HSS_Spd - p%VS_SySp )
+               y%GenTrq = p%VS_Slope*( u%HSS_Spd - p%VS_SySp )
             ENDIF
 
             !GenTrq  = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
@@ -363,14 +325,14 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
          ! It's not possible to motor using this control scheme,
          !   so the generator efficiency is always subtractive.
 
-            y%ElecPwr = y%GenTrq*HSS_Spd*p%GenEff
+            y%ElecPwr = y%GenTrq*u%HSS_Spd*p%GenEff
 
 
          CASE ( ControlMode_User )                              ! User-defined variable-speed control for routine UserVSCont().
 
 
-      !      CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
-            CALL UserVSCont ( HSS_Spd, p%GBRatio, p%NumBl, t, p_FAST%DT, p%GenEff, 0.0_ReKi, p_FAST%DirRoot, y%GenTrq, y%ElecPwr )
+      !      CALL UserVSCont ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+            CALL UserVSCont ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, p%DT, p%GenEff, 0.0_ReKi, p_FAST%DirRoot, y%GenTrq, y%ElecPwr )
 
 
          CASE ( ControlMode_Extern )                             ! User-defined variable-speed control from Simulink or Labview.
@@ -426,7 +388,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
 
       CASE ( ControlMode_User )                   ! User-defined HSS brake model.
 
-         CALL UserHSSBr ( y%GenTrq, y%ElecPwr, HSS_Spd, p%GBRatio, p%NumBl, t, p%DT, p%RootName, HSSBrFrac )
+         CALL UserHSSBr ( y%GenTrq, y%ElecPwr, u%HSS_Spd, p%NumBl, t, p%DT, p%RootName, HSSBrFrac )
 
          IF ( ( HSSBrFrac < 0.0 ) .OR. ( HSSBrFrac > 1.0 ) )  THEN   ! 0 (off) <= HSSBrFrac <= 1 (full); else Abort.
             ErrStat = ErrID_Fatal
@@ -446,7 +408,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
 
       ! Calculate the magnitude of HSS brake torque:
 
-   y%HSSBrTrq = SIGN( HSSBrFrac*p%HSSBrTqF, HSS_Spd )  ! Scale the full braking torque by the brake torque fraction and make sure the brake torque resists motion.
+   y%HSSBrTrq = SIGN( HSSBrFrac*p%HSSBrTqF, u%HSS_Spd )  ! Scale the full braking torque by the brake torque fraction and make sure the brake torque resists motion.
 
    RETURN
 END SUBROUTINE DrvTrTrq
@@ -466,11 +428,6 @@ SUBROUTINE FixHSSBrTq ( Integrator, p, OtherState, AugMat, HSSBrTrq  )
 USE                             Switch
 
 
-   ! FAST MODULES:
-
-USE                             DriveTrain
-
-
 IMPLICIT                        NONE
 
 
@@ -485,23 +442,24 @@ REAL(ReKi),              INTENT(INOUT):: HSSBrTrq                             ! 
 
    ! Local variables:
 
+REAL(ReKi)                   :: HSSBrTrqC                                       ! A copy of the value of HSSBrTrq calculated in SUBROUTINE DrvTrTrq().
 REAL(ReKi)                   :: RqdFrcGeAz                                      ! The force term required to produce RqdQD2GeAz.
 REAL(ReKi)                   :: RqdQD2GeAz                                      ! The required QD2T(DOF_GeAz) to cause the HSS to stop rotating.
 
-INTEGER(4)                   :: I                                               ! Loops through all DOFs.
-
-REAL(ReKi)                   :: SolnVec(p%NDOF)                                 ! Solution vector found by solving the equations of motion
-REAL(ReKi)                   :: QD2TC    (p%NDOF)                               ! A copy of the value of QD2T
+REAL(ReKi)                   :: SolnVec(   p%NDOF)                              ! Solution vector found by solving the equations of motion
+REAL(ReKi)                   :: QD2TC     (p%NDOF)                              ! A copy of the value of QD2T
 REAL(ReKi)                   :: OgnlGeAzRo(p%NAUG)                              ! The original elements of AugMat that formed the DOF_GeAz equation before application of known initial conditions.
+
+INTEGER(4)                   :: I                                               ! Loops through all DOFs.
 
 
 INTEGER(IntKi)  :: ErrStat     ! Error status of the operation
 CHARACTER(1024) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
 
-   ! Make a copy of the current value of QD2T for future use:
-
-QD2TC = OtherState%QD2T
+   ! Make a copy of the current value of HSSBrTrq and QD2Tfor future use:
+HSSBrTrqC = HSSBrTrq
+QD2TC     = OtherState%QD2T
 
    ! Store the row of coefficients associated with the generator azimuth DOF for future use:
 OgnlGeAzRo = AugMat(DOF_GeAz,:)
@@ -699,8 +657,6 @@ SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
 ! deallocates variables and closes files.
 !----------------------------------------------------------------------------------------------------
 
-   USE            AeroDyn_Types
-
 !add for bladed dll   USE            BladedDLLParameters
 
    TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST                    ! FAST Parameters
@@ -724,7 +680,7 @@ SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
    
    IF (p_FAST%WrBinOutFile) THEN
       
-      FileDesc = TRIM(y_FAST%FileDescLines(1))//'; '//TRIM(y_FAST%FileDescLines(2))//'; '//TRIM(y_FAST%FileDescLines(3))
+      FileDesc = TRIM(y_FAST%FileDescLines(1))//' '//TRIM(y_FAST%FileDescLines(2))//'; '//TRIM(y_FAST%FileDescLines(3))
       
       CALL WrBinFAST(TRIM(p_FAST%OutFileRoot)//'.outb', OutputFileFmtID, TRIM(FileDesc), &
             y_FAST%ChannelNames, y_FAST%ChannelUnits, y_FAST%TimeData, y_FAST%AllOutData(:,1:y_FAST%n_Out), ErrStat, ErrMsg)
@@ -853,8 +809,6 @@ SUBROUTINE RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_S
 
    ! This routine is used to set up and solve the equations of motion
    !   for a particular time step.
-
-USE                             DriveTrain
 
 
 IMPLICIT                        NONE
@@ -1022,15 +976,27 @@ CHARACTER(1024) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
    !   of control measurements are computed until the end of the first time
    !   step):
 
+! linking with ServoDyn 
+!....................................
+   
+   ! ED outputs for SrvD:
+   
+y%Yaw      = x%QT( DOF_Yaw)
+y%YawRate  = x%QDT(DOF_Yaw)
+y%BlPitch  = OtherState%BlPitch
+y%LSS_Spd  = x%QDT(DOF_GeAz)
+y%HSS_Spd  = ABS(p%GBRatio)*x%QDT(DOF_GeAz)
+y%RotSpeed = x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr)
+
+   ! map ED outputs to SrvD inputs:
+u_SrvD%Yaw      = y%Yaw
+u_SrvD%YawRate  = y%YawRate
+u_SrvD%BlPitch  = y%BlPitch
+u_SrvD%LSS_Spd  = y%LSS_Spd
+u_SrvD%HSS_Spd  = y%HSS_Spd
+u_SrvD%RotSpeed = y%RotSpeed 
+
 IF ( t > 0.0_DbKi  )  THEN
-   
-   y%Yaw     = x%QT( DOF_Yaw)
-   y%YawRate = x%QDT(DOF_Yaw)
-   y%BlPitch = OtherState%BlPitch
-   
-      ! map ED outputs to SrvD inputs:
-   u_SrvD%Yaw     = y%Yaw
-   u_SrvD%YawRate = y%YawRate
    
    CALL Control( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg, p, x, OtherState ) !bjj: note that OtherState%CoordSys%b1 hasn't been set yet when the simulation starts....
    
@@ -1044,8 +1010,20 @@ IF ( t > 0.0_DbKi  )  THEN
             
 END IF
 
+CALL DrvTrTrq( t, p_SrvD, u_SrvD, y_SrvD, ErrStat, ErrMsg  ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
+IF (ErrStat /= ErrID_None) RETURN
+
+!bjj most of the stuff inside is commented out, just the output mapping is left for now...
+CALL SrvD_CalcOutput( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg )
+
+      ! map SrvD outputs to ED inputs:
+u%GenTrq   = y_SrvD%GenTrq
+u%HSSBrTrq = y_SrvD%HSSBrTrq
+
+  
 
 
+!....................................
 
    ! Initialize several variables to 0.0:
 
@@ -1907,9 +1885,9 @@ OtherState%RtHS%MomLPRott = TmpVec2 + TmpVec3 - p%Hubg1Iner*OtherState%CoordSys%
 
 IF ( p_FAST%CompAero ) ADAeroLoads = AD_CalculateLoads( REAL(t, ReKi), ADAeroMarkers, ADInterfaceComponents, ADIntrfaceOptions, ErrStat )
 
-y%RotSpeed = x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr)
-u_SrvD%RotSpeed = y%RotSpeed   
-CALL TipBrake_CalcOutput( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg )   
+!y%RotSpeed = x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr)
+!u_SrvD%RotSpeed = y%RotSpeed   
+!CALL TipBrake_CalcOutput( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg )   
 
 
 DO K = 1,p%NumBl ! Loop through all blades
@@ -2802,16 +2780,7 @@ CALL Teeter  ( t, p, OtherState%RtHS%TeetAng, OtherState%RtHS%TeetAngVel, TeetMo
 CALL RFurling( t, p, x%QT(DOF_RFrl),          x%QDT(DOF_RFrl),            RFrlMom ) ! Compute moment from rotor-furl springs and dampers, RFrlMom
 CALL TFurling( t, p, x%QT(DOF_TFrl),          x%QDT(DOF_TFrl),            TFrlMom ) ! Compute moment from tail-furl  springs and dampers, TFrlMom
 
-y%LSS_Spd = x%QDT(DOF_GeAz)
-u_SrvD%LSS_Spd = y%LSS_Spd
-CALL DrvTrTrq( t, p_SrvD, u_SrvD, y_SrvD, ErrStat, ErrMsg  ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
-IF (ErrStat /= ErrID_None) RETURN
-u%GenTrq   = y_SrvD%GenTrq
-u%HSSBrTrq = y_SrvD%HSSBrTrq
 
-
-   ! Make a copy of the current value of HSSBrTrq for future use:
-HSSBrTrqC = u%GenTrq
 
    ! Add the gearbox losses to total HSS torque and project to the LSS side of
    !   the gearbox.  The gearbox efficiency effects, however, are included in FAST.f90/RtHS().

@@ -6,7 +6,7 @@
    !       addressed to Craig Hansen.
 
 !=======================================================================
-SUBROUTINE PitchCntrl ( BlPitch, ElecPwr, HSS_Spd, GBRatio, TwrAccel, NB, ZTime, DT, DirRoot, TFOutput )
+SUBROUTINE PitchCntrl ( BlPitch, ElecPwr, LSS_Spd, TwrAccel, NB, ZTime, DT, DirRoot, TFOutput )
 
 
    ! This routine reads a data file containing user specified transfer
@@ -34,8 +34,7 @@ INTEGER   , INTENT(IN )      :: NB                                              
 REAL(ReKi), INTENT(IN )      :: BlPitch (NB)                                    ! Current values of the blade pitch angles (rad)
 REAL(DbKi), INTENT(IN )      :: DT                                              ! Integration time step (sec)
 REAL(ReKi), INTENT(IN )      :: ElecPwr                                         ! Electrical power (watts)
-REAL(ReKi), INTENT(IN )      :: GBRatio                                         ! Gearbox ratio (-)
-REAL(ReKi), INTENT(IN )      :: HSS_Spd                                         ! HSS speed (rad/s)
+REAL(ReKi), INTENT(IN )      :: LSS_Spd                                         ! LSS speed (rad/s)
 REAL(ReKi), INTENT(OUT)      :: TFOutput(NB)                                    ! Desired pitch angles returned by this subroutine (rad)
 REAL(ReKi), INTENT(IN )      :: TwrAccel                                        ! Tower top acceleration (m/s^2)
 REAL(DbKi), INTENT(IN )      :: ZTime                                           ! Current simulation time (sec)
@@ -80,7 +79,6 @@ IF ( INITFLAG )  THEN
    ! Save the value of time in which pitch control is first activated:
 
    TPCOn = REAL( ZTime, ReKi)
-
 
    ! Read control parameters from 'pitch.ipt' if control is employed
    I = INDEX( DirRoot, PathSep, BACK=.TRUE. )
@@ -193,10 +191,10 @@ CASE ( 2 )                 ! Region 2 control = power control
 
    TFInput = 0.001*ElecPwr             ! Electric power, kW
 
-
 CASE ( 3 )                 ! Region 3 control = speed control
 
-   TFInput = HSS_Spd/ABS(GBRatio)*RPS2RPM   ! LSS speed at gearbox entrance, rpm
+!   TFInput = HSS_Spd/ABS(GBRatio)*RPS2RPM   ! LSS speed at gearbox entrance, rpm
+   TFInput = LSS_Spd*RPS2RPM                 ! LSS speed at gearbox entrance, rpm
 
 
 CASE DEFAULT               ! None of the above
@@ -350,12 +348,16 @@ ENDIF
 
 
 !check for numerical stability
-IF( REAL(ZTime,ReKi) - OLDTIME < DTCNTRL )  THEN  ! Time check needed for FAST
+!print *, REAL(ZTime,ReKi) - OLDTIME, (REAL(ZTime,ReKi) - OLDTIME < DTCNTRL ) , EqualRealNos( REAL(ZTime,ReKi), OldTime+DtCntrl ) 
+IF ( .NOT. EqualRealNos( REAL(ZTime,ReKi), OldTime+DtCntrl )  ) THEN
+  IF( REAL(ZTime,ReKi) - OLDTIME < DTCNTRL )  THEN  ! Time check needed for FAST
+!old IF( REAL(ZTime,ReKi) - OLDTIME < DTCNTRL )  THEN  ! Time check needed for FAST
 !new: IF( ZTime*OnePlusEps - OLDTIME < DTCNTRL )  THEN  ! Time check needed for FAST
-   DO K = 1,NB
-      TFOutput(K) = OLDTFOUTPUT
-   ENDDO ! K
-   RETURN
+      DO K = 1,NB
+         TFOutput(K) = OLDTFOUTPUT
+      ENDDO ! K
+      RETURN
+   END IF
 ENDIF
 
 

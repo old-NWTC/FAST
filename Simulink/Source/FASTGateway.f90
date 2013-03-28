@@ -493,7 +493,7 @@ SUBROUTINE mexFunction(nlhs, plhs, nrhs, prhs)
                IF ( N .NE. 3) THEN
                   CALL ProgAbort('The INPUT VECTOR (u) is the wrong size. It must have 3 columns.')
                ELSE IF ( M > INT(MaxWinds/3) ) THEN
-                  CALL ProgAbort( ' Maximum number of wind positions available is '//TRIM(Int2Lstr(INT(MaxWinds/3)))//'.' )                  
+                  CALL ProgAbort( ' Maximum number of wind positions available is '//TRIM(Num2LStr(INT(MaxWinds/3)))//'.' )                  
                ENDIF
                
                ptr_U = mxGetPr(PRHS(3))

@@ -21,9 +21,9 @@ include	Registry_NWTC_Library.txt
 
 
 # ..... Blade Input file data ...........................................................................................................
-typedef	ElastoDyn/ED	BladeInputData	IntKi	NBlInpSt	-	-	-	"Number of blade input stations"
-typedef	^	^	ReKi	BlFract	{:}	-	-	"Blade fractional radius for distributed input data"
-#typedef	^	^	ReKi	AerCen	{:}	-	-	"Aerodynamic center for distributed input data"
+typedef	ElastoDyn/ED	BladeInputData	IntKi	NBlInpSt	-	-	-	"Number of blade input stations"	-
+typedef	^	^	ReKi	BlFract	{:}	-	-	"Blade fractional radius for distributed input data"	-
+typedef	^	^	ReKi	PitchAx	{:}	-	-	"Pitch axis for distributed input data"	-
 typedef	^	^	ReKi	StrcTwst	{:}	-	-	"Structural twist for distributed input data"	radians
 typedef	^	^	ReKi	BMassDen	{:}	-	-	"Blade mass density for distributed input data"
 typedef	^	^	ReKi	FlpStff	{:}	-	-	"Blade flap stiffness for distributed input data"
@@ -632,11 +632,8 @@ typedef	^	ParameterType	ReKi	YawBrMass	-	-	-	"Yaw bearing mass"
 # parameters describing environmental conditions (EnvCond)
 typedef	^	ParameterType	ReKi	AirDens	-	-	-	"Air density = RHO"
 typedef	^	ParameterType	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
-# parameters from NacelleYaw
-#typedef	^	ParameterType	ReKi	YawSpr	-	-	-	"Nacelle-yaw spring constant"
-#typedef	^	ParameterType	ReKi	YawDamp	-	-	-	"Nacelle-yaw constant"
 # parameters from Blade
-#typedef	^	ParameterType	ReKi	AeroCent	{:}{:}	-	-	"Aerodynamic center for analysis nodes"
+typedef	^	ParameterType	ReKi	PitchAxis	{:}{:}	-	-	"Pitch axis for analysis nodes"	-
 typedef	^	ParameterType	ReKi	AeroTwst	{:}	-	-	"Aerodynamic twist of the blade at the analysis nodes"
 typedef	^	ParameterType	ReKi	AxRedBld	{:}{:}{:}{:}	-	-	"The axial-reduction terms of the blade shape function"
 typedef	^	ParameterType	ReKi	BAlpha	{:}{:}	-	-	"Interpolated blade coupling coefficient between flap and twist"
@@ -727,7 +724,7 @@ typedef	^	ParameterType	ReKi	DTTorDmp	-	-	-	"Drivetrain torsional damper"
 typedef	^	ParameterType	ReKi	DTTorSpr	-	-	-	"Drivetrain torsional spring"
 typedef	^	ParameterType	ReKi	GBRatio	-	-	-	"Gearbox ratio"
 typedef	^	ParameterType	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"
-typedef	^	ParameterType	ReKi	GenEff	-	-	-	"Generator efficiency"	"shouldn't need to be here (only in controls)"
+#typedef	^	ParameterType	ReKi	GenEff	-	-	-	"Generator efficiency"	"shouldn't need to be here (only in controls)"
 #typedef	^	ParameterType	IntKi	GenDir	-	-	-	"Direction of the generator = +/- 1 (+ 1 = same direction as LSS; -1 = opposite direction of LSS)"
 # parameters from Initial Conditions
 typedef	^	ParameterType	ReKi	RotSpeed	-	-	-	"Initial or fixed rotor speed"	rad/s
@@ -761,6 +758,7 @@ typedef	^	OutputType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
 typedef	^	OutputType	ReKi	Yaw	-	-	-	"Current nacelle yaw"	radians
 typedef	^	OutputType	ReKi	YawRate	-	-	-	"Current nacelle yaw rate"	rad/s
 typedef	^	OutputType	ReKi	LSS_Spd	-	-	-	"Low-speed shaft (LSS) speed"	rad/s
+typedef	^	OutputType	ReKi	HSS_Spd	-	-	-	"High-speed shaft (HSS) speed"	rad/s
 #typedef	^	OutputType	ReKi	HubPosition	3	-	-	"Position of the hub (for AeroDyn)"	m
 #typedef	^	OutputType	ReKi	RotorFurlPosition	3	-	-	"Rotor furl position (for AeroDyn)"	m
 #typedef	^	OutputType	ReKi	NacellePosition	3	-	-	"Nacelle position (for AeroDyn)"	m

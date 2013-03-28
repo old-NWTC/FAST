@@ -27,14 +27,14 @@ end
     descFiles = {'SFunc', 'Adams',   'FAST'};
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
 
-    BslnTests = {'NRELOffshrBsline5MW_Floating_OC3Hywind',...
-                 'NRELOffshrBsline5MW_Floating_TLP_Original',...
+    BslnTests = {'NRELOffshrBsline5MW_Floating_TLP_Original',...
                  'NRELOffshrBsline5MW_ITIBarge4_Original',...
                  'NRELOffshrBsline5MW_Monopile_RF',...
+                 'NRELOffshrBsline5MW_Floating_OC3Hywind',...                
                  'NRELOffshrBsline5MW_Onshore' };
              
 
-    for i=  1:17 %1:(17+5) %17+(1:5) %1:17 %
+    for i= 1:17 %1:(17+5) %17+(1:5) %1:17 %
         
         if i > 17
             fileRoot = BslnTests{i-17};
@@ -47,7 +47,7 @@ end
         newRoot  = strcat( newPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
         
         if i == 14 % linearization case
-            
+continue; %bjj: linearization not yet available in FAST 8.0.0
             oldFiles = strcat( oldRoot,  {'.eig', '_LIN.out', '.eig'} );
             newFiles = strcat( newRoot,  {'.eig', '_LIN.out', '.eig'} );
             nModes   = 30;
@@ -58,8 +58,13 @@ end
         else
                 % Compare time series
                 
-            oldFiles = strcat( oldRoot,  {'.out', '.plt', '.out'} );
-            newFiles = strcat( newRoot,  {'.out', '.plt', '.out'} );
+            if i == 4  % use the new binary file format
+                oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
+                newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );
+            else  % use the text format
+                oldFiles = strcat( oldRoot,  {'.out', '.plt', '.out'} );
+                newFiles = strcat( newRoot,  {'.out', '.plt', '.out'} );
+            end
                                              
             CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' Output Time Series'], true, [fileRoot '_ts'] );
         end % time series
@@ -191,7 +196,7 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
         
     oldData = cell(numFiles,1);
     newData = cell(numFiles,1);
-    
+%%    Plot the Natural Frequencies and return
     if pltType == NatFreq
         nFreq = HdrLines(1);
         fig = plotNaturalFrequencies( oldFiles, newFiles, descFiles, descTitle, nFreq, FntSz, LineColors );
@@ -206,14 +211,33 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
         return;
         
     end
-
+%% we're going to plot some x-y data...
     
-    nCols   = 0;
-    for iFile = 1:numFiles
-        [oldData{iFile}                   ] = getColumnData(oldFiles{iFile}, '', HdrLines(1), HdrLines(2), HdrLines(3));
-        [newData{iFile}, colName, colUnits] = getColumnData(newFiles{iFile}, '', HdrLines(1), HdrLines(2), HdrLines(3));
+    nCols     = 0;
+    nCols_new = 0;
 
-        nCols = max(nCols, size(oldData{iFile},2));
+    oldCols  = cell(numFiles,1);
+    colName  = cell(numFiles,1);
+    oldUnits = cell(numFiles,1);
+    
+    for iFile = 1:numFiles
+
+        
+        if length(oldFiles{iFile}) > 4 && strcmpi( oldFiles{iFile}((end-4):end),'.outb' )
+            [oldData{iFile}, oldCols{iFile}, oldUnits{iFile}] =  ReadFASTbinary(oldFiles{iFile});
+        else
+            [oldData{iFile}, oldCols{iFile}, oldUnits{iFile}] = getColumnData(oldFiles{iFile}, '', HdrLines(1), HdrLines(2), HdrLines(3));
+        end
+        
+        
+        if length(newFiles{iFile}) > 4 && strcmpi( newFiles{iFile}((end-4):end),'.outb' )
+            [newData{iFile}, colName{iFile}                 ] = ReadFASTbinary(newFiles{iFile});
+        else
+            [newData{iFile}, colName{iFile}                 ] = getColumnData(newFiles{iFile}, '', HdrLines(1), HdrLines(2), HdrLines(3));
+        end
+        
+        nCols     = max(nCols,     size(oldData{iFile},2));
+        nCols_new = max(nCols_new, size(newData{iFile},2));
 
         if getTxt
             descFiles{iFile} = ['File ' num2str(iFile)];
@@ -230,19 +254,20 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
     end
 
     NoDiff = true(numFiles,1);
-
     for iFile = 1:numFiles
 
         [nr_Old, nc_Old] = size(oldData{iFile});
         [nr_New, nc_New] = size(newData{iFile});
 
+        
         if nc_New == 0 || nc_Old == 0
             NoDiff(iFile) = false;            
         else
 
             if nCols ~= nc_Old || nCols ~= nc_New 
+%bjj: we're going to try to match the columns now (before this was an error)                
+                disp(['CompareCertTestResults::number of columns differ in the file comparisons of old and new ' descFiles{iFile} ' files.']);
                 disp( [ iFile, nCols, nc_Old, nc_New, nr_Old, nr_New] )
-                error(['CompareCertTestResults::number of columns differ in the file comparisons of old and new ' descFiles{iFile} ' files.']);
             end
 
             if nr_Old ~= nr_New
@@ -255,7 +280,7 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
                     if norm(t_diff,inf) > 0.005 
     %                     figure; plot(t_diff);
                         disp(['WARNING: CompareCertTestResults::X columns (column 1) in old and new ' descFiles{iFile} ...
-                                     ' files differ by more than 0.005' colUnits{1} ] );
+                                     ' files differ by more than 0.005' oldUnits{iFile}{1} ] );
                         NoDiff(iFile) = false;
                     end
                 elseif pltType == ColPairs 
@@ -283,33 +308,50 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
             strd = 1;
         otherwise
             error(['CompareCertTestResults::invalid plot type ' num2str(pltType) ]);
-
-    end 
+    end % switch
     
-    anyDiffPlot = false;
+    anyDiffPlot = false;  
+    nCols = size(oldData{1},2);
     for iPlot = 2:strd:nCols
-        fig=figure;
-        
-        switch pltType 
-            case ColPairs
-                xCol = iPlot-1;
-             case OneXCol
-                xCol = 1;
-        end 
-        
+        fig=figure;        
+                
+        ChannelName = oldCols{1}{iPlot};
+        HaveLabels = false;
         for iFile = 1:numFiles
+            HaveLabels = false;
+            
             subplot(6,1,1:4);
             hold on;
-            
-            if size(oldData{iFile},2) == nCols
-                h1(1) = plot(oldData{iFile}(:,xCol), oldData{iFile}(:,iPlot));
-                set(h1(1),'LineStyle','-', 'DisplayName',[descFiles{iFile} ', old'],'Color',LineColors{iFile},      'LineWidth',LineWidthConst+1);
-            end
+                        
+            yCol_old = find( strcmpi(ChannelName,oldCols{iFile}), 1, 'first' );
+            yCol_new = find( strcmpi(ChannelName,colName{iFile}), 1, 'first' );
 
-            if size(newData{iFile},2) == nCols
-                h1(2) = plot(newData{iFile}(:,xCol), newData{iFile}(:,iPlot) );
-                set(h1(2),'LineStyle','--','DisplayName',[descFiles{iFile} ', new'],'Color',LineColors{iFile}*0.75, 'LineWidth',LineWidthConst+1);       
-            end            
+            if isempty(yCol_old)
+                disp(['Error: ' ChannelName ' not found in ' oldFiles{iFile} ]);
+                continue;
+            elseif isempty(yCol_new)
+                disp(['Error: ' ChannelName ' not found in ' newFiles{iFile}]);
+                continue;
+            else
+                switch pltType 
+                    case ColPairs
+                        xCol_old = yCol_old-1;
+                        xCol_new = yCol_new-1;
+                     case OneXCol
+                        xCol_old = 1;
+                        xCol_new = 1;
+                    otherwise
+                        error('Invalid pltType in PlotCertTestResults:CompareCertTestResults');
+                end                
+                HaveLabels = true;
+            end 
+            
+            h1(1) = plot(oldData{iFile}(:,xCol_old), oldData{iFile}(:,yCol_old));
+            set(h1(1),'LineStyle','-', 'DisplayName',[descFiles{iFile} ', old'],'Color',LineColors{iFile},      'LineWidth',LineWidthConst+1);
+            
+            h1(2) = plot(newData{iFile}(:,xCol_new), newData{iFile}(:,yCol_new) );
+            set(h1(2),'LineStyle','--','DisplayName',[descFiles{iFile} ', new'],'Color',LineColors{iFile}*0.75, 'LineWidth',LineWidthConst+1);       
+
             currXLim = xlim;
 
 
@@ -317,15 +359,15 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
                 anyDiffPlot = true;
                     % absolute difference
                 subplot(6,1,5);
-                AbsDiff = (oldData{iFile}(:,iPlot)-newData{iFile}(:,iPlot) );
-                plot(oldData{iFile}(:,xCol) ,   AbsDiff, ...
+                AbsDiff = (oldData{iFile}(:,yCol_old)-newData{iFile}(:,yCol_new) );
+                plot(oldData{iFile}(:,xCol_old) ,   AbsDiff, ...
                       'Displayname',descFiles{iFile},'Color',LineColors{iFile}, 'LineWidth',LineWidthConst);
                 hold on;
                 xlim(currXLim);
 
                     % relative difference (% of old)
                 subplot(6,1,6);
-                plot(oldData{iFile}(:,xCol) ,   100*AbsDiff./ oldData{iFile}(:,iPlot), ...
+                plot(oldData{iFile}(:,xCol_old) ,   100*AbsDiff./ oldData{iFile}(:,yCol_old), ...
                       'Displayname',descFiles{iFile},'Color',LineColors{iFile}, 'LineWidth',LineWidthConst);
                 hold on;
                 xlim(currXLim);
@@ -333,35 +375,40 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
 
         end %iFile
 
-        for iSubPl=1:3
-            if iSubPl == 3
-                subplot(6,1,1:4)            
-                yTxt = {colName{iPlot}, colUnits{iPlot}} ;
-            elseif anyDiffPlot
-                if iSubPl == 2  
-                    subplot(6,1,5)
-                    yTxt = {'Difference' ,'(Old-New)', colUnits{iPlot}};
-                else
-                    subplot(6,1,6);
-                    yTxt = {'Relative' 'Difference','(%)'};
-                    xlabel([colName{xCol} ' ' colUnits{xCol}],'FontSize',FntSz ) ;
+        if HaveLabels %did we find columns to match?            
+            for iSubPl=1:3
+                if iSubPl == 3
+                    subplot(6,1,1:4)            
+                    yTxt = {oldCols{iFile}{yCol_old}, oldUnits{iFile}{yCol_old}} ;
+                elseif anyDiffPlot
+                    if iSubPl == 2  
+                        subplot(6,1,5)
+                        yTxt = {'Difference' ,'(Old-New)', oldUnits{iFile}{yCol_old}};
+                    else
+                        subplot(6,1,6);
+                        yTxt = {'Relative' 'Difference','(%)'};
+                        xlabel([oldCols{iFile}{xCol_old} ' ' oldUnits{iFile}{xCol_old}],'FontSize',FntSz ) ;
+                    end
+                else %difference plots
+                    xlabel([oldCols{iFile}{xCol_old} ' ' oldUnits{iFile}{xCol_old}],'FontSize',FntSz ) ;
+                    continue;
                 end
-            else
-                xlabel([colName{xCol} ' ' colUnits{xCol}],'FontSize',FntSz ) ;
-                continue;
-            end
-            set(gca,'FontSize',FntSz,'gridlinestyle','-');           
-            ylabel(yTxt);        
-            grid on;
-        end %iSubPl
-        t=title( descTitle,'interpreter','none' );
-        set(t,'interpreter','none');
-        h=legend('show');
-        set(h,'interpreter','none','FontSize',FntSz-3); %'location','best');
+                set(gca,'FontSize',FntSz,'gridlinestyle','-');           
+                ylabel(yTxt);        
+                grid on;
+            end %iSubPl
 
-        set(fig,'paperorientation','landscape','paperposition',[0.25 0.25 10.5 8])
-        if savePlts
-            print(['-f' num2str(fig)],'-dpng','-r150',[OutFileRoot '_' num2str(iPlot-1) '.png']);
+            t=title( descTitle,'interpreter','none' );
+            set(t,'interpreter','none');
+            h=legend('show');
+            set(h,'interpreter','none','FontSize',FntSz-3); %'location','best');
+
+            set(fig,'paperorientation','landscape','paperposition',[0.25 0.25 10.5 8])
+            if savePlts
+                print(['-f' num2str(fig)],'-dpng','-r150',[OutFileRoot '_' num2str(iPlot-1) '.png']);
+                close(fig)
+            end
+        else
             close(fig)
         end
     end       %iPlot    

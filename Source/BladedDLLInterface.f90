@@ -592,7 +592,7 @@ YawRateCom = YawRateCom_SAVE
 RETURN
 END SUBROUTINE BladedDLLInterface
 !=======================================================================
-SUBROUTINE PitchCntrl ( BlPitch, ElecPwr, HSS_Spd, GBRatio, TwrAccel, NumBl, ZTime, DT, DirRoot, BlPitchCom )
+SUBROUTINE PitchCntrl ( BlPitch, ElecPwr, LSS_Spd, TwrAccel, NumBl, ZTime, DT, DirRoot, BlPitchCom )
 
 
    ! This example pitch control SUBROUTINE is used to call an interface
@@ -615,8 +615,7 @@ INTEGER(IntKi), INTENT(IN )  :: NumBl                                           
 REAL(ReKi), INTENT(IN )      :: BlPitch   (NumBl)                               ! Current values of the blade pitch angles, rad.
 REAL(DbKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
 REAL(ReKi), INTENT(IN )      :: ElecPwr                                         ! Electrical power, watts.
-REAL(ReKi), INTENT(IN )      :: GBRatio                                         ! Gearbox ratio, (-).
-REAL(ReKi), INTENT(IN )      :: HSS_Spd                                         ! HSS speed, rad/s.
+REAL(ReKi), INTENT(IN )      :: LSS_Spd                                         ! LSS speed (rad/s)
 REAL(ReKi), INTENT(OUT)      :: BlPitchCom(NumBl)                               ! Commanded blade pitch angles (demand pitch angles), rad.
 REAL(ReKi), INTENT(IN )      :: TwrAccel                                        ! Tower Acceleration, m/s^2.
 REAL(DbKi), INTENT(IN )      :: ZTime                                           ! Current simulation time, sec.
@@ -641,7 +640,7 @@ CALL BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTrq, YawRate
 RETURN
 END SUBROUTINE PitchCntrl
 !=======================================================================
-SUBROUTINE UserHSSBr ( GenTrq, ElecPwr, HSS_Spd, GBRatio, NumBl, ZTime, DT, DirRoot, HSSBrFrac )
+SUBROUTINE UserHSSBr ( GenTrq, ElecPwr, HSS_Spd, NumBl, ZTime, DT, DirRoot, HSSBrFrac )
 
 
    ! This example HSS brake SUBROUTINE is used to call an interface
@@ -663,7 +662,6 @@ INTEGER(IntKi), INTENT(IN )  :: NumBl                                           
 
 REAL(DbKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
 REAL(ReKi), INTENT(IN )      :: ElecPwr                                         ! Electrical power (account for losses), watts.
-REAL(ReKi), INTENT(IN )      :: GBRatio                                         ! Gearbox ratio, (-).
 REAL(ReKi), INTENT(IN )      :: GenTrq                                          ! Electrical generator torque, N-m.
 REAL(ReKi), INTENT(IN )      :: HSS_Spd                                         ! HSS speed, rad/s.
 REAL(ReKi), INTENT(OUT)      :: HSSBrFrac                                       ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-).
@@ -689,7 +687,7 @@ CALL BladedDLLInterface ( DirRoot, NumBl, BlPitchCom, HSSBrFrac, GenTorq, YawRat
 RETURN
 END SUBROUTINE UserHSSBr
 !=======================================================================
-SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr, y_StrD )
+SUBROUTINE UserVSCont ( HSS_Spd, LSS_Spd, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr, y_StrD )
 
 
    ! This example variable-speed torque control SUBROUTINE is used to
@@ -714,7 +712,7 @@ INTEGER(IntKi), INTENT(IN )  :: NumBl                                           
 REAL(ReKi), INTENT(IN )      :: DelGenTrq                                       ! Pertubation in generator torque used during FAST linearization (zero otherwise), N-m.
 REAL(DbKi), INTENT(IN )      :: DT                                              ! Integration time step, sec.
 REAL(ReKi), INTENT(OUT)      :: ElecPwr                                         ! Electrical power (account for losses), watts.
-REAL(ReKi), INTENT(IN )      :: GBRatio                                         ! Gearbox ratio, (-).
+REAL(ReKi), INTENT(IN )      :: LSS_Spd                                         ! LSS speed, rad/s.
 REAL(ReKi), INTENT(IN )      :: GenEff                                          ! Generator efficiency, (-).
 REAL(ReKi), INTENT(OUT)      :: GenTrq                                          ! Electrical generator torque, N-m.
 REAL(ReKi), INTENT(IN )      :: HSS_Spd                                         ! HSS speed, rad/s.

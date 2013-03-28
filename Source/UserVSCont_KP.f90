@@ -8,7 +8,7 @@
    !       Pierce.
 
 !=======================================================================
-SUBROUTINE UserGen ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+SUBROUTINE UserGen ( HSS_Spd, LSS_Spd, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
 
 
    ! This  example UserGen() is used do the same thing as SUBROUTINE
@@ -29,9 +29,9 @@ INTEGER(IntKi), INTENT(IN ) :: NumBl                                         ! N
 REAL(ReKi), INTENT(IN )     :: DelGenTrq                                     ! Pertubation in generator torque used during FAST linearization (zero otherwise), N-m.
 REAL(DbKi), INTENT(IN )     :: DT                                            ! Integration time step, sec.
 REAL(ReKi), INTENT(OUT)     :: ElecPwr                                       ! Electrical power (account for losses), watts.
-REAL(ReKi), INTENT(IN )     :: GBRatio                                       ! Gearbox ratio, (-).
 REAL(ReKi), INTENT(IN )     :: GenEff                                        ! Generator efficiency, (-).
 REAL(ReKi), INTENT(OUT)     :: GenTrq                                        ! Electrical generator torque, N-m.
+REAL(ReKi), INTENT(IN )     :: LSS_Spd                                       ! LSS speed, rad/s.
 REAL(ReKi), INTENT(IN )     :: HSS_Spd                                       ! HSS speed, rad/s.
 REAL(DbKi), INTENT(IN )     :: ZTime                                         ! Current simulation time, sec.
 
@@ -39,14 +39,14 @@ CHARACTER(1024),INTENT(IN ) :: DirRoot                                       ! T
 
 
 
-CALL UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )   ! Let's have UserGen() do the same thing as SUBROUTINE UserVSCont().
+CALL UserVSCont ( HSS_Spd, LSS_Spd, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )   ! Let's have UserGen() do the same thing as SUBROUTINE UserVSCont().
 
 
 
 RETURN
 END SUBROUTINE UserGen
 !=======================================================================
-SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+SUBROUTINE UserVSCont ( HSS_Spd, LSS_Spd, NumBl, ZTime, DT, GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
 
 
    ! Written 2/28/00 by Kirk Pierce for use with FAST.
@@ -63,7 +63,6 @@ SUBROUTINE UserVSCont ( HSS_Spd, GBRatio, NumBl, ZTime, DT, GenEff, DelGenTrq, D
 
 
 USE                            NWTC_Library
-!use ElastoDyn_Types
 
 IMPLICIT                       NONE
 
@@ -75,7 +74,7 @@ INTEGER(IntKi), INTENT(IN ) :: NumBl                                         ! N
 REAL(ReKi), INTENT(IN )     :: DelGenTrq                                     ! Pertubation in generator torque used during FAST linearization (zero otherwise), N-m.
 REAL(DbKi), INTENT(IN )     :: DT                                            ! Integration time step, sec.
 REAL(ReKi), INTENT(OUT)     :: ElecPwr                                       ! Electrical power (account for losses), watts.
-REAL(ReKi), INTENT(IN )     :: GBRatio                                       ! Gearbox ratio, (-).
+REAL(ReKi), INTENT(IN )     :: LSS_Spd                                       ! LSS speed, rad/s.
 REAL(ReKi), INTENT(IN )     :: GenEff                                        ! Generator efficiency, (-).
 REAL(ReKi), INTENT(OUT)     :: GenTrq                                        ! Electrical generator torque, N-m.
 REAL(ReKi), INTENT(IN )     :: HSS_Spd                                       ! HSS speed, rad/s.
@@ -118,9 +117,9 @@ CHARACTER(1024)             :: inFileName                                     ! 
   ! Abort if GBRatio is not unity; since this example routine returns the
   !   generator torque cast to the LSS side of the gearbox, whereas routine
   !   UserVSCont() should be returning the torque on the HSS side:
-
-IF ( GBRatio /= 1.0 )  CALL ProgAbort ( ' GBRatio must be set to 1.0 when using Kirk Pierce''s UserVSCont() routine.' )
-
+IF ( .NOT. EqualRealNos( HSS_Spd, LSS_Spd ) )  THEN
+   CALL ProgAbort ( " GBRatio must be set to 1.0 when using Kirk Pierce's UserVSCont() routine." )
+END IF
 
 
 OMEGA = HSS_Spd
