@@ -62,17 +62,12 @@ MODULE ElastoDyn_Parameters
    INTEGER(IntKi), PARAMETER        :: PA(NPA)  = (/ DOF_R, DOF_P, DOF_Y, DOF_TFA1, DOF_TSS1, DOF_TFA2, DOF_TSS2, DOF_Yaw, DOF_TFrl /)                               ! Array of DOF indices (pointers) that contribute to the angular velocity of the tail                                                      (body A) in the inertia frame.
 
 
-
-
       ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
-
 
    INTEGER(IntKi), PARAMETER        :: NMX      =  9                                   ! Used in updating predictor-corrector values.
 
 
-
       ! Parameters related to coupling scheme -- Possibly a local variable elsewhere????
-
 
    INTEGER(IntKi), PARAMETER        :: PolyOrd  =  6                                    ! Order of the polynomial describing the mode shape
 
@@ -1387,22 +1382,20 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    xd%DummyDiscState          = 0                                             ! we don't have discrete states
    z%DummyConstrState         = 0                                             ! we don't have constraint states
       
-   CALL Init_ContStates( x, p, InputFileData, ErrStat2, ErrMsg2 )             ! initialize the continuous states
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
 
-      !............................................................................................
       ! Initialize other states:
-      !............................................................................................
    CALL Init_OtherStates( OtherState, p, InputFileData, ErrStat2, ErrMsg2 )    ! initialize the other states
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
       
-   !bjj: is this a continuous state?
-   CALL AllocAry(OtherState%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
+   
+
+      ! initialize the continuous states (currently must be done after OtherStates have been initialized
+   CALL Init_ContStates( x, p, InputFileData, OtherState, ErrStat2, ErrMsg2 )             ! initialize the continuous states
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
-   OtherState%BlPitch = InputFileData%BlPitch(1:p%NumBl)   
+
+   
    
       !............................................................................................
       ! Define initial guess for the system inputs here:
@@ -1414,6 +1407,19 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    u%BlPitchCom = InputFileData%BlPitch(1:p%NumBl)
 
 
+   CALL AllocAry( u%TwrAddedMass, 6_IntKi, 6_IntKi, p%TwrNodes, 'TwrAddedMass', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+   u%TwrAddedMass = 0.0_ReKi
+   
+   CALL AllocAry( u%TwrFT, 6_IntKi, p%TwrNodes, 'TwrFT', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+   u%TwrFT = 0.0_ReKi
+
+   u%PtfmAddedMass = 0.0_ReKi
+   u%PtfmFT = 0.0_ReKi
+   
       !............................................................................................
       ! Define system output initializations (set up mesh) here:
       !............................................................................................
@@ -4128,7 +4134,11 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
    ! local variables:
    INTEGER(IntKi),   PARAMETER              :: Dims = 3                     ! The position arrays all must be allocated with a dimension for X,Y,and Z
 
-      
+
+   CALL AllocAry( RtHS%LinVelET, p%TwrNodes,         Dims, 'LinVelET',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%AngVelEF, p%TwrNodes,         Dims, 'AngVelEF',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN      
    CALL AllocAry( RtHS%AngPosEF, p%TwrNodes,         Dims, 'AngPosEF',  ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%AngPosXF, p%TwrNodes,         Dims, 'AngPosXF',  ErrStat, ErrMsg )
@@ -7399,13 +7409,14 @@ CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is
 
 END SUBROUTINE CheckAngle90Range
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Init_ContStates( x, p, InputFileData, ErrStat, ErrMsg  )
+SUBROUTINE Init_ContStates( x, p, InputFileData, OtherState, ErrStat, ErrMsg  )
 ! This routine initializes the continuous states of the module.
 ! It assumes the parameters are set and that InputFileData contains initial conditions for the continuous states.
 !..................................................................................................................................
    TYPE(ED_ContinuousStateType), INTENT(OUT)    :: x              ! Initial continuous states
    TYPE(ED_ParameterType),       INTENT(IN)     :: p              ! Parameters of the structural dynamics module
    TYPE(ED_InputFile),           INTENT(IN)     :: InputFileData  ! Data stored in the module's input file   
+   TYPE(ED_OtherStateType),      INTENT(IN)     :: OtherState     ! Initial other states   
    INTEGER(IntKi),               INTENT(OUT)    :: ErrStat        ! Error status
    CHARACTER(*),                 INTENT(OUT)    :: ErrMsg         ! Error message
 
@@ -7418,16 +7429,20 @@ SUBROUTINE Init_ContStates( x, p, InputFileData, ErrStat, ErrMsg  )
    CALL AllocAry( x%QDT, p%NDOF,  'QDT',  ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN   
       
+      ! bjj: we should initialize QT and QDT first, then set OtherState%x(:,1) = x
+   x%QT  = OtherState%Q  (:,1) 
+   x%QDT = OtherState%QD (:,1) 
+
 
 END SUBROUTINE Init_ContStates
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Init_OtherStates( OtherState, p, InputFileData, ErrStat, ErrMsg  )
 ! This routine initializes the other states of the module.
-! It assumes the parameters are set and that InputFileData contains initial conditions for the continuous states.
+! It assumes the parameters are set and that InputFileData contains initial conditions for the continuous states. and p%NumBl is set
 !..................................................................................................................................
    TYPE(ED_OtherStateType),      INTENT(OUT)    :: OtherState        ! Initial other states
    TYPE(ED_ParameterType),       INTENT(IN)     :: p                 ! Parameters of the structural dynamics module
-   TYPE(ED_InputFile),           INTENT(IN)     :: InputFileData    ! Data stored in the module's input file   
+   TYPE(ED_InputFile),           INTENT(IN)     :: InputFileData     ! Data stored in the module's input file   
    INTEGER(IntKi),               INTENT(OUT)    :: ErrStat           ! Error status
    CHARACTER(*),                 INTENT(OUT)    :: ErrMsg            ! Error message
 
@@ -7442,6 +7457,11 @@ SUBROUTINE Init_OtherStates( OtherState, p, InputFileData, ErrStat, ErrMsg  )
       
    CALL Alloc_OtherState( OtherState, p, ErrStat, ErrMsg )
    IF (ErrStat /= ErrID_None) RETURN
+   
+   CALL AllocAry(OtherState%BlPitch, p%NumBl, 'BlPitch', ErrStat, ErrMsg )
+   IF (ErrStat /= ErrID_None) RETURN
+   OtherState%BlPitch = InputFileData%BlPitch(1:p%NumBl)   
+   
    
       ! Now initialize the IC array = CSHIFT( (/NMX, NMX-1, ... , 1 /), -1 )
       ! this keeps track of the position in the array of continuous states (stored in other states)

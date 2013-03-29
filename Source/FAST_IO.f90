@@ -57,6 +57,61 @@ SUBROUTINE GetVersion(ProgVer)
    RETURN
 END SUBROUTINE GetVersion
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
+! This subroutine is called at program termination. It writes any additional output files,
+! deallocates variables and closes files.
+!----------------------------------------------------------------------------------------------------
+
+   TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST                    ! FAST Parameters
+   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST                    ! FAST Output
+
+   INTEGER(IntKi),           INTENT(OUT)   :: ErrStat                   ! Error status
+   CHARACTER(*),             INTENT(OUT)   :: ErrMsg                    ! Message associated with errro status
+
+      ! local variables
+   CHARACTER(LEN(y_FAST%FileDescLines)*3)  :: FileDesc                  ! The description of the run, to be written in the binary output file
+
+
+      ! Initialize some values
+
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+   !-------------------------------------------------------------------------------------------------
+   ! Write the binary output file if requested
+   !-------------------------------------------------------------------------------------------------
+
+   IF (p_FAST%WrBinOutFile) THEN
+
+      FileDesc = TRIM(y_FAST%FileDescLines(1))//' '//TRIM(y_FAST%FileDescLines(2))//'; '//TRIM(y_FAST%FileDescLines(3))
+
+      CALL WrBinFAST(TRIM(p_FAST%OutFileRoot)//'.outb', OutputFileFmtID, TRIM(FileDesc), &
+            y_FAST%ChannelNames, y_FAST%ChannelUnits, y_FAST%TimeData, y_FAST%AllOutData(:,1:y_FAST%n_Out), ErrStat, ErrMsg)
+
+      IF ( ErrStat /= ErrID_None ) CALL WrScr( TRIM(GetErrStr(ErrStat))//' when writing binary output file: '//TRIM(ErrMsg) )
+
+   END IF
+
+
+   !-------------------------------------------------------------------------------------------------
+   ! Close the text tabular output file
+   !-------------------------------------------------------------------------------------------------
+   CLOSE( y_FAST%UnOu )       ! I/O unit number for the tabular output file
+
+
+   !-------------------------------------------------------------------------------------------------
+   ! Deallocate arrays
+   !-------------------------------------------------------------------------------------------------
+
+      ! Output
+   IF ( ALLOCATED(y_FAST%AllOutData                  ) ) DEALLOCATE(y_FAST%AllOutData                  )
+   IF ( ALLOCATED(y_FAST%TimeData                    ) ) DEALLOCATE(y_FAST%TimeData                    )
+   IF ( ALLOCATED(y_FAST%ChannelNames                ) ) DEALLOCATE(y_FAST%ChannelNames                )
+   IF ( ALLOCATED(y_FAST%ChannelUnits                ) ) DEALLOCATE(y_FAST%ChannelUnits                )
+
+
+END SUBROUTINE FAST_End
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
 ! This subroutine checks for command-line arguments, gets the root name of the input files 
 ! (including full path name), and creates the names of the output files.
@@ -197,7 +252,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    TYPE(ED_InitOutputType),  INTENT(IN), OPTIONAL :: InitOutData_ED                        ! Initialization output for ElastoDyn
    TYPE(SrvD_InitOutputType),INTENT(IN), OPTIONAL :: InitOutData_SrvD                      ! Initialization output for ServoDyn
 
-TYPE(ProgDesc), INTENT(IN) :: AD_prog ! aerodyn version    
+   TYPE(ProgDesc), INTENT(IN) :: AD_prog ! aerodyn version    
 
    INTEGER(IntKi),           INTENT(OUT)          :: ErrStat                               ! Error status
    CHARACTER(*),             INTENT(OUT)          :: ErrMsg                                ! Error message corresponding to ErrStat 
@@ -928,6 +983,10 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, EDOutput, SrvDOutput, IfWOutput, Err
 END SUBROUTINE WrOutputLine
 !----------------------------------------------------------------------------------------------------------------------------------
          
+
+
+
+
 !====================================================================================================
 SUBROUTINE AeroInput(p_ED, p_FAST)
 ! This subroutine sets up the information needed to initialize AeroDyn, then initializes AeroDyn
@@ -1048,6 +1107,45 @@ SUBROUTINE AeroInput(p_ED, p_FAST)
    
    RETURN
 END SUBROUTINE AeroInput
+!=======================================================================
+SUBROUTINE AeroDyn_End(ErrStat)
+
+   USE AeroDyn_Types
+   
+   INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+
+   
+   
+   
+   CALL AD_Terminate(   ErrStat )
+      
+      
+      
+      ! MODULE AeroElem
+
+   IF ( ALLOCATED(ADAeroMarkers%Blade                ) ) DEALLOCATE(ADAeroMarkers%Blade                )
+   IF ( ALLOCATED(ADAeroMarkers%Hub                  ) ) DEALLOCATE(ADAeroMarkers%Hub                  )
+   IF ( ALLOCATED(ADAeroMarkers%RotorFurl            ) ) DEALLOCATE(ADAeroMarkers%RotorFurl            )
+   IF ( ALLOCATED(ADAeroMarkers%Nacelle              ) ) DEALLOCATE(ADAeroMarkers%Nacelle              )
+   IF ( ALLOCATED(ADAeroMarkers%Tower                ) ) DEALLOCATE(ADAeroMarkers%Tower                )
+   IF ( ALLOCATED(ADAeroMarkers%Tail                 ) ) DEALLOCATE(ADAeroMarkers%Tail                 )
+
+   IF ( ALLOCATED(ADAeroLoads%Blade                  ) ) DEALLOCATE(ADAeroLoads%Blade                  )
+   IF ( ALLOCATED(ADAeroLoads%Hub                    ) ) DEALLOCATE(ADAeroLoads%Hub                    )
+   IF ( ALLOCATED(ADAeroLoads%RotorFurl              ) ) DEALLOCATE(ADAeroLoads%RotorFurl              )
+   IF ( ALLOCATED(ADAeroLoads%Nacelle                ) ) DEALLOCATE(ADAeroLoads%Nacelle                )
+   IF ( ALLOCATED(ADAeroLoads%Tower                  ) ) DEALLOCATE(ADAeroLoads%Tower                  )
+   IF ( ALLOCATED(ADAeroLoads%Tail                   ) ) DEALLOCATE(ADAeroLoads%Tail                   )
+
+   IF ( ALLOCATED(ADIntrfaceOptions%SetMulTabLoc     ) ) DEALLOCATE(ADIntrfaceOptions%SetMulTabLoc     )
+   IF ( ALLOCATED(ADIntrfaceOptions%MulTabLoc        ) ) DEALLOCATE(ADIntrfaceOptions%MulTabLoc        )
+
+   IF ( ALLOCATED(ADInterfaceComponents%Blade        ) ) DEALLOCATE(ADInterfaceComponents%Blade        )
+
+   
+   
+   
+END SUBROUTINE AeroDyn_End
 !=======================================================================
 SUBROUTINE PrintSum( p, p_FAST, OtherState )
 
@@ -1378,4 +1476,5 @@ close(unsu)
 RETURN
 END SUBROUTINE PrintSum
 !=======================================================================
+
 END MODULE FAST_IO_Subs

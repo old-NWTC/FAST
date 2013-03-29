@@ -1,418 +1,21 @@
 MODULE FASTSubs
 
    USE   NWTC_Library
-   
+
    USE   ElastoDyn_Types
    USE   ElastoDyn_Parameters
    USE   ElastoDyn
 
    USE   ServoDyn_Types
    USE   ServoDyn
-   
+
    USE   FAST_Types
-   
+
    USE AeroDyn_Types
-   USE HydroDyn_Types
 
-   
+
 CONTAINS
-!=======================================================================
-!----------------------------------------------------------------------------------------------------------------------------------  
-SUBROUTINE Control( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg,   p_ED, x_ED, OtherState_ED )
-
-
-   ! This is the main control routine.
-
-USE                             AeroDyn
-
-IMPLICIT                        NONE
-
-   ! Passed variables:
-
-   REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
-   TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at t
-   TYPE(SrvD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-   TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
-   TYPE(SrvD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
-   TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
-   TYPE(SrvD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-   TYPE(SrvD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at t (Input only so that mesh con-
-                                                                  !   nectivity information does not have to be recalculated)
-   !INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   !CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-
-TYPE(ED_ParameterType),      INTENT(IN)    :: p_ED                            ! Parameters of the structural dynamics module
-TYPE(ED_ContinuousStateType),INTENT(INOUT) :: x_ED                            ! The structural dynamics module's continuous states
-TYPE(ED_OtherStateType),     INTENT(INOUT) :: OtherState_ED                      ! Other State data type for Structural dynamics module
-
-   ! Local variables:
-
-REAL(ReKi)                   :: HHWndVec  (3)                                   ! Hub-height wind vector in the AeroDyn coordinate system, m/s.
-REAL(ReKi)                   :: LinAccEO  (3)                                   ! Total linear acceleration of the base plate (point O) in the inertia frame (body E for earth).
-REAL(ReKi)                   :: TwrAccel                                        ! Tower Acceleration.  Used for tower feedback control.
-REAL(ReKi)                   :: WindDir                                         ! Horizontal hub-height wind direction (positive about the zi-axis), rad.
-REAL(ReKi)                   :: YawError                                        ! Nacelle yaw error (positve about the zi-axis), rad.
-
-INTEGER(4)                   :: I                                               ! Generic index
-INTEGER(4)                   :: K                                               ! Loops through blades.
-
-INTEGER(IntKi)               :: ErrStat
-CHARACTER(1024)              :: ErrMsg
-
- 
-! ------------------------------ YAW CONTROL -------------------------------
- CALL Yaw_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
-
-
-   ! ----------------------------- PITCH CONTROL ------------------------------
-   ! Control pitch if requested:
-
-IF ( t >= p%TPCOn )  THEN   ! Time now to enable active pitch control.
-
-
-   SELECT CASE ( p%PCMode )  ! Which pitch control mode are we using?
-
-   CASE ( 0 )              ! None!
-
-
-   ! Use the initial blade pitch angles:
-
-      y%BlPitchCom = p%BlPitchInit
-
-
-   CASE ( 1 )              ! User-defined from routine PitchCntrl().
-
-
-   ! Calculate tower-top acceleration (fore-aft mode only) in the tower-top
-   !   system:
-
-      LinAccEO = OtherState_ED%RtHS%LinAccEOt
-      DO I = 1,p_ED%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
-         LinAccEO = LinAccEO + OtherState_ED%RtHS%PLinVelEO(p_ED%DOFs%PTE(I),0,:)*OtherState_ED%QD2T(p_ED%DOFs%PTE(I))
-      ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
-
-      TwrAccel = DOT_PRODUCT( LinAccEO, OtherState_ED%CoordSys%b1 )
-
-
-   ! Call the user-defined pitch control routine:
-
-      CALL PitchCntrl ( u%BlPitch, y%ElecPwr, u%LSS_Spd, TwrAccel, p%NumBl, t, p%DT, p%RootName, y%BlPitchCom )
-
-   CASE ( 2 )              ! User-defined from Simulink or Labview.
-
-
-   ! Do nothing here since blade pitch is defined externally from Simulink or Labview.
-
-
-   ENDSELECT
-
-
-ELSE                          ! Do not control pitch yet, maintain initial pitch angles.
-
-
-   ! Use the initial blade pitch angles:
-
-   y%BlPitchCom = p%BlPitchInit
-
-
-ENDIF
-
-
-   ! Override standard pitch control with a linear maneuver if necessary:
-
-DO K = 1,p%NumBl ! Loop through all blades
-
-
-   IF ( t >= p%TPitManS(K) )  THEN  ! Override pitch maneuver is occuring for this blade.
-
-
-      IF ( t < OtherState%BegPitMan(K) )  THEN  ! Override pitch maneuver is just beginning.
-
-         OtherState%BlPitchI   (K) = u%BlPitch(K)                                                           ! Store the initial (current) pitch, at the start of the pitch maneuver.
-
-         OtherState%PitManRat(K) = SIGN( OtherState%PitManRat(K), p%BlPitchF(K) - OtherState%BlPitchI(K) )   ! Modify the sign of PitManRat based on the direction of the pitch maneuever
-         OtherState%TPitManE (K) = p%TPitManS(K) + ( p%BlPitchF(K) - OtherState%BlPitchI(K) )/OtherState%PitManRat(K) ! Calculate the end time of the override pitch maneuver      
-         
-         OtherState%BegPitMan(K) = t    ! Don't enter this part of the IF-structure again (unless we're backing up in time)
-
-      ENDIF
-
-      
-      IF ( t >= OtherState%TPitManE(K) )  THEN      ! Override pitch maneuver has ended, blade is locked at BlPitchF.
-
-         y%BlPitchCom(K) = p%BlPitchF(K)
-
-      ELSE  
-         
-         y%BlPitchCom(K) = OtherState%BlPitchI(K) + OtherState%PitManRat(K)*( t - p%TPitManS(K) )         ! Increment the blade pitch using PitManRat
-         
-      END IF                  
-      
-   ELSE
-      
-      
-      OtherState%BegPitMan(K) = HUGE( OtherState%BegPitMan(K) )      ! We haven't started the pitch maneuver (or will need to restart)
-
-   ENDIF
-
-    
-ENDDO ! K - blades
-
-
-   ! Set the command pitch angles to the actual pitch angles since we have no
-   !   built-in pitch actuator:
-
-
-
-
-RETURN
-END SUBROUTINE Control
-!----------------------------------------------------------------------------------------------------------------------------------  
-SUBROUTINE DrvTrTrq ( t, p, u, y, ErrStat, ErrMsg )
-! This routine calculates the drive-train torque (outputs GenTrq, ElecPwr, and HSSBrTrq)
-!..................................................................................................................................
-
-   IMPLICIT                        NONE
-
-
-      ! Passed variables:
-   REAL(DbKi), INTENT(IN)              :: t                                        ! Simulation time in seconds
-   TYPE(SrvD_ParameterType),INTENT(IN) :: p                                        ! Parameters of the ServoDyn module
-   TYPE(SrvD_OutputType),INTENT(INOUT) :: y                                        ! Outputs of the ServoDyn module
-   TYPE(SrvD_InputType), INTENT(IN)    :: u                                        ! Inputs to the ServoDyn module
-
-   INTEGER(IntKi),               INTENT(OUT)    :: ErrStat                      ! Error status
-   CHARACTER(*),                 INTENT(OUT)    :: ErrMsg                       ! Error message
-
-
-      ! Local variables:
-
-   COMPLEX(ReKi)                :: Current1                                        ! Current passing through the stator (amps)
-   COMPLEX(ReKi)                :: Current2                                        ! Current passing through the rotor (amps)
-   COMPLEX(ReKi)                :: Currentm                                        ! Magnitizing current (amps)
-
-   REAL(ReKi)                   :: ComDenom                                        ! Common denominator of variables used in the TEC model
-   REAL(ReKi)                   :: HSSBrFrac                                       ! Fraction of full braking torque {0 (off) <= HSSBrFrac <= 1 (full)} (-)
-   REAL(ReKi)                   :: PwrLossS                                        ! Power loss in the stator (watts)
-   REAL(ReKi)                   :: PwrLossR                                        ! Power loss in the rotor (watts)
-   REAL(ReKi)                   :: PwrMech                                         ! Mechanical power (watts)
-   REAL(ReKi)                   :: Slip                                            ! Generator slip.
-   REAL(ReKi)                   :: SlipRat                                         ! Generator slip ratio.
-
-LOGICAL,    SAVE             :: GenOnLin = .FALSE.                              ! Is the generator online?
-LOGICAL,    SAVE             :: Off4Good = .FALSE.                              ! Is the generator offline for good?
-
-
-INTEGER(IntKi), PARAMETER :: ControlMode_None   = 0
-INTEGER(IntKi), PARAMETER :: ControlMode_Simple = 1 
-INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
-INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
-
-
-      ! Initialize variables
-   ErrStat = ErrID_None
-   ErrMsg  = ''
-
-
-
-      ! See if the generator is on line.
-
-   IF (  .NOT. Off4Good )  THEN
-
-      ! The generator is either on-line or has never been turned online.
-
-      IF ( GenOnLin )  THEN   ! The generator is on-line.
-
-         IF ( ( p%GenTiStp ) .AND. ( t >= p%TimGenOf ) )  THEN   ! Shut-down of generator determined by time, TimGenOf
-            GenOnLin = .FALSE.
-            Off4Good = .TRUE.
-         ENDIF
-
-      ELSE                    ! The generator has never been turned online.
-
-         IF ( p%GenTiStr )  THEN   ! Start-up of generator determined by time, TimGenOn
-            IF ( t >= p%TimGenOn )    GenOnLin = .TRUE.
-         ELSE                    ! Start-up of generator determined by HSS speed, SpdGenOn
-            IF ( u%HSS_Spd >= p%SpdGenOn )  GenOnLin = .TRUE.
-         ENDIF
-
-      ENDIF
-
-   ENDIF
-
-
-   IF ( GenOnLin )  THEN                    ! Generator is on line.
-
-
-      ! Are we doing simple variable-speed control, or using a generator model?
-
-      SELECT CASE ( p%VSContrl )               ! Are we using variable-speed control?
-
-         CASE ( ControlMode_None )                ! No variable-speed control.  Using a generator model.
-
-
-            SELECT CASE ( p%GenModel )            ! Which generator model are we using?
-
-               CASE ( 1_IntKi )                          ! Simple induction-generator model.
-
-
-                  Slip = u%HSS_Spd - p%SIG_SySp
-
-                  IF ( ABS( Slip ) > p%SIG_POSl  )  THEN
-                     y%GenTrq  = SIGN( p%SIG_POTq, Slip )
-                  ELSE
-                     y%GenTrq  = Slip*p%SIG_Slop
-                  ENDIF
-                  !GenTrq     = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
-
-
-            ! The generator efficiency is either additive for motoring,
-            !   or subtractive for generating power.
-
-                  IF ( y%GenTrq > 0.0 )  THEN
-                     y%ElecPwr = y%GenTrq * u%HSS_Spd * p%GenEff
-                  ELSE
-                     y%ElecPwr = y%GenTrq * u%HSS_Spd / p%GenEff
-                  ENDIF
-
-
-               CASE ( 2_IntKi )                          ! Thevenin-equivalent generator model.
-
-
-                  SlipRat  = ( u%HSS_Spd - p%TEC_SySp )/p%TEC_SySp
-
-                  y%GenTrq  = p%TEC_A0*(p%TEC_VLL**2)*SlipRat &
-                             /( p%TEC_C0 + p%TEC_C1*SlipRat + p%TEC_C2*(SlipRat**2) )
-
-                  ComDenom = ( p%TEC_Re1 - p%TEC_RRes/SlipRat )**2 + ( p%TEC_Xe1 + p%TEC_RLR )**2
-                  Current2 = CMPLX(  p%TEC_V1a*( p%TEC_Re1 - p%TEC_RRes/SlipRat )/ComDenom , &
-                                    -p%TEC_V1a*( p%TEC_Xe1 + p%TEC_RLR          )/ComDenom     )
-                  Currentm = CMPLX( 0.0 , -p%TEC_V1a/p%TEC_MR )
-                  Current1 = Current2 + Currentm
-                  PwrLossS = 3.0*( ( ABS( Current1 ) )**2 )*p%TEC_SRes
-                  PwrLossR = 3.0*( ( ABS( Current2 ) )**2 )*p%TEC_RRes
-                  PwrMech  = y%GenTrq*u%HSS_Spd
-                  y%ElecPwr  = PwrMech - PwrLossS - PwrLossR
-
-
-               CASE ( 3_IntKi )                          ! User-defined generator model.
-
-
-         !        CALL UserGen ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
-                  CALL UserGen ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, p%DT, p%GenEff, 0.0_ReKi, p%RootName, y%GenTrq, y%ElecPwr )
-
-      !bjj check the ABS here (above)
-            END SELECT
-
-
-         CASE ( ControlMode_Simple )              ! Simple variable-speed control.
-
-
-         ! Compute the generator torque, which depends on which region we are in:
-
-            IF ( u%HSS_Spd >= p%VS_RtGnSp )  THEN      ! We are in region 3 - torque is constant
-               y%GenTrq = p%VS_RtTq
-            ELSEIF ( u%HSS_Spd < p%VS_TrGnSp )  THEN   ! We are in region 2 - torque is proportional to the square of the generator speed
-               y%GenTrq = p%VS_Rgn2K* (u%HSS_Spd**2)
-            ELSE                                   ! We are in region 2 1/2 - simple induction generator transition region
-               y%GenTrq = p%VS_Slope*( u%HSS_Spd - p%VS_SySp )
-            ENDIF
-
-            !GenTrq  = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
-
-
-         ! It's not possible to motor using this control scheme,
-         !   so the generator efficiency is always subtractive.
-
-            y%ElecPwr = y%GenTrq*u%HSS_Spd*p%GenEff
-
-
-         CASE ( ControlMode_User )                              ! User-defined variable-speed control for routine UserVSCont().
-
-
-      !      CALL UserVSCont ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
-            CALL UserVSCont ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, p%DT, p%GenEff, 0.0_ReKi, p_FAST%DirRoot, y%GenTrq, y%ElecPwr )
-
-
-         CASE ( ControlMode_Extern )                             ! User-defined variable-speed control from Simulink or Labview.
-
-         ! No need to define GenTrq or ElecPwr here since this is defined externally
-         !   by Simulink or Labview.  Also, no reason to perturb generator torque here either,
-         !   since linearization does not work with Simulink or Labview.
-   
-            y%GenTrq  = u%ExternalGenTrq
-            y%ElecPwr = u%ExternalElecPwr      
-
-      END SELECT
-
-
-      ! Lets turn the generator offline for good if ( GenTiStp = .FALSE. ) .AND. ( ElecPwr <= 0.0 ):
-
-      IF ( ( .NOT. p%GenTiStp ) .AND. ( y%ElecPwr <= 0.0_ReKi ) ) THEN   ! Shut-down of generator determined by generator power = 0
-         y%GenTrq   = 0.0
-         y%ElecPwr  = 0.0
-
-         GenOnLin = .FALSE.
-         Off4Good = .TRUE.
-      ENDIF
-
-   ELSE                                     ! Generator is off line.
-
-      y%GenTrq  = 0.0
-      y%ElecPwr = 0.0
-
-   ENDIF
-
-
-   !.................................................................................
-   ! Calculate the fraction of applied HSS-brake torque, HSSBrFrac:
-   !.................................................................................
-
-   IF ( t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
-
-      HSSBrFrac = 0.0
-
-   ELSE                             ! HSS brake deployed.
-
-
-      SELECT CASE ( p%HSSBrMode )                 ! Which HSS brake model are we using?
-
-      CASE ( ControlMode_Simple )                 ! Simple built-in HSS brake model with linear ramp.
-
-         IF ( t < p%THSSBrFl )  THEN ! Linear ramp
-            HSSBrFrac = ( t - p%THSSBrDp )/p%HSSBrDT
-         ELSE                        ! Full braking torque
-            HSSBrFrac = 1.0
-         ENDIF
-
-      CASE ( ControlMode_User )                   ! User-defined HSS brake model.
-
-         CALL UserHSSBr ( y%GenTrq, y%ElecPwr, u%HSS_Spd, p%NumBl, t, p%DT, p%RootName, HSSBrFrac )
-
-         IF ( ( HSSBrFrac < 0.0 ) .OR. ( HSSBrFrac > 1.0 ) )  THEN   ! 0 (off) <= HSSBrFrac <= 1 (full); else Abort.
-            ErrStat = ErrID_Fatal
-            ErrMsg  = 'HSSBrFrac must be between 0.0 (off) and 1.0 (full) (inclusive).  Fix logic in routine UserHSSBr().'
-            RETURN
-         END IF
-      
-      CASE ( ControlMode_Extern )                 ! HSS brake model from Labview.
-
-         HSSBrFrac = u%ExternalHSSBrFrac
-
-      ENDSELECT
-
-
-   ENDIF
-
-
-      ! Calculate the magnitude of HSS brake torque:
-
-   y%HSSBrTrq = SIGN( HSSBrFrac*p%HSSBrTqF, u%HSS_Spd )  ! Scale the full braking torque by the brake torque fraction and make sure the brake torque resists motion.
-
-   RETURN
-END SUBROUTINE DrvTrTrq
-!----------------------------------------------------------------------------------------------------------------------------------  
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FixHSSBrTq ( Integrator, p, OtherState, AugMat, HSSBrTrq  )
 
 
@@ -652,156 +255,6 @@ ENDIF
 RETURN
 END SUBROUTINE FixHSSBrTq
 !=======================================================================
-SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
-! This subroutine is called at program termination. It writes any additional output files,
-! deallocates variables and closes files.
-!----------------------------------------------------------------------------------------------------
-
-!add for bladed dll   USE            BladedDLLParameters
-
-   TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST                    ! FAST Parameters
-   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST                    ! FAST Output 
-   
-   INTEGER(IntKi),           INTENT(OUT)   :: ErrStat                   ! Error status
-   CHARACTER(*),             INTENT(OUT)   :: ErrMsg                    ! Message associated with errro status
-
-      ! local variables
-   CHARACTER(LEN(y_FAST%FileDescLines)*3)  :: FileDesc                  ! The description of the run, to be written in the binary output file
-   
-   
-      ! Initialize some values
-   
-   ErrStat = ErrID_None
-   ErrMsg  = ''
-   
-   !-------------------------------------------------------------------------------------------------
-   ! Write the binary output file if requested
-   !-------------------------------------------------------------------------------------------------
-   
-   IF (p_FAST%WrBinOutFile) THEN
-      
-      FileDesc = TRIM(y_FAST%FileDescLines(1))//' '//TRIM(y_FAST%FileDescLines(2))//'; '//TRIM(y_FAST%FileDescLines(3))
-      
-      CALL WrBinFAST(TRIM(p_FAST%OutFileRoot)//'.outb', OutputFileFmtID, TRIM(FileDesc), &
-            y_FAST%ChannelNames, y_FAST%ChannelUnits, y_FAST%TimeData, y_FAST%AllOutData(:,1:y_FAST%n_Out), ErrStat, ErrMsg)
-
-      IF ( ErrStat /= ErrID_None ) CALL WrScr( TRIM(GetErrStr(ErrStat))//' when writing binary output file: '//TRIM(ErrMsg) )
-      
-   END IF   
-   
-   
-   !-------------------------------------------------------------------------------------------------
-   ! Close the text tabular output file 
-   !-------------------------------------------------------------------------------------------------
-   CLOSE( y_FAST%UnOu )       ! I/O unit number for the tabular output file
-         
-   
-   !-------------------------------------------------------------------------------------------------
-   ! Deallocate arrays
-   !-------------------------------------------------------------------------------------------------
-
-      ! Output
-   IF ( ALLOCATED(y_FAST%AllOutData                  ) ) DEALLOCATE(y_FAST%AllOutData                  )
-   IF ( ALLOCATED(y_FAST%TimeData                    ) ) DEALLOCATE(y_FAST%TimeData                    )
-   IF ( ALLOCATED(y_FAST%ChannelNames                ) ) DEALLOCATE(y_FAST%ChannelNames                )
-   IF ( ALLOCATED(y_FAST%ChannelUnits                ) ) DEALLOCATE(y_FAST%ChannelUnits                )   
-   
-   
-!.............   
-   
-      ! MODULE AeroElem
-
-   IF ( ALLOCATED(ADAeroMarkers%Blade                ) ) DEALLOCATE(ADAeroMarkers%Blade                )
-   IF ( ALLOCATED(ADAeroMarkers%Hub                  ) ) DEALLOCATE(ADAeroMarkers%Hub                  )
-   IF ( ALLOCATED(ADAeroMarkers%RotorFurl            ) ) DEALLOCATE(ADAeroMarkers%RotorFurl            )
-   IF ( ALLOCATED(ADAeroMarkers%Nacelle              ) ) DEALLOCATE(ADAeroMarkers%Nacelle              )
-   IF ( ALLOCATED(ADAeroMarkers%Tower                ) ) DEALLOCATE(ADAeroMarkers%Tower                )
-   IF ( ALLOCATED(ADAeroMarkers%Tail                 ) ) DEALLOCATE(ADAeroMarkers%Tail                 )
-
-   IF ( ALLOCATED(ADAeroLoads%Blade                  ) ) DEALLOCATE(ADAeroLoads%Blade                  )
-   IF ( ALLOCATED(ADAeroLoads%Hub                    ) ) DEALLOCATE(ADAeroLoads%Hub                    )
-   IF ( ALLOCATED(ADAeroLoads%RotorFurl              ) ) DEALLOCATE(ADAeroLoads%RotorFurl              )
-   IF ( ALLOCATED(ADAeroLoads%Nacelle                ) ) DEALLOCATE(ADAeroLoads%Nacelle                )
-   IF ( ALLOCATED(ADAeroLoads%Tower                  ) ) DEALLOCATE(ADAeroLoads%Tower                  )
-   IF ( ALLOCATED(ADAeroLoads%Tail                   ) ) DEALLOCATE(ADAeroLoads%Tail                   )
-
-   IF ( ALLOCATED(ADIntrfaceOptions%SetMulTabLoc     ) ) DEALLOCATE(ADIntrfaceOptions%SetMulTabLoc     )
-   IF ( ALLOCATED(ADIntrfaceOptions%MulTabLoc        ) ) DEALLOCATE(ADIntrfaceOptions%MulTabLoc        )
-
-   IF ( ALLOCATED(ADInterfaceComponents%Blade        ) ) DEALLOCATE(ADInterfaceComponents%Blade        )
-
-
-   !-------------------------------------------------------------------------------------------------
-   ! Reset stored variables
-   !-------------------------------------------------------------------------------------------------
-!add for bladed dll    CALL DLL_Terminate()
-
-
-
-END SUBROUTINE FAST_End
-!=======================================================================
-SUBROUTINE PtfmLoading(t, x, PtfmAM, PtfmFt)
-
-
-   ! This routine computes the platform loading; that is PtfmAM(1:6,1:6)
-   !   and PtfmFt(1:6).
-
-USE                             HydroDyn_Types
-
-IMPLICIT                        NONE
-
-
-   ! passed variables
-REAL(DbKi), INTENT(IN) :: t ! simulation time
-TYPE(ED_ContinuousStateType),INTENT(IN)  :: x                          ! The structural dynamics module's continuous states
-REAL(ReKi),INTENT(OUT)                     :: PtfmAM (6,6)               ! Platform added mass matrix.
-REAL(ReKi),INTENT(OUT)                     :: PtfmFt   (6)               ! The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the platform force at the platform reference (point Z) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the platform moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()'s.
-
-   ! Local variables:
-
-!REAL(ReKi), PARAMETER        :: SymTol   = 9.999E-4                     ! Tolerance used to determine if matrix PtfmAM is symmetric.
-
-INTEGER(4)                   :: I                                        ! Loops through all platform DOFs.
-INTEGER(4)                   :: J                                        ! Loops through all platform DOFs.
-
-
-
-   IF ( p_FAST%CompUserPtfmLd ) THEN
-
-      ! CALL the user-defined platform loading model:
-
-
-      CALL UserPtfmLd ( x%QT(1:6), x%QDT(1:6), t, p_FAST%DirRoot, PtfmAM, PtfmFt )
-
-         ! Ensure that the platform added mass matrix returned by UserPtfmLd, PtfmAM, is symmetric; Abort if necessary:
-      IF ( .NOT. IsSymmetric( PtfmAM ) ) THEN
-         CALL ProgAbort ( ' The user-defined platform added mass matrix is unsymmetric.'// &
-                           '  Make sure PtfmAM returned by UserPtfmLd() is symmetric.'        )
-      END IF      
-         
-   ELSE
-      
-      ! set PtfmAM and PtfmFt to zero
-      
-      PtfmAM = 0.0
-      PtfmFt = 0.0
-      
-   END IF
-
-
-
-IF ( p_FAST%CompHydro .AND. .NOT. HD_TwrNodes ) THEN ! bjj: make sure these are point measurements, not per unit length!!!
-
-   PtfmAM      = PtfmAM      + HD_AllLoads%Substructure(1)%AddedMass
-   PtfmFt(1:3) = PtfmFt(1:3) + HD_AllLoads%Substructure(1)%Force
-   PtfmFt(4:6) = PtfmFt(4:6) + HD_AllLoads%Substructure(1)%Moment
-
-END IF
-
-
-RETURN
-END SUBROUTINE PtfmLoading
-!=======================================================================
 
 !=======================================================================
 SUBROUTINE RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD, AugMatOut )
@@ -815,7 +268,7 @@ IMPLICIT                        NONE
 
 
    ! Passed variables
-REAL(DbKi), INTENT(IN) :: t ! time   
+REAL(DbKi), INTENT(IN) :: t ! time
 
 TYPE(ED_InputType),          INTENT( INOUT)  :: u                            ! The inputs for the structural dynamics module
 TYPE(ED_OutputType),         INTENT( INOUT)  :: y                            ! The outputs of the structural dynamics module
@@ -836,8 +289,8 @@ TYPE(SrvD_OtherStateType),   INTENT(INOUT)  :: OtherState_SrvD  ! Other/optimiza
    TYPE(SrvD_ContinuousStateType)  :: x_SrvD           ! Continuous states at t
    TYPE(SrvD_DiscreteStateType)    :: xd_SrvD          ! Discrete states at t
    TYPE(SrvD_ConstraintStateType)  :: z_SrvD           ! Constraint states at t
-   
-   
+
+
    ! Local variables:
 
 REAL(ReKi)                   :: AngAccEAt (3)                                   ! Portion of the angular acceleration of the tail                                                      (body A) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
@@ -927,8 +380,8 @@ REAL(ReKi)                   :: FrcZAllt (3)                                    
 REAL(ReKi)                   :: MomXAllt (3)                                    ! Portion of the moment at the platform   (body X) / platform reference                (point Z   ) due to everything associated with everything but the QD2T()'s.
 REAL(ReKi)                   :: SolnVec    (p%NDOF)                             ! Solution vector found by solving the equations of motion
 REAL(ReKi)                   :: AngAccEFt  (p%TwrNodes,3)                       ! Portion of the angular acceleration of tower element J                                               (body F) in the inertia frame (body E for earth) associated with everything but the QD2T()'s.
-REAL(ReKi)                   :: AngVelEF   (p%TwrNodes,3)                       ! Angular velocity of the current point on the tower                                (body F) in the inertia frame (body E for earth).
-REAL(ReKi)                   :: LinVelET   (p%TwrNodes,3)                       ! Linear velocity of current point on the tower         (point T) in the inertia frame.
+!REAL(ReKi)                   :: AngVelEF   (p%TwrNodes,3)                       ! Angular velocity of the current point on the tower                                (body F) in the inertia frame (body E for earth).
+!REAL(ReKi)                   :: LinVelET   (p%TwrNodes,3)                       ! Linear velocity of current point on the tower         (point T) in the inertia frame.
 REAL(ReKi)                   :: LinVelESm2 (p%NumBl)                            ! The m2-component (closest to tip) of LinVelES.
 REAL(ReKi)                   :: PAngVelEA  (p%NDOF,0:1,3)                       ! Partial angular velocity (and its 1st time derivative) of the tail                                                      (body A) in the inertia frame (body E for earth).
 REAL(ReKi)                   :: PAngVelEF  (p%TwrNodes,p%NDOF,0:1,3)            ! Partial angular velocity (and its 1st time derivative) of tower element J                                               (body F) in the inertia frame (body E for earth).
@@ -956,9 +409,11 @@ REAL(ReKi)                   :: rQS        (p%NumBl,p%TipNode,3)                
 REAL(ReKi)                   :: AugMat     (p%NDOF,p%NAug)                      ! The augmented matrix used for the solution of the QD2T()s.
 
 REAL(ReKi)                   :: GBoxTrq                                         ! Gearbox torque on the LSS side in N-m (calculated from inputs).
+REAL(ReKi)                   :: LinAccEO  (3)                                   ! Total linear acceleration of the base plate (point O) in the inertia frame (body E for earth).
+!REAL(ReKi)                  :: TwrAccel                                        ! Tower Acceleration.  Used for tower feedback control.
 
    ! local integer variables
-   
+
 INTEGER(4)                   :: I                                               ! Loops through some or all of the DOFs.
 INTEGER(4)                   :: J                                               ! Loops through nodes / elements.
 INTEGER(4)                   :: K                                               ! Loops through blades.
@@ -976,11 +431,10 @@ CHARACTER(1024) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
    !   of control measurements are computed until the end of the first time
    !   step):
 
-! linking with ServoDyn 
+! linking with ServoDyn
 !....................................
-   
+
    ! ED outputs for SrvD:
-   
 y%Yaw      = x%QT( DOF_Yaw)
 y%YawRate  = x%QDT(DOF_Yaw)
 y%BlPitch  = OtherState%BlPitch
@@ -994,33 +448,35 @@ u_SrvD%YawRate  = y%YawRate
 u_SrvD%BlPitch  = y%BlPitch
 u_SrvD%LSS_Spd  = y%LSS_Spd
 u_SrvD%HSS_Spd  = y%HSS_Spd
-u_SrvD%RotSpeed = y%RotSpeed 
+u_SrvD%RotSpeed = y%RotSpeed
 
 IF ( t > 0.0_DbKi  )  THEN
-   
-   CALL Control( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg, p, x, OtherState ) !bjj: note that OtherState%CoordSys%b1 hasn't been set yet when the simulation starts....
-   
-      ! map SrvD outputs to ED inputs:
-   u%BlPitchCom = y_SrvD%BlPitchCom
-   u%YawMom     = y_SrvD%YawMom
-   
-   
-      ! ...
-   OtherState%BlPitch = u%BlPitchCom
-            
+
+   ! Calculate tower-top acceleration (fore-aft mode only) in the tower-top system:
+
+   LinAccEO = OtherState%RtHS%LinAccEOt
+   DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
+      LinAccEO = LinAccEO + OtherState%RtHS%PLinVelEO(p%DOFs%PTE(I),0,:)*OtherState%QD2T(p%DOFs%PTE(I))
+   ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
+
+   u_SrvD%TwrAccel = DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b1 )
+ELSE
+   u_SrvD%TwrAccel = 0
 END IF
 
-CALL DrvTrTrq( t, p_SrvD, u_SrvD, y_SrvD, ErrStat, ErrMsg  ) ! Compute generator and HSS-brake torque on LSS-side, GBoxTrq
+   ! Calculate SrvD outputs:
+
+CALL SrvD_CalcOutput( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg )
 IF (ErrStat /= ErrID_None) RETURN
 
-!bjj most of the stuff inside is commented out, just the output mapping is left for now...
-CALL SrvD_CalcOutput( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg )
+   ! Map SrvD outputs to ED inputs:
+u%GenTrq     = y_SrvD%GenTrq
+u%HSSBrTrq   = y_SrvD%HSSBrTrq
+u%BlPitchCom = y_SrvD%BlPitchCom
+u%YawMom     = y_SrvD%YawMom
 
-      ! map SrvD outputs to ED inputs:
-u%GenTrq   = y_SrvD%GenTrq
-u%HSSBrTrq = y_SrvD%HSSBrTrq
 
-  
+OtherState%BlPitch = u%BlPitchCom
 
 
 !....................................
@@ -1886,8 +1342,8 @@ OtherState%RtHS%MomLPRott = TmpVec2 + TmpVec3 - p%Hubg1Iner*OtherState%CoordSys%
 IF ( p_FAST%CompAero ) ADAeroLoads = AD_CalculateLoads( REAL(t, ReKi), ADAeroMarkers, ADInterfaceComponents, ADIntrfaceOptions, ErrStat )
 
 !y%RotSpeed = x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr)
-!u_SrvD%RotSpeed = y%RotSpeed   
-!CALL TipBrake_CalcOutput( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg )   
+!u_SrvD%RotSpeed = y%RotSpeed
+!CALL TipBrake_CalcOutput( t, u_SrvD, p_SrvD, x_SrvD, xd_SrvD, z_SrvD, OtherState_SrvD, y_SrvD, ErrStat, ErrMsg )
 
 
 DO K = 1,p%NumBl ! Loop through all blades
@@ -2353,20 +1809,20 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
    PAngVelEF (J,DOF_TSS2,1,:) = CROSS_PRODUCT(  OtherState%RtHS%AngVelEX  ,                 PAngVelEF(J,DOF_TSS2,0,:) )
 
 
-    AngVelEF (J,:)            =                 OtherState%RtHS%AngVelEX  + x%QDT(DOF_TFA1)*PAngVelEF(J,DOF_TFA1,0,:) &
-                                                          + x%QDT(DOF_TSS1)*PAngVelEF(J,DOF_TSS1,0,:) &
-                                                          + x%QDT(DOF_TFA2)*PAngVelEF(J,DOF_TFA2,0,:) &
-                                                          + x%QDT(DOF_TSS2)*PAngVelEF(J,DOF_TSS2,0,:)
+    OtherState%RtHS%AngVelEF (J,:)            =  OtherState%RtHS%AngVelEX  + x%QDT(DOF_TFA1)*PAngVelEF(J,DOF_TFA1,0,:) &
+                                                                           + x%QDT(DOF_TSS1)*PAngVelEF(J,DOF_TSS1,0,:) &
+                                                                           + x%QDT(DOF_TFA2)*PAngVelEF(J,DOF_TFA2,0,:) &
+                                                                           + x%QDT(DOF_TSS2)*PAngVelEF(J,DOF_TSS2,0,:)
 
-    OtherState%RtHS%AngPosXF (J,:)            =                             x%QT (DOF_TFA1)*PAngVelEF(J,DOF_TFA1,0,:) &
-                                                          + x%QT (DOF_TSS1)*PAngVelEF(J,DOF_TSS1,0,:) &
-                                                          + x%QT (DOF_TFA2)*PAngVelEF(J,DOF_TFA2,0,:) &
-                                                          + x%QT (DOF_TSS2)*PAngVelEF(J,DOF_TSS2,0,:)
-    OtherState%RtHS%AngPosEF (J,:)            =                 AngPosEX  + OtherState%RtHS%AngPosXF(J,:)
+    OtherState%RtHS%AngPosXF (J,:)            =                              x%QT (DOF_TFA1)*PAngVelEF(J,DOF_TFA1,0,:) &
+                                                                           + x%QT (DOF_TSS1)*PAngVelEF(J,DOF_TSS1,0,:) &
+                                                                           + x%QT (DOF_TFA2)*PAngVelEF(J,DOF_TFA2,0,:) &
+                                                                           + x%QT (DOF_TSS2)*PAngVelEF(J,DOF_TSS2,0,:)
+    OtherState%RtHS%AngPosEF (J,:)            =  AngPosEX  + OtherState%RtHS%AngPosXF(J,:)
     AngAccEFt(J,:)            =                 OtherState%RtHS%AngAccEXt + x%QDT(DOF_TFA1)*PAngVelEF(J,DOF_TFA1,1,:) &
-                                                          + x%QDT(DOF_TSS1)*PAngVelEF(J,DOF_TSS1,1,:) &
-                                                          + x%QDT(DOF_TFA2)*PAngVelEF(J,DOF_TFA2,1,:) &
-                                                          + x%QDT(DOF_TSS2)*PAngVelEF(J,DOF_TSS2,1,:)
+                                                                          + x%QDT(DOF_TSS1)*PAngVelEF(J,DOF_TSS1,1,:) &
+                                                                          + x%QDT(DOF_TFA2)*PAngVelEF(J,DOF_TFA2,1,:) &
+                                                                          + x%QDT(DOF_TSS2)*PAngVelEF(J,DOF_TSS2,1,:)
 
 
    ! Define the partial linear velocities (and their 1st derivatives) of the
@@ -2410,7 +1866,7 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
                   + x%QDT(DOF_TFA2)*OtherState%RtHS%PLinVelET(J,DOF_TFA2,1,:) &
                   + x%QDT(DOF_TSS2)*OtherState%RtHS%PLinVelET(J,DOF_TSS2,1,:)
 
-   LinVelET(J,:)  = LinVelXT + OtherState%RtHS%LinVelEZ
+   OtherState%RtHS%LinVelET(J,:)  = LinVelXT + OtherState%RtHS%LinVelEZ
    DO I = 1,NPX   ! Loop through all DOFs associated with the angular motion of the platform (body X)
 
       TmpVec0   = CROSS_PRODUCT( OtherState%RtHS%PAngVelEX(PX(I),0,:),     OtherState%RtHS%rZT(J,:)            )
@@ -2419,61 +1875,13 @@ DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
       OtherState%RtHS%PLinVelET(J,PX(I),0,:) = OtherState%RtHS%PLinVelET(J,PX(I),0,:) + TmpVec0
       OtherState%RtHS%PLinVelET(J,PX(I),1,:) = OtherState%RtHS%PLinVelET(J,PX(I),1,:) + TmpVec1
 
-      LinVelET( J,        :) = LinVelET( J,        :) + x%QDT(PX(I))*OtherState%RtHS%PLinVelET(J,PX(I),0,:)
+      OtherState%RtHS%LinVelET( J,        :) = OtherState%RtHS%LinVelET( J,        :) + x%QDT(PX(I))*OtherState%RtHS%PLinVelET(J,PX(I),0,:)
       OtherState%RtHS%LinAccETt(J,        :) = OtherState%RtHS%LinAccETt(J,        :) + x%QDT(PX(I))*OtherState%RtHS%PLinVelET(J,PX(I),1,:)
 
    ENDDO          ! I - all DOFs associated with the angular motion of the platform (body X)
 
 
 END DO ! J
-
-!----------------------------------------------------------------------------------------------------
-! Calculate hydrodynamic loads from HydroDyn
-!----------------------------------------------------------------------------------------------------  
-IF ( p_FAST%CompHydro ) THEN
-
-      ! Set the markers required for HydroDyn
- 
-   IF ( HD_TwrNodes ) THEN
-      
-         ! Set the tower markers required for HydroDyn  (note this is for only the tower loading per unit length (not platform point source) !!!!!
-         
-      DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
-         HD_AllMarkers%Substructure(J)%Position       = (/ OtherState%RtHS%rT( J,1), -1.*OtherState%RtHS%rT( J,3),&
-                                                           OtherState%RtHS%rT( J,2) - p%PtfmRef /)
-         
-         CALL SmllRotTrans( 'Tower', OtherState%RtHS%AngPosEF(J,1), -1.*OtherState%RtHS%AngPosEF(J,3), OtherState%RtHS%AngPosEF(J,2), &        
-                                                                           HD_AllMarkers%Substructure(J)%Orientation, errstat=ErrStat, errmsg=ErrMsg )
-         IF (ErrStat /= ErrID_None) CALL WrScr( TRIM(ErrMsg) )
-                            
-         HD_AllMarkers%Substructure(J)%TranslationVel = (/ LinVelET(J,1), -1.*LinVelET(J,3), LinVelET(J,2) /) 
-         HD_AllMarkers%Substructure(J)%RotationVel    = (/ AngVelEF(J,1), -1.*AngVelEF(J,3), AngVelEF(J,2) /)
-      END DO
-
-   ELSE
-   
-         ! Set the platform markers required for HydroDyn (note this is for only the tower loading per unit length (not platform point source) !!!!!
-   
-      J = SIZE( HD_AllMarkers%Substructure, 1)
-      
-      HD_AllMarkers%Substructure(J)%Position      = (/ x%QT(DOF_Sg),x%QT(DOF_Sw),x%QT(DOF_Hv) /)      
-      CALL SmllRotTrans( 'Platform',                   x%QT(DOF_R ),x%QT(DOF_P ),x%QT(DOF_Y ),HD_AllMarkers%Substructure(J)%Orientation, errstat=ErrStat, errmsg=ErrMsg )
-         IF (ErrStat /= ErrID_None) CALL WrScr( TRIM(ErrMsg) )
-                           
-      HD_AllMarkers%Substructure(J)%TranslationVel= (/ x%QDT(DOF_Sg),x%QDT(DOF_Sw),x%QDT(DOF_Hv) /)  
-      HD_AllMarkers%Substructure(J)%RotationVel   = (/ x%QDT(DOF_R ),x%QDT(DOF_P ),x%QDT(DOF_Y ) /)            
-      
-   END IF      
-   
-      ! Get the loads from HydroDyn
-
-   CALL HD_CalculateLoads( t,  HD_AllMarkers,  HydroDyn_data, HD_AllLoads,  ErrStat )
-
-   IF ( ErrStat /= 0 ) THEN
-      CALL ProgAbort( ' Error calculating hydrodynamic loads in HydroDyn.' )
-   END IF
-   
-END IF
 
 !----------------------------------------------------------------------------------------------------
 ! Calculate tower loads (aerodynamic and hydrodynamic)
@@ -2486,28 +1894,8 @@ DO J = 1,p%TwrNodes
    ! NOTE: FTAero(J,:) = aerodynamic force per unit length acting on tower node J.
    ! NOTE: MFAero(J,:) = aerodynamic moment per unit length acting on tower element F at node J.
 
-   IF ( p_FAST%CompAero )  THEN   ! Calculate the tower element aerodynamic loads using AeroDyn.
-
-      OtherState%RtHS%FTAero(J,:) = 0.0    !JASON: ADD TOWER AERODYNAMIC LOAD CALCULATIONS HERE!!!
-      OtherState%RtHS%MFAero(J,:) = 0.0    !JASON: ADD TOWER AERODYNAMIC LOAD CALCULATIONS HERE!!!
-
-   ELSE                    ! Wind turbine in vacuum, no aerodynamic forces.
-
-      OtherState%RtHS%FTAero(J,:) = 0.0
-      OtherState%RtHS%MFAero(J,:) = 0.0
-
-   ENDIF
-
-   ! Let's compute the tower hydrodynamic loading; that is TwrAM(1:6,1:6) and
-   !   TwrFt(1:6).
-
-
-   CALL TwrLoading ( t, J, OtherState%RtHS%rT(   J,1), -OtherState%RtHS%rT(      J,3), ( OtherState%RtHS%rT(      J,2) - p%PtfmRef ), &
-                                 OtherState%RtHS%AngPosEF(J,1), -OtherState%RtHS%AngPosEF(J,3), OtherState%RtHS%AngPosEF(J,2), &
-                     LinVelET(J,1), -LinVelET(J,3),   LinVelET(J,2)            , AngVelEF(J,1), -AngVelEF(J,3), AngVelEF(J,2), &
-                    p, u%TwrAM, u%TwrFT)
-
-
+   OtherState%RtHS%FTAero(J,:) = 0.0
+   OtherState%RtHS%MFAero(J,:) = 0.0
 
 
    ! Compute the partial hydrodynamic forces and moments per unit length
@@ -2527,81 +1915,97 @@ DO J = 1,p%TwrNodes
    OtherState%RtHS%PMFHydro(J,:,:) = 0.0
    DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-      OtherState%RtHS%PFTHydro(J,p%DOFs%PTE(I),:) = OtherState%CoordSys%z1*( - u%TwrAM(DOF_Sg,DOF_Sg)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_Sg,DOF_Sw)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_Sg,DOF_Hv)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
-                                           - u%TwrAM(DOF_Sg,DOF_R )*PAngVelEF(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_Sg,DOF_P )*PAngVelEF(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_Sg,DOF_Y )*PAngVelEF(J,p%DOFs%PTE(I),0,2)   ) &
-                           - OtherState%CoordSys%z3*( - u%TwrAM(DOF_Sw,DOF_Sg)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_Sw,DOF_Sw)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_Sw,DOF_Hv)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
-                                           - u%TwrAM(DOF_Sw,DOF_R )*PAngVelEF(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_Sw,DOF_P )*PAngVelEF(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_Sw,DOF_Y )*PAngVelEF(J,p%DOFs%PTE(I),0,2)   ) &
-                           + OtherState%CoordSys%z2*( - u%TwrAM(DOF_Hv,DOF_Sg)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_Hv,DOF_Sw)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_Hv,DOF_Hv)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
-                                           - u%TwrAM(DOF_Hv,DOF_R )*PAngVelEF(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_Hv,DOF_P )*PAngVelEF(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_Hv,DOF_Y )*PAngVelEF(J,p%DOFs%PTE(I),0,2)   )
-      OtherState%RtHS%PMFHydro(J,p%DOFs%PTE(I),:) = OtherState%CoordSys%z1*( - u%TwrAM(DOF_R ,DOF_Sg)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_R ,DOF_Sw)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_R ,DOF_Hv)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
-                                           - u%TwrAM(DOF_R ,DOF_R )*PAngVelEF(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_R ,DOF_P )*PAngVelEF(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_R ,DOF_Y )*PAngVelEF(J,p%DOFs%PTE(I),0,2)   ) &
-                           - OtherState%CoordSys%z3*( - u%TwrAM(DOF_P ,DOF_Sg)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_P ,DOF_Sw)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_P ,DOF_Hv)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
-                                           - u%TwrAM(DOF_P ,DOF_R )*PAngVelEF(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_P ,DOF_P )*PAngVelEF(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_P ,DOF_Y )*PAngVelEF(J,p%DOFs%PTE(I),0,2)   ) &
-                           + OtherState%CoordSys%z2*( - u%TwrAM(DOF_Y ,DOF_Sg)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_Y ,DOF_Sw)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_Y ,DOF_Hv)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
-                                           - u%TwrAM(DOF_Y ,DOF_R )*PAngVelEF(J,p%DOFs%PTE(I),0,1) &
-                                           + u%TwrAM(DOF_Y ,DOF_P )*PAngVelEF(J,p%DOFs%PTE(I),0,3) &
-                                           - u%TwrAM(DOF_Y ,DOF_Y )*PAngVelEF(J,p%DOFs%PTE(I),0,2)   )
+      OtherState%RtHS%PFTHydro(J,p%DOFs%PTE(I),:) = &
+                             OtherState%CoordSys%z1*( &
+                                           - u%TwrAddedMass(DOF_Sg,DOF_Sg,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_Sg,DOF_Sw,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_Sg,DOF_Hv,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
+                                           - u%TwrAddedMass(DOF_Sg,DOF_R ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_Sg,DOF_P ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_Sg,DOF_Y ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,2)   ) &
+                           - OtherState%CoordSys%z3*( &
+                                           - u%TwrAddedMass(DOF_Sw,DOF_Sg,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_Sw,DOF_Sw,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_Sw,DOF_Hv,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
+                                           - u%TwrAddedMass(DOF_Sw,DOF_R ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_Sw,DOF_P ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_Sw,DOF_Y ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,2)   ) &
+                           + OtherState%CoordSys%z2*( &
+                                           - u%TwrAddedMass(DOF_Hv,DOF_Sg,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_Hv,DOF_Sw,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_Hv,DOF_Hv,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
+                                           - u%TwrAddedMass(DOF_Hv,DOF_R ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_Hv,DOF_P ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_Hv,DOF_Y ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,2)   )
+      OtherState%RtHS%PMFHydro(J,p%DOFs%PTE(I),:) = &
+                             OtherState%CoordSys%z1*( &
+                                           - u%TwrAddedMass(DOF_R ,DOF_Sg,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_R ,DOF_Sw,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_R ,DOF_Hv,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
+                                           - u%TwrAddedMass(DOF_R ,DOF_R ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_R ,DOF_P ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_R ,DOF_Y ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,2)   ) &
+                           - OtherState%CoordSys%z3*( &
+                                           - u%TwrAddedMass(DOF_P ,DOF_Sg,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_P ,DOF_Sw,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_P ,DOF_Hv,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
+                                           - u%TwrAddedMass(DOF_P ,DOF_R ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_P ,DOF_P ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_P ,DOF_Y ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,2)   ) &
+                           + OtherState%CoordSys%z2*( &
+                                           - u%TwrAddedMass(DOF_Y ,DOF_Sg,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_Y ,DOF_Sw,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_Y ,DOF_Hv,J)*OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,2) &
+                                           - u%TwrAddedMass(DOF_Y ,DOF_R ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,1) &
+                                           + u%TwrAddedMass(DOF_Y ,DOF_P ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,3) &
+                                           - u%TwrAddedMass(DOF_Y ,DOF_Y ,J)*                PAngVelEF(J,p%DOFs%PTE(I),0,2)   )
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-   OtherState%RtHS%FTHydrot(J,:) = OtherState%CoordSys%z1*( u%TwrFt(DOF_Sg) - u%TwrAM(DOF_Sg,DOF_Sg)*OtherState%RtHS%LinAccETt(J,1) &
-                                               + u%TwrAM(DOF_Sg,DOF_Sw)*OtherState%RtHS%LinAccETt(J,3) &
-                                               - u%TwrAM(DOF_Sg,DOF_Hv)*OtherState%RtHS%LinAccETt(J,2) &
-                                               - u%TwrAM(DOF_Sg,DOF_R )*AngAccEFt(J,1) &
-                                               + u%TwrAM(DOF_Sg,DOF_P )*AngAccEFt(J,3) &
-                                               - u%TwrAM(DOF_Sg,DOF_Y )*AngAccEFt(J,2)   ) &
-                 - OtherState%CoordSys%z3*( u%TwrFt(DOF_Sw) - u%TwrAM(DOF_Sw,DOF_Sg)*OtherState%RtHS%LinAccETt(J,1) &
-                                               + u%TwrAM(DOF_Sw,DOF_Sw)*OtherState%RtHS%LinAccETt(J,3) &
-                                               - u%TwrAM(DOF_Sw,DOF_Hv)*OtherState%RtHS%LinAccETt(J,2) &
-                                               - u%TwrAM(DOF_Sw,DOF_R )*AngAccEFt(J,1) &
-                                               + u%TwrAM(DOF_Sw,DOF_P )*AngAccEFt(J,3) &
-                                               - u%TwrAM(DOF_Sw,DOF_Y )*AngAccEFt(J,2)   ) &
-                 + OtherState%CoordSys%z2*( u%TwrFt(DOF_Hv) - u%TwrAM(DOF_Hv,DOF_Sg)*OtherState%RtHS%LinAccETt(J,1) &
-                                               + u%TwrAM(DOF_Hv,DOF_Sw)*OtherState%RtHS%LinAccETt(J,3) &
-                                               - u%TwrAM(DOF_Hv,DOF_Hv)*OtherState%RtHS%LinAccETt(J,2) &
-                                               - u%TwrAM(DOF_Hv,DOF_R )*AngAccEFt(J,1) &
-                                               + u%TwrAM(DOF_Hv,DOF_P )*AngAccEFt(J,3) &
-                                               - u%TwrAM(DOF_Hv,DOF_Y )*AngAccEFt(J,2)   )
-   OtherState%RtHS%MFHydrot(J,:) = OtherState%CoordSys%z1*( u%TwrFt(DOF_R ) - u%TwrAM(DOF_R ,DOF_Sg)*OtherState%RtHS%LinAccETt(J,1) &
-                                               + u%TwrAM(DOF_R ,DOF_Sw)*OtherState%RtHS%LinAccETt(J,3) &
-                                               - u%TwrAM(DOF_R ,DOF_Hv)*OtherState%RtHS%LinAccETt(J,2) &
-                                               - u%TwrAM(DOF_R ,DOF_R )*AngAccEFt(J,1) &
-                                               + u%TwrAM(DOF_R ,DOF_P )*AngAccEFt(J,3) &
-                                               - u%TwrAM(DOF_R ,DOF_Y )*AngAccEFt(J,2)   ) &
-                 - OtherState%CoordSys%z3*( u%TwrFt(DOF_P ) - u%TwrAM(DOF_P ,DOF_Sg)*OtherState%RtHS%LinAccETt(J,1) &
-                                               + u%TwrAM(DOF_P ,DOF_Sw)*OtherState%RtHS%LinAccETt(J,3) &
-                                               - u%TwrAM(DOF_P ,DOF_Hv)*OtherState%RtHS%LinAccETt(J,2) &
-                                               - u%TwrAM(DOF_P ,DOF_R )*AngAccEFt(J,1) &
-                                               + u%TwrAM(DOF_P ,DOF_P )*AngAccEFt(J,3) &
-                                               - u%TwrAM(DOF_P ,DOF_Y )*AngAccEFt(J,2)   ) &
-                 + OtherState%CoordSys%z2*( u%TwrFt(DOF_Y ) - u%TwrAM(DOF_Y ,DOF_Sg)*OtherState%RtHS%LinAccETt(J,1) &
-                                               + u%TwrAM(DOF_Y ,DOF_Sw)*OtherState%RtHS%LinAccETt(J,3) &
-                                               - u%TwrAM(DOF_Y ,DOF_Hv)*OtherState%RtHS%LinAccETt(J,2) &
-                                               - u%TwrAM(DOF_Y ,DOF_R )*AngAccEFt(J,1) &
-                                               + u%TwrAM(DOF_Y ,DOF_P )*AngAccEFt(J,3) &
-                                               - u%TwrAM(DOF_Y ,DOF_Y )*AngAccEFt(J,2)   )
+   OtherState%RtHS%FTHydrot(J,:) = &
+                   OtherState%CoordSys%z1*( u%TwrFt(DOF_Sg,J) &
+                                               - u%TwrAddedMass(DOF_Sg,DOF_Sg,J)*OtherState%RtHS%LinAccETt(J,1) &
+                                               + u%TwrAddedMass(DOF_Sg,DOF_Sw,J)*OtherState%RtHS%LinAccETt(J,3) &
+                                               - u%TwrAddedMass(DOF_Sg,DOF_Hv,J)*OtherState%RtHS%LinAccETt(J,2) &
+                                               - u%TwrAddedMass(DOF_Sg,DOF_R ,J)*                AngAccEFt(J,1) &
+                                               + u%TwrAddedMass(DOF_Sg,DOF_P ,J)*                AngAccEFt(J,3) &
+                                               - u%TwrAddedMass(DOF_Sg,DOF_Y ,J)*                AngAccEFt(J,2)   ) &
+                 - OtherState%CoordSys%z3*( u%TwrFt(DOF_Sw,J) &
+                                               - u%TwrAddedMass(DOF_Sw,DOF_Sg,J)*OtherState%RtHS%LinAccETt(J,1) &
+                                               + u%TwrAddedMass(DOF_Sw,DOF_Sw,J)*OtherState%RtHS%LinAccETt(J,3) &
+                                               - u%TwrAddedMass(DOF_Sw,DOF_Hv,J)*OtherState%RtHS%LinAccETt(J,2) &
+                                               - u%TwrAddedMass(DOF_Sw,DOF_R ,J)*                AngAccEFt(J,1) &
+                                               + u%TwrAddedMass(DOF_Sw,DOF_P ,J)*                AngAccEFt(J,3) &
+                                               - u%TwrAddedMass(DOF_Sw,DOF_Y ,J)*                AngAccEFt(J,2)   ) &
+                 + OtherState%CoordSys%z2*( u%TwrFt(DOF_Hv,J) &
+                                               - u%TwrAddedMass(DOF_Hv,DOF_Sg,J)*OtherState%RtHS%LinAccETt(J,1) &
+                                               + u%TwrAddedMass(DOF_Hv,DOF_Sw,J)*OtherState%RtHS%LinAccETt(J,3) &
+                                               - u%TwrAddedMass(DOF_Hv,DOF_Hv,J)*OtherState%RtHS%LinAccETt(J,2) &
+                                               - u%TwrAddedMass(DOF_Hv,DOF_R ,J)*                AngAccEFt(J,1) &
+                                               + u%TwrAddedMass(DOF_Hv,DOF_P ,J)*                AngAccEFt(J,3) &
+                                               - u%TwrAddedMass(DOF_Hv,DOF_Y ,J)*                AngAccEFt(J,2)   )
+   OtherState%RtHS%MFHydrot(J,:) = &
+                   OtherState%CoordSys%z1*( u%TwrFt(DOF_R ,J) &
+                                               - u%TwrAddedMass(DOF_R ,DOF_Sg,J)*OtherState%RtHS%LinAccETt(J,1) &
+                                               + u%TwrAddedMass(DOF_R ,DOF_Sw,J)*OtherState%RtHS%LinAccETt(J,3) &
+                                               - u%TwrAddedMass(DOF_R ,DOF_Hv,J)*OtherState%RtHS%LinAccETt(J,2) &
+                                               - u%TwrAddedMass(DOF_R ,DOF_R ,J)*                AngAccEFt(J,1) &
+                                               + u%TwrAddedMass(DOF_R ,DOF_P ,J)*                AngAccEFt(J,3) &
+                                               - u%TwrAddedMass(DOF_R ,DOF_Y ,J)*                AngAccEFt(J,2)   ) &
+                 - OtherState%CoordSys%z3*( u%TwrFt(DOF_P ,J) &
+                                               - u%TwrAddedMass(DOF_P ,DOF_Sg,J)*OtherState%RtHS%LinAccETt(J,1) &
+                                               + u%TwrAddedMass(DOF_P ,DOF_Sw,J)*OtherState%RtHS%LinAccETt(J,3) &
+                                               - u%TwrAddedMass(DOF_P ,DOF_Hv,J)*OtherState%RtHS%LinAccETt(J,2) &
+                                               - u%TwrAddedMass(DOF_P ,DOF_R ,J)*                AngAccEFt(J,1) &
+                                               + u%TwrAddedMass(DOF_P ,DOF_P ,J)*                AngAccEFt(J,3) &
+                                               - u%TwrAddedMass(DOF_P ,DOF_Y ,J)*                AngAccEFt(J,2)   ) &
+                 + OtherState%CoordSys%z2*( u%TwrFt(DOF_Y ,J) &
+                                               - u%TwrAddedMass(DOF_Y ,DOF_Sg,J)*OtherState%RtHS%LinAccETt(J,1) &
+                                               + u%TwrAddedMass(DOF_Y ,DOF_Sw,J)*OtherState%RtHS%LinAccETt(J,3) &
+                                               - u%TwrAddedMass(DOF_Y ,DOF_Hv,J)*OtherState%RtHS%LinAccETt(J,2) &
+                                               - u%TwrAddedMass(DOF_Y ,DOF_R ,J)*                AngAccEFt(J,1) &
+                                               + u%TwrAddedMass(DOF_Y ,DOF_P ,J)*                AngAccEFt(J,3) &
+                                               - u%TwrAddedMass(DOF_Y ,DOF_Y ,J)*                AngAccEFt(J,2)   )
 
    ! Calculate the mass of the current element:
 
@@ -2691,11 +2095,6 @@ ENDIF
 
 
 
-   ! Let's compute the platform loading; that is PtfmAM(1:6,1:6), and
-   !   PtfmFt(1:6):
-
-CALL PtfmLoading( t, x, u%PtfmAM, u%PtfmFt )
-
    ! Compute the partial platform forces and moments (including those
    !   associated with the QD2T()'s and those that are not) at the platform
    !   reference (point Z) / (body X).
@@ -2713,21 +2112,21 @@ OtherState%RtHS%PFZHydro = 0.0
 OtherState%RtHS%PMXHydro = 0.0
 DO I = 1,p%DOFs%NPYE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
 
-   OtherState%RtHS%PFZHydro(p%DOFs%PYE(I),:) = - u%PtfmAM(DOF_Sg,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
-                                        - u%PtfmAM(DOF_Sw,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
-                                        - u%PtfmAM(DOF_Hv,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
-   OtherState%RtHS%PMXHydro(p%DOFs%PYE(I),:) = - u%PtfmAM(DOF_R ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
-                                        - u%PtfmAM(DOF_P ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
-                                        - u%PtfmAM(DOF_Y ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
+   OtherState%RtHS%PFZHydro(p%DOFs%PYE(I),:) = - u%PtfmAddedMass(DOF_Sg,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
+                                               - u%PtfmAddedMass(DOF_Sw,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
+                                               - u%PtfmAddedMass(DOF_Hv,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
+   OtherState%RtHS%PMXHydro(p%DOFs%PYE(I),:) = - u%PtfmAddedMass(DOF_R ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
+                                               - u%PtfmAddedMass(DOF_P ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
+                                               - u%PtfmAddedMass(DOF_Y ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
 
 ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
 
 OtherState%RtHS%FZHydrot = u%PtfmFt(DOF_Sg)*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
-         + u%PtfmFt(DOF_Sw)*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
-         + u%PtfmFt(DOF_Hv)*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
+                         + u%PtfmFt(DOF_Sw)*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
+                         + u%PtfmFt(DOF_Hv)*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
 OtherState%RtHS%MXHydrot = u%PtfmFt(DOF_R )*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
-         + u%PtfmFt(DOF_P )*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
-         + u%PtfmFt(DOF_Y )*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
+                         + u%PtfmFt(DOF_P )*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
+                         + u%PtfmFt(DOF_Y )*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
 
 
 
@@ -3046,7 +2445,7 @@ SgnPrvLSTQ = NINT( SIGN( 1.0, DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e1 ) ) 
 RETURN
 
 END SUBROUTINE RtHS
-!----------------------------------------------------------------------------------------------------------------------------------  
+!----------------------------------------------------------------------------------------------------------------------------------
 
 !=======================================================================
 SUBROUTINE Solver( t, n, p, x, y, OtherState, u, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD )
@@ -3068,7 +2467,7 @@ INTEGER(IntKi), INTENT(IN) :: n
 
 TYPE(SrvD_ParameterType),    INTENT(IN)       :: p_SrvD                      ! The parameters of the ServoDyn module
 TYPE(SrvD_OutputType),       INTENT(INOUT)    :: y_SrvD                      ! The outputs of the ServoDyn module
-TYPE(SrvD_InputType),        INTENT(INOUT)    :: u_SrvD                      ! System inputs of the ServoDyn module 
+TYPE(SrvD_InputType),        INTENT(INOUT)    :: u_SrvD                      ! System inputs of the ServoDyn module
 TYPE(SrvD_OtherStateType),   INTENT(INOUT)    :: OtherState_SrvD             ! The ServoDyn "other" states
 
 
@@ -3076,7 +2475,7 @@ TYPE(ED_ParameterType),      INTENT(IN)       :: p                           ! T
 TYPE(ED_ContinuousStateType),INTENT(INOUT)    :: x                           ! The structural dynamics module's continuous states
 TYPE(ED_OtherStateType),     INTENT(INOUT)    :: OtherState                  ! The structural dynamics "other" states (including CoordSys coordinate systems)
 TYPE(ED_OutputType),         INTENT(INOUT)    :: y                           ! System outputs of the structural dynamics module
-TYPE(ED_InputType),          INTENT(INOUT)    :: u                           ! System inputs of the structural dynamics module 
+TYPE(ED_InputType),          INTENT(INOUT)    :: u                           ! System inputs of the structural dynamics module
 
 
    ! Local variables:
@@ -3240,7 +2639,7 @@ ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corre
    x%QDT = OtherState%QD(:,OtherState%IC(NMX))
 
    CALL RtHS( t, p, x, OtherState, u, y, p_SrvD, y_SrvD, u_SrvD, OtherState_SrvD, AugMat )
-   
+
 
    OtherState%QD2(:,OtherState%IC(NMX)) = OtherState%QD2T
 
@@ -3258,7 +2657,7 @@ ELSE                    ! User Adams-Bashforth predictor and Adams-Moulton corre
                                                                                       +      OtherState%QD (I,OtherState%IC(3  )) )
       OtherState%QD(I,OtherState%IC(NMX)) = OtherState%QD(I,OtherState%IC(1)) + p%DT24*( 9.0*OtherState%QD2(I,OtherState%IC(NMX)) &
                                                                                       + 19.0*OtherState%QD2(I,OtherState%IC(1  )) &
-                                                                                      -  5.0*OtherState%QD2(I,OtherState%IC(2  )) & 
+                                                                                      -  5.0*OtherState%QD2(I,OtherState%IC(2  )) &
                                                                                       +      OtherState%QD2(I,OtherState%IC(3  )) )
    ENDDO          ! I - All DOFs
 
@@ -3284,7 +2683,7 @@ OtherState%QD2(:,OtherState%IC(NMX)) = OtherState%QD2T
 
    ! Update IC() index so IC(1) is the location of current Q values.
 
-OtherState%IC = CSHIFT( OtherState%IC, -1 ) ! circular shift of all values to the right 
+OtherState%IC = CSHIFT( OtherState%IC, -1 ) ! circular shift of all values to the right
 
 
 
@@ -3311,115 +2710,5 @@ ENDIF
 RETURN
 END SUBROUTINE Solver
 !=======================================================================
-SUBROUTINE TwrLoading ( t, JNode, X1 , X2 , X3 , X4 , X5 , X6 , &
-                               XD1, XD2, XD3, XD4, XD5, XD6, p, TwrAM, TwrFt    )
 
-
-   ! This routine computes the tower hydrodynamic loading; that is
-   !   TwrAM(1:6,1:6) and TwrFt(1:6).
-
-
-USE                             HydroDyn_Types
-
-
-IMPLICIT                        NONE
-
-
-   ! Passed Variables:
-REAL(DbKi), INTENT(IN )      :: t
-REAL(ReKi), INTENT(IN )      :: X1                                              ! The xi-component of the translational    displacement (in m    ) of the current tower node    relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: X2                                              ! The yi-component of the translational    displacement (in m    ) of the current tower node    relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: X3                                              ! The zi-component of the translational    displacement (in m    ) of the current tower node    relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: X4                                              ! The xi-component of the rotational       displacement (in rad  ) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: X5                                              ! The yi-component of the rotational       displacement (in rad  ) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: X6                                              ! The zi-component of the rotational       displacement (in rad  ) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: XD1                                             ! The xi-component of the translational        velocity (in m/s  ) of the current tower node    relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: XD2                                             ! The yi-component of the translational        velocity (in m/s  ) of the current tower node    relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: XD3                                             ! The zi-component of the translational        velocity (in m/s  ) of the current tower node    relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: XD4                                             ! The xi-component of the rotational (angular) velocity (in rad/s) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: XD5                                             ! The yi-component of the rotational (angular) velocity (in rad/s) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi), INTENT(IN )      :: XD6                                             ! The zi-component of the rotational (angular) velocity (in rad/s) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-
-INTEGER(4), INTENT(IN )      :: JNode                                           ! The number of the current tower node / element. [1 to TwrNodes]
-
-TYPE(ED_ParameterType), INTENT(IN)  :: p                                      ! Parameters of the structural dynamics module;  bjj: remove this in new framework
-
-REAL(ReKi), INTENT(OUT )     :: TwrAM     (6,6)                                 ! Added mass matrix of the current tower element per unit length.
-REAL(ReKi), INTENT(OUT )     :: TwrFt     (6)                                   ! The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower element (point T) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the tower moment acting at the current tower element (body F) / (point T) per unit length associated with everything but the QD2T()'s.
-
-
-   ! Local variables:
-
-!REAL(ReKi), PARAMETER        :: SymTol   = 9.999E-4                             ! Tolerance used to determine if matrix PtfmAM is symmetric.
-REAL(ReKi)                   :: X        (6)                                    ! The 3 components of the translational displacement (in m  ) of the current tower node and the 3 components of the rotational displacement       (in rad  ) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-REAL(ReKi)                   :: XD       (6)                                    ! The 3 components of the translational velocity     (in m/s) of the current tower node and the 3 components of the rotational (angular) velocity (in rad/s) of the current tower element relative to the inertial frame origin at ground level [onshore] or MSL [offshore].
-
-INTEGER(4)                   :: I                                               ! Loops through all platform DOFs.
-INTEGER(4)                   :: J                                               ! Loops through all platform DOFs.
-
-
-
-   ! Place the displacement and velocity arguments into the local arrays,
-   !   X(1:6) and XD(1:6), respectively:
-
-X (1) = X1
-X (2) = X2
-X (3) = X3
-X (4) = X4
-X (5) = X5
-X (6) = X6
-XD(1) = XD1
-XD(2) = XD2
-XD(3) = XD3
-XD(4) = XD4
-XD(5) = XD5
-XD(6) = XD6
-
-TwrAM = 0.0_ReKi 
-TwrFt = 0.0_ReKi
-
-   ! Compute the tower hydrodynamic loading for the current tower node /
-   !   element:
-
-
-
-   IF ( p_FAST%CompUserTwrLd ) THEN  ! Are we getting additional loads from UserTwrLd?
-
-         ! CALL the user-defined tower loading model:
-
-      CALL UserTwrLd ( JNode, X, XD, t, p_FAST%DirRoot, TwrAM, TwrFt )
-
-      ! Ensure that the tower element added mass matrix returned by UserTwrLd,
-      !   TwrAM, is symmetric; Abort if necessary:
-      IF (.NOT. IsSymmetric( TwrAM ) ) THEN
-         CALL ProgAbort ( ' The user-defined tower element added mass matrix is unsymmetric.'// &
-                          '  Make sure TwrAM returned by UserTwrLd() is symmetric.'               )
-      END IF
-
-   ELSE
-      
-   ! Set TwrAM and TwrFt to 0
-
-      TwrAM = 0.0
-      TwrFt = 0.0
-
-   END IF
-   
-
-
-IF ( p_FAST%CompHydro .AND. HD_TwrNodes ) THEN 
-   TwrAM      = TwrAM      + HD_AllLoads%Substructure(JNode)%AddedMass
-   TwrFt(1:3) = TwrFt(1:3) + HD_AllLoads%Substructure(JNode)%Force
-   TwrFt(4:6) = TwrFt(4:6) + HD_AllLoads%Substructure(JNode)%Moment
-
-!   CALL MorisonTwrLd ( JNode, DiamT(JNode), CAT(JNode), CDT(JNode), X, XD, t, TwrAM, TwrFt )
-END IF
-
-
-
-
-
-RETURN
-END SUBROUTINE TwrLoading
-!=======================================================================
 END MODULE FASTSubs

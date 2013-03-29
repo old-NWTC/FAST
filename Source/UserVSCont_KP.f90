@@ -113,6 +113,7 @@ LOGICAL,    SAVE            :: SFLAG  = .TRUE.
 CHARACTER(1024)             :: TITLE
 CHARACTER(1024)             :: inFileName                                     ! name of the input file
 
+!bjj: there are numerical issues with time in this routine 
 
   ! Abort if GBRatio is not unity; since this example routine returns the
   !   generator torque cast to the LSS side of the gearbox, whereas routine

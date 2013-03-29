@@ -115,9 +115,6 @@ INTEGER(IntKi), PARAMETER :: ControlMode_None   = 0
    !                                              !   (Xd), and constraint-state (Z) equations all with respect to the constraint
    !                                              !   states (z)
    
-!bjj: remove:
-   public :: yaw_calcoutput
-
    
 CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -210,6 +207,31 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    xd%DummyDiscState          = 0
    z%DummyConstrState         = 0
    
+      ! Initialize other states here:
+   CALL AllocAry( OtherState%BlPitchI,  p%NumBl, 'BlPitchI',  ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+   CALL AllocAry( OtherState%BegPitMan, p%NumBl, 'BegPitMan', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+   CALL AllocAry( OtherState%PitManRat, p%NumBl, 'PitManRat', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+   CALL AllocAry( OtherState%TPitManE,  p%NumBl, 'TPitManE',  ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   OtherState%BegPitMan  = HUGE(OtherState%BegPitMan)          ! Pitch maneuvers didn't actually start, yet (pick a number larger than TPitManS)
+   OtherState%PitManRat = InputFileData%PitManRat(1:p%NumBl)   ! we change the sign of this variable later, so we'll store it as an other state instead of a parameter
+   
+   OtherState%BegYawMan  = HUGE(OtherState%BegYawMan)          ! Yaw maneuver didn't actually start, yet (pick a number larger than TYawManS)   
+   OtherState%YawManRat = InputFileData%YawManRat              ! we change the sign of this variable later, so we'll store it as an other state instead of a parameter
+   
+   
+   OtherState%TOff4Good = HUGE(OtherState%TOff4Good)  ! time the generator went off for good
+   OtherState%TGenOnLine= HUGE(OtherState%TGenOnLine) ! time the generator was first online
+   
+   
 
       !............................................................................................
       ! Define initial guess for the system inputs here:
@@ -264,31 +286,11 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    InitOut%WriteOutputUnt = p%OutParam(1:p%NumOuts)%Units     
    InitOut%Ver = SrvD_Ver
                
+   
+   
       !............................................................................................
-      ! Initialize other states here:
+      ! tip brakes - this may be added back, later, so we'll keep these here for now
       !............................................................................................
-   CALL AllocAry( OtherState%BlPitchI,  p%NumBl, 'BlPitchI',  ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-   CALL AllocAry( OtherState%BegPitMan, p%NumBl, 'BegPitMan', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-   CALL AllocAry( OtherState%PitManRat, p%NumBl, 'PitManRat', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-   CALL AllocAry( OtherState%TPitManE,  p%NumBl, 'TPitManE',  ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-
-   OtherState%BegPitMan  = HUGE(OtherState%BegPitMan)          ! Pitch maneuvers didn't actually start, yet (pick a number larger than TPitManS)
-   OtherState%PitManRat = InputFileData%PitManRat(1:p%NumBl)   ! we change the sign of this variable later, so we'll store it as an other state instead of a parameter
-   
-   OtherState%BegYawMan  = HUGE(OtherState%BegYawMan)          ! Yaw maneuver didn't actually start, yet (pick a number larger than TYawManS)   
-   OtherState%YawManRat = InputFileData%YawManRat              ! we change the sign of this variable later, so we'll store it as an other state instead of a parameter
-   
-   
-   
-         ! tip brakes - this may be added back, later, so we'll keep these here for now
    p%TpBrDT = HUGE(p%TpBrDT)
 
    CALL AllocAry( OtherState%TTpBrDp,  p%NumBl, 'TTpBrDp', ErrStat2, ErrMsg2 )
@@ -535,6 +537,8 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       REAL(ReKi)                                     :: AllOuts(MaxOutPts)     ! All the the available output channels
       INTEGER(IntKi)                                 :: I                      ! Generic loop index
       INTEGER(IntKi)                                 :: K                      ! Blade index
+      INTEGER(IntKi)                                 :: ErrStat2
+      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
       
          ! Initialize ErrStat
 
@@ -542,20 +546,25 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ErrMsg  = ""
 
 
-         ! Compute outputs here:
+      ! Torque control:
+   CALL Torque_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat2, ErrMsg2 )      !  calculates ElecPwr, which Pitch_CalcOutput will use in the user pitch routine  
+      CALL CheckError( ErrStat2, ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
 
-!   CALL Gen_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )         -> calculate ElecPwr, which Pitch_CalcOutput will use (user pitch?)???
+      ! Pitch control:
+   CALL Pitch_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat2, ErrMsg2 )  
+      CALL CheckError( ErrStat2, ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+      ! Yaw control: 
+   CALL Yaw_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat2, ErrMsg2 )      
+      CALL CheckError( ErrStat2, ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
          
-      ! Pitch control         
-   !CALL Pitch_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )  
-   
-   
-      ! Yaw control 
-   !CALL Yaw_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )      
-         
-   
       ! Tip brake control: 
-   CALL TipBrake_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )      
+   CALL TipBrake_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat2, ErrMsg2 )      
+      CALL CheckError( ErrStat2, ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
    
    
       ! Calculate all of the available output channels:
@@ -564,11 +573,12 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    AllOuts(GenTq) = 0.001*y%GenTrq
    AllOuts(GenPwr) = 0.001*y%ElecPwr
    AllOuts(HSSBrTq) = 0.001*y%HSSBrTrq
-   AllOuts(YawMomCom) = y%YawMom
 
    DO K=1,p%NumBl
       AllOuts( BlPitchC(K) ) = y%BlPitchCom(K)
-   END DO          
+   END DO        
+   
+   AllOuts(YawMomCom) = y%YawMom
    
    !...............................................................................................................................   
    ! Place the selected output channels into the WriteOutput(:) array with the proper sign:
@@ -580,7 +590,39 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    ENDDO             ! I - All selected output channels
    
-   
+   RETURN
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError        
+   !...............................................................................................................................
 END SUBROUTINE SrvD_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SrvD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
@@ -1330,6 +1372,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, NumBl, ErrStat, ErrMsg )
    IF ( InputFileData%SpdGenOn < 0.0_ReKi ) CALL SetErrors( ErrID_Fatal, 'SpdGenOn must not be negative.' )
    IF ( InputFileData%TimGenOn < 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TimGenOn must not be negative.' )
    IF ( InputFileData%TimGenOf < 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TimGenOf must not be negative.' )
+!   IF ( InputFileData%TimGenOf < InputFileData%TimGenOn ) CALL SetErrors( ErrID_Fatal, 'TimGenOf must not be before TimGenOn.')
    IF ( InputFileData%GenEff   < 0.0_ReKi  .OR.  InputFileData%GenEff > 1.0_ReKi )  THEN
       CALL SetErrors( ErrID_Fatal, 'GenEff must be in the range [0, 1] (i.e., [0, 100] percent)' )
    END IF
@@ -1467,8 +1510,6 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    p%SpdGenOn  = InputFileData%SpdGenOn
    p%TimGenOn  = InputFileData%TimGenOn
          
-   !p%TOff4Good = HUGE(p%TOff4Good)  ! not off for good
-   !p%TGenOnLine= HUGE(p%TGenOnLine) ! never been online
    
    IF ( Cmpl4SFun .OR. Cmpl4LV ) THEN
       p%TimGenOf = HUGE( p%TimGenOf ) 
@@ -1799,21 +1840,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 2
             
          CASE ( ControlMode_User )              ! User-defined from routine PitchCntrl().
 
-
-         !   ! Calculate tower-top acceleration (fore-aft mode only) in the tower-top
-         !   !   system:
-         !
-         !      LinAccEO = OtherState_ED%RtHS%LinAccEOt
-         !      DO I = 1,p_ED%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
-         !         LinAccEO = LinAccEO + OtherState_ED%RtHS%PLinVelEO(p_ED%DOFs%PTE(I),0,:)*OtherState_ED%QD2T(p_ED%DOFs%PTE(I))
-         !      ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
-         !
-         !      TwrAccel = DOT_PRODUCT( LinAccEO, OtherState_ED%CoordSys%b1 )
-         !
-         !
-         !   ! Call the user-defined pitch control routine:
-         !
-         !      CALL PitchCntrl ( u%BlPitch, y%ElecPwr, u%LSS_Spd, TwrAccel, p%NumBl, t, p%DT, p%RootName, y%BlPitchCom )
+            CALL PitchCntrl ( u%BlPitch, y%ElecPwr, u%LSS_Spd, u%TwrAccel, p%NumBl, t, p%DT, p%RootName, y%BlPitchCom )
 
       CASE ( ControlMode_Extern )              ! User-defined from Simulink or Labview.
 
@@ -2116,6 +2143,254 @@ CONTAINS
    !-------------------------------------------------------------------------------------------------------------------------------   
 END SUBROUTINE TipBrake_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Torque_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
+! This routine calculates the drive-train torque outputs: GenTrq, ElecPwr, and HSSBrTrq
+!..................................................................................................................................
+
+   REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
+   TYPE(SrvD_InputType),           INTENT(IN   )  :: u           ! Inputs at t
+   TYPE(SrvD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+   TYPE(SrvD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
+   TYPE(SrvD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
+   TYPE(SrvD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
+   TYPE(SrvD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
+   TYPE(SrvD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at t (Input only so that mesh con-
+                                                                 !   nectivity information does not have to be recalculated)
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+
+      ! Local variables:
+
+   COMPLEX(ReKi)                :: Current1                                        ! Current passing through the stator (amps)
+   COMPLEX(ReKi)                :: Current2                                        ! Current passing through the rotor (amps)
+   COMPLEX(ReKi)                :: Currentm                                        ! Magnitizing current (amps)
+
+   REAL(ReKi)                   :: ComDenom                                        ! Common denominator of variables used in the TEC model
+   REAL(ReKi)                   :: HSSBrFrac                                       ! Fraction of full braking torque {0 (off) <= HSSBrFrac <= 1 (full)} (-)
+   REAL(ReKi)                   :: PwrLossS                                        ! Power loss in the stator (watts)
+   REAL(ReKi)                   :: PwrLossR                                        ! Power loss in the rotor (watts)
+   REAL(ReKi)                   :: PwrMech                                         ! Mechanical power (watts)
+   REAL(ReKi)                   :: Slip                                            ! Generator slip.
+   REAL(ReKi)                   :: SlipRat                                         ! Generator slip ratio.
+
+   LOGICAL                      :: GenOnLine                                       ! Is the generator online?
+
+
+INTEGER(IntKi), PARAMETER :: ControlMode_None   = 0
+INTEGER(IntKi), PARAMETER :: ControlMode_Simple = 1
+INTEGER(IntKi), PARAMETER :: ControlMode_User   = 2
+INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
+
+
+      ! Initialize variables
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+
+
+      ! See if the generator is on line.
+   GenOnLine = .FALSE.
+   
+   IF (  t <= OtherState%TOff4Good )  THEN
+
+      OtherState%TOff4Good = HUGE(OtherState%TOff4Good)  ! reset when the generator went off for good
+      
+      ! The generator is either on-line or has never been turned online.
+
+      IF ( t >= OtherState%TGenOnLine )  THEN   ! The generator is on-line.
+
+         IF ( ( p%GenTiStp ) .AND. ( t >= p%TimGenOf ) )  THEN   ! Shut-down of generator determined by time, TimGenOf
+            OtherState%TOff4Good = t
+         ELSE
+            GenOnLine = .TRUE.
+         ENDIF
+
+      ELSE                    ! The generator has never been turned online.
+
+         IF ( p%GenTiStr )  THEN   ! Start-up of generator determined by time, TimGenOn
+            IF ( t >= p%TimGenOn )  THEN
+               GenOnLine = .TRUE.
+               OtherState%TGenOnLine = t
+            ELSE
+               OtherState%TGenOnLine = HUGE(OtherState%TGenOnLine) !reset the first time the generator has been online
+            END IF
+         ELSE                    ! Start-up of generator determined by HSS speed, SpdGenOn
+            IF ( u%HSS_Spd >= p%SpdGenOn )  THEN
+               GenOnLine = .TRUE.
+               OtherState%TGenOnLine = t
+            ELSE
+               OtherState%TGenOnLine = HUGE(OtherState%TGenOnLine)  !reset the first time the generator has been online
+            END IF
+         ENDIF
+
+      ENDIF
+
+   ENDIF
+
+
+   IF ( GenOnLine )  THEN                    ! Generator is on line.
+
+
+      ! Are we doing simple variable-speed control, or using a generator model?
+
+      SELECT CASE ( p%VSContrl )               ! Are we using variable-speed control?
+
+         CASE ( ControlMode_None )                ! No variable-speed control.  Using a generator model.
+
+
+            SELECT CASE ( p%GenModel )            ! Which generator model are we using?
+
+               CASE ( 1_IntKi )                          ! Simple induction-generator model.
+
+
+                  Slip = u%HSS_Spd - p%SIG_SySp
+
+                  IF ( ABS( Slip ) > p%SIG_POSl  )  THEN
+                     y%GenTrq  = SIGN( p%SIG_POTq, Slip )
+                  ELSE
+                     y%GenTrq  = Slip*p%SIG_Slop
+                  ENDIF
+                  !GenTrq     = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
+
+
+            ! The generator efficiency is either additive for motoring,
+            !   or subtractive for generating power.
+
+                  IF ( y%GenTrq > 0.0 )  THEN
+                     y%ElecPwr = y%GenTrq * u%HSS_Spd * p%GenEff
+                  ELSE
+                     y%ElecPwr = y%GenTrq * u%HSS_Spd / p%GenEff
+                  ENDIF
+
+
+               CASE ( 2_IntKi )                          ! Thevenin-equivalent generator model.
+
+
+                  SlipRat  = ( u%HSS_Spd - p%TEC_SySp )/p%TEC_SySp
+
+                  y%GenTrq  = p%TEC_A0*(p%TEC_VLL**2)*SlipRat &
+                             /( p%TEC_C0 + p%TEC_C1*SlipRat + p%TEC_C2*(SlipRat**2) )
+
+                  ComDenom  = ( p%TEC_Re1 - p%TEC_RRes/SlipRat )**2 + ( p%TEC_Xe1 + p%TEC_RLR )**2
+                  Current2  = CMPLX(  p%TEC_V1a*( p%TEC_Re1 - p%TEC_RRes/SlipRat )/ComDenom , &
+                                     -p%TEC_V1a*( p%TEC_Xe1 + p%TEC_RLR          )/ComDenom     )
+                  Currentm  = CMPLX( 0.0_ReKi , -p%TEC_V1a/p%TEC_MR )
+                  Current1  = Current2 + Currentm
+                  PwrLossS  = 3.0*( ( ABS( Current1 ) )**2 )*p%TEC_SRes
+                  PwrLossR  = 3.0*( ( ABS( Current2 ) )**2 )*p%TEC_RRes
+                  PwrMech   = y%GenTrq*u%HSS_Spd
+                  y%ElecPwr = PwrMech - PwrLossS - PwrLossR
+
+
+               CASE ( 3_IntKi )                          ! User-defined generator model.
+
+
+         !        CALL UserGen ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+                  CALL UserGen ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, p%DT, p%GenEff, 0.0_ReKi, p%RootName, y%GenTrq, y%ElecPwr )
+
+            END SELECT
+
+
+         CASE ( ControlMode_Simple )              ! Simple variable-speed control.
+
+
+         ! Compute the generator torque, which depends on which region we are in:
+
+            IF ( u%HSS_Spd >= p%VS_RtGnSp )  THEN      ! We are in region 3 - torque is constant
+               y%GenTrq = p%VS_RtTq
+            ELSEIF ( u%HSS_Spd < p%VS_TrGnSp )  THEN   ! We are in region 2 - torque is proportional to the square of the generator speed
+               y%GenTrq = p%VS_Rgn2K* (u%HSS_Spd**2)
+            ELSE                                   ! We are in region 2 1/2 - simple induction generator transition region
+               y%GenTrq = p%VS_Slope*( u%HSS_Spd - p%VS_SySp )
+            ENDIF
+
+            !GenTrq  = GenTrq + DelGenTrq  ! Add the pertubation on generator torque, DelGenTrq.  This is used only for FAST linearization (it is zero otherwise).
+
+
+         ! It's not possible to motor using this control scheme,
+         !   so the generator efficiency is always subtractive.
+
+            y%ElecPwr = y%GenTrq*u%HSS_Spd*p%GenEff
+
+
+         CASE ( ControlMode_User )                              ! User-defined variable-speed control for routine UserVSCont().
+
+
+      !      CALL UserVSCont ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, DT, p%GenEff, DelGenTrq, DirRoot, GenTrq, ElecPwr )
+            CALL UserVSCont ( u%HSS_Spd, u%LSS_Spd, p%NumBl, t, p%DT, p%GenEff, 0.0_ReKi, p%RootName, y%GenTrq, y%ElecPwr )
+
+
+         CASE ( ControlMode_Extern )                             ! User-defined variable-speed control from Simulink or Labview.
+
+            y%GenTrq  = u%ExternalGenTrq
+            y%ElecPwr = u%ExternalElecPwr
+
+      END SELECT
+
+
+      ! Lets turn the generator offline for good if ( GenTiStp = .FALSE. ) .AND. ( ElecPwr <= 0.0 ):
+
+      IF ( ( .NOT. p%GenTiStp ) .AND. ( y%ElecPwr <= 0.0_ReKi ) ) THEN   ! Shut-down of generator determined by generator power = 0
+         y%GenTrq   = 0.0
+         y%ElecPwr  = 0.0
+
+         OtherState%TOff4Good = t
+      ENDIF
+
+   ELSE                                     ! Generator is off line.
+
+      y%GenTrq  = 0.0
+      y%ElecPwr = 0.0
+
+   ENDIF
+
+
+   !.................................................................................
+   ! Calculate the fraction of applied HSS-brake torque, HSSBrFrac:
+   !.................................................................................
+
+   IF ( t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
+
+      HSSBrFrac = 0.0
+
+   ELSE                             ! HSS brake deployed.
+
+
+      SELECT CASE ( p%HSSBrMode )                 ! Which HSS brake model are we using?
+
+      CASE ( ControlMode_Simple )                 ! Simple built-in HSS brake model with linear ramp.
+
+         IF ( t < p%THSSBrFl )  THEN ! Linear ramp
+            HSSBrFrac = ( t - p%THSSBrDp )/p%HSSBrDT
+         ELSE                        ! Full braking torque
+            HSSBrFrac = 1.0
+         ENDIF
+
+      CASE ( ControlMode_User )                   ! User-defined HSS brake model.
+
+         CALL UserHSSBr ( y%GenTrq, y%ElecPwr, u%HSS_Spd, p%NumBl, t, p%DT, p%RootName, HSSBrFrac )
+
+         IF ( ( HSSBrFrac < 0.0_ReKi ) .OR. ( HSSBrFrac > 1.0_ReKi ) )  THEN   ! 0 (off) <= HSSBrFrac <= 1 (full); else Abort.
+            ErrStat = ErrID_Fatal
+            ErrMsg  = 'HSSBrFrac must be between 0.0 (off) and 1.0 (full) (inclusive).  Fix logic in routine UserHSSBr().'
+            RETURN
+         END IF
+
+      CASE ( ControlMode_Extern )                 ! HSS brake model from Labview.
+
+         HSSBrFrac = u%ExternalHSSBrFrac
+
+      ENDSELECT
+
+
+   ENDIF
+
+
+      ! Calculate the magnitude of HSS brake torque:
+
+   y%HSSBrTrq = SIGN( HSSBrFrac*p%HSSBrTqF, u%HSS_Spd )  ! Scale the full braking torque by the brake torque fraction and make sure the brake torque resists motion.
+
+   RETURN
+END SUBROUTINE Torque_CalcOutput
 
 END MODULE ServoDyn
 !**********************************************************************************************************************************
