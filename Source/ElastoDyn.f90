@@ -1757,13 +1757,30 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    FrcONcRt   = OtherState%RtHS%FrcONcRtt
    FrcPRot    = OtherState%RtHS%FrcPRott
    FrcT0Trb   = OtherState%RtHS%FrcT0Trbt
-   FZHydro    = OtherState%RtHS%FZHydrot
+   
+   ! was FZHydro    = OtherState%RtHS%FZHydrot
+   FZHydro    = u%PtfmFt(DOF_Sg)*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
+              + u%PtfmFt(DOF_Sw)*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
+              + u%PtfmFt(DOF_Hv)*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
+   
    MomBNcRt   = OtherState%RtHS%MomBNcRtt
    MomLPRot   = OtherState%RtHS%MomLPRott
    MomNGnRt   = OtherState%RtHS%MomNGnRtt
    MomNTail   = OtherState%RtHS%MomNTailt
    MomX0Trb   = OtherState%RtHS%MomX0Trbt
-   MXHydro    = OtherState%RtHS%MXHydrot
+   
+   ! was MXHydro = OtherState%RtHS%MXHydrot
+   MXHydro    = u%PtfmFt(DOF_R )*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
+              + u%PtfmFt(DOF_P )*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
+              + u%PtfmFt(DOF_Y )*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
+   
+
+   
+   
+   
+   
+   
+   
 
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
       AngAccEB   = AngAccEB   + OtherState%RtHS%PAngVelEB  (p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))
@@ -1782,8 +1799,18 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    DO I = 1,p%DOFs%NPYE     ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
       AngAccEX   = AngAccEX   + OtherState%RtHS%PAngVelEX  (p%DOFs%PYE  (I),0,:)*OtherState%QD2T(p%DOFs%PYE  (I))
       LinAccEZ   = LinAccEZ   + OtherState%RtHS%PLinVelEZ  (p%DOFs%PYE  (I),0,:)*OtherState%QD2T(p%DOFs%PYE  (I))
-      FZHydro    = FZHydro    + OtherState%RtHS%PFZHydro   (p%DOFs%PYE  (I),  :)*OtherState%QD2T(p%DOFs%PYE  (I))
-      MXHydro    = MXHydro    + OtherState%RtHS%PMXHydro   (p%DOFs%PYE  (I),  :)*OtherState%QD2T(p%DOFs%PYE  (I))
+      
+      
+      FZHydro    = FZHydro    + (- u%PtfmAddedMass(DOF_Sg,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:)   &  ! was  FZHydro = FZHydro + OtherState%RtHS%PFZHydro(p%DOFs%PYE(I),:)*OtherState%QD2T(p%DOFs%PYE  (I))
+                                 - u%PtfmAddedMass(DOF_Sw,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:)   &
+                                 - u%PtfmAddedMass(DOF_Hv,p%DOFs%PYE(I))*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:) ) &
+                                *OtherState%QD2T(p%DOFs%PYE  (I))                 
+      ! was MXHydro = MXHydro    +  OtherState%RtHS%PMXHydro   (p%DOFs%PYE  (I),  :)*OtherState%QD2T(p%DOFs%PYE  (I))
+      MXHydro    = MXHydro    +  (- u%PtfmAddedMass(DOF_R ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_R ,0,:)   &
+                                  - u%PtfmAddedMass(DOF_P ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_P ,0,:)   &
+                                  - u%PtfmAddedMass(DOF_Y ,p%DOFs%PYE(I))*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:) ) &       
+                                *OtherState%QD2T(p%DOFs%PYE  (I))
+      
    ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
 
 
@@ -2196,10 +2223,6 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    y%AllOuts( HSShftTq) = y%AllOuts(LSShftMxa)*OtherState%RtHS%GBoxEffFac/ABS(p%GBRatio)
    y%AllOuts(HSShftPwr) = y%AllOuts( HSShftTq)*ABS(p%GBRatio)*x%QDT(DOF_GeAz)
-
-   !y%AllOuts(  HSSBrTq) = 0
-   !y%AllOuts(    GenTq) = 0
-   !y%AllOuts(   GenPwr) = 0
    
    
    !IF ( .NOT. EqualRealNos( ComDenom, 0.0_ReKi ) )  THEN  ! .TRUE. if the denominator in the following equations is not zero (ComDenom is the same as it is calculated above).
@@ -4135,75 +4158,30 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
    INTEGER(IntKi),   PARAMETER              :: Dims = 3                     ! The position arrays all must be allocated with a dimension for X,Y,and Z
 
 
-   CALL AllocAry( RtHS%LinVelET, p%TwrNodes,         Dims, 'LinVelET',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%AngVelEF, p%TwrNodes,         Dims, 'AngVelEF',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN      
-   CALL AllocAry( RtHS%AngPosEF, p%TwrNodes,         Dims, 'AngPosEF',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%AngPosXF, p%TwrNodes,         Dims, 'AngPosXF',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%LinAccESt,p%NumBl, p%TipNode, Dims, 'LinAccESt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%LinAccETt,p%TwrNodes,         Dims, 'LinAccETt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PFrcS0B,  p%NumBl,p%NDOF,     Dims, 'PFrcS0B',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%FrcS0Bt,  p%NumBl,            Dims, 'FrcS0Bt',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomH0B,  p%NumBl, p%NDOF,    Dims, 'PMomH0B',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%MomH0Bt,  p%NumBl,            Dims, 'MomH0Bt',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PFrcPRot,  p%NDOF,            Dims, 'PFrcPRot',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomLPRot, p%NDOF,            Dims, 'PMomLPRot', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomNGnRt, p%NDOF,            Dims, 'PMomNGnRt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%PMomNTail, p%NDOF,            Dims, 'PMomNTail', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%PFrcONcRt, p%NDOF,            Dims, 'PFrcONcRt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%PMomBNcRt, p%NDOF,            Dims, 'PMomBNcRt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%PFrcT0Trb, p%NDOF,            Dims, 'PFrcT0Trb', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%PMomX0Trb, p%NDOF,            Dims, 'PMomX0Trb', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%FSAero,    p%NumBl,p%BldNodes,Dims, 'FSAero',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%MMAero,    p%NumBl,p%BldNodes,Dims, 'MMAero',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%FSTipDrag, p%NumBl,           Dims, 'FSTipDrag', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%rS,        p%NumBl,p%TipNode, Dims, 'rS',        ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%rS0S,      p%NumBl,p%TipNode, Dims, 'rS0S',      ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%AngPosHM,  p%NumBl,p%TipNode, Dims, 'AngPosHM',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%FTAero,    p%TwrNodes,        Dims, 'FTAero',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%MFAero,    p%TwrNodes,        Dims, 'MFAero',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%PFTHydro,  p%TwrNodes, p%NDOF,Dims, 'PFTHydro',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%PMFHydro,  p%TwrNodes, p%NDOF,Dims, 'PMFHydro',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%FTHydrot,  p%TwrNodes,        Dims, 'FTHydrot',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
-   CALL AllocAry( RtHS%MFHydrot,  p%TwrNodes,        Dims, 'MFHydrot',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN   
+      ! positions:      
    CALL AllocAry( RtHS%rZT,       p%TwrNodes,        Dims, 'rZT',       ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN   
    CALL AllocAry( RtHS%rT,        p%TwrNodes,        Dims, 'rT',        ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN   
    CALL AllocAry( RtHS%rT0T,      p%TwrNodes,        Dims, 'rT0T',      ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN   
-   
+   CALL AllocAry( RtHS%rQS,       p%NumBl,p%TipNode, Dims, 'rQS',       ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%rS,        p%NumBl,p%TipNode, Dims, 'rS',        ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%rS0S,      p%NumBl,p%TipNode, Dims, 'rS0S',      ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
 
-      ! These are allocated to start numbering a dimension with 0 instead of 1:
+      ! angular velocities (including partial angular velocities):
+   CALL AllocAry( RtHS%AngVelEF, p%TwrNodes,         Dims, 'AngVelEF',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN      
+   CALL AllocAry( RtHS%AngPosEF, p%TwrNodes,         Dims, 'AngPosEF',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%AngPosXF, p%TwrNodes,         Dims, 'AngPosXF',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   
+   
+         ! These angular velocities are allocated to start numbering a dimension with 0 instead of 1:
    ALLOCATE ( RtHS%PAngVelEB(p%NDOF,0:1,Dims) , STAT=ErrStat )
    IF ( ErrStat /= 0_IntKi )  THEN
       ErrStat = ErrID_Fatal
@@ -4224,6 +4202,60 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
       ErrMsg = ' Error allocating memory for the PAngVelEX array.' 
       RETURN
    ENDIF
+
+   ALLOCATE ( RtHS%PAngVelEA(p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelEA array.' 
+      RETURN
+   ENDIF
+
+   ALLOCATE ( RtHS%PAngVelEF(p%TwrNodes,       p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelEF array.' 
+      RETURN
+   ENDIF
+   ALLOCATE ( RtHS%PAngVelEG(                  p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelEG array.' 
+      RETURN
+   ENDIF
+   ALLOCATE ( RtHS%PAngVelEH(                  p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelEH array.' 
+      RETURN
+   ENDIF
+   ALLOCATE ( RtHS%PAngVelEL(                  p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelEL array.' 
+      RETURN
+   ENDIF
+   ALLOCATE ( RtHS%PAngVelEM(p%NumBl,p%TipNode,p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelEM array.' 
+      RETURN
+   ENDIF
+   ALLOCATE ( RtHS%PAngVelEN(                  p%NDOF,0:1,Dims) , STAT=ErrStat )
+   IF ( ErrStat /= 0_IntKi )  THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg = ' Error allocating memory for the PAngVelEN array.' 
+      RETURN
+   ENDIF
+   
+      ! angular accelerations:
+   CALL AllocAry( RtHS%AngAccEFt, p%TwrNodes,        Dims, 'AngAccEFt',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+
+      ! linear velocities (including partial linear velocities):
+   CALL AllocAry( RtHS%LinVelET, p%TwrNodes,         Dims, 'LinVelET',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   
+            ! These linear velocities are allocated to start numbering a dimension with 0 instead of 1:
 
    ALLOCATE ( RtHS%PLinVelEIMU(p%NDOF,0:1,Dims) , STAT=ErrStat )
    IF ( ErrStat /= 0_IntKi )  THEN
@@ -4259,6 +4291,60 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
       ErrMsg = ' Error allocating memory for the PLinVelEZ array.' 
       RETURN
    ENDIF
+
+      ! ....   
+   
+   
+   CALL AllocAry( RtHS%LinAccESt,p%NumBl, p%TipNode, Dims, 'LinAccESt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%LinAccETt,p%TwrNodes,         Dims, 'LinAccETt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcS0B,  p%NumBl,p%NDOF,     Dims, 'PFrcS0B',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%FrcS0Bt,  p%NumBl,            Dims, 'FrcS0Bt',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomH0B,  p%NumBl, p%NDOF,    Dims, 'PMomH0B',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%MomH0Bt,  p%NumBl,            Dims, 'MomH0Bt',   ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcPRot,  p%NDOF,            Dims, 'PFrcPRot',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomLPRot, p%NDOF,            Dims, 'PMomLPRot', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomNGnRt, p%NDOF,            Dims, 'PMomNGnRt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PMomNTail, p%NDOF,            Dims, 'PMomNTail', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PFrcONcRt, p%NDOF,            Dims, 'PFrcONcRt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PMomBNcRt, p%NDOF,            Dims, 'PMomBNcRt', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PFrcT0Trb, p%NDOF,            Dims, 'PFrcT0Trb', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PMomX0Trb, p%NDOF,            Dims, 'PMomX0Trb', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%FSAero,    p%NumBl,p%BldNodes,Dims, 'FSAero',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%MMAero,    p%NumBl,p%BldNodes,Dims, 'MMAero',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%FSTipDrag, p%NumBl,           Dims, 'FSTipDrag', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%AngPosHM,  p%NumBl,p%TipNode, Dims, 'AngPosHM',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%FTAero,    p%TwrNodes,        Dims, 'FTAero',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%MFAero,    p%TwrNodes,        Dims, 'MFAero',    ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PFTHydro,  p%TwrNodes, p%NDOF,Dims, 'PFTHydro',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%PMFHydro,  p%TwrNodes, p%NDOF,Dims, 'PMFHydro',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%FTHydrot,  p%TwrNodes,        Dims, 'FTHydrot',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   CALL AllocAry( RtHS%MFHydrot,  p%TwrNodes,        Dims, 'MFHydrot',  ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN   
+   
+
    
 END SUBROUTINE Alloc_RtHS
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -10286,7 +10372,178 @@ SUBROUTINE TFurling( t, p, TFrlDef, TFrlRate, TFrlMom )
 
    RETURN
 END SUBROUTINE TFurling
+!----------------------------------------------------------------------------------------------------------------------------------
+FUNCTION SignLSSTrq( p, OtherState )
+! This function calculates the sign (+/-1) of the low-speed shaft torque for
+   !   this time step.  MomLPRot is the moment on the
+   !   low-speed shaft at the teeter pin caused by the rotor.
+
+      ! Passed variables
+
+   TYPE(ED_ParameterType),  INTENT(IN)  :: p                 ! Parameters
+   TYPE(ED_OtherStateType), INTENT(IN)  :: OtherState        ! Initial other/optimization states
+
+   INTEGER(IntKi)                       :: SignLSSTrq        ! The sign of the LSS_Trq, output from this function
+   
+      ! Local variables
+
+   REAL(ReKi)                           :: MomLPRot  (3)     ! The total moment on the low-speed shaft at point P caused by the rotor.
+   INTEGER(IntKi)                       :: I                 ! loop counter
+
+
+   MomLPRot = OtherState%RtHS%MomLPRott ! Initialize MomLPRot using MomLPRott
+   DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
+
+      MomLPRot = MomLPRot + OtherState%RtHS%PMomLPRot(p%DOFs%SrtPS(I),:)*OtherState%QD2T(p%DOFs%SrtPS(I))  ! Add the moments associated with the accelerations of the DOFs
+
+   ENDDO             ! I - All active (enabled) DOFs
+
+      ! MomLProt has now been found.  Now dot this with e1 to get the
+      !   low-speed shaft torque and take the SIGN of the result:
+
+   SignLSSTrq = NINT( SIGN( 1.0_ReKi, DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e1 ) ) )
+
+END FUNCTION SignLSSTrq
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
+! This routine is used to calculate the positions stored in other states that are used in both the
+! CalcOutput and CalcContStateDeriv routines.
+!..................................................................................................................................
+
+      ! Passed variables
+   TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
+   TYPE(ED_CoordSys),            INTENT(IN   )  :: CoordSys    ! The coordinate systems that have been set for these states/time
+   TYPE(ED_RtHndSide),           INTENT(INOUT)  :: RtHSdat     ! data from the RtHndSid module (contains positions to be set)
+
+      !Local variables
+   REAL(ReKi)                   :: rK        (3)                                   ! Position vector from inertial frame origin to tail fin center of pressure (point K).
+   REAL(ReKi)                   :: rQ        (3)                                   ! Position vector from inertial frame origin to apex of rotation (point Q).
+
+   INTEGER(IntKi)               :: J                                               ! Counter for elements
+   INTEGER(IntKi)               :: K                                               ! Counter for blades
+
+      !-------------------------------------------------------------------------------------------------
+      ! Positions
+      !-------------------------------------------------------------------------------------------------
+
+      ! Define the position vectors between the various points on the wind turbine
+      !   that are not dependent on the distributed tower or blade parameters:
+
+   RtHSdat%rZ    = x%QT(DOF_Sg)* CoordSys%z1 + x%QT(DOF_Hv)* CoordSys%z2 - x%QT(DOF_Sw)* CoordSys%z3                          ! Position vector from inertia frame origin to platform reference (point Z).
+   RtHSdat%rZY   = p%rZYzt*  CoordSys%a2                                                                                      ! Position vector from platform reference (point Z) to platform mass center (point Y).
+   RtHSdat%rZT0  = p%rZT0zt* CoordSys%a2                                                                                      ! Position vector from platform reference (point Z) to tower base (point T(0))
+   RtHSdat%rZO   = ( x%QT(DOF_TFA1) + x%QT(DOF_TFA2)                                                        )*CoordSys%a1 &   ! Position vector from platform reference (point Z) to tower-top / base plate (point O).
+                    + ( p%RefTwrHt - 0.5*(      p%AxRedTFA(1,1,p%TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
+                                          +     p%AxRedTFA(2,2,p%TTopNode)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
+                                          + 2.0*p%AxRedTFA(1,2,p%TTopNode)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
+                                          +     p%AxRedTSS(1,1,p%TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS1) &
+                                          +     p%AxRedTSS(2,2,p%TTopNode)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
+                                          + 2.0*p%AxRedTSS(1,2,p%TTopNode)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*CoordSys%a2 &
+                    + ( x%QT(DOF_TSS1) + x%QT(DOF_TSS2)                                                      )*CoordSys%a3
+   RtHSdat%rOU   =   p%NacCMxn*CoordSys%d1  +  p%NacCMzn  *CoordSys%d2  -  p%NacCMyn  *CoordSys%d3                            ! Position vector from tower-top / base plate (point O) to nacelle center of mass (point U).
+   RtHSdat%rOV   = p%RFrlPntxn*CoordSys%d1  +  p%RFrlPntzn*CoordSys%d2  -  p%RFrlPntyn*CoordSys%d3                            ! Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V).
+   RtHSdat%rVIMU =   p%rVIMUxn*CoordSys%rf1 +  p%rVIMUzn  *CoordSys%rf2 -   p%rVIMUyn *CoordSys%rf3                           ! Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU).
+   RtHSdat%rVD   =     p%rVDxn*CoordSys%rf1 +    p%rVDzn  *CoordSys%rf2 -     p%rVDyn *CoordSys%rf3                           ! Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D).
+   RtHSdat%rVP   =     p%rVPxn*CoordSys%rf1 +    p%rVPzn  *CoordSys%rf2 -     p%rVPyn *CoordSys%rf3 + p%OverHang*CoordSys%c1  ! Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P).
+   RtHSdat%rPQ   = -p%UndSling*CoordSys%g1                                                                                    ! Position vector from teeter pin (point P) to apex of rotation (point Q).
+   RtHSdat%rQC   =     p%HubCM*CoordSys%g1                                                                                    ! Position vector from apex of rotation (point Q) to hub center of mass (point C).
+   RtHSdat%rOW   = p%TFrlPntxn*CoordSys%d1  + p%TFrlPntzn *CoordSys%d2 -  p%TFrlPntyn*CoordSys%d3                             ! Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W).
+   RtHSdat%rWI   =     p%rWIxn*CoordSys%tf1 +      p%rWIzn*CoordSys%tf2 -     p%rWIyn*CoordSys%tf3                            ! Position vector from specified point on  tail-furl axis (point W) to tail boom center of mass     (point I).
+   RtHSdat%rWJ   =     p%rWJxn*CoordSys%tf1 +      p%rWJzn*CoordSys%tf2 -     p%rWJyn*CoordSys%tf3                            ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J).
+   RtHSdat%rWK   =     p%rWKxn*CoordSys%tf1 +      p%rWKzn*CoordSys%tf2 -     p%rWKyn*CoordSys%tf3                            ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K).
+   RtHSdat%rPC   = RtHSdat%rPQ + RtHSdat%rQC                                                                                  ! Position vector from teeter pin (point P) to hub center of mass (point C).
+   RtHSdat%rT0O  = RtHSdat%rZO - RtHSdat%rZT0                                                                                 ! Position vector from the tower base (point T(0)) to tower-top / base plate (point O).
+   RtHSdat%rO    = RtHSdat%rZ  + RtHSdat%rZO                                                                                  ! Position vector from inertial frame origin to tower-top / base plate (point O).
+   RtHSdat%rV    = RtHSdat%rO  + RtHSdat%rOV                                                                                  ! Position vector from inertial frame origin to specified point on rotor-furl axis (point V)
+   !RtHSdat%rP    = RtHSdat%rO  + RtHSdat%rOV + RtHSdat%rVP                                                                   ! Position vector from inertial frame origin to teeter pin (point P).
+   RtHSdat%rP    = RtHSdat%rV  + RtHSdat%rVP                                                                                  ! Position vector from inertial frame origin to teeter pin (point P).
+           rQ    = RtHSdat%rP  + RtHSdat%rPQ                                                                                  ! Position vector from inertial frame origin to apex of rotation (point Q).
+           rK    = RtHSdat%rO  + RtHSdat%rOW + RtHSdat%rWK                                                                    ! Position vector from inertial frame origin to tail fin center of pressure (point K).
+
+
+   DO K = 1,p%NumBl ! Loop through all blades
+
+
+
+      ! Calculate the position vector of the tip:
+
+      RtHSdat%rS0S(K,p%TipNode,:) = ( p%TwistedSF(K,1,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &                                       ! Position vector from the blade root (point S(0)) to the blade tip (point S(p%BldFlexL)).
+                                    + p%TwistedSF(K,1,2,p%TipNode,0)*x%QT( DOF_BF(K,2) ) &
+                                    + p%TwistedSF(K,1,3,p%TipNode,0)*x%QT( DOF_BE(K,1) )                     )*CoordSys%j1(K,:) &
+                                  + ( p%TwistedSF(K,2,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &
+                                    + p%TwistedSF(K,2,2,p%TipNode,0)*x%QT( DOF_BF(K,2) ) &
+                                    + p%TwistedSF(K,2,3,p%TipNode,0)*x%QT( DOF_BE(K,1) )                     )*CoordSys%j2(K,:) &
+                                  + ( p%BldFlexL - 0.5* &
+                                  (      p%AxRedBld(K,1,1,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,1) ) &
+                                    +    p%AxRedBld(K,2,2,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BF(K,2) ) &
+                                    +    p%AxRedBld(K,3,3,p%TipNode)*x%QT( DOF_BE(K,1) )*x%QT( DOF_BE(K,1) ) &
+                                    + 2.*p%AxRedBld(K,1,2,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
+                                    + 2.*p%AxRedBld(K,2,3,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
+                                    + 2.*p%AxRedBld(K,1,3,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) ) ) )*CoordSys%j3(K,:)
+      RtHSdat%rQS (K,p%TipNode,:) = RtHSdat%rS0S(K,p%TipNode,:) + p%HubRad*CoordSys%j3(K,:)                                      ! Position vector from apex of rotation (point Q) to the blade tip (point S(p%BldFlexL)).
+      RtHSdat%rS  (K,p%TipNode,:) = RtHSdat%rQS (K,p%TipNode,:) + rQ                                                             ! Position vector from inertial frame origin      to the blade tip (point S(p%BldFlexL)).
+
+
+      DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
+
+
+      ! Calculate the position vector of the current node:
+
+         RtHSdat%rS0S(K,J,:) = (  p%TwistedSF(K,1,1,J,0)*x%QT( DOF_BF(K,1) ) &                                                   ! Position vector from the blade root (point S(0)) to the current node (point S(RNodes(J)).
+                                + p%TwistedSF(K,1,2,J,0)*x%QT( DOF_BF(K,2) ) &
+                                + p%TwistedSF(K,1,3,J,0)*x%QT( DOF_BE(K,1) )                          )*CoordSys%j1(K,:) &
+                            + (   p%TwistedSF(K,2,1,J,0)*x%QT( DOF_BF(K,1) ) &
+                                + p%TwistedSF(K,2,2,J,0)*x%QT( DOF_BF(K,2) ) &
+                                + p%TwistedSF(K,2,3,J,0)*x%QT( DOF_BE(K,1) )                          )*CoordSys%j2(K,:) &
+                            + (  p%RNodes(J) - 0.5* &
+                              (      p%AxRedBld(K,1,1,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,1) ) &
+                               +     p%AxRedBld(K,2,2,J)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BF(K,2) ) &
+                               +     p%AxRedBld(K,3,3,J)*x%QT( DOF_BE(K,1) )*x%QT( DOF_BE(K,1) ) &
+                               + 2.0*p%AxRedBld(K,1,2,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
+                               + 2.0*p%AxRedBld(K,2,3,J)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
+                               + 2.0*p%AxRedBld(K,1,3,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )    ) )*CoordSys%j3(K,:)
+         RtHSdat%rQS (K,J,:) = RtHSdat%rS0S(K,J,:) + p%HubRad*CoordSys%j3(K,:)                                                ! Position vector from apex of rotation (point Q) to the current node (point S(RNodes(J)).
+         RtHSdat%rS  (K,J,:) = RtHSdat%rQS (K,J,:) + rQ                                                                       ! Position vector from inertial frame origin      to the current node (point S(RNodes(J)).
+
+
+      END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
+
+      
+      
+
+   END DO !K = 1,p%NumBl
+
+
+
+   !----------------------------------------------------------------------------------------------------
+   ! Get the tower element positions
+   !----------------------------------------------------------------------------------------------------
+
+   DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
+
+
+      ! Calculate the position vector of the current node:
+
+      RtHSdat%rT0T(J,:) = ( p%TwrFASF(1,J,0)*x%QT(DOF_TFA1) + p%TwrFASF(2,J,0)*x%QT(DOF_TFA2)           )*CoordSys%a1 &       ! Position vector from base of flexible portion of tower (point T(0)) to current node (point T(J)).
+                        + ( p%HNodes(J) - 0.5*(     p%AxRedTFA(1,1,J)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
+                                              +     p%AxRedTFA(2,2,J)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
+                                              + 2.0*p%AxRedTFA(1,2,J)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
+                                              +     p%AxRedTSS(1,1,J)*x%QT(DOF_TSS1)*x%QT(DOF_TSS1) &
+                                              +     p%AxRedTSS(2,2,J)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
+                                              + 2.0*p%AxRedTSS(1,2,J)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*CoordSys%a2 &
+                        + ( p%TwrSSSF(1,J,0)*x%QT(DOF_TSS1) + p%TwrSSSF(2,J,0)*x%QT(DOF_TSS2)           )*CoordSys%a3
+      RtHSdat%rZT (J,:) = RtHSdat%rZT0 + RtHSdat%rT0T(J,:)                                                                    ! Position vector from platform reference (point Z) to the current node (point T(HNodes(J)).
+
+
+      RtHSdat%rT(J,:)   = RtHSdat%rZ   + RtHSdat%rZT (J,:)                                                                    ! Position vector from inertial frame origin        to the current node (point T(HNodes(J)).
+
+   END DO
+
+
+END SUBROUTINE CalculatePositions
 !----------------------------------------------------------------------------------------------------------------------------------  
+
 
 END MODULE ElastoDyn
 !**********************************************************************************************************************************

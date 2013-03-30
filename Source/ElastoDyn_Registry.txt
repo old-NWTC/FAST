@@ -328,16 +328,76 @@ typedef	^	^	IntKi	SrtPSNAUG	{:}	-	-	"SrtPS() with the additional value of NAUG"
 typedef	^	^	IntKi	Diag	{:}	-	-	"Array containing the indices of SrtPS() associated with each enabled DOF; that is, SrtPS(Diag(I)) = I"
 
 # ..... Internal data types: Right Hand Side ...................................................................................
-typedef	^	ED_RtHndSide	ReKi	AngAccEBt	3	-	-	"Portion of the angular acceleration of the base plate (body B) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
-typedef	^	ED_RtHndSide	ReKi	AngAccERt	3	-	-	"Portion of the angular acceleration of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
-typedef	^	ED_RtHndSide	ReKi	AngAccEXt	3	-	-	"Portion of the angular acceleration of the platform (body X) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
+# RtHS Positions:
+typedef	^	ED_RtHndSide	ReKi	rO	3	-	-	"Position vector from inertial frame origin to tower-top / base plate (point O)"	m
+typedef	^	ED_RtHndSide	ReKi	rQS	{:}{:}{:}	-	-	"Position vector from the apex of rotation (point Q) to a point on a blade (point S)"	m
+typedef	^	ED_RtHndSide	ReKi	rS	{:}{:}{:}	-	-	"Position vector from inertial frame origin to a point on a blade (point S)"	m
+typedef	^	ED_RtHndSide	ReKi	rS0S	{:}{:}{:}	-	-	"Position vector from the blade root (point S(0)) to a point on a blade (point S)"	m
+typedef	^	ED_RtHndSide	ReKi	rT	{:}{:}	-	-	"Position vector from inertial frame origin to the current node (point T(HNodes(J))"	m
+typedef	^	ED_RtHndSide	ReKi	rT0O	3	-	-	"Position vector from the tower base (point T(0)) to tower-top / base plate (point O)"	m
+typedef	^	ED_RtHndSide	ReKi	rT0T	{:}{:}	-	-	"Position vector from a height of TwrRBHt (base of flexible portion of tower) (point T(0)) to a point on the tower (point T)"	m
+typedef	^	ED_RtHndSide	ReKi	rZ	3	-	-	"Position vector from inertia frame origin to platform reference (point Z)"	m
+typedef	^	ED_RtHndSide	ReKi	rZO	3	-	-	"Position vector from platform reference (point Z) to tower-top / base plate (point O)"	m
+typedef	^	ED_RtHndSide	ReKi	rZT	{:}{:}	-	-	"Position vector from platform reference (point Z) to a point on a tower (point T)"	m
+typedef	^	ED_RtHndSide	ReKi	rPQ	3	-	-	"Position vector from teeter pin (point P) to apex of rotation (point Q)"	m
+typedef	^	ED_RtHndSide	ReKi	rP	3	-	-	"Position vector from inertial frame origin to teeter pin (point P)"	m
+typedef	^	ED_RtHndSide	ReKi	rV	3	-	-	"Position vector from inertial frame origin to specified point on rotor-furl axis (point V)"	m
+typedef	^	ED_RtHndSide	ReKi	rZY	3	-	-	"Position vector from platform reference (point Z) to platform mass center (point Y)"	m
+typedef	^	ED_RtHndSide	ReKi	rOU	3	-	-	"Position vector from tower-top / base plate (point O) to nacelle center of mass (point U)."	m
+typedef	^	ED_RtHndSide	ReKi	rOV	3	-	-	"Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V)"	m
+typedef	^	ED_RtHndSide	ReKi	rVD	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D)"	m
+typedef	^	ED_RtHndSide	ReKi	rOW	3	-	-	"Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W)"	m
+typedef	^	ED_RtHndSide	ReKi	rPC	3	-	-	"Position vector from teeter pin (point P) to hub center of mass (point C)"	m
+#typedef	^	ED_RtHndSide	ReKi	rPS0	3	-	-	"Position vector from teeter pin (point P) to blade root (point S(0))"	m
+typedef	^	ED_RtHndSide	ReKi	rQC	3	-	-	"Position vector from apex of rotation (point Q) to hub center of mass (point C)"	m
+typedef	^	ED_RtHndSide	ReKi	rVIMU	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU)"	m
+typedef	^	ED_RtHndSide	ReKi	rVP	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P)"	m
+typedef	^	ED_RtHndSide	ReKi	rWI	3	-	-	"Position vector from specified point on  tail-furl axis (point W) to tail boom center of mass     (point I)"	m
+typedef	^	ED_RtHndSide	ReKi	rWJ	3	-	-	"Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J)"	m
+typedef	^	ED_RtHndSide	ReKi	rWK	3	-	-	"Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K)"	m
+typedef	^	ED_RtHndSide	ReKi	rZT0	3	-	-	"Position vector from platform reference (point Z) to tower base (point T(0))"	m
+# RtHS Angular positions
 typedef	^	ED_RtHndSide	ReKi	AngPosEF	{:}{:}	-	-	"Angular position of the current point on the tower (body F) in the inertial frame (body E for earth)"
 typedef	^	ED_RtHndSide	ReKi	AngPosXF	{:}{:}	-	-	"Angular position of the current point on the tower (body F) in the platform (body X)"
 typedef	^	ED_RtHndSide	ReKi	AngPosHM	{:}{:}{:}	-	-	"Angular position of eleMent J of blade K (body M) in the hub (body H)"
 typedef	^	ED_RtHndSide	ReKi	AngPosXB	3	-	-	"Angular position of the base plate (body B) in the platform (body X)"
+typedef	^	ED_RtHndSide	ReKi	AngPosEX	3	-	-	"Angular position of the platform                   (body X) in the inertial frame (body E for earth)"
+# RtHS Angular velocities
+typedef	^	ED_RtHndSide	ReKi	PAngVelEA	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the tail (body A) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	PAngVelEF	{:}{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of tower element J (body F) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	PAngVelEG	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the generator (body G) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	PAngVelEH	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the hub (body H) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	PAngVelEL	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the low-speed shaft (body L) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	PAngVelEM	{:}{:}{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of eleMent J of blade K (body M) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	PAngVelEN	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the nacelle (body N) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	AngVelEA	3	-	-	"Angular velocity of the tail (body A) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	PAngVelEB	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the base plate (body B) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	PAngVelER	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	PAngVelEX	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the platform (body B) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	AngVelEG	3	-	-	"Angular velocity of the generator (body G) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	AngVelEH	3	-	-	"Angular velocity of the hub (body H) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	AngVelEL	3	-	-	"Angular velocity of the low-speed shaft (body L) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	AngVelEN	3	-	-	"Angular velocity of the nacelle (body N) in the inertia frame (body E for earth)"
 typedef	^	ED_RtHndSide	ReKi	AngVelEB	3	-	-	"Angular velocity of the base plate (body B) in the inertia frame (body E for earth)"
 typedef	^	ED_RtHndSide	ReKi	AngVelER	3	-	-	"Angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth)"
 typedef	^	ED_RtHndSide	ReKi	AngVelEX	3	-	-	"Angular velocity of the platform (body X) in the inertia frame (body E for earth)"
+# RtHS Angular accelerations
+typedef	^	ED_RtHndSide	ReKi	AngAccEBt	3	-	-	"Portion of the angular acceleration of the base plate (body B) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
+typedef	^	ED_RtHndSide	ReKi	AngAccERt	3	-	-	"Portion of the angular acceleration of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
+typedef	^	ED_RtHndSide	ReKi	AngAccEXt	3	-	-	"Portion of the angular acceleration of the platform (body X) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
+typedef	^	ED_RtHndSide	ReKi	AngAccEFt	{:}{:}	-	-	"Portion of the angular acceleration of tower element J (body F) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
+typedef	^	ED_RtHndSide	ReKi	AngVelEF	{:}{:}	-	-	"Angular velocity of the current point on the tower (body F) in the inertia frame (body E for earth)"
+typedef	^	ED_RtHndSide	ReKi	AngAccEAt	3	-	-	"Portion of the angular acceleration of the tail (body A) in the inertia frame (body E for earth) associated with everything but the QD2T()'s"
+typedef	^	ED_RtHndSide	ReKi	AngAccEGt	3	-	-	"Portion of the angular acceleration of the generator (body G) in the inertia frame (body E for earth) associated with everything but the QD2T()'s"
+typedef	^	ED_RtHndSide	ReKi	AngAccEHt	3	-	-	"Portion of the angular acceleration of the hub (body H) in the inertia frame (body E for earth) associated with everything but the QD2T()'s"
+#typedef	^	ED_RtHndSide	ReKi	AngAccELt	3	-	-	"Portion of the angular acceleration of the low-speed shaft (body L) in the inertia frame (body E for earth) associated with everything but the QD2T()'s"
+typedef	^	ED_RtHndSide	ReKi	AngAccENt	3	-	-	"Portion of the angular acceleration of the nacelle (body N) in the inertia frame (body E for earth) associated with everything but the QD2T()'s"
+
+
+
+
+
+# RtHS
 typedef	^	ED_RtHndSide	ReKi	FrcONcRtt	3	-	-	"Portion of the force at yaw bearing (point O) due to the nacelle, generator, and rotor associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	FrcPRott	3	-	-	"Portion of the force at the teeter pin (point P) due to the rotor associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	FrcS0Bt	{:}{:}	-	-	"Portion of the force at the blade root (point S(0)) due to the blade associated with everything but the QD2T()'s"
@@ -365,9 +425,6 @@ typedef	^	ED_RtHndSide	ReKi	MomNTailt	3	-	-	"Portion of the moment at the nacell
 typedef	^	ED_RtHndSide	ReKi	MomX0Trbt	3	-	-	"Portion of the moment at the platform (body X) / tower base (point T(0)) due to the turbine associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	MMAero	{:}{:}{:}	-	-	"The aerodynamic moment per unit span acting on a blade at point S"
 typedef	^	ED_RtHndSide	ReKi	MXHydrot	3	-	-	"Portion of the platform hydrodynamic moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()'s"
-typedef	^	ED_RtHndSide	ReKi	PAngVelEB	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the base plate (body B) in the inertia frame (body E for earth)"
-typedef	^	ED_RtHndSide	ReKi	PAngVelER	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth)"
-typedef	^	ED_RtHndSide	ReKi	PAngVelEX	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the platform (body B) in the inertia frame (body E for earth)"
 typedef	^	ED_RtHndSide	ReKi	PFrcONcRt	{:}{:}	-	-	"Partial force at the yaw bearing (point O) due to the nacelle, generator, and rotor"
 typedef	^	ED_RtHndSide	ReKi	PFrcPRot	{:}{:}	-	-	"Partial force at the teeter pin (point P) due to the rotor"
 typedef	^	ED_RtHndSide	ReKi	PFrcS0B	{:}{:}{:}	-	-	"Partial force at the blade root (point S(0)) due to the blade"
@@ -387,19 +444,8 @@ typedef	^	ED_RtHndSide	ReKi	PMomNGnRt	{:}{:}	-	-	"Partial moment at the nacelle 
 typedef	^	ED_RtHndSide	ReKi	PMomNTail	{:}{:}	-	-	"Partial moment at the nacelle (body N) / selected point on tail-furl axis (point W) due the tail"
 typedef	^	ED_RtHndSide	ReKi	PMomX0Trb	{:}{:}	-	-	"Partial moment at the platform (body X) / tower base (point T(0)) due to the turbine"
 typedef	^	ED_RtHndSide	ReKi	PMXHydro	{6}{3}	-	-	"Partial platform hydrodynamic moment at the platform (body X) / platform reference (point Z)"
-typedef	^	ED_RtHndSide	ReKi	rO	3	-	-	"Position vector from inertial frame origin to tower-top / base plate (point O)"
-typedef	^	ED_RtHndSide	ReKi	rS	{:}{:}{:}	-	-	"Position vector from inertial frame origin to a point on a blade (point S)"
-typedef	^	ED_RtHndSide	ReKi	rS0S	{:}{:}{:}	-	-	"Position vector from the blade root (point S(0)) to a point on a blade (point S)"
-typedef	^	ED_RtHndSide	ReKi	rT	{:}{:}	-	-	"Position vector from inertial frame origin to the current node (point T(HNodes(J))"
-typedef	^	ED_RtHndSide	ReKi	rT0O	3	-	-	"Position vector from the tower base (point T(0)) to tower-top / base plate (point O)"
-typedef	^	ED_RtHndSide	ReKi	rT0T	{:}{:}	-	-	"Position vector from a height of TwrRBHt (base of flexible portion of tower) (point T(0)) to a point on the tower (point T)"
-typedef	^	ED_RtHndSide	ReKi	rZ	3	-	-	"Position vector from inertia frame origin to platform reference (point Z)"
-typedef	^	ED_RtHndSide	ReKi	rZO	3	-	-	"Position vector from platform reference (point Z) to tower-top / base plate (point O)"
-typedef	^	ED_RtHndSide	ReKi	rZT	{:}{:}	-	-	"Position vector from platform reference (point Z) to a point on a tower (point T)"
 typedef	^	ED_RtHndSide	ReKi	TeetAng	-	-	-	"Current teeter angle = QT(DOF_Teet) for 2-blader or 0 for 3-blader (this is used in place of QT(DOF_Teet) throughout RtHS()"
 typedef	^	ED_RtHndSide	ReKi	TeetAngVel	-	-	-	"Angular velocity of the teeter motion"
-#typedef	^	ED_RtHndSide	ReKi	AngAccEFt	{:}{:}	-	-	"Portion of the angular acceleration of tower element J (body F) in the inertia frame (body E for earth) associated with everything but the QD2T()s"
-typedef	^	ED_RtHndSide	ReKi	AngVelEF	{:}{:}	-	-	"Angular velocity of the current point on the tower (body F) in the inertia frame (body E for earth)"
 #typedef	^	ED_RtHndSide	ReKi	AugMat	{:}{:}	-	-	"The augmented matrix used for the solution of the QD2T()s"
 #typedef	^	ED_RtHndSide	ReKi	FKAero	3	-	-	"The tail fin aerodynamic force acting at point K, the center-of-pressure of the tail fin"
 #typedef	^	ED_RtHndSide	ReKi	FrcVGnRtt	3	-	-	"Portion of the force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor associated with everything but the QD2T()'s"
@@ -409,13 +455,6 @@ typedef	^	ED_RtHndSide	ReKi	LinVelET	{:}{:}	-	-	"Linear velocity of current poin
 #typedef	^	ED_RtHndSide	ReKi	LinVelESm2	{:}	-	-	"The m2-component (closest to tip) of LinVelES"
 #typedef	^	ED_RtHndSide	ReKi	MAAero	3	-	-	"The tail fin aerodynamic moment acting at point K, the center-of-pressure of the tail fin"
 #typedef	^	ED_RtHndSide	ReKi	MomXAllt	3	-	-	"Portion of the moment at the platform (body X) / platform reference (point Z) due to everything associated with everything but the QD2T()'s"
-#typedef	^	ED_RtHndSide	ReKi	PAngVelEA	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the tail (body A) in the inertia frame (body E for earth)"
-#typedef	^	ED_RtHndSide	ReKi	PAngVelEF	{:}{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of tower element J (body F) in the inertia frame (body E for earth)"
-#typedef	^	ED_RtHndSide	ReKi	PAngVelEG	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the generator (body G) in the inertia frame (body E for earth)"
-#typedef	^	ED_RtHndSide	ReKi	PAngVelEH	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the hub (body H) in the inertia frame (body E for earth)"
-#typedef	^	ED_RtHndSide	ReKi	PAngVelEL	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the low-speed shaft (body L) in the inertia frame (body E for earth)"
-#typedef	^	ED_RtHndSide	ReKi	PAngVelEM	{:}{:}{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of eleMent J of blade K (body M) in the inertia frame (body E for earth)"
-#typedef	^	ED_RtHndSide	ReKi	PAngVelEN	{:}{:}{:}	-	-	"Partial angular velocity (and its 1st time derivative) of the nacelle (body N) in the inertia frame (body E for earth)"
 #typedef	^	ED_RtHndSide	ReKi	PFrcVGnRt	{:}{:}	-	-	"Partial force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor"
 #typedef	^	ED_RtHndSide	ReKi	PFrcWTail	{:}{:}	-	-	"Partial force at the tail-furl axis (point W) due to the tail"
 #typedef	^	ED_RtHndSide	ReKi	PFrcZAll	{:}{:}	-	-	"Partial force at the platform reference (point Z) due to everything"
@@ -432,7 +471,7 @@ typedef	^	ED_RtHndSide	ReKi	LinVelET	{:}{:}	-	-	"Linear velocity of current poin
 #typedef	^	ED_RtHndSide	ReKi	PLinVelEY	{:}{:}{:}	-	-	"Partial linear velocity (and its 1st time derivative) of the platform mass center (point Y) in the inertia frame (body E for earth)"
 #typedef	^	ED_RtHndSide	ReKi	PMomXAll	{:}{:}	-	-	"Partial moment at the platform (body X) / platform reference (point Z) due to the everything"
 #typedef	^	ED_RtHndSide	ReKi	OgnlGeAzRo	{:}	-	-	"The original elements of AugMat that formed the DOF_GeAz equation before application of known initial conditions"
-#typedef	^	ED_RtHndSide	ReKi	rQS	{:}{:}{:}	-	-	"Position vector from the apex of rotation (point Q) to a point on a blade (point S)"
+
 
 # ..... Initialization data .......................................................................................................
 # Define inputs that the initialization routine may need here:
@@ -470,6 +509,7 @@ typedef	^	OtherStateType	ReKi	QD2	{:}{:}	-	-	"Acceleration matrix (time history)
 typedef	^	OtherStateType	INTEGER	IC	{:}	-	-	"Array which stores pointers to predictor-corrector results"
 typedef	^	OtherStateType	ReKi	QD2T	{:}	-	-	"Solution (acceleration) vector; the first time derivative of QDT"
 typedef	^	OtherStateType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
+typedef	^	OtherStateType	ReKi	AugMatOut	{:}{:}	-	-	"Copy of AugMat (when calculating cont state deriv) for routine that fixes the HSSBrTrq"	-
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:
