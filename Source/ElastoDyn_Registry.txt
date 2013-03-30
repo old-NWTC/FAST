@@ -348,7 +348,7 @@ typedef	^	ED_RtHndSide	ReKi	rOV	3	-	-	"Position vector from tower-top / base pla
 typedef	^	ED_RtHndSide	ReKi	rVD	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D)"	m
 typedef	^	ED_RtHndSide	ReKi	rOW	3	-	-	"Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W)"	m
 typedef	^	ED_RtHndSide	ReKi	rPC	3	-	-	"Position vector from teeter pin (point P) to hub center of mass (point C)"	m
-#typedef	^	ED_RtHndSide	ReKi	rPS0	3	-	-	"Position vector from teeter pin (point P) to blade root (point S(0))"	m
+typedef	^	ED_RtHndSide	ReKi	rPS0	{:}{:}	-	-	"Position vector from teeter pin (point P) to blade root (point S(0))"	m
 typedef	^	ED_RtHndSide	ReKi	rQC	3	-	-	"Position vector from apex of rotation (point Q) to hub center of mass (point C)"	m
 typedef	^	ED_RtHndSide	ReKi	rVIMU	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU)"	m
 typedef	^	ED_RtHndSide	ReKi	rVP	3	-	-	"Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P)"	m
@@ -438,7 +438,6 @@ typedef	^	ED_RtHndSide	ReKi	FrcS0Bt	{:}{:}	-	-	"Portion of the force at the blad
 typedef	^	ED_RtHndSide	ReKi	FrcT0Trbt	3	-	-	"Portion of the force at tower base (point T(0)) due to the turbine associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	FSAero	{:}{:}{:}	-	-	"The aerodynamic force per unit span acting on a blade at point S"
 typedef	^	ED_RtHndSide	ReKi	FSTipDrag	{:}{:}	-	-	"The aerodynamic force at a blade tip resulting from tip drag"
-typedef	^	ED_RtHndSide	ReKi	FTAero	{:}{:}	-	-	"The aerodynamic force per unit length acting on the tower at point T"
 typedef	^	ED_RtHndSide	ReKi	FTHydrot	{:}{:}	-	-	"Portion of the hydrodynamic force per unit length acting on the tower at point T associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	FZHydrot	3	-	-	"Portion of the platform hydrodynamic force at the platform reference (point Z) associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	GBoxEffFac	-	-	-	"The factor used to apply the gearbox efficiency effects to the equation associated with the generator DOF"
@@ -449,7 +448,6 @@ typedef	^	ED_RtHndSide	ReKi	LinAccETt	{:}{:}	-	-	"Portion of the linear accelera
 typedef	^	ED_RtHndSide	ReKi	LinAccEZt	3	-	-	"Portion of the linear acceleration of the platform reference (point Z) in the inertia frame (body E for earth) associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	LinVelEIMU	3	-	-	"Linear velocity of the nacelle IMU (point IMU) in the inertia frame"
 typedef	^	ED_RtHndSide	ReKi	LinVelEZ	3	-	-	"Linear velocity of platform reference (point Z) in the inertia frame"
-typedef	^	ED_RtHndSide	ReKi	MFAero	{:}{:}	-	-	"The aerodynamic moment per unit length acting on the tower at point T"
 typedef	^	ED_RtHndSide	ReKi	MFHydrot	{:}{:}	-	-	"Portion of the hydrodynamic moment per unit length acting on a tower element (body F) at point T associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	MomBNcRtt	3	-	-	"Portion of the moment at the base plate (body B) / yaw bearing (point O) due to the nacelle, generator, and rotor associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	MomH0Bt	{:}{:}	-	-	"Portion of the moment at the hub (body H) / blade root (point S(0)) due to the blade associated with everything but the QD2T()'s"
@@ -475,18 +473,20 @@ typedef	^	ED_RtHndSide	ReKi	PMomX0Trb	{:}{:}	-	-	"Partial moment at the platform
 typedef	^	ED_RtHndSide	ReKi	PMXHydro	{6}{3}	-	-	"Partial platform hydrodynamic moment at the platform (body X) / platform reference (point Z)"
 typedef	^	ED_RtHndSide	ReKi	TeetAng	-	-	-	"Current teeter angle = QT(DOF_Teet) for 2-blader or 0 for 3-blader (this is used in place of QT(DOF_Teet) throughout RtHS()"
 typedef	^	ED_RtHndSide	ReKi	TeetAngVel	-	-	-	"Angular velocity of the teeter motion"
-#typedef	^	ED_RtHndSide	ReKi	AugMat	{:}{:}	-	-	"The augmented matrix used for the solution of the QD2T()s"
 #typedef	^	ED_RtHndSide	ReKi	FKAero	3	-	-	"The tail fin aerodynamic force acting at point K, the center-of-pressure of the tail fin"
-#typedef	^	ED_RtHndSide	ReKi	FrcVGnRtt	3	-	-	"Portion of the force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor associated with everything but the QD2T()'s"
-#typedef	^	ED_RtHndSide	ReKi	FrcWTailt	3	-	-	"Portion of the force at the tail-furl axis (point W) due to the tail associated with everything but the QD2T()'s"
-#typedef	^	ED_RtHndSide	ReKi	FrcZAllt	3	-	-	"Portion of the force at platform reference (point Z) due to everything associated with everything but the QD2T()'s"
+typedef	^	ED_RtHndSide	ReKi	FrcVGnRtt	3	-	-	"Portion of the force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor associated with everything but the QD2T()'s"
+typedef	^	ED_RtHndSide	ReKi	FrcWTailt	3	-	-	"Portion of the force at the tail-furl axis (point W) due to the tail associated with everything but the QD2T()'s"
+typedef	^	ED_RtHndSide	ReKi	FrcZAllt	3	-	-	"Portion of the force at platform reference (point Z) due to everything associated with everything but the QD2T()'s"
 #typedef	^	ED_RtHndSide	ReKi	MAAero	3	-	-	"The tail fin aerodynamic moment acting at point K, the center-of-pressure of the tail fin"
-#typedef	^	ED_RtHndSide	ReKi	MomXAllt	3	-	-	"Portion of the moment at the platform (body X) / platform reference (point Z) due to everything associated with everything but the QD2T()'s"
-#typedef	^	ED_RtHndSide	ReKi	PFrcVGnRt	{:}{:}	-	-	"Partial force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor"
-#typedef	^	ED_RtHndSide	ReKi	PFrcWTail	{:}{:}	-	-	"Partial force at the tail-furl axis (point W) due to the tail"
-#typedef	^	ED_RtHndSide	ReKi	PFrcZAll	{:}{:}	-	-	"Partial force at the platform reference (point Z) due to everything"
-#typedef	^	ED_RtHndSide	ReKi	PMomXAll	{:}{:}	-	-	"Partial moment at the platform (body X) / platform reference (point Z) due to the everything"
+typedef	^	ED_RtHndSide	ReKi	MomXAllt	3	-	-	"Portion of the moment at the platform (body X) / platform reference (point Z) due to everything associated with everything but the QD2T()'s"
+typedef	^	ED_RtHndSide	ReKi	PFrcVGnRt	{:}{:}	-	-	"Partial force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor"
+typedef	^	ED_RtHndSide	ReKi	PFrcWTail	{:}{:}	-	-	"Partial force at the tail-furl axis (point W) due to the tail"
+typedef	^	ED_RtHndSide	ReKi	PFrcZAll	{:}{:}	-	-	"Partial force at the platform reference (point Z) due to everything"
+typedef	^	ED_RtHndSide	ReKi	PMomXAll	{:}{:}	-	-	"Partial moment at the platform (body X) / platform reference (point Z) due to the everything"
 #typedef	^	ED_RtHndSide	ReKi	OgnlGeAzRo	{:}	-	-	"The original elements of AugMat that formed the DOF_GeAz equation before application of known initial conditions"
+typedef	^	ED_RtHndSide	ReKi	TeetMom	-	-	-	"The total moment supplied by the stop, spring, and damper of the teeter mechanism"
+typedef	^	ED_RtHndSide	ReKi	TFrlMom	-	-	-	"The total tail-furl spring and damper moment"
+typedef	^	ED_RtHndSide	ReKi	RFrlMom	-	-	-	"The total rotor-furl spring and damper moment"
 
 
 # ..... Initialization data .......................................................................................................
@@ -525,6 +525,7 @@ typedef	^	OtherStateType	ReKi	QD2	{:}{:}	-	-	"Acceleration matrix (time history)
 typedef	^	OtherStateType	INTEGER	IC	{:}	-	-	"Array which stores pointers to predictor-corrector results"
 typedef	^	OtherStateType	ReKi	QD2T	{:}	-	-	"Solution (acceleration) vector; the first time derivative of QDT"
 typedef	^	OtherStateType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
+typedef	^	OtherStateType	ReKi	AugMat	{:}{:}	-	-	"The augmented matrix used for the solution of the QD2T()s"
 typedef	^	OtherStateType	ReKi	AugMatOut	{:}{:}	-	-	"Copy of AugMat (when calculating cont state deriv) for routine that fixes the HSSBrTrq"	-
 
 # ..... Parameters ................................................................................................................
@@ -786,8 +787,8 @@ typedef	^	ParameterType	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"
 typedef	^	ParameterType	ReKi	RotSpeed	-	-	-	"Initial or fixed rotor speed"	rad/s
 # Misc parameters
 typedef	^	ParameterType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"
-
-
+typedef	^	ParameterType	ReKi	BElmntMass	{:}{:}	-	-	"Mass of the blade elements"
+typedef	^	ParameterType	ReKi	TElmntMass	{:}	-	-	"Mass of the tower elements"
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:
@@ -803,8 +804,10 @@ typedef	^	InputType	ReKi	YawMom	-	-	-	"Torque transmitted through the yaw bearin
 typedef	^	InputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
 typedef	^	InputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
 #typedef	^	InputType	ReKi	ElecPwr	-	-	-	"Electrical power, W"	W
-
-
+typedef	^	InputType	ReKi	AeroBladeForce	{:}{:}{:}	-	-	"Aerodynamic force on the blade elements"
+typedef	^	InputType	ReKi	AeroBladeMoment	{:}{:}{:}	-	-	"Aerodynamic moment on the blade elements"
+typedef	^	InputType	ReKi	FTAero	{:}{:}	-	-	"The aerodynamic force per unit length acting on the tower at point T"
+typedef	^	InputType	ReKi	MFAero	{:}{:}	-	-	"The aerodynamic moment per unit length acting on the tower at point T"
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
@@ -822,3 +825,4 @@ typedef	^	OutputType	ReKi	HSS_Spd	-	-	-	"High-speed shaft (HSS) speed"	rad/s
 #typedef	^	OutputType	ReKi	NacellePosition	3	-	-	"Nacelle position (for AeroDyn)"	m
 #typedef	^	OutputType	ReKi	TowerPosition	3	-	-	"Tower position (for AeroDyn)"	m
 typedef	^	OutputType	ReKi	RotSpeed	-	-	-	"Rotor azimuth angular speed"	rad/s
+

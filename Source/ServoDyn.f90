@@ -2190,15 +2190,15 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
       ! See if the generator is on line.
    GenOnLine = .FALSE.
    
-   IF (  t <= OtherState%TOff4Good )  THEN
+   IF ( t < OtherState%TOff4Good .OR. EqualRealNos(t, OtherState%TOff4Good) )  THEN
 
       OtherState%TOff4Good = HUGE(OtherState%TOff4Good)  ! reset when the generator went off for good
       
       ! The generator is either on-line or has never been turned online.
 
-      IF ( t >= OtherState%TGenOnLine )  THEN   ! The generator is on-line.
+      IF ( EqualRealNos(t,OtherState%TGenOnLine ) .OR. t > OtherState%TGenOnLine )  THEN   ! The generator is on-line.
 
-         IF ( ( p%GenTiStp ) .AND. ( t >= p%TimGenOf ) )  THEN   ! Shut-down of generator determined by time, TimGenOf
+         IF ( ( p%GenTiStp ) .AND. ( t > p%TimGenOf .OR. EqualRealNos(t,p%TimGenOf) ) )  THEN   ! Shut-down of generator determined by time, TimGenOf
             OtherState%TOff4Good = t
          ELSE
             GenOnLine = .TRUE.
@@ -2207,14 +2207,14 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
       ELSE                    ! The generator has never been turned online.
 
          IF ( p%GenTiStr )  THEN   ! Start-up of generator determined by time, TimGenOn
-            IF ( t >= p%TimGenOn )  THEN
+            IF ( t > p%TimGenOn .OR. EqualRealNos(t,p%TimGenOn) )  THEN
                GenOnLine = .TRUE.
                OtherState%TGenOnLine = t
             ELSE
                OtherState%TGenOnLine = HUGE(OtherState%TGenOnLine) !reset the first time the generator has been online
             END IF
          ELSE                    ! Start-up of generator determined by HSS speed, SpdGenOn
-            IF ( u%HSS_Spd >= p%SpdGenOn )  THEN
+            IF ( u%HSS_Spd > p%SpdGenOn .OR. EqualRealNos(u%HSS_Spd, p%SpdGenOn) )  THEN
                GenOnLine = .TRUE.
                OtherState%TGenOnLine = t
             ELSE
@@ -2255,7 +2255,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
             ! The generator efficiency is either additive for motoring,
             !   or subtractive for generating power.
 
-                  IF ( y%GenTrq > 0.0 )  THEN
+                  IF ( y%GenTrq >= 0.0 )  THEN
                      y%ElecPwr = y%GenTrq * u%HSS_Spd * p%GenEff
                   ELSE
                      y%ElecPwr = y%GenTrq * u%HSS_Spd / p%GenEff
@@ -2348,7 +2348,7 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
    ! Calculate the fraction of applied HSS-brake torque, HSSBrFrac:
    !.................................................................................
 
-   IF ( t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
+   IF ( (.NOT. EqualRealNos(t, p%THSSBrDp )) .AND. t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
 
       HSSBrFrac = 0.0
 

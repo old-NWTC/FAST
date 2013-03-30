@@ -87,19 +87,19 @@ CHARACTER(1024),INTENT(IN ) :: DirRoot                                       ! T
 
 REAL(ReKi), SAVE            :: C1
 REAL(ReKi), SAVE            :: C2
-REAL(ReKi)                  :: DELT
+REAL(DbKi)                  :: DELT
 REAL(ReKi), SAVE            :: FRPM    (5) = 0.0                             ! Filtered RPM.
 REAL(ReKi), SAVE            :: FTRQ    = 0.0                                 ! Filtered torque, N-m.
 REAL(ReKi), SAVE            :: OLTRQ   = 0.0
 REAL(ReKi)                  :: OMEGA                                         ! Rotor speed, rad/s.
 REAL(ReKi)                  :: RPM
 REAL(ReKi), SAVE            :: RPMSCH  (100)
-REAL(ReKi), SAVE            :: SMPDT
+REAL(DbKi), SAVE            :: SMPDT
 REAL(DbKi), PARAMETER       :: TCONST  = 0.05                                ! Time constant of first order lag applied to torque
 REAL(ReKi), SAVE            :: TLST    = 0.0
 REAL(ReKi), SAVE            :: TRQ     = 0.0
 REAL(ReKi), SAVE            :: TRQSCH  (100)
-REAL(ReKi), SAVE            :: TTRQ    = 0.0
+REAL(DbKi), SAVE            :: TTRQ    = 0.0
 
 INTEGER(IntKi)              :: I
 INTEGER(IntKi)              :: IOS                                           ! I/O status.  Negative values indicate end of file.
@@ -158,7 +158,7 @@ IF ( SFLAG )  THEN
       NSCH = NSCH + 1
    ENDDO ! I
 
-   SMPDT = REAL( NST )*DT
+   SMPDT = REAL( NST, DbKi )*DT
 
    C1 = EXP( -DT/TCONST )
    C2 = 1.0 - C1
@@ -181,8 +181,8 @@ DELT = ZTime - TLST
 
 
    ! Calculate torque setting at every NST time steps.
-
-IF ( DELT >= ( SMPDT - 0.5*DT ) )  THEN
+IF ( EqualRealNos( DELT, ( SMPDT - 0.5_DbKi*DT ) ) .OR. (DELT > ( SMPDT - 0.5*DT ))) then
+!IF ( DELT >= ( SMPDT - 0.5*DT ) )  THEN !this should be comparing with EqualRealNos()
 
    TLST = ZTime  !BJJ: TLST is a saved variable, which may have issues on re-initialization.
 
@@ -208,12 +208,12 @@ ENDIF
 
 
    ! Torque is updated at every integrator time step
-
-IF ( ZTime > TTRQ )  THEN
+IF ( (.NOT. EqualRealNos(ZTime, TTRQ )) .AND. ZTime > TTRQ )  THEN
+!IF ( ZTime > TTRQ )  THEN
 
    FTRQ  = C1*FTRQ + C2*OLTRQ
    OLTRQ = TRQ
-   TTRQ  = ZTime + 0.5*DT
+   TTRQ  = ZTime + 0.5_DbKi*DT
 
 ENDIF
 
