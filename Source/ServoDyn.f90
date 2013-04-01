@@ -248,10 +248,11 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    u%ExternalBlPitchCom = p%BlPitchInit
    
    u%Yaw = p%YawNeut
-   u%YawRate = 0
+   u%YawRate = 0.
    u%ExternalYawPosCom = p%YawNeut
-   u%ExternalYawRateCom = 0
-
+   u%ExternalYawRateCom = 0.
+   u%WindDir = 0.
+   u%YawErr  = 0.
 
       !............................................................................................
       ! Define system output initializations (set up mesh) here:
@@ -415,70 +416,47 @@ SUBROUTINE SrvD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
 END SUBROUTINE SrvD_End
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_UpdateStates( t, u, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+SUBROUTINE SrvD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 ! Loose coupling routine for solving for constraint states, integrating continuous states, and updating discrete states
 ! Constraint states are solved for input t; Continuous and discrete states are updated for t + Interval
 !..................................................................................................................................
 
-      REAL(DbKi),                      INTENT(IN   ) :: t           ! Current simulation time in seconds
-      TYPE(SrvD_InputType),            INTENT(IN   ) :: u           ! Inputs at t
-      TYPE(SrvD_ParameterType),        INTENT(IN   ) :: p           ! Parameters
-      TYPE(SrvD_ContinuousStateType),  INTENT(INOUT) :: x           ! Input: Continuous states at t;
-                                                                    !   Output: Continuous states at t + Interval
-      TYPE(SrvD_DiscreteStateType),    INTENT(INOUT) :: xd          ! Input: Discrete states at t;
-                                                                    !   Output: Discrete states at t  + Interval
-      TYPE(SrvD_ConstraintStateType),  INTENT(INOUT) :: z           ! Input: Initial guess of constraint states at t;
-                                                                    !   Output: Constraint states at t
-      TYPE(SrvD_OtherStateType),       INTENT(INOUT) :: OtherState  ! Other/optimization states
-      INTEGER(IntKi),                  INTENT(  OUT) :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                    INTENT(  OUT) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      REAL(DbKi),                      INTENT(IN   ) :: t               ! Current simulation time in seconds
+      INTEGER(IntKi),                  INTENT(IN   ) :: n               ! Current step of the simulation: t = n*Interval
+      TYPE(SrvD_InputType),            INTENT(IN   ) :: Inputs(:)       ! Inputs at InputTimes
+      REAL(DbKi),                      INTENT(IN   ) :: InputTimes(:)   ! Times in seconds associated with Inputs
+      TYPE(SrvD_ParameterType),        INTENT(IN   ) :: p               ! Parameters
+      TYPE(SrvD_ContinuousStateType),  INTENT(INOUT) :: x               ! Input: Continuous states at t;
+                                                                        !   Output: Continuous states at t + Interval
+      TYPE(SrvD_DiscreteStateType),    INTENT(INOUT) :: xd              ! Input: Discrete states at t;
+                                                                        !   Output: Discrete states at t  + Interval
+      TYPE(SrvD_ConstraintStateType),  INTENT(INOUT) :: z               ! Input: Initial guess of constraint states at t;
+                                                                        !   Output: Constraint states at t
+      TYPE(SrvD_OtherStateType),       INTENT(INOUT) :: OtherState      ! Other/optimization states
+      INTEGER(IntKi),                  INTENT(  OUT) :: ErrStat         ! Error status of the operation
+      CHARACTER(*),                    INTENT(  OUT) :: ErrMsg          ! Error message if ErrStat /= ErrID_None
 
          ! Local variables
 
-      TYPE(SrvD_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at t
-      TYPE(SrvD_ConstraintStateType)                 :: z_Residual  ! Residual of the constraint state equations (Z)
+      TYPE(SrvD_ContinuousStateType)                 :: dxdt            ! Continuous state derivatives at t
+      TYPE(SrvD_InputType)                           :: u               ! Inputs at t
 
-      INTEGER(IntKi)                                 :: ErrStat2    ! Error status of the operation (occurs after initial error)
-      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
+      INTEGER(IntKi)                                 :: ErrStat2        ! Error status of the operation (occurs after initial error)
+      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2         ! Error message if ErrStat2 /= ErrID_None
 
+      
+      
          ! Initialize ErrStat
 
       ErrStat = ErrID_None
       ErrMsg  = ""
 
 
-
-         ! Solve for the constraint states (z) here:
-
-         ! Check if the z guess is correct and update z with a new guess.
-         ! Iterate until the value is within a given tolerance.
-
-      CALL SrvD_CalcConstrStateResidual( t, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
-      IF ( ErrStat >= AbortErrLev ) THEN
-         CALL SrvD_DestroyConstrState( z_Residual, ErrStat2, ErrMsg2)
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
-         RETURN
-      END IF
-
-      ! DO WHILE ( z_Residual% > tolerance )
-      !
-      !  z =
-      !
-      !  CALL SrvD_CalcConstrStateResidual( t, u, p, x, xd, z, OtherState, z_Residual, ErrStat, ErrMsg )
-      !  IF ( ErrStat >= AbortErrLev ) THEN
-      !     CALL SrvD_DestroyConstrState( z_Residual, ErrStat2, ErrMsg2)
-      !     ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
-      !     RETURN
-      !  END IF
-      !
-      ! END DO
-
-
-         ! Destroy z_Residual because it is not necessary for the rest of the subroutine:
-
-      CALL SrvD_DestroyConstrState( z_Residual, ErrStat, ErrMsg)
+         ! Get the inputs at time t, based on the array of values sent by the glue code:
+         
+      CALL SrvD_Input_ExtrapInterp( Inputs, InputTimes, u, t, ErrStat, ErrMsg )  
       IF ( ErrStat >= AbortErrLev ) RETURN
-
+            
 
 
          ! Get first time derivatives of continuous states (dxdt):
@@ -1698,43 +1676,17 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
 
       SELECT CASE ( p%YCMode )  ! Which yaw control mode are we using? (we already took care of ControlMode_None)
             
-         CASE ( ControlMode_Simple )            ! Simple ... BJJ: THIS IS NEW
-            !
-            !YawPosCom  = p%YawNeut
-            !YawRateCom = p%YawRateNeut
+         CASE ( ControlMode_Simple )            ! Simple ... BJJ: THIS will be NEW
 
             
          CASE ( ControlMode_User )              ! User-defined from routine UserYawCont().
-         !
-         !
-         !! Calculate horizontal hub-height wind direction and the nacelle yaw error
-         !!   estimate (both positive about zi-axis); these are zero if there is no
-         !!   wind input when AeroDyn is not used:
-         !
-         !   IF ( p_FAST%CompAero )  THEN   ! AeroDyn has been used.
-         !
-         !      HHWndVec(:) = AD_GetUndisturbedWind( REAL(t, ReKi), (/ REAL(0.0, ReKi), REAL(0.0, ReKi), p_ED%FASTHH /), ErrStat )
-         !
-         !      WindDir  = ATAN2( HHWndVec(2), HHWndVec(1) )
-         !      YawError = WindDir - x_ED%QT(DOF_Yaw) - x_ED%QT(DOF_Y)
-         !
-         !   ELSE                    ! No AeroDynamics.
-         !
-         !      WindDir  = 0.0
-         !      YawError = 0.0
-         !
-         !   ENDIF
-         !
-         !! Call the user-defined yaw control routine:
-         !
-         !   CALL UserYawCont ( x_ED%QT(DOF_Yaw), x_ED%QDT(DOF_Yaw), WindDir, YawError, p%NumBl, t, DT, DirRoot, y%YawPosCom, y%YawRateCom )
-         !
+         
+            CALL UserYawCont ( u%Yaw, u%YawRate, u%WindDir, u%YawErr, p%NumBl, t, p%DT, p%RootName, YawPosCom, YawRateCom )         
 
          CASE ( ControlMode_Extern )              ! User-defined from Simulink or Labview
 
             YawPosCom  = u%ExternalYawPosCom
             YawRateCom = u%ExternalYawRateCom
-
 
       END SELECT
 

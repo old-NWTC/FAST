@@ -833,3 +833,4 @@ typedef	^	OutputType	ReKi	HSS_Spd	-	-	-	"High-speed shaft (HSS) speed"	rad/s
 #typedef	^	OutputType	ReKi	TowerPosition	3	-	-	"Tower position (for AeroDyn)"	m
 typedef	^	OutputType	ReKi	RotSpeed	-	-	-	"Rotor azimuth angular speed"	rad/s
 typedef	^	OutputType	ReKi	TwrAccel	-	-	-	"Tower acceleration for tower feedback control (user routine only)"	m/s^2
+typedef	^	OutputType	ReKi	YawErr	-	-	-	"Yaw to be used for yaw error calculations"	radians

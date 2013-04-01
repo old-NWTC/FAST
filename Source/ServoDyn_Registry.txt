@@ -217,9 +217,9 @@ typedef	^	InputType	ReKi	ExternalBlPitchCom	{:}	-	-	"Commanded blade pitch from 
 typedef	^	InputType	ReKi	ExternalGenTrq	-	-	-	"Electrical generator torque"	N-m
 typedef	^	InputType	ReKi	ExternalElecPwr	-	-	-	"Electrical power"	W
 typedef	^	InputType	ReKi	ExternalHSSBrFrac	-	-	-	"Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full)"	-
-typedef	^	InputType	ReKi	TwrAccel	-	-	-	"Tower accelleration for tower feedback control (user routine only)"	m/s^2
-
-
+typedef	^	InputType	ReKi	TwrAccel	-	-	-	"Tower acceleration for tower feedback control (user routine only)"	m/s^2
+typedef	^	InputType	ReKi	YawErr	-	-	-	"Yaw error"	radians
+typedef	^	InputType	ReKi	WindDir	-	-	-	"Wind direction"	radians
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:

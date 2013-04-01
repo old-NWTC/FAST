@@ -1240,8 +1240,6 @@ INTEGER,  PARAMETER          :: TwHtRPyi(9) = (/ &
 INTEGER,  PARAMETER          :: TwHtRPzi(9) = (/ &
                                     TwHt1RPzi,TwHt2RPzi,TwHt3RPzi,TwHt4RPzi,TwHt5RPzi,TwHt6RPzi,TwHt7RPzi,TwHt8RPzi,TwHt9RPzi /)
 
-
-
 END MODULE ElastoDyn_Parameters
 !**********************************************************************************************************************************
 !**********************************************************************************************************************************
@@ -1492,13 +1490,6 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
        !Interval = p%DT
 
-      ! Initialize Other State data:
-   ! Allocate space for coordinate systems
-
-   CALL Alloc_CoordSys( OtherState%CoordSys, p, ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-
 
        ! Destroy the InputFileData structure (deallocate arrays)
 
@@ -1654,6 +1645,7 @@ SUBROUTINE ED_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, E
          
       END SELECT
       
+      !bjj: do we need to add this in the ABM4 routine????
       
          ! Make sure the rotor azimuth is not greater or equal to 360 degrees: (can't we do a mod here?)
 
@@ -1662,6 +1654,7 @@ SUBROUTINE ED_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, E
       !IF ( ( OtherState%Q(DOF_GeAz,OtherState%IC(1)) + OtherState%Q(DOF_DrTr,OtherState%IC(1)) ) >= TwoPi )  THEN
       !       OtherState%Q(DOF_GeAz,OtherState%IC(1)) = OtherState%Q(DOF_GeAz,OtherState%IC(1)) - TwoPi
       !ENDIF       
+      
       
 END SUBROUTINE ED_UpdateStates
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -1760,6 +1753,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    
    y%Yaw      = x%QT( DOF_Yaw)
    y%YawRate  = x%QDT(DOF_Yaw)
+   y%YawErr   = x%QT( DOF_Yaw) + x%QT(DOF_Y)  !crude approximation for yaw error... (without subtracting it from the wind direction)
    y%BlPitch  = u%BlPitchCom !OtherState%BlPitch
    y%LSS_Spd  = x%QDT(DOF_GeAz)
    y%HSS_Spd  = ABS(p%GBRatio)*x%QDT(DOF_GeAz)
@@ -2958,6 +2952,8 @@ SUBROUTINE ED_SetParameters( InputFileData, p, ErrStat, ErrMsg )
 
       ! Set the remaining (calculuated) parameters (basically the former Coeff routine)
    CALL SetOtherParameters( p, InputFileData, ErrStat2, ErrMsg2 ) ! requires MANY things to be set first
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
 
    
@@ -7872,6 +7868,9 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
    CALL Alloc_RtHS( OtherState%RtHS, p, ErrStat, ErrMsg  )
    IF (ErrStat /= ErrID_None ) RETURN
 
+   CALL Alloc_CoordSys( OtherState%CoordSys, p, ErrStat, ErrMsg )
+   IF (ErrStat /= ErrID_None ) RETURN
+   
    CALL AllocAry( OtherState%QD2T, p%NDOF,   'OtherState%QD2T',  ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
 
@@ -7917,6 +7916,12 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
 
    OtherState%n   = -1  ! we haven't updated OtherState%xdot, yet
 
+   
+      ! Initialize Other State data:
+   ! Allocate space for coordinate systems
+
+ 
+   
 END SUBROUTINE Init_OtherStates
 
 

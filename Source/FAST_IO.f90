@@ -1088,15 +1088,36 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD )
    
 END SUBROUTINE ED_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED )
+SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW )
 ! This routine sets the inputs required for ServoDyn
 !..................................................................................................................................
 
    TYPE(FAST_ParameterType),   INTENT(IN)     :: p_FAST     ! Glue-code simulation parameters
    TYPE(SrvD_InputType),       INTENT(INOUT)  :: u_SrvD     ! ServoDyn Inputs at t
    TYPE(ED_OutputType),        INTENT(IN)     :: y_ED       ! ElastoDyn outputs
+   REAL(ReKi),                 INTENT(IN)     :: y_IfW(3)   ! InflowWind outputs
 !  TYPE(AD_OutputType),        INTENT(IN)     :: y_AD       ! AeroDyn outputs
-
+  
+   
+      ! ServoDyn inputs from conbination of InflowWind and ElastoDyn
+      
+      
+      ! Calculate horizontal hub-height wind direction and the nacelle yaw error estimate (both positive about zi-axis); these are 
+      !   zero if there is no wind input when AeroDyn is not used:
+      
+   IF ( p_FAST%CompAero )  THEN   ! AeroDyn has been used.         
+         
+      u_SrvD%WindDir = ATAN2( y_IfW(2), y_IfW(1) )
+      u_SrvD%YawErr  = u_SrvD%WindDir - y_ED%YawErr
+         
+   ELSE                    ! No AeroDynamics.
+         
+      u_SrvD%WindDir = 0.0
+      u_SrvD%YawErr  = 0.0
+         
+   ENDIF
+            
+               
    
       ! ServoDyn inputs from ElastoDyn     
    u_SrvD%Yaw      = y_ED%Yaw
