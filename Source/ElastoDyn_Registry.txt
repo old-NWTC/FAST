@@ -112,7 +112,9 @@ typedef	^	ED_InputFile	ReKi	Twr2Shft	-	-	-	"Vertical distance from the tower-top
 typedef	^	ED_InputFile	ReKi	TowerHt	-	-	-	"Height of tower above ground level"	meters
 typedef	^	ED_InputFile	ReKi	TwrRBHt	-	-	-	"Tower rigid base height"	meters
 typedef	^	ED_InputFile	ReKi	TwrDraft	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection"	meters
-typedef	^	ED_InputFile	ReKi	PtfmCM	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
+typedef	^	ED_InputFile	ReKi	PtfmCMxt	-	-	-	"Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
+typedef	^	ED_InputFile	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
+typedef	^	ED_InputFile	ReKi	PtfmCMzt	-	-	-	"Vertical distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
 typedef	^	ED_InputFile	ReKi	PtfmRef	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point"	meters
 typedef	^	ED_InputFile	ReKi	TipMass	{:}	-	-	"Tip-brake masses"	kg
 typedef	^	ED_InputFile	ReKi	HubMass	-	-	-	"Hub mass"	kg
@@ -238,7 +240,7 @@ typedef	^	ED_InputFile	ReKi	TFrlUSDP	-	-	-	"Tail-furl up-stop damper position"	r
 typedef	^	ED_InputFile	ReKi	TFrlDSDP	-	-	-	"Tail-furl down-stop damper position"	radians
 typedef	^	ED_InputFile	ReKi	TFrlUSDmp	-	-	-	"Tail-furl up-stop damping constant"	N-m/(rad/s)
 typedef	^	ED_InputFile	ReKi	TFrlDSDmp	-	-	-	"Tail-furl down-stop damping constant"	N-m/(rad/s)
-
+typedef	^	ED_InputFile	IntKi	method	-	-	-	"Identifier for integration method (1 [RK4], 2 [AB4], or 3 [ABM4])"	-
 
 
 # ..... Internal data types .......................................................................................................
@@ -519,10 +521,12 @@ typedef	^	ConstraintStateType	ReKi	DummyConstrState	-	-	-	"Remove this variable 
 typedef	^	OtherStateType	ED_CoordSys	CoordSys	-	-	-	"Coordinate systems in the FAST framework"	-
 #typedef	^	OtherStateType	ED_ActiveDOFs	DOFs	-	-	-	"Active degrees of freedom in the model"
 typedef	^	OtherStateType	ED_RtHndSide	RtHS	-	-	-	"Values used in calculating the right-hand-side RtHS (and outputs)"
-typedef	^	OtherStateType	ReKi	Q	{:}{:}	-	-	"Displacement matrix (time history)"
-typedef	^	OtherStateType	ReKi	QD	{:}{:}	-	-	"Velocity matrix (time history)"
-typedef	^	OtherStateType	ReKi	QD2	{:}{:}	-	-	"Acceleration matrix (time history)"
-typedef	^	OtherStateType	INTEGER	IC	{:}	-	-	"Array which stores pointers to predictor-corrector results"
+typedef	^	OtherStateType	IntKi	n	-	-	-	"tracks time step for which OtherState was updated"
+typedef	^	OtherStateType	ED_ContinuousStateType	xdot	4	-	-	"previous state deriv for multi-step"
+#typedef	^	OtherStateType	ReKi	Q	{:}{:}	-	-	"Displacement matrix (time history)"
+#typedef	^	OtherStateType	ReKi	QD	{:}{:}	-	-	"Velocity matrix (time history)"
+#typedef	^	OtherStateType	ReKi	QD2	{:}{:}	-	-	"Acceleration matrix (time history)"
+typedef	^	OtherStateType	IntKi	IC	{:}	-	-	"Array which stores pointers to predictor-corrector results"
 typedef	^	OtherStateType	ReKi	QD2T	{:}	-	-	"Solution (acceleration) vector; the first time derivative of QDT"
 typedef	^	OtherStateType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
 typedef	^	OtherStateType	ReKi	AugMat	{:}{:}	-	-	"The augmented matrix used for the solution of the QD2T()s"
@@ -789,6 +793,9 @@ typedef	^	ParameterType	ReKi	RotSpeed	-	-	-	"Initial or fixed rotor speed"	rad/s
 typedef	^	ParameterType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"
 typedef	^	ParameterType	ReKi	BElmntMass	{:}{:}	-	-	"Mass of the blade elements"
 typedef	^	ParameterType	ReKi	TElmntMass	{:}	-	-	"Mass of the tower elements"
+typedef	^	ParameterType	IntKi	method	-	-	-	"Identifier for integration method (1 [RK4], 2 [AB4], or 3 [ABM4])"	-
+typedef	^	ParameterType	ReKi	PtfmCMxt	-	-	-	"Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
+typedef	^	ParameterType	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:
@@ -825,4 +832,4 @@ typedef	^	OutputType	ReKi	HSS_Spd	-	-	-	"High-speed shaft (HSS) speed"	rad/s
 #typedef	^	OutputType	ReKi	NacellePosition	3	-	-	"Nacelle position (for AeroDyn)"	m
 #typedef	^	OutputType	ReKi	TowerPosition	3	-	-	"Tower position (for AeroDyn)"	m
 typedef	^	OutputType	ReKi	RotSpeed	-	-	-	"Rotor azimuth angular speed"	rad/s
-
+typedef	^	OutputType	ReKi	TwrAccel	-	-	-	"Tower acceleration for tower feedback control (user routine only)"	m/s^2
