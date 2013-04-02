@@ -1,3 +1,22 @@
+!**********************************************************************************************************************************
+! The ElastoDyn.f90 and  ElastoDyn_Types.f90 make up the ElastoDyn module of the
+! FAST Modularization Framework. ElastoDyn_Types is auto-generated based on FAST_Registry.txt.
+!..................................................................................................................................
+! LICENSING
+! Copyright (C) 2012  National Renewable Energy Laboratory
+!
+!    This file is part of ElastoDyn.
+!
+!    ElastoDyn is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as
+!    published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!
+!    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+!    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License along with ElastoDyn.
+!    If not, see <http://www.gnu.org/licenses/>.
+!
+!**********************************************************************************************************************************
 
 MODULE ElastoDyn_Parameters
 
@@ -1242,26 +1261,6 @@ INTEGER,  PARAMETER          :: TwHtRPzi(9) = (/ &
 
 END MODULE ElastoDyn_Parameters
 !**********************************************************************************************************************************
-!**********************************************************************************************************************************
-! The ElastoDyn.f90, ElastoDyn_Types.f90, and ElastoDyn_Parameters.f90 files make up the ElastoDyn module of the
-! FAST Modularization Framework. ElastoDyn_Types is auto-generated based on FAST_Registry.txt.
-!
-!..................................................................................................................................
-! LICENSING
-! Copyright (C) 2012  National Renewable Energy Laboratory
-!
-!    This file is part of ElastoDyn.
-!
-!    ElastoDyn is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as
-!    published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!
-!    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-!    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-!
-!    You should have received a copy of the GNU General Public License along with ElastoDyn.
-!    If not, see <http://www.gnu.org/licenses/>.
-!
-!**********************************************************************************************************************************
 MODULE ElastoDyn
 
    USE NWTC_Library
@@ -1491,6 +1490,13 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
        !Interval = p%DT
 
 
+       ! Print the summary file if requested:
+   IF (InputFileData%SumPrint) THEN
+      CALL ED_PrintSum( p, OtherState, GetAdamsVals, ErrStat2, ErrMsg2 )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF (ErrStat >= AbortErrLev) RETURN
+   END IF
+       
        ! Destroy the InputFileData structure (deallocate arrays)
 
    CALL ED_DestroyInputFile(InputFileData, ErrStat2, ErrMsg2 )
@@ -5821,8 +5827,7 @@ SUBROUTINE ReadFurlFile( FurlFile, InputFileData, UnEc, ErrStat, ErrMsg  )
    CALL ReadVar ( UnIn, FurlFile, InputFileData%RotFurl, 'RotFurl', 'Initial or fixed rotor-furl angle (deg)', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%RotFurl   = InputFileData%RotFurl*D2R
+   InputFileData%RotFurl   = InputFileData%RotFurl*D2R
 
 
       ! TailFurl - Initial or fixed tail-furl angle (read in degrees, converted to radians here)
@@ -5831,8 +5836,7 @@ SUBROUTINE ReadFurlFile( FurlFile, InputFileData, UnEc, ErrStat, ErrMsg  )
                   ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
-      InputFileData%TailFurl  = InputFileData%TailFurl*D2R
+   InputFileData%TailFurl  = InputFileData%TailFurl*D2R
 
 
    !  -------------- TURBINE CONFIGURATION (CONT) ---------------------------------
@@ -7447,6 +7451,11 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
          END IF
       END IF
    END IF
+   
+   
+      ! make sure GBoxEff is 100% for now
+   IF ( .NOT. EqualRealNos( InputFileData%GBoxEff, 1.0_ReKi ) ) CALL SetErrors( ErrID_Fatal, 'GBoxEff must be 1 (i.e., 100%).')
+      
    
       ! Don't allow these parameters to be negative (i.e., they must be in the range (0,inf)):
    CALL CheckNegative( InputFileData%Gravity,   'Gravity',   ErrStat, ErrMsg )
@@ -12877,6 +12886,216 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 END SUBROUTINE ED_ABM4
 !----------------------------------------------------------------------------------------------------------------------------------
 
+SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
+! This routine generates the summary file, which contains a regurgitation of  the input data and interpolated flexible body data.
+
+      ! passed variables
+   TYPE(ED_ParameterType),    INTENT(IN)  :: p                                    ! Parameters of the structural dynamics module
+   TYPE(ED_OtherStateType),   INTENT(IN)  :: OtherState                           ! Other/optimization states of the structural dynamics module 
+   LOGICAL,                   INTENT(IN)  :: GenerateAdamsModel                   ! Logical to determine if Adams inputs were read/should be summarized
+   INTEGER(IntKi),            INTENT(OUT) :: ErrStat
+   CHARACTER(*),              INTENT(OUT) :: ErrMsg
+
+
+      ! Local variables.
+
+   INTEGER(IntKi)               :: I                                               ! Index for the nodes.
+   INTEGER(IntKi)               :: K                                               ! Generic index (also for the blade number).
+   INTEGER(IntKi)               :: UnSu                                            ! I/O unit number for the summary output file
+
+   CHARACTER(*), PARAMETER      :: Fmt1      = "(34X,3(6X,'Blade',I2,:))"          ! Format for outputting blade headings.
+   CHARACTER(*), PARAMETER      :: Fmt2      = "(34X,3(6X,A,:))"                   ! Format for outputting blade headings.
+   CHARACTER(*), PARAMETER      :: FmtDat    = '(A,T35,3(:,F13.3))'                ! Format for outputting mass and modal data.
+   CHARACTER(*), PARAMETER      :: FmtDatT   = '(A,T35,1(:,F13.8))'                ! Format for outputting time steps.
+   CHARACTER(100)               :: RotorType                                       ! Text description of rotor.
+
+   CHARACTER(30)                :: OutPFmt                                         ! Format to print list of selected output channels to summary file
+   CHARACTER(10)                :: DOFEnabled                                      ! String to say if a DOF is enabled or disabled
+
+   ! Open the summary file and give it a heading.
+   
+   CALL GetNewUnit( UnSu, ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+
+   CALL OpenFOutFile ( UnSu, TRIM( p%RootName )//'.sum', ErrStat, ErrMsg )
+   IF ( ErrStat /= ErrID_None ) RETURN
+
+   
+      ! Heading:
+   WRITE (UnSu,'(/,A)')  'This summary information was generated by '//TRIM( GetNVD(ED_Ver) )// &
+                         ' on '//CurDate()//' at '//CurTime()//'.'
+   !WRITE (UnSu,'(//,1X,A)')  TRIM( p%FTitle )
+
+
+   !..................................
+   ! Turbine features.
+   !..................................
+
+   WRITE (UnSu,'(//,A,/)')  'Turbine features:'
+
+   IF ( p%OverHang > 0.0 )  THEN
+      RotorType = 'Downwind,'
+   ELSE
+      RotorType = 'Upwind,'
+   ENDIF
+   IF ( p%NumBl == 2 )  THEN
+      RotorType = TRIM(RotorType)//' two-bladed rotor'
+      IF ( p%DOF_Flag(DOF_Teet) )  THEN
+         RotorType = TRIM(RotorType)//' with teetering hub.'
+      ELSE
+         RotorType = TRIM(RotorType)//' with rigid hub.'
+      ENDIF
+   ELSE
+      RotorType = TRIM(RotorType)//' three-bladed rotor with rigid hub.'
+   ENDIF
+
+   WRITE    (UnSu,'(A)')  '            '//TRIM(RotorType)
+
+   WRITE    (UnSu,'(A)')  '            The model has '//TRIM(Num2LStr( p%DOFs%NActvDOF ))//' of '// &
+                                        TRIM(Num2LStr( p%NDOF ))//' DOFs active (enabled) at start-up.'
+
+   DO I=1,p%NDOF
+   
+      IF ( p%DOF_Flag( I ) ) THEN
+         DOFEnabled = 'Enabled'
+      ELSE
+         DOFEnabled = 'Disabled'
+      END IF
+      
+      K = INDEX( p%DOF_Desc(I), ' (internal DOF index' )
+      IF (K == 0) K = LEN_TRIM(p%DOF_Desc(I))
+      
+      WRITE ( UnSu, '(1x,A10,1x,A)' ), DOFEnabled, p%DOF_Desc(I)(:K)
+         
+      
+   END DO
+   
+
+      ! Time steps.
+
+   WRITE (UnSu,'(//,A,/)')  'Time steps:'
+
+   WRITE (UnSu,FmtDatT) '    Structural            (s)     ', p%DT
+
+      ! Some calculated parameters.
+
+   WRITE (UnSu,'(//,A,/)')  'Some calculated parameters:'
+
+   WRITE (UnSu,FmtDat ) '    Hub-Height            (m)     ', p%FASTHH
+   WRITE (UnSu,FmtDat ) '    Flexible Tower Length (m)     ', p%TwrFlexL
+   WRITE (UnSu,FmtDat ) '    Flexible Blade Length (m)     ', p%BldFlexL
+
+
+      ! Rotor properties:
+
+   WRITE (UnSu,'(//,A,/)')  'Rotor mass properties:'
+
+   WRITE (UnSu,FmtDat ) '    Rotor Mass            (kg)    ', p%RotMass
+   WRITE (UnSu,FmTDat ) '    Rotor Inertia         (kg-m^2)', p%RotINer
+
+   WRITE (UnSu,Fmt1   ) ( K,         K=1,p%NumBl )
+   WRITE (UnSu,Fmt2   ) ( '-------', K=1,p%NumBl )
+
+   WRITE (UnSu,FmtDat ) '    Mass                  (kg)    ', ( p%BldMass  (K), K=1,p%NumBl )
+   WRITE (UnSu,FmtDat ) '    Second Mass Moment    (kg-m^2)', ( p%SecondMom(K), K=1,p%NumBl )
+   WRITE (UnSu,FmtDat ) '    First Mass Moment     (kg-m)  ', ( p%FirstMom (K), K=1,p%NumBl )
+   WRITE (UnSu,FmtDat ) '    Center of Mass        (m)     ', ( p%BldCG    (K), K=1,p%NumBl )
+
+
+      ! Output additional masses:
+
+   WRITE (UnSu,'(//,A,/)')  'Additional mass properties:'
+
+   WRITE (UnSu,FmtDat ) '    Tower-top Mass        (kg)    ', p%TwrTpMass
+   WRITE (UnSu,FmtDat ) '    Tower Mass            (kg)    ', p%TwrMass
+   !WRITE (UnSu,FmtDat ) '    Turbine Mass          (kg)    ', p%TurbMass
+   WRITE (UnSu,FmtDat ) '    Platform Mass         (kg)    ', p%PtfmMass
+   WRITE (UnSu,FmtDat ) '    Mass Incl. Platform   (kg)    ', p%TurbMass + p%PtfmMass !TotalMass !bjj TotalMass not used anywhere else so removed it
+
+
+      ! Interpolated tower properties.
+
+   WRITE (UnSu,"(//,'Interpolated tower properties:',/)")
+   IF ( GenerateAdamsModel )  THEN  ! An ADAMS model will be created; thus, print out all the cols.
+
+      WRITE (UnSu,'(A)')  'Node  TwFract   HNodes  DHNodes  TMassDen    FAStiff    SSStiff'// &
+                           '    GJStiff    EAStiff    FAIner    SSIner  FAcgOff  SScgOff'
+      WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)    (kg/m)     (Nm^2)     (Nm^2)'// &
+                           '     (Nm^2)        (N)    (kg m)    (kg m)      (m)      (m)'
+
+      DO I=1,p%TwrNodes
+         WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, p%HNodesNorm(I), p%HNodes(I)+p%TwrRBHt, p%DHNodes(I), p%MassT(I), &
+                                                                 p%StiffTFA(I), p%StiffTSS(I), p%StiffTGJ(I), p%StiffTEA(I),       &
+                                                                 p%InerTFA(I), p%InerTSS(I), p%cgOffTFA(I), p%cgOffTSS(I)
+      ENDDO ! I
+
+   ELSE                                                     ! Only FAST will be run; thus, only print out the necessary cols.
+
+      WRITE (UnSu,'(A)')  'Node  TwFract   HNodes  DHNodes  TMassDen    FAStiff    SSStiff'
+      WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)    (kg/m)     (Nm^2)     (Nm^2)'
+
+      DO I=1,p%TwrNodes
+         WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, p%HNodesNorm(I), p%HNodes(I) + p%TwrRBHt, p%DHNodes(I), p%MassT(I), &
+                                                    p%StiffTFA(I), p%StiffTSS(I)
+      ENDDO ! I
+
+   ENDIF
+
+
+      ! Interpolated blade properties.
+
+   DO K=1,p%NumBl
+
+      WRITE (UnSu,'(//,A,I1,A,/)')  'Interpolated blade ', K, ' properties:'
+      IF ( GenerateAdamsModel )  THEN  ! An ADAMS model will be created; thus, print out all the cols.
+
+         WRITE (UnSu,'(A)')  'Node  BlFract   RNodes  DRNodes   PitchAxis StrcTwst  BMassDen    FlpStff    EdgStff'//       &
+                              '     GJStff     EAStff    Alpha   FlpIner   EdgIner PrecrvRef PreswpRef  FlpcgOf  EdgcgOf'// &
+                              '  FlpEAOf  EdgEAOf'
+         WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)      (-)      (deg)    (kg/m)     (Nm^2)     (Nm^2)'//       &
+                              '     (Nm^2)     (Nm^2)      (-)    (kg m)    (kg m)       (m)       (m)      (m)      (m)'// &
+                              '      (m)      (m)'
+
+         DO I=1,p%BldNodes
+
+            WRITE(UnSu,'(I4,3F9.3,3F10.3,4ES11.3,F9.3,4F10.3,4F9.3)')  I, p%RNodesNorm(I),  p%RNodes(I) + p%HubRad, p%DRNodes(I), &
+                                                                          p%PitchAxis(K,I), p%ThetaS(K,I)*R2D,      p%MassB(K,I), &
+                                                                          p%StiffBF(K,I),   p%StiffBE(K,I),                       &
+                                                                          p%StiffBGJ(K,I),  p%StiffBEA(K,I),                      &
+                                                                          p%BAlpha(K,I),    p%InerBFlp(K,I), p%InerBEdg(K,I),     &
+                                                                          p%RefAxisxb(K,I), p%RefAxisyb(K,I),                     &
+                                                                          p%cgOffBFlp(K,I), p%cgOffBEdg(K,I),                     &
+                                                                          p%EAOffBFlp(K,I), p%EAOffBEdg(K,I)
+         ENDDO ! I
+
+      ELSE                                                     ! Only FAST will be run; thus, only print out the necessary cols.
+
+         WRITE (UnSu,'(A)')  'Node  BlFract   RNodes  DRNodes  PitchAxis StrcTwst  BMassDen    FlpStff    EdgStff'
+         WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)        (-)    (deg)    (kg/m)     (Nm^2)     (Nm^2)'
+
+         DO I=1,p%BldNodes
+            WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, p%RNodesNorm(I), p%RNodes(I) + p%HubRad, p%DRNodes(I), &
+                                                        p%PitchAxis(K,I),p%ThetaS(K,I)*R2D, p%MassB(K,I), &
+                                                        p%StiffBF(K,I), p%StiffBE(K,I)
+         ENDDO ! I
+
+      ENDIF
+
+   ENDDO ! K
+
+
+   OutPFmt = '( I4, 3X,A '//TRIM(Num2LStr(OutStrLen))//',1 X, A'//TRIM(Num2LStr(OutStrLen))//' )'
+   WRITE (UnSu,'(//,A,/)')  'Requested Outputs:'
+   WRITE (UnSu,"(/, '  Col  Parameter  Units', /, '  ---  ---------  -----')")
+   DO I = 0,p%NumOuts
+      WRITE (UnSu,OutPFmt)  I, p%OutParam(I)%Name, p%OutParam(I)%Units
+   END DO             
+
+   CLOSE(UnSu)
+
+RETURN
+END SUBROUTINE ED_PrintSum
+!=======================================================================
 
 END MODULE ElastoDyn
 !**********************************************************************************************************************************

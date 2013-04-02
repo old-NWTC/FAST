@@ -1,10 +1,4 @@
 !**********************************************************************************************************************************
-! The ServoDyn and ServoDyn_Types modules make up a template for creating user-defined calculations in the FAST Modularization
-! Framework. ServoDyn_Types will be auto-generated based on a description of the variables for the module.
-!
-! "ModuleName" should be replaced with the name of your module. Example: ServoDyn
-! "ModName" (in ModName_*) should be replaced with the module name or an abbreviation of it. Example: SrvD
-!..................................................................................................................................
 ! LICENSING
 ! Copyright (C) 2013  National Renewable Energy Laboratory
 !
@@ -1561,9 +1555,11 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
       ! High-speed shaft brake parameters
       !.............................................   
    p%HSSBrMode = InputFileData%HSSBrMode
-   IF ( Cmpl4SFun ) THEN
+!   IF ( Cmpl4SFun ) THEN
+   IF ( .true. ) THEN
       p%THSSBrDp  = HUGE(p%THSSBrDp) ! Make sure this doesn't get shut off during simulation
-      CALL CheckError( ErrID_Info, 'THSSBrDp is ignored when compiled for Simulink.' )
+      CALL CheckError( ErrID_Info, 'THSSBrDp is ignored in this version of ServoDyn.' )
+!      CALL CheckError( ErrID_Info, 'THSSBrDp is ignored when compiled for Simulink.' )
    ELSE      
       p%THSSBrDp  = InputFileData%THSSBrDp
    END IF 

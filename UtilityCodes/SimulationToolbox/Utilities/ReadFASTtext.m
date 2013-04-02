@@ -72,7 +72,7 @@ else
     
     if UnitsLine == 0 && NameLine == 0
         fclose(fid);
-        Channels = dlmread(fileName,delim,HeaderRows,0);
+        Channels = dlmread(FileName,delim,HeaderRows,0);
         nCols = size(Channels, 2);
     else
         for i = 1:HeaderRows
@@ -101,7 +101,7 @@ else
         end %for i
             
         if nCols1 ~= nCols2 && nCols1*nCols2 > 0
-             disp( ['ReadFASTtext::Column names and units are different sizes in file, "' fileName '."']  );
+             disp( ['ReadFASTtext::Column names and units are different sizes in file, "' FileName '."']  );
         end 
         nCols = max( nCols1, nCols2 );
 

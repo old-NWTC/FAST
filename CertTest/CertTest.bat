@@ -8,13 +8,13 @@ REM  Set up environment variables.  You will probably have to change these.
 @SET CRUNCH=Call Crunch
 rem @SET CRUNCH=Call C:\Users\bjonkman\Data\DesignCodes\Crunch\Crunch.exe
 
-rem @SET MATLAB="C:\Program Files\MATLAB\R2009a\bin\matlab.exe"
-
 @SET MATLAB=matlab
 @SET MBC_SOURCE=C:\Users\bjonkman\Documents\DATA\Downloads\MBC\Source
 rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
 
 @SET FAST=..\FAST.exe
+rem @SET FAST=..\compiling\FAST_gwin32.exe
+rem @SET FAST=..\compiling\FAST_iwin32.exe
 rem @SET FAST=..\FAST_Debug.exe
 @SET DateTime=DateTime.exe
 @SET Editor=NotePad.EXE
@@ -517,30 +517,30 @@ rem *******************************************************
 
 rem Run FAST.
 
-%FAST% Test%TEST%.fst
+rem %FAST% Test%TEST%.fst
 
-IF ERRORLEVEL 1  GOTO ERROR
+rem IF ERRORLEVEL 1  GOTO ERROR
 
-@IF NOT EXIST Test%TEST%.lin  GOTO ERROR
+rem @IF NOT EXIST Test%TEST%.lin  GOTO ERROR
 
 rem Perform an eigenanalysis in MATLAB:
-echo. Running Matlab to calculate eigenvalues. If an error occurs, close Matlab to continue CertTest....
-%MATLAB% /wait /r addpath('%MBC_SOURCE%');Test%TEST% /logfile Test%TEST%.eig
+rem echo. Running Matlab to calculate eigenvalues. If an error occurs, close Matlab to continue CertTest....
+rem %MATLAB% /wait /r addpath('%MBC_SOURCE%');Test%TEST% /logfile Test%TEST%.eig
 
 @rem echo. Call to Matlab completed.
 
-IF ERRORLEVEL 1  GOTO MATLABERROR
+rem IF ERRORLEVEL 1  GOTO MATLABERROR
 
-@IF NOT EXIST Test%TEST%.eig  GOTO MATLABERROR
+rem @IF NOT EXIST Test%TEST%.eig  GOTO MATLABERROR
 
-echo.                                            >> CertTest.out
-echo %POUNDS%                                    >> CertTest.out
-echo.                                            >> CertTest.out
-echo %TEST14%                                    >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.eig TstFiles\Test%TEST%.eig >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+rem  echo.                                            >> CertTest.out
+rem  echo %POUNDS%                                    >> CertTest.out
+rem  echo.                                            >> CertTest.out
+rem  echo %TEST14%                                    >> CertTest.out
+rem  echo %DASHES%                                    >> CertTest.out
+rem  %Compare% Test%TEST%.eig TstFiles\Test%TEST%.eig >> CertTest.out
+rem  echo %DASHES%                                    >> CertTest.out
+rem  %Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
 
 
 rem *******************************************************

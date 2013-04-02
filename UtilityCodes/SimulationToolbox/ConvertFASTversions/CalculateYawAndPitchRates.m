@@ -1,14 +1,19 @@
- 
 function [YawManRat, PitManRat] = CalculateYawAndPitchRates(inputFile, outputFile)
-%inputFile is the primary FAST input file (pre-v8.*)
-%outputFile is the FAST output file containing the yaw position and/or
-%blade pitch outputs necessary to perform the rate calculations.
+%function [YawManRat, PitManRat] = CalculateYawAndPitchRates(inputFile, outputFile)
+%
+% This routine takes FAST pre-v8 input/output files and converts the 
+% pitch and yaw maneuver end-times to equivalent rates to be specified in
+% the FAST v8.0 input files.
+%
+%Inputs:
+%   inputFile  - the primary FAST input file (pre-v8.*)
+%   outputFile - the FAST output file containing the yaw position and/or
+%                blade pitch outputs necessary to perform the rate calculations.
+%Outputs:
+% YawManRat - the equivalent yaw maneuver rate
+% PitManRat - the equivalent pitch maneuver rates for all 3 blades (0 if
+%             not defined)
 %..........................................................................
-
-FstFileDir  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
-RootName    = 'Test11';
-inputfile  = [FstFileDir '\'          RootName '.fst'];
-outputfile = [FstFileDir '\TstFiles\' RootName '.out'];
 
 % FAST pre-v8.* input file
 FP = Fast2Matlab(inputfile,4); %FP are Fast Parameters, specify 4 lines of header
