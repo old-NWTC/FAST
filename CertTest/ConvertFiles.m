@@ -5,10 +5,10 @@
 %--------------------------------------------------------------------------
 clear all;
 
-% FASTSimulationToolbox = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\UtilityCodes\SimulationToolbox';
-% addpath( genpath( FASTSimulationToolbox ) );
+FASTSimulationToolbox = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\UtilityCodes\SimulationToolbox';
+addpath( genpath( FASTSimulationToolbox ) );
 
-% FstFileDir  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
+% FstFileDir  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest\TstFiles';
 % RootName    = 'Test11';
 % inputfile  = [FstFileDir '\'          RootName '.fst'];
 % outputfile = [FstFileDir '\TstFiles\' RootName '.out'];
@@ -18,25 +18,30 @@ clear all;
 %%
 oldDir      = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
 newDir      = '.';
+outFileDir  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
 % templateDir = 'TemplateFiles\V8.00.x\5MW_Monopile';
 % XLS_file  = '..\OutListParameters.xlsx';
 
 %test 9:  YawManRat    = 3.729000
 %test 11: PitManRat(1) = 16.600000
 
-for i= 1:17 %1:(17+5) %17+(1:5) %1:17 %
+for i= 8:17 %1:(17+5) %17+(1:5) %1:17 %
 
         % Primary input file:
         
-    baseFileName  = ['Test' num2str(i,'%02.0f') '.fst' ];
+    baseFileName  = ['Test' num2str(i,'%02.0f') ];
  
-    inputfile = [oldDir filesep baseFileName];      
+    inputfile = [oldDir filesep baseFileName '.fst'];      
 
     if i==9
-        YawManRat = 3.729000;
+        outputfile = [outFileDir filesep baseFileName '.out'];
+        [YawManRat, PitManRat] = CalculateYawAndPitchRates(inputfile, outputfile);
+%         YawManRat = 3.729000;
         ConvertFAST7to8(inputfile,newDir,YawManRat);
     elseif i==11
-        PitManRat(1) = 16.6;
+        outputfile = [outFileDir filesep baseFileName '.out'];
+        [YawManRat, PitManRat] = CalculateYawAndPitchRates(inputfile, outputfile);
+%         PitManRat(1) = 16.6;
         ConvertFAST7to8(inputfile,newDir,0,PitManRat);
     else
         ConvertFAST7to8(inputfile,newDir);

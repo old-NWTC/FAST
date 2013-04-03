@@ -247,9 +247,17 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
       ELSEIF ( .NOT. EqualRealNos( p%DT_out, p%DT * NINT(p%DT_out / p%DT ) )  ) THEN
          CALL SetErrors( ErrID_Fatal, 'DT_out must currently be an integer multiple of DT.' )
       END IF
+   END IF      
+   
+   IF ( p%CompUserTwrLd ) THEN
+      CALL SetErrors( ErrID_Info, 'CompUserTwrLd will be ignored in this version of FAST.' )
+      p%CompUserTwrLd = .FALSE.
    END IF
    
-   
+   IF ( p%CompUserPtfmLd ) THEN
+      CALL SetErrors( ErrID_Info, 'CompUserPtfmLd will be ignored in this version of FAST.' )
+      p%CompUserPtfmLd = .FALSE.
+   END IF
    
 !.....   
 p%SumPrint = .TRUE.  !are we going to keep this? (used now for AeroDyn)

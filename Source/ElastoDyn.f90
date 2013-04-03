@@ -13049,10 +13049,10 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
       WRITE (UnSu,'(//,A,I1,A,/)')  'Interpolated blade ', K, ' properties:'
       IF ( GenerateAdamsModel )  THEN  ! An ADAMS model will be created; thus, print out all the cols.
 
-         WRITE (UnSu,'(A)')  'Node  BlFract   RNodes  DRNodes   PitchAxis StrcTwst  BMassDen    FlpStff    EdgStff'//       &
+         WRITE (UnSu,'(A)')  'Node  BlFract   RNodes  DRNodes  PitchAxis  StrcTwst  BMassDen    FlpStff    EdgStff'//       &
                               '     GJStff     EAStff    Alpha   FlpIner   EdgIner PrecrvRef PreswpRef  FlpcgOf  EdgcgOf'// &
                               '  FlpEAOf  EdgEAOf'
-         WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)      (-)      (deg)    (kg/m)     (Nm^2)     (Nm^2)'//       &
+         WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)     (-)       (deg)    (kg/m)     (Nm^2)     (Nm^2)'//       &
                               '     (Nm^2)     (Nm^2)      (-)    (kg m)    (kg m)       (m)       (m)      (m)      (m)'// &
                               '      (m)      (m)'
 
@@ -13070,8 +13070,8 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
 
       ELSE                                                     ! Only FAST will be run; thus, only print out the necessary cols.
 
-         WRITE (UnSu,'(A)')  'Node  BlFract   RNodes  DRNodes  PitchAxis StrcTwst  BMassDen    FlpStff    EdgStff'
-         WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)        (-)    (deg)    (kg/m)     (Nm^2)     (Nm^2)'
+         WRITE (UnSu,'(A)')  'Node  BlFract   RNodes  DRNodes PitchAxis  StrcTwst  BMassDen    FlpStff    EdgStff'
+         WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)       (-)     (deg)    (kg/m)     (Nm^2)     (Nm^2)'
 
          DO I=1,p%BldNodes
             WRITE(UnSu,'(I4,3F9.3,3F10.3,2ES11.3)')  I, p%RNodesNorm(I), p%RNodes(I) + p%HubRad, p%DRNodes(I), &

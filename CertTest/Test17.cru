@@ -1,4 +1,4 @@
------  Crunch v3.01.00 Input File  ---------------------------------------------
+-----  Crunch v3.01.00d Input File  --------------------------------------------
 Input file for generating statistics and PMFs for FAST certification Test #17.
 -----  Job Options  ------------------------------------------------------------
 False          Echo:               The flag for echoing input to <root>.ech.
@@ -56,7 +56,7 @@ OutCol#1   OutCol#2   XT(1,1)   XT(1,2)   XT(2,1)   XT(2,2)         NumXT rows o
 True           WrPLtime:           The flag to include the time in the peak-list file(s)?
 Channel   WriteTroughs?   TroughThresh   WritePeaks?   PeakThresh        NumPLCh rows of data follow.
 -----  Probablity Mass  --------------------------------------------------------
-19             NumPMF:             The number of channels that will have PMFs generated for them.  Next two lines ignored if zero.
+18             NumPMF:             The number of channels that will have PMFs generated for them.  Next two lines ignored if zero.
 100            NumPMFBins:         The number of bins to use for the PMF.
 Column#   Minimum   Maximum        If Min=Max=0, autocalculate them.  NumPMF rows of data follow.
    2         0         0
@@ -77,7 +77,6 @@ Column#   Minimum   Maximum        If Min=Max=0, autocalculate them.  NumPMF row
   17         0         0
   18         0         0
   19         0         0
-  20         0         0
 -----  Rainflow Cycles  --------------------------------------------------------
 0              NumRFCols:          The number of RF channels.  Next six lines ignored if zero.
 0              RF_Per:             Number of seconds in the rainflow counting period.

@@ -3,7 +3,7 @@
 NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis.
 Properties from Dutch Offshore Wind Energy Converter (DOWEC) 6MW Pre-Design (10046_009.pdf) and REpower 5M 5MW (5m_uk.pdf); Compatible with FAST v7.02.00
 ---------------------- SIMULATION CONTROL --------------------------------------
-False       Echo        - Echo input data to "echo.out" (flag)
+true False       Echo        - Echo input data to "echo.out" (flag)
    3        ADAMSPrep   - ADAMS preprocessor mode {1: Run FAST, 2: use FAST as a preprocessor to create an ADAMS model, 3: do both} (switch)
    1        AnalMode    - Analysis mode {1: Run a time-marching simulation, 2: create a periodic linearized model} (switch)
    3        NumBl       - Number of blades (-)
