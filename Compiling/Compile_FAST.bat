@@ -25,6 +25,7 @@ REM ----------------------------------------------------------------------------
 
 SET ROOT_NAME=FAST_test
 
+rem SET COMPOPTS=/threads  /O2 /inline:speed /traceback /Qzero /Qsave /real_size:32 /assume:byterecl /fpp /assume:realloc_lhs
 SET COMPOPTS=/threads  /O2 /inline:speed /traceback /Qzero /Qsave /real_size:32 /assume:byterecl /fpp
 rem SET LINKOPTS=/link /stack:64000000
 SET LINKOPTS=/link

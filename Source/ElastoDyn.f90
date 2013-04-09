@@ -1273,7 +1273,7 @@ MODULE ElastoDyn
 
    PRIVATE
    
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.00.00a-bjj', '31-March-2013' )
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.00.00c-bjj', '09-April-2013' )
 
 
 
@@ -1523,7 +1523,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//'Error in ED_Init: '//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -5017,7 +5017,7 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    p%TwrRBHt   = InputFileData%TwrRBHt
    p%TwrDraft  = InputFileData%TwrDraft
    p%PtfmRef   = InputFileData%PtfmRef
-   p%TipMass   = InputFileData%TipMass
+   
    p%HubMass   = InputFileData%HubMass
    p%GenIner   = InputFileData%GenIner
    p%NacMass   = InputFileData%NacMass
@@ -5068,7 +5068,7 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    
    CALL AllocAry( p%TipMass, p%NumBl, 'TipMass', ErrStat, ErrMsg )
    IF ( ErrStat >= AbortErrLev ) RETURN
-
+   p%TipMass   = InputFileData%TipMass
 
       ! initialize all of the DOF parameters:
    CALL Init_DOFparameters( InputFileData, p, ErrStat, ErrMsg ) !sets p%NDOF and p%NAug
@@ -12645,17 +12645,17 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 !
 !..................................................................................................................................
 
-      REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
-      INTEGER(IntKi),                 INTENT(IN   )  :: n           ! time step number
+      REAL(DbKi),                   INTENT(IN   )  :: t           ! Current simulation time in seconds
+      INTEGER(IntKi),               INTENT(IN   )  :: n           ! time step number
       TYPE(ED_InputType),           INTENT(IN   )  :: u(:)        ! Inputs at t
-      REAL(DbKi),                     INTENT(IN   )  :: utimes(:)   ! times of input
+      REAL(DbKi),                   INTENT(IN   )  :: utimes(:)   ! times of input
       TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
       TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           ! Continuous states at t on input at t + dt on output
       TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
       TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t (possibly a guess)
       TYPE(ED_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
       ! local variables
          
@@ -12672,6 +12672,16 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       ErrStat = ErrID_None
       ErrMsg  = "" 
 
+      CALL AllocAry( k1%qt,     p%NDOF, 'k1%qt',  ErrStat, ErrMsg )
+      CALL AllocAry( k1%qdt,    p%NDOF, 'k1%qdt', ErrStat, ErrMsg )
+      CALL AllocAry( k2%qt,     p%NDOF, 'k2%qt',  ErrStat, ErrMsg )
+      CALL AllocAry( k2%qdt,    p%NDOF, 'k2%qdt', ErrStat, ErrMsg )
+      CALL AllocAry( k3%qt,     p%NDOF, 'k3%qt',  ErrStat, ErrMsg )
+      CALL AllocAry( k3%qdt,    p%NDOF, 'k3%qdt', ErrStat, ErrMsg )
+      CALL AllocAry( k4%qt,     p%NDOF, 'k4%qt',  ErrStat, ErrMsg )
+      CALL AllocAry( k4%qdt,    p%NDOF, 'k4%qdt', ErrStat, ErrMsg )
+      CALL AllocAry( x_tmp%qt,  p%NDOF, 'x_tmpqt',  ErrStat, ErrMsg )
+      CALL AllocAry( x_tmp%qdt, p%NDOF, 'x_tmpqdt', ErrStat, ErrMsg )
 
       ! interpolate u to find u_interp = u(t)
       CALL ED_Input_ExtrapInterp( u, utimes, u_interp, t, ErrStat, ErrMsg )
