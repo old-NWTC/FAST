@@ -4996,8 +4996,6 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    !p%HubIner   = InputFileData%HubIner
    !p%NacYIner  = InputFileData%NacYIner
 
-   CALL AllocAry( p%TipMass, p%NumBl, 'TipMass', ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
 
    !...............................................................................................................................
    ! Direct copy of variables:
@@ -5066,6 +5064,10 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
       p%TeetSSSp = 0.0
       p%TeetHSSp = 0.0
    END IF
+
+   
+   CALL AllocAry( p%TipMass, p%NumBl, 'TipMass', ErrStat, ErrMsg )
+   IF ( ErrStat >= AbortErrLev ) RETURN
 
 
       ! initialize all of the DOF parameters:
@@ -12965,7 +12967,7 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
       K = INDEX( p%DOF_Desc(I), ' (internal DOF index' )
       IF (K == 0) K = LEN_TRIM(p%DOF_Desc(I))
       
-      WRITE ( UnSu, '(1x,A10,1x,A)' ), DOFEnabled, p%DOF_Desc(I)(:K)
+      WRITE ( UnSu, '(1x,A10,1x,A)' ) DOFEnabled, p%DOF_Desc(I)(:K)
          
       
    END DO
