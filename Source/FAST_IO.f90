@@ -495,6 +495,7 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
    CHARACTER(LEN(ErrMsg))        :: ErrMsg2                                   ! Temporary Error message
    CHARACTER(1024)               :: PriPath                                   ! Path name of the primary file
 
+   CHARACTER(10)                 :: AbortLevel                                ! String that indicates which error level should be used to abort the program: WARNING, SEVERE, or FATAL
    
    
       ! Initialize some variables:
@@ -537,7 +538,8 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       CALL ReadCom( UnIn, InputFile, 'Section Header: Simulation Control', ErrStat2, ErrMsg2, UnEc )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
-   
+               
+         
          ! Echo - Echo input data to <RootName>.ech (flag):
       CALL ReadVar( UnIn, InputFile, Echo, "Echo", "Echo input data to <RootName>.ech (flag)", ErrStat2, ErrMsg2, UnEc)
          CALL CheckError( ErrStat2, ErrMsg2 )
@@ -565,7 +567,29 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
    END DO    
    
    CALL WrScr( ' Heading of the '//TRIM(FAST_Ver%Name)//' input file: '//TRIM( p%FTitle ) )      
-                                             
+                                   
+   
+      ! AbortLevel - Error level when simulation should abort:
+   CALL ReadVar( UnIn, InputFile, AbortLevel, "AbortLevel", "Error level when simulation should abort (string)", &
+                        ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+         
+      ! Let's set the abort level here.... knowing that everything before this aborted only on FATAL errors!
+      CALL Conv2UC( AbortLevel ) !convert to upper case
+      SELECT CASE( TRIM(AbortLevel) )
+         CASE ( "WARNING" )
+            AbortErrLev = ErrID_Warn
+         CASE ( "SEVERE" )
+            AbortErrLev = ErrID_Severe
+         CASE ( "FATAL" )
+            AbortErrLev = ErrID_Fatal
+         CASE DEFAULT 
+            CALL CheckError( ErrID_Fatal, 'Invalid AbortLevel specified in FAST input file. '// &
+                                 'Valid entries are "WARNING", "SEVERE", or "FATAL".' )
+            RETURN
+      END SELECT
+      
       
       ! TMax - Total run time (s):
    CALL ReadVar( UnIn, InputFile, p%TMax, "TMax", "Total run time (s)", ErrStat2, ErrMsg2, UnEc)
@@ -576,7 +600,7 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
    CALL ReadVar( UnIn, InputFile, p%DT, "DT", "Recommended module time step (s)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
+                
    !---------------------- FEATURE FLAGS -------------------------------------------
    CALL ReadCom( UnIn, InputFile, 'Section Header: Feature Flags', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -918,6 +942,11 @@ FUNCTION TimeValues2Seconds( TimeAry )
 
 END FUNCTION TimeValues2Seconds
 !----------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, EDOutput, SrvDOutput, IfWOutput, ErrStat, ErrMsg)
 ! This routine writes the module output to the primary output file(s).
 !..................................................................................................................................
@@ -1029,7 +1058,11 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, EDOutput, SrvDOutput, IfWOutput, Err
    RETURN
 END SUBROUTINE WrOutputLine
 !----------------------------------------------------------------------------------------------------------------------------------
-         
+      
+
+
+
+
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD )
 ! This routine sets the inputs required for ED
@@ -1112,7 +1145,7 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD )
    
 END SUBROUTINE ED_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW )
+SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD )
 ! This routine sets the inputs required for ServoDyn
 !..................................................................................................................................
 
@@ -1120,40 +1153,66 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW )
    TYPE(SrvD_InputType),       INTENT(INOUT)  :: u_SrvD     ! ServoDyn Inputs at t
    TYPE(ED_OutputType),        INTENT(IN)     :: y_ED       ! ElastoDyn outputs
    REAL(ReKi),                 INTENT(IN)     :: y_IfW(3)   ! InflowWind outputs
+   TYPE(SrvD_OutputType),      INTENT(IN)     :: y_SrvD     ! ServoDyn outputs
 !  TYPE(AD_OutputType),        INTENT(IN)     :: y_AD       ! AeroDyn outputs
   
    
-      ! ServoDyn inputs from conbination of InflowWind and ElastoDyn
+      ! ServoDyn inputs from combination of InflowWind and ElastoDyn
       
+      
+      
+   u_SrvD%YawAngle  = y_ED%YawAngle !nacelle yaw plus platform yaw
       
       ! Calculate horizontal hub-height wind direction and the nacelle yaw error estimate (both positive about zi-axis); these are 
       !   zero if there is no wind input when AeroDyn is not used:
       
+      !bjj: rename pass YawAngle (not YawErr from ED)
    IF ( p_FAST%CompAero )  THEN   ! AeroDyn has been used.         
          
-      u_SrvD%WindDir = ATAN2( y_IfW(2), y_IfW(1) )
-      u_SrvD%YawErr  = u_SrvD%WindDir - y_ED%YawErr
-         
+      u_SrvD%WindDir  = ATAN2( y_IfW(2), y_IfW(1) )
+      u_SrvD%YawErr   = u_SrvD%WindDir - y_ED%YawAngle
+      u_SrvD%HorWindV = SQRT( y_IfW(1)**2 + y_IfW(2)**2 )  
+      
    ELSE                    ! No AeroDynamics.
          
-      u_SrvD%WindDir = 0.0
-      u_SrvD%YawErr  = 0.0
+      u_SrvD%WindDir  = 0.0
+      u_SrvD%YawErr   = 0.0
+      u_SrvD%HorWindV = 0.0
          
    ENDIF
-            
                
+      ! ServoDyn inputs from ServoDyn outputs at previous step
+      
+   u_SrvD%ElecPwr_prev = y_SrvD%ElecPwr  ! we want to know the electrical power from the previous time step  (for the Bladed DLL)
+   u_SrvD%GenTrq_prev  = y_SrvD%GenTrq   ! we want to know the electrical generator torque from the previous time step  (for the Bladed DLL)
    
       ! ServoDyn inputs from ElastoDyn     
-   u_SrvD%Yaw      = y_ED%Yaw
-   u_SrvD%YawRate  = y_ED%YawRate
-   u_SrvD%BlPitch  = y_ED%BlPitch
-   u_SrvD%LSS_Spd  = y_ED%LSS_Spd
-   u_SrvD%HSS_Spd  = y_ED%HSS_Spd
-   u_SrvD%RotSpeed = y_ED%RotSpeed
-
+   u_SrvD%Yaw       = y_ED%Yaw  !nacelle yaw      
+   u_SrvD%YawRate   = y_ED%YawRate
+   u_SrvD%BlPitch   = y_ED%BlPitch
+   u_SrvD%LSS_Spd   = y_ED%LSS_Spd
+   u_SrvD%HSS_Spd   = y_ED%HSS_Spd
+   u_SrvD%RotSpeed  = y_ED%RotSpeed
+   u_SrvD%RootMxc   = y_ED%RootMxc
+   u_SrvD%RootMyc   = y_ED%RootMyc
+   u_SrvD%YawBrTAxp = y_ED%YawBrTAxp
+   u_SrvD%YawBrTAyp = y_ED%YawBrTAyp
+   u_SrvD%LSSTipPxa = y_ED%LSSTipPxa
       
+   u_SrvD%LSSTipMya = y_ED%LSSTipMya
+   u_SrvD%LSSTipMza = y_ED%LSSTipMza
+   u_SrvD%LSSTipMys = y_ED%LSSTipMys
+   u_SrvD%LSSTipMzs = y_ED%LSSTipMzs
+   u_SrvD%YawBrMyn  = y_ED%YawBrMyn
+   u_SrvD%YawBrMzn  = y_ED%YawBrMzn
+   u_SrvD%NcIMURAxs = y_ED%NcIMURAxs
+   u_SrvD%NcIMURAys = y_ED%NcIMURAys
+   u_SrvD%NcIMURAzs = y_ED%NcIMURAzs
+     
+   u_SrvD%RotPwr    = y_ED%RotPwr
+   
       ! ServoDyn inputs from AeroDyn
-   IF ( p_FAST%CompHydro ) THEN
+   IF ( p_FAST%CompAero ) THEN
    ELSE
    END IF
       

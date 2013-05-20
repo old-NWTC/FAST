@@ -1373,7 +1373,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
-   p%DT  = Interval
+   !p%DT  = Interval !bjj: this is set in ED_SetParameters
 
 
       !............................................................................................
@@ -1399,45 +1399,23 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       ! Define initial guess for the system inputs here:
       !............................................................................................
 
-   CALL AllocAry( u%BlPitchCom, p%NumBl, 'BlPitchCom', ErrStat2, ErrMsg2 )
+         ! allocate all the arrays that store data in the input type:
+   CALL ED_AllocInput( u, p, ErrStat2, ErrMsg2 )      
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
-   u%BlPitchCom = InputFileData%BlPitch(1:p%NumBl)
-
-
-   CALL AllocAry( u%TwrAddedMass, 6_IntKi, 6_IntKi, p%TwrNodes, 'TwrAddedMass', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-   u%TwrAddedMass = 0.0_ReKi
-
-   CALL AllocAry( u%TwrFT, 6_IntKi, p%TwrNodes, 'TwrFT', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-   u%TwrFT = 0.0_ReKi
-
-   u%PtfmAddedMass = 0.0_ReKi
-   u%PtfmFT = 0.0_ReKi
-   
-   
-   CALL AllocAry( u%AeroBladeForce, 3_IntKi, p%BldNodes, p%NumBl, 'AeroBladeForce', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-   u%AeroBladeForce = 0.0_ReKi
-   
-   CALL AllocAry( u%AeroBladeMoment, 3_IntKi, p%BldNodes, p%NumBl, 'AeroBladeMoment', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
+      
+   u%TwrAddedMass    = 0.0_ReKi
+   u%TwrFT           = 0.0_ReKi
+   u%PtfmAddedMass   = 0.0_ReKi
+   u%PtfmFT          = 0.0_ReKi
+   u%BlPitchCom      = InputFileData%BlPitch(1:p%NumBl)
+   u%YawMom          = 0.0_ReKi
+   u%GenTrq          = 0.0_ReKi
+   u%HSSBrTrq        = 0.0_ReKi
+   u%AeroBladeForce  = 0.0_ReKi
    u%AeroBladeMoment = 0.0_ReKi
-   
-   CALL AllocAry( u%FTAero,    p%TwrNodes,        3_IntKi, 'FTAero',    ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-   u%FTAero = 0.0
-   
-   CALL AllocAry( u%MFAero,    p%TwrNodes,        3_IntKi, 'MFAero',    ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-   u%MFAero = 0.0
+   u%FTAero          = 0.0_ReKi
+   u%MFAero          = 0.0_ReKi
    
 
       !............................................................................................
@@ -1449,7 +1427,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL CheckError( ErrID_Fatal, 'Error allocating memory for the AllOuts array.' )
       RETURN
    ENDIF
-   y%AllOuts = 0.0
+   y%AllOuts = 0.0_ReKi
 
    CALL AllocAry( y%WriteOutput, p%NumOuts, 'WriteOutput', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -1487,7 +1465,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       !   this module must be called here:
       !............................................................................................
 
-       !Interval = p%DT
+   Interval = p%DT
 
 
        ! Print the summary file if requested:
@@ -1603,7 +1581,7 @@ SUBROUTINE ED_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, E
 
       REAL(DbKi),                         INTENT(IN   ) :: t          ! Current simulation time in seconds
       INTEGER(IntKi),                     INTENT(IN   ) :: n          ! Current simulation time step n = 0,1,...
-      TYPE(ED_InputType),                 INTENT(IN   ) :: u(:)       ! Inputs at utimes
+      TYPE(ED_InputType),                 INTENT(INOUT) :: u(:)       ! Inputs at utimes (out only for mesh record-keeping in ExtrapInterp routine)
       REAL(DbKi),                         INTENT(IN   ) :: utimes(:)  ! Times associated with u(:), in seconds
       TYPE(ED_ParameterType),             INTENT(IN   ) :: p          ! Parameters
       TYPE(ED_ContinuousStateType),       INTENT(INOUT) :: x          ! Input: Continuous states at t;
@@ -1753,31 +1731,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       CALL ED_DestroyContState( dxdt, ErrStat, ErrMsg )
    END IF      
 
-      !..............................
-      ! Outputs required for ServoDyn
-      !..............................
-   
-   y%Yaw      = x%QT( DOF_Yaw)
-   y%YawRate  = x%QDT(DOF_Yaw)
-   y%YawErr   = x%QT( DOF_Yaw) + x%QT(DOF_Y)  !crude approximation for yaw error... (without subtracting it from the wind direction)
-   y%BlPitch  = u%BlPitchCom !OtherState%BlPitch
-   y%LSS_Spd  = x%QDT(DOF_GeAz)
-   y%HSS_Spd  = ABS(p%GBRatio)*x%QDT(DOF_GeAz)
-   y%RotSpeed = x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr)
-   
-   IF ( t > 0.0_DbKi  )  THEN
 
-      ! Calculate tower-top acceleration (fore-aft mode only) in the tower-top system:
-
-      LinAccEO = OtherState%RtHS%LinAccEOt
-      DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
-         LinAccEO = LinAccEO + OtherState%RtHS%PLinVelEO(p%DOFs%PTE(I),0,:)*OtherState%QD2T(p%DOFs%PTE(I))
-      ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
-
-      y%TwrAccel = DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b1 )
-   ELSE
-      y%TwrAccel = 0
-   END IF   
    
       !..............................
       ! Outputs for AeroDyn
@@ -2489,8 +2443,55 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    ENDDO             ! I - All selected output channels
 
+   
+   
+      !..............................
+      ! Outputs required for ServoDyn
+      !..............................
+   
+   y%Yaw      = x%QT( DOF_Yaw)
+   y%YawRate  = x%QDT(DOF_Yaw)
+   y%YawAngle = x%QT( DOF_Yaw) + x%QT(DOF_Y)  !crude approximation for yaw error... (without subtracting it from the wind direction)   
+   y%BlPitch  = u%BlPitchCom !OtherState%BlPitch
+   y%LSS_Spd  = x%QDT(DOF_GeAz)
+   y%HSS_Spd  = ABS(p%GBRatio)*x%QDT(DOF_GeAz)
+   y%RotSpeed = x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr)
+   
+   IF ( t > 0.0_DbKi  )  THEN
 
+      ! Calculate tower-top acceleration (fore-aft mode only) in the tower-top system:
 
+      LinAccEO = OtherState%RtHS%LinAccEOt
+      DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
+         LinAccEO = LinAccEO + OtherState%RtHS%PLinVelEO(p%DOFs%PTE(I),0,:)*OtherState%QD2T(p%DOFs%PTE(I))
+      ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
+
+      y%TwrAccel = DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b1 )
+   ELSE
+      y%TwrAccel = 0
+   END IF      
+   
+   !Control outputs for Bladed DLL:
+   y%RotPwr    = y%AllOuts(  RotPwr)*1000.
+   DO K=1,p%NumBl
+      y%RootMxc(K)   = y%AllOuts( RootMxc(K) )*1000.
+      y%RootMyc(K)   = y%AllOuts( RootMyc(K) )*1000.
+   END DO
+   y%YawBrTAxp = y%AllOuts( YawBrTAxp)
+   y%YawBrTAyp = y%AllOuts( YawBrTAyp)
+   y%LSSTipPxa = y%AllOuts( LSSTipPxa)*D2R
+
+   y%LSSTipMya = y%AllOuts(LSSTipMya)*1000.                ! Rotating hub My (GL co-ords) (Nm)
+   y%LSSTipMza = y%AllOuts(LSSTipMza)*1000.                ! Rotating hub Mz (GL co-ords) (Nm)
+   y%LSSTipMys = y%AllOuts(LSSTipMys)*1000.                ! Fixed hub My (GL co-ords) (Nm)
+   y%LSSTipMzs = y%AllOuts(LSSTipMzs)*1000.                ! Fixed hub Mz (GL co-ords) (Nm)
+   y%YawBrMyn  = y%AllOuts( YawBrMyn)*1000.                ! Yaw bearing My (GL co-ords) (Nm) !tower accel
+   y%YawBrMzn  = y%AllOuts( YawBrMzn)*1000.                ! Yaw bearing Mz (GL co-ords) (Nm)
+   y%NcIMURAxs = y%AllOuts(NcIMURAxs)*D2R                  ! Nacelle roll    acceleration (rad/s^2) -- this is in the shaft (tilted) coordinate system, instead of the nacelle (nontilted) coordinate system
+   y%NcIMURAys = y%AllOuts(NcIMURAys)*D2R                  ! Nacelle nodding acceleration (rad/s^2)
+   y%NcIMURAzs = y%AllOuts(NcIMURAzs)*D2R                  ! Nacelle yaw     acceleration (rad/s^2) -- this is in the shaft (tilted) coordinate system, instead of the nacelle (nontilted) coordinate system
+   
+   
    RETURN
 
 END SUBROUTINE ED_CalcOutput
@@ -2581,9 +2582,22 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
       ErrMsg = TRIM(ErrMsg)//TRIM(ErrMsg2)
    END IF
 
-!bjj: allocate this array in a better way!!!
-call allocary( dxdt%qt,  SIZE(x%qt),  'dxdt%qt',  ErrStat2, ErrMsg2 )
-call allocary( dxdt%qdt, SIZE(x%qdt), 'dxdt%qdt', ErrStat2, ErrMsg2 )
+   !bjj: because the deriv is INTENT(OUT), this is reallocated each time:
+IF (.NOT. ALLOCATED(dxdt%qt) ) THEN
+   CALL AllocAry( dxdt%qt,  SIZE(x%qt),  'dxdt%qt',  ErrStat2, ErrMsg2 )
+   ErrStat = MAX(ErrStat, ErrStat2)
+   IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+   ErrMsg = TRIM(ErrMsg)//TRIM(ErrMsg2)
+   IF ( ErrStat >= AbortErrLev ) RETURN
+END IF
+
+IF (.NOT. ALLOCATED(dxdt%qdt) ) THEN
+   CALL AllocAry( dxdt%qdt, SIZE(x%qdt), 'dxdt%qdt', ErrStat2, ErrMsg2 )
+   ErrStat = MAX(ErrStat, ErrStat2)
+   IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+   ErrMsg = TRIM(ErrMsg)//TRIM(ErrMsg2)
+   IF ( ErrStat >= AbortErrLev ) RETURN
+END IF
 
    dxdt%QT = x%QDT
    
@@ -2704,7 +2718,6 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, Ou
    CALL ReadPrimaryFile( InputFileName, InputFileData, BldFile, FurlFile, TwrFile, OutFileRoot, UnEcho, ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF ( ErrStat >= AbortErrLev ) RETURN
-
 
       ! get the furling input-file data
    InputFileData%Furling = .FALSE.              ! Furling is not supported in this version of ElastoDyn
@@ -5244,7 +5257,6 @@ SUBROUTINE ReadBladeInputs ( BldFile, MeshFile, ReadAdmVals, InputFileData, UnEc
             IF ( ErrStat >= AbortErrLev ) RETURN
 
       ELSE
-
          CALL ED_CopyBladeInputData( InputFileData%InpBl(K-1), InputFileData%InpBl(K), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
             CALL CheckError(ErrStat2,'Errors copying blade '//TRIM(Num2LStr(K-1))//' input file data: '//TRIM(ErrMsg2))
             IF ( ErrStat >= AbortErrLev ) RETURN
@@ -6399,7 +6411,6 @@ SUBROUTINE ReadTowerFile( TwrFile, InputFileData, ReadAdmVals, UnEc, ErrStat, Er
    CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
    IF ( ErrStat >= AbortErrLev ) RETURN
 
-
       ! Open the tower input file.
 
    CALL OpenFInpFile ( UnIn, TwrFile, ErrStat2, ErrMsg2 )
@@ -7449,7 +7460,6 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
       IF ( InputFileData%method .ne. Method_AB4) THEN
          IF ( InputFileData%method .ne. Method_ABM4) THEN
             CALL SetErrors( ErrID_Fatal, 'Integration method must be 1 (RK4), 2 (AB4), or 3 (ABM4)' )
-            RETURN
          END IF
       END IF
    END IF
@@ -12622,8 +12632,41 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
    
 END SUBROUTINE FillAugMat
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
+! This routine allocates the arrays stored in the ED_InputType data structure (u), based on the parameters (p). 
+! The routine assumes that the arrays are not currently allocated (It will produce a fatal error otherwise.)
+!..................................................................................................................................
 
+   TYPE(ED_InputType),           INTENT(INOUT)  :: u           ! Inputs to be allocated
+   TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+   INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   
+      ! allocate the arrays     
 
+   CALL AllocAry( u%BlPitchCom, p%NumBl,                           'BlPitchCom',      ErrStat, ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   CALL AllocAry( u%TwrAddedMass,  6_IntKi, 6_IntKi, p%TwrNodes,   'TwrAddedMass',    ErrStat, ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   CALL AllocAry( u%TwrFT, 6_IntKi, p%TwrNodes,                    'TwrFT',           ErrStat, ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+     
+   CALL AllocAry( u%AeroBladeForce, 3_IntKi,  p%BldNodes, p%NumBl, 'AeroBladeForce',  ErrStat, ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+   CALL AllocAry( u%AeroBladeMoment, 3_IntKi, p%BldNodes, p%NumBl, 'AeroBladeMoment', ErrStat, ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+   CALL AllocAry( u%FTAero,            p%TwrNodes,        3_IntKi, 'FTAero',          ErrStat, ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+   CALL AllocAry( u%MFAero,            p%TwrNodes,        3_IntKi, 'MFAero',          ErrStat, ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+
+END SUBROUTINE ED_AllocInput
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 !
@@ -12647,7 +12690,7 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       REAL(DbKi),                   INTENT(IN   )  :: t           ! Current simulation time in seconds
       INTEGER(IntKi),               INTENT(IN   )  :: n           ! time step number
-      TYPE(ED_InputType),           INTENT(IN   )  :: u(:)        ! Inputs at t
+      TYPE(ED_InputType),           INTENT(INOUT)  :: u(:)        ! Inputs at t (out only for mesh record-keeping in ExtrapInterp routine)
       REAL(DbKi),                   INTENT(IN   )  :: utimes(:)   ! times of input
       TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
       TYPE(ED_ContinuousStateType), INTENT(INOUT)  :: x           ! Continuous states at t on input at t + dt on output
@@ -12680,14 +12723,20 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       CALL AllocAry( k3%qdt,    p%NDOF, 'k3%qdt', ErrStat, ErrMsg )
       CALL AllocAry( k4%qt,     p%NDOF, 'k4%qt',  ErrStat, ErrMsg )
       CALL AllocAry( k4%qdt,    p%NDOF, 'k4%qdt', ErrStat, ErrMsg )
-      CALL AllocAry( x_tmp%qt,  p%NDOF, 'x_tmpqt',  ErrStat, ErrMsg )
-      CALL AllocAry( x_tmp%qdt, p%NDOF, 'x_tmpqdt', ErrStat, ErrMsg )
+      CALL AllocAry( x_tmp%qt,  p%NDOF, 'x_tmp%qt',  ErrStat, ErrMsg )
+      CALL AllocAry( x_tmp%qdt, p%NDOF, 'x_tmp%qdt', ErrStat, ErrMsg )
 
+      CALL ED_AllocInput( u_interp, p, ErrStat, ErrMsg )      
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      
       ! interpolate u to find u_interp = u(t)
       CALL ED_Input_ExtrapInterp( u, utimes, u_interp, t, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
       ! find xdot at t
       CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
       k1%qt  = p%dt * xdot%qt
       k1%qdt = p%dt * xdot%qdt
@@ -12697,9 +12746,11 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       ! interpolate u to find u_interp = u(t + dt/2)
       CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t+0.5*p%dt, ErrStat, ErrMsg)
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
       ! find xdot at t + dt/2
       CALL ED_CalcContStateDeriv( t + 0.5*p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
       k2%qt  = p%dt * xdot%qt
       k2%qdt = p%dt * xdot%qdt
@@ -12709,7 +12760,8 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       ! find xdot at t + dt/2
       CALL ED_CalcContStateDeriv( t + 0.5*p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat, ErrMsg )
-     
+         IF ( ErrStat >= AbortErrLev ) RETURN
+
       k3%qt  = p%dt * xdot%qt
       k3%qdt = p%dt * xdot%qdt
 
@@ -12718,9 +12770,11 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       ! interpolate u to find u_interp = u(t + dt)
       CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t + p%dt, ErrStat, ErrMsg)
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
       ! find xdot at t + dt
       CALL ED_CalcContStateDeriv( t + p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
       k4%qt  = p%dt * xdot%qt
       k4%qdt = p%dt * xdot%qdt
@@ -12728,6 +12782,11 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       x%qt  = x%qt  +  ( k1%qt  + 2. * k2%qt  + 2. * k3%qt  + k4%qt  ) / 6.      
       x%qdt = x%qdt +  ( k1%qdt + 2. * k2%qdt + 2. * k3%qdt + k4%qdt ) / 6.      
 
+         ! clean up local variables:
+      CALL ED_DestroyInput( u_interp, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      
 END SUBROUTINE ED_RK4
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
@@ -12750,7 +12809,7 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
       INTEGER(IntKi),                 INTENT(IN   )  :: n           ! time step number
-      TYPE(ED_InputType),             INTENT(IN   )  :: u(:)        ! Inputs at t
+      TYPE(ED_InputType),             INTENT(INOUT)  :: u(:)        ! Inputs at t (out only for mesh record-keeping in ExtrapInterp routine)
       REAL(DbKi),                     INTENT(IN   )  :: utimes(:)   ! times of input
       TYPE(ED_ParameterType),         INTENT(IN   )  :: p           ! Parameters
       TYPE(ED_ContinuousStateType),   INTENT(INOUT)  :: x           ! Continuous states at t on input at t + dt on output
@@ -12770,10 +12829,18 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       ErrStat = ErrID_None
       ErrMsg  = "" 
+      
+      ! Allocate the input arrays
+      CALL ED_AllocInput( u_interp, p, ErrStat, ErrMsg )      
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
+      
       ! need xdot at t
       CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t, ErrStat, ErrMsg)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+         
       CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
       if (n .le. 2) then
 
@@ -12783,8 +12850,10 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
             ! (this allows us to shift the indices into the array, not copy all of the values)
          OtherState%IC = CSHIFT( OtherState%IC, -1 ) ! circular shift of all values to the right         
          CALL ED_CopyContState( xdot, OtherState%xdot ( OtherState%IC(1) ), MESH_UPDATECOPY, ErrStat, ErrMsg )   
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
          CALL ED_RK4(t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
       else
 
@@ -12809,6 +12878,7 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
          endif
 
          CALL ED_CopyContState( xdot, OtherState%xdot ( OtherState%IC(1) ), MESH_UPDATECOPY, ErrStat, ErrMsg )  ! make sure this is most up to date
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
          x%qt  = x%qt  + p%DT24 * ( 55.*OtherState%xdot(OtherState%IC(1))%qt  - 59.*OtherState%xdot(OtherState%IC(2))%qt   &
                                   + 37.*OtherState%xdot(OtherState%IC(3))%qt   - 9.*OtherState%xdot(OtherState%IC(4))%qt )
@@ -12818,6 +12888,11 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       endif
             
+      
+         ! clean up local variables:
+      CALL ED_DestroyInput( u_interp, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      
       
 END SUBROUTINE ED_AB4
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -12845,7 +12920,7 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       REAL(DbKi),                     INTENT(IN   )  :: t           ! Current simulation time in seconds
       INTEGER(IntKi),                 INTENT(IN   )  :: n           ! time step number
-      TYPE(ED_InputType),             INTENT(IN   )  :: u(:)        ! Inputs at t
+      TYPE(ED_InputType),             INTENT(INOUT)  :: u(:)        ! Inputs at t (out only for mesh record-keeping in ExtrapInterp routine)
       REAL(DbKi),                     INTENT(IN   )  :: utimes(:)   ! times of input
       TYPE(ED_ParameterType),         INTENT(IN   )  :: p           ! Parameters
       TYPE(ED_ContinuousStateType),   INTENT(INOUT)  :: x           ! Continuous states at t on input at t + dt on output
@@ -12873,7 +12948,10 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
       if (n .gt. 2_IntKi) then
-
+            ! allocate the arrays in u_interp
+         CALL ED_AllocInput( u_interp, p, ErrStat, ErrMsg )      
+         IF ( ErrStat >= AbortErrLev ) RETURN
+         
          CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t + p%dt, ErrStat, ErrMsg)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -12893,7 +12971,13 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
          x%qt  = x_pred%qt
          x%qdt = x_pred%qdt
 
-       endif
+      endif
+      
+      
+         ! clean up local variables:
+      CALL ED_DestroyInput( u_interp, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      
 
 END SUBROUTINE ED_ABM4
 !----------------------------------------------------------------------------------------------------------------------------------
