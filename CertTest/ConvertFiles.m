@@ -14,7 +14,6 @@ addpath( genpath( FASTSimulationToolbox ) );
 % outputfile = [FstFileDir '\TstFiles\' RootName '.out'];
 % [YawManRat, PitManRat] = CalculateYawAndPitchRates(inputFile, outputFile);
 
-
 %%
 oldDir      = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
 newDir      = '.';
@@ -49,6 +48,7 @@ for i= 8:17 %1:(17+5) %17+(1:5) %1:17 %
                        
 end
 return;
+
 
 
 

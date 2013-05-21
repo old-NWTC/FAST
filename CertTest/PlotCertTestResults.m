@@ -30,21 +30,23 @@ end
     BslnTests = {'NRELOffshrBsline5MW_Floating_TLP_Original',...
                  'NRELOffshrBsline5MW_ITIBarge4_Original',...
                  'NRELOffshrBsline5MW_Monopile_RF',...
-                 'NRELOffshrBsline5MW_Floating_OC3Hywind',...                
-                 'NRELOffshrBsline5MW_Onshore' };
+                 'NRELOffshrBsline5MW_Floating_OC3Hywind' };
              
 
-    for i= 1:17 %1:(17+5) %17+(1:5) %1:17 %
+    for i= 18 %1:18 %1:(18+4) %18+(1:5) 
         
-        if i > 17
+        if i > 18
             fileRoot = BslnTests{i-17};
-            newPath = ['5MWTestCases\' strrep( strrep(fileRoot,'_Original',''), '_Floating_OC3Hywind','_OC3Hywind') ];
+            newPath = [newPath filesep '5MW_Baseline'];
         else
             fileRoot = ['Test' num2str(i,'%02.0f')];
         end
         
         oldRoot  = strcat( oldPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
         newRoot  = strcat( newPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
+        
+% oldRoot = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest\5MWTestCases\NRELOffshrBsline5MW_Onshore\NRELOffshrBsline5MW_Onshore'
+oldRoot = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest\TstFiles\NRELOffshrBsline5MW_Onshore'
         
         if i == 14 % linearization case
 continue; %bjj: linearization not yet available in FAST 8.0.0
@@ -66,42 +68,44 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
                 newFiles = strcat( newRoot,  {'.out', '.plt', '.out'} );
             end
                                              
-            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' Output Time Series'], true, [fileRoot '_ts'] );
+            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' Output Time Series'], false, [fileRoot '_ts'] );
         end % time series
+
 %%   bjj: removed block for less plotting     
-%         if i == 10
-%                 % Compare .elm files
-%                 
-%             oldFiles = strcat( oldRoot,  '.elm' );
-%             newFiles = strcat( newRoot,  '.elm' );
-%                                    
-%             CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [4, 2, 3], descFiles(plotFiles), [fileRoot ' AeroDyn Time Series'], true, [fileRoot '_elm'] );
-%         end % elm files
-%             
-%         if i==1 || i==3 || i==8    
-%                 % Compare .azi files
-%     
-%             oldFiles = strcat( oldRoot,  '.azi' );
-%             newFiles = strcat( newRoot,  '.azi' );
-%                                    
-%             CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [7, 6, 7], descFiles(plotFiles), [fileRoot ' Azimuth Averages'] , true, [fileRoot '_azi'] );
-%         end %azi files
-%         
-% 
-%         if i==4 || i==7 || i==13 || i==17    
-%             % Compare .pmf files           
-%     
-%             oldFiles = strcat( oldRoot,  '.pmf' );
-%             newFiles = strcat( newRoot,  '.pmf' );
-%             
-%             if i == 4 || i == 17
-%                 CompareCertTestResults(2,newFiles(plotFiles), oldFiles(plotFiles), [ 8,  7,  8], descFiles(plotFiles), [fileRoot ' Probability Density Functions'], true, [fileRoot '_pmf'] );
-%             else % these have TI and Mean Wind Speed in the header
-%                 CompareCertTestResults(2,newFiles(plotFiles), oldFiles(plotFiles), [11, 10, 11], descFiles(plotFiles), [fileRoot ' Probability Density Functions'], true, [fileRoot '_pmf'] );
-%             end
-%             
-%         end %pmf files
-%%                 
+continue; 
+        if i == 10
+                % Compare .elm files
+                
+            oldFiles = strcat( oldRoot,  '.elm' );
+            newFiles = strcat( newRoot,  '.elm' );
+                                   
+            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [4, 2, 3], descFiles(plotFiles), [fileRoot ' AeroDyn Time Series'], true, [fileRoot '_elm'] );
+        end % elm files
+            
+        if i==1 || i==3 || i==8    
+                % Compare .azi files
+    
+            oldFiles = strcat( oldRoot,  '.azi' );
+            newFiles = strcat( newRoot,  '.azi' );
+                                   
+            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [7, 6, 7], descFiles(plotFiles), [fileRoot ' Azimuth Averages'] , true, [fileRoot '_azi'] );
+        end %azi files
+        
+
+        if i==4 || i==7 || i==13 || i==17    
+            % Compare .pmf files           
+    
+            oldFiles = strcat( oldRoot,  '.pmf' );
+            newFiles = strcat( newRoot,  '.pmf' );
+            
+            if i == 4 || i == 17
+                CompareCertTestResults(2,newFiles(plotFiles), oldFiles(plotFiles), [ 8,  7,  8], descFiles(plotFiles), [fileRoot ' Probability Density Functions'], true, [fileRoot '_pmf'] );
+            else % these have TI and Mean Wind Speed in the header
+                CompareCertTestResults(2,newFiles(plotFiles), oldFiles(plotFiles), [11, 10, 11], descFiles(plotFiles), [fileRoot ' Probability Density Functions'], true, [fileRoot '_pmf'] );
+            end
+            
+        end %pmf files
+                
  
     end
 

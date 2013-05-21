@@ -4,7 +4,7 @@
 
 REM  Set up environment variables.  You will probably have to change these.
 
-@SET Compare=FC
+@SET Compare=FC /T
 @SET CRUNCH=Call Crunch
 rem @SET CRUNCH=Call C:\Users\bjonkman\Data\DesignCodes\Crunch\Crunch.exe
 

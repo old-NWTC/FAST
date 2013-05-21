@@ -7,7 +7,7 @@ SWIRL       IndModel     - Induction-factor model [NONE or WAKE or SWIRL] (unquo
    0.005    AToler       - Induction-factor tolerance (convergence criteria) (-)
 PRANDtl     TLModel      - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
 PRANDtl     HLModel      - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquoted string)
-"L:\Public\Projects\Projects T-V\TurbSim-Controls_Simulations\5MW_GP_Inflow_Simulations\AR3\AR3_s3.wnd"  "WindData\90m_12mps"                             WindFile    - Name of file containing wind data (quoted string)
+"L:\Public\Projects\Projects T-V\TurbSim-Controls_Simulations\5MW_GP_Inflow_Simulations\AR3\AR3_s3.wnd" "Wind/NoShr_12.wnd"  "WindData\90m_12mps"                             WindFile    - Name of file containing wind data (quoted string)
   90.0      HH           - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)
    0.0      TwrShad      - Tower-shadow velocity deficit (-)
 9999.9      ShadHWid     - Tower-shadow half width (m)
@@ -16,14 +16,14 @@ PRANDtl     HLModel      - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquot
    1.464E-5 KinVisc      - Kinematic air viscosity [CURRENTLY IGNORED] (m^2/sec)
    0.02479  DTAero       - Time interval for aerodynamic calculations (sec)
    8        NumFoil      - Number of airfoil files (-)
-"AeroData\Cylinder1.dat"                         FoilNm      - Names of the airfoil files [NumFoil lines] (quoted strings)
-"AeroData\Cylinder2.dat"
-"AeroData\DU40_A17.dat"
-"AeroData\DU35_A17.dat"
-"AeroData\DU30_A17.dat"
-"AeroData\DU25_A17.dat"
-"AeroData\DU21_A17.dat"
-"AeroData\NACA64_A17.dat"
+"AeroData/Cylinder1.dat"                         FoilNm      - Names of the airfoil files [NumFoil lines] (quoted strings)
+"AeroData/Cylinder2.dat"
+"AeroData/DU40_A17.dat"
+"AeroData/DU35_A17.dat"
+"AeroData/DU30_A17.dat"
+"AeroData/DU25_A17.dat"
+"AeroData/DU21_A17.dat"
+"AeroData/NACA64_A17.dat"
   17        BldNodes    - Number of blade nodes used for analysis (-)
 RNodes   AeroTwst  DRNodes  Chord  NFoil  PrnElm
  2.8667  13.308    2.7333   3.542  1      NOPRINT
