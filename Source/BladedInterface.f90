@@ -5,18 +5,10 @@ MODULE BladedInterface
    USE ServoDyn_Types
    
    USE, INTRINSIC :: ISO_C_Binding
-   USE loadLib_defs  !kernel32 definitions...
+   USE               loadLib_defs      ! OS-specific definitions for loading dynamic libraries
    
-      ! definitions from the Windows API routines:
-
 
    IMPLICIT                        NONE
-  !
-  !TYPE, PUBLIC :: BladedDLLType
-  !  REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: avrSWAP
-  !  INTEGER(1) :: accINFILE(1024)
-  !  INTEGER(1) :: avcOUTNAME(1024)
-  !END TYPE BladedDLLType   
 
   
       ! Definition of the DLL Interface (from Bladed):
@@ -24,38 +16,21 @@ MODULE BladedInterface
   
    ABSTRACT INTERFACE
       SUBROUTINE BladedDLL_Procedure ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG )  BIND(C)
-         USE Precision
          USE, INTRINSIC :: ISO_C_Binding
          
          REAL(C_FLOAT),          INTENT(INOUT) :: avrSWAP   (*)  ! DATA 
          INTEGER(C_INT),         INTENT(INOUT) :: aviFAIL        ! FLAG  (Status set in DLL and returned to simulation code)
          CHARACTER(KIND=C_CHAR), INTENT(IN)    :: accINFILE (*)  ! INFILE
          CHARACTER(KIND=C_CHAR), INTENT(IN)    :: avcOUTNAME(*)  ! OUTNAME (Simulation RootName)
-         CHARACTER(KIND=C_CHAR), INTENT(INOUT) :: avcMSG    (*)  ! MESSAGE (Message from DLL to simulation code [ErrMsg])
-!         REAL(SiKi),             INTENT(INOUT) :: avrSWAP   (*)  ! DATA 
-!         INTEGER(B4Ki),          INTENT(INOUT) :: aviFAIL        ! FLAG  (Status set in DLL and returned to simulation code)
-!         INTEGER(B1Ki),INTENT(IN)    :: accINFILE (*)  ! INFILE
-!         INTEGER(B1Ki),INTENT(IN)    :: avcOUTNAME(*)  ! OUTNAME (Simulation RootName) in ASCII
-!         INTEGER(B1Ki),INTENT(INOUT) :: avcMSG    (*)  ! MESSAGE (Message from DLL to simulation code [ErrMsg]) in ASCII
-         
+         CHARACTER(KIND=C_CHAR), INTENT(INOUT) :: avcMSG    (*)  ! MESSAGE (Message from DLL to simulation code [ErrMsg])         
       END SUBROUTINE BladedDLL_Procedure
    END INTERFACE   
   
   
-      ! Defined TYPE:
+      ! Defined TYPE:   
 
-   TYPE DLL_Type
 
-      INTEGER(HANDLE)           :: FileAddr                                        ! The address of file FileName.         HANDLE is defined in the kernel32.f90 interface
-      INTEGER(C_INTPTR_T)       :: ProcAddr                                        ! The address of procedure ProcName.    (LPVOID is defined in the kernel32.f90 interface)
-
-      CHARACTER(1024)           :: FileName                                        ! The name of the DLL file including the full path to the current working directory.
-      CHARACTER(1024)           :: ProcName                                        ! The name of the procedure in the DLL that will be called.
-
-   END TYPE DLL_Type
-
-   
-         
+               
    INTEGER(IntKi), PARAMETER    :: R_v36 = 85                                      ! Start of below-rated torque-speed look-up table (record no.) for Bladed version 3.6
    INTEGER(IntKi), PARAMETER    :: R_v4  = 145                                     ! Start of below-rated torque-speed look-up table (record no.) for Bladed version 3.8 and later
 
@@ -66,91 +41,10 @@ MODULE BladedInterface
    TYPE (DLL_Type),SAVE         :: DLL_Trgt                                        ! The DLL addresses
    
    
-   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'v1.00.00', '1-May-2013' )
-   
-   
-!bjj: remove later   
-!INTEGER(4), SAVE             :: BrkState_SAVE     = 0                           ! Shaft brake status: 0 = off, 1 = on (full) (-).
-!INTEGER(4), SAVE             :: GenState_SAVE     = 1                           ! Generator contactor: 0 = off, 1 = main (high speed) or variable speed generator (-).
-!REAL(ReKi), SAVE             :: GenTrq_SAVE       = 0.0                         ! Electrical generator torque (N-m).
-!REAL(ReKi), SAVE             :: YawRateCom_SAVE   = 0.0                         ! Commanded nacelle-yaw angular rate (demand yaw rate) (rad/s).
-   
-   
+   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'v1.00.00 for '//OS_Desc, '1-May-2013' )
+         
 
 CONTAINS
-!==================================================================================================================================
-SUBROUTINE LoadDLL ( DLL, ErrStat, ErrMsg )
-
-      ! This SUBROUTINE is used to load the DLL.
-
-      ! Passed Variables:
-
-   TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
-   INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-   
-   ErrStat = ErrID_None
-   ErrMsg = ''
-
-   
-      ! Load the DLL and get the file address:
-
-   DLL%FileAddr = LoadLibrary( TRIM(DLL%FileName)//C_NULL_CHAR )  !the "C_NULL_CHAR" converts the Fortran string to a C-type string (i.e., adds //CHAR(0) to the end)
-!linux: dlopen() 
-   IF ( DLL%FileAddr == INT(0,HANDLE) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'The dynamic library '//TRIM(DLL%FileName)//' could not be loaded.'
-      RETURN
-   END IF
-
-
-      ! Get the procedure address:
-
-   DLL%ProcAddr = GetProcAddress( DLL%FileAddr, TRIM(DLL%ProcName)//C_NULL_CHAR )  !the "C_NULL_CHAR" converts the Fortran string to a C-type string (i.e., adds //CHAR(0) to the end)
-
-   IF ( DLL%ProcAddr == INT(0,C_INTPTR_T) ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'The procedure '//TRIM(DLL%ProcName)//' in file '//TRIM(DLL%FileName)//' could not be loaded.'
-      RETURN
-   END IF
-
-  
-      ! Now set the procedure address to the specified interface
-   
-   
-   RETURN
-END SUBROUTINE LoadDLL
-!==================================================================================================================================
-SUBROUTINE FreeDLL ( DLL, ErrStat, ErrMsg )
-
-      ! This SUBROUTINE is used to free the DLL.
-
-      ! Passed Variables:
-
-   TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be freed.
-   INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-      ! Local variable: 
-   INTEGER(BOOL)   :: Success
-   
-      ! Load the DLL and get the file address:
-
-   Success = FreeLibrary( DLL%FileAddr )
-      
-   IF ( Success == TRUE ) THEN !BJJ: note that this is the Windows BOOL type so TRUE isn't the same as the Fortran LOGICAL .TRUE.
-      ErrStat = ErrID_None
-      ErrMsg = ''         
-   ELSE
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'The dynamic library could not be freed.'
-      RETURN
-   END IF
-
-
-   RETURN
-END SUBROUTINE FreeDLL
 !==================================================================================================================================
 SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
 
@@ -171,41 +65,39 @@ SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
       ! Local Variables:
 
    INTEGER(C_INT)                            :: aviFAIL                        ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
+   CHARACTER(KIND=C_CHAR)                    :: accINFILE(LEN_TRIM(p%DLL_InFile)+1)  ! INFILE
+   CHARACTER(KIND=C_CHAR)                    :: avcOUTNAME(LEN_TRIM(p%RootName)+1)   ! OUTNAME (Simulation RootName)
+   CHARACTER(KIND=C_CHAR)                    :: avcMSG(LEN(ErrMsg)+1)                ! MESSAGE (Message from DLL to simulation code [ErrMsg])   
    
-   !INTEGER(B1Ki)                             :: avcMSG   (LEN(ErrMsg))         ! The address of the first record of an array of 1-byte CHARACTERS giving the message contained in cMessage, which will be displayed by the calling program if aviFAIL <> 0.
-   INTEGER(IntKi)                            :: I                              ! generic address
+   INTEGER(IntKi)                            :: I                              ! generic counter
    
    INTEGER(IntKi)                            :: ErrStat2                       ! Temporary error ID   
    CHARACTER(LEN(ErrMsg))                    :: ErrMsg2                        ! Temporary message describing error
    
    PROCEDURE(BladedDLL_Procedure), POINTER   :: DLL_Subroutine                 ! The address of the procedure in the Bladed DLL
 
-   
-   REAL(SiKi) :: tmpary(84)
-   
-tmpary = dll_data%avrSWAP   
-   
+      
       ! initialize aviFAIL
    aviFAIL = 0                ! bjj, this won't necessarially work if aviFAIL is INTENT(OUT) in DLL_Procedure()--could be undefined???
+   
+      !Convert to C-type characters: the "C_NULL_CHAR" converts the Fortran string to a C-type string (i.e., adds //CHAR(0) to the end)
+   
+   avcOUTNAME = TRANSFER( TRIM(p%RootName)//C_NULL_CHAR,   avcOUTNAME )
+   accINFILE  = TRANSFER( TRIM(p%DLL_InFile)//C_NULL_CHAR, accINFILE  )
+   
+   
+   
       ! Call the DLL (first associate the address from the DLL with the subroutine):
    CALL C_F_PROCPOINTER( TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR), DLL_Subroutine) 
-!   CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, dll_data%accINFILE, dll_data%avcOUTNAME, avcMSG )
-!   CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, p%DLL_InFile//C_NULL_CHAR, p%RootName//C_NULL_CHAR, ErrMsg )   !the "C_NULL_CHAR" converts the Fortran string to a C-type string (i.e., adds //CHAR(0) to the end)
-   CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, p%DLL_InFile, p%RootName, ErrMsg ) 
-
-   
-!write(53,'(84(ES15.7))') tmpary - dll_data%avrSWAP
-   
+   CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
+     
    
    IF ( aviFAIL /= 0 ) THEN
 
-      !CALL IntAry2Str( avcMSG, ErrMsg, ErrStat2, ErrMsg2 )  ! Convert avcMsg to ErrMsg
+      ErrMsg = TRANSFER(avcMSG,ErrMsg) !convert C character array to Fortran string
+      I      = INDEX(ErrMsg,C_NULL_CHAR) - 1 !if this has a c character at the end...
+      IF ( I > 0 ) ErrMsg = ErrMsg(1:I)
 
-      !IF ( ErrStat2 /= ErrID_None ) THEN
-      !   ErrMsg = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
-      !   ! we'll just overwrite ErrStat below (I don't really care if ErrMsg is truncated.)
-      !END IF
-      !
       
       IF ( aviFAIL > 0 ) THEN
          ErrStat = ErrID_Info
@@ -240,8 +132,8 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    CHARACTER(LEN(ErrMsg))                          :: ErrMsg2        ! The error message, if an error occurred
       
 
-   ! Define all the necessary parameters
-   InputFileData%DLL_FileName      = 'DISCON.dll'                ! The name of the DLL file including the path (if necessary).
+   ! Define all the parameters for the Bladed Interface
+!   InputFileData%DLL_FileName      = 'DISCON.dll'                ! The name of the DLL file including the path (if necessary).
    
    InputFileData%DLL_ProcName      = 'DISCON'                    ! The name of the procedure in the DLL that will be called.
    InputFileData%DLL_InFile        = 'DISCON.IN'                 ! The name of the extra parameter file from Bladed
@@ -249,78 +141,68 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    ErrStat = ErrID_None
    ErrMsg= ''
    
-!IF ( InputFileData%IndivPitch ) THEN
-!   p%Ptch_Cntrl = 1
-!ELSE
-   p%Ptch_Cntrl = 0
-!END   
-
-
-p%Gain_OM           = 0.0                         ! Optimal mode gain (Nm/(rad/s)^2)
-p%GenPwr_Dem        = 0.0                         ! Demanded power (W)
-p%GenSpd_Dem        = 0.0                         ! Demanded generator speed above rated (rad/s)
-p%GenSpd_MaxOM      = 0.0                         ! Optimal mode maximum speed (rad/s)
-p%GenSpd_MinOM      = 0.0                         ! Minimum generator speed (rad/s)
-p%GenTrq_Dem        = 0.0                         ! Demanded generator torque (Nm)
-p%Ptch_Max          = 0.0                         ! Maximum pitch angle (rad)
-p%Ptch_Min          = 0.0                         ! Minimum pitch angle (rad)
-p%Ptch_SetPnt       = 0.0                         ! Below-rated pitch angle set-point (rad)
-p%PtchRate_Max      = 0.0                         ! Maximum pitch rate                               (rad/s)
-p%PtchRate_Min      = 0.0                         ! Minimum pitch rate (most negative value allowed) (rad/s)
-p%NacYaw_North      = 0.0                         ! Reference yaw angle of the nacelle when the upwind end points due North (rad)
-
-p%DLL_NumTrq        = 0                           ! No. of points in torque-speed look-up table: 0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0 (-)
-p%DLL_InFile        = InputFileData%DLL_InFile
-
-
-CALL AllocAry( p%GenSpd_TLU,   p%DLL_NumTrq, 'GenSpd_TLU', ErrStat2, ErrMsg2 )
-      CALL CheckError(ErrStat2,ErrMsg2)
-      IF ( ErrStat >= AbortErrLev ) RETURN
-      
-CALL AllocAry( p%GenTrq_TLU,   p%DLL_NumTrq, 'GenTrq_TLU',ErrStat2, ErrMsg2 )
-      CALL CheckError(ErrStat2,ErrMsg2)
-      IF ( ErrStat >= AbortErrLev ) RETURN
+   CALL DispNVD( BladedInterface_Ver )  ! Display the version of this interface
    
-CALL AllocAry( OtherState%dll_data%avrSwap,   R+(2*p%DLL_NumTrq)-1, 'avrSwap', ErrStat2, ErrMsg2 )
-      CALL CheckError(ErrStat2,ErrMsg2)
-      IF ( ErrStat >= AbortErrLev ) RETURN
+   p%Ptch_Cntrl        = InputFileData%Ptch_Cntrl
+   p%Gain_OM           = InputFileData%Gain_OM                   ! Optimal mode gain (Nm/(rad/s)^2)
+   p%GenPwr_Dem        = InputFileData%GenPwr_Dem                ! Demanded power (W)
+   p%GenSpd_Dem        = InputFileData%GenSpd_Dem                ! Demanded generator speed above rated (rad/s)
+   p%GenSpd_MaxOM      = InputFileData%GenSpd_MaxOM              ! Optimal mode maximum speed (rad/s)
+   p%GenSpd_MinOM      = InputFileData%GenSpd_MinOM              ! Minimum generator speed (rad/s)
+   p%GenTrq_Dem        = InputFileData%GenTrq_Dem                ! Demanded generator torque (Nm)
+   p%Ptch_Max          = InputFileData%Ptch_Max                  ! Maximum pitch angle (rad)
+   p%Ptch_Min          = InputFileData%Ptch_Min                  ! Minimum pitch angle (rad)
+   p%Ptch_SetPnt       = InputFileData%Ptch_SetPnt               ! Below-rated pitch angle set-point (rad)
+   p%PtchRate_Max      = InputFileData%PtchRate_Max              ! Maximum pitch rate                               (rad/s)
+   p%PtchRate_Min      = InputFileData%PtchRate_Min              ! Minimum pitch rate (most negative value allowed) (rad/s)
+   p%NacYaw_North      = InputFileData%NacYaw_North              ! Reference yaw angle of the nacelle when the upwind end points due North (rad)
 
-p%GenSpd_TLU     = 0.0                         ! Table (array) containing DLL_NumTrq generator speeds  for the torque-speed table look-up (TLU) (rad/s) -- this should be defined using an array constructor; for example, if DLL_NumTrq = 3: GenSpd_TLU(DLL_NumTrq)    = (/ 0.0, 99.9, 999.9 /)
-p%GenTrq_TLU     = 0.0                         ! Table (array) containing DLL_NumTrq generator torques for the torque-speed table look-up (TLU) (Nm   ) -- this should be defined using an array constructor, for example, if DLL_NumTrq = 3: GenTrq_TLU(DLL_NumTrq)    = (/ 0.0, 10.0, 200.0 /)
+   p%DLL_NumTrq        = InputFileData%DLL_NumTrq                ! No. of points in torque-speed look-up table: 0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0 (-)
+   p%DLL_InFile        = InputFileData%DLL_InFile
 
+
+   
+   IF ( p%Ptch_Cntrl /= 1_IntKi .AND. p%Ptch_Cntrl /= 0_IntKi ) THEN
+      CALL CheckError( ErrID_Fatal, 'Ptch_Cntrl must be 0 or 1.') 
+   END IF
+
+   IF ( p%DLL_NumTrq < 0_IntKi ) THEN
+      CALL CheckError( ErrID_Fatal, 'DLL_NumTrq must not be less than zero.') 
+   ELSEIF ( p%DLL_NumTrq > 0 ) THEN
+      CALL AllocAry( p%GenSpd_TLU,   p%DLL_NumTrq, 'GenSpd_TLU', ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
       
-IF ( p%Ptch_Cntrl /= 1_IntKi .AND. p%Ptch_Cntrl /= 0_IntKi ) THEN
-   ErrStat = ErrID_Fatal
-   ErrMsg = 'Ptch_Cntrl must be 0 or 1.'
-   RETURN
-END IF
+      CALL AllocAry( p%GenTrq_TLU,   p%DLL_NumTrq, 'GenTrq_TLU',ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+            
+            
+      p%GenSpd_TLU     = InputFileData%GenSpd_TLU        ! Table (array) containing DLL_NumTrq generator speeds  for the torque-speed table look-up (TLU) (rad/s) 
+      p%GenTrq_TLU     = InputFileData%GenTrq_TLU        ! Table (array) containing DLL_NumTrq generator torques for the torque-speed table look-up (TLU) (Nm   ) 
+            
+   END IF   
+   IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   
+   CALL AllocAry( OtherState%dll_data%avrSwap,   R+(2*p%DLL_NumTrq)-1, 'avrSwap', ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
-   ! Initialize dll data stored in OtherState
-OtherState%dll_data%GenState   = 1
-OtherState%dll_Data%GenTrq     = 0.0
-OtherState%dll_Data%YawRateCom = 0.0
-OtherState%dll_Data%HSSBrFrac  = 0.0
-!OtherState%dll_Data%ElecPwr    = 0.0 !bjj: this is an input...???
+
+      ! Initialize dll data stored in OtherState
+   OtherState%dll_data%GenState   = 1
+   OtherState%dll_Data%GenTrq     = 0.0
+   OtherState%dll_Data%YawRateCom = 0.0
+   OtherState%dll_Data%HSSBrFrac  = 0.0
 
    ! Define and load the DLL:
 
    DLL_Trgt%FileName = InputFileData%DLL_FileName
    DLL_Trgt%ProcName = InputFileData%DLL_ProcName
 
-   !DLL_Pntr => DLL_Trgt
-
-   CALL LoadDLL ( DLL_Trgt, ErrStat, ErrMsg )
+   CALL LoadDynamicLib ( DLL_Trgt, ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF ( ErrStat >= AbortErrLev ) RETURN
       
-   !! Create the input file and outname file arguments to the DLL (this requires the CHARACTER strings to be converted to byte arrays):
-   !CALL Str2IntAry( p%DLL_InFile, OtherState%dll_data%accINFILE,  ErrStat, ErrMsg )   
-   !   CALL CheckError(ErrStat2,ErrMsg2)
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-   !CALL Str2IntAry( p%RootName,   OtherState%dll_data%avcOUTNAME, ErrStat, ErrMsg ) 
-   !   CALL CheckError(ErrStat2,ErrMsg2)
-   !   IF ( ErrStat >= AbortErrLev ) RETURN
-   !
     ! Set status flag:
 
    !OtherState%dll_data%avrSWAP( 1) = 0.0   
@@ -356,7 +238,10 @@ CONTAINS
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................
-
+         IF ( ErrStat >= AbortErrLev ) THEN
+            p%UseBladedInterface = .FALSE.
+         END IF
+         
       END IF
 
 
@@ -370,16 +255,22 @@ SUBROUTINE BladedInterface_End(u, p, OtherState, ErrStat, ErrMsg)
    TYPE(SrvD_OtherStateType),      INTENT(INOUT)  :: OtherState      ! Other/optimization states
    INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat         ! Error status of the operation
    CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
+
+      ! local variables:
+   INTEGER(IntKi)                                 :: ErrStat2    ! The error status code
+   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! The error message, if an error occurred
    
    
    OtherState%dll_data%avrSWAP( 1) = -1.0   ! Status flag set as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation (-)
    !CALL Fill_avrSWAP( -1_IntKi, -10.0_DbKi, u, p, LEN(ErrMsg), OtherState%dll_data )
 
-call wrscr(newline//newline//'here'//newline//newline//newline)   
-
    CALL CallBladedDLL(DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
    
-   CALL FreeDLL( DLL_Trgt, ErrStat, ErrMsg )
+   CALL FreeDynamicLib( DLL_Trgt, ErrStat2, ErrMsg2 )
+   IF (ErrStat2 /= ErrID_None) THEN  
+      ErrStat = MAX(ErrStat, ErrStat2)      
+      ErrMsg = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
+   END IF
    
 END SUBROUTINE BladedInterface_End
 !==================================================================================================================================
@@ -405,16 +296,13 @@ SUBROUTINE BladedInterface_CalcOutput(t, u, p, OtherState, ErrStat, ErrMsg)
       ! Set the input values of the avrSWAP array:
   
    CALL Fill_avrSWAP( t, u, p, LEN(ErrMsg), OtherState%dll_data )
-    
-write (51,'(84(ES15.7))') OtherState%dll_data%avrSWAP
-   
+       
       ! Call the Bladed-style DLL controller:
    CALL CallBladedDLL(DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
       IF ( ErrStat >= AbortErrLev ) RETURN
 
       !bjj: setting this after the call so that the first call is with avrSWAP(1)=0 [apparently it doesn't like to be called at initialization.... but maybe we can fix that later]
    OtherState%dll_data%avrSWAP( 1) = 1.0   ! Status flag set as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation (-)
-
 
       ! Get the output values from the avrSWAP array:
       
@@ -425,9 +313,7 @@ write (51,'(84(ES15.7))') OtherState%dll_data%avrSWAP
          ErrStat = MAX(ErrStat, ErrStat2)
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
-
-write (52,'(84(ES15.7))') OtherState%dll_data%avrSWAP
-      
+     
       
 END SUBROUTINE BladedInterface_CalcOutput  
 !==================================================================================================================================
@@ -508,9 +394,9 @@ END IF
    dll_data%avrSWAP(36) = dll_data%HSSBrFrac                ! Shaft brake status: 0 = off, 1 = on (full) (-)
    dll_data%avrSWAP(37) = u%YawAngle - p%NacYaw_North       ! Nacelle yaw angle from North (rad)
 ! Records 38-48 are outputs [see Retrieve_avrSWAP()]
-   dll_data%avrSWAP(49) = REAL( ErrMsgSz )                  ! Max No. of characters in the "MESSAGE" argument (-)
-   dll_data%avrSWAP(50) = REAL( LEN_TRIM(p%DLL_InFile) )    ! No. of characters in the "INFILE"  argument (-)
-   dll_data%avrSWAP(51) = REAL( LEN_TRIM(p%RootName)   )    ! No. of characters in the "OUTNAME" argument (-)
+   dll_data%avrSWAP(49) = REAL( ErrMsgSz ) + 1              ! Max No. of characters in the "MESSAGE" argument (-) (we add one for the C NULL CHARACTER)
+   dll_data%avrSWAP(50) = REAL( LEN_TRIM(p%DLL_InFile) ) +1 ! No. of characters in the "INFILE"  argument (-) (we add one for the C NULL CHARACTER)
+   dll_data%avrSWAP(51) = REAL( LEN_TRIM(p%RootName)   ) +1 ! No. of characters in the "OUTNAME" argument (-) (we add one for the C NULL CHARACTER)
 ! Record 52 is reserved for future use                      ! DLL interface version number (-)
    dll_data%avrSWAP(53) = u%YawBrTAxp                       ! Tower top fore-aft     acceleration (m/s^2)
    dll_data%avrSWAP(54) = u%YawBrTAyp                       ! Tower top side-to-side acceleration (m/s^2)

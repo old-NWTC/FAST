@@ -1,30 +1,34 @@
 !=======================================================================
-SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG )
-!DEC$ ATTRIBUTES DLLEXPORT, ALIAS:'DISCON' :: DISCON
-
+SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, NAME='DISCON')
+!DEC$ ATTRIBUTES DLLEXPORT :: DISCON
 
    ! This Bladed-style DLL controller is used to implement a variable-speed
    ! generator-torque controller and PI collective blade pitch controller for
    ! the NREL Offshore 5MW baseline wind turbine.  This routine was written by
    ! J. Jonkman of NREL/NWTC for use in the IEA Annex XXIII OC3 studies.
-
+   
+   ! Modified by B. Jonkman to conform to ISO C Bindings (standard Fortran 2003) and 
+   ! compile with either gfortran or Intel Visual Fortran (IVF)
+   ! DO NOT REMOVE LINES starting with "!DEC$" or "!GCC$"
+   ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran
+   
+USE, INTRINSIC :: ISO_C_Binding
 
 IMPLICIT                        NONE
+!GCC$ ATTRIBUTES DLLEXPORT :: DISCON
 
 
    ! Passed Variables:
 
-REAL(4),    INTENT(INOUT)    :: avrSWAP   (*)                                   ! The swap array, used to pass data to, and receive data from, the DLL controller.
-
-INTEGER(4), INTENT(  OUT)    :: aviFAIL                                         ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
-
-INTEGER(1), INTENT(IN   )    :: accINFILE (*)                                   ! The address of the first record of an array of 1-byte CHARACTERs giving the name of the parameter input file, 'DISCON.IN'.
-INTEGER(1), INTENT(  OUT)    :: avcMSG    (*)                                   ! The address of the first record of an array of 1-byte CHARACTERS giving the message contained in cMessage, which will be displayed by the calling program if aviFAIL <> 0.
-INTEGER(1), INTENT(IN   )    :: avcOUTNAME(*)                                   ! The address of the first record of an array of 1-byte CHARACTERS giving the simulation run name without extension.
+REAL(C_FLOAT),          INTENT(INOUT) :: avrSWAP   (*)                  ! The swap array, used to pass data to, and receive data from, the DLL controller. 
+INTEGER(C_INT),         INTENT(INOUT) :: aviFAIL                        ! A flag used to indicate the success of this DLL call set as follows: 0 if the DLL call was successful, >0 if the DLL call was successful but cMessage should be issued as a warning messsage, <0 if the DLL call was unsuccessful or for any other reason the simulation is to be stopped at this point with cMessage as the error message.
+CHARACTER(KIND=C_CHAR), INTENT(IN)    :: accINFILE (NINT(avrSWAP(50)))  ! The name of the parameter input file, 'DISCON.IN'.
+CHARACTER(KIND=C_CHAR), INTENT(IN)    :: avcOUTNAME(NINT(avrSWAP(51)))  ! OUTNAME (Simulation RootName) 
+CHARACTER(KIND=C_CHAR), INTENT(INOUT) :: avcMSG    (NINT(avrSWAP(49)))  ! MESSAGE (Message from DLL to simulation code [ErrMsg])  The message which will be displayed by the calling program if aviFAIL <> 0.        
 
 
    ! Local Variables:
-
+   
 REAL(4)                      :: Alpha                                           ! Current coefficient in the recursive, single-pole, low-pass filter, (-).
 REAL(4)                      :: BlPitch   (3)                                   ! Current values of the blade pitch angles, rad.
 REAL(4)                      :: ElapTime                                        ! Elapsed time since the last call to the controller, sec.
@@ -79,25 +83,15 @@ INTEGER(4)                   :: K                                               
 INTEGER(4)                   :: NumBl                                           ! Number of blades, (-).
 INTEGER(4), PARAMETER        :: UnDb          = 85                              ! I/O unit for the debugging information
  
-INTEGER(1)                   :: iInFile   ( 256)                                ! CHARACTER string cInFile  stored as a 1-byte array.
-INTEGER(1)                   :: iMessage  ( 256)                                ! CHARACTER string cMessage stored as a 1-byte array.
-INTEGER(1), SAVE             :: iOutName  (1024)                                ! CHARACTER string cOutName stored as a 1-byte array.
 
 LOGICAL(1), PARAMETER        :: PC_DbgOut     = .FALSE.                         ! Flag to indicate whether to output debugging information
 
-CHARACTER( 256)              :: cInFile                                         ! CHARACTER string giving the name of the parameter input file, 'DISCON.IN'
-CHARACTER( 256)              :: cMessage                                        ! CHARACTER string giving a message that will be displayed by the calling program if aviFAIL <> 0.
-CHARACTER(1024), SAVE        :: cOutName                                        ! CHARACTER string giving the simulation run name without extension.
 CHARACTER(   1), PARAMETER   :: Tab           = CHAR( 9 )                       ! The tab character.
 CHARACTER(  25), PARAMETER   :: FmtDat    = "(F8.3,99('"//Tab//"',ES10.3E2,:))" ! The format of the debugging data
 
-
-   ! Set EQUIVALENCE relationships between INTEGER(1) byte arrays and CHARACTER strings:
-
-EQUIVALENCE (iInFile , cInFile )
-EQUIVALENCE (iMessage, cMessage)
-EQUIVALENCE (iOutName, cOutName)
-
+CHARACTER(SIZE(accINFILE)-1) :: InFile                                          ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
+CHARACTER(SIZE(avcOUTNAME)-1):: RootName                                        ! a Fortran version of the input C string (not considered an array here)    [subtract 1 for the C null-character]
+CHARACTER(SIZE(avcMSG)-1)    :: ErrMsg                                          ! a Fortran version of the C string argument (not considered an array here) [subtract 1 for the C null-character] 
 
 
 
@@ -113,6 +107,16 @@ GenSpeed     =       avrSWAP(20)
 HorWindV     =       avrSWAP(27)
 Time         =       avrSWAP( 2)
    
+   ! Convert C character arrays to Fortran strings:
+   
+RootName = TRANSFER( avcOUTNAME(1:LEN(RootName)), RootName )
+I = INDEX(RootName,C_NULL_CHAR) - 1       ! if this has a c null character at the end...
+IF ( I > 0 ) RootName = RootName(1:I)     ! remove it
+
+InFile = TRANSFER( accINFILE(1:LEN(InFile)),  InFile )
+I = INDEX(InFile,C_NULL_CHAR) - 1         ! if this has a c null character at the end...
+IF ( I > 0 ) InFile = InFile(1:I)         ! remove it
+
 
 
    ! Initialize aviFAIL to 0:
@@ -126,25 +130,13 @@ aviFAIL      = 0
 
 IF ( iStatus == 0 )  THEN  ! .TRUE. if were on the first call to the DLL
 
-
-   ! Convert byte arrays to CHARACTER strings, for convenience:
-
-   DO I = 1,MIN(  256, NINT( avrSWAP(50) ) )
-      iInFile (I) = accINFILE (I)   ! Sets cInfile  by EQUIVALENCE
-   ENDDO
-   DO I = 1,MIN( 1024, NINT( avrSWAP(51) ) )
-      iOutName(I) = avcOUTNAME(I)   ! Sets cOutName by EQUIVALENCE
-   ENDDO
-
-
    ! Inform users that we are using this user-defined routine:
 
    aviFAIL  = 1
-   cMessage = 'Running with torque and pitch control of the NREL offshore '// &
+   ErrMsg   = 'Running with torque and pitch control of the NREL offshore '// &
               '5MW baseline wind turbine from DISCON.dll as written by J. '// &
               'Jonkman of NREL/NWTC for use in the IEA Annex XXIII OC3 '   // &
               'studies.'
-
 
    ! Determine some torque control parameters not specified directly:
 
@@ -161,88 +153,88 @@ IF ( iStatus == 0 )  THEN  ! .TRUE. if were on the first call to the DLL
    ! Check validity of input parameters:
 
    IF ( CornerFreq <= 0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'CornerFreq must be greater than zero.'
+      aviFAIL = -1
+      ErrMsg  = 'CornerFreq must be greater than zero.'
    ENDIF
 
    IF ( VS_DT     <= 0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'VS_DT must be greater than zero.'
+      aviFAIL = -1
+      ErrMsg  = 'VS_DT must be greater than zero.'
    ENDIF
 
    IF ( VS_CtInSp <  0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'VS_CtInSp must not be negative.'
+      aviFAIL = -1
+      ErrMsg  = 'VS_CtInSp must not be negative.'
    ENDIF
 
    IF ( VS_Rgn2Sp <= VS_CtInSp )  THEN
-      aviFAIL  = -1
-      cMessage = 'VS_Rgn2Sp must be greater than VS_CtInSp.'
+      aviFAIL = -1
+      ErrMsg  = 'VS_Rgn2Sp must be greater than VS_CtInSp.'
    ENDIF
 
    IF ( VS_TrGnSp <  VS_Rgn2Sp )  THEN
-      aviFAIL  = -1
-      cMessage = 'VS_TrGnSp must not be less than VS_Rgn2Sp.'
+      aviFAIL = -1
+      ErrMsg = 'VS_TrGnSp must not be less than VS_Rgn2Sp.'
    ENDIF
 
    IF ( VS_SlPc   <= 0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'VS_SlPc must be greater than zero.'
+      aviFAIL = -1
+      ErrMsg  = 'VS_SlPc must be greater than zero.'
    ENDIF
 
    IF ( VS_MaxRat <= 0.0 )  THEN
-      aviFAIL  =  -1
-      cMessage = 'VS_MaxRat must be greater than zero.'
+      aviFAIL =  -1
+      ErrMsg  = 'VS_MaxRat must be greater than zero.'
    ENDIF
 
    IF ( VS_RtPwr  <  0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'VS_RtPwr must not be negative.'
+      aviFAIL = -1
+      ErrMsg  = 'VS_RtPwr must not be negative.'
    ENDIF
 
    IF ( VS_Rgn2K  <  0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'VS_Rgn2K must not be negative.'
+      aviFAIL = -1
+      ErrMsg  = 'VS_Rgn2K must not be negative.'
    ENDIF
 
    IF ( VS_Rgn2K*VS_RtGnSp*VS_RtGnSp > VS_RtPwr/VS_RtGnSp )  THEN
-      aviFAIL  = -1
-      cMessage = 'VS_Rgn2K*VS_RtGnSp^2 must not be greater than VS_RtPwr/VS_RtGnSp.'
+      aviFAIL = -1
+      ErrMsg  = 'VS_Rgn2K*VS_RtGnSp^2 must not be greater than VS_RtPwr/VS_RtGnSp.'
    ENDIF
 
    IF ( VS_MaxTq                     < VS_RtPwr/VS_RtGnSp )  THEN
-      aviFAIL  = -1
-      cMessage = 'VS_RtPwr/VS_RtGnSp must not be greater than VS_MaxTq.'
+      aviFAIL = -1
+      ErrMsg  = 'VS_RtPwr/VS_RtGnSp must not be greater than VS_MaxTq.'
    ENDIF
 
    IF ( PC_DT     <= 0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'PC_DT must be greater than zero.'
+      aviFAIL = -1
+      ErrMsg  = 'PC_DT must be greater than zero.'
    ENDIF
 
    IF ( PC_KI     <= 0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'PC_KI must be greater than zero.'
+      aviFAIL = -1
+      ErrMsg  = 'PC_KI must be greater than zero.'
    ENDIF
 
    IF ( PC_KK     <= 0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'PC_KK must be greater than zero.'
+      aviFAIL = -1
+      ErrMsg  = 'PC_KK must be greater than zero.'
    ENDIF
 
    IF ( PC_RefSpd <= 0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'PC_RefSpd must be greater than zero.'
+      aviFAIL = -1
+      ErrMsg  = 'PC_RefSpd must be greater than zero.'
    ENDIF
    
    IF ( PC_MaxRat <= 0.0 )  THEN
-      aviFAIL  = -1
-      cMessage = 'PC_MaxRat must be greater than zero.'
+      aviFAIL = -1
+      ErrMsg  = 'PC_MaxRat must be greater than zero.'
    ENDIF
 
    IF ( PC_MinPit >= PC_MaxPit )  THEN
-      aviFAIL  = -1
-      cMessage = 'PC_MinPit must be less than PC_MaxPit.'
+      aviFAIL = -1
+      ErrMsg  = 'PC_MinPit must be less than PC_MaxPit.'
    ENDIF
 
 
@@ -251,7 +243,7 @@ IF ( iStatus == 0 )  THEN  ! .TRUE. if were on the first call to the DLL
 
    IF ( PC_DbgOut )  THEN
 
-      OPEN ( UnDb, FILE=TRIM( cOutName )//'.dbg', STATUS='REPLACE' )
+      OPEN ( UnDb, FILE=TRIM( RootName )//'.dbg', STATUS='REPLACE' )
 
       WRITE (UnDb,'(/////)')
       WRITE (UnDb,'(A)')  'Time '//Tab//'ElapTime'//Tab//'HorWindV'//Tab//'GenSpeed'//Tab//'GenSpeedF'//Tab//'RelSpdErr'//Tab// &
@@ -292,8 +284,8 @@ IF ( ( iStatus >= 0 ) .AND. ( aviFAIL >= 0 ) )  THEN  ! Only compute control cal
    !   of Bladed User's Guide):
 
    IF ( NINT(avrSWAP(10)) /= 0 )  THEN ! .TRUE. if a pitch angle actuator hasn't been requested
-      aviFAIL  = -1
-      cMessage = 'Pitch angle actuator not requested.'
+      aviFAIL = -1
+      ErrMsg  = 'Pitch angle actuator not requested.'
    ENDIF 
 
 
@@ -494,14 +486,7 @@ IF ( ( iStatus >= 0 ) .AND. ( aviFAIL >= 0 ) )  THEN  ! Only compute control cal
 
 ENDIF
 
-
-   ! Convert CHARACTER string to byte array for the return message:
-
-DO I = 1,MIN(  256, NINT( avrSWAP(49) ) )
-   avcMSG(I) = iMessage(I) ! Same as cMessage by EQUIVALENCE
-ENDDO
-
-
+avcMSG = TRANSFER( TRIM(ErrMsg)//C_NULL_CHAR, avcMSG )
 
 RETURN
 END SUBROUTINE DISCON

@@ -33,12 +33,14 @@ MODULE FAST_IO_Subs
    USE HydroDyn
    USE HydroDyn_Types
    
+   USE InflowWind, ONLY: WindInfVer
+   
    IMPLICIT NONE   
    
 CONTAINS
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE GetVersion(ProgVer)
-! This routine returns a string describing the glue code and some of the compilation options we're using.
+FUNCTION GetVersion()
+! This function returns a string describing the glue code and some of the compilation options we're using.
 !..................................................................................................................................
 
    IMPLICIT                        NONE
@@ -46,40 +48,39 @@ SUBROUTINE GetVersion(ProgVer)
 
    ! Passed Variables:
 
-   CHARACTER(1024), INTENT(OUT)  :: ProgVer                                           ! String containing a description of the as-compiled precision.
+   CHARACTER(1024)  :: GetVersion                      ! String containing a description of the compiled precision.
 
 
    
-   ProgVer = TRIM(GetNVD(FAST_Ver))//', compiled using'
-
+   GetVersion = TRIM(GetNVD(FAST_Ver))//', compiled for '//TRIM(Num2LStr(BITS_IN_ADDR))//'-bit systems using'
+   
    ! determine precision
+   
       IF ( ReKi == SiKi )  THEN     ! Single precision
-         ProgVer = TRIM(ProgVer)//' SINGLE'
+         GetVersion = TRIM(GetVersion)//' SINGLE'
       ELSEIF ( ReKi == R8Ki )  THEN ! Double precision
-         ProgVer = TRIM(ProgVer)// 'DOUBLE'
+         GetVersion = TRIM(GetVersion)// 'DOUBLE'
       ELSE                          ! Unknown precision
-         ProgVer = TRIM(ProgVer)//' UNKNOWN'
+         GetVersion = TRIM(GetVersion)//' UNKNOWN'
       ENDIF
 
-   ProgVer = TRIM(ProgVer)//' precision'
+   GetVersion = TRIM(GetVersion)//' precision'
 
 
    ! determine if we've done some other modifications
       IF ( Cmpl4SFun )  THEN     ! FAST has been compiled as an S-Function for Simulink
-         ProgVer = TRIM(ProgVer)//' as S-Function for Simulink'  
+         GetVersion = TRIM(GetVersion)//' as S-Function for Simulink'  
       ELSEIF ( Cmpl4LV )  THEN     ! FAST has been compiled as a DLL for Labview
-         ProgVer = TRIM(ProgVer)//' as a DLL for LabVIEW'
+         GetVersion = TRIM(GetVersion)//' as a DLL for LabVIEW'
       ENDIF
 
       !IF ( OC3HywindMods ) THEN
-      !   ProgVer = TRIM(ProgVer)//' with OC3 Hywind Modifications'
+      !   GetVersion = TRIM(GetVersion)//' with OC3 Hywind Modifications'
       !END IF
-            
-!   ProgVer = TRIM(ProgVer)//''
-   
+               
 
    RETURN
-END SUBROUTINE GetVersion
+END FUNCTION GetVersion
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
 ! This subroutine is called at program termination. It writes any additional output files,
@@ -118,10 +119,10 @@ SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
 
 
    !-------------------------------------------------------------------------------------------------
-   ! Close the text tabular output file
+   ! Close the text tabular output file and summary file (if opened)
    !-------------------------------------------------------------------------------------------------
-   CLOSE( y_FAST%UnOu )       ! I/O unit number for the tabular output file
-
+   IF (p_FAST%WrTxtOutFile) CLOSE( y_FAST%UnOu )         ! I/O unit number for the tabular output file
+   IF (p_FAST%SumPrint)     CLOSE( y_FAST%UnSum )        ! I/O unit number for the summary file
 
    !-------------------------------------------------------------------------------------------------
    ! Deallocate arrays
@@ -168,8 +169,7 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
 
    
       ! Tell our nice users what they're running
-   CALL GetVersion( CompiledVer )
-   CALL WrScr( ' Running '//CompiledVer//NewLine//' linked with '//TRIM( GetNVD( NWTC_Ver ))//NewLine )
+   CALL WrScr( ' Running '//GetVersion()//NewLine//' linked with '//TRIM( GetNVD( NWTC_Ver ))//NewLine )
    
    !...............................................................................................................................   
    ! Get the name of the input file from the command line if it isn't an input to this routine
@@ -259,10 +259,6 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
       p%CompUserPtfmLd = .FALSE.
    END IF
    
-!.....   
-p%SumPrint = .TRUE.  !are we going to keep this? (used now for AeroDyn)
-!.....   
-
 
    RETURN
 CONTAINS
@@ -312,16 +308,23 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    !......................................................    
    ! Set the description lines to be printed in the output file
    !......................................................    
-   CALL GetVersion( y_FAST%FileDescLines(1) ) 
-
-   y_FAST%FileDescLines(1)  = 'Predictions were generated on '//CurDate()//' at '//CurTime()//' using '//TRIM(y_FAST%FileDescLines(1))
+   y_FAST%FileDescLines(1)  = 'Predictions were generated on '//CurDate()//' at '//CurTime()//' using '//TRIM(GetVersion())
    y_FAST%FileDescLines(2)  = 'linked with ' &
                             //' '//TRIM(GetNVD(NWTC_Ver            )) &
                            //'; '//TRIM(GetNVD(InitOutData_ED%Ver  )) &
                            //'; '//TRIM(GetNVD(InitOutData_SrvD%Ver)) &
+                           //'; '//TRIM(GetNVD(WindInfVer)) &
                            //'; '//TRIM(GetNVD(AD_Prog))
    y_FAST%FileDescLines(3)  = 'Description from the FAST input file: '//TRIM(p_FAST%FTitle)
 
+   !......................................................    
+   ! Save the module version info for later use
+   !......................................................    
+   y_FAST%ED_Ver   = InitOutData_ED%Ver
+   y_FAST%SrvD_Ver = InitOutData_SrvD%Ver
+   y_FAST%AD_Ver   = AD_Prog
+   y_FAST%IfW_Ver  = WindInfVer
+   y_FAST%HD_Ver   = HD_Prog
    
    !......................................................    
    ! Set the number of output columns from each module
@@ -465,6 +468,92 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
 
 RETURN
 END SUBROUTINE FAST_InitOutput
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE FAST_WrSum( p_FAST, y_FAST, ErrStat, ErrMsg )
+! This subroutine opens and writes data to the FAST summary file. The file gets closed on the end of program execution.
+!..................................................................................................................................
+
+   TYPE(FAST_ParameterType), INTENT(IN)    :: p_FAST                             ! Glue-code simulation parameters
+   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST                             ! Glue-code simulation outputs
+   INTEGER(IntKi),           INTENT(OUT)   :: ErrStat                            ! Error status (level)
+   CHARACTER(*),             INTENT(OUT)   :: ErrMsg                             ! Message describing error reported in ErrStat
+
+      ! local variables
+   INTEGER(IntKi)                          :: I                                  ! temporary counter
+   INTEGER(IntKi)                          :: J                                  ! temporary counter
+   CHARACTER(200)                          :: Fmt                                ! temporary format string
+      
+   
+      ! Get a unit number and open the file:
+      
+   CALL GetNewUnit( y_FAST%UnSum, ErrStat, ErrMsg )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
+   CALL OpenFOutFile ( y_FAST%UnSum, TRIM(p_FAST%OutFileRoot)//'.sum', ErrStat, ErrMsg )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+                      
+         ! Add some file information:
+          
+   !.......................... Module Versions .....................................................      
+   WRITE (y_FAST%UnSum,'(/A)') 'FAST Summary File'
+   WRITE (y_FAST%UnSum,'(/A)')  TRIM( y_FAST%FileDescLines(1) )
+   
+   WRITE (y_FAST%UnSum,'(2X,A)'   )  'compiled with'
+   Fmt = '(4x,A)'
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD(        NWTC_Ver ) )
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%ED_Ver   ) )
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%SrvD_Ver ) )
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%AD_Ver   ) )
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%IfW_Ver  ) )
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%HD_Ver   ) )
+   
+   !.......................... Information from FAST input File ......................................      
+! current working directory
+! output file root name
+! output file time step
+! output file format (text/binary)
+! which modules are being used (feature flags)
+! coupling method
+   
+   WRITE (y_FAST%UnSum,'(//A)' )   'Description from the FAST input file: '
+   WRITE (y_FAST%UnSum,'(2X,A)')  TRIM(p_FAST%FTitle)
+      
+   !.......................... Requested Features ...................................................      
+   
+   
+   !.......................... Requested Output Channels ............................................ 
+   
+   WRITE (y_FAST%UnSum,'(//,2X,A)') " Requested Channels in FAST Output File(s) " 
+   WRITE (y_FAST%UnSum,   '(2X,A)') "-------------------------------------------"
+   Fmt = '(2X,A6,2(2X,A'//trim(num2lstr(OutStrlen))//'),2X,A)'
+   WRITE (y_FAST%UnSum, Fmt ) "Number", "Name      ", "Units     ", "Generated by"
+   WRITE (y_FAST%UnSum, Fmt ) "------", "----------", "----------", "------------"
+   
+   Fmt = '(4X,I4,2(2X,A'//trim(num2lstr(OutStrlen))//'),2X,A)'
+   I = 1
+   WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(FAST_Ver%Name)
+
+      ! InflowWind
+   DO J = 1,y_FAST%numOuts_IfW   
+      I = I + 1
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%IfW_Ver%Name)
+   END DO
+  
+      ! ElastoDyn
+   DO J = 1,y_FAST%numOuts_ED   
+      I = I + 1
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%ED_Ver%Name)
+   END DO
+
+      ! ServoDyn
+   DO J = 1,y_FAST%numOuts_SrvD   
+      I = I + 1
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%SrvD_Ver%Name)
+   END DO
+                            
+   
+
+END SUBROUTINE FAST_WrSum
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
 ! This routine reads in the primary FAST input file, does some validation, and places the values it reads in the 
@@ -675,6 +764,11 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
    CALL ReadCom( UnIn, InputFile, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! SumPrint - Print summary data to <RootName>.sum (flag):
+   CALL ReadVar( UnIn, InputFile, p%SumPrint, "SumPrint", "Print summary data to <RootName>.sum (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN     
       
       ! SttsTime - Amount of time between screen status messages (s):
    CALL ReadVar( UnIn, InputFile, p%SttsTime, "SttsTime", "Amount of time between screen status messages (s)", ErrStat2, ErrMsg2, UnEc)
@@ -942,9 +1036,6 @@ FUNCTION TimeValues2Seconds( TimeAry )
 
 END FUNCTION TimeValues2Seconds
 !----------------------------------------------------------------------------------------------------------------------------------
-
-
-
 
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, EDOutput, SrvDOutput, IfWOutput, ErrStat, ErrMsg)

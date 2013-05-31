@@ -3,7 +3,7 @@ NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from 
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 FATAL         AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"}
-     149.99   TMax            - Total run time (s)
+      89.99   TMax            - Total run time (s)
 .005 .00625      0.0125   DT              - Recommended module time step (s)
 ---------------------- FEATURE FLAGS -------------------------------------------
 True          CompAero        - Compute aerodynamic forces (flag)
@@ -19,6 +19,7 @@ False         CompUserTwrLd   - Compute additional tower loading {false: none, t
 "unused"      HDFile      - Name of file containing HydroDyn input parameters (quoted string)
 "unused"      SDFile      - Name of file containing SubDyn input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
+  True        SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime    - Amount of time between screen status messages (sec)
 .005   .00625  0.0125  DT_Out      - Time step for tabular output (sec)
           0   TStart      - Time to begin tabular output (s)

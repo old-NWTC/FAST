@@ -16,7 +16,8 @@ REM    properties, and copy the target (without cmd.exe and/or its switches) her
 
 rem IF "%INTEL_SHARED%"=="" CALL "C:\Program Files\Intel\Compiler\Fortran\10.1.024\IA32\Bin\IFORTVARS.bat"
 rem CALL "C:\Program Files (x86)\Intel\ComposerXE-2011\bin\ipsxe-comp-vars.bat" ia32 vs2008
-call "C:\Program Files (x86)\Intel\Composer XE 2011 SP1\bin\ipsxe-comp-vars.bat" ia32 vs2010
+rem call "C:\Program Files (x86)\Intel\Composer XE 2011 SP1\bin\ipsxe-comp-vars.bat" ia32 vs2010
+CALL "C:\Program Files (x86)\Intel\Composer XE 2011 SP1\bin\ipsxe-comp-vars.bat" intel64 vs2010
 
 
 REM ----------------------------------------------------------------------------
@@ -44,11 +45,11 @@ REM IfW_Loc     is the location of the AeroDyn wind inflow source files
 REM FAST_LOC     is the location of the FAST source files
 REM ----------------------------------------------------------------------------
 
-SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\branches\BJonkman\source
+SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\trunk\source
 SET ED_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 SET SrvD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\AeroDyn
-SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\InflowWInd
+SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\InflowWind
 SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\HydroDyn
 
 SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
@@ -105,6 +106,8 @@ SET ED_Files=%ED_Files%  "%ED_Loc%\ElastoDyn.f90"
 
 SET SrvD_Files=
 SET SrvD_Files=%SrvD_Files%  "%SrvD_Loc%\ServoDyn_Types.f90"
+SET SrvD_Files=%SrvD_Files%  "%SrvD_Loc%\Windows_defs_IVF.f90"
+SET SrvD_Files=%SrvD_Files%  "%SrvD_Loc%\BladedInterface.f90"
 SET SrvD_Files=%SrvD_Files%  "%SrvD_Loc%\ServoDyn.f90"
 SET SrvD_Files=%SrvD_Files%  "%SrvD_Loc%\PitchCntrl_ACH.f90"
 SET SrvD_Files=%SrvD_Files%  "%SrvD_Loc%\UserSubs.f90"

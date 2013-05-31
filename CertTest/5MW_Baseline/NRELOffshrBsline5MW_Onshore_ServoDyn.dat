@@ -57,6 +57,25 @@ True          GenTiStp     - Method to stop the generator {T: timed using TimGen
      9999.9   TYawManS     - Time to start override yaw maneuver and end standard yaw control (s)
    2          YawManRat    - Yaw maneuver rate (in absolute value) (deg/s)
           0   NacYawF      - Final yaw angle for override yaw maneuvers (degrees)
+---------------------- BLADED INTERFACE ----------------------------------------
+"C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Compiling\DISCON_gwin32.dll" "DISCON.dll"  DLL_FileName - Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format (-) [used only with DLL Interface]
+0.0           NacYaw_North - Reference yaw angle of the nacelle when the upwind end points due North (deg) [used only with DLL Interface]
+0             Ptch_Cntrl   - Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} (switch) [used only with DLL Interface]
+0.0           Ptch_SetPnt  - Record  5: Below-rated pitch angle set-point (deg) [used only with DLL Interface]
+0.0           Ptch_Min     - Record  6: Minimum pitch angle (deg) [used only with DLL Interface]
+0.0           Ptch_Max     - Record  7: Maximum pitch angle (deg) [used only with DLL Interface]
+0.0           PtchRate_Min - Record  8: Minimum pitch rate (most negative value allowed) (deg/s) [used only with DLL Interface]
+0.0           PtchRate_Max - Record  9: Maximum pitch rate  (deg/s) [used only with DLL Interface]
+0.0           Gain_OM      - Record 16: Optimal mode gain (Nm/(rad/s)^2) [used only with DLL Interface]
+0.0           GenSpd_MinOM - Record 17: Minimum generator speed (rpm) [used only with DLL Interface]
+0.0           GenSpd_MaxOM - Record 18: Optimal mode maximum speed (rpm) [used only with DLL Interface]
+0.0           GenSpd_Dem   - Record 19: Demanded generator speed above rated (rpm) [used only with DLL Interface]
+0.0           GenTrq_Dem   - Record 22: Demanded generator torque above rated (Nm) [used only with DLL Interface]
+0.0           GenPwr_Dem   - Record 13: Demanded power (W) [used only with DLL Interface]
+---------------------- BLADED INTERFACE TORQUE-SPEED LOOK-UP TABLE -------------
+0             DLL_NumTrq   - Record 26: No. of points in torque-speed look-up table {0 = none and use the optimal mode parameters; nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0} (-) [used only with DLL Interface]
+ GenSpd_TLU   GenTrq_TLU
+ (rpm)          (Nm)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint     - Print summary data to <RootName>.fsm (flag) (currently unused)
           1   OutFile      - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)

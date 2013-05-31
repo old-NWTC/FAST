@@ -580,11 +580,9 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !...............................................................................................................................   
    IF ( p%UseBladedInterface ) THEN
       CALL BladedInterface_CalcOutput( t, u, p, OtherState, ErrStat2, ErrMsg2 )
-!print *,  'after BladedInterface_CalcOutput1'
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
    END IF      
-!print *,  'after BladedInterface_CalcOutput'
       
    !...............................................................................................................................   
    ! Compute the outputs
@@ -604,13 +602,12 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    CALL Yaw_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat2, ErrMsg2 )      
       CALL CheckError( ErrStat2, ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
-         
+
       ! Tip brake control: 
    CALL TipBrake_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat2, ErrMsg2 )      
       CALL CheckError( ErrStat2, ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
    
-      
    !...............................................................................................................................   
    ! Calculate all of the available output channels:
    !...............................................................................................................................   
@@ -857,6 +854,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    TYPE(SrvD_InputFile), INTENT(INOUT) :: InputFileData                       ! All the data in the ServoDyn input file
    
       ! Local variables:
+   REAL(ReKi)                    :: TmpRAry(2)                                ! A temporary array to read a table from the input file
    INTEGER(IntKi)                :: I                                         ! loop counter
    INTEGER(IntKi)                :: NumOuts                                   ! Number of output channel names read from the file 
    INTEGER(IntKi)                :: UnIn                                      ! Unit number for reading file
@@ -871,6 +869,8 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       ! Initialize some variables:
    UnEc = -1
    Echo = .FALSE.   
+   CALL GetPath( InputFile, PriPath )     ! Input files will be relative to the path where the primary input file is located.
+   
 
    CALL AllocAry( InputFileData%OutList, MaxOutPts, "ServoDyn Input File's Outlist", ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -1202,6 +1202,133 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       IF ( ErrStat >= AbortErrLev ) RETURN
    InputFileData%NacYawF = InputFileData%NacYawF*D2R
       
+   !---------------------- BLADED INTERFACE ----------------------------------------         
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Bladed Interface', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+                  
+      ! DLL_FileName - Name of the Bladed DLL [used only with DLL Interface] (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%DLL_FileName, "DLL_FileName", "Name/location of the external library {.dll [Windows]} in the Bladed-DLL format [used only with DLL Interface] (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( InputFileData%DLL_FileName ) ) InputFileData%DLL_FileName = TRIM(PriPath)//TRIM(InputFileData%DLL_FileName)
+      
+      
+      ! NacYaw_North - Reference yaw angle of the nacelle when the upwind end points due North (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%NacYaw_North, "NacYaw_North", "Reference yaw angle of the nacelle when the upwind end points due North (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%NacYaw_North = InputFileData%NacYaw_North*D2R
+
+      ! Ptch_Cntrl - Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} [used only with DLL Interface] (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Ptch_Cntrl, "Ptch_Cntrl", "Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} [used only with DLL Interface] (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! Ptch_SetPnt - Record  5: Below-rated pitch angle set-point [used only with DLL Interface] (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Ptch_SetPnt, "Ptch_SetPnt", "Record  5: Below-rated pitch angle set-point [used only with DLL Interface] (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%Ptch_SetPnt = InputFileData%Ptch_SetPnt*D2R
+
+      ! Ptch_Min - Record  6: Minimum pitch angle [used only with DLL Interface] (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Ptch_Min, "Ptch_Min", "Record  6: Minimum pitch angle [used only with DLL Interface] (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%Ptch_Min = InputFileData%Ptch_Min*D2R
+
+      ! Ptch_Max - Record  7: Maximum pitch angle [used only with DLL Interface] (deg) (read from file in degrees and converted to radians here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Ptch_Max, "Ptch_Max", "Record  7: Maximum pitch angle [used only with DLL Interface] (deg)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%Ptch_Max = InputFileData%Ptch_Max*D2R
+
+      ! PtchRate_Min - Record  8: Minimum pitch rate (most negative value allowed) [used only with DLL Interface] (deg/s) (read from file in deg/s and converted to rad/s here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtchRate_Min, "PtchRate_Min", "Record  8: Minimum pitch rate (most negative value allowed) [used only with DLL Interface] (deg/s)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%PtchRate_Min = InputFileData%PtchRate_Min*D2R
+
+      ! PtchRate_Max - Record  9: Maximum pitch rate [used only with DLL Interface] (deg/s) (read from file in deg/s and converted to rad/s here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtchRate_Max, "PtchRate_Max", "Record  9: Maximum pitch rate [used only with DLL Interface] (deg/s)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%PtchRate_Max = InputFileData%PtchRate_Max*D2R
+
+      ! Gain_OM - Record 16: Optimal mode gain [used only with DLL Interface] (Nm/(rad/s)^2):
+   CALL ReadVar( UnIn, InputFile, InputFileData%Gain_OM, "Gain_OM", "Record 16: Optimal mode gain [used only with DLL Interface] (Nm/(rad/s)^2)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! GenSpd_MinOM - Record 17: Minimum generator speed [used only with DLL Interface] (rpm) (read from file in rpm and converted to rad/s here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%GenSpd_MinOM, "GenSpd_MinOM", "Record 17: Minimum generator speed [used only with DLL Interface] (rpm)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%GenSpd_MinOM = InputFileData%GenSpd_MinOM*RPM2RPS
+
+      ! GenSpd_MaxOM - Record 18: Optimal mode maximum speed [used only with DLL Interface] (rpm) (read from file in rpm and converted to rad/s here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%GenSpd_MaxOM, "GenSpd_MaxOM", "Record 18: Optimal mode maximum speed [used only with DLL Interface] (rpm)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%GenSpd_MaxOM = InputFileData%GenSpd_MaxOM*RPM2RPS
+
+      ! GenSpd_Dem - Record 19: Demanded generator speed above rated [used only with DLL Interface] (rpm) (read from file in rpm and converted to rad/s here):
+   CALL ReadVar( UnIn, InputFile, InputFileData%GenSpd_Dem, "GenSpd_Dem", "Record 19: Demanded generator speed above rated [used only with DLL Interface] (rpm)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   InputFileData%GenSpd_Dem = InputFileData%GenSpd_Dem*RPM2RPS
+
+      ! GenTrq_Dem - Record 22: Demanded generator torque above rated [used only with DLL Interface] (Nm):
+   CALL ReadVar( UnIn, InputFile, InputFileData%GenTrq_Dem, "GenTrq_Dem", "Record 22: Demanded generator torque above rated [used only with DLL Interface] (Nm)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! GenPwr_Dem - Record 13: Demanded power [used only with DLL Interface] (W):
+   CALL ReadVar( UnIn, InputFile, InputFileData%GenPwr_Dem, "GenPwr_Dem", "Record 13: Demanded power [used only with DLL Interface] (W)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   !---------------------- BLADED INTERFACE TORQUE-SPEED LOOK-UP TABLE -------------         
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Bladed Interface Torque-Speed Look-Up Table', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN      
+
+      ! DLL_NumTrq - Record 26: No. of points in torque-speed look-up table {0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Gain_OM (Record 16) to 0.0} (-):
+   CALL ReadVar( UnIn, InputFile, InputFileData%DLL_NumTrq, "DLL_NumTrq", "Record 26: No. of points in torque-speed look-up table {0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Gain_OM (Record 16) to 0.0} (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+   IF ( InputFileData%DLL_NumTrq > 0 ) THEN
+      CALL AllocAry( InputFileData%GenSpd_TLU,   InputFileData%DLL_NumTrq, 'GenSpd_TLU', ErrStat2, ErrMsg2 )
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      CALL AllocAry( InputFileData%GenTrq_TLU,   InputFileData%DLL_NumTrq, 'GenTrq_TLU',ErrStat2, ErrMsg2 )
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN      
+   END IF
+      
+   CALL ReadCom( UnIn, InputFile, 'Table Header: Bladed Interface Torque-Speed Look-Up Table', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN      
+      
+   CALL ReadCom( UnIn, InputFile, 'Table Units: Bladed Interface Torque-Speed Look-Up Table', ErrStat2, ErrMsg2, UnEc )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN      
+            
+   DO I=1,InputFileData%DLL_NumTrq     
+      
+      CALL ReadAry( UnIn, InputFile, TmpRAry, 2_IntKi, 'Line'//TRIM(Num2LStr(I)), 'Bladed Interface Torque-Speed Look-Up Table', &
+                    ErrStat2, ErrMsg2, UnEc )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+
+      InputFileData%GenSpd_TLU( I) = TmpRAry(1)*RPM2RPS  ! GenSpd_TLU - Records R:2:R+2*DLL_NumTrq-2: Generator speed values in look-up table (rpm) (read from file in rpm and converted to rad/s here)
+      InputFileData%GenTrq_TLU(I)  = TmpRAry(2)          ! GenTrq_TLU - Records R+1:2:R+2*DLL_NumTrq-1: Generator torque values in look-up table (Nm)
+                   
+   END DO
+                     
+   
    !---------------------- OUTPUT --------------------------------------------------         
    CALL ReadCom( UnIn, InputFile, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
