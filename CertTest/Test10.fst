@@ -1,7 +1,8 @@
-------- FAST V8.00.* INPUT FILE ------------------------------------------------
-FAST certification Test #10: UAE Phase VI (upwind) with no DOFs in a ramped wind. 
+------- FAST V8.01.* INPUT FILE ------------------------------------------------
+FAST certification Test #10: UAE Phase VI (upwind) with no DOFs in a ramped wind.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
+FATAL         AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"}
          25   TMax            - Total run time (s)
       0.004   DT              - Recommended module time step (s)
 ---------------------- FEATURE FLAGS -------------------------------------------
@@ -12,12 +13,13 @@ False         CompSub         - Compute sub-structural dynamics (flag)
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
-"Test10_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
-"Test10_AD.ipt"    ADFile      - Name of file containing AeroDyn input parameters (quoted string)
-"Test10_ServoDyn.dat"    SrvDFile    - Name of file containing ServoDyn input parameters (quoted string)
+"UAE_VI/Test10_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
+"UAE_VI/Test10_AD.ipt"    ADFile      - Name of file containing AeroDyn input parameters (quoted string)
+"UAE_VI/Test10_ServoDyn.dat"    SrvDFile    - Name of file containing ServoDyn input parameters (quoted string)
 "unused"      HDFile      - Name of file containing HydroDyn input parameters (quoted string)
 "unused"      SDFile      - Name of file containing SubDyn input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
+  True        SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime    - Amount of time between screen status messages (sec)
         0.1   DT_Out      - Time step for tabular output (sec)
           5   TStart      - Time to begin tabular output (s)

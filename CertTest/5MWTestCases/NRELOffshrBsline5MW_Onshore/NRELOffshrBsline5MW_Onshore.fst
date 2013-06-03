@@ -52,17 +52,17 @@ True        GenTiStp    - Method to stop the generator {T: timed using TimGenOf,
 ---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
    9.80665  Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- FEATURE FLAGS -------------------------------------------
-True        FlapDOF1    - First flapwise blade mode DOF (flag)
-True        FlapDOF2    - Second flapwise blade mode DOF (flag)
-True        EdgeDOF     - First edgewise blade mode DOF (flag)
-False       TeetDOF     - Rotor-teeter DOF (flag) [unused for 3 blades]
-True        DrTrDOF     - Drivetrain rotational-flexibility DOF (flag)
-True        GenDOF      - Generator DOF (flag)
-True        YawDOF      - Yaw DOF (flag)
-True        TwFADOF1    - First fore-aft tower bending-mode DOF (flag)
-True        TwFADOF2    - Second fore-aft tower bending-mode DOF (flag)
-True        TwSSDOF1    - First side-to-side tower bending-mode DOF (flag)
-True        TwSSDOF2    - Second side-to-side tower bending-mode DOF (flag)
+false True        FlapDOF1    - First flapwise blade mode DOF (flag)
+false True        FlapDOF2    - Second flapwise blade mode DOF (flag)
+false True        EdgeDOF     - First edgewise blade mode DOF (flag)
+false False       TeetDOF     - Rotor-teeter DOF (flag) [unused for 3 blades]
+false True        DrTrDOF     - Drivetrain rotational-flexibility DOF (flag)
+false True        GenDOF      - Generator DOF (flag)
+false True        YawDOF      - Yaw DOF (flag)
+false True        TwFADOF1    - First fore-aft tower bending-mode DOF (flag)
+false True        TwFADOF2    - Second fore-aft tower bending-mode DOF (flag)
+false True        TwSSDOF1    - First side-to-side tower bending-mode DOF (flag)
+false True        TwSSDOF2    - Second side-to-side tower bending-mode DOF (flag)
 True        CompAero    - Compute aerodynamic forces (flag)
 False       CompNoise   - Compute aerodynamic noise (flag)
 ---------------------- INITIAL CONDITIONS --------------------------------------

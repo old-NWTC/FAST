@@ -95,3 +95,7 @@
 @move  Test17.out             tstfiles
 @move  Test17.opt             tstfiles
 
+@move  Test18.sts             tstfiles
+@move  Test18_ElastoDyn.sum   tstfiles
+@move  Test18.outb            tstfiles
+@move  Test18.opt             tstfiles

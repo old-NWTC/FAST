@@ -39,6 +39,7 @@ REM  FAST test sequence definition:
 @SET  TEST15=Test #15: SWRT with many DOFs with free yaw tail-furl and VS and EOG wind.  Time plots.
 @SET  TEST16=Test #16: SWRT with many DOFs with free yaw tail-furl and VS and EDC wind.  Time plots.
 @SET  TEST17=Test #17: SWRT with many DOFs with free yaw tail-furl and VS and FF turbulence.  PMF plots.
+@SET  TEST18=Test #18: NREL 5-MW Baseline Onshore Turbine
 
 @SET  DASHES=---------------------------------------------------------------------------------------------
 @SET  POUNDS=#############################################################################################
@@ -97,7 +98,7 @@ echo %DASHES%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.azi TstFiles\Test%TEST%.azi >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -131,7 +132,7 @@ echo %TEST02%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -166,7 +167,7 @@ echo %DASHES%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.azi TstFiles\Test%TEST%.azi >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -201,7 +202,7 @@ echo %DASHES%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.pmf TstFiles\Test%TEST%.pmf >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -234,7 +235,7 @@ echo %TEST05%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -267,7 +268,7 @@ echo %TEST06%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -302,7 +303,7 @@ echo %DASHES%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.pmf TstFiles\Test%TEST%.pmf >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -337,7 +338,7 @@ echo %DASHES%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.azi TstFiles\Test%TEST%.azi >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -370,7 +371,7 @@ echo %TEST09%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -403,7 +404,7 @@ echo %TEST10%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -436,7 +437,7 @@ echo %TEST11%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -469,7 +470,7 @@ echo %TEST12%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -504,7 +505,7 @@ echo %DASHES%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.pmf TstFiles\Test%TEST%.pmf >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -540,7 +541,7 @@ rem  echo %TEST14%                                    >> CertTest.out
 rem  echo %DASHES%                                    >> CertTest.out
 rem  %Compare% Test%TEST%.eig TstFiles\Test%TEST%.eig >> CertTest.out
 rem  echo %DASHES%                                    >> CertTest.out
-rem  %Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+rem  %Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
 
 
 rem *******************************************************
@@ -572,7 +573,7 @@ echo %TEST15%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -605,7 +606,7 @@ echo %TEST16%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
@@ -640,10 +641,43 @@ echo %DASHES%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.pmf TstFiles\Test%TEST%.pmf >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.fsm TstFiles\Test%TEST%.fsm >> CertTest.out
+%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
+
+
+rem *******************************************************
+
+@echo FAST %TEST18%
+
+@SET TEST=18
+
+rem Run FAST.
+
+%FAST% Test%TEST%.fst
+
+IF ERRORLEVEL 1  GOTO ERROR
+
+@IF NOT EXIST Test%TEST%.outb  GOTO ERROR
+
+rem Crunch the FAST output.
+%CRUNCH% Test%TEST%.cru
+
+IF ERRORLEVEL 1  GOTO ERROR
+
+@IF NOT EXIST Test%TEST%.sts  GOTO ERROR
+
+echo.                                            >> CertTest.out
+echo %POUNDS%                                    >> CertTest.out
+echo.                                            >> CertTest.out
+echo %TEST18%                                    >> CertTest.out
+echo %DASHES%                                    >> CertTest.out
+%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
+echo %DASHES%                                    >> CertTest.out
+%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
+echo %DASHES%                                    >> CertTest.out
+%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
 
 
 rem ******************************************************
@@ -687,6 +721,7 @@ goto END
 @SET TEST15=
 @SET TEST16=
 @SET TEST17=
+@SET TEST18=
 
 type Bell.txt
 @echo Processing complete.

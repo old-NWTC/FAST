@@ -1,7 +1,8 @@
-------- FAST V8.00.* INPUT FILE ------------------------------------------------
-FAST certification Test #15: FAST model of a SWRT 3-bladed upwind turbine.  Note- SWRT rotates in CCW direction- some inputs will be mirror image of the actual turbine. Model properties from "SWRTv1p2.adm" and SWRT "AdamsWT_MakeBladeDat_v12.xls".  JEM Jan., 2004.  Updated by J. Jonkman, NREL, Feb, 2004.  
+------- FAST V8.01.* INPUT FILE ------------------------------------------------
+FAST certification Test #15: FAST model of a SWRT 3-bladed upwind turbine.  Note- SWRT rotates in CCW direction- some inputs will be mirror image of the actual turbine. Model properties from "SWRTv1p2.adm" and SWRT "AdamsWT_MakeBladeDat_v12.xls".  JEM Jan., 2004.  Updated by J. Jonkman, NREL, Feb, 2004.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
+FATAL         AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"}
          20   TMax            - Total run time (s)
       0.001   DT              - Recommended module time step (s)
 ---------------------- FEATURE FLAGS -------------------------------------------
@@ -12,12 +13,13 @@ False         CompSub         - Compute sub-structural dynamics (flag)
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
-"Test15_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
-"Test15_AD.ipt"    ADFile      - Name of file containing AeroDyn input parameters (quoted string)
-"Test15_ServoDyn.dat"    SrvDFile    - Name of file containing ServoDyn input parameters (quoted string)
+"SWRT/Test15_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
+"SWRT/Test15_AD.ipt"    ADFile      - Name of file containing AeroDyn input parameters (quoted string)
+"SWRT/Test15_ServoDyn.dat"    SrvDFile    - Name of file containing ServoDyn input parameters (quoted string)
 "unused"      HDFile      - Name of file containing HydroDyn input parameters (quoted string)
 "unused"      SDFile      - Name of file containing SubDyn input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
+  True        SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime    - Amount of time between screen status messages (sec)
       0.008   DT_Out      - Time step for tabular output (sec)
           5   TStart      - Time to begin tabular output (s)

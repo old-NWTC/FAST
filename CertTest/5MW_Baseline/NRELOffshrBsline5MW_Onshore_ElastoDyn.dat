@@ -130,7 +130,9 @@ GenSpeed                    - Low-speed shaft and high-speed shaft speeds
 TTDspFA                     - Tower fore-aft and side-to-side displacments and top twist
 TTDspSS                     - Tower fore-aft and side-to-side displacments and top twist
 TTDspTwst                   - Tower fore-aft and side-to-side displacments and top twist
-Spn2MLxb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50Spn2MLyb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50RootFxc1                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
+Spn2MLxb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
+Spn2MLyb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
+RootFxc1                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
 RootFyc1                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
 RootFzc1                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
 RootMxc1                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1

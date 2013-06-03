@@ -1,7 +1,8 @@
-------- FAST V8.00.* INPUT FILE ------------------------------------------------
-FAST certification Test #08: AOC 15/50 with many DOFs with fixed yaw error and steady wind. Many parameters are pure fiction.  
+------- FAST V8.01.* INPUT FILE ------------------------------------------------
+FAST certification Test #08: AOC 15/50 with many DOFs with fixed yaw error and steady wind. Many parameters are pure fiction.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
+FATAL         AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"}
          20   TMax            - Total run time (s)
       0.005   DT              - Recommended module time step (s)
 ---------------------- FEATURE FLAGS -------------------------------------------
@@ -12,12 +13,13 @@ False         CompSub         - Compute sub-structural dynamics (flag)
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
-"Test08_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
-"Test08_AD.ipt"    ADFile      - Name of file containing AeroDyn input parameters (quoted string)
-"Test08_ServoDyn.dat"    SrvDFile    - Name of file containing ServoDyn input parameters (quoted string)
+"AOC/Test08_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
+"AOC/Test08_AD.ipt"    ADFile      - Name of file containing AeroDyn input parameters (quoted string)
+"AOC/Test08_ServoDyn.dat"    SrvDFile    - Name of file containing ServoDyn input parameters (quoted string)
 "unused"      HDFile      - Name of file containing HydroDyn input parameters (quoted string)
 "unused"      SDFile      - Name of file containing SubDyn input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
+  True        SumPrint    - Print summary data to "<RootName>.sum" (flag)
           5   SttsTime    - Amount of time between screen status messages (sec)
        0.05   DT_Out      - Time step for tabular output (sec)
          10   TStart      - Time to begin tabular output (s)

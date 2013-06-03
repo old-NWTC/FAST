@@ -1,7 +1,8 @@
-------- FAST V8.00.* INPUT FILE ------------------------------------------------
-FAST certification Test #13: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and FF turbulence. Model properties from "InputData1.5A08V07adm.xls" (from C. Hansen) with bugs removed.  
+------- FAST V8.01.* INPUT FILE ------------------------------------------------
+FAST certification Test #13: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and FF turbulence. Model properties from "InputData1.5A08V07adm.xls" (from C. Hansen) with bugs removed.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
+FATAL         AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"}
          40   TMax            - Total run time (s)
       0.005   DT              - Recommended module time step (s)
 ---------------------- FEATURE FLAGS -------------------------------------------
@@ -12,12 +13,13 @@ False         CompSub         - Compute sub-structural dynamics (flag)
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
-"Test13_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
-"Test13_AD.ipt"    ADFile      - Name of file containing AeroDyn input parameters (quoted string)
-"Test13_ServoDyn.dat"    SrvDFile    - Name of file containing ServoDyn input parameters (quoted string)
+"WP_Baseline/Test13_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
+"WP_Baseline/Test13_AD.ipt"    ADFile      - Name of file containing AeroDyn input parameters (quoted string)
+"WP_Baseline/Test13_ServoDyn.dat"    SrvDFile    - Name of file containing ServoDyn input parameters (quoted string)
 "unused"      HDFile      - Name of file containing HydroDyn input parameters (quoted string)
 "unused"      SDFile      - Name of file containing SubDyn input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
+  True        SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime    - Amount of time between screen status messages (sec)
        0.05   DT_Out      - Time step for tabular output (sec)
           0   TStart      - Time to begin tabular output (s)

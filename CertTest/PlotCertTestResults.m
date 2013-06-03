@@ -33,7 +33,7 @@ end
                  'NRELOffshrBsline5MW_Floating_OC3Hywind' };
              
 
-    for i= 18 %1:18 %1:(18+4) %18+(1:5) 
+    for i= 1:18 %1:(18+4) %18+(1:5) 
         
         if i > 18
             fileRoot = BslnTests{i-17};
@@ -46,8 +46,6 @@ end
         newRoot  = strcat( newPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
         
 % oldRoot = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest\5MWTestCases\NRELOffshrBsline5MW_Onshore\NRELOffshrBsline5MW_Onshore'
-oldRoot = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest\TstFiles\NRELOffshrBsline5MW_Onshore'
-        
         if i == 14 % linearization case
 continue; %bjj: linearization not yet available in FAST 8.0.0
             oldFiles = strcat( oldRoot,  {'.eig', '_LIN.out', '.eig'} );
@@ -58,17 +56,20 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
                         [fileRoot ' - First ' num2str(nModes) ' Natural Frequencies'], true, [fileRoot '_nf'] );
             
         else
+            
+            SaveFiles = true;  %setting this to false will keep ALL of the plot windows open
+            
                 % Compare time series
                 
-            if i == 4  % use the new binary file format
+            if i == 4  || i == 18 % use the new binary file format
                 oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
-                newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );
+                newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                
             else  % use the text format
                 oldFiles = strcat( oldRoot,  {'.out', '.plt', '.out'} );
                 newFiles = strcat( newRoot,  {'.out', '.plt', '.out'} );
             end
                                              
-            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' Output Time Series'], false, [fileRoot '_ts'] );
+            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' Output Time Series'], SaveFiles, [fileRoot '_ts'] );
         end % time series
 
 %%   bjj: removed block for less plotting     
@@ -331,7 +332,7 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
             yCol_new = find( strcmpi(ChannelName,colName{iFile}), 1, 'first' );
 
             if isempty(yCol_old)
-                disp(['Error: ' ChannelName ' not found in ' oldFiles{iFile} ]);
+                disp(['Error: ' ChannelName ' not found in ' oldFiles{iFile} ]); %this should be possible
                 continue;
             elseif isempty(yCol_new)
                 disp(['Error: ' ChannelName ' not found in ' newFiles{iFile}]);
