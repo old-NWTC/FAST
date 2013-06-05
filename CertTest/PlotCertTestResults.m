@@ -28,7 +28,7 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= 19 %1:18 %1:22 
+    for i= 22 %19:22 %1:18 %1:22 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
         
@@ -311,6 +311,14 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
         fig=figure;        
                 
         ChannelName = oldCols{1}{iPlot};
+        if strcmpi(ChannelName,'WaveElev')
+            ChannelName_new = 'Wave1Elev'
+        else
+            ChannelName_new = strrep(ChannelName,'Wave1V','M1N1V');
+            ChannelName_new = strrep(ChannelName,'Wave1A','M1N1A');
+            ChannelName_new = ChannelName;
+        end
+            
         HaveLabels = false;
         for iFile = 1:numFiles
             HaveLabels = false;
@@ -318,14 +326,14 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
             subplot(6,1,1:4);
             hold on;
                         
-            yCol_old = find( strcmpi(ChannelName,oldCols{iFile}), 1, 'first' );
-            yCol_new = find( strcmpi(ChannelName,colName{iFile}), 1, 'first' );
+            yCol_old = find( strcmpi(ChannelName,    oldCols{iFile}), 1, 'first' );
+            yCol_new = find( strcmpi(ChannelName_new,colName{iFile}), 1, 'first' );
 
             if isempty(yCol_old)
                 disp(['Error: ' ChannelName ' not found in ' oldFiles{iFile} ]); %this should be possible
                 continue;
             elseif isempty(yCol_new)
-                disp(['Error: ' ChannelName ' not found in ' newFiles{iFile}]);
+                disp(['Error: ' ChannelName_new ' not found in ' newFiles{iFile}]);
                 continue;
             else
                 switch pltType 

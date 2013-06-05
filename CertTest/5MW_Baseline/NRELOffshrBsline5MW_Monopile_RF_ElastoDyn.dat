@@ -130,14 +130,10 @@ GenSpeed                    - Low-speed shaft and high-speed shaft speeds
 TTDspFA                     - Tower fore-aft and side-to-side displacements and top twist
 TTDspSS                     - Tower fore-aft and side-to-side displacements and top twist
 TTDspTwst                   - Tower fore-aft and side-to-side displacements and top twist
-TeetDefl                    - Dummy placeholders for the unavailable fore-aft and side-to-side displacements of the tower base at the monopile attachement location
-TeetDefl                    - Dummy placeholders for the unavailable fore-aft and side-to-side displacements of the tower base at the monopile attachement location
 PtfmTDxi                    - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
 PtfmTDyi                    - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
 PtfmRDxi                    - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
 PtfmRDyi                    - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
-TeetDefl                    - Dummy placeholders for the unavailable fore-aft and side-to-side displacements of the monopile at 7m below the mudline
-TeetDefl                    - Dummy placeholders for the unavailable fore-aft and side-to-side displacements of the monopile at 7m below the mudline
 Spn2MLxb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
 Spn2MLyb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
 RootFxc1                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
@@ -167,10 +163,6 @@ TwrBsFzt                    - Fore-aft shear, side-to-side shear, and vertical f
 TwrBsMxt                    - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
 TwrBsMyt                    - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
 TwrBsMzt                    - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
-TeetDefl                    - Dummy placeholders for the unavailable local fore-aft shear, side-to-side shear, side-to-side bending moment, and fore-aft bending moment of the monopile at 7m below the mudline
-TeetDefl                    - Dummy placeholders for the unavailable local fore-aft shear, side-to-side shear, side-to-side bending moment, and fore-aft bending moment of the monopile at 7m below the mudline
-TeetDefl                    - Dummy placeholders for the unavailable local fore-aft shear, side-to-side shear, side-to-side bending moment, and fore-aft bending moment of the monopile at 7m below the mudline
-TeetDefl                    - Dummy placeholders for the unavailable local fore-aft shear, side-to-side shear, side-to-side bending moment, and fore-aft bending moment of the monopile at 7m below the mudline
 PtfmSurge                   - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
 PtfmSway                    - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
 PtfmRoll                    - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)

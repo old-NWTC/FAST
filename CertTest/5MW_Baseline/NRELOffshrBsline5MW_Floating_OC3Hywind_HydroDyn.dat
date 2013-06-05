@@ -1,0 +1,68 @@
+NREL 5.0 MW offshore baseline floating platform HydroDyn input properties for the TLP.
+Compatible with HydroDyn v1.00.00a-bjj
+---------------------- FEATURES ------------------------------------------------
+  2            StrctType      - Switch for type of structure (1=Fixed Bottom; 2=Floating Platform)
+---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
+1025.0         WtrDens        - Water density (kg/m^3)
+ 320.0         WtrDpth        - Water depth (meters)
+---------------------- WAVES ---------------------------------------------------
+   2           WaveMod        - Incident wave kinematics model {0: none=still water, 1: plane progressive (regular), 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: user-defind spectrum from routine UserWaveSpctrm (irregular), 4: GH Bladed wave data [invalid for StrctType=2]} (switch)
+   0           WaveStMod      - Model for stretching incident wave kinematics to instantaneous free surface {0: none=no stretching, 1: vertical stretching, 2: extrapolation stretching, 3: Wheeler stretching} (switch) [unused when WaveMod=0 or when StrctType=2]
+3630.0         WaveTMax       - Analysis time for incident wave calculations (sec) [unused when WaveMod=0] [determines WaveDOmega=2Pi/WaveTMax in the IFFT]
+   0.25        WaveDT         - Time step for incident wave calculations (sec) [unused when WaveMod=0] [0.1<=WaveDT<=1.0 recommended] [determines WaveOmegaMax=Pi/WaveDT in the IFFT]
+   6.0         WaveHs         - Significant wave height of incident waves (meters) [used only when WaveMod=1 or 2]
+  10.0         WaveTp         - Peak spectral period of incident waves (sec) [used only when WaveMod=1 or 2]
+DEFAULT        WavePkShp      - Peak shape parameter of incident wave spectrum (-) or DEFAULT (unquoted string) [used only when WaveMod=2] [use 1.0 for Pierson-Moskowitz]
+   0.0         WaveDir        - Incident wave propagation heading direction (degrees) [unused when WaveMod=0 or 4]
+123456789      WaveSeed(1)    - First  random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
+1011121314     WaveSeed(2)    - Second random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
+               GHWvFile       - Root name of GH Bladed files containing wave data (quoted string) [used only when WaveMod=4 and StrctType=1]
+   1           NWaveElev      - Number of points where the incident wave elevations can be computed (-)
+   0           WaveElevxi     - List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
+   0           WaveElevyi     - List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
+---------------------- CURRENT -------------------------------------------------
+   0           CurrMod        - Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)
+   0.0         CurrSSV0       - Sub-surface current velocity at still water level (m/s) [used only when CurrMod=1]
+DEFAULT        CurrSSDir      - Sub-surface current heading direction (degrees) or DEFAULT (unquoted string) [used only when CurrMod=1]
+  20.0         CurrNSRef      - Near-surface current reference depth (meters) [used only when CurrMod=1]
+   0.0         CurrNSV0       - Near-surface current velocity at still water level (m/s) [used only when CurrMod=1]
+   0.0         CurrNSDir      - Near-surface current heading direction (degrees) [used only when CurrMod=1]
+   0.0         CurrDIV        - Depth-independent current velocity (m/s) [used only when CurrMod=1]
+   0.0         CurrDIDir      - Depth-independent current heading direction (degrees) [used only when CurrMod=1]
+---------------------- JOINTS --------------------------------------------------
+   2           NJoints        - Number of joints (-) [must be at least 2 or exactly 0]
+JointID    Jointxi     Jointyi      Jointzi
+(-)        (m)         (m)         (m)
+ 1         0.0         0.0        -120.0
+ 2         0.0         0.0           0.0
+--------------------- MORISON MEMBER PROPERTIES --------------------------------
+   1           NSets          - Number of member property sets (-) [must be at least 1]
+SetID     D1           D2           CA1          CA2          CD1          CD2
+ (-)      (m)          (m)          (-)          (-)          (-)          (-)
+  1       6.5          6.5          0.0          0.0          0.6          0.6
+---------------------- MORISON MEMBERS ------------------------------------------
+   1           NMembers       - Number of members (-) [must have at least 1]
+Joint1 Joint2 PropertySet NumElements
+1        2         1         240
+---------------------- FLOATING PLATFORM ---------------------------------------
+"HydroData/Spar" WAMITFile  - Root name of WAMIT output files containing the linear, nondimensionalized, hydrostatic restoring matrix (.hst extension), frequency-dependent hydrodynamic added mass matrix and damping matrix (.1 extension), and frequency- and direction-dependent wave excitation force vector per unit wave amplitude (.3 extension) (quoted string) [MAKE SURE THE FREQUENCIES INHERENT IN THESE WAMIT FILES SPAN THE PHYSICALLY-SIGNIFICANT RANGE OF FREQUENCIES FOR THE GIVEN PLATFORM; THEY MUST CONTAIN THE ZERO- AND INFINITE-FREQUENCY LIMITS!]
+   1.0         WAMITULEN      - Characteristic body length scale used to redimensionalize WAMIT output (meters)
+8029.21        PtfmVol0       - Displaced volume of water when the platform is in its undisplaced position (m^3) [USE THE SAME VALUE COMPUTED BY WAMIT AS OUTPUT IN THE .OUT FILE!]
+  60.0         RdtnTMax       - Analysis time for wave radiation kernel calculations (sec) [determines RdtnDOmega=Pi/RdtnTMax in the cosine transform]  [MAKE SURE THIS IS LONG ENOUGH FOR THE RADIATION IMPULSE RESPONSE FUNCTIONS TO DECAY TO NEAR-ZERO FOR THE GIVEN PLATFORM!]
+   0.025       RdtnDT         - Time step for wave radiation kernel calculations (sec) [DT<=RdtnDT<=0.1 recommended] [determines RdtnOmegaMax=Pi/RdtnDT in the cosine transform]
+---------------------- MOORING LINES -------------------------------------------
+   1           LineMod        - Mooring line model {1: standard quasi-static, 2: user-defined from routine UserLine} (switch)
+   3           NumLines       - Number of mooring lines (-) [used only when LineMod = 1]
+LRadAnch  LAngAnch  LDpthAnch  LRadFair  LAngFair   LDrftFair  LUnstrLen  LDiam   LMassDen  LEAStff  LSeabedCD  LTenTol  LineNodes  [used only when NumLines>0 and LineMod=1]
+(m)       (deg)     (m)        (m)       (deg)      (m)        (m)        (m)     (kg/m)    (N)      (-)        (-)        (-)      [used only when NumLines>0 and LineMod=1]
+ 853.87     0.0     320.0      5.2        0.0      70.0      902.2      0.09    77.7066   384.243E6  0.0        0.0000001    0
+ 853.87   120.0     320.0      5.2      120.0      70.0      902.2      0.09    77.7066   384.243E6  0.0        0.0000001    0
+ 853.87   240.0     320.0      5.2      240.0      70.0      902.2      0.09    77.7066   384.243E6  0.0        0.0000001    0
+---------------------- OUTPUT --------------------------------------------------
+"Fair1Ten, Fair1Ang,  Anch1Ten, Anch1Ang" OutList
+"Fair2Ten, Fair2Ang,  Anch2Ten, Anch2Ang"
+"Fair3Ten, Fair3Ang,  Anch3Ten, Anch3Ang"
+"Wave1Elev"
+"M1N1Vxi , M1N1Vyi , M1N1Vzi"
+"M1N1Axi , M1N1Ayi , M1N1Azi"
+END

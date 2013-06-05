@@ -57,11 +57,11 @@ FUNCTION GetVersion()
    ! determine precision
    
       IF ( ReKi == SiKi )  THEN     ! Single precision
-         GetVersion = TRIM(GetVersion)//' SINGLE'
+         GetVersion = TRIM(GetVersion)//' single'
       ELSEIF ( ReKi == R8Ki )  THEN ! Double precision
-         GetVersion = TRIM(GetVersion)// 'DOUBLE'
+         GetVersion = TRIM(GetVersion)// ' double'
       ELSE                          ! Unknown precision
-         GetVersion = TRIM(GetVersion)//' UNKNOWN'
+         GetVersion = TRIM(GetVersion)//' unknown'
       ENDIF
 
    GetVersion = TRIM(GetVersion)//' precision'
@@ -277,7 +277,7 @@ CONTAINS
    !-------------------------------------------------------------------------------------------------------------------------------      
 END SUBROUTINE FAST_Init
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD_Prog, ErrStat, ErrMsg )
+SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD_Prog, InitOutData_HD, ErrStat, ErrMsg )
 ! This routine initializes the output for the glue code, including writing the header for the primary output file
 ! was previously called WrOutHdr()
 !..................................................................................................................................
@@ -288,8 +288,9 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    TYPE(FAST_ParameterType), INTENT(IN)           :: p_FAST                                ! Glue-code simulation parameters
    TYPE(FAST_OutputType),    INTENT(INOUT)        :: y_FAST                                ! Glue-code simulation outputs
 
-   TYPE(ED_InitOutputType),  INTENT(IN), OPTIONAL :: InitOutData_ED                        ! Initialization output for ElastoDyn
-   TYPE(SrvD_InitOutputType),INTENT(IN), OPTIONAL :: InitOutData_SrvD                      ! Initialization output for ServoDyn
+   TYPE(ED_InitOutputType),  INTENT(IN)           :: InitOutData_ED                        ! Initialization output for ElastoDyn
+   TYPE(SrvD_InitOutputType),INTENT(IN)           :: InitOutData_SrvD                      ! Initialization output for ServoDyn
+   TYPE(HD_InitOutputType),  INTENT(IN)           :: InitOutData_HD                        ! Initialization output for HydroDyn
 
    TYPE(ProgDesc), INTENT(IN) :: AD_prog ! aerodyn version    
 
@@ -311,8 +312,12 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    y_FAST%FileDescLines(1)  = 'Predictions were generated on '//CurDate()//' at '//CurTime()//' using '//TRIM(GetVersion())
    y_FAST%FileDescLines(2)  = 'linked with ' &
                             //' '//TRIM(GetNVD(NWTC_Ver            )) &
-                           //'; '//TRIM(GetNVD(InitOutData_ED%Ver  )) &
-                           //'; '//TRIM(GetNVD(InitOutData_SrvD%Ver)) &
+                           //'; '//TRIM(GetNVD(InitOutData_ED%Ver  )) 
+   IF ( p_FAST%CompServo ) y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) &
+                           //'; '//TRIM(GetNVD(InitOutData_SrvD%Ver))
+   IF ( p_FAST%CompHydro ) y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) &
+                           //'; '//TRIM(GetNVD(InitOutData_HD%Ver))
+   IF ( p_FAST%CompAero ) y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) &
                            //'; '//TRIM(GetNVD(WindInfVer)) &
                            //'; '//TRIM(GetNVD(AD_Prog))
    y_FAST%FileDescLines(3)  = 'Description from the FAST input file: '//TRIM(p_FAST%FTitle)
@@ -324,26 +329,23 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    y_FAST%SrvD_Ver = InitOutData_SrvD%Ver
    y_FAST%AD_Ver   = AD_Prog
    y_FAST%IfW_Ver  = WindInfVer
-   y_FAST%HD_Ver   = HD_Prog
+   y_FAST%HD_Ver   = InitOutData_HD%Ver
    
    !......................................................    
    ! Set the number of output columns from each module
    !......................................................   
    
    y_FAST%numOuts_AD   = 0
-   y_FAST%numOuts_HD   = 0
    y_FAST%numOuts_IfW  = 3  !hack for now: always output 3 wind speeds at hub-height
       
    y_FAST%numOuts_ED   = 0
-   IF ( PRESENT( InitOutData_ED ) ) THEN
-      IF ( ALLOCATED( InitOutData_ED%WriteOutputHdr   ) ) y_FAST%numOuts_ED   = SIZE(InitOutData_ED%WriteOutputHdr)
-   END IF
+   IF ( ALLOCATED( InitOutData_ED%WriteOutputHdr   ) ) y_FAST%numOuts_ED   = SIZE(InitOutData_ED%WriteOutputHdr)
 
    y_FAST%numOuts_SrvD = 0   
-   IF ( PRESENT( InitOutData_SrvD ) ) THEN
-      IF ( ALLOCATED( InitOutData_SrvD%WriteOutputHdr ) ) y_FAST%numOuts_SrvD = SIZE(InitOutData_SrvD%WriteOutputHdr)
-   END IF
+   IF ( ALLOCATED( InitOutData_SrvD%WriteOutputHdr ) ) y_FAST%numOuts_SrvD = SIZE(InitOutData_SrvD%WriteOutputHdr)
    
+   y_FAST%numOuts_HD = 0   
+   IF ( ALLOCATED( InitOutData_HD%WriteOutputHdr   ) ) y_FAST%numOuts_HD   = SIZE(InitOutData_HD%WriteOutputHdr)
    
    !......................................................    
    ! Initialize the output channel names and units
@@ -387,6 +389,12 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
       indxNext = indxLast + 1
    END IF
                                
+   IF ( y_FAST%numOuts_HD > 0_IntKi ) THEN
+      indxLast = indxNext + y_FAST%numOuts_HD - 1         
+      y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_HD%WriteOutputHdr
+      y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_HD%WriteOutputUnt
+      indxNext = indxLast + 1
+   END IF
     
    !......................................................    
    ! Open the text output file and print the headers
@@ -551,6 +559,11 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, ErrStat, ErrMsg )
       WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%SrvD_Ver%Name)
    END DO
                             
+      ! HydroDyn
+   DO J = 1,y_FAST%numOuts_HD   
+      I = I + 1
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%HD_Ver%Name)
+   END DO
    
 
 END SUBROUTINE FAST_WrSum
@@ -1038,7 +1051,7 @@ END FUNCTION TimeValues2Seconds
 !----------------------------------------------------------------------------------------------------------------------------------
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, EDOutput, SrvDOutput, IfWOutput, ErrStat, ErrMsg)
+SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, ErrStat, ErrMsg)
 ! This routine writes the module output to the primary output file(s).
 !..................................................................................................................................
 
@@ -1051,9 +1064,10 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, EDOutput, SrvDOutput, IfWOutput, Err
    TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST                             ! Glue-code simulation outputs
 
 
-   REAL(ReKi), OPTIONAL,     INTENT(IN)    :: EDOutput (:)                       ! ElastoDyn WriteOutput values
-   REAL(ReKi), OPTIONAL,     INTENT(IN)    :: SrvDOutput (:)                     ! ServoDyn WriteOutput values
-   REAL(ReKi), OPTIONAL,     INTENT(IN)    :: IfWOutput (:)                      ! InflowWind WriteOutput values
+   REAL(ReKi),               INTENT(IN)    :: IfWOutput (:)                      ! InflowWind WriteOutput values
+   REAL(ReKi),               INTENT(IN)    :: EDOutput (:)                       ! ElastoDyn WriteOutput values
+   REAL(ReKi),               INTENT(IN)    :: SrvDOutput (:)                     ! ServoDyn WriteOutput values
+   REAL(ReKi),               INTENT(IN)    :: HDOutput (:)                       ! HydroDyn WriteOutput values
    
    INTEGER(IntKi),           INTENT(OUT)   :: ErrStat
    CHARACTER(*),             INTENT(OUT)   :: ErrMsg
@@ -1082,21 +1096,27 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, EDOutput, SrvDOutput, IfWOutput, Err
       
    
          ! write the individual module output
-      IF ( PRESENT( IfWOutput ) ) THEN
+      IF ( y_FAST%numOuts_IfW > 0 ) THEN
          CALL WrReAryFileNR ( y_FAST%UnOu, IfWOutput,   Frmt, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
       
-      IF ( PRESENT( EDOutput   ) ) THEN
+      IF ( y_FAST%numOuts_ED > 0 ) THEN
          CALL WrReAryFileNR ( y_FAST%UnOu, EDOutput,   Frmt, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
       
-      IF ( PRESENT( SrvDOutput ) ) THEN
+      IF ( y_FAST%numOuts_SrvD > 0 ) THEN
          CALL WrReAryFileNR ( y_FAST%UnOu, SrvDOutput, Frmt, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
 
+      IF ( y_FAST%numOuts_HD > 0 ) THEN
+         CALL WrReAryFileNR ( y_FAST%UnOu, HDOutput,   Frmt, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      END IF
+      
+      
          ! write a new line (advance to the next line)
       WRITE (y_FAST%UnOu,'()')
          
@@ -1124,24 +1144,31 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, EDOutput, SrvDOutput, IfWOutput, Err
          indxLast = 0
          indxNext = 1
 
-         IF ( PRESENT( IfWOutput ) ) THEN
+         IF ( y_FAST%numOuts_IfW > 0 ) THEN
             indxLast = indxNext + SIZE(IfWOutput) - 1         
             y_FAST%AllOutData(indxNext:indxLast, y_FAST%n_Out) = IfWOutput      
             indxNext = IndxLast + 1
          END IF
          
-         IF ( PRESENT( EDOutput ) ) THEN
+         IF ( y_FAST%numOuts_ED > 0 ) THEN
             indxLast = indxNext + SIZE(EDOutput) - 1         
             y_FAST%AllOutData(indxNext:indxLast, y_FAST%n_Out) = EDOutput      
             indxNext = IndxLast + 1
          END IF
       
-         IF ( PRESENT( SrvDOutput ) ) THEN
+         IF ( y_FAST%numOuts_SrvD > 0 ) THEN
             indxLast = indxNext + SIZE(SrvDOutput) - 1         
             y_FAST%AllOutData(indxNext:indxLast, y_FAST%n_Out) = SrvDOutput      
             indxNext = IndxLast + 1
          END IF
-               
+                          
+         IF ( y_FAST%numOuts_HD > 0 ) THEN
+            indxLast = indxNext + SIZE(HDOutput) - 1         
+            y_FAST%AllOutData(indxNext:indxLast, y_FAST%n_Out) = HDOutput      
+            indxNext = IndxLast + 1
+         END IF
+         
+         
       END IF
    
    END IF
