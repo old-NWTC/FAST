@@ -1,9 +1,9 @@
 ------- ELASTODYN V1.00.* INPUT FILE -------------------------------------------
-NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from Dutch Offshore Wind Energy Converter (DOWEC) 6MW Pre-Design (10046_009.pdf) and REpower 5M 5MW (5m_uk.pdf); Compatible with FAST v7.02.00
+NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from Dutch Offshore Wind Energy Converter (DOWEC) 6MW Pre-Design (10046_009.pdf) and REpower 5M 5MW (5m_uk.pdf);
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
    3          Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
-.005 .00625  .0125   DT          - Integration time step (s)
+     0.005    DT          - Integration time step (s)
 ---------------------- ENVIRONMENTAL CONDITION ---------------------------------
     9.80665   Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- DEGREES OF FREEDOM --------------------------------------
@@ -65,11 +65,11 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
     1.96256   Twr2Shft    - Vertical distance from the tower-top to the rotor shaft (meters)
        87.6   TowerHt     - Height of tower above ground level [onshore] or MSL [offshore] (meters)
           0   TwrRBHt     - Tower rigid base height (meters)
-          0   TwrDraft    - Downward distance from the ground level [onshore] or MSL [offshore] to the tower base platform connection (meters)
+         20   TwrDraft    - Downward distance from the ground level [onshore] or MSL [offshore] to the tower base platform connection (meters)
           0   PtfmCMxt    - Downwind distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
           0   PtfmCMyt    - Lateral distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
-         -0   PtfmCMzt    - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
-          0   PtfmRef     - Downward distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
+        -20   PtfmCMzt    - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
+         20   PtfmRef     - Downward distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
 ---------------------- MASS AND INERTIA ----------------------------------------
           0   TipMass(1)  - Tip-brake mass, blade 1 (kg)
           0   TipMass(2)  - Tip-brake mass, blade 2 (kg)
@@ -106,17 +106,17 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
 False         Furling     - Read in additional model properties for furling turbine (flag) [must currently be FALSE)
 "unused"      FurlFile    - Name of file containing furling properties (quoted string) [unused when Furling=False]
 ---------------------- TOWER ---------------------------------------------------
-         20   TwrNodes    - Number of tower nodes used for analysis (-)
-"NRELOffshrBsline5MW_Tower_Onshore.dat"    TwrFile     - Name of file containing tower properties (quoted string)
+         99   TwrNodes    - Number of tower nodes used for analysis (-)
+"NRELOffshrBsline5MW_Tower_Monopile_RF.dat"    TwrFile     - Name of file containing tower properties (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   OutFile     - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)
 True          TabDelim    - Use tab delimiters in text tabular output file? (flag) (currently unused)
 "ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!] (currently unused)
-          0   TStart      - Time to begin tabular output (s) (currently unused)
+         30   TStart      - Time to begin tabular output (s) (currently unused)
           1   DecFact     - Decimation factor for tabular output {1: output every time step} (-) (currently unused)
-          0   NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
-10,19,28      TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
+          3   NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
+         10,         19,         28    TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
           3   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
           5,          9,         13    BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
               OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
@@ -130,6 +130,14 @@ GenSpeed                    - Low-speed shaft and high-speed shaft speeds
 TTDspFA                     - Tower fore-aft and side-to-side displacements and top twist
 TTDspSS                     - Tower fore-aft and side-to-side displacements and top twist
 TTDspTwst                   - Tower fore-aft and side-to-side displacements and top twist
+TeetDefl                    - Dummy placeholders for the unavailable fore-aft and side-to-side displacements of the tower base at the monopile attachement location
+TeetDefl                    - Dummy placeholders for the unavailable fore-aft and side-to-side displacements of the tower base at the monopile attachement location
+PtfmTDxi                    - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
+PtfmTDyi                    - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
+PtfmRDxi                    - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
+PtfmRDyi                    - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
+TeetDefl                    - Dummy placeholders for the unavailable fore-aft and side-to-side displacements of the monopile at 7m below the mudline
+TeetDefl                    - Dummy placeholders for the unavailable fore-aft and side-to-side displacements of the monopile at 7m below the mudline
 Spn2MLxb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
 Spn2MLyb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
 RootFxc1                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
@@ -147,11 +155,25 @@ YawBrFzp                    - Fore-aft shear, side-to-side shear, and vertical f
 YawBrMxp                    - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
 YawBrMyp                    - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
 YawBrMzp                    - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
-TwrBsFxt                    - Fore-aft shear, side-to-side shear, and vertical forces at the base of the tower (mudline)
-TwrBsFyt                    - Fore-aft shear, side-to-side shear, and vertical forces at the base of the tower (mudline)
-TwrBsFzt                    - Fore-aft shear, side-to-side shear, and vertical forces at the base of the tower (mudline)
-TwrBsMxt                    - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (mudline)
-TwrBsMyt                    - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (mudline)
-TwrBsMzt                    - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (mudline)
+TwHt3MLxt                   - Local side-to-side and fore-aft bending moments at tower gage 3 (approx. tower base / monopile attachement location)
+TwHt3MLyt                   - Local side-to-side and fore-aft bending moments at tower gage 3 (approx. tower base / monopile attachement location)
+TwHt2MLxt                   - Local side-to-side and fore-aft bending moments at tower gage 2 (approx. MSL)
+TwHt2MLyt                   - Local side-to-side and fore-aft bending moments at tower gage 2 (approx. MSL)
+TwHt1MLxt                   - Local side-to-side and fore-aft bending moments at tower gage 1 (approx. halfway between MSL and mudline)
+TwHt1MLyt                   - Local side-to-side and fore-aft bending moments at tower gage 1 (approx. halfway between MSL and mudline)
+TwrBsFxt                    - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
+TwrBsFyt                    - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
+TwrBsFzt                    - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
+TwrBsMxt                    - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
+TwrBsMyt                    - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
+TwrBsMzt                    - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
+TeetDefl                    - Dummy placeholders for the unavailable local fore-aft shear, side-to-side shear, side-to-side bending moment, and fore-aft bending moment of the monopile at 7m below the mudline
+TeetDefl                    - Dummy placeholders for the unavailable local fore-aft shear, side-to-side shear, side-to-side bending moment, and fore-aft bending moment of the monopile at 7m below the mudline
+TeetDefl                    - Dummy placeholders for the unavailable local fore-aft shear, side-to-side shear, side-to-side bending moment, and fore-aft bending moment of the monopile at 7m below the mudline
+TeetDefl                    - Dummy placeholders for the unavailable local fore-aft shear, side-to-side shear, side-to-side bending moment, and fore-aft bending moment of the monopile at 7m below the mudline
+PtfmSurge                   - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
+PtfmSway                    - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
+PtfmRoll                    - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
+PtfmPitch                   - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

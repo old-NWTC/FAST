@@ -3,7 +3,7 @@ NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from 
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
    3          Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
-.005 .00625  .0125   DT          - Integration time step (s)
+     0.005    DT          - Integration time step (s)
 ---------------------- ENVIRONMENTAL CONDITION ---------------------------------
     9.80665   Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- DEGREES OF FREEDOM --------------------------------------
@@ -18,12 +18,12 @@ True          TwFADOF1    - First fore-aft tower bending-mode DOF (flag)
 True          TwFADOF2    - Second fore-aft tower bending-mode DOF (flag)
 True          TwSSDOF1    - First side-to-side tower bending-mode DOF (flag)
 True          TwSSDOF2    - Second side-to-side tower bending-mode DOF (flag)
-False         PtfmSgDOF   - Platform horizontal surge translation DOF (flag)
-False         PtfmSwDOF   - Platform horizontal sway translation DOF (flag)
-False         PtfmHvDOF   - Platform vertical heave translation DOF (flag)
-False         PtfmRDOF    - Platform roll tilt rotation DOF (flag)
-False         PtfmPDOF    - Platform pitch tilt rotation DOF (flag)
-False         PtfmYDOF    - Platform yaw rotation DOF (flag)
+True          PtfmSgDOF   - Platform horizontal surge translation DOF (flag)
+True          PtfmSwDOF   - Platform horizontal sway translation DOF (flag)
+True          PtfmHvDOF   - Platform vertical heave translation DOF (flag)
+True          PtfmRDOF    - Platform roll tilt rotation DOF (flag)
+True          PtfmPDOF    - Platform pitch tilt rotation DOF (flag)
+True          PtfmYDOF    - Platform yaw rotation DOF (flag)
 ---------------------- INITIAL CONDITIONS --------------------------------------
           0   OoPDefl     - Initial out-of-plane blade-tip displacement (meters)
           0   IPDefl      - Initial in-plane blade-tip deflection (meters)
@@ -68,7 +68,7 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   TwrDraft    - Downward distance from the ground level [onshore] or MSL [offshore] to the tower base platform connection (meters)
           0   PtfmCMxt    - Downwind distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
           0   PtfmCMyt    - Lateral distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
-         -0   PtfmCMzt    - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
+  -0.281768   PtfmCMzt    - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
           0   PtfmRef     - Downward distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
 ---------------------- MASS AND INERTIA ----------------------------------------
           0   TipMass(1)  - Tip-brake mass, blade 1 (kg)
@@ -80,10 +80,10 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
      240000   NacMass     - Nacelle mass (kg)
 2.60789E+06   NacYIner    - Nacelle inertia about yaw axis (kg m^2)
           0   YawBrMass   - Yaw bearing mass (kg)
-          0   PtfmMass    - Platform mass (kg)
-          0   PtfmRIner   - Platform inertia for roll tilt rotation about the platform CM (kg m^2)
-          0   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2)
-          0   PtfmYIner   - Platfrom inertia for yaw rotation about the platform CM (kg m^2)
+  5.452E+06   PtfmMass    - Platform mass (kg)
+  7.269E+08   PtfmRIner   - Platform inertia for roll tilt rotation about the platform CM (kg m^2)
+  7.269E+08   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2)
+ 1.4539E+09   PtfmYIner   - Platfrom inertia for yaw rotation about the platform CM (kg m^2)
 ---------------------- BLADE ---------------------------------------------------
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(1)  - Name of file containing properties for blade 1 (quoted string)
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(2)  - Name of file containing properties for blade 2 (quoted string)
@@ -107,51 +107,100 @@ False         Furling     - Read in additional model properties for furling turb
 "unused"      FurlFile    - Name of file containing furling properties (quoted string) [unused when Furling=False]
 ---------------------- TOWER ---------------------------------------------------
          20   TwrNodes    - Number of tower nodes used for analysis (-)
-"NRELOffshrBsline5MW_Tower_Onshore.dat"    TwrFile     - Name of file containing tower properties (quoted string)
+"NRELOffshrBsline5MW_Tower_ITIBarge4.dat"    TwrFile     - Name of file containing tower properties (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   OutFile     - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)
 True          TabDelim    - Use tab delimiters in text tabular output file? (flag) (currently unused)
 "ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!] (currently unused)
-          0   TStart      - Time to begin tabular output (s) (currently unused)
+         30   TStart      - Time to begin tabular output (s) (currently unused)
           1   DecFact     - Decimation factor for tabular output {1: output every time step} (-) (currently unused)
-          0   NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
-10,19,28      TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
-          3   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
-          5,          9,         13    BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
+          1   NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
+         10   TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
+          1   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
+          9   BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
               OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-OoPDefl1                    - Blade 1 out-of-plane and in-plane deflections and tip twist
-IPDefl1                     - Blade 1 out-of-plane and in-plane deflections and tip twist
-TwstDefl1                   - Blade 1 out-of-plane and in-plane deflections and tip twist
-BldPitch1                   - Blade 1 pitch angle
+BldPitch1                   - Pitch angles for blades 1, 2, and 3
+BldPitch2                   - Pitch angles for blades 1, 2, and 3
+BldPitch3                   - Pitch angles for blades 1, 2, and 3
 Azimuth                     - Blade 1 azimuth angle
 RotSpeed                    - Low-speed shaft and high-speed shaft speeds
 GenSpeed                    - Low-speed shaft and high-speed shaft speeds
+NacYaw                      - Nacelle yaw angle and nacelle yaw error estimate
+OoPDefl1                    - Blade 1 out-of-plane and in-plane deflections and tip twist
+IPDefl1                     - Blade 1 out-of-plane and in-plane deflections and tip twist
+TwstDefl1                   - Blade 1 out-of-plane and in-plane deflections and tip twist
+OoPDefl2                    - Blade 2 out-of-plane and in-plane deflections and tip twist
+IPDefl2                     - Blade 2 out-of-plane and in-plane deflections and tip twist
+TwstDefl2                   - Blade 2 out-of-plane and in-plane deflections and tip twist
+OoPDefl3                    - Blade 3 out-of-plane and in-plane deflections and tip twist
+IPDefl3                     - Blade 3 out-of-plane and in-plane deflections and tip twist
+TwstDefl3                   - Blade 3 out-of-plane and in-plane deflections and tip twist
+TwrClrnc1                   - Tip-to-tower clearance estimate for blades 1, 2, and 3
+TwrClrnc2                   - Tip-to-tower clearance estimate for blades 1, 2, and 3
+TwrClrnc3                   - Tip-to-tower clearance estimate for blades 1, 2, and 3
+NcIMUTAxs                   - Nacelle IMU translational accelerations (absolute) in the nonrotating, shaft coordinate system
+NcIMUTAys                   - Nacelle IMU translational accelerations (absolute) in the nonrotating, shaft coordinate system
+NcIMUTAzs                   - Nacelle IMU translational accelerations (absolute) in the nonrotating, shaft coordinate system
 TTDspFA                     - Tower fore-aft and side-to-side displacements and top twist
 TTDspSS                     - Tower fore-aft and side-to-side displacements and top twist
 TTDspTwst                   - Tower fore-aft and side-to-side displacements and top twist
-Spn2MLxb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
-Spn2MLyb1                   - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
+PtfmSurge                   - Platform translational surge, sway, and heave displacements
+PtfmSway                    - Platform translational surge, sway, and heave displacements
+PtfmHeave                   - Platform translational surge, sway, and heave displacements
+PtfmRoll                    - Platform rotational roll, pitch and yaw displacements
+PtfmPitch                   - Platform rotational roll, pitch and yaw displacements
+PtfmYaw                     - Platform rotational roll, pitch and yaw displacements
+PtfmTAxt                    - Platform translation accelerations (absolute) in the tower-base coordinate system
+PtfmTAyt                    - Platform translation accelerations (absolute) in the tower-base coordinate system
+PtfmTAzt                    - Platform translation accelerations (absolute) in the tower-base coordinate system
 RootFxc1                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
 RootFyc1                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
 RootFzc1                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
 RootMxc1                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
 RootMyc1                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
 RootMzc1                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
-RotTorq                     - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
-LSSGagMya                   - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
-LSSGagMza                   - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
+RootFxc2                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 2
+RootFyc2                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 2
+RootFzc2                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 2
+RootMxc2                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 2
+RootMyc2                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 2
+RootMzc2                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 2
+RootFxc3                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 3
+RootFyc3                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 3
+RootFzc3                    - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 3
+RootMxc3                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 3
+RootMyc3                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 3
+RootMzc3                    - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 3
+Spn1MLxb1                   - Blade 1 local edgewise bending, flapwise bending, and pitching moments at span station 1 (approx. 50% span)
+Spn1MLyb1                   - Blade 1 local edgewise bending, flapwise bending, and pitching moments at span station 1 (approx. 50% span)
+Spn1MLzb1                   - Blade 1 local edgewise bending, flapwise bending, and pitching moments at span station 1 (approx. 50% span)
+Spn1MLxb2                   - Blade 2 local edgewise bending, flapwise bending, and pitching moments at span station 1 (approx. 50% span)
+Spn1MLyb2                   - Blade 2 local edgewise bending, flapwise bending, and pitching moments at span station 1 (approx. 50% span)
+Spn1MLzb2                   - Blade 2 local edgewise bending, flapwise bending, and pitching moments at span station 1 (approx. 50% span)
+Spn1MLxb3                   - Blade 3 local edgewise bending, flapwise bending, and pitching moments at span station 1 (approx. 50% span)
+Spn1MLyb3                   - Blade 3 local edgewise bending, flapwise bending, and pitching moments at span station 1 (approx. 50% span)
+Spn1MLzb3                   - Blade 3 local edgewise bending, flapwise bending, and pitching moments at span station 1 (approx. 50% span)
+RotThrust                   - Rotor thrust and low-speed shaft 0- and 90-rotating shear forces at the main bearing
+LSSGagFya                   - Rotor thrust and low-speed shaft 0- and 90-rotating shear forces at the main bearing
+LSSGagFza                   - Rotor thrust and low-speed shaft 0- and 90-rotating shear forces at the main bearing
+RotTorq                     - Rotor torque and low-speed shaft 0- and 90-rotating bending moments at the main bearing
+LSSGagMya                   - Rotor torque and low-speed shaft 0- and 90-rotating bending moments at the main bearing
+LSSGagMza                   - Rotor torque and low-speed shaft 0- and 90-rotating bending moments at the main bearing
 YawBrFxp                    - Fore-aft shear, side-to-side shear, and vertical forces at the top of the tower (not rotating with nacelle yaw)
 YawBrFyp                    - Fore-aft shear, side-to-side shear, and vertical forces at the top of the tower (not rotating with nacelle yaw)
 YawBrFzp                    - Fore-aft shear, side-to-side shear, and vertical forces at the top of the tower (not rotating with nacelle yaw)
 YawBrMxp                    - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
 YawBrMyp                    - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
 YawBrMzp                    - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
-TwrBsFxt                    - Fore-aft shear, side-to-side shear, and vertical forces at the base of the tower (mudline)
-TwrBsFyt                    - Fore-aft shear, side-to-side shear, and vertical forces at the base of the tower (mudline)
-TwrBsFzt                    - Fore-aft shear, side-to-side shear, and vertical forces at the base of the tower (mudline)
-TwrBsMxt                    - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (mudline)
-TwrBsMyt                    - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (mudline)
-TwrBsMzt                    - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (mudline)
+TwrBsFxt                    - Fore-aft shear, side-to-side shear, and vertical forces at the base of the tower (platform)
+TwrBsFyt                    - Fore-aft shear, side-to-side shear, and vertical forces at the base of the tower (platform)
+TwrBsFzt                    - Fore-aft shear, side-to-side shear, and vertical forces at the base of the tower (platform)
+TwrBsMxt                    - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (platform)
+TwrBsMyt                    - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (platform)
+TwrBsMzt                    - Side-to-side bending, fore-aft bending, and yaw moments at the base of the tower (platform)
+TwHt1MLxt                   - Local side-to-side bending, fore-aft bending, and yaw moments at tower gage 1 (approx. 50% elevation)
+TwHt1MLyt                   - Local side-to-side bending, fore-aft bending, and yaw moments at tower gage 1 (approx. 50% elevation)
+TwHt1MLzt                   - Local side-to-side bending, fore-aft bending, and yaw moments at tower gage 1 (approx. 50% elevation)
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

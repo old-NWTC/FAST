@@ -1,0 +1,56 @@
+------- ELASTODYN V1.00.* TOWER INPUT FILE -------------------------------------
+NREL 5.0 MW offshore baseline monopile tower with rigid foundation input properties.
+---------------------- TOWER PARAMETERS ----------------------------------------
+         13   NTwInpSt    - Number of input stations to specify tower geometry
+          1   TwrFADmp(1) - Tower 1st fore-aft mode structural damping ratio (%)
+          1   TwrFADmp(2) - Tower 2nd fore-aft mode structural damping ratio (%)
+          1   TwrSSDmp(1) - Tower 1st side-to-side mode structural damping ratio (%)
+          1   TwrSSDmp(2) - Tower 2nd side-to-side mode structural damping ratio (%)
+---------------------- TOWER ADJUSTMUNT FACTORS --------------------------------
+          1   FAStTunr(1) - Tower fore-aft modal stiffness tuner, 1st mode (-)
+          1   FAStTunr(2) - Tower fore-aft modal stiffness tuner, 2nd mode (-)
+          1   SSStTunr(1) - Tower side-to-side stiffness tuner, 1st mode (-)
+          1   SSStTunr(2) - Tower side-to-side stiffness tuner, 2nd mode (-)
+          1   AdjTwMa     - Factor to adjust tower mass density (-)
+          1   AdjFASt     - Factor to adjust tower fore-aft stiffness (-)
+          1   AdjSSSt     - Factor to adjust tower side-to-side stiffness (-)
+---------------------- DISTRIBUTED TOWER PROPERTIES ----------------------------
+  HtFract       TMassDen         TwFAStif       TwSSStif
+   (-)           (kg/m)           (Nm^2)         (Nm^2)
+0.0000000E+00  9.5171400E+03  1.0371300E+12  1.0371300E+12  
+2.7881000E-01  9.5171400E+03  1.0371300E+12  1.0371300E+12  
+2.7882000E-01  4.3065100E+03  4.7449000E+11  4.7449000E+11  
+3.5094000E-01  4.0304400E+03  4.1308000E+11  4.1308000E+11  
+4.2306000E-01  3.7634500E+03  3.5783000E+11  3.5783000E+11  
+4.9517000E-01  3.5055200E+03  3.0830000E+11  3.0830000E+11  
+5.6729000E-01  3.2566600E+03  2.6408000E+11  2.6408000E+11  
+6.3941000E-01  3.0168600E+03  2.2480000E+11  2.2480000E+11  
+7.1153000E-01  2.7861300E+03  1.9006000E+11  1.9006000E+11  
+7.8365000E-01  2.5644600E+03  1.5949000E+11  1.5949000E+11  
+8.5576000E-01  2.3518700E+03  1.3277000E+11  1.3277000E+11  
+9.2788000E-01  2.1483400E+03  1.0954000E+11  1.0954000E+11  
+1.0000000E+00  1.9538700E+03  8.9490000E+10  8.9490000E+10  
+---------------------- TOWER FORE-AFT MODE SHAPES ------------------------------
+     1.3567   TwFAM1Sh(2) - Mode 1, coefficient of x^2 term
+    -3.7853   TwFAM1Sh(3) -       , coefficient of x^3 term
+     8.5603   TwFAM1Sh(4) -       , coefficient of x^4 term
+    -7.4143   TwFAM1Sh(5) -       , coefficient of x^5 term
+     2.2826   TwFAM1Sh(6) -       , coefficient of x^6 term
+   -59.6946   TwFAM2Sh(2) - Mode 2, coefficient of x^2 term
+    60.4622   TwFAM2Sh(3) -       , coefficient of x^3 term
+    -84.683   TwFAM2Sh(4) -       , coefficient of x^4 term
+     182.33   TwFAM2Sh(5) -       , coefficient of x^5 term
+   -97.4148   TwFAM2Sh(6) -       , coefficient of x^6 term
+---------------------- TOWER SIDE-TO-SIDE MODE SHAPES --------------------------
+     1.3381   TwSSM1Sh(2) - Mode 1, coefficient of x^2 term
+    -3.8562   TwSSM1Sh(3) -       , coefficient of x^3 term
+     8.8383   TwSSM1Sh(4) -       , coefficient of x^4 term
+    -7.5993   TwSSM1Sh(5) -       , coefficient of x^5 term
+     2.2791   TwSSM1Sh(6) -       , coefficient of x^6 term
+   -79.9756   TwSSM2Sh(2) - Mode 2, coefficient of x^2 term
+    114.967   TwSSM2Sh(3) -       , coefficient of x^3 term
+   -238.831   TwSSM2Sh(4) -       , coefficient of x^4 term
+    380.739   TwSSM2Sh(5) -       , coefficient of x^5 term
+   -175.899   TwSSM2Sh(6) -       , coefficient of x^6 term
+
+

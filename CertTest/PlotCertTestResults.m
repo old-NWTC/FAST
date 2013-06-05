@@ -26,21 +26,11 @@ end
 
     descFiles = {'SFunc', 'Adams',   'FAST'};
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
-
-    BslnTests = {'NRELOffshrBsline5MW_Floating_TLP_Original',...
-                 'NRELOffshrBsline5MW_ITIBarge4_Original',...
-                 'NRELOffshrBsline5MW_Monopile_RF',...
-                 'NRELOffshrBsline5MW_Floating_OC3Hywind' };
              
 
-    for i= 1:18 %1:(18+4) %18+(1:5) 
+    for i= 19 %1:18 %1:22 
         
-        if i > 18
-            fileRoot = BslnTests{i-17};
-            newPath = [newPath filesep '5MW_Baseline'];
-        else
-            fileRoot = ['Test' num2str(i,'%02.0f')];
-        end
+        fileRoot = ['Test' num2str(i,'%02.0f')];
         
         oldRoot  = strcat( oldPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
         newRoot  = strcat( newPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
@@ -61,7 +51,7 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
             
                 % Compare time series
                 
-            if i == 4  || i == 18 % use the new binary file format
+            if i == 4  || i > 17 % use the new binary file format
                 oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
                 newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                
             else  % use the text format

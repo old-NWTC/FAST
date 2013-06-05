@@ -106,7 +106,7 @@ SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
    ! Write the binary output file if requested
    !-------------------------------------------------------------------------------------------------
 
-   IF (p_FAST%WrBinOutFile) THEN
+   IF (p_FAST%WrBinOutFile .AND. y_FAST%n_Out > 0) THEN
 
       FileDesc = TRIM(y_FAST%FileDescLines(1))//' '//TRIM(y_FAST%FileDescLines(2))//'; '//TRIM(y_FAST%FileDescLines(3))
 
@@ -121,8 +121,8 @@ SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
    ! Close the text tabular output file and summary file (if opened)
    !-------------------------------------------------------------------------------------------------
-   IF (p_FAST%WrTxtOutFile) CLOSE( y_FAST%UnOu )         ! I/O unit number for the tabular output file
-   IF (p_FAST%SumPrint)     CLOSE( y_FAST%UnSum )        ! I/O unit number for the summary file
+   IF (y_FAST%UnOu  > 0) CLOSE( y_FAST%UnOu )         ! I/O unit number for the tabular output file
+   IF (y_FAST%UnSum > 0) CLOSE( y_FAST%UnSum )        ! I/O unit number for the summary file
 
    !-------------------------------------------------------------------------------------------------
    ! Deallocate arrays
