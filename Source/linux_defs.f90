@@ -1,4 +1,19 @@
-
+!**********************************************************************************************************************************
+! LICENSING
+! Copyright (C) 2013  National Renewable Energy Laboratory
+!
+!    This file is part of FAST's Controls and Electrical Drive Module, "ServoDyn".
+!
+!    ServoDyn is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as
+!    published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!
+!    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+!    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License along with ServoDyn.
+!    If not, see <http://www.gnu.org/licenses/>.
+!
+!**********************************************************************************************************************************
 MODULE loadLib_defs
 !BJJ: this is not tested
 !based partially on http://www.stefanocottafavi.com/?p=360
@@ -67,7 +82,7 @@ SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
    INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
    CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
-!bjj: these aren't vetted or tested ...
+!bjj: these are values I found on the web; I have no idea if they actually work...
    INTEGER(C_INT), PARAMETER :: RTLD_LAZY=1            ! "Perform lazy binding. Only resolve symbols as the code that references them is executed. If the symbol is never referenced, then it is never resolved. (Lazy binding is only performed for function references; references to variables are always immediately bound when the library is loaded.) "
    INTEGER(C_INT), PARAMETER :: RTLD_NOW=2             ! "If this value is specified, or the environment variable LD_BIND_NOW is set to a nonempty string, all undefined symbols in the library are resolved before dlopen() returns. If this cannot be done, an error is returned."
    INTEGER(C_INT), PARAMETER :: RTLD_GLOBAL=256        ! "The symbols defined by this library will be made available for symbol resolution of subsequently loaded libraries"

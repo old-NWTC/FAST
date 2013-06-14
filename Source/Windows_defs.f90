@@ -1,3 +1,19 @@
+!**********************************************************************************************************************************
+! LICENSING
+! Copyright (C) 2013  National Renewable Energy Laboratory
+!
+!    This file is part of FAST's Controls and Electrical Drive Module, "ServoDyn".
+!
+!    ServoDyn is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as
+!    published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!
+!    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+!    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License along with ServoDyn.
+!    If not, see <http://www.gnu.org/licenses/>.
+!
+!**********************************************************************************************************************************
 MODULE loadLib_defs
 
    USE, INTRINSIC :: ISO_C_BINDING
@@ -20,14 +36,15 @@ MODULE loadLib_defs
       
 !...........................
 !bjj: I have been unable to find a solution that works with both IVF and gfortran...  
-!     There is an issue with differences in return type of GetProcAddress, but perhaps this could be solved with TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR)
 !bjj: note that "Intel Fortran does not support use of STDCALL with BIND(C) at this time"
 !     See this link: http://software.intel.com/en-us/articles/replacing-intel-fortran-attributes-with-c-interoperability-features   
+!bjj: Until this is fixed, Intel uses kernel32.f90 definitions instead of the interface below:
 !...........................
 
    INTERFACE  ! Definitions of Windows API routines
    
       FUNCTION LoadLibrary(lpFileName) BIND(C,NAME='LoadLibraryA')
+         !DEC$ ATTRIBUTES STDCALL :: LoadLibrary
          USE, INTRINSIC :: ISO_C_BINDING
          IMPLICIT NONE
          !GCC$ ATTRIBUTES STDCALL :: LoadLibrary
@@ -36,6 +53,7 @@ MODULE loadLib_defs
       END FUNCTION LoadLibrary 
 
       FUNCTION GetProcAddress(hModule, lpProcName) BIND(C, NAME='GetProcAddress')
+         !DEC$ ATTRIBUTES STDCALL :: GetProcAddress
          USE, INTRINSIC :: ISO_C_BINDING
          IMPLICIT NONE
          !GCC$ ATTRIBUTES STDCALL :: GetProcAddress
@@ -45,6 +63,7 @@ MODULE loadLib_defs
       END FUNCTION GetProcAddress      
 
       FUNCTION FreeLibrary(hLibModule) BIND(C, NAME='FreeLibrary')
+         !DEC$ ATTRIBUTES STDCALL :: FreeLibrary
          USE, INTRINSIC :: ISO_C_BINDING
          IMPLICIT NONE
          !GCC$ ATTRIBUTES STDCALL :: FreeLibrary

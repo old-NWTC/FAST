@@ -1,3 +1,19 @@
+!**********************************************************************************************************************************
+! LICENSING
+! Copyright (C) 2013  National Renewable Energy Laboratory
+!
+!    This file is part of FAST's Controls and Electrical Drive Module, "ServoDyn".
+!
+!    ServoDyn is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as
+!    published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!
+!    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+!    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+!
+!    You should have received a copy of the GNU General Public License along with ServoDyn.
+!    If not, see <http://www.gnu.org/licenses/>.
+!
+!**********************************************************************************************************************************
 MODULE BladedInterface
 
    USE NWTC_Library  
@@ -86,9 +102,10 @@ SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
    accINFILE  = TRANSFER( TRIM(p%DLL_InFile)//C_NULL_CHAR, accINFILE  )
    
    
-   
       ! Call the DLL (first associate the address from the DLL with the subroutine):
-   CALL C_F_PROCPOINTER( TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR), DLL_Subroutine) 
+   CALL C_F_PROCPOINTER( DLL%ProcAddr, DLL_Subroutine) 
+   !bjj: because DLL%ProcAddr is already TYPE(C_FUNPTR), we don't need to use this for the first argument of C_F_PROCPOINTER: TRANSFER(DLL%ProcAddr,C_NULL_FUNPTR)
+
    CALL DLL_Subroutine ( dll_data%avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) 
      
    
