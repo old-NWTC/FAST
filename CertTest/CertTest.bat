@@ -865,6 +865,10 @@ goto END
 @SET TEST16=
 @SET TEST17=
 @SET TEST18=
+@SET TEST19=
+@SET TEST20=
+@SET TEST21=
+@SET TEST22=
 
 type Bell.txt
 @echo Processing complete.
