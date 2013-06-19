@@ -767,12 +767,12 @@ typedef	^	ParameterType	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [o
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:
-#typedef	^	InputType	MeshType	MeshedInput	-	-	-	"Meshed input data"	-
-# Define inputs that are not on this mesh here:
+typedef	^	InputType	MeshType	PlatformPtMesh	-	-	-	"A mesh at the platform reference (point Z), containing force: surge/xi (1), sway/yi (2), and heave/zi (3)-components; and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"	N
+# Define inputs that are not on a mesh here:
 typedef	^	InputType	ReKi	TwrAddedMass	{:}{:}{:}	-	-	"6-by-6 added mass matrix of the tower elements, per unit length-bjj: place on a mesh" 	"per unit length"
 typedef	^	InputType	ReKi	TwrFt	{:}{:}	-	-	The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower element (point T) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the tower moment acting at the current tower element (body F) / (point T) per "Unit length associated with everything but the QD2T()s"
 typedef	^	InputType	ReKi	PtfmAddedMass	{6}{6}	-	-	"Platform added mass matrix"	"kg, kg-m, kg-m^2"
-typedef	^	InputType	ReKi	PtfmFt	6	-	-	"The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the platform force at the platform reference (point Z) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the platform moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"	N
+#typedef	^	InputType	ReKi	PtfmFt	6	-	-	"The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the platform force at the platform reference (point Z) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the platform moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"	N
 typedef	^	InputType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"	radians
 typedef	^	InputType	ReKi	YawMom	-	-	-	"Torque transmitted through the yaw bearing"	N-m
 typedef	^	InputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
@@ -784,7 +784,7 @@ typedef	^	InputType	ReKi	MFAero	{:}{:}	-	-	"The aerodynamic moment per unit leng
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
-#typedef	^	OutputType	MeshType	MeshedOutput	-	-	-	"Meshed output data"	-
+typedef	^	OutputType	MeshType	PlatformPtMesh	-	-	-	"Platform reference point positions/orientations/velocities/accelerations"	-
 # Define outputs that are not on this mesh here:
 typedef	^	OutputType	ReKi	AllOuts	{:}	-	-	"An array holding the value of all of the calculated (not only selected) output channels"	"see spreadsheet"
 typedef	^	OutputType	ReKi	WriteOutput	{:}	-	-	"Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt"

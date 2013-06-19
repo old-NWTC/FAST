@@ -20,10 +20,7 @@ MODULE loadLib_defs
    USE               NWTC_Library, ONLY: IntKi, ErrID_None, ErrID_Fatal,Num2LStr,BITS_IN_ADDR
    
    IMPLICIT NONE 
-      
-      ! define parameters       
-   CHARACTER(*), PARAMETER :: OS_Desc = 'gfortran for Windows'
-   
+         
    TYPE DLL_Type
 
       INTEGER(C_INTPTR_T)       :: FileAddr                                        ! The address of file FileName.         (RETURN value from LoadLibrary )
@@ -40,6 +37,19 @@ MODULE loadLib_defs
 !     See this link: http://software.intel.com/en-us/articles/replacing-intel-fortran-attributes-with-c-interoperability-features   
 !bjj: Until this is fixed, Intel uses kernel32.f90 definitions instead of the interface below:
 !...........................
+   
+      
+CONTAINS   
+!==================================================================================================================================             
+SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
+
+      ! This SUBROUTINE is used to load the DLL.
+
+      ! Passed Variables:
+
+   TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
+   INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
    INTERFACE  ! Definitions of Windows API routines
    
@@ -61,31 +71,10 @@ MODULE loadLib_defs
          INTEGER(C_INTPTR_T),VALUE  :: hModule
          CHARACTER(KIND=C_CHAR)     :: lpProcName(*)
       END FUNCTION GetProcAddress      
-
-      FUNCTION FreeLibrary(hLibModule) BIND(C, NAME='FreeLibrary')
-         !DEC$ ATTRIBUTES STDCALL :: FreeLibrary
-         USE, INTRINSIC :: ISO_C_BINDING
-         IMPLICIT NONE
-         !GCC$ ATTRIBUTES STDCALL :: FreeLibrary
-         INTEGER(C_INT)             :: FreeLibrary ! BOOL
-         INTEGER(C_INTPTR_T),VALUE  :: hLibModule ! HMODULE hLibModule
-      END FUNCTION    
       
    END INTERFACE    
    
-      
-CONTAINS   
-!==================================================================================================================================             
-SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
-
-      ! This SUBROUTINE is used to load the DLL.
-
-      ! Passed Variables:
-
-   TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
-   INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
+   
    
    ErrStat = ErrID_None
    ErrMsg = ''
@@ -130,6 +119,20 @@ SUBROUTINE FreeDynamicLib ( DLL, ErrStat, ErrMsg )
    INTEGER(C_INT)                            :: Success     ! Whether or not the call to FreeLibrary was successful
    INTEGER(C_INT), PARAMETER                 :: FALSE  = 0
 
+   INTERFACE  ! Definitions of Windows API routines
+   
+      FUNCTION FreeLibrary(hLibModule) BIND(C, NAME='FreeLibrary')
+         !DEC$ ATTRIBUTES STDCALL :: FreeLibrary
+         USE, INTRINSIC :: ISO_C_BINDING
+         IMPLICIT NONE
+         !GCC$ ATTRIBUTES STDCALL :: FreeLibrary
+         INTEGER(C_INT)             :: FreeLibrary ! BOOL
+         INTEGER(C_INTPTR_T),VALUE  :: hLibModule ! HMODULE hLibModule
+      END FUNCTION    
+      
+   END INTERFACE    
+   
+   
       ! Free the DLL:
 
    Success = FreeLibrary( DLL%FileAddr ) !If the function succeeds, the return value is nonzero. If the function fails, the return value is zero. 

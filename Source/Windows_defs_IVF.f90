@@ -16,14 +16,11 @@
 !**********************************************************************************************************************************
 MODULE loadLib_defs
 
-   USE               IFWINTY,  ONLY : BOOL, HANDLE, LPVOID, FALSE, POINTER_LEN
-   USE               kernel32, ONLY : LoadLibrary, FreeLibrary, GetProcAddress
+   USE, INTRINSIC :: ISO_C_BINDING
    USE               NWTC_Library, ONLY: IntKi, ErrID_None, ErrID_Fatal,Num2LStr,BITS_IN_ADDR
    
-   USE, INTRINSIC :: ISO_C_BINDING
-
-   CHARACTER(*), PARAMETER :: OS_Desc = 'IVF for Windows'
-   
+   IMPLICIT NONE 
+  
    
    TYPE DLL_Type
 
@@ -39,6 +36,10 @@ MODULE loadLib_defs
 CONTAINS
 !==================================================================================================================================      
 SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
+
+   USE               IFWINTY,  ONLY : HANDLE, LPVOID
+   USE               kernel32, ONLY : LoadLibrary, GetProcAddress
+
 
       ! This SUBROUTINE is used to load the DLL.
 
@@ -90,6 +91,10 @@ SUBROUTINE FreeDynamicLib ( DLL, ErrStat, ErrMsg )
 
       ! This SUBROUTINE is used to free the DLL.
 
+   USE               IFWINTY,  ONLY : BOOL, HANDLE, FALSE !, LPVOID
+   USE               kernel32, ONLY : FreeLibrary
+      
+      
       ! Passed Variables:
 
    TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be freed.

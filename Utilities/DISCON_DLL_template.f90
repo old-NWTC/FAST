@@ -6,7 +6,8 @@ SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, N
    ! Bladed-style DLL controller.  Modify this code to create your own
    ! DLL controller. 
    
-   ! Modified by B. Jonkman to conform to ISO C Bindings (standard Fortran 2003) and 
+   ! Modified by B. Jonkman, National Renewable Energy Laboratory
+   ! to conform to ISO C Bindings (standard Fortran 2003) and 
    ! compile with either gfortran or Intel Visual Fortran (IVF)
    ! DO NOT REMOVE LINES starting with "!DEC$" or "!GCC$"
    ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran

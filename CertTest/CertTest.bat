@@ -11,14 +11,33 @@ rem @SET CRUNCH=Call C:\Users\bjonkman\Data\DesignCodes\Crunch\Crunch.exe
 @SET MATLAB=matlab
 @SET MBC_SOURCE=C:\Users\bjonkman\Documents\DATA\Downloads\MBC\Source
 rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
-
-@SET FAST=..\FAST.exe
-rem @SET FAST=..\compiling\FAST_gwin32.exe
-rem @SET FAST=..\compiling\FAST_iwin32.exe
-rem @SET FAST=..\FAST_Debug.exe
 @SET DateTime=DateTime.exe
 @SET Editor=NotePad.EXE
 
+::=======================================================================================================
+IF /I "%1"=="-DEBUG" GOTO debugVer
+IF /I "%1"=="-GFORTRAN" GOTO gfortran
+IF /I "%1"=="-IFORT" GOTO ifort
+
+:releaseVer
+@SET FAST=..\FAST.exe
+goto CertTest
+
+:debugVer
+@SET FAST=..\FAST_debug.exe
+goto CertTest
+
+:gfortran
+@SET FAST=..\compiling\FAST_gwin32.exe
+goto CertTest
+
+:ifort
+@SET FAST=..\compiling\FAST_iwin32.exe
+goto CertTest
+::=======================================================================================================
+
+
+:CertTest
 
 REM  FAST test sequence definition:
 

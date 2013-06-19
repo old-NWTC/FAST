@@ -24,8 +24,6 @@ MODULE loadLib_defs
        
    IMPLICIT NONE 
       
-      ! define parameters       
-   CHARACTER(*), PARAMETER :: OS_Desc = 'gfortran for Linux'
       
    TYPE DLL_Type  ! type that stores appropriate info for the dynamic library
 
@@ -36,8 +34,29 @@ MODULE loadLib_defs
       CHARACTER(1024)           :: ProcName                                        ! The name of the procedure in the DLL that will be called.      
       
    END TYPE DLL_Type      
-   
-   
+        
+      
+CONTAINS   
+!==================================================================================================================================             
+SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
+! This routine dynamically loads a dynamic 
+
+      ! This SUBROUTINE is used to load the DLL.
+
+      ! Passed Variables:
+
+   TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
+   INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+
+!bjj: these are values I found on the web; I have no idea if they actually work...
+!bjj: hopefully we can find them pre-defined in a header somewhere
+   INTEGER(C_INT), PARAMETER :: RTLD_LAZY=1            ! "Perform lazy binding. Only resolve symbols as the code that references them is executed. If the symbol is never referenced, then it is never resolved. (Lazy binding is only performed for function references; references to variables are always immediately bound when the library is loaded.) "
+   INTEGER(C_INT), PARAMETER :: RTLD_NOW=2             ! "If this value is specified, or the environment variable LD_BIND_NOW is set to a nonempty string, all undefined symbols in the library are resolved before dlopen() returns. If this cannot be done, an error is returned."
+   INTEGER(C_INT), PARAMETER :: RTLD_GLOBAL=256        ! "The symbols defined by this library will be made available for symbol resolution of subsequently loaded libraries"
+   INTEGER(C_INT), PARAMETER :: RTLD_LOCAL=0           ! "This is the converse of RTLD_GLOBAL, and the default if neither flag is specified. Symbols defined in this library are not made available to resolve references in subsequently loaded libraries."
+      
+      
    INTERFACE !linux API routines
       !bjj see http://linux.die.net/man/3/dlopen
    
@@ -58,37 +77,10 @@ MODULE loadLib_defs
          TYPE(C_PTR), VALUE            :: handle
          CHARACTER(C_CHAR), INTENT(IN) :: name(*)
       END FUNCTION
-
-      FUNCTION dlClose(handle) BIND(C,NAME="dlclose")
-      ! int dlclose(void *handle);
-         USE ISO_C_BINDING
-         IMPLICIT NONE
-         INTEGER(C_INT)       :: dlClose
-         TYPE(C_PTR), VALUE   :: handle
-      END FUNCTION
   
-   END INTERFACE
-  
-      
-CONTAINS   
-!==================================================================================================================================             
-SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
-
-      ! This SUBROUTINE is used to load the DLL.
-
-      ! Passed Variables:
-
-   TYPE (DLL_Type),           INTENT(INOUT)  :: DLL         ! The DLL to be loaded.
-   INTEGER(IntKi),            INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-
-!bjj: these are values I found on the web; I have no idea if they actually work...
-   INTEGER(C_INT), PARAMETER :: RTLD_LAZY=1            ! "Perform lazy binding. Only resolve symbols as the code that references them is executed. If the symbol is never referenced, then it is never resolved. (Lazy binding is only performed for function references; references to variables are always immediately bound when the library is loaded.) "
-   INTEGER(C_INT), PARAMETER :: RTLD_NOW=2             ! "If this value is specified, or the environment variable LD_BIND_NOW is set to a nonempty string, all undefined symbols in the library are resolved before dlopen() returns. If this cannot be done, an error is returned."
-   INTEGER(C_INT), PARAMETER :: RTLD_GLOBAL=256        ! "The symbols defined by this library will be made available for symbol resolution of subsequently loaded libraries"
-   INTEGER(C_INT), PARAMETER :: RTLD_LOCAL=0           ! "This is the converse of RTLD_GLOBAL, and the default if neither flag is specified. Symbols defined in this library are not made available to resolve references in subsequently loaded libraries."
-      
-      
+   END INTERFACE   
+   
+   
    ErrStat = ErrID_None
    ErrMsg = ''
 
@@ -133,6 +125,22 @@ SUBROUTINE FreeDynamicLib ( DLL, ErrStat, ErrMsg )
    INTEGER(C_INT)                            :: Success     ! Whether or not the call to dlClose was successful
    INTEGER(C_INT), PARAMETER                 :: TRUE  = 0
 
+   
+   INTERFACE !linux API routine
+      !bjj see http://linux.die.net/man/3/dlopen
+   
+      FUNCTION dlClose(handle) BIND(C,NAME="dlclose")
+      ! int dlclose(void *handle);
+         USE ISO_C_BINDING
+         IMPLICIT NONE
+         INTEGER(C_INT)       :: dlClose
+         TYPE(C_PTR), VALUE   :: handle
+      END FUNCTION
+  
+   END INTERFACE   
+   
+   
+   
       ! Close the library:
 
    Success = dlClose( DLL%FileAddr ) !The function dlclose() returns 0 on success, and nonzero on error. 

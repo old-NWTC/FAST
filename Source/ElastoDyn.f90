@@ -104,8 +104,8 @@ MODULE ElastoDyn_Parameters
 
      ! Parameters related to output length (number of characters allowed in the output data headers):
 
-   INTEGER(IntKi), PARAMETER      :: OutStrLen   = 10
-   INTEGER(IntKi), PARAMETER      :: OutStrLenM1 = OutStrLen - 1
+!   INTEGER(IntKi), PARAMETER      :: OutStrLen   = 10
+   INTEGER(IntKi), PARAMETER      :: OutStrLenM1 = ChanLen - 1
 
 
      ! Indices for computing output channels:
@@ -1402,12 +1402,16 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
          ! allocate all the arrays that store data in the input type:
    CALL ED_AllocInput( u, p, ErrStat2, ErrMsg2 )      
       CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
+      IF (ErrStat >= AbortErrLev) RETURN                  
       
+   u%PlatformPtMesh%RemapFlag = .TRUE.
+   u%PlatformPtMesh%Moment    = 0_ReKi
+   u%PlatformPtMesh%Force     = 0_ReKi
+   
+   u%PtfmAddedMass   = 0.0_ReKi
+   
    u%TwrAddedMass    = 0.0_ReKi
    u%TwrFT           = 0.0_ReKi
-   u%PtfmAddedMass   = 0.0_ReKi
-   u%PtfmFT          = 0.0_ReKi
    u%BlPitchCom      = InputFileData%BlPitch(1:p%NumBl)
    u%YawMom          = 0.0_ReKi
    u%GenTrq          = 0.0_ReKi
@@ -1437,7 +1441,22 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
-
+   
+   CALL MeshCopy ( SrcMesh  = u%PlatformPtMesh &
+                 , DestMesh = y%PlatformPtMesh &
+                 , CtrlCode = MESH_SIBLING     &
+                 , TranslationDisp = .TRUE.    &
+                 , Orientation     = .TRUE.    &
+                 , RotationVel     = .TRUE.    &
+                 , TranslationVel  = .TRUE.    &
+                 , RotationAcc     = .TRUE.    &
+                 , TranslationAcc  = .TRUE.    &
+                 , ErrStat  = ErrStat          &
+                 , ErrMess  = ErrMsg           )
+      
+   y%PlatformPtMesh%RemapFlag = .TRUE.
+     
+      
       !............................................................................................
       ! Define initialization-routine output here:
       !............................................................................................
@@ -1774,9 +1793,9 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    FrcT0Trb   = OtherState%RtHS%FrcT0Trbt
 
    ! was FZHydro    = OtherState%RtHS%FZHydrot
-   FZHydro    = u%PtfmFt(DOF_Sg)*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
-              + u%PtfmFt(DOF_Sw)*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
-              + u%PtfmFt(DOF_Hv)*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
+   FZHydro    = u%PlatformPtMesh%Force(DOF_Sg,1)*OtherState%RtHS%PLinVelEZ(DOF_Sg,0,:) &
+              + u%PlatformPtMesh%Force(DOF_Sw,1)*OtherState%RtHS%PLinVelEZ(DOF_Sw,0,:) &
+              + u%PlatformPtMesh%Force(DOF_Hv,1)*OtherState%RtHS%PLinVelEZ(DOF_Hv,0,:)
 
    MomBNcRt   = OtherState%RtHS%MomBNcRtt
    MomLPRot   = OtherState%RtHS%MomLPRott
@@ -1785,9 +1804,9 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    MomX0Trb   = OtherState%RtHS%MomX0Trbt
 
    ! was MXHydro = OtherState%RtHS%MXHydrot
-   MXHydro    = u%PtfmFt(DOF_R )*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
-              + u%PtfmFt(DOF_P )*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
-              + u%PtfmFt(DOF_Y )*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
+   MXHydro    = u%PlatformPtMesh%Moment(DOF_R-3,1)*OtherState%RtHS%PAngVelEX(DOF_R ,0,:) &
+              + u%PlatformPtMesh%Moment(DOF_P-3,1)*OtherState%RtHS%PAngVelEX(DOF_P ,0,:) &
+              + u%PlatformPtMesh%Moment(DOF_Y-3,1)*OtherState%RtHS%PAngVelEX(DOF_Y ,0,:)
 
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
       AngAccEB   = AngAccEB   + OtherState%RtHS%PAngVelEB  (p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))
@@ -2443,8 +2462,54 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    ENDDO             ! I - All selected output channels
 
+      !..............................
+      ! Outputs required for HydroDyn
+      !..............................
+   
+   y%PlatformPtMesh%TranslationDisp(1,1) = x%QT(DOF_Sg)
+   y%PlatformPtMesh%TranslationDisp(2,1) = x%QT(DOF_Sw)
+   y%PlatformPtMesh%TranslationDisp(3,1) = x%QT(DOF_Hv)
+   
+   y%PlatformPtMesh%RotationVel(1,1)    = x%QDT(DOF_R )
+   y%PlatformPtMesh%RotationVel(2,1)    = x%QDT(DOF_P )
+   y%PlatformPtMesh%RotationVel(3,1)    = x%QDT(DOF_Y )
+   
+   y%PlatformPtMesh%TranslationVel(1,1) = x%QDT(DOF_Sg)
+   y%PlatformPtMesh%TranslationVel(2,1) = x%QDT(DOF_Sw)
+   y%PlatformPtMesh%TranslationVel(3,1) = x%QDT(DOF_Hv) 
    
    
+   CALL SmllRotTrans( 'Platform', x%QT(DOF_R ),x%QT(DOF_P ),x%QT(DOF_Y ), &
+          y%PlatformPtMesh%Orientation(:,:,1), errstat=ErrStat, errmsg=ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+   y%PlatformPtMesh%RotationAcc(1,1) = OtherState%QD2T(DOF_R )     
+   y%PlatformPtMesh%RotationAcc(2,1) = OtherState%QD2T(DOF_P )     
+   y%PlatformPtMesh%RotationAcc(3,1) = OtherState%QD2T(DOF_Y )     
+
+   y%PlatformPtMesh%TranslationAcc(1,1) = OtherState%QD2T(DOF_Sg)     
+   y%PlatformPtMesh%TranslationAcc(2,1) = OtherState%QD2T(DOF_Sw)    
+   y%PlatformPtMesh%TranslationAcc(3,1) = OtherState%QD2T(DOF_Hv)    
+      
+      !..............................
+      ! Outputs required for SubDyn
+      !..............................
+      
+   ! this is mapping from ED to SD: ED line mesh on right side of equation  
+   !   
+   !DO J = 1,p_ED%TwrNodes  ! Loop through the tower nodes / elements
+   !   HD_AllMarkers%Substructure(J)%Position       = (/ OtherSt_ED%RtHS%rT( J,1), -1.*OtherSt_ED%RtHS%rT( J,3),&
+   !                                                      OtherSt_ED%RtHS%rT( J,2) - p_ED%PtfmRef /)
+   !
+   !   CALL SmllRotTrans( 'Tower', OtherSt_ED%RtHS%AngPosEF(J,1), -1.*OtherSt_ED%RtHS%AngPosEF(J,3), OtherSt_ED%RtHS%AngPosEF(J,2), &
+   !                                 HD_AllMarkers%Substructure(J)%Orientation, errstat=ErrStat, errmsg=ErrMsg )
+   !   IF ( ErrStat /= ErrID_None ) RETURN
+   !
+   !   HD_AllMarkers%Substructure(J)%TranslationVel = (/ OtherSt_ED%RtHS%LinVelET(J,1), -1.*OtherSt_ED%RtHS%LinVelET(J,3), OtherSt_ED%RtHS%LinVelET(J,2) /)
+   !   HD_AllMarkers%Substructure(J)%RotationVel    = (/ OtherSt_ED%RtHS%AngVelEF(J,1), -1.*OtherSt_ED%RtHS%AngVelEF(J,3), OtherSt_ED%RtHS%AngVelEF(J,2) /)
+   !END DO      
+      
+      
       !..............................
       ! Outputs required for ServoDyn
       !..............................
@@ -2884,12 +2949,13 @@ SUBROUTINE ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
          CALL CheckError( ErrStat2, ' Errors in blade '//TRIM(Num2LStr(K))//' input data: '//NewLine//TRIM(ErrMsg2) )
    END DO
 
+!bjj: validate blade discretization, too:
 
       ! validate the tower input data
    CALL ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
-
-
+      
+      
       ! validate the Output parameters:
   ! CALL ChckOutLst( InputFileData%OutList, p, ErrStat, ErrMsg )
 
@@ -7645,8 +7711,8 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
       ! Check that InputFileData%OutFmt is a valid format specifier and will fit over the column headings
    CALL ChkRealFmtStr( InputFileData%OutFmt, 'OutFmt', FmtWidth, ErrStat2, ErrMsg2 )
    IF ( ErrStat /= ErrID_None ) CALL SetErrors(ErrStat2, ErrMsg2 )
-   IF ( FmtWidth /= OutStrLen ) CALL SetErrors(ErrID_Warn, 'OutFmt produces a column width of '//TRIM(Num2LStr(FmtWidth))//&
-                                                           ' instead of '//TRIM(Num2LStr(OutStrLen))//' characters.' )
+   IF ( FmtWidth /= ChanLen ) CALL SetErrors(ErrID_Warn, 'OutFmt produces a column width of '//TRIM(Num2LStr(FmtWidth))//&
+                                                           ' instead of '//TRIM(Num2LStr(ChanLen))//' characters.' )
 
 
    ! bjj: figure out what to do with these checks...
@@ -7966,7 +8032,7 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
 
       ! Passed variables
 
-   CHARACTER(OutStrLen),      INTENT(IN)     :: OutList(:)                        ! The list out user-requested outputs
+   CHARACTER(ChanLen),        INTENT(IN)     :: OutList(:)                        ! The list out user-requested outputs
    TYPE(ED_ParameterType),    INTENT(INOUT)  :: p                                 ! The module parameters
    INTEGER(IntKi),            INTENT(OUT)    :: ErrStat                           ! The error status code
    CHARACTER(*),              INTENT(OUT)    :: ErrMsg                            ! The error message, if an error occurred
@@ -7979,9 +8045,9 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
 
    LOGICAL                      :: CheckOutListAgain                               ! Flag used to determine if output parameter starting with "M" is valid (or the negative of another parameter)
    LOGICAL                      :: InvalidOutput(0:MaxOutPts)                      ! This array determines if the output channel is valid for this configuration
-   CHARACTER(OutStrLen)         :: OutListTmp                                      ! A string to temporarily hold OutList(I)
-
-   CHARACTER(OutStrLenM1), PARAMETER  :: ValidParamAry(971) =  (/ &                  ! This lists the names of the allowed parameters, which must be sorted alphabetically
+   CHARACTER(ChanLen)           :: OutListTmp                                      ! A string to temporarily hold OutList(I)
+  
+   CHARACTER(OutStrLenM1), PARAMETER  :: ValidParamAry(971) =  (/ &                ! This lists the names of the allowed parameters, which must be sorted alphabetically
                                "AZIMUTH  ","BLDPITCH1","BLDPITCH2","BLDPITCH3","BLPITCH1 ","BLPITCH2 ","BLPITCH3 ", &
                                "GENACCEL ","GENSPEED ","HSSHFTA  ","HSSHFTPWR","HSSHFTTQ ","HSSHFTV  ","IPDEFL1  ", &
                                "IPDEFL2  ","IPDEFL3  ","LSSGAGA  ","LSSGAGAXA","LSSGAGAXS","LSSGAGFXA","LSSGAGFXS", &
@@ -8261,7 +8327,7 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
                                 YawBrRDzt , YawBrRVxp , YawBrRVyp , YawBrRVzp , YawBrTAxp , YawBrTAyp , YawBrTAzp , &
                                 YawBrTDxp , YawBrTDxt , YawBrTDyp , YawBrTDyt , YawBrTDzp , YawBrTDzt ,    YawPzn , &
                                    YawPzn ,    YawPzn ,    YawVzn ,    YawVzn ,    YawVzn /)
-   CHARACTER(OutStrLen), PARAMETER :: ParamUnitsAry(971) =  (/ &                     ! This lists the units corresponding to the allowed parameters
+   CHARACTER(ChanLen), PARAMETER :: ParamUnitsAry(971) =  (/ &                     ! This lists the units corresponding to the allowed parameters
                                "(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ","(deg)     ", &
                                "(deg/s^2) ","(rpm)     ","(deg/s^2) ","(kW)      ","(kN·m)    ","(rpm)     ","(m)       ", &
                                "(m)       ","(m)       ","(deg/s^2) ","(deg/s^2) ","(deg/s^2) ","(kN)      ","(kN)      ", &
@@ -12153,12 +12219,12 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
 
-   RtHSdat%FZHydrot = u%PtfmFt(DOF_Sg)*RtHSdat%PLinVelEZ(DOF_Sg,0,:) &
-                    + u%PtfmFt(DOF_Sw)*RtHSdat%PLinVelEZ(DOF_Sw,0,:) &
-                    + u%PtfmFt(DOF_Hv)*RtHSdat%PLinVelEZ(DOF_Hv,0,:)
-   RtHSdat%MXHydrot = u%PtfmFt(DOF_R )*RtHSdat%PAngVelEX(DOF_R ,0,:) &
-                    + u%PtfmFt(DOF_P )*RtHSdat%PAngVelEX(DOF_P ,0,:) &
-                    + u%PtfmFt(DOF_Y )*RtHSdat%PAngVelEX(DOF_Y ,0,:)
+   RtHSdat%FZHydrot = u%PlatformPtMesh%Force(DOF_Sg,1)*RtHSdat%PLinVelEZ(DOF_Sg,0,:) &
+                    + u%PlatformPtMesh%Force(DOF_Sw,1)*RtHSdat%PLinVelEZ(DOF_Sw,0,:) &
+                    + u%PlatformPtMesh%Force(DOF_Hv,1)*RtHSdat%PLinVelEZ(DOF_Hv,0,:)
+   RtHSdat%MXHydrot = u%PlatformPtMesh%Moment(DOF_R-3,1)*RtHSdat%PAngVelEX(DOF_R ,0,:) &
+                    + u%PlatformPtMesh%Moment(DOF_P-3,1)*RtHSdat%PAngVelEX(DOF_P ,0,:) &
+                    + u%PlatformPtMesh%Moment(DOF_Y-3,1)*RtHSdat%PAngVelEX(DOF_Y ,0,:)
    
 !.....................................
 ! PFrcZAll and PMomXAll  
@@ -12666,6 +12732,31 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
       IF (ErrStat >= AbortErrLev) RETURN
    
 
+      
+      ! Create Point Mesh for I/O at Platform Reference Point:
+      
+   CALL MeshCreate( BlankMesh       = u%PlatformPtMesh       &
+                     ,IOS             = COMPONENT_INPUT        &
+                     ,NNodes          = 1                      &
+                     ,Force           = .TRUE.                 &
+                     ,Moment          = .TRUE.                 &
+                     ,ErrStat         = ErrStat                &
+                     ,ErrMess         = ErrMsg                 )
+
+      ! place single node at platform reference point; position affects mapping/coupling with other modules
+   CALL MeshPositionNode ( u%PlatformPtMesh, 1, (/0.0_ReKi, 0.0_ReKi, p%PtfmRef /), ErrStat, ErrMsg ) !bjj should this be -p%PtfmRef?      
+      
+      ! create an element from this point      
+   CALL MeshConstructElement ( Mesh = u%PlatformPtMesh       &
+                              , Xelement = ELEMENT_POINT      &
+                              , P1       = 1                  &   ! node number
+                              , ErrStat  = ErrStat            &
+                              , ErrMess  = ErrMsg             )
+
+      ! that's our entire mesh:
+   CALL MeshCommit ( u%PlatformPtMesh, ErrStat, ErrMsg )   
+      
+            
 END SUBROUTINE ED_AllocInput
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
@@ -12726,10 +12817,10 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       CALL AllocAry( x_tmp%qt,  p%NDOF, 'x_tmp%qt',  ErrStat, ErrMsg )
       CALL AllocAry( x_tmp%qdt, p%NDOF, 'x_tmp%qdt', ErrStat, ErrMsg )
 
-      CALL ED_AllocInput( u_interp, p, ErrStat, ErrMsg )      
+      CALL ED_AllocInput( u_interp, p, ErrStat, ErrMsg )  
          IF ( ErrStat >= AbortErrLev ) RETURN
-      
-      
+            
+         
       ! interpolate u to find u_interp = u(t)
       CALL ED_Input_ExtrapInterp( u, utimes, u_interp, t, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
@@ -13180,7 +13271,7 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
    ENDDO ! K
 
 
-   OutPFmt = '( I4, 3X,A '//TRIM(Num2LStr(OutStrLen))//',1 X, A'//TRIM(Num2LStr(OutStrLen))//' )'
+   OutPFmt = '( I4, 3X,A '//TRIM(Num2LStr(ChanLen))//',1 X, A'//TRIM(Num2LStr(ChanLen))//' )'
    WRITE (UnSu,'(//,A,/)')  'Requested Outputs:'
    WRITE (UnSu,"(/, '  Col  Parameter  Units', /, '  ---  ---------  -----')")
    DO I = 0,p%NumOuts
@@ -13192,6 +13283,7 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
 RETURN
 END SUBROUTINE ED_PrintSum
 !=======================================================================
+
 
 END MODULE ElastoDyn
 !**********************************************************************************************************************************

@@ -39,8 +39,8 @@ MODULE ServoDyn
 
      ! Parameters related to output length (number of characters allowed in the output data headers):
 
-   INTEGER(IntKi), PARAMETER      :: OutStrLen   = 10
-   INTEGER(IntKi), PARAMETER      :: OutStrLenM1 = OutStrLen - 1
+!   INTEGER(IntKi), PARAMETER      :: OutStrLen   = 10
+   INTEGER(IntKi), PARAMETER      :: OutStrLenM1 = ChanLen - 1
 
 
      ! Indices for computing output channels:
@@ -2169,7 +2169,7 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
 
       ! Passed variables
 
-   CHARACTER(OutStrLen),      INTENT(IN)     :: OutList(:)                        ! The list out user-requested outputs
+   CHARACTER(ChanLen),        INTENT(IN)     :: OutList(:)                        ! The list out user-requested outputs
    TYPE(SrvD_ParameterType),  INTENT(INOUT)  :: p                                 ! The module parameters
    INTEGER(IntKi),            INTENT(OUT)    :: ErrStat                           ! The error status code
    CHARACTER(*),              INTENT(OUT)    :: ErrMsg                            ! The error message, if an error occurred
@@ -2182,7 +2182,7 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
 
    LOGICAL                      :: CheckOutListAgain                               ! Flag used to determine if output parameter starting with "M" is valid (or the negative of another parameter)
    LOGICAL                      :: InvalidOutput(0:MaxOutPts)                      ! This array determines if the output channel is valid for this configuration
-   CHARACTER(OutStrLen)         :: OutListTmp                                      ! A string to temporarily hold OutList(I)
+   CHARACTER(ChanLen)           :: OutListTmp                                      ! A string to temporarily hold OutList(I)
 
    CHARACTER(OutStrLenM1), PARAMETER  :: ValidParamAry(8) =  (/ &                  ! This lists the names of the allowed parameters, which must be sorted alphabetically
                                "BLPITCHC1","BLPITCHC2","BLPITCHC3","GENPWR   ","GENTQ    ","HSSBRTQ  ","YAWMOM   ", &
@@ -2190,7 +2190,7 @@ SUBROUTINE SetOutParam(OutList, p, ErrStat, ErrMsg )
    INTEGER(IntKi), PARAMETER :: ParamIndxAry(8) =  (/ &                            ! This lists the index into AllOuts(:) of the allowed parameters ValidParamAry(:)
                                 BlPitchC1 , BlPitchC2 , BlPitchC3 ,    GenPwr ,     GenTq ,   HSSBrTq , YawMomCom , &
                                 YawMomCom /)
-   CHARACTER(OutStrLen), PARAMETER :: ParamUnitsAry(8) =  (/ &                     ! This lists the units corresponding to the allowed parameters
+   CHARACTER(ChanLen), PARAMETER :: ParamUnitsAry(8) =  (/ &                     ! This lists the units corresponding to the allowed parameters
                                "(deg)     ","(deg)     ","(deg)     ","(kW)      ","(kN·m)    ","(kN·m)    ","(kN·m)    ", &
                                "(kN·m)    "/)
 
