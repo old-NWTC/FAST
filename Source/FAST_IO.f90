@@ -236,8 +236,15 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
    IF ( p%TStart   <  0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TStart must not be less than 0 seconds.' )   
    IF ( p%SttsTime <= 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'SttsTime must be greater than 0 seconds.' )
       
+   
+   IF ( p%InterpOrder < 0 .OR. p%InterpOrder > 2 ) THEN
+      CALL SetErrors( ErrID_Fatal, 'InterpOrder must not be 0, 1, or 2.' ) 
+      p%InterpOrder = 0    ! Avoid problems in error handling by setting this to 0
+   END IF
+      
    IF ( ErrStat >= AbortErrLev ) RETURN
 
+   !...............................................................................................................................   
    
       ! temporary check on p_FAST%DT_out (bjj: fix this later)
    
@@ -724,6 +731,13 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
    CALL ReadVar( UnIn, InputFile, p%DT, "DT", "Recommended module time step (s)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      ! InterpOrder - Interpolation order for inputs and outputs {0=nearest neighbor ,1=linear, 2=quadratic}
+   CALL ReadVar( UnIn, InputFile, p%InterpOrder, "InterpOrder", "Interpolation order "//&
+                  " for inputs and outputs {0=nearest neighbor ,1=linear, 2=quadratic} (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+      
                 
    !---------------------- FEATURE FLAGS -------------------------------------------
    CALL ReadCom( UnIn, InputFile, 'Section Header: Feature Flags', ErrStat2, ErrMsg2, UnEc )

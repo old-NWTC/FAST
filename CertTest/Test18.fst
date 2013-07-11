@@ -1,10 +1,11 @@
 ------- FAST V8.01.* INPUT FILE ------------------------------------------------
-NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from Dutch Offshore Wind Energy Converter (DOWEC) 6MW Pre-Design (10046_009.pdf) and REpower 5M 5MW (5m_uk.pdf); Compatible with FAST v7.02.00
+FAST Certification Test #18: NREL 5.0 MW Baseline Wind Turbine (Onshore)
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)
          60   TMax            - Total run time (s)
       0.005   DT              - Recommended module time step (s)
+          0   InterpOrder     - Interpolation order for input/output time history {0=nearest neighbor ,1=linear, 2=quadratic} (-)
 ---------------------- FEATURE FLAGS -------------------------------------------
 True          CompAero        - Compute aerodynamic forces (flag)
 True          CompServo       - Compute servodynamics (flag)

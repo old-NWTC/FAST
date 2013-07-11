@@ -8,11 +8,33 @@ clear all;
 FASTSimulationToolbox = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\UtilityCodes\SimulationToolbox';
 addpath( genpath( FASTSimulationToolbox ) );
 
+%%
+oldDir = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\CertTest';
+newDir = '.';
+
+for i=1:22
+   
+    baseFileName  = ['Test' num2str(i,'%02.0f') ];
+    inputfile = [oldDir filesep baseFileName '.fst'];      
+    
+    
+    ConvertFAST8_0to1(inputfile,newDir);
+    
+end
+return;
+
+
+
 % FstFileDir  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest\TstFiles';
 % RootName    = 'Test11';
 % inputfile  = [FstFileDir '\'          RootName '.fst'];
 % outputfile = [FstFileDir '\TstFiles\' RootName '.out'];
 % [YawManRat, PitManRat] = CalculateYawAndPitchRates(inputFile, outputFile);
+
+
+
+
+
 
 %%
 oldDir      = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest';
@@ -48,19 +70,6 @@ for i= 8:17 %1:(17+5) %17+(1:5) %1:17 %
                        
 end
 return;
-%%
-oldDir      = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\CertTest';
-newDir      = '.';
-
-for i=1:22
-   
-    baseFileName  = ['Test' num2str(i,'%02.0f') ];
-    inputfile = [oldDir filesep baseFileName '.fst'];      
-    
-    
-    ConvertFAST8_0to1(inputfile,newDir);
-    
-end
 
 
 

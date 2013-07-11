@@ -1,10 +1,11 @@
 ------- FAST V8.01.* INPUT FILE ------------------------------------------------
-FAST certification Test #14: WindPACT 1.5 MW Baseline with many DOFs and system linearization. Model properties from "InputData1.5A08V07adm.xls" (from C. Hansen) with bugs removed.
+FAST certification Test #14: WindPACT 1.5 MW Baseline with stationary linearization in a vacuum
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)
          10   TMax            - Total run time (s)
       0.005   DT              - Recommended module time step (s)
+          0   InterpOrder     - Interpolation order for input/output time history {0=nearest neighbor ,1=linear, 2=quadratic} (-)
 ---------------------- FEATURE FLAGS -------------------------------------------
 False         CompAero        - Compute aerodynamic forces (flag)
 True          CompServo       - Compute servodynamics (flag)

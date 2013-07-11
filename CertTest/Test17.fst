@@ -1,10 +1,11 @@
 ------- FAST V8.01.* INPUT FILE ------------------------------------------------
-FAST certification Test #17: FAST model of a SWRT 3-bladed upwind turbine.  Note- SWRT rotates in CCW direction- some inputs will be mirror image of the actual turbine. Model properties from "SWRTv1p2.adm" and SWRT "AdamsWT_MakeBladeDat_v12.xls".  JEM Jan., 2004.  Updated by J. Jonkman, NREL, Feb, 2004.
+FAST certification Test #17: SWRT 3-bladed upwind turbine with many DOFs, variable speed control, free yaw, tail-furl, FF turbulence
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)
          70   TMax            - Total run time (s)
       0.001   DT              - Recommended module time step (s)
+          0   InterpOrder     - Interpolation order for input/output time history {0=nearest neighbor ,1=linear, 2=quadratic} (-)
 ---------------------- FEATURE FLAGS -------------------------------------------
 True          CompAero        - Compute aerodynamic forces (flag)
 True          CompServo       - Compute servodynamics (flag)

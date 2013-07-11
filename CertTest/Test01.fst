@@ -1,10 +1,11 @@
 ------- FAST V8.01.* INPUT FILE ------------------------------------------------
-FAST certification Test #01: AWT-27CR2 with many DOFs with fixed yaw error and steady wind.
+FAST Certification Test #01: AWT-27CR2 with many DOFs with fixed yaw error and steady wind
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)
          20   TMax            - Total run time (s)
       0.004   DT              - Recommended module time step (s)
+          0   InterpOrder     - Interpolation order for input/output time history {0=nearest neighbor ,1=linear, 2=quadratic} (-)
 ---------------------- FEATURE FLAGS -------------------------------------------
 True          CompAero        - Compute aerodynamic forces (flag)
 True          CompServo       - Compute servodynamics (flag)

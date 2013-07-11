@@ -1,10 +1,11 @@
 ------- FAST V8.01.* INPUT FILE ------------------------------------------------
-NREL 5.0 MW Baseline Wind Turbine with Monopile RF Configuration, for use in offshore analysis
+FAST Certification Test #19: NREL 5.0 MW Baseline Wind Turbine with Monopile RF Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)
          60   TMax            - Total run time (s)
       0.005   DT              - Recommended module time step (s)
+          0   InterpOrder     - Interpolation order for input/output time history {0=nearest neighbor ,1=linear, 2=quadratic} (-)
 ---------------------- FEATURE FLAGS -------------------------------------------
 True          CompAero        - Compute aerodynamic forces (flag)
 True          CompServo       - Compute servodynamics (flag)

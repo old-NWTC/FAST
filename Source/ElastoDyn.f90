@@ -7584,28 +7584,14 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
       END IF
    ENDIF
 
-!bjj: ask JMJ what the new checks should be >>>   
-call wrscr('Additional checks to replace checks on TwrDraft vs PtfmCMzt and PtfmRefzt?')
+   IF ( InputFileData%TowerBsHt >= InputFileData%TowerHt ) CALL SetErrors( ErrID_Fatal, 'TowerBsHt must be less than TowerHt.')
 
-   IF ( InputFileData%TowerBsHt >= InputFileData%TowerHt ) THEN
-      CALL SetErrors( ErrID_Fatal, 'TowerBsHt must be less than TowerHt.')
-   END IF
-   CALL ErrIfNegative( InputFileData%TowerBsHt, 'TowerBsHt', ErrStat, ErrMsg )
-
-   !IF ( InputFileData%TwrRBHt >= ( InputFileData%TowerHt + InputFileData%TwrDraft ) ) THEN
-   !   CALL SetErrors( ErrID_Fatal, 'TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.')
-   !ELSE
-   !   CALL ErrIfNegative( InputFileData%TwrRBHt, 'TwrRBHt', ErrStat, ErrMsg )
-   !END IF
-   !
-   !IF ( -1.0*InputFileData%PtfmCMzt  < InputFileData%TwrDraft ) &
-   !   CALL SetErrors( ErrID_Fatal, '-PtfmCMzt must not be less than TwrDraft.')
-   !IF ( -1.0*InputFileData%PtfmRefzt < InputFileData%TwrDraft ) &
-   !   CALL SetErrors( ErrID_Fatal, '-PtfmRefzt must not be less than TwrDraft.')
-!   IF ( InputFileData%TwrDraft <= -1.*InputFileData%TowerHt ) &
-!      CALL SetErrors( ErrID_Fatal, 'TwrDraft must be greater than -TowerHt.' )
-!<<< 
+   IF ( InputFileData%PtfmCMzt  > InputFileData%TowerBsHt ) &
+      CALL SetErrors( ErrID_Fatal, 'PtfmCMzt must not be greater than TowerBsHt.')
    
+   IF ( InputFileData%PtfmRefzt  > InputFileData%TowerBsHt ) &
+      CALL SetErrors( ErrID_Fatal, 'PtfmRefzt must not be greater than TowerBsHt.')
+     
    IF ( InputFileData%HubRad >= InputFileData%TipRad ) &
       CALL SetErrors( ErrID_Fatal, 'HubRad must be less than TipRad.' )
 
@@ -13706,9 +13692,7 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
                            '     (Nm^2)        (N)    (kg m)    (kg m)      (m)      (m)'
 
       DO I=1,p%TwrNodes
-!bjj: ask JMJ about this change. was it a bug before? compare with HydroDyn change...         
-!bjj was  WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, p%HNodesNorm(I), p%HNodes(I)+p%TwrRBHt, p%DHNodes(I), p%MassT(I), &
-         WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, p%HNodesNorm(I), p%HNodes(I)+p%TowerBsHt, p%DHNodes(I), p%MassT(I), &
+         WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, p%HNodesNorm(I), p%HNodes(I), p%DHNodes(I), p%MassT(I), &
                                                                  p%StiffTFA(I), p%StiffTSS(I), p%StiffTGJ(I), p%StiffTEA(I),       &
                                                                  p%InerTFA(I), p%InerTSS(I), p%cgOffTFA(I), p%cgOffTSS(I)
       ENDDO ! I
@@ -13719,9 +13703,8 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
       WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)    (kg/m)     (Nm^2)     (Nm^2)'
 
       DO I=1,p%TwrNodes
-!bjj was:         WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, p%HNodesNorm(I), p%HNodes(I) + p%TwrRBHt, p%DHNodes(I), p%MassT(I), &
-         WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, p%HNodesNorm(I), p%HNodes(I)+p%TowerBsHt, p%DHNodes(I), p%MassT(I), &
-                                                    p%StiffTFA(I), p%StiffTSS(I)
+         WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, p%HNodesNorm(I), p%HNodes(I), p%DHNodes(I), p%MassT(I), &
+                                                    p%StiffTFA(I),  p%StiffTSS(I)
       ENDDO ! I
 
    ENDIF

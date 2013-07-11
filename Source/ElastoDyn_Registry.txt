@@ -106,8 +106,6 @@ typedef	^	ED_InputFile	ReKi	NcIMUzn	-	-	-	"Vertical distance from the tower-top 
 typedef	^	ED_InputFile	ReKi	Twr2Shft	-	-	-	"Vertical distance from the tower-top to the rotor shaft"	meters
 typedef	^	ED_InputFile	ReKi	TowerHt	-	-	-	"Height of tower above ground level [onshore] or MSL [offshore]"	meters
 typedef	^	ED_InputFile	ReKi	TowerBsHt	-	-	-	"Height of tower base above ground level [onshore] or MSL [offshore]"	meters
-#typedef	^	ED_InputFile	ReKi	TwrRBHt	-	-	-	"Tower rigid base height"	meters
-#typedef	^	ED_InputFile	ReKi	TwrDraft	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection"	meters
 typedef	^	ED_InputFile	ReKi	PtfmCMxt	-	-	-	"Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
 typedef	^	ED_InputFile	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
 typedef	^	ED_InputFile	ReKi	PtfmCMzt	-	-	-	"Vertical distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
@@ -135,7 +133,6 @@ typedef	^	ED_InputFile	ReKi	TeetSSSp	-	-	-	"Rotor-teeter soft-stop linear-spring
 typedef	^	ED_InputFile	ReKi	TeetHSSp	-	-	-	"Rotor-teeter hard-stop linear-spring constant"	N-m/rad
 typedef	^	ED_InputFile	ReKi	GBoxEff	-	-	-	"Gearbox efficiency"	%
 typedef	^	ED_InputFile	ReKi	GBRatio	-	-	-	"Gearbox ratio"	-
-#typedef	^	ED_InputFile	LOGICAL	GBRevers	-	-	-	"Gearbox reversal flag"	-
 typedef	^	ED_InputFile	ReKi	DTTorSpr	-	-	-	"Drivetrain torsional spring"	N-m/rad
 typedef	^	ED_InputFile	ReKi	DTTorDmp	-	-	-	"Drivetrain torsional damper"	N-m/(rad/s)
 typedef	^	ED_InputFile	LOGICAL	Furling	-	-	-	"Use Additional Furling parameters?"	-
@@ -333,7 +330,7 @@ typedef	^	ED_RtHndSide	ReKi	rS	{:}{:}{:}	-	-	"Position vector from inertial fram
 typedef	^	ED_RtHndSide	ReKi	rS0S	{:}{:}{:}	-	-	"Position vector from the blade root (point S(0)) to a point on a blade (point S)"	m
 typedef	^	ED_RtHndSide	ReKi	rT	{:}{:}	-	-	"Position vector from inertial frame origin to the current node (point T(HNodes(J))"	m
 typedef	^	ED_RtHndSide	ReKi	rT0O	3	-	-	"Position vector from the tower base (point T(0)) to tower-top / base plate (point O)"	m
-typedef	^	ED_RtHndSide	ReKi	rT0T	{:}{:}	-	-	"Position vector from a height of TwrRBHt (base of flexible portion of tower) (point T(0)) to a point on the tower (point T)"	m
+typedef	^	ED_RtHndSide	ReKi	rT0T	{:}{:}	-	-	"Position vector from a height of TowerBsHt (base of flexible portion of tower) (point T(0)) to a point on the tower (point T)"	m
 typedef	^	ED_RtHndSide	ReKi	rZ	3	-	-	"Position vector from inertia frame origin to platform reference (point Z)"	m
 typedef	^	ED_RtHndSide	ReKi	rZO	3	-	-	"Position vector from platform reference (point Z) to tower-top / base plate (point O)"	m
 typedef	^	ED_RtHndSide	ReKi	rZT	{:}{:}	-	-	"Position vector from platform reference (point Z) to a point on a tower (point T)"	m
@@ -618,8 +615,6 @@ typedef	^	ParameterType	ReKi	TFrlPntzn	-	-	-	"Vertical distance from tower-top t
 typedef	^	ParameterType	ReKi	TipRad	-	-	-	"Preconed blade-tip radius"
 typedef	^	ParameterType	ReKi	TowerHt	-	-	-	"Height of tower above ground level"
 typedef	^	ParameterType	ReKi	TowerBsHt	-	-	-	"Height of tower base above ground level [onshore] or MSL [offshore]"	meters
-#typedef	^	ParameterType	ReKi	TwrDraft	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection"
-#typedef	^	ParameterType	ReKi	TwrRBHt	-	-	-	"Tower rigid base height"
 typedef	^	ParameterType	ReKi	UndSling	-	-	-	"Undersling length"
 typedef	^	ParameterType	IntKi	NumBl	-	-	-	"Number of turbine blades"	-
 typedef	^	ParameterType	ReKi	AxRedTFA	{:}{:}{:}	-	-	"The axial-reduction terms for the fore-aft tower mode shapes"
@@ -773,9 +768,7 @@ typedef	^	InputType	MeshType	PlatformPtMesh	-	-	-	"A mesh at the platform refere
 typedef	^	InputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower node (point T); and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components of the portion of the tower moment acting at the current tower node"	N/m
 # Define inputs that are not on a mesh here:
 typedef	^	InputType	ReKi	TwrAddedMass	{:}{:}{:}	-	-	"6-by-6 added mass matrix of the tower elements, per unit length-bjj: place on a mesh" 	"per unit length"
-#typedef	^	InputType	ReKi	TwrFt	{:}{:}	-	-	The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower element (point T) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the tower moment acting at the current tower element (body F) / (point T) per "Unit length associated with everything but the QD2T()s"
 typedef	^	InputType	ReKi	PtfmAddedMass	{6}{6}	-	-	"Platform added mass matrix"	"kg, kg-m, kg-m^2"
-#typedef	^	InputType	ReKi	PtfmFt	6	-	-	"The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the platform force at the platform reference (point Z) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the platform moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"	N
 typedef	^	InputType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"	radians
 typedef	^	InputType	ReKi	YawMom	-	-	-	"Torque transmitted through the yaw bearing"	N-m
 typedef	^	InputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
