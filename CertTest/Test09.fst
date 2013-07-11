@@ -2,7 +2,7 @@
 FAST certification Test #09: UAE Phase VI (downwind) with many DOFs with yaw ramp and a steady wind.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
-FATAL         AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"}
+"FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)
          40   TMax            - Total run time (s)
       0.003   DT              - Recommended module time step (s)
 ---------------------- FEATURE FLAGS -------------------------------------------
@@ -19,7 +19,7 @@ False         CompUserTwrLd   - Compute additional tower loading {false: none, t
 "unused"      HDFile      - Name of file containing HydroDyn input parameters (quoted string)
 "unused"      SDFile      - Name of file containing SubDyn input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
-  True        SumPrint    - Print summary data to "<RootName>.sum" (flag)
+True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
           2   SttsTime    - Amount of time between screen status messages (sec)
       0.048   DT_Out      - Time step for tabular output (sec)
           1   TStart      - Time to begin tabular output (s)

@@ -1,8 +1,8 @@
-------- ELASTODYN V1.00.* INPUT FILE -------------------------------------------
+------- ELASTODYN V1.01.* INPUT FILE -------------------------------------------
 FAST certification Test #05: AWT-27CR2 with many DOFs with startup and shutdown and FF turbulence. 
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
-   3          Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
+          3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
       0.004   DT          - Integration time step (s)
 ---------------------- ENVIRONMENTAL CONDITION ---------------------------------
     9.80665   Gravity     - Gravitational acceleration (m/s^2)
@@ -64,12 +64,11 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   NcIMUzn     - Vertical distance from the tower-top to the nacelle IMU (meters)
       0.692   Twr2Shft    - Vertical distance from the tower-top to the rotor shaft (meters)
       41.98   TowerHt     - Height of tower above ground level [onshore] or MSL [offshore] (meters)
-          0   TwrRBHt     - Tower rigid base height (meters)
-          0   TwrDraft    - Downward distance from the ground level [onshore] or MSL [offshore] to the tower base platform connection (meters)
+          0   TowerBsHt   - Height of tower base above ground level [onshore] or MSL [offshore] (meters)
           0   PtfmCMxt    - Downwind distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
           0   PtfmCMyt    - Lateral distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
          -0   PtfmCMzt    - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
-          0   PtfmRef     - Downward distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
+         -0   PtfmRefzt   - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
 ---------------------- MASS AND INERTIA ----------------------------------------
       11.34   TipMass(1)  - Tip-brake mass, blade 1 (kg)
       11.34   TipMass(2)  - Tip-brake mass, blade 2 (kg)
@@ -109,7 +108,7 @@ False         Furling     - Read in additional model properties for furling turb
          21   TwrNodes    - Number of tower nodes used for analysis (-)
 "AWT_Tower.dat"    TwrFile     - Name of file containing tower properties (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
-True          SumPrint    - Print summary data to "<RootName>.fsm" (flag)
+True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   OutFile     - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)
 True          TabDelim    - Use tab delimiters in text tabular output file? (flag) (currently unused)
 "ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!] (currently unused)
@@ -120,25 +119,25 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
           3   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
           2,          4,          6    BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
               OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-TipDxb1                     - Blade-1 flapwise and edgewise tip deflections
-TipDyb1                     - Blade-1 flapwise and edgewise tip deflections
-TipRDxb1                    - Blade-1 roll and pitch tip deflections
-TipRDyb1                    - Blade-1 roll and pitch tip deflections
-Spn3ALxb1                   - Blade-1 Gage #3 (Node 6) local flapwise and edgewise accelerations
-Spn3ALyb1                   - Blade-1 Gage #3 (Node 6) local flapwise and edgewise accelerations
-RotSpeed                    - Rotor, LSS (GBox side), and HSS speed
-LSSGagV                     - Rotor, LSS (GBox side), and HSS speed
-HSShftV                     - Rotor, LSS (GBox side), and HSS speed
-RootFxb2                    - Blade-2 root flapwise and edgewise shear forces
-RootFyb2                    - Blade-2 root flapwise and edgewise shear forces
-Spn2MLxb1                   - Blade-1 Gage #2 (Node 4) local edgewise and flapwise bending moments
-Spn2MLyb1                   - Blade-1 Gage #2 (Node 4) local edgewise and flapwise bending moments
-LSShftTq                    - LSS, HSS, and generator torque
-HSShftTq                    - LSS, HSS, and generator torque
-LSShftPwr                   - LSS, HSS, and generator power
-HSShftPwr                   - LSS, HSS, and generator power
-YawBrFxn                    - Tower-top FA, S2S, and vertical shear force (yawed)
-YawBrFyn                    - Tower-top FA, S2S, and vertical shear force (yawed)
-YawBrFzn                    - Tower-top FA, S2S, and vertical shear force (yawed)
+"TipDxb1"                 - Blade-1 flapwise and edgewise tip deflections
+"TipDyb1"                 - Blade-1 flapwise and edgewise tip deflections
+"TipRDxb1"                - Blade-1 roll and pitch tip deflections
+"TipRDyb1"                - Blade-1 roll and pitch tip deflections
+"Spn3ALxb1"               - Blade-1 Gage #3 (Node 6) local flapwise and edgewise accelerations
+"Spn3ALyb1"               - Blade-1 Gage #3 (Node 6) local flapwise and edgewise accelerations
+"RotSpeed"                - Rotor, LSS (GBox side), and HSS speed
+"LSSGagV"                 - Rotor, LSS (GBox side), and HSS speed
+"HSShftV"                 - Rotor, LSS (GBox side), and HSS speed
+"RootFxb2"                - Blade-2 root flapwise and edgewise shear forces
+"RootFyb2"                - Blade-2 root flapwise and edgewise shear forces
+"Spn2MLxb1"               - Blade-1 Gage #2 (Node 4) local edgewise and flapwise bending moments
+"Spn2MLyb1"               - Blade-1 Gage #2 (Node 4) local edgewise and flapwise bending moments
+"LSShftTq"                - LSS, HSS, and generator torque
+"HSShftTq"                - LSS, HSS, and generator torque
+"LSShftPwr"               - LSS, HSS, and generator power
+"HSShftPwr"               - LSS, HSS, and generator power
+"YawBrFxn"                - Tower-top FA, S2S, and vertical shear force (yawed)
+"YawBrFyn"                - Tower-top FA, S2S, and vertical shear force (yawed)
+"YawBrFzn"                - Tower-top FA, S2S, and vertical shear force (yawed)
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

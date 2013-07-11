@@ -1410,8 +1410,14 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    
    u%PtfmAddedMass   = 0.0_ReKi
    
+   u%TowerLn2Mesh%RemapFlag = .TRUE.
+   u%TowerLn2Mesh%Moment    = 0_ReKi
+   u%TowerLn2Mesh%Force     = 0_ReKi   
+   
    u%TwrAddedMass    = 0.0_ReKi
-   u%TwrFT           = 0.0_ReKi
+   !u%TwrFT           = 0.0_ReKi
+   
+   
    u%BlPitchCom      = InputFileData%BlPitch(1:p%NumBl)
    u%YawMom          = 0.0_ReKi
    u%GenTrq          = 0.0_ReKi
@@ -1423,40 +1429,17 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    
 
       !............................................................................................
-      ! Define system output initializations (set up mesh) here:
+      ! Define system output initializations (set up meshes) here:
       !............................................................................................
 
-   ALLOCATE ( y%AllOuts(0:MaxOutPts) , STAT=ErrStat2 )
-   IF ( ErrStat2 /= 0 )  THEN
-      CALL CheckError( ErrID_Fatal, 'Error allocating memory for the AllOuts array.' )
-      RETURN
-   ENDIF
-   y%AllOuts = 0.0_ReKi
-
-   CALL AllocAry( y%WriteOutput, p%NumOuts, 'WriteOutput', ErrStat2, ErrMsg2 )
+   CALL ED_AllocOutput(u, y, p,ErrStat2,ErrMsg2) !u is sent so we can create sibling meshes
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
-
-   CALL AllocAry( y%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF (ErrStat >= AbortErrLev) RETURN
-
    
-   CALL MeshCopy ( SrcMesh  = u%PlatformPtMesh &
-                 , DestMesh = y%PlatformPtMesh &
-                 , CtrlCode = MESH_SIBLING     &
-                 , TranslationDisp = .TRUE.    &
-                 , Orientation     = .TRUE.    &
-                 , RotationVel     = .TRUE.    &
-                 , TranslationVel  = .TRUE.    &
-                 , RotationAcc     = .TRUE.    &
-                 , TranslationAcc  = .TRUE.    &
-                 , ErrStat  = ErrStat          &
-                 , ErrMess  = ErrMsg           )
-      
+   y%AllOuts = 0.0_ReKi
    y%PlatformPtMesh%RemapFlag = .TRUE.
-     
-      
+   y%TowerLn2Mesh%RemapFlag   = .TRUE.
+   
       !............................................................................................
       ! Define initialization-routine output here:
       !............................................................................................
@@ -1765,7 +1748,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       !u_UsrPtfm%X  = x_ED%QT(1:6)
       !u_UsrPtfm%XD = x_ED%QDT(1:6)
 
-      !u_UsrTwr%X(:,J) = (/ OtherSt_ED%RtHS%rT(J,1),       -OtherSt_ED%RtHS%rT(J,3),       OtherSt_ED%RtHS%rT( J,2)- p%PtfmRef,&
+      !u_UsrTwr%X(:,J) = (/ OtherSt_ED%RtHS%rT(J,1),       -OtherSt_ED%RtHS%rT(J,3),       OtherSt_ED%RtHS%rT( J,2)+ p%PtfmRefzt,&
       !                     OtherSt_ED%RtHS%AngPosEF(J,1), -OtherSt_ED%RtHS%AngPosEF(J,3), OtherSt_ED%RtHS%AngPosEF(J,2)         /) 
       !u_UsrTwr%XD(:,J) = (/ OtherSt_ED%RtHS%LinVelET(J,1), -OtherSt_ED%RtHS%LinVelET(J,3), OtherSt_ED%RtHS%LinVelET(J,2),&
       !                      OtherSt_ED%RtHS%AngVelEF(J,1), -OtherSt_ED%RtHS%AngVelEF(J,3), OtherSt_ED%RtHS%AngVelEF(J,2) /)                     
@@ -2078,7 +2061,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
       y%AllOuts( TwHtTPxi(I) ) =      OtherState%RtHS%rT(p%TwrGagNd(I),1)
       y%AllOuts( TwHtTPyi(I) ) = -1.0*OtherState%RtHS%rT(p%TwrGagNd(I),3)
-      y%AllOuts( TwHtTPzi(I) ) =      OtherState%RtHS%rT(p%TwrGagNd(I),2) - p%PtfmRef
+      y%AllOuts( TwHtTPzi(I) ) =      OtherState%RtHS%rT(p%TwrGagNd(I),2) + p%PtfmRefzt
 
       y%AllOuts( TwHtRPxi(I) ) =  OtherState%RtHS%AngPosEF(p%TwrGagNd(I),1)*R2D
       y%AllOuts( TwHtRPyi(I) ) = -OtherState%RtHS%AngPosEF(p%TwrGagNd(I),3)*R2D
@@ -2495,20 +2478,25 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ! Outputs required for SubDyn
       !..............................
       
-   ! this is mapping from ED to SD: ED line mesh on right side of equation  
-   !   
-   !DO J = 1,p_ED%TwrNodes  ! Loop through the tower nodes / elements
-   !   HD_AllMarkers%Substructure(J)%Position       = (/ OtherSt_ED%RtHS%rT( J,1), -1.*OtherSt_ED%RtHS%rT( J,3),&
-   !                                                      OtherSt_ED%RtHS%rT( J,2) - p_ED%PtfmRef /)
-   !
-   !   CALL SmllRotTrans( 'Tower', OtherSt_ED%RtHS%AngPosEF(J,1), -1.*OtherSt_ED%RtHS%AngPosEF(J,3), OtherSt_ED%RtHS%AngPosEF(J,2), &
-   !                                 HD_AllMarkers%Substructure(J)%Orientation, errstat=ErrStat, errmsg=ErrMsg )
-   !   IF ( ErrStat /= ErrID_None ) RETURN
-   !
-   !   HD_AllMarkers%Substructure(J)%TranslationVel = (/ OtherSt_ED%RtHS%LinVelET(J,1), -1.*OtherSt_ED%RtHS%LinVelET(J,3), OtherSt_ED%RtHS%LinVelET(J,2) /)
-   !   HD_AllMarkers%Substructure(J)%RotationVel    = (/ OtherSt_ED%RtHS%AngVelEF(J,1), -1.*OtherSt_ED%RtHS%AngVelEF(J,3), OtherSt_ED%RtHS%AngVelEF(J,2) /)
-   !END DO      
-      
+   DO J=1,p%TwrNodes
+      y%TowerLn2Mesh%TranslationDisp(1,J) =     OtherState%RtHS%rT( J,1)
+      y%TowerLn2Mesh%TranslationDisp(2,J) = -1.*OtherState%RtHS%rT( J,3)
+      y%TowerLn2Mesh%TranslationDisp(3,J) =     OtherState%RtHS%rT( J,2) + p%PtfmRefzt
+            
+      y%TowerLn2Mesh%TranslationVel(1,J)  =     OtherState%RtHS%LinVelET(J,1)
+      y%TowerLn2Mesh%TranslationVel(2,J)  = -1.*OtherState%RtHS%LinVelET(J,3)
+      y%TowerLn2Mesh%TranslationVel(3,J)  =     OtherState%RtHS%LinVelET(J,2)
+            
+      y%TowerLn2Mesh%RotationVel(1,J)     =     OtherState%RtHS%AngVelEF(J,1)
+      y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEF(J,3)
+      y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEF(J,2)
+                
+      CALL SmllRotTrans( 'Tower', OtherState%RtHS%AngPosEF(J,1), -1.*OtherState%RtHS%AngPosEF(J,3), OtherState%RtHS%AngPosEF(J,2), &
+             y%TowerLn2Mesh%Orientation(:,:,J), errstat=ErrStat, errmsg=ErrMsg )
+         IF (ErrStat >= AbortErrLev) RETURN
+                                    
+   END DO
+             
       
       !..............................
       ! Outputs required for ServoDyn
@@ -2555,6 +2543,10 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    y%NcIMURAxs = y%AllOuts(NcIMURAxs)*D2R                  ! Nacelle roll    acceleration (rad/s^2) -- this is in the shaft (tilted) coordinate system, instead of the nacelle (nontilted) coordinate system
    y%NcIMURAys = y%AllOuts(NcIMURAys)*D2R                  ! Nacelle nodding acceleration (rad/s^2)
    y%NcIMURAzs = y%AllOuts(NcIMURAzs)*D2R                  ! Nacelle yaw     acceleration (rad/s^2) -- this is in the shaft (tilted) coordinate system, instead of the nacelle (nontilted) coordinate system
+   
+   
+   
+   
    
    
    RETURN
@@ -4833,25 +4825,25 @@ SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
 
       ! Check that mass, inertias, damping, etc. values aren't negative:
 
-   CALL CheckNegative( InputFileData%RFrlMass, 'RFrlMass', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%BoomMass, 'BoomMass', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TFinMass, 'TFinMass', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%RFrlIner, 'RFrlIner', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TFrlIner, 'TFrlIner', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%RFrlSpr,  'RFrlSpr',  ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%RFrlDmp,  'RFrlDmp',  ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%RFrlCDmp, 'RFrlCDmp', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%RFrlUSSpr,'RFrlUSSpr',ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%RFrlDSSpr,'RFrlDSSpr',ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%RFrlUSDmp,'RFrlUSDmp',ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%RFrlDSDmp,'RFrlDSDmp',ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TFrlSpr,  'TFrlSpr',  ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TFrlDmp,  'TFrlDmp',  ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TFrlCDmp, 'TFrlCDmp', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TFrlUSSpr,'TFrlUSSpr',ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TFrlDSSpr,'TFrlDSSpr',ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TFrlUSDmp,'TFrlUSDmp',ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TFrlDSDmp,'TFrlDSDmp',ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RFrlMass, 'RFrlMass', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%BoomMass, 'BoomMass', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TFinMass, 'TFinMass', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RFrlIner, 'RFrlIner', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TFrlIner, 'TFrlIner', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RFrlSpr,  'RFrlSpr',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RFrlDmp,  'RFrlDmp',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RFrlCDmp, 'RFrlCDmp', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RFrlUSSpr,'RFrlUSSpr',ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RFrlDSSpr,'RFrlDSSpr',ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RFrlUSDmp,'RFrlUSDmp',ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RFrlDSDmp,'RFrlDSDmp',ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TFrlSpr,  'TFrlSpr',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TFrlDmp,  'TFrlDmp',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TFrlCDmp, 'TFrlCDmp', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TFrlUSSpr,'TFrlUSSpr',ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TFrlDSSpr,'TFrlDSSpr',ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TFrlUSDmp,'TFrlUSDmp',ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TFrlDSDmp,'TFrlDSDmp',ErrStat, ErrMsg )
 
 
       ! Check that furling models are valid:
@@ -4866,7 +4858,7 @@ SUBROUTINE ValidateFurlData( InputFileData, ErrStat, ErrMsg )
 
 
    !   ! bjj: THESE ARE checks for tail fin aerodynamics, which should be in aerodyn, in my opinion
-   !CALL CheckNegative( TFinArea,               'TFinArea',ErrStat, ErrMsg )
+   !CALL ErrIfNegative( TFinArea,               'TFinArea',ErrStat, ErrMsg )
    !
    !IF ( TFinMod < 0 .OR. TFinMod > 2 )  THEN
    !   CALL SetErrors( ErrID_Fatal,'TFinMod must be 0, 1, or 2.')
@@ -5093,9 +5085,8 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    p%OverHang  = InputFileData%OverHang
    p%ShftGagL  = InputFileData%ShftGagL
    p%TowerHt   = InputFileData%TowerHt
-   p%TwrRBHt   = InputFileData%TwrRBHt
-   p%TwrDraft  = InputFileData%TwrDraft
-   p%PtfmRef   = InputFileData%PtfmRef
+   p%TowerBsHt = InputFileData%TowerBsHt
+   p%PtfmRefzt = InputFileData%PtfmRefzt
    
    p%HubMass   = InputFileData%HubMass
    p%GenIner   = InputFileData%GenIner
@@ -5168,12 +5159,12 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    !...............................................................................................................................
    p%TwoPiNB   = TwoPi/p%NumBl                                                     ! 2*Pi/NumBl is used in RtHS().
 
-   p%rZT0zt    = p%TwrRBHt + p%PtfmRef  - p%TwrDraft                               ! zt-component of position vector rZT0.
-   p%RefTwrHt  = p%TowerHt + p%PtfmRef                                             ! Vertical distance between ElastoDyn's undisplaced tower height (variable TowerHt) and ElastoDyn's inertia frame reference point (variable PtfmRef).
-   p%TwrFlexL  = p%TowerHt + p%TwrDraft - p%TwrRBHt                                ! Height / length of the flexible portion of the tower.
-   p%BldFlexL  = p%TipRad               - p%HubRad                                 ! Length of the flexible portion of the blade.
+   p%rZT0zt    = p%TowerBsHt - p%PtfmRefzt                                         ! zt-component of position vector rZT0.
+   p%RefTwrHt  = p%TowerHt   - p%PtfmRefzt                                         ! Vertical distance between ElastoDyn's undisplaced tower height (variable TowerHt) and ElastoDyn's inertia frame reference point (variable PtfmRef).
+   p%TwrFlexL  = p%TowerHt   - p%TowerBsHt                                         ! Height / length of the flexible portion of the tower.
+   p%BldFlexL  = p%TipRad    - p%HubRad                                            ! Length of the flexible portion of the blade.
 
-   p%rZYzt     = p%PtfmRef  + InputFileData%PtfmCMzt
+   p%rZYzt     = InputFileData%PtfmCMzt - p%PtfmRefzt
 
    !...............................................................................................................................
    ! set cosine and sine of Precone and Delta3 angles:
@@ -5756,7 +5747,7 @@ SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrM
 
    DO I = 1, BladeKInputFileMesh%BldNodes
 
-      CALL ReadAry( UnIn, MeshFile, TmpRAry, NInputCols, 'Line'//TRIM(Num2LStr(I)), 'Blade element input table', ErrStat2, ErrMsg2, UnEc )
+      CALL ReadAry( UnIn, MeshFile, TmpRAry, NInputCols, 'Blade element line'//TRIM(Num2LStr(I)), 'Blade element input table', ErrStat2, ErrMsg2, UnEc )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -7153,21 +7144,16 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! TowerHt - Height of tower above ground level (meters):
-   CALL ReadVar( UnIn, InputFile, InputFileData%TowerHt, "TowerHt", "Height of tower above ground level (meters)", ErrStat2, ErrMsg2, UnEc)
+      ! TowerHt - Height of tower above ground level [onshore] or MSL [offshore] (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TowerHt, "TowerHt", "Height of tower above ground level [onshore] or MSL [offshore] (meters)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! TwrRBHt - Tower rigid base height (meters):
-   CALL ReadVar( UnIn, InputFile, InputFileData%TwrRBHt, "TwrRBHt", "Tower rigid base height (meters)", ErrStat2, ErrMsg2, UnEc)
+      ! TowerBsHt - Height of tower base above ground level [onshore] or MSL [offshore] (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%TowerBsHt, "TowerBsHt", "Height of tower base above ground level [onshore] or MSL [offshore] (meters)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! TwrDraft - Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection (meters):
-   CALL ReadVar( UnIn, InputFile, InputFileData%TwrDraft, "TwrDraft", "Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection (meters)", ErrStat2, ErrMsg2, UnEc)
-      CALL CheckError( ErrStat2, ErrMsg2 )
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
+      
       ! PtfmCMxt - Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM (meters):
    CALL ReadVar( UnIn, InputFile, InputFileData%PtfmCMxt, "PtfmCMxt", "Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM (meters)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -7183,8 +7169,8 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! PtfmRef - Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point (meters):
-   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmRef, "PtfmRef", "Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point (meters)", ErrStat2, ErrMsg2, UnEc)
+      ! PtfmRefzt - Vertical distance from the ground [onshore] or MSL [offshore] to the platform reference point (meters):
+   CALL ReadVar( UnIn, InputFile, InputFileData%PtfmRefzt, "PtfmRefzt", "Vertical distance from the ground [onshore] or MSL [offshore] to the platform reference point (meters)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -7536,29 +7522,29 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
       
    
       ! Don't allow these parameters to be negative (i.e., they must be in the range (0,inf)):
-   CALL CheckNegative( InputFileData%Gravity,   'Gravity',   ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%RotSpeed,  'RotSpeed',  ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%TipRad,    'TipRad',    ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%HubRad,    'HubRad',    ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%DTTorSpr,  'DTTorSpr',  ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%DTTorDmp,  'DTTorDmp',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%Gravity,   'Gravity',   ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%RotSpeed,  'RotSpeed',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%TipRad,    'TipRad',    ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%HubRad,    'HubRad',    ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%DTTorSpr,  'DTTorSpr',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%DTTorDmp,  'DTTorDmp',  ErrStat, ErrMsg )
 
-   CALL CheckNegative( InputFileData%PtfmMass,  'PtfmMass',  ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%PtfmRIner, 'PtfmRIner', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%PtfmPIner, 'PtfmPIner', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%PtfmYIner, 'PtfmYIner', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%YawBrMass, 'YawBrMass', ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%NacMass,   'NacMass',   ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%HubMass,   'HubMass',   ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%Twr2Shft,  'Twr2Shft',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%PtfmMass,  'PtfmMass',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%PtfmRIner, 'PtfmRIner', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%PtfmPIner, 'PtfmPIner', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%PtfmYIner, 'PtfmYIner', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%YawBrMass, 'YawBrMass', ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%NacMass,   'NacMass',   ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%HubMass,   'HubMass',   ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%Twr2Shft,  'Twr2Shft',  ErrStat, ErrMsg )
 
    DO K=1,InputFileData%NumBl
-      CALL CheckNegative( InputFileData%TipMass(K), 'TipMass('//TRIM( Num2LStr( K ) )//')',   ErrStat, ErrMsg )
+      CALL ErrIfNegative( InputFileData%TipMass(K), 'TipMass('//TRIM( Num2LStr( K ) )//')',   ErrStat, ErrMsg )
    ENDDO ! K
 
-   CALL CheckNegative( InputFileData%NacYIner,  'NacYIner',  ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%GenIner,   'GenIner',   ErrStat, ErrMsg )
-   CALL CheckNegative( InputFileData%HubIner,   'HubIner',   ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%NacYIner,  'NacYIner',  ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%GenIner,   'GenIner',   ErrStat, ErrMsg )
+   CALL ErrIfNegative( InputFileData%HubIner,   'HubIner',   ErrStat, ErrMsg )
 
       ! Check that TowerHt is in the range [0,inf):
    IF ( InputFileData%TowerHt <= 0.0_ReKi )     CALL SetErrors( ErrID_Fatal, 'TowerHt must be greater than zero.' )
@@ -7598,20 +7584,30 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
       END IF
    ENDIF
 
-   IF ( InputFileData%TwrRBHt >= ( InputFileData%TowerHt + InputFileData%TwrDraft ) ) THEN
-      CALL SetErrors( ErrID_Fatal, 'TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.')
-   ELSE
-      CALL CheckNegative( InputFileData%TwrRBHt, 'TwrRBHt', ErrStat, ErrMsg )
-   END IF
+!bjj: ask JMJ what the new checks should be >>>   
+call wrscr('Additional checks to replace checks on TwrDraft vs PtfmCMzt and PtfmRefzt?')
 
-   IF ( -1.0*InputFileData%PtfmCMzt  < InputFileData%TwrDraft ) &
-      CALL SetErrors( ErrID_Fatal, '-PtfmCMzt must not be less than TwrDraft.')
-   IF ( InputFileData%PtfmRef < InputFileData%TwrDraft ) &
-      CALL SetErrors( ErrID_Fatal, 'PtfmRef must not be less than TwrDraft.')
+   IF ( InputFileData%TowerBsHt >= InputFileData%TowerHt ) THEN
+      CALL SetErrors( ErrID_Fatal, 'TowerBsHt must be less than TowerHt.')
+   END IF
+   CALL ErrIfNegative( InputFileData%TowerBsHt, 'TowerBsHt', ErrStat, ErrMsg )
+
+   !IF ( InputFileData%TwrRBHt >= ( InputFileData%TowerHt + InputFileData%TwrDraft ) ) THEN
+   !   CALL SetErrors( ErrID_Fatal, 'TwrRBHt must be greater or equal to 0 and less than TowerHt + TwrDraft.')
+   !ELSE
+   !   CALL ErrIfNegative( InputFileData%TwrRBHt, 'TwrRBHt', ErrStat, ErrMsg )
+   !END IF
+   !
+   !IF ( -1.0*InputFileData%PtfmCMzt  < InputFileData%TwrDraft ) &
+   !   CALL SetErrors( ErrID_Fatal, '-PtfmCMzt must not be less than TwrDraft.')
+   !IF ( -1.0*InputFileData%PtfmRefzt < InputFileData%TwrDraft ) &
+   !   CALL SetErrors( ErrID_Fatal, '-PtfmRefzt must not be less than TwrDraft.')
+!   IF ( InputFileData%TwrDraft <= -1.*InputFileData%TowerHt ) &
+!      CALL SetErrors( ErrID_Fatal, 'TwrDraft must be greater than -TowerHt.' )
+!<<< 
+   
    IF ( InputFileData%HubRad >= InputFileData%TipRad ) &
       CALL SetErrors( ErrID_Fatal, 'HubRad must be less than TipRad.' )
-   IF ( InputFileData%TwrDraft <= -1.*InputFileData%TowerHt ) &
-      CALL SetErrors( ErrID_Fatal, 'TwrDraft must be greater than -TowerHt.' )
 
    IF ( InputFileData%TowerHt + InputFileData%Twr2Shft + InputFileData%OverHang*SIN(InputFileData%ShftTilt) &
                               <= InputFileData%TipRad )  THEN
@@ -7639,10 +7635,10 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
            ( InputFileData%TeetMod /= 2_IntKi ) )  &
          CALL SetErrors( ErrID_Fatal, 'TeetMod must be 0, 1, or 2.' )
 
-      CALL CheckNegative( InputFileData%TeetDmp,   'TeetDmp',   ErrStat, ErrMsg )
-      CALL CheckNegative( InputFileData%TeetCDmp,  'TeetCDmp',  ErrStat, ErrMsg )
-      CALL CheckNegative( InputFileData%TeetSSSp,  'TeetSSSp',  ErrStat, ErrMsg )
-      CALL CheckNegative( InputFileData%TeetHSSp,  'TeetHSSp',  ErrStat, ErrMsg )
+      CALL ErrIfNegative( InputFileData%TeetDmp,   'TeetDmp',   ErrStat, ErrMsg )
+      CALL ErrIfNegative( InputFileData%TeetCDmp,  'TeetCDmp',  ErrStat, ErrMsg )
+      CALL ErrIfNegative( InputFileData%TeetSSSp,  'TeetSSSp',  ErrStat, ErrMsg )
+      CALL ErrIfNegative( InputFileData%TeetHSSp,  'TeetHSSp',  ErrStat, ErrMsg )
    ENDIF
 
       ! check these angles for appropriate ranges:
@@ -7750,8 +7746,8 @@ CONTAINS
    !-------------------------------------------------------------------------------------------------------------------------------
 END SUBROUTINE ValidatePrimaryData
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE CheckNegative( Var, VarDesc, ErrStat, ErrMsg )
-! This routine checks that an value is in the range [0, inf). If not, ErrStat = ErrID_Fatal
+SUBROUTINE ErrIfNegative( Var, VarDesc, ErrStat, ErrMsg )
+! This routine checks that an value is in the range [0, inf). If not, ErrStat = ErrID_Fatal.
 ! Note that ErrStat and ErrMsg are INTENT(INOUT).
 !..................................................................................................................................
 REAL(ReKi),     INTENT(IN)    :: Var         ! Variable to check
@@ -7765,7 +7761,7 @@ CHARACTER(*),   INTENT(INOUT) :: ErrMsg      ! Error message to update if Var is
       ErrMsg  = TRIM(ErrMsg)//TRIM(VarDesc)//' must not be negative.'
    END IF
 
-END SUBROUTINE CheckNegative
+END SUBROUTINE ErrIfNegative
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE CheckAngle90Range( Var, VarDesc, ErrStat, ErrMsg )
 ! This routine checks that an angle is in the range [-pi/2, pi/2] radians. If not, ErrStat = ErrID_Fatal
@@ -11720,10 +11716,10 @@ REAL(ReKi)                   :: rSAerCen  (3)                                   
          rSAerCen = p%rSAerCenn1(K,J)*CoordSys%n1(K,J,:) + p%rSAerCenn2(K,J)*CoordSys%n2(K,J,:)   
 
 
-   ! FSAero() and MMAero() with the forces resulting from inputs AeroBladeForces(1:2,:,:) and AeroBladeMoment(3,:,:):
+   ! fill FSAero() and MMAero() with the forces resulting from inputs AeroBladeForces(1:2,:,:) and AeroBladeMoment(3,:,:):
 
          RtHSdat%FSAero(K,J,:) = u%AeroBladeForce(1,J,K) * CoordSys%te1(K,J,:) &
-                                       + u%AeroBladeForce(2,J,K) * CoordSys%te2(K,J,:)
+                               + u%AeroBladeForce(2,J,K) * CoordSys%te2(K,J,:)
 
          RtHSdat%MMAero(K,J,:) = CROSS_PRODUCT( rSAerCen, RtHSdat%FSAero(K,J,:) )
          RtHSdat%MMAero(K,J,:) = RtHSdat%MMAero(K,J,:) + u%AeroBladeMoment(3,J,K) * CoordSys%te3(K,J,:)        
@@ -11895,12 +11891,12 @@ DO K = 1,p%NumBl ! Loop through all blades
 
       RtHSdat%PMomNGnRt(p%DOFs%PDE(I)  ,:) = RtHSdat%PMomNGnRt(p%DOFs%PDE(I)  ,:) + TmpVec2                                   &
                                            - p%RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, RtHSdat%PAngVelER(p%DOFs%PDE(I) ,0,:) ) &
-                                           - p%GenIner*CoordSys%c1 *DOT_PRODUCT(  CoordSys%c1 , RtHSdat%PAngVelEG(p%DOFs%PDE(I)  ,0,:) )
+                                           - p%GenIner*CoordSys%c1 *DOT_PRODUCT(  CoordSys%c1 , RtHSdat%PAngVelEG(p%DOFs%PDE(I) ,0,:) )
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the center of mass of the structure that furls with the rotor (not including rotor) (point D)
    IF ( p%DOF_Flag(DOF_GeAz) )  THEN
 
-      RtHSdat%PMomNGnRt(DOF_GeAz,:) = RtHSdat%PMomNGnRt(DOF_GeAz,:)                                             &           ! The previous loop (DO I = 1,NPDE) misses the DOF_GeAz-contribution to: ( Generator inertia dyadic ) dot ( partial angular velocity of the generator in the inertia frame )
+      RtHSdat%PMomNGnRt(DOF_GeAz,:) = RtHSdat%PMomNGnRt(DOF_GeAz,:)                                             &     ! The previous loop (DO I = 1,NPDE) misses the DOF_GeAz-contribution to: ( Generator inertia dyadic ) dot ( partial angular velocity of the generator in the inertia frame )
                             -  p%GenIner*CoordSys%c1 *DOT_PRODUCT( CoordSys%c1, RtHSdat%PAngVelEG(DOF_GeAz,0,:) )     ! Thus, add this contribution if necessary.
 
    ENDIF   
@@ -11909,12 +11905,12 @@ DO K = 1,p%NumBl ! Loop through all blades
 ! FrcVGnRtt and MomNGnRtt
 !  (requires FrcPRott and MomLPRott)
 !.....................................
-   TmpVec1 = -p%RFrlMass*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccEDt )                    ! The portion of FrcVGnRtt associated with the RFrlMass
+   TmpVec1 = -p%RFrlMass*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccEDt )                ! The portion of FrcVGnRtt associated with the RFrlMass
    TmpVec2 = CROSS_PRODUCT( RtHSdat%rVD      ,  TmpVec1 )                             ! The portion of MomNGnRtt associated with the RFrlMass
-   TmpVec3 = CROSS_PRODUCT( RtHSdat%rVP      , RtHSdat%FrcPRott )                             ! The portion of MomNGnRtt associated with the FrcPRott
-   TmpVec  = p%RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, RtHSdat%AngVelER )      ! = ( R inertia dyadic ) dot ( angular velocity of structure that furls with the rotor in the inertia frame )
+   TmpVec3 = CROSS_PRODUCT( RtHSdat%rVP      , RtHSdat%FrcPRott )                     ! The portion of MomNGnRtt associated with the FrcPRott
+   TmpVec  = p%RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, RtHSdat%AngVelER )    ! = ( R inertia dyadic ) dot ( angular velocity of structure that furls with the rotor in the inertia frame )
    TmpVec4 = CROSS_PRODUCT( -RtHSdat%AngVelER, TmpVec )                               ! = ( -angular velocity of structure that furls with the rotor in the inertia frame ) cross ( TmpVec )
-   TmpVec  =  p%GenIner*CoordSys%c1* DOT_PRODUCT( CoordSys%c1 , RtHSdat%AngVelEG )      ! = ( Generator inertia dyadic ) dot ( angular velocity of generator in the inertia frame )
+   TmpVec  =  p%GenIner*CoordSys%c1* DOT_PRODUCT( CoordSys%c1 , RtHSdat%AngVelEG )    ! = ( Generator inertia dyadic ) dot ( angular velocity of generator in the inertia frame )
    TmpVec5 = CROSS_PRODUCT( -RtHSdat%AngVelEG, TmpVec )                               ! = ( -angular velocity of generator in the inertia frame ) cross ( TmpVec )
 
    RtHSdat%FrcVGnRtt = RtHSdat%FrcPRott  + TmpVec1
@@ -12084,42 +12080,42 @@ DO K = 1,p%NumBl ! Loop through all blades
 !.....................................
    
    DO J=1,p%TwrNodes
-      RtHSdat%FTHydrot(J,:) = CoordSys%z1*( u%TwrFt(DOF_Sg,J) &
+      RtHSdat%FTHydrot(J,:) = CoordSys%z1*( u%TowerLn2Mesh%Force(DOF_Sg,J) &
                                                   - u%TwrAddedMass(DOF_Sg,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
                                                   + u%TwrAddedMass(DOF_Sg,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
                                                   - u%TwrAddedMass(DOF_Sg,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
                                                   - u%TwrAddedMass(DOF_Sg,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
                                                   + u%TwrAddedMass(DOF_Sg,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
                                                   - u%TwrAddedMass(DOF_Sg,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   ) &
-                            - CoordSys%z3*( u%TwrFt(DOF_Sw,J) &
+                            - CoordSys%z3*( u%TowerLn2Mesh%Force(DOF_Sw,J) &
                                                   - u%TwrAddedMass(DOF_Sw,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
                                                   + u%TwrAddedMass(DOF_Sw,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
                                                   - u%TwrAddedMass(DOF_Sw,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
                                                   - u%TwrAddedMass(DOF_Sw,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
                                                   + u%TwrAddedMass(DOF_Sw,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
                                                   - u%TwrAddedMass(DOF_Sw,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   ) &
-                             + CoordSys%z2*( u%TwrFt(DOF_Hv,J) &
+                             + CoordSys%z2*( u%TowerLn2Mesh%Force(DOF_Hv,J) &
                                                   - u%TwrAddedMass(DOF_Hv,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
                                                   + u%TwrAddedMass(DOF_Hv,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
                                                   - u%TwrAddedMass(DOF_Hv,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
                                                   - u%TwrAddedMass(DOF_Hv,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
                                                   + u%TwrAddedMass(DOF_Hv,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
                                                   - u%TwrAddedMass(DOF_Hv,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   )
-      RtHSdat%MFHydrot(J,:) = CoordSys%z1*( u%TwrFt(DOF_R ,J) &
+      RtHSdat%MFHydrot(J,:) = CoordSys%z1*( u%TowerLn2Mesh%Moment(DOF_R-3,J) &
                                                   - u%TwrAddedMass(DOF_R ,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
                                                   + u%TwrAddedMass(DOF_R ,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
                                                   - u%TwrAddedMass(DOF_R ,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
                                                   - u%TwrAddedMass(DOF_R ,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
                                                   + u%TwrAddedMass(DOF_R ,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
                                                   - u%TwrAddedMass(DOF_R ,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   ) &
-                            - CoordSys%z3*( u%TwrFt(DOF_P ,J) &
+                            - CoordSys%z3*( u%TowerLn2Mesh%Moment(DOF_P-3 ,J) &
                                                   - u%TwrAddedMass(DOF_P ,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
                                                   + u%TwrAddedMass(DOF_P ,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
                                                   - u%TwrAddedMass(DOF_P ,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
                                                   - u%TwrAddedMass(DOF_P ,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
                                                   + u%TwrAddedMass(DOF_P ,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
                                                   - u%TwrAddedMass(DOF_P ,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   ) &
-                            + CoordSys%z2*( u%TwrFt(DOF_Y ,J) &
+                            + CoordSys%z2*( u%TowerLn2Mesh%Moment(DOF_Y-3 ,J) &
                                                   - u%TwrAddedMass(DOF_Y ,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
                                                   + u%TwrAddedMass(DOF_Y ,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
                                                   - u%TwrAddedMass(DOF_Y ,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
@@ -12698,6 +12694,201 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
    
 END SUBROUTINE FillAugMat
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
+! This routine allocates the arrays stored in the ED_OutputType data structure (y), based on the parameters (p). 
+! The routine assumes that the arrays are not currently allocated (It will produce a fatal error otherwise.)
+!..................................................................................................................................
+
+   TYPE(ED_InputType),           INTENT(INOUT)  :: u           ! Input meshes (sibling)
+   TYPE(ED_OutputType),          INTENT(INOUT)  :: y           ! Outputs to be allocated
+   TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+   INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      
+   
+   ! local variables
+   INTEGER(IntKi)                               :: J           ! loop counter                
+   INTEGER(IntKi)                               :: ErrStat2    ! The error identifier (ErrStat)
+   CHARACTER(1024)                              :: ErrMsg2     ! The error message (ErrMsg)
+   
+   
+      ! initialize variables:
+      
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   
+   ALLOCATE ( y%AllOuts(0:MaxOutPts) , STAT=ErrStat2 )
+   IF ( ErrStat2 /= 0 )  THEN
+      CALL CheckError( ErrID_Fatal, 'Error allocating memory for the AllOuts array.' )
+      RETURN
+   ENDIF
+
+   CALL AllocAry( y%WriteOutput, p%NumOuts, 'WriteOutput', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   CALL AllocAry( y%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   
+! -->    TESTING: NON-SIBLINGS
+      !.......................................................
+      ! Create Point Mesh for Inputs at Platform Reference Point:
+      !.......................................................
+      
+   !CALL MeshCreate( BlankMesh         = y%PlatformPtMesh       &
+   !                  ,IOS             = COMPONENT_OUTPUT       &
+   !                  ,NNodes          = 1                      &
+   !              , TranslationDisp = .TRUE.    &
+   !              , Orientation     = .TRUE.    &
+   !              , RotationVel     = .TRUE.    &
+   !              , TranslationVel  = .TRUE.    &
+   !              , RotationAcc     = .TRUE.    &
+   !              , TranslationAcc  = .TRUE.    &
+   !                  ,ErrStat         = ErrStat2               &
+   !                  ,ErrMess         = ErrMsg2                )
+   !   CALL CheckError(ErrStat2,ErrMsg2)
+   !   IF (ErrStat >= AbortErrLev) RETURN
+   !
+   !   ! place single node at platform reference point; position affects mapping/coupling with other modules
+   !CALL MeshPositionNode ( y%PlatformPtMesh, 1, (/0.0_ReKi, 0.0_ReKi, p%PtfmRefzt /), ErrStat, ErrMsg )
+   !   CALL CheckError(ErrStat2,ErrMsg2)
+   !   IF (ErrStat >= AbortErrLev) RETURN
+   !   
+   !   ! create an element from this point      
+   !CALL MeshConstructElement ( Mesh = y%PlatformPtMesh        &
+   !                           , Xelement = ELEMENT_POINT      &
+   !                           , P1       = 1                  &   ! node number
+   !                           , ErrStat  = ErrStat            &
+   !                           , ErrMess  = ErrMsg             )
+   !   CALL CheckError(ErrStat2,ErrMsg2)
+   !   IF (ErrStat >= AbortErrLev) RETURN
+   !
+   !   ! that's our entire mesh:
+   !CALL MeshCommit ( y%PlatformPtMesh, ErrStat2, ErrMsg2 )   
+   !   CALL CheckError(ErrStat2,ErrMsg2)
+   !   IF (ErrStat >= AbortErrLev) RETURN
+      
+      !.......................................................
+      ! Create Line2 Mesh for Inputs on Tower Line2 Mesh:
+      !.......................................................
+           
+      
+   !CALL MeshCreate( BlankMesh      = y%TowerLn2Mesh         &
+   !                  ,IOS          = COMPONENT_OUTPUT        &
+   !                  ,NNodes       = p%TwrNodes             &
+   !              , TranslationDisp = .TRUE.    &
+   !              , Orientation     = .TRUE.    &
+   !              , RotationVel     = .TRUE.    &
+   !              , TranslationVel  = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
+   !              , RotationAcc     = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
+   !              , TranslationAcc  = .TRUE.    &
+   !              , nScalars  = 600    &
+   !                  ,ErrStat      = ErrStat2               &
+   !                  ,ErrMess      = ErrMsg2                )
+   !   CALL CheckError(ErrStat2,ErrMsg2)
+   !   IF (ErrStat >= AbortErrLev) RETURN
+   !
+   !   ! position the nodes on the tower:
+   !DO J = 1,p%TwrNodes
+   !   CALL MeshPositionNode ( y%TowerLn2Mesh, J, (/0.0_ReKi, 0.0_ReKi, p%HNodes(J) + p%TowerBsHt /), ErrStat2, ErrMsg2 )
+   !      CALL CheckError(ErrStat2,ErrMsg2)
+   !      IF (ErrStat >= AbortErrLev) RETURN
+   !END DO
+   !
+   !
+   !   ! create elements:
+   !   
+   !IF ( p%TwrNodes < 2_IntKi ) THEN  ! if there are less than 2 nodes, we'll throw an error:
+   !   CALL CheckError(ErrID_Fatal,"Tower Line2 Mesh cannot be created with less than 2 elements.")
+   !   RETURN
+   !ELSE ! create line2 elements from the tower nodes:
+   !   DO J = 2,p%TwrNodes
+   !      CALL MeshConstructElement ( Mesh      = y%TowerLn2Mesh     &
+   !                                 , Xelement = ELEMENT_LINE2      &
+   !                                 , P1       = J-1                &   ! node1 number
+   !                                 , P2       = J                  &   ! node2 number
+   !                                 , ErrStat  = ErrStat2           &
+   !                                 , ErrMess  = ErrMsg2            )
+   !      
+   !         CALL CheckError(ErrStat2,ErrMsg2)
+   !         IF (ErrStat >= AbortErrLev) RETURN
+   !   
+   !   END DO
+   !END IF   
+   !
+   !   ! that's our entire mesh:
+   !CALL MeshCommit ( y%TowerLn2Mesh, ErrStat2, ErrMsg2 )   
+   !   CALL CheckError(ErrStat2,ErrMsg2)
+   !   IF (ErrStat >= AbortErrLev) RETURN      
+      
+   CALL MeshCopy ( SrcMesh  = u%PlatformPtMesh &
+                 , DestMesh = y%PlatformPtMesh &
+                 , CtrlCode = MESH_SIBLING     &
+                 , TranslationDisp = .TRUE.    &
+                 , Orientation     = .TRUE.    &
+                 , RotationVel     = .TRUE.    &
+                 , TranslationVel  = .TRUE.    &
+                 , RotationAcc     = .TRUE.    &
+                 , TranslationAcc  = .TRUE.    &
+                 , ErrStat  = ErrStat          &
+                 , ErrMess  = ErrMsg           )
+   y%PlatformPtMesh%IOS     = COMPONENT_OUTPUT         ! not sure it really matters to set this, but I'll do it anyway.
+              
+   
+   CALL MeshCopy ( SrcMesh  = u%TowerLn2Mesh   &
+                 , DestMesh = y%TowerLn2Mesh   &
+                 , CtrlCode = MESH_SIBLING     &
+                 , TranslationDisp = .TRUE.    &
+                 , Orientation     = .TRUE.    &
+                 , RotationVel     = .TRUE.    &
+                 , TranslationVel  = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
+                 , RotationAcc     = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
+                 , TranslationAcc  = .TRUE.    &
+                 , ErrStat  = ErrStat          &
+                 , ErrMess  = ErrMsg           )
+      
+   y%TowerLn2Mesh%IOS       = COMPONENT_OUTPUT         ! not sure it really matters to set this, but I'll do it anyway.   
+! <--   TESTING: NON-SIBLINGS         
+   
+   
+   y%PlatformPtMesh%RemapFlag = .TRUE.
+   y%TowerLn2Mesh%RemapFlag   = .TRUE.
+   
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
+         ! Passed arguments
+         
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)      
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+
+      END IF
+
+
+   END SUBROUTINE CheckError 
+   
+END SUBROUTINE ED_AllocOutput
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
 ! This routine allocates the arrays stored in the ED_InputType data structure (u), based on the parameters (p). 
 ! The routine assumes that the arrays are not currently allocated (It will produce a fatal error otherwise.)
@@ -12707,55 +12898,167 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
    CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      
    
+   ! local variables
+   INTEGER(IntKi)                               :: J           ! loop counter                
+   INTEGER(IntKi)                               :: ErrStat2    ! The error identifier (ErrStat)
+   CHARACTER(1024)                              :: ErrMsg2     ! The error message (ErrMsg)
+   
+   
+      ! initialize variables:
+      
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   
+      !.......................................................
       ! allocate the arrays     
+      !.......................................................
 
-   CALL AllocAry( u%BlPitchCom, p%NumBl,                           'BlPitchCom',      ErrStat, ErrMsg )
+   CALL AllocAry( u%BlPitchCom, p%NumBl,                           'BlPitchCom',      ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
 
-   CALL AllocAry( u%TwrAddedMass,  6_IntKi, 6_IntKi, p%TwrNodes,   'TwrAddedMass',    ErrStat, ErrMsg )
-      IF (ErrStat >= AbortErrLev) RETURN
-
-   CALL AllocAry( u%TwrFT, 6_IntKi, p%TwrNodes,                    'TwrFT',           ErrStat, ErrMsg )
-      IF (ErrStat >= AbortErrLev) RETURN
-     
-   CALL AllocAry( u%AeroBladeForce, 3_IntKi,  p%BldNodes, p%NumBl, 'AeroBladeForce',  ErrStat, ErrMsg )
+   CALL AllocAry( u%AeroBladeForce, 3_IntKi,  p%BldNodes, p%NumBl, 'AeroBladeForce',  ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
    
-   CALL AllocAry( u%AeroBladeMoment, 3_IntKi, p%BldNodes, p%NumBl, 'AeroBladeMoment', ErrStat, ErrMsg )
+   CALL AllocAry( u%AeroBladeMoment, 3_IntKi, p%BldNodes, p%NumBl, 'AeroBladeMoment', ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
    
-   CALL AllocAry( u%FTAero,            p%TwrNodes,        3_IntKi, 'FTAero',          ErrStat, ErrMsg )
+   CALL AllocAry( u%FTAero,            p%TwrNodes,        3_IntKi, 'FTAero',          ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
    
-   CALL AllocAry( u%MFAero,            p%TwrNodes,        3_IntKi, 'MFAero',          ErrStat, ErrMsg )
+   CALL AllocAry( u%MFAero,            p%TwrNodes,        3_IntKi, 'MFAero',          ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
    
 
+      !.......................................................
+      ! Create Point Mesh for Inputs at Platform Reference Point:
+      !.......................................................
       
-      ! Create Point Mesh for I/O at Platform Reference Point:
-      
-   CALL MeshCreate( BlankMesh       = u%PlatformPtMesh       &
+   CALL MeshCreate( BlankMesh         = u%PlatformPtMesh       &
                      ,IOS             = COMPONENT_INPUT        &
                      ,NNodes          = 1                      &
                      ,Force           = .TRUE.                 &
                      ,Moment          = .TRUE.                 &
-                     ,ErrStat         = ErrStat                &
-                     ,ErrMess         = ErrMsg                 )
+                     ,ErrStat         = ErrStat2               &
+                     ,ErrMess         = ErrMsg2                )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
 
       ! place single node at platform reference point; position affects mapping/coupling with other modules
-   CALL MeshPositionNode ( u%PlatformPtMesh, 1, (/0.0_ReKi, 0.0_ReKi, p%PtfmRef /), ErrStat, ErrMsg ) !bjj should this be -p%PtfmRef?      
+   CALL MeshPositionNode ( u%PlatformPtMesh, 1, (/0.0_ReKi, 0.0_ReKi, p%PtfmRefzt /), ErrStat, ErrMsg )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
       
       ! create an element from this point      
-   CALL MeshConstructElement ( Mesh = u%PlatformPtMesh       &
+   CALL MeshConstructElement ( Mesh = u%PlatformPtMesh        &
                               , Xelement = ELEMENT_POINT      &
                               , P1       = 1                  &   ! node number
                               , ErrStat  = ErrStat            &
                               , ErrMess  = ErrMsg             )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
 
       ! that's our entire mesh:
-   CALL MeshCommit ( u%PlatformPtMesh, ErrStat, ErrMsg )   
+   CALL MeshCommit ( u%PlatformPtMesh, ErrStat2, ErrMsg2 )   
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
       
+   
+      !.......................................................
+      ! Create Line2 Mesh for Inputs on Tower Line2 Mesh:
+      !.......................................................
+      
+   !CALL AllocAry( u%TwrFT, 6_IntKi, p%TwrNodes,                    'TwrFT',           ErrStat2, ErrMsg2 )
+   !   CALL CheckError(ErrStat2,ErrMsg2)
+   !   IF (ErrStat >= AbortErrLev) RETURN
+   
+   CALL AllocAry( u%TwrAddedMass,  6_IntKi, 6_IntKi, p%TwrNodes,   'TwrAddedMass',    ErrStat2, ErrMsg2 )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+
+      
+      
+   CALL MeshCreate( BlankMesh      = u%TowerLn2Mesh         &
+                     ,IOS          = COMPONENT_INPUT        &
+                     ,NNodes       = p%TwrNodes             &
+                     ,Force        = .TRUE.                 &
+                     ,Moment       = .TRUE.                 &
+                     ,ErrStat      = ErrStat2               &
+                     ,ErrMess      = ErrMsg2                )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+      ! position the nodes on the tower:
+   DO J = 1,p%TwrNodes
+!BJJ: have jmj check these positions. may be off by p%HNodes(J)/2      
+      CALL MeshPositionNode ( u%TowerLn2Mesh, J, (/0.0_ReKi, 0.0_ReKi, p%HNodes(J) + p%TowerBsHt /), ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN
+   END DO
+
+   
+      ! create elements:
+      
+   IF ( p%TwrNodes < 2_IntKi ) THEN  ! if there are less than 2 nodes, we'll throw an error:
+      CALL CheckError(ErrID_Fatal,"Tower Line2 Mesh cannot be created with less than 2 elements.")
+      RETURN
+   ELSE ! create line2 elements from the tower nodes:
+      DO J = 2,p%TwrNodes
+         CALL MeshConstructElement ( Mesh      = u%TowerLn2Mesh     &
+                                    , Xelement = ELEMENT_LINE2      &
+                                    , P1       = J-1                &   ! node1 number
+                                    , P2       = J                  &   ! node2 number
+                                    , ErrStat  = ErrStat2           &
+                                    , ErrMess  = ErrMsg2            )
+         
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF (ErrStat >= AbortErrLev) RETURN
+      
+      END DO
+   END IF   
+   
+      ! that's our entire mesh:
+   CALL MeshCommit ( u%TowerLn2Mesh, ErrStat2, ErrMsg2 )   
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+   
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+
+      END IF
+
+
+   END SUBROUTINE CheckError   
             
 END SUBROUTINE ED_AllocInput
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -12801,32 +13104,57 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       TYPE(ED_ContinuousStateType)                 :: x_tmp       ! Holds temporary modification to x
       TYPE(ED_InputType)                           :: u_interp    ! interpolated value of inputs 
 
+      INTEGER(IntKi)                               :: ErrStat2    ! local error status
+      CHARACTER(LEN(ErrMsg))                       :: ErrMsg2     ! local error message (ErrMsg)
+      
       ! Initialize ErrStat
 
       ErrStat = ErrID_None
       ErrMsg  = "" 
 
-      CALL AllocAry( k1%qt,     p%NDOF, 'k1%qt',  ErrStat, ErrMsg )
-      CALL AllocAry( k1%qdt,    p%NDOF, 'k1%qdt', ErrStat, ErrMsg )
-      CALL AllocAry( k2%qt,     p%NDOF, 'k2%qt',  ErrStat, ErrMsg )
-      CALL AllocAry( k2%qdt,    p%NDOF, 'k2%qdt', ErrStat, ErrMsg )
-      CALL AllocAry( k3%qt,     p%NDOF, 'k3%qt',  ErrStat, ErrMsg )
-      CALL AllocAry( k3%qdt,    p%NDOF, 'k3%qdt', ErrStat, ErrMsg )
-      CALL AllocAry( k4%qt,     p%NDOF, 'k4%qt',  ErrStat, ErrMsg )
-      CALL AllocAry( k4%qdt,    p%NDOF, 'k4%qdt', ErrStat, ErrMsg )
-      CALL AllocAry( x_tmp%qt,  p%NDOF, 'x_tmp%qt',  ErrStat, ErrMsg )
-      CALL AllocAry( x_tmp%qdt, p%NDOF, 'x_tmp%qdt', ErrStat, ErrMsg )
-
-      CALL ED_AllocInput( u_interp, p, ErrStat, ErrMsg )  
+      CALL AllocAry( k1%qt,     p%NDOF, 'k1%qt',     ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
-            
-         
+      CALL AllocAry( k1%qdt,    p%NDOF, 'k1%qdt',    ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL AllocAry( k2%qt,     p%NDOF, 'k2%qt',     ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL AllocAry( k2%qdt,    p%NDOF, 'k2%qdt',    ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL AllocAry( k3%qt,     p%NDOF, 'k3%qt',     ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL AllocAry( k3%qdt,    p%NDOF, 'k3%qdt',    ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL AllocAry( k4%qt,     p%NDOF, 'k4%qt',     ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL AllocAry( k4%qdt,    p%NDOF, 'k4%qdt',    ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL AllocAry( x_tmp%qt,  p%NDOF, 'x_tmp%qt',  ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL AllocAry( x_tmp%qdt, p%NDOF, 'x_tmp%qdt', ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+
+      CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )  
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
+                     
       ! interpolate u to find u_interp = u(t)
-      CALL ED_Input_ExtrapInterp( u, utimes, u_interp, t, ErrStat, ErrMsg )
+      CALL ED_Input_ExtrapInterp( u, utimes, u_interp, t, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       ! find xdot at t
-      CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat, ErrMsg )
+      CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       k1%qt  = p%dt * xdot%qt
@@ -12836,11 +13164,13 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       x_tmp%qdt = x%qdt + 0.5 * k1%qdt
 
       ! interpolate u to find u_interp = u(t + dt/2)
-      CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t+0.5*p%dt, ErrStat, ErrMsg)
+      CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t+0.5*p%dt, ErrStat2, ErrMsg2)
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       ! find xdot at t + dt/2
-      CALL ED_CalcContStateDeriv( t + 0.5*p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat, ErrMsg )
+      CALL ED_CalcContStateDeriv( t + 0.5*p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       k2%qt  = p%dt * xdot%qt
@@ -12850,7 +13180,8 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       x_tmp%qdt = x%qdt + 0.5 * k2%qdt
 
       ! find xdot at t + dt/2
-      CALL ED_CalcContStateDeriv( t + 0.5*p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat, ErrMsg )
+      CALL ED_CalcContStateDeriv( t + 0.5*p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       k3%qt  = p%dt * xdot%qt
@@ -12860,11 +13191,13 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       x_tmp%qdt = x%qdt + k3%qdt
 
       ! interpolate u to find u_interp = u(t + dt)
-      CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t + p%dt, ErrStat, ErrMsg)
+      CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t + p%dt, ErrStat2, ErrMsg2)
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       ! find xdot at t + dt
-      CALL ED_CalcContStateDeriv( t + p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat, ErrMsg )
+      CALL ED_CalcContStateDeriv( t + p%dt, u_interp, p, x_tmp, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       k4%qt  = p%dt * xdot%qt
@@ -12874,9 +13207,61 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       x%qdt = x%qdt +  ( k1%qdt + 2. * k2%qdt + 2. * k3%qdt + k4%qdt ) / 6.      
 
          ! clean up local variables:
-      CALL ED_DestroyInput( u_interp, ErrStat, ErrMsg )
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      
+      CALL ExitThisRoutine(  )
+         
+CONTAINS      
+   !...............................................................................................................................
+   SUBROUTINE ExitThisRoutine()
+   ! This subroutine destroys all the local variables
+   !...............................................................................................................................
+
+         ! local variables
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
+   
+   
+      CALL ED_DestroyContState( xdot,     ErrStat3, ErrMsg3 )
+      CALL ED_DestroyContState( k1,       ErrStat3, ErrMsg3 )
+      CALL ED_DestroyContState( k2,       ErrStat3, ErrMsg3 )
+      CALL ED_DestroyContState( k3,       ErrStat3, ErrMsg3 )
+      CALL ED_DestroyContState( k4,       ErrStat3, ErrMsg3 )
+      CALL ED_DestroyContState( x_tmp,    ErrStat3, ErrMsg3 )
+
+      CALL ED_DestroyInput(     u_interp, ErrStat3, ErrMsg3 )
+         
+   END SUBROUTINE ExitThisRoutine      
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+         ! local variables
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         
+         CALL ExitThisRoutine(  )                  
+         
+      END IF
+
+   END SUBROUTINE CheckError                    
       
 END SUBROUTINE ED_RK4
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -12912,25 +13297,31 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
 
       ! local variables
-      TYPE(ED_ContinuousStateType)                   :: xdot       ! Continuous state derivs at t
+      TYPE(ED_ContinuousStateType)                   :: xdot        ! Continuous state derivs at t
       TYPE(ED_InputType)                             :: u_interp
          
+      INTEGER(IntKi)                                 :: ErrStat2    ! local error status
+      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! local error message (ErrMsg)
 
+      
       ! Initialize ErrStat
 
       ErrStat = ErrID_None
       ErrMsg  = "" 
       
       ! Allocate the input arrays
-      CALL ED_AllocInput( u_interp, p, ErrStat, ErrMsg )      
+      CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )      
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       
       ! need xdot at t
-      CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t, ErrStat, ErrMsg)
+      CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t, ErrStat2, ErrMsg2)
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
          
-      CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat, ErrMsg )
+      CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
       if (n .le. 2) then
@@ -12940,11 +13331,13 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
             ! Update IC() index so IC(1) is the location of current xdot values.
             ! (this allows us to shift the indices into the array, not copy all of the values)
          OtherState%IC = CSHIFT( OtherState%IC, -1 ) ! circular shift of all values to the right         
-         CALL ED_CopyContState( xdot, OtherState%xdot ( OtherState%IC(1) ), MESH_UPDATECOPY, ErrStat, ErrMsg )   
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL ED_CopyContState( xdot, OtherState%xdot ( OtherState%IC(1) ), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )   
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
 
-         CALL ED_RK4(t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL ED_RK4(t, n, u, utimes, p, x, xd, z, OtherState, ErrStat2, ErrMsg2 )
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
 
       else
 
@@ -12962,14 +13355,14 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
          elseif (OtherState%n .gt. n) then
  
-            ErrStat = ErrID_Fatal
-            ErrMsg = ' Backing up in time is not supported with a multistep method '
+            CALL CheckError( ErrID_Fatal, ' Backing up in time is not supported with a multistep method.')
             RETURN
 
          endif
 
-         CALL ED_CopyContState( xdot, OtherState%xdot ( OtherState%IC(1) ), MESH_UPDATECOPY, ErrStat, ErrMsg )  ! make sure this is most up to date
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL ED_CopyContState( xdot, OtherState%xdot ( OtherState%IC(1) ), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )  ! make sure this is most up to date
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
 
          x%qt  = x%qt  + p%DT24 * ( 55.*OtherState%xdot(OtherState%IC(1))%qt  - 59.*OtherState%xdot(OtherState%IC(2))%qt   &
                                   + 37.*OtherState%xdot(OtherState%IC(3))%qt   - 9.*OtherState%xdot(OtherState%IC(4))%qt )
@@ -12981,10 +13374,56 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
             
       
          ! clean up local variables:
-      CALL ED_DestroyInput( u_interp, ErrStat, ErrMsg )
-         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL ExitThisRoutine()
       
-      
+CONTAINS      
+   !...............................................................................................................................
+   SUBROUTINE ExitThisRoutine()
+   ! This subroutine destroys all the local variables
+   !...............................................................................................................................
+
+         ! local variables
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
+   
+   
+      CALL ED_DestroyContState( xdot,     ErrStat3, ErrMsg3 )
+      CALL ED_DestroyInput(     u_interp, ErrStat3, ErrMsg3 )
+         
+   END SUBROUTINE ExitThisRoutine    
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+         ! local variables
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         
+         CALL ExitThisRoutine( )                  
+         
+      END IF
+
+   END SUBROUTINE CheckError            
+         
 END SUBROUTINE ED_AB4
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
@@ -13023,31 +13462,40 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       ! local variables
 
-      TYPE(ED_InputType)                             :: u_interp        ! Continuous states at t
-      TYPE(ED_ContinuousStateType)                   :: x_pred          ! Continuous states at t
-      TYPE(ED_ContinuousStateType)                   :: xdot_pred       ! Continuous states at t
+      TYPE(ED_InputType)                             :: u_interp    ! Continuous states at t
+      TYPE(ED_ContinuousStateType)                   :: x_pred      ! Continuous states at t
+      TYPE(ED_ContinuousStateType)                   :: xdot_pred   ! Continuous states at t
 
+      INTEGER(IntKi)                                 :: ErrStat2    ! local error status
+      CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! local error message (ErrMsg)
+      
       
       ! Initialize ErrStat
 
       ErrStat = ErrID_None
       ErrMsg  = "" 
 
-      CALL ED_CopyContState(x, x_pred, MESH_NEWCOPY, ErrStat, ErrMsg)
+      CALL ED_CopyContState(x, x_pred, MESH_NEWCOPY, ErrStat2, ErrMsg2)
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
-      CALL ED_AB4( t, n, u, utimes, p, x_pred, xd, z, OtherState, ErrStat, ErrMsg )
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL ED_AB4( t, n, u, utimes, p, x_pred, xd, z, OtherState, ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF ( ErrStat >= AbortErrLev ) RETURN
 
       if (n .gt. 2_IntKi) then
             ! allocate the arrays in u_interp
-         CALL ED_AllocInput( u_interp, p, ErrStat, ErrMsg )      
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )      
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
          
-         CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t + p%dt, ErrStat, ErrMsg)
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL ED_Input_ExtrapInterp(u, utimes, u_interp, t + p%dt, ErrStat2, ErrMsg2)
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
 
-         CALL ED_CalcContStateDeriv(t + p%dt, u_interp, p, x_pred, xd, z, OtherState, xdot_pred, ErrStat, ErrMsg )
-         IF ( ErrStat >= AbortErrLev ) RETURN
+         CALL ED_CalcContStateDeriv(t + p%dt, u_interp, p, x_pred, xd, z, OtherState, xdot_pred, ErrStat2, ErrMsg2 )
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF ( ErrStat >= AbortErrLev ) RETURN
 
          x%qt  = x%qt  + p%DT24 * ( 9. * xdot_pred%qt +  19. * OtherState%xdot(OtherState%IC(1))%qt &
                                                         - 5. * OtherState%xdot(OtherState%IC(2))%qt &
@@ -13066,9 +13514,56 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       
       
          ! clean up local variables:
-      CALL ED_DestroyInput( u_interp, ErrStat, ErrMsg )
-         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL ExitThisRoutine()
       
+CONTAINS      
+   !...............................................................................................................................
+   SUBROUTINE ExitThisRoutine()
+   ! This subroutine destroys all the local variables
+   !...............................................................................................................................
+
+         ! local variables
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
+   
+   
+      CALL ED_DestroyContState( xdot_pred,  ErrStat3, ErrMsg3 )
+      CALL ED_DestroyContState( x_pred,     ErrStat3, ErrMsg3 )
+      CALL ED_DestroyInput(     u_interp,   ErrStat3, ErrMsg3 )               
+      
+   END SUBROUTINE ExitThisRoutine    
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+         ! local variables
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(LEN(Msg))        :: ErrMsg3     ! The error message (ErrMsg)
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrStat = MAX(ErrStat, ErrID)
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         
+         CALL ExitThisRoutine( )                  
+         
+      END IF
+
+   END SUBROUTINE CheckError                 
 
 END SUBROUTINE ED_ABM4
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -13211,7 +13706,9 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
                            '     (Nm^2)        (N)    (kg m)    (kg m)      (m)      (m)'
 
       DO I=1,p%TwrNodes
-         WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, p%HNodesNorm(I), p%HNodes(I)+p%TwrRBHt, p%DHNodes(I), p%MassT(I), &
+!bjj: ask JMJ about this change. was it a bug before? compare with HydroDyn change...         
+!bjj was  WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, p%HNodesNorm(I), p%HNodes(I)+p%TwrRBHt, p%DHNodes(I), p%MassT(I), &
+         WRITE(UnSu,'(I4,3F9.3,F10.3,4ES11.3,2F10.3,2F9.3)')  I, p%HNodesNorm(I), p%HNodes(I)+p%TowerBsHt, p%DHNodes(I), p%MassT(I), &
                                                                  p%StiffTFA(I), p%StiffTSS(I), p%StiffTGJ(I), p%StiffTEA(I),       &
                                                                  p%InerTFA(I), p%InerTSS(I), p%cgOffTFA(I), p%cgOffTSS(I)
       ENDDO ! I
@@ -13222,7 +13719,8 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
       WRITE (UnSu,'(A)')  ' (-)      (-)      (m)      (m)    (kg/m)     (Nm^2)     (Nm^2)'
 
       DO I=1,p%TwrNodes
-         WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, p%HNodesNorm(I), p%HNodes(I) + p%TwrRBHt, p%DHNodes(I), p%MassT(I), &
+!bjj was:         WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, p%HNodesNorm(I), p%HNodes(I) + p%TwrRBHt, p%DHNodes(I), p%MassT(I), &
+         WRITE(UnSu,'(I4,3F9.3,F10.3,2ES11.3)')  I, p%HNodesNorm(I), p%HNodes(I)+p%TowerBsHt, p%DHNodes(I), p%MassT(I), &
                                                     p%StiffTFA(I), p%StiffTSS(I)
       ENDDO ! I
 

@@ -104,13 +104,14 @@ typedef	^	ED_InputFile	ReKi	NcIMUxn	-	-	-	"Downwind distance from the tower-top 
 typedef	^	ED_InputFile	ReKi	NcIMUyn	-	-	-	"Lateral distance from the tower-top to the nacelle IMU"	meters
 typedef	^	ED_InputFile	ReKi	NcIMUzn	-	-	-	"Vertical distance from the tower-top to the nacelle IMU"	meters
 typedef	^	ED_InputFile	ReKi	Twr2Shft	-	-	-	"Vertical distance from the tower-top to the rotor shaft"	meters
-typedef	^	ED_InputFile	ReKi	TowerHt	-	-	-	"Height of tower above ground level"	meters
-typedef	^	ED_InputFile	ReKi	TwrRBHt	-	-	-	"Tower rigid base height"	meters
-typedef	^	ED_InputFile	ReKi	TwrDraft	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection"	meters
+typedef	^	ED_InputFile	ReKi	TowerHt	-	-	-	"Height of tower above ground level [onshore] or MSL [offshore]"	meters
+typedef	^	ED_InputFile	ReKi	TowerBsHt	-	-	-	"Height of tower base above ground level [onshore] or MSL [offshore]"	meters
+#typedef	^	ED_InputFile	ReKi	TwrRBHt	-	-	-	"Tower rigid base height"	meters
+#typedef	^	ED_InputFile	ReKi	TwrDraft	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection"	meters
 typedef	^	ED_InputFile	ReKi	PtfmCMxt	-	-	-	"Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
 typedef	^	ED_InputFile	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
 typedef	^	ED_InputFile	ReKi	PtfmCMzt	-	-	-	"Vertical distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
-typedef	^	ED_InputFile	ReKi	PtfmRef	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point"	meters
+typedef	^	ED_InputFile	ReKi	PtfmRefzt	-	-	-	"Vertical distance from the ground [onshore] or MSL [offshore] to the platform reference point"	meters
 typedef	^	ED_InputFile	ReKi	TipMass	{:}	-	-	"Tip-brake masses"	kg
 typedef	^	ED_InputFile	ReKi	HubMass	-	-	-	"Hub mass"	kg
 typedef	^	ED_InputFile	ReKi	HubIner	-	-	-	"Hub inertia about teeter axis (2-blader) or rotor axis (3-blader)"	"kg m^2"
@@ -571,8 +572,8 @@ typedef	^	ParameterType	ReKi	NacCMyn	-	-	-	"Lateral distance from tower-top to n
 typedef	^	ParameterType	ReKi	NacCMzn	-	-	-	"Vertical distance from tower-top to nacelle CM"
 typedef	^	ParameterType	ReKi	OverHang	-	-	-	"Distance from yaw axis to rotor apex or teeter pin"
 typedef	^	ParameterType	ReKi	ProjArea	-	-	-	"Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft)"
-typedef	^	ParameterType	ReKi	PtfmRef	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the platform reference point"
-typedef	^	ParameterType	ReKi	RefTwrHt	-	-	-	"Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef); that is, RefTwrHt = TowerHt + PtfmRef"
+typedef	^	ParameterType	ReKi	PtfmRefzt	-	-	-	"Vertical distance from the ground [onshore] or MSL [offshore] to the platform reference point"
+typedef	^	ParameterType	ReKi	RefTwrHt	-	-	-	"Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef); that is, RefTwrHt = TowerHt - PtfmRefzt"
 typedef	^	ParameterType	ReKi	RFrlPntxn	-	-	-	"Downwind distance from tower-top to arbitrary point on rotor-furl axis"
 typedef	^	ParameterType	ReKi	RFrlPntyn	-	-	-	"Lateral distance from tower-top to arbitrary point on rotor-furl axis"
 typedef	^	ParameterType	ReKi	RFrlPntzn	-	-	-	"Vertical distance from tower-top to arbitrary point on rotor-furl axis"
@@ -616,8 +617,9 @@ typedef	^	ParameterType	ReKi	TFrlPntyn	-	-	-	"Lateral distance from tower-top to
 typedef	^	ParameterType	ReKi	TFrlPntzn	-	-	-	"Vertical distance from tower-top to arbitrary point on tail-furl axis"
 typedef	^	ParameterType	ReKi	TipRad	-	-	-	"Preconed blade-tip radius"
 typedef	^	ParameterType	ReKi	TowerHt	-	-	-	"Height of tower above ground level"
-typedef	^	ParameterType	ReKi	TwrDraft	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection"
-typedef	^	ParameterType	ReKi	TwrRBHt	-	-	-	"Tower rigid base height"
+typedef	^	ParameterType	ReKi	TowerBsHt	-	-	-	"Height of tower base above ground level [onshore] or MSL [offshore]"	meters
+#typedef	^	ParameterType	ReKi	TwrDraft	-	-	-	"Downward distance from the ground [onshore] or MSL [offshore] to the tower base platform connection"
+#typedef	^	ParameterType	ReKi	TwrRBHt	-	-	-	"Tower rigid base height"
 typedef	^	ParameterType	ReKi	UndSling	-	-	-	"Undersling length"
 typedef	^	ParameterType	IntKi	NumBl	-	-	-	"Number of turbine blades"	-
 typedef	^	ParameterType	ReKi	AxRedTFA	{:}{:}{:}	-	-	"The axial-reduction terms for the fore-aft tower mode shapes"
@@ -768,9 +770,10 @@ typedef	^	ParameterType	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [o
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:
 typedef	^	InputType	MeshType	PlatformPtMesh	-	-	-	"A mesh at the platform reference (point Z), containing force: surge/xi (1), sway/yi (2), and heave/zi (3)-components; and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"	N
+typedef	^	InputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower node (point T); and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components of the portion of the tower moment acting at the current tower node"	N/m
 # Define inputs that are not on a mesh here:
 typedef	^	InputType	ReKi	TwrAddedMass	{:}{:}{:}	-	-	"6-by-6 added mass matrix of the tower elements, per unit length-bjj: place on a mesh" 	"per unit length"
-typedef	^	InputType	ReKi	TwrFt	{:}{:}	-	-	The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower element (point T) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the tower moment acting at the current tower element (body F) / (point T) per "Unit length associated with everything but the QD2T()s"
+#typedef	^	InputType	ReKi	TwrFt	{:}{:}	-	-	The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower element (point T) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the tower moment acting at the current tower element (body F) / (point T) per "Unit length associated with everything but the QD2T()s"
 typedef	^	InputType	ReKi	PtfmAddedMass	{6}{6}	-	-	"Platform added mass matrix"	"kg, kg-m, kg-m^2"
 #typedef	^	InputType	ReKi	PtfmFt	6	-	-	"The surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the platform force at the platform reference (point Z) and the roll/xi (4), pitch/yi (5), and yaw/zi (6)-components of the portion of the platform moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"	N
 typedef	^	InputType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"	radians
@@ -785,6 +788,7 @@ typedef	^	InputType	ReKi	MFAero	{:}{:}	-	-	"The aerodynamic moment per unit leng
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
 typedef	^	OutputType	MeshType	PlatformPtMesh	-	-	-	"Platform reference point positions/orientations/velocities/accelerations"	-
+typedef	^	OutputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with positions/orientations/velocities/accelerations"	-
 # Define outputs that are not on this mesh here:
 typedef	^	OutputType	ReKi	AllOuts	{:}	-	-	"An array holding the value of all of the calculated (not only selected) output channels"	"see spreadsheet"
 typedef	^	OutputType	ReKi	WriteOutput	{:}	-	-	"Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt"

@@ -1,8 +1,8 @@
-------- ELASTODYN V1.00.* INPUT FILE -------------------------------------------
+------- ELASTODYN V1.01.* INPUT FILE -------------------------------------------
 FAST certification Test #12: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and ECD wind. Model properties from "InputData1.5A08V07adm.xls" (from C. Hansen) with bugs removed.  
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
-   3          Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
+          3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
       0.005   DT          - Integration time step (s)
 ---------------------- ENVIRONMENTAL CONDITION ---------------------------------
     9.80665   Gravity     - Gravitational acceleration (m/s^2)
@@ -64,12 +64,11 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   NcIMUzn     - Vertical distance from the tower-top to the nacelle IMU (meters)
        1.61   Twr2Shft    - Vertical distance from the tower-top to the rotor shaft (meters)
       82.39   TowerHt     - Height of tower above ground level [onshore] or MSL [offshore] (meters)
-          0   TwrRBHt     - Tower rigid base height (meters)
-          0   TwrDraft    - Downward distance from the ground level [onshore] or MSL [offshore] to the tower base platform connection (meters)
+          0   TowerBsHt   - Height of tower base above ground level [onshore] or MSL [offshore] (meters)
           0   PtfmCMxt    - Downwind distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
           0   PtfmCMyt    - Lateral distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
          -0   PtfmCMzt    - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
-          0   PtfmRef     - Downward distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
+         -0   PtfmRefzt   - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
 ---------------------- MASS AND INERTIA ----------------------------------------
           0   TipMass(1)  - Tip-brake mass, blade 1 (kg)
           0   TipMass(2)  - Tip-brake mass, blade 2 (kg)
@@ -109,7 +108,7 @@ False         Furling     - Read in additional model properties for furling turb
          10   TwrNodes    - Number of tower nodes used for analysis (-)
 "Baseline_Tower.dat"    TwrFile     - Name of file containing tower properties (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
-True          SumPrint    - Print summary data to "<RootName>.fsm" (flag)
+True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   OutFile     - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)
 True          TabDelim    - Use tab delimiters in text tabular output file? (flag) (currently unused)
 "ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!] (currently unused)
@@ -120,25 +119,25 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
           4   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
           2,          3,          4,          8    BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
               OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-OoPDefl3                    - Blade-3 OoP and IP tip deflections
-IPDefl3                     - Blade-3 OoP and IP tip deflections
-TipALxb3                    - Blade-3 flapwise and edgweise tip accelerations
-TipALyb3                    - Blade-3 flapwise and edgweise tip accelerations
-Spn4ALxb1                   - Blade-1 Node-8 flapwise and edgewise accelerations
-Spn4ALyb1                   - Blade-1 Node-8 flapwise and edgewise accelerations
-BldPitch3                   - Blade-3 pitch angle
-RotAccel                    - Rotor, LSS, and HSS rotation accelerations
-LSSGagA                     - Rotor, LSS, and HSS rotation accelerations
-HSShftA                     - Rotor, LSS, and HSS rotation accelerations
-RootFxb3                    - Blade-3 root flapwise and edgewise shears
-RootFyb3                    - Blade-3 root flapwise and edgewise shears
-RootMEdg3                   - Blade-3 root edgewise and flapwise moments
-RootMFlp3                   - Blade-3 root edgewise and flapwise moments
-LSShftFya                   - Rotating LSS shear forces
-LSShftFza                   - Rotating LSS shear forces
-YawBrFxp                    - FA and SS tower-top shear forces wrt unyawed nacelle
-YawBrFyp                    - FA and SS tower-top shear forces wrt unyawed nacelle
-TwrBsFxt                    - Tower-base FA and SS shear forces
-TwrBsFyt                    - Tower-base FA and SS shear forces
+"OoPDefl3"                - Blade-3 OoP and IP tip deflections
+"IPDefl3"                 - Blade-3 OoP and IP tip deflections
+"TipALxb3"                - Blade-3 flapwise and edgweise tip accelerations
+"TipALyb3"                - Blade-3 flapwise and edgweise tip accelerations
+"Spn4ALxb1"               - Blade-1 Node-8 flapwise and edgewise accelerations
+"Spn4ALyb1"               - Blade-1 Node-8 flapwise and edgewise accelerations
+"BldPitch3"               - Blade-3 pitch angle
+"RotAccel"                - Rotor, LSS, and HSS rotation accelerations
+"LSSGagA"                 - Rotor, LSS, and HSS rotation accelerations
+"HSShftA"                 - Rotor, LSS, and HSS rotation accelerations
+"RootFxb3"                - Blade-3 root flapwise and edgewise shears
+"RootFyb3"                - Blade-3 root flapwise and edgewise shears
+"RootMEdg3"               - Blade-3 root edgewise and flapwise moments
+"RootMFlp3"               - Blade-3 root edgewise and flapwise moments
+"LSShftFya"               - Rotating LSS shear forces
+"LSShftFza"               - Rotating LSS shear forces
+"YawBrFxp"                - FA and SS tower-top shear forces wrt unyawed nacelle
+"YawBrFyp"                - FA and SS tower-top shear forces wrt unyawed nacelle
+"TwrBsFxt"                - Tower-base FA and SS shear forces
+"TwrBsFyt"                - Tower-base FA and SS shear forces
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

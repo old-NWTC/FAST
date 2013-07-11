@@ -1,8 +1,8 @@
-------- ELASTODYN V1.00.* INPUT FILE -------------------------------------------
+------- ELASTODYN V1.01.* INPUT FILE -------------------------------------------
 FAST certification Test #06: AOC 15/50 with many DOFs with gen start loss of grid and tip-brake shutdown. Many parameters are pure fiction.  
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
-   3          Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
+          3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
       0.005   DT          - Integration time step (s)
 ---------------------- ENVIRONMENTAL CONDITION ---------------------------------
     9.80665   Gravity     - Gravitational acceleration (m/s^2)
@@ -64,12 +64,11 @@ False         PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   NcIMUzn     - Vertical distance from the tower-top to the nacelle IMU (meters)
         0.6   Twr2Shft    - Vertical distance from the tower-top to the rotor shaft (meters)
        24.4   TowerHt     - Height of tower above ground level [onshore] or MSL [offshore] (meters)
-          0   TwrRBHt     - Tower rigid base height (meters)
-          0   TwrDraft    - Downward distance from the ground level [onshore] or MSL [offshore] to the tower base platform connection (meters)
+          0   TowerBsHt   - Height of tower base above ground level [onshore] or MSL [offshore] (meters)
           0   PtfmCMxt    - Downwind distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
           0   PtfmCMyt    - Lateral distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
          -0   PtfmCMzt    - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform CM (meters)
-          0   PtfmRef     - Downward distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
+         -0   PtfmRefzt   - Vertical distance from the ground level [onshore] or MSL [offshore] to the platform reference point (meters)
 ---------------------- MASS AND INERTIA ----------------------------------------
         5.9   TipMass(1)  - Tip-brake mass, blade 1 (kg)
         5.9   TipMass(2)  - Tip-brake mass, blade 2 (kg)
@@ -109,7 +108,7 @@ False         Furling     - Read in additional model properties for furling turb
          11   TwrNodes    - Number of tower nodes used for analysis (-)
 "AOC_Tower.dat"    TwrFile     - Name of file containing tower properties (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
-True          SumPrint    - Print summary data to "<RootName>.fsm" (flag)
+True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   OutFile     - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)
 True          TabDelim    - Use tab delimiters in text tabular output file? (flag) (currently unused)
 "ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!] (currently unused)
@@ -120,27 +119,27 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
           5   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
           2,          4,          6,          8,          9    BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
               OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-TipDxb3                     - Blade 3 flapwise and edgewise tip deflections
-TipDyb3                     - Blade 3 flapwise and edgewise tip deflections
-TipRDxb3                    - Blade 3 roll and pitch tip deflections
-TipRDyb3                    - Blade 3 roll and pitch tip deflections
-Spn5ALxb1                   - Blade 1 Gage #5 (Node 9) local flapwise and edgewise accelerations
-Spn5ALyb1                   - Blade 1 Gage #5 (Node 9) local flapwise and edgewise accelerations
-RotSpeed                    - Rotor, LSS (GBox side), and HSS speed
-LSSGagV                     - Rotor, LSS (GBox side), and HSS speed
-HSShftV                     - Rotor, LSS (GBox side), and HSS speed
-RootFxb3                    - Blade 3 root flapwise and edgewise shear forces
-RootFyb3                    - Blade 3 root flapwise and edgewise shear forces
-RootMEdg3                   - Blade 3 root edgewise and flapwise bending moments
-RootMFlp3                   - Blade 3 root edgewise and flapwise bending moments
-Spn4MLxb1                   - Blade 1 Gage #4 (Node 8) local edgewise and flapwise bending moments
-Spn4MLyb1                   - Blade 1 Gage #4 (Node 8) local edgewise and flapwise bending moments
-LSSGagFxs                   - Non-rotating LSS thrust and shear forces
-LSSGagFys                   - Non-rotating LSS thrust and shear forces
-LSSGagFzs                   - Non-rotating LSS thrust and shear forces
-LSShftTq                    - LSS, HSS, and generator torque
-HSShftTq                    - LSS, HSS, and generator torque
-LSShftPwr                   - LSS, HSS, and generator power
-HSShftPwr                   - LSS, HSS, and generator power
+"TipDxb3"                 - Blade 3 flapwise and edgewise tip deflections
+"TipDyb3"                 - Blade 3 flapwise and edgewise tip deflections
+"TipRDxb3"                - Blade 3 roll and pitch tip deflections
+"TipRDyb3"                - Blade 3 roll and pitch tip deflections
+"Spn5ALxb1"               - Blade 1 Gage #5 (Node 9) local flapwise and edgewise accelerations
+"Spn5ALyb1"               - Blade 1 Gage #5 (Node 9) local flapwise and edgewise accelerations
+"RotSpeed"                - Rotor, LSS (GBox side), and HSS speed
+"LSSGagV"                 - Rotor, LSS (GBox side), and HSS speed
+"HSShftV"                 - Rotor, LSS (GBox side), and HSS speed
+"RootFxb3"                - Blade 3 root flapwise and edgewise shear forces
+"RootFyb3"                - Blade 3 root flapwise and edgewise shear forces
+"RootMEdg3"               - Blade 3 root edgewise and flapwise bending moments
+"RootMFlp3"               - Blade 3 root edgewise and flapwise bending moments
+"Spn4MLxb1"               - Blade 1 Gage #4 (Node 8) local edgewise and flapwise bending moments
+"Spn4MLyb1"               - Blade 1 Gage #4 (Node 8) local edgewise and flapwise bending moments
+"LSSGagFxs"               - Non-rotating LSS thrust and shear forces
+"LSSGagFys"               - Non-rotating LSS thrust and shear forces
+"LSSGagFzs"               - Non-rotating LSS thrust and shear forces
+"LSShftTq"                - LSS, HSS, and generator torque
+"HSShftTq"                - LSS, HSS, and generator torque
+"LSShftPwr"               - LSS, HSS, and generator power
+"HSShftPwr"               - LSS, HSS, and generator power
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

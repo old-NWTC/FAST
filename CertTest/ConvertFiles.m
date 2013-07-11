@@ -48,7 +48,19 @@ for i= 8:17 %1:(17+5) %17+(1:5) %1:17 %
                        
 end
 return;
+%%
+oldDir      = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\CertTest';
+newDir      = '.';
 
+for i=1:22
+   
+    baseFileName  = ['Test' num2str(i,'%02.0f') ];
+    inputfile = [oldDir filesep baseFileName '.fst'];      
+    
+    
+    ConvertFAST8_0to1(inputfile,newDir);
+    
+end
 
 
 

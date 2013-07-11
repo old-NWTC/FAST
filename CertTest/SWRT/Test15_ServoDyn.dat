@@ -9,9 +9,9 @@ False         Echo         - Echo input data to <RootName>.ech (flag)
      9999.9   TPitManS(1)  - Time to start override pitch maneuver for blade 1 and end standard pitch control (s)
      9999.9   TPitManS(2)  - Time to start override pitch maneuver for blade 2 and end standard pitch control (s)
      9999.9   TPitManS(3)  - Time to start override pitch maneuver for blade 3 and end standard pitch control (s) [unused for 2 blades]
-   2          PitManRat(1) - Pitch rate at which override pitch maneuver heads toward final pitch angle for blade 1 (deg/s)
-   2          PitManRat(2) - Pitch rate at which override pitch maneuver heads toward final pitch angle for blade 2 (deg/s)
-   2          PitManRat(3) - Pitch rate at which override pitch maneuver heads toward final pitch angle for blade 3 (deg/s) [unused for 2 blades]
+          2   PitManRat(1) - Pitch rate at which override pitch maneuver heads toward final pitch angle for blade 1 (deg/s)
+          2   PitManRat(2) - Pitch rate at which override pitch maneuver heads toward final pitch angle for blade 2 (deg/s)
+          2   PitManRat(3) - Pitch rate at which override pitch maneuver heads toward final pitch angle for blade 3 (deg/s) [unused for 2 blades]
       11.44   BlPitchF(1)  - Blade 1 final pitch for pitch maneuvers (degrees)
       11.44   BlPitchF(2)  - Blade 2 final pitch for pitch maneuvers (degrees)
       11.44   BlPitchF(3)  - Blade 3 final pitch for pitch maneuvers (degrees) [unused for 2 blades]
@@ -55,29 +55,29 @@ True          GenTiStp     - Method to stop the generator {T: timed using TimGen
           0   YawSpr       - Nacelle-yaw spring constant (N-m/rad)
           0   YawDamp      - Nacelle-yaw damping constant (N-m/(rad/s))
      9999.9   TYawManS     - Time to start override yaw maneuver and end standard yaw control (s)
-   2          YawManRat    - Yaw maneuver rate (in absolute value) (deg/s)
+          2   YawManRat    - Yaw maneuver rate (in absolute value) (deg/s)
           0   NacYawF      - Final yaw angle for override yaw maneuvers (degrees)
 ---------------------- BLADED INTERFACE ----------------------------------------
-"unused"      DLL_FileName - Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format (-) [used only with DLL Interface]
-0.0           NacYaw_North - Reference yaw angle of the nacelle when the upwind end points due North (deg) [used only with DLL Interface]
-0             Ptch_Cntrl   - Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} (switch) [used only with DLL Interface]
-0.0           Ptch_SetPnt  - Record  5: Below-rated pitch angle set-point (deg) [used only with DLL Interface]
-0.0           Ptch_Min     - Record  6: Minimum pitch angle (deg) [used only with DLL Interface]
-0.0           Ptch_Max     - Record  7: Maximum pitch angle (deg) [used only with DLL Interface]
-0.0           PtchRate_Min - Record  8: Minimum pitch rate (most negative value allowed) (deg/s) [used only with DLL Interface]
-0.0           PtchRate_Max - Record  9: Maximum pitch rate  (deg/s) [used only with DLL Interface]
-0.0           Gain_OM      - Record 16: Optimal mode gain (Nm/(rad/s)^2) [used only with DLL Interface]
-0.0           GenSpd_MinOM - Record 17: Minimum generator speed (rpm) [used only with DLL Interface]
-0.0           GenSpd_MaxOM - Record 18: Optimal mode maximum speed (rpm) [used only with DLL Interface]
-0.0           GenSpd_Dem   - Record 19: Demanded generator speed above rated (rpm) [used only with DLL Interface]
-0.0           GenTrq_Dem   - Record 22: Demanded generator torque above rated (Nm) [used only with DLL Interface]
-0.0           GenPwr_Dem   - Record 13: Demanded power (W) [used only with DLL Interface]
+"unused"      DLL_FileName - Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format (-) [used only with Bladed Interface]
+          0   NacYaw_North - Reference yaw angle of the nacelle when the upwind end points due North (deg) [used only with Bladed Interface]
+          0   Ptch_Cntrl   - Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} (switch) [used only with Bladed Interface]
+          0   Ptch_SetPnt  - Record  5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]
+          0   Ptch_Min     - Record  6: Minimum pitch angle (deg) [used only with Bladed Interface]
+          0   Ptch_Max     - Record  7: Maximum pitch angle (deg) [used only with Bladed Interface]
+          0   PtchRate_Min - Record  8: Minimum pitch rate (most negative value allowed) (deg/s) [used only with Bladed Interface]
+          0   PtchRate_Max - Record  9: Maximum pitch rate  (deg/s) [used only with Bladed Interface]
+          0   Gain_OM      - Record 16: Optimal mode gain (Nm/(rad/s)^2) [used only with Bladed Interface]
+          0   GenSpd_MinOM - Record 17: Minimum generator speed (rpm) [used only with Bladed Interface]
+          0   GenSpd_MaxOM - Record 18: Optimal mode maximum speed (rpm) [used only with Bladed Interface]
+          0   GenSpd_Dem   - Record 19: Demanded generator speed above rated (rpm) [used only with Bladed Interface]
+          0   GenTrq_Dem   - Record 22: Demanded generator torque above rated (Nm) [used only with Bladed Interface]
+          0   GenPwr_Dem   - Record 13: Demanded power (W) [used only with Bladed Interface]
 ---------------------- BLADED INTERFACE TORQUE-SPEED LOOK-UP TABLE -------------
-0             DLL_NumTrq   - Record 26: No. of points in torque-speed look-up table {0 = none and use the optimal mode parameters; nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0} (-) [used only with DLL Interface]
+          0   DLL_NumTrq   - Record 26: No. of points in torque-speed look-up table {0 = none and use the optimal mode parameters; nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0} (-) [used only with Bladed Interface]
  GenSpd_TLU   GenTrq_TLU
  (rpm)          (Nm)
 ---------------------- OUTPUT --------------------------------------------------
-True          SumPrint     - Print summary data to <RootName>.fsm (flag) (currently unused)
+True          SumPrint     - Print summary data to <RootName>.sum (flag) (currently unused)
           1   OutFile      - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)
 True          TabDelim     - Use tab delimiters in text tabular output file? (flag) (currently unused)
 "ES10.3E2"    OutFmt       - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string) (currently unused)

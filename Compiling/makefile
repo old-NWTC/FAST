@@ -186,7 +186,7 @@ fftpack.obj: fftpack.f
 $(SYS_FILE).obj:                   $(PREC).obj
 NWTC_IO.obj:                       $(SYS_FILE).obj
 NWTC_Num.obj:                      NWTC_IO.obj
-ModMesh_Types.obj:                 NWTC_IO.obj
+ModMesh_Types.obj:                 NWTC_Num.obj
 ModMesh.obj:                       ModMesh_Types.obj
 NWTC_Library.obj:                  NWTC_Num.obj ModMesh.obj
 

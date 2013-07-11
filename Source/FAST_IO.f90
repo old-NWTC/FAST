@@ -1250,7 +1250,9 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD )
    !   u_ED%TwrFT(4:6,J)        = y_UsrTwr%Moment(:,J)
    !ELSE
       u_ED%TwrAddedMass = 0.0_ReKi
-      u_ED%TwrFT        = 0.0_ReKi
+!      u_ED%TwrFT        = 0.0_ReKi
+      u_ED%TowerLn2Mesh%Force  = 0.0_ReKi
+      u_ED%TowerLn2Mesh%Moment = 0.0_ReKi
    !END IF
 
    
@@ -1270,12 +1272,18 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD )
       ! ED inputs from HydroDyn
 
    IF ( p_FAST%CompHydro ) THEN
+      
       IF ( HD_TwrNodes ) THEN !SubDyn
+         
          DO J=1,p_ED%TwrNodes
+            
+            u_ED%TowerLn2Mesh%Force( :,J) = u_ED%TowerLn2Mesh%Force( :,J) + HD_AllLoads%Substructure(J)%Force
+            u_ED%TowerLn2Mesh%Moment(:,J) = u_ED%TowerLn2Mesh%Moment(:,J) + HD_AllLoads%Substructure(J)%Moment
+
+            
             u_ED%TwrAddedMass(:,:,J) = u_ED%TwrAddedMass(:,:,J) + HD_AllLoads%Substructure(J)%AddedMass
-            u_ED%TwrFT(1:3,J)        = u_ED%TwrFT(1:3,J)        + HD_AllLoads%Substructure(J)%Force
-            u_ED%TwrFT(4:6,J)        = u_ED%TwrFT(4:6,J)        + HD_AllLoads%Substructure(J)%Moment
          END DO
+         
       ELSE ! HydroDyn; floating
 !         CALL Transfer_Point_to_Point( )
          u_ED%PlatformPtMesh%Force(:,1)  = u_ED%PlatformPtMesh%Force(:,1)  + HD_AllLoads%Substructure(1)%Force
@@ -1385,28 +1393,20 @@ END SUBROUTINE SrvD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 
 !====================================================================================================
-SUBROUTINE HD_InputSolve(  y_ed, ErrStat, ErrMsg, p_ed, x_ED, OtherSt_ED  )
+SUBROUTINE HD_InputSolve(  y_ed, ErrStat, ErrMsg  )
 ! THIS ROUTINE IS A HACK TO GET THE OUTPUTS FROM ELASTODYN INTO HYDRODYN. IT WILL BE REPLACED WHEN THIS CODE LINKS WITH 
 ! HYDRODYN IN THE NEW FRAMEWORK
 !,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-use ElastoDyn_Parameters   
-   
+  
 
       ! Passed variables
    !TYPE(HD_InputType),          INTENT(IN)   :: u_hd             ! The inputs for the hydrodynamics dynamics module
    TYPE(ED_OutputType),         INTENT(IN)   :: y_ed              ! The outputs of the structural dynamics module
    INTEGER(IntKi)                            :: ErrStat           ! Error status of the operation
    CHARACTER(*)                              :: ErrMsg            ! Error message if ErrStat /= ErrID_None
-
    
-!bjj: these will be removed when mesh for tower is implemented in ElastoDyn   
-   TYPE(ED_ParameterType),      INTENT(IN)   :: p_ed                         ! The parameters of the structural dynamics module
-   TYPE(ED_ContinuousStateType),INTENT(IN)   :: x_ED                         ! The structural dynamics module's continuous states
-   TYPE(ED_OtherStateType),     INTENT(IN)   :: OtherSt_ED                   ! Other State data type for Structural dynamics module
-   
-   
-
-   INTEGER(IntKi)               :: J                                               ! Loops through nodes / elements.
+       !local variables:
+   INTEGER(IntKi)                            :: J                 ! Loops through nodes / elements.
      
       !----------------------------------------------------------------------------------------------------
       ! Map ED outputs to HydroDyn inputs
@@ -1418,16 +1418,14 @@ use ElastoDyn_Parameters
 
             ! Set the tower markers required for HydroDyn  (note this is for only the tower loading per unit length (not platform point source) !!!!!
 ! SubDyn:
-         DO J = 1,p_ED%TwrNodes  ! Loop through the tower nodes / elements
-            HD_AllMarkers%Substructure(J)%Position       = (/ OtherSt_ED%RtHS%rT( J,1), -1.*OtherSt_ED%RtHS%rT( J,3),&
-                                                               OtherSt_ED%RtHS%rT( J,2) - p_ED%PtfmRef /)
-
-            CALL SmllRotTrans( 'Tower', OtherSt_ED%RtHS%AngPosEF(J,1), -1.*OtherSt_ED%RtHS%AngPosEF(J,3), OtherSt_ED%RtHS%AngPosEF(J,2), &
-                                          HD_AllMarkers%Substructure(J)%Orientation, errstat=ErrStat, errmsg=ErrMsg )
-            IF ( ErrStat /= ErrID_None ) RETURN
-
-            HD_AllMarkers%Substructure(J)%TranslationVel = (/ OtherSt_ED%RtHS%LinVelET(J,1), -1.*OtherSt_ED%RtHS%LinVelET(J,3), OtherSt_ED%RtHS%LinVelET(J,2) /)
-            HD_AllMarkers%Substructure(J)%RotationVel    = (/ OtherSt_ED%RtHS%AngVelEF(J,1), -1.*OtherSt_ED%RtHS%AngVelEF(J,3), OtherSt_ED%RtHS%AngVelEF(J,2) /)
+         DO J = 1,y_ED%TowerLn2Mesh%NNodes  ! Loop through the tower nodes / elements
+            HD_AllMarkers%Substructure(J)%Position       = y_ED%TowerLn2Mesh%TranslationDisp(:,J)
+            HD_AllMarkers%Substructure(J)%TranslationVel = y_ED%TowerLn2Mesh%TranslationVel(:,J)
+            HD_AllMarkers%Substructure(J)%RotationVel    = y_ED%TowerLn2Mesh%RotationVel(:,J)
+            HD_AllMarkers%Substructure(J)%Orientation    = y_ED%TowerLn2Mesh%Orientation(:,:,J)
+            
+         !also available: do we need the accelerations, too?
+            
          END DO
 
       ELSE
@@ -1500,9 +1498,9 @@ SUBROUTINE AD_InputSolve( p, x, OtherState, u, y, ErrStat, ErrMsg )
             rPAerCen     = OtherState%RtHS%rPQ + OtherState%RtHS%rQS(K,J,:) + rSAerCen         ! Position vector from teeter pin (point P)  to blade analysis node aerodynamic center.
             rAerCen      =                       OtherState%RtHS%rS (K,J,:) + rSAerCen         ! Position vector from inertial frame origin to blade analysis node aerodynamic center.
 
-            ADAeroMarkers%Blade(J,K)%Position(1)      =     rAerCen(1)              ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the xi ( z1) direction
-            ADAeroMarkers%Blade(J,K)%Position(2)      = -1.*rAerCen(3)              ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the yi (-z3) direction
-            ADAeroMarkers%Blade(J,K)%Position(3)      =     rAerCen(2) - p%PtfmRef  ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
+            ADAeroMarkers%Blade(J,K)%Position(1)      =     rAerCen(1)                ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the xi ( z1) direction
+            ADAeroMarkers%Blade(J,K)%Position(2)      = -1.*rAerCen(3)                ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the yi (-z3) direction
+            ADAeroMarkers%Blade(J,K)%Position(3)      =     rAerCen(2) + p%PtfmRefzt  ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
 
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
    END DO !K = 1,p%NumBl
@@ -1513,19 +1511,19 @@ SUBROUTINE AD_InputSolve( p, x, OtherState, u, y, ErrStat, ErrMsg )
       ! the hub position should use rQ instead of rP, but the current version of AeroDyn treats
       ! teeter deflections like blade deflections:
 
-   ADInterfaceComponents%Hub%Position  = (/ OtherState%RtHS%rP(1), -1.*OtherState%RtHS%rP(3), OtherState%RtHS%rP(2) - p%PtfmRef /)
+   ADInterfaceComponents%Hub%Position  = (/ OtherState%RtHS%rP(1), -1.*OtherState%RtHS%rP(3), OtherState%RtHS%rP(2) + p%PtfmRefzt /)
 
 
       ! Rotor furl position should be rP instead of rV, but AeroDyn needs this for the
       ! HubVDue2Yaw calculation:
 
-   ADInterfaceComponents%RotorFurl%Position(:) = (/ OtherState%RtHS%rV(1), -1.*OtherState%RtHS%rV(3), OtherState%RtHS%rV(2) - p%PtfmRef /)
+   ADInterfaceComponents%RotorFurl%Position(:) = (/ OtherState%RtHS%rV(1), -1.*OtherState%RtHS%rV(3), OtherState%RtHS%rV(2) + p%PtfmRefzt /)
 
-   ADInterfaceComponents%Nacelle%Position(:)   = (/ OtherState%RtHS%rO(1), -1.*OtherState%RtHS%rO(3), OtherState%RtHS%rO(2) - p%PtfmRef /)
+   ADInterfaceComponents%Nacelle%Position(:)   = (/ OtherState%RtHS%rO(1), -1.*OtherState%RtHS%rO(3), OtherState%RtHS%rO(2) + p%PtfmRefzt /)
 
       ! Tower base position should be rT(0) instead of rZ, but AeroDyn needs this for
       ! the HubVDue2Yaw calculation:
-   ADInterfaceComponents%Tower%Position(:)     = (/ OtherState%RtHS%rZ(1), -1.*OtherState%RtHS%rZ(3), OtherState%RtHS%rZ(2) - p%PtfmRef /)
+   ADInterfaceComponents%Tower%Position(:)     = (/ OtherState%RtHS%rZ(1), -1.*OtherState%RtHS%rZ(3), OtherState%RtHS%rZ(2) + p%PtfmRefzt /)
 
 
    !-------------------------------------------------------------------------------------------------
