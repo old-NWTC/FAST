@@ -697,7 +697,8 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
          
    END DO    
    
-   CALL WrScr( ' Heading of the '//TRIM(FAST_Ver%Name)//' input file: '//TRIM( p%FTitle ) )      
+   CALL WrScr( ' Heading of the '//TRIM(FAST_Ver%Name)//' input file: ' )      
+   CALL WrScr( '   '//TRIM( p%FTitle ) )
                                    
    
       ! AbortLevel - Error level when simulation should abort:

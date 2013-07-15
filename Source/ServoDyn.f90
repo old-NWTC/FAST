@@ -940,7 +940,8 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       
    END DO    
 
-   CALL WrScr( ' Heading of the '//TRIM(SrvD_Ver%Name)//' input file: '//TRIM( FTitle ) )      
+   CALL WrScr( ' Heading of the '//TRIM(SrvD_Ver%Name)//' input file: ' )      
+   CALL WrScr( '   '//TRIM( FTitle ) )
    
    
       ! DT - Communication interval for controllers (s):

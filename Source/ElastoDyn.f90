@@ -6845,7 +6845,8 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
 
    END DO
 
-   CALL WrScr( ' Heading of the '//TRIM(ED_Ver%Name)//' input file: '//TRIM( FTitle ) )
+   CALL WrScr( ' Heading of the '//TRIM(ED_Ver%Name)//' input file: ' )
+   CALL WrScr( '   '//TRIM( FTitle ) )
 
       ! Method - Integration method for loose coupling
    CALL ReadVar( UnIn, InputFile, InputFileData%method, "Method", "Requested integration method for ElastoDyn {1: RK4, 2: AB4, or 3: ABM4}", ErrStat2, ErrMsg2, UnEc)
