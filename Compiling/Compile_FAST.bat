@@ -31,6 +31,7 @@ SET COMPOPTS=/threads  /O2 /inline:speed /traceback /Qzero /Qsave /real_size:32 
 rem SET LINKOPTS=/link /stack:64000000
 SET LINKOPTS=/link
 
+IF "%COMPUTERNAME%"=="BJONKMAN-23080S" GOTO BJONKMAN-23080S
 
 
 REM ----------------------------------------------------------------------------
@@ -54,9 +55,24 @@ SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirec
 
 SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 
+GOTO :SourceFiles
+REM ----------------------------------------------------------------------------
+REM These paths are for Bonnie Jonkman; other users should modify the paths above
+
+:BJONKMAN-23080S
+SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\trunk\source
+SET ED_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
+SET SrvD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
+SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\AeroDyn
+SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\InflowWind
+SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\HydroDyn
+
+SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
+
 REM ----------------------------------------------------------------------------
 REM -------------------- LIST OF ALL SOURCE FILES ------------------------------
 REM ----------------------------------------------------------------------------
+:SourceFiles
 
 SET NWTC_Files=
 SET NWTC_Files=%NWTC_Files%  "%NWTC_Lib_Loc%\SingPrec.f90"

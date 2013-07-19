@@ -1313,7 +1313,6 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD, y_HD, MeshMapData, ErrStat
       CALL Transfer_Point_to_Point( y_HD%WAMIT%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat, ErrMsg )
          CALL CheckError( ErrStat, ErrMsg )
          IF (ErrStat >= AbortErrLev) RETURN
-      ! TODO: I Think the signs are wrong on the moments after the mapping. But the PRPs for ElastoDyn and HD are at the same location, so do nothing
 
       u_ED%PlatformPtMesh%Force  = u_ED%PlatformPtMesh%Force  + u_mapped%Force
       u_ED%PlatformPtMesh%Moment = u_ED%PlatformPtMesh%Moment + u_mapped%Moment
@@ -1328,11 +1327,7 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD, y_HD, MeshMapData, ErrStat
          CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_ED_P, ErrStat, ErrMsg )
             CALL CheckError( ErrStat, ErrMsg )
             IF (ErrStat >= AbortErrLev) RETURN
-!>>>>>>>>>>>>>>>>
-         ! TODO: I Think the signs are wrong on the moments after the mapping. Switch for now
-               u_mapped%Moment(1,1) = -u_mapped%Moment(1,1)
-               u_mapped%Moment(2,1) = -u_mapped%Moment(2,1)
-!<<<<<<<<<<<<<
+            
          u_ED%PlatformPtMesh%Force  = u_ED%PlatformPtMesh%Force  + u_mapped%Force
          u_ED%PlatformPtMesh%Moment = u_ED%PlatformPtMesh%Moment + u_mapped%Moment
 
@@ -1341,12 +1336,7 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD, y_HD, MeshMapData, ErrStat
          CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_ED_P, ErrStat, ErrMsg )
             CALL CheckError( ErrStat, ErrMsg )
             IF (ErrStat >= AbortErrLev) RETURN
-!>>>>>>>>>>>>>>>>
-         ! TODO: I Think the signs are wrong on the moments after the mapping. Switch for now
-         u_mapped%Moment(1,1) = -u_mapped%Moment(1,1)
-         u_mapped%Moment(2,1) = -u_mapped%Moment(2,1)
-!<<<<<<<<<<<<<
-
+ 
          u_ED%PlatformPtMesh%Force  = u_ED%PlatformPtMesh%Force  + u_mapped%Force
          u_ED%PlatformPtMesh%Moment = u_ED%PlatformPtMesh%Moment + u_mapped%Moment
          !
@@ -1392,7 +1382,7 @@ CONTAINS
          !.........................................................................................................................
          IF ( ErrStat >= AbortErrLev ) THEN
             CALL MeshDestroy ( u_mapped, ErrStat3, ErrMsg3 )
-            IF (ErrStat /= ErrID_None) CALL WrScr(' ED_InputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
+            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_InputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
          END IF
 
       END IF
@@ -1498,8 +1488,7 @@ END SUBROUTINE SrvD_InputSolve
 !====================================================================================================
 SUBROUTINE HD_InputSolve(  p_ed, x_ED, OtherSt_ED, u_ED, y_ED, u_HD, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for HydroDyn.
-! HYDRODYN IN THE NEW FRAMEWORK
-!,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+!..................................................................................................................................
 
       ! Passed variables
    TYPE(ED_InputType),          INTENT(IN)    :: u_ED                         ! The inputs for the structural dynamics module
@@ -1549,9 +1538,7 @@ SUBROUTINE HD_InputSolve(  p_ed, x_ED, OtherSt_ED, u_ED, y_ED, u_HD, MeshMapData
 
          CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_mapped, MeshMapData%ED_P_2_HD_W_P, ErrStat, ErrMsg )
 
-!bjj: if we're just going to copy the meshes afterwards, we don't need to create a new mesh for the transfer
-! the new mesh should only be used if we need to sum forces/moments or some other such thing.
-!We could do this without all the extra meshcopy/destroy
+!bjj: We could do this without all the extra meshcopy/destroy because this input is only from one mesh
 !        CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_HD%WAMIT%Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat, ErrMsg )
 
          CALL MeshCopy ( SrcMesh   = u_mapped            &
@@ -1561,8 +1548,8 @@ SUBROUTINE HD_InputSolve(  p_ed, x_ED, OtherSt_ED, u_ED, y_ED, u_HD, MeshMapData
                        , ErrMess  = ErrMsg               )
 
 
-         u_HD%WAMIT%Mesh%Orientation(:,:,1)    =  y_ED%PlatformPtMesh%Orientation(:,:,1)  ! TODO: Orientations are not dealt with in the transfer, yet 6/26/13 GJH
-
+         !u_HD%WAMIT%Mesh%Orientation(:,:,1)    =  y_ED%PlatformPtMesh%Orientation(:,:,1)  ! TODO: Orientations are not dealt with in the transfer, yet 6/26/13 GJH
+         !
 
          CALL MeshDestroy ( u_mapped, ErrStat, ErrMsg )
 
@@ -1586,11 +1573,6 @@ SUBROUTINE HD_InputSolve(  p_ed, x_ED, OtherSt_ED, u_ED, y_ED, u_HD, MeshMapData
                      , ErrStat  = ErrStat              &
                      , ErrMess  = ErrMsg               )
 
-               ! TODO: Orientations are not dealt with in the transfer, yet 6/26/13 GJH
-            DO J=1,u_HD%Morison%LumpedMesh%NNodes
-               u_HD%Morison%LumpedMesh%Orientation(:,:,J)      =  y_ED%PlatformPtMesh%Orientation(:,:,1)
-            END DO
-
             CALL MeshDestroy ( u_mapped, ErrStat, ErrMsg )
 
 
@@ -1609,11 +1591,6 @@ SUBROUTINE HD_InputSolve(  p_ed, x_ED, OtherSt_ED, u_ED, y_ED, u_HD, MeshMapData
                      , CtrlCode = MESH_UPDATECOPY             &
                      , ErrStat  = ErrStat              &
                      , ErrMess  = ErrMsg               )
-
-               ! TODO: Orientations are not dealt with in the transfer, yet 6/26/13 GJH
-            DO J=1,u_HD%Morison%DistribMesh%NNodes
-               u_HD%Morison%DistribMesh%Orientation(:,:,J)      =  y_ED%PlatformPtMesh%Orientation(:,:,1)
-            END DO
 
             CALL MeshDestroy ( u_mapped       &
                     , ErrStat  = ErrStat         &
