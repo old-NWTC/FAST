@@ -13,7 +13,8 @@ TRUE           Echo           - Echo the input file data (flag)
    5.0         WaveHs         - Significant wave height of incident waves (meters) [used only when WaveMod=1 or 2]
   12.4         WaveTp         - Peak spectral period of incident waves (sec) [used only when WaveMod=1 or 2]
 DEFAULT        WavePkShp      - Peak shape parameter of incident wave spectrum (-) or DEFAULT (unquoted string) [used only when WaveMod=2] [use 1.0 for Pierson-Moskowitz]
- 500.0         WaveCtOff      - Cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s).  [used only when WaveMod=2]
+   0.0         WvLowCOff      - Low Cut-off frequency or lowerfrequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s).  [used only when WaveMod=2,3,4]
+ 500.0         WvHiCOff       - High Cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s).  [used only when WaveMod=2,3,4]
    0.0         WaveDir        - Incident wave propagation heading direction (degrees) [unused when WaveMod=0 or 4]
 123456789      WaveSeed1      - First  random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
 1011121314     WaveSeed2      - Second random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
@@ -68,12 +69,17 @@ True           PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
 0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0
+---------------------- HEAVE COEFFICIENTS --------------------------------
+1              NHvCoef        - Number of heave coefficients (-)
+HvCoefID   CdHv        CaHv
+ (-)       (-)         (-)      
+  1         1.0        1.0
 ---------------------- MEMBER JOINTS -------------------------------------------
 2              NJoints        - Number of joints (-)   [must be exactly 0 or at least 2]
-JointID   Jointx      Jointy      Jointz      JointOvrlp   [must be at least 2, JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]
-(-)        (m)         (m)          (m)         (switch)
- 1         0.0        0.0          -47.89        0
- 2         0.0        0.0            0.0         0
+JointID   Jointx      Jointy      Jointz       JointHvID  JointOvrlp   [must be at least 2, JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]
+(-)        (m)         (m)          (m)           (-)      (switch)
+ 1         0.0        0.0          -47.89          1          0
+ 2         0.0        0.0            0.0           1          0
 --------------------- MEMBER CROSS-SECTION PROPERTIES ----------------------------------------
 1             NPropSets      - Number of member property sets (-)
 PropSetID    PropD            PropThck
