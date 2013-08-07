@@ -1714,8 +1714,12 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
 
    INTEGER(IntKi)               :: I                                               ! Generic index
-   INTEGER(IntKi)               :: J                                               ! Loops through nodes / elements.
-   INTEGER(IntKi)               :: K                                               ! Loops through blades.
+   INTEGER(IntKi)               :: J                                               ! Loops through nodes / elements
+   INTEGER(IntKi)               :: K                                               ! Loops through blades
+   
+   INTEGER(IntKi)               :: ErrStat2                                        ! Temporary Error code
+   CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary error message
+   
 
    LOGICAL, PARAMETER           :: UpdateValues  = .FALSE.                         ! determins if the OtherState values need to be updated
    TYPE(ED_ContinuousStateType) :: dxdt                                            ! Continuous state derivs at t
@@ -1729,8 +1733,8 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    IF ( UpdateValues ) THEN    
          ! Update the OtherState data by calculating the derivative...
       CALL ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
+      CALL ED_DestroyContState( dxdt, ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
-      CALL ED_DestroyContState( dxdt, ErrStat, ErrMsg )
    END IF      
 
 
@@ -2492,8 +2496,12 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEF(J,2)
                 
       CALL SmllRotTrans( 'Tower', OtherState%RtHS%AngPosEF(J,1), -1.*OtherState%RtHS%AngPosEF(J,3), OtherState%RtHS%AngPosEF(J,2), &
-             y%TowerLn2Mesh%Orientation(:,:,J), errstat=ErrStat, errmsg=ErrMsg )
+             y%TowerLn2Mesh%Orientation(:,:,J), errstat=ErrStat2, errmsg=ErrMsg2 )
+      IF (ErrStat2 /= ErrID_None) THEN
+         ErrStat = MAX(ErrStat, ErrStat2)
+         ErrMsg  = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
          IF (ErrStat >= AbortErrLev) RETURN
+      END IF
                                     
    END DO
              
@@ -10126,7 +10134,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
 
       ! Tower base / platform coordinate system:
 
-   CALL SmllRotTrans( 'platform displacement', x%QT(DOF_R), x%QT(DOF_Y), -x%QT(DOF_P), TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )  ! Get the transformation matrix, TransMat, from inertial frame to tower base / platform coordinate systems.
+   CALL SmllRotTrans( 'platform displacement (ElastoDyn)', x%QT(DOF_R), x%QT(DOF_Y), -x%QT(DOF_P), TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )  ! Get the transformation matrix, TransMat, from inertial frame to tower base / platform coordinate systems.
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
@@ -10160,7 +10168,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
    ThetaFA    = -p%TwrFASF(1,p%TTopNode,1)*x%QT(DOF_TFA1) - p%TwrFASF(2,p%TTopNode,1)*x%QT(DOF_TFA2)
    ThetaSS    =  p%TwrSSSF(1,p%TTopNode,1)*x%QT(DOF_TSS1) + p%TwrSSSF(2,p%TTopNode,1)*x%QT(DOF_TSS2)
 
-   CALL SmllRotTrans( 'tower deflection', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower-top/base-plate coordinate systems.
+   CALL SmllRotTrans( 'tower deflection (ElastoDyn)', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower-top/base-plate coordinate systems.
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
@@ -10297,7 +10305,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
          ThetaLxb = p%CThetaS(K,J)*ThetaIP - p%SThetaS(K,J)*ThetaOoP
          ThetaLyb = p%SThetaS(K,J)*ThetaIP + p%CThetaS(K,J)*ThetaOoP
 
-         CALL SmllRotTrans( 'blade deflection', ThetaLxb, ThetaLyb, 0.0, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 ) ! Get the transformation matrix, TransMat, from blade coordinate system aligned with local structural axes (not element fixed) to blade element-fixed coordinate system aligned with local structural axes.
+         CALL SmllRotTrans( 'blade deflection (ElastoDyn)', ThetaLxb, ThetaLyb, 0.0, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 ) ! Get the transformation matrix, TransMat, from blade coordinate system aligned with local structural axes (not element fixed) to blade element-fixed coordinate system aligned with local structural axes.
             CALL CheckError( ErrStat2, ErrMsg2 )
             IF (ErrStat >= AbortErrLev) RETURN
 
@@ -13244,7 +13252,8 @@ CONTAINS
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................
          
-         CALL ExitThisRoutine(  )                  
+         IF ( ErrStat >= AbortErrLev ) CALL ExitThisRoutine( )                  
+                  
          
       END IF
 
@@ -13405,7 +13414,7 @@ CONTAINS
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................
          
-         CALL ExitThisRoutine( )                  
+         IF ( ErrStat >= AbortErrLev ) CALL ExitThisRoutine( )                  
          
       END IF
 
@@ -13545,8 +13554,7 @@ CONTAINS
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................
-         
-         CALL ExitThisRoutine( )                  
+         IF ( ErrStat >= AbortErrLev ) CALL ExitThisRoutine( )                  
          
       END IF
 

@@ -534,41 +534,46 @@ echo %DASHES%                                    >> CertTest.out
 
 
 rem *******************************************************
-
+:Test14
 @echo FAST %TEST14%
 
 @SET TEST=14
+
+echo %POUNDS%
+@echo Skipping this test until linearization is included.
+echo %POUNDS%
+GOTO Test15
 
 rem Run FAST.
 
 rem %FAST% Test%TEST%.fst
 
-rem IF ERRORLEVEL 1  GOTO ERROR
+IF ERRORLEVEL 1  GOTO ERROR
 
-rem @IF NOT EXIST Test%TEST%.lin  GOTO ERROR
+@IF NOT EXIST Test%TEST%.lin  GOTO ERROR
 
-rem Perform an eigenanalysis in MATLAB:
-rem echo. Running Matlab to calculate eigenvalues. If an error occurs, close Matlab to continue CertTest....
-rem %MATLAB% /wait /r addpath('%MBC_SOURCE%');Test%TEST% /logfile Test%TEST%.eig
+Perform an eigenanalysis in MATLAB:
+echo. Running Matlab to calculate eigenvalues. If an error occurs, close Matlab to continue CertTest....
+%MATLAB% /wait /r addpath('%MBC_SOURCE%');Test%TEST% /logfile Test%TEST%.eig
 
 @rem echo. Call to Matlab completed.
 
-rem IF ERRORLEVEL 1  GOTO MATLABERROR
+IF ERRORLEVEL 1  GOTO MATLABERROR
 
-rem @IF NOT EXIST Test%TEST%.eig  GOTO MATLABERROR
+@IF NOT EXIST Test%TEST%.eig  GOTO MATLABERROR
 
-rem  echo.                                            >> CertTest.out
-rem  echo %POUNDS%                                    >> CertTest.out
-rem  echo.                                            >> CertTest.out
-rem  echo %TEST14%                                    >> CertTest.out
-rem  echo %DASHES%                                    >> CertTest.out
-rem  %Compare% Test%TEST%.eig TstFiles\Test%TEST%.eig >> CertTest.out
-rem  echo %DASHES%                                    >> CertTest.out
-rem  %Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
+echo.                                            >> CertTest.out
+echo %POUNDS%                                    >> CertTest.out
+echo.                                            >> CertTest.out
+echo %TEST14%                                    >> CertTest.out
+echo %DASHES%                                    >> CertTest.out
+%Compare% Test%TEST%.eig TstFiles\Test%TEST%.eig >> CertTest.out
+echo %DASHES%                                    >> CertTest.out
+%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
 
 
 rem *******************************************************
-
+:Test15
 :MATLABERROR
 @echo FAST %TEST15%
 
@@ -602,7 +607,7 @@ echo %DASHES%                                    >> CertTest.out
 
 
 rem *******************************************************
-
+:Test16
 @echo FAST %TEST16%
 
 @SET TEST=16
@@ -635,7 +640,7 @@ echo %DASHES%                                    >> CertTest.out
 
 
 rem *******************************************************
-
+:Test17
 @echo FAST %TEST17%
 
 @SET TEST=17
@@ -671,7 +676,7 @@ echo %DASHES%                                    >> CertTest.out
 
 
 rem *******************************************************
-
+:Test18
 @echo FAST %TEST18%
 
 @SET TEST=18
@@ -706,8 +711,13 @@ echo %DASHES%                                    >> CertTest.out
 
 
 rem *******************************************************
-
+:Test19
 @echo FAST %TEST19%
+
+echo %POUNDS%
+@echo Skipping this test until SubDyn and MAP are included
+echo %POUNDS%
+GOTO Test20
 
 @SET TEST=19
 
@@ -740,7 +750,7 @@ echo %DASHES%                                    >> CertTest.out
 
 
 rem *******************************************************
-
+:Test20
 @echo FAST %TEST20%
 
 @SET TEST=20
@@ -774,7 +784,7 @@ echo %DASHES%                                    >> CertTest.out
 
 
 rem *******************************************************
-
+:Test21
 @echo FAST %TEST21%
 
 @SET TEST=21
@@ -809,8 +819,13 @@ echo %DASHES%                                    >> CertTest.out
 
 
 rem *******************************************************
-
+:Test22
 @echo FAST %TEST22%
+
+echo %POUNDS%
+@echo Skipping this test until SubDyn and MAP are included
+echo %POUNDS%
+GOTO Comparisons
 
 @SET TEST=22
 
@@ -844,6 +859,7 @@ echo %DASHES%                                    >> CertTest.out
 
 rem ******************************************************
 rem  Let's look at the comparisons.
+:Comparisons
 
 rem %MATLAB% /r PlotCertTestResults('.','.\TstFiles');exit;
 

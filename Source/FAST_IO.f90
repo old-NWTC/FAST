@@ -181,7 +181,8 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
    IF ( PRESENT(InFile) ) THEN
       InputFile = InFile
    ELSE ! get it from the command line
-      CALL CheckArgs( InputFile )
+      InputFile = ""  ! initialize to empty string to make sure it's input from the command line
+      CALL CheckArgs( InputFile, Stat )  ! if Stat /= ErrID_None, we'll ignore and deal with the problem when we try to read the input file
    END IF
 
       ! Determine the root name of the primary file (will be used for output files)
@@ -482,7 +483,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
          ! calculate the size of the array of outputs we need to store
       y_FAST%NOutSteps = NINT ( (p_FAST%TMax - p_FAST%TStart) / p_FAST%DT_OUT ) + 1
 
-      CALL AllocAry( y_FAST%AllOutData, NumOuts, y_FAST%NOutSteps, 'AllOutData', ErrStat, ErrMsg )
+      CALL AllocAry( y_FAST%AllOutData, NumOuts-1, y_FAST%NOutSteps, 'AllOutData', ErrStat, ErrMsg )
       IF ( ErrStat /= ErrID_None ) RETURN
 
       IF ( OutputFileFmtID == FileFmtID_WithoutTime ) THEN
@@ -1217,19 +1218,17 @@ END SUBROUTINE WrOutputLine
 !----------------------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD, y_HD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for ED
 !..................................................................................................................................
 
    TYPE(FAST_ParameterType),       INTENT(IN)     :: p_FAST                   ! Glue-code simulation parameters
-   TYPE(ED_ParameterType),         INTENT(IN)     :: p_ED                     ! ED parameters
    TYPE(ED_InputType),             INTENT(INOUT)  :: u_ED                     ! ED Inputs at t
    TYPE(SrvD_OutputType),          INTENT(IN)     :: y_SrvD                   ! ServoDyn outputs
    TYPE(HydroDyn_OutputType),      INTENT(INOUT)  :: y_HD                     ! HydroDyn outputs
+   TYPE(HydroDyn_InputType),       INTENT(INOUT)  :: u_HD                     ! HydroDyn inputs
+   
 !   TYPE(AD_OutputType),            INTENT(IN)     :: y_AD                    ! AeroDyn outputs
 
    TYPE(FAST_ModuleMapType),       INTENT(INOUT)  :: MeshMapData              ! Data for mapping between modules
@@ -1258,8 +1257,8 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD, y_HD, MeshMapData, ErrStat
 
       ! ED inputs from AeroDyn
    IF ( p_FAST%CompAero ) THEN
-      DO K = 1,p_ED%NumBl ! Loop through all blades
-         DO J = 1,p_ED%BldNodes ! Loop through the blade nodes / elements
+      DO K = 1,SIZE(u_ED%AeroBladeForce,3) ! Loop through all blades (p_ED%NumBl)
+         DO J = 1,SIZE(u_ED%AeroBladeForce,2) ! Loop through the blade nodes / elements (p_ED%BldNodes)
             u_ED%AeroBladeForce(:,J,K)  = ADAeroLoads%Blade(J,K)%Force
             u_ED%AeroBladeMoment(:,J,K) = ADAeroLoads%Blade(J,K)%Moment
          END DO !J
@@ -1310,7 +1309,7 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD, y_HD, MeshMapData, ErrStat
          CALL CheckError( ErrStat, ErrMsg )
          IF (ErrStat >= AbortErrLev) RETURN
 
-      CALL Transfer_Point_to_Point( y_HD%WAMIT%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat, ErrMsg )
+      CALL Transfer_Point_to_Point( y_HD%WAMIT%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat, ErrMsg, u_HD%WAMIT%Mesh ) !u_HD contains the orientations needed for moment calculations
          CALL CheckError( ErrStat, ErrMsg )
          IF (ErrStat >= AbortErrLev) RETURN
 
@@ -1324,7 +1323,7 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD, y_HD, MeshMapData, ErrStat
 
             ! This is viscous drag associate with the WAMIT body and/or filled/flooded forces of the WAMIT body
 
-         CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_ED_P, ErrStat, ErrMsg )
+         CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_ED_P, ErrStat, ErrMsg,u_HD%Morison%LumpedMesh )
             CALL CheckError( ErrStat, ErrMsg )
             IF (ErrStat >= AbortErrLev) RETURN
             
@@ -1333,7 +1332,7 @@ SUBROUTINE ED_InputSolve( p_FAST, p_ED, u_ED, y_SrvD, y_HD, MeshMapData, ErrStat
 
          ! TODO : Need to add Added Mass from morison pt elements. GJH 7/9/13
 
-         CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_ED_P, ErrStat, ErrMsg )
+         CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_ED_P, ErrStat, ErrMsg, u_HD%Morison%DistribMesh )
             CALL CheckError( ErrStat, ErrMsg )
             IF (ErrStat >= AbortErrLev) RETURN
  
@@ -1605,8 +1604,6 @@ SUBROUTINE HD_InputSolve(  p_ed, x_ED, OtherSt_ED, u_ED, y_ED, u_HD, MeshMapData
       ! Only Morison Elements, no WAMIT body.  All HydroDyn Outputs go to SubDyn in this case
 
    END IF
-
-
 
 
 END SUBROUTINE HD_InputSolve

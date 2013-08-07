@@ -21,7 +21,6 @@ MODULE BladedInterface
    USE ServoDyn_Types
    
    USE, INTRINSIC :: ISO_C_Binding
-   USE               loadLib_defs      ! OS-specific definitions for loading dynamic libraries
    
 
    IMPLICIT                        NONE

@@ -31,8 +31,6 @@ SET COMPOPTS=/threads  /O2 /inline:speed /traceback /Qzero /Qsave /real_size:32 
 rem SET LINKOPTS=/link /stack:64000000
 SET LINKOPTS=/link
 
-IF "%COMPUTERNAME%"=="BJONKMAN-23080S" GOTO BJONKMAN-23080S
-
 
 REM ----------------------------------------------------------------------------
 REM ------------------------- LOCAL PATHS --------------------------------------
@@ -51,23 +49,17 @@ SET ED_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirec
 SET SrvD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\AeroDyn
 SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\InflowWind
-SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\HydroDyn
+SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\HydroDyn\SVNdirectory\branches\HydroDyn_Modularization\Source
+:: SET MAP_Loc
 
 SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 
-GOTO :SourceFiles
 REM ----------------------------------------------------------------------------
-REM These paths are for Bonnie Jonkman; other users should modify the paths above
+REM The following script changes the above paths for Bonnie Jonkman; other users
+REM    should modify the paths above
+IF "%COMPUTERNAME%"=="BJONKMAN-23080S" CALL Set_FAST_paths.bat
+REM ----------------------------------------------------------------------------
 
-:BJONKMAN-23080S
-SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\trunk\source
-SET ED_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
-SET SrvD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
-SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\AeroDyn
-SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\InflowWind
-SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\HydroDyn
-
-SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 
 REM ----------------------------------------------------------------------------
 REM -------------------- LIST OF ALL SOURCE FILES ------------------------------

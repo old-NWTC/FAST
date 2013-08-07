@@ -30,7 +30,7 @@ ifeq ($(OS),Windows_NT)
    SrvD_DIR     = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
    AD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/AeroDyn
    IfW_DIR      = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/InflowWInd
-   HD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/HydroDyn
+   HD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory\branches\HydroDyn_Modularization\Source
    FAST_DIR     = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
 
    Registry     = REGISTRY
@@ -40,7 +40,7 @@ else
    SrvD_DIR     = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source
    AD_DIR       = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/AeroDyn
    IfW_DIR      = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/InflowWInd
-   HD_DIR       = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/HydroDyn
+   HD_DIR       = $(HOME)/PC/CAEtools/simulators/HydroDyn/SVNdirectory\branches\HydroDyn_Modularization\Source
    FAST_DIR     = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source
 
    Registry     = registry.exe
@@ -84,7 +84,6 @@ ifeq ($(OS),Windows_NT)
    OBJ_EXT   = .obj
    PATH_SEP  = \\
    SYS_FILE  = SysGnuWin
-   DLL_FILE  = Windows_defs
 else
       # Linux
    DEL_CMD   = rm -f
@@ -94,7 +93,6 @@ else
    OBJ_EXT   = .o
    PATH_SEP  = /
    SYS_FILE  = SysGnuLinux
-   DLL_FILE  = Linux_defs
 endif
 
 
@@ -102,11 +100,13 @@ endif
 
 LIB_SOURCES =           \
 	$(PREC).f90          \
+	NWTC_Base.f90        \
 	$(SYS_FILE).f90      \
 	NWTC_IO.f90          \
 	NWTC_Num.f90         \
 	ModMesh_Types.f90    \
 	ModMesh.f90          \
+	ModMesh_Mapping.f90  \
 	NWTC_Library.f90
 
 IfW_SOURCES =           \
@@ -144,7 +144,6 @@ SrvD_SOURCES =          \
 	ServoDyn_Types.f90   \
 	ServoDyn.f90         \
 	PitchCntrl_ACH.f90   \
-	$(DLL_FILE).f90      \
 	BladedInterface.f90  \
 	UserSubs.f90         \
 	UserVSCont_KP.f90
@@ -183,12 +182,15 @@ fftpack.obj: fftpack.f
 	$(F77) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
    #  Dependency rules.
-$(SYS_FILE).obj:                   $(PREC).obj
-NWTC_IO.obj:                       $(SYS_FILE).obj
-NWTC_Num.obj:                      NWTC_IO.obj
-ModMesh_Types.obj:                 NWTC_Num.obj
-ModMesh.obj:                       ModMesh_Types.obj
-NWTC_Library.obj:                  NWTC_Num.obj ModMesh.obj
+NWTC_Base.obj:           $(PREC).obj
+$(SYS_FILE).obj:         NWTC_Base.obj
+NWTC_IO.obj:             $(SYS_FILE).obj
+NWTC_Num.obj:            NWTC_IO.obj
+ModMesh_Types.obj:       NWTC_Num.obj
+ModMesh.obj:             ModMesh_Types.obj
+ModMesh_Mapping.obj:     ModMesh.f90
+NWTC_Library.obj:        ModMesh.obj  ModMesh_Mapping.obj
+
 
 HHWind.obj:                        NWTC_Library.obj  SharedInflowDefs.obj
 FFWind.obj:                        NWTC_Library.obj  SharedInflowDefs.obj
@@ -219,12 +221,12 @@ ElastoDyn.obj:                     NWTC_Library.obj  ElastoDyn_Types.obj
 
 #ServoDyn_Types.f90:               ServoDyn_Registry.txt
 ServoDyn_Types.obj:               NWTC_Library.obj
-$(DLL_FILE).obj:                  $(PREC).obj       NWTC_IO.obj
-BladedInterface.obj:              NWTC_Library.obj  ServoDyn_Types.obj  $(DLL_FILE).obj
+BladedInterface.obj:              NWTC_Library.obj  ServoDyn_Types.obj
 ServoDyn.obj:                     NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj
 PitchCntrl_ACH.obj:               NWTC_Library.obj
 UserSubs.obj:                     NWTC_Library.obj
 UserVSCont_KP.obj:                NWTC_Library.obj
+
 
 FAST_Mods.obj:                    NWTC_Library.obj  AeroDyn.obj HydroDyn.obj
 FAST_IO.obj:                      NWTC_Library.obj  FAST_Mods.obj  AeroDyn.obj  InflowWindMod.obj  ServoDyn.obj ElastoDyn.obj HydroDyn.obj
