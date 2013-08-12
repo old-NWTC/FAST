@@ -7,7 +7,7 @@
 # This makefile works with mingw32-make.exe.                                     #
 #                                                                                #
 # It was designed to be used with:                                               #
-#     FAST                    (v7.02.00d-bjj, 20-Feb-2013)                       #
+#     FAST                    (v8.01.00a-bjj, 20-Feb-2013)                       #
 #     AeroDyn                 (v13.00.02a-bjj, 20-Feb-2013)                      #
 #     InflowWind              (v1.01.00b-bjj, 10-Aug-2012)                       #
 #     NWTC Subroutine Library (v1.07.00b-mlb, 10-Jan-2013)                       #
@@ -30,7 +30,7 @@ ifeq ($(OS),Windows_NT)
    SrvD_DIR     = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
    AD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/AeroDyn
    IfW_DIR      = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/InflowWInd
-   HD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory\branches\HydroDyn_Modularization\Source
+   HD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source
    FAST_DIR     = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
 
    Registry     = REGISTRY
@@ -40,7 +40,7 @@ else
    SrvD_DIR     = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source
    AD_DIR       = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/AeroDyn
    IfW_DIR      = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/InflowWInd
-   HD_DIR       = $(HOME)/PC/CAEtools/simulators/HydroDyn/SVNdirectory\branches\HydroDyn_Modularization\Source
+   HD_DIR       = $(HOME)/PC/CAEtools/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source
    FAST_DIR     = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source
 
    Registry     = registry.exe
@@ -126,15 +126,28 @@ AD_SOURCES =            \
 	AeroSubs.f90         \
 	AeroDyn.f90
 
-HD_SOURCES =             \
-	FFTMod.f90            \
-	SharedDataTypes.f90   \
-	Waves.f90             \
-	UserLine.f90          \
-	FixedBottomSupportStructure.f90  \
-	FloatingPlatform.f90  \
-	Hydro_IO.f90          \
+HD_SOURCES =                 \
+	FFTMod.f90                \
+	SS_Radiation_Types.f90    \
+	SS_Radiation.f90          \
+	Waves_Types.f90           \
+	Waves.f90                 \
+	Current_Types.f90         \
+	Current.f90               \
+	Morison_Types.f90         \
+	Morison_Output.f90        \
+	Morison.f90               \
+	Conv_Radiation_Types.f90  \
+	Conv_Radiation.f90        \
+	WAMIT_Types.f90           \
+	WAMIT_Output.f90          \
+	WAMIT.f90                 \
+	HydroDyn_Output_Types.f90 \
+	HydroDyn_Output.f90       \
+	HydroDyn_Types.f90        \
+	HydroDyn_Input.f90        \
 	HydroDyn.f90
+
 
 ED_SOURCES =            \
 	ElastoDyn_Types.f90  \
@@ -173,6 +186,7 @@ ALL_OBJS      = $(LIB_OBJS) $(IfW_OBJS) $(AD_OBJS) $(SrvD_OBJS) $(ED_OBJS) $(HD_
 all:     default
 default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 
+
    # General rules for compliling the files.
 
 %.obj: %.f90
@@ -181,7 +195,19 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 fftpack.obj: fftpack.f
 	$(F77) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
+
+   # General rules for creating _Types.f90 files from Registry files.
+
+ServoDyn_Types.f90:
+	$(REGISTRY) ServoDyn_Registry.txt
+
+ElastoDyn_Types.f90:
+	$(REGISTRY) ElastoDyn_Registry.txt
+
+
+
    #  Dependency rules.
+#NWTC Library dependency rules:
 NWTC_Base.obj:           $(PREC).obj
 $(SYS_FILE).obj:         NWTC_Base.obj
 NWTC_IO.obj:             $(SYS_FILE).obj
@@ -191,51 +217,76 @@ ModMesh.obj:             ModMesh_Types.obj
 ModMesh_Mapping.obj:     ModMesh.f90
 NWTC_Library.obj:        ModMesh.obj  ModMesh_Mapping.obj
 
+#InflowWind dependency rules:
+SharedInflowDefs.f90:    NWTC_Library.obj
+HHWind.obj:              SharedInflowDefs.obj
+FFWind.obj:              SharedInflowDefs.obj
+HAWCWind.obj:            SharedInflowDefs.obj
+FDWind.obj:              SharedInflowDefs.obj
+CTWind.obj:              SharedInflowDefs.obj
+UserWind.obj:            SharedInflowDefs.obj
+InflowWindMod.obj:       SharedInflowDefs.obj  HHWind.obj  FFWind.obj  HAWCWind.obj  FDWind.obj  CTWind.obj  UserWind.obj
 
-HHWind.obj:                        NWTC_Library.obj  SharedInflowDefs.obj
-FFWind.obj:                        NWTC_Library.obj  SharedInflowDefs.obj
-HAWCWind.obj:                      NWTC_Library.obj  SharedInflowDefs.obj
-FDWind.obj:                        NWTC_Library.obj  SharedInflowDefs.obj
-CTWind.obj:                        NWTC_Library.obj  SharedInflowDefs.obj
-UserWind.obj:                      NWTC_Library.obj  SharedInflowDefs.obj
-InflowWindMod.obj:                 NWTC_Library.obj  SharedInflowDefs.obj  HHWind.obj  FFWind.obj  HAWCWind.obj  FDWind.obj  CTWind.obj  UserWind.obj
-
-AeroMods.obj:                      NWTC_Library.obj
-GenSubs.obj:                       NWTC_Library.obj  AeroMods.obj
-AeroSubs.obj:                      NWTC_Library.obj  AeroMods.obj
-AeroDyn.obj:                       NWTC_Library.obj  AeroMods.obj  SharedTypes.obj  AeroSubs.obj  GenSubs.obj  InflowWindMod.obj
-
-fftpack.obj:                       NWTC_Library.obj
-FFTMod.obj:                        NWTC_Library.obj  fftpack.obj
-SharedDataTypes.obj:               NWTC_Library.obj
-Waves.obj:                         NWTC_Library.obj  FFTMod.obj
-UserLine.obj:                      NWTC_Library.obj
-FixedBottomSupportStructure.obj:   NWTC_Library.obj  Waves.obj
-FloatingPlatform.obj:              NWTC_Library.obj  UserLine.obj
-Hydro_IO.obj:                      NWTC_Library.obj  SharedDataTypes.obj
-HydroDyn.obj:                      NWTC_Library.obj  SharedDataTypes.obj FixedBottomSupportStructure.obj FloatingPlatform.obj Hydro_IO.obj Waves.obj
-
-# ElastoDyn_Types.obj:               NWTC_Library.obj  ElastoDyn_Registry.txt
-ElastoDyn_Types.obj:               NWTC_Library.obj
-ElastoDyn.obj:                     NWTC_Library.obj  ElastoDyn_Types.obj
-
-#ServoDyn_Types.f90:               ServoDyn_Registry.txt
-ServoDyn_Types.obj:               NWTC_Library.obj
-BladedInterface.obj:              NWTC_Library.obj  ServoDyn_Types.obj
-ServoDyn.obj:                     NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj
-PitchCntrl_ACH.obj:               NWTC_Library.obj
-UserSubs.obj:                     NWTC_Library.obj
-UserVSCont_KP.obj:                NWTC_Library.obj
+#AeroDyn dependency rules:
+AeroMods.obj:            NWTC_Library.obj
+GenSubs.obj:             NWTC_Library.obj  AeroMods.obj
+AeroSubs.obj:            NWTC_Library.obj  AeroMods.obj
+AeroDyn.obj:             NWTC_Library.obj  AeroMods.obj  SharedTypes.obj  AeroSubs.obj  GenSubs.obj  InflowWindMod.obj
 
 
-FAST_Mods.obj:                    NWTC_Library.obj  AeroDyn.obj HydroDyn.obj
-FAST_IO.obj:                      NWTC_Library.obj  FAST_Mods.obj  AeroDyn.obj  InflowWindMod.obj  ServoDyn.obj ElastoDyn.obj HydroDyn.obj
-FAST_Prog.obj:                    NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj
+#HydroDyn dependency rules:
+fftpack.obj:                NWTC_Library.obj
+FFTMod.obj:                 NWTC_Library.obj  fftpack.obj
+
+SS_Radiation_Types.obj:     NWTC_Library.obj
+SS_Radiation.obj:           SS_Radiation_Types.obj
+
+Waves_Types.obj:            NWTC_Library.obj
+Waves.obj:                  Waves_Types.obj  FFTMod.obj
+
+Current_Types.obj:          NWTC_Library.obj
+Current.obj:                Current_Types.obj
+
+Morison_Types.obj:          NWTC_Library.obj  HydroDyn_Output_Types.obj
+Morison_Output.obj:         Morison_Types.obj HydroDyn_Output_Types.obj Waves.obj
+Morison.obj:                Morison_Types.obj Morison_Output.obj
+
+Conv_Radiation_Types.obj:   NWTC_Library.obj
+Conv_Radiation.obj:         Conv_Radiation_Types.obj
+
+WAMIT_Types.obj:            NWTC_Library.obj HydroDyn_Output_Types.obj Conv_Radiation_Types.obj SS_Radiation_Types.obj Waves_Types.obj
+WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj FFTMod.obj
+
+HydroDyn_Output_Types.obj:  NWTC_Library.obj
+WAMIT_Output.obj:           WAMIT_Types.obj HydroDyn_Output_Types.obj Waves.obj
+HydroDyn_Output.obj:        HydroDyn_Output_Types.obj HydroDyn_Types.obj Waves.obj
+
+HydroDyn_Types.obj:         NWTC_Library.obj  HydroDyn_Output_Types.obj  Current_Types.obj  Waves_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj Morison_Types.obj
+HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj
+HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj
 
 
+# ElastoDyn dependency rules:
+ElastoDyn_Types.obj:        NWTC_Library.obj  ElastoDyn_Registry.txt
+ElastoDyn.obj:              NWTC_Library.obj  ElastoDyn_Types.obj
 
-ServoDyn_Types.f90:
-	$(REGISTRY) ServoDyn_Registry.txt
+# ServoDyn dependency rules:
+ServoDyn_Types.obj:         NWTC_Library.obj  ServoDyn_Registry.txt
+BladedInterface.obj:        NWTC_Library.obj  ServoDyn_Types.obj
+ServoDyn.obj:               NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj
+PitchCntrl_ACH.obj:         NWTC_Library.obj
+UserSubs.obj:               NWTC_Library.obj
+UserVSCont_KP.obj:          NWTC_Library.obj
+
+# FAST dependency rules:
+FAST_Mods.obj:              NWTC_Library.obj  AeroDyn.obj
+FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  AeroDyn.obj  InflowWindMod.obj  ServoDyn.obj ElastoDyn.obj HydroDyn.obj
+FAST_Prog.obj:              NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj
+
+
+# Files that depend on the registry
+
+
 
 #$(OUTPUT_NAME)$(EXE_EXT): Fast_Prog.obj
 
