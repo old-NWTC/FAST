@@ -20,18 +20,22 @@ IF /I "%1"=="-GFORTRAN" GOTO gfortran
 IF /I "%1"=="-IFORT" GOTO ifort
 
 :releaseVer
+echo Using released version of FAST (IVF/VS)
 @SET FAST=..\FAST.exe
 goto CertTest
 
 :debugVer
+echo Using FAST compiled in debug mode (IVF/VS)
 @SET FAST=..\FAST_debug.exe
 goto CertTest
 
 :gfortran
+echo Using FAST compiled with makefile (gfortran)
 @SET FAST=..\compiling\FAST_gwin32.exe
 goto CertTest
 
 :ifort
+echo Using FAST compiled with Compile_FAST.bat (IVF)
 @SET FAST=..\compiling\FAST_iwin32.exe
 goto CertTest
 ::=======================================================================================================

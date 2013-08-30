@@ -31,11 +31,17 @@ MODULE FAST_IO_Subs
    USE AeroDyn
    USE AeroDyn_Types
 
+   USE InflowWind, ONLY: WindInfVer
+   
    USE HydroDyn
    USE HydroDyn_Types
 
-   USE InflowWind, ONLY: WindInfVer
+   USE SubDyn
+   USE SubDyn_Types
 
+   USE MAP
+   USE MAP_Types
+    
 
    IMPLICIT NONE
 
@@ -245,6 +251,11 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
       p%InterpOrder = 0    ! Avoid problems in error handling by setting this to 0
    END IF
 
+   IF ( p%PC_Max < 1_IntKi ) THEN
+      CALL SetErrors( ErrID_Fatal, 'PC_Max must be 1 or greater.' )
+   END IF   
+   
+   
    IF ( ErrStat >= AbortErrLev ) RETURN
 
    !...............................................................................................................................
@@ -287,7 +298,8 @@ CONTAINS
    !-------------------------------------------------------------------------------------------------------------------------------
 END SUBROUTINE FAST_Init
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD_Prog, InitOutData_HD, ErrStat, ErrMsg )
+SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD_Prog, InitOutData_HD, &
+                            InitOutData_SD, InitOutData_MAP, ErrStat, ErrMsg )
 ! This routine initializes the output for the glue code, including writing the header for the primary output file.
 ! was previously called WrOutHdr()
 !..................................................................................................................................
@@ -301,6 +313,8 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    TYPE(ED_InitOutputType),        INTENT(IN)           :: InitOutData_ED                        ! Initialization output for ElastoDyn
    TYPE(SrvD_InitOutputType),      INTENT(IN)           :: InitOutData_SrvD                      ! Initialization output for ServoDyn
    TYPE(HydroDyn_InitOutputType),  INTENT(IN)           :: InitOutData_HD                        ! Initialization output for HydroDyn
+   TYPE(SD_InitOutputType),        INTENT(IN)           :: InitOutData_SD                        ! Initialization output for SubDyn
+   TYPE(MAP_InitOutputType),       INTENT(IN)           :: InitOutData_MAP                       ! Initialization output for MAP
 
    TYPE(ProgDesc),                 INTENT(IN)           :: AD_prog ! aerodyn version
 
@@ -316,53 +330,70 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    INTEGER(IntKi)                   :: NumOuts                                         ! number of channels to be written to the output file(s)
 
 
+
    !......................................................
    ! Set the description lines to be printed in the output file
    !......................................................
    y_FAST%FileDescLines(1)  = 'Predictions were generated on '//CurDate()//' at '//CurTime()//' using '//TRIM(GetVersion())
-   y_FAST%FileDescLines(2)  = 'linked with ' &
-                            //' '//TRIM(GetNVD(NWTC_Ver            )) &
-                           //'; '//TRIM(GetNVD(InitOutData_ED%Ver  ))
-   IF ( p_FAST%CompServo ) y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) &
-                           //'; '//TRIM(GetNVD(InitOutData_SrvD%Ver))
-   IF ( p_FAST%CompHydro ) y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) &
-                           //'; '//TRIM(GetNVD(InitOutData_HD%Ver))
-   IF ( p_FAST%CompAero ) y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) &
-                           //'; '//TRIM(GetNVD(WindInfVer)) &
-                           //'; '//TRIM(GetNVD(AD_Prog))
+   y_FAST%FileDescLines(2)  = 'linked with ' //' '//TRIM(GetNVD(NWTC_Ver            ))  ! we'll get the rest of the linked modules in the section below
    y_FAST%FileDescLines(3)  = 'Description from the FAST input file: '//TRIM(p_FAST%FTitle)
-
+   
    !......................................................
-   ! Save the module version info for later use
+   ! We'll fill out the rest of FileDescLines(2), 
+   ! and save the module version info for later use, too:
    !......................................................
 
    y_FAST%ED_Ver   = InitOutData_ED%Ver
+   y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%ED_Ver  ))
+
+   IF ( p_FAST%CompAero )  THEN
+      y_FAST%IfW_Ver  = WindInfVer
+      y_FAST%AD_Ver   = AD_Prog
+     
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%IfW_Ver)) 
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%AD_Ver ))      
+   ELSE
+      y_FAST%AD_Ver   = AD_Prog
+      y_FAST%IfW_Ver  = WindInfVer
+   END IF
 
    IF ( p_FAST%CompServo ) THEN
       y_FAST%SrvD_Ver = InitOutData_SrvD%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%SrvD_Ver))
    ELSE
       y_FAST%SrvD_Ver%Name = 'ServoDyn'
-      y_FAST%SrvD_Ver%Date = ''
+      y_FAST%SrvD_Ver%Date = 'unknown date'
       y_FAST%SrvD_Ver%Ver = 'unknown version'
    END IF
-
-   IF ( p_FAST%CompAero )  THEN
-      y_FAST%AD_Ver   = AD_Prog
-      y_FAST%IfW_Ver  = WindInfVer
-   ELSE
-      y_FAST%AD_Ver   = AD_Prog
-      y_FAST%IfW_Ver  = WindInfVer
-   END IF
-
+         
    IF ( p_FAST%CompHydro ) THEN
       y_FAST%HD_Ver   = InitOutData_HD%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%HD_Ver))
    ELSE
       y_FAST%HD_Ver%Name = 'HydroDyn'
-      y_FAST%HD_Ver%Date = ''
+      y_FAST%HD_Ver%Date = 'unknown date'
       y_FAST%HD_Ver%Ver = 'unknown version'
    END IF
 
+   IF ( p_FAST%CompSub ) THEN
+   !   y_FAST%SD_Ver   = InitOutData_SD%Ver
+   !   y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%SD_Ver))
+   ELSE
+      y_FAST%SD_Ver%Name = 'SubDyn'
+      y_FAST%SD_Ver%Date = 'unknown date'
+      y_FAST%SD_Ver%Ver = 'unknown version'
+   END IF
 
+   IF ( p_FAST%CompMAP ) THEN
+      y_FAST%MAP_Ver   = InitOutData_MAP%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%MAP_Ver))
+   ELSE
+      y_FAST%MAP_Ver%Name = 'MAP'
+      y_FAST%MAP_Ver%Date = 'unknown date'
+      y_FAST%MAP_Ver%Ver = 'unknown version'
+   END IF   
+   
+            
    !......................................................
    ! Set the number of output columns from each module
    !......................................................
@@ -378,11 +409,19 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
 
    y_FAST%numOuts_HD = 0
    IF ( ALLOCATED( InitOutData_HD%WriteOutputHdr   ) ) y_FAST%numOuts_HD   = SIZE(InitOutData_HD%WriteOutputHdr)
-
+   
+   y_FAST%numOuts_SD = 0
+   IF ( ALLOCATED( InitOutData_SD%WriteOutputHdr   ) ) y_FAST%numOuts_SD   = SIZE(InitOutData_SD%WriteOutputHdr)
+   
+   y_FAST%numOuts_MAP = 0
+   IF ( ALLOCATED( InitOutData_MAP%WriteOutputHdr  ) ) y_FAST%numOuts_MAP  = SIZE(InitOutData_MAP%WriteOutputHdr)
+   
+   
    !......................................................
    ! Initialize the output channel names and units
    !......................................................
-   NumOuts   = 1 + y_FAST%numOuts_IfW + y_FAST%numOuts_ED + y_FAST%numOuts_SrvD + y_FAST%numOuts_AD + y_FAST%numOuts_HD
+   NumOuts   = 1 + y_FAST%numOuts_IfW + y_FAST%numOuts_ED + y_FAST%numOuts_SrvD + y_FAST%numOuts_AD + y_FAST%numOuts_HD &
+                 + y_FAST%numOuts_SD  + y_FAST%numOuts_MAP
 
    CALL AllocAry( y_FAST%ChannelNames,NumOuts, 'ChannelNames', ErrStat, ErrMsg )
       IF ( ErrStat /= ErrID_None ) RETURN
@@ -395,7 +434,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    indxLast = 1
    indxNext = 2
 
-   IF ( y_FAST%numOuts_IfW > 0_IntKi ) THEN  !hack for now
+   IF ( y_FAST%numOuts_IfW > 0_IntKi ) THEN  !InflowWind: hack for now
       indxLast = indxNext + y_FAST%numOuts_IfW - 1
       y_FAST%ChannelNames(indxNext:indxLast)= (/ 'WindVxi   ', 'WindVyi   ', 'WindVzi   ' /)
       IF ( p_FAST%CompAero ) THEN
@@ -407,27 +446,44 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    END IF
 
 
-   IF ( y_FAST%numOuts_ED > 0_IntKi ) THEN
+   IF ( y_FAST%numOuts_ED > 0_IntKi ) THEN !ElasoDyn
       indxLast = indxNext + y_FAST%numOuts_ED - 1
       y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_ED%WriteOutputHdr
       y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_ED%WriteOutputUnt
       indxNext = indxLast + 1
    END IF
 
-   IF ( y_FAST%numOuts_SrvD > 0_IntKi ) THEN
+   IF ( y_FAST%numOuts_SrvD > 0_IntKi ) THEN !ServoDyn
       indxLast = indxNext + y_FAST%numOuts_SrvD - 1
       y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_SrvD%WriteOutputHdr
       y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_SrvD%WriteOutputUnt
       indxNext = indxLast + 1
    END IF
 
-   IF ( y_FAST%numOuts_HD > 0_IntKi ) THEN
+   IF ( y_FAST%numOuts_HD > 0_IntKi ) THEN !HydroDyn
       indxLast = indxNext + y_FAST%numOuts_HD - 1
       y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_HD%WriteOutputHdr
       y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_HD%WriteOutputUnt
       indxNext = indxLast + 1
    END IF
 
+   
+   IF ( y_FAST%numOuts_SD > 0_IntKi ) THEN !SubDyn
+      indxLast = indxNext + y_FAST%numOuts_SD - 1
+      y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_SD%WriteOutputHdr
+      y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_SD%WriteOutputUnt
+      indxNext = indxLast + 1
+   END IF
+
+   
+   IF ( y_FAST%numOuts_MAP > 0_IntKi ) THEN !MAP
+      indxLast = indxNext + y_FAST%numOuts_MAP - 1
+      y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_MAP%WriteOutputHdr
+      y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_MAP%WriteOutputUnt
+      indxNext = indxLast + 1
+   END IF
+   
+   
    !......................................................
    ! Open the text output file and print the headers
    !......................................................
@@ -546,6 +602,8 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, ErrStat, ErrMsg )
    WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%AD_Ver   ) )
    WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%IfW_Ver  ) )
    WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%HD_Ver   ) )
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%SD_Ver   ) )
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%MAP_Ver  ) )
 
    !.......................... Information from FAST input File ......................................
 ! current working directory
@@ -560,6 +618,9 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, ErrStat, ErrMsg )
 
    !.......................... Requested Features ...................................................
 
+   !BJJ: write "nearest neighbor, linear, quadratic" instead of order here (or print both)
+   WRITE(y_FAST%UnSum,'(//A,I1)') 'Interpolation order for input/output time histories: ', p_FAST%InterpOrder
+   WRITE(y_FAST%UnSum,'(  A,I2)') 'Number of predictor-correction iterations: ', p_FAST%PC_Max
 
    !.......................... Requested Output Channels ............................................
 
@@ -597,6 +658,19 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, ErrStat, ErrMsg )
       WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%HD_Ver%Name)
    END DO
 
+      ! SubDyn
+   DO J = 1,y_FAST%numOuts_SD
+      I = I + 1
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%SD_Ver%Name)
+   END DO
+
+      ! MAP (Mooring Analysis Program)
+   DO J = 1,y_FAST%numOuts_MAP
+      I = I + 1
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%MAP_Ver%Name)
+   END DO
+      
+   
 
 END SUBROUTINE FAST_WrSum
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -738,11 +812,16 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
 
       ! InterpOrder - Interpolation order for inputs and outputs {0=nearest neighbor ,1=linear, 2=quadratic}
    CALL ReadVar( UnIn, InputFile, p%InterpOrder, "InterpOrder", "Interpolation order "//&
-                  " for inputs and outputs {0=nearest neighbor ,1=linear, 2=quadratic} (-)", ErrStat2, ErrMsg2, UnEc)
+                   "for inputs and outputs {0=nearest neighbor ,1=linear, 2=quadratic} (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-
+      ! PC_Max - Number of predictor-corrector iterations {1=explicit calculation, i.e., no corrections}
+   CALL ReadVar( UnIn, InputFile, p%PC_Max, "PC_Max", "Number of predictor-corrector iterations "//&
+                   "{1=explicit calculation, i.e., no corrections} (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+                  
    !---------------------- FEATURE FLAGS -------------------------------------------
    CALL ReadCom( UnIn, InputFile, 'Section Header: Feature Flags', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -768,6 +847,11 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
+      ! CompMAP - Compute mooring line dynamics (flag):
+   CALL ReadVar( UnIn, InputFile, p%CompSub, "CompMAP", "Compute mooring line dynamics (flag)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN         
+      
       ! CompUserPtfmLd - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag):
    CALL ReadVar( UnIn, InputFile, p%CompUserPtfmLd, "CompUserPtfmLd", "Compute additional platform loading (flag)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -813,6 +897,12 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN
    IF ( PathIsRelative( p%SDFile ) ) p%SDFile = TRIM(PriPath)//TRIM(p%SDFile)
 
+      ! MAPFile - Name of file containing MAP input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%MAPFile, "MAPFile", "Name of file containing MAP input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( p%MAPFile ) ) p%MAPFile = TRIM(PriPath)//TRIM(p%MAPFile)
+         
    !---------------------- OUTPUT --------------------------------------------------
    CALL ReadCom( UnIn, InputFile, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -952,7 +1042,7 @@ SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
    INTEGER                      :: EndTimes (8)                                    ! An array holding the ending clock time of the simulation.
 
    CHARACTER( 8)                :: TimePer
-
+   CHARACTER(MaxWrScrLen)       :: BlankLine
 
       ! Get the end times to compare with start times.
 
@@ -990,7 +1080,8 @@ SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
          TimePer = ' seconds'
       ENDIF
 
-      CALL WrOver( '                                                                                   ' )
+      BlankLine = ""
+      CALL WrOver( BlankLine )  ! BlankLine contains MaxWrScrLen spaces
       CALL WrScr1( ' Total Real Time:       '//TRIM( Num2LStr( Factor*ClckTime      ) )//TRIM( TimePer ) )
       CALL WrScr ( ' Total CPU Time:        '//TRIM( Num2LStr( Factor*UsrTime       ) )//TRIM( TimePer ) )
       CALL WrScr ( ' Simulated Time:        '//TRIM( Num2LStr( Factor*REAL( ZTime ) ) )//TRIM( TimePer ) )
@@ -1091,7 +1182,7 @@ END FUNCTION TimeValues2Seconds
 !----------------------------------------------------------------------------------------------------------------------------------
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, ErrStat, ErrMsg)
+SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, SDOutput, MAPOutput, ErrStat, ErrMsg)
 ! This routine writes the module output to the primary output file(s).
 !..................................................................................................................................
 
@@ -1108,6 +1199,8 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
    REAL(ReKi),               INTENT(IN)    :: EDOutput (:)                       ! ElastoDyn WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: SrvDOutput (:)                     ! ServoDyn WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: HDOutput (:)                       ! HydroDyn WriteOutput values
+   REAL(ReKi),               INTENT(IN)    :: SDOutput (:)                       ! SubDyn WriteOutput values
+   REAL(ReKi),               INTENT(IN)    :: MAPOutput (:)                      ! MAP WriteOutput values
 
    INTEGER(IntKi),           INTENT(OUT)   :: ErrStat
    CHARACTER(*),             INTENT(OUT)   :: ErrMsg
@@ -1136,26 +1229,35 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
 
 
          ! write the individual module output
-      IF ( y_FAST%numOuts_IfW > 0 ) THEN
+      IF ( y_FAST%numOuts_IfW > 0 ) THEN !Inflow Wind
          CALL WrReAryFileNR ( y_FAST%UnOu, IfWOutput,   Frmt, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
 
-      IF ( y_FAST%numOuts_ED > 0 ) THEN
+      IF ( y_FAST%numOuts_ED > 0 ) THEN !ElastoDyn
          CALL WrReAryFileNR ( y_FAST%UnOu, EDOutput,   Frmt, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
 
-      IF ( y_FAST%numOuts_SrvD > 0 ) THEN
+      IF ( y_FAST%numOuts_SrvD > 0 ) THEN !ServoDyn
          CALL WrReAryFileNR ( y_FAST%UnOu, SrvDOutput, Frmt, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
 
-      IF ( y_FAST%numOuts_HD > 0 ) THEN
+      IF ( y_FAST%numOuts_HD > 0 ) THEN !HydroDyn
          CALL WrReAryFileNR ( y_FAST%UnOu, HDOutput,   Frmt, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
 
+      IF ( y_FAST%numOuts_SD > 0 ) THEN !SubDyn
+         CALL WrReAryFileNR ( y_FAST%UnOu, SDOutput,   Frmt, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      END IF
+      
+      IF ( y_FAST%numOuts_MAP > 0 ) THEN !MAP (Mooring Analysis Program)
+         CALL WrReAryFileNR ( y_FAST%UnOu, MAPOutput,   Frmt, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      END IF
 
          ! write a new line (advance to the next line)
       WRITE (y_FAST%UnOu,'()')
@@ -1483,8 +1585,6 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD )
 
 END SUBROUTINE SrvD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-
-!====================================================================================================
 SUBROUTINE HD_InputSolve(  p_ed, x_ED, OtherSt_ED, u_ED, y_ED, u_HD, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for HydroDyn.
 !..................................................................................................................................
@@ -1607,6 +1707,10 @@ SUBROUTINE HD_InputSolve(  p_ed, x_ED, OtherSt_ED, u_ED, y_ED, u_HD, MeshMapData
 
 
 END SUBROUTINE HD_InputSolve
+!----------------------------------------------------------------------------------------------------------------------------------
+
+
+
 !====================================================================================================
 SUBROUTINE AD_InputSolve( p, x, OtherState, u, y, ErrStat, ErrMsg )
 ! THIS ROUTINE IS A HACK TO GET THE OUTPUTS FROM ELASTODYN INTO AERODYN. IT WILL BE REPLACED WHEN THIS CODE LINKS WITH

@@ -31,6 +31,9 @@ ifeq ($(OS),Windows_NT)
    AD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/AeroDyn
    IfW_DIR      = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/InflowWInd
    HD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source
+   HD_DIR_Reg   = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source/RegistryFiles
+   SD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/SubDyn/SVNdirectory/branches/v0.4/Source
+   MAP_DIR      = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/MAP/SVNdirectory/trunk/src/fortran_driver
    FAST_DIR     = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
 
    Registry     = REGISTRY
@@ -41,6 +44,9 @@ else
    AD_DIR       = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/AeroDyn
    IfW_DIR      = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/InflowWInd
    HD_DIR       = $(HOME)/PC/CAEtools/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source
+   HD_DIR_Reg   = $(HOME)/PC/CAEtools/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source/RegistryFiles
+   SD_DIR       = $(HOME)/PC/CAEtools/simulators/SubDyn/SVNdirectory/branches/v0.4/Source
+   MAP_DIR      = $(HOME)/PC/CAEtools/simulators/MAP/SVNdirectory/trunk/src/fortran_driver
    FAST_DIR     = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source
 
    Registry     = registry.exe
@@ -148,6 +154,31 @@ HD_SOURCES =                 \
 	HydroDyn_Input.f90        \
 	HydroDyn.f90
 
+MAP_SOURCES =
+	MAP_C_Types.f90         \
+	MAP_Types.f90           \
+	MAP.f90
+
+SD_SOURCES =               \
+	DLASRT2.f90             \
+	KB07AD.f                \
+	METIS_NODEND_dummy.f    \
+	EA16AD.f                \
+	MA57D_dependency.f      \
+	MA57D.f                 \
+	hsl_ma57_double.f90     \
+	qsort_c_module.f90      \
+	EA16_INTERFACE.f90      \
+	HSL_M57_INTERFACE.f90   \
+	HSL_ZD11_double.f90     \
+	SD_FEM.f90              \
+	SubDyn_Types.f90        \
+	SubDyn_Output.f90       \
+	SD_UpdateStates.f90     \
+	SubDyn.f90
+
+# also needs some LPACK routines     (currently links with Intel's MKL [sequential])
+
 
 ED_SOURCES =            \
 	ElastoDyn_Types.f90  \
@@ -166,11 +197,11 @@ FAST_SOURCES =          \
 	FAST_IO.f90          \
 	FAST_Prog.f90
 
-vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(FAST_DIR)
+vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(FAST_DIR)
 vpath %.f   $(HD_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
-vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR) $(ED_DIR) $(SrvD_DIR)
+vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(ED_DIR) $(SrvD_DIR)
 
 LIB_OBJS      = $(LIB_SOURCES:.f90=.obj)
 IfW_OBJS      = $(IfW_SOURCES:.f90=.obj)
@@ -199,10 +230,32 @@ fftpack.obj: fftpack.f
    # General rules for creating _Types.f90 files from Registry files.
 
 ServoDyn_Types.f90:
-	$(REGISTRY) ServoDyn_Registry.txt
+	$(Registry) ServoDyn_Registry.txt
 
 ElastoDyn_Types.f90:
-	$(REGISTRY) ElastoDyn_Registry.txt
+	$(Registry) ElastoDyn_Registry.txt
+
+Current_Types.f90:
+	$(Registry) Current.txt
+
+Waves_Types.f90:
+	$(Registry) Waves.txt
+
+SS_Radiation_Types.f90:
+	$(Registry) SS_Radiation.txt
+
+Conv_Radiation_Types.f90:
+	$(Registry) Conv_Radiation.txt
+
+WAMIT_Types.f90:
+	$(Registry) WAMIT.txt
+
+Morison_Types.f90:
+	$(Registry) Morison.txt
+
+HydroDyn_Types.f90:
+	$(Registry) HydroDyn.txt
+
 
 
 
@@ -266,6 +319,19 @@ HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj
 HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj
 
 
+# SubDyn dependency rules:
+EA16AD.obj:                KB07AD.obj
+MA57D.obj:                 MA57D_dependency.obj METIS_NODEND_dummy.obj
+hsl_ma57_double.obj:       HSL_ZD11_double.obj MA57D.obj
+HSL_M57_INTERFACE.obj:     hsl_ma57_double.obj
+EA16_INTERFACE.obj:        hsl_ma57_double.obj EA16AD.obj
+SubDyn_Types.obj:          NWTC_Library.obj
+SD_FEM.obj:                NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
+SubDyn_Output.obj:         SD_FEM.obj
+SD_UpdateStates.obj: NWTC_Library.obj SubDyn_Types.obj SubDyn_Output.obj
+SubDyn.obj:                SD_UpdateStates.obj SubDyn_Output.obj  SD_FEM.obj  HSL_ZD11_double.obj  HSL_M57_INTERFACE.obj HSL_ZD11_double.obj EA16_INTERFACE.obj qsort_c_module.obj DLASRT2.obj
+
+
 # ElastoDyn dependency rules:
 ElastoDyn_Types.obj:        NWTC_Library.obj  ElastoDyn_Registry.txt
 ElastoDyn.obj:              NWTC_Library.obj  ElastoDyn_Types.obj
@@ -282,9 +348,6 @@ UserVSCont_KP.obj:          NWTC_Library.obj
 FAST_Mods.obj:              NWTC_Library.obj  AeroDyn.obj
 FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  AeroDyn.obj  InflowWindMod.obj  ServoDyn.obj ElastoDyn.obj HydroDyn.obj
 FAST_Prog.obj:              NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj
-
-
-# Files that depend on the registry
 
 
 

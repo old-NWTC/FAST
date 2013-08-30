@@ -13458,9 +13458,9 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       ! local variables
 
-      TYPE(ED_InputType)                             :: u_interp    ! Continuous states at t
+      TYPE(ED_InputType)                             :: u_interp    ! Inputs at t
       TYPE(ED_ContinuousStateType)                   :: x_pred      ! Continuous states at t
-      TYPE(ED_ContinuousStateType)                   :: xdot_pred   ! Continuous states at t
+      TYPE(ED_ContinuousStateType)                   :: xdot_pred   ! Derivative of continuous states at t
 
       INTEGER(IntKi)                                 :: ErrStat2    ! local error status
       CHARACTER(LEN(ErrMsg))                         :: ErrMsg2     ! local error message (ErrMsg)

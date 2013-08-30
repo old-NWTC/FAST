@@ -25,7 +25,10 @@ MODULE BladedInterface
 
    IMPLICIT                        NONE
 
-  
+
+   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'v1.00.00 for '//OS_Desc, '1-May-2013' )
+   
+   
       ! Definition of the DLL Interface (from Bladed):
       ! Note that aviFAIL and avcMSG should be used as INTENT(OUT), but I'm defining them INTENT(INOUT) just in case the compiler decides to reinitialize something that's INTENT(OUT)
   
@@ -41,23 +44,19 @@ MODULE BladedInterface
       END SUBROUTINE BladedDLL_Procedure
    END INTERFACE   
   
-  
-      ! Defined TYPE:   
-
-
-               
+      ! Some constants for the Interface:
+   
    INTEGER(IntKi), PARAMETER    :: R_v36 = 85                                      ! Start of below-rated torque-speed look-up table (record no.) for Bladed version 3.6
    INTEGER(IntKi), PARAMETER    :: R_v4  = 145                                     ! Start of below-rated torque-speed look-up table (record no.) for Bladed version 3.8 and later
 
    INTEGER(IntKi), PARAMETER    :: R = R_v36   ! start of the generator speed look-up table  
 
-   
+      
+      ! A global variable, which needs to be moved to the Registry:
 
    TYPE (DLL_Type),SAVE         :: DLL_Trgt                                        ! The DLL addresses
    
    
-   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'v1.00.00 for '//OS_Desc, '1-May-2013' )
-         
 
 CONTAINS
 !==================================================================================================================================
@@ -85,10 +84,7 @@ SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
    CHARACTER(KIND=C_CHAR)                    :: avcMSG(LEN(ErrMsg)+1)                ! MESSAGE (Message from DLL to simulation code [ErrMsg])   
    
    INTEGER(IntKi)                            :: I                              ! generic counter
-   
-   INTEGER(IntKi)                            :: ErrStat2                       ! Temporary error ID   
-   CHARACTER(LEN(ErrMsg))                    :: ErrMsg2                        ! Temporary message describing error
-   
+      
    PROCEDURE(BladedDLL_Procedure), POINTER   :: DLL_Subroutine                 ! The address of the procedure in the Bladed DLL
 
       
@@ -200,8 +196,8 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    
    
    CALL AllocAry( OtherState%dll_data%avrSwap,   R+(2*p%DLL_NumTrq)-1, 'avrSwap', ErrStat2, ErrMsg2 )
-         CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
 
       ! Initialize dll data stored in OtherState
