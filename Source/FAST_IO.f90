@@ -1358,7 +1358,7 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat
    END IF
 
       ! ED inputs from AeroDyn
-   IF ( p_FAST%CompAero ) THEN
+   IF ( p_FAST%CompAero .and. allocated(ADAeroLoads%Blade) ) THEN
       DO K = 1,SIZE(u_ED%AeroBladeForce,3) ! Loop through all blades (p_ED%NumBl)
          DO J = 1,SIZE(u_ED%AeroBladeForce,2) ! Loop through the blade nodes / elements (p_ED%BldNodes)
             u_ED%AeroBladeForce(:,J,K)  = ADAeroLoads%Blade(J,K)%Force
@@ -1493,16 +1493,16 @@ CONTAINS
 
 END SUBROUTINE ED_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD )
+SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD_prev )
 ! This routine sets the inputs required for ServoDyn
 !..................................................................................................................................
 
-   TYPE(FAST_ParameterType),   INTENT(IN)     :: p_FAST     ! Glue-code simulation parameters
-   TYPE(SrvD_InputType),       INTENT(INOUT)  :: u_SrvD     ! ServoDyn Inputs at t
-   TYPE(ED_OutputType),        INTENT(IN)     :: y_ED       ! ElastoDyn outputs
-   REAL(ReKi),                 INTENT(IN)     :: y_IfW(3)   ! InflowWind outputs
-   TYPE(SrvD_OutputType),      INTENT(IN)     :: y_SrvD     ! ServoDyn outputs
-!  TYPE(AD_OutputType),        INTENT(IN)     :: y_AD       ! AeroDyn outputs
+   TYPE(FAST_ParameterType),   INTENT(IN)     :: p_FAST       ! Glue-code simulation parameters
+   TYPE(SrvD_InputType),       INTENT(INOUT)  :: u_SrvD       ! ServoDyn Inputs at t
+   TYPE(ED_OutputType),        INTENT(IN)     :: y_ED         ! ElastoDyn outputs
+   REAL(ReKi),                 INTENT(IN)     :: y_IfW(3)     ! InflowWind outputs
+   TYPE(SrvD_OutputType),      INTENT(IN)     :: y_SrvD_prev  ! ServoDyn outputs from t - dt
+!  TYPE(AD_OutputType),        INTENT(IN)     :: y_AD         ! AeroDyn outputs
 
 
       ! ServoDyn inputs from combination of InflowWind and ElastoDyn
@@ -1531,8 +1531,8 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD )
 
       ! ServoDyn inputs from ServoDyn outputs at previous step
 
-   u_SrvD%ElecPwr_prev = y_SrvD%ElecPwr  ! we want to know the electrical power from the previous time step  (for the Bladed DLL)
-   u_SrvD%GenTrq_prev  = y_SrvD%GenTrq   ! we want to know the electrical generator torque from the previous time step  (for the Bladed DLL)
+   u_SrvD%ElecPwr_prev = y_SrvD_prev%ElecPwr  ! we want to know the electrical power from the previous time step  (for the Bladed DLL)
+   u_SrvD%GenTrq_prev  = y_SrvD_prev%GenTrq   ! we want to know the electrical generator torque from the previous time step  (for the Bladed DLL)
 
       ! ServoDyn inputs from ElastoDyn
    u_SrvD%Yaw       = y_ED%Yaw  !nacelle yaw
@@ -1585,16 +1585,12 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD )
 
 END SUBROUTINE SrvD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE HD_InputSolve(  p_ed, x_ED, OtherSt_ED, u_ED, y_ED, u_HD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE HD_InputSolve(  y_ED, u_HD, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for HydroDyn.
 !..................................................................................................................................
 
       ! Passed variables
-   TYPE(ED_InputType),          INTENT(IN)    :: u_ED                         ! The inputs for the structural dynamics module
    TYPE(ED_OutputType),         INTENT(INOUT) :: y_ED                         ! The outputs of the structural dynamics module
-   TYPE(ED_ParameterType),      INTENT(IN)    :: p_ed                         ! The parameters of the structural dynamics module
-   TYPE(ED_ContinuousStateType),INTENT(IN)    :: x_ED                         ! The structural dynamics module's continuous states
-   TYPE(ED_OtherStateType),     INTENT(IN)    :: OtherSt_ED                   ! Other State data type for Structural dynamics module
    TYPE(HydroDyn_InputType),    INTENT(INOUT) :: u_HD                         ! HydroDyn input
    TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
 
