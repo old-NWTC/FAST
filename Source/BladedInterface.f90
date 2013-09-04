@@ -244,7 +244,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................

@@ -73,22 +73,22 @@ typedef	^	SrvD_InputFile	CHARACTER(10)	OutList	{:}	-	-	"List of user-requested o
 typedef	^	SrvD_InputFile	CHARACTER(1024)	DLL_FileName	-	-	-	"Name of the DLL file including the full path"	-
 typedef	^	SrvD_InputFile	CHARACTER(1024)	DLL_ProcName	-	-	-	"Name of the procedure in the DLL that will be called"	-
 typedef	^	SrvD_InputFile	CHARACTER(1024)	DLL_InFile	-	-	-	"Name of input file used in DLL"	-
-typedef	^	SrvD_InputFile	IntKi	DLL_NumTrq	-	-	-	"No. of points in torque-speed look-up table, 0 = none and use the optimal mode PARAMETERs instead;  nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0"	-
-typedef	^	SrvD_InputFile	IntKi	Ptch_Cntrl	-	-	-	"Pitch control: 0 = collective;  1 = individual"	-
-typedef	^	SrvD_InputFile	ReKi	Gain_OM	-	-	-	"Optimal mode gain"	Nm/(rad/s)^2
-typedef	^	SrvD_InputFile	ReKi	GenPwr_Dem	-	-	-	"Demanded power"	W
-typedef	^	SrvD_InputFile	ReKi	GenSpd_Dem	-	-	-	"Demanded generator speed above rated"	rad/s
-typedef	^	SrvD_InputFile	ReKi	GenSpd_MaxOM	-	-	-	"Optimal mode maximum speed"	rad/s
-typedef	^	SrvD_InputFile	ReKi	GenSpd_MinOM	-	-	-	"Minimum generator speed"	rad/s
-typedef	^	SrvD_InputFile	ReKi	GenSpd_TLU	{:}	-	-	"Table (array) containing DLL_NumTrq generator speeds  for the torque-speed table look-up (TLU) -- this should be defined using an array constructor; for example,  if DLL_NumTrq = 3,  GenSpd_TLU(DLL_NumTrq)    = (/ 0.0, 99.9,  999.9 /)"	rad/s
-typedef	^	SrvD_InputFile	ReKi	GenTrq_Dem	-	-	-	"Demanded generator torque"	Nm
-typedef	^	SrvD_InputFile	ReKi	GenTrq_TLU	{:}	-	-	"Table (array) containing DLL_NumTrq generator torques for the torque-speed table look-up (TLU) -- this should be defined using an array constructor, for example,  if DLL_NumTrq = 3,  GenTrq_TLU(DLL_NumTrq)    = (/ 0.0, 10,  200.0 /)"	Nm
-typedef	^	SrvD_InputFile	ReKi	Ptch_Max	-	-	-	"Maximum pitch angle"	rad
-typedef	^	SrvD_InputFile	ReKi	Ptch_Min	-	-	-	"Minimum pitch angle"	rad
-typedef	^	SrvD_InputFile	ReKi	Ptch_SetPnt	-	-	-	"Below-rated pitch angle set-point"	rad
-typedef	^	SrvD_InputFile	ReKi	PtchRate_Max	-	-	-	"Maximum pitch rate"	rad/s
-typedef	^	SrvD_InputFile	ReKi	PtchRate_Min	-	-	-	"Minimum pitch rate (most negative value allowed)"	rad/s
-typedef	^	SrvD_InputFile	ReKi	NacYaw_North	-	-	-	"Reference yaw angle of the nacelle when the upwind end points due North"	rad
+typedef	^	SrvD_InputFile	ReKi	NacYaw_North	-	-	-	"Reference yaw angle of the nacelle when the upwind end points due North [used only with DLL Interface]"	radians
+typedef	^	SrvD_InputFile	IntKi	Ptch_Cntrl	-	-	-	"Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} [used only with DLL Interface]"	-
+typedef	^	SrvD_InputFile	ReKi	Ptch_SetPnt	-	-	-	"Record  5: Below-rated pitch angle set-point [used only with DLL Interface]"	radians
+typedef	^	SrvD_InputFile	ReKi	Ptch_Min	-	-	-	"Record  6: Minimum pitch angle [used only with DLL Interface]"	radians
+typedef	^	SrvD_InputFile	ReKi	Ptch_Max	-	-	-	"Record  7: Maximum pitch angle [used only with DLL Interface]"	radians
+typedef	^	SrvD_InputFile	ReKi	PtchRate_Min	-	-	-	"Record  8: Minimum pitch rate (most negative value allowed) [used only with DLL Interface]"	rad/s
+typedef	^	SrvD_InputFile	ReKi	PtchRate_Max	-	-	-	"Record  9: Maximum pitch rate [used only with DLL Interface]"	rad/s
+typedef	^	SrvD_InputFile	ReKi	Gain_OM	-	-	-	"Record 16: Optimal mode gain [used only with DLL Interface]"	Nm/(rad/s)^2
+typedef	^	SrvD_InputFile	ReKi	GenSpd_MinOM	-	-	-	"Record 17: Minimum generator speed [used only with DLL Interface]"	rad/s
+typedef	^	SrvD_InputFile	ReKi	GenSpd_MaxOM	-	-	-	"Record 18: Optimal mode maximum speed [used only with DLL Interface]"	rad/s
+typedef	^	SrvD_InputFile	ReKi	GenSpd_Dem	-	-	-	"Record 19: Demanded generator speed above rated [used only with DLL Interface]"	rad/s
+typedef	^	SrvD_InputFile	ReKi	GenTrq_Dem	-	-	-	"Record 22: Demanded generator torque above rated [used only with DLL Interface]"	Nm
+typedef	^	SrvD_InputFile	ReKi	GenPwr_Dem	-	-	-	"Record 13: Demanded power [used only with DLL Interface]"	W
+typedef	^	SrvD_InputFile	IntKi	DLL_NumTrq	-	-	-	"Record 26: No. of points in torque-speed look-up table {0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Gain_OM (Record 16) to 0.0} [used only with DLL Interface]"	-
+typedef	^	SrvD_InputFile	ReKi	GenSpd_TLU	{:}	-	-	"Records R:2:R+2*DLL_NumTrq-2: Generator speed values in look-up table [used only with DLL Interface]"	rad/s
+typedef	^	SrvD_InputFile	ReKi	GenTrq_TLU	{:}	-	-	"Records R+1:2:R+2*DLL_NumTrq-1: Generator torque values in look-up table [used only with DLL Interface]"	Nm
 
 # ..... Data for using Bladed DLLs .......................................................................................................
 typedef	^	BladedDLLType	SiKi	avrSWAP	{:}	-	-	"The swap array: used to pass data to and from the DLL controller"	"see Bladed DLL documentation"
@@ -107,8 +107,8 @@ typedef	^	InitInputType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing out
 typedef	^	InitInputType	ReKi	BlPitchInit	{:}	-	-	"Initial blade pitch"	-
 
 # Define outputs from the initialization routine here:
-typedef	^	InitOutputType	CHARACTER(10)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
-typedef	^	InitOutputType	CHARACTER(10)	WriteOutputUnt	{:}	-	-	"Units of the output-to-file channels"	-
+typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
+typedef	^	InitOutputType	CHARACTER(ChanLen)	WriteOutputUnt	{:}	-	-	"Units of the output-to-file channels"	-
 typedef	^	InitOutputType	ProgDesc	Ver	-	-	-	"This module's name, version, and date"	-
 typedef	^	InitOutputType	IntKi	CouplingScheme	-	-	-	"Switch that indicates if a particular coupling scheme is required"	-
 
@@ -136,7 +136,7 @@ typedef	^	OtherStateType	ReKi	PitManRat	{:}	-	-	"Pitch rates at which override p
 typedef	^	OtherStateType	DbKi	TOff4Good	-	-	-	"Time that the generator went offline (for rest of simulation)"	s
 typedef	^	OtherStateType	DbKi	TGenOnLine	-	-	-	"Time that the generator first went online"	s
 typedef	^	OtherStateType	BladedDLLType	dll_data	-	-	-	"data used for Bladed DLL"	-
-
+typedef	^	OtherStateType	DbKi	LastTimeCalled	-	-	-	"last time the CalcOutput/Bladed DLL was called"	s
 
 
 # ..... Parameters ................................................................................................................

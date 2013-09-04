@@ -367,6 +367,9 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL BladedInterface_Init(u, p, OtherState, y, InputFileData, ErrStat2, ErrMsg2 )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
+         
+      OtherState%LastTimeCalled = - p%DT  ! we'll initialize the last time the DLL was called as -1 DT.
+         
    END IF
       
       ! Clean up the local variable:
@@ -394,7 +397,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
           
          IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -570,6 +573,8 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    INTEGER(IntKi)                                 :: ErrStat2
    CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
       
+   LOGICAL,SAVE                                   :: FirstWarn = .TRUE.     ! A locally stored variable, which prevents the code from endless warnings about the same time
+   
       ! Initialize ErrStat
 
    ErrStat = ErrID_None
@@ -579,9 +584,18 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    ! Get the demanded values from the external Bladed dynamic link library, if necessary:
    !...............................................................................................................................   
    IF ( p%UseBladedInterface ) THEN
-      CALL BladedInterface_CalcOutput( t, u, p, OtherState, ErrStat2, ErrMsg2 )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF (ErrStat >= AbortErrLev) RETURN
+      
+      IF ( .NOT. EqualRealNos( t - p%DT, OtherState%LastTimeCalled ) ) THEN
+         IF (FirstWarn) CALL CheckError ( ErrID_Warn, 'BladedInterface option must use an explicit-loose coupling scheme. '//&
+            'Using previous values from DLL on all subsequent calls until time is advanced. Warning will not be displayed again.' )
+         FirstWarn = .FALSE.
+      ELSE      
+         OtherState%LastTimeCalled = t
+         CALL BladedInterface_CalcOutput( t, u, p, OtherState, ErrStat2, ErrMsg2 )
+            CALL CheckError( ErrStat2, ErrMsg2 )
+            IF (ErrStat >= AbortErrLev) RETURN
+      END IF
+      
    END IF      
       
    !...............................................................................................................................   
@@ -652,7 +666,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -818,7 +832,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -1832,6 +1846,7 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
    IF ( .true. ) THEN
       p%THSSBrDp  = HUGE(p%THSSBrDp) ! Make sure this doesn't get shut off during simulation
       CALL CheckError( ErrID_Info, 'THSSBrDp is ignored in this version of ServoDyn.' )
+      
 !      CALL CheckError( ErrID_Info, 'THSSBrDp is ignored when compiled for Simulink.' )
    ELSE      
       p%THSSBrDp  = InputFileData%THSSBrDp
@@ -1904,9 +1919,10 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+!         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)  !bjj: note that when you pass a literal string "", it somehow adds an extra space at the beginning.
          ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
-
+         
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................

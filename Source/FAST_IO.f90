@@ -12,7 +12,7 @@
 !    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 !    of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 !
-!    You should have received a copy of the GNU General Public License along with ElastoDyn.
+!    You should have received a copy of the GNU General Public License along with FAST.
 !    If not, see <http://www.gnu.org/licenses/>.
 !
 !**********************************************************************************************************************************
@@ -21,26 +21,19 @@ MODULE FAST_IO_Subs
    USE NWTC_Library
 
    USE FAST_Types
-
    USE ElastoDyn_Types
-   USE ElastoDyn
-
-   USE ServoDyn
    USE ServoDyn_Types
+   USE HydroDyn_Types
+   USE SubDyn_Types
+   USE MAP_Types
+
 
    USE AeroDyn
    USE AeroDyn_Types
 
    USE InflowWind, ONLY: WindInfVer
    
-   USE HydroDyn
-   USE HydroDyn_Types
-
-   USE SubDyn
-   USE SubDyn_Types
-
-   USE MAP
-   USE MAP_Types
+   USE ServoDyn, ONLY: Cmpl4SFun, Cmpl4LV
     
 
    IMPLICIT NONE
@@ -848,7 +841,7 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
       ! CompMAP - Compute mooring line dynamics (flag):
-   CALL ReadVar( UnIn, InputFile, p%CompSub, "CompMAP", "Compute mooring line dynamics (flag)", ErrStat2, ErrMsg2, UnEc)
+   CALL ReadVar( UnIn, InputFile, p%CompMAP, "CompMAP", "Compute mooring line dynamics (flag)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN         
       
