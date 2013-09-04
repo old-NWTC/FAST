@@ -1321,7 +1321,7 @@ END SUBROUTINE WrOutputLine
 
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for ED
 !..................................................................................................................................
 
@@ -1330,6 +1330,8 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat
    TYPE(SrvD_OutputType),          INTENT(IN)     :: y_SrvD                   ! ServoDyn outputs
    TYPE(HydroDyn_OutputType),      INTENT(INOUT)  :: y_HD                     ! HydroDyn outputs
    TYPE(HydroDyn_InputType),       INTENT(INOUT)  :: u_HD                     ! HydroDyn inputs
+   TYPE(MAP_OutputType),           INTENT(INOUT)  :: y_MAP                    ! MAP outputs
+   TYPE(MAP_InputType),            INTENT(INOUT)  :: u_MAP                    ! MAP inputs
    
 !   TYPE(AD_OutputType),            INTENT(IN)     :: y_AD                    ! AeroDyn outputs
 
@@ -1346,6 +1348,12 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat
    ErrStat = ErrID_None
    ErrMsg = ""
 
+      ! Create a local copy of the ED mesh (we'll sum the total loads from each module being used):
+   CALL MeshCopy ( u_ED%PlatformPtMesh, u_mapped, MESH_NEWCOPY, ErrStat, ErrMsg )
+      CALL CheckError( ErrStat, ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   
       ! ED inputs from ServoDyn
    IF ( p_FAST%CompServo ) THEN
 
@@ -1358,7 +1366,7 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat
    END IF
 
       ! ED inputs from AeroDyn
-   IF ( p_FAST%CompAero .and. allocated(ADAeroLoads%Blade) ) THEN
+   IF ( p_FAST%CompAero .and. ALLOCATED(ADAeroLoads%Blade) ) THEN
       DO K = 1,SIZE(u_ED%AeroBladeForce,3) ! Loop through all blades (p_ED%NumBl)
          DO J = 1,SIZE(u_ED%AeroBladeForce,2) ! Loop through the blade nodes / elements (p_ED%BldNodes)
             u_ED%AeroBladeForce(:,J,K)  = ADAeroLoads%Blade(J,K)%Force
@@ -1406,11 +1414,6 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat
          ! WAMIT loads and added mass and possibly Morison Elements for viscous drag, filled/flooded bouyancy, and filled/flooded added mass
    IF ( y_HD%WAMIT%Mesh%Initialized  ) THEN
 
-
-      CALL MeshCopy ( u_ED%PlatformPtMesh, u_mapped, MESH_NEWCOPY, ErrStat, ErrMsg )
-         CALL CheckError( ErrStat, ErrMsg )
-         IF (ErrStat >= AbortErrLev) RETURN
-
       CALL Transfer_Point_to_Point( y_HD%WAMIT%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat, ErrMsg, u_HD%WAMIT%Mesh ) !u_HD contains the orientations needed for moment calculations
          CALL CheckError( ErrStat, ErrMsg )
          IF (ErrStat >= AbortErrLev) RETURN
@@ -1425,7 +1428,7 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat
 
             ! This is viscous drag associate with the WAMIT body and/or filled/flooded forces of the WAMIT body
 
-         CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_ED_P, ErrStat, ErrMsg,u_HD%Morison%LumpedMesh )
+         CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_ED_P, ErrStat, ErrMsg, u_HD%Morison%LumpedMesh )
             CALL CheckError( ErrStat, ErrMsg )
             IF (ErrStat >= AbortErrLev) RETURN
             
@@ -1443,9 +1446,6 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat
          !
       END IF
 
-      CALL MeshDestroy ( u_mapped, ErrStat, ErrMsg )
-         CALL CheckError( ErrStat, ErrMsg )
-         IF (ErrStat >= AbortErrLev) RETURN
 
    ELSE IF ( y_HD%Morison%LumpedMesh%Initialized ) THEN
       ! Only Morison Elements!
@@ -1455,8 +1455,30 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, MeshMapData, ErrStat
          !u_ED%TowerLn2Mesh%Force(:,J)  = u_ED%TowerLn2Mesh%Force(:,J)  + HD_AllLoads%Substructure(J)%Force
          !u_ED%TowerLn2Mesh%Moment(:,J) = u_ED%TowerLn2Mesh%Moment(:,J) + HD_AllLoads%Substructure(J)%Moment
       END DO
+      
    END IF
+   
+   
+   IF ( p_FAST%CompMap ) THEN
+      
+      CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, u_mapped, MeshMapData%MAP_P_2_ED_P, ErrStat, ErrMsg, u_MAP%PtFairleadDisplacement ) !u_MAP contains the orientations needed for moment calculations
+         CALL CheckError( ErrStat, ErrMsg )
+         IF (ErrStat >= AbortErrLev) RETURN
 
+      u_ED%PlatformPtMesh%Force  = u_ED%PlatformPtMesh%Force  + u_mapped%Force
+      u_ED%PlatformPtMesh%Moment = u_ED%PlatformPtMesh%Moment + u_mapped%Moment      
+      
+   END IF
+   
+   
+   
+   
+      ! Destroy local copy of ED inputs
+   CALL MeshDestroy ( u_mapped, ErrStat, ErrMsg )
+      CALL CheckError( ErrStat, ErrMsg )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+   
 CONTAINS
    !...............................................................................................................................
    SUBROUTINE CheckError(ErrID,Msg)
@@ -1703,6 +1725,49 @@ SUBROUTINE HD_InputSolve(  y_ED, u_HD, MeshMapData, ErrStat, ErrMsg )
 
 
 END SUBROUTINE HD_InputSolve
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE MAP_InputSolve(  y_ED, u_MAP, MeshMapData, ErrStat, ErrMsg )
+! This routine sets the inputs required for MAP.
+!..................................................................................................................................
+
+      ! Passed variables
+   TYPE(ED_OutputType),         INTENT(INOUT) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(MAP_InputType),         INTENT(INOUT) :: u_MAP                        ! MAP input
+   TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
+
+   INTEGER(IntKi)                             :: ErrStat                      ! Error status of the operation
+   CHARACTER(*)                               :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
+
+
+      !----------------------------------------------------------------------------------------------------
+      ! Map ED outputs to MAP inputs
+      !----------------------------------------------------------------------------------------------------
+
+   CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairleadDisplacement, MeshMapData%ED_P_2_MAP_P, ErrStat, ErrMsg )
+
+
+END SUBROUTINE MAP_InputSolve
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SD_InputSolve(  y_ED, u_SD, MeshMapData, ErrStat, ErrMsg )
+! This routine sets the inputs required for MAP.
+!..................................................................................................................................
+
+      ! Passed variables
+   TYPE(ED_OutputType),         INTENT(INOUT) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(SD_InputType),          INTENT(INOUT) :: u_SD                         ! SubDyn input
+   TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
+
+   INTEGER(IntKi)                             :: ErrStat                      ! Error status of the operation
+   CHARACTER(*)                               :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
+
+
+      !----------------------------------------------------------------------------------------------------
+      ! Map outputs to SD inputs
+      !----------------------------------------------------------------------------------------------------
+
+
+
+END SUBROUTINE SD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 
 
