@@ -24,7 +24,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.00a-bjj', '30-May-2013' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.01a-bjj', '06-Sept-2013' )
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4SFun  = .FALSE.                            ! Is the module being compiled as an S-Function for Simulink?
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4LV    = .FALSE.                            ! Is the module being compiled for Labview?
    
@@ -369,7 +369,13 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
          IF (ErrStat >= AbortErrLev) RETURN
          
       OtherState%LastTimeCalled = - p%DT  ! we'll initialize the last time the DLL was called as -1 DT.
-         
+      OtherState%FirstWarn      = .TRUE.
+   
+   ELSE
+
+      p%DLL_Trgt%FileName = ""
+      p%DLL_Trgt%ProcName = ""
+      
    END IF
       
       ! Clean up the local variable:
@@ -572,9 +578,7 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    INTEGER(IntKi)                                 :: K                      ! Blade index
    INTEGER(IntKi)                                 :: ErrStat2
    CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
-      
-   LOGICAL,SAVE                                   :: FirstWarn = .TRUE.     ! A locally stored variable, which prevents the code from endless warnings about the same time
-   
+         
       ! Initialize ErrStat
 
    ErrStat = ErrID_None
@@ -586,9 +590,10 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    IF ( p%UseBladedInterface ) THEN
       
       IF ( .NOT. EqualRealNos( t - p%DT, OtherState%LastTimeCalled ) ) THEN
-         IF (FirstWarn) CALL CheckError ( ErrID_Warn, 'BladedInterface option must use an explicit-loose coupling scheme. '//&
-            'Using previous values from DLL on all subsequent calls until time is advanced. Warning will not be displayed again.' )
-         FirstWarn = .FALSE.
+         IF (OtherState%FirstWarn) CALL CheckError ( ErrID_Warn, 'BladedInterface option must use an explicit-loose coupling '//&
+            'scheme. Using previous values from DLL on all subsequent calls until time is advanced. '//&
+            'Warning will not be displayed again.' )
+         OtherState%FirstWarn = .FALSE.
       ELSE      
          OtherState%LastTimeCalled = t
          CALL BladedInterface_CalcOutput( t, u, p, OtherState, ErrStat2, ErrMsg2 )

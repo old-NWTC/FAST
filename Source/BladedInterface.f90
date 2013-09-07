@@ -50,13 +50,7 @@ MODULE BladedInterface
    INTEGER(IntKi), PARAMETER    :: R_v4  = 145                                     ! Start of below-rated torque-speed look-up table (record no.) for Bladed version 3.8 and later
 
    INTEGER(IntKi), PARAMETER    :: R = R_v36   ! start of the generator speed look-up table  
-
-      
-      ! A global variable, which needs to be moved to the Registry:
-
-   TYPE (DLL_Type),SAVE         :: DLL_Trgt                                        ! The DLL addresses
-   
-   
+            
 
 CONTAINS
 !==================================================================================================================================
@@ -208,10 +202,10 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
 
    ! Define and load the DLL:
 
-   DLL_Trgt%FileName = InputFileData%DLL_FileName
-   DLL_Trgt%ProcName = InputFileData%DLL_ProcName
+   p%DLL_Trgt%FileName = InputFileData%DLL_FileName
+   p%DLL_Trgt%ProcName = InputFileData%DLL_ProcName
 
-   CALL LoadDynamicLib ( DLL_Trgt, ErrStat2, ErrMsg2 )
+   CALL LoadDynamicLib ( p%DLL_Trgt, ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF ( ErrStat >= AbortErrLev ) RETURN
       
@@ -222,7 +216,7 @@ SUBROUTINE BladedInterface_Init(u,p,OtherState,y,InputFileData, ErrStat, ErrMsg)
    !CALL Fill_avrSWAP( 0_IntKi, t, u, p, LEN(ErrMsg), OtherState%dll_data )  ! Status flag set as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation (-)
   
       
-   !CALL CallBladedDLL(DLL_Trgt,  OtherState%dll_data, ErrStat2, ErrMsg2)
+   !CALL CallBladedDLL(p%DLL_Trgt,  OtherState%dll_data, ErrStat2, ErrMsg2)
    !   CALL CheckError(ErrStat2,ErrMsg2)
    !   IF ( ErrStat >= AbortErrLev ) RETURN
    !   
@@ -263,7 +257,7 @@ END SUBROUTINE BladedInterface_Init
 SUBROUTINE BladedInterface_End(u, p, OtherState, ErrStat, ErrMsg)
    
    TYPE(SrvD_InputType),           INTENT(IN   )  :: u               ! System inputs
-   TYPE(SrvD_ParameterType),       INTENT(IN   )  :: p               ! Parameters
+   TYPE(SrvD_ParameterType),       INTENT(INOUT)  :: p               ! Parameters
    TYPE(SrvD_OtherStateType),      INTENT(INOUT)  :: OtherState      ! Other/optimization states
    INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat         ! Error status of the operation
    CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg          ! Error message if ErrStat /= ErrID_None
@@ -276,9 +270,9 @@ SUBROUTINE BladedInterface_End(u, p, OtherState, ErrStat, ErrMsg)
    OtherState%dll_data%avrSWAP( 1) = -1.0   ! Status flag set as follows: 0 if this is the first call, 1 for all subsequent time steps, -1 if this is the final call at the end of the simulation (-)
    !CALL Fill_avrSWAP( -1_IntKi, -10.0_DbKi, u, p, LEN(ErrMsg), OtherState%dll_data )
 
-   CALL CallBladedDLL(DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
+   CALL CallBladedDLL(p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
    
-   CALL FreeDynamicLib( DLL_Trgt, ErrStat2, ErrMsg2 )
+   CALL FreeDynamicLib( p%DLL_Trgt, ErrStat2, ErrMsg2 )
    IF (ErrStat2 /= ErrID_None) THEN  
       ErrStat = MAX(ErrStat, ErrStat2)      
       ErrMsg = TRIM(ErrMsg)//NewLine//TRIM(ErrMsg2)
@@ -310,7 +304,7 @@ SUBROUTINE BladedInterface_CalcOutput(t, u, p, OtherState, ErrStat, ErrMsg)
    CALL Fill_avrSWAP( t, u, p, LEN(ErrMsg), OtherState%dll_data )
        
       ! Call the Bladed-style DLL controller:
-   CALL CallBladedDLL(DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
+   CALL CallBladedDLL(p%DLL_Trgt,  OtherState%dll_data, p, ErrStat, ErrMsg)
       IF ( ErrStat >= AbortErrLev ) RETURN
 
       !bjj: setting this after the call so that the first call is with avrSWAP(1)=0 [apparently it doesn't like to be called at initialization.... but maybe we can fix that later]
@@ -496,7 +490,7 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
       ErrStat = ErrID_Fatal
       IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Only off and main generators supported in '//TRIM( GetNVD( BladedInterface_Ver ) )// &
-               '. Set avrSWAP(35) to 0 or 1 in '//TRIM(DLL_Trgt%FileName)//'.'
+               '. Set avrSWAP(35) to 0 or 1 in '//TRIM(p%DLL_Trgt%FileName)//'.'
    END IF   
    
    
@@ -511,7 +505,7 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
       ErrStat = ErrID_Fatal
       IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Shaft brake status improperly set in '//TRIM( GetNVD( BladedInterface_Ver ) )//&
-               '. Set avrSWAP(36) to 0 or 1 in '//TRIM(DLL_Trgt%FileName)//'.'      
+               '. Set avrSWAP(36) to 0 or 1 in '//TRIM(p%DLL_Trgt%FileName)//'.'      
    
    END IF   
 
@@ -545,7 +539,7 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
       ErrStat = ErrID_Fatal
       IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Built-in pitch unsupported in '//TRIM( GetNVD( BladedInterface_Ver ) )//&
-               '. Set avrSWAP(55) to 0 in '//TRIM(DLL_Trgt%FileName)//'.'
+               '. Set avrSWAP(55) to 0 in '//TRIM(p%DLL_Trgt%FileName)//'.'
    END IF
    
 
@@ -557,7 +551,7 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
       ErrStat = ErrID_Fatal
       IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Built-in torque unsupported in '//TRIM( GetNVD( BladedInterface_Ver ) )//&
-               '. Set avrSWAP(56) to 0 in '//TRIM(DLL_Trgt%FileName)//'.'
+               '. Set avrSWAP(56) to 0 in '//TRIM(p%DLL_Trgt%FileName)//'.'
    END IF
 
 
@@ -571,7 +565,7 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
       ErrStat = ErrID_Fatal
       IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Return variables unsupported in '//TRIM( GetNVD( BladedInterface_Ver ) )//&
-               '. Set avrSWAP(65) to 0 in '//TRIM(DLL_Trgt%FileName)//'.'
+               '. Set avrSWAP(65) to 0 in '//TRIM(p%DLL_Trgt%FileName)//'.'
       
    ENDIF
 

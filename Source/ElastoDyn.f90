@@ -1273,7 +1273,7 @@ MODULE ElastoDyn
 
    PRIVATE
    
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.00.00c-bjj', '09-April-2013' )
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.00.01a-bjj', '06-Sept-2013' )
 
 
 
@@ -1721,7 +1721,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                         ! Temporary error message
    
 
-   LOGICAL, PARAMETER           :: UpdateValues  = .FALSE.                         ! determins if the OtherState values need to be updated
+   LOGICAL, PARAMETER           :: UpdateValues  = .TRUE.                          ! determines if the OtherState values need to be updated
    TYPE(ED_ContinuousStateType) :: dxdt                                            ! Continuous state derivs at t
 
          ! Initialize some output values
@@ -2466,10 +2466,11 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    y%PlatformPtMesh%TranslationVel(3,1) = x%QDT(DOF_Hv) 
    
    
-   CALL SmllRotTrans( 'Platform', x%QT(DOF_R ),x%QT(DOF_P ),x%QT(DOF_Y ), &
+   CALL SmllRotTrans( 'platform displacement (ED_CalcOutput)', x%QT(DOF_R ),x%QT(DOF_P ),x%QT(DOF_Y ), &
           y%PlatformPtMesh%Orientation(:,:,1), errstat=ErrStat, errmsg=ErrMsg )
-      IF (ErrStat >= AbortErrLev) RETURN
-   
+      IF (ErrStat /= ErrID_None)    ErrMsg = TRIM(ErrMsg)//' (occurred at '//TRIM(Num2LStr(t))//' s)'
+     !IF (ErrStat >= AbortErrLev) RETURN
+
    y%PlatformPtMesh%RotationAcc(1,1) = OtherState%QD2T(DOF_R )     
    y%PlatformPtMesh%RotationAcc(2,1) = OtherState%QD2T(DOF_P )     
    y%PlatformPtMesh%RotationAcc(3,1) = OtherState%QD2T(DOF_Y )     
@@ -2495,12 +2496,13 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEF(J,3)
       y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEF(J,2)
                 
-      CALL SmllRotTrans( 'Tower', OtherState%RtHS%AngPosEF(J,1), -1.*OtherState%RtHS%AngPosEF(J,3), OtherState%RtHS%AngPosEF(J,2), &
+      CALL SmllRotTrans( 'tower deflection (ED_CalcOutput)', &
+             OtherState%RtHS%AngPosEF(J,1), -1.*OtherState%RtHS%AngPosEF(J,3), OtherState%RtHS%AngPosEF(J,2), &
              y%TowerLn2Mesh%Orientation(:,:,J), errstat=ErrStat2, errmsg=ErrMsg2 )
       IF (ErrStat2 /= ErrID_None) THEN
          ErrStat = MAX(ErrStat, ErrStat2)
-         ErrMsg  = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
-         IF (ErrStat >= AbortErrLev) RETURN
+         ErrMsg  = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)//' (occurred at '//TRIM(Num2LStr(t))//' s)'
+         !IF (ErrStat >= AbortErrLev) RETURN
       END IF
                                     
    END DO
@@ -2594,7 +2596,6 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
          ! Compute the first time derivatives of the continuous states here:
 
    ! See if the values stored in OtherState%RtHS and OtherState%CoordSys need to be updated:
-   
    IF ( UpdateValues ) THEN       
       
        OtherState%BlPitch = u%BlPitchCom
@@ -10134,7 +10135,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
 
       ! Tower base / platform coordinate system:
 
-   CALL SmllRotTrans( 'platform displacement (ElastoDyn)', x%QT(DOF_R), x%QT(DOF_Y), -x%QT(DOF_P), TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )  ! Get the transformation matrix, TransMat, from inertial frame to tower base / platform coordinate systems.
+   CALL SmllRotTrans( 'platform displacement (ElastoDyn SetCoordSy)', x%QT(DOF_R), x%QT(DOF_Y), -x%QT(DOF_P), TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )  ! Get the transformation matrix, TransMat, from inertial frame to tower base / platform coordinate systems.
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
@@ -10151,7 +10152,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
       ThetaFA = -p%TwrFASF(1,J       ,1)*x%QT(DOF_TFA1) - p%TwrFASF(2,J       ,1)*x%QT(DOF_TFA2)
       ThetaSS =  p%TwrSSSF(1,J       ,1)*x%QT(DOF_TSS1) + p%TwrSSSF(2,J       ,1)*x%QT(DOF_TSS2)
 
-      CALL SmllRotTrans( 'tower deflection', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower element-fixed coordinate systems.
+      CALL SmllRotTrans( 'tower deflection (ElastoDyn SetCoordSy)', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower element-fixed coordinate systems.
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
@@ -10168,7 +10169,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
    ThetaFA    = -p%TwrFASF(1,p%TTopNode,1)*x%QT(DOF_TFA1) - p%TwrFASF(2,p%TTopNode,1)*x%QT(DOF_TFA2)
    ThetaSS    =  p%TwrSSSF(1,p%TTopNode,1)*x%QT(DOF_TSS1) + p%TwrSSSF(2,p%TTopNode,1)*x%QT(DOF_TSS2)
 
-   CALL SmllRotTrans( 'tower deflection (ElastoDyn)', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower-top/base-plate coordinate systems.
+   CALL SmllRotTrans( 'tower deflection (ElastoDyn SetCoordSy)', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower-top/base-plate coordinate systems.
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
@@ -10305,7 +10306,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
          ThetaLxb = p%CThetaS(K,J)*ThetaIP - p%SThetaS(K,J)*ThetaOoP
          ThetaLyb = p%SThetaS(K,J)*ThetaIP + p%CThetaS(K,J)*ThetaOoP
 
-         CALL SmllRotTrans( 'blade deflection (ElastoDyn)', ThetaLxb, ThetaLyb, 0.0, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 ) ! Get the transformation matrix, TransMat, from blade coordinate system aligned with local structural axes (not element fixed) to blade element-fixed coordinate system aligned with local structural axes.
+         CALL SmllRotTrans( 'blade deflection (ElastoDyn SetCoordSy)', ThetaLxb, ThetaLyb, 0.0, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 ) ! Get the transformation matrix, TransMat, from blade coordinate system aligned with local structural axes (not element fixed) to blade element-fixed coordinate system aligned with local structural axes.
             CALL CheckError( ErrStat2, ErrMsg2 )
             IF (ErrStat >= AbortErrLev) RETURN
 

@@ -183,7 +183,6 @@ SET SD_SOURCES=^
  "%SD_Loc%\SubDyn_Types.f90" ^
  "%SD_Loc%\SD_FEM.f90" ^
  "%SD_Loc%\SubDyn_Output.f90" ^
- "%SD_Loc%\SD_UpdateStates.f90" ^
  "%SD_Loc%\SubDyn.f90"
 
 

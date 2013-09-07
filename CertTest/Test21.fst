@@ -6,7 +6,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
          60   TMax            - Total run time (s)
       0.002   DT              - Recommended module time step (s)
           2   InterpOrder     - Interpolation order for input/output time history {0=nearest neighbor ,1=linear, 2=quadratic} (-)
-          1   PC_Max          - Number of predictor-corrector iterations {1=explicit calculation, i.e., no corrections} (-)
+          1   NumCrctn        - Number of correction iterations {0=explicit calculation, i.e., no corrections} (-)
 ---------------------- FEATURE FLAGS -------------------------------------------
 True          CompAero        - Compute aerodynamic forces (flag)
 True          CompServo       - Compute servodynamics (flag)

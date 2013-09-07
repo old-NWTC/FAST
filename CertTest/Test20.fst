@@ -6,7 +6,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
          60   TMax            - Total run time (s)
       0.005   DT              - Recommended module time step (s)
           2   InterpOrder     - Interpolation order for input/output time history {0=nearest neighbor ,1=linear, 2=quadratic} (-)
-          2   PC_Max          - Number of predictor-corrector iterations {1=explicit calculation, i.e., no corrections} (-)
+          0   NumCrctn        - Number of correction iterations {0=explicit calculation, i.e., no corrections} (-)
 ---------------------- FEATURE FLAGS -------------------------------------------
 True          CompAero        - Compute aerodynamic forces (flag)
 True          CompServo       - Compute servodynamics (flag)
@@ -21,7 +21,7 @@ False         CompUserTwrLd   - Compute additional tower loading {false: none, t
 "5MW_Baseline/NRELOffshrBsline5MW_ITIBarge4_ServoDyn.dat"    SrvDFile        - Name of file containing ServoDyn input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_ITIBarge4_HydroDyn.dat"    HDFile          - Name of file containing HydroDyn input parameters (quoted string)
 "unused"      SDFile          - Name of file containing SubDyn input parameters (quoted string)
-"unused"      MAPFile         - Name of file containing MAP input parameters (quoted string)
+"C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\executable\input6_2.map"    MAPFile         - Name of file containing MAP input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
          10   SttsTime        - Amount of time between screen status messages (sec)

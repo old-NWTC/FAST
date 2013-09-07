@@ -137,7 +137,7 @@ typedef	^	OtherStateType	DbKi	TOff4Good	-	-	-	"Time that the generator went offl
 typedef	^	OtherStateType	DbKi	TGenOnLine	-	-	-	"Time that the generator first went online"	s
 typedef	^	OtherStateType	BladedDLLType	dll_data	-	-	-	"data used for Bladed DLL"	-
 typedef	^	OtherStateType	DbKi	LastTimeCalled	-	-	-	"last time the CalcOutput/Bladed DLL was called"	s
-
+typedef	^	OtherStateType	logical	FirstWarn	-	-	-	"Whether or not this is the first warning about the DLL being called without Explicit-Loose coupling."	-
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -209,8 +209,6 @@ typedef	^	ParameterType	OutParmType	OutParam	{:}	-	-	"Names and units (and other
 typedef	^	ParameterType	CHARACTER(1)	Delim	-	-	-	"Column delimiter for output text files"	-
 # parameters for Bladed Interface (dynamic-link library)
 typedef	^	ParameterType	LOGICAL	UseBladedInterface	-	-	-	"Flag that determines if BladedInterface was used"	-
-#typedef	^	ParameterType	CHARACTER(1024)	DLL_FileName	-	-	-	"Name of the DLL file including the full path"	-
-#typedef	^	ParameterType	CHARACTER(1024)	DLL_ProcName	-	-	-	"Name of the procedure in the DLL that will be called"	-
 typedef	^	ParameterType	IntKi	DLL_NumTrq	-	-	-	"No. of points in torque-speed look-up table, 0 = none and use the optimal mode PARAMETERs instead;  nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0"	-
 typedef	^	ParameterType	IntKi	Ptch_Cntrl	-	-	-	"Pitch control: 0 = collective;  1 = individual"	-
 typedef	^	ParameterType	ReKi	Gain_OM	-	-	-	"Optimal mode gain"	Nm/(rad/s)^2
@@ -228,6 +226,7 @@ typedef	^	ParameterType	ReKi	PtchRate_Max	-	-	-	"Maximum pitch rate"	rad/s
 typedef	^	ParameterType	ReKi	PtchRate_Min	-	-	-	"Minimum pitch rate (most negative value allowed)"	rad/s
 typedef	^	ParameterType	ReKi	NacYaw_North	-	-	-	"Reference yaw angle of the nacelle when the upwind end points due North"	rad
 typedef	^	ParameterType	CHARACTER(1024)	DLL_InFile	-	-	-	"Name of input file used in DLL"	-
+typedef	^	ParameterType	DLL_Type	DLL_Trgt	-	-	-	"The addresses and names of the Bladed DLL and its procedure"	-
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:

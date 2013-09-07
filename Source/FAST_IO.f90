@@ -244,8 +244,8 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
       p%InterpOrder = 0    ! Avoid problems in error handling by setting this to 0
    END IF
 
-   IF ( p%PC_Max < 1_IntKi ) THEN
-      CALL SetErrors( ErrID_Fatal, 'PC_Max must be 1 or greater.' )
+   IF ( p%NumCrctn < 0_IntKi ) THEN
+      CALL SetErrors( ErrID_Fatal, 'NumCrctn must be 1 or greater.' )
    END IF   
    
    
@@ -613,7 +613,7 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, ErrStat, ErrMsg )
 
    !BJJ: write "nearest neighbor, linear, quadratic" instead of order here (or print both)
    WRITE(y_FAST%UnSum,'(//A,I1)') 'Interpolation order for input/output time histories: ', p_FAST%InterpOrder
-   WRITE(y_FAST%UnSum,'(  A,I2)') 'Number of predictor-correction iterations: ', p_FAST%PC_Max
+   WRITE(y_FAST%UnSum,'(  A,I2)') 'Number of correction iterations: ', p_FAST%NumCrctn
 
    !.......................... Requested Output Channels ............................................
 
@@ -809,9 +809,9 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! PC_Max - Number of predictor-corrector iterations {1=explicit calculation, i.e., no corrections}
-   CALL ReadVar( UnIn, InputFile, p%PC_Max, "PC_Max", "Number of predictor-corrector iterations "//&
-                   "{1=explicit calculation, i.e., no corrections} (-)", ErrStat2, ErrMsg2, UnEc)
+      ! NumCrctn - Number of predictor-corrector iterations {1=explicit calculation, i.e., no corrections}
+   CALL ReadVar( UnIn, InputFile, p%NumCrctn, "NumCrctn", "Number of corrections"//&
+                   "{0=explicit calculation, i.e., no corrections} (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
                   
@@ -1341,7 +1341,7 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, MeshMa
    ErrStat = ErrID_None
    ErrMsg = ""
 
-      ! Create a local copy of the ED mesh (we'll sum the total loads from each module being used):
+      ! Create a local copy of the ED mesh (we really need the Position and RefOrientation fields on the nodes; we'll sum the total loads from each module being used):
    CALL MeshCopy ( u_ED%PlatformPtMesh, u_mapped, MESH_NEWCOPY, ErrStat, ErrMsg )
       CALL CheckError( ErrStat, ErrMsg )
       IF (ErrStat >= AbortErrLev) RETURN
@@ -1640,7 +1640,7 @@ SUBROUTINE HD_InputSolve(  y_ED, u_HD, MeshMapData, ErrStat, ErrMsg )
       !    wave kinematics, additional preload, additional stiffness, additional linear damping, additional quadratic damping,
       !    hydrodynamic added mass
 
-         CALL MeshCopy ( SrcMesh   = u_HD%WAMIT%Mesh     &
+         CALL MeshCopy ( SrcMesh  = u_HD%WAMIT%Mesh      &
                        , DestMesh = u_mapped             &
                        , CtrlCode = MESH_NEWCOPY         &
                        , ErrStat  = ErrStat              &
