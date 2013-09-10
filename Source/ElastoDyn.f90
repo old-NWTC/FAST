@@ -1404,19 +1404,15 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN                  
       
-   u%PlatformPtMesh%RemapFlag = .TRUE.
    u%PlatformPtMesh%Moment    = 0_ReKi
    u%PlatformPtMesh%Force     = 0_ReKi
    
    u%PtfmAddedMass   = 0.0_ReKi
    
-   u%TowerLn2Mesh%RemapFlag = .TRUE.
    u%TowerLn2Mesh%Moment    = 0_ReKi
    u%TowerLn2Mesh%Force     = 0_ReKi   
    
-   u%TwrAddedMass    = 0.0_ReKi
-   !u%TwrFT           = 0.0_ReKi
-   
+   u%TwrAddedMass    = 0.0_ReKi  
    
    u%BlPitchCom      = InputFileData%BlPitch(1:p%NumBl)
    u%YawMom          = 0.0_ReKi
@@ -1424,8 +1420,6 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    u%HSSBrTrq        = 0.0_ReKi
    u%AeroBladeForce  = 0.0_ReKi
    u%AeroBladeMoment = 0.0_ReKi
-   u%FTAero          = 0.0_ReKi
-   u%MFAero          = 0.0_ReKi
    
 
       !............................................................................................
@@ -1708,8 +1702,8 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    REAL(ReKi)                   :: LinAccES (p%NumBl,p%TipNode,3)                  ! Total linear acceleration of a point on a   blade (point S) in the inertia frame (body E for earth).
    REAL(ReKi)                   :: LinAccET (p%TwrNodes,3)                         ! Total linear acceleration of a point on the tower (point T) in the inertia frame (body E for earth).
    REAL(ReKi)                   :: FrcS0B   (p%NumBl,3)                            ! Total force at the blade root (point S(0)) due to the blade.
-   REAL(ReKi)                   :: FTHydro  (p%TwrNodes,3)                         ! Total hydrodynamic force per unit length acting on the tower at point T.
-   REAL(ReKi)                   :: MFHydro  (p%TwrNodes,3)                         ! Total hydrodynamic moment per unit length acting on a tower element (body F) at point T.
+   REAL(ReKi)                   :: FTTower  (p%TwrNodes,3)                         ! Total hydrodynamic + aerodynamic force per unit length acting on the tower at point T.
+   REAL(ReKi)                   :: MFHydro  (p%TwrNodes,3)                         ! Total hydrodynamic + aerodynamic moment per unit length acting on a tower element (body F) at point T.
    REAL(ReKi)                   :: MomH0B   (p%NumBl,3)                            ! Total moment at the hub (body H) / blade root (point S(0)) due to the blade.
 
 
@@ -1855,12 +1849,12 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
 
       LinAccET(J,:) = OtherState%RtHS%LinAccETt(J,:)
-      FTHydro (J,:) = OtherState%RtHS%FTHydrot (J,:)
+      FTTower (J,:) = OtherState%RtHS%FTHydrot (J,:)
       MFHydro (J,:) = OtherState%RtHS%MFHydrot (J,:)
 
       DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
          LinAccET(J,:) = LinAccET(J,:) + OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,:)*OtherState%QD2T(p%DOFs%PTE(I))
-         FTHydro (J,:) = FTHydro (J,:) + OtherState%RtHS%PFTHydro (J,p%DOFs%PTE(I),  :)*OtherState%QD2T(p%DOFs%PTE(I))
+         FTTower (J,:) = FTTower (J,:) + OtherState%RtHS%PFTHydro (J,p%DOFs%PTE(I),  :)*OtherState%QD2T(p%DOFs%PTE(I))
          MFHydro (J,:) = MFHydro (J,:) + OtherState%RtHS%PMFHydro (J,p%DOFs%PTE(I),  :)*OtherState%QD2T(p%DOFs%PTE(I))
       ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
 
@@ -2303,11 +2297,11 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
       ! Integrate to find FrcFGagT and MomFGagT using all of the nodes / elements above the current strain gage location:
       DO J = ( p%TwrGagNd(I) + 1 ),p%TwrNodes ! Loop through tower nodes / elements above strain gage node
-         TmpVec2  = u%FTAero(J,:) + FTHydro(J,:) - p%MassT(J)*( p%Gravity*OtherState%CoordSys%z2 + LinAccET(J,:) )           ! Portion of FrcFGagT associated with element J
+         TmpVec2  = FTTower(J,:) - p%MassT(J)*( p%Gravity*OtherState%CoordSys%z2 + LinAccET(J,:) )           ! Portion of FrcFGagT associated with element J
          FrcFGagT = FrcFGagT + TmpVec2*p%DHNodes(J)
 
          TmpVec = CROSS_PRODUCT( OtherState%RtHS%rZT(J,:) - OtherState%RtHS%rZT(p%TwrGagNd(I),:), TmpVec2 )                          ! Portion of MomFGagT associated with element J
-         MomFGagT = MomFGagT + ( TmpVec + u%MFAero(J,:) + MFHydro(J,:) )*p%DHNodes(J)
+         MomFGagT = MomFGagT + ( TmpVec + MFHydro(J,:) )*p%DHNodes(J)
       ENDDO ! J -Tower nodes / elements above strain gage node
 
       ! Add the effects of 1/2 the strain gage element:
@@ -2315,13 +2309,13 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       !   effect (due to tower bending) within the element.  Thus, the moment arm
       !   for the force is 1/4 of DHNodes() and the element length is 1/2 of DHNodes().
 
-      TmpVec2  = u%FTAero(p%TwrGagNd(I),:) + FTHydro(p%TwrGagNd(I),:) - p%MassT(p%TwrGagNd(I))*( p%Gravity*OtherState%CoordSys%z2 + LinAccET(p%TwrGagNd(I),:))
+      TmpVec2  = FTTower(p%TwrGagNd(I),:) - p%MassT(p%TwrGagNd(I))*( p%Gravity*OtherState%CoordSys%z2 + LinAccET(p%TwrGagNd(I),:))
 
       FrcFGagT = FrcFGagT + TmpVec2 * 0.5 * p%DHNodes(p%TwrGagNd(I))
       FrcFGagT = 0.001*FrcFGagT  ! Convert the local force to kN
 
       TmpVec = CROSS_PRODUCT( ( 0.25*p%DHNodes( p%TwrGagNd(I)) )*OtherState%CoordSys%a2, TmpVec2 )              ! Portion of MomFGagT associated with 1/2 of the strain gage element
-      TmpVec   = TmpVec   + u%MFAero(p%TwrGagNd(I),:) + MFHydro(p%TwrGagNd(I),:)
+      TmpVec   = TmpVec   + MFHydro(p%TwrGagNd(I),:)
       MomFGagT = MomFGagT + TmpVec * 0.5 * p%DHNodes(p%TwrGagNd(I))
       MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
 
@@ -12170,10 +12164,10 @@ DO K = 1,p%NumBl ! Loop through all blades
 
       ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-      TmpVec1 = ( u%FTAero(J,:) + RtHSdat%FTHydrot(J,:) )*p%DHNodes(J) &
+      TmpVec1 = ( RtHSdat%FTHydrot(J,:) )*p%DHNodes(J) &
               - p%TElmntMass(J)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccETt(J,:) )          ! The portion of FrcT0Trbt associated with tower element J
-      TmpVec2 = CROSS_PRODUCT( RtHSdat%rT0T(J,:), TmpVec1 )                                        ! The portion of MomX0Trbt associated with tower element J
-      TmpVec3 = ( u%MFAero(J,:) + RtHSdat%MFHydrot(J,:) )*p%DHNodes(J)                             ! The external moment applied to tower element J
+      TmpVec2 = CROSS_PRODUCT( RtHSdat%rT0T(J,:), TmpVec1 )                                 ! The portion of MomX0Trbt associated with tower element J
+      TmpVec3 = ( RtHSdat%MFHydrot(J,:) )*p%DHNodes(J)                                      ! The external moment applied to tower element J
 
       RtHSdat%FrcT0Trbt = RtHSdat%FrcT0Trbt + TmpVec1
 
@@ -12446,9 +12440,9 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
          ENDDO                 ! I - All active (enabled) tower DOFs greater than or equal to L
       ENDDO                    ! L - All active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-      TmpVec1 = ( u%FTAero(J,:) + RtHSdat%FTHydrot(J,:) )*p%DHNodes(J) &
+      TmpVec1 = ( RtHSdat%FTHydrot(J,:) )*p%DHNodes(J) &
               - p%TElmntMass(J)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccETt(J,:) )          ! The portion of FrcT0Trbt associated with tower element J
-      TmpVec3 = ( u%MFAero(J,:) + RtHSdat%MFHydrot(J,:) )*p%DHNodes(J)             ! The external moment applied to tower element J
+      TmpVec3 = ( RtHSdat%MFHydrot(J,:) )*p%DHNodes(J)             ! The external moment applied to tower element J
       DO I = 1,p%DOFs%NPTTE    ! Loop through all active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the tower
             AugMat(p%DOFs%PTTE(I),        p%NAug) = AugMat(p%DOFs%PTTE(I),   p%NAug)                         &                 ! {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT
                                                   +  DOT_PRODUCT( RtHSdat%PLinVelET(J,p%DOFs%PTTE(I),0,:), TmpVec1        ) &  ! NOTE: TmpVec1 is still the portion of FrcT0Trbt associated with tower element J
@@ -12729,129 +12723,51 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
       IF (ErrStat >= AbortErrLev) RETURN
 
    
-! -->    TESTING: NON-SIBLINGS
       !.......................................................
       ! Create Point Mesh for Inputs at Platform Reference Point:
       !.......................................................
       
-   !CALL MeshCreate( BlankMesh         = y%PlatformPtMesh       &
-   !                  ,IOS             = COMPONENT_OUTPUT       &
-   !                  ,NNodes          = 1                      &
-   !              , TranslationDisp = .TRUE.    &
-   !              , Orientation     = .TRUE.    &
-   !              , RotationVel     = .TRUE.    &
-   !              , TranslationVel  = .TRUE.    &
-   !              , RotationAcc     = .TRUE.    &
-   !              , TranslationAcc  = .TRUE.    &
-   !                  ,ErrStat         = ErrStat2               &
-   !                  ,ErrMess         = ErrMsg2                )
-   !   CALL CheckError(ErrStat2,ErrMsg2)
-   !   IF (ErrStat >= AbortErrLev) RETURN
-   !
-   !   ! place single node at platform reference point; position affects mapping/coupling with other modules
-   !CALL MeshPositionNode ( y%PlatformPtMesh, 1, (/0.0_ReKi, 0.0_ReKi, p%PtfmRefzt /), ErrStat, ErrMsg )
-   !   CALL CheckError(ErrStat2,ErrMsg2)
-   !   IF (ErrStat >= AbortErrLev) RETURN
-   !   
-   !   ! create an element from this point      
-   !CALL MeshConstructElement ( Mesh = y%PlatformPtMesh        &
-   !                           , Xelement = ELEMENT_POINT      &
-   !                           , P1       = 1                  &   ! node number
-   !                           , ErrStat  = ErrStat            &
-   !                           , ErrMess  = ErrMsg             )
-   !   CALL CheckError(ErrStat2,ErrMsg2)
-   !   IF (ErrStat >= AbortErrLev) RETURN
-   !
-   !   ! that's our entire mesh:
-   !CALL MeshCommit ( y%PlatformPtMesh, ErrStat2, ErrMsg2 )   
-   !   CALL CheckError(ErrStat2,ErrMsg2)
-   !   IF (ErrStat >= AbortErrLev) RETURN
-      
-      !.......................................................
-      ! Create Line2 Mesh for Inputs on Tower Line2 Mesh:
-      !.......................................................
-           
-      
-   !CALL MeshCreate( BlankMesh      = y%TowerLn2Mesh         &
-   !                  ,IOS          = COMPONENT_OUTPUT        &
-   !                  ,NNodes       = p%TwrNodes             &
-   !              , TranslationDisp = .TRUE.    &
-   !              , Orientation     = .TRUE.    &
-   !              , RotationVel     = .TRUE.    &
-   !              , TranslationVel  = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
-   !              , RotationAcc     = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
-   !              , TranslationAcc  = .TRUE.    &
-   !              , nScalars  = 600    &
-   !                  ,ErrStat      = ErrStat2               &
-   !                  ,ErrMess      = ErrMsg2                )
-   !   CALL CheckError(ErrStat2,ErrMsg2)
-   !   IF (ErrStat >= AbortErrLev) RETURN
-   !
-   !   ! position the nodes on the tower:
-   !DO J = 1,p%TwrNodes
-   !   CALL MeshPositionNode ( y%TowerLn2Mesh, J, (/0.0_ReKi, 0.0_ReKi, p%HNodes(J) + p%TowerBsHt /), ErrStat2, ErrMsg2 )
-   !      CALL CheckError(ErrStat2,ErrMsg2)
-   !      IF (ErrStat >= AbortErrLev) RETURN
-   !END DO
-   !
-   !
-   !   ! create elements:
-   !   
-   !IF ( p%TwrNodes < 2_IntKi ) THEN  ! if there are less than 2 nodes, we'll throw an error:
-   !   CALL CheckError(ErrID_Fatal,"Tower Line2 Mesh cannot be created with less than 2 elements.")
-   !   RETURN
-   !ELSE ! create line2 elements from the tower nodes:
-   !   DO J = 2,p%TwrNodes
-   !      CALL MeshConstructElement ( Mesh      = y%TowerLn2Mesh     &
-   !                                 , Xelement = ELEMENT_LINE2      &
-   !                                 , P1       = J-1                &   ! node1 number
-   !                                 , P2       = J                  &   ! node2 number
-   !                                 , ErrStat  = ErrStat2           &
-   !                                 , ErrMess  = ErrMsg2            )
-   !      
-   !         CALL CheckError(ErrStat2,ErrMsg2)
-   !         IF (ErrStat >= AbortErrLev) RETURN
-   !   
-   !   END DO
-   !END IF   
-   !
-   !   ! that's our entire mesh:
-   !CALL MeshCommit ( y%TowerLn2Mesh, ErrStat2, ErrMsg2 )   
-   !   CALL CheckError(ErrStat2,ErrMsg2)
-   !   IF (ErrStat >= AbortErrLev) RETURN      
-      
    CALL MeshCopy ( SrcMesh  = u%PlatformPtMesh &
                  , DestMesh = y%PlatformPtMesh &
                  , CtrlCode = MESH_SIBLING     &
+                 , IOS      = COMPONENT_OUTPUT &
                  , TranslationDisp = .TRUE.    &
                  , Orientation     = .TRUE.    &
                  , RotationVel     = .TRUE.    &
                  , TranslationVel  = .TRUE.    &
                  , RotationAcc     = .TRUE.    &
                  , TranslationAcc  = .TRUE.    &
-                 , ErrStat  = ErrStat          &
-                 , ErrMess  = ErrMsg           )
-   y%PlatformPtMesh%IOS     = COMPONENT_OUTPUT         ! not sure it really matters to set this, but I'll do it anyway.
-              
+                 , ErrStat  = ErrStat2         &
+                 , ErrMess  = ErrMsg2          )
+         
+   y%PlatformPtMesh%RemapFlag = .TRUE.
    
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+   
+      !.......................................................
+      ! Create Line2 Mesh for Inputs on Tower Line2 Mesh:
+      !.......................................................
+                                        
    CALL MeshCopy ( SrcMesh  = u%TowerLn2Mesh   &
                  , DestMesh = y%TowerLn2Mesh   &
                  , CtrlCode = MESH_SIBLING     &
+                 , IOS      = COMPONENT_OUTPUT &
                  , TranslationDisp = .TRUE.    &
                  , Orientation     = .TRUE.    &
                  , RotationVel     = .TRUE.    &
                  , TranslationVel  = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
                  , RotationAcc     = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
                  , TranslationAcc  = .TRUE.    &
-                 , ErrStat  = ErrStat          &
-                 , ErrMess  = ErrMsg           )
-      
-   y%TowerLn2Mesh%IOS       = COMPONENT_OUTPUT         ! not sure it really matters to set this, but I'll do it anyway.   
-! <--   TESTING: NON-SIBLINGS         
+                 , ErrStat  = ErrStat2         &
+                 , ErrMess  = ErrMsg2          )         
    
-   
-   y%PlatformPtMesh%RemapFlag = .TRUE.
    y%TowerLn2Mesh%RemapFlag   = .TRUE.
+   
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
    
 CONTAINS
    !...............................................................................................................................
@@ -12923,15 +12839,6 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
    CALL AllocAry( u%AeroBladeMoment, 3_IntKi, p%BldNodes, p%NumBl, 'AeroBladeMoment', ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
-   
-   CALL AllocAry( u%FTAero,            p%TwrNodes,        3_IntKi, 'FTAero',          ErrStat2, ErrMsg2 )
-      CALL CheckError(ErrStat2,ErrMsg2)
-      IF (ErrStat >= AbortErrLev) RETURN
-   
-   CALL AllocAry( u%MFAero,            p%TwrNodes,        3_IntKi, 'MFAero',          ErrStat2, ErrMsg2 )
-      CALL CheckError(ErrStat2,ErrMsg2)
-      IF (ErrStat >= AbortErrLev) RETURN
-   
 
       !.......................................................
       ! Create Point Mesh for Inputs at Platform Reference Point:

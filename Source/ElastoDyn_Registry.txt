@@ -437,10 +437,10 @@ typedef	^	ED_RtHndSide	ReKi	FrcS0Bt	{:}{:}	-	-	"Portion of the force at the blad
 typedef	^	ED_RtHndSide	ReKi	FrcT0Trbt	3	-	-	"Portion of the force at tower base (point T(0)) due to the turbine associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	FSAero	{:}{:}{:}	-	-	"The aerodynamic force per unit span acting on a blade at point S"
 typedef	^	ED_RtHndSide	ReKi	FSTipDrag	{:}{:}	-	-	"The aerodynamic force at a blade tip resulting from tip drag"
-typedef	^	ED_RtHndSide	ReKi	FTHydrot	{:}{:}	-	-	"Portion of the hydrodynamic force per unit length acting on the tower at point T associated with everything but the QD2T()'s"
+typedef	^	ED_RtHndSide	ReKi	FTHydrot	{:}{:}	-	-	"Portion of the hydrodynamic force (& all other external forces, including aerodynamic) per unit length acting on the tower at point T associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	FZHydrot	3	-	-	"Portion of the platform hydrodynamic force at the platform reference (point Z) associated with everything but the QD2T()'s"
 
-typedef	^	ED_RtHndSide	ReKi	MFHydrot	{:}{:}	-	-	"Portion of the hydrodynamic moment per unit length acting on a tower element (body F) at point T associated with everything but the QD2T()'s"
+typedef	^	ED_RtHndSide	ReKi	MFHydrot	{:}{:}	-	-	"Portion of the hydrodynamic moment (and all other external moments, including aerodynamic) per unit length acting on a tower element (body F) at point T associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	MomBNcRtt	3	-	-	"Portion of the moment at the base plate (body B) / yaw bearing (point O) due to the nacelle, generator, and rotor associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	MomH0Bt	{:}{:}	-	-	"Portion of the moment at the hub (body H) / blade root (point S(0)) due to the blade associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	MomLPRott	3	-	-	"Portion of the moment at the teeter pin (point P) on the low-speed shaft (body L) due to the rotor associated with everything but the QD2T()'s"
@@ -764,6 +764,7 @@ typedef	^	ParameterType	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [o
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:
+typedef	^	InputType	MeshType	BladeLn2Mesh	-	-	-	"A mesh on the blades, containing aerodynamic forces and moments (formerly AeroBladeForce and AeroBladeMoment)"
 typedef	^	InputType	MeshType	PlatformPtMesh	-	-	-	"A mesh at the platform reference (point Z), containing force: surge/xi (1), sway/yi (2), and heave/zi (3)-components; and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"	N
 typedef	^	InputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower node (point T); and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components of the portion of the tower moment acting at the current tower node"	N/m
 # Define inputs that are not on a mesh here:
@@ -775,11 +776,12 @@ typedef	^	InputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
 typedef	^	InputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
 typedef	^	InputType	ReKi	AeroBladeForce	{:}{:}{:}	-	-	"Aerodynamic force on the blade elements"
 typedef	^	InputType	ReKi	AeroBladeMoment	{:}{:}{:}	-	-	"Aerodynamic moment on the blade elements"
-typedef	^	InputType	ReKi	FTAero	{:}{:}	-	-	"The aerodynamic force per unit length acting on the tower at point T"
-typedef	^	InputType	ReKi	MFAero	{:}{:}	-	-	"The aerodynamic moment per unit length acting on the tower at point T"
+#typedef	^	InputType	ReKi	FTAero	{:}{:}	-	-	"The aerodynamic force per unit length acting on the tower at point T"
+#typedef	^	InputType	ReKi	MFAero	{:}{:}	-	-	"The aerodynamic moment per unit length acting on the tower at point T"
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
+typedef	^	OutputType	MeshType	BladeLn2Mesh	-	-	-	"A mesh on the blades, containing positions and orientations of the blade elements"
 typedef	^	OutputType	MeshType	PlatformPtMesh	-	-	-	"Platform reference point positions/orientations/velocities/accelerations"	-
 typedef	^	OutputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with positions/orientations/velocities/accelerations"	-
 # Define outputs that are not on this mesh here:

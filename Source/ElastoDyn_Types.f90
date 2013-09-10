@@ -764,6 +764,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  ED_InputType  =======
   TYPE, PUBLIC :: ED_InputType
+    TYPE(MeshType)  :: BladeLn2Mesh 
     TYPE(MeshType)  :: PlatformPtMesh 
     TYPE(MeshType)  :: TowerLn2Mesh 
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: TwrAddedMass 
@@ -774,12 +775,11 @@ IMPLICIT NONE
     REAL(ReKi)  :: HSSBrTrq 
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AeroBladeForce 
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AeroBladeMoment 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FTAero 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MFAero 
   END TYPE ED_InputType
 ! =======================
 ! =========  ED_OutputType  =======
   TYPE, PUBLIC :: ED_OutputType
+    TYPE(MeshType)  :: BladeLn2Mesh 
     TYPE(MeshType)  :: PlatformPtMesh 
     TYPE(MeshType)  :: TowerLn2Mesh 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AllOuts 
@@ -11273,6 +11273,7 @@ ENDDO
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
+     CALL MeshCopy( SrcInputData%BladeLn2Mesh, DstInputData%BladeLn2Mesh, CtrlCode, ErrStat, ErrMsg )
      CALL MeshCopy( SrcInputData%PlatformPtMesh, DstInputData%PlatformPtMesh, CtrlCode, ErrStat, ErrMsg )
      CALL MeshCopy( SrcInputData%TowerLn2Mesh, DstInputData%TowerLn2Mesh, CtrlCode, ErrStat, ErrMsg )
 IF (ALLOCATED(SrcInputData%TwrAddedMass)) THEN
@@ -11343,36 +11344,6 @@ IF (ALLOCATED(SrcInputData%AeroBladeMoment)) THEN
    END IF
    DstInputData%AeroBladeMoment = SrcInputData%AeroBladeMoment
 ENDIF
-IF (ALLOCATED(SrcInputData%FTAero)) THEN
-   i1_l = LBOUND(SrcInputData%FTAero,1)
-   i1_u = UBOUND(SrcInputData%FTAero,1)
-   i2_l = LBOUND(SrcInputData%FTAero,2)
-   i2_u = UBOUND(SrcInputData%FTAero,2)
-   IF (.NOT.ALLOCATED(DstInputData%FTAero)) THEN 
-      ALLOCATE(DstInputData%FTAero(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'ED_CopyInput: Error allocating DstInputData%FTAero.'
-         RETURN
-      END IF
-   END IF
-   DstInputData%FTAero = SrcInputData%FTAero
-ENDIF
-IF (ALLOCATED(SrcInputData%MFAero)) THEN
-   i1_l = LBOUND(SrcInputData%MFAero,1)
-   i1_u = UBOUND(SrcInputData%MFAero,1)
-   i2_l = LBOUND(SrcInputData%MFAero,2)
-   i2_u = UBOUND(SrcInputData%MFAero,2)
-   IF (.NOT.ALLOCATED(DstInputData%MFAero)) THEN 
-      ALLOCATE(DstInputData%MFAero(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'ED_CopyInput: Error allocating DstInputData%MFAero.'
-         RETURN
-      END IF
-   END IF
-   DstInputData%MFAero = SrcInputData%MFAero
-ENDIF
  END SUBROUTINE ED_CopyInput
 
  SUBROUTINE ED_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -11383,14 +11354,13 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
+  CALL MeshDestroy( InputData%BladeLn2Mesh, ErrStat, ErrMsg )
   CALL MeshDestroy( InputData%PlatformPtMesh, ErrStat, ErrMsg )
   CALL MeshDestroy( InputData%TowerLn2Mesh, ErrStat, ErrMsg )
   IF ( ALLOCATED(InputData%TwrAddedMass) ) DEALLOCATE(InputData%TwrAddedMass)
   IF ( ALLOCATED(InputData%BlPitchCom) ) DEALLOCATE(InputData%BlPitchCom)
   IF ( ALLOCATED(InputData%AeroBladeForce) ) DEALLOCATE(InputData%AeroBladeForce)
   IF ( ALLOCATED(InputData%AeroBladeMoment) ) DEALLOCATE(InputData%AeroBladeMoment)
-  IF ( ALLOCATED(InputData%FTAero) ) DEALLOCATE(InputData%FTAero)
-  IF ( ALLOCATED(InputData%MFAero) ) DEALLOCATE(InputData%MFAero)
  END SUBROUTINE ED_DestroyInput
 
  SUBROUTINE ED_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -11414,6 +11384,9 @@ ENDIF
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
  ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_BladeLn2Mesh_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_BladeLn2Mesh_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_BladeLn2Mesh_Buf(:)
   REAL(ReKi),     ALLOCATABLE :: Re_PlatformPtMesh_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_PlatformPtMesh_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_PlatformPtMesh_Buf(:)
@@ -11434,6 +11407,13 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
  ! Allocate mesh buffers, if any (we'll also get sizes from these) 
+  CALL MeshPack( InData%BladeLn2Mesh, Re_BladeLn2Mesh_Buf, Db_BladeLn2Mesh_Buf, Int_BladeLn2Mesh_Buf, ErrStat, ErrMsg, .TRUE. ) ! BladeLn2Mesh 
+  IF(ALLOCATED(Re_BladeLn2Mesh_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_BladeLn2Mesh_Buf  ) ! BladeLn2Mesh
+  IF(ALLOCATED(Db_BladeLn2Mesh_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_BladeLn2Mesh_Buf  ) ! BladeLn2Mesh
+  IF(ALLOCATED(Int_BladeLn2Mesh_Buf))Int_BufSz = Int_BufSz + SIZE( Int_BladeLn2Mesh_Buf ) ! BladeLn2Mesh
+  IF(ALLOCATED(Re_BladeLn2Mesh_Buf))  DEALLOCATE(Re_BladeLn2Mesh_Buf)
+  IF(ALLOCATED(Db_BladeLn2Mesh_Buf))  DEALLOCATE(Db_BladeLn2Mesh_Buf)
+  IF(ALLOCATED(Int_BladeLn2Mesh_Buf)) DEALLOCATE(Int_BladeLn2Mesh_Buf)
   CALL MeshPack( InData%PlatformPtMesh, Re_PlatformPtMesh_Buf, Db_PlatformPtMesh_Buf, Int_PlatformPtMesh_Buf, ErrStat, ErrMsg, .TRUE. ) ! PlatformPtMesh 
   IF(ALLOCATED(Re_PlatformPtMesh_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_PlatformPtMesh_Buf  ) ! PlatformPtMesh
   IF(ALLOCATED(Db_PlatformPtMesh_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_PlatformPtMesh_Buf  ) ! PlatformPtMesh
@@ -11456,11 +11436,25 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrq
   Re_BufSz    = Re_BufSz    + SIZE( InData%AeroBladeForce )  ! AeroBladeForce 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AeroBladeMoment )  ! AeroBladeMoment 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%FTAero )  ! FTAero 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%MFAero )  ! MFAero 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  CALL MeshPack( InData%BladeLn2Mesh, Re_BladeLn2Mesh_Buf, Db_BladeLn2Mesh_Buf, Int_BladeLn2Mesh_Buf, ErrStat, ErrMsg, OnlySize ) ! BladeLn2Mesh 
+  IF(ALLOCATED(Re_BladeLn2Mesh_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_BladeLn2Mesh_Buf)-1 ) = Re_BladeLn2Mesh_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_BladeLn2Mesh_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_BladeLn2Mesh_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_BladeLn2Mesh_Buf)-1 ) = Db_BladeLn2Mesh_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_BladeLn2Mesh_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_BladeLn2Mesh_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_BladeLn2Mesh_Buf)-1 ) = Int_BladeLn2Mesh_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_BladeLn2Mesh_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_BladeLn2Mesh_Buf) )  DEALLOCATE(Re_BladeLn2Mesh_Buf)
+  IF( ALLOCATED(Db_BladeLn2Mesh_Buf) )  DEALLOCATE(Db_BladeLn2Mesh_Buf)
+  IF( ALLOCATED(Int_BladeLn2Mesh_Buf) ) DEALLOCATE(Int_BladeLn2Mesh_Buf)
   CALL MeshPack( InData%PlatformPtMesh, Re_PlatformPtMesh_Buf, Db_PlatformPtMesh_Buf, Int_PlatformPtMesh_Buf, ErrStat, ErrMsg, OnlySize ) ! PlatformPtMesh 
   IF(ALLOCATED(Re_PlatformPtMesh_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PlatformPtMesh_Buf)-1 ) = Re_PlatformPtMesh_Buf
@@ -11517,14 +11511,6 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AeroBladeMoment))-1 ) =  PACK(InData%AeroBladeMoment ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%AeroBladeMoment)
   ENDIF
-  IF ( ALLOCATED(InData%FTAero) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%FTAero))-1 ) =  PACK(InData%FTAero ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%FTAero)
-  ENDIF
-  IF ( ALLOCATED(InData%MFAero) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%MFAero))-1 ) =  PACK(InData%MFAero ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%MFAero)
-  ENDIF
  END SUBROUTINE ED_PackInput
 
  SUBROUTINE ED_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -11551,6 +11537,9 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
  ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_BladeLn2Mesh_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_BladeLn2Mesh_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_BladeLn2Mesh_Buf(:)
   REAL(ReKi),    ALLOCATABLE :: Re_PlatformPtMesh_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_PlatformPtMesh_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_PlatformPtMesh_Buf(:)
@@ -11567,6 +11556,23 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
  ! first call MeshPack to get correctly sized buffers for unpacking
+  CALL MeshPack( OutData%BladeLn2Mesh, Re_BladeLn2Mesh_Buf, Db_BladeLn2Mesh_Buf, Int_BladeLn2Mesh_Buf, ErrStat, ErrMsg , .TRUE. ) ! BladeLn2Mesh 
+  IF(ALLOCATED(Re_BladeLn2Mesh_Buf)) THEN
+    Re_BladeLn2Mesh_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_BladeLn2Mesh_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_BladeLn2Mesh_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_BladeLn2Mesh_Buf)) THEN
+    Db_BladeLn2Mesh_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_BladeLn2Mesh_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_BladeLn2Mesh_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_BladeLn2Mesh_Buf)) THEN
+    Int_BladeLn2Mesh_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_BladeLn2Mesh_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_BladeLn2Mesh_Buf)
+  ENDIF
+  CALL MeshUnPack( OutData%BladeLn2Mesh, Re_BladeLn2Mesh_Buf, Db_BladeLn2Mesh_Buf, Int_BladeLn2Mesh_Buf, ErrStat, ErrMsg ) ! BladeLn2Mesh 
+  IF( ALLOCATED(Re_BladeLn2Mesh_Buf) )  DEALLOCATE(Re_BladeLn2Mesh_Buf)
+  IF( ALLOCATED(Db_BladeLn2Mesh_Buf) )  DEALLOCATE(Db_BladeLn2Mesh_Buf)
+  IF( ALLOCATED(Int_BladeLn2Mesh_Buf) ) DEALLOCATE(Int_BladeLn2Mesh_Buf)
   CALL MeshPack( OutData%PlatformPtMesh, Re_PlatformPtMesh_Buf, Db_PlatformPtMesh_Buf, Int_PlatformPtMesh_Buf, ErrStat, ErrMsg , .TRUE. ) ! PlatformPtMesh 
   IF(ALLOCATED(Re_PlatformPtMesh_Buf)) THEN
     Re_PlatformPtMesh_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PlatformPtMesh_Buf)-1 )
@@ -11635,18 +11641,6 @@ ENDIF
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AeroBladeMoment)
   ENDIF
-  IF ( ALLOCATED(OutData%FTAero) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%FTAero,1),SIZE(OutData%FTAero,2))); mask2 = .TRUE.
-    OutData%FTAero = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FTAero))-1 ),mask2,OutData%FTAero)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%FTAero)
-  ENDIF
-  IF ( ALLOCATED(OutData%MFAero) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%MFAero,1),SIZE(OutData%MFAero,2))); mask2 = .TRUE.
-    OutData%MFAero = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%MFAero))-1 ),mask2,OutData%MFAero)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%MFAero)
-  ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -11665,6 +11659,7 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
+     CALL MeshCopy( SrcOutputData%BladeLn2Mesh, DstOutputData%BladeLn2Mesh, CtrlCode, ErrStat, ErrMsg )
      CALL MeshCopy( SrcOutputData%PlatformPtMesh, DstOutputData%PlatformPtMesh, CtrlCode, ErrStat, ErrMsg )
      CALL MeshCopy( SrcOutputData%TowerLn2Mesh, DstOutputData%TowerLn2Mesh, CtrlCode, ErrStat, ErrMsg )
 IF (ALLOCATED(SrcOutputData%AllOuts)) THEN
@@ -11738,6 +11733,7 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
+  CALL MeshDestroy( OutputData%BladeLn2Mesh, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%PlatformPtMesh, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%TowerLn2Mesh, ErrStat, ErrMsg )
   IF ( ALLOCATED(OutputData%AllOuts) ) DEALLOCATE(OutputData%AllOuts)
@@ -11766,6 +11762,9 @@ ENDIF
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
  ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_BladeLn2Mesh_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_BladeLn2Mesh_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_BladeLn2Mesh_Buf(:)
   REAL(ReKi),     ALLOCATABLE :: Re_PlatformPtMesh_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_PlatformPtMesh_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_PlatformPtMesh_Buf(:)
@@ -11786,6 +11785,13 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
  ! Allocate mesh buffers, if any (we'll also get sizes from these) 
+  CALL MeshPack( InData%BladeLn2Mesh, Re_BladeLn2Mesh_Buf, Db_BladeLn2Mesh_Buf, Int_BladeLn2Mesh_Buf, ErrStat, ErrMsg, .TRUE. ) ! BladeLn2Mesh 
+  IF(ALLOCATED(Re_BladeLn2Mesh_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_BladeLn2Mesh_Buf  ) ! BladeLn2Mesh
+  IF(ALLOCATED(Db_BladeLn2Mesh_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_BladeLn2Mesh_Buf  ) ! BladeLn2Mesh
+  IF(ALLOCATED(Int_BladeLn2Mesh_Buf))Int_BufSz = Int_BufSz + SIZE( Int_BladeLn2Mesh_Buf ) ! BladeLn2Mesh
+  IF(ALLOCATED(Re_BladeLn2Mesh_Buf))  DEALLOCATE(Re_BladeLn2Mesh_Buf)
+  IF(ALLOCATED(Db_BladeLn2Mesh_Buf))  DEALLOCATE(Db_BladeLn2Mesh_Buf)
+  IF(ALLOCATED(Int_BladeLn2Mesh_Buf)) DEALLOCATE(Int_BladeLn2Mesh_Buf)
   CALL MeshPack( InData%PlatformPtMesh, Re_PlatformPtMesh_Buf, Db_PlatformPtMesh_Buf, Int_PlatformPtMesh_Buf, ErrStat, ErrMsg, .TRUE. ) ! PlatformPtMesh 
   IF(ALLOCATED(Re_PlatformPtMesh_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_PlatformPtMesh_Buf  ) ! PlatformPtMesh
   IF(ALLOCATED(Db_PlatformPtMesh_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_PlatformPtMesh_Buf  ) ! PlatformPtMesh
@@ -11828,6 +11834,22 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  CALL MeshPack( InData%BladeLn2Mesh, Re_BladeLn2Mesh_Buf, Db_BladeLn2Mesh_Buf, Int_BladeLn2Mesh_Buf, ErrStat, ErrMsg, OnlySize ) ! BladeLn2Mesh 
+  IF(ALLOCATED(Re_BladeLn2Mesh_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_BladeLn2Mesh_Buf)-1 ) = Re_BladeLn2Mesh_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_BladeLn2Mesh_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_BladeLn2Mesh_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_BladeLn2Mesh_Buf)-1 ) = Db_BladeLn2Mesh_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_BladeLn2Mesh_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_BladeLn2Mesh_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_BladeLn2Mesh_Buf)-1 ) = Int_BladeLn2Mesh_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_BladeLn2Mesh_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_BladeLn2Mesh_Buf) )  DEALLOCATE(Re_BladeLn2Mesh_Buf)
+  IF( ALLOCATED(Db_BladeLn2Mesh_Buf) )  DEALLOCATE(Db_BladeLn2Mesh_Buf)
+  IF( ALLOCATED(Int_BladeLn2Mesh_Buf) ) DEALLOCATE(Int_BladeLn2Mesh_Buf)
   CALL MeshPack( InData%PlatformPtMesh, Re_PlatformPtMesh_Buf, Db_PlatformPtMesh_Buf, Int_PlatformPtMesh_Buf, ErrStat, ErrMsg, OnlySize ) ! PlatformPtMesh 
   IF(ALLOCATED(Re_PlatformPtMesh_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PlatformPtMesh_Buf)-1 ) = Re_PlatformPtMesh_Buf
@@ -11942,6 +11964,9 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
  ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_BladeLn2Mesh_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_BladeLn2Mesh_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_BladeLn2Mesh_Buf(:)
   REAL(ReKi),    ALLOCATABLE :: Re_PlatformPtMesh_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_PlatformPtMesh_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_PlatformPtMesh_Buf(:)
@@ -11958,6 +11983,23 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
  ! first call MeshPack to get correctly sized buffers for unpacking
+  CALL MeshPack( OutData%BladeLn2Mesh, Re_BladeLn2Mesh_Buf, Db_BladeLn2Mesh_Buf, Int_BladeLn2Mesh_Buf, ErrStat, ErrMsg , .TRUE. ) ! BladeLn2Mesh 
+  IF(ALLOCATED(Re_BladeLn2Mesh_Buf)) THEN
+    Re_BladeLn2Mesh_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_BladeLn2Mesh_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_BladeLn2Mesh_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_BladeLn2Mesh_Buf)) THEN
+    Db_BladeLn2Mesh_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_BladeLn2Mesh_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_BladeLn2Mesh_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_BladeLn2Mesh_Buf)) THEN
+    Int_BladeLn2Mesh_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_BladeLn2Mesh_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_BladeLn2Mesh_Buf)
+  ENDIF
+  CALL MeshUnPack( OutData%BladeLn2Mesh, Re_BladeLn2Mesh_Buf, Db_BladeLn2Mesh_Buf, Int_BladeLn2Mesh_Buf, ErrStat, ErrMsg ) ! BladeLn2Mesh 
+  IF( ALLOCATED(Re_BladeLn2Mesh_Buf) )  DEALLOCATE(Re_BladeLn2Mesh_Buf)
+  IF( ALLOCATED(Db_BladeLn2Mesh_Buf) )  DEALLOCATE(Db_BladeLn2Mesh_Buf)
+  IF( ALLOCATED(Int_BladeLn2Mesh_Buf) ) DEALLOCATE(Int_BladeLn2Mesh_Buf)
   CALL MeshPack( OutData%PlatformPtMesh, Re_PlatformPtMesh_Buf, Db_PlatformPtMesh_Buf, Int_PlatformPtMesh_Buf, ErrStat, ErrMsg , .TRUE. ) ! PlatformPtMesh 
   IF(ALLOCATED(Re_PlatformPtMesh_Buf)) THEN
     Re_PlatformPtMesh_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PlatformPtMesh_Buf)-1 )
@@ -12678,6 +12720,7 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
+  CALL MeshCopy(u(1)%BladeLn2Mesh, u_out%BladeLn2Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
   CALL MeshCopy(u(1)%PlatformPtMesh, u_out%PlatformPtMesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
   CALL MeshCopy(u(1)%TowerLn2Mesh, u_out%TowerLn2Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
 IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u(1)%TwrAddedMass)) THEN
@@ -12696,18 +12739,13 @@ END IF ! check if allocated
 IF (ALLOCATED(u_out%AeroBladeMoment) .AND. ALLOCATED(u(1)%AeroBladeMoment)) THEN
   u_out%AeroBladeMoment = u(1)%AeroBladeMoment
 END IF ! check if allocated
-IF (ALLOCATED(u_out%FTAero) .AND. ALLOCATED(u(1)%FTAero)) THEN
-  u_out%FTAero = u(1)%FTAero
-END IF ! check if allocated
-IF (ALLOCATED(u_out%MFAero) .AND. ALLOCATED(u(1)%MFAero)) THEN
-  u_out%MFAero = u(1)%MFAero
-END IF ! check if allocated
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
     ErrMsg  = ' Error in ED_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
+  CALL MeshExtrapInterp1(u(1)%BladeLn2Mesh, u(2)%BladeLn2Mesh, tin, u_out%BladeLn2Mesh, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp1(u(1)%PlatformPtMesh, u(2)%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp1(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat, ErrMsg )
 IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u(1)%TwrAddedMass)) THEN
@@ -12760,22 +12798,6 @@ IF (ALLOCATED(u_out%AeroBladeMoment) .AND. ALLOCATED(u(1)%AeroBladeMoment)) THEN
   DEALLOCATE(b3)
   DEALLOCATE(c3)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%FTAero) .AND. ALLOCATED(u(1)%FTAero)) THEN
-  ALLOCATE(b2(SIZE(u_out%FTAero,1),SIZE(u_out%FTAero,2) ))
-  ALLOCATE(c2(SIZE(u_out%FTAero,1),SIZE(u_out%FTAero,2) ))
-  b2 = -(u(1)%FTAero - u(2)%FTAero)/t(2)
-  u_out%FTAero = u(1)%FTAero + b2 * t_out
-  DEALLOCATE(b2)
-  DEALLOCATE(c2)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%MFAero) .AND. ALLOCATED(u(1)%MFAero)) THEN
-  ALLOCATE(b2(SIZE(u_out%MFAero,1),SIZE(u_out%MFAero,2) ))
-  ALLOCATE(c2(SIZE(u_out%MFAero,1),SIZE(u_out%MFAero,2) ))
-  b2 = -(u(1)%MFAero - u(2)%MFAero)/t(2)
-  u_out%MFAero = u(1)%MFAero + b2 * t_out
-  DEALLOCATE(b2)
-  DEALLOCATE(c2)
-END IF ! check if allocated
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -12792,6 +12814,7 @@ END IF ! check if allocated
     ErrMsg  = ' Error in ED_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
+  CALL MeshExtrapInterp2(u(1)%BladeLn2Mesh, u(2)%BladeLn2Mesh, u(3)%BladeLn2Mesh, tin, u_out%BladeLn2Mesh, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp2(u(1)%PlatformPtMesh, u(2)%PlatformPtMesh, u(3)%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp2(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, u(3)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat, ErrMsg )
 IF (ALLOCATED(u_out%TwrAddedMass) .AND. ALLOCATED(u(1)%TwrAddedMass)) THEN
@@ -12851,24 +12874,6 @@ IF (ALLOCATED(u_out%AeroBladeMoment) .AND. ALLOCATED(u(1)%AeroBladeMoment)) THEN
   u_out%AeroBladeMoment = u(1)%AeroBladeMoment + b3 * t_out + c3 * t_out**2
   DEALLOCATE(b3)
   DEALLOCATE(c3)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%FTAero) .AND. ALLOCATED(u(1)%FTAero)) THEN
-  ALLOCATE(b2(SIZE(u_out%FTAero,1),SIZE(u_out%FTAero,2) ))
-  ALLOCATE(c2(SIZE(u_out%FTAero,1),SIZE(u_out%FTAero,2) ))
-  b2 = (t(3)**2*(u(1)%FTAero - u(2)%FTAero) + t(2)**2*(-u(1)%FTAero + u(3)%FTAero))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%FTAero + t(3)*u(2)%FTAero - t(2)*u(3)%FTAero ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%FTAero = u(1)%FTAero + b2 * t_out + c2 * t_out**2
-  DEALLOCATE(b2)
-  DEALLOCATE(c2)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%MFAero) .AND. ALLOCATED(u(1)%MFAero)) THEN
-  ALLOCATE(b2(SIZE(u_out%MFAero,1),SIZE(u_out%MFAero,2) ))
-  ALLOCATE(c2(SIZE(u_out%MFAero,1),SIZE(u_out%MFAero,2) ))
-  b2 = (t(3)**2*(u(1)%MFAero - u(2)%MFAero) + t(2)**2*(-u(1)%MFAero + u(3)%MFAero))/(t(2)*t(3)*(t(2) - t(3)))
-  c2 = ( (t(2)-t(3))*u(1)%MFAero + t(3)*u(2)%MFAero - t(2)*u(3)%MFAero ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%MFAero = u(1)%MFAero + b2 * t_out + c2 * t_out**2
-  DEALLOCATE(b2)
-  DEALLOCATE(c2)
 END IF ! check if allocated
  ELSE 
    ErrStat = ErrID_Fatal
@@ -12986,6 +12991,7 @@ END IF ! check if allocated
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
+  CALL MeshCopy(u(1)%BladeLn2Mesh, u_out%BladeLn2Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
   CALL MeshCopy(u(1)%PlatformPtMesh, u_out%PlatformPtMesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
   CALL MeshCopy(u(1)%TowerLn2Mesh, u_out%TowerLn2Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
 IF (ALLOCATED(u_out%AllOuts) .AND. ALLOCATED(u(1)%AllOuts)) THEN
@@ -13025,6 +13031,7 @@ END IF ! check if allocated
     ErrMsg  = ' Error in ED_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
+  CALL MeshExtrapInterp1(u(1)%BladeLn2Mesh, u(2)%BladeLn2Mesh, tin, u_out%BladeLn2Mesh, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp1(u(1)%PlatformPtMesh, u(2)%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp1(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat, ErrMsg )
 IF (ALLOCATED(u_out%AllOuts) .AND. ALLOCATED(u(1)%AllOuts)) THEN
@@ -13119,6 +13126,7 @@ END IF ! check if allocated
     ErrMsg  = ' Error in ED_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
+  CALL MeshExtrapInterp2(u(1)%BladeLn2Mesh, u(2)%BladeLn2Mesh, u(3)%BladeLn2Mesh, tin, u_out%BladeLn2Mesh, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp2(u(1)%PlatformPtMesh, u(2)%PlatformPtMesh, u(3)%PlatformPtMesh, tin, u_out%PlatformPtMesh, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp2(u(1)%TowerLn2Mesh, u(2)%TowerLn2Mesh, u(3)%TowerLn2Mesh, tin, u_out%TowerLn2Mesh, tin_out, ErrStat, ErrMsg )
 IF (ALLOCATED(u_out%AllOuts) .AND. ALLOCATED(u(1)%AllOuts)) THEN
