@@ -2497,7 +2497,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    END DO
                
    
-!call wrscr('Ask Jason what these output values should be!')   
+if (t <= p%DT) call wrscr('Ask Jason what these output values should be!')   
 
 !   ! p%TwrNodes+1 is the tower top:
 !   
@@ -12847,16 +12847,18 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
 ! The routine assumes that the arrays are not currently allocated (It will produce a fatal error otherwise.)
 !..................................................................................................................................
 
-   TYPE(ED_InputType),           INTENT(INOUT)  :: u           ! Inputs to be allocated
-   TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-   INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   TYPE(ED_InputType),           INTENT(INOUT)  :: u                 ! Inputs to be allocated
+   TYPE(ED_ParameterType),       INTENT(IN   )  :: p                 ! Parameters
+   INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat           ! Error status of the operation
+   CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg            ! Error message if ErrStat /= ErrID_None
       
    
    ! local variables
-   INTEGER(IntKi)                               :: J           ! loop counter                
-   INTEGER(IntKi)                               :: ErrStat2    ! The error identifier (ErrStat)
-   CHARACTER(1024)                              :: ErrMsg2     ! The error message (ErrMsg)
+   REAL(ReKi)                                   :: Orientation(3,3)  ! reference orientation matrix
+   INTEGER(IntKi)                               :: J, K              ! loop counters
+   INTEGER(IntKi)                               :: NodeNum           ! number of current blade node
+   INTEGER(IntKi)                               :: ErrStat2          ! The error identifier (ErrStat)
+   CHARACTER(1024)                              :: ErrMsg2           ! The error message (ErrMsg)
    
    
       ! initialize variables:
@@ -12884,6 +12886,104 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
    !.......................................................
    ! Create Line2 Mesh for loads input on blades:
    !.......................................................
+      
+   NodeNum = p%NumBl*(p%BldNodes+2)
+   CALL MeshCreate( BlankMesh         = u%BladeLn2Mesh         &
+                     ,IOS             = COMPONENT_INPUT        &
+                     ,NNodes          = NodeNum                &
+                     ,Force           = .TRUE.                 &
+                     ,Moment          = .TRUE.                 &
+                     ,ErrStat         = ErrStat2               &
+                     ,ErrMess         = ErrMsg2                )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+         
+      ! position the nodes on the blades:
+   DO K = 1,p%NumBl      
+      DO J = 1,p%BldNodes
+         
+         NodeNum = (K-1)*(p%BldNodes + 2) + J
+         
+         Orientation(1,1) =  p%CAeroTwst(J)
+         Orientation(2,1) =  p%SAeroTwst(J)
+         Orientation(3,1) =  0.0_ReKi
+
+         Orientation(1,2) = -p%SAeroTwst(J)
+         Orientation(2,2) =  p%CAeroTwst(J)
+         Orientation(3,2) =  0.0_ReKi
+
+         Orientation(1,3) = 0.0_ReKi
+         Orientation(2,3) = 0.0_ReKi
+         Orientation(3,3) = 1.0_ReKi
+                  
+         
+         CALL MeshPositionNode ( u%BladeLn2Mesh, NodeNum, (/0.0_ReKi, 0.0_ReKi, p%RNodes(J) /), ErrStat2, ErrMsg2, Orient=Orientation )
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF (ErrStat >= AbortErrLev) RETURN
+            
+         IF (J == 1) THEN ! Use orientation at 1 for the extra node at the hub
+            
+            NodeNum = K*p%BldNodes 
+            CALL MeshPositionNode ( u%BladeLn2Mesh, NodeNum, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat2, ErrMsg2, Orient=Orientation )
+               CALL CheckError(ErrStat2,ErrMsg2)
+               IF (ErrStat >= AbortErrLev) RETURN
+               
+         ELSEIF ( J == p%BldNodes ) THEN ! Use orientation at p%BldNodes for the extra node at the blade tip
+
+            NodeNum = K*p%BldNodes - 1
+            CALL MeshPositionNode ( u%BladeLn2Mesh, NodeNum, (/0.0_ReKi, 0.0_ReKi, p%BldFlexL /), ErrStat2, ErrMsg2, Orient=Orientation )
+               CALL CheckError(ErrStat2,ErrMsg2)
+               IF (ErrStat >= AbortErrLev) RETURN           
+            
+         END IF
+                                    
+      END DO ! nodes                                    
+   END DO ! blades
+            
+      ! create elements:      
+   IF ( p%BldNodes < 2_IntKi ) THEN  ! if there are less than 2 nodes, we'll throw an error:
+      CALL CheckError(ErrID_Fatal,"Blade Line2 Mesh cannot be created with less than 2 elements.")
+      RETURN
+   ELSE ! create line2 elements from the blade nodes:
+      DO K = 1,p%NumBl
+         DO J = 2,p%BldNodes+1  !the plus 1 includes one of the end nodes (at blade tip)
+            
+            NodeNum = (K-1)*(p%BldNodes + 2) + J    
+            CALL MeshConstructElement ( Mesh      = u%BladeLn2Mesh     &
+                                       , Xelement = ELEMENT_LINE2      &
+                                       , P1       = NodeNum-1          &   ! node1 number
+                                       , P2       = NodeNum            &   ! node2 number
+                                       , ErrStat  = ErrStat2           &
+                                       , ErrMess  = ErrMsg2            )
+         
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF (ErrStat >= AbortErrLev) RETURN
+      
+         END DO ! J (blade nodes)
+                  
+         
+            ! add the other extra element, connecting the first node on the blade:
+         NodeNum = (K-1)*(p%BldNodes + 2) + 1   !J=1
+         CALL MeshConstructElement ( Mesh      = u%BladeLn2Mesh     &
+                                    , Xelement = ELEMENT_LINE2      &
+                                    , P1       = NodeNum            &   ! node1 number
+                                    , P2       = K*p%BldNodes       &   ! node2 number
+                                    , ErrStat  = ErrStat2           &
+                                    , ErrMess  = ErrMsg2            )
+         
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF (ErrStat >= AbortErrLev) RETURN
+                  
+      END DO ! K (blade)
+      
+                                          
+   END IF   
+   
+      ! that's our entire mesh:
+   CALL MeshCommit ( u%BladeLn2Mesh, ErrStat2, ErrMsg2 )   
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN      
       
       
       

@@ -28,7 +28,7 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= [1:18 20:21] %1:22 
+    for i= 20 %[1:18 20:21] %1:22 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
         
@@ -54,6 +54,10 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
             if i == 4  || i > 17 % use the new binary file format
                 oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
                 newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                
+                
+                if i==20
+                    newFiles = strrep(newFiles,'.outb','.out')
+                end
             else  % use the text format
                 oldFiles = strcat( oldRoot,  {'.out', '.plt', '.out'} );
                 newFiles = strcat( newRoot,  {'.out', '.plt', '.out'} );
