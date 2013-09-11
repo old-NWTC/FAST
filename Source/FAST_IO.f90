@@ -1741,12 +1741,13 @@ SUBROUTINE MAP_InputSolve(  y_ED, u_MAP, MeshMapData, ErrStat, ErrMsg )
 
 END SUBROUTINE MAP_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SD_InputSolve(  y_ED, u_SD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE SD_InputSolve(  y_ED, y_HD, u_SD, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for MAP.
 !..................................................................................................................................
 
       ! Passed variables
    TYPE(ED_OutputType),         INTENT(INOUT) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(HydroDyn_OutputType),   INTENT(INOUT) :: y_HD                         ! The outputs of the hydrodynamics module
    TYPE(SD_InputType),          INTENT(INOUT) :: u_SD                         ! SubDyn input
    TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
 

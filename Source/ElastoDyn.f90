@@ -111,7 +111,7 @@ MODULE ElastoDyn_Parameters
      ! Indices for computing output channels:
      ! NOTES:
      !    (1) These parameters are in the order stored in "OutListParameters.xlsx"
-     !    (2) Array y%AllOuts() must be dimensioned to the value of the largest output parameter
+     !    (2) Array OtherState%AllOuts() must be dimensioned to the value of the largest output parameter
 
      !  Time:
 
@@ -1384,7 +1384,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
 
 
       ! initialize the continuous states:
-   CALL Init_ContStates( x, p, InputFileData, OtherState, ErrStat2, ErrMsg2 )             ! initialize the continuous states
+   CALL Init_ContStates( x, p, InputFileData, OtherState, ErrStat2, ErrMsg2 )     ! initialize the continuous states
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
    
@@ -1393,7 +1393,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    CALL Init_OtherStates( OtherState, p, x, InputFileData, ErrStat2, ErrMsg2 )    ! initialize the other states
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
-
+      
 
       !............................................................................................
       ! Define initial guess for the system inputs here:
@@ -1430,7 +1430,6 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
    
-   y%AllOuts = 0.0_ReKi
    y%PlatformPtMesh%RemapFlag = .TRUE.
    y%TowerLn2Mesh%RemapFlag   = .TRUE.
    
@@ -1630,11 +1629,7 @@ SUBROUTINE ED_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, E
          ! Make sure the rotor azimuth is not greater or equal to 360 degrees: (can't we do a mod here?)
 
       IF ( ( x%QT(DOF_GeAz) + x%QT(DOF_DrTr) ) >= TwoPi )  x%QT(DOF_GeAz) = x%QT(DOF_GeAz) - TwoPi
-      
-      !IF ( ( OtherState%Q(DOF_GeAz,OtherState%IC(1)) + OtherState%Q(DOF_DrTr,OtherState%IC(1)) ) >= TwoPi )  THEN
-      !       OtherState%Q(DOF_GeAz,OtherState%IC(1)) = OtherState%Q(DOF_GeAz,OtherState%IC(1)) - TwoPi
-      !ENDIF       
-      
+            
       
 END SUBROUTINE ED_UpdateStates
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -1644,7 +1639,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 ! NOTE: the descriptions of the output channels are not given here. Please see the included OutListParameters.xlsx sheet for
 ! for a complete description of each output parameter.
 ! NOTE: no matter how many channels are selected for output, all of the outputs are calcalated
-! All of the calculated output channels are placed into the y%AllOuts(:), while the channels selected for outputs are
+! All of the calculated output channels are placed into the OtherState%AllOuts(:), while the channels selected for outputs are
 ! placed in the y%WriteOutput(:) array.
 !..................................................................................................................................
 
@@ -1754,7 +1749,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    
    
    
-   !Array y%AllOuts() is initialized to 0.0 in subroutine ChckOutLst(), so we are not going to reinitialize it here.
+   ! Array OtherState%AllOuts() is initialized to 0.0 in initialization, so we are not going to reinitialize it here.
 
    !...............................................................................................................................
    ! Calculate all of the total forces and moments using all of the partial forces and moments calculated in RtHS().  Also,
@@ -1883,7 +1878,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !...............................................................................................................................
       ! Define the output channel specifying the current simulation time:
 
-   y%AllOuts(  Time) = REAL( t, ReKi )
+   OtherState%AllOuts(  Time) = REAL( t, ReKi )
 
 
       ! Blade (1-3) Tip Motions:
@@ -1895,22 +1890,22 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, OtherState%CoordSys%d3 )                ! Component of rOSTip directed along the yn-axis.
       rOSTipzn   =      DOT_PRODUCT( rOSTip, OtherState%CoordSys%d2 )                ! Component of rOSTip directed along the zn-axis.
 
-      y%AllOuts(  TipDxc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i1(K,         :) )
-      y%AllOuts(  TipDyc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i2(K,         :) )
-      y%AllOuts(  TipDzc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i3(K,         :) )
-      y%AllOuts(  TipDxb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j1(K,         :) )
-      y%AllOuts(  TipDyb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j2(K,         :) )
+      OtherState%AllOuts(  TipDxc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i1(K,         :) )
+      OtherState%AllOuts(  TipDyc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i2(K,         :) )
+      OtherState%AllOuts(  TipDzc(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%i3(K,         :) )
+      OtherState%AllOuts(  TipDxb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j1(K,         :) )
+      OtherState%AllOuts(  TipDyb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j2(K,         :) )
       !JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-      y%AllOuts( TipALxb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n1(K,p%BldNodes,:) )
-      y%AllOuts( TipALyb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n2(K,p%BldNodes,:) )
-      y%AllOuts( TipALzb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n3(K,p%BldNodes,:) )
-      y%AllOuts( TipRDxb(K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%TipNode,:), OtherState%CoordSys%j1(K,         :) )*R2D
-      y%AllOuts( TipRDyb(K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%TipNode,:), OtherState%CoordSys%j2(K,         :) )*R2D
+      OtherState%AllOuts( TipALxb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n1(K,p%BldNodes,:) )
+      OtherState%AllOuts( TipALyb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n2(K,p%BldNodes,:) )
+      OtherState%AllOuts( TipALzb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n3(K,p%BldNodes,:) )
+      OtherState%AllOuts( TipRDxb(K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%TipNode,:), OtherState%CoordSys%j1(K,         :) )*R2D
+      OtherState%AllOuts( TipRDyb(K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%TipNode,:), OtherState%CoordSys%j2(K,         :) )*R2D
       ! There is no sense computing AllOuts( TipRDzc(K) ) here since it is always zero for FAST simulation results.
       IF ( rOSTipzn > 0.0 )  THEN   ! Tip of blade K is above the yaw bearing.
-         y%AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 1.
+         OtherState%AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 1.
       ELSE                          ! Tip of blade K is below the yaw bearing.
-         y%AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 1.
+         OtherState%AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn                     ) ! Perpendicular distance from the yaw axis / tower centerline to the tip of blade 1.
       ENDIF
 
    END DO !K
@@ -1920,19 +1915,19 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    DO K = 1,p%NumBl
       DO I = 1, p%NBlGages
 
-         y%AllOuts( SpnALxb(I,K) ) = DOT_PRODUCT( LinAccES(K,p%BldGagNd(I),:), OtherState%CoordSys%n1(K,p%BldGagNd(I),:) )
-         y%AllOuts( SpnALyb(I,K) ) = DOT_PRODUCT( LinAccES(K,p%BldGagNd(I),:), OtherState%CoordSys%n2(K,p%BldGagNd(I),:) )
-         y%AllOuts( SpnALzb(I,K) ) = DOT_PRODUCT( LinAccES(K,p%BldGagNd(I),:), OtherState%CoordSys%n3(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts( SpnALxb(I,K) ) = DOT_PRODUCT( LinAccES(K,p%BldGagNd(I),:), OtherState%CoordSys%n1(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts( SpnALyb(I,K) ) = DOT_PRODUCT( LinAccES(K,p%BldGagNd(I),:), OtherState%CoordSys%n2(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts( SpnALzb(I,K) ) = DOT_PRODUCT( LinAccES(K,p%BldGagNd(I),:), OtherState%CoordSys%n3(K,p%BldGagNd(I),:) )
 
          rSPS                      = OtherState%RtHS%rS0S(K,p%BldGagNd(I),:) - p%RNodes(p%BldGagNd(I))*OtherState%CoordSys%j3(K,:)
 
-         y%AllOuts( SpnTDxb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j1(K,:) )
-         y%AllOuts( SpnTDyb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j2(K,:) )
-         y%AllOuts( SpnTDzb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j3(K,:) )
+         OtherState%AllOuts( SpnTDxb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j1(K,:) )
+         OtherState%AllOuts( SpnTDyb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j2(K,:) )
+         OtherState%AllOuts( SpnTDzb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j3(K,:) )
 
-         y%AllOuts( SpnRDxb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%BldGagNd(I),:), OtherState%CoordSys%j1(K,:) )*R2D
-         y%AllOuts( SpnRDyb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%BldGagNd(I),:), OtherState%CoordSys%j2(K,:) )*R2D
-        !y%AllOuts( SpnRDzb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%BldGagNd(I),:), OtherState%CoordSys%j3(K,:) )*R2D           ! this is always zero for FAST
+         OtherState%AllOuts( SpnRDxb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%BldGagNd(I),:), OtherState%CoordSys%j1(K,:) )*R2D
+         OtherState%AllOuts( SpnRDyb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%BldGagNd(I),:), OtherState%CoordSys%j2(K,:) )*R2D
+        !OtherState%AllOuts( SpnRDzb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%BldGagNd(I),:), OtherState%CoordSys%j3(K,:) )*R2D           ! this is always zero for FAST
 
       END DO !I
    END DO !K
@@ -1941,183 +1936,183 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
       ! Blade Pitch Motions:
 
-   y%AllOuts(PtchPMzc1) = OtherState%BlPitch(1)*R2D
-   y%AllOuts(PtchPMzc2) = OtherState%BlPitch(2)*R2D
+   OtherState%AllOuts(PtchPMzc1) = OtherState%BlPitch(1)*R2D
+   OtherState%AllOuts(PtchPMzc2) = OtherState%BlPitch(2)*R2D
    IF ( p%NumBl == 3 )  THEN ! 3-blader
 
-      y%AllOuts(PtchPMzc3) = OtherState%BlPitch(3)*R2D
+      OtherState%AllOuts(PtchPMzc3) = OtherState%BlPitch(3)*R2D
 
    ELSE  ! 2-blader
 
 
       ! Teeter Motions:
 
-      y%AllOuts(  TeetPya) =x%QT  (DOF_Teet)*R2D
-      y%AllOuts(  TeetVya) =x%QDT (DOF_Teet)*R2D
-      y%AllOuts(  TeetAya) =  OtherState%QD2T(DOF_Teet)*R2D
+      OtherState%AllOuts(  TeetPya) =x%QT  (DOF_Teet)*R2D
+      OtherState%AllOuts(  TeetVya) =x%QDT (DOF_Teet)*R2D
+      OtherState%AllOuts(  TeetAya) =  OtherState%QD2T(DOF_Teet)*R2D
 
    ENDIF
 
 
       ! Shaft Motions:
 
-   y%AllOuts(LSSTipPxa) = MOD( ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) + p%AzimB1Up)*R2D  + 90.0, 360.0 ) !bjj: this used IgnoreMod for linearization
-   y%AllOuts(LSSGagPxa) = MOD( ( x%QT (DOF_GeAz)                    + p%AzimB1Up)*R2D  + 90.0, 360.0 ) !bjj: this used IgnoreMod for linearization
-   y%AllOuts(   LSSTipVxa) =    ( x%QDT (DOF_GeAz) +  x%QDT (DOF_DrTr) )*RPS2RPM
-   y%AllOuts(   LSSTipAxa) =    (   OtherState%QD2T(DOF_GeAz) +    OtherState%QD2T(DOF_DrTr) )*R2D
-   y%AllOuts(   LSSGagVxa) =      x%QDT (DOF_GeAz)                      *RPS2RPM
-   y%AllOuts(   LSSGagAxa) =        OtherState%QD2T(DOF_GeAz)                      *R2D
-   y%AllOuts(     HSShftV) = ABS(p%GBRatio)*y%AllOuts(LSSGagVxa)
-   y%AllOuts(     HSShftA) = ABS(p%GBRatio)*y%AllOuts(LSSGagAxa)
+   OtherState%AllOuts(LSSTipPxa) = MOD( ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) + p%AzimB1Up)*R2D  + 90.0, 360.0 ) !bjj: this used IgnoreMod for linearization
+   OtherState%AllOuts(LSSGagPxa) = MOD( ( x%QT (DOF_GeAz)                    + p%AzimB1Up)*R2D  + 90.0, 360.0 ) !bjj: this used IgnoreMod for linearization
+   OtherState%AllOuts(   LSSTipVxa) =    ( x%QDT (DOF_GeAz) +  x%QDT (DOF_DrTr) )*RPS2RPM
+   OtherState%AllOuts(   LSSTipAxa) =    (   OtherState%QD2T(DOF_GeAz) +    OtherState%QD2T(DOF_DrTr) )*R2D
+   OtherState%AllOuts(   LSSGagVxa) =      x%QDT (DOF_GeAz)                      *RPS2RPM
+   OtherState%AllOuts(   LSSGagAxa) =        OtherState%QD2T(DOF_GeAz)                      *R2D
+   OtherState%AllOuts(     HSShftV) = ABS(p%GBRatio)*OtherState%AllOuts(LSSGagVxa)
+   OtherState%AllOuts(     HSShftA) = ABS(p%GBRatio)*OtherState%AllOuts(LSSGagAxa)
 
-   !IF ( .NOT. EqualRealNos( y%AllOuts(WindVxi), 0.0_ReKi ) )  THEN  ! .TRUE. if the denominator in the following equation is not zero.
-   !   y%AllOuts(TipSpdRat) =      ( x%QDT (DOF_GeAz) + x%QDT (DOF_DrTr) )*p%AvgNrmTpRd / y%AllOuts(  WindVxi)
+   !IF ( .NOT. EqualRealNos( OtherState%AllOuts(WindVxi), 0.0_ReKi ) )  THEN  ! .TRUE. if the denominator in the following equation is not zero.
+   !   OtherState%AllOuts(TipSpdRat) =      ( x%QDT (DOF_GeAz) + x%QDT (DOF_DrTr) )*p%AvgNrmTpRd / OtherState%AllOuts(  WindVxi)
    !ELSE
-   !   y%AllOuts(TipSpdRat) = 0.0
+   !   OtherState%AllOuts(TipSpdRat) = 0.0
    !ENDIF
 
 
       ! Nacelle IMU Motions:
 
-   y%AllOuts(NcIMUTVxs) =      DOT_PRODUCT( OtherState%RtHS%LinVelEIMU, OtherState%CoordSys%c1 )
-   y%AllOuts(NcIMUTVys) = -1.0*DOT_PRODUCT( OtherState%RtHS%LinVelEIMU, OtherState%CoordSys%c3 )
-   y%AllOuts(NcIMUTVzs) =      DOT_PRODUCT( OtherState%RtHS%LinVelEIMU, OtherState%CoordSys%c2 )
-   y%AllOuts(NcIMUTAxs) =      DOT_PRODUCT(                 LinAccEIMU, OtherState%CoordSys%c1 )
-   y%AllOuts(NcIMUTAys) = -1.0*DOT_PRODUCT(                 LinAccEIMU, OtherState%CoordSys%c3 )
-   y%AllOuts(NcIMUTAzs) =      DOT_PRODUCT(                 LinAccEIMU, OtherState%CoordSys%c2 )
-   y%AllOuts(NcIMURVxs) =      DOT_PRODUCT( OtherState%RtHS%AngVelER  , OtherState%CoordSys%c1 )*R2D
-   y%AllOuts(NcIMURVys) = -1.0*DOT_PRODUCT( OtherState%RtHS%AngVelER  , OtherState%CoordSys%c3 )*R2D
-   y%AllOuts(NcIMURVzs) =      DOT_PRODUCT( OtherState%RtHS%AngVelER  , OtherState%CoordSys%c2 )*R2D
-   y%AllOuts(NcIMURAxs) =      DOT_PRODUCT(                 AngAccER  , OtherState%CoordSys%c1 )*R2D
-   y%AllOuts(NcIMURAys) = -1.0*DOT_PRODUCT(                 AngAccER  , OtherState%CoordSys%c3 )*R2D
-   y%AllOuts(NcIMURAzs) =      DOT_PRODUCT(                 AngAccER  , OtherState%CoordSys%c2 )*R2D
+   OtherState%AllOuts(NcIMUTVxs) =      DOT_PRODUCT( OtherState%RtHS%LinVelEIMU, OtherState%CoordSys%c1 )
+   OtherState%AllOuts(NcIMUTVys) = -1.0*DOT_PRODUCT( OtherState%RtHS%LinVelEIMU, OtherState%CoordSys%c3 )
+   OtherState%AllOuts(NcIMUTVzs) =      DOT_PRODUCT( OtherState%RtHS%LinVelEIMU, OtherState%CoordSys%c2 )
+   OtherState%AllOuts(NcIMUTAxs) =      DOT_PRODUCT(                 LinAccEIMU, OtherState%CoordSys%c1 )
+   OtherState%AllOuts(NcIMUTAys) = -1.0*DOT_PRODUCT(                 LinAccEIMU, OtherState%CoordSys%c3 )
+   OtherState%AllOuts(NcIMUTAzs) =      DOT_PRODUCT(                 LinAccEIMU, OtherState%CoordSys%c2 )
+   OtherState%AllOuts(NcIMURVxs) =      DOT_PRODUCT( OtherState%RtHS%AngVelER  , OtherState%CoordSys%c1 )*R2D
+   OtherState%AllOuts(NcIMURVys) = -1.0*DOT_PRODUCT( OtherState%RtHS%AngVelER  , OtherState%CoordSys%c3 )*R2D
+   OtherState%AllOuts(NcIMURVzs) =      DOT_PRODUCT( OtherState%RtHS%AngVelER  , OtherState%CoordSys%c2 )*R2D
+   OtherState%AllOuts(NcIMURAxs) =      DOT_PRODUCT(                 AngAccER  , OtherState%CoordSys%c1 )*R2D
+   OtherState%AllOuts(NcIMURAys) = -1.0*DOT_PRODUCT(                 AngAccER  , OtherState%CoordSys%c3 )*R2D
+   OtherState%AllOuts(NcIMURAzs) =      DOT_PRODUCT(                 AngAccER  , OtherState%CoordSys%c2 )*R2D
 
 
       ! Rotor-Furl Motions:
 
-   y%AllOuts( RotFurlP) = x%QT  (DOF_RFrl)*R2D
-   y%AllOuts( RotFurlV) = x%QDT (DOF_RFrl)*R2D
-   y%AllOuts( RotFurlA) = OtherState%QD2T(DOF_RFrl)*R2D
+   OtherState%AllOuts( RotFurlP) = x%QT  (DOF_RFrl)*R2D
+   OtherState%AllOuts( RotFurlV) = x%QDT (DOF_RFrl)*R2D
+   OtherState%AllOuts( RotFurlA) = OtherState%QD2T(DOF_RFrl)*R2D
 
 
       ! Tail-Furl Motions:
 
-   y%AllOuts(TailFurlP) = x%QT  (DOF_TFrl)*R2D
-   y%AllOuts(TailFurlV) = x%QDT (DOF_TFrl)*R2D
-   y%AllOuts(TailFurlA) = OtherState%QD2T(DOF_TFrl)*R2D
+   OtherState%AllOuts(TailFurlP) = x%QT  (DOF_TFrl)*R2D
+   OtherState%AllOuts(TailFurlV) = x%QDT (DOF_TFrl)*R2D
+   OtherState%AllOuts(TailFurlA) = OtherState%QD2T(DOF_TFrl)*R2D
 
 
       ! Yaw Motions:
 
-   y%AllOuts(   YawPzn) = x%QT  (DOF_Yaw )*R2D
-   y%AllOuts(   YawVzn) = x%QDT (DOF_Yaw )*R2D
-   y%AllOuts(   YawAzn) = OtherState%QD2T(DOF_Yaw )*R2D
+   OtherState%AllOuts(   YawPzn) = x%QT  (DOF_Yaw )*R2D
+   OtherState%AllOuts(   YawVzn) = x%QDT (DOF_Yaw )*R2D
+   OtherState%AllOuts(   YawAzn) = OtherState%QD2T(DOF_Yaw )*R2D
 
 
    ! Tower-Top / Yaw Bearing Motions:
 
    rOPO     = OtherState%RtHS%rT0O - p%TwrFlexL*OtherState%CoordSys%a2 ! Position vector from the undeflected tower top (point O prime) to the deflected tower top (point O).
 
-   y%AllOuts(YawBrTDxp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b1 )
-   y%AllOuts(YawBrTDyp) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%b3 )
-   y%AllOuts(YawBrTDzp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b2 )
-   y%AllOuts(YawBrTDxt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a1 )
-   y%AllOuts(YawBrTDyt) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%a3 )
-   y%AllOuts(YawBrTDzt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a2 )
-   y%AllOuts(YawBrTAxp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b1 )
-   y%AllOuts(YawBrTAyp) = -DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b3 )
-   y%AllOuts(YawBrTAzp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b2 )
-   y%AllOuts(YawBrRDxt) =  DOT_PRODUCT( OtherState%RtHS%AngPosXB, OtherState%CoordSys%a1 )*R2D
-   y%AllOuts(YawBrRDyt) = -DOT_PRODUCT( OtherState%RtHS%AngPosXB, OtherState%CoordSys%a3 )*R2D
-   ! There is no sense computing y%AllOuts(YawBrRDzt) here since it is always zero for FAST simulation results.
-   y%AllOuts(YawBrRVxp) =  DOT_PRODUCT( OtherState%RtHS%AngVelEB, OtherState%CoordSys%b1 )*R2D
-   y%AllOuts(YawBrRVyp) = -DOT_PRODUCT( OtherState%RtHS%AngVelEB, OtherState%CoordSys%b3 )*R2D
-   y%AllOuts(YawBrRVzp) =  DOT_PRODUCT( OtherState%RtHS%AngVelEB, OtherState%CoordSys%b2 )*R2D
-   y%AllOuts(YawBrRAxp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b1 )*R2D
-   y%AllOuts(YawBrRAyp) = -DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b3 )*R2D
-   y%AllOuts(YawBrRAzp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b2 )*R2D
+   OtherState%AllOuts(YawBrTDxp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b1 )
+   OtherState%AllOuts(YawBrTDyp) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%b3 )
+   OtherState%AllOuts(YawBrTDzp) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%b2 )
+   OtherState%AllOuts(YawBrTDxt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a1 )
+   OtherState%AllOuts(YawBrTDyt) = -DOT_PRODUCT(     rOPO, OtherState%CoordSys%a3 )
+   OtherState%AllOuts(YawBrTDzt) =  DOT_PRODUCT(     rOPO, OtherState%CoordSys%a2 )
+   OtherState%AllOuts(YawBrTAxp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b1 )
+   OtherState%AllOuts(YawBrTAyp) = -DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b3 )
+   OtherState%AllOuts(YawBrTAzp) =  DOT_PRODUCT( LinAccEO, OtherState%CoordSys%b2 )
+   OtherState%AllOuts(YawBrRDxt) =  DOT_PRODUCT( OtherState%RtHS%AngPosXB, OtherState%CoordSys%a1 )*R2D
+   OtherState%AllOuts(YawBrRDyt) = -DOT_PRODUCT( OtherState%RtHS%AngPosXB, OtherState%CoordSys%a3 )*R2D
+   ! There is no sense computing OtherState%AllOuts(YawBrRDzt) here since it is always zero for FAST simulation results.
+   OtherState%AllOuts(YawBrRVxp) =  DOT_PRODUCT( OtherState%RtHS%AngVelEB, OtherState%CoordSys%b1 )*R2D
+   OtherState%AllOuts(YawBrRVyp) = -DOT_PRODUCT( OtherState%RtHS%AngVelEB, OtherState%CoordSys%b3 )*R2D
+   OtherState%AllOuts(YawBrRVzp) =  DOT_PRODUCT( OtherState%RtHS%AngVelEB, OtherState%CoordSys%b2 )*R2D
+   OtherState%AllOuts(YawBrRAxp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b1 )*R2D
+   OtherState%AllOuts(YawBrRAyp) = -DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b3 )*R2D
+   OtherState%AllOuts(YawBrRAzp) =  DOT_PRODUCT( AngAccEB, OtherState%CoordSys%b2 )*R2D
 
 
       ! Local Tower Motions:
 
    DO I = 1, p%NTwGages
 
-      y%AllOuts( TwHtALxt(I) ) =      DOT_PRODUCT( LinAccET(p%TwrGagNd(I),:), OtherState%CoordSys%t1(p%TwrGagNd(I),:) )
-      y%AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(p%TwrGagNd(I),:), OtherState%CoordSys%t3(p%TwrGagNd(I),:) )
-      y%AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(p%TwrGagNd(I),:), OtherState%CoordSys%t2(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtALxt(I) ) =      DOT_PRODUCT( LinAccET(p%TwrGagNd(I),:), OtherState%CoordSys%t1(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(p%TwrGagNd(I),:), OtherState%CoordSys%t3(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(p%TwrGagNd(I),:), OtherState%CoordSys%t2(p%TwrGagNd(I),:) )
 
       rTPT                   = OtherState%RtHS%rT0T(p%TwrGagNd(I),:) - p%HNodes(p%TwrGagNd(I))*OtherState%CoordSys%a2(:)
 
-      y%AllOuts( TwHtTDxt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a1 )
-      y%AllOuts( TwHtTDyt(I) ) = -1.0*DOT_PRODUCT( rTPT,     OtherState%CoordSys%a3 )
-      y%AllOuts( TwHtTDzt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a2 )
+      OtherState%AllOuts( TwHtTDxt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a1 )
+      OtherState%AllOuts( TwHtTDyt(I) ) = -1.0*DOT_PRODUCT( rTPT,     OtherState%CoordSys%a3 )
+      OtherState%AllOuts( TwHtTDzt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a2 )
 
-      y%AllOuts( TwHtRDxt(I) ) =      DOT_PRODUCT( OtherState%RtHS%AngPosXF(p%TwrGagNd(I),:), OtherState%CoordSys%a1 )*R2D  !why is this zero???
-      y%AllOuts( TwHtRDyt(I) ) = -1.0*DOT_PRODUCT( OtherState%RtHS%AngPosXF(p%TwrGagNd(I),:), OtherState%CoordSys%a3 )*R2D
-   !   y%AllOuts( TwHtRDzt(I) ) =     DOT_PRODUCT( OtherState%RtHS%AngPosXF(p%TwrGagNd(I),:), OtherState%CoordSys%a2 )*R2D  !this will always be 0 in FAST, so no need to calculate
+      OtherState%AllOuts( TwHtRDxt(I) ) =      DOT_PRODUCT( OtherState%RtHS%AngPosXF(p%TwrGagNd(I),:), OtherState%CoordSys%a1 )*R2D  !why is this zero???
+      OtherState%AllOuts( TwHtRDyt(I) ) = -1.0*DOT_PRODUCT( OtherState%RtHS%AngPosXF(p%TwrGagNd(I),:), OtherState%CoordSys%a3 )*R2D
+   !   OtherState%AllOuts( TwHtRDzt(I) ) =     DOT_PRODUCT( OtherState%RtHS%AngPosXF(p%TwrGagNd(I),:), OtherState%CoordSys%a2 )*R2D  !this will always be 0 in FAST, so no need to calculate
 
 
-      y%AllOuts( TwHtTPxi(I) ) =      OtherState%RtHS%rT(p%TwrGagNd(I),1)
-      y%AllOuts( TwHtTPyi(I) ) = -1.0*OtherState%RtHS%rT(p%TwrGagNd(I),3)
-      y%AllOuts( TwHtTPzi(I) ) =      OtherState%RtHS%rT(p%TwrGagNd(I),2) + p%PtfmRefzt
+      OtherState%AllOuts( TwHtTPxi(I) ) =      OtherState%RtHS%rT(p%TwrGagNd(I),1)
+      OtherState%AllOuts( TwHtTPyi(I) ) = -1.0*OtherState%RtHS%rT(p%TwrGagNd(I),3)
+      OtherState%AllOuts( TwHtTPzi(I) ) =      OtherState%RtHS%rT(p%TwrGagNd(I),2) + p%PtfmRefzt
 
-      y%AllOuts( TwHtRPxi(I) ) =  OtherState%RtHS%AngPosEF(p%TwrGagNd(I),1)*R2D
-      y%AllOuts( TwHtRPyi(I) ) = -OtherState%RtHS%AngPosEF(p%TwrGagNd(I),3)*R2D
-      y%AllOuts( TwHtRPzi(I) ) =  OtherState%RtHS%AngPosEF(p%TwrGagNd(I),2)*R2D
+      OtherState%AllOuts( TwHtRPxi(I) ) =  OtherState%RtHS%AngPosEF(p%TwrGagNd(I),1)*R2D
+      OtherState%AllOuts( TwHtRPyi(I) ) = -OtherState%RtHS%AngPosEF(p%TwrGagNd(I),3)*R2D
+      OtherState%AllOuts( TwHtRPzi(I) ) =  OtherState%RtHS%AngPosEF(p%TwrGagNd(I),2)*R2D
 
    END DO !I
 
       ! Platform Motions:
 
-   y%AllOuts( PtfmTDxt) =  DOT_PRODUCT(       OtherState%RtHS%rZ, OtherState%CoordSys%a1 )
-   y%AllOuts( PtfmTDyt) = -DOT_PRODUCT(       OtherState%RtHS%rZ, OtherState%CoordSys%a3 )
-   y%AllOuts( PtfmTDzt) =  DOT_PRODUCT(       OtherState%RtHS%rZ, OtherState%CoordSys%a2 )
-   y%AllOuts( PtfmTDxi) = x%QT  (DOF_Sg )
-   y%AllOuts( PtfmTDyi) = x%QT  (DOF_Sw )
-   y%AllOuts( PtfmTDzi) = x%QT  (DOF_Hv )
-   y%AllOuts( PtfmTVxt) =  DOT_PRODUCT( OtherState%RtHS%LinVelEZ, OtherState%CoordSys%a1 )
-   y%AllOuts( PtfmTVyt) = -DOT_PRODUCT( OtherState%RtHS%LinVelEZ, OtherState%CoordSys%a3 )
-   y%AllOuts( PtfmTVzt) =  DOT_PRODUCT( OtherState%RtHS%LinVelEZ, OtherState%CoordSys%a2 )
-   y%AllOuts( PtfmTVxi) = x%QDT (DOF_Sg )
-   y%AllOuts( PtfmTVyi) = x%QDT (DOF_Sw )
-   y%AllOuts( PtfmTVzi) = x%QDT (DOF_Hv )
-   y%AllOuts( PtfmTAxt) =  DOT_PRODUCT(                 LinAccEZ, OtherState%CoordSys%a1 )
-   y%AllOuts( PtfmTAyt) = -DOT_PRODUCT(                 LinAccEZ, OtherState%CoordSys%a3 )
-   y%AllOuts( PtfmTAzt) =  DOT_PRODUCT(                 LinAccEZ, OtherState%CoordSys%a2 )
-   y%AllOuts( PtfmTAxi) = OtherState%QD2T(DOF_Sg  )
-   y%AllOuts( PtfmTAyi) = OtherState%QD2T(DOF_Sw  )
-   y%AllOuts( PtfmTAzi) = OtherState%QD2T(DOF_Hv  )
-   y%AllOuts( PtfmRDxi) = x%QT  (DOF_R )*R2D
-   y%AllOuts( PtfmRDyi) = x%QT  (DOF_P )*R2D
-   y%AllOuts( PtfmRDzi) = x%QT  (DOF_Y )*R2D
-   y%AllOuts( PtfmRVxt) =  DOT_PRODUCT( OtherState%RtHS%AngVelEX, OtherState%CoordSys%a1 )*R2D
-   y%AllOuts( PtfmRVyt) = -DOT_PRODUCT( OtherState%RtHS%AngVelEX, OtherState%CoordSys%a3 )*R2D
-   y%AllOuts( PtfmRVzt) =  DOT_PRODUCT( OtherState%RtHS%AngVelEX, OtherState%CoordSys%a2 )*R2D
-   y%AllOuts( PtfmRVxi) = x%QDT (DOF_R )*R2D
-   y%AllOuts( PtfmRVyi) = x%QDT (DOF_P )*R2D
-   y%AllOuts( PtfmRVzi) = x%QDT (DOF_Y )*R2D
-   y%AllOuts( PtfmRAxt) =  DOT_PRODUCT(                 AngAccEX, OtherState%CoordSys%a1 )*R2D
-   y%AllOuts( PtfmRAyt) = -DOT_PRODUCT(                 AngAccEX, OtherState%CoordSys%a3 )*R2D
-   y%AllOuts( PtfmRAzt) =  DOT_PRODUCT(                 AngAccEX, OtherState%CoordSys%a2 )*R2D
-   y%AllOuts( PtfmRAxi) = OtherState%QD2T(DOF_R )*R2D
-   y%AllOuts( PtfmRAyi) = OtherState%QD2T(DOF_P )*R2D
-   y%AllOuts( PtfmRAzi) = OtherState%QD2T(DOF_Y )*R2D
+   OtherState%AllOuts( PtfmTDxt) =  DOT_PRODUCT(       OtherState%RtHS%rZ, OtherState%CoordSys%a1 )
+   OtherState%AllOuts( PtfmTDyt) = -DOT_PRODUCT(       OtherState%RtHS%rZ, OtherState%CoordSys%a3 )
+   OtherState%AllOuts( PtfmTDzt) =  DOT_PRODUCT(       OtherState%RtHS%rZ, OtherState%CoordSys%a2 )
+   OtherState%AllOuts( PtfmTDxi) = x%QT  (DOF_Sg )
+   OtherState%AllOuts( PtfmTDyi) = x%QT  (DOF_Sw )
+   OtherState%AllOuts( PtfmTDzi) = x%QT  (DOF_Hv )
+   OtherState%AllOuts( PtfmTVxt) =  DOT_PRODUCT( OtherState%RtHS%LinVelEZ, OtherState%CoordSys%a1 )
+   OtherState%AllOuts( PtfmTVyt) = -DOT_PRODUCT( OtherState%RtHS%LinVelEZ, OtherState%CoordSys%a3 )
+   OtherState%AllOuts( PtfmTVzt) =  DOT_PRODUCT( OtherState%RtHS%LinVelEZ, OtherState%CoordSys%a2 )
+   OtherState%AllOuts( PtfmTVxi) = x%QDT (DOF_Sg )
+   OtherState%AllOuts( PtfmTVyi) = x%QDT (DOF_Sw )
+   OtherState%AllOuts( PtfmTVzi) = x%QDT (DOF_Hv )
+   OtherState%AllOuts( PtfmTAxt) =  DOT_PRODUCT(                 LinAccEZ, OtherState%CoordSys%a1 )
+   OtherState%AllOuts( PtfmTAyt) = -DOT_PRODUCT(                 LinAccEZ, OtherState%CoordSys%a3 )
+   OtherState%AllOuts( PtfmTAzt) =  DOT_PRODUCT(                 LinAccEZ, OtherState%CoordSys%a2 )
+   OtherState%AllOuts( PtfmTAxi) = OtherState%QD2T(DOF_Sg  )
+   OtherState%AllOuts( PtfmTAyi) = OtherState%QD2T(DOF_Sw  )
+   OtherState%AllOuts( PtfmTAzi) = OtherState%QD2T(DOF_Hv  )
+   OtherState%AllOuts( PtfmRDxi) = x%QT  (DOF_R )*R2D
+   OtherState%AllOuts( PtfmRDyi) = x%QT  (DOF_P )*R2D
+   OtherState%AllOuts( PtfmRDzi) = x%QT  (DOF_Y )*R2D
+   OtherState%AllOuts( PtfmRVxt) =  DOT_PRODUCT( OtherState%RtHS%AngVelEX, OtherState%CoordSys%a1 )*R2D
+   OtherState%AllOuts( PtfmRVyt) = -DOT_PRODUCT( OtherState%RtHS%AngVelEX, OtherState%CoordSys%a3 )*R2D
+   OtherState%AllOuts( PtfmRVzt) =  DOT_PRODUCT( OtherState%RtHS%AngVelEX, OtherState%CoordSys%a2 )*R2D
+   OtherState%AllOuts( PtfmRVxi) = x%QDT (DOF_R )*R2D
+   OtherState%AllOuts( PtfmRVyi) = x%QDT (DOF_P )*R2D
+   OtherState%AllOuts( PtfmRVzi) = x%QDT (DOF_Y )*R2D
+   OtherState%AllOuts( PtfmRAxt) =  DOT_PRODUCT(                 AngAccEX, OtherState%CoordSys%a1 )*R2D
+   OtherState%AllOuts( PtfmRAyt) = -DOT_PRODUCT(                 AngAccEX, OtherState%CoordSys%a3 )*R2D
+   OtherState%AllOuts( PtfmRAzt) =  DOT_PRODUCT(                 AngAccEX, OtherState%CoordSys%a2 )*R2D
+   OtherState%AllOuts( PtfmRAxi) = OtherState%QD2T(DOF_R )*R2D
+   OtherState%AllOuts( PtfmRAyi) = OtherState%QD2T(DOF_P )*R2D
+   OtherState%AllOuts( PtfmRAzi) = OtherState%QD2T(DOF_Y )*R2D
 
 
 
       ! Blade Root Loads:
 
    DO K=1,p%NumBl
-      y%AllOuts( RootFxc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i1(K,:) )
-      y%AllOuts( RootFyc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i2(K,:) )
-      y%AllOuts( RootFzc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i3(K,:) )
-      y%AllOuts( RootFxb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j1(K,:) )
-      y%AllOuts( RootFyb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j2(K,:) )
-      y%AllOuts( RootMxc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i1(K,:) )
-      y%AllOuts( RootMyc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i2(K,:) )
-      y%AllOuts( RootMzc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i3(K,:) )
-      y%AllOuts( RootMxb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j1(K,:) )
-      y%AllOuts( RootMyb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j2(K,:) )
+      OtherState%AllOuts( RootFxc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i1(K,:) )
+      OtherState%AllOuts( RootFyc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i2(K,:) )
+      OtherState%AllOuts( RootFzc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i3(K,:) )
+      OtherState%AllOuts( RootFxb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j1(K,:) )
+      OtherState%AllOuts( RootFyb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j2(K,:) )
+      OtherState%AllOuts( RootMxc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i1(K,:) )
+      OtherState%AllOuts( RootMyc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i2(K,:) )
+      OtherState%AllOuts( RootMzc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i3(K,:) )
+      OtherState%AllOuts( RootMxb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j1(K,:) )
+      OtherState%AllOuts( RootMyb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j2(K,:) )
    END DO !K
 
 
@@ -2159,13 +2154,13 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          MomMGagB = 0.001*MomMGagB           ! Convert the local moment to kN-m
 
 
-         y%AllOuts(SpnFLxb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n1(K,p%BldGagNd(I),:) )
-         y%AllOuts(SpnFLyb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n2(K,p%BldGagNd(I),:) )
-         y%AllOuts(SpnFLzb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n3(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts(SpnFLxb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n1(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts(SpnFLyb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n2(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts(SpnFLzb(I,K)) = DOT_PRODUCT( FrcMGagB, OtherState%CoordSys%n3(K,p%BldGagNd(I),:) )
 
-         y%AllOuts(SpnMLxb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n1(K,p%BldGagNd(I),:) )
-         y%AllOuts(SpnMLyb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n2(K,p%BldGagNd(I),:) )
-         y%AllOuts(SpnMLzb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n3(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts(SpnMLxb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n1(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts(SpnMLyb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n2(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts(SpnMLzb(I,K)) = DOT_PRODUCT( MomMGagB, OtherState%CoordSys%n3(K,p%BldGagNd(I),:) )
       END DO ! I
    END DO ! K
 
@@ -2173,114 +2168,114 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
       ! Hub and Rotor Loads:
 
-   !ComDenom = 0.5*p%AirDens*p%ProjArea*y%AllOuts(  WindVxi)*y%AllOuts(  WindVxi)   ! Common denominator used in several expressions
+   !ComDenom = 0.5*p%AirDens*p%ProjArea*OtherState%AllOuts(  WindVxi)*OtherState%AllOuts(  WindVxi)   ! Common denominator used in several expressions
 
-   y%AllOuts(LSShftFxa) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e1 )
-   y%AllOuts(LSShftFya) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e2 )
-   y%AllOuts(LSShftFza) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e3 )
-   y%AllOuts(LSShftFys) = -DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c3 )
-   y%AllOuts(LSShftFzs) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c2 )
-   y%AllOuts(LSShftMxa) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e1 )
-   y%AllOuts(LSSTipMya) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e2 )
-   y%AllOuts(LSSTipMza) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e3 )
-   y%AllOuts(LSSTipMys) = -DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c3 )
-   y%AllOuts(LSSTipMzs) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c2 )
+   OtherState%AllOuts(LSShftFxa) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e1 )
+   OtherState%AllOuts(LSShftFya) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e2 )
+   OtherState%AllOuts(LSShftFza) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%e3 )
+   OtherState%AllOuts(LSShftFys) = -DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c3 )
+   OtherState%AllOuts(LSShftFzs) =  DOT_PRODUCT(  FrcPRot, OtherState%CoordSys%c2 )
+   OtherState%AllOuts(LSShftMxa) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e1 )
+   OtherState%AllOuts(LSSTipMya) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e2 )
+   OtherState%AllOuts(LSSTipMza) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%e3 )
+   OtherState%AllOuts(LSSTipMys) = -DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c3 )
+   OtherState%AllOuts(LSSTipMzs) =  DOT_PRODUCT( MomLPRot, OtherState%CoordSys%c2 )
 
-!   IF ( .NOT. EqualRealNos( y%AllOuts(LSShftFxa), 0.0_ReKi ) )   THEN ! .TRUE. if the denominator in the following equations is not zero.
+!   IF ( .NOT. EqualRealNos( OtherState%AllOuts(LSShftFxa), 0.0_ReKi ) )   THEN ! .TRUE. if the denominator in the following equations is not zero.
 !
-!      CThrstys = -y%AllOuts(LSSTipMzs)/y%AllOuts(LSShftFxa)  ! Estimate of the ys-location of the center of thrust
-!      CThrstzs =  y%AllOuts(LSSTipMys)/y%AllOuts(LSShftFxa)  ! Estimate of the zs-location of the center of thrust
+!      CThrstys = -OtherState%AllOuts(LSSTipMzs)/OtherState%AllOuts(LSShftFxa)  ! Estimate of the ys-location of the center of thrust
+!      CThrstzs =  OtherState%AllOuts(LSSTipMys)/OtherState%AllOuts(LSShftFxa)  ! Estimate of the zs-location of the center of thrust
 !
-!!      y%AllOuts(CThrstAzm) = MOD( ( ATAN2( -CThrstzs, -CThrstys ) + p%AzimB1Up )*R2D + 360.0 + 90.0, 360.0 )  !bjj: IgnoreMod was used for linearization... perhaps these outputs should not use the MOD function; only WriteOutputs should have that...
-!!      y%AllOuts(CThrstRad) = MIN( 1.0, SQRT( CThrstys*CThrstys + CThrstzs*CThrstzs )/p%AvgNrmTpRd )
+!!      OtherState%AllOuts(CThrstAzm) = MOD( ( ATAN2( -CThrstzs, -CThrstys ) + p%AzimB1Up )*R2D + 360.0 + 90.0, 360.0 )  !bjj: IgnoreMod was used for linearization... perhaps these outputs should not use the MOD function; only WriteOutputs should have that...
+!!      OtherState%AllOuts(CThrstRad) = MIN( 1.0, SQRT( CThrstys*CThrstys + CThrstzs*CThrstzs )/p%AvgNrmTpRd )
 !
 !   ELSE
 !
-!      !y%AllOuts(CThrstAzm) = 0.0
-!      !y%AllOuts(CThrstRad) = 0.0
+!      !OtherState%AllOuts(CThrstAzm) = 0.0
+!      !OtherState%AllOuts(CThrstRad) = 0.0
 !
 !   ENDIF
 
-   y%AllOuts(   RotPwr) = ( x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr) )*y%AllOuts(LSShftMxa)
+   OtherState%AllOuts(   RotPwr) = ( x%QDT(DOF_GeAz) + x%QDT(DOF_DrTr) )*OtherState%AllOuts(LSShftMxa)
 
    !IF ( .NOT. EqualRealNos( ComDenom, 0.0_ReKi ) )  THEN   ! .TRUE. if the denominator in the following equations is not zero.
    !
-   !   y%AllOuts( RotCq) = 1000.0*y%AllOuts(LSShftMxa) / ( ComDenom*p%TipRad )
-   !   y%AllOuts( RotCp) = 1000.0*y%AllOuts(   RotPwr) / ( ComDenom*y%AllOuts(  WindVxi) )
-   !   y%AllOuts( RotCt) = 1000.0*y%AllOuts(LSShftFxa) /   ComDenom
+   !   OtherState%AllOuts( RotCq) = 1000.0*OtherState%AllOuts(LSShftMxa) / ( ComDenom*p%TipRad )
+   !   OtherState%AllOuts( RotCp) = 1000.0*OtherState%AllOuts(   RotPwr) / ( ComDenom*OtherState%AllOuts(  WindVxi) )
+   !   OtherState%AllOuts( RotCt) = 1000.0*OtherState%AllOuts(LSShftFxa) /   ComDenom
    !
    !ELSE
    !
-   !   y%AllOuts( RotCq) = 0.0
-   !   y%AllOuts( RotCp) = 0.0
-   !   y%AllOuts( RotCt) = 0.0
+   !   OtherState%AllOuts( RotCq) = 0.0
+   !   OtherState%AllOuts( RotCp) = 0.0
+   !   OtherState%AllOuts( RotCt) = 0.0
    !
    !ENDIF
 
 
       ! Shaft Strain Gage Loads:
 
-   y%AllOuts(LSSGagMya) = y%AllOuts(LSSTipMya) + p%ShftGagL*y%AllOuts(LSShftFza)
-   y%AllOuts(LSSGagMza) = y%AllOuts(LSSTipMza) - p%ShftGagL*y%AllOuts(LSShftFya)
-   y%AllOuts(LSSGagMys) = y%AllOuts(LSSTipMys) + p%ShftGagL*y%AllOuts(LSShftFzs)
-   y%AllOuts(LSSGagMzs) = y%AllOuts(LSSTipMzs) - p%ShftGagL*y%AllOuts(LSShftFys)
+   OtherState%AllOuts(LSSGagMya) = OtherState%AllOuts(LSSTipMya) + p%ShftGagL*OtherState%AllOuts(LSShftFza)
+   OtherState%AllOuts(LSSGagMza) = OtherState%AllOuts(LSSTipMza) - p%ShftGagL*OtherState%AllOuts(LSShftFya)
+   OtherState%AllOuts(LSSGagMys) = OtherState%AllOuts(LSSTipMys) + p%ShftGagL*OtherState%AllOuts(LSShftFzs)
+   OtherState%AllOuts(LSSGagMzs) = OtherState%AllOuts(LSSTipMzs) - p%ShftGagL*OtherState%AllOuts(LSShftFys)
 
 
       ! Generator and High-Speed Shaft Loads:
 
-   y%AllOuts( HSShftTq) = y%AllOuts(LSShftMxa)*OtherState%RtHS%GBoxEffFac/ABS(p%GBRatio)
-   y%AllOuts(HSShftPwr) = y%AllOuts( HSShftTq)*ABS(p%GBRatio)*x%QDT(DOF_GeAz)
+   OtherState%AllOuts( HSShftTq) = OtherState%AllOuts(LSShftMxa)*OtherState%RtHS%GBoxEffFac/ABS(p%GBRatio)
+   OtherState%AllOuts(HSShftPwr) = OtherState%AllOuts( HSShftTq)*ABS(p%GBRatio)*x%QDT(DOF_GeAz)
 
 
    !IF ( .NOT. EqualRealNos( ComDenom, 0.0_ReKi ) )  THEN  ! .TRUE. if the denominator in the following equations is not zero (ComDenom is the same as it is calculated above).
    !
-   !   y%AllOuts( HSShftCq) = 1000.0*y%AllOuts( HSShftTq) / ( ComDenom*p%TipRad )
-   !   y%AllOuts( HSShftCp) = 1000.0*y%AllOuts(HSShftPwr) / ( ComDenom*y%AllOuts(  WindVxi) )
-   !   y%AllOuts(    GenCq) = 1000.0*y%AllOuts(    GenTq) / ( ComDenom*p%TipRad )
-   !   y%AllOuts(    GenCp) = 1000.0*y%AllOuts(   GenPwr) / ( ComDenom*y%AllOuts(  WindVxi) )
+   !   OtherState%AllOuts( HSShftCq) = 1000.0*OtherState%AllOuts( HSShftTq) / ( ComDenom*p%TipRad )
+   !   OtherState%AllOuts( HSShftCp) = 1000.0*OtherState%AllOuts(HSShftPwr) / ( ComDenom*OtherState%AllOuts(  WindVxi) )
+   !   OtherState%AllOuts(    GenCq) = 1000.0*OtherState%AllOuts(    GenTq) / ( ComDenom*p%TipRad )
+   !   OtherState%AllOuts(    GenCp) = 1000.0*OtherState%AllOuts(   GenPwr) / ( ComDenom*OtherState%AllOuts(  WindVxi) )
    !
    !ELSE
    !
-   !   y%AllOuts( HSShftCq) = 0.0
-   !   y%AllOuts( HSShftCp) = 0.0
-   !   y%AllOuts(    GenCq) = 0.0
-   !   y%AllOuts(    GenCp) = 0.0
+   !   OtherState%AllOuts( HSShftCq) = 0.0
+   !   OtherState%AllOuts( HSShftCp) = 0.0
+   !   OtherState%AllOuts(    GenCq) = 0.0
+   !   OtherState%AllOuts(    GenCp) = 0.0
    !
    !ENDIF
 
 
       ! Rotor-Furl Axis Loads:
 
-   y%AllOuts(RFrlBrM  ) =  DOT_PRODUCT( MomNGnRt, OtherState%CoordSys%rfa )
+   OtherState%AllOuts(RFrlBrM  ) =  DOT_PRODUCT( MomNGnRt, OtherState%CoordSys%rfa )
 
 
       ! Tail-Furl Axis Loads:
 
-   y%AllOuts(TFrlBrM  ) =  DOT_PRODUCT( MomNTail, OtherState%CoordSys%tfa )
+   OtherState%AllOuts(TFrlBrM  ) =  DOT_PRODUCT( MomNTail, OtherState%CoordSys%tfa )
 
 
       ! Tower-Top / Yaw Bearing Loads:
 
-   y%AllOuts( YawBrFxn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d1 )
-   y%AllOuts( YawBrFyn) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d3 )
-   y%AllOuts( YawBrFzn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d2 )
-   y%AllOuts( YawBrFxp) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b1 )
-   y%AllOuts( YawBrFyp) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b3 )
-   y%AllOuts( YawBrMxn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d1 )
-   y%AllOuts( YawBrMyn) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d3 )
-   y%AllOuts( YawBrMzn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d2 )
-   y%AllOuts( YawBrMxp) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b1 )
-   y%AllOuts( YawBrMyp) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b3 )
+   OtherState%AllOuts( YawBrFxn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d1 )
+   OtherState%AllOuts( YawBrFyn) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d3 )
+   OtherState%AllOuts( YawBrFzn) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%d2 )
+   OtherState%AllOuts( YawBrFxp) =  DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b1 )
+   OtherState%AllOuts( YawBrFyp) = -DOT_PRODUCT( FrcONcRt, OtherState%CoordSys%b3 )
+   OtherState%AllOuts( YawBrMxn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d1 )
+   OtherState%AllOuts( YawBrMyn) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d3 )
+   OtherState%AllOuts( YawBrMzn) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%d2 )
+   OtherState%AllOuts( YawBrMxp) =  DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b1 )
+   OtherState%AllOuts( YawBrMyp) = -DOT_PRODUCT( MomBNcRt, OtherState%CoordSys%b3 )
 
 
       ! Tower Base Loads:
 
-   y%AllOuts( TwrBsFxt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a1 )
-   y%AllOuts( TwrBsFyt) = -DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a3 )
-   y%AllOuts( TwrBsFzt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a2 )
-   y%AllOuts( TwrBsMxt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a1 )
-   y%AllOuts( TwrBsMyt) = -DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a3 )
-   y%AllOuts( TwrBsMzt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a2 )
+   OtherState%AllOuts( TwrBsFxt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a1 )
+   OtherState%AllOuts( TwrBsFyt) = -DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a3 )
+   OtherState%AllOuts( TwrBsFzt) =  DOT_PRODUCT( FrcT0Trb, OtherState%CoordSys%a2 )
+   OtherState%AllOuts( TwrBsMxt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a1 )
+   OtherState%AllOuts( TwrBsMyt) = -DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a3 )
+   OtherState%AllOuts( TwrBsMzt) =  DOT_PRODUCT( MomX0Trb, OtherState%CoordSys%a2 )
 
 
       ! Local Tower Loads:
@@ -2319,118 +2314,118 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       MomFGagT = MomFGagT + TmpVec * 0.5 * p%DHNodes(p%TwrGagNd(I))
       MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
 
-      y%AllOuts( TwHtFLxt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t1(p%TwrGagNd(I),:) )
-      y%AllOuts( TwHtFLyt(I) ) = -1.*DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t3(p%TwrGagNd(I),:) )
-      y%AllOuts( TwHtFLzt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t2(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtFLxt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t1(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtFLyt(I) ) = -1.*DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t3(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtFLzt(I) ) =     DOT_PRODUCT( FrcFGagT, OtherState%CoordSys%t2(p%TwrGagNd(I),:) )
 
-      y%AllOuts( TwHtMLxt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t1(p%TwrGagNd(I),:) )
-      y%AllOuts( TwHtMLyt(I) ) = -1.*DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t3(p%TwrGagNd(I),:) )
-      y%AllOuts( TwHtMLzt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t2(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtMLxt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t1(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtMLyt(I) ) = -1.*DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t3(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtMLzt(I) ) =     DOT_PRODUCT( MomFGagT, OtherState%CoordSys%t2(p%TwrGagNd(I),:) )
 
    END DO
 
 
    !   ! Platform Loads:
    !
-   !y%AllOuts(  PtfmFxt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a1 )
-   !y%AllOuts(  PtfmFyt) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%a3 )
-   !y%AllOuts(  PtfmFzt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a2 )
-   !y%AllOuts(  PtfmFxi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z1 )
-   !y%AllOuts(  PtfmFyi) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%z3 )
-   !y%AllOuts(  PtfmFzi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z2 )
-   !y%AllOuts(  PtfmMxt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a1 )
-   !y%AllOuts(  PtfmMyt) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%a3 )
-   !y%AllOuts(  PtfmMzt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a2 )
-   !y%AllOuts(  PtfmMxi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z1 )
-   !y%AllOuts(  PtfmMyi) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%z3 )
-   !y%AllOuts(  PtfmMzi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z2 )
+   !OtherState%AllOuts(  PtfmFxt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a1 )
+   !OtherState%AllOuts(  PtfmFyt) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%a3 )
+   !OtherState%AllOuts(  PtfmFzt) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%a2 )
+   !OtherState%AllOuts(  PtfmFxi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z1 )
+   !OtherState%AllOuts(  PtfmFyi) = -DOT_PRODUCT( FZHydro, OtherState%CoordSys%z3 )
+   !OtherState%AllOuts(  PtfmFzi) =  DOT_PRODUCT( FZHydro, OtherState%CoordSys%z2 )
+   !OtherState%AllOuts(  PtfmMxt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a1 )
+   !OtherState%AllOuts(  PtfmMyt) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%a3 )
+   !OtherState%AllOuts(  PtfmMzt) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%a2 )
+   !OtherState%AllOuts(  PtfmMxi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z1 )
+   !OtherState%AllOuts(  PtfmMyi) = -DOT_PRODUCT( MXHydro, OtherState%CoordSys%z3 )
+   !OtherState%AllOuts(  PtfmMzi) =  DOT_PRODUCT( MXHydro, OtherState%CoordSys%z2 )
    !
 
       ! Internal p%DOFs outputs:
 
-   y%AllOuts( Q_B1E1   ) = x%QT(   DOF_BE(1,1) )
-   y%AllOuts( Q_B2E1   ) = x%QT(   DOF_BE(2,1) )
-   y%AllOuts( Q_B1F1   ) = x%QT(   DOF_BF(1,1) )
-   y%AllOuts( Q_B2F1   ) = x%QT(   DOF_BF(2,1) )
-   y%AllOuts( Q_B1F2   ) = x%QT(   DOF_BF(1,2) )
-   y%AllOuts( Q_B2F2   ) = x%QT(   DOF_BF(2,2) )
-   y%AllOuts( Q_DrTr   ) = x%QT(   DOF_DrTr    )
-   y%AllOuts( Q_GeAz   ) = x%QT(   DOF_GeAz    )
-   y%AllOuts( Q_RFrl   ) = x%QT(   DOF_RFrl    )
-   y%AllOuts( Q_TFrl   ) = x%QT(   DOF_TFrl    )
-   y%AllOuts( Q_Yaw    ) = x%QT(   DOF_Yaw     )
-   y%AllOuts( Q_TFA1   ) = x%QT(   DOF_TFA1    )
-   y%AllOuts( Q_TSS1   ) = x%QT(   DOF_TSS1    )
-   y%AllOuts( Q_TFA2   ) = x%QT(   DOF_TFA2    )
-   y%AllOuts( Q_TSS2   ) = x%QT(   DOF_TSS2    )
-   y%AllOuts( Q_Sg     ) = x%QT(   DOF_Sg      )
-   y%AllOuts( Q_Sw     ) = x%QT(   DOF_Sw      )
-   y%AllOuts( Q_Hv     ) = x%QT(   DOF_Hv      )
-   y%AllOuts( Q_R      ) = x%QT(   DOF_R       )
-   y%AllOuts( Q_P      ) = x%QT(   DOF_P       )
-   y%AllOuts( Q_Y      ) = x%QT(   DOF_Y       )
+   OtherState%AllOuts( Q_B1E1   ) = x%QT(   DOF_BE(1,1) )
+   OtherState%AllOuts( Q_B2E1   ) = x%QT(   DOF_BE(2,1) )
+   OtherState%AllOuts( Q_B1F1   ) = x%QT(   DOF_BF(1,1) )
+   OtherState%AllOuts( Q_B2F1   ) = x%QT(   DOF_BF(2,1) )
+   OtherState%AllOuts( Q_B1F2   ) = x%QT(   DOF_BF(1,2) )
+   OtherState%AllOuts( Q_B2F2   ) = x%QT(   DOF_BF(2,2) )
+   OtherState%AllOuts( Q_DrTr   ) = x%QT(   DOF_DrTr    )
+   OtherState%AllOuts( Q_GeAz   ) = x%QT(   DOF_GeAz    )
+   OtherState%AllOuts( Q_RFrl   ) = x%QT(   DOF_RFrl    )
+   OtherState%AllOuts( Q_TFrl   ) = x%QT(   DOF_TFrl    )
+   OtherState%AllOuts( Q_Yaw    ) = x%QT(   DOF_Yaw     )
+   OtherState%AllOuts( Q_TFA1   ) = x%QT(   DOF_TFA1    )
+   OtherState%AllOuts( Q_TSS1   ) = x%QT(   DOF_TSS1    )
+   OtherState%AllOuts( Q_TFA2   ) = x%QT(   DOF_TFA2    )
+   OtherState%AllOuts( Q_TSS2   ) = x%QT(   DOF_TSS2    )
+   OtherState%AllOuts( Q_Sg     ) = x%QT(   DOF_Sg      )
+   OtherState%AllOuts( Q_Sw     ) = x%QT(   DOF_Sw      )
+   OtherState%AllOuts( Q_Hv     ) = x%QT(   DOF_Hv      )
+   OtherState%AllOuts( Q_R      ) = x%QT(   DOF_R       )
+   OtherState%AllOuts( Q_P      ) = x%QT(   DOF_P       )
+   OtherState%AllOuts( Q_Y      ) = x%QT(   DOF_Y       )
 
-   y%AllOuts( QD_B1E1  ) = x%QDT(  DOF_BE(1,1) )
-   y%AllOuts( QD_B2E1  ) = x%QDT(  DOF_BE(2,1) )
-   y%AllOuts( QD_B1F1  ) = x%QDT(  DOF_BF(1,1) )
-   y%AllOuts( QD_B2F1  ) = x%QDT(  DOF_BF(2,1) )
-   y%AllOuts( QD_B1F2  ) = x%QDT(  DOF_BF(1,2) )
-   y%AllOuts( QD_B2F2  ) = x%QDT(  DOF_BF(2,2) )
-   y%AllOuts( QD_DrTr  ) = x%QDT(  DOF_DrTr    )
-   y%AllOuts( QD_GeAz  ) = x%QDT(  DOF_GeAz    )
-   y%AllOuts( QD_RFrl  ) = x%QDT(  DOF_RFrl    )
-   y%AllOuts( QD_TFrl  ) = x%QDT(  DOF_TFrl    )
-   y%AllOuts( QD_Yaw   ) = x%QDT(  DOF_Yaw     )
-   y%AllOuts( QD_TFA1  ) = x%QDT(  DOF_TFA1    )
-   y%AllOuts( QD_TSS1  ) = x%QDT(  DOF_TSS1    )
-   y%AllOuts( QD_TFA2  ) = x%QDT(  DOF_TFA2    )
-   y%AllOuts( QD_TSS2  ) = x%QDT(  DOF_TSS2    )
-   y%AllOuts( QD_Sg    ) = x%QDT(  DOF_Sg      )
-   y%AllOuts( QD_Sw    ) = x%QDT(  DOF_Sw      )
-   y%AllOuts( QD_Hv    ) = x%QDT(  DOF_Hv      )
-   y%AllOuts( QD_R     ) = x%QDT(  DOF_R       )
-   y%AllOuts( QD_P     ) = x%QDT(  DOF_P       )
-   y%AllOuts( QD_Y     ) = x%QDT(  DOF_Y       )
+   OtherState%AllOuts( QD_B1E1  ) = x%QDT(  DOF_BE(1,1) )
+   OtherState%AllOuts( QD_B2E1  ) = x%QDT(  DOF_BE(2,1) )
+   OtherState%AllOuts( QD_B1F1  ) = x%QDT(  DOF_BF(1,1) )
+   OtherState%AllOuts( QD_B2F1  ) = x%QDT(  DOF_BF(2,1) )
+   OtherState%AllOuts( QD_B1F2  ) = x%QDT(  DOF_BF(1,2) )
+   OtherState%AllOuts( QD_B2F2  ) = x%QDT(  DOF_BF(2,2) )
+   OtherState%AllOuts( QD_DrTr  ) = x%QDT(  DOF_DrTr    )
+   OtherState%AllOuts( QD_GeAz  ) = x%QDT(  DOF_GeAz    )
+   OtherState%AllOuts( QD_RFrl  ) = x%QDT(  DOF_RFrl    )
+   OtherState%AllOuts( QD_TFrl  ) = x%QDT(  DOF_TFrl    )
+   OtherState%AllOuts( QD_Yaw   ) = x%QDT(  DOF_Yaw     )
+   OtherState%AllOuts( QD_TFA1  ) = x%QDT(  DOF_TFA1    )
+   OtherState%AllOuts( QD_TSS1  ) = x%QDT(  DOF_TSS1    )
+   OtherState%AllOuts( QD_TFA2  ) = x%QDT(  DOF_TFA2    )
+   OtherState%AllOuts( QD_TSS2  ) = x%QDT(  DOF_TSS2    )
+   OtherState%AllOuts( QD_Sg    ) = x%QDT(  DOF_Sg      )
+   OtherState%AllOuts( QD_Sw    ) = x%QDT(  DOF_Sw      )
+   OtherState%AllOuts( QD_Hv    ) = x%QDT(  DOF_Hv      )
+   OtherState%AllOuts( QD_R     ) = x%QDT(  DOF_R       )
+   OtherState%AllOuts( QD_P     ) = x%QDT(  DOF_P       )
+   OtherState%AllOuts( QD_Y     ) = x%QDT(  DOF_Y       )
 
-   y%AllOuts( QD2_B1E1 ) = OtherState%QD2T( DOF_BE(1,1) )
-   y%AllOuts( QD2_B2E1 ) = OtherState%QD2T( DOF_BE(2,1) )
-   y%AllOuts( QD2_B1F1 ) = OtherState%QD2T( DOF_BF(1,1) )
-   y%AllOuts( QD2_B2F1 ) = OtherState%QD2T( DOF_BF(2,1) )
-   y%AllOuts( QD2_B1F2 ) = OtherState%QD2T( DOF_BF(1,2) )
-   y%AllOuts( QD2_B2F2 ) = OtherState%QD2T( DOF_BF(2,2) )
-   y%AllOuts( QD2_DrTr ) = OtherState%QD2T( DOF_DrTr    )
-   y%AllOuts( QD2_GeAz ) = OtherState%QD2T( DOF_GeAz    )
-   y%AllOuts( QD2_RFrl ) = OtherState%QD2T( DOF_RFrl    )
-   y%AllOuts( QD2_TFrl ) = OtherState%QD2T( DOF_TFrl    )
-   y%AllOuts( QD2_Yaw  ) = OtherState%QD2T( DOF_Yaw     )
-   y%AllOuts( QD2_TFA1 ) = OtherState%QD2T( DOF_TFA1    )
-   y%AllOuts( QD2_TSS1 ) = OtherState%QD2T( DOF_TSS1    )
-   y%AllOuts( QD2_TFA2 ) = OtherState%QD2T( DOF_TFA2    )
-   y%AllOuts( QD2_TSS2 ) = OtherState%QD2T( DOF_TSS2    )
-   y%AllOuts( QD2_Sg   ) = OtherState%QD2T( DOF_Sg      )
-   y%AllOuts( QD2_Sw   ) = OtherState%QD2T( DOF_Sw      )
-   y%AllOuts( QD2_Hv   ) = OtherState%QD2T( DOF_Hv      )
-   y%AllOuts( QD2_R    ) = OtherState%QD2T( DOF_R       )
-   y%AllOuts( QD2_P    ) = OtherState%QD2T( DOF_P       )
-   y%AllOuts( QD2_Y    ) = OtherState%QD2T( DOF_Y       )
+   OtherState%AllOuts( QD2_B1E1 ) = OtherState%QD2T( DOF_BE(1,1) )
+   OtherState%AllOuts( QD2_B2E1 ) = OtherState%QD2T( DOF_BE(2,1) )
+   OtherState%AllOuts( QD2_B1F1 ) = OtherState%QD2T( DOF_BF(1,1) )
+   OtherState%AllOuts( QD2_B2F1 ) = OtherState%QD2T( DOF_BF(2,1) )
+   OtherState%AllOuts( QD2_B1F2 ) = OtherState%QD2T( DOF_BF(1,2) )
+   OtherState%AllOuts( QD2_B2F2 ) = OtherState%QD2T( DOF_BF(2,2) )
+   OtherState%AllOuts( QD2_DrTr ) = OtherState%QD2T( DOF_DrTr    )
+   OtherState%AllOuts( QD2_GeAz ) = OtherState%QD2T( DOF_GeAz    )
+   OtherState%AllOuts( QD2_RFrl ) = OtherState%QD2T( DOF_RFrl    )
+   OtherState%AllOuts( QD2_TFrl ) = OtherState%QD2T( DOF_TFrl    )
+   OtherState%AllOuts( QD2_Yaw  ) = OtherState%QD2T( DOF_Yaw     )
+   OtherState%AllOuts( QD2_TFA1 ) = OtherState%QD2T( DOF_TFA1    )
+   OtherState%AllOuts( QD2_TSS1 ) = OtherState%QD2T( DOF_TSS1    )
+   OtherState%AllOuts( QD2_TFA2 ) = OtherState%QD2T( DOF_TFA2    )
+   OtherState%AllOuts( QD2_TSS2 ) = OtherState%QD2T( DOF_TSS2    )
+   OtherState%AllOuts( QD2_Sg   ) = OtherState%QD2T( DOF_Sg      )
+   OtherState%AllOuts( QD2_Sw   ) = OtherState%QD2T( DOF_Sw      )
+   OtherState%AllOuts( QD2_Hv   ) = OtherState%QD2T( DOF_Hv      )
+   OtherState%AllOuts( QD2_R    ) = OtherState%QD2T( DOF_R       )
+   OtherState%AllOuts( QD2_P    ) = OtherState%QD2T( DOF_P       )
+   OtherState%AllOuts( QD2_Y    ) = OtherState%QD2T( DOF_Y       )
 
 
    IF ( p%NumBl > 2 ) THEN
-      y%AllOuts( Q_B3E1   ) = x%QT(   DOF_BE(3,1) )
-      y%AllOuts( Q_B3F1   ) = x%QT(   DOF_BF(3,1) )
-      y%AllOuts( Q_B3F2   ) = x%QT(   DOF_BF(3,2) )
+      OtherState%AllOuts( Q_B3E1   ) = x%QT(   DOF_BE(3,1) )
+      OtherState%AllOuts( Q_B3F1   ) = x%QT(   DOF_BF(3,1) )
+      OtherState%AllOuts( Q_B3F2   ) = x%QT(   DOF_BF(3,2) )
 
-      y%AllOuts( QD_B3E1  ) = x%QDT(  DOF_BE(3,1) )
-      y%AllOuts( QD_B3F1  ) = x%QDT(  DOF_BF(3,1) )
-      y%AllOuts( QD_B3F2  ) = x%QDT(  DOF_BF(3,2) )
+      OtherState%AllOuts( QD_B3E1  ) = x%QDT(  DOF_BE(3,1) )
+      OtherState%AllOuts( QD_B3F1  ) = x%QDT(  DOF_BF(3,1) )
+      OtherState%AllOuts( QD_B3F2  ) = x%QDT(  DOF_BF(3,2) )
 
-      y%AllOuts( QD2_B3E1 ) = OtherState%QD2T( DOF_BE(3,1) )
-      y%AllOuts( QD2_B3F1 ) = OtherState%QD2T( DOF_BF(3,1) )
-      y%AllOuts( QD2_B3F2 ) = OtherState%QD2T( DOF_BF(3,2) )
+      OtherState%AllOuts( QD2_B3E1 ) = OtherState%QD2T( DOF_BE(3,1) )
+      OtherState%AllOuts( QD2_B3F1 ) = OtherState%QD2T( DOF_BF(3,1) )
+      OtherState%AllOuts( QD2_B3F2 ) = OtherState%QD2T( DOF_BF(3,2) )
    ELSE
-      y%AllOuts( Q_Teet   ) = x%QT(            DOF_Teet    )
-      y%AllOuts( QD_Teet  ) = x%QDT(           DOF_Teet    )
-      y%AllOuts( QD2_Teet ) = OtherState%QD2T( DOF_Teet    )
+      OtherState%AllOuts( Q_Teet   ) = x%QT(            DOF_Teet    )
+      OtherState%AllOuts( QD_Teet  ) = x%QDT(           DOF_Teet    )
+      OtherState%AllOuts( QD2_Teet ) = OtherState%QD2T( DOF_Teet    )
    END IF
 
    !...............................................................................................................................
@@ -2439,7 +2434,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    DO I = 1,p%NumOuts  ! Loop through all selected output channels
 
-      y%WriteOutput(I) = p%OutParam(I)%SignM * y%AllOuts( p%OutParam(I)%Indx )
+      y%WriteOutput(I) = p%OutParam(I)%SignM * OtherState%AllOuts( p%OutParam(I)%Indx )
 
    ENDDO             ! I - All selected output channels
 
@@ -2474,7 +2469,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    y%PlatformPtMesh%TranslationAcc(3,1) = OtherState%QD2T(DOF_Hv)    
       
       !..............................
-      ! Outputs required for SubDyn
+      ! Outputs required for external tower loads
       !..............................
       
    DO J=1,p%TwrNodes
@@ -2500,8 +2495,58 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       END IF
                                     
    END DO
-             
-      
+               
+   
+!call wrscr('Ask Jason what these output values should be!')   
+
+!   ! p%TwrNodes+1 is the tower top:
+!   
+!   y%TowerLn2Mesh%TranslationDisp(1,p%TwrNodes+1) =   OtherState%AllOuts(YawBrTDxp)   !bjj: or is it YawBrTDxt?   
+!   y%TowerLn2Mesh%TranslationDisp(2,p%TwrNodes+1) =   OtherState%AllOuts(YawBrTDyp)   !bjj: or is it YawBrTDyt?     
+!   y%TowerLn2Mesh%TranslationDisp(3,p%TwrNodes+1) =   OtherState%AllOuts(YawBrTDzp)   !bjj: or is it YawBrTDzt?     
+!      
+!   y%TowerLn2Mesh%TranslationVel(1,p%TwrNodes+1) =          
+!   y%TowerLn2Mesh%TranslationVel(2,p%TwrNodes+1) =    
+!   y%TowerLn2Mesh%TranslationVel(3,p%TwrNodes+1) =         
+!
+!   y%TowerLn2Mesh%RotationVel(1,p%TwrNodes+1)    =   OtherState%AllOuts(YawBrRVxp) * D2R    
+!   y%TowerLn2Mesh%RotationVel(2,p%TwrNodes+1)    =   OtherState%AllOuts(YawBrRVyp) * D2R    
+!   y%TowerLn2Mesh%RotationVel(3,p%TwrNodes+1)    =   OtherState%AllOuts(YawBrRVzp) * D2R    
+!
+!   
+!   CALL SmllRotTrans( 'tower top deflection (ED_CalcOutput)', &
+!            OtherState%AllOuts(YawBrRDxt)*D2R, OtherState%AllOuts(YawBrRDyt)*D2R, OtherState%AllOuts(YawBrRDzt)*D2R, &
+!            y%TowerLn2Mesh%Orientation(:,:,p%TwrNodes+1), errstat=ErrStat2, errmsg=ErrMsg2 )
+!      IF (ErrStat2 /= ErrID_None) THEN
+!         ErrStat = MAX(ErrStat, ErrStat2)
+!         ErrMsg  = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)//' (occurred at '//TRIM(Num2LStr(t))//' s)'
+!      END IF
+!   
+!      
+!   ! p%TwrNodes+2 is the tower base:
+!   
+!   y%TowerLn2Mesh%TranslationDisp(1,p%TwrNodes+2) =          
+!   y%TowerLn2Mesh%TranslationDisp(2,p%TwrNodes+2) =          
+!   y%TowerLn2Mesh%TranslationDisp(3,p%TwrNodes+2) =          
+!
+!   y%TowerLn2Mesh%TranslationVel(1,p%TwrNodes+2) =          
+!   y%TowerLn2Mesh%TranslationVel(2,p%TwrNodes+2) =          
+!   y%TowerLn2Mesh%TranslationVel(3,p%TwrNodes+2) =             
+!      
+!   y%TowerLn2Mesh%RotationVel(1,p%TwrNodes+2)    =          
+!   y%TowerLn2Mesh%RotationVel(2,p%TwrNodes+2)    =          
+!   y%TowerLn2Mesh%RotationVel(3,p%TwrNodes+2)    =             
+!   
+!               
+!   CALL SmllRotTrans( 'tower base deflection (ED_CalcOutput)', &
+!!???             OtherState%RtHS%AngPosEF(J,1), -1.*OtherState%RtHS%AngPosEF(J,3), OtherState%RtHS%AngPosEF(J,2), &
+!            y%TowerLn2Mesh%Orientation(:,:,p%TwrNodes+2), errstat=ErrStat2, errmsg=ErrMsg2 )
+!      IF (ErrStat2 /= ErrID_None) THEN
+!         ErrStat = MAX(ErrStat, ErrStat2)
+!         ErrMsg  = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)//' (occurred at '//TRIM(Num2LStr(t))//' s)'
+!      END IF
+            
+   
       !..............................
       ! Outputs required for ServoDyn
       !..............................
@@ -2529,30 +2574,26 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    END IF      
    
    !Control outputs for Bladed DLL:
-   y%RotPwr    = y%AllOuts(  RotPwr)*1000.
+   y%RotPwr    = OtherState%AllOuts(  RotPwr)*1000.
    DO K=1,p%NumBl
-      y%RootMxc(K)   = y%AllOuts( RootMxc(K) )*1000.
-      y%RootMyc(K)   = y%AllOuts( RootMyc(K) )*1000.
+      y%RootMxc(K)   = OtherState%AllOuts( RootMxc(K) )*1000.
+      y%RootMyc(K)   = OtherState%AllOuts( RootMyc(K) )*1000.
    END DO
-   y%YawBrTAxp = y%AllOuts( YawBrTAxp)
-   y%YawBrTAyp = y%AllOuts( YawBrTAyp)
-   y%LSSTipPxa = y%AllOuts( LSSTipPxa)*D2R
+   y%YawBrTAxp = OtherState%AllOuts( YawBrTAxp)
+   y%YawBrTAyp = OtherState%AllOuts( YawBrTAyp)
+   y%LSSTipPxa = OtherState%AllOuts( LSSTipPxa)*D2R
 
-   y%LSSTipMya = y%AllOuts(LSSTipMya)*1000.                ! Rotating hub My (GL co-ords) (Nm)
-   y%LSSTipMza = y%AllOuts(LSSTipMza)*1000.                ! Rotating hub Mz (GL co-ords) (Nm)
-   y%LSSTipMys = y%AllOuts(LSSTipMys)*1000.                ! Fixed hub My (GL co-ords) (Nm)
-   y%LSSTipMzs = y%AllOuts(LSSTipMzs)*1000.                ! Fixed hub Mz (GL co-ords) (Nm)
-   y%YawBrMyn  = y%AllOuts( YawBrMyn)*1000.                ! Yaw bearing My (GL co-ords) (Nm) !tower accel
-   y%YawBrMzn  = y%AllOuts( YawBrMzn)*1000.                ! Yaw bearing Mz (GL co-ords) (Nm)
-   y%NcIMURAxs = y%AllOuts(NcIMURAxs)*D2R                  ! Nacelle roll    acceleration (rad/s^2) -- this is in the shaft (tilted) coordinate system, instead of the nacelle (nontilted) coordinate system
-   y%NcIMURAys = y%AllOuts(NcIMURAys)*D2R                  ! Nacelle nodding acceleration (rad/s^2)
-   y%NcIMURAzs = y%AllOuts(NcIMURAzs)*D2R                  ! Nacelle yaw     acceleration (rad/s^2) -- this is in the shaft (tilted) coordinate system, instead of the nacelle (nontilted) coordinate system
+   y%LSSTipMya = OtherState%AllOuts(LSSTipMya)*1000.                ! Rotating hub My (GL co-ords) (Nm)
+   y%LSSTipMza = OtherState%AllOuts(LSSTipMza)*1000.                ! Rotating hub Mz (GL co-ords) (Nm)
+   y%LSSTipMys = OtherState%AllOuts(LSSTipMys)*1000.                ! Fixed hub My (GL co-ords) (Nm)
+   y%LSSTipMzs = OtherState%AllOuts(LSSTipMzs)*1000.                ! Fixed hub Mz (GL co-ords) (Nm)
+   y%YawBrMyn  = OtherState%AllOuts( YawBrMyn)*1000.                ! Yaw bearing My (GL co-ords) (Nm) !tower accel
+   y%YawBrMzn  = OtherState%AllOuts( YawBrMzn)*1000.                ! Yaw bearing Mz (GL co-ords) (Nm)
+   y%NcIMURAxs = OtherState%AllOuts(NcIMURAxs)*D2R                  ! Nacelle roll    acceleration (rad/s^2) -- this is in the shaft (tilted) coordinate system, instead of the nacelle (nontilted) coordinate system
+   y%NcIMURAys = OtherState%AllOuts(NcIMURAys)*D2R                  ! Nacelle nodding acceleration (rad/s^2)
+   y%NcIMURAzs = OtherState%AllOuts(NcIMURAzs)*D2R                  ! Nacelle yaw     acceleration (rad/s^2) -- this is in the shaft (tilted) coordinate system, instead of the nacelle (nontilted) coordinate system
    
-   
-   
-   
-   
-   
+               
    RETURN
 
 END SUBROUTINE ED_CalcOutput
@@ -7939,36 +7980,37 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
       ! First allocate the arrays stored here:
 
    CALL Alloc_RtHS( OtherState%RtHS, p, ErrStat, ErrMsg  )
-   IF (ErrStat /= ErrID_None ) RETURN
+      IF (ErrStat /= ErrID_None ) RETURN
 
    CALL Alloc_CoordSys( OtherState%CoordSys, p, ErrStat, ErrMsg )
-   IF (ErrStat /= ErrID_None ) RETURN
+      IF (ErrStat /= ErrID_None ) RETURN
    
    CALL AllocAry( OtherState%QD2T, p%NDOF,   'OtherState%QD2T',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat /= ErrID_None ) RETURN
 
+   
+   ALLOCATE ( OtherState%AllOuts(0:MaxOutPts) , STAT=ErrStat )
+      IF ( ErrStat /= 0 )  THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg  = ' Error allocating memory for the AllOuts array.'
+         RETURN
+      ENDIF   
+   OtherState%AllOuts = 0.0_ReKi
+   
       ! for loose coupling:
    CALL AllocAry( OtherState%IC,  NMX,   'IC',   ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None ) RETURN
-
-!bjj: we probably should make these a Continuous State type:
-   !CALL AllocAry( OtherState%Q,    p%NDOF, NMX,   'OtherState%Q',    ErrStat, ErrMsg )
-   !IF ( ErrStat /= ErrID_None ) RETURN
-   !CALL AllocAry( OtherState%QD,   p%NDOF, NMX,   'OtherState%QD',   ErrStat, ErrMsg )
-   !IF ( ErrStat /= ErrID_None ) RETURN
    
-   !CALL AllocAry( OtherState%QD2,  p%NDOF, NMX,   'OtherState%QD2',  ErrStat, ErrMsg )
-   !IF ( ErrStat /= ErrID_None ) RETURN
-      
+   
    
    CALL AllocAry(OtherState%BlPitch, p%NumBl, 'BlPitch', ErrStat, ErrMsg )
-   IF (ErrStat /= ErrID_None) RETURN
+      IF (ErrStat /= ErrID_None) RETURN
    OtherState%BlPitch = InputFileData%BlPitch(1:p%NumBl)
 
    CALL AllocAry( OtherState%AugMat,    p%NDOF,          p%NAug, 'AugMat',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+      IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( OtherState%AugMatOut,    p%NDOF,       p%NAug, 'AugMatOut',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN 
+      IF ( ErrStat /= ErrID_None ) RETURN 
 
    
       ! Now initialize the IC array = (/NMX, NMX-1, ... , 1 /)
@@ -7988,11 +8030,7 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
    !CALL ED_CopyContState(x, OtherState%xdot(1), MESH_NEWCOPY, ErrStat, ErrMsg)
 
    OtherState%n   = -1  ! we haven't updated OtherState%xdot, yet
-
    
-      ! Initialize Other State data:
-   ! Allocate space for coordinate systems
-
  
    
 END SUBROUTINE Init_OtherStates
@@ -12706,13 +12744,7 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
       
    ErrStat = ErrID_None
    ErrMsg  = ""
-   
-   
-   ALLOCATE ( y%AllOuts(0:MaxOutPts) , STAT=ErrStat2 )
-   IF ( ErrStat2 /= 0 )  THEN
-      CALL CheckError( ErrID_Fatal, 'Error allocating memory for the AllOuts array.' )
-      RETURN
-   ENDIF
+      
 
    CALL AllocAry( y%WriteOutput, p%NumOuts, 'WriteOutput', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -12721,11 +12753,26 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
    CALL AllocAry( y%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
-
+      
+   !.......................................................
+   ! Create Line2 Mesh for motion outputs on blades:
+   !.......................................................
+      
+   CALL MeshCopy ( SrcMesh  = u%BladeLn2Mesh   &
+                 , DestMesh = y%BladeLn2Mesh   &
+                 , CtrlCode = MESH_SIBLING     &
+                 , IOS      = COMPONENT_OUTPUT &
+                 , TranslationDisp = .TRUE.    &
+                 , Orientation     = .TRUE.    &
+                 , ErrStat  = ErrStat2         &
+                 , ErrMess  = ErrMsg2          )  ! automatically sets    y%BladeLn2Mesh%RemapFlag = .TRUE.
    
-      !.......................................................
-      ! Create Point Mesh for Inputs at Platform Reference Point:
-      !.......................................................
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF (ErrStat >= AbortErrLev) RETURN                  
+   
+   !.......................................................
+   ! Create Point Mesh for Motions Output at Platform Reference Point:
+   !.......................................................
       
    CALL MeshCopy ( SrcMesh  = u%PlatformPtMesh &
                  , DestMesh = y%PlatformPtMesh &
@@ -12738,17 +12785,15 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
                  , RotationAcc     = .TRUE.    &
                  , TranslationAcc  = .TRUE.    &
                  , ErrStat  = ErrStat2         &
-                 , ErrMess  = ErrMsg2          )
-         
-   y%PlatformPtMesh%RemapFlag = .TRUE.
+                 , ErrMess  = ErrMsg2          )  ! automatically sets    y%PlatformPtMesh%RemapFlag = .TRUE.
    
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
    
    
-      !.......................................................
-      ! Create Line2 Mesh for Inputs on Tower Line2 Mesh:
-      !.......................................................
+   !.......................................................
+   ! Create Line2 Mesh for Motions Output on Tower Line2 Mesh:
+   !.......................................................
                                         
    CALL MeshCopy ( SrcMesh  = u%TowerLn2Mesh   &
                  , DestMesh = y%TowerLn2Mesh   &
@@ -12757,13 +12802,9 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
                  , TranslationDisp = .TRUE.    &
                  , Orientation     = .TRUE.    &
                  , RotationVel     = .TRUE.    &
-                 , TranslationVel  = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
-                 , RotationAcc     = .TRUE.    &  !bjj do we need this? if so, set it in CalcOutput
-                 , TranslationAcc  = .TRUE.    &
+                 , TranslationVel  = .TRUE.    &  !                 , RotationAcc     = .TRUE.    &  !                 , TranslationAcc  = .TRUE.    &
                  , ErrStat  = ErrStat2         &
-                 , ErrMess  = ErrMsg2          )         
-   
-   y%TowerLn2Mesh%RemapFlag   = .TRUE.
+                 , ErrMess  = ErrMsg2          )      ! automatically sets    y%TowerLn2Mesh%RemapFlag   = .TRUE.
    
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
@@ -12824,9 +12865,9 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
    ErrMsg  = ""
    
    
-      !.......................................................
-      ! allocate the arrays     
-      !.......................................................
+   !.......................................................
+   ! allocate the arrays     
+   !.......................................................
 
    CALL AllocAry( u%BlPitchCom, p%NumBl,                           'BlPitchCom',      ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
@@ -12840,9 +12881,15 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
 
-      !.......................................................
-      ! Create Point Mesh for Inputs at Platform Reference Point:
-      !.......................................................
+   !.......................................................
+   ! Create Line2 Mesh for loads input on blades:
+   !.......................................................
+      
+      
+      
+   !.......................................................
+   ! Create Point Mesh for loads input at Platform Reference Point:
+   !.......................................................
       
    CALL MeshCreate( BlankMesh         = u%PlatformPtMesh       &
                      ,IOS             = COMPONENT_INPUT        &
@@ -12874,23 +12921,18 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
       IF (ErrStat >= AbortErrLev) RETURN
       
    
-      !.......................................................
-      ! Create Line2 Mesh for Inputs on Tower Line2 Mesh:
-      !.......................................................
-      
-   !CALL AllocAry( u%TwrFT, 6_IntKi, p%TwrNodes,                    'TwrFT',           ErrStat2, ErrMsg2 )
-   !   CALL CheckError(ErrStat2,ErrMsg2)
-   !   IF (ErrStat >= AbortErrLev) RETURN
-   
+   !.......................................................
+   ! Create Line2 Mesh for loads input on tower:
+   !.......................................................
+         
    CALL AllocAry( u%TwrAddedMass,  6_IntKi, 6_IntKi, p%TwrNodes,   'TwrAddedMass',    ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF (ErrStat >= AbortErrLev) RETURN
-
       
       
    CALL MeshCreate( BlankMesh      = u%TowerLn2Mesh         &
                      ,IOS          = COMPONENT_INPUT        &
-                     ,NNodes       = p%TwrNodes             &
+                     ,NNodes       = p%TwrNodes + 2         &
                      ,Force        = .TRUE.                 &
                      ,Moment       = .TRUE.                 &
                      ,ErrStat      = ErrStat2               &
@@ -12906,6 +12948,18 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
          IF (ErrStat >= AbortErrLev) RETURN
    END DO
 
+   ! for now, we're going to add two nodes, one at the beginning and the other at the end
+   ! they're numbered this way so that I don't have to redo all the loops in the computational part of the code
+   ! I am not going to use them in my input.
+      CALL MeshPositionNode ( u%TowerLn2Mesh, p%TwrNodes + 1, (/0.0_ReKi, 0.0_ReKi, p%TowerHt /), ErrStat2, ErrMsg2 ) 
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN
+         
+      CALL MeshPositionNode ( u%TowerLn2Mesh, p%TwrNodes + 2, (/0.0_ReKi, 0.0_ReKi, p%TowerBsHt  /), ErrStat2, ErrMsg2 )
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN
+
+         
    
       ! create elements:
       
@@ -12913,7 +12967,7 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
       CALL CheckError(ErrID_Fatal,"Tower Line2 Mesh cannot be created with less than 2 elements.")
       RETURN
    ELSE ! create line2 elements from the tower nodes:
-      DO J = 2,p%TwrNodes
+      DO J = 2,p%TwrNodes+1  !the plus 1 includes one of the end nodes
          CALL MeshConstructElement ( Mesh      = u%TowerLn2Mesh     &
                                     , Xelement = ELEMENT_LINE2      &
                                     , P1       = J-1                &   ! node1 number
@@ -12925,6 +12979,19 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
             IF (ErrStat >= AbortErrLev) RETURN
       
       END DO
+      
+   ! add the other extra element, connecting the first node:
+      
+         CALL MeshConstructElement ( Mesh      = u%TowerLn2Mesh     &
+                                    , Xelement = ELEMENT_LINE2      &
+                                    , P1       = p%TwrNodes + 2     &   ! node1 number
+                                    , P2       = 1                  &   ! node2 number
+                                    , ErrStat  = ErrStat2           &
+                                    , ErrMess  = ErrMsg2            )
+         
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF (ErrStat >= AbortErrLev) RETURN
+                                          
    END IF   
    
       ! that's our entire mesh:

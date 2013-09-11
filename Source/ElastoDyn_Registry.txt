@@ -516,6 +516,7 @@ typedef	^	OtherStateType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radia
 typedef	^	OtherStateType	ReKi	AugMat	{:}{:}	-	-	"The augmented matrix used for the solution of the QD2T()s"
 typedef	^	OtherStateType	ReKi	AugMatOut	{:}{:}	-	-	"Copy of AugMat (when calculating cont state deriv) for routine that fixes the HSSBrTrq"	-
 typedef	^	OtherStateType	ED_ContinuousStateType	k1	-	-	-	"Constant for ED_RK4 routine"	-
+typedef	^	OtherStateType	ReKi	AllOuts	{:}	-	-	"An array holding the value of all of the calculated (not only selected) output channels"	"see OutListParameters.xlsx spreadsheet"
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -776,8 +777,6 @@ typedef	^	InputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
 typedef	^	InputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
 typedef	^	InputType	ReKi	AeroBladeForce	{:}{:}{:}	-	-	"Aerodynamic force on the blade elements"
 typedef	^	InputType	ReKi	AeroBladeMoment	{:}{:}{:}	-	-	"Aerodynamic moment on the blade elements"
-#typedef	^	InputType	ReKi	FTAero	{:}{:}	-	-	"The aerodynamic force per unit length acting on the tower at point T"
-#typedef	^	InputType	ReKi	MFAero	{:}{:}	-	-	"The aerodynamic moment per unit length acting on the tower at point T"
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
@@ -785,7 +784,6 @@ typedef	^	OutputType	MeshType	BladeLn2Mesh	-	-	-	"A mesh on the blades, containi
 typedef	^	OutputType	MeshType	PlatformPtMesh	-	-	-	"Platform reference point positions/orientations/velocities/accelerations"	-
 typedef	^	OutputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with positions/orientations/velocities/accelerations"	-
 # Define outputs that are not on this mesh here:
-typedef	^	OutputType	ReKi	AllOuts	{:}	-	-	"An array holding the value of all of the calculated (not only selected) output channels"	"see spreadsheet"
 typedef	^	OutputType	ReKi	WriteOutput	{:}	-	-	"Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt"
 typedef	^	OutputType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
 typedef	^	OutputType	ReKi	Yaw	-	-	-	"Current nacelle yaw"	radians
