@@ -50,20 +50,20 @@ True           PtfmRF         - Platform roll tilt rotation force (flag) or DEFA
 True           PtfmPF         - Platform pitch tilt rotation force (flag) or DEFAULT
 True           PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
 ---------------------- FLOATING PLATFORM ADDITIONAL STIFFNESS AND DAMPING  -----
-       0.0         0.0  -30690000.0             0.0             0.0           0.0   AddF0    - Additional preload
-  197700.0         0.0          0.0             0.0      -9468000.0           0.0   AddCLin  - Additional linear stiffness ( )
-       0.0    197700.0          0.0       9468000.0             0.0           0.0
-       0.0         0.0   79090000.0             0.0             0.0           0.0
-       0.0   9469000.0          0.0   30750000000.0             0.0           0.0
--9469000.0         0.0          0.0             0.0   30750000000.0           0.0
-       0.0         0.0          0.0             0.0             0.0   144100000.0
-0.0   0.0   0.0   0.0   0.0   0.0                                                   AddBLin  - Additional linear damping( )
+0.0   0.0   0.0   0.0   0.0   0.0   AddF0    - Additional preload
+0.0   0.0   0.0   0.0   0.0   0.0   AddCLin  - Additional linear stiffness ( )
 0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0
-0.0   0.0   0.0   0.0   0.0   0.0                                                   AddBQuad - Additional quadratic damping( )
+0.0   0.0   0.0   0.0   0.0   0.0   AddBLin  - Additional linear damping( )
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0   AddBQuad - Additional quadratic damping( )
 0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0
