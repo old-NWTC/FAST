@@ -478,6 +478,7 @@ typedef	^	ED_RtHndSide	ReKi	TeetMom	-	-	-	"The total moment supplied by the stop
 typedef	^	ED_RtHndSide	ReKi	TFrlMom	-	-	-	"The total tail-furl spring and damper moment"
 typedef	^	ED_RtHndSide	ReKi	RFrlMom	-	-	-	"The total rotor-furl spring and damper moment"
 typedef	^	ED_RtHndSide	ReKi	GBoxEffFac	-	-	-	"The factor used to apply the gearbox efficiency effects to the equation associated with the generator DOF"
+typedef	^	ED_RtHndSide	ReKi	rSAerCen	{:}{:}{:}	-	-	"aerodynamic pitching moment arm (i.e., the position vector from point S on the blade to the aerodynamic center of the element)"
 
 # ..... Initialization data .......................................................................................................
 # Define inputs that the initialization routine may need here:
@@ -668,7 +669,7 @@ typedef	^	ParameterType	ReKi	TurbMass	-	-	-	"Mass of turbine (tower + rotor + na
 typedef	^	ParameterType	ReKi	TwrMass	-	-	-	"Mass of tower"
 typedef	^	ParameterType	ReKi	TwrTpMass	-	-	-	"Tower-top mass (rotor + nacelle)"
 typedef	^	ParameterType	ReKi	YawBrMass	-	-	-	"Yaw bearing mass"
-typedef	^	ParameterType	ReKi	AirDens	-	-	-	"Air density = RHO"
+#typedef	^	ParameterType	ReKi	AirDens	-	-	-	"Air density = RHO"
 typedef	^	ParameterType	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
 typedef	^	ParameterType	ReKi	PitchAxis	{:}{:}	-	-	"Pitch axis for analysis nodes"	-
 typedef	^	ParameterType	ReKi	AeroTwst	{:}	-	-	"Aerodynamic twist of the blade at the analysis nodes"
@@ -775,8 +776,6 @@ typedef	^	InputType	ReKi	BlPitchCom	{:}	-	-	"Commanded blade pitch angles"	radia
 typedef	^	InputType	ReKi	YawMom	-	-	-	"Torque transmitted through the yaw bearing"	N-m
 typedef	^	InputType	ReKi	GenTrq	-	-	-	"Electrical generator torque"	N-m
 typedef	^	InputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
-typedef	^	InputType	ReKi	AeroBladeForce	{:}{:}{:}	-	-	"Aerodynamic force on the blade elements"
-typedef	^	InputType	ReKi	AeroBladeMoment	{:}{:}{:}	-	-	"Aerodynamic moment on the blade elements"
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:

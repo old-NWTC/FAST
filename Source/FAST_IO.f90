@@ -1331,8 +1331,11 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, MeshMa
    TYPE(FAST_ModuleMapType),       INTENT(INOUT)  :: MeshMapData              ! Data for mapping between modules
    INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                  ! Error status
    CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                   ! Error message
-   INTEGER(IntKi)                                 :: J                        ! Loops through nodes / elements.
-   INTEGER(IntKi)                                 :: K                        ! Loops through blades.
+   
+      ! local variables
+   INTEGER(IntKi)                                 :: J                        ! Loops through nodes / elements
+   INTEGER(IntKi)                                 :: K                        ! Loops through blades
+   INTEGER(IntKi)                                 :: NodeNum                  ! Node number for blade/element in mesh
    TYPE(MeshType)                                 :: u_mapped                 ! interpolated value of input
 
 
@@ -1360,15 +1363,18 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, MeshMa
 
       ! ED inputs from AeroDyn
    IF ( p_FAST%CompAero .and. ALLOCATED(ADAeroLoads%Blade) ) THEN
-      DO K = 1,SIZE(u_ED%AeroBladeForce,3) ! Loop through all blades (p_ED%NumBl)
-         DO J = 1,SIZE(u_ED%AeroBladeForce,2) ! Loop through the blade nodes / elements (p_ED%BldNodes)
-            u_ED%AeroBladeForce(:,J,K)  = ADAeroLoads%Blade(J,K)%Force
-            u_ED%AeroBladeMoment(:,J,K) = ADAeroLoads%Blade(J,K)%Moment
+      DO K = 1,SIZE(ADAeroLoads%Blade,2) ! Loop through all blades (p_ED%NumBl)
+         DO J = 1,SIZE(ADAeroLoads%Blade,1) ! Loop through the blade nodes / elements (p_ED%BldNodes)
+
+            NodeNum = (K-1)*(SIZE(ADAeroLoads%Blade,1)+2) + J 
+            u_ED%BladeLn2Mesh%Force(:,NodeNum)  = ADAeroLoads%Blade(J,K)%Force
+            u_ED%BladeLn2Mesh%Moment(:,NodeNum) = ADAeroLoads%Blade(J,K)%Moment
+            
          END DO !J
       END DO   !K
    ELSE
-      u_ED%AeroBladeForce = 0.0
-      u_ED%AeroBladeMoment = 0.0
+      u_ED%BladeLn2Mesh%Force  = 0.0_ReKi
+      u_ED%BladeLn2Mesh%Moment = 0.0_ReKi
    END IF
 
 
@@ -1783,43 +1789,29 @@ SUBROUTINE AD_InputSolve( p, x, OtherState, u, y, ErrStat, ErrMsg )
 
       ! Local variables:
 
-   REAL(ReKi)                   :: rAerCen   (3)                                   ! Position vector from inertial frame origin to current blade analysis node aerodynamic center.
-   REAL(ReKi)                   :: rPAerCen  (3)                                   ! Position vector from teeter pin (point P) to current blade analysis node aerodynamic center.
-   REAL(ReKi)                   :: rSAerCen  (3)                                   ! Position vector from a blade analysis node (point S) on the current blade to the aerodynamic center associated with the element.
-   REAL(ReKi)                   :: LinAccEO  (3)                                   ! Total linear acceleration of the base plate (point O) in the inertia frame (body E for earth).
-
-      ! local integer variables
-
    INTEGER(IntKi)               :: I                                               ! Loops through some or all of the DOFs.
    INTEGER(IntKi)               :: J                                               ! Loops through nodes / elements.
    INTEGER(IntKi)               :: K                                               ! Loops through blades.
    INTEGER(IntKi)               :: L                                               ! Generic index
-
+   INTEGER(IntKi)               :: NodeNum                                         ! Node number for blade/node on mesh
 
 
    !-------------------------------------------------------------------------------------------------
-   ! Blade positions:
+   ! Blade positions, orientations, and velocities:
    !-------------------------------------------------------------------------------------------------
    DO K = 1,p%NumBl ! Loop through all blades
       DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
-      ! Calculate the aerodynamic pitching moment arm (i.e., the position vector from point S on the blade to the aerodynamic center of the element):
-
-            rSAerCen = p%rSAerCenn1(K,J)*OtherState%CoordSys%n1(K,J,:) + p%rSAerCenn2(K,J)*OtherState%CoordSys%n2(K,J,:) !bjj: make rSAerCen a matrix? we recalculate it later
-
-
-      ! Define positions USEd by AeroDyn.
-
-            rPAerCen     = OtherState%RtHS%rPQ + OtherState%RtHS%rQS(K,J,:) + rSAerCen         ! Position vector from teeter pin (point P)  to blade analysis node aerodynamic center.
-            rAerCen      =                       OtherState%RtHS%rS (K,J,:) + rSAerCen         ! Position vector from inertial frame origin to blade analysis node aerodynamic center.
-
-            ADAeroMarkers%Blade(J,K)%Position(1)      =     rAerCen(1)                ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the xi ( z1) direction
-            ADAeroMarkers%Blade(J,K)%Position(2)      = -1.*rAerCen(3)                ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the yi (-z3) direction
-            ADAeroMarkers%Blade(J,K)%Position(3)      =     rAerCen(2) + p%PtfmRefzt  ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
-
+         NodeNum = (K-1)*(p%BldNodes + 2) + J         
+         ADAeroMarkers%Blade(J,K)%Position       = y%BladeLn2Mesh%TranslationDisp(:,NodeNum) + y%BladeLn2Mesh%Position(:,NodeNum) 
+         ADAeroMarkers%Blade(J,K)%Orientation    = y%BladeLn2Mesh%Orientation(:,:,NodeNum)
+         ADAeroMarkers%Blade(J,K)%TranslationVel = y%BladeLn2Mesh%TranslationVel(:,NodeNum)
+         
+         
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
    END DO !K = 1,p%NumBl
-
+   
+   
    !JASON: WE SHOULD REALLY BE PASSING TO AERODYN THE LINEAR VELOCITIES OF THE AERODYNAMIC CENTER IN THE INERTIA FRAME, NOT SIMPLY THE LINEAR VELOCITIES OF POINT S.  IS THERE ANY WAY OF GETTING THIS VELOCITY?<--DO THIS, WHEN YOU ADD THE COUPLED MODE SHAPES!!!!
 
 
@@ -1844,24 +1836,6 @@ SUBROUTINE AD_InputSolve( p, x, OtherState, u, y, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
    ! Orientations
    !-------------------------------------------------------------------------------------------------
-
-   DO K = 1,p%NumBl
-      DO J = 1,p%BldNodes
-
-         ADAeroMarkers%Blade(J,K)%Orientation(1,1) =     OtherState%CoordSys%te1(K,J,1)
-         ADAeroMarkers%Blade(J,K)%Orientation(2,1) =     OtherState%CoordSys%te2(K,J,1)
-         ADAeroMarkers%Blade(J,K)%Orientation(3,1) =     OtherState%CoordSys%te3(K,J,1)
-         ADAeroMarkers%Blade(J,K)%Orientation(1,2) = -1.*OtherState%CoordSys%te1(K,J,3)
-         ADAeroMarkers%Blade(J,K)%Orientation(2,2) = -1.*OtherState%CoordSys%te2(K,J,3)
-         ADAeroMarkers%Blade(J,K)%Orientation(3,2) = -1.*OtherState%CoordSys%te3(K,J,3)
-         ADAeroMarkers%Blade(J,K)%Orientation(1,3) =     OtherState%CoordSys%te1(K,J,2)
-         ADAeroMarkers%Blade(J,K)%Orientation(2,3) =     OtherState%CoordSys%te2(K,J,2)
-         ADAeroMarkers%Blade(J,K)%Orientation(3,3) =     OtherState%CoordSys%te3(K,J,2)
-
-      END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
-   END DO !K = 1,p%NumBl
-
-
 
          ! Blade root orientations should use the j instead of i system, but the current version
          ! of AeroDyn calculates forces normal and tangential to the cone of rotation
@@ -1908,11 +1882,7 @@ SUBROUTINE AD_InputSolve( p, x, OtherState, u, y, ErrStat, ErrMsg )
    ADInterfaceComponents%Tower%RotationVel(:)     = (/ OtherState%RtHS%AngVelEX(1), -1.*OtherState%RtHS%AngVelEX(3), OtherState%RtHS%AngVelEX(2) /)
 
 
-   DO K = 1,p%NumBl ! Loop through all blades
-      DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
-         ADAeroMarkers%Blade(J,K)%TranslationVel(:)= (/ OtherState%RtHS%LinVelES(1,J,K), -1.*OtherState%RtHS%LinVelES(3,J,K),  OtherState%RtHS%LinVelES(2,J,K)  /)  !AeroDyn's coordinates
-      END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
-   END DO !K = 1,p%NumBl
+
 
 
 END SUBROUTINE AD_InputSolve

@@ -469,6 +469,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: TFrlMom 
     REAL(ReKi)  :: RFrlMom 
     REAL(ReKi)  :: GBoxEffFac 
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rSAerCen 
   END TYPE ED_RtHndSide
 ! =======================
 ! =========  ED_InitInputType  =======
@@ -668,7 +669,6 @@ IMPLICIT NONE
     REAL(ReKi)  :: TwrMass 
     REAL(ReKi)  :: TwrTpMass 
     REAL(ReKi)  :: YawBrMass 
-    REAL(ReKi)  :: AirDens 
     REAL(ReKi)  :: Gravity 
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PitchAxis 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AeroTwst 
@@ -774,8 +774,6 @@ IMPLICIT NONE
     REAL(ReKi)  :: YawMom 
     REAL(ReKi)  :: GenTrq 
     REAL(ReKi)  :: HSSBrTrq 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AeroBladeForce 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AeroBladeMoment 
   END TYPE ED_InputType
 ! =======================
 ! =========  ED_OutputType  =======
@@ -5719,6 +5717,23 @@ ENDIF
    DstrthndsideData%TFrlMom = SrcrthndsideData%TFrlMom
    DstrthndsideData%RFrlMom = SrcrthndsideData%RFrlMom
    DstrthndsideData%GBoxEffFac = SrcrthndsideData%GBoxEffFac
+IF (ALLOCATED(SrcrthndsideData%rSAerCen)) THEN
+   i1_l = LBOUND(SrcrthndsideData%rSAerCen,1)
+   i1_u = UBOUND(SrcrthndsideData%rSAerCen,1)
+   i2_l = LBOUND(SrcrthndsideData%rSAerCen,2)
+   i2_u = UBOUND(SrcrthndsideData%rSAerCen,2)
+   i3_l = LBOUND(SrcrthndsideData%rSAerCen,3)
+   i3_u = UBOUND(SrcrthndsideData%rSAerCen,3)
+   IF (.NOT.ALLOCATED(DstrthndsideData%rSAerCen)) THEN 
+      ALLOCATE(DstrthndsideData%rSAerCen(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'ED_Copyrthndside: Error allocating DstrthndsideData%rSAerCen.'
+         RETURN
+      END IF
+   END IF
+   DstrthndsideData%rSAerCen = SrcrthndsideData%rSAerCen
+ENDIF
  END SUBROUTINE ED_Copyrthndside
 
  SUBROUTINE ED_Destroyrthndside( rthndsideData, ErrStat, ErrMsg )
@@ -5795,6 +5810,7 @@ ENDIF
   IF ( ALLOCATED(rthndsideData%PFrcWTail) ) DEALLOCATE(rthndsideData%PFrcWTail)
   IF ( ALLOCATED(rthndsideData%PFrcZAll) ) DEALLOCATE(rthndsideData%PFrcZAll)
   IF ( ALLOCATED(rthndsideData%PMomXAll) ) DEALLOCATE(rthndsideData%PMomXAll)
+  IF ( ALLOCATED(rthndsideData%rSAerCen) ) DEALLOCATE(rthndsideData%rSAerCen)
  END SUBROUTINE ED_Destroyrthndside
 
  SUBROUTINE ED_Packrthndside( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -5967,6 +5983,7 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! TFrlMom
   Re_BufSz   = Re_BufSz   + 1  ! RFrlMom
   Re_BufSz   = Re_BufSz   + 1  ! GBoxEffFac
+  Re_BufSz    = Re_BufSz    + SIZE( InData%rSAerCen )  ! rSAerCen 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -6374,6 +6391,10 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%GBoxEffFac )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( ALLOCATED(InData%rSAerCen) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rSAerCen))-1 ) =  PACK(InData%rSAerCen ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%rSAerCen)
+  ENDIF
  END SUBROUTINE ED_Packrthndside
 
  SUBROUTINE ED_UnPackrthndside( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -7073,6 +7094,12 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%GBoxEffFac = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( ALLOCATED(OutData%rSAerCen) ) THEN
+  ALLOCATE(mask3(SIZE(OutData%rSAerCen,1),SIZE(OutData%rSAerCen,2),SIZE(OutData%rSAerCen,3))); mask3 = .TRUE.
+    OutData%rSAerCen = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%rSAerCen))-1 ),mask3,OutData%rSAerCen)
+  DEALLOCATE(mask3)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%rSAerCen)
+  ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -8736,7 +8763,6 @@ ENDIF
    DstParamData%TwrMass = SrcParamData%TwrMass
    DstParamData%TwrTpMass = SrcParamData%TwrTpMass
    DstParamData%YawBrMass = SrcParamData%YawBrMass
-   DstParamData%AirDens = SrcParamData%AirDens
    DstParamData%Gravity = SrcParamData%Gravity
 IF (ALLOCATED(SrcParamData%PitchAxis)) THEN
    i1_l = LBOUND(SrcParamData%PitchAxis,1)
@@ -9722,7 +9748,6 @@ ENDDO
   Re_BufSz   = Re_BufSz   + 1  ! TwrMass
   Re_BufSz   = Re_BufSz   + 1  ! TwrTpMass
   Re_BufSz   = Re_BufSz   + 1  ! YawBrMass
-  Re_BufSz   = Re_BufSz   + 1  ! AirDens
   Re_BufSz   = Re_BufSz   + 1  ! Gravity
   Re_BufSz    = Re_BufSz    + SIZE( InData%PitchAxis )  ! PitchAxis 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AeroTwst )  ! AeroTwst 
@@ -10182,8 +10207,6 @@ ENDDO
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%TwrTpMass )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%YawBrMass )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AirDens )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Gravity )
   Re_Xferred   = Re_Xferred   + 1
@@ -10916,8 +10939,6 @@ ENDDO
   Re_Xferred   = Re_Xferred   + 1
   OutData%YawBrMass = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%AirDens = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
   OutData%Gravity = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%PitchAxis) ) THEN
@@ -11335,40 +11356,6 @@ ENDIF
    DstInputData%YawMom = SrcInputData%YawMom
    DstInputData%GenTrq = SrcInputData%GenTrq
    DstInputData%HSSBrTrq = SrcInputData%HSSBrTrq
-IF (ALLOCATED(SrcInputData%AeroBladeForce)) THEN
-   i1_l = LBOUND(SrcInputData%AeroBladeForce,1)
-   i1_u = UBOUND(SrcInputData%AeroBladeForce,1)
-   i2_l = LBOUND(SrcInputData%AeroBladeForce,2)
-   i2_u = UBOUND(SrcInputData%AeroBladeForce,2)
-   i3_l = LBOUND(SrcInputData%AeroBladeForce,3)
-   i3_u = UBOUND(SrcInputData%AeroBladeForce,3)
-   IF (.NOT.ALLOCATED(DstInputData%AeroBladeForce)) THEN 
-      ALLOCATE(DstInputData%AeroBladeForce(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'ED_CopyInput: Error allocating DstInputData%AeroBladeForce.'
-         RETURN
-      END IF
-   END IF
-   DstInputData%AeroBladeForce = SrcInputData%AeroBladeForce
-ENDIF
-IF (ALLOCATED(SrcInputData%AeroBladeMoment)) THEN
-   i1_l = LBOUND(SrcInputData%AeroBladeMoment,1)
-   i1_u = UBOUND(SrcInputData%AeroBladeMoment,1)
-   i2_l = LBOUND(SrcInputData%AeroBladeMoment,2)
-   i2_u = UBOUND(SrcInputData%AeroBladeMoment,2)
-   i3_l = LBOUND(SrcInputData%AeroBladeMoment,3)
-   i3_u = UBOUND(SrcInputData%AeroBladeMoment,3)
-   IF (.NOT.ALLOCATED(DstInputData%AeroBladeMoment)) THEN 
-      ALLOCATE(DstInputData%AeroBladeMoment(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'ED_CopyInput: Error allocating DstInputData%AeroBladeMoment.'
-         RETURN
-      END IF
-   END IF
-   DstInputData%AeroBladeMoment = SrcInputData%AeroBladeMoment
-ENDIF
  END SUBROUTINE ED_CopyInput
 
  SUBROUTINE ED_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -11384,8 +11371,6 @@ ENDIF
   CALL MeshDestroy( InputData%TowerLn2Mesh, ErrStat, ErrMsg )
   IF ( ALLOCATED(InputData%TwrAddedMass) ) DEALLOCATE(InputData%TwrAddedMass)
   IF ( ALLOCATED(InputData%BlPitchCom) ) DEALLOCATE(InputData%BlPitchCom)
-  IF ( ALLOCATED(InputData%AeroBladeForce) ) DEALLOCATE(InputData%AeroBladeForce)
-  IF ( ALLOCATED(InputData%AeroBladeMoment) ) DEALLOCATE(InputData%AeroBladeMoment)
  END SUBROUTINE ED_DestroyInput
 
  SUBROUTINE ED_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -11459,8 +11444,6 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! YawMom
   Re_BufSz   = Re_BufSz   + 1  ! GenTrq
   Re_BufSz   = Re_BufSz   + 1  ! HSSBrTrq
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AeroBladeForce )  ! AeroBladeForce 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AeroBladeMoment )  ! AeroBladeMoment 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -11528,14 +11511,6 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HSSBrTrq )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( ALLOCATED(InData%AeroBladeForce) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AeroBladeForce))-1 ) =  PACK(InData%AeroBladeForce ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%AeroBladeForce)
-  ENDIF
-  IF ( ALLOCATED(InData%AeroBladeMoment) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AeroBladeMoment))-1 ) =  PACK(InData%AeroBladeMoment ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%AeroBladeMoment)
-  ENDIF
  END SUBROUTINE ED_PackInput
 
  SUBROUTINE ED_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -11654,18 +11629,6 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%HSSBrTrq = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( ALLOCATED(OutData%AeroBladeForce) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%AeroBladeForce,1),SIZE(OutData%AeroBladeForce,2),SIZE(OutData%AeroBladeForce,3))); mask3 = .TRUE.
-    OutData%AeroBladeForce = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AeroBladeForce))-1 ),mask3,OutData%AeroBladeForce)
-  DEALLOCATE(mask3)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%AeroBladeForce)
-  ENDIF
-  IF ( ALLOCATED(OutData%AeroBladeMoment) ) THEN
-  ALLOCATE(mask3(SIZE(OutData%AeroBladeMoment,1),SIZE(OutData%AeroBladeMoment,2),SIZE(OutData%AeroBladeMoment,3))); mask3 = .TRUE.
-    OutData%AeroBladeMoment = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AeroBladeMoment))-1 ),mask3,OutData%AeroBladeMoment)
-  DEALLOCATE(mask3)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%AeroBladeMoment)
-  ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -12733,12 +12696,6 @@ END IF ! check if allocated
   u_out%YawMom = u(1)%YawMom
   u_out%GenTrq = u(1)%GenTrq
   u_out%HSSBrTrq = u(1)%HSSBrTrq
-IF (ALLOCATED(u_out%AeroBladeForce) .AND. ALLOCATED(u(1)%AeroBladeForce)) THEN
-  u_out%AeroBladeForce = u(1)%AeroBladeForce
-END IF ! check if allocated
-IF (ALLOCATED(u_out%AeroBladeMoment) .AND. ALLOCATED(u(1)%AeroBladeMoment)) THEN
-  u_out%AeroBladeMoment = u(1)%AeroBladeMoment
-END IF ! check if allocated
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -12778,26 +12735,6 @@ END IF ! check if allocated
   u_out%GenTrq = u(1)%GenTrq + b0 * t_out
   b0 = -(u(1)%HSSBrTrq - u(2)%HSSBrTrq)/t(2)
   u_out%HSSBrTrq = u(1)%HSSBrTrq + b0 * t_out
-IF (ALLOCATED(u_out%AeroBladeForce) .AND. ALLOCATED(u(1)%AeroBladeForce)) THEN
-  ALLOCATE(b3(SIZE(u_out%AeroBladeForce,1),SIZE(u_out%AeroBladeForce,2), &
-              SIZE(u_out%AeroBladeForce,3)                     ))
-  ALLOCATE(c3(SIZE(u_out%AeroBladeForce,1),SIZE(u_out%AeroBladeForce,2), &
-              SIZE(u_out%AeroBladeForce,3)                     ))
-  b3 = -(u(1)%AeroBladeForce - u(2)%AeroBladeForce)/t(2)
-  u_out%AeroBladeForce = u(1)%AeroBladeForce + b3 * t_out
-  DEALLOCATE(b3)
-  DEALLOCATE(c3)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%AeroBladeMoment) .AND. ALLOCATED(u(1)%AeroBladeMoment)) THEN
-  ALLOCATE(b3(SIZE(u_out%AeroBladeMoment,1),SIZE(u_out%AeroBladeMoment,2), &
-              SIZE(u_out%AeroBladeMoment,3)                     ))
-  ALLOCATE(c3(SIZE(u_out%AeroBladeMoment,1),SIZE(u_out%AeroBladeMoment,2), &
-              SIZE(u_out%AeroBladeMoment,3)                     ))
-  b3 = -(u(1)%AeroBladeMoment - u(2)%AeroBladeMoment)/t(2)
-  u_out%AeroBladeMoment = u(1)%AeroBladeMoment + b3 * t_out
-  DEALLOCATE(b3)
-  DEALLOCATE(c3)
-END IF ! check if allocated
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -12853,28 +12790,6 @@ END IF ! check if allocated
   b0 = (t(3)**2*(u(1)%HSSBrTrq - u(2)%HSSBrTrq) + t(2)**2*(-u(1)%HSSBrTrq + u(3)%HSSBrTrq))/(t(2)*t(3)*(t(2) - t(3)))
   c0 = ( (t(2)-t(3))*u(1)%HSSBrTrq + t(3)*u(2)%HSSBrTrq - t(2)*u(3)%HSSBrTrq ) / (t(2)*t(3)*(t(2) - t(3)))
   u_out%HSSBrTrq = u(1)%HSSBrTrq + b0 * t_out + c0 * t_out**2
-IF (ALLOCATED(u_out%AeroBladeForce) .AND. ALLOCATED(u(1)%AeroBladeForce)) THEN
-  ALLOCATE(b3(SIZE(u_out%AeroBladeForce,1),SIZE(u_out%AeroBladeForce,2), &
-              SIZE(u_out%AeroBladeForce,3)                     ))
-  ALLOCATE(c3(SIZE(u_out%AeroBladeForce,1),SIZE(u_out%AeroBladeForce,2), &
-              SIZE(u_out%AeroBladeForce,3)                     ))
-  b3 = (t(3)**2*(u(1)%AeroBladeForce - u(2)%AeroBladeForce) + t(2)**2*(-u(1)%AeroBladeForce + u(3)%AeroBladeForce))/(t(2)*t(3)*(t(2) - t(3)))
-  c3 = ( (t(2)-t(3))*u(1)%AeroBladeForce + t(3)*u(2)%AeroBladeForce - t(2)*u(3)%AeroBladeForce ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%AeroBladeForce = u(1)%AeroBladeForce + b3 * t_out + c3 * t_out**2
-  DEALLOCATE(b3)
-  DEALLOCATE(c3)
-END IF ! check if allocated
-IF (ALLOCATED(u_out%AeroBladeMoment) .AND. ALLOCATED(u(1)%AeroBladeMoment)) THEN
-  ALLOCATE(b3(SIZE(u_out%AeroBladeMoment,1),SIZE(u_out%AeroBladeMoment,2), &
-              SIZE(u_out%AeroBladeMoment,3)                     ))
-  ALLOCATE(c3(SIZE(u_out%AeroBladeMoment,1),SIZE(u_out%AeroBladeMoment,2), &
-              SIZE(u_out%AeroBladeMoment,3)                     ))
-  b3 = (t(3)**2*(u(1)%AeroBladeMoment - u(2)%AeroBladeMoment) + t(2)**2*(-u(1)%AeroBladeMoment + u(3)%AeroBladeMoment))/(t(2)*t(3)*(t(2) - t(3)))
-  c3 = ( (t(2)-t(3))*u(1)%AeroBladeMoment + t(3)*u(2)%AeroBladeMoment - t(2)*u(3)%AeroBladeMoment ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%AeroBladeMoment = u(1)%AeroBladeMoment + b3 * t_out + c3 * t_out**2
-  DEALLOCATE(b3)
-  DEALLOCATE(c3)
-END IF ! check if allocated
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in ED_Input_ExtrapInterp '

@@ -24,7 +24,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.01a-bjj', '06-Sept-2013' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.01a-bjj', '06-Sep-2013' )
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4SFun  = .FALSE.                            ! Is the module being compiled as an S-Function for Simulink?
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4LV    = .FALSE.                            ! Is the module being compiled for Labview?
    
@@ -39,14 +39,13 @@ MODULE ServoDyn
 
      ! Parameters related to output length (number of characters allowed in the output data headers):
 
-!   INTEGER(IntKi), PARAMETER      :: OutStrLen   = 10
    INTEGER(IntKi), PARAMETER      :: OutStrLenM1 = ChanLen - 1
 
 
      ! Indices for computing output channels:
      ! NOTES: 
      !    (1) These parameters are in the order stored in "OutListParameters.xlsx"
-     !    (2) Array y%AllOuts() must be dimensioned to the value of the largest output parameter
+     !    (2) Array AllOuts() must be dimensioned to the value of the largest output parameter
 
      !  Time: 
 
