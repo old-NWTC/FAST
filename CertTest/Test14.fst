@@ -1,5 +1,5 @@
 ------- FAST V8.02.* INPUT FILE ------------------------------------------------
-FAST certification Test #14: WindPACT 1.5 MW Baseline with stationary linearization in a vacuum
+FAST Certification Test #14: WindPACT 1.5 MW Baseline with stationary linearization in a vacuum
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)

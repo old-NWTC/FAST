@@ -108,6 +108,7 @@ LIB_SOURCES =           \
 	$(PREC).f90          \
 	NWTC_Base.f90        \
 	$(SYS_FILE).f90      \
+	NWTC_Library_Types.f90 \
 	NWTC_IO.f90          \
 	NWTC_Num.f90         \
 	ModMesh_Types.f90    \
@@ -154,18 +155,13 @@ HD_SOURCES =                 \
 	HydroDyn_Input.f90        \
 	HydroDyn.f90
 
-MAP_SOURCES =
+MAP_SOURCES =              \
 	MAP_C_Types.f90         \
 	MAP_Types.f90           \
 	MAP.f90
 
 SD_SOURCES =               \
 	DLASRT2.f90             \
-	KB07AD.f                \
-	METIS_NODEND_dummy.f    \
-	EA16AD.f                \
-	MA57D_dependency.f      \
-	MA57D.f                 \
 	hsl_ma57_double.f90     \
 	qsort_c_module.f90      \
 	EA16_INTERFACE.f90      \
@@ -176,6 +172,14 @@ SD_SOURCES =               \
 	SubDyn_Output.f90       \
 	SD_UpdateStates.f90     \
 	SubDyn.f90
+
+#	KB07AD.f                \
+#	METIS_NODEND_dummy.f    \
+#	EA16AD.f                \
+#	MA57D_dependency.f      \
+#	MA57D.f                 \
+
+
 
 # also needs some LPACK routines     (currently links with Intel's MKL [sequential])
 
@@ -197,7 +201,7 @@ FAST_SOURCES =          \
 	FAST_IO.f90          \
 	FAST_Prog.f90
 
-vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(FAST_DIR)
+vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR)
 vpath %.f   $(HD_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
@@ -209,8 +213,10 @@ AD_OBJS       = $(AD_SOURCES:.f90=.obj)
 SrvD_OBJS     = $(SrvD_SOURCES:.f90=.obj)
 ED_OBJS       = $(ED_SOURCES:.f90=.obj)
 HD_OBJS       = $(HD_SOURCES:.f90=.obj) fftpack.obj
+SD_OBJS       = $(SD_SOURCES:.f90=.obj)
+MAP_OBJS      = $(MAP_SOURCES:.f90=.obj)
 FAST_OBJS     = $(FAST_SOURCES:.f90=.obj)
-ALL_OBJS      = $(LIB_OBJS) $(IfW_OBJS) $(AD_OBJS) $(SrvD_OBJS) $(ED_OBJS) $(HD_OBJS) $(FAST_OBJS)
+ALL_OBJS      = $(LIB_OBJS) $(IfW_OBJS) $(AD_OBJS) $(SrvD_OBJS) $(ED_OBJS) $(HD_OBJS) $(SD_OBJS) $(FAST_OBJS)
 
    # Rule to do everything.
 
@@ -263,7 +269,8 @@ HydroDyn_Types.f90:
 #NWTC Library dependency rules:
 NWTC_Base.obj:           $(PREC).obj
 $(SYS_FILE).obj:         NWTC_Base.obj
-NWTC_IO.obj:             $(SYS_FILE).obj
+NWTC_Library_Types.obj:  $(SYS_FILE).obj
+NWTC_IO.obj:             NWTC_Library_Types.obj
 NWTC_Num.obj:            NWTC_IO.obj
 ModMesh_Types.obj:       NWTC_Num.obj
 ModMesh.obj:             ModMesh_Types.obj
@@ -320,16 +327,16 @@ HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Out
 
 
 # SubDyn dependency rules:
-EA16AD.obj:                KB07AD.obj
-MA57D.obj:                 MA57D_dependency.obj METIS_NODEND_dummy.obj
-hsl_ma57_double.obj:       HSL_ZD11_double.obj MA57D.obj
-HSL_M57_INTERFACE.obj:     hsl_ma57_double.obj
-EA16_INTERFACE.obj:        hsl_ma57_double.obj EA16AD.obj
+# EA16AD.obj:                KB07AD.obj
+# MA57D.obj:                 MA57D_dependency.obj METIS_NODEND_dummy.obj
+# hsl_ma57_double.obj:       HSL_ZD11_double.obj MA57D.obj
+# HSL_M57_INTERFACE.obj:     hsl_ma57_double.obj
+# EA16_INTERFACE.obj:        hsl_ma57_double.obj EA16AD.obj
 SubDyn_Types.obj:          NWTC_Library.obj
-SD_FEM.obj:                NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
-SubDyn_Output.obj:         SD_FEM.obj
-SD_UpdateStates.obj: NWTC_Library.obj SubDyn_Types.obj SubDyn_Output.obj
-SubDyn.obj:                SD_UpdateStates.obj SubDyn_Output.obj  SD_FEM.obj  HSL_ZD11_double.obj  HSL_M57_INTERFACE.obj HSL_ZD11_double.obj EA16_INTERFACE.obj qsort_c_module.obj DLASRT2.obj
+# SD_FEM.obj:                NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
+# SubDyn_Output.obj:         SD_FEM.obj
+# SD_UpdateStates.obj: NWTC_Library.obj SubDyn_Types.obj SubDyn_Output.obj
+# SubDyn.obj:                SD_UpdateStates.obj SubDyn_Output.obj  SD_FEM.obj  HSL_ZD11_double.obj  HSL_M57_INTERFACE.obj HSL_ZD11_double.obj EA16_INTERFACE.obj qsort_c_module.obj DLASRT2.obj
 
 
 # ElastoDyn dependency rules:

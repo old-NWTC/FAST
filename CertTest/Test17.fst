@@ -1,5 +1,5 @@
 ------- FAST V8.02.* INPUT FILE ------------------------------------------------
-FAST certification Test #17: SWRT 3-bladed upwind turbine with many DOFs, variable speed control, free yaw, tail-furl, FF turbulence
+FAST Certification Test #17: SWRT 3-bladed upwind turbine with many DOFs, variable speed control, free yaw, tail-furl, FF turbulence
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)

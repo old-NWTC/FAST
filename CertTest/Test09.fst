@@ -1,5 +1,5 @@
 ------- FAST V8.02.* INPUT FILE ------------------------------------------------
-FAST certification Test #09: UAE Phase VI (downwind) with many DOFs with yaw ramp and a steady wind.
+FAST Certification Test #09: UAE Phase VI (downwind) with many DOFs with yaw ramp and a steady wind.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)

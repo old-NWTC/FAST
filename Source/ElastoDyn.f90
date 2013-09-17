@@ -1449,9 +1449,10 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    InitOut%WriteOutputHdr = p%OutParam(1:p%NumOuts)%Name
    InitOut%WriteOutputUnt = p%OutParam(1:p%NumOuts)%Units
 
-   InitOut%Ver     = ED_Ver
-   InitOut%NumBl   = p%NumBl
-   InitOut%Gravity = p%Gravity
+   InitOut%Ver         = ED_Ver
+   InitOut%NumBl       = p%NumBl
+   InitOut%Gravity     = p%Gravity
+   InitOut%BladeLength = p%TipRad - p%HubRad
 
    CALL AllocAry(InitOut%BlPitch, p%NumBl, 'BlPitch', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -2441,8 +2442,11 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    ! Outputs required for AeroDyn
    !...............................................................................................................................
    
+   !JASON: WE SHOULD REALLY BE PASSING TO AERODYN THE LINEAR VELOCITIES OF THE AERODYNAMIC CENTER IN THE INERTIA FRAME, NOT SIMPLY THE LINEAR VELOCITIES OF POINT S.  
+   !       IS THERE ANY WAY OF GETTING THIS VELOCITY?<--DO THIS, WHEN YOU ADD THE COUPLED MODE SHAPES!!!!
+   
    !...........
-   ! Blade outputs:
+   ! Blade elements:
    !...........
    
    DO K = 1,p%NumBl ! Loop through all blades
@@ -2491,77 +2495,131 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       
    END DO !K = 1,p%NumBl
 
-   !!JASON: WE SHOULD REALLY BE PASSING TO AERODYN THE LINEAR VELOCITIES OF THE AERODYNAMIC CENTER IN THE INERTIA FRAME, NOT SIMPLY THE LINEAR VELOCITIES OF POINT S.  IS THERE ANY WAY OF GETTING THIS VELOCITY?<--DO THIS, WHEN YOU ADD THE COUPLED MODE SHAPES!!!!
-   !
-   !
-   !   ! the hub position should use rQ instead of rP, but the current version of AeroDyn treats
-   !   ! teeter deflections like blade deflections:
-   !
-   !ADInterfaceComponents%Hub%Position  = (/ OtherState%RtHS%rP(1), -1.*OtherState%RtHS%rP(3), OtherState%RtHS%rP(2) + p%PtfmRefzt /)
-   !
-   !
-   !   ! Rotor furl position should be rP instead of rV, but AeroDyn needs this for the
-   !   ! HubVDue2Yaw calculation:
-   !
-   !ADInterfaceComponents%RotorFurl%Position(:) = (/ OtherState%RtHS%rV(1), -1.*OtherState%RtHS%rV(3), OtherState%RtHS%rV(2) + p%PtfmRefzt /)
-   !
-   !ADInterfaceComponents%Nacelle%Position(:)   = (/ OtherState%RtHS%rO(1), -1.*OtherState%RtHS%rO(3), OtherState%RtHS%rO(2) + p%PtfmRefzt /)
-   !
-   !   ! Tower base position should be rT(0) instead of rZ, but AeroDyn needs this for
-   !   ! the HubVDue2Yaw calculation:
-   !ADInterfaceComponents%Tower%Position(:)     = (/ OtherState%RtHS%rZ(1), -1.*OtherState%RtHS%rZ(3), OtherState%RtHS%rZ(2) + p%PtfmRefzt /)
-   !
-   !
-   !!-------------------------------------------------------------------------------------------------
-   !! Orientations
-   !!-------------------------------------------------------------------------------------------------
-   !
-   !      ! Blade root orientations should use the j instead of i system, but the current version
-   !      ! of AeroDyn calculates forces normal and tangential to the cone of rotation
-   !
-   !ADInterfaceComponents%Blade(:)%Orientation(1,1) =     OtherState%CoordSys%i1(:,1)
-   !ADInterfaceComponents%Blade(:)%Orientation(2,1) =     OtherState%CoordSys%i2(:,1)
-   !ADInterfaceComponents%Blade(:)%Orientation(3,1) =     OtherState%CoordSys%i3(:,1)
-   !ADInterfaceComponents%Blade(:)%Orientation(1,2) = -1.*OtherState%CoordSys%i1(:,3)
-   !ADInterfaceComponents%Blade(:)%Orientation(2,2) = -1.*OtherState%CoordSys%i2(:,3)
-   !ADInterfaceComponents%Blade(:)%Orientation(3,2) = -1.*OtherState%CoordSys%i3(:,3)
-   !ADInterfaceComponents%Blade(:)%Orientation(1,3) =     OtherState%CoordSys%i1(:,2)
-   !ADInterfaceComponents%Blade(:)%Orientation(2,3) =     OtherState%CoordSys%i2(:,2)
-   !ADInterfaceComponents%Blade(:)%Orientation(3,3) =     OtherState%CoordSys%i3(:,2)
-   !
-   !     ! Hub orientation should use the g instead of e system, but the current version
-   !     ! of AeroDyn calculates forces normal and tangential to the cone of rotation
-   !
-   !ADInterfaceComponents%Hub%Orientation(:,1)  =     (/ OtherState%CoordSys%e1(1), OtherState%CoordSys%e2(1), OtherState%CoordSys%e3(1) /)
-   !ADInterfaceComponents%Hub%Orientation(:,2)       = -1.*(/ OtherState%CoordSys%e1(3), OtherState%CoordSys%e2(3), OtherState%CoordSys%e3(3) /)
-   !ADInterfaceComponents%Hub%Orientation(:,3)       =     (/ OtherState%CoordSys%e1(2), OtherState%CoordSys%e2(2), OtherState%CoordSys%e3(2) /)
-   !
-   !     ! Rotor furl orientation (note the different order than hub and blade root!)
-   !
-   !ADInterfaceComponents%RotorFurl%Orientation(:,1) = (/      OtherState%CoordSys%c1(1), -1.*OtherState%CoordSys%c3(1),     OtherState%CoordSys%c2(1) /)
-   !ADInterfaceComponents%RotorFurl%Orientation(:,2) = (/ -1.* OtherState%CoordSys%c1(3),     OtherState%CoordSys%c3(3), -1.*OtherState%CoordSys%c2(3) /)
-   !ADInterfaceComponents%RotorFurl%Orientation(:,3) = (/      OtherState%CoordSys%c1(2), -1.*OtherState%CoordSys%c3(2),     OtherState%CoordSys%c2(2) /)
-   !
-   !      ! Nacelle orientation (note the different order than hub and blade root!)
-   !
-   !ADInterfaceComponents%Nacelle%Orientation(:,1) = (/      OtherState%CoordSys%d1(1), -1.*OtherState%CoordSys%d3(1),     OtherState%CoordSys%d2(1) /)
-   !ADInterfaceComponents%Nacelle%Orientation(:,2) = (/ -1.* OtherState%CoordSys%d1(3),     OtherState%CoordSys%d3(3), -1.*OtherState%CoordSys%d2(3) /)
-   !ADInterfaceComponents%Nacelle%Orientation(:,3) = (/      OtherState%CoordSys%d1(2), -1.*OtherState%CoordSys%d3(2),     OtherState%CoordSys%d2(2) /)
-   !
-   !!-------------------------------------------------------------------------------------------------
-   !! Velocities
-   !!-------------------------------------------------------------------------------------------------
-   !
-   !   ! Note the hub rotational velocity should be AngVelEH instead AngVelEL, but AeroDyn (13.00.00)
-   !   ! treats teeter deflections like blade deflections:
-   !
-   !ADInterfaceComponents%Hub%RotationVel(:)       = (/ OtherState%RtHS%AngVelEL(1), -1.*OtherState%RtHS%AngVelEL(3), OtherState%RtHS%AngVelEL(2) /)
-   !ADInterfaceComponents%RotorFurl%RotationVel(:) = (/ OtherState%RtHS%AngVelER(1), -1.*OtherState%RtHS%AngVelER(3), OtherState%RtHS%AngVelER(2) /)
-   !ADInterfaceComponents%Nacelle%RotationVel(:)   = (/ OtherState%RtHS%AngVelEN(1), -1.*OtherState%RtHS%AngVelEN(3), OtherState%RtHS%AngVelEN(2) /)
-   !ADInterfaceComponents%Tower%RotationVel(:)     = (/ OtherState%RtHS%AngVelEX(1), -1.*OtherState%RtHS%AngVelEX(3), OtherState%RtHS%AngVelEX(2) /)
-   !
- 
    
+   !...........
+   ! Hub:
+   !...........   
+
+      ! the hub position should use rQ instead of rP, but the current version of AeroDyn treats
+      ! teeter deflections like blade deflections:
+   
+   y%HubPtMotion%TranslationDisp(1,1)  =     OtherState%RtHS%rP(1)
+   y%HubPtMotion%TranslationDisp(2,1)  = -1.*OtherState%RtHS%rP(3)
+   y%HubPtMotion%TranslationDisp(3,1)  =     OtherState%RtHS%rP(2) + p%PtfmRefzt
+   
+   y%HubPtMotion%TranslationDisp  = y%HubPtMotion%TranslationDisp - y%HubPtMotion%Position   
+   
+        ! Hub orientation should use the g instead of e system, but the current version
+        ! of AeroDyn calculates forces normal and tangential to the cone of rotation
+         
+   y%HubPtMotion%Orientation(1,1,1)  =     OtherState%CoordSys%e1(1) 
+   y%HubPtMotion%Orientation(2,1,1)  =     OtherState%CoordSys%e2(1)
+   y%HubPtMotion%Orientation(3,1,1)  =     OtherState%CoordSys%e3(1)   
+   y%HubPtMotion%Orientation(1,2,1)  = -1.*OtherState%CoordSys%e1(3)
+   y%HubPtMotion%Orientation(2,2,1)  = -1.*OtherState%CoordSys%e2(3) 
+   y%HubPtMotion%Orientation(3,2,1)  = -1.*OtherState%CoordSys%e3(3) 
+   y%HubPtMotion%Orientation(1,3,1)  =     OtherState%CoordSys%e1(2)
+   y%HubPtMotion%Orientation(2,3,1)  =     OtherState%CoordSys%e2(2)
+   y%HubPtMotion%Orientation(3,3,1)  =     OtherState%CoordSys%e3(2)
+   
+      ! Note the hub rotational velocity should be AngVelEH instead AngVelEL, but AeroDyn (13.00.00)
+      ! treats teeter deflections like blade deflections:
+   
+   y%HubPtMotion%RotationVel(1,1) =     OtherState%RtHS%AngVelEL(1)
+   y%HubPtMotion%RotationVel(2,1) = -1.*OtherState%RtHS%AngVelEL(3)
+   y%HubPtMotion%RotationVel(3,1) =     OtherState%RtHS%AngVelEL(2)
+      
+   !...........
+   ! Blade roots:
+   !...........   
+   
+        ! Blade root orientations should use the j instead of i system, but the current version
+        ! of AeroDyn calculates forces normal and tangential to the cone of rotation
+      
+   DO K=1,p%NumBl
+         
+      y%BladeRootMotions%Orientation(1,1,K) =     OtherState%CoordSys%i1(K,1)
+      y%BladeRootMotions%Orientation(2,1,K) =     OtherState%CoordSys%i2(K,1)
+      y%BladeRootMotions%Orientation(3,1,K) =     OtherState%CoordSys%i3(K,1)
+      y%BladeRootMotions%Orientation(1,2,K) = -1.*OtherState%CoordSys%i1(K,3)
+      y%BladeRootMotions%Orientation(2,2,K) = -1.*OtherState%CoordSys%i2(K,3)
+      y%BladeRootMotions%Orientation(3,2,K) = -1.*OtherState%CoordSys%i3(K,3)
+      y%BladeRootMotions%Orientation(1,3,K) =     OtherState%CoordSys%i1(K,2)
+      y%BladeRootMotions%Orientation(2,3,K) =     OtherState%CoordSys%i2(K,2)
+      y%BladeRootMotions%Orientation(3,3,K) =     OtherState%CoordSys%i3(K,2)
+            
+   END DO
+   
+    
+   !...........
+   ! Rotor furl:
+   !...........   
+   
+      ! Rotor furl position should be rP instead of rV, but AeroDyn needs this for the HubVDue2Yaw calculation:
+   
+   y%RotorFurlMotion%TranslationDisp(1,1) =     OtherState%RtHS%rV(1)
+   y%RotorFurlMotion%TranslationDisp(2,1) = -1.*OtherState%RtHS%rV(3)
+   y%RotorFurlMotion%TranslationDisp(3,1) =     OtherState%RtHS%rV(2) + p%PtfmRefzt
+   
+   y%RotorFurlMotion%TranslationDisp      = y%RotorFurlMotion%TranslationDisp - y%RotorFurlMotion%Position   
+         
+        ! Rotor furl orientation (note the different order than hub and blade root!)
+   
+   y%RotorFurlMotion%Orientation(1,1,1) =     OtherState%CoordSys%c1(1)
+   y%RotorFurlMotion%Orientation(2,1,1) = -1.*OtherState%CoordSys%c3(1)
+   y%RotorFurlMotion%Orientation(3,1,1) =     OtherState%CoordSys%c2(1)
+   y%RotorFurlMotion%Orientation(1,2,1) = -1.*OtherState%CoordSys%c1(3)
+   y%RotorFurlMotion%Orientation(2,2,1) =     OtherState%CoordSys%c3(3)
+   y%RotorFurlMotion%Orientation(3,2,1) = -1.*OtherState%CoordSys%c2(3)
+   y%RotorFurlMotion%Orientation(1,3,1) =     OtherState%CoordSys%c1(2)
+   y%RotorFurlMotion%Orientation(2,3,1) = -1.*OtherState%CoordSys%c3(2)
+   y%RotorFurlMotion%Orientation(3,3,1) =     OtherState%CoordSys%c2(2) 
+   
+      ! rotaional velocity:
+   y%RotorFurlMotion%RotationVel(1,1) =     OtherState%RtHS%AngVelER(1)
+   y%RotorFurlMotion%RotationVel(2,1) = -1.*OtherState%RtHS%AngVelER(3)
+   y%RotorFurlMotion%RotationVel(3,1) =     OtherState%RtHS%AngVelER(2)
+      
+   !...........
+   ! Nacelle :
+   !...........   
+      
+   y%NacelleMotion%TranslationDisp(1,1) =     OtherState%RtHS%rO(1)
+   y%NacelleMotion%TranslationDisp(2,1) = -1.*OtherState%RtHS%rO(3)
+   y%NacelleMotion%TranslationDisp(3,1) =     OtherState%RtHS%rO(2) + p%PtfmRefzt
+               
+   y%NacelleMotion%TranslationDisp      = y%NacelleMotion%TranslationDisp - y%NacelleMotion%Position   
+   
+      ! Nacelle orientation (note the different order than hub and blade root!)
+   
+   y%NacelleMotion%Orientation(1,1,1) =     OtherState%CoordSys%d1(1)
+   y%NacelleMotion%Orientation(2,1,1) = -1.*OtherState%CoordSys%d3(1)
+   y%NacelleMotion%Orientation(3,1,1) =     OtherState%CoordSys%d2(1)
+   y%NacelleMotion%Orientation(1,2,1) = -1.*OtherState%CoordSys%d1(3)
+   y%NacelleMotion%Orientation(2,2,1) =     OtherState%CoordSys%d3(3)
+   y%NacelleMotion%Orientation(3,2,1) = -1.*OtherState%CoordSys%d2(3)
+   y%NacelleMotion%Orientation(1,3,1) =     OtherState%CoordSys%d1(2)
+   y%NacelleMotion%Orientation(2,3,1) = -1.*OtherState%CoordSys%d3(2)
+   y%NacelleMotion%Orientation(3,3,1) =     OtherState%CoordSys%d2(2) 
+   
+   y%NacelleMotion%RotationVel(1,1)   =     OtherState%RtHS%AngVelEN(1)
+   y%NacelleMotion%RotationVel(2,1)   = -1.*OtherState%RtHS%AngVelEN(3)
+   y%NacelleMotion%RotationVel(3,1)   =     OtherState%RtHS%AngVelEN(2) 
+   
+   !...........
+   ! Tower :
+   !...........         
+   
+      ! Tower base position should be rT(0) instead of rZ, but AeroDyn needs this for  the HubVDue2Yaw calculation:
+   y%TowerMotion%TranslationDisp(1,1) =     OtherState%RtHS%rZ(1)
+   y%TowerMotion%TranslationDisp(2,1) = -1.*OtherState%RtHS%rZ(3)
+   y%TowerMotion%TranslationDisp(3,1) =     OtherState%RtHS%rZ(2) + p%PtfmRefzt
+   
+   y%TowerMotion%TranslationDisp      = y%TowerMotion%TranslationDisp - y%TowerMotion%Position   
+      
+   y%TowerMotion%RotationVel(1,1)     =     OtherState%RtHS%AngVelEX(1)
+   y%TowerMotion%RotationVel(2,1)     = -1.*OtherState%RtHS%AngVelEX(3)
+   y%TowerMotion%RotationVel(3,1)     =     OtherState%RtHS%AngVelEX(2) 
    
    !...............................................................................................................................
    ! Outputs required for HydroDyn
@@ -2692,6 +2750,7 @@ if (t <= p%DT) call wrscr('Ask Jason what these output values should be!')
    y%TowerLn2Mesh%Orientation(1,3,J) =     OtherState%CoordSys%a1(2)
    y%TowerLn2Mesh%Orientation(3,3,J) =     OtherState%CoordSys%a2(2)
    y%TowerLn2Mesh%Orientation(2,3,J) = -1.*OtherState%CoordSys%a3(2)
+   
    
    !...............................................................................................................................
    ! Outputs required for ServoDyn
@@ -5369,7 +5428,7 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
    p%CShftTilt = COS( InputFileData%ShftTilt )
    p%SShftTilt = SIN( InputFileData%ShftTilt )
 
-   p%FASTHH    = p%TowerHt + InputFileData%Twr2Shft + p%OverHang*p%SShftTilt
+   p%HubHt     = p%TowerHt + InputFileData%Twr2Shft + p%OverHang*p%SShftTilt
 
 
       ! Direct copy of InputFileData to parameters
@@ -12863,8 +12922,9 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
 END SUBROUTINE FillAugMat
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
-! This routine allocates the arrays stored in the ED_OutputType data structure (y), based on the parameters (p). 
-! The routine assumes that the arrays are not currently allocated (It will produce a fatal error otherwise.)
+! This routine allocates the arrays and meshes stored in the ED_OutputType data structure (y), based on the parameters (p). 
+! Inputs (u) are included only so that output meshes can be siblings of the inputs.
+! The routine assumes that the arrays/meshes are not currently allocated (It will produce a fatal error otherwise.)
 !..................................................................................................................................
 
    TYPE(ED_InputType),           INTENT(INOUT)  :: u           ! Input meshes (sibling)
@@ -12875,7 +12935,8 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
       
    
    ! local variables
-   INTEGER(IntKi)                               :: J           ! loop counter                
+   REAL(ReKi)                                   :: Orientation(3,3) 
+   INTEGER(IntKi)                               :: K           ! loop counter                
    INTEGER(IntKi)                               :: ErrStat2    ! The error identifier (ErrStat)
    CHARACTER(1024)                              :: ErrMsg2     ! The error message (ErrMsg)
    
@@ -12950,8 +13011,162 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
    
+   !.......................................................
+   ! Create Point Meshes for motions AeroDyn needs:
+   !.......................................................
    
+   ! -------------- Hub -----------------------------------
+   CALL MeshCreate( BlankMesh          = y%HubPtMotion          &
+                     ,IOS              = COMPONENT_OUTPUT       &
+                     ,NNodes           = 1                      &
+                     , TranslationDisp = .TRUE.                 &
+                     , Orientation     = .TRUE.                 &
+                     , RotationVel     = .TRUE.                 &
+                     ,ErrStat          = ErrStat2               &
+                     ,ErrMess          = ErrMsg2                )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+
+      ! Hub position and orientation (relative here as before, but should not be)
+      
+   CALL MeshPositionNode ( y%HubPtMotion, 1, (/0.0_ReKi, 0.0_ReKi, p%HubHt /), ErrStat, ErrMsg ) !orientation is identity by default
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+   CALL CommitPointMesh( y%HubPtMotion )
+      IF (ErrStat >= AbortErrLev) RETURN
+ 
+      
+   ! -------------- Blade Roots -----------------------------------
+                  
+   CALL MeshCreate( BlankMesh          = y%BladeRootMotions     &
+                     ,IOS              = COMPONENT_OUTPUT       &
+                     ,NNodes           = p%NumBl                &
+                     , Orientation     = .TRUE.                 &
+                     ,ErrStat          = ErrStat2               &
+                     ,ErrMess          = ErrMsg2                )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   DO K=1,p%NumBl      
+      
+      Orientation(1,1) =               p%CosPreC(K)
+      Orientation(2,1) =  0.0_ReKi
+      Orientation(3,1) =  1.0 *        p%SinPreC(K)
+
+      Orientation(1,2) =  0.0_ReKi
+      Orientation(2,2) =  1.0_ReKi
+      Orientation(3,2) =  0.0_ReKi
+
+      Orientation(1,3) = -1.0 *         p%SinPreC(K)
+      Orientation(2,3) =  0.0_ReKi
+      Orientation(3,3) =                p%CosPreC(K)
+                  
+      CALL MeshPositionNode ( y%BladeRootMotions, K, &
+                            (/p%HubRad*p%SinPreC(K), 0.0_ReKi, p%HubRad*p%CosPreC(K) /), &
+                            ErrStat, ErrMsg, Orient=Orientation ) 
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN
+   END DO
+                     
+   CALL CommitPointMesh( y%BladeRootMotions )
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+   ! -------------- Rotor Furl -----------------------------------
+   CALL MeshCreate( BlankMesh          = y%RotorFurlMotion      &
+                     ,IOS              = COMPONENT_OUTPUT       &
+                     ,NNodes           = 1                      &
+                     , TranslationDisp = .TRUE.                 &
+                     , Orientation     = .TRUE.                 &
+                     , RotationVel     = .TRUE.                 &
+                     ,ErrStat          = ErrStat2               &
+                     ,ErrMess          = ErrMsg2                )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+
+!bjj: FIX THIS>>>>     
+call wrscr(newline//'fix RotorFurlMotion initialization')
+   CALL MeshPositionNode ( y%RotorFurlMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
+!<<<<<FIX THIS
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+   CALL CommitPointMesh( y%RotorFurlMotion )
+      IF (ErrStat >= AbortErrLev) RETURN      
+      
+   ! -------------- Nacelle -----------------------------------
+   CALL MeshCreate( BlankMesh          = y%NacelleMotion        &
+                     ,IOS              = COMPONENT_OUTPUT       &
+                     ,NNodes           = 1                      &
+                     , TranslationDisp = .TRUE.                 &
+                     , Orientation     = .TRUE.                 &
+                     , RotationVel     = .TRUE.                 &
+                     ,ErrStat          = ErrStat2               &
+                     ,ErrMess          = ErrMsg2                )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+
+!bjj: FIX THIS>>>>     
+call wrscr(newline//'fix NacelleMotion initialization')
+   CALL MeshPositionNode ( y%NacelleMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
+!<<<<<FIX THIS
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+   CALL CommitPointMesh( y%NacelleMotion )
+      IF (ErrStat >= AbortErrLev) RETURN      
+      
+     
+   ! -------------- Tower -----------------------------------
+   CALL MeshCreate( BlankMesh          = y%TowerMotion          &
+                     ,IOS              = COMPONENT_OUTPUT       &
+                     ,NNodes           = 1                      &
+                     , TranslationDisp = .TRUE.                 &
+                     , RotationVel     = .TRUE.                 &
+                     ,ErrStat          = ErrStat2               &
+                     ,ErrMess          = ErrMsg2                )
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+
+!bjj: FIX THIS>>>>     
+call wrscr(newline//'fix TowerMotion initialization')
+   CALL MeshPositionNode ( y%TowerMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
+!<<<<<FIX THIS
+      CALL CheckError(ErrStat2,ErrMsg2)
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+   CALL CommitPointMesh( y%TowerMotion )
+      IF (ErrStat >= AbortErrLev) RETURN      
+      
+      
 CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CommitPointMesh(NewMesh)
+      ! This routine makes every node a point element and then commits the mesh.
+      
+      TYPE(MeshType), INTENT(INOUT)  :: NewMesh  
+      
+      INTEGER(IntKi) :: Node
+      
+      DO Node = 1,NewMesh%Nnodes
+         
+            ! create an element from this point      
+         CALL MeshConstructElement ( Mesh = NewMesh                 &
+                                    , Xelement = ELEMENT_POINT      &
+                                    , P1       = Node               &   ! node number
+                                    , ErrStat  = ErrStat            &
+                                    , ErrMess  = ErrMsg             )
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF (ErrStat >= AbortErrLev) RETURN
+
+      END DO
+      
+         ! that's our entire mesh:
+      CALL MeshCommit ( NewMesh, ErrStat2, ErrMsg2 )   
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN                
+
+   END SUBROUTINE CommitPointMesh
    !...............................................................................................................................
    SUBROUTINE CheckError(ErrID,Msg)
    ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
@@ -12978,9 +13193,8 @@ CONTAINS
 
       END IF
 
-
    END SUBROUTINE CheckError 
-   
+   !...............................................................................................................................
 END SUBROUTINE ED_AllocOutput
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
@@ -13101,19 +13315,17 @@ SUBROUTINE ED_AllocInput( u, p, ErrStat, ErrMsg )
          NodeNum = (K-1)*(p%BldNodes + 2) + 1   !J=1
          CALL MeshConstructElement ( Mesh      = u%BladeLn2Mesh     &
                                     , Xelement = ELEMENT_LINE2      &
-                                    , P1       = NodeNum            &   ! node1 number
-                                    , P2       = K*p%BldNodes       &   ! node2 number
+                                    , P1       = K*(p%BldNodes + 2) &   ! node1 number (extra node at root)
+                                    , P2       = NodeNum            &   ! node2 number (first node on balde)
                                     , ErrStat  = ErrStat2           &
                                     , ErrMess  = ErrMsg2            )
          
             CALL CheckError(ErrStat2,ErrMsg2)
             IF (ErrStat >= AbortErrLev) RETURN
                   
-      END DO ! K (blade)
-      
-                                          
+      END DO ! K (blade)                                                
    END IF   
-   
+
       ! that's our entire mesh:
    CALL MeshCommit ( u%BladeLn2Mesh, ErrStat2, ErrMsg2 )   
       CALL CheckError(ErrStat2,ErrMsg2)
@@ -13867,7 +14079,7 @@ SUBROUTINE ED_PrintSum( p, OtherState, GenerateAdamsModel, ErrStat, ErrMsg )
 
    WRITE (UnSu,'(//,A,/)')  'Some calculated parameters:'
 
-   WRITE (UnSu,FmtDat ) '    Hub-Height            (m)     ', p%FASTHH
+   WRITE (UnSu,FmtDat ) '    Hub-Height            (m)     ', p%HubHt
    WRITE (UnSu,FmtDat ) '    Flexible Tower Length (m)     ', p%TwrFlexL
    WRITE (UnSu,FmtDat ) '    Flexible Blade Length (m)     ', p%BldFlexL
 

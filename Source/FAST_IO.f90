@@ -1773,121 +1773,91 @@ END SUBROUTINE SD_InputSolve
 
 
 !====================================================================================================
-SUBROUTINE AD_InputSolve( p, x, OtherState, u, y, ErrStat, ErrMsg )
+SUBROUTINE AD_InputSolve( y_ED, ErrStat, ErrMsg )
 ! THIS ROUTINE IS A HACK TO GET THE OUTPUTS FROM ELASTODYN INTO AERODYN. IT WILL BE REPLACED WHEN THIS CODE LINKS WITH
 ! AERODYN IN THE NEW FRAMEWORK
 !,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
       ! Passed variables
-   TYPE(ED_InputType),          INTENT(IN)   :: u                            ! The inputs for the structural dynamics module
-   TYPE(ED_OutputType),         INTENT(IN)   :: y                            ! The outputs of the structural dynamics module
-   TYPE(ED_ParameterType),      INTENT(IN)   :: p                            ! The parameters of the structural dynamics module
-   TYPE(ED_ContinuousStateType),INTENT(IN)   :: x                            ! The structural dynamics module's continuous states
-   TYPE(ED_OtherStateType),     INTENT(IN)   :: OtherState                   ! Other State data type for Structural dynamics module
+   TYPE(ED_OutputType),         INTENT(IN)   :: y_ED        ! The outputs of the structural dynamics module
    INTEGER(IntKi)                            :: ErrStat     ! Error status of the operation
    CHARACTER(*)                              :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
       ! Local variables:
 
-   INTEGER(IntKi)               :: I                                               ! Loops through some or all of the DOFs.
    INTEGER(IntKi)               :: J                                               ! Loops through nodes / elements.
    INTEGER(IntKi)               :: K                                               ! Loops through blades.
-   INTEGER(IntKi)               :: L                                               ! Generic index
    INTEGER(IntKi)               :: NodeNum                                         ! Node number for blade/node on mesh
+   INTEGER(IntKi)               :: NumBl
+   INTEGER(IntKi)               :: BldNodes
 
-
+   
+   NumBl    = SIZE(ADAeroMarkers%Blade,2)
+   BldNodes = SIZE(ADAeroMarkers%Blade,1)
+   
    !-------------------------------------------------------------------------------------------------
    ! Blade positions, orientations, and velocities:
    !-------------------------------------------------------------------------------------------------
-   DO K = 1,p%NumBl ! Loop through all blades
-      DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
+   
+   DO K = 1,NumBl !p%NumBl ! Loop through all blades
+      DO J = 1,BldNodes !p%BldNodes ! Loop through the blade nodes / elements
 
-         NodeNum = (K-1)*(p%BldNodes + 2) + J         
-         ADAeroMarkers%Blade(J,K)%Position       = y%BladeLn2Mesh%TranslationDisp(:,NodeNum) + y%BladeLn2Mesh%Position(:,NodeNum) 
-         ADAeroMarkers%Blade(J,K)%Orientation    = y%BladeLn2Mesh%Orientation(:,:,NodeNum)
-         ADAeroMarkers%Blade(J,K)%TranslationVel = y%BladeLn2Mesh%TranslationVel(:,NodeNum)
+         NodeNum = (K-1)*(BldNodes + 2) + J         ! note that this assumes ED has same discretization as AD
          
-         
+         ADAeroMarkers%Blade(J,K)%Position       = y_ED%BladeLn2Mesh%TranslationDisp(:,NodeNum) + y_ED%BladeLn2Mesh%Position(:,NodeNum) 
+         ADAeroMarkers%Blade(J,K)%Orientation    = y_ED%BladeLn2Mesh%Orientation(:,:,NodeNum)
+         ADAeroMarkers%Blade(J,K)%TranslationVel = y_ED%BladeLn2Mesh%TranslationVel(:,NodeNum)
+                  
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
    END DO !K = 1,p%NumBl
    
+   !-------------------------------------------------------------------------------------------------
+   ! Hub positions, orientations, and velocities:
+   !  (note that these may have to be adjusted in ElastoDyn as AeroDyn gets rewritten)
+   !-------------------------------------------------------------------------------------------------
+   ADInterfaceComponents%Hub%Position    = y_ED%HubPtMotion%TranslationDisp(:,1) +  y_ED%HubPtMotion%Position(:,1)
+   ADInterfaceComponents%Hub%Orientation = y_ED%HubPtMotion%Orientation(:,:,1)   
+   ADInterfaceComponents%Hub%RotationVel = y_ED%HubPtMotion%RotationVel(:,1)
    
-   !JASON: WE SHOULD REALLY BE PASSING TO AERODYN THE LINEAR VELOCITIES OF THE AERODYNAMIC CENTER IN THE INERTIA FRAME, NOT SIMPLY THE LINEAR VELOCITIES OF POINT S.  IS THERE ANY WAY OF GETTING THIS VELOCITY?<--DO THIS, WHEN YOU ADD THE COUPLED MODE SHAPES!!!!
+   !-------------------------------------------------------------------------------------------------
+   ! Blade root orientations:
+   !-------------------------------------------------------------------------------------------------
+   
+   DO K=1,NumBl
+      ADInterfaceComponents%Blade(K)%Orientation = y_ED%BladeRootMotions%Orientation(:,:,K)
+   END DO
+            
 
+   !-------------------------------------------------------------------------------------------------
+   ! RotorFurl position, orientation, rotational velocity:
+   !-------------------------------------------------------------------------------------------------
 
-      ! the hub position should use rQ instead of rP, but the current version of AeroDyn treats
-      ! teeter deflections like blade deflections:
+   ADInterfaceComponents%RotorFurl%Position    = y_ED%RotorFurlMotion%TranslationDisp(:,1) + y_ED%RotorFurlMotion%Position(:,1)  
+   ADInterfaceComponents%RotorFurl%Orientation = y_ED%RotorFurlMotion%Orientation(:,:,1)         
+   ADInterfaceComponents%RotorFurl%RotationVel = y_ED%RotorFurlMotion%RotationVel(:,1)
+   
+   !-------------------------------------------------------------------------------------------------
+   ! Nacelle position, orientation, rotational velocity:
+   !-------------------------------------------------------------------------------------------------      
 
-   ADInterfaceComponents%Hub%Position  = (/ OtherState%RtHS%rP(1), -1.*OtherState%RtHS%rP(3), OtherState%RtHS%rP(2) + p%PtfmRefzt /)
-
-
-      ! Rotor furl position should be rP instead of rV, but AeroDyn needs this for the
-      ! HubVDue2Yaw calculation:
-
-   ADInterfaceComponents%RotorFurl%Position(:) = (/ OtherState%RtHS%rV(1), -1.*OtherState%RtHS%rV(3), OtherState%RtHS%rV(2) + p%PtfmRefzt /)
-
-   ADInterfaceComponents%Nacelle%Position(:)   = (/ OtherState%RtHS%rO(1), -1.*OtherState%RtHS%rO(3), OtherState%RtHS%rO(2) + p%PtfmRefzt /)
-
+   ADInterfaceComponents%Nacelle%Position    = y_ED%NacelleMotion%TranslationDisp(:,1) + y_ED%NacelleMotion%Position(:,1)
+   ADInterfaceComponents%Nacelle%Orientation = y_ED%NacelleMotion%Orientation(:,:,1)      
+   ADInterfaceComponents%Nacelle%RotationVel = y_ED%NacelleMotion%RotationVel(:,1)  
+   
+   !-------------------------------------------------------------------------------------------------
+   ! Tower base position, rotational velocity:
+   !-------------------------------------------------------------------------------------------------      
+   
+   
       ! Tower base position should be rT(0) instead of rZ, but AeroDyn needs this for
       ! the HubVDue2Yaw calculation:
-   ADInterfaceComponents%Tower%Position(:)     = (/ OtherState%RtHS%rZ(1), -1.*OtherState%RtHS%rZ(3), OtherState%RtHS%rZ(2) + p%PtfmRefzt /)
-
-
-   !-------------------------------------------------------------------------------------------------
-   ! Orientations
-   !-------------------------------------------------------------------------------------------------
-
-         ! Blade root orientations should use the j instead of i system, but the current version
-         ! of AeroDyn calculates forces normal and tangential to the cone of rotation
-
-   ADInterfaceComponents%Blade(:)%Orientation(1,1) =     OtherState%CoordSys%i1(:,1)
-   ADInterfaceComponents%Blade(:)%Orientation(2,1) =     OtherState%CoordSys%i2(:,1)
-   ADInterfaceComponents%Blade(:)%Orientation(3,1) =     OtherState%CoordSys%i3(:,1)
-   ADInterfaceComponents%Blade(:)%Orientation(1,2) = -1.*OtherState%CoordSys%i1(:,3)
-   ADInterfaceComponents%Blade(:)%Orientation(2,2) = -1.*OtherState%CoordSys%i2(:,3)
-   ADInterfaceComponents%Blade(:)%Orientation(3,2) = -1.*OtherState%CoordSys%i3(:,3)
-   ADInterfaceComponents%Blade(:)%Orientation(1,3) =     OtherState%CoordSys%i1(:,2)
-   ADInterfaceComponents%Blade(:)%Orientation(2,3) =     OtherState%CoordSys%i2(:,2)
-   ADInterfaceComponents%Blade(:)%Orientation(3,3) =     OtherState%CoordSys%i3(:,2)
-
-        ! Hub orientation should use the g instead of e system, but the current version
-        ! of AeroDyn calculates forces normal and tangential to the cone of rotation
-
-   ADInterfaceComponents%Hub%Orientation(:,1)  =     (/ OtherState%CoordSys%e1(1), OtherState%CoordSys%e2(1), OtherState%CoordSys%e3(1) /)
-   ADInterfaceComponents%Hub%Orientation(:,2)       = -1.*(/ OtherState%CoordSys%e1(3), OtherState%CoordSys%e2(3), OtherState%CoordSys%e3(3) /)
-   ADInterfaceComponents%Hub%Orientation(:,3)       =     (/ OtherState%CoordSys%e1(2), OtherState%CoordSys%e2(2), OtherState%CoordSys%e3(2) /)
-
-        ! Rotor furl orientation (note the different order than hub and blade root!)
-
-   ADInterfaceComponents%RotorFurl%Orientation(:,1) = (/      OtherState%CoordSys%c1(1), -1.*OtherState%CoordSys%c3(1),     OtherState%CoordSys%c2(1) /)
-   ADInterfaceComponents%RotorFurl%Orientation(:,2) = (/ -1.* OtherState%CoordSys%c1(3),     OtherState%CoordSys%c3(3), -1.*OtherState%CoordSys%c2(3) /)
-   ADInterfaceComponents%RotorFurl%Orientation(:,3) = (/      OtherState%CoordSys%c1(2), -1.*OtherState%CoordSys%c3(2),     OtherState%CoordSys%c2(2) /)
-
-         ! Nacelle orientation (note the different order than hub and blade root!)
-
-   ADInterfaceComponents%Nacelle%Orientation(:,1) = (/      OtherState%CoordSys%d1(1), -1.*OtherState%CoordSys%d3(1),     OtherState%CoordSys%d2(1) /)
-   ADInterfaceComponents%Nacelle%Orientation(:,2) = (/ -1.* OtherState%CoordSys%d1(3),     OtherState%CoordSys%d3(3), -1.*OtherState%CoordSys%d2(3) /)
-   ADInterfaceComponents%Nacelle%Orientation(:,3) = (/      OtherState%CoordSys%d1(2), -1.*OtherState%CoordSys%d3(2),     OtherState%CoordSys%d2(2) /)
-
-   !-------------------------------------------------------------------------------------------------
-   ! Velocities
-   !-------------------------------------------------------------------------------------------------
-
-      ! Note the hub rotational velocity should be AngVelEH instead AngVelEL, but AeroDyn (13.00.00)
-      ! treats teeter deflections like blade deflections:
-
-   ADInterfaceComponents%Hub%RotationVel(:)       = (/ OtherState%RtHS%AngVelEL(1), -1.*OtherState%RtHS%AngVelEL(3), OtherState%RtHS%AngVelEL(2) /)
-   ADInterfaceComponents%RotorFurl%RotationVel(:) = (/ OtherState%RtHS%AngVelER(1), -1.*OtherState%RtHS%AngVelER(3), OtherState%RtHS%AngVelER(2) /)
-   ADInterfaceComponents%Nacelle%RotationVel(:)   = (/ OtherState%RtHS%AngVelEN(1), -1.*OtherState%RtHS%AngVelEN(3), OtherState%RtHS%AngVelEN(2) /)
-   ADInterfaceComponents%Tower%RotationVel(:)     = (/ OtherState%RtHS%AngVelEX(1), -1.*OtherState%RtHS%AngVelEX(3), OtherState%RtHS%AngVelEX(2) /)
-
-
-
-
+   ADInterfaceComponents%Tower%Position     = y_ED%TowerMotion%TranslationDisp(:,1) + y_ED%TowerMotion%Position(:,1)
+   ADInterfaceComponents%Tower%RotationVel  = y_ED%TowerMotion%RotationVel(:,1)
+  
 
 END SUBROUTINE AD_InputSolve
 !====================================================================================================
-SUBROUTINE AeroInput(p_ED, p_FAST)
+SUBROUTINE AeroInput(InitOutData_ED, y_ED, p_ED, p_FAST)
 ! This subroutine sets up the information needed to initialize AeroDyn, then initializes AeroDyn
 !----------------------------------------------------------------------------------------------------
 
@@ -1898,7 +1868,9 @@ SUBROUTINE AeroInput(p_ED, p_FAST)
    IMPLICIT NONE
 
    ! Passed variables:
+   TYPE(ED_InitOutputType), INTENT(IN)  :: InitOutData_ED   ! The initialization output from structural dynamics module
    TYPE(ED_ParameterType),  INTENT(IN)  :: p_ED             ! The parameters of the structural dynamics module
+   TYPE(ED_OutputType),     INTENT(IN)  :: y_ED             ! The outputs of the structural dynamics module (meshes with position/RefOrientation set)
    TYPE(FAST_ParameterType),INTENT(IN)  :: p_FAST           ! The parameters of the glue code
 
       ! Local variables
@@ -1907,7 +1879,7 @@ SUBROUTINE AeroInput(p_ED, p_FAST)
    INTEGER                    :: NumADBldNodes              ! Number of blade nodes in AeroDyn
    REAL(ReKi)                 :: AD_RefHt
 
-   INTEGER                    :: ErrStat
+   INTEGER                    :: ErrStat, K
 
 
       ! Set up the AeroDyn parameters
@@ -1918,43 +1890,28 @@ SUBROUTINE AeroInput(p_ED, p_FAST)
 
       ! Hub position and orientation (relative here, but does not need to be)
 
-   ADInterfaceComponents%Hub%Position(:)      = 0.0
-
-   ADInterfaceComponents%Hub%Orientation(:,:) = 0.0
-   ADInterfaceComponents%Hub%Orientation(1,1) = 1.0
-   ADInterfaceComponents%Hub%Orientation(2,2) = 1.0
-   ADInterfaceComponents%Hub%Orientation(3,3) = 1.0
+   ADInterfaceComponents%Hub%Position(:)      = y_ED%HubPtMotion%Position(:,1) - y_ED%HubPtMotion%Position(:,1)  ! bjj: was 0; mesh was changed by adding p_ED%HubHt to 3rd component
+   ADInterfaceComponents%Hub%Orientation(:,:) = y_ED%HubPtMotion%RefOrientation(:,:,1)
 
 
       ! Blade root position and orientation (relative here, but does not need to be)
 
    IF (.NOT. ALLOCATED( ADInterfaceComponents%Blade ) ) THEN
-      ALLOCATE( ADInterfaceComponents%Blade( p_ED%NumBl ), STAT = ErrStat )
+      ALLOCATE( ADInterfaceComponents%Blade( y_ED%BladeRootMotions%NNodes ), STAT = ErrStat )
       IF ( ErrStat /= 0 ) THEN
          CALL ProgAbort( ' Error allocating space for ADInterfaceComponents%Blade.' )
       END IF
    END IF
 
-  ADInterfaceComponents%Blade(:)%Position(1)      = p_ED%HubRad*p_ED%SinPreC(:)
-  ADInterfaceComponents%Blade(:)%Position(2)      =  0.0_ReKi
-  ADInterfaceComponents%Blade(:)%Position(3)      = p_ED%HubRad*p_ED%CosPreC(:)
-
-  ADInterfaceComponents%Blade(:)%Orientation(1,1) =               p_ED%CosPreC(:)
-  ADInterfaceComponents%Blade(:)%Orientation(2,1) =  0.0_ReKi
-  ADInterfaceComponents%Blade(:)%Orientation(3,1) =  1.0 *        p_ED%SinPreC(:)
-
-  ADInterfaceComponents%Blade(:)%Orientation(1,2) =  0.0_ReKi
-  ADInterfaceComponents%Blade(:)%Orientation(2,2) =  1.0_ReKi
-  ADInterfaceComponents%Blade(:)%Orientation(3,2) =  0.0_ReKi
-
-  ADInterfaceComponents%Blade(:)%Orientation(1,3) = -1.0 *         p_ED%SinPreC(:)
-  ADInterfaceComponents%Blade(:)%Orientation(2,3) =  0.0_ReKi
-  ADInterfaceComponents%Blade(:)%Orientation(3,3) =                p_ED%CosPreC(:)
-
+   DO K=1, SIZE(ADInterfaceComponents%Blade)
+      ADInterfaceComponents%Blade(K)%Position    = y_ED%BladeRootMotions%Position(:,K)
+      ADInterfaceComponents%Blade(K)%Orientation = y_ED%BladeRootMotions%RefOrientation(:,:,K)
+   END DO
+  
 
       ! Blade length
 
-   ADInterfaceComponents%BladeLength = p_ED%TipRad - p_ED%HubRad
+   ADInterfaceComponents%BladeLength = InitOutData_ED%BladeLength
 
 
       ! Initialize AeroDyn
@@ -1976,7 +1933,7 @@ UnEc = -1
       ! allocate variables for aerodyn forces
 
    IF (.NOT. ALLOCATED(ADIntrfaceOptions%SetMulTabLoc)) THEN
-      ALLOCATE( ADIntrfaceOptions%SetMulTabLoc(NumADBldNodes, p_ED%NumBl), STAT = ErrStat )
+      ALLOCATE( ADIntrfaceOptions%SetMulTabLoc(NumADBldNodes, InitOutData_ED%NumBl), STAT = ErrStat )
       IF ( ErrStat /= 0 ) CALL ProgAbort ( ' Error allocating memory for ADIntrfaceOptions%SetMulTabLoc array.' )
    END IF
 
@@ -1998,9 +1955,9 @@ UnEc = -1
       ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
       AD_RefHt = AD_GetConstant('RefHt', ErrStat)
 
-      IF ( ABS( p_ED%FASTHH - AD_RefHt ) > 0.1*( p_ED%FASTHH ) )  THEN  !bjj: I believe that this should not be done in the future
+      IF ( ABS( p_ED%HubHt - AD_RefHt ) > 0.1*( p_ED%HubHt ) )  THEN  !bjj: I believe that this should not be done in the future
 
-         CALL ProgWarn( ' The ElastoDyn hub height ('//TRIM(Num2LStr( p_ED%FASTHH ))//') and AeroDyn input'// &
+         CALL ProgWarn( ' The ElastoDyn hub height ('//TRIM(Num2LStr( p_ED%HubHt ))//') and AeroDyn input'// &
                        ' reference hub height ('//TRIM(Num2LStr(AD_RefHt))//') differ by more than 10%.' )
       ENDIF
 

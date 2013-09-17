@@ -494,6 +494,7 @@ typedef	^	InitOutputType	ProgDesc	Ver	-	-	-	"This module's name, version, and da
 typedef	^	InitOutputType	IntKi	NumBl	-	-	-	"Number of blades on the turbine"	-
 typedef	^	InitOutputType	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
 typedef	^	InitOutputType	ReKi	BlPitch	{:}	-	-	"Initial blade pitch angles"	radians
+typedef	^	InitOutputType	ReKi	BladeLength	-	-	-	"Blade length (for AeroDyn)"	meters
 
 # ..... States ....................................................................................................................
 # Define continuous (differentiable) states here:
@@ -563,7 +564,7 @@ typedef	^	ParameterType	ReKi	CTFrlSkew	-	-	-	"Cosine of the tail-furl axis skew 
 typedef	^	ParameterType	ReKi	CTFrlSkw2	-	-	-	"Cosine-squared of the tail-furl axis skew angle"
 typedef	^	ParameterType	ReKi	CTFrlTilt	-	-	-	"Cosine of the tail-furl axis tilt angle"
 typedef	^	ParameterType	ReKi	CTFrlTlt2	-	-	-	"Cosine-squared of the tail-furl axis tilt angle"
-typedef	^	ParameterType	ReKi	FASTHH	-	-	-	"Hub-height as computed using FAST inputs [= TowerHt + Twr2Shft + OverHang*SIN( ShftTilt ) ]"
+typedef	^	ParameterType	ReKi	HubHt	-	-	-	"Hub-height as computed using FAST inputs [= TowerHt + Twr2Shft + OverHang*SIN( ShftTilt ) ] (was FASTHH)"
 typedef	^	ParameterType	ReKi	HubCM	-	-	-	"Distance from rotor apex to hub mass"
 typedef	^	ParameterType	ReKi	HubRad	-	-	-	"Preconed hub radius"
 typedef	^	ParameterType	ReKi	NacCMxn	-	-	-	"Downwind distance from tower-top to nacelle CM"
@@ -782,6 +783,13 @@ typedef	^	InputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
 typedef	^	OutputType	MeshType	BladeLn2Mesh	-	-	-	"A mesh on the blades, containing positions and orientations of the blade elements"
 typedef	^	OutputType	MeshType	PlatformPtMesh	-	-	-	"Platform reference point positions/orientations/velocities/accelerations"	-
 typedef	^	OutputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with positions/orientations/velocities/accelerations"	-
+
+typedef	^	OutputType	MeshType	HubPtMotion	-	-	-	"For AeroDyn: motions of the hub"
+typedef	^	OutputType	MeshType	BladeRootMotions	-	-	-	"For AeroDyn: motions of the blade roots"
+typedef	^	OutputType	MeshType	RotorFurlMotion	-	-	-	"For AeroDyn: motions of the rotor furl point."
+typedef	^	OutputType	MeshType	NacelleMotion	-	-	-	"For AeroDyn: motions of the nacelle."
+typedef	^	OutputType	MeshType	TowerMotion	-	-	-	"For AeroDyn: motions of the tower"
+
 # Define outputs that are not on this mesh here:
 typedef	^	OutputType	ReKi	WriteOutput	{:}	-	-	"Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt"
 typedef	^	OutputType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
@@ -792,10 +800,6 @@ typedef	^	OutputType	ReKi	HSS_Spd	-	-	-	"High-speed shaft (HSS) speed"	rad/s
 typedef	^	OutputType	ReKi	RotSpeed	-	-	-	"Rotor azimuth angular speed"	rad/s
 typedef	^	OutputType	ReKi	TwrAccel	-	-	-	"Tower acceleration for tower feedback control (user routine only)"	m/s^2
 typedef	^	OutputType	ReKi	YawAngle	-	-	-	"Yaw angle to be used for yaw error calculations"	radians
-#typedef	^	OutputType	ReKi	HubPosition	3	-	-	"Position of the hub (for AeroDyn)"	m
-#typedef	^	OutputType	ReKi	RotorFurlPosition	3	-	-	"Rotor furl position (for AeroDyn)"	m
-#typedef	^	OutputType	ReKi	NacellePosition	3	-	-	"Nacelle position (for AeroDyn)"	m
-#typedef	^	OutputType	ReKi	TowerPosition	3	-	-	"Tower position (for AeroDyn)"	m
 typedef	^	OutputType	ReKi	RootMyc	3	-	-	"Out-of-plane moment (i.e., the moment caused by out-of-plane forces) at the blade root for each of the blades (max 3)"	N-m
 typedef	^	OutputType	ReKi	YawBrTAxp	-	-	-	"Tower-top / yaw bearing fore-aft (translational) acceleration (absolute)"	m/s^2
 typedef	^	OutputType	ReKi	YawBrTAyp	-	-	-	"Tower-top / yaw bearing side-to-side (translational) acceleration (absolute)"	m/s^2

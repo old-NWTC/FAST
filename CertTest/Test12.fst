@@ -1,5 +1,5 @@
 ------- FAST V8.02.* INPUT FILE ------------------------------------------------
-FAST certification Test #12: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and ECD wind.
+FAST Certification Test #12: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and ECD wind.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)
