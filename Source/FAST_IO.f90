@@ -31,7 +31,7 @@ MODULE FAST_IO_Subs
    USE AeroDyn
    USE AeroDyn_Types
 
-   USE InflowWind, ONLY: WindInfVer
+!   USE InflowWind, ONLY: WindInfVer
    
    USE ServoDyn, ONLY: Cmpl4SFun, Cmpl4LV
     
@@ -291,7 +291,7 @@ CONTAINS
    !-------------------------------------------------------------------------------------------------------------------------------
 END SUBROUTINE FAST_Init
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD_Prog, InitOutData_HD, &
+SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, InitOutData_AD, InitOutData_HD, &
                             InitOutData_SD, InitOutData_MAP, ErrStat, ErrMsg )
 ! This routine initializes the output for the glue code, including writing the header for the primary output file.
 ! was previously called WrOutHdr()
@@ -305,11 +305,10 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
 
    TYPE(ED_InitOutputType),        INTENT(IN)           :: InitOutData_ED                        ! Initialization output for ElastoDyn
    TYPE(SrvD_InitOutputType),      INTENT(IN)           :: InitOutData_SrvD                      ! Initialization output for ServoDyn
+   TYPE(AD_InitOutputType),        INTENT(IN)           :: InitOutData_AD                        ! Initialization output for ServoDyn
    TYPE(HydroDyn_InitOutputType),  INTENT(IN)           :: InitOutData_HD                        ! Initialization output for HydroDyn
    TYPE(SD_InitOutputType),        INTENT(IN)           :: InitOutData_SD                        ! Initialization output for SubDyn
    TYPE(MAP_InitOutputType),       INTENT(IN)           :: InitOutData_MAP                       ! Initialization output for MAP
-
-   TYPE(ProgDesc),                 INTENT(IN)           :: AD_prog ! aerodyn version
 
    INTEGER(IntKi),                 INTENT(OUT)          :: ErrStat                               ! Error status
    CHARACTER(*),                   INTENT(OUT)          :: ErrMsg                                ! Error message corresponding to ErrStat
@@ -340,14 +339,20 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%ED_Ver  ))
 
    IF ( p_FAST%CompAero )  THEN
-      y_FAST%IfW_Ver  = WindInfVer
-      y_FAST%AD_Ver   = AD_Prog
+      y_FAST%IfW_Ver  = InitOutData_AD%IfW_InitOutput%Ver
+      y_FAST%AD_Ver   = InitOutData_AD%Ver
      
       y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%IfW_Ver)) 
       y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%AD_Ver ))      
    ELSE
-      y_FAST%AD_Ver   = AD_Prog
-      y_FAST%IfW_Ver  = WindInfVer
+      y_FAST%AD_Ver%Name = 'AeroDyn'
+      y_FAST%AD_Ver%Date = 'unknown date'
+      y_FAST%AD_Ver%Ver  = 'unknown version'
+      
+      y_FAST%IfW_Ver%Name = 'InflowWind'
+      y_FAST%IfW_Ver%Date = 'unknown date'
+      y_FAST%IfW_Ver%Ver  = 'unknown version'
+            
    END IF
 
    IF ( p_FAST%CompServo ) THEN
@@ -356,7 +361,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    ELSE
       y_FAST%SrvD_Ver%Name = 'ServoDyn'
       y_FAST%SrvD_Ver%Date = 'unknown date'
-      y_FAST%SrvD_Ver%Ver = 'unknown version'
+      y_FAST%SrvD_Ver%Ver  = 'unknown version'
    END IF
          
    IF ( p_FAST%CompHydro ) THEN
@@ -365,7 +370,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    ELSE
       y_FAST%HD_Ver%Name = 'HydroDyn'
       y_FAST%HD_Ver%Date = 'unknown date'
-      y_FAST%HD_Ver%Ver = 'unknown version'
+      y_FAST%HD_Ver%Ver  = 'unknown version'
    END IF
 
    IF ( p_FAST%CompSub ) THEN
@@ -374,7 +379,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    ELSE
       y_FAST%SD_Ver%Name = 'SubDyn'
       y_FAST%SD_Ver%Date = 'unknown date'
-      y_FAST%SD_Ver%Ver = 'unknown version'
+      y_FAST%SD_Ver%Ver  = 'unknown version'
    END IF
 
    IF ( p_FAST%CompMAP ) THEN
@@ -383,7 +388,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    ELSE
       y_FAST%MAP_Ver%Name = 'MAP'
       y_FAST%MAP_Ver%Date = 'unknown date'
-      y_FAST%MAP_Ver%Ver = 'unknown version'
+      y_FAST%MAP_Ver%Ver  = 'unknown version'
    END IF   
    
             
@@ -392,8 +397,12 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
    !......................................................
 
    y_FAST%numOuts_AD   = 0
-   y_FAST%numOuts_IfW  = 3  !hack for now: always output 3 wind speeds at hub-height
-
+   
+   !y_FAST%numOuts_IfW  = 3  !hack for now: always output 3 wind speeds at hub-height
+   y_FAST%numOuts_IfW  = 0 
+   IF ( ALLOCATED( InitOutData_AD%IfW_InitOutput%WriteOutputHdr ) ) &
+                                                       y_FAST%numOuts_IfW  = SIZE(InitOutData_AD%IfW_InitOutput%WriteOutputHdr)
+   
    y_FAST%numOuts_ED   = 0
    IF ( ALLOCATED( InitOutData_ED%WriteOutputHdr   ) ) y_FAST%numOuts_ED   = SIZE(InitOutData_ED%WriteOutputHdr)
 
@@ -429,12 +438,15 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, AD
 
    IF ( y_FAST%numOuts_IfW > 0_IntKi ) THEN  !InflowWind: hack for now
       indxLast = indxNext + y_FAST%numOuts_IfW - 1
-      y_FAST%ChannelNames(indxNext:indxLast)= (/ 'WindVxi   ', 'WindVyi   ', 'WindVzi   ' /)
-      IF ( p_FAST%CompAero ) THEN
-         y_FAST%ChannelUnits(indxNext:indxLast) = (/ '(m/s)     ', '(m/s)     ', '(m/s)     ' /)
-      ELSE
-         y_FAST%ChannelUnits(indxNext:indxLast) = (/ 'INVALID   ', 'INVALID   ', 'INVALID   ' /)
-      END IF
+      y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_AD%IfW_InitOutput%WriteOutputHdr
+      y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_AD%IfW_InitOutput%WriteOutputUnt
+      
+      !y_FAST%ChannelNames(indxNext:indxLast) = (/ 'WindVxi   ', 'WindVyi   ', 'WindVzi   ' /)
+      !IF ( p_FAST%CompAero ) THEN
+      !   y_FAST%ChannelUnits(indxNext:indxLast) = (/ '(m/s)     ', '(m/s)     ', '(m/s)     ' /)
+      !ELSE
+      !   y_FAST%ChannelUnits(indxNext:indxLast) = (/ 'INVALID   ', 'INVALID   ', 'INVALID   ' /)
+      !END IF
       indxNext = indxLast + 1
    END IF
 
@@ -660,6 +672,7 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, ErrStat, ErrMsg )
       ! MAP (Mooring Analysis Program)
    DO J = 1,y_FAST%numOuts_MAP
       I = I + 1
+!      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), 'units', TRIM(y_FAST%MAP_Ver%Name)
       WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%MAP_Ver%Name)
    END DO
       
@@ -1314,20 +1327,19 @@ END SUBROUTINE WrOutputLine
 
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for ED
 !..................................................................................................................................
 
    TYPE(FAST_ParameterType),       INTENT(IN)     :: p_FAST                   ! Glue-code simulation parameters
    TYPE(ED_InputType),             INTENT(INOUT)  :: u_ED                     ! ED Inputs at t
+   TYPE(AD_OutputType),            INTENT(IN)     :: y_AD                     ! AeroDyn outputs
    TYPE(SrvD_OutputType),          INTENT(IN)     :: y_SrvD                   ! ServoDyn outputs
    TYPE(HydroDyn_OutputType),      INTENT(INOUT)  :: y_HD                     ! HydroDyn outputs
    TYPE(HydroDyn_InputType),       INTENT(INOUT)  :: u_HD                     ! HydroDyn inputs
    TYPE(MAP_OutputType),           INTENT(INOUT)  :: y_MAP                    ! MAP outputs
    TYPE(MAP_InputType),            INTENT(INOUT)  :: u_MAP                    ! MAP inputs
    
-!   TYPE(AD_OutputType),            INTENT(IN)     :: y_AD                    ! AeroDyn outputs
-
    TYPE(FAST_ModuleMapType),       INTENT(INOUT)  :: MeshMapData              ! Data for mapping between modules
    INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                  ! Error status
    CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                   ! Error message
@@ -1362,13 +1374,15 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, MeshMa
    END IF
 
       ! ED inputs from AeroDyn
-   IF ( p_FAST%CompAero .and. ALLOCATED(ADAeroLoads%Blade) ) THEN
-      DO K = 1,SIZE(ADAeroLoads%Blade,2) ! Loop through all blades (p_ED%NumBl)
-         DO J = 1,SIZE(ADAeroLoads%Blade,1) ! Loop through the blade nodes / elements (p_ED%BldNodes)
+!   IF ( p_FAST%CompAero .and. ALLOCATED(ADAeroLoads%Blade) ) THEN
+!bjj: need another check on this perhaps
+   IF ( p_FAST%CompAero  ) THEN
+      DO K = 1,SIZE(y_AD%OutputLoads,1) ! Loop through all blades (p_ED%NumBl)
+         DO J = 1,y_AD%OutputLoads(K)%Nnodes ! Loop through the blade nodes / elements (p_ED%BldNodes)
 
-            NodeNum = (K-1)*(SIZE(ADAeroLoads%Blade,1)+2) + J 
-            u_ED%BladeLn2Mesh%Force(:,NodeNum)  = ADAeroLoads%Blade(J,K)%Force
-            u_ED%BladeLn2Mesh%Moment(:,NodeNum) = ADAeroLoads%Blade(J,K)%Moment
+            NodeNum = (K-1)*(y_AD%OutputLoads(K)%Nnodes+2) + J 
+            u_ED%BladeLn2Mesh%Force(:,NodeNum)  = y_AD%OutputLoads(K)%Force(:,J)
+            u_ED%BladeLn2Mesh%Moment(:,NodeNum) = y_AD%OutputLoads(K)%Moment(:,J)
             
          END DO !J
       END DO   !K
@@ -1773,12 +1787,13 @@ END SUBROUTINE SD_InputSolve
 
 
 !====================================================================================================
-SUBROUTINE AD_InputSolve( y_ED, ErrStat, ErrMsg )
+SUBROUTINE AD_InputSolve( u_AD, y_ED, ErrStat, ErrMsg )
 ! THIS ROUTINE IS A HACK TO GET THE OUTPUTS FROM ELASTODYN INTO AERODYN. IT WILL BE REPLACED WHEN THIS CODE LINKS WITH
 ! AERODYN IN THE NEW FRAMEWORK
 !,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
       ! Passed variables
+   TYPE(AD_InputType),          INTENT(INOUT):: u_AD        ! The inputs to AeroDyn
    TYPE(ED_OutputType),         INTENT(IN)   :: y_ED        ! The outputs of the structural dynamics module
    INTEGER(IntKi)                            :: ErrStat     ! Error status of the operation
    CHARACTER(*)                              :: ErrMsg      ! Error message if ErrStat /= ErrID_None
@@ -1792,8 +1807,8 @@ SUBROUTINE AD_InputSolve( y_ED, ErrStat, ErrMsg )
    INTEGER(IntKi)               :: BldNodes
 
    
-   NumBl    = SIZE(ADAeroMarkers%Blade,2)
-   BldNodes = SIZE(ADAeroMarkers%Blade,1)
+   NumBl    = SIZE(u_AD%InputMarkers,1)
+   BldNodes = u_AD%InputMarkers(1)%Nnodes
    
    !-------------------------------------------------------------------------------------------------
    ! Blade positions, orientations, and velocities:
@@ -1804,9 +1819,9 @@ SUBROUTINE AD_InputSolve( y_ED, ErrStat, ErrMsg )
 
          NodeNum = (K-1)*(BldNodes + 2) + J         ! note that this assumes ED has same discretization as AD
          
-         ADAeroMarkers%Blade(J,K)%Position       = y_ED%BladeLn2Mesh%TranslationDisp(:,NodeNum) + y_ED%BladeLn2Mesh%Position(:,NodeNum) 
-         ADAeroMarkers%Blade(J,K)%Orientation    = y_ED%BladeLn2Mesh%Orientation(:,:,NodeNum)
-         ADAeroMarkers%Blade(J,K)%TranslationVel = y_ED%BladeLn2Mesh%TranslationVel(:,NodeNum)
+         u_AD%InputMarkers(K)%Position(:,J)       = y_ED%BladeLn2Mesh%TranslationDisp(:,NodeNum) + y_ED%BladeLn2Mesh%Position(:,NodeNum) 
+         u_AD%InputMarkers(K)%Orientation(:,:,J)  = y_ED%BladeLn2Mesh%Orientation(:,:,NodeNum)
+         u_AD%InputMarkers(K)%TranslationVel(:,J) = y_ED%BladeLn2Mesh%TranslationVel(:,NodeNum)
                   
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
    END DO !K = 1,p%NumBl
@@ -1815,16 +1830,16 @@ SUBROUTINE AD_InputSolve( y_ED, ErrStat, ErrMsg )
    ! Hub positions, orientations, and velocities:
    !  (note that these may have to be adjusted in ElastoDyn as AeroDyn gets rewritten)
    !-------------------------------------------------------------------------------------------------
-   ADInterfaceComponents%Hub%Position    = y_ED%HubPtMotion%TranslationDisp(:,1) +  y_ED%HubPtMotion%Position(:,1)
-   ADInterfaceComponents%Hub%Orientation = y_ED%HubPtMotion%Orientation(:,:,1)   
-   ADInterfaceComponents%Hub%RotationVel = y_ED%HubPtMotion%RotationVel(:,1)
+   u_AD%TurbineComponents%Hub%Position    = y_ED%HubPtMotion%TranslationDisp(:,1) +  y_ED%HubPtMotion%Position(:,1)
+   u_AD%TurbineComponents%Hub%Orientation = y_ED%HubPtMotion%Orientation(:,:,1)   
+   u_AD%TurbineComponents%Hub%RotationVel = y_ED%HubPtMotion%RotationVel(:,1)
    
    !-------------------------------------------------------------------------------------------------
    ! Blade root orientations:
    !-------------------------------------------------------------------------------------------------
    
    DO K=1,NumBl
-      ADInterfaceComponents%Blade(K)%Orientation = y_ED%BladeRootMotions%Orientation(:,:,K)
+      u_AD%TurbineComponents%Blade(K)%Orientation = y_ED%BladeRootMotions%Orientation(:,:,K)
    END DO
             
 
@@ -1832,17 +1847,17 @@ SUBROUTINE AD_InputSolve( y_ED, ErrStat, ErrMsg )
    ! RotorFurl position, orientation, rotational velocity:
    !-------------------------------------------------------------------------------------------------
 
-   ADInterfaceComponents%RotorFurl%Position    = y_ED%RotorFurlMotion%TranslationDisp(:,1) + y_ED%RotorFurlMotion%Position(:,1)  
-   ADInterfaceComponents%RotorFurl%Orientation = y_ED%RotorFurlMotion%Orientation(:,:,1)         
-   ADInterfaceComponents%RotorFurl%RotationVel = y_ED%RotorFurlMotion%RotationVel(:,1)
+   u_AD%TurbineComponents%RotorFurl%Position    = y_ED%RotorFurlMotion%TranslationDisp(:,1) + y_ED%RotorFurlMotion%Position(:,1)  
+   u_AD%TurbineComponents%RotorFurl%Orientation = y_ED%RotorFurlMotion%Orientation(:,:,1)         
+   u_AD%TurbineComponents%RotorFurl%RotationVel = y_ED%RotorFurlMotion%RotationVel(:,1)
    
    !-------------------------------------------------------------------------------------------------
    ! Nacelle position, orientation, rotational velocity:
    !-------------------------------------------------------------------------------------------------      
 
-   ADInterfaceComponents%Nacelle%Position    = y_ED%NacelleMotion%TranslationDisp(:,1) + y_ED%NacelleMotion%Position(:,1)
-   ADInterfaceComponents%Nacelle%Orientation = y_ED%NacelleMotion%Orientation(:,:,1)      
-   ADInterfaceComponents%Nacelle%RotationVel = y_ED%NacelleMotion%RotationVel(:,1)  
+   u_AD%TurbineComponents%Nacelle%Position    = y_ED%NacelleMotion%TranslationDisp(:,1) + y_ED%NacelleMotion%Position(:,1)
+   u_AD%TurbineComponents%Nacelle%Orientation = y_ED%NacelleMotion%Orientation(:,:,1)      
+   u_AD%TurbineComponents%Nacelle%RotationVel = y_ED%NacelleMotion%RotationVel(:,1)  
    
    !-------------------------------------------------------------------------------------------------
    ! Tower base position, rotational velocity:
@@ -1851,31 +1866,32 @@ SUBROUTINE AD_InputSolve( y_ED, ErrStat, ErrMsg )
    
       ! Tower base position should be rT(0) instead of rZ, but AeroDyn needs this for
       ! the HubVDue2Yaw calculation:
-   ADInterfaceComponents%Tower%Position     = y_ED%TowerMotion%TranslationDisp(:,1) + y_ED%TowerMotion%Position(:,1)
-   ADInterfaceComponents%Tower%RotationVel  = y_ED%TowerMotion%RotationVel(:,1)
+   u_AD%TurbineComponents%Tower%Position     = y_ED%TowerMotion%TranslationDisp(:,1) + y_ED%TowerMotion%Position(:,1)
+   u_AD%TurbineComponents%Tower%RotationVel  = y_ED%TowerMotion%RotationVel(:,1)
   
 
 END SUBROUTINE AD_InputSolve
 !====================================================================================================
-SUBROUTINE AeroInput(InitOutData_ED, y_ED, p_ED, p_FAST)
+SUBROUTINE AeroInput(InitInData_AD, InitOutData_ED, y_ED, p_ED, p_FAST)
 ! This subroutine sets up the information needed to initialize AeroDyn, then initializes AeroDyn
 !----------------------------------------------------------------------------------------------------
 
-   USE                     AeroDyn_Types !,   ONLY: ADAeroMarkers, ADCurrentOutputs, ADIntrfaceOptions, ADFirstLoop, Prev_Aero_t
+   USE                     AeroDyn_Types !,   ONLY: u_AD%InputMarkers, ADCurrentOutputs, ADIntrfaceOptions, ADFirstLoop, Prev_Aero_t
    USE                     AeroDyn
-   USE AD_IOParams, ONLY : UnEc !we'll reassign this variable so that it doesn't interfere with HydroDyn
+!   USE AD_IOParams, ONLY : UnEc !we'll reassign this variable so that it doesn't interfere with HydroDyn
 
    IMPLICIT NONE
 
    ! Passed variables:
-   TYPE(ED_InitOutputType), INTENT(IN)  :: InitOutData_ED   ! The initialization output from structural dynamics module
-   TYPE(ED_ParameterType),  INTENT(IN)  :: p_ED             ! The parameters of the structural dynamics module
-   TYPE(ED_OutputType),     INTENT(IN)  :: y_ED             ! The outputs of the structural dynamics module (meshes with position/RefOrientation set)
-   TYPE(FAST_ParameterType),INTENT(IN)  :: p_FAST           ! The parameters of the glue code
+   TYPE(AD_InitInputType),  INTENT(INOUT) :: InitInData_AD    ! The initialization input to AeroDyn
+   TYPE(ED_InitOutputType), INTENT(IN)    :: InitOutData_ED   ! The initialization output from structural dynamics module
+   TYPE(ED_ParameterType),  INTENT(IN)    :: p_ED             ! The parameters of the structural dynamics module
+   TYPE(ED_OutputType),     INTENT(IN)    :: y_ED             ! The outputs of the structural dynamics module (meshes with position/RefOrientation set)
+   TYPE(FAST_ParameterType),INTENT(IN)    :: p_FAST           ! The parameters of the glue code
 
       ! Local variables
 
-   TYPE(AD_InitOptions)       :: ADOptions                  ! Options for AeroDyn
+   !TYPE(AD_InitOptions)       :: ADOptions                  ! Options for AeroDyn
    INTEGER                    :: NumADBldNodes              ! Number of blade nodes in AeroDyn
    REAL(ReKi)                 :: AD_RefHt
 
@@ -1883,62 +1899,66 @@ SUBROUTINE AeroInput(InitOutData_ED, y_ED, p_ED, p_FAST)
 
 
       ! Set up the AeroDyn parameters
-   ADOptions%ADInputFile      = p_FAST%ADFile
-   ADOptions%OutRootName      = p_FAST%OutFileRoot
-   ADOptions%WrSumFile        = p_FAST%SumPrint
-
-
+   InitInData_AD%ADFileName       = p_FAST%ADFile
+   InitInData_AD%OutRootName      = p_FAST%OutFileRoot
+   InitInData_AD%WrSumFile        = p_FAST%SumPrint   
+   
+   InitInData_AD%NumBl     = y_ED%BladeRootMotions%NNodes
+!BJJ: this should not be necessary   >>>>
+!   InitInData_AD%NBlInpSt  = 0
+!<<<<
+   
       ! Hub position and orientation (relative here, but does not need to be)
 
-   ADInterfaceComponents%Hub%Position(:)      = y_ED%HubPtMotion%Position(:,1) - y_ED%HubPtMotion%Position(:,1)  ! bjj: was 0; mesh was changed by adding p_ED%HubHt to 3rd component
-   ADInterfaceComponents%Hub%Orientation(:,:) = y_ED%HubPtMotion%RefOrientation(:,:,1)
+   InitInData_AD%TurbineComponents%Hub%Position(:)      = y_ED%HubPtMotion%Position(:,1) - y_ED%HubPtMotion%Position(:,1)  ! bjj: was 0; mesh was changed by adding p_ED%HubHt to 3rd component
+   InitInData_AD%TurbineComponents%Hub%Orientation(:,:) = y_ED%HubPtMotion%RefOrientation(:,:,1)
 
 
       ! Blade root position and orientation (relative here, but does not need to be)
 
-   IF (.NOT. ALLOCATED( ADInterfaceComponents%Blade ) ) THEN
-      ALLOCATE( ADInterfaceComponents%Blade( y_ED%BladeRootMotions%NNodes ), STAT = ErrStat )
+   IF (.NOT. ALLOCATED( InitInData_AD%TurbineComponents%Blade ) ) THEN
+      ALLOCATE( InitInData_AD%TurbineComponents%Blade( y_ED%BladeRootMotions%NNodes ), STAT = ErrStat )
       IF ( ErrStat /= 0 ) THEN
-         CALL ProgAbort( ' Error allocating space for ADInterfaceComponents%Blade.' )
+         CALL ProgAbort( ' Error allocating space for InitInData_AD%TurbineComponents%Blade.' )
       END IF
    END IF
 
-   DO K=1, SIZE(ADInterfaceComponents%Blade)
-      ADInterfaceComponents%Blade(K)%Position    = y_ED%BladeRootMotions%Position(:,K)
-      ADInterfaceComponents%Blade(K)%Orientation = y_ED%BladeRootMotions%RefOrientation(:,:,K)
+   DO K=1, SIZE(InitInData_AD%TurbineComponents%Blade)
+      InitInData_AD%TurbineComponents%Blade(K)%Position    = y_ED%BladeRootMotions%Position(:,K)
+      InitInData_AD%TurbineComponents%Blade(K)%Orientation = y_ED%BladeRootMotions%RefOrientation(:,:,K)
    END DO
   
 
       ! Blade length
 
-   ADInterfaceComponents%BladeLength = InitOutData_ED%BladeLength
+   InitInData_AD%TurbineComponents%BladeLength = InitOutData_ED%BladeLength
 
 
       ! Initialize AeroDyn
 
-CALL GetNewUnit(UnEc) ! I/O unit number for the echo file.
-   ADAeroMarkers = AD_Init(ADOptions, ADInterfaceComponents, ErrStat)    ! relative markers are returned
-CLOSE(UnEc)   
-UnEc = -1
+!CALL GetNewUnit(UnEc) ! I/O unit number for the echo file.
+!   u_AD%InputMarkers = AD_Init(ADOptions, ADInterfaceComponents, ErrStat)    ! relative markers are returned
+!CLOSE(UnEc)   
+!UnEc = -1
 
 
-      ! get the number of blade nodes from the returned data structure'
-   IF (.NOT. ALLOCATED( ADAeroMarkers%Blade ) ) THEN
-      CALL ProgAbort( 'AeroDyn blade nodes are required to calculate aerodynamic loads.' )
-      NumADBldNodes = 0
-   ELSE
-      NumADBldNodes = SIZE( ADAeroMarkers%Blade, 1 )
-   END IF
-
-      ! allocate variables for aerodyn forces
-
-   IF (.NOT. ALLOCATED(ADIntrfaceOptions%SetMulTabLoc)) THEN
-      ALLOCATE( ADIntrfaceOptions%SetMulTabLoc(NumADBldNodes, InitOutData_ED%NumBl), STAT = ErrStat )
-      IF ( ErrStat /= 0 ) CALL ProgAbort ( ' Error allocating memory for ADIntrfaceOptions%SetMulTabLoc array.' )
-   END IF
-
-   ADIntrfaceOptions%SetMulTabLoc(:,:) = .FALSE.
-   ADIntrfaceOptions%LinearizeFlag     = .FALSE.
+   !   ! get the number of blade nodes from the returned data structure'
+   !IF (.NOT. ALLOCATED( u_AD%InputMarkers%Blade ) ) THEN
+   !   CALL ProgAbort( 'AeroDyn blade nodes are required to calculate aerodynamic loads.' )
+   !   NumADBldNodes = 0
+   !ELSE
+   !   NumADBldNodes = SIZE( u_AD%InputMarkers%Blade, 1 )
+   !END IF
+   !
+   !   ! allocate variables for aerodyn forces
+   !
+   !IF (.NOT. ALLOCATED(u_AD%SetMulTabLoc)) THEN
+   !   ALLOCATE( u_AD%SetMulTabLoc(NumADBldNodes, InitOutData_ED%NumBl), STAT = ErrStat )
+   !   IF ( ErrStat /= 0 ) CALL ProgAbort ( ' Error allocating memory for ADIntrfaceOptions%SetMulTabLoc array.' )
+   !END IF
+   !
+   !ADIntrfaceOptions%SetMulTabLoc(:,:) = .FALSE.
+   !ADIntrfaceOptions%LinearizeFlag     = .FALSE.
 
 !   bjj: we don't use this, so don't allocate it
 !
@@ -1947,63 +1967,24 @@ UnEc = -1
 !      IF ( Sttus /= 0 ) CALL ProgAbort ( ' Error allocating memory for ADIntrfaceOptions%MulTabLoc array.' )
 !   END IF
 
-
-      ! Check that the hub-heights are Set up other parameters only if we need them
-
-   IF ( p_FAST%CompAero )  THEN
-
-      ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
-      AD_RefHt = AD_GetConstant('RefHt', ErrStat)
-
-      IF ( ABS( p_ED%HubHt - AD_RefHt ) > 0.1*( p_ED%HubHt ) )  THEN  !bjj: I believe that this should not be done in the future
-
-         CALL ProgWarn( ' The ElastoDyn hub height ('//TRIM(Num2LStr( p_ED%HubHt ))//') and AeroDyn input'// &
-                       ' reference hub height ('//TRIM(Num2LStr(AD_RefHt))//') differ by more than 10%.' )
-      ENDIF
-
-   ENDIF
+   !
+   !   ! Check that the hub-heights are Set up other parameters only if we need them
+   !
+   !IF ( p_FAST%CompAero )  THEN
+   !
+   !   ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
+   !   AD_RefHt = AD_GetConstant('RefHt', ErrStat)
+   !
+   !   IF ( ABS( p_ED%HubHt - AD_RefHt ) > 0.1*( p_ED%HubHt ) )  THEN  !bjj: I believe that this should not be done in the future
+   !
+   !      CALL ProgWarn( ' The ElastoDyn hub height ('//TRIM(Num2LStr( p_ED%HubHt ))//') and AeroDyn input'// &
+   !                    ' reference hub height ('//TRIM(Num2LStr(AD_RefHt))//') differ by more than 10%.' )
+   !   ENDIF
+   !
+   !ENDIF
 
 
    RETURN
 END SUBROUTINE AeroInput
-!=======================================================================
-SUBROUTINE AeroDyn_End(ErrStat)
-
-   USE AeroDyn_Types
-
-   INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-
-
-
-
-   CALL AD_Terminate(   ErrStat )
-
-
-
-      ! MODULE AeroElem
-
-   IF ( ALLOCATED(ADAeroMarkers%Blade                ) ) DEALLOCATE(ADAeroMarkers%Blade                )
-   IF ( ALLOCATED(ADAeroMarkers%Hub                  ) ) DEALLOCATE(ADAeroMarkers%Hub                  )
-   IF ( ALLOCATED(ADAeroMarkers%RotorFurl            ) ) DEALLOCATE(ADAeroMarkers%RotorFurl            )
-   IF ( ALLOCATED(ADAeroMarkers%Nacelle              ) ) DEALLOCATE(ADAeroMarkers%Nacelle              )
-   IF ( ALLOCATED(ADAeroMarkers%Tower                ) ) DEALLOCATE(ADAeroMarkers%Tower                )
-   IF ( ALLOCATED(ADAeroMarkers%Tail                 ) ) DEALLOCATE(ADAeroMarkers%Tail                 )
-
-   IF ( ALLOCATED(ADAeroLoads%Blade                  ) ) DEALLOCATE(ADAeroLoads%Blade                  )
-   IF ( ALLOCATED(ADAeroLoads%Hub                    ) ) DEALLOCATE(ADAeroLoads%Hub                    )
-   IF ( ALLOCATED(ADAeroLoads%RotorFurl              ) ) DEALLOCATE(ADAeroLoads%RotorFurl              )
-   IF ( ALLOCATED(ADAeroLoads%Nacelle                ) ) DEALLOCATE(ADAeroLoads%Nacelle                )
-   IF ( ALLOCATED(ADAeroLoads%Tower                  ) ) DEALLOCATE(ADAeroLoads%Tower                  )
-   IF ( ALLOCATED(ADAeroLoads%Tail                   ) ) DEALLOCATE(ADAeroLoads%Tail                   )
-
-   IF ( ALLOCATED(ADIntrfaceOptions%SetMulTabLoc     ) ) DEALLOCATE(ADIntrfaceOptions%SetMulTabLoc     )
-   IF ( ALLOCATED(ADIntrfaceOptions%MulTabLoc        ) ) DEALLOCATE(ADIntrfaceOptions%MulTabLoc        )
-
-   IF ( ALLOCATED(ADInterfaceComponents%Blade        ) ) DEALLOCATE(ADInterfaceComponents%Blade        )
-
-
-
-
-END SUBROUTINE AeroDyn_End
 !=======================================================================
 END MODULE FAST_IO_Subs

@@ -101,9 +101,7 @@ SUBROUTINE CallBladedDLL ( DLL, dll_data, p, ErrStat, ErrMsg )
    IF ( aviFAIL /= 0 ) THEN
 
       ErrMsg = TRANSFER(avcMSG,ErrMsg) !convert C character array to Fortran string
-      I      = INDEX(ErrMsg,C_NULL_CHAR) - 1 !if this has a c character at the end...
-      IF ( I > 0 ) ErrMsg = ErrMsg(1:I)
-
+      CALL RemoveNullChar( ErrMsg ) 
       
       IF ( aviFAIL > 0 ) THEN
          ErrStat = ErrID_Info

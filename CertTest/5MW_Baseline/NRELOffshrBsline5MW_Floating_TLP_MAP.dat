@@ -10,7 +10,7 @@ Node Type     X     Y     Z     M     B     FX   FY   FZ
 ---------------------- LINE PROPERTIES ---------------------------------------
 Element  LineType  UnstrLen    NodeAnch  NodeFair  Flags
 (-)      (-)       (m)         (-)       (-)       (-)
-1       Material   151.73       1         2         plot
+1       Material   151.73       1         2         plot line_tension x_pos
 2       repeat     0
 3       repeat     90
 4       repeat     90
@@ -29,3 +29,6 @@ Option
 -ksp_type preonly
 -pc_type lu
 -pc_factor_nonzeros_along_diagonal
+-snes_atol 1e-6
+-snes_rtol 1e-6
+-snes_stol 1e-6
