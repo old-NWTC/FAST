@@ -56,21 +56,20 @@ REM IfW_Loc     is the location of the AeroDyn wind inflow source files
 REM FAST_LOC     is the location of the FAST source files
 REM ----------------------------------------------------------------------------
 
-SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\trunk\source
-SET ED_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
-SET SrvD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
-SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\branches\Framework\Source
-SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\branches\modularization\Source
-SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\HydroDyn\SVNdirectory\branches\HydroDyn_Modularization\Source
-SET SD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\SubDyn\SVNdirectory\branches\v0.4\Source
-SET MAP_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\src\fortran_driver
+SET Registry=CALL Registry
 
-SET HD_Reg_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\HydroDyn\SVNdirectory\branches\HydroDyn_Modularization\Source\RegistryFiles
+SET FAST_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
 
+SET NWTC_Lib_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/miscellaneous/nwtc_subs/SVNdirectory/trunk/source
+SET ED_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
+SET SrvD_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
+SET AD_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/AeroDyn/SVNdirectory/branches/Framework/Source
+SET IfW_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/InflowWind/SVNdirectory/branches/modularization/Source
+SET HD_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source
+SET SD_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/SubDyn/SVNdirectory/branches/v0.4/Source
+SET MAP_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/MAP/SVNdirectory/trunk/src/fortran_driver
 
-SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
-
-SET MAP_Include_Lib=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\executable\map.lib
+SET MAP_Include_Lib=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/MAP/SVNdirectory/trunk/executable/map.lib
 
 REM ----------------------------------------------------------------------------
 REM The following script changes the above paths for Bonnie Jonkman; other users
@@ -89,16 +88,16 @@ SET INTER_DIR=Obj_iwin%BITS%
 :: /nologo /fpp /stand:f03 /Qdiag-disable:5268 /traceback /libs:static /threads /Qmkl:sequential /c
 :: /Qmkl:sequential is for SubDyn's use of intel's math kernel library
 
-SET COMPOPTS=/threads  /O2 /inline:speed /traceback /Qzero /Qsave /real_size:32 /assume:byterecl /fpp
+SET COMPOPTS=/threads  /O2 /inline:speed /traceback /real_size:32 /assume:byterecl /fpp
 rem SET LINKOPTS=/link /stack:64000000
 SET LINKOPTS=/link %MAP_Include_Lib%
 
+SET LINES=++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
+:SourceFiles
 REM ----------------------------------------------------------------------------
 REM -------------------- LIST OF ALL SOURCE FILES ------------------------------
 REM ----------------------------------------------------------------------------
-:SourceFiles
 
 SET NWTC_SOURCES=^
  "%NWTC_Lib_Loc%\SingPrec.f90"^
@@ -118,14 +117,13 @@ SET IfW_SOURCES=^
  "%IfW_Loc%\IFW_FFWind.f90" ^
  "%IfW_Loc%\IFW_HHWind_Types.f90"^
  "%IfW_Loc%\IFW_HHWind.f90" ^
- "%IfW_Loc%\IFW_InflowWind_Types.f90"^
- "%IfW_Loc%\IFW_InflowWind_Subs.f90"^
+ "%IfW_Loc%\InflowWind_Types.f90"^
+ "%IfW_Loc%\InflowWind_Subs.f90"^
  "%IfW_Loc%\InflowWind.f90"
 
 
 SET AD_SOURCES=^
- "%AD_Loc%\SharedTypes.f90"^
- "%AD_Loc%\AeroMods.f90"^
+ "%AD_Loc%\AeroDyn_Types.f90"^
  "%AD_Loc%\GenSubs.f90"^
  "%AD_Loc%\AeroSubs.f90"^
  "%AD_Loc%\AeroDyn.f90"
@@ -199,6 +197,55 @@ SET FAST_SOURCES=^
  "%FAST_LOC%\FAST_Prog.f90"
 
 
+:RunRegistry
+REM ----------------------------------------------------------------------------
+REM ---------------- RUN THE REGISTRY TO AUTO-GENERATE FILES -------------------
+REM ----------------------------------------------------------------------------
+REM note that I'm changing directories, only to put the auto-generated files in their respective locations
+
+ECHO %Lines%
+ECHO Running the FAST Registry to auto-generate source files:
+ECHO.
+
+SET CURRDIR=%CD%
+
+ECHO %Lines%
+CD /D %ED_Loc%
+%REGISTRY% ElastoDyn_Registry.txt -I %NWTC_Lib_Loc%
+
+ECHO %Lines%
+CD /D %SrvD_Loc%
+%REGISTRY% ServoDyn_Registry.txt -I %NWTC_Lib_Loc%
+
+ECHO %Lines%
+CD /D %IfW_Loc%
+%REGISTRY% Reg-IfW_FFWind.txt -I %NWTC_Lib_Loc%
+%REGISTRY% Reg-IfW_HHWind.txt -I %NWTC_Lib_Loc%
+%REGISTRY% Reg-InflowWind.txt -I %NWTC_Lib_Loc%
+
+ECHO %Lines%
+CD /D %AD_Loc%
+%REGISTRY% Registry-AD.txt -I %NWTC_Lib_Loc% -I %IfW_Loc%
+
+ECHO %Lines%
+CD /D %HD_Loc%
+%REGISTRY% RegistryFiles\Current.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
+%REGISTRY% RegistryFiles\Waves.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
+%REGISTRY% RegistryFiles\SS_Radiation.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
+%REGISTRY% RegistryFiles\Conv_Radiation.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
+%REGISTRY% RegistryFiles\WAMIT.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
+%REGISTRY% RegistryFiles\Morison.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
+%REGISTRY% RegistryFiles\HydroDyn.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
+
+ECHO %Lines%
+CD /D %SD_Loc%
+%REGISTRY% "SubDyn Registry.txt" -I %NWTC_Lib_Loc%
+
+ECHO %Lines%
+CD /D %MAP_Loc%
+rem need the syntax for generating the c-to-fortran code...
+
+CD %CURRDIR%
 
 :ivf
 REM ----------------------------------------------------------------------------
@@ -217,7 +264,6 @@ if exist %INTER_DIR%\*.mod DEL %INTER_DIR%\*.mod
 if exist %INTER_DIR%\*.obj DEL %INTER_DIR%\*.obj
 
 
-SET LINES=++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 :: ECHO %Lines%
 :: ECHO Compiling FAST, AeroDyn, ElastoDyn, ServoDyn, HydroDyn, InflowWind, SubDyn, MAP, and NWTC_Library routines to create %ROOT_NAME%.exe:
 
@@ -227,44 +273,61 @@ rem NOTE that I'm compiling the modules separately then linking them later. I sp
 ECHO %Lines%
 ECHO Compiling NWTC Library:
 ifort %COMPOPTS% %NWTC_SOURCES% /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 ECHO %Lines%
 ECHO Compiling Inflow Wind:
 ifort %COMPOPTS% %IfW_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 ECHO %Lines%
 ECHO Compiling AeroDyn:
 ifort %COMPOPTS% %AD_SOURCES%   /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling ElastoDyn:
 ifort %COMPOPTS% %ED_SOURCES%   /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling ServoDyn:
 ifort %COMPOPTS% %SrvD_SOURCES% /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling HydroDyn:
 ifort %COMPOPTS% %HD_SOURCES%   /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling SubDyn:
 ifort %COMPOPTS% %SD_SOURCES%  /Qmkl:sequential /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling MAP:
 ifort %COMPOPTS% %MAP_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling FAST glue code:
 ifort %COMPOPTS% %FAST_SOURCES% /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 :link_now
 ECHO %Lines%
 ECHO Linking compiled modules to form %ROOT_NAME%.exe:
 ifort %INTER_DIR%\*.obj %LINKOPTS% /out:%ROOT_NAME%.exe
 
+:checkError
 ECHO %Lines%
 IF %ERRORLEVEL% NEQ 0 (
 ECHO Error creating %ROOT_NAME%.exe
@@ -272,16 +335,17 @@ ECHO Error creating %ROOT_NAME%.exe
 ECHO %ROOT_NAME%.exe was created.
 )
 
+:end
 REM ----------------------------------------------------------------------------
 REM ------------------------- CLEAR MEMORY -------------------------------------
 REM ----------------------------------------------------------------------------
-:end
 ECHO 
 
 
 SET BITS=
 set LINES=
 SET ROOT_NAME=
+SET REGISTRY=
 
 SET NWTC_Lib_Loc=
 SET ED_Loc=
@@ -289,7 +353,6 @@ SET SrvD_Loc=
 SET AD_Loc=
 SET IfW_Loc=
 SET HD_Loc=
-SET HD_Reg_Loc=
 SET SD_Loc=
 SET MAP_Loc=
 SET FAST_Loc=
@@ -309,5 +372,5 @@ SET COMPOPTS=
 SET LINKOPTS=
 
 SET INTER_DIR=
-
+SET CURRDIR=
 :Done
