@@ -17,7 +17,7 @@ False         CompUserPtfmLd  - Compute additional platform loading {false: none
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
 "5MW_Baseline/NRELOffshrBsline5MW_Floating_TLP_ElastoDyn.dat" EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_DT2.ipt"                  ADFile          - Name of file containing AeroDyn input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_DT2.ipt"            ADFile          - Name of file containing AeroDyn input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_Floating_TLP_ServoDyn.dat"  SrvDFile        - Name of file containing ServoDyn input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_Floating_TLP_HydroDyn.dat"  HDFile          - Name of file containing HydroDyn input parameters (quoted string)
 "unused"                                                      SDFile          - Name of file containing SubDyn input parameters (quoted string)

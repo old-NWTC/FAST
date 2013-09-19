@@ -59,12 +59,14 @@ REM ----------------------------------------------------------------------------
 SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\trunk\source
 SET ED_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 SET SrvD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
-SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\AeroDyn
-SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source\ModulesNotConverted\InflowWind
+SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\branches\Framework\Source
+SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\branches\modularization\Source
 SET HD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\HydroDyn\SVNdirectory\branches\HydroDyn_Modularization\Source
-SET HD_Reg_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source/RegistryFiles
-SET SD_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/SubDyn/SVNdirectory/branches/v0.4/Source
-SET MAP_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/MAP/SVNdirectory/trunk/src/fortran_driver
+SET SD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\SubDyn\SVNdirectory\branches\v0.4\Source
+SET MAP_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\src\fortran_driver
+
+SET HD_Reg_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\HydroDyn\SVNdirectory\branches\HydroDyn_Modularization\Source\RegistryFiles
+
 
 SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 
@@ -112,14 +114,13 @@ SET NWTC_SOURCES=^
 
 
 SET IfW_SOURCES=^
- "%IfW_Loc%\SharedInflowDefs.f90" ^
- "%IfW_Loc%\HHWind.f90"^
- "%IfW_Loc%\FFWind.f90"^
- "%IfW_Loc%\HAWCWind.f90"^
- "%IfW_Loc%\FDWind.f90"^
- "%IfW_Loc%\CTWind.f90"^
- "%IfW_Loc%\UserWind.f90"^
- "%IfW_Loc%\InflowWindMod.f90"
+ "%IfW_Loc%\IFW_FFWind_Types.f90" ^
+ "%IfW_Loc%\IFW_FFWind.f90" ^
+ "%IfW_Loc%\IFW_HHWind_Types.f90"^
+ "%IfW_Loc%\IFW_HHWind.f90" ^
+ "%IfW_Loc%\IFW_InflowWind_Types.f90"^
+ "%IfW_Loc%\IFW_InflowWind_Subs.f90"^
+ "%IfW_Loc%\InflowWind.f90"
 
 
 SET AD_SOURCES=^
