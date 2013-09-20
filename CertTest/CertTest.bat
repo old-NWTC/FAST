@@ -21,12 +21,12 @@ IF /I "%1"=="-IFORT" GOTO ifort
 
 :releaseVer
 echo Using released version of FAST (IVF/VS)
-@SET FAST=..\FAST.exe
+@SET FAST=..\bin\FAST_win32.exe
 goto CertTest
 
 :debugVer
 echo Using FAST compiled in debug mode (IVF/VS)
-@SET FAST=..\FAST_debug.exe
+@SET FAST=..\bin\FAST_debug.exe
 goto CertTest
 
 :gfortran

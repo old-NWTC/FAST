@@ -47,34 +47,32 @@ SET BITS=32
 REM ----------------------------------------------------------------------------
 REM ------------------------- LOCAL PATHS --------------------------------------
 REM ----------------------------------------------------------------------------
-REM -- USERS WILL NEED TO EDIT THESE PATHS TO POINT TO FOLDERS ON THEIR LOCAL --
-REM -- MACHINES.  NOTE: do not use quotation marks around the path names!!!! ---
+REM -- USERS MAY EDIT THESE PATHS TO POINT TO FOLDERS ON THEIR LOCAL MACHINES. -
+REM -- NOTE: do not use quotation marks around the path names!!!! --------------
 REM ----------------------------------------------------------------------------
-REM NWTC_Lib_Loc is the location of the NWTC subroutine library files
-REM AD_Loc  is the location of the AeroDyn source files
-REM IfW_Loc     is the location of the AeroDyn wind inflow source files
-REM FAST_LOC     is the location of the FAST source files
 REM ----------------------------------------------------------------------------
 
-SET Registry=CALL Registry
+rem SET Registry=CALL Registry
+SET Registry=..\bin\Registry_win32.exe
 
-SET FAST_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
+SET FAST_Loc=..\Source
 
-SET NWTC_Lib_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/miscellaneous/nwtc_subs/SVNdirectory/trunk/source
-SET ED_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
-SET SrvD_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
-SET AD_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/AeroDyn/SVNdirectory/branches/Framework/Source
-SET IfW_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/InflowWind/SVNdirectory/branches/modularization/Source
-SET HD_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source
-SET SD_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/SubDyn/SVNdirectory/branches/v0.4/Source
-SET MAP_Loc=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/MAP/SVNdirectory/trunk/src/fortran_driver
+SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
+SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
+SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
+SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
+SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
+SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
+SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
+SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 
-SET MAP_Include_Lib=C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/MAP/SVNdirectory/trunk/executable/map.lib
+SET MAP_Include_Lib=%MAP_Loc%\map.lib
+SET HD_Reg_Loc=%HD_Loc%
 
 REM ----------------------------------------------------------------------------
 REM The following script changes the above paths for Bonnie Jonkman; other users
 REM    should modify the paths above
-IF "%COMPUTERNAME%"=="BJONKMAN-23080S" CALL Set_FAST_paths.bat
+rem IF "%COMPUTERNAME%"=="BJONKMAN-23080S" CALL Set_FAST_paths.bat
 REM ----------------------------------------------------------------------------
 
 
@@ -229,17 +227,17 @@ CD /D %AD_Loc%
 
 ECHO %Lines%
 CD /D %HD_Loc%
-%REGISTRY% RegistryFiles\Current.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
-%REGISTRY% RegistryFiles\Waves.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
-%REGISTRY% RegistryFiles\SS_Radiation.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
-%REGISTRY% RegistryFiles\Conv_Radiation.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
-%REGISTRY% RegistryFiles\WAMIT.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
-%REGISTRY% RegistryFiles\Morison.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
-%REGISTRY% RegistryFiles\HydroDyn.txt -I %NWTC_Lib_Loc% -I %HD_Loc%\RegistryFiles
+%REGISTRY% %HD_Reg_Loc%\Current.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+%REGISTRY% %HD_Reg_Loc%\Waves.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+%REGISTRY% %HD_Reg_Loc%\SS_Radiation.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+%REGISTRY% %HD_Reg_Loc%\Conv_Radiation.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+%REGISTRY% %HD_Reg_Loc%\WAMIT.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+%REGISTRY% %HD_Reg_Loc%\Morison.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+%REGISTRY% %HD_Reg_Loc%\HydroDyn.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
 
 ECHO %Lines%
 CD /D %SD_Loc%
-%REGISTRY% "SubDyn Registry.txt" -I %NWTC_Lib_Loc%
+%REGISTRY% "SubDyn_Registry.txt" -I %NWTC_Lib_Loc%
 
 ECHO %Lines%
 CD /D %MAP_Loc%
@@ -357,6 +355,7 @@ SET SD_Loc=
 SET MAP_Loc=
 SET FAST_Loc=
 SET MAP_Include_Lib=
+SET HD_Reg_Loc=
 
 SET NWTC_SOURCES=
 SET IfW_SOURCES=
