@@ -61,7 +61,7 @@ GOTO checkError
 :IfW_FFWind
 :IfW_HHWind
 SET CURR_LOC=%IfW_Loc%
-%REGISTRY% "%CURR_LOC%\Reg-%ModuleName%.txt" -I %NWTC_Lib_Loc%
+%REGISTRY% %CURR_LOC%\Reg-%ModuleName%.txt -I %NWTC_Lib_Loc% -I %IfW_Loc%
 GOTO checkError
 
 
