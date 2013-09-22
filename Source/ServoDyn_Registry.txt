@@ -9,8 +9,11 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
+# File last changed: $Date$
+# (File) Revision #: $Rev$
+# URL: $HeadURL$
+###################################################################################################################################
 
-#bjj NOTE: All variables initialized here should be double-checked that they are properly initialized in the new framework (i.e. can run twice)
 
 # ...... Include files (definitions from NWTC Library) ............................................................................
 # make sure that the file name does not have any trailing white spaces!
