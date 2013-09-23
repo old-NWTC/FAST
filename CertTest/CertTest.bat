@@ -26,7 +26,7 @@ goto CertTest
 
 :debugVer
 echo Using FAST compiled in debug mode (IVF/VS)
-@SET FAST=..\bin\FAST_debug.exe
+@SET FAST=..\bin\FAST_debug_win32.exe
 goto CertTest
 
 :gfortran
@@ -743,7 +743,7 @@ IF ERRORLEVEL 1  GOTO ERROR
 echo.                                            >> CertTest.out
 echo %POUNDS%                                    >> CertTest.out
 echo.                                            >> CertTest.out
-echo %TEST18%                                    >> CertTest.out
+echo %TEST19%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
@@ -777,7 +777,7 @@ IF ERRORLEVEL 1  GOTO ERROR
 echo.                                            >> CertTest.out
 echo %POUNDS%                                    >> CertTest.out
 echo.                                            >> CertTest.out
-echo %TEST18%                                    >> CertTest.out
+echo %TEST20%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
@@ -811,7 +811,7 @@ IF ERRORLEVEL 1  GOTO ERROR
 echo.                                            >> CertTest.out
 echo %POUNDS%                                    >> CertTest.out
 echo.                                            >> CertTest.out
-echo %TEST18%                                    >> CertTest.out
+echo %TEST21%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
@@ -851,7 +851,7 @@ IF ERRORLEVEL 1  GOTO ERROR
 echo.                                            >> CertTest.out
 echo %POUNDS%                                    >> CertTest.out
 echo.                                            >> CertTest.out
-echo %TEST18%                                    >> CertTest.out
+echo %TEST22%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
