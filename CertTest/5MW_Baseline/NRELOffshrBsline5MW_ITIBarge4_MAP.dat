@@ -12,7 +12,7 @@ Node Type       X       Y       Z     M     B     FX    FY    FZ
 ---------------------- LINE PROPERTIES ---------------------------------------
 Element  LineType  UnstrLen    NodeAnch  NodeFair  Flags
 (-)      (-)       (m)         (-)       (-)       (-)
-1       Material  473.312       1         2        plot line_tension x_pos
+1       Material  473.312       1         2        plot line_tension x_pos anch_tension fair_tension
 2       Material  473.312       3         4        plot line_tension x_pos
 3       repeat    90
 4       repeat    180

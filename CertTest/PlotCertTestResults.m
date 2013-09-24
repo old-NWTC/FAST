@@ -28,7 +28,7 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= 20  %[1:18 20:21] %1:22 
+    for i= [1:18 20:21] %1:22 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
         
@@ -317,6 +317,10 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
         ChannelName = oldCols{1}{iPlot};
         if strcmpi(ChannelName,'WaveElev')
             ChannelName_new = 'Wave1Elev'
+        elseif strncmpi( ChannelName,'Fair',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TFair[i] = FairiTen
+            ChannelName_new = strrep( strrep( ChannelName,'Fair','TFair['),'Ten',']');
+        elseif strncmpi( ChannelName,'Anch',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TAnch[i] = AnchiTen
+            ChannelName_new = strrep( strrep( ChannelName,'Anch','TAnch['),'Ten',']');
         else
             ChannelName_new = strrep(ChannelName,'Wave1V','M1N1V');
             ChannelName_new = strrep(ChannelName,'Wave1A','M1N1A');

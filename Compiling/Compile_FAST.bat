@@ -1,13 +1,18 @@
 @ECHO OFF
 
 REM The calling syntax for this script is
-REM                  Compile_FAST [{32 | 64}]
+REM                  Compile_FAST [{32 | 64}] [-RegistryOnly]
 REM
 REM Add the "32" to the command line to compile FAST in 32-bit.
 REM Add the "64" to the command line to compile FAST in 64-bit.
 REM default is 32.
 
 rem SET BITS=%1
+
+SET RegOnly=1
+IF /I "%1"=="-REGISTRYONLY" goto SetPaths
+RegOnly=0
+ECHO 'TEST'
 
 REM ----------------------------------------------------------------------------
 REM                   set compiler internal variables
@@ -43,7 +48,7 @@ SET BITS=32
 )
 
 
-
+:SetPaths
 REM ----------------------------------------------------------------------------
 REM ------------------------- LOCAL PATHS --------------------------------------
 REM ----------------------------------------------------------------------------
@@ -72,7 +77,7 @@ SET HD_Reg_Loc=%HD_Loc%
 REM ----------------------------------------------------------------------------
 REM The following script changes the above paths for Bonnie Jonkman; other users
 REM    should modify the paths above
-rem IF "%COMPUTERNAME%"=="BJONKMAN-23080S" CALL Set_FAST_paths.bat
+IF "%COMPUTERNAME%"=="BJONKMAN-23080S" CALL Set_FAST_paths.bat
 REM ----------------------------------------------------------------------------
 
 
@@ -207,25 +212,31 @@ ECHO.
 
 SET CURRDIR=%CD%
 
+
 ECHO %Lines%
+ECHO ElastoDyn
 CD /D %ED_Loc%
 %REGISTRY% ElastoDyn_Registry.txt -I %NWTC_Lib_Loc%
 
 ECHO %Lines%
+ECHO ServoDyn
 CD /D %SrvD_Loc%
 %REGISTRY% ServoDyn_Registry.txt -I %NWTC_Lib_Loc%
 
 ECHO %Lines%
+ECHO InflowWind
 CD /D %IfW_Loc%
 %REGISTRY% Reg-IfW_FFWind.txt -I %NWTC_Lib_Loc%
 %REGISTRY% Reg-IfW_HHWind.txt -I %NWTC_Lib_Loc%
 %REGISTRY% Reg-InflowWind.txt -I %NWTC_Lib_Loc%
 
 ECHO %Lines%
+ECHO AeroDyn
 CD /D %AD_Loc%
 %REGISTRY% Registry-AD.txt -I %NWTC_Lib_Loc% -I %IfW_Loc%
 
 ECHO %Lines%
+ECHO HydroDyn
 CD /D %HD_Loc%
 %REGISTRY% %HD_Reg_Loc%\Current.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
 %REGISTRY% %HD_Reg_Loc%\Waves.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
@@ -236,14 +247,20 @@ CD /D %HD_Loc%
 %REGISTRY% %HD_Reg_Loc%\HydroDyn.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
 
 ECHO %Lines%
+ECHO SubDyn
 CD /D %SD_Loc%
 %REGISTRY% "SubDyn_Registry.txt" -I %NWTC_Lib_Loc%
 
 ECHO %Lines%
-CD /D %MAP_Loc%
+rem ECHO MAP
+REM CD /D %MAP_Loc%
 rem need the syntax for generating the c-to-fortran code...
 
 CD %CURRDIR%
+
+IF %RegOnly%==1 goto end
+
+echo 'here'
 
 :ivf
 REM ----------------------------------------------------------------------------
@@ -372,4 +389,5 @@ SET LINKOPTS=
 
 SET INTER_DIR=
 SET CURRDIR=
+SET REGONLY=
 :Done

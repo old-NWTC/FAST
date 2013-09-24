@@ -5,6 +5,11 @@ REM ----------------------------------------------------------------------------
 REM These paths are for Bonnie Jonkman; other users should modify their own paths as necessary
 
 :BJONKMAN-23080S
+ECHO Setting paths for Bonnie Jonkman.
+
+SET Registry=CALL Registry
+SET Crunch=C:\Users\bjonkman\Documents\DATA\DesignCodes\postprocessors\Crunch\SVNdirectory\trunk\crunch_win32.exe
+
 
 SET REG_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\CSC\FAST\Registry\Source
 SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source

@@ -5,8 +5,8 @@
 REM  Set up environment variables.  You will probably have to change these.
 
 @SET Compare=FC /T
-@SET CRUNCH=Call Crunch
-rem @SET CRUNCH=Call C:\Users\bjonkman\Data\DesignCodes\Crunch\Crunch.exe
+@SET CRUNCH=..\bin\crunch_win32.exe
+rem @SET CRUNCH=Call Crunch
 
 @SET MATLAB=matlab
 @SET MBC_SOURCE=C:\Users\bjonkman\Documents\DATA\Downloads\MBC\Source

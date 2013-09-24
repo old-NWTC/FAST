@@ -1539,12 +1539,12 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD_prev )
 ! This routine sets the inputs required for ServoDyn
 !..................................................................................................................................
 
-   TYPE(FAST_ParameterType),   INTENT(IN)     :: p_FAST       ! Glue-code simulation parameters
-   TYPE(SrvD_InputType),       INTENT(INOUT)  :: u_SrvD       ! ServoDyn Inputs at t
-   TYPE(ED_OutputType),        INTENT(IN)     :: y_ED         ! ElastoDyn outputs
-   REAL(ReKi),                 INTENT(IN)     :: y_IfW(3)     ! InflowWind outputs
-   TYPE(SrvD_OutputType),      INTENT(IN)     :: y_SrvD_prev  ! ServoDyn outputs from t - dt
-!  TYPE(AD_OutputType),        INTENT(IN)     :: y_AD         ! AeroDyn outputs
+   TYPE(FAST_ParameterType),         INTENT(IN)     :: p_FAST       ! Glue-code simulation parameters
+   TYPE(SrvD_InputType),             INTENT(INOUT)  :: u_SrvD       ! ServoDyn Inputs at t
+   TYPE(ED_OutputType),              INTENT(IN)     :: y_ED         ! ElastoDyn outputs
+   REAL(ReKi),                       INTENT(IN)     :: y_IfW(3)     ! InflowWind outputs
+   TYPE(SrvD_OutputType), OPTIONAL,  INTENT(IN)     :: y_SrvD_prev  ! ServoDyn outputs from t - dt
+!  TYPE(AD_OutputType),              INTENT(IN)     :: y_AD         ! AeroDyn outputs
 
 
       ! ServoDyn inputs from combination of InflowWind and ElastoDyn
@@ -1572,9 +1572,12 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD_prev )
    ENDIF
 
       ! ServoDyn inputs from ServoDyn outputs at previous step
-
-   u_SrvD%ElecPwr_prev = y_SrvD_prev%ElecPwr  ! we want to know the electrical power from the previous time step  (for the Bladed DLL)
-   u_SrvD%GenTrq_prev  = y_SrvD_prev%GenTrq   ! we want to know the electrical generator torque from the previous time step  (for the Bladed DLL)
+      ! Jason says this violates the framework, but it's only for the Bladed DLL, which itself violates the framework, so I don't care.
+   IF (PRESENT(y_SrvD_prev)) THEN
+      u_SrvD%ElecPwr_prev = y_SrvD_prev%ElecPwr  ! we want to know the electrical power from the previous time step  (for the Bladed DLL)
+      u_SrvD%GenTrq_prev  = y_SrvD_prev%GenTrq   ! we want to know the electrical generator torque from the previous time step  (for the Bladed DLL)
+   ! Otherwise, we'll use the guess provided by the module (this only happens at Step=0)
+   END IF
 
       ! ServoDyn inputs from ElastoDyn
    u_SrvD%Yaw       = y_ED%Yaw  !nacelle yaw

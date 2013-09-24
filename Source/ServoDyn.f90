@@ -293,6 +293,11 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    u%YawAngle = 0.
    u%ElecPwr_prev = 0.
    u%GenTrq_prev = 0.   
+
+   ! These are values from previous step. I'll initialize them here, though the glue code may not use it.
+   y%ElecPwr = u%ElecPwr_prev
+   y%GenTrq  = u%GenTrq_prev      
+   
    
       !............................................................................................
       ! Define system output initializations (set up mesh) here:
@@ -301,7 +306,8 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
    y%WriteOutput = 0
-      
+   
+   
       
    CALL AllocAry( y%BlPitchCom, p%NumBl, 'BlPitchCom', ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
