@@ -58,7 +58,7 @@ True          GenTiStp     - Method to stop the generator {T: timed using TimGen
           2   YawManRat    - Yaw maneuver rate (in absolute value) (deg/s)
           0   NacYawF      - Final yaw angle for override yaw maneuvers (degrees)
 ---------------------- BLADED INTERFACE ----------------------------------------
-"ServoData\DISCON_win32.dll"    DLL_FileName - Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format (-) [used only with Bladed Interface]
+"ServoData\DISCON_OC3Hywind_win32.dll"    DLL_FileName - Name/location of the dynamic library {.dll [Windows] or .so [Linux]} in the Bladed-DLL format (-) [used only with Bladed Interface]
           0   NacYaw_North - Reference yaw angle of the nacelle when the upwind end points due North (deg) [used only with Bladed Interface]
           0   Ptch_Cntrl   - Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} (switch) [used only with Bladed Interface]
           0   Ptch_SetPnt  - Record  5: Below-rated pitch angle set-point (deg) [used only with Bladed Interface]

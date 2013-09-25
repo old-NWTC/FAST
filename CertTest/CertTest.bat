@@ -4,6 +4,7 @@
 
 REM  Set up environment variables.  You will probably have to change these.
 
+
 @SET Compare=FC /T
 @SET CRUNCH=..\bin\crunch_win32.exe
 rem @SET CRUNCH=Call Crunch
@@ -18,6 +19,8 @@ rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
 IF /I "%1"=="-DEBUG" GOTO debugVer
 IF /I "%1"=="-GFORTRAN" GOTO gfortran
 IF /I "%1"=="-IFORT" GOTO ifort
+IF /I "%1"=="-DEVBUILD" GOTO devBuild
+IF /I "%1"=="-DEVDEBUG" GOTO devDebugBuild
 
 :releaseVer
 echo Using released version of FAST (IVF/VS)
@@ -38,6 +41,17 @@ goto CertTest
 echo Using FAST compiled with Compile_FAST.bat (IVF)
 @SET FAST=..\compiling\FAST_iwin32.exe
 goto CertTest
+
+:devBuild
+echo Using FAST compiled with Visual Studio Project, release mode (IVF/VS)
+@SET FAST=..\compiling\FAST_win32.exe
+goto CertTest
+
+:devDebugBuild
+echo Using FAST compiled with Visual Studio Project, debug mode (IVF/VS)
+@SET FAST=..\compiling\FAST_debug_win32.exe
+goto CertTest
+
 ::=======================================================================================================
 
 
@@ -825,11 +839,6 @@ echo %DASHES%                                    >> CertTest.out
 rem *******************************************************
 :Test22
 @echo FAST %TEST22%
-
-echo %POUNDS%
-@echo Skipping this test until SubDyn and MAP are included
-echo %POUNDS%
-GOTO Comparisons
 
 @SET TEST=22
 
