@@ -11,7 +11,7 @@ rem SET BITS=%1
 
 SET RegOnly=1
 IF /I "%1"=="-REGISTRYONLY" goto SetPaths
-RegOnly=0
+SET RegOnly=0
 ECHO 'TEST'
 
 REM ----------------------------------------------------------------------------
@@ -149,7 +149,6 @@ SET SrvD_SOURCES=^
 SET HD_SOURCES=^
  "%HD_Loc%\fftpack.f" ^
  "%HD_Loc%\FFTMod.f90" ^
- "%HD_Loc%\HydroDyn_Output_Types.f90" ^
  "%HD_Loc%\SS_Radiation_Types.f90" ^
  "%HD_Loc%\SS_Radiation.f90" ^
  "%HD_Loc%\Waves_Types.f90" ^
@@ -172,15 +171,6 @@ SET HD_SOURCES=^
 
 SET SD_SOURCES=^
  "%SD_Loc%\DLASRT2.f90" ^
- "%SD_Loc%\KB07AD.f" ^
- "%SD_Loc%\METIS_NODEND_dummy.f" ^
- "%SD_Loc%\EA16AD.f" ^
- "%SD_Loc%\MA57D_dependency.f" ^
- "%SD_Loc%\MA57D.f" ^
- "%SD_Loc%\HSL_ZD11_double.f90" ^
- "%SD_Loc%\hsl_ma57_double.f90" ^
- "%SD_Loc%\EA16_INTERFACE.f90" ^
- "%SD_Loc%\HSL_M57_INTERFACE.f90" ^
  "%SD_Loc%\qsort_c_module.f90" ^
  "%SD_Loc%\SubDyn_Types.f90" ^
  "%SD_Loc%\SD_FEM.f90" ^
@@ -260,7 +250,6 @@ CD %CURRDIR%
 
 IF %RegOnly%==1 goto end
 
-echo 'here'
 
 :ivf
 REM ----------------------------------------------------------------------------

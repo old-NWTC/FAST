@@ -5965,8 +5965,9 @@ SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrM
 
       ! See if the next line is "NEWTOWER".  If it is, read 7 more lines.  If not, read 5 more lines.
 
-   CALL ReadStr( UnIn, MeshFile, Line, VarName='NewTowerModel?', VarDescr='Check for tower influence model', ErrStat=ErrStat2 )
-   IF ( ErrStat >= AbortErrLev ) RETURN
+   CALL ReadVar( UnIn, MeshFile, Line, VarName='NewTowerModel?', VarDescr='Check for tower influence model', ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
       ! Check if this is the "special string" to indicate the new tower influence model
 

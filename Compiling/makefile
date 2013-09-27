@@ -162,22 +162,12 @@ MAP_SOURCES =              \
 
 SD_SOURCES =               \
 	DLASRT2.f90             \
-	hsl_ma57_double.f90     \
 	qsort_c_module.f90      \
-	EA16_INTERFACE.f90      \
-	HSL_M57_INTERFACE.f90   \
-	HSL_ZD11_double.f90     \
 	SD_FEM.f90              \
 	SubDyn_Types.f90        \
 	SubDyn_Output.f90       \
-	SD_UpdateStates.f90     \
 	SubDyn.f90
 
-#	KB07AD.f                \
-#	METIS_NODEND_dummy.f    \
-#	EA16AD.f                \
-#	MA57D_dependency.f      \
-#	MA57D.f                 \
 
 
 
@@ -327,16 +317,10 @@ HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Out
 
 
 # SubDyn dependency rules:
-# EA16AD.obj:                KB07AD.obj
-# MA57D.obj:                 MA57D_dependency.obj METIS_NODEND_dummy.obj
-# hsl_ma57_double.obj:       HSL_ZD11_double.obj MA57D.obj
-# HSL_M57_INTERFACE.obj:     hsl_ma57_double.obj
-# EA16_INTERFACE.obj:        hsl_ma57_double.obj EA16AD.obj
 SubDyn_Types.obj:          NWTC_Library.obj
-# SD_FEM.obj:                NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
-# SubDyn_Output.obj:         SD_FEM.obj
-# SD_UpdateStates.obj: NWTC_Library.obj SubDyn_Types.obj SubDyn_Output.obj
-# SubDyn.obj:                SD_UpdateStates.obj SubDyn_Output.obj  SD_FEM.obj  HSL_ZD11_double.obj  HSL_M57_INTERFACE.obj HSL_ZD11_double.obj EA16_INTERFACE.obj qsort_c_module.obj DLASRT2.obj
+SD_FEM.obj:                NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
+SubDyn_Output.obj:         SD_FEM.obj
+SubDyn.obj:                SD_UpdateStates.obj SubDyn_Output.obj  SD_FEM.obj  qsort_c_module.obj DLASRT2.obj
 
 
 # ElastoDyn dependency rules:
