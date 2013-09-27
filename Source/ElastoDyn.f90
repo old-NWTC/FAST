@@ -5923,11 +5923,14 @@ SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrM
    INTEGER(IntKi), PARAMETER    :: NInputCols = 4                                       ! Number of input columns to be read from the file
    REAL(ReKi)                   :: TmpRAry(NInputCols)                                  ! Temporary variable to read table from file
    INTEGER(IntKi)               :: I                                                    ! loop counter
-   INTEGER(IntKi)               :: NumFoil                                              ! number of airfoil lines to read
+   INTEGER(IntKi)               :: NumLin2Skp                                           ! number of lines to read
+   INTEGER(IntKi)               :: NumFoil                                              ! number of airfoil lines to skip in the AD input file.
    INTEGER(IntKi)               :: UnIn                                                 ! Unit number for reading file
 
    INTEGER(IntKi)               :: ErrStat2                                             ! Temporary Error status
    CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                              ! Temporary Err msg
+   CHARACTER(1024)              :: Line                                                 ! Temporary string.
+   CHARACTER(1024)              :: TmpStr(1)                                            ! Temporary string.
 
 
 
@@ -5954,7 +5957,27 @@ SUBROUTINE ReadBladeMeshFile( BladeKInputFileMesh, MeshFile, UnEc, ErrStat, ErrM
    ! structural dynamics input, we will get this information from AeroDyn like we
    ! used to.
 
-   DO I = 1,17
+   DO I = 1,11
+      CALL ReadCom ( UnIn, MeshFile, 'AeroDyn input (for structural dynamics mesh)', ErrStat2, ErrMsg2  )
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END DO
+
+      ! See if the next line is "NEWTOWER".  If it is, read 7 more lines.  If not, read 5 more lines.
+
+   CALL ReadStr( UnIn, MeshFile, Line, VarName='NewTowerModel?', VarDescr='Check for tower influence model', ErrStat=ErrStat2 )
+   IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! Check if this is the "special string" to indicate the new tower influence model
+
+   CALL Conv2UC( Line )
+   IF ( INDEX(Line, "NEWTOWER" ) > 0 ) THEN
+      NumLin2Skp = 7
+   ELSE
+      NumLin2Skp = 5
+   END IF
+
+   DO I = 1,NumLin2Skp
       CALL ReadCom ( UnIn, MeshFile, 'AeroDyn input (for structural dynamics mesh)', ErrStat2, ErrMsg2  )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF ( ErrStat >= AbortErrLev ) RETURN
