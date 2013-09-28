@@ -55,9 +55,9 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
                 oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
                 newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                
                 
-                if i==20 || i==21
-                    newFiles = strrep(newFiles,'.outb','.out')
-                end
+%                 if i==20 || i==21
+%                      newFiles = strrep(newFiles,'.outb','.out')
+%                 end
             else  % use the text format
                 oldFiles = strcat( oldRoot,  {'.out', '.plt', '.out'} );
                 newFiles = strcat( newRoot,  {'.out', '.plt', '.out'} );
@@ -312,11 +312,12 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
     anyDiffPlot = false;  
     nCols = size(oldData{1},2);
     for iPlot = 2:strd:nCols
+%     for iPlot = 100:strd:nCols
         fig=figure;        
                 
         ChannelName = oldCols{1}{iPlot};
         if strcmpi(ChannelName,'WaveElev')
-            ChannelName_new = 'Wave1Elev'
+            ChannelName_new = 'Wave1Elev';
         elseif strncmpi( ChannelName,'Fair',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TFair[i] = FairiTen
             ChannelName_new = strrep( strrep( ChannelName,'Fair','TFair['),'Ten',']');
         elseif strncmpi( ChannelName,'Anch',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TAnch[i] = AnchiTen
@@ -326,7 +327,7 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
             ChannelName_new = strrep(ChannelName,'Wave1A','M1N1A');
             ChannelName_new = ChannelName;
         end
-            
+% disp( [ChannelName  ' '    ChannelName_new] )       
         HaveLabels = false;
         for iFile = 1:numFiles
             HaveLabels = false;
