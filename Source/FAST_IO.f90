@@ -1566,8 +1566,8 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, y_HD, u_HD, MeshMapData, ErrStat, 
 !..................................................................................................................................
    TYPE(MeshType),                 INTENT(INOUT)  :: u_mapped                 ! temporary copy of ED mesh (an argument to avoid another temporary mesh copy)
    TYPE(ED_InputType),             INTENT(INOUT)  :: u_ED                     ! ED Inputs at t
-   TYPE(HydroDyn_OutputType),      INTENT(INOUT)  :: y_HD                     ! HydroDyn outputs
-   TYPE(HydroDyn_InputType),       INTENT(INOUT)  :: u_HD                     ! HydroDyn inputs
+   TYPE(HydroDyn_OutputType),      INTENT(IN   )  :: y_HD                     ! HydroDyn outputs
+   TYPE(HydroDyn_InputType),       INTENT(IN   )  :: u_HD                     ! HydroDyn inputs
    
    TYPE(FAST_ModuleMapType),       INTENT(INOUT)  :: MeshMapData              ! Data for mapping between modules
    INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                  ! Error status
@@ -1891,7 +1891,7 @@ END SUBROUTINE SD_InputSolve
 SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST &
                                   , u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED &
                                   , u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD & 
-                                  , MeshMapData , ErrStat, ErrMsg )
+                                  , y_MAP, u_MAP, MeshMapData , ErrStat, ErrMsg )
 ! This routine performs the Input-Output solve for ED and HD.
 ! Note that this has been customized for the physics in the problems and is not a general solution.
 !..................................................................................................................................
@@ -1922,6 +1922,9 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST &
    TYPE(HydroDyn_InputType)          , INTENT(INOUT) :: u_HD                  ! System inputs
    TYPE(HydroDyn_OutputType)         , INTENT(INOUT) :: y_HD                  ! System outputs
    
+   TYPE(MAP_OutputType)              , INTENT(IN   ) :: y_MAP                 ! System outputs 
+   TYPE(MAP_InputType)               , INTENT(IN   ) :: u_MAP                 ! System inputs
+!BJJ: we would also need the UserPlatform loads (everything that gets mapped to the platform ref point in ED)   
    
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat               ! Error status of the operation
@@ -1930,23 +1933,25 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST &
    ! Local variables:
    INTEGER,                                PARAMETER :: NumInputs = 12
    REAL(ReKi),                             PARAMETER :: TOL_Squared = (1.0E-4)**2 !not currently used because KMax = 1
-   REAL(ReKi)                                        :: ThisPerturb        ! an arbitrary perturbation (these are linear, so it shouldn't matter)
+   REAL(ReKi)                                        :: ThisPerturb               ! an arbitrary perturbation (these are linear, so it shouldn't matter)
    
-   REAL(ReKi)                                        :: u(NumInputs)           ! 6 loads, 6 accelerations
-   REAL(ReKi)                                        :: u_copy(NumInputs)      ! 6 loads, 6 accelerations
-   REAL(ReKi)                                        :: u_perturb(  NumInputs) ! value of u with perturbations
-   REAL(ReKi)                                        :: u_delta(    NumInputs) !
-   REAL(ReKi)                                        :: U_Resid(    NumInputs) ! Residual of U
+   REAL(ReKi)                                        :: u(NumInputs)              ! 6 loads, 6 accelerations
+   REAL(ReKi)                                        :: u_perturb(NumInputs)         ! 6 loads, 6 accelerations
+   REAL(ReKi)                                        :: u_delta(    NumInputs)    !
+   REAL(ReKi)                                        :: Fn_U_perturb(  NumInputs) ! value of U with perturbations
+   REAL(ReKi)                                        :: Fn_U_Resid(    NumInputs) ! Residual of U
    
    REAL(ReKi)                                        :: Jac(NumInputs,NumInputs+1)
    
    
    TYPE(MeshType)                                    :: u_PlatformPtMesh      ! copy of u_ED input mesh
    
-   TYPE(ED_InputType)                                :: u_ED_copy             ! System inputs
-   TYPE(ED_OutputType)                               :: y_ED_copy             ! System outputs
-   TYPE(HydroDyn_InputType)                          :: u_HD_copy             ! System inputs
-   TYPE(HydroDyn_OutputType)                         :: y_HD_copy             ! System outputs
+   TYPE(ED_InputType)                                :: u_ED_copy             ! Copy of system inputs (we don't want to change the actual inputs, just know what they are) [only used in that U_ED_HD_Residual, but it's more efficient to store here]
+   TYPE(ED_OutputType)                               :: y_ED_input            ! Copy of system outputs sent to this routine (routine input value)
+   TYPE(ED_InputType)                                :: u_ED_perturb          ! Perturbed system inputs
+   TYPE(ED_OutputType)                               :: y_ED_perturb          ! Perturbed system outputs
+   TYPE(HydroDyn_InputType)                          :: u_HD_perturb          ! Perturbed system inputs
+   TYPE(HydroDyn_OutputType)                         :: y_HD_perturb          ! Perturbed system outputs
    
    
    INTEGER(IntKi)                                    :: i                     ! loop counter (jacobian column number)
@@ -1960,12 +1965,15 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST &
     
    ErrStat = ErrID_None
    ErrMsg  = ""
+
+   ! note this routine should be called only
+   ! IF ( p_FAST%CompHydro .AND. .NOT. p_FAST%CompSub ) 
+   
    
       !----------------------------------------------------------------------------------------------------
-      ! 
+      ! Some record keeping stuff:
       !----------------------------------------------------------------------------------------------------      
 
-   IF ( p_FAST%CompHydro .AND. .NOT. p_FAST%CompSub ) THEN
 
          ! A temporary mesh for transfering multiple meshes to ED from HD
       CALL MeshCopy ( u_ED%PlatformPtMesh, u_PlatformPtMesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
@@ -1973,130 +1981,137 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST &
          IF ( ErrStat >= AbortErrLev ) RETURN
       
          ! we want a copy of the underlying mesh, and don't much care what the values of these inputs are, here:
-      CALL ED_CopyInput(  u_ED, u_ED_copy, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
-         CALL CheckError( ErrStat2, 'u_PlatformPtMesh:'//ErrMsg2  )
+      CALL ED_CopyInput( u_ED, u_ED_copy, MESH_NEWCOPY, ErrStat2, ErrMsg2)
+         CALL CheckError( ErrStat2, ErrMsg2  )
          IF ( ErrStat >= AbortErrLev ) RETURN
-            
+      CALL ED_CopyOutput( y_ED, y_ED_input, MESH_NEWCOPY, ErrStat2, ErrMsg2)
+         CALL CheckError( ErrStat2, ErrMsg2  )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+         
+         
+      CALL ED_CopyInput(  u_ED, u_ED_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
+         CALL CheckError( ErrStat2, 'u_PlatformPtMesh:'//ErrMsg2  )
+         IF ( ErrStat >= AbortErrLev ) RETURN                 
+      CALL ED_CopyOutput( y_ED, y_ED_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )         
+         CALL CheckError( ErrStat2, ErrMsg2  )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL HydroDyn_CopyInput(  u_HD, u_HD_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )           
+         CALL CheckError( ErrStat2, ErrMsg2  )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL HydroDyn_CopyOutput( y_HD, y_HD_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )  
+         CALL CheckError( ErrStat2, ErrMsg2  )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+         
+         
+      !----------------------------------------------------------------------------------------------------
+      ! set up u vector, using local initial guesses:
+      !----------------------------------------------------------------------------------------------------                      
+      
       u( 1: 3) = u_ED%PlatformPtMesh%Force(:,1) / ScaleFactor
       u( 4: 6) = u_ED%PlatformPtMesh%Moment(:,1) / ScaleFactor  
-      u( 7: 9) = y_ED%PlatformPtMesh%TranslationAcc(:,1)
-      u(10:12) = y_ED%PlatformPtMesh%RotationAcc(:,1)
-      
-      
+      u( 7: 9) = y_ED_input%PlatformPtMesh%TranslationAcc(:,1)
+      u(10:12) = y_ED_input%PlatformPtMesh%RotationAcc(:,1)
+            
       K = 0
       
       DO
          
+         !-------------------------------------------------------------------------------------------------
          ! Calculate outputs at this_time, based on inputs at this_time
+         !-------------------------------------------------------------------------------------------------
          
          CALL ED_CalcOutput( this_time, u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED, ErrStat2, ErrMsg2 )
             CALL CheckError( ErrStat2, ErrMsg2  )
             IF ( ErrStat >= AbortErrLev ) RETURN
-                     
+                                 
          CALL HydroDyn_CalcOutput( this_time, u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD, ErrStat2, ErrMsg2 )
             CALL CheckError( ErrStat2, ErrMsg2  )
             IF ( ErrStat >= AbortErrLev ) RETURN      
             
          IF ( K >= p_FAST%KMax ) EXIT
          
-         
-         
-         ! Calculate inputs at this_time, based on outputs at this_time
-                                             
-         !......................................................
+                                                            
+         !-------------------------------------------------------------------------------------------------
          ! Calculate Jacobian: partial U/partial u:
-         !......................................................
-         CALL U_ED_HD_Residual(u_ED_copy, y_ED, u_HD, y_HD, u, U_Resid)
+         ! (note that we don't want to change u_ED or u_HD here)
+         !-------------------------------------------------------------------------------------------------
          
-         write(53,*) "t=",this_time," k=",k,"i=",i
-         write(53,'(5(4X,    3(1X,F15.4)/))') u_ED%PlatformPtMesh%Force, u_ED%PlatformPtMesh%Moment
-         write(53,'(5(4X,    3(1X,F15.4)/))') y_ED%PlatformPtMesh%TranslationAcc, y_ED%PlatformPtMesh%RotationAcc
-         write(53,*) ""
+         CALL U_ED_HD_Residual(u_ED, y_ED, u_HD, y_HD, u, Fn_U_Resid)                  
          
-         
+            !...............................
             ! Get ElastoDyn's contribution:
-         CALL ED_CopyOutput( y_ED, y_ED_copy, MESH_NEWCOPY, ErrStat2, ErrMsg2 )         
+            !...............................
          DO i=1,6 !call ED_CalcOutput
             
-            CALL ED_CopyInput(  u_ED, u_ED_copy, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
-            u_copy = u            
-            CALL SetValueOfU( i, u_copy, u_ED_copy, y_ED_copy, ThisPerturb ) ! add perturb to u_ED_copy (y_ED_copy is unused here)
-                        
-         write(53,*) "t=",this_time," k=",k,"i=",i
-         write(53,'(5(4X,    3(1X,F15.4)/))') u_ED_copy%PlatformPtMesh%Force, u_ED_copy%PlatformPtMesh%Moment
-            
-            
-            CALL ED_CalcOutput( this_time, u_ED_copy, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED_copy, ErrStat2, ErrMsg2 ) !calculate y_ED_copy
+            CALL ED_CopyInput(  u_ED, u_ED_perturb, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+            u_perturb = u            
+            CALL Perturb_u( i, u_perturb, u_ED_perturb=u_ED_perturb, perturb=ThisPerturb ) ! perturb u_copy and u_ED_copy by ThisPerturb [routine sets ThisPerturb]
+                                    
+               ! calculate outputs with perturbed inputs:
+            CALL ED_CalcOutput( this_time, u_ED_perturb, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED_perturb, ErrStat2, ErrMsg2 ) !calculate y_ED_perturb
                CALL CheckError( ErrStat2, ErrMsg2  )
                IF ( ErrStat >= AbortErrLev ) RETURN            
-            
-         write(53,'(5(4X,    3(1X,F15.4)/))') y_ED_copy%PlatformPtMesh%TranslationAcc, y_ED_copy%PlatformPtMesh%RotationAcc
-         write(53,*) ""
+                          
                
-               
-            CALL U_ED_HD_Residual(u_ED_copy, y_ED_copy, u_HD, y_HD, u_copy, U_perturb) ! get this perturbation
-            
-         write(52,*) "t=",this_time," k=",k,"i=",i
-         write(52,'(5(4X,    12(1X,F15.4)/))') u, u_copy, U_Resid, U_perturb
-         write(52,*) ""
-            
-!print *, "diff=",(U_perturb - U_Resid)
-            Jac(:,i) = (U_perturb - U_Resid) / ThisPerturb
-!print *, "jac=",Jac(:,i)
+            CALL U_ED_HD_Residual(u_ED_perturb, y_ED_perturb, u_HD, y_HD, u_perturb, Fn_U_perturb) ! get this perturbation, U_perturb
+                        
+            Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
             
          END DO
 
+            !...............................
             ! Get HydroDyn's contribution:
-         CALL HydroDyn_CopyInput(  u_HD, u_HD_copy, MESH_NEWCOPY, ErrStat2, ErrMsg2 )           
-         CALL HydroDyn_CopyOutput( y_HD, y_HD_copy, MESH_NEWCOPY, ErrStat2, ErrMsg2 )         
+            !...............................
+         
          DO i=7,12 !call HD_CalcOutput
                      
-            CALL ED_CopyOutput( y_ED, y_ED_copy, MESH_NEWCOPY, ErrStat2, ErrMsg2 )         
-            u_copy = u            
-            CALL SetValueOfU( i, u_copy, u_ED_copy, y_ED_copy, ThisPerturb ) ! add perturb to y_ED_copy (u_ED_copy is unused here)
-                        
-            CALL Transfer_ED_to_HD( u_HD_copy, y_ED_copy, MeshMapData, ErrStat2, ErrMsg2 ) ! get u_HD_copy
+            ! we want to perturb u_HD, but we're going to perturb the input y_ED and transfer that to HD to get u_HD
+            CALL ED_CopyOutput( y_ED_input, y_ED_perturb, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )         
+            u_perturb = u            
+            CALL Perturb_u( i, u_perturb, y_ED_perturb=y_ED_perturb, perturb=ThisPerturb ) ! perturb u and y_ED by ThisPerturb [routine sets ThisPerturb]
+            CALL Transfer_ED_to_HD( u_HD_perturb, y_ED_perturb, MeshMapData, ErrStat2, ErrMsg2 ) ! get u_HD_perturb
+               CALL CheckError( ErrStat2, ErrMsg2  )
+               IF ( ErrStat >= AbortErrLev ) RETURN                                   
+               
+               ! calculate outputs with perturbed inputs:
+            CALL HydroDyn_CalcOutput( this_time, u_HD_perturb, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD_perturb, ErrStat2, ErrMsg2 )
                CALL CheckError( ErrStat2, ErrMsg2  )
                IF ( ErrStat >= AbortErrLev ) RETURN
-                        
+                           
+               
+            CALL U_ED_HD_Residual(u_ED, y_ED, u_HD_perturb, y_HD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
             
-            CALL HydroDyn_CalcOutput( this_time, u_HD_copy, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD_copy, ErrStat2, ErrMsg2 )
-               CALL CheckError( ErrStat2, ErrMsg2  )
-               IF ( ErrStat >= AbortErrLev ) RETURN
-            
-            CALL U_ED_HD_Residual(u_ED, y_ED, u_HD_copy, y_HD_copy, u_copy, U_perturb) ! get this perturbation
-            
-            Jac(:,i) = (U_perturb - U_Resid) / ThisPerturb
+            Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
 
             
          END DO
-         
-         !......................................................
-         ! Solve for delta u: Jac*u_delta = - U_Resid
-         !......................................................
-         Jac(:,NumInputs+1) = -U_Resid
+                           
+         !-------------------------------------------------------------------------------------------------
+         ! Solve for delta u: Jac*u_delta = - Fn_U_Resid
+         !-------------------------------------------------------------------------------------------------
+         Jac(:,NumInputs+1) = -Fn_U_Resid
          CALL GaussElim( Jac, NumInputs, u_delta, ErrStat2, ErrMsg2 )
             CALL CheckError( ErrStat2, ErrMsg2  )
             IF ( ErrStat >= AbortErrLev ) RETURN
                   
-         write(51,*) "t=",this_time," k=",k
-         write(51,'(12(4X,    13(1X,F15.4)/))') (Jac(i,:),i=1,12)
-         write(51,*) ""
-
-         !......................................................
-         ! check for error, update u, and iterate again
-         !......................................................
+         !write(51,*) "t=",this_time," k=",k
+         !write(51,'(12(4X,    13(1X,F15.4)/))') (Jac(i,:),i=1,12)
+         !write(51,*) ""
+         
+         !-------------------------------------------------------------------------------------------------
+         ! check for error, update inputs (u_ED and u_HD), and iterate again
+         !-------------------------------------------------------------------------------------------------
                   
 !         IF ( DOT_PRODUCT(u_delta, u_delta) <= TOL_Squared ) EXIT
          
          u = u + u_delta
                   
-         u_ED%PlatformPtMesh%Force( :,1)         = u_ED%PlatformPtMesh%Force( :,1)         + u_delta( 1: 3) * ScaleFactor 
-         u_ED%PlatformPtMesh%Moment(:,1)         = u_ED%PlatformPtMesh%Moment(:,1)         + u_delta( 4: 6) * ScaleFactor
-         y_ED%PlatformPtMesh%TranslationAcc(:,1) = y_ED%PlatformPtMesh%TranslationAcc(:,1) + u_delta( 7: 9)
-         y_ED%PlatformPtMesh%RotationAcc(   :,1) = y_ED%PlatformPtMesh%RotationAcc(   :,1) + u_delta(10:12)
+         u_ED%PlatformPtMesh%Force( :,1)               = u_ED%PlatformPtMesh%Force( :,1)               + u_delta( 1: 3) * ScaleFactor 
+         u_ED%PlatformPtMesh%Moment(:,1)               = u_ED%PlatformPtMesh%Moment(:,1)               + u_delta( 4: 6) * ScaleFactor
+         y_ED_input%PlatformPtMesh%TranslationAcc(:,1) = y_ED_input%PlatformPtMesh%TranslationAcc(:,1) + u_delta( 7: 9)
+         y_ED_input%PlatformPtMesh%RotationAcc(   :,1) = y_ED_input%PlatformPtMesh%RotationAcc(   :,1) + u_delta(10:12)
                   
-         CALL Transfer_ED_to_HD( u_HD, y_ED, MeshMapData, ErrStat2, ErrMsg2 ) ! get u_HD with u_delta changes
+         CALL Transfer_ED_to_HD( u_HD, y_ED_input, MeshMapData, ErrStat2, ErrMsg2 ) ! get u_HD with u_delta changes
             CALL CheckError( ErrStat2, ErrMsg2  )
             IF ( ErrStat >= AbortErrLev ) RETURN
          
@@ -2104,48 +2119,48 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST &
          K = K + 1
          
       END DO ! K
-      
-   END IF ! HydroDyn
-      
+            
    
+      CALL CleanUp()
+      
 CONTAINS                                 
    !...............................................................................................................................
-   SUBROUTINE SetValueOfU( n, u2, u_ED2, y_ED2,perturb )
-   ! This routine sets the values of the u array
+   SUBROUTINE Perturb_u( n, u_perturb, u_ED_perturb, y_ED_perturb, perturb )
+   ! This routine perturbs the nth element of the u array (and ED input/output it corresponds to)
    !...............................................................................................................................
 !   REAL( ReKi ),                       INTENT(IN)    :: this_U(NumInputs)
    INTEGER( IntKi )                  , INTENT(IN   ) :: n
-   REAL( ReKi )                      , INTENT(INOUT) :: u2(numInputs)
-   TYPE(ED_InputType)                , INTENT(INOUT) :: u_ED2                  ! System inputs
-   TYPE(ED_OutputType)               , INTENT(INOUT) :: y_ED2                  ! System outputs
+   REAL( ReKi )                      , INTENT(INOUT) :: u_perturb(numInputs)
+   TYPE(ED_InputType) , OPTIONAL     , INTENT(INOUT) :: u_ED_perturb           ! System inputs   (needed only when 1 <= n <=  6)
+   TYPE(ED_OutputType), OPTIONAL     , INTENT(INOUT) :: y_ED_perturb           ! System outputs  (needed only when 7 <= n <= 12)
    REAL( ReKi )                      , INTENT(  OUT) :: perturb
    
    if ( n <= 6 ) then ! ED u
    
       if ( n <= 3 ) then         
-         perturb = GetPerturb( u_ED2%PlatformPtMesh%Force(n   ,1) )         
-         u_ED2%PlatformPtMesh%Force(n   ,1) = u_ED2%PlatformPtMesh%Force(n   ,1) + perturb * ScaleFactor 
+         perturb = GetPerturb( u_ED_perturb%PlatformPtMesh%Force(n   ,1) )         
+         u_ED_perturb%PlatformPtMesh%Force(n   ,1) = u_ED_perturb%PlatformPtMesh%Force(n   ,1) + perturb * ScaleFactor 
       else
-         perturb = GetPerturb( u_ED2%PlatformPtMesh%Moment(n-3,1) )         
-         u_ED2%PlatformPtMesh%Moment(n-3,1) = u_ED2%PlatformPtMesh%Moment(n-3,1) + perturb * ScaleFactor 
+         perturb = GetPerturb( u_ED_perturb%PlatformPtMesh%Moment(n-3,1) )         
+         u_ED_perturb%PlatformPtMesh%Moment(n-3,1) = u_ED_perturb%PlatformPtMesh%Moment(n-3,1) + perturb * ScaleFactor 
       end if
                   
    else ! ED y = HD u
       
       if ( n <= 9 ) then         
-         perturb = GetPerturb( y_ED2%PlatformPtMesh%TranslationAcc(n-6,1) )         
-         y_ED2%PlatformPtMesh%TranslationAcc(n-6,1) = y_ED2%PlatformPtMesh%TranslationAcc(n-6,1) + perturb
+         perturb = GetPerturb( y_ED_perturb%PlatformPtMesh%TranslationAcc(n-6,1) )         
+         y_ED_perturb%PlatformPtMesh%TranslationAcc(n-6,1) = y_ED_perturb%PlatformPtMesh%TranslationAcc(n-6,1) + perturb
       else
-         perturb = GetPerturb( y_ED2%PlatformPtMesh%RotationAcc(n-9,1) )         
-         y_ED2%PlatformPtMesh%RotationAcc(   n-9,1) = y_ED2%PlatformPtMesh%RotationAcc(   n-9,1) + perturb
+         perturb = GetPerturb( y_ED_perturb%PlatformPtMesh%RotationAcc(n-9,1) )         
+         y_ED_perturb%PlatformPtMesh%RotationAcc(   n-9,1) = y_ED_perturb%PlatformPtMesh%RotationAcc(   n-9,1) + perturb
       end if
                   
    end if
            
-   u2(n) = u2(n) + perturb
+   u_perturb(n) = u_perturb(n) + perturb
    
         
-   END SUBROUTINE SetValueOfU
+   END SUBROUTINE Perturb_u
    !...............................................................................................................................
    REAL(ReKi) FUNCTION GetPerturb(x)
       REAL(ReKi), INTENT(IN) :: x
@@ -2159,29 +2174,46 @@ CONTAINS
    SUBROUTINE U_ED_HD_Residual(u_ED2, y_ED2, u_HD2, y_HD2, u_IN, U_Resid)
    !...............................................................................................................................
                                   
-   TYPE(ED_InputType)                , INTENT(INOUT) :: u_ED2                  ! System inputs
-   TYPE(ED_OutputType)               , INTENT(INOUT) :: y_ED2                  ! System outputs
-   TYPE(HydroDyn_InputType)          , INTENT(INOUT) :: u_HD2                  ! System inputs
-   TYPE(HydroDyn_OutputType)         , INTENT(INOUT) :: y_HD2                  ! System outputs
+   TYPE(ED_InputType)                , INTENT(INOUT) :: u_ED2                  ! System inputs (we don't want to change them, so we'll make a local copy; however meshcopy needs intent INOUT)
+   TYPE(ED_OutputType)               , INTENT(IN   ) :: y_ED2                  ! System outputs
+   TYPE(HydroDyn_InputType)          , INTENT(IN   ) :: u_HD2                  ! System inputs
+   TYPE(HydroDyn_OutputType)         , INTENT(IN   ) :: y_HD2                  ! System outputs
    REAL(ReKi)                        , INTENT(IN   ) :: u_in(NumInputs)
    REAL(ReKi)                        , INTENT(  OUT) :: U_Resid(NumInputs)
 
+   ! local copy of u_ED2:      
    
-      ! note: ED outputs must be transfered to HD inputs before solving for ED inputs (so that motions are known on HD mesh for loads mapping)  
-      !CALL Transfer_ED_to_HD( u_HD2, y_ED2, MeshMapData, ErrStat2, ErrMsg2 ) ! get u_HD
-      !   CALL CheckError( ErrStat2, ErrMsg2  )
-      !   IF ( ErrStat >= AbortErrLev ) RETURN
-
-   ! these mesh fields need to be zerod out before calling Transfer_HD_to_ED because the resulting loads get SUMMED there.
-      u_ED2%PlatformPtMesh%Force = 0.
-      u_ED2%PlatformPtMesh%Moment = 0.
+   CALL ED_CopyInput( u_ED2, u_ED_copy, MESH_UPDATECOPY, ErrStat2, ErrMsg2)
+      CALL CheckError( ErrStat2, ErrMsg2  )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   
       
-      CALL Transfer_HD_to_ED( u_PlatformPtMesh, u_ED2, y_HD2, u_HD2, MeshMapData, ErrStat2, ErrMsg2 )         
+      
+   ! these mesh fields need to be zerod out before calling Transfer_HD_to_ED because the resulting loads get SUMMED there.      
+      u_ED_copy%PlatformPtMesh%Force = 0.0_ReKi
+      u_ED_copy%PlatformPtMesh%Moment = 0.0_ReKi
+   
+      IF ( p_FAST%CompMap ) THEN
+      
+         CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, u_PlatformPtMesh, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairleadDisplacement ) !u_MAP contains the orientations needed for moment calculations
+            CALL CheckError( ErrStat2, ErrMsg2 )
+            IF (ErrStat >= AbortErrLev) RETURN
+
+         u_ED_copy%PlatformPtMesh%Force  = u_ED_copy%PlatformPtMesh%Force  + u_PlatformPtMesh%Force
+         u_ED_copy%PlatformPtMesh%Moment = u_ED_copy%PlatformPtMesh%Moment + u_PlatformPtMesh%Moment      
+      
+      END IF
+   
+   
+      u_ED_copy%PlatformPtMesh%Force = u_PlatformPtMesh%Force
+      u_ED_copy%PlatformPtMesh%Moment = u_PlatformPtMesh%Moment
+      
+      CALL Transfer_HD_to_ED( u_PlatformPtMesh, u_ED_copy, y_HD2, u_HD2, MeshMapData, ErrStat2, ErrMsg2 )         
          CALL CheckError( ErrStat2, ErrMsg2  )
          IF ( ErrStat >= AbortErrLev ) RETURN
             
-      U_Resid( 1: 3) = u_in( 1: 3) - u_ED2%PlatformPtMesh%Force(:,1)/ScaleFactor
-      U_Resid( 4: 6) = u_in( 4: 6) - u_ED2%PlatformPtMesh%Moment(:,1)/ScaleFactor      
+      U_Resid( 1: 3) = u_in( 1: 3) - u_ED_copy%PlatformPtMesh%Force(:,1)/ScaleFactor
+      U_Resid( 4: 6) = u_in( 4: 6) - u_ED_copy%PlatformPtMesh%Moment(:,1)/ScaleFactor      
       U_Resid( 7: 9) = u_in( 7: 9) - y_ED2%PlatformPtMesh%TranslationAcc(:,1)
       U_Resid(10:12) = u_in(10:12) - y_ED2%PlatformPtMesh%RotationAcc(:,1)
    
@@ -2196,8 +2228,6 @@ CONTAINS
       INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
       CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
 
-      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
 
       !............................................................................................................................
       ! Set error status/message;
@@ -2210,24 +2240,37 @@ CONTAINS
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) THEN
-            CALL MeshDestroy ( u_PlatformPtMesh, ErrStat3, ErrMsg3 )
-               IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
-            
-            CALL ED_DestroyInput( u_ED_copy, ErrStat3, ErrMsg3 )
-               IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/ED_DestroyInput: '//TRIM(ErrMsg3) )
-            CALL ED_DestroyOutput(y_ED_copy, ErrStat3, ErrMsg3 )
-               IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/ED_DestroyOutput: '//TRIM(ErrMsg3) )
-            CALL HydroDyn_DestroyInput( u_HD_copy, ErrStat3, ErrMsg3 )
-               IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/HydroDyn_DestroyInput: '//TRIM(ErrMsg3) )
-            CALL HydroDyn_DestroyOutput(y_HD_copy, ErrStat3, ErrMsg3 )
-               IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/HydroDyn_DestroyOutput: '//TRIM(ErrMsg3) )                        
-         END IF
+         IF ( ErrStat >= AbortErrLev ) CALL CleanUp()
 
       END IF
 
 
    END SUBROUTINE CheckError   
+   !...............................................................................................................................
+   SUBROUTINE CleanUp()
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
+      
+      CALL MeshDestroy ( u_PlatformPtMesh, ErrStat3, ErrMsg3 )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
+            
+      CALL ED_DestroyInput( u_ED_copy, ErrStat3, ErrMsg3 )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/ED_DestroyInput: '//TRIM(ErrMsg3) )
+      CALL ED_DestroyOutput(y_ED_input, ErrStat3, ErrMsg3 )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/ED_DestroyOutput: '//TRIM(ErrMsg3) )
+         
+      CALL ED_DestroyInput( u_ED_perturb, ErrStat3, ErrMsg3 )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/ED_DestroyInput: '//TRIM(ErrMsg3) )
+      CALL ED_DestroyOutput(y_ED_perturb, ErrStat3, ErrMsg3 )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/ED_DestroyOutput: '//TRIM(ErrMsg3) )
+         
+      CALL HydroDyn_DestroyInput( u_HD_perturb, ErrStat3, ErrMsg3 )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/HydroDyn_DestroyInput: '//TRIM(ErrMsg3) )
+      CALL HydroDyn_DestroyOutput(y_HD_perturb, ErrStat3, ErrMsg3 )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_HD_InputOutputSolve/HydroDyn_DestroyOutput: '//TRIM(ErrMsg3) )                        
+   
+   
+   END SUBROUTINE CleanUp
    !...............................................................................................................................
 END SUBROUTINE ED_HD_InputOutputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -2377,7 +2420,7 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
       ! Blade root position and orientation (relative here, but does not need to be)
 
    IF (.NOT. ALLOCATED( InitInData_AD%TurbineComponents%Blade ) ) THEN
-      ALLOCATE( InitInData_AD%TurbineComponents%Blade( y_ED%BladeRootMotions%NNodes ), STAT = ErrStat )
+      ALLOCATE( InitInData_AD%TurbineComponents%Blade( InitInData_AD%NumBl ), STAT = ErrStat )
       IF ( ErrStat /= 0 ) THEN
          ErrStat = ErrID_Fatal
          ErrMsg = ' Error allocating space for InitInData_AD%TurbineComponents%Blade.'
@@ -2387,7 +2430,7 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
       END IF
    END IF
 
-   DO K=1, SIZE(InitInData_AD%TurbineComponents%Blade)
+   DO K=1, InitInData_AD%NumBl
       InitInData_AD%TurbineComponents%Blade(K)%Position    = y_ED%BladeRootMotions%Position(:,K)
       InitInData_AD%TurbineComponents%Blade(K)%Orientation = y_ED%BladeRootMotions%RefOrientation(:,:,K)
    END DO
