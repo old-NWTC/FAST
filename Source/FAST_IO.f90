@@ -1474,8 +1474,12 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, 
    !      CALL Transfer_Line2_to_Line2( )
       
          J = y_AD%Twr_OutputLoads%NNodes
-         u_ED%TowerLn2Mesh%Force(:,1:J)  = u_ED%TowerLn2Mesh%Force( :,1:J) + y_AD%Twr_OutputLoads%Force
-         u_ED%TowerLn2Mesh%Moment(:,1:J) = u_ED%TowerLn2Mesh%Moment(:,1:J) + y_AD%Twr_OutputLoads%Moment 
+         
+         IF (y_AD%Twr_OutputLoads%FIELDMASK(MASKID_FORCE) ) &
+            u_ED%TowerLn2Mesh%Force(:,1:J)  = u_ED%TowerLn2Mesh%Force( :,1:J) + y_AD%Twr_OutputLoads%Force
+         
+         IF (y_AD%Twr_OutputLoads%FIELDMASK(MASKID_MOMENT) ) &
+            u_ED%TowerLn2Mesh%Moment(:,1:J) = u_ED%TowerLn2Mesh%Moment(:,1:J) + y_AD%Twr_OutputLoads%Moment 
       
       END IF   
       
