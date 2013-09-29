@@ -1677,14 +1677,15 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 !   REAL(ReKi)                   :: CThrstzs                                        ! Estimate of the zs-location of the center of thrust.
    REAL(ReKi)                   :: FrcMGagB  (3)                                   ! Total force at the blade element   (body M) / blade strain gage location            (point S) due to the blade above the strain gage.
    REAL(ReKi)                   :: FrcFGagT  (3)                                   ! Total force at the tower element   (body F) / tower strain gage location            (point T) due to the nacelle and rotor and tower above the strain gage.
-   REAL(ReKi)                   :: FrcONcRt  (3)                                   ! Total force at the yaw bearing (point O  ) due to the nacelle, generator, and rotor.
-   REAL(ReKi)                   :: FrcPRot   (3)                                   ! Total force at the teeter pin  (point P  ) due to the rotor.
-   REAL(ReKi)                   :: FrcT0Trb  (3)                                   ! Total force at the base of flexible portion of the tower (point T(0)) due to the entire wind turbine.
-   REAL(ReKi)                   :: FZHydro   (3)                                   ! Total platform hydrodynamic force at the platform reference (point Z).
-   REAL(ReKi)                   :: HHWndVec  (3)                                   ! Hub-height wind vector in the AeroDyn coordinate system.
-   REAL(ReKi)                   :: LinAccEIMU(3)                                   ! Total linear acceleration of the nacelle IMU (point IMU) in the inertia frame (body E for earth).
-   REAL(ReKi)                   :: LinAccEO  (3)                                   ! Total linear acceleration of the base plate (point O) in the inertia frame (body E for earth).
-   REAL(ReKi)                   :: LinAccEZ  (3)                                   ! Total linear acceleration of the platform refernce (point Z) in the inertia frame (body E for earth).
+   REAL(ReKi)                   :: FrcONcRt  (3)                                   ! Total force at the yaw bearing (point O  ) due to the nacelle, generator, and rotor
+   REAL(ReKi)                   :: FrcPRot   (3)                                   ! Total force at the teeter pin  (point P  ) due to the rotor
+   REAL(ReKi)                   :: FrcT0Trb  (3)                                   ! Total force at the base of flexible portion of the tower (point T(0)) due to the entire wind turbine
+   REAL(ReKi)                   :: FZHydro   (3)                                   ! Total platform hydrodynamic force at the platform reference (point Z)
+   REAL(ReKi)                   :: HHWndVec  (3)                                   ! Hub-height wind vector in the AeroDyn coordinate system
+   REAL(ReKi)                   :: LinAccEIMU(3)                                   ! Total linear acceleration of the nacelle IMU (point IMU) in the inertia frame (body E for earth)
+   REAL(ReKi)                   :: LinAccEO  (3)                                   ! Total linear acceleration of the base plate (point O) in the inertia frame (body E for earth)
+   REAL(ReKi)                   :: LinAccEZ  (3)                                   ! Total linear acceleration of the platform refernce (point Z) in the inertia frame (body E for earth)
+   REAL(ReKi)                   :: LinVelET0 (3)                                   ! Total linear velocity of the tower base (point T0) in the inertia frame (body E for earth) 
    REAL(ReKi)                   :: MomBNcRt  (3)                                   ! Total moment at the base plate      (body B) / yaw bearing                           (point O) due to the nacelle, generator, and rotor.
    REAL(ReKi)                   :: MomFGagT  (3)                                   ! Total moment at the tower element   (body F) / tower strain gage location            (point T) due to the nacelle and rotor and tower above the strain gage.
    REAL(ReKi)                   :: MomLPRot  (3)                                   ! Total moment at the low-speed shaft (body L) / teeter pin                            (point P) due to the rotor.
@@ -2663,102 +2664,82 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !...............................................................................................................................
       
    DO J=1,p%TwrNodes
-      y%TowerLn2Mesh%TranslationDisp(1,J) =     OtherState%RtHS%rT( J,1)
-      y%TowerLn2Mesh%TranslationDisp(2,J) = -1.*OtherState%RtHS%rT( J,3)
-      y%TowerLn2Mesh%TranslationDisp(3,J) =     OtherState%RtHS%rT( J,2) + p%PtfmRefzt
+      y%TowerLn2Mesh%TranslationDisp(1,J) =     OtherState%RtHS%rT( J,1) - y%TowerLn2Mesh%Position(1,J)
+      y%TowerLn2Mesh%TranslationDisp(2,J) = -1.*OtherState%RtHS%rT( J,3) - y%TowerLn2Mesh%Position(2,J)
+      y%TowerLn2Mesh%TranslationDisp(3,J) =     OtherState%RtHS%rT( J,2) - y%TowerLn2Mesh%Position(3,J) + p%PtfmRefzt
             
+      y%TowerLn2Mesh%Orientation(1,1,J)   =     OtherState%CoordSys%t1(J,1)
+      y%TowerLn2Mesh%Orientation(3,1,J)   =     OtherState%CoordSys%t2(J,1)
+      y%TowerLn2Mesh%Orientation(2,1,J)   = -1.*OtherState%CoordSys%t3(J,1)
+      y%TowerLn2Mesh%Orientation(1,2,J)   = -1.*OtherState%CoordSys%t1(J,3)
+      y%TowerLn2Mesh%Orientation(3,2,J)   = -1.*OtherState%CoordSys%t2(J,3)
+      y%TowerLn2Mesh%Orientation(2,2,J)   =     OtherState%CoordSys%t3(J,3)
+      y%TowerLn2Mesh%Orientation(1,3,J)   =     OtherState%CoordSys%t1(J,2)
+      y%TowerLn2Mesh%Orientation(3,3,J)   =     OtherState%CoordSys%t2(J,2)
+      y%TowerLn2Mesh%Orientation(2,3,J)   = -1.*OtherState%CoordSys%t3(J,2)     
+      
       y%TowerLn2Mesh%TranslationVel(1,J)  =     OtherState%RtHS%LinVelET(J,1)
       y%TowerLn2Mesh%TranslationVel(2,J)  = -1.*OtherState%RtHS%LinVelET(J,3)
       y%TowerLn2Mesh%TranslationVel(3,J)  =     OtherState%RtHS%LinVelET(J,2)
             
       y%TowerLn2Mesh%RotationVel(1,J)     =     OtherState%RtHS%AngVelEF(J,1)
       y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEF(J,3)
-      y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEF(J,2)
-                
-      
-      y%TowerLn2Mesh%Orientation(1,1,J) =     OtherState%CoordSys%t1(J,1)
-      y%TowerLn2Mesh%Orientation(3,1,J) =     OtherState%CoordSys%t2(J,1)
-      y%TowerLn2Mesh%Orientation(2,1,J) = -1.*OtherState%CoordSys%t3(J,1)
-      y%TowerLn2Mesh%Orientation(1,2,J) = -1.*OtherState%CoordSys%t1(J,3)
-      y%TowerLn2Mesh%Orientation(3,2,J) = -1.*OtherState%CoordSys%t2(J,3)
-      y%TowerLn2Mesh%Orientation(2,2,J) =     OtherState%CoordSys%t3(J,3)
-      y%TowerLn2Mesh%Orientation(1,3,J) =     OtherState%CoordSys%t1(J,2)
-      y%TowerLn2Mesh%Orientation(3,3,J) =     OtherState%CoordSys%t2(J,2)
-      y%TowerLn2Mesh%Orientation(2,3,J) = -1.*OtherState%CoordSys%t3(J,2)
-            
-!PRINT *, '>>>>>'
-!WRITE(*,'(3( 3(1X,F15.5),/))') y%TowerLn2Mesh%Orientation(:,:,j)
-!PRINT *, ""
-!      CALL SmllRotTrans( 'tower deflection (ED_CalcOutput)', &
-      !       OtherState%RtHS%AngPosEF(J,1), -1.*OtherState%RtHS%AngPosEF(J,3), OtherState%RtHS%AngPosEF(J,2), &
-      !       y%TowerLn2Mesh%Orientation(:,:,J), errstat=ErrStat2, errmsg=ErrMsg2 )
-      !IF (ErrStat2 /= ErrID_None) THEN
-      !   ErrStat = MAX(ErrStat, ErrStat2)
-      !   ErrMsg  = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)//' (occurred at '//TRIM(Num2LStr(t))//' s)'
-      !   !IF (ErrStat >= AbortErrLev) RETURN
-      !END IF
-
-!WRITE(*,'(3( 3(1X,F15.5),/))') y%TowerLn2Mesh%Orientation(:,:,j)
-!PRINT *, '<<<<<'
-!      
+      y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEF(J,2) 
    END DO
                
    
-if (t <= p%DT) call wrscr('Ask Jason what these output values should be!')   
-
    ! p%TwrNodes+1 is the tower top:
    J = p%TwrNodes+1
-!   y%TowerLn2Mesh%TranslationDisp(1,p%TwrNodes+1) =   OtherState%AllOuts(YawBrTDxp)   !bjj: or is it YawBrTDxt?   
-!   y%TowerLn2Mesh%TranslationDisp(2,p%TwrNodes+1) =   OtherState%AllOuts(YawBrTDyp)   !bjj: or is it YawBrTDyt?     
-!   y%TowerLn2Mesh%TranslationDisp(3,p%TwrNodes+1) =   OtherState%AllOuts(YawBrTDzp)   !bjj: or is it YawBrTDzt?     
-!      
-!   y%TowerLn2Mesh%TranslationVel(1,p%TwrNodes+1) =          
-!   y%TowerLn2Mesh%TranslationVel(2,p%TwrNodes+1) =    
-!   y%TowerLn2Mesh%TranslationVel(3,p%TwrNodes+1) =         
-!
-!   y%TowerLn2Mesh%RotationVel(1,p%TwrNodes+1)    =   OtherState%AllOuts(YawBrRVxp) * D2R    
-!   y%TowerLn2Mesh%RotationVel(2,p%TwrNodes+1)    =   OtherState%AllOuts(YawBrRVyp) * D2R    
-!   y%TowerLn2Mesh%RotationVel(3,p%TwrNodes+1)    =   OtherState%AllOuts(YawBrRVzp) * D2R    
-!
-!
-
-   y%TowerLn2Mesh%Orientation(1,1,J) =     OtherState%CoordSys%b1(1)
-   y%TowerLn2Mesh%Orientation(3,1,J) =     OtherState%CoordSys%b2(1)
-   y%TowerLn2Mesh%Orientation(2,1,J) = -1.*OtherState%CoordSys%b3(1)
-   y%TowerLn2Mesh%Orientation(1,2,J) = -1.*OtherState%CoordSys%b1(3)
-   y%TowerLn2Mesh%Orientation(3,2,J) = -1.*OtherState%CoordSys%b2(3)
-   y%TowerLn2Mesh%Orientation(2,2,J) =     OtherState%CoordSys%b3(3)
-   y%TowerLn2Mesh%Orientation(1,3,J) =     OtherState%CoordSys%b1(2)
-   y%TowerLn2Mesh%Orientation(3,3,J) =     OtherState%CoordSys%b2(2)
-   y%TowerLn2Mesh%Orientation(2,3,J) = -1.*OtherState%CoordSys%b3(2)
-      
-   ! p%TwrNodes+2 is the tower base:
    
+   y%TowerLn2Mesh%TranslationDisp(1,J) =     OtherState%RtHS%rO(1) - y%TowerLn2Mesh%Position(1,J)
+   y%TowerLn2Mesh%TranslationDisp(2,J) = -1.*OtherState%RtHS%rO(3) - y%TowerLn2Mesh%Position(2,J)
+   y%TowerLn2Mesh%TranslationDisp(3,J) =     OtherState%RtHS%rO(2) - y%TowerLn2Mesh%Position(3,J) + p%PtfmRefzt
+   
+   y%TowerLn2Mesh%Orientation(1,1,J)   =     OtherState%CoordSys%b1(1)
+   y%TowerLn2Mesh%Orientation(3,1,J)   =     OtherState%CoordSys%b2(1)
+   y%TowerLn2Mesh%Orientation(2,1,J)   = -1.*OtherState%CoordSys%b3(1)
+   y%TowerLn2Mesh%Orientation(1,2,J)   = -1.*OtherState%CoordSys%b1(3)
+   y%TowerLn2Mesh%Orientation(3,2,J)   = -1.*OtherState%CoordSys%b2(3)
+   y%TowerLn2Mesh%Orientation(2,2,J)   =     OtherState%CoordSys%b3(3)
+   y%TowerLn2Mesh%Orientation(1,3,J)   =     OtherState%CoordSys%b1(2)
+   y%TowerLn2Mesh%Orientation(3,3,J)   =     OtherState%CoordSys%b2(2)
+   y%TowerLn2Mesh%Orientation(2,3,J)   = -1.*OtherState%CoordSys%b3(2)         
+          
+   y%TowerLn2Mesh%TranslationVel(1,J)  =     OtherState%RtHS%LinVelEO(1)         
+   y%TowerLn2Mesh%TranslationVel(2,J)  = -1.*OtherState%RtHS%LinVelEO(3)   
+   y%TowerLn2Mesh%TranslationVel(3,J)  =     OtherState%RtHS%LinVelEO(2)        
+
+   y%TowerLn2Mesh%RotationVel(1,J)     =     OtherState%RtHS%AngVelEB(1)
+   y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEB(3)
+   y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEB(2) 
+
+   
+   ! p%TwrNodes+2 is the tower base:
    J = p%TwrNodes+2
 
-!   y%TowerLn2Mesh%TranslationDisp(1,p%TwrNodes+2) =          
-!   y%TowerLn2Mesh%TranslationDisp(2,p%TwrNodes+2) =          
-!   y%TowerLn2Mesh%TranslationDisp(3,p%TwrNodes+2) =          
-!
-!   y%TowerLn2Mesh%TranslationVel(1,p%TwrNodes+2) =          
-!   y%TowerLn2Mesh%TranslationVel(2,p%TwrNodes+2) =          
-!   y%TowerLn2Mesh%TranslationVel(3,p%TwrNodes+2) =             
-!      
-!   y%TowerLn2Mesh%RotationVel(1,p%TwrNodes+2)    =          
-!   y%TowerLn2Mesh%RotationVel(2,p%TwrNodes+2)    =          
-!   y%TowerLn2Mesh%RotationVel(3,p%TwrNodes+2)    =             
-                          
-   y%TowerLn2Mesh%Orientation(1,1,J) =     OtherState%CoordSys%a1(1)
-   y%TowerLn2Mesh%Orientation(3,1,J) =     OtherState%CoordSys%a2(1)
-   y%TowerLn2Mesh%Orientation(2,1,J) = -1.*OtherState%CoordSys%a3(1)
-   y%TowerLn2Mesh%Orientation(1,2,J) = -1.*OtherState%CoordSys%a1(3)
-   y%TowerLn2Mesh%Orientation(3,2,J) = -1.*OtherState%CoordSys%a2(3)
-   y%TowerLn2Mesh%Orientation(2,2,J) =     OtherState%CoordSys%a3(3)
-   y%TowerLn2Mesh%Orientation(1,3,J) =     OtherState%CoordSys%a1(2)
-   y%TowerLn2Mesh%Orientation(3,3,J) =     OtherState%CoordSys%a2(2)
-   y%TowerLn2Mesh%Orientation(2,3,J) = -1.*OtherState%CoordSys%a3(2)
+   y%TowerLn2Mesh%TranslationDisp(1,J) =     OtherState%RtHS%rZ(1) + OtherState%RtHS%rZT0(1) - y%TowerLn2Mesh%Position(1,J)
+   y%TowerLn2Mesh%TranslationDisp(2,J) = -1.*OtherState%RtHS%rZ(3) - OtherState%RtHS%rZT0(3) - y%TowerLn2Mesh%Position(2,J)
+   y%TowerLn2Mesh%TranslationDisp(3,J) =     OtherState%RtHS%rZ(2) + OtherState%RtHS%rZT0(2) - y%TowerLn2Mesh%Position(3,J) + p%PtfmRefzt
+      
+   y%TowerLn2Mesh%Orientation(1,1,J)   =     OtherState%CoordSys%a1(1)
+   y%TowerLn2Mesh%Orientation(3,1,J)   =     OtherState%CoordSys%a2(1)
+   y%TowerLn2Mesh%Orientation(2,1,J)   = -1.*OtherState%CoordSys%a3(1)
+   y%TowerLn2Mesh%Orientation(1,2,J)   = -1.*OtherState%CoordSys%a1(3)
+   y%TowerLn2Mesh%Orientation(3,2,J)   = -1.*OtherState%CoordSys%a2(3)
+   y%TowerLn2Mesh%Orientation(2,2,J)   =     OtherState%CoordSys%a3(3)
+   y%TowerLn2Mesh%Orientation(1,3,J)   =     OtherState%CoordSys%a1(2)
+   y%TowerLn2Mesh%Orientation(3,3,J)   =     OtherState%CoordSys%a2(2)
+   y%TowerLn2Mesh%Orientation(2,3,J)   = -1.*OtherState%CoordSys%a3(2)
+
+   LinVelET0 = OtherState%RtHS%LinVelEZ + CROSS_PRODUCT( OtherState%RtHS%AngVelEX, OtherState%RtHS%rZT0 )
+   y%TowerLn2Mesh%TranslationVel(1,J)  =     LinVelET0(1)       
+   y%TowerLn2Mesh%TranslationVel(2,J)  = -1.*LinVelET0(3) 
+   y%TowerLn2Mesh%TranslationVel(3,J)  =     LinVelET0(2)   
    
-   
+   y%TowerLn2Mesh%RotationVel(1,J)     =     OtherState%RtHS%AngVelEX(1)
+   y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEX(3)
+   y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEX(2) 
+
    !...............................................................................................................................
    ! Outputs required for ServoDyn
    !...............................................................................................................................
@@ -11519,7 +11500,8 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
                                         + x%QDT(DOF_TSS1)*RtHSdat%PLinVelEO(DOF_TSS1,1,:) &
                                         + x%QDT(DOF_TFA2)*RtHSdat%PLinVelEO(DOF_TFA2,1,:) &
                                         + x%QDT(DOF_TSS2)*RtHSdat%PLinVelEO(DOF_TSS2,1,:)
-
+    
+   RtHSdat%LinVelEO = LinVelXO + RtHSdat%LinVelEZ
    DO I = 1,NPX   ! Loop through all DOFs associated with the angular motion of the platform (body X)
 
       TmpVec0 = CROSS_PRODUCT( RtHSdat%PAngVelEX(PX(I)   ,0,:), RtHSdat%rZO                 )
@@ -11528,10 +11510,11 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
       RtHSdat%PLinVelEO(PX(I),0,:) = TmpVec0    +                       RtHSdat%PLinVelEO(PX(I)   ,0,:)
       RtHSdat%PLinVelEO(PX(I),1,:) = TmpVec1    +                       RtHSdat%PLinVelEO(PX(I)   ,1,:)
 
-       RtHSdat%LinAccEOt           =  RtHSdat%LinAccEOt + x%QDT(PX(I) )*RtHSdat%PLinVelEO(PX(I)   ,1,:)
+      RtHSdat%LinVelEO             =  RtHSdat%LinVelEO  + x%QDT(PX(I) )*RtHSdat%PLinVelEO(PX(I)   ,0,:)
+      RtHSdat%LinAccEOt            =  RtHSdat%LinAccEOt + x%QDT(PX(I) )*RtHSdat%PLinVelEO(PX(I)   ,1,:)
 
    ENDDO          ! I - all DOFs associated with the angular motion of the platform (body X)
-
+                     
 
    RtHSdat%PLinVelEU(       :,:,:) = RtHSdat%PLinVelEO(:,:,:)
    DO I = 1,NPN   ! Loop through all DOFs associated with the angular motion of the nacelle (body N)
@@ -13116,7 +13099,7 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
       IF (ErrStat >= AbortErrLev) RETURN
 
 !bjj: FIX THIS>>>>     
-call wrscr(newline//'fix RotorFurlMotion initialization')
+!call wrscr(newline//'fix RotorFurlMotion initialization')
    CALL MeshPositionNode ( y%RotorFurlMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
 !<<<<<FIX THIS
       CALL CheckError(ErrStat2,ErrMsg2)
@@ -13138,7 +13121,7 @@ call wrscr(newline//'fix RotorFurlMotion initialization')
       IF (ErrStat >= AbortErrLev) RETURN
 
 !bjj: FIX THIS>>>>     
-call wrscr(newline//'fix NacelleMotion initialization')
+!call wrscr(newline//'fix NacelleMotion initialization')
    CALL MeshPositionNode ( y%NacelleMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
 !<<<<<FIX THIS
       CALL CheckError(ErrStat2,ErrMsg2)
@@ -13160,7 +13143,7 @@ call wrscr(newline//'fix NacelleMotion initialization')
       IF (ErrStat >= AbortErrLev) RETURN
 
 !bjj: FIX THIS>>>>     
-call wrscr(newline//'fix TowerMotion initialization')
+!call wrscr(newline//'fix TowerMotion initialization')
    CALL MeshPositionNode ( y%TowerMotion, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi /), ErrStat, ErrMsg ) !orientation is identity by default
 !<<<<<FIX THIS
       CALL CheckError(ErrStat2,ErrMsg2)

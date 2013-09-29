@@ -427,6 +427,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(1:3)  :: LinAccEZt 
     REAL(ReKi) , DIMENSION(1:3)  :: LinVelEIMU 
     REAL(ReKi) , DIMENSION(1:3)  :: LinVelEZ 
+    REAL(ReKi) , DIMENSION(1:3)  :: LinVelEO 
     REAL(ReKi) , DIMENSION(1:3)  :: FrcONcRtt 
     REAL(ReKi) , DIMENSION(1:3)  :: FrcPRott 
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FrcS0Bt 
@@ -5347,6 +5348,7 @@ ENDIF
    DstrthndsideData%LinAccEZt = SrcrthndsideData%LinAccEZt
    DstrthndsideData%LinVelEIMU = SrcrthndsideData%LinVelEIMU
    DstrthndsideData%LinVelEZ = SrcrthndsideData%LinVelEZ
+   DstrthndsideData%LinVelEO = SrcrthndsideData%LinVelEO
    DstrthndsideData%FrcONcRtt = SrcrthndsideData%FrcONcRtt
    DstrthndsideData%FrcPRott = SrcrthndsideData%FrcPRott
 IF (ALLOCATED(SrcrthndsideData%FrcS0Bt)) THEN
@@ -5947,6 +5949,7 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%LinAccEZt )  ! LinAccEZt 
   Re_BufSz    = Re_BufSz    + SIZE( InData%LinVelEIMU )  ! LinVelEIMU 
   Re_BufSz    = Re_BufSz    + SIZE( InData%LinVelEZ )  ! LinVelEZ 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%LinVelEO )  ! LinVelEO 
   Re_BufSz    = Re_BufSz    + SIZE( InData%FrcONcRtt )  ! FrcONcRtt 
   Re_BufSz    = Re_BufSz    + SIZE( InData%FrcPRott )  ! FrcPRott 
   Re_BufSz    = Re_BufSz    + SIZE( InData%FrcS0Bt )  ! FrcS0Bt 
@@ -6265,6 +6268,8 @@ ENDIF
   Re_Xferred   = Re_Xferred   + SIZE(InData%LinVelEIMU)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LinVelEZ))-1 ) =  PACK(InData%LinVelEZ ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%LinVelEZ)
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LinVelEO))-1 ) =  PACK(InData%LinVelEO ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%LinVelEO)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%FrcONcRtt))-1 ) =  PACK(InData%FrcONcRtt ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%FrcONcRtt)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%FrcPRott))-1 ) =  PACK(InData%FrcPRott ,.TRUE.)
@@ -6890,6 +6895,10 @@ ENDIF
   OutData%LinVelEZ = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LinVelEZ))-1 ),mask1,OutData%LinVelEZ)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%LinVelEZ)
+  ALLOCATE(mask1(SIZE(OutData%LinVelEO,1))); mask1 = .TRUE.
+  OutData%LinVelEO = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LinVelEO))-1 ),mask1,OutData%LinVelEO)
+  DEALLOCATE(mask1)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%LinVelEO)
   ALLOCATE(mask1(SIZE(OutData%FrcONcRtt,1))); mask1 = .TRUE.
   OutData%FrcONcRtt = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FrcONcRtt))-1 ),mask1,OutData%FrcONcRtt)
   DEALLOCATE(mask1)

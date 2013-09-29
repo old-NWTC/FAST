@@ -9,7 +9,7 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date$
+# File last committed $Date$
 # (File) Revision #: $Rev$
 # URL: $HeadURL$
 ###################################################################################################################################
@@ -433,6 +433,7 @@ typedef	^	ED_RtHndSide	ReKi	LinAccETt	{:}{:}	-	-	"Portion of the linear accelera
 typedef	^	ED_RtHndSide	ReKi	LinAccEZt	3	-	-	"Portion of the linear acceleration of the platform reference (point Z) in the inertia frame (body E for earth) associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	LinVelEIMU	3	-	-	"Linear velocity of the nacelle IMU (point IMU) in the inertia frame"
 typedef	^	ED_RtHndSide	ReKi	LinVelEZ	3	-	-	"Linear velocity of platform reference (point Z) in the inertia frame"
+typedef	^	ED_RtHndSide	ReKi	LinVelEO	3	-	-	"Linear velocity of the base plate (point O) in the inertia frame (body E for earth)"
 # RtHS Forces and Moments
 typedef	^	ED_RtHndSide	ReKi	FrcONcRtt	3	-	-	"Portion of the force at yaw bearing (point O) due to the nacelle, generator, and rotor associated with everything but the QD2T()'s"
 typedef	^	ED_RtHndSide	ReKi	FrcPRott	3	-	-	"Portion of the force at the teeter pin (point P) due to the rotor associated with everything but the QD2T()'s"
