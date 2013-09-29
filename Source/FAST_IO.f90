@@ -2771,7 +2771,10 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, ErrStat, ErrMsg )
       
       J = y_ED%TowerLn2Mesh%NNodes
       u_AD%Twr_InputMarkers%TranslationDisp = y_ED%TowerLn2Mesh%TranslationDisp(:,1:J)
-      u_AD%Twr_InputMarkers%Orientation     = y_ED%TowerLn2Mesh%Orientation(:,:,1:J)
+      u_AD%Twr_InputMarkers%Orientation     = y_ED%TowerLn2Mesh%Orientation    (:,:,1:J)
+!mlb: Is this needed?  I'm getting all zeroes in my part of the code.
+      u_AD%Twr_InputMarkers%RefOrientation  = y_ED%TowerLn2Mesh%RefOrientation (:,:,1:J)
+      u_AD%Twr_InputMarkers%TranslationDisp = y_ED%TowerLn2Mesh%TranslationDisp(  :,1:J)
       
    END IF
       
