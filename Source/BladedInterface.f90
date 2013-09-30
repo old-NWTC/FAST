@@ -33,7 +33,7 @@ MODULE BladedInterface
    IMPLICIT                        NONE
 
 
-   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'v1.00.00 for '//OS_Desc, '1-May-2013' )
+   TYPE(ProgDesc), PARAMETER    :: BladedInterface_Ver = ProgDesc( 'ServoDyn Interface for Bladed Controllers', 'using '//TRIM(OS_Desc), '1-May-2013' )
    
    
       ! Definition of the DLL Interface (from Bladed):

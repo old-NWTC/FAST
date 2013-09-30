@@ -335,8 +335,8 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
                
    IF ( p%UseBladedInterface ) THEN
       InitOut%CouplingScheme = ExplicitLoose
-      CALL CheckError( ErrID_Info, 'The external dynamic-link library option being used in ServoDyn '&
-                       //'requires an explicit-loose coupling scheme.' )
+   !   CALL CheckError( ErrID_Info, 'The external dynamic-link library option being used in ServoDyn '&
+   !                    //'requires an explicit-loose coupling scheme.' )
    END IF
    
       !............................................................................................
@@ -390,6 +390,8 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       
    END IF
       
+   OtherState%FirstWarn_THSSBrDp = .TRUE.
+   
       ! Clean up the local variable:
    CALL SrvD_DestroyInputFile( InputFileData, ErrStat2, ErrMsg2 )
       
@@ -596,13 +598,22 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    ErrStat = ErrID_None
    ErrMsg  = ""
 
+   
+   IF (  t >= p%THSSBrDp ) THEN
+      IF ( OtherState%FirstWarn_THSSBrDp ) THEN
+         CALL CheckError ( ErrID_Warn, 'THSSBrDp is ignored in this version of ServoDyn. '//&
+                                       'Warning will not be displayed again.' )      
+         OtherState%FirstWarn_THSSBrDp = .FALSE.
+      END IF      
+   END IF
+   
    !...............................................................................................................................   
    ! Get the demanded values from the external Bladed dynamic link library, if necessary:
    !...............................................................................................................................   
    IF ( p%UseBladedInterface ) THEN
       
       IF ( .NOT. EqualRealNos( t - p%DT, OtherState%LastTimeCalled ) ) THEN
-         IF (OtherState%FirstWarn) CALL CheckError ( ErrID_Warn, 'BladedInterface option must use an explicit-loose coupling '//&
+         IF (OtherState%FirstWarn) CALL CheckError ( ErrID_Warn, 'BladedInterface option requires an explicit-loose coupling '//&
             'scheme. Using previous values from DLL on all subsequent calls until time is advanced. '//&
             'Warning will not be displayed again.' )
          OtherState%FirstWarn = .FALSE.
@@ -1859,8 +1870,7 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
       ! High-speed shaft brake parameters
       !.............................................   
    p%HSSBrMode = InputFileData%HSSBrMode
-!   IF ( Cmpl4SFun ) THEN
-   IF ( .true. ) THEN
+   IF ( Cmpl4SFun ) THEN
       p%THSSBrDp  = HUGE(p%THSSBrDp) ! Make sure this doesn't get shut off during simulation
       CALL CheckError( ErrID_Info, 'THSSBrDp is ignored in this version of ServoDyn.' )
       
@@ -2637,8 +2647,10 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
    !.................................................................................
    ! Calculate the fraction of applied HSS-brake torque, HSSBrFrac:
    !.................................................................................
-
-   IF ( (.NOT. EqualRealNos(t, p%THSSBrDp )) .AND. t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
+!bjj FIX THIS >>>
+!   IF ( (.NOT. EqualRealNos(t, p%THSSBrDp )) .AND. t < p%THSSBrDp )  THEN    ! HSS brake not deployed yet.
+   IF ( .TRUE. )  THEN    ! HSS brake not deployed yet.
+!bjj end FIX THIS <<<
 
       HSSBrFrac = 0.0
 

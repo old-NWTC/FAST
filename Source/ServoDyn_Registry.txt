@@ -9,7 +9,7 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date$
+# File last committed $Date$
 # (File) Revision #: $Rev$
 # URL: $HeadURL$
 ###################################################################################################################################
@@ -141,6 +141,7 @@ typedef	^	OtherStateType	DbKi	TGenOnLine	-	-	-	"Time that the generator first we
 typedef	^	OtherStateType	BladedDLLType	dll_data	-	-	-	"data used for Bladed DLL"	-
 typedef	^	OtherStateType	DbKi	LastTimeCalled	-	-	-	"last time the CalcOutput/Bladed DLL was called"	s
 typedef	^	OtherStateType	logical	FirstWarn	-	-	-	"Whether or not this is the first warning about the DLL being called without Explicit-Loose coupling."	-
+typedef	^	OtherStateType	logical	FirstWarn_THSSBrDp	-	-	-	"Whether or not this is the first warning about the THSSBrDp not being enabled in this version of SrvD."	-
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:

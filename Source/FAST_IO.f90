@@ -879,6 +879,16 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
                    "{0=explicit calculation, i.e., no corrections} (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! DT_UJac - Time between calls to get Jacobians (s)
+   CALL ReadVar( UnIn, InputFile, p%DT_UJac, "DT_UJac", "Time between calls to get Jacobians (s)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+
+      ! UJacSclFact - Scaling factor used in Jacobians (some units)
+   CALL ReadVar( UnIn, InputFile, p%UJacSclFact, "UJacSclFact", "Scaling factor used in Jacobians (some units)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN              
                   
    !---------------------- FEATURE FLAGS -------------------------------------------
    CALL ReadCom( UnIn, InputFile, 'Section Header: Feature Flags', ErrStat2, ErrMsg2, UnEc )
@@ -2006,12 +2016,11 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    INTEGER(IntKi)                                    :: ErrStat2                  ! temporary Error status of the operation
    CHARACTER(LEN(ErrMsg))                            :: ErrMsg2                   ! temporary Error message if ErrStat /= ErrID_None
    
-   REAL(ReKi), parameter :: ScaleFactor = 1.0E6 !this gets us similar magnitudes between loads and accelerations...
+   ! Note: p_FAST%UJacSclFact is a scaling factor that gets us similar magnitudes between loads and accelerations...
  
 !bjj: note, that this routine may have a problem if there is remapping done
 ! We may also be able to save some time if we don't remap more than once in this routine:
 !   LOGICAL                                           :: RemapThisMesh(4)      ! saves us some computational time if remapping isn't done each time... (1=ED%PlatformPtMesh; 2=HD%WAMIT%Mesh; 3 = HD%Morison%LumpedMesh; 4=HD%Morison%DistbMesh)
-    
     
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2060,8 +2069,8 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
       ! set up u vector, using local initial guesses:
       !----------------------------------------------------------------------------------------------------                      
       
-      u( 1: 3) = u_ED%PlatformPtMesh%Force(:,1) / ScaleFactor
-      u( 4: 6) = u_ED%PlatformPtMesh%Moment(:,1) / ScaleFactor  
+      u( 1: 3) = u_ED%PlatformPtMesh%Force(:,1) / p_FAST%UJacSclFact
+      u( 4: 6) = u_ED%PlatformPtMesh%Moment(:,1) / p_FAST%UJacSclFact  
       u( 7: 9) = y_ED_input%PlatformPtMesh%TranslationAcc(:,1)
       u(10:12) = y_ED_input%PlatformPtMesh%RotationAcc(:,1)
             
@@ -2167,8 +2176,8 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          
          u = u + u_delta
                   
-         u_ED%PlatformPtMesh%Force( :,1)               = u_ED%PlatformPtMesh%Force( :,1)               + u_delta( 1: 3) * ScaleFactor 
-         u_ED%PlatformPtMesh%Moment(:,1)               = u_ED%PlatformPtMesh%Moment(:,1)               + u_delta( 4: 6) * ScaleFactor
+         u_ED%PlatformPtMesh%Force( :,1)               = u_ED%PlatformPtMesh%Force( :,1)               + u_delta( 1: 3) * p_FAST%UJacSclFact 
+         u_ED%PlatformPtMesh%Moment(:,1)               = u_ED%PlatformPtMesh%Moment(:,1)               + u_delta( 4: 6) * p_FAST%UJacSclFact
          y_ED_input%PlatformPtMesh%TranslationAcc(:,1) = y_ED_input%PlatformPtMesh%TranslationAcc(:,1) + u_delta( 7: 9)
          y_ED_input%PlatformPtMesh%RotationAcc(   :,1) = y_ED_input%PlatformPtMesh%RotationAcc(   :,1) + u_delta(10:12)
                   
@@ -2200,10 +2209,10 @@ CONTAINS
    
       if ( n <= 3 ) then         
          perturb = GetPerturb( u_ED_perturb%PlatformPtMesh%Force(n   ,1) )         
-         u_ED_perturb%PlatformPtMesh%Force(n   ,1) = u_ED_perturb%PlatformPtMesh%Force(n   ,1) + perturb * ScaleFactor 
+         u_ED_perturb%PlatformPtMesh%Force(n   ,1) = u_ED_perturb%PlatformPtMesh%Force(n   ,1) + perturb * p_FAST%UJacSclFact 
       else
          perturb = GetPerturb( u_ED_perturb%PlatformPtMesh%Moment(n-3,1) )         
-         u_ED_perturb%PlatformPtMesh%Moment(n-3,1) = u_ED_perturb%PlatformPtMesh%Moment(n-3,1) + perturb * ScaleFactor 
+         u_ED_perturb%PlatformPtMesh%Moment(n-3,1) = u_ED_perturb%PlatformPtMesh%Moment(n-3,1) + perturb * p_FAST%UJacSclFact 
       end if
                   
    else ! ED y = HD u
@@ -2242,8 +2251,8 @@ CONTAINS
          CALL CheckError( ErrStat2, ErrMsg2  )
          IF ( ErrStat >= AbortErrLev ) RETURN
             
-      U_Resid( 1: 3) = u_in( 1: 3) - u_ED_copy%PlatformPtMesh%Force(:,1)/ScaleFactor
-      U_Resid( 4: 6) = u_in( 4: 6) - u_ED_copy%PlatformPtMesh%Moment(:,1)/ScaleFactor      
+      U_Resid( 1: 3) = u_in( 1: 3) - u_ED_copy%PlatformPtMesh%Force(:,1) / p_FAST%UJacSclFact
+      U_Resid( 4: 6) = u_in( 4: 6) - u_ED_copy%PlatformPtMesh%Moment(:,1) / p_FAST%UJacSclFact      
       U_Resid( 7: 9) = u_in( 7: 9) - y_ED2%PlatformPtMesh%TranslationAcc(:,1)
       U_Resid(10:12) = u_in(10:12) - y_ED2%PlatformPtMesh%RotationAcc(:,1)
    
@@ -2385,7 +2394,7 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    INTEGER(IntKi)                                    :: ErrStat2                  ! temporary Error status of the operation
    CHARACTER(LEN(ErrMsg))                            :: ErrMsg2                   ! temporary Error message if ErrStat /= ErrID_None
    
-   REAL(ReKi), parameter :: ScaleFactor = 1.0E6 !this gets us similar magnitudes between loads and accelerations...
+   ! Note: p_FAST%UJacSclFact is a scaling factor that gets us similar magnitudes between loads and accelerations...
  
 !bjj: note, that this routine may have a problem if there is remapping done
 ! We may also be able to save some time if we don't remap more than once in this routine:
@@ -2435,8 +2444,8 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
       ! set up u vector, using local initial guesses:
       !----------------------------------------------------------------------------------------------------                      
       
-      u( 1: 3) = u_ED%PlatformPtMesh%Force(:,1) / ScaleFactor
-      u( 4: 6) = u_ED%PlatformPtMesh%Moment(:,1) / ScaleFactor  
+      u( 1: 3) = u_ED%PlatformPtMesh%Force(:,1) / p_FAST%UJacSclFact
+      u( 4: 6) = u_ED%PlatformPtMesh%Moment(:,1) / p_FAST%UJacSclFact  
       u( 7: 9) = u_SD%TPMesh%TranslationAcc(:,1)
       u(10:12) = u_SD%TPMesh%RotationAcc(:,1)
             
@@ -2540,8 +2549,8 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          
          u = u + u_delta
                   
-         u_ED%PlatformPtMesh%Force( :,1) = u_ED%PlatformPtMesh%Force( :,1) + u_delta( 1: 3) * ScaleFactor 
-         u_ED%PlatformPtMesh%Moment(:,1) = u_ED%PlatformPtMesh%Moment(:,1) + u_delta( 4: 6) * ScaleFactor
+         u_ED%PlatformPtMesh%Force( :,1) = u_ED%PlatformPtMesh%Force( :,1) + u_delta( 1: 3) * p_FAST%UJacSclFact 
+         u_ED%PlatformPtMesh%Moment(:,1) = u_ED%PlatformPtMesh%Moment(:,1) + u_delta( 4: 6) * p_FAST%UJacSclFact
          u_SD%TPMesh%TranslationAcc(:,1) = u_SD%TPMesh%TranslationAcc(:,1) + u_delta( 7: 9)
          u_SD%TPMesh%RotationAcc(   :,1) = u_SD%TPMesh%RotationAcc(   :,1) + u_delta(10:12)                           
          
@@ -2567,10 +2576,10 @@ CONTAINS
    
       if ( n <= 3 ) then         
          perturb = GetPerturb( u_ED_perturb%PlatformPtMesh%Force(n   ,1) )         
-         u_ED_perturb%PlatformPtMesh%Force(n   ,1) = u_ED_perturb%PlatformPtMesh%Force(n   ,1) + perturb * ScaleFactor 
+         u_ED_perturb%PlatformPtMesh%Force(n   ,1) = u_ED_perturb%PlatformPtMesh%Force(n   ,1) + perturb * p_FAST%UJacSclFact 
       else
          perturb = GetPerturb( u_ED_perturb%PlatformPtMesh%Moment(n-3,1) )         
-         u_ED_perturb%PlatformPtMesh%Moment(n-3,1) = u_ED_perturb%PlatformPtMesh%Moment(n-3,1) + perturb * ScaleFactor 
+         u_ED_perturb%PlatformPtMesh%Moment(n-3,1) = u_ED_perturb%PlatformPtMesh%Moment(n-3,1) + perturb * p_FAST%UJacSclFact 
       end if
                   
    else ! SD u
@@ -2611,8 +2620,8 @@ CONTAINS
          IF (ErrStat >= AbortErrLev) RETURN
          
             
-      U_Resid( 1: 3) = u_in( 1: 3) - (u_ED_Without_SD_HD%Force( :,1) + u_PlatformPtMesh%Force( :,1)) / ScaleFactor
-      U_Resid( 4: 6) = u_in( 4: 6) - (u_ED_Without_SD_HD%Moment(:,1) + u_PlatformPtMesh%Moment(:,1)) / ScaleFactor      
+      U_Resid( 1: 3) = u_in( 1: 3) - (u_ED_Without_SD_HD%Force( :,1) + u_PlatformPtMesh%Force( :,1)) / p_FAST%UJacSclFact
+      U_Resid( 4: 6) = u_in( 4: 6) - (u_ED_Without_SD_HD%Moment(:,1) + u_PlatformPtMesh%Moment(:,1)) / p_FAST%UJacSclFact      
       U_Resid( 7: 9) = u_in( 7: 9) - u_TPMesh%TranslationAcc(:,1)
       U_Resid(10:12) = u_in(10:12) - u_TPMesh%RotationAcc(:,1)
    
@@ -2691,11 +2700,11 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, ErrStat, ErrMsg )
 
       ! Local variables:
 
-   INTEGER(IntKi)               :: J                                               ! Loops through nodes / elements.
-   INTEGER(IntKi)               :: K                                               ! Loops through blades.
-   INTEGER(IntKi)               :: NodeNum                                         ! Node number for blade/node on mesh
-   INTEGER(IntKi)               :: NumBl
-   INTEGER(IntKi)               :: BldNodes
+   INTEGER(IntKi)                            :: J           ! Loops through nodes / elements.
+   INTEGER(IntKi)                            :: K           ! Loops through blades.
+   INTEGER(IntKi)                            :: NodeNum     ! Node number for blade/node on mesh
+   INTEGER(IntKi)                            :: NumBl
+   INTEGER(IntKi)                            :: BldNodes
 
    
    NumBl    = SIZE(u_AD%InputMarkers,1)
@@ -2769,12 +2778,9 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, ErrStat, ErrMsg )
       
 !      CALL Transfer_Line2_to_Line2( )
       
-      J = y_ED%TowerLn2Mesh%NNodes
+      J = u_AD%Twr_InputMarkers%NNodes
       u_AD%Twr_InputMarkers%TranslationDisp = y_ED%TowerLn2Mesh%TranslationDisp(:,1:J)
       u_AD%Twr_InputMarkers%Orientation     = y_ED%TowerLn2Mesh%Orientation    (:,:,1:J)
-!mlb: Is this needed?  I'm getting all zeroes in my part of the code.
-      u_AD%Twr_InputMarkers%RefOrientation  = y_ED%TowerLn2Mesh%RefOrientation (:,:,1:J)
-      u_AD%Twr_InputMarkers%TranslationDisp = y_ED%TowerLn2Mesh%TranslationDisp(  :,1:J)
       
    END IF
       

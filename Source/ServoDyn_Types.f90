@@ -162,6 +162,7 @@ IMPLICIT NONE
     TYPE(BladedDLLType)  :: dll_data 
     REAL(DbKi)  :: LastTimeCalled 
     LOGICAL  :: FirstWarn 
+    LOGICAL  :: FirstWarn_THSSBrDp 
   END TYPE SrvD_OtherStateType
 ! =======================
 ! =========  SrvD_ParameterType  =======
@@ -1723,6 +1724,7 @@ ENDIF
       CALL SrvD_Copybladeddlltype( SrcOtherStateData%dll_data, DstOtherStateData%dll_data, CtrlCode, ErrStat, ErrMsg )
    DstOtherStateData%LastTimeCalled = SrcOtherStateData%LastTimeCalled
    DstOtherStateData%FirstWarn = SrcOtherStateData%FirstWarn
+   DstOtherStateData%FirstWarn_THSSBrDp = SrcOtherStateData%FirstWarn_THSSBrDp
  END SUBROUTINE SrvD_CopyOtherState
 
  SUBROUTINE SrvD_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )

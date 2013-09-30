@@ -1,4 +1,4 @@
-------- FAST V8.02.* INPUT FILE ------------------------------------------------
+------- FAST V8.03.* INPUT FILE ------------------------------------------------
 FAST Certification Test #07: AOC 15/50 with many DOFs with free yaw and FF turbulence. Many parameters are pure fiction.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -7,6 +7,8 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
       0.005   DT              - Recommended module time step (s)
           0   InterpOrder     - Interpolation order for input/output time history {0=nearest neighbor ,1=linear, 2=quadratic} (-)
           0   NumCrctn        - Number of correction iterations {0=explicit calculation, i.e., no corrections} (-)
+   99999      DT_UJac         - Time between calls to get Jacobians (s)
+   1.0E6      UJacSclFact     - Scaling factor used in Jacobians (some units)
 ---------------------- FEATURE FLAGS -------------------------------------------
 True          CompAero        - Compute aerodynamic forces (flag)
 True          CompServo       - Compute servodynamics (flag)
