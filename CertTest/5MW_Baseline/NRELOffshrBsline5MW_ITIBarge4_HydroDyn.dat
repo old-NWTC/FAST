@@ -73,7 +73,7 @@ True           PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
 1              NHvCoef        - Number of heave coefficients (-)
 HvCoefID   CdHv        CaHv
  (-)       (-)         (-)
-  1         1.0        1.0
+  1         0.0        0.0
 ---------------------- MEMBER JOINTS -------------------------------------------
 2              NJoints        - Number of joints (-)   [must be exactly 0 or at least 2]
 JointID   Jointx      Jointy      Jointz      JointHvID  JointOvrlp   [must be at least 2, JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]
