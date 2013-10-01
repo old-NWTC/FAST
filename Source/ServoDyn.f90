@@ -909,6 +909,9 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
 
    
       ! Initialize some variables:
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+      
    UnEc = -1
    Echo = .FALSE.   
    CALL GetPath( InputFile, PriPath )     ! Input files will be relative to the path where the primary input file is located.
@@ -921,8 +924,9 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    
       ! Get an available unit number for the file.
 
-   CALL GetNewUnit( UnIn, ErrStat, ErrMsg )
-   IF ( ErrStat >= AbortErrLev ) RETURN
+   CALL GetNewUnit( UnIn, ErrStat2, ErrMsg2 )
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
 
       ! Open the Primary input file.
@@ -982,8 +986,10 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       
    END DO    
 
-   CALL WrScr( ' Heading of the '//TRIM(SrvD_Ver%Name)//' input file: ' )      
-   CALL WrScr( '   '//TRIM( FTitle ) )
+!   IF (NWTC_VerboseComments) THEN
+      CALL WrScr( ' Heading of the '//TRIM(SrvD_Ver%Name)//' input file: ' )      
+      CALL WrScr( '   '//TRIM( FTitle ) )
+!   END IF
    
    
       ! DT - Communication interval for controllers (s):

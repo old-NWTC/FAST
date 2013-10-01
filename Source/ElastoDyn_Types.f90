@@ -1104,26 +1104,66 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(bladeinputdataData%BlFract) ) DEALLOCATE(bladeinputdataData%BlFract)
-  IF ( ALLOCATED(bladeinputdataData%PitchAx) ) DEALLOCATE(bladeinputdataData%PitchAx)
-  IF ( ALLOCATED(bladeinputdataData%StrcTwst) ) DEALLOCATE(bladeinputdataData%StrcTwst)
-  IF ( ALLOCATED(bladeinputdataData%BMassDen) ) DEALLOCATE(bladeinputdataData%BMassDen)
-  IF ( ALLOCATED(bladeinputdataData%FlpStff) ) DEALLOCATE(bladeinputdataData%FlpStff)
-  IF ( ALLOCATED(bladeinputdataData%EdgStff) ) DEALLOCATE(bladeinputdataData%EdgStff)
-  IF ( ALLOCATED(bladeinputdataData%GJStff) ) DEALLOCATE(bladeinputdataData%GJStff)
-  IF ( ALLOCATED(bladeinputdataData%EAStff) ) DEALLOCATE(bladeinputdataData%EAStff)
-  IF ( ALLOCATED(bladeinputdataData%Alpha) ) DEALLOCATE(bladeinputdataData%Alpha)
-  IF ( ALLOCATED(bladeinputdataData%FlpIner) ) DEALLOCATE(bladeinputdataData%FlpIner)
-  IF ( ALLOCATED(bladeinputdataData%EdgIner) ) DEALLOCATE(bladeinputdataData%EdgIner)
-  IF ( ALLOCATED(bladeinputdataData%PrecrvRef) ) DEALLOCATE(bladeinputdataData%PrecrvRef)
-  IF ( ALLOCATED(bladeinputdataData%PreswpRef) ) DEALLOCATE(bladeinputdataData%PreswpRef)
-  IF ( ALLOCATED(bladeinputdataData%FlpcgOf) ) DEALLOCATE(bladeinputdataData%FlpcgOf)
-  IF ( ALLOCATED(bladeinputdataData%EdgcgOf) ) DEALLOCATE(bladeinputdataData%EdgcgOf)
-  IF ( ALLOCATED(bladeinputdataData%FlpEAOf) ) DEALLOCATE(bladeinputdataData%FlpEAOf)
-  IF ( ALLOCATED(bladeinputdataData%EdgEAOf) ) DEALLOCATE(bladeinputdataData%EdgEAOf)
-  IF ( ALLOCATED(bladeinputdataData%BldFl1Sh) ) DEALLOCATE(bladeinputdataData%BldFl1Sh)
-  IF ( ALLOCATED(bladeinputdataData%BldFl2Sh) ) DEALLOCATE(bladeinputdataData%BldFl2Sh)
-  IF ( ALLOCATED(bladeinputdataData%BldEdgSh) ) DEALLOCATE(bladeinputdataData%BldEdgSh)
+IF (ALLOCATED(bladeinputdataData%BlFract)) THEN
+   DEALLOCATE(bladeinputdataData%BlFract)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%PitchAx)) THEN
+   DEALLOCATE(bladeinputdataData%PitchAx)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%StrcTwst)) THEN
+   DEALLOCATE(bladeinputdataData%StrcTwst)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%BMassDen)) THEN
+   DEALLOCATE(bladeinputdataData%BMassDen)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%FlpStff)) THEN
+   DEALLOCATE(bladeinputdataData%FlpStff)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%EdgStff)) THEN
+   DEALLOCATE(bladeinputdataData%EdgStff)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%GJStff)) THEN
+   DEALLOCATE(bladeinputdataData%GJStff)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%EAStff)) THEN
+   DEALLOCATE(bladeinputdataData%EAStff)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%Alpha)) THEN
+   DEALLOCATE(bladeinputdataData%Alpha)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%FlpIner)) THEN
+   DEALLOCATE(bladeinputdataData%FlpIner)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%EdgIner)) THEN
+   DEALLOCATE(bladeinputdataData%EdgIner)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%PrecrvRef)) THEN
+   DEALLOCATE(bladeinputdataData%PrecrvRef)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%PreswpRef)) THEN
+   DEALLOCATE(bladeinputdataData%PreswpRef)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%FlpcgOf)) THEN
+   DEALLOCATE(bladeinputdataData%FlpcgOf)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%EdgcgOf)) THEN
+   DEALLOCATE(bladeinputdataData%EdgcgOf)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%FlpEAOf)) THEN
+   DEALLOCATE(bladeinputdataData%FlpEAOf)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%EdgEAOf)) THEN
+   DEALLOCATE(bladeinputdataData%EdgEAOf)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%BldFl1Sh)) THEN
+   DEALLOCATE(bladeinputdataData%BldFl1Sh)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%BldFl2Sh)) THEN
+   DEALLOCATE(bladeinputdataData%BldFl2Sh)
+ENDIF
+IF (ALLOCATED(bladeinputdataData%BldEdgSh)) THEN
+   DEALLOCATE(bladeinputdataData%BldEdgSh)
+ENDIF
  END SUBROUTINE ED_Destroybladeinputdata
 
  SUBROUTINE ED_Packbladeinputdata( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -1512,9 +1552,15 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(blademeshinputdataData%RNodes) ) DEALLOCATE(blademeshinputdataData%RNodes)
-  IF ( ALLOCATED(blademeshinputdataData%AeroTwst) ) DEALLOCATE(blademeshinputdataData%AeroTwst)
-  IF ( ALLOCATED(blademeshinputdataData%Chord) ) DEALLOCATE(blademeshinputdataData%Chord)
+IF (ALLOCATED(blademeshinputdataData%RNodes)) THEN
+   DEALLOCATE(blademeshinputdataData%RNodes)
+ENDIF
+IF (ALLOCATED(blademeshinputdataData%AeroTwst)) THEN
+   DEALLOCATE(blademeshinputdataData%AeroTwst)
+ENDIF
+IF (ALLOCATED(blademeshinputdataData%Chord)) THEN
+   DEALLOCATE(blademeshinputdataData%Chord)
+ENDIF
  END SUBROUTINE ED_Destroyblademeshinputdata
 
  SUBROUTINE ED_Packblademeshinputdata( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -2076,34 +2122,72 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(inputfileData%BlPitch) ) DEALLOCATE(inputfileData%BlPitch)
-  IF ( ALLOCATED(inputfileData%PreCone) ) DEALLOCATE(inputfileData%PreCone)
-  IF ( ALLOCATED(inputfileData%TipMass) ) DEALLOCATE(inputfileData%TipMass)
+IF (ALLOCATED(inputfileData%BlPitch)) THEN
+   DEALLOCATE(inputfileData%BlPitch)
+ENDIF
+IF (ALLOCATED(inputfileData%PreCone)) THEN
+   DEALLOCATE(inputfileData%PreCone)
+ENDIF
+IF (ALLOCATED(inputfileData%TipMass)) THEN
+   DEALLOCATE(inputfileData%TipMass)
+ENDIF
 IF (ALLOCATED(inputfileData%InpBlMesh)) THEN
 DO i1 = LBOUND(inputfileData%InpBlMesh,1), UBOUND(inputfileData%InpBlMesh,1)
   CALL ED_Destroyblademeshinputdata( inputfileData%InpBlMesh(i1), ErrStat, ErrMsg )
 ENDDO
+   DEALLOCATE(inputfileData%InpBlMesh)
 ENDIF
 IF (ALLOCATED(inputfileData%InpBl)) THEN
 DO i1 = LBOUND(inputfileData%InpBl,1), UBOUND(inputfileData%InpBl,1)
   CALL ED_Destroybladeinputdata( inputfileData%InpBl(i1), ErrStat, ErrMsg )
 ENDDO
+   DEALLOCATE(inputfileData%InpBl)
 ENDIF
-  IF ( ALLOCATED(inputfileData%OutList) ) DEALLOCATE(inputfileData%OutList)
-  IF ( ALLOCATED(inputfileData%HtFract) ) DEALLOCATE(inputfileData%HtFract)
-  IF ( ALLOCATED(inputfileData%TMassDen) ) DEALLOCATE(inputfileData%TMassDen)
-  IF ( ALLOCATED(inputfileData%TwFAStif) ) DEALLOCATE(inputfileData%TwFAStif)
-  IF ( ALLOCATED(inputfileData%TwSSStif) ) DEALLOCATE(inputfileData%TwSSStif)
-  IF ( ALLOCATED(inputfileData%TwFAM1Sh) ) DEALLOCATE(inputfileData%TwFAM1Sh)
-  IF ( ALLOCATED(inputfileData%TwFAM2Sh) ) DEALLOCATE(inputfileData%TwFAM2Sh)
-  IF ( ALLOCATED(inputfileData%TwSSM1Sh) ) DEALLOCATE(inputfileData%TwSSM1Sh)
-  IF ( ALLOCATED(inputfileData%TwSSM2Sh) ) DEALLOCATE(inputfileData%TwSSM2Sh)
-  IF ( ALLOCATED(inputfileData%TwGJStif) ) DEALLOCATE(inputfileData%TwGJStif)
-  IF ( ALLOCATED(inputfileData%TwEAStif) ) DEALLOCATE(inputfileData%TwEAStif)
-  IF ( ALLOCATED(inputfileData%TwFAIner) ) DEALLOCATE(inputfileData%TwFAIner)
-  IF ( ALLOCATED(inputfileData%TwSSIner) ) DEALLOCATE(inputfileData%TwSSIner)
-  IF ( ALLOCATED(inputfileData%TwFAcgOf) ) DEALLOCATE(inputfileData%TwFAcgOf)
-  IF ( ALLOCATED(inputfileData%TwSScgOf) ) DEALLOCATE(inputfileData%TwSScgOf)
+IF (ALLOCATED(inputfileData%OutList)) THEN
+   DEALLOCATE(inputfileData%OutList)
+ENDIF
+IF (ALLOCATED(inputfileData%HtFract)) THEN
+   DEALLOCATE(inputfileData%HtFract)
+ENDIF
+IF (ALLOCATED(inputfileData%TMassDen)) THEN
+   DEALLOCATE(inputfileData%TMassDen)
+ENDIF
+IF (ALLOCATED(inputfileData%TwFAStif)) THEN
+   DEALLOCATE(inputfileData%TwFAStif)
+ENDIF
+IF (ALLOCATED(inputfileData%TwSSStif)) THEN
+   DEALLOCATE(inputfileData%TwSSStif)
+ENDIF
+IF (ALLOCATED(inputfileData%TwFAM1Sh)) THEN
+   DEALLOCATE(inputfileData%TwFAM1Sh)
+ENDIF
+IF (ALLOCATED(inputfileData%TwFAM2Sh)) THEN
+   DEALLOCATE(inputfileData%TwFAM2Sh)
+ENDIF
+IF (ALLOCATED(inputfileData%TwSSM1Sh)) THEN
+   DEALLOCATE(inputfileData%TwSSM1Sh)
+ENDIF
+IF (ALLOCATED(inputfileData%TwSSM2Sh)) THEN
+   DEALLOCATE(inputfileData%TwSSM2Sh)
+ENDIF
+IF (ALLOCATED(inputfileData%TwGJStif)) THEN
+   DEALLOCATE(inputfileData%TwGJStif)
+ENDIF
+IF (ALLOCATED(inputfileData%TwEAStif)) THEN
+   DEALLOCATE(inputfileData%TwEAStif)
+ENDIF
+IF (ALLOCATED(inputfileData%TwFAIner)) THEN
+   DEALLOCATE(inputfileData%TwFAIner)
+ENDIF
+IF (ALLOCATED(inputfileData%TwSSIner)) THEN
+   DEALLOCATE(inputfileData%TwSSIner)
+ENDIF
+IF (ALLOCATED(inputfileData%TwFAcgOf)) THEN
+   DEALLOCATE(inputfileData%TwFAcgOf)
+ENDIF
+IF (ALLOCATED(inputfileData%TwSScgOf)) THEN
+   DEALLOCATE(inputfileData%TwSScgOf)
+ENDIF
  END SUBROUTINE ED_Destroyinputfile
 
  SUBROUTINE ED_Packinputfile( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -3498,24 +3582,60 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(coordsysData%i1) ) DEALLOCATE(coordsysData%i1)
-  IF ( ALLOCATED(coordsysData%i2) ) DEALLOCATE(coordsysData%i2)
-  IF ( ALLOCATED(coordsysData%i3) ) DEALLOCATE(coordsysData%i3)
-  IF ( ALLOCATED(coordsysData%j1) ) DEALLOCATE(coordsysData%j1)
-  IF ( ALLOCATED(coordsysData%j2) ) DEALLOCATE(coordsysData%j2)
-  IF ( ALLOCATED(coordsysData%j3) ) DEALLOCATE(coordsysData%j3)
-  IF ( ALLOCATED(coordsysData%m1) ) DEALLOCATE(coordsysData%m1)
-  IF ( ALLOCATED(coordsysData%m2) ) DEALLOCATE(coordsysData%m2)
-  IF ( ALLOCATED(coordsysData%m3) ) DEALLOCATE(coordsysData%m3)
-  IF ( ALLOCATED(coordsysData%n1) ) DEALLOCATE(coordsysData%n1)
-  IF ( ALLOCATED(coordsysData%n2) ) DEALLOCATE(coordsysData%n2)
-  IF ( ALLOCATED(coordsysData%n3) ) DEALLOCATE(coordsysData%n3)
-  IF ( ALLOCATED(coordsysData%t1) ) DEALLOCATE(coordsysData%t1)
-  IF ( ALLOCATED(coordsysData%t2) ) DEALLOCATE(coordsysData%t2)
-  IF ( ALLOCATED(coordsysData%t3) ) DEALLOCATE(coordsysData%t3)
-  IF ( ALLOCATED(coordsysData%te1) ) DEALLOCATE(coordsysData%te1)
-  IF ( ALLOCATED(coordsysData%te2) ) DEALLOCATE(coordsysData%te2)
-  IF ( ALLOCATED(coordsysData%te3) ) DEALLOCATE(coordsysData%te3)
+IF (ALLOCATED(coordsysData%i1)) THEN
+   DEALLOCATE(coordsysData%i1)
+ENDIF
+IF (ALLOCATED(coordsysData%i2)) THEN
+   DEALLOCATE(coordsysData%i2)
+ENDIF
+IF (ALLOCATED(coordsysData%i3)) THEN
+   DEALLOCATE(coordsysData%i3)
+ENDIF
+IF (ALLOCATED(coordsysData%j1)) THEN
+   DEALLOCATE(coordsysData%j1)
+ENDIF
+IF (ALLOCATED(coordsysData%j2)) THEN
+   DEALLOCATE(coordsysData%j2)
+ENDIF
+IF (ALLOCATED(coordsysData%j3)) THEN
+   DEALLOCATE(coordsysData%j3)
+ENDIF
+IF (ALLOCATED(coordsysData%m1)) THEN
+   DEALLOCATE(coordsysData%m1)
+ENDIF
+IF (ALLOCATED(coordsysData%m2)) THEN
+   DEALLOCATE(coordsysData%m2)
+ENDIF
+IF (ALLOCATED(coordsysData%m3)) THEN
+   DEALLOCATE(coordsysData%m3)
+ENDIF
+IF (ALLOCATED(coordsysData%n1)) THEN
+   DEALLOCATE(coordsysData%n1)
+ENDIF
+IF (ALLOCATED(coordsysData%n2)) THEN
+   DEALLOCATE(coordsysData%n2)
+ENDIF
+IF (ALLOCATED(coordsysData%n3)) THEN
+   DEALLOCATE(coordsysData%n3)
+ENDIF
+IF (ALLOCATED(coordsysData%t1)) THEN
+   DEALLOCATE(coordsysData%t1)
+ENDIF
+IF (ALLOCATED(coordsysData%t2)) THEN
+   DEALLOCATE(coordsysData%t2)
+ENDIF
+IF (ALLOCATED(coordsysData%t3)) THEN
+   DEALLOCATE(coordsysData%t3)
+ENDIF
+IF (ALLOCATED(coordsysData%te1)) THEN
+   DEALLOCATE(coordsysData%te1)
+ENDIF
+IF (ALLOCATED(coordsysData%te2)) THEN
+   DEALLOCATE(coordsysData%te2)
+ENDIF
+IF (ALLOCATED(coordsysData%te3)) THEN
+   DEALLOCATE(coordsysData%te3)
+ENDIF
  END SUBROUTINE ED_Destroycoordsys
 
  SUBROUTINE ED_Packcoordsys( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -4268,21 +4388,51 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(activedofsData%NPSBE) ) DEALLOCATE(activedofsData%NPSBE)
-  IF ( ALLOCATED(activedofsData%NPSE) ) DEALLOCATE(activedofsData%NPSE)
-  IF ( ALLOCATED(activedofsData%PCE) ) DEALLOCATE(activedofsData%PCE)
-  IF ( ALLOCATED(activedofsData%PDE) ) DEALLOCATE(activedofsData%PDE)
-  IF ( ALLOCATED(activedofsData%PIE) ) DEALLOCATE(activedofsData%PIE)
-  IF ( ALLOCATED(activedofsData%PTE) ) DEALLOCATE(activedofsData%PTE)
-  IF ( ALLOCATED(activedofsData%PTTE) ) DEALLOCATE(activedofsData%PTTE)
-  IF ( ALLOCATED(activedofsData%PS) ) DEALLOCATE(activedofsData%PS)
-  IF ( ALLOCATED(activedofsData%PSBE) ) DEALLOCATE(activedofsData%PSBE)
-  IF ( ALLOCATED(activedofsData%PSE) ) DEALLOCATE(activedofsData%PSE)
-  IF ( ALLOCATED(activedofsData%PUE) ) DEALLOCATE(activedofsData%PUE)
-  IF ( ALLOCATED(activedofsData%PYE) ) DEALLOCATE(activedofsData%PYE)
-  IF ( ALLOCATED(activedofsData%SrtPS) ) DEALLOCATE(activedofsData%SrtPS)
-  IF ( ALLOCATED(activedofsData%SrtPSNAUG) ) DEALLOCATE(activedofsData%SrtPSNAUG)
-  IF ( ALLOCATED(activedofsData%Diag) ) DEALLOCATE(activedofsData%Diag)
+IF (ALLOCATED(activedofsData%NPSBE)) THEN
+   DEALLOCATE(activedofsData%NPSBE)
+ENDIF
+IF (ALLOCATED(activedofsData%NPSE)) THEN
+   DEALLOCATE(activedofsData%NPSE)
+ENDIF
+IF (ALLOCATED(activedofsData%PCE)) THEN
+   DEALLOCATE(activedofsData%PCE)
+ENDIF
+IF (ALLOCATED(activedofsData%PDE)) THEN
+   DEALLOCATE(activedofsData%PDE)
+ENDIF
+IF (ALLOCATED(activedofsData%PIE)) THEN
+   DEALLOCATE(activedofsData%PIE)
+ENDIF
+IF (ALLOCATED(activedofsData%PTE)) THEN
+   DEALLOCATE(activedofsData%PTE)
+ENDIF
+IF (ALLOCATED(activedofsData%PTTE)) THEN
+   DEALLOCATE(activedofsData%PTTE)
+ENDIF
+IF (ALLOCATED(activedofsData%PS)) THEN
+   DEALLOCATE(activedofsData%PS)
+ENDIF
+IF (ALLOCATED(activedofsData%PSBE)) THEN
+   DEALLOCATE(activedofsData%PSBE)
+ENDIF
+IF (ALLOCATED(activedofsData%PSE)) THEN
+   DEALLOCATE(activedofsData%PSE)
+ENDIF
+IF (ALLOCATED(activedofsData%PUE)) THEN
+   DEALLOCATE(activedofsData%PUE)
+ENDIF
+IF (ALLOCATED(activedofsData%PYE)) THEN
+   DEALLOCATE(activedofsData%PYE)
+ENDIF
+IF (ALLOCATED(activedofsData%SrtPS)) THEN
+   DEALLOCATE(activedofsData%SrtPS)
+ENDIF
+IF (ALLOCATED(activedofsData%SrtPSNAUG)) THEN
+   DEALLOCATE(activedofsData%SrtPSNAUG)
+ENDIF
+IF (ALLOCATED(activedofsData%Diag)) THEN
+   DEALLOCATE(activedofsData%Diag)
+ENDIF
  END SUBROUTINE ED_Destroyactivedofs
 
  SUBROUTINE ED_Packactivedofs( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -5754,73 +5904,207 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(rthndsideData%rQS) ) DEALLOCATE(rthndsideData%rQS)
-  IF ( ALLOCATED(rthndsideData%rS) ) DEALLOCATE(rthndsideData%rS)
-  IF ( ALLOCATED(rthndsideData%rS0S) ) DEALLOCATE(rthndsideData%rS0S)
-  IF ( ALLOCATED(rthndsideData%rT) ) DEALLOCATE(rthndsideData%rT)
-  IF ( ALLOCATED(rthndsideData%rT0T) ) DEALLOCATE(rthndsideData%rT0T)
-  IF ( ALLOCATED(rthndsideData%rZT) ) DEALLOCATE(rthndsideData%rZT)
-  IF ( ALLOCATED(rthndsideData%rPS0) ) DEALLOCATE(rthndsideData%rPS0)
-  IF ( ALLOCATED(rthndsideData%AngPosEF) ) DEALLOCATE(rthndsideData%AngPosEF)
-  IF ( ALLOCATED(rthndsideData%AngPosXF) ) DEALLOCATE(rthndsideData%AngPosXF)
-  IF ( ALLOCATED(rthndsideData%AngPosHM) ) DEALLOCATE(rthndsideData%AngPosHM)
-  IF ( ALLOCATED(rthndsideData%PAngVelEA) ) DEALLOCATE(rthndsideData%PAngVelEA)
-  IF ( ALLOCATED(rthndsideData%PAngVelEF) ) DEALLOCATE(rthndsideData%PAngVelEF)
-  IF ( ALLOCATED(rthndsideData%PAngVelEG) ) DEALLOCATE(rthndsideData%PAngVelEG)
-  IF ( ALLOCATED(rthndsideData%PAngVelEH) ) DEALLOCATE(rthndsideData%PAngVelEH)
-  IF ( ALLOCATED(rthndsideData%PAngVelEL) ) DEALLOCATE(rthndsideData%PAngVelEL)
-  IF ( ALLOCATED(rthndsideData%PAngVelEM) ) DEALLOCATE(rthndsideData%PAngVelEM)
-  IF ( ALLOCATED(rthndsideData%PAngVelEN) ) DEALLOCATE(rthndsideData%PAngVelEN)
-  IF ( ALLOCATED(rthndsideData%PAngVelEB) ) DEALLOCATE(rthndsideData%PAngVelEB)
-  IF ( ALLOCATED(rthndsideData%PAngVelER) ) DEALLOCATE(rthndsideData%PAngVelER)
-  IF ( ALLOCATED(rthndsideData%PAngVelEX) ) DEALLOCATE(rthndsideData%PAngVelEX)
-  IF ( ALLOCATED(rthndsideData%AngAccEFt) ) DEALLOCATE(rthndsideData%AngAccEFt)
-  IF ( ALLOCATED(rthndsideData%AngVelEF) ) DEALLOCATE(rthndsideData%AngVelEF)
-  IF ( ALLOCATED(rthndsideData%LinVelES) ) DEALLOCATE(rthndsideData%LinVelES)
-  IF ( ALLOCATED(rthndsideData%LinVelET) ) DEALLOCATE(rthndsideData%LinVelET)
-  IF ( ALLOCATED(rthndsideData%LinVelESm2) ) DEALLOCATE(rthndsideData%LinVelESm2)
-  IF ( ALLOCATED(rthndsideData%PLinVelEIMU) ) DEALLOCATE(rthndsideData%PLinVelEIMU)
-  IF ( ALLOCATED(rthndsideData%PLinVelEO) ) DEALLOCATE(rthndsideData%PLinVelEO)
-  IF ( ALLOCATED(rthndsideData%PLinVelES) ) DEALLOCATE(rthndsideData%PLinVelES)
-  IF ( ALLOCATED(rthndsideData%PLinVelET) ) DEALLOCATE(rthndsideData%PLinVelET)
-  IF ( ALLOCATED(rthndsideData%PLinVelEZ) ) DEALLOCATE(rthndsideData%PLinVelEZ)
-  IF ( ALLOCATED(rthndsideData%PLinVelEC) ) DEALLOCATE(rthndsideData%PLinVelEC)
-  IF ( ALLOCATED(rthndsideData%PLinVelED) ) DEALLOCATE(rthndsideData%PLinVelED)
-  IF ( ALLOCATED(rthndsideData%PLinVelEI) ) DEALLOCATE(rthndsideData%PLinVelEI)
-  IF ( ALLOCATED(rthndsideData%PLinVelEJ) ) DEALLOCATE(rthndsideData%PLinVelEJ)
-  IF ( ALLOCATED(rthndsideData%PLinVelEK) ) DEALLOCATE(rthndsideData%PLinVelEK)
-  IF ( ALLOCATED(rthndsideData%PLinVelEP) ) DEALLOCATE(rthndsideData%PLinVelEP)
-  IF ( ALLOCATED(rthndsideData%PLinVelEQ) ) DEALLOCATE(rthndsideData%PLinVelEQ)
-  IF ( ALLOCATED(rthndsideData%PLinVelEU) ) DEALLOCATE(rthndsideData%PLinVelEU)
-  IF ( ALLOCATED(rthndsideData%PLinVelEV) ) DEALLOCATE(rthndsideData%PLinVelEV)
-  IF ( ALLOCATED(rthndsideData%PLinVelEW) ) DEALLOCATE(rthndsideData%PLinVelEW)
-  IF ( ALLOCATED(rthndsideData%PLinVelEY) ) DEALLOCATE(rthndsideData%PLinVelEY)
-  IF ( ALLOCATED(rthndsideData%LinAccESt) ) DEALLOCATE(rthndsideData%LinAccESt)
-  IF ( ALLOCATED(rthndsideData%LinAccETt) ) DEALLOCATE(rthndsideData%LinAccETt)
-  IF ( ALLOCATED(rthndsideData%FrcS0Bt) ) DEALLOCATE(rthndsideData%FrcS0Bt)
-  IF ( ALLOCATED(rthndsideData%FSAero) ) DEALLOCATE(rthndsideData%FSAero)
-  IF ( ALLOCATED(rthndsideData%FSTipDrag) ) DEALLOCATE(rthndsideData%FSTipDrag)
-  IF ( ALLOCATED(rthndsideData%FTHydrot) ) DEALLOCATE(rthndsideData%FTHydrot)
-  IF ( ALLOCATED(rthndsideData%MFHydrot) ) DEALLOCATE(rthndsideData%MFHydrot)
-  IF ( ALLOCATED(rthndsideData%MomH0Bt) ) DEALLOCATE(rthndsideData%MomH0Bt)
-  IF ( ALLOCATED(rthndsideData%MMAero) ) DEALLOCATE(rthndsideData%MMAero)
-  IF ( ALLOCATED(rthndsideData%PFrcONcRt) ) DEALLOCATE(rthndsideData%PFrcONcRt)
-  IF ( ALLOCATED(rthndsideData%PFrcPRot) ) DEALLOCATE(rthndsideData%PFrcPRot)
-  IF ( ALLOCATED(rthndsideData%PFrcS0B) ) DEALLOCATE(rthndsideData%PFrcS0B)
-  IF ( ALLOCATED(rthndsideData%PFrcT0Trb) ) DEALLOCATE(rthndsideData%PFrcT0Trb)
-  IF ( ALLOCATED(rthndsideData%PFTHydro) ) DEALLOCATE(rthndsideData%PFTHydro)
-  IF ( ALLOCATED(rthndsideData%PMFHydro) ) DEALLOCATE(rthndsideData%PMFHydro)
-  IF ( ALLOCATED(rthndsideData%PMomBNcRt) ) DEALLOCATE(rthndsideData%PMomBNcRt)
-  IF ( ALLOCATED(rthndsideData%PMomH0B) ) DEALLOCATE(rthndsideData%PMomH0B)
-  IF ( ALLOCATED(rthndsideData%PMomLPRot) ) DEALLOCATE(rthndsideData%PMomLPRot)
-  IF ( ALLOCATED(rthndsideData%PMomNGnRt) ) DEALLOCATE(rthndsideData%PMomNGnRt)
-  IF ( ALLOCATED(rthndsideData%PMomNTail) ) DEALLOCATE(rthndsideData%PMomNTail)
-  IF ( ALLOCATED(rthndsideData%PMomX0Trb) ) DEALLOCATE(rthndsideData%PMomX0Trb)
-  IF ( ALLOCATED(rthndsideData%PFrcVGnRt) ) DEALLOCATE(rthndsideData%PFrcVGnRt)
-  IF ( ALLOCATED(rthndsideData%PFrcWTail) ) DEALLOCATE(rthndsideData%PFrcWTail)
-  IF ( ALLOCATED(rthndsideData%PFrcZAll) ) DEALLOCATE(rthndsideData%PFrcZAll)
-  IF ( ALLOCATED(rthndsideData%PMomXAll) ) DEALLOCATE(rthndsideData%PMomXAll)
-  IF ( ALLOCATED(rthndsideData%rSAerCen) ) DEALLOCATE(rthndsideData%rSAerCen)
+IF (ALLOCATED(rthndsideData%rQS)) THEN
+   DEALLOCATE(rthndsideData%rQS)
+ENDIF
+IF (ALLOCATED(rthndsideData%rS)) THEN
+   DEALLOCATE(rthndsideData%rS)
+ENDIF
+IF (ALLOCATED(rthndsideData%rS0S)) THEN
+   DEALLOCATE(rthndsideData%rS0S)
+ENDIF
+IF (ALLOCATED(rthndsideData%rT)) THEN
+   DEALLOCATE(rthndsideData%rT)
+ENDIF
+IF (ALLOCATED(rthndsideData%rT0T)) THEN
+   DEALLOCATE(rthndsideData%rT0T)
+ENDIF
+IF (ALLOCATED(rthndsideData%rZT)) THEN
+   DEALLOCATE(rthndsideData%rZT)
+ENDIF
+IF (ALLOCATED(rthndsideData%rPS0)) THEN
+   DEALLOCATE(rthndsideData%rPS0)
+ENDIF
+IF (ALLOCATED(rthndsideData%AngPosEF)) THEN
+   DEALLOCATE(rthndsideData%AngPosEF)
+ENDIF
+IF (ALLOCATED(rthndsideData%AngPosXF)) THEN
+   DEALLOCATE(rthndsideData%AngPosXF)
+ENDIF
+IF (ALLOCATED(rthndsideData%AngPosHM)) THEN
+   DEALLOCATE(rthndsideData%AngPosHM)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelEA)) THEN
+   DEALLOCATE(rthndsideData%PAngVelEA)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelEF)) THEN
+   DEALLOCATE(rthndsideData%PAngVelEF)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelEG)) THEN
+   DEALLOCATE(rthndsideData%PAngVelEG)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelEH)) THEN
+   DEALLOCATE(rthndsideData%PAngVelEH)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelEL)) THEN
+   DEALLOCATE(rthndsideData%PAngVelEL)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelEM)) THEN
+   DEALLOCATE(rthndsideData%PAngVelEM)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelEN)) THEN
+   DEALLOCATE(rthndsideData%PAngVelEN)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelEB)) THEN
+   DEALLOCATE(rthndsideData%PAngVelEB)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelER)) THEN
+   DEALLOCATE(rthndsideData%PAngVelER)
+ENDIF
+IF (ALLOCATED(rthndsideData%PAngVelEX)) THEN
+   DEALLOCATE(rthndsideData%PAngVelEX)
+ENDIF
+IF (ALLOCATED(rthndsideData%AngAccEFt)) THEN
+   DEALLOCATE(rthndsideData%AngAccEFt)
+ENDIF
+IF (ALLOCATED(rthndsideData%AngVelEF)) THEN
+   DEALLOCATE(rthndsideData%AngVelEF)
+ENDIF
+IF (ALLOCATED(rthndsideData%LinVelES)) THEN
+   DEALLOCATE(rthndsideData%LinVelES)
+ENDIF
+IF (ALLOCATED(rthndsideData%LinVelET)) THEN
+   DEALLOCATE(rthndsideData%LinVelET)
+ENDIF
+IF (ALLOCATED(rthndsideData%LinVelESm2)) THEN
+   DEALLOCATE(rthndsideData%LinVelESm2)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEIMU)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEIMU)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEO)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEO)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelES)) THEN
+   DEALLOCATE(rthndsideData%PLinVelES)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelET)) THEN
+   DEALLOCATE(rthndsideData%PLinVelET)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEZ)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEZ)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEC)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEC)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelED)) THEN
+   DEALLOCATE(rthndsideData%PLinVelED)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEI)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEI)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEJ)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEJ)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEK)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEK)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEP)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEP)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEQ)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEQ)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEU)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEU)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEV)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEV)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEW)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEW)
+ENDIF
+IF (ALLOCATED(rthndsideData%PLinVelEY)) THEN
+   DEALLOCATE(rthndsideData%PLinVelEY)
+ENDIF
+IF (ALLOCATED(rthndsideData%LinAccESt)) THEN
+   DEALLOCATE(rthndsideData%LinAccESt)
+ENDIF
+IF (ALLOCATED(rthndsideData%LinAccETt)) THEN
+   DEALLOCATE(rthndsideData%LinAccETt)
+ENDIF
+IF (ALLOCATED(rthndsideData%FrcS0Bt)) THEN
+   DEALLOCATE(rthndsideData%FrcS0Bt)
+ENDIF
+IF (ALLOCATED(rthndsideData%FSAero)) THEN
+   DEALLOCATE(rthndsideData%FSAero)
+ENDIF
+IF (ALLOCATED(rthndsideData%FSTipDrag)) THEN
+   DEALLOCATE(rthndsideData%FSTipDrag)
+ENDIF
+IF (ALLOCATED(rthndsideData%FTHydrot)) THEN
+   DEALLOCATE(rthndsideData%FTHydrot)
+ENDIF
+IF (ALLOCATED(rthndsideData%MFHydrot)) THEN
+   DEALLOCATE(rthndsideData%MFHydrot)
+ENDIF
+IF (ALLOCATED(rthndsideData%MomH0Bt)) THEN
+   DEALLOCATE(rthndsideData%MomH0Bt)
+ENDIF
+IF (ALLOCATED(rthndsideData%MMAero)) THEN
+   DEALLOCATE(rthndsideData%MMAero)
+ENDIF
+IF (ALLOCATED(rthndsideData%PFrcONcRt)) THEN
+   DEALLOCATE(rthndsideData%PFrcONcRt)
+ENDIF
+IF (ALLOCATED(rthndsideData%PFrcPRot)) THEN
+   DEALLOCATE(rthndsideData%PFrcPRot)
+ENDIF
+IF (ALLOCATED(rthndsideData%PFrcS0B)) THEN
+   DEALLOCATE(rthndsideData%PFrcS0B)
+ENDIF
+IF (ALLOCATED(rthndsideData%PFrcT0Trb)) THEN
+   DEALLOCATE(rthndsideData%PFrcT0Trb)
+ENDIF
+IF (ALLOCATED(rthndsideData%PFTHydro)) THEN
+   DEALLOCATE(rthndsideData%PFTHydro)
+ENDIF
+IF (ALLOCATED(rthndsideData%PMFHydro)) THEN
+   DEALLOCATE(rthndsideData%PMFHydro)
+ENDIF
+IF (ALLOCATED(rthndsideData%PMomBNcRt)) THEN
+   DEALLOCATE(rthndsideData%PMomBNcRt)
+ENDIF
+IF (ALLOCATED(rthndsideData%PMomH0B)) THEN
+   DEALLOCATE(rthndsideData%PMomH0B)
+ENDIF
+IF (ALLOCATED(rthndsideData%PMomLPRot)) THEN
+   DEALLOCATE(rthndsideData%PMomLPRot)
+ENDIF
+IF (ALLOCATED(rthndsideData%PMomNGnRt)) THEN
+   DEALLOCATE(rthndsideData%PMomNGnRt)
+ENDIF
+IF (ALLOCATED(rthndsideData%PMomNTail)) THEN
+   DEALLOCATE(rthndsideData%PMomNTail)
+ENDIF
+IF (ALLOCATED(rthndsideData%PMomX0Trb)) THEN
+   DEALLOCATE(rthndsideData%PMomX0Trb)
+ENDIF
+IF (ALLOCATED(rthndsideData%PFrcVGnRt)) THEN
+   DEALLOCATE(rthndsideData%PFrcVGnRt)
+ENDIF
+IF (ALLOCATED(rthndsideData%PFrcWTail)) THEN
+   DEALLOCATE(rthndsideData%PFrcWTail)
+ENDIF
+IF (ALLOCATED(rthndsideData%PFrcZAll)) THEN
+   DEALLOCATE(rthndsideData%PFrcZAll)
+ENDIF
+IF (ALLOCATED(rthndsideData%PMomXAll)) THEN
+   DEALLOCATE(rthndsideData%PMomXAll)
+ENDIF
+IF (ALLOCATED(rthndsideData%rSAerCen)) THEN
+   DEALLOCATE(rthndsideData%rSAerCen)
+ENDIF
  END SUBROUTINE ED_Destroyrthndside
 
  SUBROUTINE ED_Packrthndside( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -7293,10 +7577,16 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(InitOutputData%WriteOutputHdr) ) DEALLOCATE(InitOutputData%WriteOutputHdr)
-  IF ( ALLOCATED(InitOutputData%WriteOutputUnt) ) DEALLOCATE(InitOutputData%WriteOutputUnt)
+IF (ALLOCATED(InitOutputData%WriteOutputHdr)) THEN
+   DEALLOCATE(InitOutputData%WriteOutputHdr)
+ENDIF
+IF (ALLOCATED(InitOutputData%WriteOutputUnt)) THEN
+   DEALLOCATE(InitOutputData%WriteOutputUnt)
+ENDIF
   CALL NWTC_Library_Destroyprogdesc( InitOutputData%Ver, ErrStat, ErrMsg )
-  IF ( ALLOCATED(InitOutputData%BlPitch) ) DEALLOCATE(InitOutputData%BlPitch)
+IF (ALLOCATED(InitOutputData%BlPitch)) THEN
+   DEALLOCATE(InitOutputData%BlPitch)
+ENDIF
  END SUBROUTINE ED_DestroyInitOutput
 
  SUBROUTINE ED_PackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -7495,8 +7785,12 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(ContStateData%QT) ) DEALLOCATE(ContStateData%QT)
-  IF ( ALLOCATED(ContStateData%QDT) ) DEALLOCATE(ContStateData%QDT)
+IF (ALLOCATED(ContStateData%QT)) THEN
+   DEALLOCATE(ContStateData%QT)
+ENDIF
+IF (ALLOCATED(ContStateData%QDT)) THEN
+   DEALLOCATE(ContStateData%QDT)
+ENDIF
  END SUBROUTINE ED_DestroyContState
 
  SUBROUTINE ED_PackContState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -7931,13 +8225,25 @@ ENDIF
 DO i1 = LBOUND(OtherStateData%xdot,1), UBOUND(OtherStateData%xdot,1)
   CALL ED_DestroyContState( OtherStateData%xdot(i1), ErrStat, ErrMsg )
 ENDDO
-  IF ( ALLOCATED(OtherStateData%IC) ) DEALLOCATE(OtherStateData%IC)
-  IF ( ALLOCATED(OtherStateData%QD2T) ) DEALLOCATE(OtherStateData%QD2T)
-  IF ( ALLOCATED(OtherStateData%BlPitch) ) DEALLOCATE(OtherStateData%BlPitch)
-  IF ( ALLOCATED(OtherStateData%AugMat) ) DEALLOCATE(OtherStateData%AugMat)
-  IF ( ALLOCATED(OtherStateData%AugMatOut) ) DEALLOCATE(OtherStateData%AugMatOut)
+IF (ALLOCATED(OtherStateData%IC)) THEN
+   DEALLOCATE(OtherStateData%IC)
+ENDIF
+IF (ALLOCATED(OtherStateData%QD2T)) THEN
+   DEALLOCATE(OtherStateData%QD2T)
+ENDIF
+IF (ALLOCATED(OtherStateData%BlPitch)) THEN
+   DEALLOCATE(OtherStateData%BlPitch)
+ENDIF
+IF (ALLOCATED(OtherStateData%AugMat)) THEN
+   DEALLOCATE(OtherStateData%AugMat)
+ENDIF
+IF (ALLOCATED(OtherStateData%AugMatOut)) THEN
+   DEALLOCATE(OtherStateData%AugMatOut)
+ENDIF
   CALL ED_DestroyContState( OtherStateData%k1, ErrStat, ErrMsg )
-  IF ( ALLOCATED(OtherStateData%AllOuts) ) DEALLOCATE(OtherStateData%AllOuts)
+IF (ALLOCATED(OtherStateData%AllOuts)) THEN
+   DEALLOCATE(OtherStateData%AllOuts)
+ENDIF
  END SUBROUTINE ED_DestroyOtherState
 
  SUBROUTINE ED_PackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -9496,82 +9802,223 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(ParamData%PH) ) DEALLOCATE(ParamData%PH)
-  IF ( ALLOCATED(ParamData%PM) ) DEALLOCATE(ParamData%PM)
-  IF ( ALLOCATED(ParamData%DOF_Flag) ) DEALLOCATE(ParamData%DOF_Flag)
-  IF ( ALLOCATED(ParamData%DOF_Desc) ) DEALLOCATE(ParamData%DOF_Desc)
+IF (ALLOCATED(ParamData%PH)) THEN
+   DEALLOCATE(ParamData%PH)
+ENDIF
+IF (ALLOCATED(ParamData%PM)) THEN
+   DEALLOCATE(ParamData%PM)
+ENDIF
+IF (ALLOCATED(ParamData%DOF_Flag)) THEN
+   DEALLOCATE(ParamData%DOF_Flag)
+ENDIF
+IF (ALLOCATED(ParamData%DOF_Desc)) THEN
+   DEALLOCATE(ParamData%DOF_Desc)
+ENDIF
   CALL ED_Destroyactivedofs( ParamData%DOFs, ErrStat, ErrMsg )
 IF (ALLOCATED(ParamData%OutParam)) THEN
 DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
   CALL NWTC_Library_Destroyoutparmtype( ParamData%OutParam(i1), ErrStat, ErrMsg )
 ENDDO
+   DEALLOCATE(ParamData%OutParam)
 ENDIF
-  IF ( ALLOCATED(ParamData%CosPreC) ) DEALLOCATE(ParamData%CosPreC)
-  IF ( ALLOCATED(ParamData%SinPreC) ) DEALLOCATE(ParamData%SinPreC)
-  IF ( ALLOCATED(ParamData%AxRedTFA) ) DEALLOCATE(ParamData%AxRedTFA)
-  IF ( ALLOCATED(ParamData%AxRedTSS) ) DEALLOCATE(ParamData%AxRedTSS)
-  IF ( ALLOCATED(ParamData%DHNodes) ) DEALLOCATE(ParamData%DHNodes)
-  IF ( ALLOCATED(ParamData%HNodes) ) DEALLOCATE(ParamData%HNodes)
-  IF ( ALLOCATED(ParamData%HNodesNorm) ) DEALLOCATE(ParamData%HNodesNorm)
-  IF ( ALLOCATED(ParamData%MassT) ) DEALLOCATE(ParamData%MassT)
-  IF ( ALLOCATED(ParamData%StiffTSS) ) DEALLOCATE(ParamData%StiffTSS)
-  IF ( ALLOCATED(ParamData%TwrFASF) ) DEALLOCATE(ParamData%TwrFASF)
-  IF ( ALLOCATED(ParamData%TwrSSSF) ) DEALLOCATE(ParamData%TwrSSSF)
-  IF ( ALLOCATED(ParamData%InerTFA) ) DEALLOCATE(ParamData%InerTFA)
-  IF ( ALLOCATED(ParamData%InerTSS) ) DEALLOCATE(ParamData%InerTSS)
-  IF ( ALLOCATED(ParamData%StiffTGJ) ) DEALLOCATE(ParamData%StiffTGJ)
-  IF ( ALLOCATED(ParamData%StiffTEA) ) DEALLOCATE(ParamData%StiffTEA)
-  IF ( ALLOCATED(ParamData%StiffTFA) ) DEALLOCATE(ParamData%StiffTFA)
-  IF ( ALLOCATED(ParamData%cgOffTFA) ) DEALLOCATE(ParamData%cgOffTFA)
-  IF ( ALLOCATED(ParamData%cgOffTSS) ) DEALLOCATE(ParamData%cgOffTSS)
-  IF ( ALLOCATED(ParamData%BldCG) ) DEALLOCATE(ParamData%BldCG)
-  IF ( ALLOCATED(ParamData%BldMass) ) DEALLOCATE(ParamData%BldMass)
-  IF ( ALLOCATED(ParamData%FirstMom) ) DEALLOCATE(ParamData%FirstMom)
-  IF ( ALLOCATED(ParamData%SecondMom) ) DEALLOCATE(ParamData%SecondMom)
-  IF ( ALLOCATED(ParamData%TipMass) ) DEALLOCATE(ParamData%TipMass)
-  IF ( ALLOCATED(ParamData%PitchAxis) ) DEALLOCATE(ParamData%PitchAxis)
-  IF ( ALLOCATED(ParamData%AeroTwst) ) DEALLOCATE(ParamData%AeroTwst)
-  IF ( ALLOCATED(ParamData%AxRedBld) ) DEALLOCATE(ParamData%AxRedBld)
-  IF ( ALLOCATED(ParamData%BAlpha) ) DEALLOCATE(ParamData%BAlpha)
-  IF ( ALLOCATED(ParamData%BldEDamp) ) DEALLOCATE(ParamData%BldEDamp)
-  IF ( ALLOCATED(ParamData%BldFDamp) ) DEALLOCATE(ParamData%BldFDamp)
-  IF ( ALLOCATED(ParamData%CAeroTwst) ) DEALLOCATE(ParamData%CAeroTwst)
-  IF ( ALLOCATED(ParamData%CBE) ) DEALLOCATE(ParamData%CBE)
-  IF ( ALLOCATED(ParamData%CBF) ) DEALLOCATE(ParamData%CBF)
-  IF ( ALLOCATED(ParamData%cgOffBEdg) ) DEALLOCATE(ParamData%cgOffBEdg)
-  IF ( ALLOCATED(ParamData%cgOffBFlp) ) DEALLOCATE(ParamData%cgOffBFlp)
-  IF ( ALLOCATED(ParamData%Chord) ) DEALLOCATE(ParamData%Chord)
-  IF ( ALLOCATED(ParamData%CThetaS) ) DEALLOCATE(ParamData%CThetaS)
-  IF ( ALLOCATED(ParamData%DRNodes) ) DEALLOCATE(ParamData%DRNodes)
-  IF ( ALLOCATED(ParamData%EAOffBEdg) ) DEALLOCATE(ParamData%EAOffBEdg)
-  IF ( ALLOCATED(ParamData%EAOffBFlp) ) DEALLOCATE(ParamData%EAOffBFlp)
-  IF ( ALLOCATED(ParamData%FStTunr) ) DEALLOCATE(ParamData%FStTunr)
-  IF ( ALLOCATED(ParamData%InerBEdg) ) DEALLOCATE(ParamData%InerBEdg)
-  IF ( ALLOCATED(ParamData%InerBFlp) ) DEALLOCATE(ParamData%InerBFlp)
-  IF ( ALLOCATED(ParamData%KBE) ) DEALLOCATE(ParamData%KBE)
-  IF ( ALLOCATED(ParamData%KBF) ) DEALLOCATE(ParamData%KBF)
-  IF ( ALLOCATED(ParamData%MassB) ) DEALLOCATE(ParamData%MassB)
-  IF ( ALLOCATED(ParamData%RefAxisxb) ) DEALLOCATE(ParamData%RefAxisxb)
-  IF ( ALLOCATED(ParamData%RefAxisyb) ) DEALLOCATE(ParamData%RefAxisyb)
-  IF ( ALLOCATED(ParamData%RNodes) ) DEALLOCATE(ParamData%RNodes)
-  IF ( ALLOCATED(ParamData%RNodesNorm) ) DEALLOCATE(ParamData%RNodesNorm)
-  IF ( ALLOCATED(ParamData%rSAerCenn1) ) DEALLOCATE(ParamData%rSAerCenn1)
-  IF ( ALLOCATED(ParamData%rSAerCenn2) ) DEALLOCATE(ParamData%rSAerCenn2)
-  IF ( ALLOCATED(ParamData%SAeroTwst) ) DEALLOCATE(ParamData%SAeroTwst)
-  IF ( ALLOCATED(ParamData%StiffBE) ) DEALLOCATE(ParamData%StiffBE)
-  IF ( ALLOCATED(ParamData%StiffBEA) ) DEALLOCATE(ParamData%StiffBEA)
-  IF ( ALLOCATED(ParamData%StiffBF) ) DEALLOCATE(ParamData%StiffBF)
-  IF ( ALLOCATED(ParamData%StiffBGJ) ) DEALLOCATE(ParamData%StiffBGJ)
-  IF ( ALLOCATED(ParamData%SThetaS) ) DEALLOCATE(ParamData%SThetaS)
-  IF ( ALLOCATED(ParamData%ThetaS) ) DEALLOCATE(ParamData%ThetaS)
-  IF ( ALLOCATED(ParamData%TwistedSF) ) DEALLOCATE(ParamData%TwistedSF)
-  IF ( ALLOCATED(ParamData%BldFl1Sh) ) DEALLOCATE(ParamData%BldFl1Sh)
-  IF ( ALLOCATED(ParamData%BldFl2Sh) ) DEALLOCATE(ParamData%BldFl2Sh)
-  IF ( ALLOCATED(ParamData%BldEdgSh) ) DEALLOCATE(ParamData%BldEdgSh)
-  IF ( ALLOCATED(ParamData%FreqBE) ) DEALLOCATE(ParamData%FreqBE)
-  IF ( ALLOCATED(ParamData%FreqBF) ) DEALLOCATE(ParamData%FreqBF)
-  IF ( ALLOCATED(ParamData%BElmntMass) ) DEALLOCATE(ParamData%BElmntMass)
-  IF ( ALLOCATED(ParamData%TElmntMass) ) DEALLOCATE(ParamData%TElmntMass)
+IF (ALLOCATED(ParamData%CosPreC)) THEN
+   DEALLOCATE(ParamData%CosPreC)
+ENDIF
+IF (ALLOCATED(ParamData%SinPreC)) THEN
+   DEALLOCATE(ParamData%SinPreC)
+ENDIF
+IF (ALLOCATED(ParamData%AxRedTFA)) THEN
+   DEALLOCATE(ParamData%AxRedTFA)
+ENDIF
+IF (ALLOCATED(ParamData%AxRedTSS)) THEN
+   DEALLOCATE(ParamData%AxRedTSS)
+ENDIF
+IF (ALLOCATED(ParamData%DHNodes)) THEN
+   DEALLOCATE(ParamData%DHNodes)
+ENDIF
+IF (ALLOCATED(ParamData%HNodes)) THEN
+   DEALLOCATE(ParamData%HNodes)
+ENDIF
+IF (ALLOCATED(ParamData%HNodesNorm)) THEN
+   DEALLOCATE(ParamData%HNodesNorm)
+ENDIF
+IF (ALLOCATED(ParamData%MassT)) THEN
+   DEALLOCATE(ParamData%MassT)
+ENDIF
+IF (ALLOCATED(ParamData%StiffTSS)) THEN
+   DEALLOCATE(ParamData%StiffTSS)
+ENDIF
+IF (ALLOCATED(ParamData%TwrFASF)) THEN
+   DEALLOCATE(ParamData%TwrFASF)
+ENDIF
+IF (ALLOCATED(ParamData%TwrSSSF)) THEN
+   DEALLOCATE(ParamData%TwrSSSF)
+ENDIF
+IF (ALLOCATED(ParamData%InerTFA)) THEN
+   DEALLOCATE(ParamData%InerTFA)
+ENDIF
+IF (ALLOCATED(ParamData%InerTSS)) THEN
+   DEALLOCATE(ParamData%InerTSS)
+ENDIF
+IF (ALLOCATED(ParamData%StiffTGJ)) THEN
+   DEALLOCATE(ParamData%StiffTGJ)
+ENDIF
+IF (ALLOCATED(ParamData%StiffTEA)) THEN
+   DEALLOCATE(ParamData%StiffTEA)
+ENDIF
+IF (ALLOCATED(ParamData%StiffTFA)) THEN
+   DEALLOCATE(ParamData%StiffTFA)
+ENDIF
+IF (ALLOCATED(ParamData%cgOffTFA)) THEN
+   DEALLOCATE(ParamData%cgOffTFA)
+ENDIF
+IF (ALLOCATED(ParamData%cgOffTSS)) THEN
+   DEALLOCATE(ParamData%cgOffTSS)
+ENDIF
+IF (ALLOCATED(ParamData%BldCG)) THEN
+   DEALLOCATE(ParamData%BldCG)
+ENDIF
+IF (ALLOCATED(ParamData%BldMass)) THEN
+   DEALLOCATE(ParamData%BldMass)
+ENDIF
+IF (ALLOCATED(ParamData%FirstMom)) THEN
+   DEALLOCATE(ParamData%FirstMom)
+ENDIF
+IF (ALLOCATED(ParamData%SecondMom)) THEN
+   DEALLOCATE(ParamData%SecondMom)
+ENDIF
+IF (ALLOCATED(ParamData%TipMass)) THEN
+   DEALLOCATE(ParamData%TipMass)
+ENDIF
+IF (ALLOCATED(ParamData%PitchAxis)) THEN
+   DEALLOCATE(ParamData%PitchAxis)
+ENDIF
+IF (ALLOCATED(ParamData%AeroTwst)) THEN
+   DEALLOCATE(ParamData%AeroTwst)
+ENDIF
+IF (ALLOCATED(ParamData%AxRedBld)) THEN
+   DEALLOCATE(ParamData%AxRedBld)
+ENDIF
+IF (ALLOCATED(ParamData%BAlpha)) THEN
+   DEALLOCATE(ParamData%BAlpha)
+ENDIF
+IF (ALLOCATED(ParamData%BldEDamp)) THEN
+   DEALLOCATE(ParamData%BldEDamp)
+ENDIF
+IF (ALLOCATED(ParamData%BldFDamp)) THEN
+   DEALLOCATE(ParamData%BldFDamp)
+ENDIF
+IF (ALLOCATED(ParamData%CAeroTwst)) THEN
+   DEALLOCATE(ParamData%CAeroTwst)
+ENDIF
+IF (ALLOCATED(ParamData%CBE)) THEN
+   DEALLOCATE(ParamData%CBE)
+ENDIF
+IF (ALLOCATED(ParamData%CBF)) THEN
+   DEALLOCATE(ParamData%CBF)
+ENDIF
+IF (ALLOCATED(ParamData%cgOffBEdg)) THEN
+   DEALLOCATE(ParamData%cgOffBEdg)
+ENDIF
+IF (ALLOCATED(ParamData%cgOffBFlp)) THEN
+   DEALLOCATE(ParamData%cgOffBFlp)
+ENDIF
+IF (ALLOCATED(ParamData%Chord)) THEN
+   DEALLOCATE(ParamData%Chord)
+ENDIF
+IF (ALLOCATED(ParamData%CThetaS)) THEN
+   DEALLOCATE(ParamData%CThetaS)
+ENDIF
+IF (ALLOCATED(ParamData%DRNodes)) THEN
+   DEALLOCATE(ParamData%DRNodes)
+ENDIF
+IF (ALLOCATED(ParamData%EAOffBEdg)) THEN
+   DEALLOCATE(ParamData%EAOffBEdg)
+ENDIF
+IF (ALLOCATED(ParamData%EAOffBFlp)) THEN
+   DEALLOCATE(ParamData%EAOffBFlp)
+ENDIF
+IF (ALLOCATED(ParamData%FStTunr)) THEN
+   DEALLOCATE(ParamData%FStTunr)
+ENDIF
+IF (ALLOCATED(ParamData%InerBEdg)) THEN
+   DEALLOCATE(ParamData%InerBEdg)
+ENDIF
+IF (ALLOCATED(ParamData%InerBFlp)) THEN
+   DEALLOCATE(ParamData%InerBFlp)
+ENDIF
+IF (ALLOCATED(ParamData%KBE)) THEN
+   DEALLOCATE(ParamData%KBE)
+ENDIF
+IF (ALLOCATED(ParamData%KBF)) THEN
+   DEALLOCATE(ParamData%KBF)
+ENDIF
+IF (ALLOCATED(ParamData%MassB)) THEN
+   DEALLOCATE(ParamData%MassB)
+ENDIF
+IF (ALLOCATED(ParamData%RefAxisxb)) THEN
+   DEALLOCATE(ParamData%RefAxisxb)
+ENDIF
+IF (ALLOCATED(ParamData%RefAxisyb)) THEN
+   DEALLOCATE(ParamData%RefAxisyb)
+ENDIF
+IF (ALLOCATED(ParamData%RNodes)) THEN
+   DEALLOCATE(ParamData%RNodes)
+ENDIF
+IF (ALLOCATED(ParamData%RNodesNorm)) THEN
+   DEALLOCATE(ParamData%RNodesNorm)
+ENDIF
+IF (ALLOCATED(ParamData%rSAerCenn1)) THEN
+   DEALLOCATE(ParamData%rSAerCenn1)
+ENDIF
+IF (ALLOCATED(ParamData%rSAerCenn2)) THEN
+   DEALLOCATE(ParamData%rSAerCenn2)
+ENDIF
+IF (ALLOCATED(ParamData%SAeroTwst)) THEN
+   DEALLOCATE(ParamData%SAeroTwst)
+ENDIF
+IF (ALLOCATED(ParamData%StiffBE)) THEN
+   DEALLOCATE(ParamData%StiffBE)
+ENDIF
+IF (ALLOCATED(ParamData%StiffBEA)) THEN
+   DEALLOCATE(ParamData%StiffBEA)
+ENDIF
+IF (ALLOCATED(ParamData%StiffBF)) THEN
+   DEALLOCATE(ParamData%StiffBF)
+ENDIF
+IF (ALLOCATED(ParamData%StiffBGJ)) THEN
+   DEALLOCATE(ParamData%StiffBGJ)
+ENDIF
+IF (ALLOCATED(ParamData%SThetaS)) THEN
+   DEALLOCATE(ParamData%SThetaS)
+ENDIF
+IF (ALLOCATED(ParamData%ThetaS)) THEN
+   DEALLOCATE(ParamData%ThetaS)
+ENDIF
+IF (ALLOCATED(ParamData%TwistedSF)) THEN
+   DEALLOCATE(ParamData%TwistedSF)
+ENDIF
+IF (ALLOCATED(ParamData%BldFl1Sh)) THEN
+   DEALLOCATE(ParamData%BldFl1Sh)
+ENDIF
+IF (ALLOCATED(ParamData%BldFl2Sh)) THEN
+   DEALLOCATE(ParamData%BldFl2Sh)
+ENDIF
+IF (ALLOCATED(ParamData%BldEdgSh)) THEN
+   DEALLOCATE(ParamData%BldEdgSh)
+ENDIF
+IF (ALLOCATED(ParamData%FreqBE)) THEN
+   DEALLOCATE(ParamData%FreqBE)
+ENDIF
+IF (ALLOCATED(ParamData%FreqBF)) THEN
+   DEALLOCATE(ParamData%FreqBF)
+ENDIF
+IF (ALLOCATED(ParamData%BElmntMass)) THEN
+   DEALLOCATE(ParamData%BElmntMass)
+ENDIF
+IF (ALLOCATED(ParamData%TElmntMass)) THEN
+   DEALLOCATE(ParamData%TElmntMass)
+ENDIF
  END SUBROUTINE ED_DestroyParam
 
  SUBROUTINE ED_PackParam( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -11392,8 +11839,12 @@ ENDIF
   CALL MeshDestroy( InputData%BladeLn2Mesh, ErrStat, ErrMsg )
   CALL MeshDestroy( InputData%PlatformPtMesh, ErrStat, ErrMsg )
   CALL MeshDestroy( InputData%TowerLn2Mesh, ErrStat, ErrMsg )
-  IF ( ALLOCATED(InputData%TwrAddedMass) ) DEALLOCATE(InputData%TwrAddedMass)
-  IF ( ALLOCATED(InputData%BlPitchCom) ) DEALLOCATE(InputData%BlPitchCom)
+IF (ALLOCATED(InputData%TwrAddedMass)) THEN
+   DEALLOCATE(InputData%TwrAddedMass)
+ENDIF
+IF (ALLOCATED(InputData%BlPitchCom)) THEN
+   DEALLOCATE(InputData%BlPitchCom)
+ENDIF
  END SUBROUTINE ED_DestroyInput
 
  SUBROUTINE ED_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -11744,8 +12195,12 @@ ENDIF
   CALL MeshDestroy( OutputData%RotorFurlMotion, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%NacelleMotion, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%TowerMotion, ErrStat, ErrMsg )
-  IF ( ALLOCATED(OutputData%WriteOutput) ) DEALLOCATE(OutputData%WriteOutput)
-  IF ( ALLOCATED(OutputData%BlPitch) ) DEALLOCATE(OutputData%BlPitch)
+IF (ALLOCATED(OutputData%WriteOutput)) THEN
+   DEALLOCATE(OutputData%WriteOutput)
+ENDIF
+IF (ALLOCATED(OutputData%BlPitch)) THEN
+   DEALLOCATE(OutputData%BlPitch)
+ENDIF
  END SUBROUTINE ED_DestroyOutput
 
  SUBROUTINE ED_PackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )

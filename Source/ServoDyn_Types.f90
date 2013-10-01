@@ -429,9 +429,15 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(inputfileData%OutList) ) DEALLOCATE(inputfileData%OutList)
-  IF ( ALLOCATED(inputfileData%GenSpd_TLU) ) DEALLOCATE(inputfileData%GenSpd_TLU)
-  IF ( ALLOCATED(inputfileData%GenTrq_TLU) ) DEALLOCATE(inputfileData%GenTrq_TLU)
+IF (ALLOCATED(inputfileData%OutList)) THEN
+   DEALLOCATE(inputfileData%OutList)
+ENDIF
+IF (ALLOCATED(inputfileData%GenSpd_TLU)) THEN
+   DEALLOCATE(inputfileData%GenSpd_TLU)
+ENDIF
+IF (ALLOCATED(inputfileData%GenTrq_TLU)) THEN
+   DEALLOCATE(inputfileData%GenTrq_TLU)
+ENDIF
  END SUBROUTINE SrvD_Destroyinputfile
 
  SUBROUTINE SrvD_Packinputfile( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -865,7 +871,9 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(bladeddlltypeData%avrSWAP) ) DEALLOCATE(bladeddlltypeData%avrSWAP)
+IF (ALLOCATED(bladeddlltypeData%avrSWAP)) THEN
+   DEALLOCATE(bladeddlltypeData%avrSWAP)
+ENDIF
  END SUBROUTINE SrvD_Destroybladeddlltype
 
  SUBROUTINE SrvD_Packbladeddlltype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -1022,7 +1030,9 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(InitInputData%BlPitchInit) ) DEALLOCATE(InitInputData%BlPitchInit)
+IF (ALLOCATED(InitInputData%BlPitchInit)) THEN
+   DEALLOCATE(InitInputData%BlPitchInit)
+ENDIF
  END SUBROUTINE SrvD_DestroyInitInput
 
  SUBROUTINE SrvD_PackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -1169,8 +1179,12 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(InitOutputData%WriteOutputHdr) ) DEALLOCATE(InitOutputData%WriteOutputHdr)
-  IF ( ALLOCATED(InitOutputData%WriteOutputUnt) ) DEALLOCATE(InitOutputData%WriteOutputUnt)
+IF (ALLOCATED(InitOutputData%WriteOutputHdr)) THEN
+   DEALLOCATE(InitOutputData%WriteOutputHdr)
+ENDIF
+IF (ALLOCATED(InitOutputData%WriteOutputUnt)) THEN
+   DEALLOCATE(InitOutputData%WriteOutputUnt)
+ENDIF
   CALL NWTC_Library_Destroyprogdesc( InitOutputData%Ver, ErrStat, ErrMsg )
  END SUBROUTINE SrvD_DestroyInitOutput
 
@@ -1735,12 +1749,24 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(OtherStateData%BlPitchI) ) DEALLOCATE(OtherStateData%BlPitchI)
-  IF ( ALLOCATED(OtherStateData%BegPitMan) ) DEALLOCATE(OtherStateData%BegPitMan)
-  IF ( ALLOCATED(OtherStateData%TTpBrDp) ) DEALLOCATE(OtherStateData%TTpBrDp)
-  IF ( ALLOCATED(OtherStateData%TTpBrFl) ) DEALLOCATE(OtherStateData%TTpBrFl)
-  IF ( ALLOCATED(OtherStateData%TPitManE) ) DEALLOCATE(OtherStateData%TPitManE)
-  IF ( ALLOCATED(OtherStateData%PitManRat) ) DEALLOCATE(OtherStateData%PitManRat)
+IF (ALLOCATED(OtherStateData%BlPitchI)) THEN
+   DEALLOCATE(OtherStateData%BlPitchI)
+ENDIF
+IF (ALLOCATED(OtherStateData%BegPitMan)) THEN
+   DEALLOCATE(OtherStateData%BegPitMan)
+ENDIF
+IF (ALLOCATED(OtherStateData%TTpBrDp)) THEN
+   DEALLOCATE(OtherStateData%TTpBrDp)
+ENDIF
+IF (ALLOCATED(OtherStateData%TTpBrFl)) THEN
+   DEALLOCATE(OtherStateData%TTpBrFl)
+ENDIF
+IF (ALLOCATED(OtherStateData%TPitManE)) THEN
+   DEALLOCATE(OtherStateData%TPitManE)
+ENDIF
+IF (ALLOCATED(OtherStateData%PitManRat)) THEN
+   DEALLOCATE(OtherStateData%PitManRat)
+ENDIF
   CALL SrvD_Destroybladeddlltype( OtherStateData%dll_data, ErrStat, ErrMsg )
  END SUBROUTINE SrvD_DestroyOtherState
 
@@ -2158,17 +2184,30 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(ParamData%BlPitchInit) ) DEALLOCATE(ParamData%BlPitchInit)
-  IF ( ALLOCATED(ParamData%BlPitchF) ) DEALLOCATE(ParamData%BlPitchF)
-  IF ( ALLOCATED(ParamData%TPitManS) ) DEALLOCATE(ParamData%TPitManS)
-  IF ( ALLOCATED(ParamData%TBDepISp) ) DEALLOCATE(ParamData%TBDepISp)
+IF (ALLOCATED(ParamData%BlPitchInit)) THEN
+   DEALLOCATE(ParamData%BlPitchInit)
+ENDIF
+IF (ALLOCATED(ParamData%BlPitchF)) THEN
+   DEALLOCATE(ParamData%BlPitchF)
+ENDIF
+IF (ALLOCATED(ParamData%TPitManS)) THEN
+   DEALLOCATE(ParamData%TPitManS)
+ENDIF
+IF (ALLOCATED(ParamData%TBDepISp)) THEN
+   DEALLOCATE(ParamData%TBDepISp)
+ENDIF
 IF (ALLOCATED(ParamData%OutParam)) THEN
 DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
   CALL NWTC_Library_Destroyoutparmtype( ParamData%OutParam(i1), ErrStat, ErrMsg )
 ENDDO
+   DEALLOCATE(ParamData%OutParam)
 ENDIF
-  IF ( ALLOCATED(ParamData%GenSpd_TLU) ) DEALLOCATE(ParamData%GenSpd_TLU)
-  IF ( ALLOCATED(ParamData%GenTrq_TLU) ) DEALLOCATE(ParamData%GenTrq_TLU)
+IF (ALLOCATED(ParamData%GenSpd_TLU)) THEN
+   DEALLOCATE(ParamData%GenSpd_TLU)
+ENDIF
+IF (ALLOCATED(ParamData%GenTrq_TLU)) THEN
+   DEALLOCATE(ParamData%GenTrq_TLU)
+ENDIF
    CALL FreeDynamicLib( ParamData%DLL_Trgt, ErrStat, ErrMsg )
  END SUBROUTINE SrvD_DestroyParam
 
@@ -2815,8 +2854,12 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(InputData%BlPitch) ) DEALLOCATE(InputData%BlPitch)
-  IF ( ALLOCATED(InputData%ExternalBlPitchCom) ) DEALLOCATE(InputData%ExternalBlPitchCom)
+IF (ALLOCATED(InputData%BlPitch)) THEN
+   DEALLOCATE(InputData%BlPitch)
+ENDIF
+IF (ALLOCATED(InputData%ExternalBlPitchCom)) THEN
+   DEALLOCATE(InputData%ExternalBlPitchCom)
+ENDIF
  END SUBROUTINE SrvD_DestroyInput
 
  SUBROUTINE SrvD_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -3148,9 +3191,15 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-  IF ( ALLOCATED(OutputData%WriteOutput) ) DEALLOCATE(OutputData%WriteOutput)
-  IF ( ALLOCATED(OutputData%BlPitchCom) ) DEALLOCATE(OutputData%BlPitchCom)
-  IF ( ALLOCATED(OutputData%TBDrCon) ) DEALLOCATE(OutputData%TBDrCon)
+IF (ALLOCATED(OutputData%WriteOutput)) THEN
+   DEALLOCATE(OutputData%WriteOutput)
+ENDIF
+IF (ALLOCATED(OutputData%BlPitchCom)) THEN
+   DEALLOCATE(OutputData%BlPitchCom)
+ENDIF
+IF (ALLOCATED(OutputData%TBDrCon)) THEN
+   DEALLOCATE(OutputData%TBDrCon)
+ENDIF
  END SUBROUTINE SrvD_DestroyOutput
 
  SUBROUTINE SrvD_PackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )

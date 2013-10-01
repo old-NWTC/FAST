@@ -71,7 +71,7 @@ True           PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
 0.0   0.0   0.0   0.0   0.0   0.0
 ---------------------- HEAVE COEFFICIENTS --------------------------------
 1              NHvCoef        - Number of heave coefficients (-)
-HvCoefID   CdHv        CaHv
+HvCoefID   HvCd        HvCa
  (-)       (-)         (-)
   1         0.0        0.0
 ---------------------- MEMBER JOINTS -------------------------------------------

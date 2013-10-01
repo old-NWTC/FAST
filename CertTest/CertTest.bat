@@ -80,7 +80,7 @@ REM  FAST test sequence definition:
 @SET  TEST19=Test #19: NREL 5 MW Baseline Offshore Turbine with Monopile RF
 @SET  TEST20=Test #20: NREL 5 MW Baseline Offshore Turbine with ITI Barge
 @SET  TEST21=Test #21: NREL 5 MW Baseline Offshore Turbine with Floating TLP
-@SET  TEST22=Test #22: NREL 5 MW Baseline Offshore Turbine with OC3 Hywind modifications
+@SET  TEST22=Test #24: NREL 5 MW Baseline Offshore Turbine with OC3 Hywind modifications
 
 @SET  DASHES=---------------------------------------------------------------------------------------------
 @SET  POUNDS=#############################################################################################
@@ -837,8 +837,8 @@ echo %DASHES%                                    >> CertTest.out
 
 
 rem *******************************************************
-:Test22
-@echo FAST %TEST22%
+:Test24
+@echo FAST %TEST24%
 
 @SET TEST=22
 
@@ -860,7 +860,7 @@ IF ERRORLEVEL 1  GOTO ERROR
 echo.                                            >> CertTest.out
 echo %POUNDS%                                    >> CertTest.out
 echo.                                            >> CertTest.out
-echo %TEST22%                                    >> CertTest.out
+echo %TEST24%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
