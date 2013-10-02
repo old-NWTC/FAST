@@ -1,5 +1,5 @@
 -----  Crunch v3.01.00d Input File  --------------------------------------------
-Input file for generating statistics for FAST certification Test #21.
+Input file for generating statistics for FAST certification Test #23.
 -----  Job Options  ------------------------------------------------------------
 False          Echo:               The flag for echoing input to <root>.ech.
 True           Out_Stats:          The flag for outputting statistics.
@@ -78,4 +78,4 @@ GroupTitle(100 char max)   #ExtCols   ColList(#ExtCols long)   #InfCols(may be 0
 Col#   HoursToExtrapolateTo   QuantileDesired             NumESCols rows of data follow.
 -----  Input Files  ------------------------------------------------------------
 1              NumFiles:           The number of input files to read.
-Test21.outb
+Test23.outb

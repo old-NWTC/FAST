@@ -21,10 +21,6 @@ Element  LineType  UnstrLen    NodeAnch  NodeFair  Flags
 ---------------------- SOLVER OPTIONS-----------------------------------------
 Option
 (-)
-!-msqs_default ls
-!
-! '-msqs_default ls' is equvalent to the following options:
-!
 -snes_type newtonls
 -ksp_type preonly
 -pc_type lu

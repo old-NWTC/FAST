@@ -21,6 +21,10 @@ end
 if nargin < 3
     PlotFAST     = true;
 end
+if nargin == 0
+    newPath = '.';
+    oldPath = [ '.' filesep 'TstFiles' ];
+end
 
 
 
@@ -28,7 +32,7 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= 2 %[1:18 20:22] %1:22 
+    for i= [1:18 22:24] %1:22 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
         
@@ -55,7 +59,7 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
                 oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
                 newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                
                 
-%                 if i==20 || i==21
+%                 if i==22 || i==23
 %                      newFiles = strrep(newFiles,'.outb','.out')
 %                 end
             else  % use the text format
@@ -106,6 +110,7 @@ continue;
 
 
 return;
+end
 %% --------------------------------------------------------------------------
 function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles, descTitle, savePlts, saveName )
 % Required Input:
@@ -241,7 +246,7 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
         if getTxt
             descFiles{iFile} = ['File ' num2str(iFile)];
         end
-    end
+    end %iFile
 
     if nCols == 0
         disp(['CompareCertTestResults::No data found for ' saveName]);
@@ -257,7 +262,6 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
 
         [nr_Old, nc_Old] = size(oldData{iFile});
         [nr_New, nc_New] = size(newData{iFile});
-
         
         if nc_New == 0 || nc_Old == 0
             NoDiff(iFile) = false;            
@@ -315,36 +319,24 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
 %     for iPlot = 100:strd:nCols
         fig=figure;        
                 
-        ChannelName = oldCols{1}{iPlot};
-        if strcmpi(ChannelName,'WaveElev')
-            ChannelName_new = 'Wave1Elev';
-        elseif strncmpi( ChannelName,'Fair',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TFair[i] = FairiTen
-            ChannelName_new = strrep( strrep( ChannelName,'Fair','TFair['),'Ten',']');
-        elseif strncmpi( ChannelName,'Anch',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TAnch[i] = AnchiTen
-            ChannelName_new = strrep( strrep( ChannelName,'Anch','TAnch['),'Ten',']');
-        else
-            ChannelName_new = strrep(ChannelName,'Wave1V','M1N1V');
-            ChannelName_new = strrep(ChannelName,'Wave1A','M1N1A');
-            ChannelName_new = ChannelName;
-        end
-% disp( [ChannelName  ' '    ChannelName_new] )       
-        HaveLabels = false;
+        ChannelName     = oldCols{1}{iPlot};
+        ChannelName_new = getNewChannelName(ChannelName);
+
+        HaveLabels = false; %if we don't find any labels for these plots, we can't plot them
         for iFile = 1:numFiles
             HaveLabels = false;
             
             subplot(6,1,1:4);
             hold on;
-                        
-            yCol_old = find( strcmpi(ChannelName,    oldCols{iFile}), 1, 'first' );
-            yCol_new = find( strcmpi(ChannelName_new,colName{iFile}), 1, 'first' );
-
-            if isempty(yCol_old)
-                disp(['Error: ' ChannelName ' not found in ' oldFiles{iFile} ]); %this should be possible
-                continue;
-            elseif isempty(yCol_new)
-                disp(['Error: ' ChannelName_new ' not found in ' newFiles{iFile}]);
-                continue;
+                  
+            [yCol_old,err1] = getColIndx( ChannelName,     oldCols{iFile}, oldFiles{iFile} );
+            [yCol_new,err2] = getColIndx( ChannelName_new, colName{iFile}, newFiles{iFile} );
+            if err1 || err2
+                continue
             else
+% fprintf('%10s (%3.0f) %10s (%3.0f)\n', ChannelName, yCol_old,   ChannelName_new,  yCol_new  );      
+                HaveLabels = true; 
+   
                 switch pltType 
                     case ColPairs
                         xCol_old = yCol_old-1;
@@ -354,10 +346,10 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
                         xCol_new = 1;
                     otherwise
                         error('Invalid pltType in PlotCertTestResults:CompareCertTestResults');
-                end                
-                HaveLabels = true;
-            end 
-            
+                end  
+                
+            end
+                                     
             h1(1) = plot(oldData{iFile}(:,xCol_old), oldData{iFile}(:,yCol_old));
             set(h1(1),'LineStyle','-', 'DisplayName',[descFiles{iFile} ', old'],'Color',LineColors{iFile},      'LineWidth',LineWidthConst+1);
             
@@ -427,6 +419,35 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
             
 
 return;
+end
+%% ------------------------------------------------------------------------
+function [ChannelName_new] = getNewChannelName(ChannelName)
+        
+        if strcmpi(ChannelName,'WaveElev')
+            ChannelName_new = 'Wave1Elev';
+        elseif strncmpi( ChannelName,'Fair',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TFair[i] = FairiTen
+            ChannelName_new = strrep( strrep( ChannelName,'Fair','TFair['),'Ten',']');
+        elseif strncmpi( ChannelName,'Anch',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TAnch[i] = AnchiTen
+            ChannelName_new = strrep( strrep( ChannelName,'Anch','TAnch['),'Ten',']');
+        else
+            ChannelName_new = strrep(ChannelName,'Wave1V','M1N1V');
+            ChannelName_new = strrep(ChannelName_new,'Wave1A','M1N1A');
+            %ChannelName_new = ChannelName_new;
+        end
+return     
+end 
+%% ------------------------------------------------------------------------
+function [Indx,err] = getColIndx( ColToFind, colNames, fileName )
+    
+    Indx = find( strcmpi(ColToFind, colNames), 1, 'first' );
+    if isempty(Indx)
+        disp(['Error: ' ColToFind ' not found in ' fileName ]);
+        err = true;
+    else
+        err = false;
+    end
+return
+end
 %% ------------------------------------------------------------------------
 function [fig] = plotNaturalFrequencies( oldFiles, newFiles, descFiles, descTitle, nFreq, FntSz, LineColors )
 
@@ -513,6 +534,7 @@ function [fig] = plotNaturalFrequencies( oldFiles, newFiles, descFiles, descTitl
 
 
 return
+end
 %% ------------------------------------------------------------------------
 function [eivalues] = getEigenvaluesFromFile(fileName)
 
@@ -559,6 +581,7 @@ function [eivalues] = getEigenvaluesFromFile(fileName)
     end
 
 return;
+end
 %% ------------------------------------------------------------------------
 function [data, colNames, colUnits] = getColumnData(fileName, delim, HeaderRows, NameLine, UnitsLine )
 % this function reads the text file, fileName, which is presumed to contain a 
@@ -688,3 +711,4 @@ function [data, colNames, colUnits] = getColumnData(fileName, delim, HeaderRows,
 
 
 return;
+end

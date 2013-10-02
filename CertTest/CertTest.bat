@@ -14,6 +14,7 @@ rem @SET CRUNCH=Call Crunch
 rem @SET MBC_SOURCE=C:\Users\bjonkman\Data\DesignCodes\MBC\Source
 @SET DateTime=DateTime.exe
 @SET Editor=NotePad.EXE
+@SET CompareFile=CertTest.out
 
 ::=======================================================================================================
 IF /I "%1"=="-DEBUG" GOTO debugVer
@@ -78,9 +79,11 @@ REM  FAST test sequence definition:
 @SET  TEST17=Test #17: SWRT with many DOFs with free yaw tail-furl and VS and FF turbulence.  PMF plots.
 @SET  TEST18=Test #18: NREL 5 MW Baseline Onshore Turbine
 @SET  TEST19=Test #19: NREL 5 MW Baseline Offshore Turbine with Monopile RF
-@SET  TEST20=Test #20: NREL 5 MW Baseline Offshore Turbine with ITI Barge
-@SET  TEST21=Test #21: NREL 5 MW Baseline Offshore Turbine with Floating TLP
-@SET  TEST22=Test #24: NREL 5 MW Baseline Offshore Turbine with OC3 Hywind modifications
+@SET  TEST20=Test #20: Placeholder for another test
+@SET  TEST21=Test #21: Placeholder for another test
+@SET  TEST22=Test #22: NREL 5 MW Baseline Offshore Turbine with ITI Barge
+@SET  TEST23=Test #23: NREL 5 MW Baseline Offshore Turbine with Floating TLP
+@SET  TEST24=Test #24: NREL 5 MW Baseline Offshore Turbine with OC3 Hywind modifications
 
 @SET  DASHES=---------------------------------------------------------------------------------------------
 @SET  POUNDS=#############################################################################################
@@ -626,29 +629,11 @@ echo %DASHES%                                    >> CertTest.out
 
 rem *******************************************************
 :Test16
-@echo FAST %TEST16%
-
 @SET TEST=16
 
-rem Run FAST.
+@CALL :GenTestHeader %Test16%
+@CALL :RunFASTandCrunch 16 out
 
-%FAST% Test%TEST%.fst
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.out  GOTO ERROR
-
-rem Crunch the FAST output.
-%CRUNCH% Test%TEST%.cru
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.sts  GOTO ERROR
-
-echo.                                            >> CertTest.out
-echo %POUNDS%                                    >> CertTest.out
-echo.                                            >> CertTest.out
-echo %TEST16%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
@@ -659,29 +644,11 @@ echo %DASHES%                                    >> CertTest.out
 
 rem *******************************************************
 :Test17
-@echo FAST %TEST17%
-
 @SET TEST=17
 
-rem Run FAST.
+@CALL :GenTestHeader %Test17%
+@CALL :RunFASTandCrunch 17  out
 
-%FAST% Test%TEST%.fst
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.out  GOTO ERROR
-
-rem Crunch the FAST output.
-%CRUNCH% Test%TEST%.cru
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.sts  GOTO ERROR
-
-echo.                                            >> CertTest.out
-echo %POUNDS%                                    >> CertTest.out
-echo.                                            >> CertTest.out
-echo %TEST17%                                    >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
 %Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
 echo %DASHES%                                    >> CertTest.out
@@ -695,184 +662,50 @@ echo %DASHES%                                    >> CertTest.out
 
 rem *******************************************************
 :Test18
-@echo FAST %TEST18%
-
-@SET TEST=18
-
-rem Run FAST.
-
-%FAST% Test%TEST%.fst
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.outb  GOTO ERROR
-
-rem Crunch the FAST output.
-%CRUNCH% Test%TEST%.cru
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.sts  GOTO ERROR
-
-echo.                                            >> CertTest.out
-echo %POUNDS%                                    >> CertTest.out
-echo.                                            >> CertTest.out
-echo %TEST18%                                    >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
-
+@CALL :GenTestHeader %Test18%
+@CALL :RunFASTandCrunch 18 outb
+@CALL :CompareOutput 18
 
 
 rem *******************************************************
 :Test19
-@echo FAST %TEST19%
-
-echo %POUNDS%
-@echo Skipping this test until SubDyn and MAP are included
-echo %POUNDS%
+@CALL :GenTestHeader %Test19% (SKIPPING THIS TEST UNTIL SUBDYN IS INCLUDED)
 GOTO Test20
 
-@SET TEST=19
-
-rem Run FAST.
-
-%FAST% Test%TEST%.fst
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.outb  GOTO ERROR
-
-rem Crunch the FAST output.
-%CRUNCH% Test%TEST%.cru
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.sts  GOTO ERROR
-
-echo.                                            >> CertTest.out
-echo %POUNDS%                                    >> CertTest.out
-echo.                                            >> CertTest.out
-echo %TEST19%                                    >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
-
+@CALL :RunFASTandCrunch 19 outb
+@CALL :CompareOutput 19
 
 rem *******************************************************
 :Test20
-@echo FAST %TEST20%
-
-@SET TEST=20
-
-rem Run FAST.
-
-%FAST% Test%TEST%.fst
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.outb  GOTO ERROR
-
-rem Crunch the FAST output.
-%CRUNCH% Test%TEST%.cru
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.sts  GOTO ERROR
-
-echo.                                            >> CertTest.out
-echo %POUNDS%                                    >> CertTest.out
-echo.                                            >> CertTest.out
-echo %TEST20%                                    >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
-
+GOTO Test21
 
 rem *******************************************************
 :Test21
-@echo FAST %TEST21%
+GOTO Test22
 
-@SET TEST=21
+rem *******************************************************
+:Test22
+@CALL :GenTestHeader %Test22%
+@CALL :RunFASTandCrunch 22 outb
+@CALL :CompareOutput 22
 
-rem Run FAST.
-
-%FAST% Test%TEST%.fst
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.outb  GOTO ERROR
-
-rem Crunch the FAST output.
-%CRUNCH% Test%TEST%.cru
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.sts  GOTO ERROR
-
-echo.                                            >> CertTest.out
-echo %POUNDS%                                    >> CertTest.out
-echo.                                            >> CertTest.out
-echo %TEST21%                                    >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
-
+rem *******************************************************
+:Test23
+@CALL :GenTestHeader %Test23%
+@CALL :RunFASTandCrunch 23 outb
+@CALL :CompareOutput 23
 
 
 rem *******************************************************
 :Test24
-@echo FAST %TEST24%
-
-@SET TEST=22
-
-rem Run FAST.
-
-%FAST% Test%TEST%.fst
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.outb  GOTO ERROR
-
-rem Crunch the FAST output.
-%CRUNCH% Test%TEST%.cru
-
-IF ERRORLEVEL 1  GOTO ERROR
-
-@IF NOT EXIST Test%TEST%.sts  GOTO ERROR
-
-echo.                                            >> CertTest.out
-echo %POUNDS%                                    >> CertTest.out
-echo.                                            >> CertTest.out
-echo %TEST24%                                    >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
+@CALL :GenTestHeader %Test24%
+@CALL :RunFASTandCrunch 24 outb
+@CALL :CompareOutput 24
 
 
 rem ******************************************************
 rem  Let's look at the comparisons.
-:Comparisons
+:MatlabComparisons
 
 rem %MATLAB% /r PlotCertTestResults('.','.\TstFiles');exit;
 
@@ -880,8 +713,52 @@ rem %MATLAB% /r PlotCertTestResults('.','.\TstFiles');exit;
 %Editor% CertTest.out
 goto END
 
+rem ******************************************************
+:GenTestHeader
+echo %POUNDS%
+@echo FAST %*
+echo %POUNDS%
+
+echo.                                    >> %CompareFile%
+echo %POUNDS%                            >> %CompareFile%
+echo.                                    >> %CompareFile%
+echo %*                                  >> %CompareFile%
+EXIT /B
+
+rem ******************************************************
+:RunFASTandCrunch
+:: Run FAST.
+@SET TEST=%1
+
+%FAST% Test%1.fst
+
+IF ERRORLEVEL 1  GOTO ERROR
+@IF NOT EXIST Test%1.%2  GOTO ERROR
+
+:: Crunch the FAST output.
+%CRUNCH% Test%1.cru
+
+IF ERRORLEVEL 1  GOTO ERROR
+@IF NOT EXIST Test%1.sts  GOTO ERROR
+
+EXIT /B
+
+rem ******************************************************
+:CompareOutput
+
+echo %DASHES%                            >> %CompareFile%
+%Compare% Test%1.sts TstFiles\Test%1.sts >> %CompareFile%
+echo %DASHES%                            >> %CompareFile%
+%Compare% Test%1.sum TstFiles\Test%1.sum >> %CompareFile%
+echo %DASHES%                            >> %CompareFile%
+%Compare% Test%1.opt TstFiles\Test%1.opt >> %CompareFile%
+
+EXIT /B
+
+
 :ERROR
 @echo ** An error has occurred in Test #%TEST% **
+
 
 :END
 
@@ -889,6 +766,7 @@ goto END
 @SET MATLAB=
 @SET MBC_SOURCE=
 @SET Compare=
+@SET CompareFile=
 @SET DASHES=
 @SET DateTime=
 @SET Editor=
@@ -917,6 +795,9 @@ goto END
 @SET TEST20=
 @SET TEST21=
 @SET TEST22=
+@SET TEST23=
+@SET TEST24=
 
 type Bell.txt
 @echo Processing complete.
+

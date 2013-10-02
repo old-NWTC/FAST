@@ -124,7 +124,7 @@ MemberID   NOutLoc    NodeLocs [NOutLoc < 10, Node locations are normalized dist
 ---------------------- OUTPUT --------------------------------------------------
 True           HDSum          - Output a Summary File [T/F].
 False          OutAll         - Output all user-specified member and joint loads (only at each member end, not interior locations) [T/F]
-3              OutSwtch       - Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files]
+2              OutSwtch       - Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files]
 "ES11.4e2"     OutFmt         - Output format for numerical results
 "A11"          OutSFmt        - Output format for header strings
 ---------------------- FLOATING PLATFORM OUTPUTS -------------------------------
