@@ -885,8 +885,8 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! UJacSclFact - Scaling factor used in Jacobians (some units)
-   CALL ReadVar( UnIn, InputFile, p%UJacSclFact, "UJacSclFact", "Scaling factor used in Jacobians (some units)", ErrStat2, ErrMsg2, UnEc)
+      ! UJacSclFact - Scaling factor used in Jacobians (-)
+   CALL ReadVar( UnIn, InputFile, p%UJacSclFact, "UJacSclFact", "Scaling factor used in Jacobians (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN              
                   
@@ -1643,9 +1643,6 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, y_HD, u_HD, MeshMapData, ErrStat, 
       u_ED%PlatformPtMesh%Force  = u_ED%PlatformPtMesh%Force  + u_mapped%Force
       u_ED%PlatformPtMesh%Moment = u_ED%PlatformPtMesh%Moment + u_mapped%Moment
 
-            ! bjj: I left this in for now. Per JMJ, we will remove AddedMass later.
-      u_ED%PtfmAddedMass = u_ED%PtfmAddedMass + y_HD%WAMIT%Mesh%AddedMass(:,:,1)
-
    END IF      
       
    IF ( y_HD%Morison%LumpedMesh%Committed ) THEN 
@@ -1662,7 +1659,6 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, y_HD, u_HD, MeshMapData, ErrStat, 
    END IF
    
    IF ( y_HD%Morison%DistribMesh%Committed ) THEN 
-      ! TODO : Need to add Added Mass from morison pt elements. GJH 7/9/13
 
       CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_ED_P, ErrStat2, ErrMsg2, u_HD%Morison%DistribMesh )
          CALL CheckError( ErrStat2, ErrMsg2 )
