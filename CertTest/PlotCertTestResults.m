@@ -32,7 +32,7 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= [1:18 22:24] %1:22 
+    for i=  [1:18 22:24] %1:24 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
         
@@ -71,7 +71,7 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
         end % time series
 
 %%   bjj: removed block for less plotting     
-continue; 
+ 
         if i == 10
                 % Compare .elm files
                 
@@ -80,7 +80,7 @@ continue;
                                    
             CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [4, 2, 3], descFiles(plotFiles), [fileRoot ' AeroDyn Time Series'], true, [fileRoot '_elm'] );
         end % elm files
-            
+continue;            
         if i==1 || i==3 || i==8    
                 % Compare .azi files
     

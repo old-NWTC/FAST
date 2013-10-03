@@ -1582,7 +1582,7 @@ END SUBROUTINE ED_End
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 ! Loose coupling routine for solving for constraint states, integrating continuous states, and updating discrete states
-! Constraint states are solved for input Time; Continuous and discrete states are updated for Time + Interval
+! Constraint states are solved for input Time t; Continuous and discrete states are updated for t + Interval
 !..................................................................................................................................
 
       REAL(DbKi),                         INTENT(IN   ) :: t          ! Current simulation time in seconds
@@ -1655,13 +1655,13 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 !..................................................................................................................................
 
    REAL(DbKi),                   INTENT(IN   )  :: t           ! Current simulation time in seconds
-   TYPE(ED_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
+   TYPE(ED_InputType),           INTENT(IN   )  :: u           ! Inputs at Time t
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
-   TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at Time
-   TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
+   TYPE(ED_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at t
+   TYPE(ED_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
+   TYPE(ED_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
    TYPE(ED_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-   TYPE(ED_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
+   TYPE(ED_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at t (Input only so that mesh con-
                                                                !   nectivity information does not have to be recalculated)
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
    CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
@@ -2788,6 +2788,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    
                
    RETURN
+   
 
 END SUBROUTINE ED_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -7877,6 +7878,11 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
       CALL ErrIfNegative( InputFileData%TeetCDmp,  'TeetCDmp',  ErrStat, ErrMsg )
       CALL ErrIfNegative( InputFileData%TeetSSSp,  'TeetSSSp',  ErrStat, ErrMsg )
       CALL ErrIfNegative( InputFileData%TeetHSSp,  'TeetHSSp',  ErrStat, ErrMsg )
+      
+      ! TeetCDmp isn't allowed to be non-zero in this verison.
+      IF (.NOT. EqualRealNos( InputFileData%TeetCDmp, 0.0_ReKi )) &
+         CALL SetErrors( ErrID_Fatal, 'TeetCDmp must be 0 in this version of ElastoDyn.'  )
+      
    ENDIF
 
       ! check these angles for appropriate ranges:

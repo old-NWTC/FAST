@@ -34,7 +34,7 @@ SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 SET MAP_Include_Lib=%MAP_Loc%\map.lib
 SET HD_Reg_Loc=%HD_Loc%
 
-
+IF /I "%2"=="bjonkman" CALL ..\Set_FAST_paths.bat
 
 SET ModuleName=%1
 

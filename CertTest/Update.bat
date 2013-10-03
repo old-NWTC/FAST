@@ -8,7 +8,7 @@
 
 @move  Test01.azi             tstfiles
 @move  Test01.sts             tstfiles
-@move  Test01_ElastoDyn.sum   tstfiles
+@move  Test01.sum             tstfiles
 @move  Test01.out             tstfiles
 @move  Test01.opt             tstfiles
 
@@ -36,7 +36,7 @@
 @move  Test05.opt             tstfiles
 
 @move  Test06.sts             tstfiles
-@move  Test06_ElastoDyn.sum   tstfiles
+@move  Test06.sum             tstfiles
 @move  Test06.out             tstfiles
 @move  Test06.opt             tstfiles
 
@@ -64,7 +64,7 @@
 @move  Test10.elm             tstfiles
 
 @move  Test11.sts             tstfiles
-@move  Test11_ElastoDyn.sum   tstfiles
+@move  Test11.sum             tstfiles
 @move  Test11.out             tstfiles
 @move  Test11.opt             tstfiles
 
@@ -80,7 +80,7 @@
 @move  Test13.opt             tstfiles
 
 @move  Test15.sts             tstfiles
-@move  Test15_ElastoDyn.sum   tstfiles
+@move  Test15.sum             tstfiles
 @move  Test15.out             tstfiles
 @move  Test15.opt             tstfiles
 
@@ -96,6 +96,21 @@
 @move  Test17.opt             tstfiles
 
 @move  Test18.sts             tstfiles
-@move  Test18_ElastoDyn.sum   tstfiles
+@move  Test18.sum             tstfiles
 @move  Test18.outb            tstfiles
 @move  Test18.opt             tstfiles
+
+@move  Test22.sts             tstfiles
+@move  Test22.sum             tstfiles
+@move  Test22.outb            tstfiles
+@move  Test22.opt             tstfiles
+
+@move  Test23.sts             tstfiles
+@move  Test23.sum             tstfiles
+@move  Test23.outb            tstfiles
+@move  Test23.opt             tstfiles
+
+@move  Test24.sts             tstfiles
+@move  Test24.sum             tstfiles
+@move  Test24.outb            tstfiles
+@move  Test24.opt             tstfiles

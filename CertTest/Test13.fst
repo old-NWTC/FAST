@@ -12,7 +12,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
 ---------------------- FEATURE FLAGS -------------------------------------------
 True          CompAero        - Compute aerodynamic forces (flag)
 True          CompServo       - Compute servodynamics (flag)
-False         CompHydro       - Compute hydrodynamics forces (flag)
+False         CompHydro       - Compute hydrodynamic forces (flag)
 False         CompSub         - Compute sub-structural dynamics (flag)
 False         CompMAP         - Compute mooring line dynamics (flag)
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)

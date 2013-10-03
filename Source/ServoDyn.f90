@@ -613,8 +613,8 @@ SUBROUTINE SrvD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    IF ( p%UseBladedInterface ) THEN
       
       IF ( .NOT. EqualRealNos( t - p%DT, OtherState%LastTimeCalled ) ) THEN
-         IF (OtherState%FirstWarn) CALL CheckError ( ErrID_Warn, 'BladedInterface option requires an explicit-loose coupling '//&
-            'scheme. Using previous values from DLL on all subsequent calls until time is advanced. '//&
+         IF (OtherState%FirstWarn) CALL CheckError ( ErrID_Warn, 'BladedInterface option was designed for an explicit-loose '//&
+            'coupling scheme. Using last calculated values from DLL on all subsequent calls until time is advanced. '//&
             'Warning will not be displayed again.' )
          OtherState%FirstWarn = .FALSE.
       ELSE      

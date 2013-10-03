@@ -8,16 +8,10 @@ Node Type     X     Y     Z     M     B     FX   FY   FZ
 1    fix      27   0    depth   0     0      #    #    #
 2    Vessel   27   0   -47.89   0     0      #    #    #
 ---------------------- LINE PROPERTIES ---------------------------------------
-Element  LineType  UnstrLen    NodeAnch  NodeFair  Flags
+Line  LineType  UnstrLen    NodeAnch  NodeFair  Flags
 (-)      (-)       (m)         (-)       (-)       (-)
 1       Material   151.73       1         2         plot line_tension x_pos anch_tension fair_tension
-2       repeat     270
-3       repeat     180
-4       repeat     90
-5       repeat     0
-6       repeat     270
-7       repeat     180
-8       repeat     90
+2       repeat     90 180 270 0 90 180 270
 ---------------------- SOLVER OPTIONS-----------------------------------------
 Option
 (-)

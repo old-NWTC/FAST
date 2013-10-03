@@ -14,7 +14,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="../">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" UseMkl="mklSequential"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" InterproceduralOptimizations="ipoSingleFile" Preprocess="preprocessYes" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" UseMkl="mklSequential"/>
 				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_win32.exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole" StackReserveSize="999999999" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_win32.lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -126,9 +126,9 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IfW_HHWind" Description="Running Registry for IfW_HHWind" Outputs="..\..\Source\dependencies\InflowWind\IfW_HHWind_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\Reg-InflowWind.txt">
 			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat InflowWind" Description="Running Registry for InflowWind" Outputs="..\..\Source\dependencies\InflowWind\InflowWind_Types.f90"/></FileConfiguration>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat InflowWind" Description="Running Registry for InflowWind" Outputs="..\..\Source\dependencies\InflowWind\InflowWind_Types.f90" AdditionalDependencies="..\..\Source\dependencies\InflowWind\Reg-IfW_FFWind.txt;..\..\Source\dependencies\InflowWind\Reg-IfW_HHWind.txt"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat InflowWind" Description="Running Registry for InflowWind" Outputs="..\..\Source\dependencies\InflowWind\InflowWind_Types.f90"/></FileConfiguration></File></Filter>
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat InflowWind" Description="Running Registry for InflowWind" Outputs="..\..\Source\dependencies\InflowWind\InflowWind_Types.f90" AdditionalDependencies="..\..\Source\dependencies\InflowWind\Reg-IfW_FFWind.txt;..\..\Source\dependencies\InflowWind\Reg-IfW_HHWind.txt"/></FileConfiguration></File></Filter>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_FFWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\IfW_HHWind.f90"/>
 		<File RelativePath="..\..\Source\dependencies\InflowWind\InflowWind.f90"/>

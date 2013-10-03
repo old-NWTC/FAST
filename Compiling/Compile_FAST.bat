@@ -12,7 +12,6 @@ rem SET BITS=%1
 SET RegOnly=1
 IF /I "%1"=="-REGISTRYONLY" goto SetPaths
 SET RegOnly=0
-ECHO 'TEST'
 
 REM ----------------------------------------------------------------------------
 REM                   set compiler internal variables
@@ -71,13 +70,14 @@ SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 
-SET MAP_Include_Lib=%MAP_Loc%\map.lib
+SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
 SET HD_Reg_Loc=%HD_Loc%
 
 REM ----------------------------------------------------------------------------
 REM The following script changes the above paths for Bonnie Jonkman; other users
-REM    should modify the paths above
-IF "%COMPUTERNAME%"=="BJONKMAN-23080S" CALL Set_FAST_paths.bat
+REM    can ignore these lines
+IF /I "%2"=="bjonkman" CALL Set_FAST_paths.bat
+IF /I "%3"=="bjonkman" CALL Set_FAST_paths.bat
 REM ----------------------------------------------------------------------------
 
 
@@ -200,53 +200,52 @@ ECHO %Lines%
 ECHO Running the FAST Registry to auto-generate source files:
 ECHO.
 
-SET CURRDIR=%CD%
+ECHO %Lines%
+SET CURR_LOC=%ED_Loc%
+CALL ::RunRegistry_fmt1 ElastoDyn
 
 
 ECHO %Lines%
-ECHO ElastoDyn
-CD /D %ED_Loc%
-%REGISTRY% ElastoDyn_Registry.txt -I %NWTC_Lib_Loc%
+SET CURR_LOC=%SrvD_Loc%
+CALL ::RunRegistry_fmt1 ServoDyn
+
 
 ECHO %Lines%
-ECHO ServoDyn
-CD /D %SrvD_Loc%
-%REGISTRY% ServoDyn_Registry.txt -I %NWTC_Lib_Loc%
+SET CURR_LOC=%IfW_Loc%
+CALL :RunRegistry_IfW IfW_FFWind
+CALL :RunRegistry_IfW IfW_HHWind
+CALL :RunRegistry_IfW InflowWind
+
 
 ECHO %Lines%
-ECHO InflowWind
-CD /D %IfW_Loc%
-%REGISTRY% Reg-IfW_FFWind.txt -I %NWTC_Lib_Loc%
-%REGISTRY% Reg-IfW_HHWind.txt -I %NWTC_Lib_Loc%
-%REGISTRY% Reg-InflowWind.txt -I %NWTC_Lib_Loc%
+SET CURR_LOC=%AD_Loc%
+SET ModuleName=AeroDyn
+%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Loc%"
+COPY /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+
+
 
 ECHO %Lines%
-ECHO AeroDyn
-CD /D %AD_Loc%
-%REGISTRY% Registry-AD.txt -I %NWTC_Lib_Loc% -I %IfW_Loc%
+SET CURR_LOC=%HD_Loc%
+CALL ::RunRegistry_HD  Current
+CALL ::RunRegistry_HD  Waves
+CALL ::RunRegistry_HD  SS_Radiation
+CALL ::RunRegistry_HD  Conv_Radiation
+CALL ::RunRegistry_HD  WAMIT
+CALL ::RunRegistry_HD  Morison
+CALL ::RunRegistry_HD  HydroDyn
+
 
 ECHO %Lines%
-ECHO HydroDyn
-CD /D %HD_Loc%
-%REGISTRY% %HD_Reg_Loc%\Current.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
-%REGISTRY% %HD_Reg_Loc%\Waves.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
-%REGISTRY% %HD_Reg_Loc%\SS_Radiation.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
-%REGISTRY% %HD_Reg_Loc%\Conv_Radiation.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
-%REGISTRY% %HD_Reg_Loc%\WAMIT.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
-%REGISTRY% %HD_Reg_Loc%\Morison.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
-%REGISTRY% %HD_Reg_Loc%\HydroDyn.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+SET CURR_LOC=%SD_Loc%
+CALL ::RunRegistry_fmt1  SubDyn
+
 
 ECHO %Lines%
-ECHO SubDyn
-CD /D %SD_Loc%
-%REGISTRY% "SubDyn_Registry.txt" -I %NWTC_Lib_Loc%
-
-ECHO %Lines%
-rem ECHO MAP
-REM CD /D %MAP_Loc%
+rem CALL :setRegistryValues MAP
+REM SET CURR_LOC=%MAP_Loc%
 rem need the syntax for generating the c-to-fortran code...
 
-CD %CURRDIR%
 
 IF %RegOnly%==1 goto end
 
@@ -280,7 +279,7 @@ ifort %COMPOPTS% %NWTC_SOURCES% /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 ECHO %Lines%
-ECHO Compiling Inflow Wind:
+ECHO Compiling InflowWind:
 ifort %COMPOPTS% %IfW_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
@@ -337,13 +336,37 @@ IF %ERRORLEVEL% NEQ 0 (
 ECHO Error creating %ROOT_NAME%.exe
 ) ELSE (
 ECHO %ROOT_NAME%.exe was created.
+
 )
+
+GOTO END
+
+REM ----------------------------------------------------------------------------
+:: Some subroutine for the registry stuff:
+
+:RunRegistry_HD
+SET ModuleName=%1
+%REGISTRY% %HD_Reg_Loc%\%ModuleName%.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+COPY /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+EXIT /B
+
+:RunRegistry_fmt1
+SET ModuleName=%1
+%REGISTRY% %CURR_LOC%\%ModuleName%_Registry.txt -I %NWTC_Lib_Loc%
+COPY /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+EXIT /B
+
+:RunRegistry_IfW
+SET ModuleName=%1
+%REGISTRY% "%CURR_LOC%\Reg-%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Loc%"
+COPY /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+EXIT /B
 
 :end
 REM ----------------------------------------------------------------------------
 REM ------------------------- CLEAR MEMORY -------------------------------------
 REM ----------------------------------------------------------------------------
-ECHO 
+ECHO. 
 
 
 SET BITS=
@@ -377,6 +400,8 @@ SET COMPOPTS=
 SET LINKOPTS=
 
 SET INTER_DIR=
-SET CURRDIR=
+SET CURR_LOC=
 SET REGONLY=
+SET MODULENAME=
 :Done
+EXIT /B

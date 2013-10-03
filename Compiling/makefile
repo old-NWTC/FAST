@@ -15,6 +15,9 @@
 # Older versions of the source code may not work with this makefile.             #
 #================================================================================#
 
+# bjj: PLEASE NOTE THAT UNTIL WE RESOLVE ISSUES REGARDING THE USE OF INTEL'S MKL
+#      THIS MAKEFILE WILL NOT WORK.
+
    # 32-bit or 64-bit?
 BITS = 32
 #BITS = 64
@@ -24,33 +27,25 @@ BITS = 32
    # You will probably need to change these for your system.
 
 
+FAST_DIR     = ../Source
+
+NWTC_Lib_DIR = $(FAST_DIR)/dependencies/NWTC_Library
+ED_DIR       = $(FAST_DIR)/dependencies/ElastoDyn
+SrvD_DIR     = $(FAST_DIR)/dependencies/ServoDyn
+AD_DIR       = $(FAST_DIR)/dependencies/AeroDyn
+IfW_DIR      = $(FAST_DIR)/dependencies/InflowWind
+HD_DIR       = $(FAST_DIR)/dependencies/HydroDyn
+SD_DIR       = $(FAST_DIR)/dependencies/SubDyn
+MAP_DIR      = $(FAST_DIR)/dependencies/MAP
+
+HD_DIR_Reg   = $(HD_DIR)
+
 ifeq ($(OS),Windows_NT)
-   NWTC_Lib_DIR = C:/Users/bjonkman/Documents/DATA/DesignCodes/miscellaneous/nwtc_subs/SVNdirectory/trunk/source
-   ED_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
-   SrvD_DIR     = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
-   AD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/AeroDyn
-   IfW_DIR      = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/InflowWInd
-   HD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source
-   HD_DIR_Reg   = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source/RegistryFiles
-   SD_DIR       = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/SubDyn/SVNdirectory/branches/v0.4/Source
-   MAP_DIR      = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/MAP/SVNdirectory/trunk/src/fortran_driver
-   FAST_DIR     = C:/Users/bjonkman/Documents/DATA/DesignCodes/simulators/FAST/SVNdirectory/branches/BJonkman/Source
-
-   Registry     = REGISTRY
+   Registry     = ../bin/Registry_win32.exe
+   MAP_lib      = ../bin/MAP_win32.lib
 else
-   NWTC_Lib_DIR = $(HOME)/PC/CAEtools/miscellaneous/nwtc_subs/SVNdirectory/trunk/source
-   ED_DIR       = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source
-   SrvD_DIR     = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source
-   AD_DIR       = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/AeroDyn
-   IfW_DIR      = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source/ModulesNotConverted/InflowWInd
-   HD_DIR       = $(HOME)/PC/CAEtools/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source
-   HD_DIR_Reg   = $(HOME)/PC/CAEtools/simulators/HydroDyn/SVNdirectory/branches/HydroDyn_Modularization/Source/RegistryFiles
-   SD_DIR       = $(HOME)/PC/CAEtools/simulators/SubDyn/SVNdirectory/branches/v0.4/Source
-   MAP_DIR      = $(HOME)/PC/CAEtools/simulators/MAP/SVNdirectory/trunk/src/fortran_driver
-   FAST_DIR     = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source
-
    Registry     = registry.exe
-
+   MAP_lib      = ../bin/MAP.a
 endif
 
 
@@ -116,19 +111,17 @@ LIB_SOURCES =           \
 	ModMesh_Mapping.f90  \
 	NWTC_Library.f90
 
-IfW_SOURCES =           \
-	SharedInflowDefs.f90 \
-	HHWind.f90           \
-	FFWind.f90           \
-	HAWCWind.f90         \
-	FDWind.f90           \
-	CTWind.f90           \
-	UserWind.f90         \
-	InflowWindMod.f90
+IfW_SOURCES =            \
+	IfW_FFWind_Types.f90  \
+	IfW_FFWind.f90        \
+	IfW_HHWind_Types.f90  \
+	IfW_HHWind.f90        \
+	IflowWind_Types.f90   \
+	IflowWind_Subs.f90    \
+	InflowWind.f90
 
 AD_SOURCES =            \
-	SharedTypes.f90      \
-	AeroMods.f90         \
+	AeroDyn_Types.f90    \
 	GenSubs.f90          \
 	AeroSubs.f90         \
 	AeroDyn.f90
@@ -149,7 +142,6 @@ HD_SOURCES =                 \
 	WAMIT_Types.f90           \
 	WAMIT_Output.f90          \
 	WAMIT.f90                 \
-	HydroDyn_Output_Types.f90 \
 	HydroDyn_Output.f90       \
 	HydroDyn_Types.f90        \
 	HydroDyn_Input.f90        \
@@ -167,8 +159,6 @@ SD_SOURCES =               \
 	SubDyn_Types.f90        \
 	SubDyn_Output.f90       \
 	SubDyn.f90
-
-
 
 
 # also needs some LPACK routines     (currently links with Intel's MKL [sequential])
@@ -226,31 +216,45 @@ fftpack.obj: fftpack.f
    # General rules for creating _Types.f90 files from Registry files.
 
 ServoDyn_Types.f90:
-	$(Registry) ServoDyn_Registry.txt
+	$(Registry) ServoDyn_Registry.txt -I $(NWTC_Lib_DIR)
 
 ElastoDyn_Types.f90:
-	$(Registry) ElastoDyn_Registry.txt
+	$(Registry) ElastoDyn_Registry.txt -I $(NWTC_Lib_DIR)
 
 Current_Types.f90:
-	$(Registry) Current.txt
+	$(Registry) Current.txt -I $(NWTC_Lib_DIR)
 
 Waves_Types.f90:
-	$(Registry) Waves.txt
+	$(Registry) Waves.txt -I $(NWTC_Lib_DIR)
 
 SS_Radiation_Types.f90:
-	$(Registry) SS_Radiation.txt
+	$(Registry) SS_Radiation.txt -I $(NWTC_Lib_DIR)
 
 Conv_Radiation_Types.f90:
-	$(Registry) Conv_Radiation.txt
+	$(Registry) Conv_Radiation.txt -I $(NWTC_Lib_DIR)
 
 WAMIT_Types.f90:
-	$(Registry) WAMIT.txt
+	$(Registry) WAMIT.txt -I $(NWTC_Lib_DIR)
 
 Morison_Types.f90:
-	$(Registry) Morison.txt
+	$(Registry) Morison.txt -I $(NWTC_Lib_DIR)
 
 HydroDyn_Types.f90:
-	$(Registry) HydroDyn.txt
+	$(Registry) HydroDyn.txt -I $(NWTC_Lib_DIR) -I $(HD_DIR)
+
+
+AeroDyn_Types.f90:
+	$(Registry) Registry-AD.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
+
+
+IfW_HHWind_Types.f90:
+	$(Registry) Reg-IfW_HHWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
+
+IfW_FFWind_Types.f90:
+	$(Registry) Reg-IfW_FFWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
+
+InflowWind_Types.f90:
+	$(Registry) Reg-InflowWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
 
 
 
@@ -268,20 +272,20 @@ ModMesh_Mapping.obj:     ModMesh.f90
 NWTC_Library.obj:        ModMesh.obj  ModMesh_Mapping.obj
 
 #InflowWind dependency rules:
-SharedInflowDefs.f90:    NWTC_Library.obj
-HHWind.obj:              SharedInflowDefs.obj
-FFWind.obj:              SharedInflowDefs.obj
-HAWCWind.obj:            SharedInflowDefs.obj
-FDWind.obj:              SharedInflowDefs.obj
-CTWind.obj:              SharedInflowDefs.obj
-UserWind.obj:            SharedInflowDefs.obj
-InflowWindMod.obj:       SharedInflowDefs.obj  HHWind.obj  FFWind.obj  HAWCWind.obj  FDWind.obj  CTWind.obj  UserWind.obj
+IfW_HHWind_Types.obj:    NWTC_Library.obj
+IfW_HHWind.obj:          IfW_HHWind_Types.obj
+IfW_FFWind_Types.obj:    NWTC_Library.obj
+IfW_FFWind.obj:          IfW_FFWind_Types.obj
+IflowWind_Types.obj:     NWTC_Library.obj  IfW_FFWind_Types.obj  IfW_HHWind_Types.obj
+IflowWind_Subs.obj:      IflowWind_Types.obj IfW_FFWind.obj  IfW_HHWind.obj
+InflowWind.obj:          IflowWind_Subs.obj
+
 
 #AeroDyn dependency rules:
-AeroMods.obj:            NWTC_Library.obj
-GenSubs.obj:             NWTC_Library.obj  AeroMods.obj
-AeroSubs.obj:            NWTC_Library.obj  AeroMods.obj
-AeroDyn.obj:             NWTC_Library.obj  AeroMods.obj  SharedTypes.obj  AeroSubs.obj  GenSubs.obj  InflowWindMod.obj
+AeroDyn_Types.obj:       NWTC_Library.obj InflowWind_Types.f90
+GenSubs.obj:             NWTC_Library.obj  AeroDyn_Types.obj
+AeroSubs.obj:            NWTC_Library.obj  AeroDyn_Types.obj
+AeroDyn.obj:             AeroDyn_Types.obj  AeroSubs.obj  GenSubs.obj  InflowWind.obj
 
 
 #HydroDyn dependency rules:
@@ -297,21 +301,20 @@ Waves.obj:                  Waves_Types.obj  FFTMod.obj
 Current_Types.obj:          NWTC_Library.obj
 Current.obj:                Current_Types.obj
 
-Morison_Types.obj:          NWTC_Library.obj  HydroDyn_Output_Types.obj
-Morison_Output.obj:         Morison_Types.obj HydroDyn_Output_Types.obj Waves.obj
+Morison_Types.obj:          NWTC_Library.obj
+Morison_Output.obj:         Morison_Types.obj Waves.obj
 Morison.obj:                Morison_Types.obj Morison_Output.obj
 
 Conv_Radiation_Types.obj:   NWTC_Library.obj
 Conv_Radiation.obj:         Conv_Radiation_Types.obj
 
-WAMIT_Types.obj:            NWTC_Library.obj HydroDyn_Output_Types.obj Conv_Radiation_Types.obj SS_Radiation_Types.obj Waves_Types.obj
+WAMIT_Types.obj:            NWTC_Library.obj Conv_Radiation_Types.obj SS_Radiation_Types.obj Waves_Types.obj
 WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj FFTMod.obj
 
-HydroDyn_Output_Types.obj:  NWTC_Library.obj
-WAMIT_Output.obj:           WAMIT_Types.obj HydroDyn_Output_Types.obj Waves.obj
+WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj
 HydroDyn_Output.obj:        HydroDyn_Output_Types.obj HydroDyn_Types.obj Waves.obj
 
-HydroDyn_Types.obj:         NWTC_Library.obj  HydroDyn_Output_Types.obj  Current_Types.obj  Waves_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj Morison_Types.obj
+HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj Morison_Types.obj
 HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj
 HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj
 
@@ -351,6 +354,9 @@ $(INTER_DIR):
 
 
    # For linking FAST.
+
+## TODO:
+## bjj: need to link with $(MAP_lib) and with the equivalents of the mkl routines used in intel
 
 $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT): $(ALL_OBJS) | $(INTER_DIR)
 	$(FC) $(LDFLAGS) -I $(INTER_DIR) -o $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT) \

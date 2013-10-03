@@ -8,13 +8,12 @@ Node Type       X     Y     Z     M     B     FX    FY    FZ
 1    fix     853.87   0    depth   0     0     #     #     #
 2    Vessel    5.2    0    -70.0   0     0     #     #     #
 ---------------------- LINE PROPERTIES ---------------------------------------
-Element  LineType  UnstrLen    NodeAnch  NodeFair  Flags
+Line    LineType  UnstrLen    NodeAnch  NodeFair  Flags
 (-)      (-)       (m)         (-)       (-)       (-)
-1       Material   902.2        1         2        plot
-2       repeat     120
-3       repeat     240
+1       Material   902.2        1         2        plot fair_tension
+2       repeat     120  240
 ---------------------- SOLVER OPTIONS-----------------------------------------
 Option
-(-)   
+(-)
 -msqs_default tr
 -msqs_fd_jacobian color

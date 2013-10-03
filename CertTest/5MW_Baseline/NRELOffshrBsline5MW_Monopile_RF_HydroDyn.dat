@@ -1,13 +1,13 @@
 ------- HydroDyn v2.00.* Input File --------------------------------------------
-NREL 5.0 MW offshore baseline monopile platform with rigid foundation HydroDyn input properties.
+NREL 5.0 MW offshore baseline floating platform input properties for the TLP.
 TRUE           Echo           - Echo the input file data (flag)
 ---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
-1027.0         WtrDens        - Water density (kg/m^3)
+1025.0         WtrDens        - Water density (kg/m^3)
   20.0         WtrDpth        - Water depth (meters)
    0.0         MSL2SWL        - Offset between still-water level and mean sea level (meters) [positive upward; must be zero if HasWAMIT=TRUE]
 ---------------------- WAVES ---------------------------------------------------
    2           WaveMod        - Incident wave kinematics model {0: none=still water, 1: plane progressive (regular), 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: user-defind spectrum from routine UserWaveSpctrm (irregular), 4: GH Bladed wave data [invalid for StrctType=2]} (switch)
-   3           WaveStMod      - Model for stretching incident wave kinematics to instantaneous free surface {0: none=no stretching, 1: vertical stretching, 2: extrapolation stretching, 3: Wheeler stretching} (switch) [unused when WaveMod=0 or when StrctType=2]
+   0           WaveStMod      - Model for stretching incident wave kinematics to instantaneous free surface {0: none=no stretching, 1: vertical stretching, 2: extrapolation stretching, 3: Wheeler stretching} (switch) [unused when WaveMod=0 or when StrctType=2]
 3630.0         WaveTMax       - Analysis time for incident wave calculations (sec) [unused when WaveMod=0] [determines WaveDOmega=2Pi/WaveTMax in the IFFT]
    0.25        WaveDT         - Time step for incident wave calculations (sec) [unused when WaveMod=0] [0.1<=WaveDT<=1.0 recommended] [determines WaveOmegaMax=Pi/WaveDT in the IFFT]
    5.0         WaveHs         - Significant wave height of incident waves (meters) [used only when WaveMod=1 or 2]
@@ -16,13 +16,13 @@ DEFAULT        WavePkShp      - Peak shape parameter of incident wave spectrum (
    0.0         WvLowCOff      - Low Cut-off frequency or lowerfrequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s).  [used only when WaveMod=2,3,4]
  500.0         WvHiCOff       - High Cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s).  [used only when WaveMod=2,3,4]
    0.0         WaveDir        - Incident wave propagation heading direction (degrees) [unused when WaveMod=0 or 4]
-123456789      WaveSeed(1)    - First  random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
-1011121314     WaveSeed(2)    - Second random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
+123456789      WaveSeed1      - First  random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
+1011121314     WaveSeed2      - Second random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 4]
  TRUE          WaveNDAmp      - Flag for normally distributed amplitudes (T/F)
                GHWvFile       - Root name of GH Bladed files containing wave data (quoted string) [used only when WaveMod=4 and StrctType=1]
-   1           NWaveElev      - Number of points where the incident wave elevations can be computed (-)
-   0           WaveElevxi     - List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
-   0           WaveElevyi     - List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
+   1           NWaveElev      - Number of points where the incident wave elevations can be computed (-) [Maximum of 9 output locations]
+   0.0,    0.0    0.0,  10.0,  10.0,  10.0, -10.0, -10.0, -10.0           WaveElevxi     - List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
+   0.0,   10.0, -10.0,   0.0,  10.0, -10.0,   0.0,  10.0, -10.0           WaveElevyi     - List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
 ---------------------- CURRENT -------------------------------------------------
    0           CurrMod        - Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)
    0.0         CurrSSV0       - Sub-surface current velocity at still water level (m/s) [used only when CurrMod=1]
@@ -33,15 +33,15 @@ DEFAULT        CurrSSDir      - Sub-surface current heading direction (degrees) 
    0.0         CurrDIV        - Depth-independent current velocity (m/s) [used only when CurrMod=1]
    0.0         CurrDIDir      - Depth-independent current heading direction (degrees) [used only when CurrMod=1]
 ---------------------- FLOATING PLATFORM ---------------------------------------
-FALSE          HasWAMIT       - Using WAMIT (flag)
-""             WAMITFile    - Root name of WAMIT output files containing the linear, nondimensionalized, hydrostatic restoring matrix (.hst extension), frequency-dependent hydrodynamic added mass matrix and damping matrix (.1 extension), and frequency- and direction-dependent wave excitation force vector per unit wave amplitude (.3 extension) (quoted string) [MAKE SURE THE FREQUENCIES INHERENT IN THESE WAMIT FILES SPAN THE PHYSICALLY-SIGNIFICANT RANGE OF FREQUENCIES FOR THE GIVEN PLATFORM; THEY MUST CONTAIN THE ZERO- AND INFINITE-FREQUENCY LIMITS!]
+False          HasWAMIT       - Using WAMIT (flag)
+"unused"       WAMITFile    - Root name of WAMIT output files containing the linear, nondimensionalized, hydrostatic restoring matrix (.hst extension), frequency-dependent hydrodynamic added mass matrix and damping matrix (.1 extension), and frequency- and direction-dependent wave excitation force vector per unit wave amplitude (.3 extension) (quoted string) [MAKE SURE THE FREQUENCIES INHERENT IN THESE WAMIT FILES SPAN THE PHYSICALLY-SIGNIFICANT RANGE OF FREQUENCIES FOR THE GIVEN PLATFORM; THEY MUST CONTAIN THE ZERO- AND INFINITE-FREQUENCY LIMITS!]
    1.0         WAMITULEN      - Characteristic body length scale used to redimensionalize WAMIT output (meters)
-  6000.0       PtfmVol0       - Displaced volume of water when the platform is in its undisplaced position (m^3) [USE THE SAME VALUE COMPUTED BY WAMIT AS OUTPUT IN THE .OUT FILE!] 12.1796E3 -3053.18 for pretension = 9.12642E3
+   0.0         PtfmVol0       - Displaced volume of water when the platform is in its undisplaced position (m^3) [USE THE SAME VALUE COMPUTED BY WAMIT AS OUTPUT IN THE .OUT FILE!] 12.1796E3 -3053.18 for pretension = 9.12642E3
    0.0         PtfmCOBxt      - The xt offset of the center of buoyancy (COB) from the platform reference point (meters) .
    0.0         PtfmCOByt      - The yt offset of the center of buoyancy (COB) from the platform reference point (meters) .
    1           RdtnMod        - Radiation memory-effect model {1: convolution, 2: state-space} (switch) [STATE-SPACE REQUIRES *.ss INPUT FILE]
-  60.0         RdtnTMax       - Analysis time for wave radiation kernel calculations (sec) [determines RdtnDOmega=Pi/RdtnTMax in the cosine transform]  [MAKE SURE THIS IS LONG ENOUGH FOR THE RADIATION IMPULSE RESPONSE FUNCTIONS TO DECAY TO NEAR-ZERO FOR THE GIVEN PLATFORM!]
-   0.005       RdtnDT         - Time step for wave radiation kernel calculations (sec) [DT<=RdtnDT<=0.1 recommended] [determines RdtnOmegaMax=Pi/RdtnDT in the cosine transform]
+   0.0         RdtnTMax       - Analysis time for wave radiation kernel calculations (sec) [determines RdtnDOmega=Pi/RdtnTMax in the cosine transform]  [MAKE SURE THIS IS LONG ENOUGH FOR THE RADIATION IMPULSE RESPONSE FUNCTIONS TO DECAY TO NEAR-ZERO FOR THE GIVEN PLATFORM!]
+   0.0         RdtnDT         - Time step for wave radiation kernel calculations (sec) [DT<=RdtnDT<=0.1 recommended] [determines RdtnOmegaMax=Pi/RdtnDT in the cosine transform]
 ---------------------- FLOATING PLATFORM FORCE FLAGS  ------------------------------------
 True           PtfmSgF        - Platform horizontal surge translation force (flag) or DEFAULT
 True           PtfmSwF        - Platform horizontal sway translation force (flag) or DEFAULT
@@ -74,21 +74,21 @@ True           PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
 HvCoefID   HvCd        HvCa
  (-)       (-)         (-)
   1         0.0        0.0
----------------------- JOINTS --------------------------------------------------
-   2           NJoints        - Number of joints (-)
-JointID    Jointxi     Jointyi      Jointzi       JointHvID    JointOvrlp   [must be at least 2, JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]
-(-)        (m)         (m)         (m)               (-)        (switch)   
- 1         0.0         0.0        -20.0001            1            0       
- 2         0.0         0.0         87.6               1            0       
+---------------------- MEMBER JOINTS -------------------------------------------
+2              NJoints        - Number of joints (-)   [must be exactly 0 or at least 2]
+JointID   Jointx      Jointy      Jointz       JointHvID  JointOvrlp   [must be at least 2, JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]
+(-)        (m)         (m)          (m)           (-)      (switch)
+ 1         0.0        0.0          -20.0001        1          0
+ 2         0.0        0.0           10.0           1          0
 --------------------- MEMBER CROSS-SECTION PROPERTIES ----------------------------------------
 1             NPropSets      - Number of member property sets (-)
 PropSetID    PropD            PropThck
 (-)          (m)              (m)
- 1            6.0              .0001
+ 1            6               0.06
 ---------------------- SIMPLE HYDRODYNAMIC COEFFICIENTS (model 1) -------------------------
 SimplCd        SimplCdMG  SimplCa      SimplCaMG
 (-)            (-)        (-)          (-)
-1.0            1.0        0.0          0.0
+1.0            1.0        1.0          1.0
 ---------------------- DEPTH-BASED HYDRODYNAMIC COEFFICIENTS (model 2) ---------------------
 0             NCoefDpth      - Number of depth-dependent coefficients (-)
 Dpth      DpthCd   DpthCdMG   DpthCa   DpthCaMG
@@ -101,7 +101,7 @@ MemberID   MemberCd1   MemberCd2   MemberCdMG1   MemberCdMG2   MemberCa1   Membe
 1              NMembers       - Number of members (-)
 MemberID   MJointID1   MJointID2   MPropSetID1  MPropSetID2   MDivSize  MCoefMod  PropWAMIT   [ PropWAMIT = TRUE if member is modeled in WAMIT] ! MCoefMod = 1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table
 (-)        (-)         (-)         (-)          (-)           (m)       (switch)    (flag)
- 1          1           2           1             1           0.5         1          FALSE
+ 1          1           2           1             1           0.5         1         False
 ---------------------- FILLED MEMBERS ------------------------------------------
 0              NFillGroups     - Number of filled member groups (-) [If FillDens = DEFAULT, then FillDens = WtrDens property, and FillFSLoc is related to MSL2SWL]
 FillNumM FillMList             FillFSLoc     FillDens
@@ -119,7 +119,7 @@ MemberID   NOutLoc    NodeLocs [NOutLoc < 10, Node locations are normalized dist
 ---------------------- OUTPUT --------------------------------------------------
 True           HDSum          - Output a Summary File [T/F].
 False          OutAll         - Output all user-specified member and joint loads (only at each member end, not interior locations) [T/F]
-3              OutSwtch       - Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files]
+2              OutSwtch       - Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files]
 "ES11.4e2"     OutFmt         - Output format for numerical results
 "A11"          OutSFmt        - Output format for header strings
 ---------------------- FLOATING PLATFORM OUTPUTS -------------------------------
@@ -127,3 +127,5 @@ False          OutAll         - Output all user-specified member and joint loads
 END of Floating platform outputs
 ---------------------- MESH-BASED OUTPUT -------------------------------------
 END of mesh-based outputs and HydroDyn input file (the word "END" must appear in the first 3 columns of this last line).
+
+
