@@ -4,7 +4,7 @@ FAST Certification Test #19: NREL 5.0 MW Baseline Wind Turbine with Monopile RF 
 False         Echo            - Echo input data to <RootName>.ech (flag)
 "FATAL"       AbortLevel      - Error level when simulation should abort {"WARNING", "SEVERE", "FATAL"} (string)
          60   TMax            - Total run time (s)
-      0.005   DT              - Recommended module time step (s)
+      0.0005  DT              - Recommended module time step (s)
           2   InterpOrder     - Interpolation order for input/output time history {0=nearest neighbor ,1=linear, 2=quadratic} (-)
           0   NumCrctn        - Number of correction iterations {0=explicit calculation, i.e., no corrections} (-)
       99999   DT_UJac         - Time between calls to get Jacobians (s)
@@ -19,7 +19,7 @@ False         CompUserPtfmLd  - Compute additional platform loading {false: none
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
 "5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_ElastoDyn.dat"   EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_DT5.ipt"             ADFile          - Name of file containing AeroDyn input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_DT05.ipt"            ADFile          - Name of file containing AeroDyn input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_ServoDyn.dat"    SrvDFile        - Name of file containing ServoDyn input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_HydroDyn.dat"    HDFile          - Name of file containing HydroDyn input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_SubDyn.dat"      SDFile          - Name of file containing SubDyn input parameters (quoted string)

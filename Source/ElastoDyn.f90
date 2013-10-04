@@ -1280,7 +1280,7 @@ MODULE ElastoDyn
 
    PRIVATE
    
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.00.02a-bjj', '11-Sep-2013' )
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.02b-bjj', '03-Oct-2013' )
 
 
 

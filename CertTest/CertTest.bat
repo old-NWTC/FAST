@@ -394,9 +394,7 @@ rem *******************************************************
 
 rem *******************************************************
 :Test19
-@CALL :GenTestHeader %Test19% (SKIPPING THIS TEST UNTIL SUBDYN IS INCLUDED)
-GOTO Test20
-
+@CALL :GenTestHeader %Test19%
 @CALL :RunFASTandCrunch 19 outb
 @CALL :CompareOutput 19
 

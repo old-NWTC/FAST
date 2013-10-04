@@ -32,7 +32,7 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i=  [1:18 22:24] %1:24 
+    for i= [1:19 22:24] %1:24 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
         
@@ -319,8 +319,8 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
 %     for iPlot = 100:strd:nCols
         fig=figure;        
                 
-        ChannelName     = oldCols{1}{iPlot};
-        ChannelName_new = getNewChannelName(ChannelName);
+        ChannelName                   = oldCols{1}{iPlot};
+        [ChannelName_new,scaleFactor] = getNewChannelName(ChannelName);
 
         HaveLabels = false; %if we don't find any labels for these plots, we can't plot them
         for iFile = 1:numFiles
@@ -353,7 +353,7 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
             h1(1) = plot(oldData{iFile}(:,xCol_old), oldData{iFile}(:,yCol_old));
             set(h1(1),'LineStyle','-', 'DisplayName',[descFiles{iFile} ', old'],'Color',LineColors{iFile},      'LineWidth',LineWidthConst+1);
             
-            h1(2) = plot(newData{iFile}(:,xCol_new), newData{iFile}(:,yCol_new) );
+            h1(2) = plot(newData{iFile}(:,xCol_new), newData{iFile}(:,yCol_new)/scaleFactor );
             set(h1(2),'LineStyle','--','DisplayName',[descFiles{iFile} ', new'],'Color',LineColors{iFile}*0.75, 'LineWidth',LineWidthConst+1);       
 
             currXLim = xlim;
@@ -421,19 +421,49 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
 return;
 end
 %% ------------------------------------------------------------------------
-function [ChannelName_new] = getNewChannelName(ChannelName)
+function [ChannelName_new,scaleFact] = getNewChannelName(ChannelName)
         
+        scaleFact = 1.0;
+
         if strcmpi(ChannelName,'WaveElev')
             ChannelName_new = 'Wave1Elev';
         elseif strncmpi( ChannelName,'Fair',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TFair[i] = FairiTen
             ChannelName_new = strrep( strrep( ChannelName,'Fair','TFair['),'Ten',']');
         elseif strncmpi( ChannelName,'Anch',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TAnch[i] = AnchiTen
             ChannelName_new = strrep( strrep( ChannelName,'Anch','TAnch['),'Ten',']');
+        elseif strncmpi( ChannelName,'Anch',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TAnch[i] = AnchiTen
+            ChannelName_new = strrep( strrep( ChannelName,'Anch','TAnch['),'Ten',']');
         else
             ChannelName_new = strrep(ChannelName,'Wave1V','M1N1V');
             ChannelName_new = strrep(ChannelName_new,'Wave1A','M1N1A');
-            %ChannelName_new = ChannelName_new;
+            %ChannelName_new = ChannelName_new;              
         end
+        
+        
+%         elseif strcmpi(ChannelName,'TTDspFA')
+%             ChannelName_new = 'TwHt1TPxi';            
+%         elseif strcmpi(ChannelName,'TTDspSS')
+%             ChannelName_new = 'TwHt1TPyi';                    
+%         elseif strcmpi(ChannelName,'-TwrBsFxt')
+%             ChannelName_new = 'ReactXss';
+%             scaleFact = 1000;
+%         elseif strcmpi(ChannelName,'-TwrBsFyt')
+%             ChannelName_new = 'ReactYss';
+%             scaleFact = 1000;
+%         elseif strcmpi(ChannelName,'-TwrBsFzt')
+%             ChannelName_new = 'ReactZss';
+%             scaleFact = 1000;
+%         elseif strcmpi(ChannelName,'-TwrBsMxt')
+%             ChannelName_new = 'ReactMXss';
+%             scaleFact = 1000;
+%         elseif strcmpi(ChannelName,'-TwrBsMyt')
+%             ChannelName_new = 'ReactMYss';
+%             scaleFact = 1000;
+%         elseif strcmpi(ChannelName,'-TwrBsMzt')
+%             ChannelName_new = 'ReactMZss';       
+%             scaleFact = 1000;
+        
+        
 return     
 end 
 %% ------------------------------------------------------------------------

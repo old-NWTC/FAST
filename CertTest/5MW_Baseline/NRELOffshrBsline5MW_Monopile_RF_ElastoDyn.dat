@@ -3,7 +3,7 @@ NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from 
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo        - Echo input data to "<RootName>.ech" (flag)
           3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
-      0.005   DT          - Integration time step (s)
+      0.0005  DT          - Integration time step (s)
 ---------------------- ENVIRONMENTAL CONDITION ---------------------------------
     9.80665   Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- DEGREES OF FREEDOM --------------------------------------
@@ -38,7 +38,7 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   TTDspSS     - Initial side-to-side tower-top displacement (meters)
           0   PtfmSurge   - Initial or fixed horizontal surge translational displacement of platform (meters)
           0   PtfmSway    - Initial or fixed horizontal sway translational displacement of platform (meters)
-          0   PtfmHeave   - Initial or fixed vertical heave translational displacement of platform (meters)
+-0.0009   0   PtfmHeave   - Initial or fixed vertical heave translational displacement of platform (meters)
           0   PtfmRoll    - Initial or fixed roll tilt rotational displacement of platform (degrees)
           0   PtfmPitch   - Initial or fixed pitch tilt rotational displacement of platform (degrees)
           0   PtfmYaw     - Initial or fixed yaw rotational displacement of platform (degrees)
@@ -82,7 +82,7 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   PtfmMass    - Platform mass (kg)
           0   PtfmRIner   - Platform inertia for roll tilt rotation about the platform CM (kg m^2)
           0   PtfmPIner   - Platform inertia for pitch tilt rotation about the platform CM (kg m^2)
-          0   PtfmYIner   - Platfrom inertia for yaw rotation about the platform CM (kg m^2)
+10000.0   0   PtfmYIner   - Platfrom inertia for yaw rotation about the platform CM (kg m^2)
 ---------------------- BLADE ---------------------------------------------------
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(1)  - Name of file containing properties for blade 1 (quoted string)
 "NRELOffshrBsline5MW_Blade.dat"    BldFile(2)  - Name of file containing properties for blade 2 (quoted string)
@@ -114,8 +114,8 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "ES10.3E2"    OutFmt      - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)  [not checked for validity!] (currently unused)
          30   TStart      - Time to begin tabular output (s) (currently unused)
           1   DecFact     - Decimation factor for tabular output {1: output every time step} (-) (currently unused)
-          3   NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
-         10,         19,         28    TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
+          1   NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
+         99    TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
           3   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
           5,          9,         13    BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
               OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
@@ -126,13 +126,15 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "Azimuth"                 - Blade 1 azimuth angle
 "RotSpeed"                - Low-speed shaft and high-speed shaft speeds
 "GenSpeed"                - Low-speed shaft and high-speed shaft speeds
-"TTDspFA"                 - Tower fore-aft and side-to-side displacements and top twist
-"TTDspSS"                 - Tower fore-aft and side-to-side displacements and top twist
+"TwHt1TPxi"                 - Tower fore-aft and side-to-side displacements and top twist
+"TwHt1TPyi"                 - Tower fore-aft and side-to-side displacements and top twist
 "TTDspTwst"               - Tower fore-aft and side-to-side displacements and top twist
-"PtfmTDxi"                - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
-"PtfmTDyi"                - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
-"PtfmRDxi"                - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
-"PtfmRDyi"                - Fore-aft, side-to-side, roll, and pitch displacements of the monopile at the mudline
+"PtfmTDxi"
+"PtfmTDyi"
+"PtfmTDzi"
+"PtfmRDxi"
+"PtfmRDyi"
+"PtfmRDzi"
 "Spn2MLxb1"               - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
 "Spn2MLyb1"               - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
 "RootFxc1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
@@ -150,21 +152,5 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "YawBrMxp"                - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
 "YawBrMyp"                - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
 "YawBrMzp"                - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
-"TwHt3MLxt"               - Local side-to-side and fore-aft bending moments at tower gage 3 (approx. tower base / monopile attachement location)
-"TwHt3MLyt"               - Local side-to-side and fore-aft bending moments at tower gage 3 (approx. tower base / monopile attachement location)
-"TwHt2MLxt"               - Local side-to-side and fore-aft bending moments at tower gage 2 (approx. MSL)
-"TwHt2MLyt"               - Local side-to-side and fore-aft bending moments at tower gage 2 (approx. MSL)
-"TwHt1MLxt"               - Local side-to-side and fore-aft bending moments at tower gage 1 (approx. halfway between MSL and mudline)
-"TwHt1MLyt"               - Local side-to-side and fore-aft bending moments at tower gage 1 (approx. halfway between MSL and mudline)
-"TwrBsFxt"                - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
-"TwrBsFyt"                - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
-"TwrBsFzt"                - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
-"TwrBsMxt"                - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
-"TwrBsMyt"                - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
-"TwrBsMzt"                - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
-"PtfmSurge"               - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
-"PtfmSway"                - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
-"PtfmRoll"                - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
-"PtfmPitch"               - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

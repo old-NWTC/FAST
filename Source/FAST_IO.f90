@@ -385,8 +385,8 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    END IF
 
    IF ( p_FAST%CompSub ) THEN
-   !   y_FAST%SD_Ver   = InitOutData_SD%Ver
-   !   y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%SD_Ver))
+      y_FAST%SD_Ver   = InitOutData_SD%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%SD_Ver))
    ELSE
       y_FAST%SD_Ver%Name = 'SubDyn'
       y_FAST%SD_Ver%Date = 'unknown date'

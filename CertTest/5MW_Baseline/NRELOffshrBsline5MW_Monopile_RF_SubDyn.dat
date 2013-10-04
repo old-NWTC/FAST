@@ -3,44 +3,44 @@
 OC3 Monopile configuration (pile only).
 -------------------------- SIMULATION CONTROL  ---------------------------------
 True       Echo        - Echo input data to "echo.out" (flag)
-0.005      SDdeltaT    - Local Integration Step. If 0.0, the glue-code integration step will be used.
-1          IntMethod   - Integration Method (0/1/2/3 = GlueCode(tight Coupling)/RK4/AB4/ABM4)  
+0.0005     SDdeltaT    - Local Integration Step. If 0.0, the glue-code integration step will be used.
+1          IntMethod   - Integration Method (0/1/2/3 = GlueCode(tight Coupling)/RK4/AB4/ABM4)
 -------------------- FEA and CRAIG-BAMPTON PARAMETERS---------------------------
 3          FEMMod     - FEM switch: element model in the FEM: 1= Euler-Bernoulli(E-B) ; 2=Tapered E-B; 3= 2-node Timoshenko;  4= 2-node tapered Timoshenko
 4          NDiv       - Number of sub-elements per member
-True       CBMod      - If True perform C-B reduction, else full FEM dofs will be retained. IF True, select modes to retain in C-B
+False      CBMod      - If True perform C-B reduction, else full FEM dofs will be retained. IF True, select modes to retain in C-B
 12         Nmodes     - Number of internal modes to retain (ignored if CMMod=Flase). If Nmodes=0 --> Guyan Reduction. If Nmodes>0, list Nmodes structural damping ratios for each retained mode (% of critical)
 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0    JDampings  -  Damping Ratios  for each retained mode (% of critical)
 ---- STRUCTURE JOINTS: joints connect structure members (~Hydrodyn Input File)---
-2	   NJoints     - Number of joints (-)   
+2	   NJoints     - Number of joints (-)
 JointID          JointXss                 JointYss               JointZss	-Coordinates of Member joints in SS-Coordinate System
 (-)                 (m)                     (m)                     (m)
-1                   0.0                     0.0                 -20.0001	
-2                   0.0                     0.0                  10.0	   		
+1                   0.0                     0.0                 -20.0001
+2                   0.0                     0.0                  10.0
 ------------------- BASE REACTION JOINTS: 1/0 for Locked/Free DOF @ each Reaction Node ---------------------
 1          NReact      - Number of Joints with reaction forces; be sure to remove all rigid motion dofs of the structure  (else det([K])=[0])
 JointID	 RctTDXss     RctTDYss    RctTDZss   RctRDXss   RctRDYss   RctRDZss	   - Global Coordinate System
-1             1            1	    1	       1          1	     1	
+1             1            1	    1	       1          1	     1
 ------- INTERFACE JOINTS: 1/0 for Locked (to the TP)/Free DOF @each Interface Joint (only Locked-to-TP implemented thus far (=rigid TP)) ---------
 1          NInterf     - Number of interface joints locked to the Transition Piece (TP):  be sure to remove all rigid motion dofs
 JointID	ItfTDXss     ItfTDYss    ItfTDZss   ItfRDXss   ItfRDYss   ItfRDZss   - Global Coordinate System
-2             1            1	    1	       1          1	     1	
+2             1            1	    1	       1          1	     1
 ----------------------------------- MEMBERS --------------------------------------
 1       NMembers       	     - Number of frame members
-MemberID   MJointID1   MJointID2   MPropSetID1   MPropSetID2     COSMID  
+MemberID   MJointID1   MJointID2   MPropSetID1   MPropSetID2     COSMID
 1	     1          2            1           1
 ------------------ MEMBER X-SECTION PROPERTY data 1/2 [isotropic material for now: use this table if circular-tubular elements ------------------------
 4       NPropSets     - Number of structurally unique x-sections (i.e. how many groups of X-sectional properties are utilized trhoughout all of the members)
-            YoungE       ShearG       MatDens     XsecD      XsecT  
-PropSetID   (N/m2)       (N/m2)       (kg/m3)     (m)        (m)    
+            YoungE       ShearG       MatDens     XsecD      XsecT
+PropSetID   (N/m2)       (N/m2)       (kg/m3)     (m)        (m)
 1          2.1e+011     8.08e+010       8500    6.000000   0.06000
-2          2.1e+011     8.08e+010       8500    6.000000   0.02700        
+2          2.1e+011     8.08e+010       8500    6.000000   0.02700
 3          2.1e+011     8.08e+010       8500    3.870000   0.01900
 4          2.1e+014     8.08e+014       1       1          0.01
 ------------------ MEMBER X-SECTION PROPERTY data 2/2 (isotropic material for now: use this table if any section other than circular, however provide COSM(i,j) below) ------------------------
 0       NXPropSets     - Number of structurally unique non-circular x-sections (if 0 the following table is ignored)
-            YoungE       ShearG       MatDens     XsecA          XsecAsx        XsecAsy          XsecJxx          XsecJyy          XsecJ0   
-PropSetID   (N/m2)       (N/m2)       (kg/m3)     (m2)          (m2)            (m2)             (m4)              (m4) 	   (m4)     
+            YoungE       ShearG       MatDens     XsecA          XsecAsx        XsecAsy          XsecJxx          XsecJyy          XsecJ0
+PropSetID   (N/m2)       (N/m2)       (kg/m3)     (m2)          (m2)            (m2)             (m4)              (m4) 	   (m4)
 ---------------------- MEMBER COSINE MATRICES COSM(i,j) ------------------------
 0       NCOSMs	     - Number of unique cosine matrices (i.e., of unique member alignments including principal axis rotations); ignored if NXPropSets=0	or 9999 in any element below
 COSMID	COSM11    COSM12      COSM13       COSM21      COSM22      COSM23     COSM31       COSM32	COSM33
@@ -54,7 +54,7 @@ True       OutCOSM  - Output cosine matrices with the selected output member for
 True       OutAll   - [T/F] Output all members" end forces in OutJckF
 2          OutSwtch - [1/2/3] Output requested channels to: 1=Subdyn.out 2=GlueCode.out  3=both files
 ------------------------- MEMBER OUTPUT LIST ------------------------------------------
-   1           NMOutputs      - Number of members whose forces/displacements/velocities/accelerations will be output into OutJckF (-) [Must be <= 9] 
+   1           NMOutputs      - Number of members whose forces/displacements/velocities/accelerations will be output into OutJckF (-) [Must be <= 9]
 MemberID   NOutCnt    NodeCnt [NOutCnt=how many nodes to get output for [< 10]; NodeCnt are local ordinal numbers from the start of the member, and must be >=1 and <= NDiv+1] If NMOutputs=0 leave blank as well
   (-)        (-)        (-)
    1          2         1 2
@@ -66,7 +66,7 @@ True           TabDelim       - Generate a tab-delimited output file in OutJckF
 ------ SSOutList    - The next line(s) contains a list of output parameters that will be output in the main FAST .out. ------
 "ReactXss, ReactYss, ReactZss, ReactMXss, ReactMYss, ReactMZss"   -Base reactions (forces onto SS structure)
 "IntfXss,  IntfYss,  IntfZss,  IntfMXss, IntfMYss, IntfMZss"      -Interface reactions (forces onto SS structure)
-"IntfTDXss,  IntfTDYss,  IntfTDZss,  IntfRDXss, IntfRDYss, IntfRDZss"      -Interface deflections 
+"IntfTDXss,  IntfTDYss,  IntfTDZss,  IntfRDXss, IntfRDYss, IntfRDZss"      -Interface deflections
 "IntfTAXss,  IntfTAYss,  IntfTAZss,  IntfRAXss, IntfRAYss, IntfRAZss"      -Interface accelerations
 END of SubDyn input file (the word "END" must appear in the first 3 columns of this last line).
 ----------------------------------------------------------------------------------------

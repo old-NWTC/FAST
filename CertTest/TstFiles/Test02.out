@@ -1,6 +1,6 @@
 
-Predictions were generated on 03-Oct-2013 at 10:55:02 using FAST (v8.03.02a-bjj, 29-Sep-2013), compiled for 32-bit systems using single precision
- linked with  NWTC Subroutine Library (v2.03.00b-bjj, 1-Oct-2013); ElastoDyn (v1.00.02a-bjj, 11-Sep-2013); InflowWind (v2.00.00, 17-Sept-2013); AeroDyn (v14.02.00c-mlb, 02-Oct-2013); ServoDyn (v1.01.01a-bjj, 06-Sep-2013)
+Predictions were generated on 03-Oct-2013 at 23:55:50 using FAST (v8.03.02b-bjj, 3-Oct-2013), compiled for 32-bit systems using single precision
+ linked with  NWTC Subroutine Library (v2.03.00b-bjj, 1-Oct-2013); ElastoDyn (v1.01.02b-bjj, 03-Oct-2013); InflowWind (v2.00.00b-adp, 17-Sept-2013); AeroDyn (v14.02.00c-mlb, 02-Oct-2013); ServoDyn (v1.01.01b-bjj, 03-Oct-2013)
 
 Description from the FAST input file: FAST Certification Test #02: AWT-27CR2 with many DOFs with startup and shutdown and steady wind
 
