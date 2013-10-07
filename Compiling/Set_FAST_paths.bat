@@ -1,8 +1,9 @@
 
 IF "%COMPUTERNAME%"=="BJONKMAN-23080S" GOTO BJONKMAN-23080S
+IF "%COMPUTERNAME%"=="MBUHL-20665S" GOTO MBUHL-20665S
 
 REM ----------------------------------------------------------------------------
-REM These paths are for Bonnie Jonkman; other users should modify their own paths as necessary
+REM These paths are for Bonnie Jonkman and Marshall Buhl; other users should modify their own paths as necessary.
 
 :BJONKMAN-23080S
 ECHO Setting paths for Bonnie Jonkman.
@@ -28,4 +29,32 @@ SET MAP_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirec
 SET MAP_DLL=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\executable\MAP_win32.dll
 SET MAP_Include_Lib=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\executable\MAP_win32.lib
 
+GOTO End
 
+:MBUHL-20665S
+ECHO Setting paths for Marshall Buhl's laptop.
+
+SET Registry=CALL Registry
+SET Crunch=M:\CAEtools\Postprocessors\Crunch\trunk\crunch_win32.exe
+
+
+SET REG_Loc=M:\CAETools\Miscellaneous\Registry\Source
+SET FAST_Loc=M:\CAETools\Simulators\FAST\branches\BJonkman\Source
+
+SET NWTC_Lib_Loc=M:\CAEtools\Miscellaneous\NWTC_Library\trunk\source
+SET ED_Loc=M:\CAETools\Simulators\FAST\branches\BJonkman\Source
+SET SrvD_Loc=M:\CAETools\Simulators\FAST\branches\BJonkman\Source
+SET AD_Loc=M:\CAEtools\Simulators\AeroDyn\branches\Framework\Source
+SET IfW_Loc=M:\CAEtools\Simulators\InflowWind\branches\modularization\Source
+SET SD_Loc=M:\CAEtools\Simulators\SubDyn\branches\v0.4\Source
+
+SET HD_Loc=M:\CAEtools\Simulators\HydroDyn\branches\HydroDyn_Modularization\Source
+SET HD_Reg_Loc=%HD_Loc%\RegistryFiles
+
+SET MAP_Loc=M:\CAEtools\Simulators\MAP\trunk\src\fortran
+SET MAP_DLL=M:\CAEtools\Simulators\MAP\trunk\executable\MAP_win32.dll
+SET MAP_Include_Lib=M:\CAEtools\Simulators\MAP\trunk\executable\MAP_win32.lib
+
+GOTO End
+
+:End
