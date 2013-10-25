@@ -2,23 +2,23 @@
 IF "%COMPUTERNAME%"=="BJONKMAN-23080S" GOTO BJONKMAN-23080S
 IF "%COMPUTERNAME%"=="MBUHL-20665S" GOTO MBUHL-20665S
 
-REM ----------------------------------------------------------------------------
+REM --------------------------------------------------------------------------------------------------------------------------------
 REM These paths are for Bonnie Jonkman and Marshall Buhl; other users should modify their own paths as necessary.
 
 :BJONKMAN-23080S
 ECHO Setting paths for Bonnie Jonkman.
 
-SET Registry=CALL Registry
 SET Crunch=C:\Users\bjonkman\Documents\DATA\DesignCodes\postprocessors\Crunch\SVNdirectory\trunk\crunch_win32.exe
 
+SET Registry=CALL Registry
+SET REG_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\FAST_Registry
 
-SET REG_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\CSC\FAST\Registry\Source
 SET FAST_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
 
 SET NWTC_Lib_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\miscellaneous\nwtc_subs\SVNdirectory\trunk\source
-SET ED_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
-SET SrvD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\Source
-SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\branches\Framework\Source
+SET ED_Loc=%FAST_Loc%
+SET SrvD_Loc=%FAST_Loc%
+SET AD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\AeroDyn\SVNdirectory\trunk\Source
 SET IfW_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\InflowWind\SVNdirectory\branches\modularization\Source
 SET SD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\SubDyn\SVNdirectory\branches\v0.4\Source
 
@@ -31,6 +31,7 @@ SET MAP_Include_Lib=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\
 
 GOTO End
 
+REM --------------------------------------------------------------------------------------------------------------------------------
 :MBUHL-20665S
 ECHO Setting paths for Marshall Buhl's laptop.
 
@@ -56,5 +57,7 @@ SET MAP_DLL=M:\CAEtools\Simulators\MAP\trunk\executable\MAP_win32.dll
 SET MAP_Include_Lib=M:\CAEtools\Simulators\MAP\trunk\executable\MAP_win32.lib
 
 GOTO End
+
+REM --------------------------------------------------------------------------------------------------------------------------------
 
 :End

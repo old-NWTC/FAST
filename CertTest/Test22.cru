@@ -5,7 +5,7 @@ False          Echo:               The flag for echoing input to <root>.ech.
 True           Out_Stats:          The flag for outputting statistics.
 False          Out_Data:           The flag for outputting modified data.
 True           TabDelim:           The flag for using tab-delimited output (best for spreadsheets).
-"F11.4"        RealFmt:            The numerical-output format specifier.  See manual for limitations.
+"F15.4"        RealFmt:            The numerical-output format specifier.  See manual for limitations.
 False          Aggregate:          The flag to output aggregate-analysis files.  Use false to generate separate analysis files for each input file.
 "Aggregate"    AggRoot             The root name of the aggregate-analysis files, if aggregates were specified above.
 -----  Input-Data Layout  ------------------------------------------------------

@@ -221,7 +221,7 @@ ECHO %Lines%
 SET CURR_LOC=%AD_Loc%
 SET ModuleName=AeroDyn
 %REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Loc%"
-COPY /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
 
@@ -347,19 +347,19 @@ REM ----------------------------------------------------------------------------
 :RunRegistry_HD
 SET ModuleName=%1
 %REGISTRY% %HD_Reg_Loc%\%ModuleName%.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
-COPY /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 EXIT /B
 
 :RunRegistry_fmt1
 SET ModuleName=%1
 %REGISTRY% %CURR_LOC%\%ModuleName%_Registry.txt -I %NWTC_Lib_Loc%
-COPY /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 EXIT /B
 
 :RunRegistry_IfW
 SET ModuleName=%1
 %REGISTRY% "%CURR_LOC%\Reg-%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Loc%"
-COPY /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 EXIT /B
 
 :end

@@ -24,39 +24,40 @@ IF /I "%1"=="-DEVBUILD" GOTO devBuild
 IF /I "%1"=="-DEVDEBUG" GOTO devDebugBuild
 
 :releaseVer
-echo Using released version of FAST (IVF/VS)
+@SET EXE_VER=Using released version of FAST (IVF/VS)
 @SET FAST=..\bin\FAST_win32.exe
 goto CertTest
 
 :debugVer
-echo Using FAST compiled in debug mode (IVF/VS)
+@SET EXE_VER=Using FAST compiled in debug mode (IVF/VS)
 @SET FAST=..\bin\FAST_debug_win32.exe
 goto CertTest
 
 :gfortran
-echo Using FAST compiled with makefile (gfortran)
+@SET EXE_VER=Using FAST compiled with makefile (gfortran)
 @SET FAST=..\compiling\FAST_gwin32.exe
 goto CertTest
 
 :ifort
-echo Using FAST compiled with Compile_FAST.bat (IVF)
+@SET EXE_VER=Using FAST compiled with Compile_FAST.bat (IVF)
 @SET FAST=..\compiling\FAST_iwin32.exe
 goto CertTest
 
 :devBuild
-echo Using FAST compiled with Visual Studio Project, release mode (IVF/VS)
-@SET FAST=..\compiling\FAST_win32.exe
+@SET EXE_VER=Using FAST compiled with Visual Studio Project, release mode (IVF/VS)
+@SET FAST=..\bin\FAST_dev_win32.exe
 goto CertTest
 
 :devDebugBuild
-echo Using FAST compiled with Visual Studio Project, debug mode (IVF/VS)
-@SET FAST=..\compiling\FAST_debug_win32.exe
+@SET EXE_VER=Using FAST compiled with Visual Studio Project, debug mode (IVF/VS)
+@SET FAST=..\bin\FAST_dev_debug_win32.exe
 goto CertTest
 
 ::=======================================================================================================
 
 
 :CertTest
+
 
 REM  FAST test sequence definition:
 
@@ -110,6 +111,19 @@ ECHO.                                            >> CertTest.out
 ECHO Date and time this acceptance test was run: >> CertTest.out
 %DateTime%                                       >> CertTest.out
 ECHO.                                            >> CertTest.out
+
+
+ECHO.                                            >> CertTest.out
+ECHO %EXE_VER%                                   >> CertTest.out
+ECHO FAST called with this command:              >> CertTest.out
+ECHO %FAST%                                      >> CertTest.out
+ECHO.                                            >> CertTest.out
+
+
+echo %DASHES%
+echo %EXE_VER%
+echo %FAST%
+echo %DASHES%
 
 
 rem *******************************************************
@@ -530,6 +544,8 @@ EXIT /B
 @SET TEST22=
 @SET TEST23=
 @SET TEST24=
+
+SET EXE_VER=
 
 type Bell.txt
 @echo Processing complete.

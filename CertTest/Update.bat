@@ -6,6 +6,8 @@
 @del  *_ADAMS_LIN.gra
 @del  *_ADAMS_LIN.res
 
+@move  CertTest.out           tstfiles
+
 @move  Test01.azi             tstfiles
 @move  Test01.sts             tstfiles
 @move  Test01.sum             tstfiles
@@ -99,6 +101,12 @@
 @move  Test18.sum             tstfiles
 @move  Test18.outb            tstfiles
 @move  Test18.opt             tstfiles
+
+@move  Test19.sts             tstfiles
+@move  Test19.sum             tstfiles
+@move  Test19.outb            tstfiles
+@move  Test19.opt             tstfiles
+
 
 @move  Test22.sts             tstfiles
 @move  Test22.sum             tstfiles
