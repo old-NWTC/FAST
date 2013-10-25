@@ -216,8 +216,21 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
    IF ( ErrStat >= AbortErrLev ) RETURN
 
 
-   p%KMax = 1  ! after more checking, we may put this in the input file...
+   p%KMax = 1                 ! after more checking, we may put this in the input file...
+   p%SizeJac_ED_SD_HD = 0     ! initialize this vector to zero; after we figure out what size the ED/SD/HD meshes are, we'll fill this
    
+
+      ! determine what kind of turbine we're modeling:
+   IF (p%CompHydro) THEN
+      IF (p%CompSub) THEN
+         p%TurbineType = Type_Offshore_Fixed
+      ELSE
+         p%TurbineType = Type_Offshore_Floating
+      END IF
+   ELSE
+      p%TurbineType = Type_Onshore
+   END IF   
+         
    
    !...............................................................................................................................
    ! Do some error checking on the inputs (validation):
@@ -648,15 +661,16 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, ErrStat, ErrMsg )
 ! output file format (text/binary)
 ! coupling method
 
-   IF (p_FAST%CompHydro) THEN
-      IF (p_FAST%CompSub) THEN
-         DescStr = 'Modeling a fixed-bottom offshore turbine'
-      ELSE
-         DescStr = 'Modeling a floating offshore turbine'
-      END IF
-   ELSE
+   SELECT CASE ( p_FAST%TurbineType )
+   CASE ( Type_Onshore )
       DescStr = 'Modeling an onshore turbine'
-   END IF   
+   CASE ( Type_Offshore_Fixed )
+      DescStr = 'Modeling a fixed-bottom offshore turbine'
+   CASE ( Type_Offshore_Floating )
+      DescStr = 'Modeling a floating offshore turbine'
+   CASE DEFAULT ! This should never happen
+      DescStr=""
+   END SELECT                  
    WRITE(y_FAST%UnSum,'(//A)') TRIM(DescStr)
 
    WRITE (y_FAST%UnSum,'(A)' )   'Description from the FAST input file: '
@@ -1095,9 +1109,9 @@ SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
 
       ! Passed variables
 
-   INTEGER                      :: StrtTime (8)                                    ! Start time of simulation
-   REAL                         :: UsrTime1                                        ! User CPU time for simulation initialization.
-   REAL(DbKi)                   :: ZTime                                           ! The final simulation time (not necessarially TMax)
+   INTEGER   , INTENT(IN)       :: StrtTime (8)                                    ! Start time of simulation
+   REAL      , INTENT(IN)       :: UsrTime1                                        ! User CPU time for simulation initialization.
+   REAL(DbKi), INTENT(IN)       :: ZTime                                           ! The final simulation time (not necessarially TMax)
 
       ! Local variables
 
@@ -1405,16 +1419,16 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, 
 ! This routine sets the inputs required for ED
 !..................................................................................................................................
 
-   TYPE(FAST_ParameterType),       INTENT(IN)     :: p_FAST                   ! Glue-code simulation parameters
+   TYPE(FAST_ParameterType),       INTENT(IN   )  :: p_FAST                   ! Glue-code simulation parameters
    TYPE(ED_InputType),             INTENT(INOUT)  :: u_ED                     ! ED Inputs at t
-   TYPE(AD_OutputType),            INTENT(IN)     :: y_AD                     ! AeroDyn outputs
-   TYPE(SrvD_OutputType),          INTENT(IN)     :: y_SrvD                   ! ServoDyn outputs
-   TYPE(HydroDyn_OutputType),      INTENT(INOUT)  :: y_HD                     ! HydroDyn outputs
-   TYPE(HydroDyn_InputType),       INTENT(INOUT)  :: u_HD                     ! HydroDyn inputs
-   TYPE(MAP_OutputType),           INTENT(INOUT)  :: y_MAP                    ! MAP outputs
-   TYPE(MAP_InputType),            INTENT(INOUT)  :: u_MAP                    ! MAP inputs
-   TYPE(SD_OutputType),            INTENT(INOUT)  :: y_SD                     ! SubDyn outputs
-   TYPE(SD_InputType),             INTENT(INOUT)  :: u_SD                     ! SubDyn inputs
+   TYPE(AD_OutputType),            INTENT(IN   )  :: y_AD                     ! AeroDyn outputs
+   TYPE(SrvD_OutputType),          INTENT(IN   )  :: y_SrvD                   ! ServoDyn outputs
+   TYPE(HydroDyn_OutputType),      INTENT(IN   )  :: y_HD                     ! HydroDyn outputs
+   TYPE(HydroDyn_InputType),       INTENT(IN   )  :: u_HD                     ! HydroDyn inputs
+   TYPE(MAP_OutputType),           INTENT(IN   )  :: y_MAP                    ! MAP outputs
+   TYPE(MAP_InputType),            INTENT(IN   )  :: u_MAP                    ! MAP inputs
+   TYPE(SD_OutputType),            INTENT(IN   )  :: y_SD                     ! SubDyn outputs
+   TYPE(SD_InputType),             INTENT(IN   )  :: u_SD                     ! SubDyn inputs
    
    TYPE(FAST_ModuleMapType),       INTENT(INOUT)  :: MeshMapData              ! Data for mapping between modules
    TYPE(MeshType),                 INTENT(INOUT)  :: u_ED_Without_SD_HD       ! in: u_ED%PlatformPtMesh with contribution from modules other than HD and SD [MAP, etc]
@@ -1776,22 +1790,7 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD_prev )
    END IF
 
 
-      ! ServoDyn inputs from UserTwrLd
 
-   !IF ( p_FAST%CompUserTwrLd ) THEN
-   !END IF
-
-
-      ! ServoDyn inputs from UserPtfmLd
-
-   !IF ( p_FAST%CompUserPtfmLd ) THEN
-   !END IF
-
-
-      ! ServoDyn inputs from HydroDyn
-
-   IF ( p_FAST%CompHydro ) THEN
-   END IF
 
 
 END SUBROUTINE SrvD_InputSolve
@@ -1801,9 +1800,9 @@ SUBROUTINE HD_InputSolve(  p_FAST, u_HD, y_ED, MeshMapData, ErrStat, ErrMsg )
 !..................................................................................................................................
 
       ! Passed variables
-   TYPE(FAST_ParameterType),    INTENT(IN)    :: p_FAST                       ! Glue-code simulation parameters
+   TYPE(FAST_ParameterType),    INTENT(IN   ) :: p_FAST                       ! Glue-code simulation parameters
    TYPE(HydroDyn_InputType),    INTENT(INOUT) :: u_HD                         ! HydroDyn input
-   TYPE(ED_OutputType),         INTENT(INOUT) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
    TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
 
    INTEGER(IntKi),              INTENT(OUT)   :: ErrStat                       ! Error status of the operation
@@ -1813,14 +1812,14 @@ SUBROUTINE HD_InputSolve(  p_FAST, u_HD, y_ED, MeshMapData, ErrStat, ErrMsg )
    IF ( .NOT. p_FAST%CompSub ) THEN
       
       !----------------------------------------------------------------------------------------------------
-      ! Map ED outputs to HydroDyn inputs
+      ! Map ED outputs (motions) to HydroDyn inputs
       !----------------------------------------------------------------------------------------------------
       CALL Transfer_ED_to_HD( u_HD, y_ED, MeshMapData, ErrStat, ErrMsg )
       
    ELSE
       
       !----------------------------------------------------------------------------------------------------
-      ! Map SD outputs to HydroDyn inputs
+      ! Map SD outputs (motions) to HydroDyn inputs
       !----------------------------------------------------------------------------------------------------
       ! These inputs come from SubDyn (not yet implemented)
       
@@ -1833,7 +1832,7 @@ SUBROUTINE Transfer_ED_to_HD( u_HD, y_ED, MeshMapData, ErrStat, ErrMsg )
 ! This routine transfers the ED outputs into inputs required for HD
 !..................................................................................................................................
    TYPE(HydroDyn_InputType),    INTENT(INOUT) :: u_HD                         ! HydroDyn input
-   TYPE(ED_OutputType),         INTENT(INOUT) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
    TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
 
    INTEGER(IntKi),              INTENT(OUT)   :: ErrStat                      ! Error status of the operation
@@ -1893,11 +1892,11 @@ SUBROUTINE MAP_InputSolve(  u_MAP, y_ED, MeshMapData, ErrStat, ErrMsg )
 
       ! Passed variables
    TYPE(MAP_InputType),         INTENT(INOUT) :: u_MAP                        ! MAP input
-   TYPE(ED_OutputType),         INTENT(INOUT) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
    TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
 
-   INTEGER(IntKi)                             :: ErrStat                      ! Error status of the operation
-   CHARACTER(*)                               :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
+   INTEGER(IntKi),              INTENT(  OUT) :: ErrStat                      ! Error status of the operation
+   CHARACTER(*)  ,              INTENT(  OUT) :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
 
 
       !----------------------------------------------------------------------------------------------------
@@ -1915,31 +1914,81 @@ SUBROUTINE SD_InputSolve(  u_SD, y_ED, y_HD, MeshMapData, ErrStat, ErrMsg )
 
       ! Passed variables
    TYPE(SD_InputType),          INTENT(INOUT) :: u_SD                         ! SubDyn input
-   TYPE(ED_OutputType),         INTENT(INOUT) :: y_ED                         ! The outputs of the structural dynamics module
-   TYPE(HydroDyn_OutputType),   INTENT(INOUT) :: y_HD                         ! The outputs of the hydrodynamics module
+   TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(HydroDyn_OutputType),   INTENT(IN   ) :: y_HD                         ! The outputs of the hydrodynamics module
    TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
 
-   INTEGER(IntKi)                             :: ErrStat                      ! Error status of the operation
-   CHARACTER(*)                               :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
+   INTEGER(IntKi),              INTENT(  OUT) :: ErrStat                      ! Error status of the operation
+   CHARACTER(*)  ,              INTENT(  OUT) :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
 
 
+   INTEGER(IntKi)                             :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2
+   TYPE(MeshType)                             :: u_mapped                 ! interpolated value of input
+   
       !----------------------------------------------------------------------------------------------------
       ! Map ED outputs to SD inputs
       !----------------------------------------------------------------------------------------------------
-
+   ErrStat = ErrID_None
+   ErrMsg  = ""
 
    IF ( u_SD%TPMesh%Committed ) THEN
    
-      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_SD%TPMesh, MeshMapData%ED_P_2_SD_TP, ErrStat, ErrMsg )   
+      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_SD%TPMesh, MeshMapData%ED_P_2_SD_TP, ErrStat2, ErrMsg2 ) 
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN      
       
    END IF
       
+      
+CONTAINS
+   !...............................................................................................................................
+   SUBROUTINE CheckError(ErrID,Msg)
+   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
+   !...............................................................................................................................
+
+         ! Passed arguments
+      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
+      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
+
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
+
+      !............................................................................................................................
+      ! Set error status/message;
+      !............................................................................................................................
+
+      IF ( ErrID /= ErrID_None ) THEN
+
+         CALL WrScr( ' SD_InputSolve: '//TRIM(Msg) )
+
+         !.........................................................................................................................
+         ! Clean up if we're going to return on error: close files, deallocate local arrays
+         !.........................................................................................................................
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL MeshDestroy ( u_mapped, ErrStat3, ErrMsg3 )
+            IF (ErrStat3 /= ErrID_None) CALL WrScr(' SD_InputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
+         END IF
+
+      END IF
+
+
+   END SUBROUTINE CheckError   
       
 
 END SUBROUTINE SD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 
 
+!----------------------------------------------------------------------------------------------------------------------------------
+REAL(ReKi) FUNCTION GetPerturb(x)
+   REAL(ReKi), INTENT(IN) :: x
+      
+   !GetPerturb = sqrt( EPSILON(x)) * max( abs(x, 1._ReKi)  
+!      GetPerturb = 1.0e6
+   GetPerturb = 1.0
+      
+END FUNCTION GetPerturb
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                   , u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED &
@@ -1955,7 +2004,7 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
       ! Passed variables
 
    REAL(DbKi)                        , INTENT(IN   ) :: this_time                 ! The current simulation time (actual or time of prediction)
-   TYPE(FAST_ParameterType)          , INTENT(INOUT) :: p_FAST                    ! Glue-code simulation parameters (the only thing that is modified is the Jacobian, which should be modified ONLY when this is called during initialization)
+   TYPE(FAST_ParameterType)          , INTENT(IN   ) :: p_FAST                    ! Glue-code simulation parameters
    LOGICAL                           , INTENT(IN   ) :: calcJacobian              ! Should we calculate Jacobians this time? (should be TRUE on initialization, then can be false [significantly reducing computational time])
    
       !ElastoDyn:                    
@@ -2150,10 +2199,10 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   
             END DO ! HydroDyn contribution ( columns 7-12 )
                    
-            p_FAST%Jac_ED_HD = Jac(:,1:NumInputs)
+            MeshMapData%Jac_ED_HD = Jac(:,1:NumInputs)
             
          ELSE
-            Jac(:,1:NumInputs) = p_FAST%Jac_ED_HD
+            Jac(:,1:NumInputs) = MeshMapData%Jac_ED_HD
          END IF         
             
          !-------------------------------------------------------------------------------------------------
@@ -2311,20 +2360,11 @@ CONTAINS
    !...............................................................................................................................
 END SUBROUTINE ED_HD_InputOutputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-REAL(ReKi) FUNCTION GetPerturb(x)
-   REAL(ReKi), INTENT(IN) :: x
-      
-   !GetPerturb = sqrt( EPSILON(x)) * max( abs(x, 1._ReKi)  
-!      GetPerturb = 1.0e6
-   GetPerturb = 1.0
-      
-END FUNCTION GetPerturb
-!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                   , u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED &
                                   , u_SD, p_SD, x_SD, xd_SD, z_SD, OtherSt_SD, y_SD & 
                                   , u_ED_Without_SD_HD, MeshMapData , ErrStat, ErrMsg )
-! This routine performs the Input-Output solve for ED and HD.
+! This routine performs the Input-Output solve for ED and SD.
 ! Note that this has been customized for the physics in the problems and is not a general solution.
 !..................................................................................................................................
 
@@ -2334,7 +2374,7 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
       ! Passed variables
 
    REAL(DbKi)                        , INTENT(IN   ) :: this_time                 ! The current simulation time (actual or time of prediction)
-   TYPE(FAST_ParameterType)          , INTENT(INOUT) :: p_FAST                    ! Glue-code simulation parameters (the only thing that is modified is the Jacobian, which should be modified ONLY when this is called during initialization)
+   TYPE(FAST_ParameterType)          , INTENT(IN   ) :: p_FAST                    ! Glue-code simulation parameters
    LOGICAL                           , INTENT(IN   ) :: calcJacobian              ! Should we calculate Jacobians this time?
                                                                                   
       !ElastoDyn:                                                                 
@@ -2409,7 +2449,7 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
       !----------------------------------------------------------------------------------------------------      
 
 
-         ! Temporary meshes for transfering inputs to ED and HD
+         ! Temporary meshes for transfering inputs to ED and SD
       CALL MeshCopy ( u_ED%PlatformPtMesh, u_PlatformPtMesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
          CALL CheckError( ErrStat2, 'u_PlatformPtMesh:'//ErrMsg2  )
          IF ( ErrStat >= AbortErrLev ) RETURN
@@ -2469,8 +2509,8 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          ! (note that we don't want to change u_ED or u_SD here)
          !-------------------------------------------------------------------------------------------------
          
-         CALL U_ED_SD_Residual(y_ED, u_SD, y_SD, u, Fn_U_Resid)                  
-         
+         CALL U_ED_SD_Residual(y_ED, y_SD, u, Fn_U_Resid)                  
+            IF ( ErrStat >= AbortErrLev ) RETURN 
          
          IF ( calcJacobian ) THEN
             
@@ -2492,7 +2532,8 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   IF ( ErrStat >= AbortErrLev ) RETURN            
                   
                   
-               CALL U_ED_SD_Residual(y_ED_perturb, u_SD, y_SD, u_perturb, Fn_U_perturb) ! get this perturbation, U_perturb
+               CALL U_ED_SD_Residual(y_ED_perturb, y_SD, u_perturb, Fn_U_perturb) ! get this perturbation, U_perturb
+                  IF ( ErrStat >= AbortErrLev ) RETURN
                   
                Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                   
@@ -2516,17 +2557,18 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   IF ( ErrStat >= AbortErrLev ) RETURN
                   
                   
-               CALL U_ED_SD_Residual(y_ED, u_SD_perturb, y_SD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
+               CALL U_ED_SD_Residual(y_ED, y_SD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
+                  IF ( ErrStat >= AbortErrLev ) RETURN
                   
                Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                   
                   
             END DO ! SubDyn contribution ( columns 7-12 )
                    
-            p_FAST%Jac_ED_SD = Jac(:,1:NumInputs)
+            MeshMapData%Jac_ED_SD = Jac(:,1:NumInputs)
             
          ELSE
-            Jac(:,1:NumInputs) = p_FAST%Jac_ED_SD
+            Jac(:,1:NumInputs) = MeshMapData%Jac_ED_SD
          END IF         
             
          !-------------------------------------------------------------------------------------------------
@@ -2595,25 +2637,26 @@ CONTAINS
         
    END SUBROUTINE Perturb_u
    !...............................................................................................................................
-   SUBROUTINE U_ED_SD_Residual( y_ED2, u_SD2, y_SD2, u_IN, U_Resid)
+   SUBROUTINE U_ED_SD_Residual( y_ED2, y_SD2, u_IN, U_Resid)
    !...............................................................................................................................
                                   
    TYPE(ED_OutputType)               , INTENT(IN   ) :: y_ED2                  ! System outputs
-   TYPE(SD_InputType)                , INTENT(IN   ) :: u_SD2                  ! System inputs
    TYPE(SD_OutputType)               , INTENT(IN   ) :: y_SD2                  ! System outputs
    REAL(ReKi)                        , INTENT(IN   ) :: u_in(NumInputs)
    REAL(ReKi)                        , INTENT(  OUT) :: U_Resid(NumInputs)
 
-              
-      ! Loads (outputs) on the SD transition piece transfered to ED input location/mesh:
-      CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, u_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_SD2%TPMesh ) !u_SD contains the orientations needed for moment calculations
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF (ErrStat >= AbortErrLev) RETURN
-                 
+
       ! Motions (outputs) at ED platform ref point transfered to SD transition piece (input) :
       CALL Transfer_Point_to_Point( y_ED2%PlatformPtMesh, u_TPMesh, MeshMapData%ED_P_2_SD_TP, ErrStat, ErrMsg )   
          CALL CheckError( ErrStat2, ErrMsg2 )
+         IF (ErrStat >= AbortErrLev) RETURN   
+   
+   
+      ! Loads (outputs) on the SD transition piece transfered to ED input location/mesh:
+      CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, u_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_TPMesh ) !u_TPMesh contains the orientations needed for moment calculations
+         CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
+                 
          
             
       U_Resid( 1: 3) = u_in( 1: 3) - (u_ED_Without_SD_HD%Force( :,1) + u_PlatformPtMesh%Force( :,1)) / p_FAST%UJacSclFact
@@ -2668,9 +2711,9 @@ CONTAINS
             IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_InputOutputSolve/ED_DestroyOutput: '//TRIM(ErrMsg3) )
          
          CALL SD_DestroyInput( u_SD_perturb, ErrStat3, ErrMsg3 )
-            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_InputOutputSolve/HydroDyn_DestroyInput: '//TRIM(ErrMsg3) )
+            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_InputOutputSolve/SD_DestroyInput: '//TRIM(ErrMsg3) )
          CALL SD_DestroyOutput(y_SD_perturb, ErrStat3, ErrMsg3 )
-            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_InputOutputSolve/HydroDyn_DestroyOutput: '//TRIM(ErrMsg3) )                        
+            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_InputOutputSolve/SD_DestroyOutput: '//TRIM(ErrMsg3) )                        
       END IF
       
    
