@@ -699,25 +699,26 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
             
    !.......................... Information About Coupling ...................................................
    
-   IF ( p_FAST%CompHydro ) THEN ! HydroDyn <-> {ElastoDyn or SubDyn}
+
+   
+   IF ( ALLOCATED( MeshMapData%Jacobian_ED_SD_HD ) ) then
       
-      IF ( .NOT. p_FAST%CompSub ) THEN ! HydroDyn-ElastoDyn        
-         JacSize = SIZE(MeshMapData%Jac_ED_HD, 1) 
-         DescStr = "ElastoDyn to HydroDyn"
-      ELSE ! HydroDyn <-> SubDyn <-> ElastoDyn (in ED_SD_HD coupling)
-         JacSize = SIZE(MeshMapData%Jac_ED_SD_HD, 1)                                    
-         DescStr = "ElastoDyn, SubDyn, and HydroDyn"
-      END IF ! HydroDyn <-> {ElastoDyn or SubDyn}
+      IF ( p_FAST%CompHydro ) THEN ! HydroDyn <-> {ElastoDyn or SubDyn}
+      
+         IF ( .NOT. p_FAST%CompSub ) THEN ! HydroDyn-ElastoDyn        
+            DescStr = "ElastoDyn to HydroDyn"
+         ELSE ! HydroDyn <-> SubDyn <-> ElastoDyn (in ED_SD_HD coupling)
+            DescStr = "ElastoDyn, SubDyn, and HydroDyn"
+         END IF ! HydroDyn <-> {ElastoDyn or SubDyn}
    
-   ELSEIF ( p_FAST%CompSub ) THEN  ! SubDyn-ElastoDyn    
-      JacSize = SIZE(MeshMapData%Jac_ED_SD, 1)   
-      DescStr = "ElastoDyn to SubDyn"
-   ELSE ! no HD or SD:
-      JacSize = 0     
-   END IF ! ElastoDyn <-> {HydroDyn or SubDyn}
-   
-   IF ( JacSize > 0 ) WRITE(y_FAST%UnSum,'( A,I6)'  ) &
-          'Number of rows in Jacobian matrix used for coupling '//TRIM(DescStr)//': ', JacSize
+      ELSEIF ( p_FAST%CompSub ) THEN  ! SubDyn-ElastoDyn    
+         DescStr = "ElastoDyn to SubDyn"
+      !ELSE ! no HD or SD:
+      END IF ! ElastoDyn <-> {HydroDyn or SubDyn}      
+            
+      WRITE(y_FAST%UnSum,'( A,I6)'  ) 'Number of rows in Jacobian matrix used for coupling '//TRIM(DescStr)//': ', &
+                                       SIZE(MeshMapData%Jacobian_ED_SD_HD, 1)
+   END IF
 
    
    !.......................... Requested Output Channels ............................................
@@ -2212,9 +2213,6 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    REAL(ReKi)                                        :: Fn_U_perturb(NumInputs)   ! value of U with perturbations
    REAL(ReKi)                                        :: Fn_U_Resid(  NumInputs)   ! Residual of U
    
-   REAL(ReKi)                                        :: Jac(NumInputs,NumInputs+1)
-   
-   
    TYPE(MeshType)                                    :: u_PlatformPtMesh          ! copy of u_ED input mesh
                                                                                   
    TYPE(ED_InputType)                                :: u_ED_copy                 ! Copy of system inputs (we don't want to change the actual inputs, just know what they are) [only used in that U_ED_HD_Residual, but it's more efficient to store here]
@@ -2358,7 +2356,7 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   
                CALL U_ED_HD_Residual(y_ED_perturb, u_HD, y_HD, u_perturb, Fn_U_perturb) ! get this perturbation, U_perturb
                   
-               Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
+               MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                   
             END DO ! ElastoDyn contribution ( columns 1-6 )
                
@@ -2385,24 +2383,37 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   
                CALL U_ED_HD_Residual(y_ED, u_HD_perturb, y_HD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
                   
-               Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
-                  
-                  
+               MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
+                                                                  
             END DO ! HydroDyn contribution ( columns 7-12 )
-                   
-            MeshMapData%Jac_ED_HD = Jac(:,1:NumInputs)
+               
+               ! Get the LU decomposition of this matrix using a LAPACK routine: 
+               ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
+
+            !CALL sgetrf( M=NumInputs, N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, INFO=ErrStat2 )
+            CALL sgetrf( NumInputs, NumInputs, MeshMapData%Jacobian_ED_SD_HD, NumInputs, MeshMapData%Jacobian_pivot, ErrStat2 )
+            IF (ErrStat2 /= 0) THEN
+               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
+                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
+               RETURN
+            END IF
             
-         ELSE
-            Jac(:,1:NumInputs) = MeshMapData%Jac_ED_HD
          END IF         
             
          !-------------------------------------------------------------------------------------------------
          ! Solve for delta u: Jac*u_delta = - Fn_U_Resid
+         !  using the LAPACK routine 
          !-------------------------------------------------------------------------------------------------
-         Jac(:,NumInputs+1) = -Fn_U_Resid
-         CALL GaussElim( Jac, NumInputs, u_delta, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
+         
+         u_delta = -Fn_U_Resid
+         !CALL sgetrs( TRANS="N", N=NumInputs, NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=NumInputs, INFO=ErrStat2 )
+         CALL sgetrs( "N", NumInputs, 1, MeshMapData%Jacobian_ED_SD_HD, NumInputs, MeshMapData%Jacobian_pivot, u_delta, NumInputs, ErrStat2 )
+            IF (ErrStat2 /= 0) THEN
+               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
+                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
+               RETURN
+            END IF         
+
                            
          !-------------------------------------------------------------------------------------------------
          ! check for error, update inputs (u_ED and u_HD), and iterate again
@@ -2603,10 +2614,7 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    REAL(ReKi)                                        :: u_delta(     NumInputs)   !
    REAL(ReKi)                                        :: Fn_U_perturb(NumInputs)   ! value of U with perturbations
    REAL(ReKi)                                        :: Fn_U_Resid(  NumInputs)   ! Residual of U
-   
-   REAL(ReKi)                                        :: Jac(NumInputs,NumInputs+1)
-   
-   
+      
    TYPE(MeshType)                                    :: u_PlatformPtMesh          ! copy of u_ED input mesh
    TYPE(MeshType)                                    :: u_TPMesh                  ! copy of u_SD input mesh
                                                                                   
@@ -2729,7 +2737,7 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                CALL U_ED_SD_Residual(y_ED_perturb, y_SD, u_perturb, Fn_U_perturb) ! get this perturbation, U_perturb
                   IF ( ErrStat >= AbortErrLev ) RETURN
                   
-               Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
+               MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                   
             END DO ! ElastoDyn contribution ( columns 1-6 )
                
@@ -2754,25 +2762,38 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                CALL U_ED_SD_Residual(y_ED, y_SD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
                   IF ( ErrStat >= AbortErrLev ) RETURN
                   
-               Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
+               MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                   
                   
             END DO ! SubDyn contribution ( columns 7-12 )
-                   
-            MeshMapData%Jac_ED_SD = Jac(:,1:NumInputs)
             
-         ELSE
-            Jac(:,1:NumInputs) = MeshMapData%Jac_ED_SD
+               ! Get the LU decomposition of this matrix using a LAPACK routine: 
+               ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
+
+            !CALL sgetrf( M=NumInputs, N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, INFO=ErrStat2 )
+            CALL sgetrf( NumInputs, NumInputs, MeshMapData%Jacobian_ED_SD_HD, NumInputs, MeshMapData%Jacobian_pivot, ErrStat2 )
+            IF (ErrStat2 /= 0) THEN
+               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
+                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
+               RETURN
+            END IF
+            
          END IF         
             
          !-------------------------------------------------------------------------------------------------
          ! Solve for delta u: Jac*u_delta = - Fn_U_Resid
+         !  using the LAPACK routine 
          !-------------------------------------------------------------------------------------------------
-         Jac(:,NumInputs+1) = -Fn_U_Resid
-         CALL GaussElim( Jac, NumInputs, u_delta, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
-                           
+         
+         u_delta = -Fn_U_Resid
+         !CALL sgetrs( TRANS="N", N=NumInputs, NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=NumInputs, INFO=ErrStat2 )
+         CALL sgetrs( "N", NumInputs, 1, MeshMapData%Jacobian_ED_SD_HD, NumInputs, MeshMapData%Jacobian_pivot, u_delta, NumInputs, ErrStat2 )
+            IF (ErrStat2 /= 0) THEN
+               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
+                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
+               RETURN
+            END IF            
+            
          !-------------------------------------------------------------------------------------------------
          ! check for error, update inputs (u_ED and u_HD), and iterate again
          !-------------------------------------------------------------------------------------------------
@@ -2979,10 +3000,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    REAL(ReKi)                                        :: u_delta(     p_FAST%SizeJac_ED_SD_HD(4))   ! size of loads/accelerations passed between the 3 modules
    REAL(ReKi)                                        :: Fn_U_perturb(p_FAST%SizeJac_ED_SD_HD(4))   ! value of U with perturbations
    REAL(ReKi)                                        :: Fn_U_Resid(  p_FAST%SizeJac_ED_SD_HD(4))   ! Residual of U
-   
-   REAL(ReKi)                                        :: Jac(p_FAST%SizeJac_ED_SD_HD(4),p_FAST%SizeJac_ED_SD_HD(4)+1)
-   
-   
+         
    TYPE(MeshType)                                    :: u_PlatformPtMesh          ! copy of u_ED input mesh
    TYPE(MeshType)                                    :: u_TPMesh                  ! copy of u_SD input mesh
    TYPE(MeshType)                                    :: u_LMesh                   ! copy of u_SD input mesh
@@ -3163,7 +3181,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                CALL U_ED_SD_HD_Residual(y_ED_perturb, y_SD, y_HD, u_perturb, Fn_U_perturb) ! get this perturbation, U_perturb
                   IF ( ErrStat >= AbortErrLev ) RETURN    
                
-               Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
+                MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                   
             END DO ! ElastoDyn contribution ( columns 1-6 )
                
@@ -3190,7 +3208,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                CALL U_ED_SD_HD_Residual(y_ED, y_SD_perturb, y_HD, u_perturb, Fn_U_perturb) ! get this perturbation                        
                   IF ( ErrStat >= AbortErrLev ) RETURN
                   
-               Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
+                MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                                     
             END DO ! SubDyn contribution
             
@@ -3216,24 +3234,37 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                CALL U_ED_SD_HD_Residual(y_ED, y_SD, y_HD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
                   IF ( ErrStat >= AbortErrLev ) RETURN               
                   
-               Jac(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
+                MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                                              
             END DO !HydroDyn contribution
-                   
-            MeshMapData%Jac_ED_SD_HD = Jac(:,1:p_FAST%SizeJac_ED_SD_HD(4))
+                           
             
-         ELSE
-            Jac(:,1:p_FAST%SizeJac_ED_SD_HD(4)) = MeshMapData%Jac_ED_SD_HD
+               ! Get the LU decomposition of this matrix using a LAPACK routine: 
+               ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
+
+            !CALL sgetrf( M=p_FAST%SizeJac_ED_SD_HD(4), N=p_FAST%SizeJac_ED_SD_HD(4), A=MeshMapData%Jacobian_ED_SD_HD, LDA=p_FAST%SizeJac_ED_SD_HD(4), IPIV=MeshMapData%Jacobian_pivot, INFO=ErrStat2 )
+            CALL sgetrf( p_FAST%SizeJac_ED_SD_HD(4), p_FAST%SizeJac_ED_SD_HD(4), MeshMapData%Jacobian_ED_SD_HD, p_FAST%SizeJac_ED_SD_HD(4), MeshMapData%Jacobian_pivot, ErrStat2 )
+            IF (ErrStat2 /= 0) THEN
+               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
+                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
+               RETURN
+            END IF
+            
          END IF         
             
          !-------------------------------------------------------------------------------------------------
          ! Solve for delta u: Jac*u_delta = - Fn_U_Resid
+         !  using the LAPACK routine 
          !-------------------------------------------------------------------------------------------------
-         Jac(:,p_FAST%SizeJac_ED_SD_HD(4)+1) = -Fn_U_Resid
-         CALL GaussElim( Jac, p_FAST%SizeJac_ED_SD_HD(4), u_delta, ErrStat2, ErrMsg2 )
-            CALL CheckError( ErrStat2, ErrMsg2  )
-            IF ( ErrStat >= AbortErrLev ) RETURN
-                           
+         
+         u_delta = -Fn_U_Resid
+         !CALL sgetrs( TRANS="N", N=p_FAST%SizeJac_ED_SD_HD(4), NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=p_FAST%SizeJac_ED_SD_HD(4), IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=p_FAST%SizeJac_ED_SD_HD(4), INFO=ErrStat2 )
+         CALL sgetrs( "N", p_FAST%SizeJac_ED_SD_HD(4), 1, MeshMapData%Jacobian_ED_SD_HD, p_FAST%SizeJac_ED_SD_HD(4), MeshMapData%Jacobian_pivot, u_delta, p_FAST%SizeJac_ED_SD_HD(4), ErrStat2 )
+            IF (ErrStat2 /= 0) THEN
+               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
+                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
+               RETURN
+            END IF                            
          !-------------------------------------------------------------------------------------------------
          ! check for error, update inputs (u_ED and u_HD), and iterate again
          !-------------------------------------------------------------------------------------------------
@@ -3536,12 +3567,8 @@ SUBROUTINE Init_ED_SD_HD_Jacobian( p_FAST, MeshMapData, ED_PlatformPtMesh, SD_TP
                   
 
       ! allocate matrix to store jacobian 
-   ALLOCATE ( MeshMapData%Jac_ED_SD_HD( p_FAST%SizeJac_ED_SD_HD(4), p_FAST%SizeJac_ED_SD_HD(4) ), STAT = ErrStat )
-      IF ( ErrStat /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg = 'Cannot allocate Jac_ED_SD_HD.'
-         RETURN
-      END IF
+   CALL AllocAry( MeshMapData%Jacobian_ED_SD_HD, p_FAST%SizeJac_ED_SD_HD(4), p_FAST%SizeJac_ED_SD_HD(4), "Jacobian for ED-SD-HD", ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
          
       ! allocate matrix to store index to help us figure out what the ith value of the u vector really means
    ALLOCATE ( MeshMapData%Jac_u_indx( p_FAST%SizeJac_ED_SD_HD(4), 3 ), STAT = ErrStat )
