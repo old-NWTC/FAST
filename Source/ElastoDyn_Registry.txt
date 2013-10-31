@@ -771,7 +771,7 @@ typedef	^	ParameterType	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [o
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:
-typedef	^	InputType	MeshType	BladeLn2Mesh	-	-	-	"A mesh on the blades, containing aerodynamic forces and moments (formerly AeroBladeForce and AeroBladeMoment)"
+typedef	^	InputType	MeshType	BladeLn2Mesh	{:}	-	-	"A mesh on each blade, containing aerodynamic forces and moments (formerly AeroBladeForce and AeroBladeMoment)"
 typedef	^	InputType	MeshType	PlatformPtMesh	-	-	-	"A mesh at the platform reference (point Z), containing force: surge/xi (1), sway/yi (2), and heave/zi (3)-components; and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s"	N
 typedef	^	InputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower node (point T); and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components of the portion of the tower moment acting at the current tower node"	N/m
 # Define inputs that are not on a mesh here:
@@ -784,7 +784,7 @@ typedef	^	InputType	ReKi	HSSBrTrq	-	-	-	"Instantaneous HSS brake torque"	N-m
 
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
-typedef	^	OutputType	MeshType	BladeLn2Mesh	-	-	-	"A mesh on the blades, containing positions and orientations of the blade elements"
+typedef	^	OutputType	MeshType	BladeLn2Mesh	{:}	-	-	"A mesh on each blade, containing positions and orientations of the blade elements"
 typedef	^	OutputType	MeshType	PlatformPtMesh	-	-	-	"Platform reference point positions/orientations/velocities/accelerations"	-
 typedef	^	OutputType	MeshType	TowerLn2Mesh	-	-	-	"Tower line2 mesh with positions/orientations/velocities/accelerations"	-
 

@@ -1512,12 +1512,11 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, 
 !   IF ( p_FAST%CompAero .and. ALLOCATED(ADAeroLoads%Blade) ) THEN
 !bjj: need another check on this perhaps
    IF ( p_FAST%CompAero  ) THEN
-      DO K = 1,SIZE(y_AD%OutputLoads,1) ! Loop through all blades (p_ED%NumBl)
+      DO K = 1,SIZE(u_ED%BladeLn2Mesh,1) ! Loop through all blades (p_ED%NumBl)
          DO J = 1,y_AD%OutputLoads(K)%Nnodes ! Loop through the blade nodes / elements (p_ED%BldNodes)
 
-            NodeNum = (K-1)*(y_AD%OutputLoads(K)%Nnodes+2) + J 
-            u_ED%BladeLn2Mesh%Force(:,NodeNum)  = y_AD%OutputLoads(K)%Force(:,J)
-            u_ED%BladeLn2Mesh%Moment(:,NodeNum) = y_AD%OutputLoads(K)%Moment(:,J)
+            u_ED%BladeLn2Mesh(K)%Force(:,J)  = y_AD%OutputLoads(K)%Force(:,J)
+            u_ED%BladeLn2Mesh(K)%Moment(:,J) = y_AD%OutputLoads(K)%Moment(:,J)
             
          END DO !J
       END DO   !K
@@ -1541,8 +1540,10 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, 
       
       
    ELSE
-      u_ED%BladeLn2Mesh%Force  = 0.0_ReKi
-      u_ED%BladeLn2Mesh%Moment = 0.0_ReKi
+      DO K = 1,SIZE(u_ED%BladeLn2Mesh,1) ! Loop through all blades (p_ED%NumBl)
+         u_ED%BladeLn2Mesh(K)%Force  = 0.0_ReKi
+         u_ED%BladeLn2Mesh(K)%Moment = 0.0_ReKi
+      END DO
    END IF
    
 
@@ -3775,24 +3776,25 @@ END SUBROUTINE Create_ED_SD_HD_UVector
 
 
 !====================================================================================================
-SUBROUTINE AD_InputSolve( u_AD, y_ED, ErrStat, ErrMsg )
+SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
 ! THIS ROUTINE IS A HACK TO GET THE OUTPUTS FROM ELASTODYN INTO AERODYN. IT WILL BE REPLACED WHEN THIS CODE LINKS WITH
 ! AERODYN IN THE NEW FRAMEWORK
 !,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 
       ! Passed variables
-   TYPE(AD_InputType),          INTENT(INOUT):: u_AD        ! The inputs to AeroDyn
-   TYPE(ED_OutputType),         INTENT(IN)   :: y_ED        ! The outputs of the structural dynamics module
-   INTEGER(IntKi)                            :: ErrStat     ! Error status of the operation
-   CHARACTER(*)                              :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   TYPE(AD_InputType),          INTENT(INOUT)   :: u_AD        ! The inputs to AeroDyn
+   TYPE(ED_OutputType),         INTENT(IN)      :: y_ED        ! The outputs of the structural dynamics module
+   TYPE(FAST_ModuleMapType),    INTENT(INOUT)   :: MeshMapData ! Data for mapping between modules
+   INTEGER(IntKi)                               :: ErrStat     ! Error status of the operation
+   CHARACTER(*)                                 :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
       ! Local variables:
 
-   INTEGER(IntKi)                            :: J           ! Loops through nodes / elements.
-   INTEGER(IntKi)                            :: K           ! Loops through blades.
-   INTEGER(IntKi)                            :: NodeNum     ! Node number for blade/node on mesh
-   INTEGER(IntKi)                            :: NumBl
-   INTEGER(IntKi)                            :: BldNodes
+   INTEGER(IntKi)                               :: J           ! Loops through nodes / elements.
+   INTEGER(IntKi)                               :: K           ! Loops through blades.
+   INTEGER(IntKi)                               :: NodeNum     ! Node number for blade/node on mesh
+   INTEGER(IntKi)                               :: NumBl
+   INTEGER(IntKi)                               :: BldNodes
 
    
    NumBl    = SIZE(u_AD%InputMarkers,1)
@@ -3803,13 +3805,18 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
    
    DO K = 1,NumBl !p%NumBl ! Loop through all blades
+      
+      !CALL Transfer_Line2_to_Line2( y_ED%BladeLn2Mesh(K), u_AD%InputMarkers(K), MeshMapData%ED_L_2_AD_L_B(K), ErrStat, ErrMsg )
+      !   IF (ErrStat >= AbortErrLev ) RETURN
+         
+      
       DO J = 1,BldNodes !p%BldNodes ! Loop through the blade nodes / elements
 
-         NodeNum = (K-1)*(BldNodes + 2) + J         ! note that this assumes ED has same discretization as AD
+         NodeNum = J         ! note that this assumes ED has same discretization as AD
          
-         u_AD%InputMarkers(K)%Position(:,J)       = y_ED%BladeLn2Mesh%TranslationDisp(:,NodeNum) + y_ED%BladeLn2Mesh%Position(:,NodeNum) 
-         u_AD%InputMarkers(K)%Orientation(:,:,J)  = y_ED%BladeLn2Mesh%Orientation(:,:,NodeNum)
-         u_AD%InputMarkers(K)%TranslationVel(:,J) = y_ED%BladeLn2Mesh%TranslationVel(:,NodeNum)
+         u_AD%InputMarkers(K)%Position(:,J)       = y_ED%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) + y_ED%BladeLn2Mesh(K)%Position(:,NodeNum) 
+         u_AD%InputMarkers(K)%Orientation(:,:,J)  = y_ED%BladeLn2Mesh(K)%Orientation(:,:,NodeNum)
+         u_AD%InputMarkers(K)%TranslationVel(:,J) = y_ED%BladeLn2Mesh(K)%TranslationVel(:,NodeNum)
                   
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
    END DO !K = 1,p%NumBl
@@ -3864,11 +3871,8 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, ErrStat, ErrMsg )
    
    IF ( u_AD%Twr_InputMarkers%Committed ) THEN
       
-!      CALL Transfer_Line2_to_Line2( )
-      
-      J = u_AD%Twr_InputMarkers%NNodes
-      u_AD%Twr_InputMarkers%TranslationDisp = y_ED%TowerLn2Mesh%TranslationDisp(:,1:J)
-      u_AD%Twr_InputMarkers%Orientation     = y_ED%TowerLn2Mesh%Orientation    (:,:,1:J)
+      CALL Transfer_Line2_to_Line2( y_ED%TowerLn2Mesh, u_AD%Twr_InputMarkers, MeshMapData%ED_L_2_AD_L_T, ErrStat, ErrMsg )
+         IF (ErrStat >= AbortErrLev ) RETURN   
       
    END IF
       
