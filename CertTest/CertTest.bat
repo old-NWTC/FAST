@@ -81,7 +81,7 @@ REM  FAST test sequence definition:
 @SET  TEST18=Test #18: NREL 5 MW Baseline Onshore Turbine
 @SET  TEST19=Test #19: NREL 5 MW Baseline Offshore Turbine with Monopile RF
 @SET  TEST20=Test #20: Placeholder for another test
-@SET  TEST21=Test #21: Placeholder for another test
+@SET  TEST21=Test #21: NREL 5 MW Baseline Offshore Turbine with OC4 Jacket Configuration
 @SET  TEST22=Test #22: NREL 5 MW Baseline Offshore Turbine with ITI Barge
 @SET  TEST23=Test #23: NREL 5 MW Baseline Offshore Turbine with Floating TLP
 @SET  TEST24=Test #24: NREL 5 MW Baseline Offshore Turbine with OC3 Hywind modifications
@@ -416,9 +416,14 @@ rem *******************************************************
 :Test20
 GOTO Test21
 
+
 rem *******************************************************
 :Test21
 GOTO Test22
+@CALL :GenTestHeader %Test21%
+@CALL :RunFASTandCrunch 21 outb
+@CALL :CompareOutput 21
+
 
 rem *******************************************************
 :Test22
@@ -497,6 +502,8 @@ EXIT /B
 :ERROR
 :: Sets clears memory and stops the batch immediately
 @echo ** An error has occurred in Test #%TEST% **
+@echo ** An error has occurred in Test #%TEST% ** >> %CompareFile%
+
 @call :end
 @call :__ErrorExit 2> nul
 EXIT /B

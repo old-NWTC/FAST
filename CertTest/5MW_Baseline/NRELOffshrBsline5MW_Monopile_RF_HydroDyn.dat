@@ -37,8 +37,8 @@ False          HasWAMIT       - Using WAMIT (flag)
 "unused"       WAMITFile      - Root name of WAMIT output files containing the linear, nondimensionalized, hydrostatic restoring matrix (.hst extension), frequency-dependent hydrodynamic added mass matrix and damping matrix (.1 extension), and frequency- and direction-dependent wave excitation force vector per unit wave amplitude (.3 extension) (quoted string) [MAKE SURE THE FREQUENCIES INHERENT IN THESE WAMIT FILES SPAN THE PHYSICALLY-SIGNIFICANT RANGE OF FREQUENCIES FOR THE GIVEN PLATFORM; THEY MUST CONTAIN THE ZERO- AND INFINITE-FREQUENCY LIMITS!]
    1.0         WAMITULEN      - Characteristic body length scale used to redimensionalize WAMIT output (meters)
    0.0         PtfmVol0       - Displaced volume of water when the platform is in its undisplaced position (m^3) [USE THE SAME VALUE COMPUTED BY WAMIT AS OUTPUT IN THE .OUT FILE!]
-   0.0         PtfmCOBxt      - The xt offset of the center of buoyancy (COB) from the platform reference point (meters) 
-   0.0         PtfmCOByt      - The yt offset of the center of buoyancy (COB) from the platform reference point (meters) 
+   0.0         PtfmCOBxt      - The xt offset of the center of buoyancy (COB) from the platform reference point (meters)
+   0.0         PtfmCOByt      - The yt offset of the center of buoyancy (COB) from the platform reference point (meters)
    1           RdtnMod        - Radiation memory-effect model {0: no memory-effect calculation, 1: convolution, 2: state-space} (switch) [STATE-SPACE REQUIRES *.ss INPUT FILE]
   60.0         RdtnTMax       - Analysis time for wave radiation kernel calculations (sec) [determines RdtnDOmega=Pi/RdtnTMax in the cosine transform]  [MAKE SURE THIS IS LONG ENOUGH FOR THE RADIATION IMPULSE RESPONSE FUNCTIONS TO DECAY TO NEAR-ZERO FOR THE GIVEN PLATFORM!]
    0.005       RdtnDT         - Time step for wave radiation kernel calculations (sec) [DT<=RdtnDT<=0.1 recommended] [determines RdtnOmegaMax=Pi/RdtnDT in the cosine transform]
@@ -50,19 +50,19 @@ True           PtfmRF         - Platform roll tilt rotation force (flag) or DEFA
 True           PtfmPF         - Platform pitch tilt rotation force (flag) or DEFAULT
 True           PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
 ---------------------- FLOATING PLATFORM ADDITIONAL STIFFNESS AND DAMPING  -----
-0.0   0.0   0.0   0.0   0.0   0.0   AddF0    - Additional preload (N, N-m)                                                 
-0.0   0.0   0.0   0.0   0.0   0.0   AddCLin  - Additional linear stiffness (N/m, N/rad, N-m/m, N-m/rad)                    
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
-0.0   0.0   0.0   0.0   0.0   0.0   AddBLin  - Additional linear damping(N/(m/s), N/(rad/s), N-m/(m/s), N-m/(rad/s))       
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
-0.0   0.0   0.0   0.0   0.0   0.0                                                                                          
+0.0   0.0   0.0   0.0   0.0   0.0   AddF0    - Additional preload (N, N-m)
+0.0   0.0   0.0   0.0   0.0   0.0   AddCLin  - Additional linear stiffness (N/m, N/rad, N-m/m, N-m/rad)
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0   AddBLin  - Additional linear damping(N/(m/s), N/(rad/s), N-m/(m/s), N-m/(rad/s))
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
+0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0   AddBQuad - Additional quadratic drag(N/(m/s)^2, N/(rad/s)^2, N-m(m/s)^2, N-m/(rad/s)^2)
 0.0   0.0   0.0   0.0   0.0   0.0
 0.0   0.0   0.0   0.0   0.0   0.0
