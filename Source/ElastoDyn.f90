@@ -3185,7 +3185,7 @@ SUBROUTINE ED_ValidateInput( InputFileData, ErrStat, ErrMsg )
 !bjj: validate blade discretization, too:
 
       ! validate the tower input data
-   CALL ValidateTowerData ( InputFileData, ErrStat, ErrMsg )
+   CALL ValidateTowerData ( InputFileData, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       
       
@@ -7746,6 +7746,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
 
       ! Local variables:
    REAL(ReKi)                               :: SmallAngleLimit_Rad                 ! Largest input angle considered "small" (check in input file), radians
+   INTEGER(IntKi)                           :: I                                   ! loop counter
    INTEGER(IntKi)                           :: K                                   ! blade number
    INTEGER(IntKi)                           :: FmtWidth                            ! width of the field returned by the specified OutFmt
    INTEGER(IntKi)                           :: ErrStat2                            ! Temporary error status
@@ -7929,31 +7930,41 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
       ! Check the output parameters:
    IF ( InputFileData%DecFact < 1_IntKi )  CALL SetErrors( ErrID_Fatal, 'DecFact must be greater than 0.' )
 
-   IF ( ( InputFileData%NTwGages < 0_IntKi ) .OR. ( InputFileData%NTwGages > 9_IntKi ) )  &
-         CALL SetErrors( ErrID_Fatal, 'NTwGages must be between 0 and 9 (inclusive).' )
+   IF ( ( InputFileData%NTwGages < 0_IntKi ) .OR. ( InputFileData%NTwGages > 9_IntKi ) )  THEN
+      CALL SetErrors( ErrID_Fatal, 'NTwGages must be between 0 and 9 (inclusive).' )
+   ELSE
+         ! Check to see if all TwrGagNd(:) analysis points are existing analysis points:
 
-   IF ( ( InputFileData%NBlGages < 0_IntKi ) .OR. ( InputFileData%NBlGages > 9_IntKi ) )  &
-         CALL SetErrors( ErrID_Fatal, 'NBlGages must be between 0 and 9 (inclusive).' )
-
-      ! Check to see if all TwrGagNd(:) analysis points are existing analysis points:
-
-   IF ( ANY(InputFileData%TwrGagNd < 1_IntKi) .OR. ANY(InputFileData%TwrGagNd > InputFileData%TwrNodes) ) THEN
-         CALL SetErrors( ErrID_Fatal, ' All TwrGagNd values must be between 1 and '//&
-                        TRIM( Num2LStr( InputFileData%TwrNodes ) )//' (inclusive).' )
+      DO I=1,InputFileData%NTwGages
+         IF ( InputFileData%TwrGagNd(I) < 1_IntKi .OR. InputFileData%TwrGagNd(I) > InputFileData%TwrNodes ) THEN
+            CALL SetErrors( ErrID_Fatal, ' All TwrGagNd values must be between 1 and '//&
+                           TRIM( Num2LStr( InputFileData%TwrNodes ) )//' (inclusive).' )
+            EXIT ! stop checking this loop
+         END IF
+      END DO         
+   
    END IF
+         
+         
+   IF ( ( InputFileData%NBlGages < 0_IntKi ) .OR. ( InputFileData%NBlGages > 9_IntKi ) )  THEN
+         CALL SetErrors( ErrID_Fatal, 'NBlGages must be between 0 and 9 (inclusive).' )
+   ELSE 
 
       ! Check to see if all BldGagNd(:) analysis points are existing analysis points:
 
-   IF ( ANY(InputFileData%BldGagNd < 1_IntKi) .OR. ANY(InputFileData%BldGagNd > InputFileData%InpBlMesh(1)%BldNodes) ) THEN
-         CALL SetErrors( ErrID_Fatal, ' All BldGagNd values must be between 1 and '//&
-                        TRIM( Num2LStr( InputFileData%InpBlMesh(1)%BldNodes ) )//' (inclusive).' )
+      DO I=1,InputFileData%NTwGages
+         IF ( InputFileData%BldGagNd(I) < 1_IntKi .OR. InputFileData%BldGagNd(I) > InputFileData%InpBlMesh(1)%BldNodes ) THEN
+            CALL SetErrors( ErrID_Fatal, ' All BldGagNd values must be between 1 and '//&
+                              TRIM( Num2LStr( InputFileData%InpBlMesh(1)%BldNodes ) )//' (inclusive).' )
+            EXIT ! stop checking this loop
+         END IF
+      END DO
+      
    END IF
-
-
 
       ! Check that InputFileData%OutFmt is a valid format specifier and will fit over the column headings
    CALL ChkRealFmtStr( InputFileData%OutFmt, 'OutFmt', FmtWidth, ErrStat2, ErrMsg2 )
-   IF ( ErrStat /= ErrID_None ) CALL SetErrors(ErrStat2, ErrMsg2 )
+   IF ( ErrStat2 /= ErrID_None ) CALL SetErrors(ErrStat2, ErrMsg2 )
    IF ( FmtWidth /= ChanLen ) CALL SetErrors(ErrID_Warn, 'OutFmt produces a column width of '//TRIM(Num2LStr(FmtWidth))//&
                                                            ' instead of '//TRIM(Num2LStr(ChanLen))//' characters.' )
 
