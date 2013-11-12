@@ -238,6 +238,8 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
       p%TurbineType = Type_Onshore
    END IF   
          
+      ! figure out how many time steps we should go before writing screen output:      
+    p%n_SttsTime = MAX( 1, NINT( p%SttsTime / p%DT ) )
    
    !...............................................................................................................................
    ! Do some error checking on the inputs (validation):
@@ -1204,6 +1206,41 @@ SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
 
    RETURN
 END SUBROUTINE RunTimes
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE SimStatus_FirstTime( PrevSimTime, PrevClockTime, ZTime, TMax )
+! This routine displays a message that gives that status of the simulation.
+!..................................................................................................................................
+
+   IMPLICIT                        NONE
+
+      ! Passed variables
+   REAL(DbKi), INTENT(IN   )    :: ZTime                                           ! Current simulation time (s)
+   REAL(DbKi), INTENT(IN   )    :: TMax                                            ! Expected simulation time (s)
+   REAL(DbKi), INTENT(  OUT)    :: PrevSimTime                                     ! Previous time message was written to screen (s > 0)
+   REAL(ReKi), INTENT(  OUT)    :: PrevClockTime                                   ! Previous clock time in seconds past midnight
+
+
+      ! Local variables.
+
+   REAL(ReKi)                   :: CurrClockTime                                   ! Current time in seconds past midnight.
+   INTEGER(4)                   :: TimeAry  (8)                                    ! An array containing the elements of the start time.
+
+
+      ! How many seconds past midnight?
+
+   CALL DATE_AND_TIME ( Values=TimeAry )
+   CurrClockTime = TimeValues2Seconds( TimeAry )
+
+
+   CALL WrScr ( ' Timestep: '//TRIM( Num2LStr( NINT( ZTime ) ) )//' of '//TRIM( Num2LStr( TMax ) )//' seconds.')
+
+
+   ! Let's save this time as the previous time for the next call to the routine
+   PrevClockTime = CurrClockTime
+   PrevSimTime   = ZTime
+
+   RETURN
+END SUBROUTINE SimStatus_FirstTime
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SimStatus( PrevSimTime, PrevClockTime, ZTime, TMax )
 ! This routine displays a message that gives that status of the simulation and the predicted end time of day.
