@@ -1,9 +1,9 @@
 ------- ELASTODYN V1.01.* INPUT FILE -------------------------------------------
 OC4 TOWER+ NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from Dutch Offshore Wind Energy Converter (DOWEC) 6MW Pre-Design (10046_009.pdf) and REpower 5M 5MW (5m_uk.pdf);
 ---------------------- SIMULATION CONTROL --------------------------------------
-False         Echo        - Echo input data to "<RootName>.ech" (flag)
+true False         Echo        - Echo input data to "<RootName>.ech" (flag)
           3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
-      0.005   DT          - Integration time step (s)
+   0.0005   DT          - Integration time step (s)
 ---------------------- ENVIRONMENTAL CONDITION ---------------------------------
     9.80665   Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- DEGREES OF FREEDOM --------------------------------------
@@ -38,7 +38,7 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   TTDspSS     - Initial side-to-side tower-top displacement (meters)
           0   PtfmSurge   - Initial or fixed horizontal surge translational displacement of platform (meters)
           0   PtfmSway    - Initial or fixed horizontal sway translational displacement of platform (meters)
-          0   PtfmHeave   - Initial or fixed vertical heave translational displacement of platform (meters)
+   -0.00702   PtfmHeave   - Initial or fixed vertical heave translational displacement of platform (meters)
           0   PtfmRoll    - Initial or fixed roll tilt rotational displacement of platform (degrees)
           0   PtfmPitch   - Initial or fixed pitch tilt rotational displacement of platform (degrees)
           0   PtfmYaw     - Initial or fixed yaw rotational displacement of platform (degrees)
@@ -119,6 +119,19 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
           3   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
           5,          9,         13    BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
               OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
+RotThrust
+"TwrBsFxt"                - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
+"TwrBsFyt"                - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
+"TwrBsFzt"                - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
+"TwrBsMzt"                - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
+"PtfmSurge"               - Platform surge, sway, heave, roll, pitch and yaw displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
+"PtfmSway"                - Platform surge, sway, heave, roll, pitch and yaw displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
+"PtfmHeave"               - Platform surge, sway, heave, roll, pitch and yaw displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
+"PtfmRoll"                - Platform surge, sway, heave, roll, pitch and yaw displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
+"PtfmPitch"               - Platform surge, sway, heave, roll, pitch and yaw displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
+"PtfmYaw"                 - Platform surge, sway, heave, roll, pitch and yaw displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
+
+END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 "OoPDefl1"                - Blade 1 out-of-plane and in-plane deflections and tip twist
 "IPDefl1"                 - Blade 1 out-of-plane and in-plane deflections and tip twist
 "TwstDefl1"               - Blade 1 out-of-plane and in-plane deflections and tip twist
@@ -156,15 +169,7 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "TwHt2MLyt"               - Local side-to-side and fore-aft bending moments at tower gage 2 (approx. MSL)
 "TwHt1MLxt"               - Local side-to-side and fore-aft bending moments at tower gage 1 (approx. halfway between MSL and mudline)
 "TwHt1MLyt"               - Local side-to-side and fore-aft bending moments at tower gage 1 (approx. halfway between MSL and mudline)
-"TwrBsFxt"                - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
-"TwrBsFyt"                - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
-"TwrBsFzt"                - Fore-aft shear, side-to-side shear, and vertical forces at the mudline
 "TwrBsMxt"                - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
 "TwrBsMyt"                - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
-"TwrBsMzt"                - Side-to-side bending, fore-aft bending, and yaw moments at the mudline
-"PtfmSurge"               - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
-"PtfmSway"                - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
-"PtfmRoll"                - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
-"PtfmPitch"               - Platform surge, sway, roll, and pitch displacements (for use in calculating in Crunch the tower-top displacements in the inertia frame)
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

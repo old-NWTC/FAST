@@ -123,9 +123,9 @@ False          OutAll         - Output all user-specified member and joint loads
 "ES11.4e2"     OutFmt         - Output format for numerical results (quoted string) [not checked for validity!]
 "A11"          OutSFmt        - Output format for header strings (quoted string) [not checked for validity!]
 ---------------------- FLOATING PLATFORM OUTPUTS -------------------------------
-"Wave1Elev"                                                        - Wave elevation at the platform reference point (  0,  0)
 END of Floating platform outputs
 ---------------------- MESH-BASED OUTPUT -------------------------------------
+"Wave1Elev"                                                        - Wave elevation at the platform reference point (  0,  0)
 END of mesh-based outputs and HydroDyn input file (the word "END" must appear in the first 3 columns of this last line).
 
 

@@ -6,7 +6,7 @@ TRUE           Echo           - Echo the input file data (flag)
   50.0         WtrDpth        - Water depth (meters)
    0.0         MSL2SWL        - Offset between still-water level and mean sea level (meters) [positive upward; must be zero if HasWAMIT=TRUE]
 ---------------------- WAVES ---------------------------------------------------
-   2           WaveMod        - Incident wave kinematics model {0: none=still water, 1: plane progressive (regular), 1P#: plane progressive with user-specified phase, 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: user-defind spectrum from routine UserWaveSpctrm (irregular), 4: GH Bladed wave data, 5: White noise spectrum [invalid for HasWAMIT = TRUE]} (switch)
+0   2           WaveMod        - Incident wave kinematics model {0: none=still water, 1: plane progressive (regular), 1P#: plane progressive with user-specified phase, 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: user-defind spectrum from routine UserWaveSpctrm (irregular), 4: GH Bladed wave data, 5: White noise spectrum [invalid for HasWAMIT = TRUE]} (switch)
    0           WaveStMod      - Model for stretching incident wave kinematics to instantaneous free surface {0: none=no stretching, 1: vertical stretching, 2: extrapolation stretching, 3: Wheeler stretching} (switch) [unused when WaveMod=0 or when HasWAMIT = TRUE]
 3630.0         WaveTMax       - Analysis time for incident wave calculations (sec) [unused when WaveMod=0] [determines WaveDOmega=2Pi/WaveTMax in the IFFT]
    0.25        WaveDT         - Time step for incident wave calculations (sec) [unused when WaveMod=0] [0.1<=WaveDT<=1.0 recommended] [determines WaveOmegaMax=Pi/WaveDT in the IFFT]
@@ -24,21 +24,21 @@ DEFAULT        WavePkShp      - Peak shape parameter of incident wave spectrum (
    0.0,    0.0,   0.0,  10.0,  10.0,  10.0, -10.0, -10.0, -10.0           WaveElevxi     - List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
    0.0,   10.0, -10.0,   0.0,  10.0, -10.0,   0.0,  10.0, -10.0           WaveElevyi     - List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
 ---------------------- CURRENT -------------------------------------------------
-   0           CurrMod        - Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)
+0 1   0           CurrMod        - Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)
    0.0         CurrSSV0       - Sub-surface current velocity at still water level (m/s) [used only when CurrMod=1]
-DEFAULT        CurrSSDir      - Sub-surface current heading direction (degrees) or DEFAULT (unquoted string) [used only when CurrMod=1]
+0 DEFAULT        CurrSSDir      - Sub-surface current heading direction (degrees) or DEFAULT (unquoted string) [used only when CurrMod=1]
   20.0         CurrNSRef      - Near-surface current reference depth (meters) [used only when CurrMod=1]
    0.0         CurrNSV0       - Near-surface current velocity at still water level (m/s) [used only when CurrMod=1]
    0.0         CurrNSDir      - Near-surface current heading direction (degrees) [used only when CurrMod=1]
    0.0         CurrDIV        - Depth-independent current velocity (m/s) [used only when CurrMod=1]
    0.0         CurrDIDir      - Depth-independent current heading direction (degrees) [used only when CurrMod=1]
 ---------------------- FLOATING PLATFORM ---------------------------------------
-FALSE          HasWAMIT       - Using WAMIT (flag) 
+FALSE          HasWAMIT       - Using WAMIT (flag)
 ""             WAMITFile      - Root name of WAMIT output files containing the linear, nondimensionalized, hydrostatic restoring matrix (.hst extension), frequency-dependent hydrodynamic added mass matrix and damping matrix (.1 extension), and frequency- and direction-dependent wave excitation force vector per unit wave amplitude (.3 extension) (quoted string) [MAKE SURE THE FREQUENCIES INHERENT IN THESE WAMIT FILES SPAN THE PHYSICALLY-SIGNIFICANT RANGE OF FREQUENCIES FOR THE GIVEN PLATFORM; THEY MUST CONTAIN THE ZERO- AND INFINITE-FREQUENCY LIMITS!]
    1.0         WAMITULEN      - Characteristic body length scale used to redimensionalize WAMIT output (meters)
 8029.21        PtfmVol0       - Displaced volume of water when the platform is in its undisplaced position (m^3) [USE THE SAME VALUE COMPUTED BY WAMIT AS OUTPUT IN THE .OUT FILE!]
-   0.0         PtfmCOBxt      - The xt offset of the center of buoyancy (COB) from the platform reference point (meters) .  
-   0.0         PtfmCOByt      - The yt offset of the center of buoyancy (COB) from the platform reference point (meters) .  
+   0.0         PtfmCOBxt      - The xt offset of the center of buoyancy (COB) from the platform reference point (meters) .
+   0.0         PtfmCOByt      - The yt offset of the center of buoyancy (COB) from the platform reference point (meters) .
    1           RdtnMod        - Radiation memory-effect model {0: no memory-effect calculation, 1: convolution, 2: state-space} (switch) [STATE-SPACE REQUIRES *.ss INPUT FILE]
   60.0         RdtnTMax       - Analysis time for wave radiation kernel calculations (sec) [determines RdtnDOmega=Pi/RdtnTMax in the cosine transform]  [MAKE SURE THIS IS LONG ENOUGH FOR THE RADIATION IMPULSE RESPONSE FUNCTIONS TO DECAY TO NEAR-ZERO FOR THE GIVEN PLATFORM!]
    0.025       RdtnDT         - Time step for wave radiation kernel calculations (sec) [DT<=RdtnDT<=0.1 recommended] [determines RdtnOmegaMax=Pi/RdtnDT in the cosine transform]
@@ -76,88 +76,88 @@ HvCoefID  CdHv      CaHv
   1       0.0       0.0
 ---------------------- MEMBER JOINTS -------------------------------------------
 64              NJoints        - Number of joints (-)   [must be exactly 0 or at least 2]
-JointID   Jointxi     Jointyi    Jointzi     JointHvID  JointOvrlp   [must be at least 2, JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]
-(-)         (m)         (m)        (m)          (-)      (switch)
-1	6.000000	6.000000	-45.500000	1	0
-2	6.000000	6.000000	-45.000000	1	0
-3	5.967000	5.967000	-44.001000	1	0
-4	5.939000	5.939000	-43.127000	1	0
-5	5.333000	5.333000	-24.614000	1	0
-6	-6.000000	6.000000	-45.500000	1	0
-7	-6.000000	6.000000	-45.000000	1	0
-8	-5.967000	5.967000	-44.001000	1	0
-9	-5.939000	5.939000	-43.127000	1	0
-10	-5.333000	5.333000	-24.614000	1	0
-11	-6.000000	-6.000000	-45.500000	1	0
-12	-6.000000	-6.000000	-45.000000	1	0
-13	-5.967000	-5.967000	-44.001000	1	0
-14	-5.939000	-5.939000	-43.127000	1	0
-15	-5.333000	-5.333000	-24.614000	1	0
-16	6.000000	-6.000000	-45.500000	1	0
-17	6.000000	-6.000000	-45.000000	1	0
-18	5.967000	-5.967000	-44.001000	1	0
-19	5.939000	-5.939000	-43.127000	1	0
-20	5.333000	-5.333000	-24.614000	1	0
-21	4.820000	4.820000	-8.922000	1	0
-22	4.385000	4.385000	4.378000	1	0
-23	4.016000	4.016000	15.651000	1	0
-24	4.000000	4.000000	16.150000	1	0
-25	-4.820000	4.820000	-8.922000	1	0
-26	-4.385000	4.385000	4.378000	1	0
-27	-4.016000	4.016000	15.651000	1	0
-28	-4.000000	4.000000	16.150000	1	0
-29	-4.820000	-4.820000	-8.922000	1	0
-30	-4.385000	-4.385000	4.378000	1	0
-31	-4.016000	-4.016000	15.651000	1	0
-32	-4.000000	-4.000000	16.150000	1	0
-33	4.820000	-4.820000	-8.922000	1	0
-34	4.385000	-4.385000	4.378000	1	0
-35	4.016000	-4.016000	15.651000	1	0
-36	4.000000	-4.000000	16.150000	1	0
-37	5.620000	0.000000	-33.373000	1	0
-38	-5.620000	0.000000	-33.373000	1	0
-39	0.000000	5.620000	-33.373000	1	0
-40	0.000000	-5.620000	-33.373000	1	0
-41	5.064000	0.000000	-16.371000	1	0
-42	-5.064000	0.000000	-16.371000	1	0
-43	0.000000	5.064000	-16.371000	1	0
-44	0.000000	-5.064000	-16.371000	1	0
-45	4.592000	0.000000	-1.958000	1	0
-46	-4.592000	0.000000	-1.958000	1	0
-47	0.000000	4.592000	-1.958000	1	0
-48	0.000000	-4.592000	-1.958000	1	0
-49	4.193000	0.000000	10.262000	1	0
-50	-4.193000	0.000000	10.262000	1	0
-51	0.000000	4.193000	10.262000	1	0
-52	0.000000	-4.193000	10.262000	1	0
-53	4.000000	4.000000	20.150000	1	0
-54	-4.000000	4.000000	20.150000	1	0
-55	4.000000	-4.000000	20.150000	1	0
-56	-4.000000	-4.000000	20.150000	1	0
-57	6.000000	-6.000000	-49.500000	1	0
-58	6.000000	6.000000	-49.500000	1	0
-59	-6.000000	-6.000000	-49.500000	1	0
-60	-6.000000	6.000000	-49.500000	1	0
-61	6.000000	-6.000000	-50.001000	1	0
-62	6.000000	6.000000	-50.001000	1	0
-63	-6.000000	-6.000000	-50.001000	1	0
-64	-6.000000	6.000000	-50.001000	1	0
+JointID     Jointxi            Jointyi            Jointzi      JointHvID  JointOvrlp   [must be at least 2, JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]
+(-)           (m)                (m)                (m)           (-)      (switch)
+ 1          6.000000          6.000000         -45.500000          1          0
+ 2          6.000000          6.000000         -45.000000          1          0
+ 3          5.967000          5.967000         -44.001000          1          0
+ 4          5.939000          5.939000         -43.127000          1          0
+ 5          5.333000          5.333000         -24.614000          1          0
+ 6         -6.000000          6.000000         -45.500000          1          0
+ 7         -6.000000          6.000000         -45.000000          1          0
+ 8         -5.967000          5.967000         -44.001000          1          0
+ 9         -5.939000          5.939000         -43.127000          1          0
+10         -5.333000          5.333000         -24.614000          1          0
+11         -6.000000         -6.000000         -45.500000          1          0
+12         -6.000000         -6.000000         -45.000000          1          0
+13         -5.967000         -5.967000         -44.001000          1          0
+14         -5.939000         -5.939000         -43.127000          1          0
+15         -5.333000         -5.333000         -24.614000          1          0
+16          6.000000         -6.000000         -45.500000          1          0
+17          6.000000         -6.000000         -45.000000          1          0
+18          5.967000         -5.967000         -44.001000          1          0
+19          5.939000         -5.939000         -43.127000          1          0
+20          5.333000         -5.333000         -24.614000          1          0
+21          4.820000          4.820000          -8.922000          1          0
+22          4.385000          4.385000           4.378000          1          0
+23          4.016000          4.016000          15.651000          1          0
+24          4.000000          4.000000          16.150000          1          0
+25         -4.820000          4.820000          -8.922000          1          0
+26         -4.385000          4.385000           4.378000          1          0
+27         -4.016000          4.016000          15.651000          1          0
+28         -4.000000          4.000000          16.150000          1          0
+29         -4.820000         -4.820000          -8.922000          1          0
+30         -4.385000         -4.385000           4.378000          1          0
+31         -4.016000         -4.016000          15.651000          1          0
+32         -4.000000         -4.000000          16.150000          1          0
+33          4.820000         -4.820000          -8.922000          1          0
+34          4.385000         -4.385000           4.378000          1          0
+35          4.016000         -4.016000          15.651000          1          0
+36          4.000000         -4.000000          16.150000          1          0
+37          5.620000          0.000000         -33.373000          1          0
+38         -5.620000          0.000000         -33.373000          1          0
+39          0.000000          5.620000         -33.373000          1          0
+40          0.000000         -5.620000         -33.373000          1          0
+41          5.064000          0.000000         -16.371000          1          0
+42         -5.064000          0.000000         -16.371000          1          0
+43          0.000000          5.064000         -16.371000          1          0
+44          0.000000         -5.064000         -16.371000          1          0
+45          4.592000          0.000000          -1.958000          1          0
+46         -4.592000          0.000000          -1.958000          1          0
+47          0.000000          4.592000          -1.958000          1          0
+48          0.000000         -4.592000          -1.958000          1          0
+49          4.193000          0.000000          10.262000          1          0
+50         -4.193000          0.000000          10.262000          1          0
+51          0.000000          4.193000          10.262000          1          0
+52          0.000000         -4.193000          10.262000          1          0
+53          4.000000          4.000000          20.150000          1          0
+54         -4.000000          4.000000          20.150000          1          0
+55          4.000000         -4.000000          20.150000          1          0
+56         -4.000000         -4.000000          20.150000          1          0
+57          6.000000         -6.000000         -49.500000          1          0
+58          6.000000          6.000000         -49.500000          1          0
+59         -6.000000         -6.000000         -49.500000          1          0
+60         -6.000000          6.000000         -49.500000          1          0
+61          6.000000         -6.000000         -50.001000          1          0
+62          6.000000          6.000000         -50.001000          1          0
+63         -6.000000         -6.000000         -50.001000          1          0
+64         -6.000000          6.000000         -50.001000          1          0
 --------------------- MEMBER CROSS-SECTION PROPERTIES ----------------------------------------
-6              NPropSets      - Number of member property sets (-) 
-PropSetID    PropD            PropThck      
-(-)          (m)              (m)         
-1	0.800000	0.020000
-2	1.200000	0.050000
-3	1.200000	0.035000
-4	1.200000	0.040000
-5	2.082000	0.491000
-6	2.082000	0.060000
+6              NPropSets      - Number of member property sets (-)
+PropSetID    PropD            PropThck
+(-)          (m)              (m)
+1          0.800000          0.020000
+2          1.200000          0.050000
+3          1.200000          0.035000
+4          1.200000          0.040000
+5          2.082000          0.491000
+6          2.082000          0.060000
 ---------------------- SIMPLE HYDRODYNAMIC COEFFICIENTS (model 1) -------------------------
 SimplCd      SimplCdMG    SimplCa     SimplCaMG
-(-)           (-)           (-)         (-)
-1.0          1.05          0.6         1.0
+(-)           (-)           (-)         (-) 1.0          1.05          0.6         1.0
+0.0          0.00          0.0         0.0
 ---------------------- DEPTH-BASED HYDRODYNAMIC COEFFICIENTS (model 2) ---------------------
-2             NCoefDpth      - Number of depth-dependent coefficients (-) 
+2             NCoefDpth      - Number of depth-dependent coefficients (-)
 Dpth      DpthCd   DpthCdMG   DpthCa   DpthCaMG
 (m)       (-)      (-)        (-)      (-)
 -20        .2       .3         .5       .7
@@ -168,149 +168,149 @@ MemberID   MemberCd1   MemberCd2   MemberCdMG1   MemberCdMG2   MemberCa1   Membe
 (-)        (-)         (-)         (-)           (-)           (-)         (-)         (-)           (-)
  3          .2           .3         .25           .4            .6          .7          .65          .75
 ---------------------- MEMBERS -------------------------------------------------
-112              NMembers       - Number of members (-) 
+112              NMembers       - Number of members (-)
 MemberID   MJointID1   MJointID2   MPropSetID1  MPropSetID2   MDivSize  MCoefMod  PropWAMIT   [ PropWAMIT = TRUE if member is modeled in WAMIT] ! MCoefMod = 1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table
-(-)        (-)         (-)         (-)          (-)           (-)       (switch)    (flag)
-1	1	    2	      2	         2	   10	     1	   false	
-2	2	    3	      2	         2	   10	     1	   false	
-3	3	    4	      2	         2	   10	     1	   false	
-4	4	    5	      2	         2	   10	     1	   false	
-5	6	    7	      2	         2	   10	     1	   false	
-6	7	    8	      2	         2	   10	     1	   false	
-7	8	    9	      2	         2	   10	     1	   false	
-8	9	    10	      2	         2	   10	     1	   false	
-9	11	    12	      2	         2	   10	     1	   false	
-10	12	    13	      2	         2	   10	     1	   false	
-11	13	    14	      2	         2	   10	     1	   false	
-12	14	    15	      2	         2	   10	     1	   false	
-13	16	    17	      2	         2	   10	     1	   false	
-14	17	    18	      2	         2	   10	     1	   false	
-15	18	    19	      2	         2	   10	     1	   false	
-16	19	    20	      2	         2	   10	     1	   false	
-17	5	    21	      3	         3	   10	     1	   false	
-18	21	    22	      3	         3	   10	     1	   false	
-19	22	    23	      3	         3	   10	     1	   false	
-20	23	    24	      3	         3	   10	     1	   false	
-21	10	    25	      3	         3	   10	     1	   false	
-22	25	    26	      3	         3	   10	     1	   false	
-23	26	    27	      3	         3	   10	     1	   false	
-24	27	    28	      3	         3	   10	     1	   false	
-25	15	    29	      3	         3	   10	     1	   false	
-26	29	    30	      3	         3	   10	     1	   false	
-27	30	    31	      3	         3	   10	     1	   false	
-28	31	    32	      3	         3	   10	     1	   false	
-29	20	    33	      3	         3	   10	     1	   false	
-30	33	    34	      3	         3	   10	     1	   false	
-31	34	    35	      3	         3	   10	     1	   false	
-32	35	    36	      3	         3	   10	     1	   false	
-33	3	    8	      1	         1	   10	     1	   false	
-34	8	    13	      1	         1	   10	     1	   false	
-35	13	    18	      1	         1	   10	     1	   false	
-36	18	    3	      1	         1	   10	     1	   false	
-37	4	    37	      1	         1	   10	     1	   false	
-38	37	    20	      1	         1	   10	     1	   false	
-39	19	    37	      1	         1	   10	     1	   false	
-40	37	    5	      1	         1	   10	     1	   false	
-41	9	    38	      1	         1	   10	     1	   false	
-42	38	    15	      1	         1	   10	     1	   false	
-43	14	    38	      1	         1	   10	     1	   false	
-44	38	    10	      1	         1	   10	     1	   false	
-45	4	    39	      1	         1	   10	     1	   false	
-46	39	    10	      1	         1	   10	     1	   false	
-47	9	    39	      1	         1	   10	     1	   false	
-48	39	    5	      1	         1	   10	     1	   false	
-49	19	    40	      1	         1	   10	     1	   false	
-50	40	    15	      1	         1	   10	     1	   false	
-51	14	    40	      1	         1	   10	     1	   false	
-52	40	    20	      1	         1	   10	     1	   false	
-53	5	    41	      1	         1	   10	     1	   false	
-54	41	    33	      1	         1	   10	     1	   false	
-55	20	    41	      1	         1	   10	     1	   false	
-56	41	    21	      1	         1	   10	     1	   false	
-57	10	    42	      1	         1	   10	     1	   false	
-58	42	    29	      1	         1	   10	     1	   false	
-59	15	    42	      1	         1	   10	     1	   false	
-60	42	    25	      1	         1	   10	     1	   false	
-61	5	    43	      1	         1	   10	     1	   false	
-62	43	    25	      1	         1	   10	     1	   false	
-63	10	    43	      1	         1	   10	     1	   false	
-64	43	    21	      1	         1	   10	     1	   false	
-65	20	    44	      1	         1	   10	     1	   false	
-66	44	    29	      1	         1	   10	     1	   false	
-67	15	    44	      1	         1	   10	     1	   false	
-68	44	    33	      1	         1	   10	     1	   false	
-69	21	    45	      1	         1	   10	     1	   false	
-70	45	    34	      1	         1	   10	     1	   false	
-71	33	    45	      1	         1	   10	     1	   false	
-72	45	    22	      1	         1	   10	     1	   false	
-73	25	    46	      1	         1	   10	     1	   false	
-74	46	    30	      1	         1	   10	     1	   false	
-75	29	    46	      1	         1	   10	     1	   false	
-76	46	    26	      1	         1	   10	     1	   false	
-77	21	    47	      1	         1	   10	     1	   false	
-78	47	    26	      1	         1	   10	     1	   false	
-79	25	    47	      1	         1	   10	     1	   false	
-80	47	    22	      1	         1	   10	     1	   false	
-81	33	    48	      1	         1	   10	     1	   false	
-82	48	    30	      1	         1	   10	     1	   false	
-83	29	    48	      1	         1	   10	     1	   false	
-84	48	    34	      1	         1	   10	     1	   false	
-85	22	    49	      1	         1	   10	     1	   false	
-86	49	    35	      1	         1	   10	     1	   false	
-87	34	    49	      1	         1	   10	     1	   false	
-88	49	    23	      1	         1	   10	     1	   false	
-89	26	    50	      1	         1	   10	     1	   false	
-90	50	    31	      1	         1	   10	     1	   false	
-91	30	    50	      1	         1	   10	     1	   false	
-92	50	    27	      1	         1	   10	     1	   false	
-93	22	    51	      1	         1	   10	     1	   false	
-94	51	    27	      1	         1	   10	     1	   false	
-95	26	    51	      1	         1	   10	     1	   false	
-96	51	    23	      1	         1	   10	     1	   false	
-97	34	    52	      1	         1	   10	     1	   false	
-98	52	    31	      1	         1	   10	     1	   false	
-99	30	    52	      1	         1	   10	     1	   false	
-100	52	    35	      1	         1	   10	     1	   false	
-101	24	    53	      4	         4	   10	     1	   false	
-102	28	    54	      4	         4	   10	     1	   false	
-103	32	    56	      4	         4	   10	     1	   false	
-104	36	    55	      4	         4	   10	     1	   false	
-105	1	    58	      5	         5	   10	     1	   false	
-106	16	    57	      5	         5	   10	     1	   false	
-107	6	    60	      5	         5	   10	     1	   false	
-108	11	    59	      5	         5	   10	     1	   false	
-109	58	    62	      6	         6	   10	     1	   false	
-110	57	    61	      6	         6	   10	     1	   false	
-111	60	    64	      6	         6	   10	     1	   false	
-112	59	    63	      6	         6	   10	     1	   false	
+ (-)        (-)         (-)         (-)          (-)           (-)       (switch)    (flag)
+  1          1           2           2            2             10          1        false
+  2          2           3           2            2             10          1        false
+  3          3           4           2            2             10          1        false
+  4          4           5           2            2             10          1        false
+  5          6           7           2            2             10          1        false
+  6          7           8           2            2             10          1        false
+  7          8           9           2            2             10          1        false
+  8          9          10           2            2             10          1        false
+  9         11          12           2            2             10          1        false
+ 10         12          13           2            2             10          1        false
+ 11         13          14           2            2             10          1        false
+ 12         14          15           2            2             10          1        false
+ 13         16          17           2            2             10          1        false
+ 14         17          18           2            2             10          1        false
+ 15         18          19           2            2             10          1        false
+ 16         19          20           2            2             10          1        false
+ 17          5          21           3            3             10          1        false
+ 18         21          22           3            3             10          1        false
+ 19         22          23           3            3             10          1        false
+ 20         23          24           3            3             10          1        false
+ 21         10          25           3            3             10          1        false
+ 22         25          26           3            3             10          1        false
+ 23         26          27           3            3             10          1        false
+ 24         27          28           3            3             10          1        false
+ 25         15          29           3            3             10          1        false
+ 26         29          30           3            3             10          1        false
+ 27         30          31           3            3             10          1        false
+ 28         31          32           3            3             10          1        false
+ 29         20          33           3            3             10          1        false
+ 30         33          34           3            3             10          1        false
+ 31         34          35           3            3             10          1        false
+ 32         35          36           3            3             10          1        false
+ 33          3           8           1            1             10          1        false
+ 34          8          13           1            1             10          1        false
+ 35         13          18           1            1             10          1        false
+ 36         18           3           1            1             10          1        false
+ 37          4          37           1            1             10          1        false
+ 38         37          20           1            1             10          1        false
+ 39         19          37           1            1             10          1        false
+ 40         37           5           1            1             10          1        false
+ 41          9          38           1            1             10          1        false
+ 42         38          15           1            1             10          1        false
+ 43         14          38           1            1             10          1        false
+ 44         38          10           1            1             10          1        false
+ 45          4          39           1            1             10          1        false
+ 46         39          10           1            1             10          1        false
+ 47          9          39           1            1             10          1        false
+ 48         39           5           1            1             10          1        false
+ 49         19          40           1            1             10          1        false
+ 50         40          15           1            1             10          1        false
+ 51         14          40           1            1             10          1        false
+ 52         40          20           1            1             10          1        false
+ 53          5          41           1            1             10          1        false
+ 54         41          33           1            1             10          1        false
+ 55         20          41           1            1             10          1        false
+ 56         41          21           1            1             10          1        false
+ 57         10          42           1            1             10          1        false
+ 58         42          29           1            1             10          1        false
+ 59         15          42           1            1             10          1        false
+ 60         42          25           1            1             10          1        false
+ 61          5          43           1            1             10          1        false
+ 62         43          25           1            1             10          1        false
+ 63         10          43           1            1             10          1        false
+ 64         43          21           1            1             10          1        false
+ 65         20          44           1            1             10          1        false
+ 66         44          29           1            1             10          1        false
+ 67         15          44           1            1             10          1        false
+ 68         44          33           1            1             10          1        false
+ 69         21          45           1            1             10          1        false
+ 70         45          34           1            1             10          1        false
+ 71         33          45           1            1             10          1        false
+ 72         45          22           1            1             10          1        false
+ 73         25          46           1            1             10          1        false
+ 74         46          30           1            1             10          1        false
+ 75         29          46           1            1             10          1        false
+ 76         46          26           1            1             10          1        false
+ 77         21          47           1            1             10          1        false
+ 78         47          26           1            1             10          1        false
+ 79         25          47           1            1             10          1        false
+ 80         47          22           1            1             10          1        false
+ 81         33          48           1            1             10          1        false
+ 82         48          30           1            1             10          1        false
+ 83         29          48           1            1             10          1        false
+ 84         48          34           1            1             10          1        false
+ 85         22          49           1            1             10          1        false
+ 86         49          35           1            1             10          1        false
+ 87         34          49           1            1             10          1        false
+ 88         49          23           1            1             10          1        false
+ 89         26          50           1            1             10          1        false
+ 90         50          31           1            1             10          1        false
+ 91         30          50           1            1             10          1        false
+ 92         50          27           1            1             10          1        false
+ 93         22          51           1            1             10          1        false
+ 94         51          27           1            1             10          1        false
+ 95         26          51           1            1             10          1        false
+ 96         51          23           1            1             10          1        false
+ 97         34          52           1            1             10          1        false
+ 98         52          31           1            1             10          1        false
+ 99         30          52           1            1             10          1        false
+100         52          35           1            1             10          1        false
+101         24          53           4            4             10          1        false
+102         28          54           4            4             10          1        false
+103         32          56           4            4             10          1        false
+104         36          55           4            4             10          1        false
+105          1          58           5            5             10          1        false
+106         16          57           5            5             10          1        false
+107          6          60           5            5             10          1        false
+108         11          59           5            5             10          1        false
+109         58          62           6            6             10          1        false
+110         57          61           6            6             10          1        false
+111         60          64           6            6             10          1        false
+112         59          63           6            6             10          1        false
 ---------------------- FILLED MEMBERS ------------------------------------------
-1              NFillGroups     - Number of filled member groups (-) [If FillDens = DEFAULT, then FillDens = WtrDens property, and FillFSLoc is related to MSL2SWL]
+0 1              NFillGroups     - Number of filled member groups (-) [If FillDens = DEFAULT, then FillDens = WtrDens property, and FillFSLoc is related to MSL2SWL]
 FillNumM FillMList             FillFSLoc     FillDens
-(-)      (-)                   (m)           (kg/m^3)
- 32        1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 21 22 25 26 29 30 105 106 107 108 109 110 111 112        0      1025
+(-)      (-)                   (m)           (kg/m^3) 32        1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 21 22 25 26 29 30 105 106 107 108 109 110 111 112        0      1025
 ---------------------- MARINE GROWTH -------------------------------------------
-2              NMGDepths      - Number of marine-growth depths specified (-) 
-MGDpth     MGThck       MGDens
-(m)        (m)         (kg/m^3)
--2          .100          1100
--40         .100          1100
+0              NMGDepths      - Number of marine-growth depths specified (-)
+MGDpth     MGThck       MGDens   -2          .100          1100
+(m)        (m)         (kg/m^3)  -40         .100          1100
 ---------------------- MEMBER OUTPUT LIST ----------------------------------
-   1           NMOutputs      - Number of member outputs (-) [Must be < 10 ] 
+   1           NMOutputs      - Number of member outputs (-) [Must be < 10 ]
 MemberID   NOutLoc    NodeLocs [NOutLoc < 10, Node locations are normalized distance from the start of the member, and must be >=0 and <= 1]
   (-)        (-)        (-)
    1          6          0    0.2000    0.4000    0.6000    0.8000    1.0000
 ---------------------- JOINT OUTPUT LIST ----------------------------------
-   2          NJOutputs      - Number of joint outputs [Must be < 10 ]  ! 
+   2          NJOutputs      - Number of joint outputs [Must be < 10 ]  !
    1  2          JOutLst        - List of JointIDs which are to be output  !  This will change per test
 ---------------------- OUTPUT --------------------------------------------------
 True           HDSum          - Output a Summary File [T/F].
 False          OutAll         - Output all user-specified member and joint loads (only at each member end, not interior locations) [T/F]
-1              OutSwtch       - Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files] 
+2              OutSwtch       - Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files]
 "ES11.4e2"     OutFmt         - Output format for numerical results
 "A11"          OutSFmt        - Output format for header strings
 ---------------------- FLOATING PLATFORM OUTPUTS -------------------------------
 END of Floating platform outputs
 ---------------------- MESH-BASED OUTPUT -------------------------------------
+"M1N1FVxi"
+"Wave1Elev"
+END of mesh-based outputs and HydroDyn input file (the word "END" must appear in the first 3 columns of this last line).
 "M1N1FVxi, M1N2FVxi, M1N3FVxi, M1N4FVxi, M1N5FVxi, M1N6FVxi"
 "M1N1FVyi, M1N2FVyi, M1N3FVyi, M1N4FVyi, M1N5FVyi, M1N6FVyi"
 "M1N1FVzi, M1N2FVzi, M1N3FVzi, M1N4FVzi, M1N5FVzi, M1N6FVzi"
