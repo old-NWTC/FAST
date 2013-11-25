@@ -135,6 +135,11 @@ SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
       y_FAST%UnSum = -1
    END IF
 
+   IF (y_FAST%UnGra > 0) THEN ! I/O unit number for the graphics output file
+      CLOSE( y_FAST%UnGra )        
+      y_FAST%UnGra = -1
+   END IF
+   
    !-------------------------------------------------------------------------------------------------
    ! Deallocate arrays
    !-------------------------------------------------------------------------------------------------
@@ -240,6 +245,8 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
          
       ! figure out how many time steps we should go before writing screen output:      
     p%n_SttsTime = MAX( 1, NINT( p%SttsTime / p%DT ) )
+    
+    p%WrGraphics = .FALSE. !.TRUE.
    
    !...............................................................................................................................
    ! Do some error checking on the inputs (validation):
@@ -3059,6 +3066,8 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    INTEGER(IntKi)                                    :: ErrStat2                  ! temporary Error status of the operation
    CHARACTER(LEN(ErrMsg))                            :: ErrMsg2                   ! temporary Error message if ErrStat /= ErrID_None
    
+!   integer unOut
+   
    ! Note: p_FAST%UJacSclFact is a scaling factor that gets us similar magnitudes between loads and accelerations...
  
 !bjj: note, that this routine may have a problem if there is remapping done
@@ -3183,6 +3192,33 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          CALL HydroDyn_CalcOutput( this_time, u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD, ErrStat2, ErrMsg2 )
             CALL CheckError( ErrStat2, ErrMsg2  )
             IF ( ErrStat >= AbortErrLev ) RETURN      
+                        
+!IF ( calcJacobian ) THEN            
+!   unOut = 20+K
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'INPUTS; K=',K            
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'u_HD%Wamit%Mesh:'            
+!   call MeshPrintInfo ( unOut, u_HD%WAMIT%Mesh, u_HD%WAMIT%Mesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'u_HD%Morison%lumpedMesh:'            
+!   call MeshPrintInfo ( unOut, u_HD%Morison%lumpedMesh, u_HD%Morison%lumpedMesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'u_HD%Morison%DistribMesh:'            
+!   call MeshPrintInfo ( unOut, u_HD%Morison%DistribMesh, u_HD%Morison%DistribMesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'OUTPUTS; K=',K               
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'y_HD%Wamit%Mesh:'            
+!   call MeshPrintInfo ( unOut, y_HD%WAMIT%Mesh, y_HD%WAMIT%Mesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'y_HD%Morison%lumpedMesh:'            
+!   call MeshPrintInfo ( unOut, y_HD%Morison%lumpedMesh, y_HD%Morison%lumpedMesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'y_HD%Morison%DistribMesh:'            
+!   call MeshPrintInfo ( unOut, y_HD%Morison%DistribMesh, y_HD%Morison%DistribMesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!end if                              
             
             
          IF ( K >= p_FAST%KMax ) EXIT
@@ -3268,15 +3304,59 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                CALL HydroDyn_CalcOutput( this_time, u_HD_perturb, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD_perturb, ErrStat2, ErrMsg2 )
                   CALL CheckError( ErrStat2, ErrMsg2  )
                   IF ( ErrStat >= AbortErrLev ) RETURN               
-               
+!if ( i>79 ) then    
+!   unOut = i
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'INPUTS'            
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'u_HD%Wamit%Mesh:'            
+!   call MeshPrintInfo ( unOut, u_HD_perturb%WAMIT%Mesh, u_HD_perturb%WAMIT%Mesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'u_HD%Morison%lumpedMesh:'            
+!   call MeshPrintInfo ( unOut, u_HD_perturb%Morison%lumpedMesh, u_HD_perturb%Morison%lumpedMesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'u_HD%Morison%DistribMesh:'            
+!   call MeshPrintInfo ( unOut, u_HD_perturb%Morison%DistribMesh, u_HD_perturb%Morison%DistribMesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'OUTPUTS'            
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'y_HD%Wamit%Mesh:'            
+!   call MeshPrintInfo ( unOut, y_HD_perturb%WAMIT%Mesh, y_HD_perturb%WAMIT%Mesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'y_HD%Morison%lumpedMesh:'            
+!   call MeshPrintInfo ( unOut, y_HD_perturb%Morison%lumpedMesh, y_HD_perturb%Morison%lumpedMesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'y_HD%Morison%DistribMesh:'            
+!   call MeshPrintInfo ( unOut, y_HD_perturb%Morison%DistribMesh, y_HD_perturb%Morison%DistribMesh%NNodes)
+!   write(unOut,*) '------------------------------------------------'            
+!end if
+                  
                CALL U_ED_SD_HD_Residual(y_ED, y_SD, y_HD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
                   IF ( ErrStat >= AbortErrLev ) RETURN               
                   
                 MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                                              
             END DO !HydroDyn contribution
-                           
             
+!write(41,*) 'Jacobian:'            
+!write(41,*) 'u_SD%TPMesh:',u_SD%TPMesh%nnodes 
+!write(41,*) 'u_SD%LMesh:', u_SD%LMesh%nnodes 
+!write(41,*) 'u_HD%Morison%lumpedMesh:', u_HD%Morison%lumpedMesh%nnodes 
+!write(41,*) 'u_HD%Morison%distribMesh:',u_HD%Morison%distribMesh%nnodes 
+!call WrMatrix(MeshMapData%Jacobian_ED_SD_HD,41,"ES15.5")
+
+!unOut=-1
+!call MeshWrBin( unOut, u_SD%TPMesh, ErrStat, ErrMsg, 'u_SD_TPMesh.bin' )
+!close(unOut); unOut = -1
+!call MeshWrBin( unOut, u_SD%LMesh, ErrStat, ErrMsg, 'u_SD_LMesh.bin' )
+!close(unOut); unOut = -1
+!call MeshWrBin( unOut, u_HD%Morison%lumpedMesh, ErrStat, ErrMsg, 'u_HD_Morison_LumpedMesh.bin' )
+!close(unOut); unOut = -1
+!call MeshWrBin( unOut, u_HD%Morison%distribMesh, ErrStat, ErrMsg, 'u_HD_Morison_DistribMesh.bin' )
+!close(unOut); unOut = -1
+!call MeshWrBin( unOut, u_ED%PlatformPtMesh, ErrStat, ErrMsg, 'u_ED_PlatformPtMesh.bin' )
+!close(unOut); unOut = -1
+!
                ! Get the LU decomposition of this matrix using a LAPACK routine: 
                ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
 
@@ -3473,7 +3553,7 @@ CONTAINS
          
       !.....
       ! Motions (outputs) at ED platform ref point transfered to SD transition piece (input) :
-      CALL Transfer_Point_to_Point( y_ED2%PlatformPtMesh, u_TPMesh, MeshMapData%ED_P_2_SD_TP, ErrStat, ErrMsg )   
+      CALL Transfer_Point_to_Point( y_ED2%PlatformPtMesh, u_TPMesh, MeshMapData%ED_P_2_SD_TP, ErrStat2, ErrMsg2 )   
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
    
@@ -3591,17 +3671,17 @@ SUBROUTINE Init_ED_SD_HD_Jacobian( p_FAST, MeshMapData, ED_PlatformPtMesh, SD_TP
    
       ! determine how many inputs there are between the 3 modules (ED, SD, HD)
    
-   p_FAST%SizeJac_ED_SD_HD(1) = ED_PlatformPtMesh%NNodes*6 ! ED inputs: 3 forces and 3 moments per node (only 1 node)
+   p_FAST%SizeJac_ED_SD_HD(1) = ED_PlatformPtMesh%NNodes*6     ! ED inputs: 3 forces and 3 moments per node (only 1 node)
                   
-   p_FAST%SizeJac_ED_SD_HD(2) = SD_TPMesh%NNodes*6 &  ! SD inputs: 6 accelerations per node (size of SD input from ED) 
-                              + SD_LMesh%NNodes *6    ! SD inputs: 6 loads per node (size of SD input from HD)                                          
+   p_FAST%SizeJac_ED_SD_HD(2) = SD_TPMesh%NNodes*6 &           ! SD inputs: 6 accelerations per node (size of SD input from ED) 
+                              + SD_LMesh%NNodes *6             ! SD inputs: 6 loads per node (size of SD input from HD)                                          
          
-   p_FAST%SizeJac_ED_SD_HD(3) = HD_M_LumpedMesh%NNodes *6 & ! HD inputs: 6 accelerations per node (on each Morison mesh) 
-                              + HD_M_DistribMesh%NNodes*6   ! HD inputs: 6 accelerations per node (on each Morison mesh)
+   p_FAST%SizeJac_ED_SD_HD(3) = HD_M_LumpedMesh%NNodes *6 &    ! HD inputs: 6 accelerations per node (on each Morison mesh) 
+                              + HD_M_DistribMesh%NNodes*6      ! HD inputs: 6 accelerations per node (on each Morison mesh)
          
-   p_FAST%SizeJac_ED_SD_HD(4) = p_FAST%SizeJac_ED_SD_HD(1) + &
-                                p_FAST%SizeJac_ED_SD_HD(2) + &
-                                p_FAST%SizeJac_ED_SD_HD(3)
+   p_FAST%SizeJac_ED_SD_HD(4) = p_FAST%SizeJac_ED_SD_HD(1) &   ! all the inputs from these 3 modules
+                              + p_FAST%SizeJac_ED_SD_HD(2) &
+                              + p_FAST%SizeJac_ED_SD_HD(3)
                   
 
       ! allocate matrix to store jacobian 
@@ -4049,5 +4129,128 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
 
    RETURN
 END SUBROUTINE AD_SetInitInput
-!=======================================================================
+!...............................................................................................................................
+SUBROUTINE WriteInputMeshesToFile(u_ED, u_SD, u_HD, u_MAP, u_AD, FileName, ErrStat, ErrMsg) 
+   TYPE(ED_InputType),        INTENT(IN)  :: u_ED         
+   TYPE(SD_InputType),        INTENT(IN)  :: u_SD         
+   TYPE(HydroDyn_InputType),  INTENT(IN)  :: u_HD         
+   TYPE(MAP_InputType),       INTENT(IN)  :: u_MAP         
+   TYPE(AD_InputType),        INTENT(IN)  :: u_AD         
+   CHARACTER(*),              INTENT(IN) :: FileName
+   
+   INTEGER(IntKi)                         :: ErrStat          ! Error status of the operation
+   CHARACTER(*)                           :: ErrMsg           ! Error message if ErrStat /= ErrID_None
+   
+   
+      !FileName = TRIM(p_FAST%OutFileRoot)//'_InputMeshes.bin'
+   
+      
+   INTEGER(IntKi)           :: unOut
+   INTEGER(IntKi)           :: K_local
+   INTEGER(B4Ki), PARAMETER :: File_ID = 1
+   INTEGER(B4Ki)            :: NumBl
+      
+
+      ! Open the binary output file:
+   unOut=-1      
+   CALL GetNewUnit( unOut, ErrStat, ErrMsg )
+   CALL OpenBOutFile ( unOut, TRIM(FileName), ErrStat, ErrMsg )
+      IF (ErrStat /= ErrID_None) RETURN
+               
+      
+   ! note that I'm not doing anything with the errors here, so it won't tell
+   ! you there was a problem writing the data unless it was the last call.
+          
+      ! Add a file identification number (in case we ever have to change this):
+   WRITE( unOut, IOSTAT=ErrStat )   File_ID
+   
+
+      ! Add how many blade meshes there are:
+   NumBl =  SIZE(u_ED%BladeLn2Mesh,1)   ! Note that NumBl is B4Ki 
+   WRITE( unOut, IOSTAT=ErrStat )   NumBl
+      
+      ! Add all of the input meshes:
+   DO K_local = 1,SIZE(u_ED%BladeLn2Mesh,1)
+      CALL MeshWrBin( unOut, u_ED%BladeLn2Mesh(K_local), ErrStat, ErrMsg )
+   END DO            
+   CALL MeshWrBin( unOut, u_ED%TowerLn2Mesh,            ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_ED%PlatformPtMesh,          ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_SD%TPMesh,                  ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_SD%LMesh,                   ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_HD%Morison%distribMesh,     ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_HD%Morison%lumpedMesh,      ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_HD%WAMIT%Mesh,              ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_MAP%PtFairleadDisplacement, ErrStat, ErrMsg )
+      
+      
+      ! Close the file
+   CLOSE(unOut)
+         
+END SUBROUTINE WriteInputMeshesToFile   
+!...............................................................................................................................
+SUBROUTINE WriteMotionMeshesToFile(time, y_ED, u_SD, y_SD, u_HD, u_MAP, UnOut, ErrStat, ErrMsg, FileName) 
+   REAL(DbKi),                 INTENT(IN)    :: time
+   TYPE(ED_OutputType),        INTENT(IN)    :: y_ED         
+   TYPE(SD_InputType),         INTENT(IN)    :: u_SD         
+   TYPE(SD_OutputType),        INTENT(IN)    :: y_SD         
+   TYPE(HydroDyn_InputType),   INTENT(IN)    :: u_HD         
+   TYPE(MAP_InputType),        INTENT(IN)    :: u_MAP         
+   INTEGER(IntKi) ,            INTENT(INOUT) :: unOut
+   CHARACTER(*),   OPTIONAL,   INTENT(IN)    :: FileName
+   
+   INTEGER(IntKi)                            :: ErrStat          ! Error status of the operation
+   CHARACTER(*)                              :: ErrMsg           ! Error message if ErrStat /= ErrID_None
+   
+   
+      !FileName = TRIM(p_FAST%OutFileRoot)//'_InputMeshes.bin'
+   REAL(R8Ki)               :: t
+      
+   INTEGER(IntKi)           :: K_local
+   INTEGER(B4Ki), PARAMETER :: File_ID = 100
+   INTEGER(B4Ki)            :: NumBl
+      
+   t = time  ! convert to 8-bytes if necessary (DbKi might not be R8Ki)
+   
+   ! note that I'm not doing anything with the errors here, so it won't tell
+   ! you there was a problem writing the data unless it was the last call.
+   
+   
+      ! Open the binary output file and write a header:
+   if (unOut<0) then
+      CALL GetNewUnit( unOut, ErrStat, ErrMsg )
+      
+      CALL OpenBOutFile ( unOut, TRIM(FileName), ErrStat, ErrMsg )
+         IF (ErrStat /= ErrID_None) RETURN
+               
+         ! Add a file identification number (in case we ever have to change this):
+      WRITE( unOut, IOSTAT=ErrStat )   File_ID
+      
+         ! Add how many blade meshes there are:
+      NumBl =  SIZE(y_ED%BladeLn2Mesh,1)   ! Note that NumBl is B4Ki 
+      WRITE( unOut, IOSTAT=ErrStat )   NumBl
+   end if
+   
+   WRITE( unOut, IOSTAT=ErrStat ) t          
+   
+      ! Add all of the meshes with motions:
+   DO K_local = 1,SIZE(y_ED%BladeLn2Mesh,1)
+      CALL MeshWrBin( unOut, y_ED%BladeLn2Mesh(K_local), ErrStat, ErrMsg )
+   END DO            
+   CALL MeshWrBin( unOut, y_ED%TowerLn2Mesh,            ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, y_ED%PlatformPtMesh,          ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_SD%TPMesh,                  ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, y_SD%y2Mesh,                  ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_HD%Morison%distribMesh,     ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_HD%Morison%lumpedMesh,      ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_HD%WAMIT%Mesh,              ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_MAP%PtFairleadDisplacement, ErrStat, ErrMsg )
+      
+   !   
+   !   ! Close the file
+   !CLOSE(unOut)
+   !      
+END SUBROUTINE WriteMotionMeshesToFile   
+!...............................................................................................................................
+
+
 END MODULE FAST_IO_Subs
