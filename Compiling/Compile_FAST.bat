@@ -62,6 +62,7 @@ SET Registry=..\bin\Registry_win32.exe
 SET FAST_Loc=..\Source
 
 SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
+SET NETLIB_Loc=%FAST_Loc%\dependencies\NetLib
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
 SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
@@ -114,6 +115,11 @@ SET NWTC_SOURCES=^
  "%NWTC_Lib_Loc%\ModMesh_Mapping.f90" ^
  "%NWTC_Lib_Loc%\NWTC_Library.f90"
 
+SET NETLIB_SOURCES=^
+ "%NETLIB_Loc%\DLASRT2.f"^
+ "%NETLIB_Loc%\SLASRT2.f"
+ "%NETLIB_Loc%\NWTC_ScaLAPACK.f90"
+ "%NETLIB_Loc%\NWTC_LAPACK.f90"
 
 SET IfW_SOURCES=^
  "%IfW_Loc%\IFW_FFWind_Types.f90" ^
@@ -170,7 +176,6 @@ SET HD_SOURCES=^
 
 
 SET SD_SOURCES=^
- "%SD_Loc%\DLASRT2.f90" ^
  "%SD_Loc%\qsort_c_module.f90" ^
  "%SD_Loc%\SubDyn_Types.f90" ^
  "%SD_Loc%\SD_FEM.f90" ^
@@ -275,7 +280,7 @@ rem NOTE that I'm compiling the modules separately then linking them later. I sp
 
 ECHO %Lines%
 ECHO Compiling NWTC Library:
-ifort %COMPOPTS% %NWTC_SOURCES% /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+ifort %COMPOPTS% %NWTC_SOURCES% %NETLIB_SOURCE% /Qmkl:sequential  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 ECHO %Lines%
@@ -309,7 +314,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 ECHO %Lines%
 ECHO Compiling SubDyn:
-ifort %COMPOPTS% %SD_SOURCES%  /Qmkl:sequential /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+ifort %COMPOPTS% %SD_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 
@@ -387,6 +392,7 @@ SET MAP_Include_Lib=
 SET HD_Reg_Loc=
 
 SET NWTC_SOURCES=
+SET NETLIB_SOURCES=
 SET IfW_SOURCES=
 SET AD_SOURCES=
 SET ED_SOURCES=

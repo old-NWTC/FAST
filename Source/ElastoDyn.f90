@@ -7952,7 +7952,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
 
       ! Check to see if all BldGagNd(:) analysis points are existing analysis points:
 
-      DO I=1,InputFileData%NTwGages
+      DO I=1,InputFileData%NBlGages
          IF ( InputFileData%BldGagNd(I) < 1_IntKi .OR. InputFileData%BldGagNd(I) > InputFileData%InpBlMesh(1)%BldNodes ) THEN
             CALL SetErrors( ErrID_Fatal, ' All BldGagNd values must be between 1 and '//&
                               TRIM( Num2LStr( InputFileData%InpBlMesh(1)%BldNodes ) )//' (inclusive).' )
@@ -9375,15 +9375,15 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
 
       ! Calculate the 2nd derivatives of the twisted shape functions at the tip:
 
-      Shape  = SHP( 1.0, p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
+      Shape  = SHP( 1.0_ReKi, p%BldFlexL, p%BldFl1Sh(:,K), 2, ErrStat, ErrMsg )
       p%TwistedSF(K,1,1,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi1(p%TipNode) for blade K
       p%TwistedSF(K,2,1,p%TipNode,2) = -Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi1(p%TipNode) for blade K
 
-      Shape  = SHP( 1.0, p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
+      Shape  = SHP( 1.0_ReKi, p%BldFlexL, p%BldFl2Sh(:,K), 2, ErrStat, ErrMsg )
       p%TwistedSF(K,1,2,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi2(p%TipNode) for blade K
       p%TwistedSF(K,2,2,p%TipNode,2) = -Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi2(p%TipNode) for blade K
 
-      Shape  = SHP( 1.0, p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
+      Shape  = SHP( 1.0_ReKi, p%BldFlexL, p%BldEdgSh(:,K), 2, ErrStat, ErrMsg )
       p%TwistedSF(K,1,3,p%TipNode,2) =  Shape*p%SThetaS(K,p%BldNodes)        ! 2nd deriv. of Phi3(p%TipNode) for blade K
       p%TwistedSF(K,2,3,p%TipNode,2) =  Shape*p%CThetaS(K,p%BldNodes)        ! 2nd deriv. of Psi3(p%TipNode) for blade K
 
@@ -9581,19 +9581,19 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
 
       ! Calculate the tower shape functions (all derivatives) at the tower-top:
 
-   p%TwrFASF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 2, ErrStat, ErrMsg )
-   p%TwrFASF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 2, ErrStat, ErrMsg )
-   p%TwrFASF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 1, ErrStat, ErrMsg )
-   p%TwrFASF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 1, ErrStat, ErrMsg )
-   p%TwrFASF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 0, ErrStat, ErrMsg )
-   p%TwrFASF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrFASF(1,p%TTopNode,2) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrFASF(2,p%TTopNode,2) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrFASF(1,p%TTopNode,1) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrFASF(2,p%TTopNode,1) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrFASF(1,p%TTopNode,0) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwFAM1Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrFASF(2,p%TTopNode,0) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwFAM2Sh(:), 0, ErrStat, ErrMsg )
 
-   p%TwrSSSF(1,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 2, ErrStat, ErrMsg )
-   p%TwrSSSF(2,p%TTopNode,2) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 2, ErrStat, ErrMsg )
-   p%TwrSSSF(1,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 1, ErrStat, ErrMsg )
-   p%TwrSSSF(2,p%TTopNode,1) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 1, ErrStat, ErrMsg )
-   p%TwrSSSF(1,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 0, ErrStat, ErrMsg )
-   p%TwrSSSF(2,p%TTopNode,0) = SHP( 1.0, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrSSSF(1,p%TTopNode,2) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrSSSF(2,p%TTopNode,2) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 2, ErrStat, ErrMsg )
+   p%TwrSSSF(1,p%TTopNode,1) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrSSSF(2,p%TTopNode,1) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 1, ErrStat, ErrMsg )
+   p%TwrSSSF(1,p%TTopNode,0) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwSSM1Sh(:), 0, ErrStat, ErrMsg )
+   p%TwrSSSF(2,p%TTopNode,0) = SHP( 1.0_ReKi, p%TwrFlexL, InputFileData%TwSSM2Sh(:), 0, ErrStat, ErrMsg )
 
 
       ! Integrate to find the tower axial reduction shape functions at the tower-top:
@@ -10411,7 +10411,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
       ThetaFA = -p%TwrFASF(1,J       ,1)*x%QT(DOF_TFA1) - p%TwrFASF(2,J       ,1)*x%QT(DOF_TFA2)
       ThetaSS =  p%TwrSSSF(1,J       ,1)*x%QT(DOF_TSS1) + p%TwrSSSF(2,J       ,1)*x%QT(DOF_TSS2)
 
-      CALL SmllRotTrans( 'tower deflection (ElastoDyn SetCoordSy)', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower element-fixed coordinate systems.
+      CALL SmllRotTrans( 'tower deflection (ElastoDyn SetCoordSy)', ThetaSS, 0.0_ReKi, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower element-fixed coordinate systems.
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
@@ -10428,7 +10428,7 @@ SUBROUTINE SetCoordSy( t, CoordSys, RtHSdat, BlPitch, p, x, ErrStat, ErrMsg )
    ThetaFA    = -p%TwrFASF(1,p%TTopNode,1)*x%QT(DOF_TFA1) - p%TwrFASF(2,p%TTopNode,1)*x%QT(DOF_TFA2)
    ThetaSS    =  p%TwrSSSF(1,p%TTopNode,1)*x%QT(DOF_TSS1) + p%TwrSSSF(2,p%TTopNode,1)*x%QT(DOF_TSS2)
 
-   CALL SmllRotTrans( 'tower deflection (ElastoDyn SetCoordSy)', ThetaSS, 0.0, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower-top/base-plate coordinate systems.
+   CALL SmllRotTrans( 'tower deflection (ElastoDyn SetCoordSy)', ThetaSS, 0.0_ReKi, ThetaFA, TransMat, TRIM(Num2LStr(t))//' s', ErrStat2, ErrMsg2 )   ! Get the transformation matrix, TransMat, from tower-base to tower-top/base-plate coordinate systems.
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 

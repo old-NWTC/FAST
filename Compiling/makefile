@@ -14,9 +14,13 @@
 #                                                                                #
 # Older versions of the source code may not work with this makefile.             #
 #================================================================================#
+# for debugging, use this make option:
+# --warn-undefined-variables
+#
 
 # bjj: PLEASE NOTE THAT UNTIL WE RESOLVE ISSUES REGARDING THE USE OF INTEL'S MKL
 #      THIS MAKEFILE WILL NOT WORK.
+
 
    # 32-bit or 64-bit?
 BITS = 32
@@ -30,6 +34,7 @@ BITS = 32
 FAST_DIR     = ../Source
 
 NWTC_Lib_DIR = $(FAST_DIR)/dependencies/NWTC_Library
+NETLIB_DIR   = $(FAST_DIR)/dependencies/NetLib
 ED_DIR       = $(FAST_DIR)/dependencies/ElastoDyn
 SrvD_DIR     = $(FAST_DIR)/dependencies/ServoDyn
 AD_DIR       = $(FAST_DIR)/dependencies/AeroDyn
@@ -39,20 +44,24 @@ SD_DIR       = $(FAST_DIR)/dependencies/SubDyn
 MAP_DIR      = $(FAST_DIR)/dependencies/MAP
 
 HD_DIR_Reg   = $(HD_DIR)
+BIN_DIR      = ../bin
+
 
 ifeq ($(OS),Windows_NT)
-   Registry     = ../bin/Registry_win32.exe
-   MAP_lib      = ../bin/MAP_win32.lib
+   Registry     = $(BIN_DIR)/Registry_win32.exe
+   MAP_lib      = $(MAP_DIR)/MAP_win32.lib
+   LAPACK_DIR   = C:/LAPACK/win32
 else
    Registry     = registry.exe
-   MAP_lib      = ../bin/MAP.a
+   MAP_lib      = $(MAP_DIR)/MAP.a
 endif
 
 
    # Name of compiler to use and flags to use.
 FC      = gfortran
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -finit-local-zero -fno-automatic -ffree-line-length-none -x f95-cpp-input
-LDFLAGS = -O2 -m$(BITS) -fbacktrace
+# FFLAGS  = -O2 -m$(BITS) -fbacktrace -finit-local-zero -fno-automatic -ffree-line-length-none -x f95-cpp-input
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds
+LDFLAGS = -O2 -m$(BITS) -fbacktrace -llapack -lblas -L$(LAPACK_DIR)
 
 # other useful gfortran options:
 #  -fdefault-real-8 -fcheck=bounds -std=f2003 -O0 -v
@@ -116,8 +125,8 @@ IfW_SOURCES =            \
 	IfW_FFWind.f90        \
 	IfW_HHWind_Types.f90  \
 	IfW_HHWind.f90        \
-	IflowWind_Types.f90   \
-	IflowWind_Subs.f90    \
+	InflowWind_Subs.f90   \
+	InflowWind_Types.f90  \
 	InflowWind.f90
 
 AD_SOURCES =            \
@@ -153,15 +162,17 @@ MAP_SOURCES =              \
 	MAP.f90
 
 SD_SOURCES =               \
-	DLASRT2.f90             \
 	qsort_c_module.f90      \
 	SD_FEM.f90              \
 	SubDyn_Types.f90        \
 	SubDyn_Output.f90       \
 	SubDyn.f90
 
-
-# also needs some LPACK routines     (currently links with Intel's MKL [sequential])
+NETLIB_SOURCES=            \
+	NWTC_ScaLAPACK.f90      \
+	NWTC_LAPACK.f90         \
+	DLASRT2.f               \
+	SLASRT2.f
 
 
 ED_SOURCES =            \
@@ -181,12 +192,13 @@ FAST_SOURCES =          \
 	FAST_IO.f90          \
 	FAST_Prog.f90
 
-vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR)
-vpath %.f   $(HD_DIR)
+vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR)
+vpath %.f   $(HD_DIR) $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
 vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(ED_DIR) $(SrvD_DIR)
 
+NETLIB_OBJS   = NWTC_LAPACK.obj NWTC_ScaLAPACK.obj DLASRT2.obj SLASRT2.obj
 LIB_OBJS      = $(LIB_SOURCES:.f90=.obj)
 IfW_OBJS      = $(IfW_SOURCES:.f90=.obj)
 AD_OBJS       = $(AD_SOURCES:.f90=.obj)
@@ -196,7 +208,7 @@ HD_OBJS       = $(HD_SOURCES:.f90=.obj) fftpack.obj
 SD_OBJS       = $(SD_SOURCES:.f90=.obj)
 MAP_OBJS      = $(MAP_SOURCES:.f90=.obj)
 FAST_OBJS     = $(FAST_SOURCES:.f90=.obj)
-ALL_OBJS      = $(LIB_OBJS) $(IfW_OBJS) $(AD_OBJS) $(SrvD_OBJS) $(ED_OBJS) $(HD_OBJS) $(SD_OBJS) $(FAST_OBJS)
+ALL_OBJS      = $(LIB_OBJS) $(IfW_OBJS) $(AD_OBJS) $(SrvD_OBJS) $(ED_OBJS) $(HD_OBJS) $(SD_OBJS) $(FAST_OBJS) $(NETLIB_OBJS) $(MAP_OBJS)
 
    # Rule to do everything.
 
@@ -207,10 +219,10 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
    # General rules for compliling the files.
 
 %.obj: %.f90
-	$(FC)  $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
+	$(FC) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
-fftpack.obj: fftpack.f
-	$(F77) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
+%.obj: %.f
+	$(F77) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
 
    # General rules for creating _Types.f90 files from Registry files.
@@ -258,7 +270,6 @@ InflowWind_Types.f90:
 
 
 
-
    #  Dependency rules.
 #NWTC Library dependency rules:
 NWTC_Base.obj:           $(PREC).obj
@@ -271,21 +282,25 @@ ModMesh.obj:             ModMesh_Types.obj
 ModMesh_Mapping.obj:     ModMesh.f90
 NWTC_Library.obj:        ModMesh.obj  ModMesh_Mapping.obj
 
+NWTC_LAPACK.obj:         NWTC_Base.obj
+NWTC_ScaLAPACK.obj:      NWTC_Base.obj DLASRT2.obj SLASRT2.obj
+
+
 #InflowWind dependency rules:
 IfW_HHWind_Types.obj:    NWTC_Library.obj
 IfW_HHWind.obj:          IfW_HHWind_Types.obj
 IfW_FFWind_Types.obj:    NWTC_Library.obj
 IfW_FFWind.obj:          IfW_FFWind_Types.obj
-IflowWind_Types.obj:     NWTC_Library.obj  IfW_FFWind_Types.obj  IfW_HHWind_Types.obj
-IflowWind_Subs.obj:      IflowWind_Types.obj IfW_FFWind.obj  IfW_HHWind.obj
-InflowWind.obj:          IflowWind_Subs.obj
+InflowWind_Types.obj:    NWTC_Library.obj  IfW_FFWind_Types.obj  IfW_HHWind_Types.obj
+InflowWind_Subs.obj:     InflowWind_Types.obj IfW_FFWind.obj  IfW_HHWind.obj
+InflowWind.obj:          InflowWind_Subs.obj
 
 
 #AeroDyn dependency rules:
-AeroDyn_Types.obj:       NWTC_Library.obj InflowWind_Types.f90
+AeroDyn_Types.obj:       NWTC_Library.obj InflowWind_Types.obj
 GenSubs.obj:             NWTC_Library.obj  AeroDyn_Types.obj
 AeroSubs.obj:            NWTC_Library.obj  AeroDyn_Types.obj
-AeroDyn.obj:             AeroDyn_Types.obj  AeroSubs.obj  GenSubs.obj  InflowWind.obj
+AeroDyn.obj:             AeroDyn_Types.obj AeroSubs.obj  GenSubs.obj  InflowWind.obj
 
 
 #HydroDyn dependency rules:
@@ -312,7 +327,7 @@ WAMIT_Types.obj:            NWTC_Library.obj Conv_Radiation_Types.obj SS_Radiati
 WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj FFTMod.obj
 
 WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj
-HydroDyn_Output.obj:        HydroDyn_Output_Types.obj HydroDyn_Types.obj Waves.obj
+HydroDyn_Output.obj:        HydroDyn_Types.obj Waves.obj
 
 HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj Morison_Types.obj
 HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj
@@ -323,8 +338,12 @@ HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Out
 SubDyn_Types.obj:          NWTC_Library.obj
 SD_FEM.obj:                NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
 SubDyn_Output.obj:         SD_FEM.obj
-SubDyn.obj:                SD_UpdateStates.obj SubDyn_Output.obj  SD_FEM.obj  qsort_c_module.obj DLASRT2.obj
+SubDyn.obj:                SubDyn_Output.obj  SD_FEM.obj  qsort_c_module.obj NWTC_ScaLAPACK.obj NWTC_LAPACK.obj
 
+# MAP dependency rules:
+MAP_C_Types.obj:           NWTC_Library.obj
+MAP_Types.obj:             NWTC_Library.obj MAP_C_Types.obj
+MAP.obj:                   MAP_Types.obj MAP_C_Types.obj
 
 # ElastoDyn dependency rules:
 ElastoDyn_Types.obj:        NWTC_Library.obj  ElastoDyn_Registry.txt
@@ -340,7 +359,7 @@ UserVSCont_KP.obj:          NWTC_Library.obj
 
 # FAST dependency rules:
 FAST_Mods.obj:              NWTC_Library.obj  AeroDyn.obj
-FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  AeroDyn.obj  InflowWindMod.obj  ServoDyn.obj ElastoDyn.obj HydroDyn.obj
+FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj ElastoDyn.obj HydroDyn.obj NWTC_LAPACK.obj MAP.obj
 FAST_Prog.obj:              NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj
 
 
@@ -360,7 +379,7 @@ $(INTER_DIR):
 
 $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT): $(ALL_OBJS) | $(INTER_DIR)
 	$(FC) $(LDFLAGS) -I $(INTER_DIR) -o $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT) \
-	$(foreach src, $(ALL_OBJS), $(addprefix $(INTER_DIR)/,$(src)))
+	$(foreach src, $(ALL_OBJS), $(addprefix $(INTER_DIR)/,$(src))) $(MAP_lib)
 
    # Cleanup afterwards.
 

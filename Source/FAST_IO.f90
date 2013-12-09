@@ -26,6 +26,7 @@
 MODULE FAST_IO_Subs
 
    USE NWTC_Library
+   USE NWTC_LAPACK
 
    USE FAST_Types
    USE ElastoDyn_Types
@@ -2435,13 +2436,9 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                ! Get the LU decomposition of this matrix using a LAPACK routine: 
                ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
 
-            !CALL sgetrf( M=NumInputs, N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, INFO=ErrStat2 )
-            CALL sgetrf( NumInputs, NumInputs, MeshMapData%Jacobian_ED_SD_HD, NumInputs, MeshMapData%Jacobian_pivot, ErrStat2 )
-            IF (ErrStat2 /= 0) THEN
-               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
-                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
-               RETURN
-            END IF
+            CALL LAPACK_getrf( M=NumInputs, N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+               CALL CheckError( ErrStat2, ErrMsg2  )
+               IF ( ErrStat >= AbortErrLev ) RETURN
             
          END IF         
             
@@ -2451,14 +2448,10 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          !-------------------------------------------------------------------------------------------------
          
          u_delta = -Fn_U_Resid
-         !CALL sgetrs( TRANS="N", N=NumInputs, NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=NumInputs, INFO=ErrStat2 )
-         CALL sgetrs( "N", NumInputs, 1, MeshMapData%Jacobian_ED_SD_HD, NumInputs, MeshMapData%Jacobian_pivot, u_delta, NumInputs, ErrStat2 )
-            IF (ErrStat2 /= 0) THEN
-               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
-                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
-               RETURN
-            END IF         
-
+         CALL LAPACK_getrs( TRANS='N', N=NumInputs, NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=NumInputs, &
+                            ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+               CALL CheckError( ErrStat2, ErrMsg2  )
+               IF ( ErrStat >= AbortErrLev ) RETURN 
                            
          !-------------------------------------------------------------------------------------------------
          ! check for error, update inputs (u_ED and u_HD), and iterate again
@@ -2567,6 +2560,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          CALL WrScr( ' ED_HD_InputOutputSolve: '//TRIM(Msg) )
+         ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close files, deallocate local arrays
@@ -2815,14 +2809,10 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                ! Get the LU decomposition of this matrix using a LAPACK routine: 
                ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
 
-            !CALL sgetrf( M=NumInputs, N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, INFO=ErrStat2 )
-            CALL sgetrf( NumInputs, NumInputs, MeshMapData%Jacobian_ED_SD_HD, NumInputs, MeshMapData%Jacobian_pivot, ErrStat2 )
-            IF (ErrStat2 /= 0) THEN
-               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
-                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
-               RETURN
-            END IF
-            
+            CALL LAPACK_getrf( M=NumInputs, N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+               CALL CheckError( ErrStat2, ErrMsg2  )
+               IF ( ErrStat >= AbortErrLev ) RETURN 
+               
          END IF         
             
          !-------------------------------------------------------------------------------------------------
@@ -2831,13 +2821,10 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          !-------------------------------------------------------------------------------------------------
          
          u_delta = -Fn_U_Resid
-         !CALL sgetrs( TRANS="N", N=NumInputs, NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=NumInputs, INFO=ErrStat2 )
-         CALL sgetrs( "N", NumInputs, 1, MeshMapData%Jacobian_ED_SD_HD, NumInputs, MeshMapData%Jacobian_pivot, u_delta, NumInputs, ErrStat2 )
-            IF (ErrStat2 /= 0) THEN
-               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
-                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
-               RETURN
-            END IF            
+         CALL LAPACK_getrs( TRANS="N", N=NumInputs, NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, &
+                            B=u_delta, LDB=NumInputs, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+               CALL CheckError( ErrStat2, ErrMsg2  )
+               IF ( ErrStat >= AbortErrLev ) RETURN 
             
          !-------------------------------------------------------------------------------------------------
          ! check for error, update inputs (u_ED and u_HD), and iterate again
@@ -2943,6 +2930,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          CALL WrScr( ' ED_SD_InputOutputSolve: '//TRIM(Msg) )
+         ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close files, deallocate local arrays
@@ -3360,13 +3348,10 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                ! Get the LU decomposition of this matrix using a LAPACK routine: 
                ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
 
-            !CALL sgetrf( M=p_FAST%SizeJac_ED_SD_HD(4), N=p_FAST%SizeJac_ED_SD_HD(4), A=MeshMapData%Jacobian_ED_SD_HD, LDA=p_FAST%SizeJac_ED_SD_HD(4), IPIV=MeshMapData%Jacobian_pivot, INFO=ErrStat2 )
-            CALL sgetrf( p_FAST%SizeJac_ED_SD_HD(4), p_FAST%SizeJac_ED_SD_HD(4), MeshMapData%Jacobian_ED_SD_HD, p_FAST%SizeJac_ED_SD_HD(4), MeshMapData%Jacobian_pivot, ErrStat2 )
-            IF (ErrStat2 /= 0) THEN
-               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
-                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
-               RETURN
-            END IF
+            CALL LAPACK_getrf( M=p_FAST%SizeJac_ED_SD_HD(4), N=p_FAST%SizeJac_ED_SD_HD(4), A=MeshMapData%Jacobian_ED_SD_HD, LDA=p_FAST%SizeJac_ED_SD_HD(4), IPIV=MeshMapData%Jacobian_pivot, &
+                              ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+               CALL CheckError( ErrStat2, ErrMsg2  )
+               IF ( ErrStat >= AbortErrLev ) RETURN 
             
          END IF         
             
@@ -3376,13 +3361,11 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          !-------------------------------------------------------------------------------------------------
          
          u_delta = -Fn_U_Resid
-         !CALL sgetrs( TRANS="N", N=p_FAST%SizeJac_ED_SD_HD(4), NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=p_FAST%SizeJac_ED_SD_HD(4), IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=p_FAST%SizeJac_ED_SD_HD(4), INFO=ErrStat2 )
-         CALL sgetrs( "N", p_FAST%SizeJac_ED_SD_HD(4), 1, MeshMapData%Jacobian_ED_SD_HD, p_FAST%SizeJac_ED_SD_HD(4), MeshMapData%Jacobian_pivot, u_delta, p_FAST%SizeJac_ED_SD_HD(4), ErrStat2 )
-            IF (ErrStat2 /= 0) THEN
-               CALL CheckError( ErrID_Fatal, "Error obtaining LU decomposition in ED-HD coupling. "// &
-                                             "Error code is "//TRIM(Num2LStr(ErrStat2))//"."  ) 
-               RETURN
-            END IF                            
+         CALL LAPACK_getrs( TRANS="N", N=p_FAST%SizeJac_ED_SD_HD(4), NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=p_FAST%SizeJac_ED_SD_HD(4), &
+                            IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=p_FAST%SizeJac_ED_SD_HD(4), ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+               CALL CheckError( ErrStat2, ErrMsg2  )
+               IF ( ErrStat >= AbortErrLev ) RETURN 
+
          !-------------------------------------------------------------------------------------------------
          ! check for error, update inputs (u_ED and u_HD), and iterate again
          !-------------------------------------------------------------------------------------------------
@@ -3594,6 +3577,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          CALL WrScr( ' ED_SD_HD_InputOutputSolve: '//TRIM(Msg) )
+         ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close files, deallocate local arrays

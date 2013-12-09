@@ -67,7 +67,7 @@ GOTO checkError
 
 :AeroDyn
 SET CURR_LOC=%AD_Loc%
-%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I %NWTC_Lib_Loc% -I %IfW_Loc%
+%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I %NWTC_Lib_Loc% -I %IfW_Loc% -I %AD_Loc%
 GOTO checkError
 
 

@@ -5,7 +5,7 @@
 	<Configurations>
 		<Configuration Name="Debug|Win32" OutputDirectory="..\..\bin">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" DebugInformationFormat="debugEnabled" Optimization="optimizeDisabled" Preprocess="preprocessYes" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" WarnInterfaces="true" Traceback="true" BoundsCheck="true" RuntimeLibrary="rtMultiThreadedDebug" UseMkl="mklSequential"/>
-				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_debug_win32.exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole" StackReserveSize="999999999" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_win32.lib"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_$(ConfigurationName)_$(PlatformName).exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" GenerateDebugInformation="true" SubSystem="subSystemConsole" StackReserveSize="999999999" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
@@ -15,7 +15,7 @@
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="..\..\bin">
 				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" InterproceduralOptimizations="ipoSingleFile" Preprocess="preprocessYes" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" UseMkl="mklSequential"/>
-				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_win32.exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole" StackReserveSize="999999999" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_win32.lib"/>
+				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_$(PlatformName).exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole" StackReserveSize="999999999" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
 				<Tool Name="VFCustomBuildTool"/>
@@ -141,6 +141,20 @@
 		<File RelativePath="..\..\Source\dependencies\MAP\MAP.f90"/>
 		<File RelativePath="..\..\Source\dependencies\MAP\MAP_C_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\MAP\MAP_Types.f90"/></Filter>
+		<Filter Name="NetLib">
+		<Filter Name="ScaLAPACK">
+		<File RelativePath="..\..\Source\dependencies\NetLib\dlasrt2.f">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\NetLib\slasrt2.f">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
+		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_LAPACK.f90"/>
+		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_ScaLAPACK.f90"/></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\NWTC_Library\Registry_NWTC_Library.txt"/></Filter>
@@ -168,8 +182,6 @@
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\UserSubs.f90"/>
 		<File RelativePath="..\..\Source\dependencies\ServoDyn\UserVSCont_KP.f90"/></Filter>
 		<Filter Name="SubDyn">
-		<Filter Name="ExternalCode">
-		<File RelativePath="..\..\Source\dependencies\SubDyn\DLASRT2.f90"/></Filter>
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\SubDyn\SubDyn_Registry.txt">
 			<FileConfiguration Name="Debug|Win32">
