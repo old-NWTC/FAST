@@ -419,19 +419,25 @@ CONTAINS
 !=======================================================================
    SUBROUTINE LAPACK_DGGEV(JOBVL, JOBVR, N, A, LDA, B, LDB, ALPHAR, ALPHAI, BETA, VL, LDVL, VR, LDVR, WORK, LWORK, ErrStat, ErrMsg)
                                 
-      ! passed parameters
+      ! passed variables/parameters:
  
       CHARACTER(1),    intent(in   ) :: JOBVL             ! = 'N':  do not compute the left generalized eigenvectors; = 'V':  compute the left generalized eigenvectors.
       CHARACTER(1),    intent(in   ) :: JOBVR             ! = 'N':  do not compute the right generalized eigenvectors; = 'V':  compute the right generalized eigenvectors.
                        
       INTEGER,         intent(in   ) :: N                 ! The order of the matrices A, B, VL, and VR.  N >= 0.
                        
-      REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! dimension (LDA, N). On entry, the matrix A in the pair (A,B). On exit, A has been overwritten.
       INTEGER,         intent(in   ) :: LDA               ! The leading dimension of A.  LDA >= max(1,N).
-      REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
       INTEGER,         intent(in   ) :: LDB               ! The leading dimension of B.  LDB >= max(1,N).
+      INTEGER,         intent(in   ) :: LDVL              ! The leading dimension of the matrix VL. LDVL >= 1, and if JOBVL = 'V', LDVL >= N
+      INTEGER,         intent(in   ) :: LDVR              ! The leading dimension of the matrix VR. LDVR >= 1, and if JOBVR = 'V', LDVR >= N.
+      INTEGER,         intent(in   ) :: LWORK             ! The dimension of the array WORK.  LWORK >= max(1,8*N). For good performance, LWORK must generally be larger. 
+                                                          !   If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns
+                                                          !   this value as the first entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
                        
                        
+      REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! dimension (LDA, N). On entry, the matrix A in the pair (A,B). On exit, A has been overwritten.
+      REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
+      
       REAL(R8Ki)      ,intent(  out) :: ALPHAR( * )       ! dimension (N). See comments for variable "Beta"
       REAL(R8Ki)      ,intent(  out) :: ALPHAI( * )       ! dimension (N). See comments for variable "Beta".
       REAL(R8Ki)      ,intent(  out) :: BETA( * )         ! On exit, (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N, will be the generalized eigenvalues.  If ALPHAI(j) is zero, then
@@ -447,23 +453,18 @@ CONTAINS
                                                           !   order as their eigenvalues. If the j-th eigenvalue is real, then u(j) = VL(:,j), the j-th column of VL. If the j-th and
                                                           !   (j+1)-th eigenvalues form a complex conjugate pair, then u(j) = VL(:,j)+i*VL(:,j+1) and u(j+1) = VL(:,j)-i*VL(:,j+1).
                                                           !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVL = 'N'.
-      INTEGER,         intent(in   ) :: LDVL              ! The leading dimension of the matrix VL. LDVL >= 1, and if JOBVL = 'V', LDVL >= N
       REAL(R8Ki)      ,intent(  out) :: VR( LDVR, * )     ! dimension (LDVR,N). If JOBVR = 'V', the right eigenvectors v(j) are stored one after another in the columns of VR, in the same 
                                                           !   order as their eigenvalues. If the j-th eigenvalue is real, then v(j) = VR(:,j), the j-th column of VR. If the j-th and
                                                           !   (j+1)-th eigenvalues form a complex conjugate pair, then v(j) = VR(:,j)+i*VR(:,j+1) and v(j+1) = VR(:,j)-i*VR(:,j+1).
                                                           !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVR = 'N'.
                        
-      INTEGER,         intent(in   ) :: LDVR              ! The leading dimension of the matrix VR. LDVR >= 1, and if JOBVR = 'V', LDVR >= N.
       REAL(R8Ki)      ,intent(  out) :: WORK( * )         ! dimension (MAX(1,LWORK)). On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
-      INTEGER,         intent(in   ) :: LWORK             ! The dimension of the array WORK.  LWORK >= max(1,8*N). For good performance, LWORK must generally be larger. 
-                                                          !   If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns
-                                                          !   this value as the first entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
                        
                        
       
-      !     .. Array Arguments ..      
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level 
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
+      
       
          ! local variables      
       INTEGER                        :: INFO              ! = 0:  successful exit; 
@@ -509,17 +510,23 @@ CONTAINS
 !=======================================================================
    SUBROUTINE LAPACK_SGGEV(JOBVL, JOBVR, N, A, LDA, B, LDB, ALPHAR, ALPHAI, BETA, VL, LDVL, VR, LDVR, WORK, LWORK, ErrStat, ErrMsg)
                                 
-      ! passed parameters
+      ! subroutine arguments
  
       CHARACTER(1),   intent(in   ) :: JOBVL             ! = 'N':  do not compute the left generalized eigenvectors; = 'V':  compute the left generalized eigenvectors.
       CHARACTER(1),   intent(in   ) :: JOBVR             ! = 'N':  do not compute the right generalized eigenvectors; = 'V':  compute the right generalized eigenvectors.
 
       INTEGER,        intent(in   ) :: N                 ! The order of the matrices A, B, VL, and VR.  N >= 0.
+      INTEGER,        intent(in   ) :: LDA               ! The leading dimension of A.  LDA >= max(1,N).
+      INTEGER,        intent(in   ) :: LDB               ! The leading dimension of B.  LDB >= max(1,N).
+      INTEGER,        intent(in   ) :: LDVL              ! The leading dimension of the matrix VL. LDVL >= 1, and if JOBVL = 'V', LDVL >= N
+      INTEGER,        intent(in   ) :: LDVR              ! The leading dimension of the matrix VR. LDVR >= 1, and if JOBVR = 'V', LDVR >= N.
+      INTEGER,        intent(in   ) :: LWORK             ! The dimension of the array WORK.  LWORK >= max(1,8*N). For good performance, LWORK must generally be larger. 
+                                                         !   If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns
+                                                         !   this value as the first entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
+      
       
       REAL(SiKi),     intent(inout) :: A( LDA, * )       ! dimension (LDA, N). On entry, the matrix A in the pair (A,B). On exit, A has been overwritten.
-      INTEGER,        intent(in   ) :: LDA               ! The leading dimension of A.  LDA >= max(1,N).
       REAL,           intent(inout) :: B( LDB, * )       ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
-      INTEGER,        intent(in   ) :: LDB               ! The leading dimension of B.  LDB >= max(1,N).
       
       
       REAL(SiKi),     intent(  out) :: ALPHAR( * )       ! dimension (N). See comments for variable "Beta"
@@ -537,21 +544,15 @@ CONTAINS
                                                          !   order as their eigenvalues. If the j-th eigenvalue is real, then u(j) = VL(:,j), the j-th column of VL. If the j-th and
                                                          !   (j+1)-th eigenvalues form a complex conjugate pair, then u(j) = VL(:,j)+i*VL(:,j+1) and u(j+1) = VL(:,j)-i*VL(:,j+1).
                                                          !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVL = 'N'.
-      INTEGER,        intent(in   ) :: LDVL              ! The leading dimension of the matrix VL. LDVL >= 1, and if JOBVL = 'V', LDVL >= N
       REAL(SiKi),     intent(  out) :: VR( LDVR, * )     ! dimension (LDVR,N). If JOBVR = 'V', the right eigenvectors v(j) are stored one after another in the columns of VR, in the same 
                                                          !   order as their eigenvalues. If the j-th eigenvalue is real, then v(j) = VR(:,j), the j-th column of VR. If the j-th and
                                                          !   (j+1)-th eigenvalues form a complex conjugate pair, then v(j) = VR(:,j)+i*VR(:,j+1) and v(j+1) = VR(:,j)-i*VR(:,j+1).
                                                          !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVR = 'N'.
       
-      INTEGER,        intent(in   ) :: LDVR              ! The leading dimension of the matrix VR. LDVR >= 1, and if JOBVR = 'V', LDVR >= N.
       REAL(SiKi),     intent(  out) :: WORK( * )         ! dimension (MAX(1,LWORK)). On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
-      INTEGER,        intent(in   ) :: LWORK             ! The dimension of the array WORK.  LWORK >= max(1,8*N). For good performance, LWORK must generally be larger. 
-                                                         !   If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns
-                                                         !   this value as the first entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
 
       
       
-      !     .. Array Arguments ..      
       INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level 
       CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
       
