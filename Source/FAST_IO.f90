@@ -588,7 +588,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
          CALL AllocAry( y_FAST%TimeData, 2_IntKi, 'TimeData', ErrStat, ErrMsg )
          IF ( ErrStat /= ErrID_None ) RETURN
 
-         y_FAST%TimeData(1) = 0                  ! This is the first output time, which we will set later
+         y_FAST%TimeData(1) = 0.0_DbKi           ! This is the first output time, which we will set later
          y_FAST%TimeData(2) = p_FAST%DT_out      ! This is the (constant) time between subsequent writes to the output file
 
       ELSE  ! we store the entire time array
@@ -1158,7 +1158,7 @@ SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
 
    REAL                         :: ClckTime                                        ! Elapsed clock time for the simulation phase of the run.
    REAL                         :: Factor                                          ! Ratio of seconds to a specified time period.
-   REAL                         :: TRatio                                          ! Ration of simulation time to elapsed clock time.
+   REAL                         :: TRatio                                          ! Ratio of simulation time to elapsed clock time.
    REAL(ReKi), PARAMETER        :: SecPerDay = 24*60*60.0_ReKi                     ! Number of seconds per day
 
    REAL                         :: UsrTime                                         ! User CPU time for entire run.
@@ -1187,7 +1187,7 @@ SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
 
    IF ( .NOT. EqualRealNos( UsrTime, 0.0 ) )  THEN
 
-      TRatio = ZTime / UsrTime
+      TRatio = REAL(ZTime) / UsrTime
 
       IF     ( UsrTime > SecPerDay )  THEN
          Factor = 1.0/SecPerDay
@@ -1304,7 +1304,7 @@ SUBROUTINE SimStatus( PrevSimTime, PrevClockTime, ZTime, TMax )
 
       ! Estimate the end time in hours, minutes, and seconds
 
-   SimTimeLeft = ( TMax - ZTime )*DeltTime/( ZTime - PrevSimTime )            ! DeltTime/( ZTime - PrevSimTime ) is the delta_ClockTime divided by the delta_SimulationTime
+   SimTimeLeft = REAL( ( TMax - ZTime )*DeltTime/( ZTime - PrevSimTime ), ReKi )          ! DeltTime/( ZTime - PrevSimTime ) is the delta_ClockTime divided by the delta_SimulationTime
    EndTime  =  MOD( CurrClockTime+SimTimeLeft, SecPerDay )
    EndHour  =  INT(   EndTime*InSecHr )
    EndMin   =  INT( ( EndTime - REAL( 3600*EndHour ) )*InSecMn )

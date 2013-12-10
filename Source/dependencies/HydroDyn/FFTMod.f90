@@ -98,8 +98,8 @@ MODULE FFT_Module
 
    TYPE, PUBLIC :: FFT_DataType
       PRIVATE
-      REAL(ReKi)                       :: InvN          = 0             ! Normalization constant
-      REAL,       ALLOCATABLE          :: wSave(:)                      ! Working array for performing transforms
+      REAL(ReKi)                       :: InvN          = 0.0_ReKi      ! Normalization constant
+      REAL(ReKi),   ALLOCATABLE        :: wSave(:)                      ! Working array for performing transforms
       INTEGER                          :: N             = -1            ! Number of steps
       LOGICAL                          :: Normalize     = .FALSE.       ! Whether or not to normalize
       INTEGER                          :: TransformType = Undef_trans   ! the type of transfer function this is for

@@ -1638,7 +1638,7 @@ SUBROUTINE WAMIT_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_re
       
          ! Solve for the constraint states here:
       
-      z_residual%DummyConstrState = 0
+      z_residual%DummyConstrState = 0.0_ReKi
 
 END SUBROUTINE WAMIT_CalcConstrStateResidual
 !----------------------------------------------------------------------------------------------------------------------------------

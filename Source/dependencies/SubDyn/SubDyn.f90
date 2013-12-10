@@ -2919,7 +2919,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating matrix MRR in SD_Init'
       RETURN
    END IF   
-   MRR = 0 
+   MRR = 0.0_ReKi
 
       ! Allocate MLL
    ALLOCATE( MLL(DOFL, DOFL), STAT = ErrStat )
@@ -2928,7 +2928,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating matrix MLL in SD_Init'
       RETURN
    END IF 
-   MLL = 0
+   MLL = 0.0_ReKi
    
       ! Allocate MRL
    ALLOCATE( MRL(DOFR, DOFL), STAT = ErrStat )
@@ -2937,7 +2937,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating matrix MRL in SD_Init'
       RETURN
    END IF
-   MRL = 0
+   MRL = 0.0_ReKi
    
       ! Allocate KRR
    ALLOCATE( KRR(DOFR, DOFR), STAT = ErrStat )
@@ -2946,7 +2946,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating matrix KRR in SD_Init'
       RETURN
    END IF   
-   KRR = 0
+   KRR = 0.0_ReKi
 
       ! Allocate KLL
    ALLOCATE( KLL(DOFL, DOFL), STAT = ErrStat )
@@ -2955,7 +2955,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating matrix KLL in SD_Init'
       RETURN
    END IF      
-   KLL = 0
+   KLL = 0.0_ReKi
    
       ! Allocate KRL
    ALLOCATE( KRL(DOFR, DOFL), STAT = ErrStat )
@@ -2964,7 +2964,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating matrix KRL in SD_Init'
       RETURN
    END IF
-   KRL = 0
+   KRL = 0.0_ReKi
 
       ! Allocate FGL
    ALLOCATE( FGL(DOFL), STAT = ErrStat )
@@ -2973,7 +2973,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array FGL in SD_Init'
       RETURN
    END IF
-   FGL = 0
+   FGL = 0.0_ReKi
    
       ! Allocate FGR
    ALLOCATE( FGR(DOFR), STAT = ErrStat )
@@ -2982,7 +2982,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array FGR in SD_Init'
       RETURN
    END IF
-   FGR = 0
+   FGR = 0.0_ReKi
    
       ! Allocate CBparams%MBB
    ALLOCATE( CBparams%MBB(DOFR, DOFR), STAT = ErrStat )
@@ -2991,7 +2991,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array CBparams%MBB in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   CBparams%MBB = 0   
+   CBparams%MBB = 0.0_ReKi   
    
       ! Allocate Init%MBM
    DOFM = p%Nmodes
@@ -3005,7 +3005,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array CBparams%MBM in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   CBparams%MBM = 0      
+   CBparams%MBM = 0.0_ReKi      
    
       ! Allocate CBparams%KBB
    ALLOCATE( CBparams%KBB(DOFR, DOFR), STAT = ErrStat )
@@ -3014,7 +3014,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array CBparams%KBB in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   CBparams%KBB = 0      
+   CBparams%KBB = 0.0_ReKi      
    
       ! Allocate CBparams%PhiM
    ALLOCATE( CBparams%PhiM(DOFL, DOFM), STAT = ErrStat )
@@ -3023,7 +3023,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array CBparams%PhiM in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   CBparams%PhiM = 0      
+   CBparams%PhiM = 0.0_ReKi      
    
       ! Allocate CBparams%PhiR
    ALLOCATE( CBparams%PhiR(DOFL, DOFR), STAT = ErrStat )
@@ -3032,7 +3032,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array CBparams%PhiR in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   CBparams%PhiR = 0         
+   CBparams%PhiR = 0.0_ReKi         
 
       ! Allocate CBparams%OmegaM
    ALLOCATE( CBparams%OmegaM(DOFM), STAT = ErrStat )
@@ -3041,7 +3041,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array CBparams%OmegaM in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   CBparams%OmegaM = 0     
+   CBparams%OmegaM = 0.0_ReKi     
    
          ! Allocate MBBb
    ALLOCATE( MBBb(DOFI, DOFI), STAT = ErrStat )
@@ -3050,7 +3050,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array MBBb in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   MBBb = 0   
+   MBBb = 0.0_ReKi   
    
       ! Allocate MBmb
    ALLOCATE( MBmb(DOFI, DOFM), STAT = ErrStat )
@@ -3059,7 +3059,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array MBmb in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   MBmb = 0      
+   MBmb = 0.0_ReKi      
    
       ! Allocate KBBb
    ALLOCATE( KBBb(DOFI, DOFI), STAT = ErrStat )
@@ -3068,7 +3068,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array KBBb in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   KBBb = 0      
+   KBBb = 0.0_ReKi      
    
       ! Allocate PhiRb
    ALLOCATE( PhiRb(DOFL, DOFI), STAT = ErrStat )
@@ -3077,7 +3077,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array PhiRb in SD_Init/Craig_Bampton'
       RETURN
    END IF
-   PhiRb = 0     
+   PhiRb = 0.0_ReKi     
 
       ! Allocate FGRb
    ALLOCATE( FGRb(DOFI), STAT = ErrStat )
@@ -3086,7 +3086,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       ErrMsg  = 'Error allocating array FGRb in SD_Init'
       RETURN
    END IF
-   FGRb = 0
+   FGRb = 0.0_ReKi
    
    
    IF(Init%CBMod) THEN ! C-B reduction
@@ -3326,7 +3326,7 @@ SUBROUTINE CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, TI
    END IF
    CALL LAPACK_getri(DOFL, KLL_inv, DOFL, ipiv, work, -1, ErrStat, ErrMsg )
    IF (ErrStat /= ErrID_None) RETURN
-   lwork=work(1)
+   lwork=NINT( work(1) )
 
    !NOW DO OPERATION
    DEALLOCATE(WORK)
@@ -3410,7 +3410,7 @@ SUBROUTINE CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, TI
    !           + MATMUL( MATMUL(TRANSPOSE(PhiR), MLL), PhiR )
    
    IF ( DOFM .EQ. 0) THEN
-      MBM = 0
+      MBM = 0.0_ReKi
    ELSE
       MBM = MATMUL( MRL, PhiM) + MATMUL( MATMUL(TRANSPOSE(PhiR), MLL), PhiM )
       ! TODO: Check MBM, because it is written differently than the paper, eqn 1.4.  GJH 5/7/13
@@ -4534,7 +4534,7 @@ SUBROUTINE SetParameters(Init, p, TI, MBBb, MBmb, KBBb, FGRb, PhiRb, OmegaM,  &
         END IF
         CALL LAPACK_getri(2*p%qml, p%AM2InvJac, 2*p%qml, ipiv, work, -1, ErrStat, ErrMsg)
         IF (ErrStat /= ErrID_None) RETURN
-        lwork=work(1)
+        lwork =  NINT( work(1) )
         !NOW DO OPERATION
         DEALLOCATE(WORK)
         ALLOCATE(WORK(LWORK), STAT = ErrStat)
@@ -4853,6 +4853,7 @@ FUNCTION MemberLength(MemberID,Init,ErrStat,ErrMsg)
     !Find the MemberID in the list
     ErrStat = ErrID_Fatal
     ErrMsg  = 'Error calculating length of Member in Function MemberLength'
+    MemberLength=0.0
     DO i=1,SIZE(Init%Members, DIM=1)  !tried where here and could not make it scalara
         IF (Init%Members(i,1) .EQ. MemberID) THEN
             xyz1= Init%Joints(Init%Members(i,2),2:4)

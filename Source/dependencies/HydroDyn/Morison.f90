@@ -494,17 +494,17 @@ SUBROUTINE DistrFloodedBuoyancy2( densFluid, Z_f, R, t, dRdz, Z, C, g, F_B  )
    !REAL(DbKi)                           :: Reff,ReffSq,ReffCub,f1,f2,f3
    
    REAL(DbKi) :: CC(3,3)
-   CC = DBLE(C)
+   CC = REAL(C,DbKi)
    
   
-   Reff  =  DBLE(R - t)
-   Zeff  = DBLE(Z - Z_f)
+   Reff  =  REAL(R - t,DbKi)
+   Zeff  = REAL(Z - Z_f,DbKi)
    
    ReffSq  = Reff*Reff 
    ReffCub = ReffSq*Reff
-   f1      = -DBLE(densFluid)*DBLE(g)*pi
-   f2      = f1*ReffCub*DBLE(dRdz)
-   f3      = Reff*DBLE(dRdz)*Zeff
+   f1      = -REAL(densFluid,DbKi)*REAL(g,DbKi)*pi_D
+   f2      = f1*ReffCub*REAL(dRdz,DbKi)
+   f3      = Reff*REAL(dRdz,DbKi)*Zeff
    
    !F_B(1) = f1*( C(3,1)*ReffSq )
    !F_B(2) = f1*( C(3,2)*ReffSq  )
@@ -754,7 +754,7 @@ SUBROUTINE GetMaxSimQuantities( numMGDepths, MGTop, MGBottom, MSL2SWL, Zseabed, 
    INTEGER                                              :: I, J, j1, j2             ! generic integer for counting
    TYPE(Morison_JointType)                           :: joint1, joint2           ! joint data structures                               
    Real(ReKi)                                           :: z1, z2                   ! z values of the first and second joints
-   INTEGER                                              :: temp                     ! temporary variable
+   Real(ReKi)                                           :: temp                     ! temporary variable
    REAL(ReKi)                                           :: memLen                   ! member length
    INTEGER                                              :: nSplits, totalSplits, nodeSplits
    REAL(ReKi)                                           :: possibleSplits(5)
@@ -2140,7 +2140,7 @@ SUBROUTINE SetNodeMG( numMGDepths, MGDepths, numNodes, nodes )
       
          dd = MGDepths(indx1)%MGDpth - MGDepths(indx2)%MGDpth
          IF ( EqualRealNos(dd, 0.0_ReKi) ) THEN
-            s = 0
+            s = 0.0_ReKi
          ELSE
             s = ( MGDepths(indx1)%MGDpth - z ) / dd
          END IF
@@ -2762,9 +2762,9 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                      
                         IF ( nodes(I)%JointPos(3) <= MSL2SWL .AND.     nodes(I)%JointPos(3) >= z0 ) THEN
                         
-                           L_AM_M(1,1,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM11) / nCommon
-                           L_AM_M(2,2,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM22) / nCommon
-                           L_AM_M(3,3,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM33) / nCommon
+                           L_AM_M(1,1,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM11) / REAL( nCommon, ReKi)
+                           L_AM_M(2,2,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM22) / REAL( nCommon, ReKi)
+                           L_AM_M(3,3,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM33) / REAL( nCommon, ReKi)
                         
                         ELSE
                            ! Should we ever land in here?
@@ -4507,7 +4507,7 @@ SUBROUTINE Morison_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_
       
          ! Solve for the constraint states here:
       
-      z_residual%DummyConstrState = 0
+      z_residual%DummyConstrState = 0.0_ReKi
 
 END SUBROUTINE Morison_CalcConstrStateResidual
 !----------------------------------------------------------------------------------------------------------------------------------

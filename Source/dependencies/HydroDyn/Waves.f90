@@ -803,7 +803,7 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
    REAL(ReKi)                   :: WaveElev_Max                                    ! Maximum expected value of the instantaneous elevation of incident waves (meters)
    REAL(ReKi)                   :: WaveElev_Min                                    ! Minimum expected value of the instantaneous elevation of incident waves (meters)
    REAL(ReKi), ALLOCATABLE      :: WaveElevxiPrime(:)                              ! Locations along the wave heading direction for points where the incident wave elevations can be output (meters)
-   REAL(ReKi)                   :: WaveElevxiPrime0
+   COMPLEX(ReKi)                :: WaveElevxiPrime0
    REAL(ReKi), ALLOCATABLE      :: WaveKinzi0Prime(:)                              ! zi-coordinates for points where the incident wave kinematics will be computed before applying stretching; these are relative to the mean see level (meters)
    INTEGER   , ALLOCATABLE      :: WaveKinPrimeMap(:)
    REAL(ReKi), ALLOCATABLE      :: WaveKinzi0St   (:)                              ! Array of elevations found by stretching the elevations in the WaveKinzi0Prime(:) array using the instantaneous wave elevation; these are relative to the mean see level (meters)
@@ -1354,6 +1354,7 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
          ELSE                                               ! All other Omega
             WGNC = BoxMuller ( InitInp%WaveNDAmp                    )
             IF ( ( InitInp%WaveMod == 1 ) .AND. ( I == I_WaveTp ) )  WGNC = WGNC*( SQRT(2.0)/ABS(WGNC) )   ! This scaling of WGNC is used to ensure that the Box-Muller method is only providing a random phase, not a magnitude change, at the frequency of the plane progressive wave.  The SQRT(2.0) is used to ensure that the time series WGN process has unit variance (i.e. sinusoidal with amplitude SQRT(2.0)).  NOTE: the denominator here will never equal zero since U1 cannot equal 1.0, and thus, C1 cannot be 0.0 in the Box-Muller method.
+                                                                      !bjj: use (SQRT(2.0)/ABS(WGNC) ,0.0_ReKi) to explicitly convert this to a complex number, as opposed to having Fortran do it automatically?
          END IF
 
 
@@ -1405,7 +1406,7 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
 
       ! Compute the discrete Fourier transform of the instantaneous elevation of
       !   incident waves at the WAMIT reference point:
-         tmpComplex                   = SQRTNStepWave2*WGNC*SQRT( TwoPi*WaveS2Sdd/InitInp%WaveDT )
+         tmpComplex                   = SQRTNStepWave2*WGNC*SQRT( TwoPi*WaveS2Sdd/REAL(InitInp%WaveDT,ReKi) )
          InitOut%WaveElevC0     (1,I) = REAL( tmpComplex)
          InitOut%WaveElevC0     (2,I) = AIMAG(tmpComplex)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1429,6 +1430,7 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
 
          DO J = 1,NWaveKin0Prime ! Loop through all points where the incident wave kinematics will be computed without stretching
 
+            !bjj: we've got some type conversions going on here... do we need REAL() around EXP()???
             WaveElevxiPrime0 = EXP( -ImagNmbr*WaveNmbr*(InitInp%WaveKinxi0(WaveKinPrimeMap(J))*CWaveDir + InitInp%WaveKinyi0(WaveKinPrimeMap(J))*SWaveDir))
             WaveDynPC0 (I,J) = InitOut%RhoXg*tmpComplex*WaveElevxiPrime0 * &
                                        COSHNumOvrCOSHDen ( WaveNmbr, InitInp%WtrDpth, WaveKinzi0Prime(J) )       
@@ -1507,7 +1509,7 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
       !   the incident waves are to be determined:
 
       DO I = 0,InitOut%NStepWave ! Loop through all time steps
-         InitOut%WaveTime(I) = I*InitInp%WaveDT
+         InitOut%WaveTime(I) = I*REAL(InitInp%WaveDT,ReKi)
          
       END DO                ! I - All time steps
 
@@ -1889,7 +1891,7 @@ SUBROUTINE GH_BladedWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
    !   elevation of, velocity of, acceleration of, and loads associated with
    !   the incident waves are to be determined:
 
-      InitOut%WaveTime(I) = I*InitInp%WaveDT
+      InitOut%WaveTime(I) = I*REAL(InitInp%WaveDT,ReKi)
 
 
       IF ( Reading )  THEN       ! .TRUE. if we are still reading from the GH Bladed wave data files.
@@ -2074,7 +2076,7 @@ SUBROUTINE Waves_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
    x%DummyContState = 0.0
    xd%DummyDiscState = 0.0
    z%DummyConstrState = 0.0
-   OtherState%DummyOtherState = 0.0
+   OtherState%DummyOtherState = 0
    y%DummyOutput = 0.0
       
       
@@ -2296,7 +2298,7 @@ SUBROUTINE Waves_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, Err
       
          ! Compute the first time derivatives of the continuous states here:
       
-      dxdt%DummyContState = 0
+      dxdt%DummyContState = 0.0_ReKi
          
 
 END SUBROUTINE Waves_CalcContStateDeriv
@@ -2354,7 +2356,7 @@ SUBROUTINE Waves_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_re
       
          ! Solve for the constraint states here:
       
-      z_residual%DummyConstrState = 0
+      z_residual%DummyConstrState = 0.0_ReKi
 
 END SUBROUTINE Waves_CalcConstrStateResidual
 !!----------------------------------------------------------------------------------------------------------------------------------

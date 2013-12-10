@@ -5377,7 +5377,7 @@ END IF
          ErrStat = ErrID_Fatal
          RETURN
       END IF
-      y%WriteOutput = 0
+      y%WriteOutput = 0.0_ReKi
       
       ! Establish the mapping between a M1N1, M1N2, etc. M2N1,  and the distributed mesh
       !Verify that we have a member and node mapping for each and every requested output channel

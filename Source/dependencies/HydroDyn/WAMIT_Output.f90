@@ -324,7 +324,7 @@ SUBROUTINE WMTOUT_Init( InitInp, y,  p, InitOut, ErrStat, ErrMsg )
          ErrStat = ErrID_Fatal
          RETURN
       END IF
-      y%WriteOutput = 0
+      y%WriteOutput = 0.0_ReKi
       
         ALLOCATE ( InitOut%WriteOutputHdr(p%NumOuts), STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN

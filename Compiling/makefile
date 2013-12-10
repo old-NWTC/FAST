@@ -59,12 +59,14 @@ endif
 
    # Name of compiler to use and flags to use.
 FC      = gfortran
-# FFLAGS  = -O2 -m$(BITS) -fbacktrace -finit-local-zero -fno-automatic -ffree-line-length-none -x f95-cpp-input
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds
+#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
+
 LDFLAGS = -O2 -m$(BITS) -fbacktrace -llapack -lblas -L$(LAPACK_DIR)
 
 # other useful gfortran options:
-#  -fdefault-real-8 -fcheck=bounds -std=f2003 -O0 -v
+#  -fdefault-real-8 -fcheck=bounds -std=f2003 -O0 -v -Wall
+# http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
 
 
    # Precision.

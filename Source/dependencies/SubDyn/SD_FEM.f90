@@ -50,7 +50,7 @@ SUBROUTINE NodeCon(Init,p, ErrStat, ErrMsg)
    SortA(Init%MaxMemjnt,2) = 0                                                                                            
                                                                                                                           
    DO I = 1, Init%NNode                                                                                                   
-      Init%NodesConnN(I, 1) = Init%Nodes(I, 1)      !This should not be needed, could remove the extra 1st column like for the other array                                                                      
+      Init%NodesConnN(I, 1) = NINT( Init%Nodes(I, 1) )      !This should not be needed, could remove the extra 1st column like for the other array                                                                      
                                                                                                                           
       k = 0                                                                                                               
       DO J = 1, Init%NElem                          !This should be vectorized                                                                      
@@ -290,7 +290,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
   
    ! Change numbering in concentrated mass matrix
    DO I = 1, Init%NCMass
-      Node1 = Init%CMass(I, 1)
+      Node1 = NINT( Init%CMass(I, 1) )
       DO J = 1, Init%NJoints
          IF ( Node1 == Init%Joints(J, 1) ) THEN
             Init%CMass(I, 1) = J
@@ -784,7 +784,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
       ErrStat = ErrID_Fatal
       RETURN
    ENDIF
-   Init%K = 0
+   Init%K = 0.0_ReKi
 
    ! allocate system mass matrix
    ALLOCATE( Init%M(Init%TDOF, Init%TDOF), STAT=Sttus)
@@ -793,7 +793,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
       ErrStat = ErrID_Fatal
       RETURN
    ENDIF
-   Init%M = 0
+   Init%M = 0.0_ReKi
    
       ! allocate system gravity force vector
    ALLOCATE( Init%FG(Init%TDOF), STAT=Sttus)
@@ -802,7 +802,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
       ErrStat = ErrID_Fatal
       RETURN
    ENDIF
-   Init%FG = 0
+   Init%FG = 0.0_ReKi
 
    
    ! allocate node number in element array
@@ -997,11 +997,11 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
 !   ! add concentrated mass (compressed row format)
 !   DO I = 1, Init%NCMass
 !      DO J = 1, 3
-!          r = ( Init%CMass(I, 1) - 1 )*6 + J
+!          r = ( NINT( Init%CMass(I, 1) ) - 1 )*6 + J
 !          Init%M(Init%IA(r)) = Init%M(Init%IA(r)) + Init%CMass(I, 2)
 !      ENDDO
 !      DO J = 4, 6
-!          r = ( Init%CMass(I, 1) - 1 )*6 + J
+!          r = ( NINT( Init%CMass(I, 1) ) - 1 )*6 + J
 !          Init%M(Init%IA(r)) = Init%M(Init%IA(r)) + Init%CMass(I, J-1)
 !      ENDDO
 !
@@ -1012,12 +1012,12 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
       ! add concentrated mass 
    DO I = 1, Init%NCMass
       DO J = 1, 3
-          r = ( Init%CMass(I, 1) - 1 )*6 + J
+          r = ( NINT(Init%CMass(I, 1)) - 1 )*6 + J
           Init%M(r, r) = Init%M(r, r) + Init%CMass(I, 2)
           
       ENDDO
       DO J = 4, 6
-          r = ( Init%CMass(I, 1) - 1 )*6 + J
+          r = ( NINT(Init%CMass(I, 1)) - 1 )*6 + J
           Init%M(r, r) = Init%M(r, r) + Init%CMass(I, J-1)
       ENDDO
 
@@ -1026,7 +1026,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
       ! add concentrated mass induced gravity force
    DO I = 1, Init%NCMass
       
-      r = ( Init%CMass(I, 1) - 1 )*6 + 3
+      r = ( NINT(Init%CMass(I, 1)) - 1 )*6 + 3
       Init%FG(r) = Init%FG(r) - Init%CMass(I, 2)*Init%g !TODO Changed this sign for concentrated load because now g is positive. GJH 5/6/13
 
    ENDDO ! I concentrated mass induced gravity
@@ -1316,7 +1316,7 @@ SUBROUTINE ApplyConstr(Init,p)
       
          Init%M(row_n, :) = 0
          Init%M(:, row_n) = 0
-         Init%M(row_n, row_n) = 0!0.00001          !what is this???? I changed this to 0.  RRD 7/31
+         Init%M(row_n, row_n) = 0 !0.00001          !what is this???? I changed this to 0.  RRD 7/31
       ENDIF
       
    ENDDO ! I
