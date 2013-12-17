@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-11-25 12:35:40 -0700 (Mon, 25 Nov 2013) $
-! (File) Revision #: $Rev: 231 $
+! File last committed: $Date: 2013-12-12 14:03:05 -0700 (Thu, 12 Dec 2013) $
+! (File) Revision #: $Rev: 238 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -4039,31 +4039,32 @@ p%OutAllDims=12*p%Nmembers*2    !size of AllOut Member Joint forces
  
       p%MOutLst3(I)%Noutcnt=p%Reacts(I,1) !Assign nodeID for list I, I am using Noutcnt as a temporary holder for it, since nodeID is n array
       
-      ALLOCATE( p%MOutLst3(I)%NodeIDs(Init%Ndiv+1), STAT = ErrStat )  !
-       IF ( ErrStat/= 0 ) THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = 'Error allocating p%MOutLst3(I)%NodeIDs arrays in SDOut_Init'
-         RETURN
-       END IF
-       
-      p%MOutLst3(I)%NodeIDs=Init%MemberNodes(I,1:Init%Ndiv+1)  !We are storing  the actual node numbers in the member
-       !Now I need to find out which elements are attached to those nodes and still belong to the member I
+      !Next stuff to be eliminated
+      !ALLOCATE( p%MOutLst3(I)%NodeIDs(Init%Ndiv+1), STAT = ErrStat )  !
+      ! IF ( ErrStat/= 0 ) THEN
+      !   ErrStat = ErrID_Fatal
+      !   ErrMsg  = 'Error allocating p%MOutLst3(I)%NodeIDs arrays in SDOut_Init'
+      !   RETURN
+      ! END IF
+      ! 
+      !p%MOutLst3(I)%NodeIDs=Init%MemberNodes(I,1:Init%Ndiv+1)  !We are storing  the actual node numbers in the member
+      !Now I need to find out which elements are attached to those nodes and still belong to the member I
       !ElmID2s could contain the same element twice if Ndiv=1
-      p%MOutLst3(I)%ElmID2s=0  !Initialize to 0
+      !p%MOutLst3(I)%ElmID2s=0  !Initialize to 0
       
           !I need to get ALL the elements that belong to the same joint
           !make use of MemberNodes and NodesConnE
           
       NconEls=Init%NodesConnE(p%MoutLst3(I)%Noutcnt,1) !Number of elements connecting to the joint
            
-       ALLOCATE( p%MOutLst3(I)%ElmIDs(1,NconEls), STAT = ErrStat )  !element IDs connecting to the joint
+       ALLOCATE( p%MOutLst3(I)%ElmIDs(1,NconEls), STAT = ErrStat )  !element IDs connecting to the joint; (1,NconEls) and not (NconEls) as the same meshauxtype is used with other Moutlst
        IF ( ErrStat/= 0 ) THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = 'Error allocating p%MOutLst3(I)%ElmIDs arrays in SDOut_Init'
          RETURN
        END IF
        
-       ALLOCATE( p%MOutLst3(I)%ElmNds(1,NconEls), STAT = ErrStat )  !element IDs connecting to the joint
+       ALLOCATE( p%MOutLst3(I)%ElmNds(1,NconEls), STAT = ErrStat )  !This array contains for each element connected to the joint, a flag that tells me whether the joint is node 1 or 2 for the elements
        IF ( ErrStat/= 0 ) THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = 'Error allocating p%MOutLst3(I)%ElmIDs arrays in SDOut_Init'
@@ -4092,7 +4093,7 @@ p%OutAllDims=12*p%Nmembers*2    !size of AllOut Member Joint forces
          DO K=1, NconEls 
               L=Init%NodesConnE(p%MoutLst3(I)%Noutcnt,k+1)  !k-th Element Number in the set of elements attached to the selected node 
               
-              p%MoutLst3(I)%ElmIDs(1,K)=L     !This array has for each joint requested  the elements to get results for  
+              p%MoutLst3(I)%ElmIDs(1,K)=L     !This array has for each joint requested  the elements' ID to get results for  
               
               M=p%Elems(L,2:3) !1st and 2nd node of the k-th element
              
@@ -4185,7 +4186,7 @@ SUBROUTINE ReactMatx(Init, p, ErrStat, ErrMsg)
     !Other rows done per column actually  
    DO I = 1, DOFC
       
-      n = p%Reacts(ceiling(I/6.0),1)  !Constrained Node ID
+      n = p%Reacts(ceiling(I/6.0),1)  !Constrained Node ID (this works in the reordered/renumbered p%Reacts)
       
       x = Init%Nodes(n, 2)
       y = Init%Nodes(n, 3)
@@ -4401,7 +4402,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
        
        ReactNs = 0.0 !Initialize
        
-       DO I=1,p%NReact   !Do for each constrained node
+       DO I=1,p%NReact   !Do for each constrained node, they are ordered as given in the input file and so as in the order of y2mesh
           
           FK_elm2=0 !Initialize
           FM_elm2=0 !Initialize
@@ -4437,8 +4438,15 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
                 ENDDO           
                 
              ENDDO
-             junk= FK_elm2 + FM_elm2  !Not sure why I need an intermediate step here, but the sum would not work otherwise
-             ReactNs((I-1)*6+1:6*I)=  junk  !Accumulate reactions from all nodes in GLOBAL COORDINATES
+             !junk= FK_elm2 ! + FM_elm2  !removed the inertial component 12/13 !Not sure why I need an intermediate step here, but the sum would not work otherwise
+             
+             !NEED TO ADD HYDRODYNAMIC FORCES AT THE RESTRAINT NODES
+             !   The joind iD of the reaction, i.e. thre reaction node ID is within p%MOutLst3(I)%Noutcnt
+             !The index in Y2mesh is? 
+             !Since constrained nodes are ordered as given in the input file and so as in the order of y2mesh, i Can do:
+             junk =  (/u%LMesh%Force(:,p%NNodes_I+p%NNodes_L+I),u%LMesh%Moment(:,p%NNodes_I+p%NNodes_L+I)/)
+                
+             ReactNs((I-1)*6+1:6*I)=FK_elm2 - junk  !Accumulate reactions from all nodes in GLOBAL COORDINATES
        ENDDO
        
           !NOW HERE I WOULD NEED TO PUT IT INTO AllOuts

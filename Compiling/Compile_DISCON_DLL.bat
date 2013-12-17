@@ -10,6 +10,9 @@ REM  Examples:
 REM    Compile_DISCON_DLL Discon 64
 REM    Compile_DISCON_DLL Discon_ITIBarge
 REM    Compile_DISCON_DLL Discon_OC3Hywind
+REM
+REM  Note that the FileName is assumed to end in .f90. It is also hard-coded to
+REM  look for the file in FilePath = ..\CertTest\5MW_Baseline\ServoData\Source\
 
 REM ----------------------------------------------------------------------------
 REM                   set compiler internal variables
@@ -49,6 +52,7 @@ REM ----------------------------------------------------------------------------
 
 SET FilePath=..\CertTest\5MW_Baseline\ServoData\Source\
 SET InFileName=%1
+rem SET OutFileName=%FilePath%..\%InFileName%%Suffix%
 SET OutFileName=%InFileName%%Suffix%
 SET InFileName=%FilePath%%InFileName%.f90
 

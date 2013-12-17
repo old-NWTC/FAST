@@ -635,12 +635,12 @@ SUBROUTINE HydroDyn_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherSt
       END DO
       
          
-
-      ! Update the WAMIT module states
+         
+         ! Update the WAMIT module states
       
       CALL WAMIT_UpdateStates( t, n, Inputs_WAMIT, InputTimes, p%WAMIT, x%WAMIT, xd%WAMIT, WAMIT_z, OtherState%WAMIT, ErrStat, ErrMsg )
-
-   !bjj: fix for memory leak:
+     
+!bjj: fix for memory leak:
       DO I=1,nTime
          CALL WAMIT_DestroyInput( Inputs_WAMIT(I), ErrStat, ErrMsg )     
       END DO
@@ -684,7 +684,7 @@ SUBROUTINE HydroDyn_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Er
          
       ErrStat = ErrID_None         
       ErrMsg  = ""               
-
+      
       
          ! Compute outputs here:
          
@@ -692,13 +692,12 @@ SUBROUTINE HydroDyn_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Er
          CALL WAMIT_CalcOutput( Time, u%WAMIT, p%WAMIT, x%WAMIT, xd%WAMIT,  &
                                 WAMIT_z, OtherState%WAMIT, y%WAMIT, ErrStat, ErrMsg )
       END IF
-
       
       IF ( u%Morison%LumpedMesh%Initialized ) THEN  ! Make sure we are using Morison / there is a valid mesh
          CALL Morison_CalcOutput( Time, u%Morison, p%Morison, Morison_x, Morison_xd,  &
                                 Morison_z, OtherState%Morison, y%Morison, ErrStat, ErrMsg )
       END IF
-
+      
          ! Write the HydroDyn-level output file data if the user requested module-level output
       IF ( p%OutSwtch == 1 .OR. p%OutSwtch == 3 ) THEN   
          CALL HDOut_WriteOutputs( Time, y, p, ErrStat, ErrMsg )         

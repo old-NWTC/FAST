@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-11-15 13:21:41 -0700 (Fri, 15 Nov 2013) $
-! (File) Revision #: $Rev: 292 $
+! File last committed: $Date: 2013-12-12 09:55:15 -0700 (Thu, 12 Dec 2013) $
+! (File) Revision #: $Rev: 293 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison

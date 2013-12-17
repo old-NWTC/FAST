@@ -10,8 +10,8 @@
    !                  Also updated to check that transform has been initialized for the
    !                    correct type (to avoid having wSave too small)
 !=======================================================================
-! File last committed: $Date: 2013-09-21 23:01:53 -0600 (Sat, 21 Sep 2013) $
-! (File) Revision #: $Rev: 199 $
+! File last committed: $Date: 2013-12-12 09:55:15 -0700 (Thu, 12 Dec 2013) $
+! (File) Revision #: $Rev: 293 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/FFTMod.f90 $
 !=======================================================================
 MODULE FFT_Module
@@ -99,7 +99,7 @@ MODULE FFT_Module
    TYPE, PUBLIC :: FFT_DataType
       PRIVATE
       REAL(ReKi)                       :: InvN          = 0.0_ReKi      ! Normalization constant
-      REAL(ReKi),   ALLOCATABLE        :: wSave(:)                      ! Working array for performing transforms
+      REAL(ReKi), ALLOCATABLE          :: wSave(:)                      ! Working array for performing transforms
       INTEGER                          :: N             = -1            ! Number of steps
       LOGICAL                          :: Normalize     = .FALSE.       ! Whether or not to normalize
       INTEGER                          :: TransformType = Undef_trans   ! the type of transfer function this is for

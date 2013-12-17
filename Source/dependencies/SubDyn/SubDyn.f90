@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-07 13:17:44 -0700 (Sat, 07 Dec 2013) $
-! (File) Revision #: $Rev: 236 $
+! File last committed: $Date: 2013-12-12 14:03:05 -0700 (Thu, 12 Dec 2013) $
+! (File) Revision #: $Rev: 238 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -33,10 +33,11 @@ Module SubDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.00.00a-rrd', '31-Oct-2013' )
+   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.00.00b-rrd', '12-Dec-2013' )
    TYPE CB_MatArrays !Matrices and arrays for CB summary
          INTEGER(IntKi)                                    ::  DOFM        !retained degrees of freedom (modes)
-         REAL(ReKi),  ALLOCATABLE                          ::  TI(:, :),TI2(:,:)   !TI matrix to refer the upper substructure node(s) to the reference point, and to refer to total mass to (0,0,0)
+         REAL(ReKi),  ALLOCATABLE                          ::  TI2(:,:)   !TI2 matrix to refer to total mass to (0,0,0)
+         !TI matrix to refer the upper substructure node(s) to the reference point has been moved back to p%TI alone
          REAL(ReKi),  ALLOCATABLE                          ::  MBB(:, :)  !FULL MBB ( no constraints applied)
          REAL(ReKi),  ALLOCATABLE                          ::  MBM(:, :)  !FULL MBM ( no constraints applied)
          REAL(ReKi),  ALLOCATABLE                          ::  KBB(:, :)  !FULL KBB ( no constraints applied)
@@ -215,7 +216,7 @@ SUBROUTINE CreateY2Meshes( NNode, JointsCol, Nodes, NNodes_I, IDI, NNodes_L, IDL
    DO I = 1,NNodes_L 
         
          ! Create the node on the mesh
-      nodeIndx = IDL(I*6) / 6     !integer division gives me the actual node index, is it true? Yes it is not the nodeID
+      nodeIndx = IDL(I*6) / 6     !integer division gives me the actual node index, is it true? Yes it is not the nodeID of the input file that may not be sequential, but the renumbered list of nodes
       
       CALL MeshPositionNode (   inputMesh           &
                               , I + NNodes_I        &
@@ -402,7 +403,7 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
          
    CALL SD_Discrt(Init,p, ErrStat, ErrMsg)
    IF ( ErrStat > ErrID_Warn ) THEN
-      CALL SDOut_CloseSum( Init%UnSum, ErrStat, ErrMsg )
+      CALL SDOut_CloseSum( Init%UnSum, ErrStat2, ErrMsg2 )
       RETURN
    END IF 
    
@@ -419,7 +420,7 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
          
    CALL AssembleKM(Init,p, ErrStat, ErrMsg)
    IF ( ErrStat > ErrID_Warn ) THEN
-      CALL SDOut_CloseSum( Init%UnSum, ErrStat, ErrMsg )
+      CALL SDOut_CloseSum( Init%UnSum, ErrStat2, ErrMsg2 )
       RETURN
    END IF 
     
@@ -473,7 +474,7 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
       
    CALL EigenSolve( Init%K, Init%M, Init%TDOF, FEMparams%NOmega, .True., Init, p, FEMparams%Modes, FEMparams%Omega, Init%RootName, ErrStat, ErrMsg )
    IF ( ErrStat > ErrID_Warn ) THEN
-      CALL SDOut_CloseSum( Init%UnSum, ErrStat, ErrMsg )
+      CALL SDOut_CloseSum( Init%UnSum, ErrStat2, ErrMsg2 )
       RETURN
    END IF 
    
@@ -543,7 +544,7 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
          
    CALL CreateTPMeshes( Init%TP_RefPoint, u%TPMesh, y%Y1Mesh, ErrStat, ErrMsg )
    IF ( ErrStat > ErrID_Warn ) THEN
-      CALL SDOut_CloseSum( Init%UnSum, ErrStat, ErrMsg )
+      CALL SDOut_CloseSum( Init%UnSum, ErrStat2, ErrMsg2 )
       RETURN
    END IF 
       
@@ -719,8 +720,8 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       REAL(ReKi)                                   :: Y1(6)
       INTEGER(IntKi)                               :: startDOF
       REAL(ReKi)                                   :: DCM(3,3),junk(6,p%NNodes_L)  
-      
-      
+      REAL(ReKi)                                   :: HydroForces(6*p%NNodes_I),HydroTP(6)  !Forces from all interface nodes listed in one big array and those translated to TP ref point
+                                                       
       ! Initialize ErrStat
       ErrStat = ErrID_None
       ErrMsg  = ""
@@ -761,6 +762,7 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
      
      ! --------------------------------------------------------------------------------- 
      ! Place the outputs onto interface node portion of Y2 output mesh                       ; This could likely be vectorized -RRD
+     ! ALSO USE THIS SAME LOOP TO PREPARE INPUT HYDRODYNAMIC FORCES TO GO INTO INTERFACE FORCES!
      ! ---------------------------------------------------------------------------------
       
       DO I = 1, p%NNodes_I 
@@ -777,6 +779,9 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          y%Y2mesh%RotationVel     (:,I)     = UR_bar_dot ( startDOF + 3 : startDOF + 5 )
          y%Y2mesh%TranslationAcc  (:,I)     = UR_bar_dotdot ( startDOF     : startDOF + 2 )
          y%Y2mesh%RotationAcc     (:,I)     = UR_bar_dotdot ( startDOF + 3 : startDOF + 5 )
+         
+         !Take care of Hydrodynamic Forces that will go into INterface Forces later
+         HydroForces((I-1)*6 + 1: I*6 ) =  (/u%LMesh%Force(:,I),u%LMesh%Moment(:,I)/)  !(6,NNODES_I)
          
      ENDDO
      
@@ -849,8 +854,12 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       Y1 = -( matmul(p%C1_11, x%qm)       + matmul(p%C1_12,x%qmdot)    + matmul(p%D1_11, u_TP) + &
               matmul(p%D1_13, udotdot_TP) + matmul(p%D1_14, UFL)       + p%FY )
       
-      y%Y1Mesh%Force (:,1) = Y1(1:3)
-      y%Y1Mesh%Moment(:,1) = Y1(4:6)
+      !NEED TO ADD HYDRODYNAMIC FORCES AT THE Interface NODES
+        !Aggregate the forces and moments at the interface nodes to the reference point
+      HydroTP =  matmul(transpose(p%TI),HydroForces) !RRD- TO CHECK SIGN HERE to be consistent with Y1, it may need a "+"
+                
+      y%Y1Mesh%Force (:,1) = Y1(1:3) +HydroTP(1:3)
+      y%Y1Mesh%Moment(:,1) = Y1(4:6) +HydroTP(4:6)
 
       
       
@@ -3119,13 +3128,14 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
    !IF( ALLOCATED(Init%K) ) DEALLOCATE(Init%K)
    !IF( ALLOCATED(Init%M) ) DEALLOCATE(Init%M)     
    
-   ! Allocate TI
-   ALLOCATE( CBparams%TI(DOFI, 6), STAT = ErrStat )
+   ! Allocate TI and store it into p%
+   ALLOCATE( p%TI(DOFI, 6), STAT = ErrStat )
    IF ( ErrStat/= ErrID_None ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating array CBparams%TI in SD_Init/TrnsfTI'
+      ErrMsg  = 'Error allocating array p%TI in SD_Init/TrnsfTI'
       RETURN
    END IF
+   
    ALLOCATE( CBparams%TI2(DOFR, 6), STAT = ErrStat )
    IF ( ErrStat/= ErrID_None ) THEN
       ErrStat = ErrID_Fatal
@@ -3133,10 +3143,10 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
       RETURN
    END IF   
    
-   CALL TrnsfTI(Init, CBparams%TI, DOFI, IDI, CBparams%TI2, DOFR, IDR, ErrStat, ErrMsg)
+   CALL TrnsfTI(Init, p%TI, DOFI, IDI, CBparams%TI2, DOFR, IDR, ErrStat, ErrMsg)
    IF ( ErrStat /= ErrID_None ) RETURN
    
-   CALL CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, CBparams%TI, DOFM, &
+   CALL CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, DOFM, &
                  CBparams%MBB, CBparams%MBM, CBparams%KBB, CBparams%PhiM, CBparams%PhiR, CBparams%OmegaM, ErrStat, ErrMsg, Init,p)
    IF ( ErrStat /= ErrID_None ) RETURN
    
@@ -3164,7 +3174,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
     !WRITE(15,'('//DOFIchar//'(e15.6))' ) ((KBBb(i,j),j=1,DOFI),i=1,DOFI)
     !CLOSE( 15, IOSTAT = ErrStat )
    
-   CALL SetParameters(Init, p, CBparams%TI, MBBb, MBmb, KBBb, FGRb, PhiRb, CBparams%OmegaM,  &
+   CALL SetParameters(Init, p, p%TI, MBBb, MBmb, KBBb, FGRb, PhiRb, CBparams%OmegaM,  &
                       FGL, CBparams%PhiM, IDI, IDR, IDL, IDC, &
                       DOFI, DOFR, DOFL, DOFM, DOFC, ErrStat, ErrMsg)
    IF ( ErrStat /= ErrID_None ) RETURN
@@ -3260,7 +3270,7 @@ SUBROUTINE BreakSysMtrx(Init, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, DOFR, DOFL
 END SUBROUTINE BreakSysMtrx
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
-SUBROUTINE CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, TI, &
+SUBROUTINE CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, &
                     DOFM, MBB, MBM, KBB, PhiM, PhiR, OmegaM, ErrStat, ErrMsg,Init,p)
    USE SubDyn_Types
    TYPE(SD_InitInputType),  INTENT(IN)       :: Init
@@ -3273,7 +3283,7 @@ SUBROUTINE CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, TI
    REAL(ReKi),             INTENT(  IN)  :: KRR(DOFR, DOFR)
    REAL(ReKi),             INTENT(  IN)  :: KLL(DOFL, DOFL)
    REAL(ReKi),             INTENT(  IN)  :: KRL(DOFR, DOFL)
-   REAL(ReKi),             INTENT(  IN)  :: TI(DOFI,     6)  ! RRD this should not be used at all here
+   !REAL(ReKi),             INTENT(  IN)  :: TI(DOFI,     6)  ! RRD this should not be used at all here
    
    REAL(ReKi),             INTENT(  IN)  :: FGR(DOFR)
    REAL(ReKi),             INTENT(  IN)  :: FGL(DOFL)
@@ -3290,7 +3300,7 @@ SUBROUTINE CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, TI
    CHARACTER(1024),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
    ! LOCAL VARIABLES
-   real(ReKi)              :: Temp_RL(DOFR,DOFL)  ! temporary matrix
+!   real(ReKi)              :: Temp_RL(DOFR,DOFL)  ! temporary matrix
    !REAL(DbKi)             :: PhiT(DOFL, DOFL)  
    REAL(ReKi)             :: PhiT(DOFL, DOFL)  
    !REAL(DbKi)             :: OmegaT(DOFL)   
@@ -3536,7 +3546,7 @@ SUBROUTINE TrnsfTI(Init, TI, DOFI, IDI, TI2, DOFR, IDR, ErrStat, ErrMsg)
             
          CASE DEFAULT
             ErrStat = ErrID_Fatal
-            ErrMsg  = 'Error calculating transformation matrix TI '
+            ErrMsg  = 'Error calculating transformation matrix TI2 '
             RETURN
          END SELECT 
    ENDDO
@@ -3779,7 +3789,6 @@ SUBROUTINE EigenSolve(K, M, TDOF, NOmega, Reduced, Init,p, Phi, Omega, RootName,
         KEY(I)=I 
     ENDDO  
    
-!    CALL DLASRT2('I',N,Omega2,key,INFO)
     CALL ScaLAPACK_LASRT('I',N,Omega2,key,ErrStat,ErrMsg)
     IF (ErrStat /= ErrID_None) RETURN
     
@@ -4064,6 +4073,14 @@ SUBROUTINE SetParameters(Init, p, TI, MBBb, MBmb, KBBb, FGRb, PhiRb, OmegaM,  &
    !CALL SymMatDebug(p%TPdofL,REAL(MBBt,ReKi))!debug
    
    ! Allocate parameter matrices in p
+       ! Allocate TI : note this was already available as CBparams%TI, but calc_output needs it too.Moved back to p%TI alone -RRD
+   !ALLOCATE( p%TI(DOFI, p%TPdofL), STAT = ErrStat )
+   !IF ( ErrStat/= ErrID_None ) THEN
+   !   ErrStat = ErrID_Fatal
+   !   ErrMsg  = 'Error allocating parameter matrix p%TI in SD_Init/Set parameters'
+   !   RETURN
+   !END IF   
+   !p%TI = TI
    
       ! Allocate MBB
    ALLOCATE( p%MBB(p%TPdofL, p%TPdofL), STAT = ErrStat )
@@ -4803,7 +4820,7 @@ SUBROUTINE OutSummary(Init, p, FEMparams,CBparams, ErrStat,ErrMsg)
     WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
     WRITE(Init%UnSum, '(A)') 'TP refpoint Tranformation Matrix TI '
     WRITE(Init%UnSum, '(A, I4,A,I4)') 'TI', p%DOFI,'x', 6
-    WRITE(Init%UnSum, '(6(e15.6))') ((CBparams%TI(i,j),j=1,6),i=1,p%DOFI)
+    WRITE(Init%UnSum, '(6(e15.6))') ((p%TI(i,j),j=1,6),i=1,p%DOFI)
     !--------------------------------------
     ! write CB system KBBt and MBBt matrices, eq stiffness matrices of the entire substructure at the TP ref point
    

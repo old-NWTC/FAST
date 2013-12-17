@@ -1,6 +1,6 @@
 ##################	Registry	for	SubDyn	###############
-# File last committed: $Date: 2013-11-22 14:18:09 -0700 (Fri, 22 Nov 2013) $
-# (File) Revision #: $Rev: 227 $
+# File last committed: $Date: 2013-12-12 11:46:04 -0700 (Thu, 12 Dec 2013) $
+# (File) Revision #: $Rev: 237 $
 # URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Registry.txt $
 ###################################################################################################################################
 #	column	1	<keyword>
@@ -180,6 +180,7 @@ typedef	 ^	                 ^               ReKi	    	MBM         {:}{:}	-	-	Mat
 typedef	 ^	                 ^               ReKi	    	PHI_R         {:}{:}	-	-	Matrix after C-B reduction
 typedef	 ^	                 ^               ReKi	    	PHI_M         {:}{:}	-	-	Matrix after C-B reduction
 typedef	 ^	                 ^               ReKi	    	AM2InvJac    {:}{:}	-	-	Inverse Jacobian for Adams-Boulton 2nd order Integration
+typedef	 ^	                 ^               ReKi	    	TI           {:}{:}	-	-	Matrix to calculate TP reference point reaction at top of structure
 typedef	 ^	                 ^               ReKi	    	TIreact      {:}{:}	-	-	Matrix to calculate single point reaction at base of structure
 typedef	 ^			 ^	         IntKi	        NModes	       -	-	-	Number of modes to retain in C-B method
 typedef	 ^	                 ^	         IntKi   	Elems	      {:}{:}	-	-	Element nodes connections

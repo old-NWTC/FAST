@@ -116,9 +116,9 @@ SET NWTC_SOURCES=^
  "%NWTC_Lib_Loc%\NWTC_Library.f90"
 
 SET NETLIB_SOURCES=^
- "%NETLIB_Loc%\DLASRT2.f"^
- "%NETLIB_Loc%\SLASRT2.f"
- "%NETLIB_Loc%\NWTC_ScaLAPACK.f90"
+ "%NETLIB_Loc%\DLASRT2.f" ^
+ "%NETLIB_Loc%\SLASRT2.f" ^
+ "%NETLIB_Loc%\NWTC_ScaLAPACK.f90" ^
  "%NETLIB_Loc%\NWTC_LAPACK.f90"
 
 SET IfW_SOURCES=^
@@ -280,7 +280,7 @@ rem NOTE that I'm compiling the modules separately then linking them later. I sp
 
 ECHO %Lines%
 ECHO Compiling NWTC Library:
-ifort %COMPOPTS% %NWTC_SOURCES% %NETLIB_SOURCE% /Qmkl:sequential  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+ifort %COMPOPTS% %NWTC_SOURCES% %NETLIB_SOURCES% /Qmkl:sequential  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 ECHO %Lines%

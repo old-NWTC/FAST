@@ -3,6 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
+! FAST Registry (v2.01.02, 16-Dec-2013)
 !*********************************************************************************************************************************
 ! HydroDyn_Types
 !.................................................................................................................................
@@ -1963,7 +1964,7 @@ ENDIF
   CALL Morison_UnPackOutput( Re_Morison_Buf, Db_Morison_Buf, Int_Morison_Buf, OutData%Morison, ErrStat, ErrMsg ) ! Morison 
   IF ( ALLOCATED(OutData%WriteOutput) ) THEN
   ALLOCATE(mask1(SIZE(OutData%WriteOutput,1))); mask1 = .TRUE.
-    OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
+    OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,REAL(OutData%WriteOutput,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
   ENDIF

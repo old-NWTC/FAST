@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-11-12 16:57:49 -0700 (Tue, 12 Nov 2013) $
-! (File) Revision #: $Rev: 289 $
+! File last committed: $Date: 2013-12-12 09:55:15 -0700 (Thu, 12 Dec 2013) $
+! (File) Revision #: $Rev: 293 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -1430,7 +1430,6 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
 
          DO J = 1,NWaveKin0Prime ! Loop through all points where the incident wave kinematics will be computed without stretching
 
-            !bjj: we've got some type conversions going on here... do we need REAL() around EXP()???
             WaveElevxiPrime0 = EXP( -ImagNmbr*WaveNmbr*(InitInp%WaveKinxi0(WaveKinPrimeMap(J))*CWaveDir + InitInp%WaveKinyi0(WaveKinPrimeMap(J))*SWaveDir))
             WaveDynPC0 (I,J) = InitOut%RhoXg*tmpComplex*WaveElevxiPrime0 * &
                                        COSHNumOvrCOSHDen ( WaveNmbr, InitInp%WtrDpth, WaveKinzi0Prime(J) )       

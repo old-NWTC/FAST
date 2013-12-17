@@ -3,6 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
+! FAST Registry (v2.01.02, 16-Dec-2013)
 !*********************************************************************************************************************************
 ! InflowWind_Types
 !.................................................................................................................................
@@ -1060,7 +1061,7 @@ ENDIF
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%Position) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Position,1),SIZE(OutData%Position,2))); mask2 = .TRUE.
-    OutData%Position = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Position))-1 ),mask2,OutData%Position)
+    OutData%Position = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Position))-1 ),mask2,REAL(OutData%Position,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Position)
   ENDIF
@@ -1212,13 +1213,13 @@ ENDIF
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%Velocity) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Velocity,1),SIZE(OutData%Velocity,2))); mask2 = .TRUE.
-    OutData%Velocity = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Velocity))-1 ),mask2,OutData%Velocity)
+    OutData%Velocity = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Velocity))-1 ),mask2,REAL(OutData%Velocity,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Velocity)
   ENDIF
   IF ( ALLOCATED(OutData%WriteOutput) ) THEN
   ALLOCATE(mask1(SIZE(OutData%WriteOutput,1))); mask1 = .TRUE.
-    OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
+    OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,REAL(OutData%WriteOutput,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
   ENDIF

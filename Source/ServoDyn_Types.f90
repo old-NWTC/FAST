@@ -3,6 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
+! FAST Registry (v2.01.02, 16-Dec-2013)
 !*********************************************************************************************************************************
 ! ServoDyn_Types
 !.................................................................................................................................
@@ -969,8 +970,8 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%avrSWAP) ) THEN
-    OutData%avrSWAP = ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%avrSWAP))-1 )
-!    OutData%avrSWAP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%avrSWAP))-1 ),mask1,OutData%avrSWAP)
+  ALLOCATE(mask1(SIZE(OutData%avrSWAP,1))); mask1 = .TRUE.
+    OutData%avrSWAP = REAL( UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%avrSWAP))-1 ),mask1,REAL(OutData%avrSWAP,ReKi)), SiKi)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%avrSWAP)
   ENDIF

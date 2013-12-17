@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-10-14 13:37:41 -0600 (Mon, 14 Oct 2013) $
-! (File) Revision #: $Rev: 196 $
+! File last committed: $Date: 2013-12-12 14:03:05 -0700 (Thu, 12 Dec 2013) $
+! (File) Revision #: $Rev: 238 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM
@@ -92,7 +92,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
    INTEGER(4)                    :: Sttus
    INTEGER                       :: TempNProp
    REAL(ReKi), ALLOCATABLE       :: TempProps(:, :)
-   INTEGER, ALLOCATABLE          :: TempMembers(:, :)          
+   INTEGER, ALLOCATABLE          :: TempMembers(:, :) ,TempReacts(:,:)         
    CHARACTER(1024)               :: OutFile
    CHARACTER(  50)               :: tempStr ! string number of nodes in member
    CHARACTER(1024)               :: OutFmt
@@ -230,23 +230,36 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
       RETURN
    ENDIF
    Init%BCs = 0
-      
+   
+    !Allocate array that will be p%Reacts renumbered and ordered so that ID does not play a role, just ordinal position number will count -RRD
+   ALLOCATE(TempReacts(p%NReact, Init%ReactCol), STAT=Sttus)
+   IF ( Sttus /= 0 )  THEN
+      ErrMsg = ' Error allocating TempReacts arrays'
+      ErrStat = ErrID_Fatal
+      RETURN
+   ENDIF
+   TempReacts=0 !INitialize -RRD
+
    DO I = 1, p%NReact
-      Node1 = p%Reacts(I, 1);
+      Node1 = p%Reacts(I, 1);  !NODE ID
+      TempReacts(I,2:Init%ReactCol)=p%Reacts(I, 2:Init%ReactCol)  !Assign all the appropriate fixity to the new Reacts array -RRD
+      
       flg = 0
       DO J = 1, Init%NJoints
          IF ( Node1 == Init%Joints(J, 1) ) THEN
             Node2 = J
             flg = 1
+            TempReacts(I,1)=Node2      !New node ID for p!React  -RRD
+            EXIT  !Exit J loop if node found -RRD
          ENDIF
       ENDDO
       
       IF (flg == 0) THEN
-         ErrMsg = ' Interf has node not in the node list !'
+         ErrMsg = ' React has node not in the node list !'
          ErrStat = ErrID_Fatal
          RETURN
       ENDIF
-
+      
       
       DO J = 1, 6
          Init%BCs( (I-1)*6+J, 1) = (Node2-1)*6+J;
@@ -254,7 +267,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
       ENDDO
       
    ENDDO
-   
+   p%Reacts=TempReacts   !UPDATED REACTS
       
    ! Initialize interface constraint vector
    ! Change the node number
@@ -429,6 +442,7 @@ Init%Props(1:kprop, 1:Init%PropSetsCol) = TempProps
 ! deallocate temp matrices
 IF (ALLOCATED(TempProps)) DEALLOCATE(TempProps)
 IF (ALLOCATED(TempMembers)) DEALLOCATE(TempMembers)
+IF (ALLOCATED(TempReacts)) DEALLOCATE(TempReacts)
 
 END SUBROUTINE SD_Discrt
 !------------------------------------------------------------------------------------------------------
