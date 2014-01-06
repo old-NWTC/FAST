@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-11-26 22:34:06 -0700 (Tue, 26 Nov 2013) $
-! (File) Revision #: $Rev: 185 $
+! File last committed: $Date: 2014-01-04 21:43:08 -0700 (Sat, 04 Jan 2014) $
+! (File) Revision #: $Rev: 207 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh.f90 $
 !**********************************************************************************************************************************
 MODULE ModMesh
@@ -85,7 +85,9 @@ CONTAINS
       !...........
       ! Write nodal information:
       !...........
-
+      
+      IF (.NOT. M%Initialized) RETURN
+      
       WRITE (UnIn, IOSTAT=ErrStat2)   M%Position
          IF ( ErrStat2 /= 0 ) THEN
             CALL CheckError( ErrID_Fatal, 'Error writing Position to the mesh binary file.' )
@@ -222,15 +224,16 @@ CONTAINS
 
    SUBROUTINE MeshPrintInfo ( U, M, N)
      INTEGER, INTENT(IN   )                ::      U  ! fortran output unit
-     TYPE(MeshType),INTENT(INOUT)          ::      M  ! mesh to be reported on
+     TYPE(MeshType),INTENT(IN   )          ::      M  ! mesh to be reported on
      INTEGER, OPTIONAL,INTENT(IN   )       ::      N  ! Number to print, default 5
     ! Local
      INTEGER isz,i,j,nn,CtrlCode,Ielement,Xelement
      INTEGER                    :: ErrStat
      CHARACTER(256)             :: ErrMess
 
-     nn = 5
-     IF (PRESENT(N)) nn = N
+     ErrStat = ErrID_None
+     nn = M%Nnodes !5
+     IF (PRESENT(N)) nn = min(nn,N)
 
      write(U,*)'-----------  MeshPrintInfo:  -------------'
 
@@ -357,33 +360,46 @@ CONTAINS
        ENDDO
      ENDIF
      write(U,*)'--------- Traverse Element List ----------'
-     CtrlCode = 0
-     CALL MeshNextElement( M, CtrlCode, ErrStat, ErrMess, Ielement=Ielement, Xelement=Xelement )
-     IF (ErrStat >= AbortErrLev) THEN
-        WRITE(U,*) ' Error in MeshNextElement(): '
-        WRITE(U,*) TRIM(ErrMess)
-        CtrlCode = MESH_NOMORE
-      END IF
-
-     DO WHILE ( CtrlCode .NE. MESH_NOMORE )
-
-       WRITE(U,'("  Ielement: ",I10,1x,A," det_jac: ",ES15.7," Nodes:",'//&
+     
+     DO Ielement=1,M%nelemlist
+        Xelement = M%ElemList(Ielement)%Element%Xelement
+        
+        WRITE(U,'("  Ielement: ",I10,1x,A," det_jac: ",ES15.7," Nodes:",'//&
                 Num2LStr( size(M%ElemList(Ielement)%Element%ElemNodes) )//'(1x,I10))') &
                     Ielement,&
                     ElemNames(Xelement), &
                     M%ElemList(Ielement)%Element%det_jac,  &
-                    M%ElemList(Ielement)%Element%ElemNodes
-       
-       
-       CtrlCode = MESH_NEXT
-       CALL MeshNextElement( M, CtrlCode, ErrStat, ErrMess, Ielement=Ielement, Xelement=Xelement )
-        IF (ErrStat >= AbortErrLev) THEN
-           WRITE(U,*) ' Error in MeshNextElement(): '
-           WRITE(U,*) TRIM(ErrMess)
-           RETURN
-         END IF
+                    M%ElemList(Ielement)%Element%ElemNodes                      
+     END DO 
+     
+     
+     !CtrlCode = 0
+     !CALL MeshNextElement( M, CtrlCode, ErrStat, ErrMess, Ielement=Ielement, Xelement=Xelement )
+     !IF (ErrStat >= AbortErrLev) THEN
+     !   WRITE(U,*) ' Error in MeshNextElement(): '
+     !   WRITE(U,*) TRIM(ErrMess)
+     !   CtrlCode = MESH_NOMORE
+     ! END IF
 
-     ENDDO
+     !DO WHILE ( CtrlCode .NE. MESH_NOMORE )
+     !
+     !  WRITE(U,'("  Ielement: ",I10,1x,A," det_jac: ",ES15.7," Nodes:",'//&
+     !           Num2LStr( size(M%ElemList(Ielement)%Element%ElemNodes) )//'(1x,I10))') &
+     !               Ielement,&
+     !               ElemNames(Xelement), &
+     !               M%ElemList(Ielement)%Element%det_jac,  &
+     !               M%ElemList(Ielement)%Element%ElemNodes
+     !  
+     !  
+     !  CtrlCode = MESH_NEXT
+     !  CALL MeshNextElement( M, CtrlCode, ErrStat, ErrMess, Ielement=Ielement, Xelement=Xelement )
+     !   IF (ErrStat >= AbortErrLev) THEN
+     !      WRITE(U,*) ' Error in MeshNextElement(): '
+     !      WRITE(U,*) TRIM(ErrMess)
+     !      RETURN
+     !    END IF
+     !
+     !ENDDO
      write(U,*)'---------  End of Element List  ----------'
 
    END SUBROUTINE MeshPrintInfo
@@ -988,11 +1004,11 @@ CONTAINS
      CHARACTER(*),                INTENT(  OUT) :: ErrMess
 
    ! Local
-     LOGICAL Force, Moment, Orientation, TranslationDisp, TranslationVel, RotationVel, TranslationAcc, RotationAcc, AddedMass
+     LOGICAL Force, Moment, Orientation, TranslationDisp, TranslationVel, RotationVel, TranslationAcc, RotationAcc
      INTEGER nScalars
      INTEGER i,ic,nelem,n_int,n_re,n_db,l,ii,jj,CtrlCode,x,nelemnodes
      INTEGER Ielement, Xelement
-     TYPE(ElemRecType), POINTER :: ElemRec
+     !TYPE(ElemRecType), POINTER :: ElemRec
 
      Force = .FALSE.
      Moment = .FALSE.
@@ -1502,7 +1518,7 @@ CONTAINS
        ErrStat = ErrID_Fatal
        ErrMess = "MeshPositionNode: Position array not associated"
      ENDIF
-     IF ( .NOT. SIZE(Mesh%Position,2) .EQ. Mesh%Nnodes ) THEN
+     IF ( .NOT. SIZE(Mesh%Position,2) .GE. Mesh%Nnodes ) THEN
        ErrStat = ErrID_Fatal
        ErrMess = "MeshPositionNode: Position array not big enough"
      ENDIF
@@ -1510,7 +1526,7 @@ CONTAINS
        ErrStat = ErrID_Fatal
        ErrMess = "MeshPositionNode: RefOrientation array not associated"
      ENDIF
-     IF ( .NOT. SIZE(Mesh%RefOrientation,3) .EQ. Mesh%Nnodes ) THEN
+     IF ( .NOT. SIZE(Mesh%RefOrientation,3) .GE. Mesh%Nnodes ) THEN
        ErrStat = ErrID_Fatal
        ErrMess = "MeshPositionNode: RefOrientation array not big enough"
      ENDIF
@@ -1583,6 +1599,28 @@ CONTAINS
          RETURN  ! Early return
       END IF
 
+      IF ( .NOT. ANY(Mesh%FieldMask) ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMess = "MeshCommit: Mesh does not contain any fields."
+         RETURN
+      END IF
+         
+      
+     ! make sure the arrays are allocated properly...
+      IF ( SIZE(Mesh%Position,2) < Mesh%Nnodes) THEN
+         ErrStat = ErrID_Fatal
+         ErrMess = "MeshCommit: Position array smaller than number of nodes."
+         RETURN  ! Early return
+      ELSEIF ( SIZE(Mesh%Position,2) > Mesh%Nnodes ) THEN
+         
+         ! bjj: need to get rid of the extra storage so that this doesn't cause errors in MeshCopy....
+         
+         
+      END IF
+        
+      
+      
+      
      ! Construct list of elements
 
 
@@ -1625,6 +1663,12 @@ CONTAINS
                      - Mesh%Position(:,Mesh%ElemTable(ELEMENT_LINE2)%Elements(j)%ElemNodes(1))
 
         Mesh%ElemTable(ELEMENT_LINE2)%Elements(J)%det_jac  = 0.5_ReKi * SQRT( DOT_PRODUCT(n1_n2_vector,n1_n2_vector) )   ! = L / 2
+        
+        IF ( EqualRealNos( Mesh%ElemTable(ELEMENT_LINE2)%Elements(J)%det_jac, 0.0_Reki ) ) THEN
+           ErrStat = ErrID_Fatal
+           ErrMess = " MeshCommit: Line2 element has 0 length."
+           RETURN
+        END IF
 
      END DO
 
@@ -1705,7 +1749,7 @@ CONTAINS
     ! Safety first
      IF ( .NOT. Mesh%Initialized ) THEN
        ErrStat = ErrID_Fatal
-       ErrMess = "MeshConstructElement_1PT: attempt to use uncreated mesh."
+       ErrMess = "MeshConstructElement_2PT: attempt to use uncreated mesh."
      ELSEIF ( P1 .LT. 1 .OR. P1 .GT. Mesh%Nnodes .OR. &
           P2 .LT. 1 .OR. P2 .GT. Mesh%Nnodes ) THEN
        ErrStat = ErrID_Fatal
@@ -1858,6 +1902,61 @@ CONTAINS
      ErrMess = 'MeshConstructElement_20PT not supported'
    END SUBROUTINE MeshConstructElement_20PT
 
+!................................................................                                                                                                                                                      
+   SUBROUTINE MeshSplitElement_2PT( Mesh, Xelement, ErrStat, ErrMess, E1, P1  )
+      TYPE(MeshType),              INTENT(INOUT) :: Mesh      ! Mesh being constructed
+      INTEGER(IntKi),              INTENT(IN)    :: Xelement  ! See Element Names
+      INTEGER(IntKi),              INTENT(OUT)   :: ErrStat   ! Error code
+      CHARACTER(*),                INTENT(OUT)   :: ErrMess   ! Error message
+      INTEGER,                     INTENT(IN   ) :: E1        ! number of element in Element Table
+      INTEGER,                     INTENT(IN   ) :: P1        ! node number
+
+      
+      IF ( mesh_debug ) print*,'Called MeshSplitElement_2PT'
+      ErrStat = ErrID_None
+      ErrMess = ""
+      
+      ! Safety first
+      IF ( Xelement .NE. ELEMENT_LINE2 ) THEN
+         ErrMess = 'MeshSplitElement_2PT called for invalid element type.'
+         ErrStat = ErrID_Fatal        
+      ELSEIF ( .NOT. Mesh%Initialized ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMess = "MeshSplitElement_2PT: attempt to use uncreated mesh."
+      ELSEIF ( P1 .LT. 1 .OR. P1 .GT. Mesh%Nnodes ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMess ="MeshSplitElement_2PT: invalid P1 ("//TRIM(Num2LStr(P1))//") for mesh with "//TRIM(Num2LStr(Mesh%Nnodes))//" nodes."
+      ELSEIF ( E1 .LT. 1 .OR. E1 .GT. Mesh%ElemTable(ELEMENT_LINE2)%nelem ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMess ="MeshSplitElement_2PT: invalid E1 ("//TRIM(Num2LStr(E1))//") for mesh with "//TRIM(Num2LStr(Mesh%ElemTable(ELEMENT_LINE2)%nelem))//" Line2 elements."
+      ELSEIF (Mesh%Committed ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMess = " MeshSplitElement_2PT: attempt to add element to committed mesh."
+      ELSEIF ( Mesh%ElemTable(ELEMENT_LINE2)%Elements(E1)%ElemNodes(1) == P1 .OR. &
+              Mesh%ElemTable(ELEMENT_LINE2)%Elements(E1)%ElemNodes(2) == P1 ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMess ="MeshSplitElement_2PT: node P1 ("//TRIM(Num2LStr(P1))//") is already a node of element E1 ("//TRIM(Num2LStr(E1))//")."                
+      ENDIF
+     
+      IF ( ErrStat .NE. ErrID_None ) THEN
+         CALL WrScr( TRIM(ErrMess) )
+         RETURN  !  early return on error
+      ENDIF
+               
+     
+    ! Business
+      ! E1 currently has nodes (n1,n2):
+      ! Create a new element with nodes (p1,n2):
+      CALL MeshConstructElement( Mesh, Xelement, ErrStat, ErrMess, p1=P1, p2=Mesh%ElemTable(ELEMENT_LINE2)%Elements(E1)%ElemNodes(2))
+    
+         ! Make element E1 now have nodes (n1,p1):
+      Mesh%ElemTable(ELEMENT_LINE2)%Elements(E1)%ElemNodes(2) = P1
+    
+      RETURN
+       
+   END SUBROUTINE MeshSplitElement_2PT
+!................................................................                                                                           
+                                                                           
    SUBROUTINE MeshNextElement ( Mesh, CtrlCode, ErrStat, ErrMess, Ielement, Xelement, ElemRec )
      TYPE(MeshType),              INTENT(INOUT) :: Mesh      ! Mesh being constructed
      INTEGER(IntKi),              INTENT(INOUT) :: CtrlCode  ! CtrlCode

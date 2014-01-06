@@ -7891,7 +7891,7 @@ SUBROUTINE ValidatePrimaryData( InputFileData, ErrStat, ErrMsg )
 
       ! check these angles for appropriate ranges:
    IF ( ( InputFileData%NacYaw <= -pi ) .OR. ( InputFileData%NacYaw > pi ) ) &
-      CALL SetErrors( ErrID_Fatal, 'NacYaw must be in the range (-pi, pi] radians (i.e., (-90, 90] degrees).' )
+      CALL SetErrors( ErrID_Fatal, 'NacYaw must be in the range (-pi, pi] radians (i.e., (-180, 180] degrees).' )
    IF ( ( InputFileData%Azimuth  < 0.0_ReKi ) .OR. ( InputFileData%Azimuth  >= TwoPi ) ) &
       CALL SetErrors( ErrID_Fatal, 'Azimuth must be in the range [0, 2pi) radians (i.e., [0, 360) degrees).' )
    IF ( ( InputFileData%AzimB1Up < 0.0_ReKi ) .OR. ( InputFileData%AzimB1Up >= TwoPi ) )  &

@@ -674,32 +674,32 @@ ENDIF
   Int_Xferred   = Int_Xferred   + SIZE(OutData%ElmNd2s)
   IF ( ALLOCATED(OutData%Me) ) THEN
   ALLOCATE(mask4(SIZE(OutData%Me,1),SIZE(OutData%Me,2),SIZE(OutData%Me,3),SIZE(OutData%Me,4))); mask4 = .TRUE.
-    OutData%Me = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Me))-1 ),mask4,REAL(OutData%Me,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Me = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Me))-1 ),mask4,OutData%Me)
   DEALLOCATE(mask4)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Me)
   ENDIF
   IF ( ALLOCATED(OutData%Ke) ) THEN
   ALLOCATE(mask4(SIZE(OutData%Ke,1),SIZE(OutData%Ke,2),SIZE(OutData%Ke,3),SIZE(OutData%Ke,4))); mask4 = .TRUE.
-    OutData%Ke = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Ke))-1 ),mask4,REAL(OutData%Ke,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Ke = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Ke))-1 ),mask4,OutData%Ke)
   DEALLOCATE(mask4)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Ke)
   ENDIF
   IF ( ALLOCATED(OutData%Fg) ) THEN
   ALLOCATE(mask3(SIZE(OutData%Fg,1),SIZE(OutData%Fg,2),SIZE(OutData%Fg,3))); mask3 = .TRUE.
-    OutData%Fg = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fg))-1 ),mask3,REAL(OutData%Fg,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Fg = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fg))-1 ),mask3,OutData%Fg)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Fg)
   ENDIF
   ALLOCATE(mask3(SIZE(OutData%Me2,1),SIZE(OutData%Me2,2),SIZE(OutData%Me2,3))); mask3 = .TRUE.
-  OutData%Me2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Me2))-1 ),mask3,REAL(OutData%Me2,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+  OutData%Me2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Me2))-1 ),mask3,OutData%Me2)
   DEALLOCATE(mask3)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%Me2)
   ALLOCATE(mask3(SIZE(OutData%Ke2,1),SIZE(OutData%Ke2,2),SIZE(OutData%Ke2,3))); mask3 = .TRUE.
-  OutData%Ke2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Ke2))-1 ),mask3,REAL(OutData%Ke2,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+  OutData%Ke2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Ke2))-1 ),mask3,OutData%Ke2)
   DEALLOCATE(mask3)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%Ke2)
   ALLOCATE(mask2(SIZE(OutData%Fg2,1),SIZE(OutData%Fg2,2))); mask2 = .TRUE.
-  OutData%Fg2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fg2))-1 ),mask2,REAL(OutData%Fg2,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+  OutData%Fg2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fg2))-1 ),mask2,OutData%Fg2)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%Fg2)
   Re_Xferred   = Re_Xferred-1
@@ -864,7 +864,7 @@ ENDIF
   OutData%Rho = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   ALLOCATE(mask2(SIZE(OutData%DirCos,1),SIZE(OutData%DirCos,2))); mask2 = .TRUE.
-  OutData%DirCos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DirCos))-1 ),mask2,REAL(OutData%DirCos,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+  OutData%DirCos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%DirCos))-1 ),mask2,OutData%DirCos)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%DirCos)
   Re_Xferred   = Re_Xferred-1
@@ -1545,7 +1545,7 @@ ENDIF
   OutData%WtrDpth = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   ALLOCATE(mask1(SIZE(OutData%TP_RefPoint,1))); mask1 = .TRUE.
-  OutData%TP_RefPoint = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TP_RefPoint))-1 ),mask1,REAL(OutData%TP_RefPoint,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+  OutData%TP_RefPoint = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TP_RefPoint))-1 ),mask1,OutData%TP_RefPoint)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%TP_RefPoint)
   OutData%SubRotateZ = ReKiBuf ( Re_Xferred )
@@ -1588,37 +1588,37 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%Joints) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Joints,1),SIZE(OutData%Joints,2))); mask2 = .TRUE.
-    OutData%Joints = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Joints))-1 ),mask2,REAL(OutData%Joints,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Joints = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Joints))-1 ),mask2,OutData%Joints)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Joints)
   ENDIF
   IF ( ALLOCATED(OutData%PropSets) ) THEN
   ALLOCATE(mask2(SIZE(OutData%PropSets,1),SIZE(OutData%PropSets,2))); mask2 = .TRUE.
-    OutData%PropSets = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PropSets))-1 ),mask2,REAL(OutData%PropSets,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%PropSets = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PropSets))-1 ),mask2,OutData%PropSets)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%PropSets)
   ENDIF
   IF ( ALLOCATED(OutData%XPropSets) ) THEN
   ALLOCATE(mask2(SIZE(OutData%XPropSets,1),SIZE(OutData%XPropSets,2))); mask2 = .TRUE.
-    OutData%XPropSets = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%XPropSets))-1 ),mask2,REAL(OutData%XPropSets,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%XPropSets = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%XPropSets))-1 ),mask2,OutData%XPropSets)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%XPropSets)
   ENDIF
   IF ( ALLOCATED(OutData%COSMs) ) THEN
   ALLOCATE(mask2(SIZE(OutData%COSMs,1),SIZE(OutData%COSMs,2))); mask2 = .TRUE.
-    OutData%COSMs = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%COSMs))-1 ),mask2,REAL(OutData%COSMs,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%COSMs = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%COSMs))-1 ),mask2,OutData%COSMs)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%COSMs)
   ENDIF
   IF ( ALLOCATED(OutData%CMass) ) THEN
   ALLOCATE(mask2(SIZE(OutData%CMass,1),SIZE(OutData%CMass,2))); mask2 = .TRUE.
-    OutData%CMass = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CMass))-1 ),mask2,REAL(OutData%CMass,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%CMass = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%CMass))-1 ),mask2,OutData%CMass)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%CMass)
   ENDIF
   IF ( ALLOCATED(OutData%JDampings) ) THEN
   ALLOCATE(mask1(SIZE(OutData%JDampings,1))); mask1 = .TRUE.
-    OutData%JDampings = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%JDampings))-1 ),mask1,REAL(OutData%JDampings,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%JDampings = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%JDampings))-1 ),mask1,OutData%JDampings)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%JDampings)
   ENDIF
@@ -1646,43 +1646,43 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%Nodes) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Nodes,1),SIZE(OutData%Nodes,2))); mask2 = .TRUE.
-    OutData%Nodes = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Nodes))-1 ),mask2,REAL(OutData%Nodes,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Nodes = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Nodes))-1 ),mask2,OutData%Nodes)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Nodes)
   ENDIF
   IF ( ALLOCATED(OutData%Props) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Props,1),SIZE(OutData%Props,2))); mask2 = .TRUE.
-    OutData%Props = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Props))-1 ),mask2,REAL(OutData%Props,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Props = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Props))-1 ),mask2,OutData%Props)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Props)
   ENDIF
   IF ( ALLOCATED(OutData%K) ) THEN
   ALLOCATE(mask2(SIZE(OutData%K,1),SIZE(OutData%K,2))); mask2 = .TRUE.
-    OutData%K = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%K))-1 ),mask2,REAL(OutData%K,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%K = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%K))-1 ),mask2,OutData%K)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%K)
   ENDIF
   IF ( ALLOCATED(OutData%M) ) THEN
   ALLOCATE(mask2(SIZE(OutData%M,1),SIZE(OutData%M,2))); mask2 = .TRUE.
-    OutData%M = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%M))-1 ),mask2,REAL(OutData%M,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%M = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%M))-1 ),mask2,OutData%M)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%M)
   ENDIF
   IF ( ALLOCATED(OutData%F) ) THEN
   ALLOCATE(mask1(SIZE(OutData%F,1))); mask1 = .TRUE.
-    OutData%F = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F))-1 ),mask1,REAL(OutData%F,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%F = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F))-1 ),mask1,OutData%F)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%F)
   ENDIF
   IF ( ALLOCATED(OutData%FG) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FG,1))); mask1 = .TRUE.
-    OutData%FG = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FG))-1 ),mask1,REAL(OutData%FG,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%FG = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FG))-1 ),mask1,OutData%FG)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FG)
   ENDIF
   IF ( ALLOCATED(OutData%ElemProps) ) THEN
   ALLOCATE(mask2(SIZE(OutData%ElemProps,1),SIZE(OutData%ElemProps,2))); mask2 = .TRUE.
-    OutData%ElemProps = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ElemProps))-1 ),mask2,REAL(OutData%ElemProps,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%ElemProps = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%ElemProps))-1 ),mask2,OutData%ElemProps)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%ElemProps)
   ENDIF
@@ -2095,19 +2095,19 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%qm) ) THEN
   ALLOCATE(mask1(SIZE(OutData%qm,1))); mask1 = .TRUE.
-    OutData%qm = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%qm))-1 ),mask1,REAL(OutData%qm,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%qm = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%qm))-1 ),mask1,OutData%qm)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%qm)
   ENDIF
   IF ( ALLOCATED(OutData%qmdot) ) THEN
   ALLOCATE(mask1(SIZE(OutData%qmdot,1))); mask1 = .TRUE.
-    OutData%qmdot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%qmdot))-1 ),mask1,REAL(OutData%qmdot,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%qmdot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%qmdot))-1 ),mask1,OutData%qmdot)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%qmdot)
   ENDIF
   IF ( ALLOCATED(OutData%qmdotdot) ) THEN
   ALLOCATE(mask1(SIZE(OutData%qmdotdot,1))); mask1 = .TRUE.
-    OutData%qmdotdot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%qmdotdot))-1 ),mask1,REAL(OutData%qmdotdot,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%qmdotdot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%qmdotdot))-1 ),mask1,OutData%qmdotdot)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%qmdotdot)
   ENDIF
@@ -2550,13 +2550,13 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%Udotdot) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Udotdot,1))); mask1 = .TRUE.
-    OutData%Udotdot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Udotdot))-1 ),mask1,REAL(OutData%Udotdot,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Udotdot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Udotdot))-1 ),mask1,OutData%Udotdot)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Udotdot)
   ENDIF
   IF ( ALLOCATED(OutData%Y2) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Y2,1))); mask1 = .TRUE.
-    OutData%Y2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Y2))-1 ),mask1,REAL(OutData%Y2,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Y2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Y2))-1 ),mask1,OutData%Y2)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Y2)
   ENDIF
@@ -4030,187 +4030,187 @@ ENDDO
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%A_21) ) THEN
   ALLOCATE(mask2(SIZE(OutData%A_21,1),SIZE(OutData%A_21,2))); mask2 = .TRUE.
-    OutData%A_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%A_21))-1 ),mask2,REAL(OutData%A_21,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%A_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%A_21))-1 ),mask2,OutData%A_21)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%A_21)
   ENDIF
   IF ( ALLOCATED(OutData%A_22) ) THEN
   ALLOCATE(mask2(SIZE(OutData%A_22,1),SIZE(OutData%A_22,2))); mask2 = .TRUE.
-    OutData%A_22 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%A_22))-1 ),mask2,REAL(OutData%A_22,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%A_22 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%A_22))-1 ),mask2,OutData%A_22)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%A_22)
   ENDIF
   IF ( ALLOCATED(OutData%B_23) ) THEN
   ALLOCATE(mask2(SIZE(OutData%B_23,1),SIZE(OutData%B_23,2))); mask2 = .TRUE.
-    OutData%B_23 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%B_23))-1 ),mask2,REAL(OutData%B_23,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%B_23 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%B_23))-1 ),mask2,OutData%B_23)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%B_23)
   ENDIF
   IF ( ALLOCATED(OutData%B_24) ) THEN
   ALLOCATE(mask2(SIZE(OutData%B_24,1),SIZE(OutData%B_24,2))); mask2 = .TRUE.
-    OutData%B_24 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%B_24))-1 ),mask2,REAL(OutData%B_24,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%B_24 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%B_24))-1 ),mask2,OutData%B_24)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%B_24)
   ENDIF
   IF ( ALLOCATED(OutData%FX) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
-    OutData%FX = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,REAL(OutData%FX,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%FX = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,OutData%FX)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FX)
   ENDIF
   IF ( ALLOCATED(OutData%C1_11) ) THEN
   ALLOCATE(mask2(SIZE(OutData%C1_11,1),SIZE(OutData%C1_11,2))); mask2 = .TRUE.
-    OutData%C1_11 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C1_11))-1 ),mask2,REAL(OutData%C1_11,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%C1_11 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C1_11))-1 ),mask2,OutData%C1_11)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%C1_11)
   ENDIF
   IF ( ALLOCATED(OutData%C1_12) ) THEN
   ALLOCATE(mask2(SIZE(OutData%C1_12,1),SIZE(OutData%C1_12,2))); mask2 = .TRUE.
-    OutData%C1_12 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C1_12))-1 ),mask2,REAL(OutData%C1_12,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%C1_12 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C1_12))-1 ),mask2,OutData%C1_12)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%C1_12)
   ENDIF
   IF ( ALLOCATED(OutData%D1_11) ) THEN
   ALLOCATE(mask2(SIZE(OutData%D1_11,1),SIZE(OutData%D1_11,2))); mask2 = .TRUE.
-    OutData%D1_11 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_11))-1 ),mask2,REAL(OutData%D1_11,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%D1_11 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_11))-1 ),mask2,OutData%D1_11)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D1_11)
   ENDIF
   IF ( ALLOCATED(OutData%D1_13) ) THEN
   ALLOCATE(mask2(SIZE(OutData%D1_13,1),SIZE(OutData%D1_13,2))); mask2 = .TRUE.
-    OutData%D1_13 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_13))-1 ),mask2,REAL(OutData%D1_13,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%D1_13 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_13))-1 ),mask2,OutData%D1_13)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D1_13)
   ENDIF
   IF ( ALLOCATED(OutData%D1_14) ) THEN
   ALLOCATE(mask2(SIZE(OutData%D1_14,1),SIZE(OutData%D1_14,2))); mask2 = .TRUE.
-    OutData%D1_14 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_14))-1 ),mask2,REAL(OutData%D1_14,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%D1_14 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_14))-1 ),mask2,OutData%D1_14)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D1_14)
   ENDIF
   IF ( ALLOCATED(OutData%FY) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
-    OutData%FY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,REAL(OutData%FY,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%FY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,OutData%FY)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FY)
   ENDIF
   IF ( ALLOCATED(OutData%C2_21) ) THEN
   ALLOCATE(mask2(SIZE(OutData%C2_21,1),SIZE(OutData%C2_21,2))); mask2 = .TRUE.
-    OutData%C2_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C2_21))-1 ),mask2,REAL(OutData%C2_21,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%C2_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C2_21))-1 ),mask2,OutData%C2_21)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%C2_21)
   ENDIF
   IF ( ALLOCATED(OutData%C2_42) ) THEN
   ALLOCATE(mask2(SIZE(OutData%C2_42,1),SIZE(OutData%C2_42,2))); mask2 = .TRUE.
-    OutData%C2_42 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C2_42))-1 ),mask2,REAL(OutData%C2_42,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%C2_42 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C2_42))-1 ),mask2,OutData%C2_42)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%C2_42)
   ENDIF
   IF ( ALLOCATED(OutData%D2_11) ) THEN
   ALLOCATE(mask2(SIZE(OutData%D2_11,1),SIZE(OutData%D2_11,2))); mask2 = .TRUE.
-    OutData%D2_11 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_11))-1 ),mask2,REAL(OutData%D2_11,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%D2_11 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_11))-1 ),mask2,OutData%D2_11)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D2_11)
   ENDIF
   IF ( ALLOCATED(OutData%D2_21) ) THEN
   ALLOCATE(mask2(SIZE(OutData%D2_21,1),SIZE(OutData%D2_21,2))); mask2 = .TRUE.
-    OutData%D2_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_21))-1 ),mask2,REAL(OutData%D2_21,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%D2_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_21))-1 ),mask2,OutData%D2_21)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D2_21)
   ENDIF
   IF ( ALLOCATED(OutData%D2_32) ) THEN
   ALLOCATE(mask2(SIZE(OutData%D2_32,1),SIZE(OutData%D2_32,2))); mask2 = .TRUE.
-    OutData%D2_32 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_32))-1 ),mask2,REAL(OutData%D2_32,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%D2_32 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_32))-1 ),mask2,OutData%D2_32)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D2_32)
   ENDIF
   IF ( ALLOCATED(OutData%D2_42) ) THEN
   ALLOCATE(mask2(SIZE(OutData%D2_42,1),SIZE(OutData%D2_42,2))); mask2 = .TRUE.
-    OutData%D2_42 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_42))-1 ),mask2,REAL(OutData%D2_42,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%D2_42 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_42))-1 ),mask2,OutData%D2_42)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D2_42)
   ENDIF
   IF ( ALLOCATED(OutData%Cbar_21) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Cbar_21,1),SIZE(OutData%Cbar_21,2))); mask2 = .TRUE.
-    OutData%Cbar_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Cbar_21))-1 ),mask2,REAL(OutData%Cbar_21,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Cbar_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Cbar_21))-1 ),mask2,OutData%Cbar_21)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Cbar_21)
   ENDIF
   IF ( ALLOCATED(OutData%Cbar_22) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Cbar_22,1),SIZE(OutData%Cbar_22,2))); mask2 = .TRUE.
-    OutData%Cbar_22 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Cbar_22))-1 ),mask2,REAL(OutData%Cbar_22,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Cbar_22 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Cbar_22))-1 ),mask2,OutData%Cbar_22)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Cbar_22)
   ENDIF
   IF ( ALLOCATED(OutData%Dbar_13) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Dbar_13,1),SIZE(OutData%Dbar_13,2))); mask2 = .TRUE.
-    OutData%Dbar_13 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dbar_13))-1 ),mask2,REAL(OutData%Dbar_13,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Dbar_13 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dbar_13))-1 ),mask2,OutData%Dbar_13)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Dbar_13)
   ENDIF
   IF ( ALLOCATED(OutData%Dbar_23) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Dbar_23,1),SIZE(OutData%Dbar_23,2))); mask2 = .TRUE.
-    OutData%Dbar_23 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dbar_23))-1 ),mask2,REAL(OutData%Dbar_23,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Dbar_23 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dbar_23))-1 ),mask2,OutData%Dbar_23)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Dbar_23)
   ENDIF
   IF ( ALLOCATED(OutData%Dbar_24) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Dbar_24,1),SIZE(OutData%Dbar_24,2))); mask2 = .TRUE.
-    OutData%Dbar_24 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dbar_24))-1 ),mask2,REAL(OutData%Dbar_24,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Dbar_24 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dbar_24))-1 ),mask2,OutData%Dbar_24)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Dbar_24)
   ENDIF
   IF ( ALLOCATED(OutData%Fbar_21) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Fbar_21,1))); mask1 = .TRUE.
-    OutData%Fbar_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fbar_21))-1 ),mask1,REAL(OutData%Fbar_21,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Fbar_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fbar_21))-1 ),mask1,OutData%Fbar_21)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Fbar_21)
   ENDIF
   IF ( ALLOCATED(OutData%MBB) ) THEN
   ALLOCATE(mask2(SIZE(OutData%MBB,1),SIZE(OutData%MBB,2))); mask2 = .TRUE.
-    OutData%MBB = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%MBB))-1 ),mask2,REAL(OutData%MBB,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%MBB = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%MBB))-1 ),mask2,OutData%MBB)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%MBB)
   ENDIF
   IF ( ALLOCATED(OutData%KBB) ) THEN
   ALLOCATE(mask2(SIZE(OutData%KBB,1),SIZE(OutData%KBB,2))); mask2 = .TRUE.
-    OutData%KBB = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%KBB))-1 ),mask2,REAL(OutData%KBB,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%KBB = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%KBB))-1 ),mask2,OutData%KBB)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%KBB)
   ENDIF
   IF ( ALLOCATED(OutData%MBM) ) THEN
   ALLOCATE(mask2(SIZE(OutData%MBM,1),SIZE(OutData%MBM,2))); mask2 = .TRUE.
-    OutData%MBM = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%MBM))-1 ),mask2,REAL(OutData%MBM,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%MBM = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%MBM))-1 ),mask2,OutData%MBM)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%MBM)
   ENDIF
   IF ( ALLOCATED(OutData%PHI_R) ) THEN
   ALLOCATE(mask2(SIZE(OutData%PHI_R,1),SIZE(OutData%PHI_R,2))); mask2 = .TRUE.
-    OutData%PHI_R = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PHI_R))-1 ),mask2,REAL(OutData%PHI_R,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%PHI_R = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PHI_R))-1 ),mask2,OutData%PHI_R)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%PHI_R)
   ENDIF
   IF ( ALLOCATED(OutData%PHI_M) ) THEN
   ALLOCATE(mask2(SIZE(OutData%PHI_M,1),SIZE(OutData%PHI_M,2))); mask2 = .TRUE.
-    OutData%PHI_M = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PHI_M))-1 ),mask2,REAL(OutData%PHI_M,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%PHI_M = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PHI_M))-1 ),mask2,OutData%PHI_M)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%PHI_M)
   ENDIF
   IF ( ALLOCATED(OutData%AM2InvJac) ) THEN
   ALLOCATE(mask2(SIZE(OutData%AM2InvJac,1),SIZE(OutData%AM2InvJac,2))); mask2 = .TRUE.
-    OutData%AM2InvJac = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AM2InvJac))-1 ),mask2,REAL(OutData%AM2InvJac,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%AM2InvJac = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AM2InvJac))-1 ),mask2,OutData%AM2InvJac)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AM2InvJac)
   ENDIF
   IF ( ALLOCATED(OutData%TI) ) THEN
   ALLOCATE(mask2(SIZE(OutData%TI,1),SIZE(OutData%TI,2))); mask2 = .TRUE.
-    OutData%TI = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TI))-1 ),mask2,REAL(OutData%TI,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%TI = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TI))-1 ),mask2,OutData%TI)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TI)
   ENDIF
   IF ( ALLOCATED(OutData%TIreact) ) THEN
   ALLOCATE(mask2(SIZE(OutData%TIreact,1),SIZE(OutData%TIreact,2))); mask2 = .TRUE.
-    OutData%TIreact = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TIreact))-1 ),mask2,REAL(OutData%TIreact,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%TIreact = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%TIreact))-1 ),mask2,OutData%TIreact)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%TIreact)
   ENDIF
@@ -4822,7 +4822,7 @@ ENDIF
   IF( ALLOCATED(Int_Y2Mesh_Buf) ) DEALLOCATE(Int_Y2Mesh_Buf)
   IF ( ALLOCATED(OutData%WriteOutput) ) THEN
   ALLOCATE(mask1(SIZE(OutData%WriteOutput,1))); mask1 = .TRUE.
-    OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,REAL(OutData%WriteOutput,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
   ENDIF

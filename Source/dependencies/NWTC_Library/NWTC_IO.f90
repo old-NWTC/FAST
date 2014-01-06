@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-11-26 22:34:06 -0700 (Tue, 26 Nov 2013) $
-! (File) Revision #: $Rev: 185 $
+! File last committed: $Date: 2014-01-04 21:43:08 -0700 (Sat, 04 Jan 2014) $
+! (File) Revision #: $Rev: 207 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_IO
@@ -35,7 +35,7 @@ MODULE NWTC_IO
 !=======================================================================
 
    TYPE(ProgDesc), PARAMETER    :: NWTC_Ver = &                               ! The name, version, and date of the NWTC Subroutine Library.
-                                    ProgDesc( 'NWTC Subroutine Library', 'v2.03.00b-bjj', '1-Oct-2013')
+                                    ProgDesc( 'NWTC Subroutine Library', 'v2.03.00c-bjj', '4-Jan-2014')
 
    TYPE, PUBLIC                 :: FNlist_Type                                ! This type stores a linked list of file names.
       CHARACTER(1024)                        :: FileName                      ! A file name.
@@ -6730,18 +6730,25 @@ END SUBROUTINE WrBinFAST
       INTEGER,        INTENT(IN) :: Un
       CHARACTER(*),   INTENT(IN) :: ReFmt   ! Format for printing ReKi numbers  
 
+      INTEGER        :: ErrStat
       INTEGER        :: nr, nc  ! size (rows and columns) of A
-      INTEGER        :: i, j    ! indices into A
+      INTEGER        :: i       ! indices into A
       CHARACTER(256) :: Fmt
    
    
       nr = SIZE(A,1)
       nc = SIZE(A,2)
 
-      Fmt = "(2x, "//TRIM(Num2LStr(nr))//"(1x,"//ReFmt//"))"   
+      Fmt = "(2x, "//TRIM(Num2LStr(nc))//"(1x,"//ReFmt//"))"   
 
       DO i=1,nr
-         WRITE( Un, Fmt ) (A(i,j), j=1,nc)
+         WRITE( Un, Fmt, IOSTAT=ErrStat ) A(i,:)
+         IF (ErrStat /= 0) THEN
+            CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix().')
+            RETURN
+         END IF
+         
+         
       END DO
 
    RETURN

@@ -640,13 +640,13 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%FFData) ) THEN
   ALLOCATE(mask4(SIZE(OutData%FFData,1),SIZE(OutData%FFData,2),SIZE(OutData%FFData,3),SIZE(OutData%FFData,4))); mask4 = .TRUE.
-    OutData%FFData = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFData))-1 ),mask4,REAL(OutData%FFData,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%FFData = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFData))-1 ),mask4,OutData%FFData)
   DEALLOCATE(mask4)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FFData)
   ENDIF
   IF ( ALLOCATED(OutData%FFTower) ) THEN
   ALLOCATE(mask3(SIZE(OutData%FFTower,1),SIZE(OutData%FFTower,2),SIZE(OutData%FFTower,3))); mask3 = .TRUE.
-    OutData%FFTower = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFTower))-1 ),mask3,REAL(OutData%FFTower,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%FFTower = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FFTower))-1 ),mask3,OutData%FFTower)
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%FFTower)
   ENDIF
@@ -937,7 +937,7 @@ ENDIF
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%Position) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Position,1),SIZE(OutData%Position,2))); mask2 = .TRUE.
-    OutData%Position = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Position))-1 ),mask2,REAL(OutData%Position,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Position = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Position))-1 ),mask2,OutData%Position)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Position)
   ENDIF
@@ -1068,7 +1068,7 @@ ENDIF
   Int_BufSz  = 0
   IF ( ALLOCATED(OutData%Velocity) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Velocity,1),SIZE(OutData%Velocity,2))); mask2 = .TRUE.
-    OutData%Velocity = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Velocity))-1 ),mask2,REAL(OutData%Velocity,ReKi)) ! if variable is SiKi and SiKi/=ReKi, this will have implicit type casting
+    OutData%Velocity = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Velocity))-1 ),mask2,OutData%Velocity)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Velocity)
   ENDIF

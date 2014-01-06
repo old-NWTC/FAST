@@ -1,5 +1,5 @@
 !**********************************************************************************************************************************
-! $Id: InflowWind.f90 97 2013-10-03 16:59:18Z aplatt $
+! $Id: InflowWind.f90 106 2014-01-02 21:54:45Z bjonkman $
 !
 ! This module is used to read and process the (undisturbed) inflow winds.  It must be initialized
 ! using InflowWind_Init() with the name of the file, the file type, and possibly reference height and
@@ -16,8 +16,8 @@
 !    Feb 2013    v2.00.00a-adp   conversion to Framework       A. Platt
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2013-10-03 10:59:18 -0600 (Thu, 03 Oct 2013) $
-! (File) Revision #: $Rev: 97 $
+! File last committed: $Date: 2014-01-02 14:54:45 -0700 (Thu, 02 Jan 2014) $
+! (File) Revision #: $Rev: 106 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/InflowWind.f90 $
 !..................................................................................................................................
 ! Files with this module:
@@ -514,11 +514,17 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
 
             CALL  IfW_HHWind_CalcOutput(  Time,          HH_InData,     ParamData%HHWind,                         &
                                           HH_ContStates, HH_DiscStates, HH_ConstrStates,     OtherStates%HHWind,  &
-                                          HH_OutData,    TmpErrStat,    TmpErrMsg)
-
+                                          HH_OutData,    TmpErrStat,    TmpErrMsg)            
+            
                ! Copy the velocities over
             OutputData%Velocity  = HH_OutData%Velocity
 
+            IF (TmpErrStat /= ErrID_None) THEN
+               ErrMsg   = TRIM(ErrMsg)//NewLine//TRIM(TmpErrMsg)
+               ErrStat  = MAX(ErrStat,TmpErrStat)
+               IF (ErrStat >= AbortErrLev) RETURN
+            ENDIF
+            
 
          CASE (FF_WindNumber)
 
@@ -540,6 +546,15 @@ SUBROUTINE IfW_Init( InitData,   InputGuess,    ParamData,                      
                ! Copy the velocities over
             OutputData%Velocity  = FF_OutData%Velocity
 
+            IF (TmpErrStat /= ErrID_None) THEN
+               ErrMsg   = TRIM(ErrMsg)//NewLine//TRIM(TmpErrMsg)
+               ErrStat  = MAX(ErrStat,TmpErrStat)
+               IF (ErrStat >= AbortErrLev) RETURN
+            ENDIF
+            
+            
+            
+            
 !               OutputData%Velocity(:,PointCounter) = FF_GetWindSpeed(     Time, InputData%Position(:,PointCounter), ErrStat, ErrMsg)
 
 

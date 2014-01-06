@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-12 14:03:05 -0700 (Thu, 12 Dec 2013) $
-! (File) Revision #: $Rev: 238 $
+! File last committed: $Date: 2013-12-16 13:31:25 -0700 (Mon, 16 Dec 2013) $
+! (File) Revision #: $Rev: 241 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -4613,7 +4613,7 @@ SUBROUTINE SDOut_OpenOutput( ProgName, OutRootName,  p, InitOut, ErrStat, ErrMsg
    IF ( ALLOCATED( p%OutParam ) .AND. p%NumOuts > 0 ) THEN           ! Output has been requested so let's open an output file            
       
          ! Open the file for output
-      OutFileName = TRIM(OutRootName)//'_SubDyn.out'
+      OutFileName = TRIM(OutRootName)//'_SD.out'
       CALL GetNewUnit( p%UnJckF )
    
       CALL OpenFOutFile ( p%UnJckF, OutFileName, ErrStat ) 

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-11 09:39:52 -0700 (Wed, 11 Dec 2013) $
-! (File) Revision #: $Rev: 187 $
+! File last committed: $Date: 2014-01-04 21:43:08 -0700 (Sat, 04 Jan 2014) $
+! (File) Revision #: $Rev: 207 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh_Mapping.f90 $
 !**********************************************************************************************************************************
 MODULE ModMesh_Mapping
@@ -359,7 +359,7 @@ SUBROUTINE Transfer_Line2_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcOrie
          CALL Create_PointMesh( Src, MeshMap%Temp_Lumped_Points_Src, ErrStat, ErrMsg )
             IF (ErrStat >= AbortErrLev) RETURN
 
-         ! in following call, Src is mesh to loop over, finding a corresponding point for each point in Dest
+         ! in following call, Src is mesh to loop over, finding a corresponding point for each point in Dest (we've got the lumped POINT mesh, so this is just point-to-point)
          CALL CreateMapping_NearestNeighbor( MeshMap%Temp_Lumped_Points_Src, Dest, MeshMap%MapLoads, ELEMENT_POINT, ELEMENT_POINT, ErrStat, ErrMsg )
             IF (ErrStat >= AbortErrLev) RETURN
 
@@ -714,6 +714,7 @@ SUBROUTINE CreateMapping_ProjectToLine2(Mesh1, Mesh2, Map, Mesh1_TYPE, ErrStat, 
 
                if (dist .lt. min_dist) then
                   found = .true.
+                  min_dist = dist
 
                   Map(i)%OtherMesh_Element = jElem
                   !Map(i)%elem_position     = elem_position
@@ -1445,7 +1446,7 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, Map, ErrStat, ErrMsg, SrcOr
          ! force in the source mesh, then we need to add a moment to the destination mesh to account
          ! for the mismatch between points
 
-         if (Map(i)%distance .gt. 0_ReKi) then
+         !if (Map(i)%distance .gt. 0_ReKi) then
 
             if (Src%FieldMask(MASKID_FORCE) ) then
 
@@ -1462,7 +1463,7 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, Map, ErrStat, ErrMsg, SrcOr
 
             endif
 
-         endif
+         !endif
 
       endif
 
@@ -2258,10 +2259,10 @@ SUBROUTINE Lump_Line2_to_Point( Line2_Src, Point_Dest, ErrStat, ErrMsg, SrcTrans
 
             IF ( PRESENT(SrcTransDisp) ) THEN
                p1 = p1 + SrcTransDisp%TranslationDisp(:,n1)
-               p2 = p1 + SrcTransDisp%TranslationDisp(:,n2)
+               p2 = p2 + SrcTransDisp%TranslationDisp(:,n2)
             ELSEIF (Line2_Src%FieldMask(MASKID_TRANSLATIONDISP)) THEN
                p1 = p1 + Line2_Src%TranslationDisp(:,n1)
-               p2 = p1 + Line2_Src%TranslationDisp(:,n2)
+               p2 = p2 + Line2_Src%TranslationDisp(:,n2)
             END IF
 
             pCrossf = 0.5*det_jac *cross_product( p2-p1, Line2_Src%Force(:,n1) + Line2_Src%Force(:,n2))

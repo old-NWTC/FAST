@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-12 14:03:05 -0700 (Thu, 12 Dec 2013) $
-! (File) Revision #: $Rev: 238 $
+! File last committed: $Date: 2013-12-16 13:32:01 -0700 (Mon, 16 Dec 2013) $
+! (File) Revision #: $Rev: 242 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -34,21 +34,20 @@ Module SubDyn
    PRIVATE
 
    TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.00.00b-rrd', '12-Dec-2013' )
+   
    TYPE CB_MatArrays !Matrices and arrays for CB summary
          INTEGER(IntKi)                                    ::  DOFM        !retained degrees of freedom (modes)
-         REAL(ReKi),  ALLOCATABLE                          ::  TI2(:,:)   !TI2 matrix to refer to total mass to (0,0,0)
+         REAL(ReKi),  ALLOCATABLE                          ::  TI2(:,:)    !TI2 matrix to refer to total mass to (0,0,0)
          !TI matrix to refer the upper substructure node(s) to the reference point has been moved back to p%TI alone
-         REAL(ReKi),  ALLOCATABLE                          ::  MBB(:, :)  !FULL MBB ( no constraints applied)
-         REAL(ReKi),  ALLOCATABLE                          ::  MBM(:, :)  !FULL MBM ( no constraints applied)
-         REAL(ReKi),  ALLOCATABLE                          ::  KBB(:, :)  !FULL KBB ( no constraints applied)
+         REAL(ReKi),  ALLOCATABLE                          ::  MBB(:, :)   !FULL MBB ( no constraints applied)
+         REAL(ReKi),  ALLOCATABLE                          ::  MBM(:, :)   !FULL MBM ( no constraints applied)
+         REAL(ReKi),  ALLOCATABLE                          ::  KBB(:, :)   !FULL KBB ( no constraints applied)
          REAL(ReKi),  ALLOCATABLE                          ::  PhiM(:, :)  !Retained CB modes
          REAL(ReKi),  ALLOCATABLE                          ::  PhiR(:, :)  !FULL PhiR ( no constraints applied)
          REAL(ReKi),  ALLOCATABLE                          ::  OmegaM(:)   !Eigenvalues of retained CB modes
    END TYPE CB_MatArrays
+   
    TYPE FEM_MatArrays !Matrices and arrays for FEM summary
-       !No need for the following two as I have removed the application of constraints to the full FEM K and M, application of constraints will occur in CB only  
-       !REAL(ReKi),  ALLOCATABLE                          ::  Ktot(:, :)  !FULL K ( no constraints applied)
-         !REAL(ReKi),  ALLOCATABLE                          ::  Mtot(:, :)  !FULL M ( no constraints applied)
          REAL(ReKi),  ALLOCATABLE                          ::  Omega(:)    !Eigenvalues of full FEM model,  we calculate them all
          INTEGER(IntKi)                                    ::  NOmega      !Number of full FEM Eigenvalues (for now TDOF-6*Nreact)
          REAL(ReKi),  ALLOCATABLE                          ::  Modes(:,:)  !Eigenmodes of full FEM model,  we calculate them all
@@ -65,7 +64,7 @@ Module SubDyn
                                                  
    PUBLIC :: SD_CalcOutput                     ! Routine for computing outputs
 
-   PUBLIC :: SD_CalcContStateDeriv              ! Tight coupling routine for computing derivatives of continuous states
+   PUBLIC :: SD_CalcContStateDeriv             ! Tight coupling routine for computing derivatives of continuous states
    
    PUBLIC :: SD_JacobianPInput                 ! Routine to compute the Jacobians of the output (Y), continuous- (X), discrete-
                                                     !   (Xd), and constraint-state (Z) functions all with respect to the inputs (u)
@@ -149,24 +148,22 @@ END SUBROUTINE CreateTPMeshes
 
 SUBROUTINE CreateY2Meshes( NNode, JointsCol, Nodes, NNodes_I, IDI, NNodes_L, IDL, NNodes_C, IDC, inputMesh, outputMesh, ErrStat, ErrMsg )
 
-   INTEGER(IntKi),            INTENT( IN    ) :: NNode  !total number of nodes in the structure, used to size the array Nodes, i.e. its rows
-   INTEGER(IntKi),            INTENT( IN    ) :: JointsCol !columns of the array Nodes
+   INTEGER(IntKi),            INTENT( IN    ) :: NNode                     !total number of nodes in the structure, used to size the array Nodes, i.e. its rows
+   INTEGER(IntKi),            INTENT( IN    ) :: JointsCol                 !columns of the array Nodes
    REAL(ReKi),                INTENT( IN    ) :: Nodes(NNode, JointsCol)
-   
-   !INTEGER(IntKi),            INTENT( IN    ) :: NNodes_RL       ! number of interface + interior nodes  (no constraints) i.e. Y2 stuff
-   INTEGER(IntKi),            INTENT( IN    ) :: NNodes_I         ! number interface nodes   i.e. Y2 stuff at the beginning
+   INTEGER(IntKi),            INTENT( IN    ) :: NNodes_I                  ! number interface nodes   i.e. Y2 stuff at the beginning
    INTEGER(IntKi),            INTENT( IN    ) :: IDI(NNodes_I*6)
-   INTEGER(IntKi),            INTENT( IN    ) :: NNodes_L         ! number interior nodes  (no constraints) i.e. Y2 stuff after interface stuff
+   INTEGER(IntKi),            INTENT( IN    ) :: NNodes_L                  ! number interior nodes  (no constraints) i.e. Y2 stuff after interface stuff
    INTEGER(IntKi),            INTENT( IN    ) :: IDL(NNodes_L*6)
-   INTEGER(IntKi),            INTENT( IN    ) :: NNodes_C         ! number base reaction nodes  i.e. Y2 stuff after interior stuff
+   INTEGER(IntKi),            INTENT( IN    ) :: NNodes_C                  ! number base reaction nodes  i.e. Y2 stuff after interior stuff
    INTEGER(IntKi),            INTENT( IN    ) :: IDC(NNodes_C*6)
    TYPE(MeshType),            INTENT( INOUT ) :: inputMesh
    TYPE(MeshType),            INTENT( INOUT ) :: outputMesh
-   INTEGER(IntKi),            INTENT(   OUT ) :: ErrStat     ! Error status of the operation
-   CHARACTER(1024),           INTENT(   OUT ) :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   INTEGER(IntKi),            INTENT(   OUT ) :: ErrStat                   ! Error status of the operation
+   CHARACTER(1024),           INTENT(   OUT ) :: ErrMsg                    ! Error message if ErrStat /= ErrID_None
    
   
-   INTEGER         :: I       ! generic counter variable
+   INTEGER         :: I                 ! generic counter variable
    INTEGER         :: nodeIndx
    
    CALL MeshCreate( BlankMesh        = inputMesh         &
@@ -295,8 +292,8 @@ SUBROUTINE CreateY2Meshes( NNode, JointsCol, Nodes, NNodes_I, IDI, NNodes_L, IDL
      ! Set the Orientation (rotational) field for the nodes based on assumed 0 (rotational) deflections
           
        outputMesh%Orientation = 0.0
-       !TODO GJH 6/10/13  Need to set this according to actual geometry, but for now set this to identity
-       !Identity should mean no rotation, which is our first guess at the output -RRD
+       
+         !Identity should mean no rotation, which is our first guess at the output -RRD
        outputMesh%Orientation(1,1,:) = 1.0
        outputMesh%Orientation(2,2,:) = 1.0
        outputMesh%Orientation(3,3,:) = 1.0
@@ -339,14 +336,12 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
          
    CHARACTER(1024)                              :: SummaryName                         ! name of the SubDyn summary file          
    INTEGER(IntKi)                               :: I, J, K, K2, L, NconEls   ! counters
-   INTEGER(IntKi), Dimension(2)                 :: M                         ! counter for two nodes at a time
-   !INTEGER(IntKi), ALLOCATABLE                  :: Junk(:)                   ! holder of temporary data       
-   !INTEGER                                      :: NOmega                    ! number of requested modes, this is in FEM_MatArrays
+   INTEGER(IntKi), Dimension(2)                 :: M                         ! counter for two nodes at a time   
    REAL(ReKi),ALLOCATABLE                       :: Omega(:)                  ! frequencies of the system modes
-   !REAL(DbKi),ALLOCATABLE                       :: Phi(:, :)                 ! system modes - replaced by FEMPARAMS%MODES
    
-   TYPE(CB_MatArrays)   :: CBparams     ! CB parameters to be stored and written to summary file
-   TYPE(FEM_MatArrays)  :: FEMparams    ! FEM parameters to be stored and written to summary file
+   
+   TYPE(CB_MatArrays)   :: CBparams      ! CB parameters to be stored and written to summary file
+   TYPE(FEM_MatArrays)  :: FEMparams     ! FEM parameters to be stored and written to summary file
    INTEGER(IntKi)       :: ErrStat2      ! Error status of the operation
    CHARACTER(1024)      :: ErrMsg2       ! Error message if ErrStat /= ErrID_None
    
@@ -424,33 +419,10 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
       RETURN
    END IF 
     
-   !I have removed the application of constraints since they will be applied in CB, and within the full fem eigensolver 8/18/13
-    
- !  ! Apply constraints to stiffness and mass matrices
- !  !Before that though, STORE full (prior to BC application) K and M for use in outsummary
- ! 
- !  ALLOCATE( FEMparams%Ktot(Init%TDOF, Init%TDOF), SOURCE=Init%K , STAT = ErrStat )
- !  IF ( ErrStat /= 0 )  THEN
- !     ErrMsg = ' Error allocating system stiffness matrix K'
- !     ErrStat = ErrID_Fatal
- !     RETURN
- !  ENDIF
- !  ALLOCATE( FEMparams%Mtot(Init%TDOF, Init%TDOF), SOURCE=Init%M , STAT = ErrStat )
- !  IF ( ErrStat /= 0 )  THEN
- !     ErrMsg = ' Error allocating system mass matrix M'
- !     ErrStat = ErrID_Fatal
- !     RETURN
- !  ENDIF
- !  
- !!  CALL ApplyConstr(Init,p) !This is changing the Overall SYstem M and K !!!WATCH OUT, from here on these are matrices with 0s in the BC(restrained) DOFs
- !                           !I wonder whether this should be omitted since we are not using the FULL FEM static solver
-   
+
          ! Solve dynamics problem
          
    FEMparams%NOmega = Init%TDOF - p%Nreact*6 !removed an extra "-6"  !Note if fixity changes at the reaction points, this will need to change
-   
-     !IF(NOmega .GT. 10 ) NOmega = 10 !TODO:  Why is this a forced uppper limit?  Add output warning that total dof was reduced. GJH 4/26/13
-     !RRD: I have removed this stupid thing on 6/10/2013 really no understanding why that limitation
      
    ALLOCATE(FEMparams%Omega(FEMparams%NOmega),STAT = ErrStat)
    IF ( ErrStat/= 0 ) THEN
@@ -478,10 +450,6 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
       RETURN
    END IF 
    
-  
-   ! Clean up  Phi array because it is not needed
-   !DEALLOCATE(Omega)
-   !DEALLOCATE(Phi)
    
          ! Craig-Bampton reduction
 

@@ -704,9 +704,11 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
       DescStr = ' ( )'
    END SELECT               
    
-   WRITE(y_FAST%UnSum,'(/A,I1,A)') 'Interpolation order for input/output time histories: ', p_FAST%InterpOrder, TRIM(DescStr)
-   WRITE(y_FAST%UnSum,'( A,I2)'  ) 'Number of correction iterations: ', p_FAST%NumCrctn
+   WRITE(y_FAST%UnSum,'(/A,I1,A)'  ) 'Interpolation order for input/output time histories: ', p_FAST%InterpOrder, TRIM(DescStr)
+   WRITE(y_FAST%UnSum,'( A,I2)'    ) 'Number of correction iterations: ', p_FAST%NumCrctn
+   WRITE(y_FAST%UnSum,'( A,F15.5)' ) 'Glue code time step (seconds): ', p_FAST%DT
             
+   
    !.......................... Information About Coupling ...................................................
    
 
