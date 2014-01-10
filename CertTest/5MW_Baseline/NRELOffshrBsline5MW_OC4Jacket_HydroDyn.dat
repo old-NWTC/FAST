@@ -6,7 +6,7 @@ TRUE           Echo           - Echo the input file data (flag)
   50.0         WtrDpth        - Water depth (meters)
    0.0         MSL2SWL        - Offset between still-water level and mean sea level (meters) [positive upward; must be zero if HasWAMIT=TRUE]
 ---------------------- WAVES ---------------------------------------------------
-0   2           WaveMod        - Incident wave kinematics model {0: none=still water, 1: plane progressive (regular), 1P#: plane progressive with user-specified phase, 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: user-defind spectrum from routine UserWaveSpctrm (irregular), 4: GH Bladed wave data, 5: White noise spectrum [invalid for HasWAMIT = TRUE]} (switch)
+   2           WaveMod        - Incident wave kinematics model {0: none=still water, 1: plane progressive (regular), 1P#: plane progressive with user-specified phase, 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: user-defind spectrum from routine UserWaveSpctrm (irregular), 4: GH Bladed wave data, 5: White noise spectrum [invalid for HasWAMIT = TRUE]} (switch)
    0           WaveStMod      - Model for stretching incident wave kinematics to instantaneous free surface {0: none=no stretching, 1: vertical stretching, 2: extrapolation stretching, 3: Wheeler stretching} (switch) [unused when WaveMod=0 or when HasWAMIT = TRUE]
 3630.0         WaveTMax       - Analysis time for incident wave calculations (sec) [unused when WaveMod=0] [determines WaveDOmega=2Pi/WaveTMax in the IFFT]
    0.25        WaveDT         - Time step for incident wave calculations (sec) [unused when WaveMod=0] [0.1<=WaveDT<=1.0 recommended] [determines WaveOmegaMax=Pi/WaveDT in the IFFT]
@@ -24,11 +24,11 @@ DEFAULT        WavePkShp      - Peak shape parameter of incident wave spectrum (
    0.0,    0.0,   0.0,  10.0,  10.0,  10.0, -10.0, -10.0, -10.0           WaveElevxi     - List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
    0.0,   10.0, -10.0,   0.0,  10.0, -10.0,   0.0,  10.0, -10.0           WaveElevyi     - List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
 ---------------------- CURRENT -------------------------------------------------
-0 1   0           CurrMod        - Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)
+   0           CurrMod        - Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)
    0.0         CurrSSV0       - Sub-surface current velocity at still water level (m/s) [used only when CurrMod=1]
 0 DEFAULT        CurrSSDir      - Sub-surface current heading direction (degrees) or DEFAULT (unquoted string) [used only when CurrMod=1]
   20.0         CurrNSRef      - Near-surface current reference depth (meters) [used only when CurrMod=1]
-   0.0         CurrNSV0       - Near-surface current velocity at still water level (m/s) [used only when CurrMod=1]
+2   0.0         CurrNSV0       - Near-surface current velocity at still water level (m/s) [used only when CurrMod=1]
    0.0         CurrNSDir      - Near-surface current heading direction (degrees) [used only when CurrMod=1]
    0.0         CurrDIV        - Depth-independent current velocity (m/s) [used only when CurrMod=1]
    0.0         CurrDIDir      - Depth-independent current heading direction (degrees) [used only when CurrMod=1]
@@ -155,7 +155,7 @@ PropSetID    PropD            PropThck
 ---------------------- SIMPLE HYDRODYNAMIC COEFFICIENTS (model 1) -------------------------
 SimplCd      SimplCdMG    SimplCa     SimplCaMG
 (-)           (-)           (-)         (-) 1.0          1.05          0.6         1.0
-0.0          0.00          0.0         0.0
+1.0          1.05          0.6         1.0
 ---------------------- DEPTH-BASED HYDRODYNAMIC COEFFICIENTS (model 2) ---------------------
 2             NCoefDpth      - Number of depth-dependent coefficients (-)
 Dpth      DpthCd   DpthCdMG   DpthCa   DpthCaMG
