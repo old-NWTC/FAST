@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-10-24 14:47:30 -0600 (Thu, 24 Oct 2013) $
-! (File) Revision #: $Rev: 101 $
+! File last committed: $Date: 2014-01-10 13:24:23 -0700 (Fri, 10 Jan 2014) $
+! (File) Revision #: $Rev: 102 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE AeroDyn
@@ -31,7 +31,7 @@ MODULE AeroDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: AD_Ver = ProgDesc( 'AeroDyn', 'v14.02.00c-mlb', '02-Oct-2013' )
+   TYPE(ProgDesc), PARAMETER            :: AD_Ver = ProgDesc( 'AeroDyn', 'v14.02.01a-bjj', '07-Jan-2014' )
 
       ! ..... Public Subroutines ............
 
@@ -100,7 +100,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    INTEGER                                   :: InterpIndx                 ! Index telling the interpolation routine where to start in the array.
    INTEGER                                   :: Node                          ! Index used to pull points out of the array of values at given node location.
 
-   CHARACTER(1024)                           :: ErrMessLcl          ! Error message returned by called routines.
+   CHARACTER(LEN(ErrMess))                   :: ErrMessLcl          ! Error message returned by called routines.
 
       ! Function definition
 
@@ -206,6 +206,8 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                      ,ErrStat        = ErrStat2                 &
                      ,ErrMess        = ErrMess2                 )
 
+      
+     
      DO IE = 1, p%Element%NELM-1 ! construct the blades into Line2 elements
        CALL MeshConstructElement ( Mesh = u%InputMarkers(IB)   &
                                   ,Xelement = ELEMENT_LINE2       &
@@ -215,6 +217,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                                   ,ErrMess  = ErrMess             )
      ENDDO
 
+     ! bjj: later we will position nodes, and commit the mesh.
 
    ENDDO
 
@@ -354,7 +357,8 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                       , ErrStat         = ErrStatLcl              &
                       , ErrMess         = ErrMessLcl              )
 
-      IF ( ErrStatLcl >= AbortErrLev )  THEN
+      !CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMsg,' AD_Init' )
+      IF ( ErrStat >= AbortErrLev )  THEN
          CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
          RETURN
       END IF
@@ -362,8 +366,17 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
          ! Set the positions of the nodes.  MeshCreate() allocated the Position array.
 
-      u%Twr_InputMarkers%Position(:,:) = InitInp%TwrNodeLocs(:,:)
-      u%Twr_InputMarkers%Nnodes        = InitInp%NumTwrNodes
+      DO Node = 1,u%Twr_InputMarkers%Nnodes
+         CALL MeshPositionNode ( Mesh  = u%Twr_InputMarkers          &
+                                ,INode = Node                        &
+                                ,Pos   = InitInp%TwrNodeLocs(:,Node) &  
+                                ,ErrStat   = ErrStatLcl              &
+                                ,ErrMess   = ErrMessLcl              )
+               IF ( ErrStatLcl >= AbortErrLev )  THEN
+                  CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
+                  RETURN
+               END IF
+      END DO         
 
 
          ! Construct the tower with Line-2 elements.
@@ -470,12 +483,23 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    InitInp%IfW_InitInputs%WindFileType = DEFAULT_WindNumber
 
 
-   CALL IfW_Init( InitInp%IfW_InitInputs,   u%IfW_Inputs,    p%IfW_Params,                          &
+   CALL IfW_Init( InitInp%IfW_InitInputs,   o%IfW_Inputs,    p%IfW_Params,                          &
                      x%IfW_ContStates, xd%IfW_DiscStates,   z%IfW_ConstrStates,    O%IfW_OtherStates,   &
-                     y%IfW_Outputs,    Interval,  InitOut%IfW_InitOutput,   ErrStat,    ErrMess )
+                     y%IfW_Outputs,    Interval,  InitOut%IfW_InitOutput,   ErrStatLcl,    ErrMessLcl )
 
-
-   IF (ErrStat /= ErrID_None) RETURN
+   CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
+   IF (ErrStat >= AbortErrLev) RETURN
+   
+   
+         ! Allocate the InflowWind derived types.  This is OK for now because InflowWind is being used as a submodule of AeroDyn.
+   IF (.NOT. ALLOCATED(o%IfW_Inputs%Position) ) THEN
+      CALL AllocAry( o%IfW_Inputs%Position, 3, 1, "position vectors to be sent to IfW_CalcOutput", ErrStatLcl, ErrMessLcl )
+         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
+         IF (ErrStat >= AbortErrLev) THEN
+           ! CALL CleanUp()
+            RETURN
+         END IF
+   END IF     
 
    !-------------------------------------------------------------------------------------------------
    ! Turn off dynamic inflow for wind less than 8 m/s (per DJL: 8 m/s is really just an empirical guess)
@@ -600,6 +624,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    p%Initialized = .TRUE.
    o%NoLoadsCalculated = .TRUE.
    
+        
    
    DO ie = 1, maxInfl
       p%DynInflow%xMinv(ie) = PIBY2 / hfunc(MRvector(ie), NJvector(ie))   !bjj: this is really just a parameter, too.
@@ -662,7 +687,7 @@ SUBROUTINE AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
 
          ! Place any last minute operations or calculations here:
 
-      CALL IfW_End(  u%IfW_Inputs, p%IfW_Params, x%IfW_ContStates, xd%IfW_DiscStates, z%IfW_ConstrStates, &
+      CALL IfW_End(  OtherState%IfW_Inputs, p%IfW_Params, x%IfW_ContStates, xd%IfW_DiscStates, z%IfW_ConstrStates, &
                      OtherState%IfW_OtherStates, y%IfW_Outputs, ErrStat, ErrMess )
 
          ! Close files here:
@@ -759,8 +784,8 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
       TYPE(AD_OtherStateType),      INTENT(INOUT)  :: O!therState ! Other/optimization states
       TYPE(AD_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at Time (Input only so that mesh con-
                                                                        !   nectivity information does not have to be recalculated)
-      INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                      INTENT(  OUT)  :: ErrMess      ! Error message if ErrStat /= ErrID_None
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
       ! Local variables
@@ -788,14 +813,13 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
    REAL(ReKi)                 :: tmpVector     (3)
    REAL(ReKi)                 :: VelocityVec   (3)
 
-   INTEGER                                   :: ErrStatLcL        ! Error status returned by called routines.
+   INTEGER                    :: ErrStatLcL        ! Error status returned by called routines.
    INTEGER                    :: IBlade
    INTEGER                    :: IElement
    INTEGER                    :: Node                          ! Node index for computing tower aerodynamics.
 
-   CHARACTER(1024)                           :: ErrMessLcl                    ! Error message returned by called routines.
+   CHARACTER(LEN(ErrMess))                   :: ErrMessLcl          ! Error message returned by called routines.
 
-   TYPE(IfW_InputType)        :: IfW_Inputs  ! Position in IfW format.
 
 
    ! Initialize ErrStat
@@ -844,11 +868,14 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
       ENDDO
 
       IF ( O%FirstWarn ) THEN
-         ErrStat = ErrID_Warn
-         ErrMESS  = ' AeroDyn was designed for an explicit-loose coupling scheme. '//&
+         CALL SetErrStat ( ErrID_Warn, ' AeroDyn was designed for an explicit-loose coupling scheme. '//&
             'Using last calculated values from AeroDyn on all subsequent calls until time is advanced. '//&
-            'Warning will not be displayed again.' 
-         O%FirstWarn = .FALSE.         
+            'Warning will not be displayed again.', ErrStat,ErrMess,' AD_CalcOutput' )
+         O%FirstWarn = .FALSE.       
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
       END IF
       
       
@@ -955,13 +982,26 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
    o%Rotor%AvgInfl = o%InducedVel%SumInfl * 2.0 / (p%Blade%R*p%Blade%R*p%Blade%NB)  ! Average inflow from the previous time step
    o%InducedVel%SumInfl = 0.0   ! reset to sum for the current time step
 
-   CALL DiskVel(Time, P, O, ErrStat, ErrMess)  ! Get a sort of "Average velocity" - sets a bunch of stored variables...
-
+   CALL DiskVel(Time, P, O, ErrStatLcl, ErrMessLcl)  ! Get a sort of "Average velocity" - sets a bunch of stored variables...
+      CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput/DiskVel' )
+      IF (ErrStat >= AbortErrLev) THEN
+         CALL CleanUp()
+         RETURN
+      END IF
+         
    IF ( P%DStall ) CALL BedUpdate( O )   ! that's an 'O' as in 'OtherState'
 
    ! Enter the dynamic inflow routines here
 
-   IF ( p%Wake )  CALL Inflow(Time, P, O, ErrStat, ErrMess)
+   IF ( p%Wake )  THEN
+      CALL Inflow(Time, P, O, ErrStatLcl, ErrMessLcl)
+         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput/Inflow' )
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL CleanUp()
+            RETURN
+         END IF   
+   END IF      
+   
        !bjj: perhaps we should send NoLoadsCalculated to initialize dynamic inflow [subroutine Infinit()]
        !bjj: instead of the check that time > 0...?
 
@@ -1010,8 +1050,13 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
          ! Get wind velocity components; calculate velocity normal to the rotor squared
          ! Save variables for printing in a file later;
          !-------------------------------------------------------------------------------------------
-         VelocityVec(:)    = AD_WindVelocityWithDisturbance( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess, &
+         VelocityVec(:)    = AD_WindVelocityWithDisturbance( Time, u, p, x, xd, z, O, y, ErrStatLcl, ErrMessLcl, &
                                                              u%InputMarkers(IBlade)%Position(:,IElement) )
+            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput' )
+            IF (ErrStat >= AbortErrLev) THEN
+               CALL CleanUp()
+               RETURN
+            END IF
          VelNormalToRotor2 = ( VelocityVec(3) * o%Rotor%STilt + (VelocityVec(1) * o%Rotor%CYaw               &
                              - VelocityVec(2) * o%Rotor%SYaw) * o%Rotor%CTilt )**2
 
@@ -1030,16 +1075,27 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
          !-------------------------------------------------------------------------------------------
          ! Get blade element forces and induced velocity
          !-------------------------------------------------------------------------------------------
-         CALL ELEMFRC( p, O, ErrStat, ErrMess,                             &
+         CALL ELEMFRC( p, O, ErrStatLcl, ErrMessLcl,                             &
                        AzimuthAngle, rLocal, IElement, IBlade, VelNormalToRotor2, VTTotal, VNWind, &
                        VNElement, DFN, DFT, PMA, o%NoLoadsCalculated )
-
+            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput' )
+            IF (ErrStat >= AbortErrLev) THEN
+               CALL CleanUp()
+               RETURN
+            END IF
+            
          !-------------------------------------------------------------------------------------------
          ! Set up dynamic inflow parameters
          !-------------------------------------------------------------------------------------------
          IF ( p%DynInfl .OR. O%DynInit ) THEN
-            CALL GetRM (P, O, ErrStat, ErrMess, &
+            CALL GetRM (P, O, ErrStatLcl, ErrMessLcl, &
                         rLocal, DFN, DFT, AzimuthAngle, IElement, IBlade)
+               CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput' )
+               IF (ErrStat >= AbortErrLev) THEN
+                  CALL CleanUp()
+                  RETURN
+               END IF
+            
          ENDIF
 
          o%StoredForces(1,IElement,IBlade)  = ( DFN*CPitch + DFT*SPitch ) / p%Blade%DR(IElement)
@@ -1087,18 +1143,7 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
      ENDDO
    ENDDO
 
-
-   
-         ! Allocate the InflowWind derived types.  This is OK for now because InflowWind is being used as a submodule of AeroDyn.
-   IF (.NOT. ALLOCATED(IfW_Inputs%Position) ) THEN
-      CALL AllocAry( IfW_Inputs%Position, 3, 1, "position vectors to be sent to IfW_CalcOutput", ErrStatLcl, ErrMessLcl )
-      IF ( ErrStatLcl >= AbortErrLev )  THEN
-         CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
-         RETURN
-      END IF   
-   END IF   
-   
-
+       
 
       ! Loop through all the tower nodes to calculate the aerodynamic loads on the tower if aerodynamics were requested.
 
@@ -1109,18 +1154,19 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
 
             ! Set the location of the node in the global coordinate system for IfW.
 
-         IfW_Inputs%Position(:,1) = u%Twr_InputMarkers%TranslationDisp(:,Node) + u%Twr_InputMarkers%Position(:,Node)
+         o%IfW_Inputs%Position(:,1) = u%Twr_InputMarkers%TranslationDisp(:,Node) + u%Twr_InputMarkers%Position(:,Node)
 
             ! Get the absolute wind velocity vector for this node from IfW.
 
-         CALL IfW_CalcOutput( Time, IfW_Inputs, p%IfW_Params, &
+         CALL IfW_CalcOutput( Time, o%IfW_Inputs, p%IfW_Params, &
                                     x%IfW_ContStates, xd%IfW_DiscStates, z%IfW_ConstrStates, O%IfW_OtherStates, &   ! States -- none in this case
                                     y%IfW_Outputs, ErrStatLcl, ErrMessLcl )
 
-         IF ( ErrStatLcl >= AbortErrLev )  THEN
-            CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
-            RETURN
-         END IF
+            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput' )
+            IF (ErrStat >= AbortErrLev) THEN
+               CALL CleanUp()
+               RETURN
+            END IF
 
 
             ! Calculate the aerodynamic load on this tower node: TwrAeroLoads ( p, Node, NodeDCMGbl, NodeVelGbl, NodeWindVelGbl, NodeFrcGbl )
@@ -1137,15 +1183,26 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
       ! Calculate the HH wind speed. (Do this at the end, after all the calls to IfW_CalcOutput are complete.)
 
 !MLB: This assumes that the hub height is constant, which is not a valid assumption.  But what do people really want, a fixed or "floating" HH wind speed?
-   IfW_Inputs%Position(:,1) = (/0.0_ReKi, 0.0_ReKi, p%Rotor%HH /)
+   o%IfW_Inputs%Position(:,1) = (/0.0_ReKi, 0.0_ReKi, p%Rotor%HH /)
 
-   CALL IfW_CalcOutput( Time, IfW_Inputs, p%IfW_Params, &
+   CALL IfW_CalcOutput( Time, o%IfW_Inputs, p%IfW_Params, &
                               x%IfW_ContStates, xd%IfW_DiscStates, z%IfW_ConstrStates, O%IfW_OtherStates, &   ! States -- none in this case
-                              y%IfW_Outputs, ErrStat, ErrMess )
+                              y%IfW_Outputs, ErrStatLcl, ErrMessLcl )
+   
+         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput' )
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
+   
 
    if (.not. allocated( y%IfW_Outputs%WriteOutput ) ) then
-      CALL AllocAry( y%IfW_Outputs%WriteOutput, 3, "y%IfW_Outputs%WriteOutput", ErrStat, ErrMess )
-         IF (ErrStat >= AbortErrLev)  RETURN
+      CALL AllocAry( y%IfW_Outputs%WriteOutput, 3, "y%IfW_Outputs%WriteOutput", ErrStatLcl, ErrMessLcl )
+         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput' )
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL CleanUp()
+            RETURN
+         END IF   
    end if
 
    y%IfW_Outputs%WriteOutput = y%IfW_Outputs%Velocity(:,1)
@@ -1155,43 +1212,28 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
    
    CALL ElemOut(time, P, O )
    
-   CALL ExitThisRoutine ( ErrID_None, "no errors" )
+   CALL CleanUp (  )
 
    RETURN
 
    !=======================================================================
    CONTAINS
    !=======================================================================
-   SUBROUTINE ExitThisRoutine ( ErrID, Msg )
+   SUBROUTINE CleanUp ( )
 
 
       ! This subroutine cleans up the parent routine before exiting.
 
 
-         ! Argument declarations.
-
-      INTEGER(IntKi), INTENT(IN)                :: ErrID                      ! The error identifier (ErrStat)
-
-      CHARACTER(*),   INTENT(IN)                :: Msg                        ! The error message (ErrMess)
-
-
-
-         ! Set error status/message
-
-      ErrStat = ErrID
-      ErrMess = Msg
-
-
-         ! Deallocate the IfW_Inputs%Position array if it had been allocated.
-
-      IF ( ALLOCATED( IfW_Inputs%Position ) )  DEALLOCATE( IfW_Inputs%Position )
+      !   ! Deallocate the IfW_Inputs%Position array if it had been allocated.
+      !
+      !CALL IfW_DestroyInput( IfW_Inputs, ErrStatLcl, ErrMessLcl )
 
 
       RETURN
 
-   END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
-
+   END SUBROUTINE CleanUp 
+   
 
 END SUBROUTINE AD_CalcOutput
 
@@ -1208,8 +1250,8 @@ SUBROUTINE AD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSta
       TYPE(AD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
       TYPE(AD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
       TYPE(AD_ContinuousStateType), INTENT(  OUT)  :: dxdt        ! Continuous state derivatives at Time
-      INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                      INTENT(  OUT)  :: ErrMess      ! Error message if ErrStat /= ErrID_None
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess      ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1281,6 +1323,8 @@ SUBROUTINE AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
       z_residual%DummyConstrState = 0
 
 END SUBROUTINE AD_CalcConstrStateResidual
+
+
 
 !====================================================================================================
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

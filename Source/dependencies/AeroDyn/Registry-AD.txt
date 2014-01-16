@@ -4,8 +4,8 @@
 # It also contains copy, destroy, pack, and unpack routines associated with each defined data types.
 # See the NWTC Programmer's Handbook for further information on the format/contents of this file.
 ###################################################################################################################################
-# File last committed: $Date: 2013-10-24 14:47:30 -0600 (Thu, 24 Oct 2013) $
-# (File) Revision #: $Rev: 101 $
+# File last committed: $Date: 2014-01-10 13:24:23 -0700 (Fri, 10 Jan 2014) $
+# (File) Revision #: $Rev: 102 $
 # URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/Registry-AD.txt $
 ###################################################################################################################################
 #
@@ -356,6 +356,7 @@ typedef	^	OtherStateType	LOGICAL	FirstWarn	-	-	-	"If it's the first warning abou
 typedef	^	OtherStateType	ElOutParms	ElOut
 typedef	^	OtherStateType	LOGICAL	Skew	-	-	-
 typedef	^	OtherStateType	LOGICAL	DynInit	-	-	-	"FALSE=EQUIL, TRUE=DYNIN"
+typedef	^	OtherStateType	IfW_InputType	IfW_Inputs	-	-	-	"inputs to IfW module; set here so we don't have to recreate it every time"	-
 
 # ..... Parameters ................................................................................................................
 # Define parameters here:
@@ -413,7 +414,6 @@ typedef	^	ParameterType	IfW_ParameterType	IfW_Params	-	-	-		-
 typedef	^	InputType	MeshType	InputMarkers	{:}	-	-	"Input Forces and positions for the blades (mesh) for each blade"	-
 typedef	^	InputType	MeshType	Twr_InputMarkers	-	-	-	"Input Forces and positions for the tower (mesh)"	-
 typedef	^	InputType	AeroConfig	TurbineComponents	-	-	-	"Current locations of components"
-typedef	^	InputType	IfW_InputType	IfW_Inputs	-	-	-		-
 #typedef	^	InputType	LOGICAL	SetMulTabLoc	{:}{:}
 typedef	^	InputType	ReKi	MulTabLoc	{:}{:}
 

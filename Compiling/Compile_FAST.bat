@@ -90,11 +90,10 @@ SET ROOT_NAME=FAST_iwin%BITS%
 SET INTER_DIR=Obj_iwin%BITS%
 
 :: /nologo /fpp /stand:f03 /Qdiag-disable:5268 /traceback /libs:static /threads /Qmkl:sequential /c
-:: /Qmkl:sequential is for SubDyn's use of intel's math kernel library
+:: /Qmkl:sequential used to include the intel math kernel library
 
 SET COMPOPTS=/threads  /O2 /inline:speed /traceback /real_size:32 /fpp
-rem SET LINKOPTS=/link /stack:64000000
-SET LINKOPTS=/link %MAP_Include_Lib%
+SET LINKOPTS=/link %MAP_Include_Lib% /LARGEADDRESSAWARE /STACK:999999999
 
 SET LINES=++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

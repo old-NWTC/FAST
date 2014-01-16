@@ -376,9 +376,6 @@ $(INTER_DIR):
 
    # For linking FAST.
 
-## TODO:
-## bjj: need to link with $(MAP_lib) and with the equivalents of the mkl routines used in intel
-
 $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT): $(ALL_OBJS) | $(INTER_DIR)
 	$(FC) $(LDFLAGS) -I $(INTER_DIR) -o $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT) \
 	$(foreach src, $(ALL_OBJS), $(addprefix $(INTER_DIR)/,$(src))) $(MAP_lib)

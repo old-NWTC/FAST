@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-04 21:43:08 -0700 (Sat, 04 Jan 2014) $
-! (File) Revision #: $Rev: 207 $
+! File last committed: $Date: 2014-01-10 13:39:34 -0700 (Fri, 10 Jan 2014) $
+! (File) Revision #: $Rev: 209 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_IO
@@ -1038,7 +1038,11 @@ CONTAINS
 
    IF ( Sttus /= 0 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+      ELSE
+         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim*BYTES_IN_SiKi))//' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF      
    ELSE
       ErrStat = ErrID_None
       ErrMsg  = ''
@@ -1072,12 +1076,17 @@ CONTAINS
    ALLOCATE ( Ary(AryDim) , STAT=Sttus )
 
    IF ( Sttus /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
+         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim*BYTES_IN_R8Ki))//' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF
+         
+   ELSE
       ErrStat = ErrID_None
       ErrMsg  = ''
-      END IF
+   END IF
 
    RETURN
    END SUBROUTINE AllR8Ary1 ! ( Ary, AryDim, Descr, ErrStat, ErrMsg )
@@ -1109,11 +1118,16 @@ CONTAINS
 
    IF ( Sttus /= 0 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+      ELSE
+         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim*BYTES_IN_QuKi))//' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF
+         
    ELSE
       ErrStat = ErrID_None
-            ErrMsg  = ''
-         END IF
+      ErrMsg  = ''
+   END IF
 
    RETURN
    END SUBROUTINE AllR16Ary1 ! ( Ary, AryDim, Descr, ErrStat, ErrMsg )
@@ -1145,10 +1159,15 @@ CONTAINS
 
    IF ( Sttus /= 0 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
+      IF ( ALLOCATED(Ary) ) THEN
+         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+      ELSE
+         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_SiKi))//&
+                  ' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF         
    ELSE
       ErrStat = ErrID_None
-      ErrMsg = ''
+      ErrMsg  = ''
    END IF
 
 
@@ -1181,12 +1200,17 @@ CONTAINS
    ALLOCATE ( Ary(AryDim1,AryDim2) , STAT=Sttus )
 
    IF ( Sttus /= 0 ) THEN
-         ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN
+         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
+         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_R8Ki))//&
+                  ' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF         
+   ELSE
       ErrStat = ErrID_None
-      ErrMsg = ''
-      END IF
+      ErrMsg  = ''
+   END IF
 
 
    RETURN
@@ -1219,10 +1243,15 @@ CONTAINS
 
    IF ( Sttus /= 0 ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
+      ELSE
+         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*BYTES_IN_QuKi))//&
+                  ' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF         
    ELSE
       ErrStat = ErrID_None
-      ErrMsg = ''
+      ErrMsg  = ''
    END IF
 
 
@@ -1243,8 +1272,8 @@ CONTAINS
    INTEGER,      INTENT(IN)          :: AryDim2                                    ! The size of the second dimension of the array.
    INTEGER,      INTENT(IN)          :: AryDim3                                    ! The size of the third dimension of the array.
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status; if present, program does not abort on error
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
       ! Local declarations.
@@ -1257,27 +1286,17 @@ CONTAINS
    ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3) , STAT=Sttus )
 
    IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
-      END IF
-
+         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*BYTES_IN_REAL))//&
+                  ' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF         
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
-   END IF
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF      
 
 
 
@@ -1299,8 +1318,8 @@ CONTAINS
    INTEGER,      INTENT(IN)          :: AryDim3                                    ! The size of the third dimension of the array.
    INTEGER,      INTENT(IN)          :: AryDim4                                    ! The size of the fourth dimension of the array.
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status; if present, program does not abort on error
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
       ! Local declarations.
@@ -1313,27 +1332,18 @@ CONTAINS
    ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3,AryDim4) , STAT=Sttus )
 
    IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
-      END IF
-
+         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*AryDim4*BYTES_IN_REAL))//&
+                  ' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF         
    ELSE
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF      
 
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
-   END IF
 
 
 
@@ -1356,8 +1366,8 @@ CONTAINS
    INTEGER,      INTENT(IN)          :: AryDim4                                    ! The size of the fourth dimension of the array.
    INTEGER,      INTENT(IN)          :: AryDim5                                    ! The size of the fourth dimension of the array.
    CHARACTER(*), INTENT(IN)          :: Descr                                      ! Brief array description.
-   INTEGER,      INTENT(OUT),OPTIONAL:: ErrStat                                    ! Error status; if present, program does not abort on error
-   CHARACTER(*), INTENT(OUT),OPTIONAL:: ErrMsg                                     ! Error message corresponding to ErrStat
+   INTEGER,      INTENT(OUT)         :: ErrStat                                    ! Error status; if present, program does not abort on error
+   CHARACTER(*), INTENT(OUT)         :: ErrMsg                                     ! Error message corresponding to ErrStat
 
 
       ! Local declarations.
@@ -1370,27 +1380,17 @@ CONTAINS
    ALLOCATE ( Ary(AryDim1,AryDim2,AryDim3,AryDim4,AryDim5) , STAT=Sttus )
 
    IF ( Sttus /= 0 ) THEN
-      Msg = ' Error allocating memory for the '//TRIM( Descr )//' array.'
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = ErrID_Fatal
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = Msg
-         END IF
+      ErrStat = ErrID_Fatal
+      IF ( ALLOCATED(Ary) ) THEN ! or Sttus=151 on IVF
+         ErrMsg = ' Error allocating memory for the '//TRIM( Descr )//' array; array was already allocated.'
       ELSE
-         CALL ProgAbort ( Msg )
-      END IF
-
+         ErrMsg = ' Error allocating '//TRIM(Num2LStr(AryDim1*AryDim2*AryDim3*AryDim4*AryDim5*BYTES_IN_REAL))//&
+                  ' bytes of memory for the '//TRIM( Descr )//' array.'
+      END IF         
    ELSE
-
-      IF ( PRESENT(ErrStat) ) THEN
-         ErrStat = Sttus
-         IF ( PRESENT(ErrMsg) ) THEN
-            ErrMsg  = ''
-         END IF
-      END IF
-
-   END IF
+      ErrStat = ErrID_None
+      ErrMsg  = ''
+   END IF     
 
 
 
@@ -7118,5 +7118,28 @@ SUBROUTINE RemoveNullChar( Str )
 END SUBROUTINE RemoveNullChar
    
 !=======================================================================
+SUBROUTINE SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,RoutineName )
+
+   ! This routine sets the error status
+
+   INTEGER(IntKi),                    INTENT(IN   )  :: ErrStatLcl   ! Error status of the operation
+   CHARACTER(*),                      INTENT(IN   )  :: ErrMessLcl   ! Error message if ErrStat /= ErrID_None
+                                                                     
+   INTEGER(IntKi),                    INTENT(INOUT)  :: ErrStat      ! Error status of the operation
+   CHARACTER(*),                      INTENT(INOUT)  :: ErrMess      ! Error message if ErrStat /= ErrID_None
+
+   CHARACTER(*),                      INTENT(IN   )  :: RoutineName  ! Name of the routine error occurred in
    
+
+   IF ( ErrStatLcl /= ErrID_None ) THEN
+   
+      IF (ErrStat /= ErrID_None) ErrMess = TRIM(ErrMess)//NewLine
+      ErrMess = TRIM(RoutineName)//':'//TRIM(ErrMessLcl)         
+      ErrStat = MAX(ErrStat,ErrStatLcl)
+      
+   END IF
+      
+END SUBROUTINE SetErrStat    
+
+
 END MODULE NWTC_IO

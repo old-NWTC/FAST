@@ -962,6 +962,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
    REAL(ReKi)                                  :: IntBuoyancy(6)      ! sum of all internal buoyancy forces lumped at (0,0,0)
    REAL(ReKi)                                  :: MG_Wt(6)            ! weight of the marine growth as applied to (0,0,0)
    TYPE(MeshType)                              :: WRP_Mesh            ! mesh representing the WAMIT reference point (0,0,0)
+   TYPE(MeshType)                              :: WRP_Mesh_position   ! mesh representing the WAMIT reference point (0,0,0)   (with no displaced position)
    TYPE(MeshMapType)                           :: M_L_2_P             ! Map  Morison Line2 to  WRP_Mesh point
    TYPE(MeshMapType)                           :: M_P_2_P             ! Map  Morison Line2 to  WRP_Mesh point
    REAL(ReKi)                                  :: elementVol            ! displaced volume of an element
@@ -1195,7 +1196,19 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
                       , ErrStat            &
                       , ErrMsg             )
    
-      IF ( ErrStat /= 0 ) RETURN
+      IF ( ErrStat /= ErrID_None ) RETURN
+            
+         ! we need the translation displacement mesh for loads transfer:
+      CALL MeshCopy ( SrcMesh  = WRP_Mesh            &
+                    , DestMesh = WRP_Mesh_position   &
+                    , CtrlCode = MESH_SIBLING        &
+                    , IOS      = COMPONENT_INPUT     &
+                    , TranslationDisp = .TRUE.       &
+                    , ErrStat  = ErrStat             &
+                    , ErrMess  = ErrMsg              )  ! automatically sets    DestMesh%RemapFlag = .TRUE.
+                    
+      IF ( ErrStat /= ErrID_None ) RETURN
+      WRP_Mesh_position%TranslationDisp = 0.0  ! bjj: this is actually initialized in the ModMesh module, but I'll do it here anyway.
       
       WRP_Mesh%RemapFlag  = .TRUE.
       
@@ -1223,9 +1236,9 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
  
          ! Transfer the loads from the distributed mesh to the (0,0,0) point mesh
          
-      CALL AllocMapping           ( outDistribMesh, WRP_Mesh, M_L_2_P, ErrStat, ErrMsg                )
-        !CALL CheckError( ErrStat, 'Message from AllocMapping HD_M_L_2_ED_P: '//NewLine//ErrMsg )
-      CALL Transfer_Line2_to_Point( outDistribMesh, WRP_Mesh, M_L_2_P, ErrStat, ErrMsg, inDistribMesh )
+      CALL MeshMapCreate           ( outDistribMesh, WRP_Mesh, M_L_2_P, ErrStat, ErrMsg                )
+        !CALL CheckError( ErrStat, 'Message from MeshMapCreate HD_M_L_2_ED_P: '//NewLine//ErrMsg )
+      CALL Transfer_Line2_to_Point( outDistribMesh, WRP_Mesh, M_L_2_P, ErrStat, ErrMsg, inDistribMesh, WRP_Mesh_position )
       
       ExtBuoyancy(1:3) = WRP_Mesh%Force (:,1)
       ExtBuoyancy(4:6) = WRP_Mesh%Moment(:,1)
@@ -1255,8 +1268,8 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
          ! Remap for the lumped to WRP mesh transfer       
       WRP_Mesh%RemapFlag  = .TRUE.
       
-      CALL AllocMapping           ( outLumpedMesh, WRP_Mesh, M_P_2_P, ErrStat, ErrMsg               )
-      CALL Transfer_Point_to_Point( outLumpedMesh, WRP_Mesh, M_P_2_P, ErrStat, ErrMsg, inLumpedMesh )
+      CALL MeshMapCreate           ( outLumpedMesh, WRP_Mesh, M_P_2_P, ErrStat, ErrMsg               )
+      CALL Transfer_Point_to_Point( outLumpedMesh, WRP_Mesh, M_P_2_P, ErrStat, ErrMsg, inLumpedMesh, WRP_Mesh_position )
       
       ExtBuoyancy(1:3) = ExtBuoyancy(1:3) + WRP_Mesh%Force (:,1)
       ExtBuoyancy(4:6) = ExtBuoyancy(4:6) + WRP_Mesh%Moment(:,1)
@@ -1293,7 +1306,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
       END DO ! DO J
        
       IntBuoyancy = 0.0
-      CALL Transfer_Line2_to_Point( outDistribMesh, WRP_Mesh, M_L_2_P, ErrStat, ErrMsg, inDistribMesh )
+      CALL Transfer_Line2_to_Point( outDistribMesh, WRP_Mesh, M_L_2_P, ErrStat, ErrMsg, inDistribMesh, WRP_Mesh_position )
       IntBuoyancy(1:3) = WRP_Mesh%Force(:,1)
       IntBuoyancy(4:6) = WRP_Mesh%Moment(:,1)
       
@@ -1316,7 +1329,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
          
       END DO ! DO J 
       
-      CALL Transfer_Point_to_Point( outLumpedMesh, WRP_Mesh, M_P_2_P, ErrStat, ErrMsg, inLumpedMesh )
+      CALL Transfer_Point_to_Point( outLumpedMesh, WRP_Mesh, M_P_2_P, ErrStat, ErrMsg, inLumpedMesh, WRP_Mesh_position )
       IntBuoyancy(1:3) = IntBuoyancy(1:3) + WRP_Mesh%Force(:,1)
       IntBuoyancy(4:6) = IntBuoyancy(4:6) + WRP_Mesh%Moment(:,1)
       
@@ -1356,7 +1369,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
        
          
       MG_Wt = 0.0
-      CALL Transfer_Line2_to_Point( outDistribMesh, WRP_Mesh, M_L_2_P, ErrStat, ErrMsg, inDistribMesh )
+      CALL Transfer_Line2_to_Point( outDistribMesh, WRP_Mesh, M_L_2_P, ErrStat, ErrMsg, inDistribMesh, WRP_Mesh_position )
       MG_Wt(1:3) = WRP_Mesh%Force(:,1)
       MG_Wt(4:6) = WRP_Mesh%Moment(:,1)
       
@@ -1376,6 +1389,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
       
       CALL MeshMapDestroy( M_L_2_P, ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
       CALL MeshDestroy(WRP_Mesh, ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
+      CALL MeshDestroy(WRP_Mesh_position, ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
       
    END IF
 

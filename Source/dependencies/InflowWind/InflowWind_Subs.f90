@@ -12,8 +12,8 @@ MODULE InflowWind_Subs
 !  1 Aug 2012    v1.01.00a-bjj                              B. Jonkman
 ! 10 Aug 2012    v1.01.00b-bjj                              B. Jonkman
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2013-09-21 22:29:52 -0600 (Sat, 21 Sep 2013) $
-! (File) Revision #: $Rev: 96 $
+! File last committed: $Date: 2014-01-10 13:34:54 -0700 (Fri, 10 Jan 2014) $
+! (File) Revision #: $Rev: 107 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/InflowWind_Subs.f90 $
 !----------------------------------------------------------------------------------------------------
 !
@@ -87,7 +87,7 @@ SUBROUTINE GetWindType( ParamData, ErrStat, ErrMsg )
    CHARACTER(1024)                                    :: FileRoot
 
 
-   ErrStat  = 0
+   ErrStat  = ErrID_None
    ErrMsg   = ""
 
    !-------------------------------------------------------------------------------------------------
@@ -100,7 +100,7 @@ SUBROUTINE GetWindType( ParamData, ErrStat, ErrMsg )
 
    IF ( WndFilNam == 'USERWIND' )  THEN
 
-      CALL WrScr( NewLine//'  Detected user-defined wind file.' )
+      CALL WrScr( NewLine//'   Detected user-defined wind file.' )
       ParamData%WindFileType = UD_WindNumber
 
       RETURN
@@ -126,7 +126,7 @@ SUBROUTINE GetWindType( ParamData, ErrStat, ErrMsg )
    ! If there was no '.' in the file name, assume FF, and add a .wnd extension
    !-------------------------------------------------------------------------------------------------
    IF ( IND == 0 ) THEN
-      CALL WrScr( NewLine//'  No file extension found. Assuming '//TRIM(FileName)// &
+      CALL WrScr( NewLine//'   No file extension found. Assuming '//TRIM(FileName)// &
                   ' is a binary FF wind file with a ".wnd" extension.')
       ParamData%WindFileType = FF_WindNumber
       ParamData%WindFileName = TRIM(ParamData%WindFileName)//'.wnd'
@@ -145,31 +145,31 @@ SUBROUTINE GetWindType( ParamData, ErrStat, ErrMsg )
 
          INQUIRE ( FILE=FileName(1:IND)//'sum' , EXIST=Exists )
          IF (Exists) THEN
-            CALL WrScr(NewLine//'  Assuming '//TRIM(FileName)//' is a binary FF wind file.')
+            CALL WrScr(NewLine//'   Assuming '//TRIM(FileName)//' is a binary FF wind file.')
             ParamData%WindFileType = FF_WindNumber
          ELSE
-            CALL WrScr(NewLine//'  Assuming '//TRIM(FileName)//' is a formatted HH wind file.')
+            CALL WrScr(NewLine//'   Assuming '//TRIM(FileName)//' is a formatted HH wind file.')
             ParamData%WindFileType = HH_WindNumber
          END IF
 
       CASE ('BTS')
-         CALL WrScr(NewLine//'  Assuming '//TRIM(FileName)//' is a binary FF wind file.')
+         CALL WrScr(NewLine//'   Assuming '//TRIM(FileName)//' is a binary FF wind file.')
          ParamData%WindFileType = FF_WindNumber
 
       CASE ('CTP')
-         CALL WrScr(NewLine//'  Assuming '//TRIM(FileName)//' is a coherent turbulence wind file.')
+         CALL WrScr(NewLine//'   Assuming '//TRIM(FileName)//' is a coherent turbulence wind file.')
          ParamData%WindFileType = CTP_WindNumber
 
       CASE ('FDP')
-         CALL WrScr(NewLine//'  Assuming '//TRIM(FileName)//' is a binary 4-dimensional wind file.')
+         CALL WrScr(NewLine//'   Assuming '//TRIM(FileName)//' is a binary 4-dimensional wind file.')
          ParamData%WindFileType = FD_WindNumber
 
       CASE ('HWC')
-         CALL WrScr(NewLine//'  Assuming '//TRIM(FileName)//' contains full-field wind parameters in HAWC format.')
+         CALL WrScr(NewLine//'   Assuming '//TRIM(FileName)//' contains full-field wind parameters in HAWC format.')
          ParamData%WindFileType = HAWC_WindNumber
 
       CASE DEFAULT
-         CALL WrScr(NewLine//'  Assuming '//TRIM(FileName)//' is a formatted HH wind file.')
+         CALL WrScr(NewLine//'   Assuming '//TRIM(FileName)//' is a formatted HH wind file.')
          ParamData%WindFileType = HH_WindNumber
 
    END SELECT

@@ -26,8 +26,8 @@ MODULE IfW_HHWind
 !     -- Note:  Jacobians are not included in this version.
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2013-11-12 12:20:07 -0700 (Tue, 12 Nov 2013) $
-! (File) Revision #: $Rev: 105 $
+! File last committed: $Date: 2014-01-10 13:34:54 -0700 (Fri, 10 Jan 2014) $
+! (File) Revision #: $Rev: 107 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/IfW_HHWind.f90 $
 !----------------------------------------------------------------------------------------------------
 ! LICENSING
@@ -122,7 +122,7 @@ SUBROUTINE IfW_HHWind_Init(InitData,   InputGuess, ParamData,                   
 
       ! Temporary variables for error handling
    INTEGER(IntKi)                                        :: TmpErrStat        ! Temp variable for the error status
-   CHARACTER(1024)                                       :: TmpErrMsg         ! Temp variable for the error message
+   CHARACTER(LEN(ErrMsg))                                :: TmpErrMsg      ! temporary error message
 
 
       !-------------------------------------------------------------------------------------------------
@@ -403,7 +403,8 @@ SUBROUTINE IfW_HHWind_Init(InitData,   InputGuess, ParamData,                   
       !-------------------------------------------------------------------------------------------------
       ! Print warnings and messages
       !-------------------------------------------------------------------------------------------------
-   ErrMsg   = TRIM(ErrMsg)//' Processed '//TRIM( Num2LStr( OtherStates%NumDataLines ) )//' records of HH data'//NewLine
+   CALL WrScr( '   Processed '//TRIM( Num2LStr( OtherStates%NumDataLines ) )//' records of HH data' )
+   !ErrMsg   = TRIM(ErrMsg)//'  Processed '//TRIM( Num2LStr( OtherStates%NumDataLines ) )//' records of HH data' )//NewLine
 
 
    IF ( OtherStates%Tdata(1) > 0.0 ) THEN
@@ -501,7 +502,7 @@ SUBROUTINE IfW_HHWind_CalcOutput(Time,    InData,        ParamData,             
 
       ! temporary variables
    INTEGER(IntKi)                                        :: TmpErrStat     ! temporary error status
-   CHARACTER(1024)                                       :: TmpErrMsg      ! temporary error message
+   CHARACTER(LEN(ErrMsg))                                :: TmpErrMsg      ! temporary error message
 
 
 
@@ -727,7 +728,7 @@ SUBROUTINE IfW_HHWind_End( InData,     ParamData,                               
 
       ! Local Variables
    INTEGER(IntKi)                                        :: TmpErrStat     ! temporary error status
-   CHARACTER(1024)                                       :: TmpErrMsg      ! temporary error message
+   CHARACTER(LEN(ErrMsg))                                :: TmpErrMsg      ! temporary error message
 
 
       !-=- Initialize the routine -=-

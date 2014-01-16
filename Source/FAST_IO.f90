@@ -706,7 +706,7 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    
    WRITE(y_FAST%UnSum,'(/A,I1,A)'  ) 'Interpolation order for input/output time histories: ', p_FAST%InterpOrder, TRIM(DescStr)
    WRITE(y_FAST%UnSum,'( A,I2)'    ) 'Number of correction iterations: ', p_FAST%NumCrctn
-   WRITE(y_FAST%UnSum,'( A,F15.5)' ) 'Glue code time step (seconds): ', p_FAST%DT
+   WRITE(y_FAST%UnSum,'( A,A)' ) 'Glue code time step (seconds): ', TRIM(Num2LStr(p_FAST%DT))
             
    
    !.......................... Information About Coupling ...................................................
@@ -1144,7 +1144,7 @@ CONTAINS
    !...............................................................................................................................
 END SUBROUTINE FAST_ReadPrimaryFile
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
+SUBROUTINE RunTimes( StrtTime, UsrTime1, SimStrtTime, UsrTime2, ZTime )
 ! This routine displays a message that gives that status of the simulation and the predicted end time of day.
 !..................................................................................................................................
 
@@ -1152,18 +1152,22 @@ SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
 
       ! Passed variables
 
-   INTEGER   , INTENT(IN)       :: StrtTime (8)                                    ! Start time of simulation
+   INTEGER   , INTENT(IN)       :: StrtTime (8)                                    ! Start time of simulation (including initialization)
+   INTEGER   , INTENT(IN)       :: SimStrtTime (8)                                 ! Start time of simulation (after initialization)
    REAL      , INTENT(IN)       :: UsrTime1                                        ! User CPU time for simulation initialization.
+   REAL,       INTENT(IN)       :: UsrTime2                                        ! User CPU time for simulation (without intialization)
    REAL(DbKi), INTENT(IN)       :: ZTime                                           ! The final simulation time (not necessarially TMax)
 
       ! Local variables
 
-   REAL                         :: ClckTime                                        ! Elapsed clock time for the simulation phase of the run.
+   REAL                         :: ClckTime                                        ! Elapsed clock time for the entire run.
+   REAL                         :: ClckTimeSim                                     ! Elapsed clock time for the simulation phase of the run.
    REAL                         :: Factor                                          ! Ratio of seconds to a specified time period.
    REAL                         :: TRatio                                          ! Ratio of simulation time to elapsed clock time.
    REAL(ReKi), PARAMETER        :: SecPerDay = 24*60*60.0_ReKi                     ! Number of seconds per day
 
    REAL                         :: UsrTime                                         ! User CPU time for entire run.
+   REAL                         :: UsrTimeSim                                      ! User CPU time for simulation (not including initialization).
    INTEGER                      :: EndTimes (8)                                    ! An array holding the ending clock time of the simulation.
 
    CHARACTER( 8)                :: TimePer
@@ -1177,19 +1181,19 @@ SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
 
    ! Calculate the elapsed wall-clock time in seconds.
 
-!bjj: I think this calculation will be wrong at certain times (e.g. if it's near midnight on the last day of the month), but to my knowledge, no one has complained...
-   ClckTime =  0.001*( EndTimes(8) - StrtTime(8) ) + ( EndTimes(7) - StrtTime(7) ) + 60.0*( EndTimes(6) - StrtTime(6) ) &
-            + 3600.0*( EndTimes(5) - StrtTime(5) ) + SecPerDay*( EndTimes(3) - StrtTime(3) )
-
+   ClckTime     = GetClockTime(StrtTime,      EndTimes)
+  !ClckTimeInit = GetClockTime(StrtTime,   SimStrtTime)
+   ClckTimeSim  = GetClockTime(SimStrtTime,   EndTimes)
 
       ! Calculate CPU times.
 
-   UsrTime  = UsrTime - UsrTime1
+   UsrTime    = UsrTime - UsrTime1
+   UsrTimeSim = UsrTime - UsrTime2
 
 
-   IF ( .NOT. EqualRealNos( UsrTime, 0.0 ) )  THEN
+   IF ( .NOT. EqualRealNos( UsrTimeSim, 0.0 ) )  THEN
 
-      TRatio = REAL(ZTime) / UsrTime
+      TRatio = REAL(ZTime) / UsrTimeSim
 
       IF     ( UsrTime > SecPerDay )  THEN
          Factor = 1.0/SecPerDay
@@ -1209,15 +1213,37 @@ SUBROUTINE RunTimes( StrtTime, UsrTime1, ZTime )
       CALL WrOver( BlankLine )  ! BlankLine contains MaxWrScrLen spaces
       CALL WrScr1( ' Total Real Time:       '//TRIM( Num2LStr( Factor*ClckTime      ) )//TRIM( TimePer ) )
       CALL WrScr ( ' Total CPU Time:        '//TRIM( Num2LStr( Factor*UsrTime       ) )//TRIM( TimePer ) )
+!     CALL WrScr ( ' ')
+!     CALL WrScr ( ' Simulation Real Time:  '//TRIM( Num2LStr( Factor*ClckTimeSim   ) )//TRIM( TimePer ) )
+      CALL WrScr ( ' Simulation CPU Time:   '//TRIM( Num2LStr( Factor*UsrTimeSim    ) )//TRIM( TimePer ) )      
       CALL WrScr ( ' Simulated Time:        '//TRIM( Num2LStr( Factor*REAL( ZTime ) ) )//TRIM( TimePer ) )
       CALL WrScr ( ' Time Ratio (Sim/CPU):  '//TRIM( Num2LStr( TRatio ) ) )
 
    ENDIF
 
    RETURN
+CONTAINS
+
+   FUNCTION GetClockTime(StartClockTime, EndClockTime)
+   ! return the number of seconds between StartClockTime and EndClockTime
+   
+      REAL                         :: GetClockTime          ! Elapsed clock time for the simulation phase of the run.
+      INTEGER   , INTENT(IN)       :: StartClockTime (8)                                 ! Start time of simulation (after initialization)
+      INTEGER   , INTENT(IN)       :: EndClockTime (8)                                 ! Start time of simulation (after initialization)
+   
+   !bjj: This calculation will be wrong at certain times (e.g. if it's near midnight on the last day of the month), but to my knowledge, no one has complained...
+      GetClockTime =       0.001*( EndClockTime(8) - StartClockTime(8) ) &  ! Is the milliseconds of the second (range 0 to 999) - local time
+                     +           ( EndClockTime(7) - StartClockTime(7) ) &  ! Is the seconds of the minute (range 0 to 59) - local time
+                     +      60.0*( EndClockTime(6) - StartClockTime(6) ) &  ! Is the minutes of the hour (range 0 to 59) - local time
+                     +    3600.0*( EndClockTime(5) - StartClockTime(5) ) &  ! Is the hour of the day (range 0 to 23) - local time
+                     + SecPerDay*( EndClockTime(3) - StartClockTime(3) )    ! Is the day of the month
+   
+   
+   END FUNCTION
+   
 END SUBROUTINE RunTimes
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SimStatus_FirstTime( PrevSimTime, PrevClockTime, ZTime, TMax )
+SUBROUTINE SimStatus_FirstTime( PrevSimTime, PrevClockTime, SimStrtTime, UsrTimeSim, ZTime, TMax )
 ! This routine displays a message that gives that status of the simulation.
 !..................................................................................................................................
 
@@ -1228,18 +1254,19 @@ SUBROUTINE SimStatus_FirstTime( PrevSimTime, PrevClockTime, ZTime, TMax )
    REAL(DbKi), INTENT(IN   )    :: TMax                                            ! Expected simulation time (s)
    REAL(DbKi), INTENT(  OUT)    :: PrevSimTime                                     ! Previous time message was written to screen (s > 0)
    REAL(ReKi), INTENT(  OUT)    :: PrevClockTime                                   ! Previous clock time in seconds past midnight
-
+   INTEGER,    INTENT(  OUT)    :: SimStrtTime (8)                                 ! An array containing the elements of the start time.
+   REAL,       INTENT(  OUT)    :: UsrTimeSim                                      ! User CPU time for simulation (without intialization)
 
       ! Local variables.
 
    REAL(ReKi)                   :: CurrClockTime                                   ! Current time in seconds past midnight.
-   INTEGER(4)                   :: TimeAry  (8)                                    ! An array containing the elements of the start time.
 
 
       ! How many seconds past midnight?
 
-   CALL DATE_AND_TIME ( Values=TimeAry )
-   CurrClockTime = TimeValues2Seconds( TimeAry )
+   CALL DATE_AND_TIME ( Values=SimStrtTime )
+   CALL CPU_TIME ( UsrTimeSim )                                                    ! Initial CPU time   
+   CurrClockTime = TimeValues2Seconds( SimStrtTime )
 
 
    CALL WrScr ( ' Timestep: '//TRIM( Num2LStr( NINT( ZTime ) ) )//' of '//TRIM( Num2LStr( TMax ) )//' seconds.')
@@ -1492,13 +1519,14 @@ END SUBROUTINE WrOutputLine
 
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, y_SD, u_SD, &
+SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, y_SD, u_SD, &
                           MeshMapData, u_ED_Without_SD_HD, ErrStat, ErrMsg )
 ! This routine sets the inputs required for ED
 !..................................................................................................................................
 
    TYPE(FAST_ParameterType),       INTENT(IN   )  :: p_FAST                   ! Glue-code simulation parameters
    TYPE(ED_InputType),             INTENT(INOUT)  :: u_ED                     ! ED Inputs at t
+   TYPE(ED_OutputType),            INTENT(IN   )  :: y_ED                     ! ElastoDyn outputs (need translation displacement on meshes for loads mapping)
    TYPE(AD_OutputType),            INTENT(IN   )  :: y_AD                     ! AeroDyn outputs
    TYPE(SrvD_OutputType),          INTENT(IN   )  :: y_SrvD                   ! ServoDyn outputs
    TYPE(HydroDyn_OutputType),      INTENT(IN   )  :: y_HD                     ! HydroDyn outputs
@@ -1572,6 +1600,8 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, 
          ! add aero force to the tower, if it's provided:
       IF ( y_AD%Twr_OutputLoads%Committed ) THEN
       
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+         
    !      CALL Transfer_Line2_to_Line2( )
       
          J = y_AD%Twr_OutputLoads%NNodes
@@ -1609,15 +1639,15 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, 
    !!END IF
 
 
-      ! Create a local copy of the ED mesh (we really need the Position and RefOrientation fields on the nodes; we'll sum the total loads from each module being used):
+      ! Create a local copy of the ED mesh (we need the Position and RefOrientation fields on the nodes; we'll sum the total loads from each module being used):
    CALL MeshCopy ( u_ED%PlatformPtMesh, u_mapped, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN      
    
       ! ED inputs from MAP
    IF ( p_FAST%CompMap ) THEN
-      
-      CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, u_mapped, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairleadDisplacement ) !u_MAP contains the orientations needed for moment calculations
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+      CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, u_mapped, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairleadDisplacement, y_ED%PlatformPtMesh ) !u_MAP contains the orientations needed for moment calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
@@ -1637,7 +1667,8 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, 
             ! Loads on the transition piece 
       IF ( y_SD%Y1Mesh%Committed  ) THEN
    
-         CALL Transfer_Point_to_Point( y_SD%Y1Mesh, u_mapped, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_SD%TPMesh ) !u_SD contains the orientations needed for moment calculations
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+         CALL Transfer_Point_to_Point( y_SD%Y1Mesh, u_mapped, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_SD%TPMesh, y_ED%PlatformPtMesh ) !u_SD contains the orientations needed for moment calculations
             CALL CheckError( ErrStat2, ErrMsg2 )
             IF (ErrStat >= AbortErrLev) RETURN
          
@@ -1648,7 +1679,7 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, 
                         
    ELSEIF ( p_FAST%CompHydro ) THEN ! connect to HydroDyn if SubDyn isn't used
                   
-         CALL Transfer_HD_to_ED( u_mapped, u_ED, y_HD, u_HD, MeshMapData, ErrStat2, ErrMsg2 ) !three meshes getting summed with u_ED%PlatformPtMesh
+         CALL Transfer_HD_to_ED( u_mapped, u_ED, y_ED%PlatformPtMesh, y_HD, u_HD, MeshMapData, ErrStat2, ErrMsg2 ) !three meshes getting summed with u_ED%PlatformPtMesh
             CALL CheckError( ErrStat2, ErrMsg2 )
             IF (ErrStat >= AbortErrLev) RETURN      
       
@@ -1697,12 +1728,13 @@ CONTAINS
 
 END SUBROUTINE ED_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, u_mapped_positions, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg )
 ! This routine transfers the HD outputs into inputs required for ED. Note that this *adds* to the values already in 
 ! u_ED%PlatformPtMesh (so initialize it before calling this routine).
 !..................................................................................................................................
    TYPE(MeshType),                 INTENT(INOUT)  :: u_mapped                 ! temporary copy of ED mesh (an argument to avoid another temporary mesh copy)
    TYPE(ED_InputType),             INTENT(INOUT)  :: u_ED                     ! ED Inputs at t
+   TYPE(MeshType),                 INTENT(IN   )  :: u_mapped_positions       ! ED mesh (with translation displacements)
    TYPE(HydroDyn_OutputType),      INTENT(IN   )  :: y_HD                     ! HydroDyn outputs
    TYPE(HydroDyn_InputType),       INTENT(IN   )  :: u_HD                     ! HydroDyn inputs
    
@@ -1723,7 +1755,8 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, y_HD, u_HD, MeshMapData, ErrStat, 
          ! WAMIT loads and added mass and possibly Morison Elements for viscous drag, filled/flooded bouyancy, and filled/flooded added mass
    IF ( y_HD%WAMIT%Mesh%Committed  ) THEN
 
-      CALL Transfer_Point_to_Point( y_HD%WAMIT%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%WAMIT%Mesh ) !u_HD contains the orientations needed for moment calculations
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+      CALL Transfer_Point_to_Point( y_HD%WAMIT%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%WAMIT%Mesh, u_mapped_positions) !u_HD contains the orientations needed for moment calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
@@ -1736,7 +1769,8 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, y_HD, u_HD, MeshMapData, ErrStat, 
 
          ! This is viscous drag associate with the WAMIT body and/or filled/flooded forces of the WAMIT body
 
-      CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%Morison%LumpedMesh )
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+      CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%Morison%LumpedMesh, u_mapped_positions )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
             
@@ -1747,7 +1781,8 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, y_HD, u_HD, MeshMapData, ErrStat, 
    
    IF ( y_HD%Morison%DistribMesh%Committed ) THEN 
 
-      CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_ED_P, ErrStat2, ErrMsg2, u_HD%Morison%DistribMesh )
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+      CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_ED_P, ErrStat2, ErrMsg2, u_HD%Morison%DistribMesh, u_mapped_positions )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
  
@@ -2029,12 +2064,13 @@ SUBROUTINE MAP_InputSolve(  u_MAP, y_ED, MeshMapData, ErrStat, ErrMsg )
 
 END SUBROUTINE MAP_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SD_InputSolve(  u_SD, y_ED, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE SD_InputSolve(  u_SD, y_SD, y_ED, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for MAP.
 !..................................................................................................................................
 
       ! Passed variables
    TYPE(SD_InputType),          INTENT(INOUT) :: u_SD                         ! SubDyn input
+   TYPE(SD_OutputType),         INTENT(INOUT) :: y_SD                         ! SubDyn output (need translational displacement for loads mapping)
    TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
    TYPE(HydroDyn_OutputType),   INTENT(IN   ) :: y_HD                         ! The outputs of the hydrodynamics module
    TYPE(HydroDyn_InputType),    INTENT(IN   ) :: u_HD                         ! The inputs from the hydrodynamics module (used for
@@ -2077,7 +2113,7 @@ SUBROUTINE SD_InputSolve(  u_SD, y_ED, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg 
       u_SD%LMesh%Force = 0.0_ReKi
       u_SD%LMesh%Moment = 0.0_ReKi
          
-      CALL Transfer_HD_to_SD( u_mapped, u_SD%LMesh, y_HD, u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )
+      CALL Transfer_HD_to_SD( u_mapped, u_SD%LMesh, y_SD%Y2Mesh, y_HD, u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF (ErrStat >= AbortErrLev) RETURN      
       
@@ -2124,12 +2160,13 @@ CONTAINS
 
 END SUBROUTINE SD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, y_HD, u_HD_M_LumpedMesh, u_HD_M_DistribMesh, MeshMapData, ErrStat, ErrMsg )
+SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_HD_M_LumpedMesh, u_HD_M_DistribMesh, MeshMapData, ErrStat, ErrMsg )
 ! This routine transfers the HD outputs into inputs required for ED. Note that this *adds* to the values already in 
 ! u_SD_LMesh (so initialize it before calling this routine).
 !..................................................................................................................................
    TYPE(MeshType),                 INTENT(INOUT)  :: u_mapped                 ! temporary copy of SD mesh (an argument to avoid another temporary mesh copy)
    TYPE(MeshType),                 INTENT(INOUT)  :: u_SD_LMesh               ! SD Inputs on LMesh at t (separate so we can call from ED_SD_HD_InputOutput solve with temp meshes)
+   TYPE(MeshType),                 INTENT(IN   )  :: u_mapped_positions       ! Mesh sibling of u_mapped, with displaced positions
    TYPE(HydroDyn_OutputType),      INTENT(IN   )  :: y_HD                     ! HydroDyn outputs
    TYPE(MeshType),                 INTENT(IN   )  :: u_HD_M_LumpedMesh        ! HydroDyn input mesh (separate so we can call from ED_SD_HD_InputOutput solve with temp meshes)
    TYPE(MeshType),                 INTENT(IN   )  :: u_HD_M_DistribMesh       ! HydroDyn input mesh (separate so we can call from ED_SD_HD_InputOutput solve with temp meshes)
@@ -2149,24 +2186,44 @@ SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, y_HD, u_HD_M_LumpedMesh, u_H
    !assumes u_SD%LMesh%Committed   (i.e., u_SD_LMesh%Committed)
          
       IF ( y_HD%Morison%LumpedMesh%Committed ) THEN      
-         CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_SD_P, ErrStat2, ErrMsg2, u_HD_M_LumpedMesh )   
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+         CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_SD_P, ErrStat2, ErrMsg2, u_HD_M_LumpedMesh, u_mapped_positions )   
             CALL CheckError( ErrStat2, ErrMsg2 )
             IF (ErrStat >= AbortErrLev) RETURN
          
          u_SD_LMesh%Force  = u_SD_LMesh%Force  + u_mapped%Force
-         u_SD_LMesh%Moment = u_SD_LMesh%Moment + u_mapped%Moment         
+         u_SD_LMesh%Moment = u_SD_LMesh%Moment + u_mapped%Moment     
+         
+#ifdef DEBUG_MESH_TRANSFER2              
+         CALL WrScr('SD to HD point-to-point (morison lumped):')
+         CALL WriteMappingTransferToFile(u_mapped, u_mapped_positions, u_HD_M_LumpedMesh, y_HD%Morison%LumpedMesh,&
+               MeshMapData%SD_P_2_HD_M_P, MeshMapData%HD_M_P_2_SD_P, &
+               'SD_y2_HD_ML_Meshes_t'//TRIM(Num2LStr(0))//'.bin' )
+#endif         
+                  
       END IF
       
       IF ( y_HD%Morison%DistribMesh%Committed ) THEN      
-         CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_SD_P, ErrStat2, ErrMsg2, u_HD_M_DistribMesh )   
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+         CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_SD_P, ErrStat2, ErrMsg2, u_HD_M_DistribMesh, u_mapped_positions )   
             CALL CheckError( ErrStat2, ErrMsg2 )
             IF (ErrStat >= AbortErrLev) RETURN
          
          u_SD_LMesh%Force  = u_SD_LMesh%Force  + u_mapped%Force
          u_SD_LMesh%Moment = u_SD_LMesh%Moment + u_mapped%Moment
+
+#ifdef DEBUG_MESH_TRANSFER2         
+         CALL WrScr('SD to HD point-to-line2 (morison distributed):')
+         CALL WriteMappingTransferToFile(u_mapped, u_mapped_positions, u_HD_M_DistribMesh,y_HD%Morison%DistribMesh,&
+               MeshMapData%SD_P_2_HD_M_L, MeshMapData%HD_M_L_2_SD_P, &
+               'SD_y2_HD_MD_Meshes_t'//TRIM(Num2LStr(0))//'.bin' )         
+         print *
+         pause
+#endif         
+                  
       END IF
+                                             
       
-   
 CONTAINS   
    !...............................................................................................................................
    SUBROUTINE CheckError(ErrID,Msg)
@@ -2316,13 +2373,11 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
       CALL ED_CopyInput( u_ED, u_ED_copy, MESH_NEWCOPY, ErrStat2, ErrMsg2)
          CALL CheckError( ErrStat2, ErrMsg2  )
          IF ( ErrStat >= AbortErrLev ) RETURN        
-      
          
          ! We need to know the outputs that were sent to this routine:
       CALL ED_CopyOutput( y_ED, y_ED_input, MESH_NEWCOPY, ErrStat2, ErrMsg2)
          CALL CheckError( ErrStat2, ErrMsg2  )
          IF ( ErrStat >= AbortErrLev ) RETURN
-         
          
          ! Local copies for perturbing inputs and outputs (computing Jacobian):
       IF ( calcJacobian ) THEN         
@@ -2380,7 +2435,9 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          ! (note that we don't want to change u_ED or u_HD here)
          !-------------------------------------------------------------------------------------------------
          
-         CALL U_ED_HD_Residual(y_ED, u_HD, y_HD, u, Fn_U_Resid)                  
+         CALL U_ED_HD_Residual(y_ED, u_HD, y_HD, u, Fn_U_Resid) 
+            IF ( ErrStat >= AbortErrLev ) RETURN ! U_ED_HD_Residual checks for error
+                        
          
          
          IF ( calcJacobian ) THEN
@@ -2403,6 +2460,7 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   
                   
                CALL U_ED_HD_Residual(y_ED_perturb, u_HD, y_HD, u_perturb, Fn_U_perturb) ! get this perturbation, U_perturb
+                  IF ( ErrStat >= AbortErrLev ) RETURN ! U_ED_HD_Residual checks for error
                   
                MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                   
@@ -2430,6 +2488,7 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   
                   
                CALL U_ED_HD_Residual(y_ED, u_HD_perturb, y_HD_perturb, u_perturb, Fn_U_perturb) ! get this perturbation                        
+                  IF ( ErrStat >= AbortErrLev ) RETURN ! U_ED_HD_Residual checks for error
                   
                MeshMapData%Jacobian_ED_SD_HD(:,i) = (Fn_U_perturb - Fn_U_Resid) / ThisPerturb
                                                                   
@@ -2534,7 +2593,7 @@ CONTAINS
       u_ED_copy%PlatformPtMesh%Force = u_ED_Without_SD_HD%Force
       u_ED_copy%PlatformPtMesh%Moment = u_ED_Without_SD_HD%Moment
           
-      CALL Transfer_HD_to_ED( u_PlatformPtMesh, u_ED_copy, y_HD2, u_HD2, MeshMapData, ErrStat2, ErrMsg2 )         
+      CALL Transfer_HD_to_ED( u_PlatformPtMesh, u_ED_copy, y_ED2%PlatformPtMesh, y_HD2, u_HD2, MeshMapData, ErrStat2, ErrMsg2 )         
          CALL CheckError( ErrStat2, ErrMsg2  )
          IF ( ErrStat >= AbortErrLev ) RETURN
             
@@ -2599,6 +2658,7 @@ CONTAINS
       END IF
       
    
+      
    END SUBROUTINE CleanUp
    !...............................................................................................................................
 END SUBROUTINE ED_HD_InputOutputSolve
@@ -2669,6 +2729,8 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    INTEGER(IntKi)                                    :: K                         ! Input-output-solve iteration counter
    INTEGER(IntKi)                                    :: ErrStat2                  ! temporary Error status of the operation
    CHARACTER(LEN(ErrMsg))                            :: ErrMsg2                   ! temporary Error message if ErrStat /= ErrID_None
+   
+   LOGICAL                                           :: Temp_RemapFlag(4)         ! we want to reset the ElasoDyn (and for consistancy, other module's remap flags so this doesn't interfere with other mappings)
    
    ! Note: p_FAST%UJacSclFact is a scaling factor that gets us similar magnitudes between loads and accelerations...
  
@@ -2745,15 +2807,15 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
             IF ( ErrStat >= AbortErrLev ) RETURN      
             
          IF ( K >= p_FAST%KMax ) EXIT
-         
+            
                                                             
          !-------------------------------------------------------------------------------------------------
          ! Calculate Jacobian: partial U/partial u:
          ! (note that we don't want to change u_ED or u_SD here)
          !-------------------------------------------------------------------------------------------------
          
-         CALL U_ED_SD_Residual(y_ED, y_SD, u, Fn_U_Resid)                  
-            IF ( ErrStat >= AbortErrLev ) RETURN 
+         CALL U_ED_SD_Residual(y_ED, y_SD, u, Fn_U_Resid)             
+            IF ( ErrStat >= AbortErrLev ) RETURN !errors were checked in U_ED_SD_Residual            
          
          IF ( calcJacobian ) THEN
             
@@ -2902,7 +2964,8 @@ CONTAINS
    
    
       ! Loads (outputs) on the SD transition piece transfered to ED input location/mesh:
-      CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, u_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_TPMesh ) !u_TPMesh contains the orientations needed for moment calculations
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+      CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, u_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_TPMesh, y_ED2%PlatformPtMesh ) !u_TPMesh contains the orientations needed for moment calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
                  
@@ -2913,7 +2976,7 @@ CONTAINS
       U_Resid( 7: 9) = u_in( 7: 9) - u_TPMesh%TranslationAcc(:,1)
       U_Resid(10:12) = u_in(10:12) - u_TPMesh%RotationAcc(:,1)
    
-            
+      
    END SUBROUTINE U_ED_SD_Residual   
    !...............................................................................................................................
    SUBROUTINE CheckError(ErrID,Msg)
@@ -3072,6 +3135,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    ! IF ( p_FAST%CompHydro .AND. p_FAST%CompSub ) 
    
    
+   
       !----------------------------------------------------------------------------------------------------
       ! Some record keeping stuff:
       !----------------------------------------------------------------------------------------------------      
@@ -3153,7 +3217,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          u_SD%LMesh%Force = 0.0_ReKi
          u_SD%LMesh%Moment = 0.0_ReKi
          
-         CALL Transfer_HD_to_SD( u_LMesh, u_SD%LMesh, y_HD, u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )
+         CALL Transfer_HD_to_SD( u_LMesh, u_SD%LMesh, y_SD%Y2Mesh, y_HD, u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )
             CALL CheckError(ErrStat2,ErrMsg2)
             IF (ErrStat >= AbortErrLev) RETURN      
                               
@@ -3532,7 +3596,7 @@ CONTAINS
       u_LMesh%Force  = 0.0_ReKi
       u_LMesh%Moment = 0.0_ReKi
          
-      CALL Transfer_HD_to_SD( u_LMesh_mapped, u_LMesh, y_HD2, u_M_LumpedMesh, u_M_DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )
+      CALL Transfer_HD_to_SD( u_LMesh_mapped, u_LMesh, y_SD2%Y2Mesh, y_HD2, u_M_LumpedMesh, u_M_DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF (ErrStat >= AbortErrLev) RETURN               
          
@@ -3548,7 +3612,8 @@ CONTAINS
    !..................
       
       ! Loads (outputs) on the SD transition piece transfered to ED input location/mesh:
-      CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, u_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_TPMesh ) !u_TPMesh contains the orientations needed for moment calculations
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+      CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, u_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_TPMesh, y_ED2%PlatformPtMesh ) !u_TPMesh contains the orientations needed for moment calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
                               
@@ -4241,6 +4306,136 @@ SUBROUTINE WriteMotionMeshesToFile(time, y_ED, u_SD, y_SD, u_HD, u_MAP, UnOut, E
    !      
 END SUBROUTINE WriteMotionMeshesToFile   
 !...............................................................................................................................
+SUBROUTINE WriteMappingTransferToFile(Mesh1_I,Mesh1_O,Mesh2_I,Mesh2_O,Map_Mod1_Mod2,Map_Mod2_Mod1,BinOutputName)
+! this routine is used for debugging mesh mapping
+!...............................................................................................................................
 
+   TYPE(meshtype),    intent(in) :: mesh1_I
+   TYPE(meshtype),    intent(in) :: mesh1_O
+   TYPE(meshtype),    intent(in) :: mesh2_I
+   TYPE(meshtype),    intent(in) :: mesh2_O 
+   
+   TYPE(MeshMapType), intent(in) :: Map_Mod1_Mod2        ! Data for mapping meshes from mod1 to mod2
+   TYPE(MeshMapType), intent(in) :: Map_Mod2_Mod1        ! Data for mapping meshes from mod1 to mod2
+
+   CHARACTER(*),      INTENT(IN) :: BinOutputName
+   
+   
+   ! local variables:
+   TYPE(meshtype)                         :: mesh_Motion_1PT, mesh1_I_1PT, mesh2_O_1PT
+   TYPE(MeshMapType)                      :: Map_Mod2_O_1PT, Map_Mod1_I_1PT
+      
+   INTEGER(IntKi)                         :: i
+   INTEGER(IntKi)                         :: un_out
+   INTEGER(IntKi)                         :: ErrStat          ! Error status of the operation
+   CHARACTER(1024)                        :: ErrMsg           ! Error message if ErrStat /= ErrID_None
+   CHARACTER(256)                         :: PrintWarnF, PrintWarnM, TmpValues
+
+   !------------------------------------------------------------------------
+   !lump the loads to one point and compare:
+   !------------------------------------------------------------------------        
+   
+   ! create one loads mesh with one point:
+   CALL MeshCreate( BlankMesh       = mesh1_I_1PT        &
+                  , IOS              = COMPONENT_INPUT   &
+                  , NNodes           = 1                 &
+                  , Force            = .TRUE.            &
+                  , Moment           = .TRUE.            &
+                  , ErrStat          = ErrStat           &
+                  , ErrMess          = ErrMsg            )
+      
+   IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+         
+         
+   CALL MeshPositionNode ( mesh1_I_1PT, 1, (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi/), ErrStat, ErrMsg ) ; IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))             
+   CALL MeshConstructElement ( mesh1_I_1PT, ELEMENT_POINT, ErrStat, ErrMsg, 1 );                 IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))                                       
+   CALL MeshCommit ( mesh1_I_1PT, ErrStat, ErrMsg )                                       ;      IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg)) 
+      
+   !.....         
+   ! create a corresponding motion mesh with one point:
+   
+   CALL MeshCopy( mesh1_I_1PT, mesh_Motion_1PT, MESH_SIBLING, ErrStat, ErrMsg &
+                  , IOS              = COMPONENT_OUTPUT  &
+                  , TranslationDisp  = .TRUE.            ) ;                                     IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))                     
+   !.....         
+   ! create a second loads mesh with one point:
+   CALL MeshCopy( mesh1_I_1PT, mesh2_O_1PT, MESH_NEWCOPY, ErrStat, ErrMsg )  ! This thinks it's for input, but really it's for output. I don't think it matters...       
+       
+   !.....         
+   ! create the mapping data structures:       
+   CALL MeshMapCreate( Mesh1_I, Mesh1_I_1PT, Map_Mod1_I_1PT,  ErrStat, ErrMsg );                 IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   CALL MeshMapCreate( Mesh2_O, Mesh2_O_1PT, Map_Mod2_O_1PT,  ErrStat, ErrMsg );                 IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+
+   !.....         
+   ! transfer MESH1_I (loads) to single point:
+   
+   IF ( mesh1_I%ElemTable(ELEMENT_POINT)%nelem > 0 ) THEN
+      CALL Transfer_Point_to_Point( Mesh1_I, Mesh1_I_1PT, Map_Mod1_I_1PT,ErrStat,ErrMsg,mesh1_O,mesh_Motion_1PT);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))         
+   ELSEIF ( mesh1_I%ElemTable(ELEMENT_LINE2)%nelem > 0 ) THEN
+      CALL Transfer_Line2_to_Point( Mesh1_I, Mesh1_I_1PT, Map_Mod1_I_1PT,ErrStat,ErrMsg,mesh1_O,mesh_Motion_1PT);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))          
+   END IF
+   
+   !.....         
+   ! transfer Mesh2_O (loads) to single point:      
+   IF ( Mesh2_O%ElemTable(ELEMENT_POINT)%nelem > 0 ) THEN
+      CALL Transfer_Point_to_Point( Mesh2_O, Mesh2_O_1PT, Map_Mod2_O_1PT,ErrStat,ErrMsg,mesh2_I,mesh_Motion_1PT);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg)) 
+   ELSEIF ( Mesh2_O%ElemTable(ELEMENT_LINE2)%nelem > 0 ) THEN 
+      CALL Transfer_Line2_to_Point( Mesh2_O, Mesh2_O_1PT, Map_Mod2_O_1PT,ErrStat,ErrMsg,mesh2_I,mesh_Motion_1PT);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))          
+   END IF
+   !............
+            
+   ! dsisplay a warning if the point loads are not equal:         
+   PrintWarnF=""
+   PrintWarnM=""
+   do i=1,3
+      if (.NOT. equalrealnos(mesh1_I_1PT%Force( i,1),mesh2_O_1PT%Force( i,1)) ) PrintWarnF=NewLine//"  <----------- WARNING: Forces are not equal ----------->  "//NewLine//NewLine
+      if (.NOT. equalrealnos(mesh1_I_1PT%Moment(i,1),mesh2_O_1PT%Moment(i,1)) ) PrintWarnM=NewLine//"  <----------- WARNING: Moments are not equal ----------->  "//NewLine//NewLine
+   end do
+
+   
+   call wrscr(TRIM(PrintWarnF)//'Total Force:' )
+   write(TmpValues,*) mesh1_I_1PT%Force;   call wrscr('     Mesh 1: '//TRIM(TmpValues))
+   write(TmpValues,*) mesh2_O_1PT%Force;   call wrscr('     Mesh 2: '//TRIM(TmpValues))
+   call wrscr(TRIM(PrintWarnM)//'Total Moment:' )
+   write(TmpValues,*) mesh1_I_1PT%Moment;  call wrscr('     Mesh 1: '//TRIM(TmpValues))
+   write(TmpValues,*) mesh2_O_1PT%Moment;  call wrscr('     Mesh 2: '//TRIM(TmpValues))
+   !............
+   
+   !------------------------------------------------------------------------
+   ! now we'll write all the mesh info to a file for debugging:   
+   !------------------------------------------------------------------------
+
+   un_out = -1
+   CALL MeshWrBin ( un_out, Mesh1_I,         ErrStat, ErrMsg, BinOutputName);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   CALL MeshWrBin ( un_out, Mesh1_O,         ErrStat, ErrMsg, BinOutputName);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   CALL MeshWrBin ( un_out, Mesh2_I,         ErrStat, ErrMsg, BinOutputName);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   CALL MeshWrBin ( un_out, Mesh2_O,         ErrStat, ErrMsg, BinOutputName);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+      
+   CALL MeshWrBin ( un_out, mesh1_I_1PT,     ErrStat, ErrMsg, BinOutputName);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   CALL MeshWrBin ( un_out, mesh2_O_1PT,     ErrStat, ErrMsg, BinOutputName);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))         
+   CALL MeshWrBin ( un_out, mesh_Motion_1PT, ErrStat, ErrMsg, BinOutputName);  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))   
+      
+   CALL MeshMapWrBin( un_out, Mesh1_O, Mesh2_I, Map_Mod1_Mod2, ErrStat, ErrMsg, BinOutputName );  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg)) 
+   CALL MeshMapWrBin( un_out, Mesh2_O, Mesh1_I, Map_Mod2_Mod1, ErrStat, ErrMsg, BinOutputName );  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg)) 
+      
+   CALL MeshMapWrBin( un_out, Mesh1_I, Mesh1_I_1PT, Map_Mod1_I_1PT, ErrStat, ErrMsg, BinOutputName );  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg)) 
+   CALL MeshMapWrBin( un_out, Mesh2_O, Mesh2_O_1PT, Map_Mod2_O_1PT, ErrStat, ErrMsg, BinOutputName );  IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg)) 
+
+   close( un_out )
+   
+   !------------------------------------------------------------------------
+   ! destroy local copies:
+   !------------------------------------------------------------------------
+   
+   CALL MeshDestroy( mesh_Motion_1PT, ErrStat, ErrMsg ); IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   CALL MeshDestroy( mesh1_I_1PT, ErrStat, ErrMsg );     IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   CALL MeshDestroy( mesh2_O_1PT, ErrStat, ErrMsg );     IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   
+   call MeshMapDestroy(Map_Mod1_I_1PT, ErrStat, ErrMsg);IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   call MeshMapDestroy(Map_Mod2_O_1PT, ErrStat, ErrMsg);IF (ErrStat /= ErrID_None) CALL WrScr(TRIM(ErrMsg))
+   
+   
+
+END SUBROUTINE WriteMappingTransferToFile 
 
 END MODULE FAST_IO_Subs
