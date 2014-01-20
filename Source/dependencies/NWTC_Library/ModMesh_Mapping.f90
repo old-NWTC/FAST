@@ -98,7 +98,6 @@ SUBROUTINE MeshMapCreate( Src, Dest, MeshMap, ErrStat, ErrMsg )
 
    INTEGER(IntKi)                           :: PointsInMap, PointsInTmpMap
    INTEGER(IntKi)                           :: ElementNodes
-   INTEGER(IntKi)                           :: j          ! loop counters
    LOGICAL                                  :: MapCreated
    INTEGER(IntKi)                           :: ErrStat2
    CHARACTER(LEN(ErrMsg))                   :: ErrMsg2
@@ -145,9 +144,33 @@ SUBROUTINE MeshMapCreate( Src, Dest, MeshMap, ErrStat, ErrMsg )
             CALL SetErrStat( ErrID_Fatal, 'Error trying to allocate MeshMap%MapMotions.', ErrStat, ErrMsg, 'MeshMapCreate')
          ELSE
             MapCreated = .TRUE.
-         END IF
+            
+               ! set up the initial mappings so that we don't necessarially have to do this multiple times on the first time step (if calculating Jacobians)
+            IF ( Dest%ElemTable(ELEMENT_LINE2)%nelem > 0 ) THEN ! point-to-Line2 or Line2-to-Line2
+                  
+               IF ( Src%ElemTable(ELEMENT_LINE2)%nelem > 0 ) THEN ! Line2-to-Line2         
+                  CALL CreateMotionMap_L2_to_L2( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
+               ELSEIF ( Src%ElemTable(ELEMENT_POINT)%nelem > 0 ) THEN ! point-to-Line2
+                  CALL CreateMotionMap_P_to_L2( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
+               END IF
+         
+            ELSEIF ( Dest%ElemTable(ELEMENT_POINT)%nelem > 0 ) THEN ! point-to-point or Line2-to-point
+         
+               IF ( Src%ElemTable(ELEMENT_POINT)%nelem > 0 ) THEN ! point-to-point            
+                  CALL CreateMotionMap_P_to_P( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')            
+               ELSEIF ( Src%ElemTable(ELEMENT_LINE2)%nelem > 0 ) THEN ! Line2-to-point         
+                  CALL CreateMotionMap_L2_to_P(Src, Dest, MeshMap, ErrStat2, ErrMsg2)         
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')            
+               END IF         
+                  
+            END IF ! create initial mapping based on mesh element type
+                                    
+         END IF ! MapMotions created
 
-      END IF
+      END IF ! Dest has nodes to map
 
    END IF !HasMotionFields
 
@@ -163,6 +186,9 @@ SUBROUTINE MeshMapCreate( Src, Dest, MeshMap, ErrStat, ErrMsg )
          IF (.NOT. Dest%FieldMask(MASKID_Force) ) THEN
             CALL SetErrStat( ErrID_Fatal, 'Destination mesh does not contain force but source mesh does.', ErrStat, ErrMsg, 'MeshMapCreate')
          END IF
+         IF (.NOT. Dest%FieldMask(MASKID_Moment) ) THEN
+            CALL SetErrStat( ErrID_Fatal, 'Destination mesh must contain moment when source mesh contains force.', ErrStat, ErrMsg, 'MeshMapCreate')
+         END IF
       END IF
       IF ( Src%FieldMask(MASKID_Moment) ) THEN
          IF (.NOT. Dest%FieldMask(MASKID_Moment) ) THEN
@@ -172,9 +198,9 @@ SUBROUTINE MeshMapCreate( Src, Dest, MeshMap, ErrStat, ErrMsg )
 
       
       ! get size of mapping:
-      PointsInMap = Src%Nnodes !otherwise, we're mapping node to element
+      PointsInMap = Src%Nnodes 
 
-      IF ( PointsInMap == 0 ) THEN
+      IF ( PointsInMap < 1 ) THEN
          CALL SetErrStat( ErrID_Fatal, 'MeshMap%MapLoads not allocated because no nodes were found to map.', ErrStat, ErrMsg, 'MeshMapCreate')
       ELSE
 
@@ -184,38 +210,41 @@ SUBROUTINE MeshMapCreate( Src, Dest, MeshMap, ErrStat, ErrMsg )
             CALL SetErrStat( ErrID_Fatal, 'Error trying to allocate MeshMap%MapLoads.', ErrStat, ErrMsg, 'MeshMapCreate')
          ELSE
             MapCreated = .TRUE.
-         END IF
-
-      END IF
-      
-      
-      IF ( Dest%ElemTable(ELEMENT_LINE2)%nelem > 0 ) THEN ! point-to-Line2 or Line2-to-Line2
+            
+               ! set up the initial mappings so that we don't necessarially have to do this multiple times on the first time step (if calculating Jacobians)
+            IF ( Dest%ElemTable(ELEMENT_LINE2)%nelem > 0 ) THEN ! point-to-Line2 or Line2-to-Line2
          
-         ElementNodes = 2
-         j=Dest%Nnodes*3
-      
-         CALL AllocAry( MeshMap%LoadLn2_A_Mat,     j, j,  'MeshMap%LoadLn2_A_Mat',    ErrStat2, ErrMsg2)
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
-         CALL AllocAry( MeshMap%LoadLn2_A_Mat_piv, j,     'MeshMap%LoadLn2_A_Mat_piv',ErrStat2, ErrMsg2)
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
-         CALL AllocAry( MeshMap%LoadLn2_F,         j, 1,  'MeshMap%LoadLn2_F',        ErrStat2, ErrMsg2)
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
-         CALL AllocAry( MeshMap%LoadLn2_M,         j, 1,  'MeshMap%LoadLn2_M',        ErrStat2, ErrMsg2)
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
+               ElementNodes = 2
+         
+               IF ( Src%ElemTable(ELEMENT_LINE2)%nelem > 0 ) THEN ! Line2-to-Line2         
+                  CALL CreateLoadMap_L2_to_L2( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
+               ELSEIF ( Src%ElemTable(ELEMENT_POINT)%nelem > 0 ) THEN ! point-to-Line2
+                  CALL CreateLoadMap_P_to_L2( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
+               END IF
+         
+            ELSEIF ( Dest%ElemTable(ELEMENT_POINT)%nelem > 0 ) THEN ! point-to-point or Line2-to-point
+         
+               IF ( Src%ElemTable(ELEMENT_POINT)%nelem > 0 ) THEN ! point-to-point            
+                  CALL CreateLoadMap_P_to_P( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')            
+               ELSEIF ( Src%ElemTable(ELEMENT_LINE2)%nelem > 0 ) THEN ! Line2-to-point         
+                  CALL CreateLoadMap_L2_to_P(Src, Dest, MeshMap, ErrStat2, ErrMsg2)         
+                  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')            
+               END IF         
                   
-         !........................
-         ! Create matrix used to "unlump" loads later (needs to have element connectivity information to create it)
-         !........................
-         CALL Create_InverseLumping_Matrix( Dest, MeshMap, ErrStat2, ErrMsg2 )
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
-                  
-      END IF ! matrix stuff for loads ending up as line2
-      
+            END IF ! create initial mapping based on mesh element type
+                        
+         END IF ! MapLoads allocated
 
+      END IF ! Src has nodes to transfer
+                  
    END IF ! HasLoadFields
 
    IF ( .NOT. MapCreated ) THEN
       CALL SetErrStat( ErrID_Fatal, 'Neither MapMotions or MapLoads was allocated. Meshes may not have compatible fields for mapping.', ErrStat, ErrMsg, 'MeshMapCreate')
+      RETURN
    END IF
 
 
@@ -223,9 +252,9 @@ SUBROUTINE MeshMapCreate( Src, Dest, MeshMap, ErrStat, ErrMsg )
       ! Allocate the DisplacedPosition field:
       !................................................
 
-   ALLOCATE( MeshMap%DisplacedPosition(3, PointsInTmpMap, ElementNodes), STAT=ErrStat2 )
-   IF ( ErrStat2 /= 0 ) THEN
-      CALL SetErrStat( ErrID_Fatal, 'Error trying to allocate MeshMap%DisplacedPosition.', ErrStat, ErrMsg, 'MeshMapCreate')
+   IF (.NOT. ALLOCATED (MeshMap%DisplacedPosition)) THEN
+      CALL AllocAry( MeshMap%DisplacedPosition, 3, PointsInTmpMap, ElementNodes, 'MeshMap%DisplacedPosition', ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'MeshMapCreate')
    END IF
 
 
@@ -459,7 +488,7 @@ SUBROUTINE Transfer_Line2_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
       if (Src%RemapFlag .or. Dest%RemapFlag ) then
 
-         CALL CreateMapping_ProjectToLine2(Dest,Src, MeshMap%MapMotions, ELEMENT_POINT, ErrStat2, ErrMsg2)
+         CALL CreateMotionMap_L2_to_P( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Point')
             IF (ErrStat >= AbortErrLev) RETURN
 
@@ -496,20 +525,10 @@ SUBROUTINE Transfer_Line2_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
       if (Src%RemapFlag .or. Dest%RemapFlag ) then
 
-         ! augment the source mesh with nodes formed by projections from the destination mesh nodes
-         CALL Create_Augmented_Ln2_Src_Mesh(Src, Dest, MeshMap, ELEMENT_POINT, ErrStat2, ErrMsg2)         
+         CALL CreateLoadMap_L2_to_P(Src, Dest, MeshMap, ErrStat2, ErrMsg2)         
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Point')
             IF (ErrStat >= AbortErrLev) RETURN
-                  
-         ! Create a temporary mesh for lumped point elements of the line2 mesh
-         CALL Create_PointMesh( MeshMap%Augmented_Ln2_Src, MeshMap%Lumped_Points_Src, ErrStat2, ErrMsg2 )
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Point')
-            IF (ErrStat >= AbortErrLev) RETURN
-
-         ! in following call, Src is mesh to loop over, finding a corresponding point for each point in Dest
-         CALL CreateMapping_NearestNeighbor( MeshMap%Lumped_Points_Src, Dest, MeshMap%MapLoads, ELEMENT_POINT, ELEMENT_POINT, ErrStat2, ErrMsg2 )
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Point')
-            IF (ErrStat >= AbortErrLev) RETURN
+         
 
       ELSE ! Check that the temporary mesh has been set
 
@@ -1001,6 +1020,63 @@ SUBROUTINE Create_PointMesh(Src, Temp_Point_Src, ErrStat, ErrMsg)
 
 END SUBROUTINE Create_PointMesh
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CreateLoadMap_L2_to_P( Src, Dest, MeshMap, ErrStat, ErrMsg )
+
+   TYPE(MeshType),                 INTENT(IN   )  :: Src                             ! The source mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Dest                            ! The destination mesh
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                         ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
+
+      ! Local variables:
+   INTEGER(IntKi)                                 :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2   
+   
+   
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   
+   ! augment the source mesh with nodes formed by projections from the destination mesh nodes
+   CALL Create_Augmented_Ln2_Src_Mesh(Src, Dest, MeshMap, ELEMENT_POINT, ErrStat2, ErrMsg2)         
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateLoadMap_L2_to_P')
+      IF (ErrStat >= AbortErrLev) RETURN
+                  
+   ! Create a temporary mesh for lumped point elements of the line2 mesh
+   CALL Create_PointMesh( MeshMap%Augmented_Ln2_Src, MeshMap%Lumped_Points_Src, ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateLoadMap_L2_to_P')
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   ! in following call, Src is mesh to loop over, finding a corresponding point for each point in Dest
+   CALL CreateMapping_NearestNeighbor( MeshMap%Lumped_Points_Src, Dest, MeshMap%MapLoads, ELEMENT_POINT, ELEMENT_POINT, ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateLoadMap_L2_to_P')
+      IF (ErrStat >= AbortErrLev) RETURN
+            
+END SUBROUTINE CreateLoadMap_L2_to_P
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CreateMotionMap_L2_to_P( Src, Dest, MeshMap, ErrStat, ErrMsg )
+
+   TYPE(MeshType),                 INTENT(IN   )  :: Src                             ! The source mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Dest                            ! The destination mesh
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                         ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
+
+      ! Local variables:
+   INTEGER(IntKi)                                 :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
+
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   CALL CreateMapping_ProjectToLine2(Dest,Src, MeshMap%MapMotions, ELEMENT_POINT, ErrStat2, ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateMotionMap_L2_to_P')
+      !IF (ErrStat >= AbortErrLev) RETURN
+         
+END SUBROUTINE CreateMotionMap_L2_to_P        
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Transfer_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp, DestDisp )
 
 ! for transfering displacement/velocity/accerlation data from Point Mesh to Line2 Mesh
@@ -1021,7 +1097,6 @@ SUBROUTINE Transfer_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
    ! local variables
 
    REAL(ReKi)                            :: LoadsScaleFactor  ! bjj: added this scaling factor to get loads in a better numerical range 
-   INTEGER(IntKi)                        :: i ! do-loop counter
    INTEGER(IntKi)                        :: ErrStat2
    CHARACTER(LEN(ErrMsg))                :: ErrMsg2
 
@@ -1056,19 +1131,10 @@ SUBROUTINE Transfer_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
       if (Src%RemapFlag .or. Dest%RemapFlag ) then
 
-         ! Each destination node (on a LINE2 mesh) needs a source
-         ! in following call, Dest is mesh to looped over, finding a corresponding point for each point in Src
-         CALL CreateMapping_NearestNeighbor( Dest, Src, MeshMap%MapMotions, ELEMENT_LINE2, ELEMENT_POINT, ErrStat2, ErrMsg2 )
+         CALL CreateMotionMap_P_to_L2( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Point_to_Line2')
             IF (ErrStat >= AbortErrLev) RETURN
-
-         ! bjj: for consistant definition of couple_arm (i.e. p_ODR-p_OSR), let's multiply by -1
-         do i=1,SIZE(MeshMap%MapMotions)
-            MeshMap%MapMotions(i)%couple_arm = -1._ReKi*MeshMap%MapMotions(i)%couple_arm
-         end do
-
-         IF (ErrStat >= AbortErrLev) RETURN
-
+         
       end if
 
       !........................
@@ -1099,7 +1165,7 @@ SUBROUTINE Transfer_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
       if (Src%RemapFlag .or. Dest%RemapFlag ) then
                            
-         CALL CreateMapping_ProjectToLine2(Src, Dest, MeshMap%MapLoads, ELEMENT_POINT, ErrStat2, ErrMsg2)            
+         CALL CreateLoadMap_P_to_L2( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Point_to_Line2')
             IF (ErrStat >= AbortErrLev) RETURN
                            
@@ -1121,6 +1187,70 @@ SUBROUTINE Transfer_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
 END SUBROUTINE Transfer_Point_to_Line2
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CreateLoadMap_P_to_L2( Src, Dest, MeshMap, ErrStat, ErrMsg )
+
+   TYPE(MeshType),                 INTENT(IN   )  :: Src                             ! The source mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Dest                            ! The destination mesh
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                         ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
+
+      ! LOCAL variables:
+   INTEGER(IntKi)                                 :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
+   
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   !........................
+   ! Create matrix used to "unlump" loads later (needs to have element connectivity information to create it)
+   !........................
+   CALL Create_InverseLumping_Matrix( Dest, MeshMap, ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateLoadMap_P_to_L2')
+         
+         
+   CALL CreateMapping_ProjectToLine2(Src, Dest, MeshMap%MapLoads, ELEMENT_POINT, ErrStat2, ErrMsg2)            
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateLoadMap_P_to_L2')
+      IF (ErrStat >= AbortErrLev) RETURN
+   
+      
+END SUBROUTINE CreateLoadMap_P_to_L2
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CreateMotionMap_P_to_L2( Src, Dest, MeshMap, ErrStat, ErrMsg )
+
+   TYPE(MeshType),                 INTENT(IN   )  :: Src                             ! The source mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Dest                            ! The destination mesh
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                         ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
+
+      ! Local variables:
+   INTEGER(IntKi)                                 :: i
+   INTEGER(IntKi)                                 :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
+   
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   
+   ! Each destination node (on a LINE2 mesh) needs a source
+   ! in following call, Dest is mesh to looped over, finding a corresponding point for each point in Src
+   CALL CreateMapping_NearestNeighbor( Dest, Src, MeshMap%MapMotions, ELEMENT_LINE2, ELEMENT_POINT, ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateMotionMap_P_to_L2')
+      IF (ErrStat >= AbortErrLev) RETURN
+
+   ! bjj: for consistant definition of couple_arm (i.e. p_ODR-p_OSR), let's multiply by -1
+   do i=1,SIZE(MeshMap%MapMotions)
+      MeshMap%MapMotions(i)%couple_arm = -1._ReKi*MeshMap%MapMotions(i)%couple_arm
+   end do
+   
+         
+END SUBROUTINE CreateMotionMap_P_to_L2        
+
+
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Transfer_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp, DestDisp )
 
    TYPE(MeshType),          INTENT(IN   ) ::  Src
@@ -1135,8 +1265,6 @@ SUBROUTINE Transfer_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
 
    ! local variables
-
-   INTEGER(IntKi)                          ::   i ! do-loop counter
    INTEGER(IntKi)                          :: ErrStat2
    CHARACTER(LEN(ErrMsg))                  :: ErrMsg2
    
@@ -1179,17 +1307,10 @@ SUBROUTINE Transfer_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
       if (Src%RemapFlag .or. Dest%RemapFlag ) then
 
-         ! in following call, Dest is mesh to looped over, finding a corresponding point for each point in Src
-         CALL CreateMapping_NearestNeighbor( Dest, Src, MeshMap%MapMotions, ELEMENT_POINT, ELEMENT_POINT, ErrStat2, ErrMsg2 )
+         CALL CreateMotionMap_P_to_P( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Point_to_Point')
             IF (ErrStat >= AbortErrLev) RETURN
             
-         ! bjj: for consistant definition of couple_arm (i.e. p_ODR-p_OSR), let's multiply by -1
-         do i=1,SIZE(MeshMap%MapMotions)
-            MeshMap%MapMotions(i)%couple_arm = -1._ReKi*MeshMap%MapMotions(i)%couple_arm
-         end do
-
-         
       end if
 
       !........................
@@ -1215,11 +1336,10 @@ SUBROUTINE Transfer_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
       !........................
 
       if (Src%RemapFlag .or. Dest%RemapFlag ) then
-
-         ! in following call, Src is mesh to loop over, finding a corresponding point for each point in Dest
-         CALL CreateMapping_NearestNeighbor( Src, Dest, MeshMap%MapLoads, ELEMENT_POINT, ELEMENT_POINT, ErrStat2, ErrMsg2 )
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Point_to_Point')
-            IF (ErrStat >= AbortErrLev) RETURN
+         
+         CALL CreateLoadMap_P_to_P( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Point_to_Point:CreateLoadMap_P_to_P')
+            IF (ErrStat >= AbortErrLev) RETURN                        
 
       end if
 
@@ -1533,51 +1653,49 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, S
 !    if Src%FieldMask(MASKID_FORCE),  Dest%FieldMask(MASKID_FORCE)
 !    if Src%FieldMask(MASKID_MOMENT), Dest%FieldMask(MASKID_MOMENT)
 
-   ! initialization; required to handle superposition of forces
-   if (Dest%FieldMask(MASKID_FORCE)  ) Dest%Force  = 0.     ! whole array initialization
-   if (Dest%FieldMask(MASKID_Moment) ) Dest%Moment = 0.     ! whole array initialization
+   
+   if (Src%FieldMask(MASKID_FORCE) ) THEN
+      Dest%Force  = 0.     ! whole array initialization; required to handle superposition of forces
+      do i = 1, Src%NNodes
+         !if ( MeshMap%MapLoads(i)%OtherMesh_Element < 1 )  CYCLE ! would only happen if we had non-point elements (or nodes not contained in an element)
+         
+         ! F_d += F_s
+         Dest%Force(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Force(:,MeshMap%MapLoads(i)%OtherMesh_Element) + (Src%Force(:,i) / LoadsScaleFactor)
+      end do
+      Dest%Force  =  Dest%Force  * LoadsScaleFactor
+   end if
+   
+      
+   if (Dest%FieldMask(MASKID_MOMENT) ) then
+      Dest%Moment = 0.     ! whole array initialization; required to handle superposition of forces
 
-   do i = 1, Src%NNodes
-      if ( MeshMap%MapLoads(i)%OtherMesh_Element < 1 )  CYCLE ! would only happen if we had non-point elements (or nodes not contained in an element)
+      ! M_d += M_s      
+      do i = 1, Src%NNodes
+         !if ( MeshMap%MapLoads(i)%OtherMesh_Element < 1 )  CYCLE ! would only happen if we had non-point elements (or nodes not contained in an element)
 
-      ! F_d += F_s
-      if (Src%FieldMask(MASKID_FORCE) ) &
-               Dest%Force(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Force(:,MeshMap%MapLoads(i)%OtherMesh_Element) + Src%Force(:,i) / LoadsScaleFactor
+         Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) + (Src%Moment(:,i) / LoadsScaleFactor)
+      end do
+      
+      ! M_d += torque
+      if ( Src%FieldMask(MASKID_FORCE) ) then
+         
+            ! if the distance (which can never be less than zero) is greater than "zero" and there is a
+            ! force in the source mesh, then we need to add a moment to the destination mesh to account
+            ! for the mismatch between points
 
-      if (Dest%FieldMask(MASKID_MOMENT) ) then
-         ! M_d += M_s
-         if (Src%FieldMask(MASKID_MOMENT) ) then
-
-            Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) + Src%Moment(:,i) / LoadsScaleFactor
-            
-         endif
-
-         ! if the distance (which can never be less than zero) is greater than "zero" and there is a
-         ! force in the source mesh, then we need to add a moment to the destination mesh to account
-         ! for the mismatch between points
-
-         ! M_d += torque
-
-            if ( Src%FieldMask(MASKID_FORCE) ) then
-
+         do i = 1, Src%NNodes
                DisplacedPosition =       SrcDisp%TranslationDisp(:,i) + SrcDisp%Position(:,i) &
-                                      - DestDisp%TranslationDisp(:,MeshMap%MapLoads(i)%OtherMesh_Element) &
-                                      - DestDisp%Position(:,       MeshMap%MapLoads(i)%OtherMesh_Element)
-               
-               
+                                       - ( DestDisp%TranslationDisp(:,MeshMap%MapLoads(i)%OtherMesh_Element) &
+                                         + DestDisp%Position(       :,MeshMap%MapLoads(i)%OtherMesh_Element) )                              
                ! calculation torque vector based on offset force: torque = couple_arm X Force               
                torque = CROSS_PRODUCT( DisplacedPosition, Src%Force(:,i) / LoadsScaleFactor )
-               Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) + torque               
-                              
-            endif
-
+               Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) + torque                                             
+         enddo
       endif
-
-   enddo
-   
-   if (Src%FieldMask(MASKID_FORCE)  )    Dest%Force  =  Dest%Force  * LoadsScaleFactor
-   if (Src%FieldMask(MASKID_MOMENT) )    Dest%Moment =  Dest%Moment * LoadsScaleFactor
-   
+      
+      Dest%Moment =  Dest%Moment * LoadsScaleFactor
+   endif
+      
 
 END SUBROUTINE Transfer_Loads_Point_to_Point
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -1622,6 +1740,50 @@ FUNCTION GetLoadsScaleFactor( Src )
    
 
 END FUNCTION GetLoadsScaleFactor
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CreateLoadMap_P_to_P( Src, Dest, MeshMap, ErrStat, ErrMsg )
+
+   TYPE(MeshType),                 INTENT(IN   )  :: Src                             ! The source mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Dest                            ! The destination mesh
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                         ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
+
+   
+      ! in following call, Src is mesh to loop over, finding a corresponding point for each point in Dest
+   CALL CreateMapping_NearestNeighbor( Src, Dest, MeshMap%MapLoads, ELEMENT_POINT, ELEMENT_POINT, ErrStat, ErrMsg )
+         
+END SUBROUTINE CreateLoadMap_P_to_P
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CreateMotionMap_P_to_P( Src, Dest, MeshMap, ErrStat, ErrMsg )
+
+   TYPE(MeshType),                 INTENT(IN   )  :: Src                             ! The source mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Dest                            ! The destination mesh
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                         ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
+
+      ! Local variables:
+   INTEGER(IntKi)                                 :: i
+   INTEGER(IntKi)                                 :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
+
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+      ! in following call, Dest is mesh to looped over, finding a corresponding point for each point in Src
+      CALL CreateMapping_NearestNeighbor( Dest, Src, MeshMap%MapMotions, ELEMENT_POINT, ELEMENT_POINT, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateMotionMap_P_to_P')
+         IF (ErrStat >= AbortErrLev) RETURN
+            
+      ! bjj: for consistant definition of couple_arm (i.e. p_ODR-p_OSR), let's multiply by -1
+      do i=1,SIZE(MeshMap%MapMotions)
+         MeshMap%MapMotions(i)%couple_arm = -1._ReKi*MeshMap%MapMotions(i)%couple_arm
+      end do
+                     
+END SUBROUTINE CreateMotionMap_P_to_P        
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Transfer_Line2_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp, DestDisp )
 
@@ -1673,7 +1835,7 @@ SUBROUTINE Transfer_Line2_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
       if (Src%RemapFlag .or. Dest%RemapFlag ) then
 
-         CALL CreateMapping_ProjectToLine2(Dest,Src, MeshMap%MapMotions, ELEMENT_LINE2, ErrStat2, ErrMsg2)
+         CALL CreateMotionMap_L2_to_L2( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
             CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Line2')
             IF (ErrStat >= AbortErrLev) RETURN
 
@@ -1711,43 +1873,10 @@ SUBROUTINE Transfer_Line2_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, SrcDisp
 
       if (Src%RemapFlag .or. Dest%RemapFlag ) then
                   
-         !........................
-         ! Create matrix used to "unlump" loads later (needs to have element connectivity information to create it)
-         !........................
-         !CALL Create_InverseLumping_Matrix( Dest, MeshMap, ErrStat2, ErrMsg2 )
-         !  CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Line2')
-         !  IF (ErrStat >= AbortErrLev) RETURN
+         CALL CreateLoadMap_L2_to_L2( Src, Dest, MeshMap, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Line2')
+            IF (ErrStat >= AbortErrLev) RETURN         
             
-         !........................
-         ! An augmented Line2-element source mesh is formed
-         ! by splitting the original Line2-element source mesh at each location where a
-         ! destination-mesh Line2-element node projects orthogonally from the destination mesh
-         !........................
-         
-         CALL Create_Augmented_Ln2_Src_Mesh(Src, Dest, MeshMap, ELEMENT_LINE2, ErrStat2, ErrMsg2) 
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Line2')
-            IF (ErrStat >= AbortErrLev) RETURN
-                     
-         !........................
-         ! For each Line2-element node of the augmented source mesh, a nearest-neighbor of the augmented source mesh,
-         ! a nearest-neighbor line2 element of the destination mesh is found (else aborted) in the reference configuration, 
-         ! for which the source Line2-element node projects orthogonally onto the destination Line2-element domain.
-         ! A destination-mesh Line2 element may be associated with multiple source-mesh Line2-element nodes.
-         !........................
-            
-         CALL CreateMapping_ProjectToLine2(MeshMap%Augmented_Ln2_Src, Dest, MeshMap%MapLoads, ELEMENT_LINE2, ErrStat2, ErrMsg2)            
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Line2')
-            IF (ErrStat >= AbortErrLev) RETURN
-         
-         
-         !........................
-         ! Create a temporary mesh for lumped point elements of the line2 source 
-         !........................
-         CALL Create_PointMesh( MeshMap%Augmented_Ln2_Src, MeshMap%Lumped_Points_Src, ErrStat2, ErrMsg2 )
-            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Transfer_Line2_to_Line2')
-            IF (ErrStat >= AbortErrLev) RETURN
-
-
       end if
 
       !........................
@@ -1807,14 +1936,9 @@ SUBROUTINE Transfer_Loads_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, S
    ErrStat = ErrID_None
    ErrMsg  = ""
 
-
-   ! initialization; required to handle superposition of loads
-   if (Dest%FieldMask(MASKID_FORCE) ) Dest%Force  = 0._ReKi     ! whole array initialization
-   if (Dest%FieldMask(MASKID_MOMENT)) Dest%Moment = 0._ReKi     ! whole array initialization
       
    ! Start with transferring the loads like point-to-point (except split between two nodes of the dest element).
    ! [because the OtherMesh_Element is line2, we can't just call the routine here]
-
          
       ! ---------------------------- Force ------------------------------------------------
       ! Transfer this source force (lumped) to destination force and/or moment fields (currently lumped):
@@ -1822,7 +1946,7 @@ SUBROUTINE Transfer_Loads_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, S
       ! split the point source loads across the line2 destination element (note that they are still point loads on line2 elements here)
    
    if ( Src%FieldMask(MASKID_Force) ) THEN
-
+      Dest%Force  = 0._ReKi     ! whole array initialization; required to handle superposition of loads
       ! ( Dest%FieldMask(MASKID_Force) ) is .TRUE.
 
       DO i = 1, Src%Nnodes  ! the source nodes (containing lumped loads)
@@ -1834,10 +1958,29 @@ SUBROUTINE Transfer_Loads_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, S
          END DO !j
 
       END DO !loop through source nodes
+      
+   end if !source has force
+   
+      
+      ! ---------------------------- Moments ------------------------------------------------
+      ! Transfer this source moment to the destination moment field
 
+   if ( Src%FieldMask(MASKID_Moment) ) then !
+      Dest%Moment = 0._ReKi     ! whole array initialization; required to handle superposition of loads
+      
+      DO i = 1,  Src%Nnodes  ! the source nodes
+         
+         jElem = MeshMap%MapLoads(i)%OtherMesh_Element
+         DO j = 1,2 ! number of nodes on dest 
+            jNode = Dest%ElemTable(ELEMENT_LINE2)%Elements(jElem)%ElemNodes(j)
+            Dest%Moment(:,jNode) = Dest%Moment(:,jNode) + (Src%Moment(:,i)/LoadsScaleFactor)*MeshMap%MapLoads(i)%shape_fn(j)             
+         END DO !j
 
+      END DO !loop through source nodes
+      
+      
             ! calculate the moment due to force
-      if ( Dest%FieldMask(MASKID_Moment) ) then
+      if ( Src%FieldMask(MASKID_Force) ) then
                   
          ! if the distance (which can never be less than zero) is greater than "zero" and there is a
          ! force in the source mesh, then we need to add a moment to the destination mesh to account
@@ -1862,25 +2005,8 @@ SUBROUTINE Transfer_Loads_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, S
          END DO !loop through source elements
 
 
-      end if ! dest has moment
+      end if ! Src has force, too      
       
-   end if !source has force
-   
-      
-      ! ---------------------------- Moments ------------------------------------------------
-      ! Transfer this source moment to the destination moment field
-
-   if ( Src%FieldMask(MASKID_Moment) ) then !
-
-      DO i = 1,  Src%Nnodes  ! the source nodes
-         
-         jElem = MeshMap%MapLoads(i)%OtherMesh_Element
-         DO j = 1,2 ! number of nodes on dest 
-            jNode = Dest%ElemTable(ELEMENT_LINE2)%Elements(jElem)%ElemNodes(j)
-            Dest%Moment(:,jNode) = Dest%Moment(:,jNode) + (Src%Moment(:,i)/LoadsScaleFactor)*MeshMap%MapLoads(i)%shape_fn(j)             
-         END DO !j
-
-      END DO !loop through source nodes
                   
    end if !src has moment field
       
@@ -2289,17 +2415,20 @@ SUBROUTINE Create_Augmented_Ln2_Src_Mesh(Src, Dest, MeshMap, Dest_TYPE, ErrStat,
    
       ! we're going to need the mapping data from source to augmented source:
    IF (Aug_Nnodes > Src%Nnodes) THEN
-      IF (ALLOCATED(MeshMap%DisplacedPosition)) THEN
-         IF (SIZE(MeshMap%DisplacedPosition) /= Aug_NNodes) THEN
-            DEALLOCATE (MeshMap%DisplacedPosition)
-            ALLOCATE( MeshMap%MapSrcToAugmt(Aug_NNodes), STAT=ErrStat2 ) 
+      IF (ALLOCATED(MeshMap%MapSrcToAugmt)) THEN
+         IF (SIZE(MeshMap%MapSrcToAugmt) < Aug_NNodes) THEN
+            DEALLOCATE (MeshMap%MapSrcToAugmt)
+         END IF
+      END IF
+      
+      IF (.NOT. ALLOCATED(MeshMap%MapSrcToAugmt)) THEN
+         ALLOCATE( MeshMap%MapSrcToAugmt(Aug_NNodes), STAT=ErrStat2 ) 
          
-            IF (ErrStat2 /= 0) THEN
-               CALL SetErrStat( ErrID_Fatal, 'Could not allocate MeshMap%MapSrcToAugmt.', ErrStat, ErrMsg, 'Create_Augmented_Ln2_Src_Mesh')
-               CALL CleanUp()
-               RETURN      
-            END IF
-         END IF      
+         IF (ErrStat2 /= 0) THEN
+            CALL SetErrStat( ErrID_Fatal, 'Could not allocate MeshMap%MapSrcToAugmt.', ErrStat, ErrMsg, 'Create_Augmented_Ln2_Src_Mesh')
+            CALL CleanUp()
+            RETURN      
+         END IF
       END IF
    
       MeshMap%MapSrcToAugmt%OtherMesh_Element = -1
@@ -2309,31 +2438,35 @@ SUBROUTINE Create_Augmented_Ln2_Src_Mesh(Src, Dest, MeshMap, Dest_TYPE, ErrStat,
       
             
       IF (ALLOCATED(MeshMap%DisplacedPosition)) THEN
-         IF ( SIZE(MeshMap%DisplacedPosition,1) /= 3          .OR. &
-              SIZE(MeshMap%DisplacedPosition,2) /= Aug_Nnodes .OR. &
-              SIZE(MeshMap%DisplacedPosition,3) /= 2          )  THEN
+         IF ( SIZE(MeshMap%DisplacedPosition,2) < Aug_Nnodes )  THEN
          
             DEALLOCATE (MeshMap%DisplacedPosition)
-            ALLOCATE( MeshMap%DisplacedPosition(3,Aug_Nnodes,2), STAT=ErrStat2)
-            IF (ErrStat2 /= 0) THEN
-               CALL SetErrStat( ErrID_Fatal, 'Could not allocate MeshMap%DisplacedPosition.', ErrStat, ErrMsg, 'Create_Augmented_Ln2_Src_Mesh')
+         END IF
+      END IF
+      
+      IF (.NOT. ALLOCATED(MeshMap%DisplacedPosition)) THEN            
+         CALL AllocAry( MeshMap%DisplacedPosition, 3, Aug_Nnodes,2, 'MeshMap%DisplacedPosition', ErrStat2, ErrMsg2)               
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Create_Augmented_Ln2_Src_Mesh')
+            IF (ErrStat >= AbortErrLev) THEN
                CALL CleanUp()
                RETURN      
             END IF
-         END IF              
       END IF
 
       
       IF ( ALLOCATED(MeshMap%MapLoads)) THEN
-         IF (SIZE(MeshMap%MapLoads) /= Aug_NNodes) THEN
+         IF (SIZE(MeshMap%MapLoads) < Aug_NNodes) THEN
             DEALLOCATE( MeshMap%MapLoads )
-            ALLOCATE( MeshMap%MapLoads(Aug_Nnodes), STAT=ErrStat2 )
-            IF (ErrStat2 /= 0) THEN
-               CALL SetErrStat( ErrID_Fatal, 'Could not allocate MeshMap%MapLoads.', ErrStat, ErrMsg, 'Create_Augmented_Ln2_Src_Mesh')
-               CALL CleanUp()
-               RETURN      
-            END IF      
          END IF
+      END IF
+      
+      IF (.NOT. ALLOCATED(MeshMap%MapLoads)) THEN            
+         ALLOCATE( MeshMap%MapLoads(Aug_Nnodes), STAT=ErrStat2 )
+         IF (ErrStat2 /= 0) THEN
+            CALL SetErrStat( ErrID_Fatal, 'Could not allocate MeshMap%MapLoads.', ErrStat, ErrMsg, 'Create_Augmented_Ln2_Src_Mesh')
+            CALL CleanUp()
+            RETURN      
+         END IF      
       END IF
       
       
@@ -2462,17 +2595,33 @@ SUBROUTINE Create_InverseLumping_Matrix( Dest, MeshMap, ErrStat, ErrMsg )
    CHARACTER(*),           INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
    ! local variables
-   REAL(ReKi) :: c, TwoC
+   REAL(ReKi)                              :: c, TwoC
 
-   INTEGER(IntKi) :: N, n1, n2
-   INTEGER(IntKi) :: j,k, iElem, iComp
+   INTEGER(IntKi)                          :: N, n1, n2  ! node numbers
+   INTEGER(IntKi)                          :: j,k, iElem, iComp
+   INTEGER(IntKi)                          :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                  :: ErrMsg2
 
 
    ErrStat = ErrID_None
    ErrMsg = ""
 
-   
    n = Dest%Nnodes* 3
+
+   IF ( ALLOCATED(MeshMap%LoadLn2_A_Mat) ) THEN
+      IF ( SIZE(MeshMap%LoadLn2_A_Mat,1) < n ) THEN
+         DEALLOCATE(MeshMap%LoadLn2_A_Mat)
+         DEALLOCATE(MeshMap%LoadLn2_A_Mat_piv)
+         DEALLOCATE(MeshMap%LoadLn2_F)
+         DEALLOCATE(MeshMap%LoadLn2_M)
+         CALL AllocInvLumpingArrays()
+         IF (ErrStat >= AbortErrLev) RETURN 
+      END IF
+   ELSE
+      CALL AllocInvLumpingArrays()  
+      IF (ErrStat >= AbortErrLev) RETURN 
+   END IF
+        
    
       ! factor the "A" matrix for the solve later:
          
@@ -2500,8 +2649,104 @@ SUBROUTINE Create_InverseLumping_Matrix( Dest, MeshMap, ErrStat, ErrMsg )
       
    CALL LAPACK_getrf(n,n,MeshMap%LoadLn2_A_Mat,n, MeshMap%LoadLn2_A_Mat_piv, ErrStat, ErrMsg)      
            
-END SUBROUTINE Create_InverseLumping_Matrix
+!........................................................................................................   
+CONTAINS
+   SUBROUTINE AllocInvLumpingArrays
+   
+         CALL AllocAry( MeshMap%LoadLn2_A_Mat,     n, n,  'MeshMap%LoadLn2_A_Mat',    ErrStat2, ErrMsg2)
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Create_InverseLumping_Matrix')
+            
+         CALL AllocAry( MeshMap%LoadLn2_A_Mat_piv, n,     'MeshMap%LoadLn2_A_Mat_piv',ErrStat2, ErrMsg2)
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Create_InverseLumping_Matrix')
+            
+         CALL AllocAry( MeshMap%LoadLn2_F,         n, 1,  'MeshMap%LoadLn2_F',        ErrStat2, ErrMsg2)
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Create_InverseLumping_Matrix')
+            
+         CALL AllocAry( MeshMap%LoadLn2_M,         n, 1,  'MeshMap%LoadLn2_M',        ErrStat2, ErrMsg2)
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'Create_InverseLumping_Matrix')
 
+   END SUBROUTINE AllocInvLumpingArrays
+   
+END SUBROUTINE Create_InverseLumping_Matrix
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CreateLoadMap_L2_to_L2( Src, Dest, MeshMap, ErrStat, ErrMsg )
+
+   TYPE(MeshType),                 INTENT(IN   )  :: Src                             ! The source mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Dest                            ! The destination mesh
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                         ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
+
+      ! Local variables:
+   INTEGER(IntKi)                                 :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
+
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   
+      !........................
+      ! Create matrix used to "unlump" loads later (needs to have element connectivity information to create it)
+      !........................
+      CALL Create_InverseLumping_Matrix( Dest, MeshMap, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateLoadMap_L2_to_L2')
+         IF (ErrStat >= AbortErrLev) RETURN
+            
+      !........................
+      ! An augmented Line2-element source mesh is formed
+      ! by splitting the original Line2-element source mesh at each location where a
+      ! destination-mesh Line2-element node projects orthogonally from the destination mesh
+      !........................
+         
+      CALL Create_Augmented_Ln2_Src_Mesh(Src, Dest, MeshMap, ELEMENT_LINE2, ErrStat2, ErrMsg2) 
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateLoadMap_L2_to_L2')
+         IF (ErrStat >= AbortErrLev) RETURN
+                     
+      !........................
+      ! For each Line2-element node of the augmented source mesh, a nearest-neighbor of the augmented source mesh,
+      ! a nearest-neighbor line2 element of the destination mesh is found (else aborted) in the reference configuration, 
+      ! for which the source Line2-element node projects orthogonally onto the destination Line2-element domain.
+      ! A destination-mesh Line2 element may be associated with multiple source-mesh Line2-element nodes.
+      !........................
+            
+      CALL CreateMapping_ProjectToLine2(MeshMap%Augmented_Ln2_Src, Dest, MeshMap%MapLoads, ELEMENT_LINE2, ErrStat2, ErrMsg2)            
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateLoadMap_L2_to_L2')
+         IF (ErrStat >= AbortErrLev) RETURN
+         
+         
+      !........................
+      ! Create a temporary mesh for lumped point elements of the line2 source 
+      !........................
+      CALL Create_PointMesh( MeshMap%Augmented_Ln2_Src, MeshMap%Lumped_Points_Src, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateLoadMap_L2_to_L2')
+         IF (ErrStat >= AbortErrLev) RETURN
+         
+         
+END SUBROUTINE CreateLoadMap_L2_to_L2        
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE CreateMotionMap_L2_to_L2( Src, Dest, MeshMap, ErrStat, ErrMsg )
+
+   TYPE(MeshType),                 INTENT(IN   )  :: Src                             ! The source mesh
+   TYPE(MeshType),                 INTENT(IN   )  :: Dest                            ! The destination mesh
+   TYPE(MeshMapType),              INTENT(INOUT)  :: MeshMap
+
+   INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                         ! Error status of the operation
+   CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                          ! Error message if ErrStat /= ErrID_None
+
+      ! Local variables:
+   INTEGER(IntKi)                                 :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                         :: ErrMsg2
+
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   
+   CALL CreateMapping_ProjectToLine2(Dest,Src, MeshMap%MapMotions, ELEMENT_LINE2, ErrStat2, ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CreateMotionMap_L2_to_L2')
+      IF (ErrStat >= AbortErrLev) RETURN
+            
+END SUBROUTINE CreateMotionMap_L2_to_L2        
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Lump_Line2_to_Point( Line2_Src, Point_Dest, ErrStat, ErrMsg, SrcDisp, LoadsScaleFactor )
 !
