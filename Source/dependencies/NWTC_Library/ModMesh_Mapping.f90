@@ -1650,9 +1650,10 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, S
 
 
 !bjj note that we already checked that the following two conditions apply in this case:
-!    if Src%FieldMask(MASKID_FORCE),  Dest%FieldMask(MASKID_FORCE)
-!    if Src%FieldMask(MASKID_MOMENT), Dest%FieldMask(MASKID_MOMENT)
+!   if Src%FieldMask(MASKID_FORCE),  Dest%FieldMask(MASKID_FORCE) and Dest%FieldMask(MASKID_MOMENT)
+!   if Src%FieldMask(MASKID_MOMENT), Dest%FieldMask(MASKID_MOMENT)
 
+   if (Dest%FieldMask(MASKID_MOMENT) ) Dest%Moment = 0. ! whole array initialization; required to handle superposition of moments
    
    if (Src%FieldMask(MASKID_FORCE) ) THEN
       Dest%Force  = 0.     ! whole array initialization; required to handle superposition of forces
@@ -1663,26 +1664,16 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, S
          Dest%Force(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Force(:,MeshMap%MapLoads(i)%OtherMesh_Element) + (Src%Force(:,i) / LoadsScaleFactor)
       end do
       Dest%Force  =  Dest%Force  * LoadsScaleFactor
-   end if
-   
       
-   if (Dest%FieldMask(MASKID_MOMENT) ) then
-      Dest%Moment = 0.     ! whole array initialization; required to handle superposition of forces
-
-      ! M_d += M_s      
-      do i = 1, Src%NNodes
-         !if ( MeshMap%MapLoads(i)%OtherMesh_Element < 1 )  CYCLE ! would only happen if we had non-point elements (or nodes not contained in an element)
-
-         Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) + (Src%Moment(:,i) / LoadsScaleFactor)
-      end do
       
       ! M_d += torque
-      if ( Src%FieldMask(MASKID_FORCE) ) then
+      !if ( Dest%FieldMask(MASKID_FORCE) ) then
          
             ! if the distance (which can never be less than zero) is greater than "zero" and there is a
             ! force in the source mesh, then we need to add a moment to the destination mesh to account
             ! for the mismatch between points
 
+!print *, Src%NNodes , size(MeshMap%MapLoads)            
          do i = 1, Src%NNodes
                DisplacedPosition =       SrcDisp%TranslationDisp(:,i) + SrcDisp%Position(:,i) &
                                        - ( DestDisp%TranslationDisp(:,MeshMap%MapLoads(i)%OtherMesh_Element) &
@@ -1691,8 +1682,20 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, S
                torque = CROSS_PRODUCT( DisplacedPosition, Src%Force(:,i) / LoadsScaleFactor )
                Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) + torque                                             
          enddo
-      endif
+      !endif      
       
+   end if
+   
+      
+   if (Src%FieldMask(MASKID_MOMENT) ) then
+
+      ! M_d += M_s      
+      do i = 1, Src%NNodes
+         !if ( MeshMap%MapLoads(i)%OtherMesh_Element < 1 )  CYCLE ! would only happen if we had non-point elements (or nodes not contained in an element)
+
+         Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) + (Src%Moment(:,i) / LoadsScaleFactor)
+      end do
+            
       Dest%Moment =  Dest%Moment * LoadsScaleFactor
    endif
       
@@ -1940,6 +1943,8 @@ SUBROUTINE Transfer_Loads_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, S
    ! Start with transferring the loads like point-to-point (except split between two nodes of the dest element).
    ! [because the OtherMesh_Element is line2, we can't just call the routine here]
          
+   if ( Dest%FieldMask(MASKID_MOMENT) ) Dest%Moment = 0._ReKi     ! whole array initialization; required to handle superposition of loads
+   
       ! ---------------------------- Force ------------------------------------------------
       ! Transfer this source force (lumped) to destination force and/or moment fields (currently lumped):
 
@@ -1959,28 +1964,9 @@ SUBROUTINE Transfer_Loads_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, S
 
       END DO !loop through source nodes
       
-   end if !source has force
-   
-      
-      ! ---------------------------- Moments ------------------------------------------------
-      ! Transfer this source moment to the destination moment field
-
-   if ( Src%FieldMask(MASKID_Moment) ) then !
-      Dest%Moment = 0._ReKi     ! whole array initialization; required to handle superposition of loads
-      
-      DO i = 1,  Src%Nnodes  ! the source nodes
-         
-         jElem = MeshMap%MapLoads(i)%OtherMesh_Element
-         DO j = 1,2 ! number of nodes on dest 
-            jNode = Dest%ElemTable(ELEMENT_LINE2)%Elements(jElem)%ElemNodes(j)
-            Dest%Moment(:,jNode) = Dest%Moment(:,jNode) + (Src%Moment(:,i)/LoadsScaleFactor)*MeshMap%MapLoads(i)%shape_fn(j)             
-         END DO !j
-
-      END DO !loop through source nodes
-      
-      
+            
             ! calculate the moment due to force
-      if ( Src%FieldMask(MASKID_Force) ) then
+      !if ( Dest%FieldMask(MASKID_MOMENT) ) then (now must always be true)
                   
          ! if the distance (which can never be less than zero) is greater than "zero" and there is a
          ! force in the source mesh, then we need to add a moment to the destination mesh to account
@@ -2005,9 +1991,29 @@ SUBROUTINE Transfer_Loads_Point_to_Line2( Src, Dest, MeshMap, ErrStat, ErrMsg, S
          END DO !loop through source elements
 
 
-      end if ! Src has force, too      
-      
+      !end if ! Dest has moment, too      
                   
+      
+   end if !source has force
+   
+      
+      ! ---------------------------- Moments ------------------------------------------------
+      ! Transfer this source moment to the destination moment field
+
+   if ( Src%FieldMask(MASKID_Moment) ) then !
+      
+      
+      DO i = 1,  Src%Nnodes  ! the source nodes
+         
+         jElem = MeshMap%MapLoads(i)%OtherMesh_Element
+         DO j = 1,2 ! number of nodes on dest 
+            jNode = Dest%ElemTable(ELEMENT_LINE2)%Elements(jElem)%ElemNodes(j)
+            Dest%Moment(:,jNode) = Dest%Moment(:,jNode) + (Src%Moment(:,i)/LoadsScaleFactor)*MeshMap%MapLoads(i)%shape_fn(j)             
+         END DO !j
+
+      END DO !loop through source nodes
+      
+      
    end if !src has moment field
       
 #ifdef MESH_DEBUG     
