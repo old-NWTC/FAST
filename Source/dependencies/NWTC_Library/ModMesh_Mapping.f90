@@ -1673,7 +1673,6 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, S
             ! force in the source mesh, then we need to add a moment to the destination mesh to account
             ! for the mismatch between points
 
-!print *, Src%NNodes , size(MeshMap%MapLoads)            
          do i = 1, Src%NNodes
                DisplacedPosition =       SrcDisp%TranslationDisp(:,i) + SrcDisp%Position(:,i) &
                                        - ( DestDisp%TranslationDisp(:,MeshMap%MapLoads(i)%OtherMesh_Element) &
@@ -1695,10 +1694,10 @@ SUBROUTINE Transfer_Loads_Point_to_Point( Src, Dest, MeshMap, ErrStat, ErrMsg, S
 
          Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) = Dest%Moment(:,MeshMap%MapLoads(i)%OtherMesh_Element) + (Src%Moment(:,i) / LoadsScaleFactor)
       end do
-            
-      Dest%Moment =  Dest%Moment * LoadsScaleFactor
+                  
    endif
       
+   if (Dest%FieldMask(MASKID_MOMENT) )   Dest%Moment =  Dest%Moment * LoadsScaleFactor 
 
 END SUBROUTINE Transfer_Loads_Point_to_Point
 !----------------------------------------------------------------------------------------------------------------------------------
