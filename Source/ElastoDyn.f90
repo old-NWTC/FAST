@@ -1387,8 +1387,8 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       !............................................................................................
       ! Define initial system states here:
       !............................................................................................
-   xd%DummyDiscState          = 0                                             ! we don't have discrete states
-   z%DummyConstrState         = 0                                             ! we don't have constraint states
+   xd%DummyDiscState          = 0.                                             ! we don't have discrete states
+   z%DummyConstrState         = 0.                                             ! we don't have constraint states
 
 
       ! initialize the continuous states:
@@ -2969,7 +2969,7 @@ SUBROUTINE ED_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
 
          ! Solve for the constraint states here:
 
-      z_residual%DummyConstrState = 0
+      z_residual%DummyConstrState = 0.
 
 END SUBROUTINE ED_CalcConstrStateResidual
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

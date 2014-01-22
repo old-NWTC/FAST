@@ -30,6 +30,9 @@ SET MAP_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirec
 SET MAP_DLL=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\executable\MAP_win32.dll
 SET MAP_Include_Lib=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\executable\MAP_win32.lib
 
+ECHO BONNIE: FIX THE FEAM LOCATION!!!
+SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
+
 GOTO End
 
 REM --------------------------------------------------------------------------------------------------------------------------------

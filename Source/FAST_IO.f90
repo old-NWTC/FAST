@@ -35,6 +35,7 @@ MODULE FAST_IO_Subs
    USE SubDyn_Types
    USE MAP_Types
    USE AeroDyn_Types
+   USE FEAMooring_Types
 
    
    USE ServoDyn, ONLY: Cmpl4SFun, Cmpl4LV
@@ -234,14 +235,14 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
    
 
       ! determine what kind of turbine we're modeling:
-   IF (p%CompHydro) THEN
-      IF (p%CompSub) THEN
+   IF ( p%CompHydro == Module_HD ) THEN
+      IF ( p%CompSub == Module_SD ) THEN
          p%TurbineType = Type_Offshore_Fixed
       ELSE
          p%TurbineType = Type_Offshore_Floating
       END IF
    ELSE
-      p%TurbineType = Type_Onshore
+      p%TurbineType = Type_LandBased
    END IF   
          
       ! figure out how many time steps we should go before writing screen output:      
@@ -271,10 +272,24 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
       CALL SetErrors( ErrID_Fatal, 'TMax must not exceed 9999.999 seconds with text tabular (time-marching) output files.' )
    END IF
 
-   IF ( p%TStart   <  0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'TStart must not be less than 0 seconds.' )
-   IF ( p%SttsTime <= 0.0_DbKi ) CALL SetErrors( ErrID_Fatal, 'SttsTime must be greater than 0 seconds.' )
-   IF ( p%KMax     <   1_IntKi ) CALL SetErrors( ErrID_Fatal, 'KMax must be greater than 0.' )
+   IF ( p%TStart   <  0.0_DbKi     ) CALL SetErrors( ErrID_Fatal, 'TStart must not be less than 0 seconds.' )
+   IF ( p%SttsTime <= 0.0_DbKi     ) CALL SetErrors( ErrID_Fatal, 'SttsTime must be greater than 0 seconds.' )
+   IF ( p%KMax     <   1_IntKi     ) CALL SetErrors( ErrID_Fatal, 'KMax must be greater than 0.' )
+   
+   IF (p%CompAero    == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompAero must be 0 (None) or 1 (AeroDyn).' )
+   IF (p%CompServo   == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompServo must be 0 (None) or 1 (ServoDyn).' )
+   IF (p%CompHydro   == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompHydro must be 0 (None) or 1 (HydroDyn).' )
+   IF (p%CompSub     == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompSub must be 0 (None) or 1 (SubDyn).' )
+   IF (p%CompMooring == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompMooring must be 0 (None), 1 (MAP), or 2 (FEAMooring).' )
+   IF (p%CompHydro /= Module_HD) THEN
+      IF (p%CompMooring == Module_MAP) THEN
+         CALL SetErrors( ErrID_Fatal, 'HydroDyn must be used when MAP is used. Set CompHydro > 0 or CompMooring = 0 in the FAST input file.' )
+      ELSEIF (p%CompMooring == Module_FEAM) THEN
+         CALL SetErrors( ErrID_Fatal, 'HydroDyn must be used when FEAMooring is used. Set CompHydro > 0 or CompMooring = 0 in the FAST input file.' )
+      END IF
+   END IF
 
+   
    IF ( p%InterpOrder < 0 .OR. p%InterpOrder > 2 ) THEN
       CALL SetErrors( ErrID_Fatal, 'InterpOrder must not be 0, 1, or 2.' )
       p%InterpOrder = 0    ! Avoid problems in error handling by setting this to 0
@@ -328,7 +343,7 @@ CONTAINS
 END SUBROUTINE FAST_Init
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, InitOutData_AD, InitOutData_HD, &
-                            InitOutData_SD, InitOutData_MAP, ErrStat, ErrMsg )
+                            InitOutData_SD, InitOutData_MAP, InitOutData_FEAM, ErrStat, ErrMsg )
 ! This routine initializes the output for the glue code, including writing the header for the primary output file.
 ! was previously called WrOutHdr()
 !..................................................................................................................................
@@ -345,6 +360,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    TYPE(HydroDyn_InitOutputType),  INTENT(IN)           :: InitOutData_HD                        ! Initialization output for HydroDyn
    TYPE(SD_InitOutputType),        INTENT(IN)           :: InitOutData_SD                        ! Initialization output for SubDyn
    TYPE(MAP_InitOutputType),       INTENT(IN)           :: InitOutData_MAP                       ! Initialization output for MAP
+   TYPE(FEAM_InitOutputType),      INTENT(IN)           :: InitOutData_FEAM                      ! Initialization output for FEAMooring
 
    INTEGER(IntKi),                 INTENT(OUT)          :: ErrStat                               ! Error status
    CHARACTER(*),                   INTENT(OUT)          :: ErrMsg                                ! Error message corresponding to ErrStat
@@ -374,7 +390,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    y_FAST%ED_Ver   = InitOutData_ED%Ver
    y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%ED_Ver  ))
 
-   IF ( p_FAST%CompAero )  THEN
+   IF ( p_FAST%CompAero == Module_AD )  THEN
       y_FAST%IfW_Ver  = InitOutData_AD%IfW_InitOutput%Ver
       y_FAST%AD_Ver   = InitOutData_AD%Ver
      
@@ -391,7 +407,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
             
    END IF
 
-   IF ( p_FAST%CompServo ) THEN
+   IF ( p_FAST%CompServo == Module_SrvD ) THEN
       y_FAST%SrvD_Ver = InitOutData_SrvD%Ver
       y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%SrvD_Ver))
    ELSE
@@ -400,7 +416,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
       y_FAST%SrvD_Ver%Ver  = 'unknown version'
    END IF
          
-   IF ( p_FAST%CompHydro ) THEN
+   IF ( p_FAST%CompHydro == Module_HD ) THEN
       y_FAST%HD_Ver   = InitOutData_HD%Ver
       y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%HD_Ver))
    ELSE
@@ -409,7 +425,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
       y_FAST%HD_Ver%Ver  = 'unknown version'
    END IF
 
-   IF ( p_FAST%CompSub ) THEN
+   IF ( p_FAST%CompSub == Module_SD ) THEN
       y_FAST%SD_Ver   = InitOutData_SD%Ver
       y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%SD_Ver))
    ELSE
@@ -418,13 +434,22 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
       y_FAST%SD_Ver%Ver  = 'unknown version'
    END IF
 
-   IF ( p_FAST%CompMAP ) THEN
+   IF ( p_FAST%CompMooring == Module_MAP ) THEN
       y_FAST%MAP_Ver   = InitOutData_MAP%Ver
       y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%MAP_Ver))
    ELSE
       y_FAST%MAP_Ver%Name = 'MAP'
       y_FAST%MAP_Ver%Date = 'unknown date'
       y_FAST%MAP_Ver%Ver  = 'unknown version'
+   END IF   
+   
+   IF ( p_FAST%CompMooring == Module_FEAM ) THEN
+      y_FAST%FEAM_Ver   = InitOutData_FEAM%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%FEAM_Ver))
+   ELSE
+      y_FAST%FEAM_Ver%Name = 'FEAM'
+      y_FAST%FEAM_Ver%Date = 'unknown date'
+      y_FAST%FEAM_Ver%Ver  = 'unknown version'
    END IF   
    
             
@@ -454,12 +479,14 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    y_FAST%numOuts_MAP = 0
    IF ( ALLOCATED( InitOutData_MAP%WriteOutputHdr  ) ) y_FAST%numOuts_MAP  = SIZE(InitOutData_MAP%WriteOutputHdr)
    
+   y_FAST%numOuts_FEAM = 0
+   IF ( ALLOCATED( InitOutData_FEAM%WriteOutputHdr ) ) y_FAST%numOuts_FEAM = SIZE(InitOutData_FEAM%WriteOutputHdr)
    
    !......................................................
    ! Initialize the output channel names and units
    !......................................................
    NumOuts   = 1 + y_FAST%numOuts_IfW + y_FAST%numOuts_ED + y_FAST%numOuts_SrvD + y_FAST%numOuts_AD + y_FAST%numOuts_HD &
-                 + y_FAST%numOuts_SD  + y_FAST%numOuts_MAP
+                 + y_FAST%numOuts_SD  + y_FAST%numOuts_MAP + y_FAST%numOuts_FEAM
 
    CALL AllocAry( y_FAST%ChannelNames,NumOuts, 'ChannelNames', ErrStat, ErrMsg )
       IF ( ErrStat /= ErrID_None ) RETURN
@@ -478,7 +505,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
       y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_AD%IfW_InitOutput%WriteOutputUnt
       
       !y_FAST%ChannelNames(indxNext:indxLast) = (/ 'WindVxi   ', 'WindVyi   ', 'WindVzi   ' /)
-      !IF ( p_FAST%CompAero ) THEN
+      !IF ( p_FAST%CompAero == Module_AD ) THEN
       !   y_FAST%ChannelUnits(indxNext:indxLast) = (/ '(m/s)     ', '(m/s)     ', '(m/s)     ' /)
       !ELSE
       !   y_FAST%ChannelUnits(indxNext:indxLast) = (/ 'INVALID   ', 'INVALID   ', 'INVALID   ' /)
@@ -521,6 +548,13 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
       indxLast = indxNext + y_FAST%numOuts_MAP - 1
       y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_MAP%WriteOutputHdr
       y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_MAP%WriteOutputUnt
+      indxNext = indxLast + 1
+   END IF
+   
+   IF ( y_FAST%numOuts_FEAM > 0_IntKi ) THEN !FEAMooring
+      indxLast = indxNext + y_FAST%numOuts_FEAM - 1
+      y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_FEAM%WriteOutputHdr
+      y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_FEAM%WriteOutputUnt
       indxNext = indxLast + 1
    END IF
    
@@ -645,29 +679,34 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%ED_Ver   ) )
    
    DescStr = GetNVD( y_FAST%SrvD_Ver )
-   IF ( .NOT. p_FAST%CompServo ) DescStr = TRIM(DescStr)//NotUsedTxt
+   IF ( p_FAST%CompServo /= Module_SrvD ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
    DescStr = GetNVD( y_FAST%AD_Ver )
-   IF ( .NOT. p_FAST%CompAero ) DescStr = TRIM(DescStr)//NotUsedTxt
+   IF ( p_FAST%CompAero /= Module_AD ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
    DescStr = GetNVD( y_FAST%IfW_Ver )
-   IF ( .NOT. p_FAST%CompAero ) DescStr = TRIM(DescStr)//NotUsedTxt
+   IF ( p_FAST%CompAero /= Module_AD ) DescStr = TRIM(DescStr)//NotUsedTxt !IfW is a submodule of AD right now
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
    DescStr = GetNVD( y_FAST%HD_Ver )
-   IF ( .NOT. p_FAST%CompHydro ) DescStr = TRIM(DescStr)//NotUsedTxt
+   IF ( p_FAST%CompHydro /= Module_HD  ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
    DescStr = GetNVD( y_FAST%SD_Ver )
-   IF ( .NOT. p_FAST%CompSub ) DescStr = TRIM(DescStr)//NotUsedTxt
+   IF ( p_FAST%CompSub /= Module_SD ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
    DescStr = GetNVD( y_FAST%MAP_Ver )
-   IF ( .NOT. p_FAST%CompMap ) DescStr = TRIM(DescStr)//NotUsedTxt
+   IF ( p_FAST%CompMooring /= Module_MAP ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
 
+   DescStr = GetNVD( y_FAST%FEAM_Ver )
+   IF ( p_FAST%CompMooring /= Module_FEAM ) DescStr = TRIM(DescStr)//NotUsedTxt
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
+   
+   
    !.......................... Information from FAST input File ......................................
 ! OTHER information we could print here:   
 ! current working directory
@@ -677,8 +716,8 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
 ! coupling method
 
    SELECT CASE ( p_FAST%TurbineType )
-   CASE ( Type_Onshore )
-      DescStr = 'Modeling an onshore turbine'
+   CASE ( Type_LandBased )
+      DescStr = 'Modeling a land-based turbine'
    CASE ( Type_Offshore_Fixed )
       DescStr = 'Modeling a fixed-bottom offshore turbine'
    CASE ( Type_Offshore_Floating )
@@ -715,15 +754,15 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    
    IF ( ALLOCATED( MeshMapData%Jacobian_ED_SD_HD ) ) then
       
-      IF ( p_FAST%CompHydro ) THEN ! HydroDyn <-> {ElastoDyn or SubDyn}
+      IF ( p_FAST%CompHydro == Module_HD ) THEN ! HydroDyn <-> {ElastoDyn or SubDyn}
       
-         IF ( .NOT. p_FAST%CompSub ) THEN ! HydroDyn-ElastoDyn        
+         IF ( p_FAST%CompSub /= Module_SD ) THEN ! HydroDyn-ElastoDyn        
             DescStr = "ElastoDyn to HydroDyn"
          ELSE ! HydroDyn <-> SubDyn <-> ElastoDyn (in ED_SD_HD coupling)
             DescStr = "ElastoDyn, SubDyn, and HydroDyn"
          END IF ! HydroDyn <-> {ElastoDyn or SubDyn}
    
-      ELSEIF ( p_FAST%CompSub ) THEN  ! SubDyn-ElastoDyn    
+      ELSEIF ( p_FAST%CompSub == Module_SD ) THEN  ! SubDyn-ElastoDyn    
          DescStr = "ElastoDyn to SubDyn"
       !ELSE ! no HD or SD:
       END IF ! ElastoDyn <-> {HydroDyn or SubDyn}      
@@ -781,6 +820,13 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
       WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%MAP_Ver%Name)
    END DO
       
+      ! FEAMooring
+   DO J = 1,y_FAST%numOuts_FEAM
+      I = I + 1
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%FEAM_Ver%Name)
+   END DO
+   
+   
    !.......................... End of Summary File ............................................
    
    ! bjj: note that I'm not closing the summary file here, though at the present time we don't write to this file again.
@@ -947,35 +993,78 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN              
                   
-   !---------------------- FEATURE FLAGS -------------------------------------------
-   CALL ReadCom( UnIn, InputFile, 'Section Header: Feature Flags', ErrStat2, ErrMsg2, UnEc )
+   !---------------------- FEATURE SWITCHES AND FLAGS --------------------------------
+   CALL ReadCom( UnIn, InputFile, 'Section Header: Feature Switches and Flags', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! CompAero - Compute aerodynamic forces (flag):
-   CALL ReadVar( UnIn, InputFile, p%CompAero, "CompAero", "Compute aerodynamic forces (flag)", ErrStat2, ErrMsg2, UnEc)
+      ! CompAero - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}:
+   CALL ReadVar( UnIn, InputFile, p%CompAero, "CompAero", "Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+          ! immediately convert to values used inside the code:
+         IF ( p%CompAero == 0 ) THEN 
+            p%CompAero = Module_NONE
+         ELSEIF ( p%CompAero == 1 ) THEN
+            p%CompAero = Module_AD
+         ELSE
+            p%CompAero = Module_Unknown
+         END IF
 
-      ! CompServo - Compute servodynamics (flag):
-   CALL ReadVar( UnIn, InputFile, p%CompServo, "CompServo", "Compute servodynamics (flag)", ErrStat2, ErrMsg2, UnEc)
+      ! CompServo - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}:
+   CALL ReadVar( UnIn, InputFile, p%CompServo, "CompServo", "Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! CompHydro - Compute hydrodynamics forces (flag):
-   CALL ReadVar( UnIn, InputFile, p%CompHydro, "CompHydro", "Compute hydrodynamics forces (flag)", ErrStat2, ErrMsg2, UnEc)
+          ! immediately convert to values used inside the code:
+         IF ( p%CompServo == 0 ) THEN 
+            p%CompServo = Module_NONE
+         ELSEIF ( p%CompServo == 1 ) THEN
+            p%CompServo = Module_SrvD
+         ELSE
+            p%CompServo = Module_Unknown
+         END IF
+      
+      
+      ! CompHydro - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}:
+   CALL ReadVar( UnIn, InputFile, p%CompHydro, "CompHydro", "Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! CompSub - Compute sub-structural dynamics (flag):
-   CALL ReadVar( UnIn, InputFile, p%CompSub, "CompSub", "Compute sub-structural dynamics (flag)", ErrStat2, ErrMsg2, UnEc)
+          ! immediately convert to values used inside the code:
+         IF ( p%CompHydro == 0 ) THEN 
+            p%CompHydro = Module_NONE
+         ELSEIF ( p%CompHydro == 1 ) THEN
+            p%CompHydro = Module_HD
+         ELSE
+            p%CompHydro = Module_Unknown
+         END IF
+         
+      ! CompSub - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn}:
+   CALL ReadVar( UnIn, InputFile, p%CompSub, "CompSub", "Compute sub-structural dynamics (switch) {0=None; 1=SubDyn}", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-
-      ! CompMAP - Compute mooring line dynamics (flag):
-   CALL ReadVar( UnIn, InputFile, p%CompMAP, "CompMAP", "Compute mooring line dynamics (flag)", ErrStat2, ErrMsg2, UnEc)
+          ! immediately convert to values used inside the code:
+         IF ( p%CompSub == 0 ) THEN 
+            p%CompSub = Module_NONE
+         ELSEIF ( p%CompSub == 1 ) THEN
+            p%CompSub = Module_SD
+         ELSE
+            p%CompSub = Module_Unknown
+         END IF
+         
+      ! CompMooring - Compute mooring line dynamics (flag):
+   CALL ReadVar( UnIn, InputFile, p%CompMooring, "CompMooring", "Compute mooring system (switch) {0=None; 1=MAP, 2=FEAMooring}", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN         
+          ! immediately convert to values used inside the code:
+         IF ( p%CompMooring == 0 ) THEN 
+            p%CompMooring = Module_NONE
+         ELSEIF ( p%CompMooring == 1 ) THEN
+            p%CompMooring = Module_MAP
+         ELSEIF ( p%CompMooring == 2 ) THEN
+            p%CompMooring = Module_FEAM
+         ELSE
+            p%CompMooring = Module_Unknown
+         END IF      
       
       ! CompUserPtfmLd - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag):
    CALL ReadVar( UnIn, InputFile, p%CompUserPtfmLd, "CompUserPtfmLd", "Compute additional platform loading (flag)", ErrStat2, ErrMsg2, UnEc)
@@ -998,36 +1087,36 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN
    IF ( PathIsRelative( p%EDFile ) ) p%EDFile = TRIM(PriPath)//TRIM(p%EDFile)
 
-      ! ADFile - Name of file containing AeroDyn input parameters (-):
-   CALL ReadVar( UnIn, InputFile, p%ADFile, "ADFile", "Name of file containing AeroDyn input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      ! AeroFile - Name of file containing aerodynamic input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%AeroFile, "AeroFile", "Name of file containing aerodynamic input parameters (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   IF ( PathIsRelative( p%ADFile ) ) p%ADFile = TRIM(PriPath)//TRIM(p%ADFile)
+   IF ( PathIsRelative( p%AeroFile ) ) p%AeroFile = TRIM(PriPath)//TRIM(p%AeroFile)
 
-      ! SrvDFile - Name of file containing ServoDyn input parameters (-):
-   CALL ReadVar( UnIn, InputFile, p%SrvDFile, "SrvDFile", "Name of file containing ServoDyn input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      ! ServoFile - Name of file containing control and electrical-drive input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%ServoFile, "ServoFile", "Name of file containing control and electrical-drive input parameters (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   IF ( PathIsRelative( p%SrvDFile ) ) p%SrvDFile = TRIM(PriPath)//TRIM(p%SrvDFile)
+   IF ( PathIsRelative( p%ServoFile ) ) p%ServoFile = TRIM(PriPath)//TRIM(p%ServoFile)
 
-      ! HDFile - Name of file containing HydroDyn input parameters (-):
-   CALL ReadVar( UnIn, InputFile, p%HDFile, "HDFile", "Name of file containing HydroDyn input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      ! HydroFile - Name of file containing hydrodynamic input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%HydroFile, "HydroFile", "Name of file containing hydrodynamic input parameters (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   IF ( PathIsRelative( p%HDFile ) ) p%HDFile = TRIM(PriPath)//TRIM(p%HDFile)
+   IF ( PathIsRelative( p%HydroFile ) ) p%HydroFile = TRIM(PriPath)//TRIM(p%HydroFile)
 
-      ! SDFile - Name of file containing SubDyn input parameters (-):
-   CALL ReadVar( UnIn, InputFile, p%SDFile, "SDFile", "Name of file containing SubDyn input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      ! SubFile - Name of file containing sub-structural input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%SubFile, "SubFile", "Name of file containing sub-structural input parameters (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   IF ( PathIsRelative( p%SDFile ) ) p%SDFile = TRIM(PriPath)//TRIM(p%SDFile)
+   IF ( PathIsRelative( p%SubFile ) ) p%SubFile = TRIM(PriPath)//TRIM(p%SubFile)
 
-      ! MAPFile - Name of file containing MAP input parameters (-):
-   CALL ReadVar( UnIn, InputFile, p%MAPFile, "MAPFile", "Name of file containing MAP input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      ! MooringFile - Name of file containing mooring system input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%MooringFile, "MooringFile", "Name of file containing mooring system input parameters (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   IF ( PathIsRelative( p%MAPFile ) ) p%MAPFile = TRIM(PriPath)//TRIM(p%MAPFile)
-         
+   IF ( PathIsRelative( p%MooringFile ) ) p%MooringFile = TRIM(PriPath)//TRIM(p%MooringFile)
+  
    !---------------------- OUTPUT --------------------------------------------------
    CALL ReadCom( UnIn, InputFile, 'Section Header: Output', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -1369,7 +1458,8 @@ END FUNCTION TimeValues2Seconds
 !----------------------------------------------------------------------------------------------------------------------------------
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, SDOutput, MAPOutput, ErrStat, ErrMsg)
+SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, SDOutput, MAPOutput, FEAMOutput, &
+                        ErrStat, ErrMsg)
 ! This routine writes the module output to the primary output file(s).
 !..................................................................................................................................
 
@@ -1388,6 +1478,7 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
    REAL(ReKi),               INTENT(IN)    :: HDOutput (:)                       ! HydroDyn WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: SDOutput (:)                       ! SubDyn WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: MAPOutput (:)                      ! MAP WriteOutput values
+   REAL(ReKi),               INTENT(IN)    :: FEAMOutput (:)                     ! FEAMooring WriteOutput values
 
    INTEGER(IntKi),           INTENT(OUT)   :: ErrStat
    CHARACTER(*),             INTENT(OUT)   :: ErrMsg
@@ -1443,6 +1534,9 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
       
       IF ( y_FAST%numOuts_MAP > 0 ) THEN !MAP (Mooring Analysis Program)
          CALL WrReAryFileNR ( y_FAST%UnOu, MAPOutput,   Frmt, ErrStat, ErrMsg )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      ELSEIF ( y_FAST%numOuts_FEAM > 0 ) THEN !FEAMooring
+         CALL WrReAryFileNR ( y_FAST%UnOu, FEAMOutput,   Frmt, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
       END IF
 
@@ -1507,6 +1601,10 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
             indxLast = indxNext + SIZE(MAPOutput) - 1
             y_FAST%AllOutData(indxNext:indxLast, y_FAST%n_Out) = MAPOutput
             indxNext = IndxLast + 1
+         ELSEIF ( y_FAST%numOuts_FEAM > 0 ) THEN
+            indxLast = indxNext + SIZE(FEAMOutput) - 1
+            y_FAST%AllOutData(indxNext:indxLast, y_FAST%n_Out) = FEAMOutput
+            indxNext = IndxLast + 1
          END IF
          
       END IF
@@ -1520,7 +1618,7 @@ END SUBROUTINE WrOutputLine
 
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, y_SD, u_SD, &
-                          MeshMapData, u_ED_Without_SD_HD, ErrStat, ErrMsg )
+                          y_FEAM, u_FEAM, MeshMapData, u_ED_Without_SD_HD, ErrStat, ErrMsg )
 ! This routine sets the inputs required for ED
 !..................................................................................................................................
 
@@ -1535,6 +1633,8 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
    TYPE(MAP_InputType),            INTENT(IN   )  :: u_MAP                    ! MAP inputs
    TYPE(SD_OutputType),            INTENT(IN   )  :: y_SD                     ! SubDyn outputs
    TYPE(SD_InputType),             INTENT(IN   )  :: u_SD                     ! SubDyn inputs
+   TYPE(FEAM_OutputType),          INTENT(IN   )  :: y_FEAM                   ! FEAM outputs
+   TYPE(FEAM_InputType),           INTENT(IN   )  :: u_FEAM                   ! FEAM inputs
    
    TYPE(FAST_ModuleMapType),       INTENT(INOUT)  :: MeshMapData              ! Data for mapping between modules
    TYPE(MeshType),                 INTENT(INOUT)  :: u_ED_Without_SD_HD       ! in: u_ED%PlatformPtMesh with contribution from modules other than HD and SD [MAP, etc]
@@ -1557,7 +1657,7 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
 
    
       ! ED inputs from ServoDyn
-   IF ( p_FAST%CompServo ) THEN
+   IF ( p_FAST%CompServo == Module_SrvD ) THEN
 
       u_ED%GenTrq     = y_SrvD%GenTrq
       u_ED%HSSBrTrq   = y_SrvD%HSSBrTrq
@@ -1584,9 +1684,9 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
    
    
       ! ED inputs from AeroDyn
-!   IF ( p_FAST%CompAero .and. ALLOCATED(ADAeroLoads%Blade) ) THEN
+!   IF ( p_FAST%CompAero == Module_AD .and. ALLOCATED(ADAeroLoads%Blade) ) THEN
 !bjj: need another check on this perhaps
-   IF ( p_FAST%CompAero  ) THEN
+   IF ( p_FAST%CompAero == Module_AD ) THEN
       DO K = 1,SIZE(u_ED%BladeLn2Mesh,1) ! Loop through all blades (p_ED%NumBl)
          DO J = 1,y_AD%OutputLoads(K)%Nnodes ! Loop through the blade nodes / elements (p_ED%BldNodes)
 
@@ -1644,16 +1744,25 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN      
    
-      ! ED inputs from MAP
-   IF ( p_FAST%CompMap ) THEN
+      ! ED inputs from MAP or FEAMooring
+   IF ( p_FAST%CompMooring == Module_MAP ) THEN
          ! we're mapping loads, so we also need the sibling meshes' displacements:
-      CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, u_mapped, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairleadDisplacement, y_ED%PlatformPtMesh ) !u_MAP contains the orientations needed for moment calculations
+      CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, u_mapped, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairleadDisplacement, y_ED%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
       u_ED_Without_SD_HD%Force  = u_ED_Without_SD_HD%Force  + u_mapped%Force 
       u_ED_Without_SD_HD%Moment = u_ED_Without_SD_HD%Moment + u_mapped%Moment 
                
+   ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
+         ! we're mapping loads, so we also need the sibling meshes' displacements:
+      CALL Transfer_Point_to_Point( y_FEAM%PtFairleadLoad, u_mapped, MeshMapData%FEAM_P_2_ED_P, ErrStat2, ErrMsg2, u_FEAM%PtFairleadDisplacement, y_ED%PlatformPtMesh ) !u_FEAM and y_ED contain the displacements needed for moment calculations
+         CALL CheckError( ErrStat2, ErrMsg2 )
+         IF (ErrStat >= AbortErrLev) RETURN
+
+      u_ED_Without_SD_HD%Force  = u_ED_Without_SD_HD%Force  + u_mapped%Force 
+      u_ED_Without_SD_HD%Moment = u_ED_Without_SD_HD%Moment + u_mapped%Moment 
+      
    END IF
    
    u_ED%PlatformPtMesh%Force  = u_ED_Without_SD_HD%Force
@@ -1662,7 +1771,7 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
    
       ! ED inputs from HydroDyn or SubDyn (done in separate routine due to two-way direct feed-through [we call it again])
    
-   IF ( p_FAST%CompSub ) THEN ! connect to SubDyn
+   IF ( p_FAST%CompSub == Module_SD ) THEN ! connect to SubDyn
                           
             ! Loads on the transition piece 
       IF ( y_SD%Y1Mesh%Committed  ) THEN
@@ -1677,7 +1786,7 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
    
       END IF      
                         
-   ELSEIF ( p_FAST%CompHydro ) THEN ! connect to HydroDyn if SubDyn isn't used
+   ELSEIF ( p_FAST%CompHydro == Module_HD ) THEN ! connect to HydroDyn if SubDyn isn't used
                   
          CALL Transfer_HD_to_ED( u_mapped, u_ED, y_ED%PlatformPtMesh, y_HD, u_HD, MeshMapData, ErrStat2, ErrMsg2 ) !three meshes getting summed with u_ED%PlatformPtMesh
             CALL CheckError( ErrStat2, ErrMsg2 )
@@ -1756,7 +1865,7 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, u_mapped_positions, y_HD, u_HD, Me
    IF ( y_HD%WAMIT%Mesh%Committed  ) THEN
 
          ! we're mapping loads, so we also need the sibling meshes' displacements:
-      CALL Transfer_Point_to_Point( y_HD%WAMIT%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%WAMIT%Mesh, u_mapped_positions) !u_HD contains the orientations needed for moment calculations
+      CALL Transfer_Point_to_Point( y_HD%WAMIT%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%WAMIT%Mesh, u_mapped_positions) !u_HD and u_mapped_positions contain the displaced positions for load calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
@@ -1845,7 +1954,7 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD_prev )
       !   zero if there is no wind input when AeroDyn is not used:
 
       !bjj: rename pass YawAngle (not YawErr from ED)
-   IF ( p_FAST%CompAero )  THEN   ! AeroDyn has been used.
+   IF ( p_FAST%CompAero == Module_AD )  THEN   ! AeroDyn has been used.
 
       u_SrvD%WindDir  = ATAN2( y_IfW(2), y_IfW(1) )
       u_SrvD%YawErr   = u_SrvD%WindDir - y_ED%YawAngle
@@ -1892,11 +2001,11 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD_prev )
 
    u_SrvD%RotPwr    = y_ED%RotPwr
 
-      ! ServoDyn inputs from AeroDyn
-   IF ( p_FAST%CompAero ) THEN
-   ELSE
-   END IF
-
+   !   ! ServoDyn inputs from AeroDyn
+   !IF ( p_FAST%CompAero == Module_AD ) THEN
+   !ELSE
+   !END IF
+   !
 
 
 
@@ -1918,7 +2027,7 @@ SUBROUTINE HD_InputSolve(  p_FAST, u_HD, y_ED, y_SD, MeshMapData, ErrStat, ErrMs
    CHARACTER(*),                INTENT(OUT)   :: ErrMsg                        ! Error message if ErrStat /= ErrID_None
    
 
-   IF ( .NOT. p_FAST%CompSub ) THEN
+   IF ( p_FAST%CompSub /= Module_SD ) THEN
       
       !----------------------------------------------------------------------------------------------------
       ! Map ED outputs (motions) to HydroDyn inputs
@@ -2064,6 +2173,28 @@ SUBROUTINE MAP_InputSolve(  u_MAP, y_ED, MeshMapData, ErrStat, ErrMsg )
 
 END SUBROUTINE MAP_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE FEAM_InputSolve(  u_FEAM, y_ED, MeshMapData, ErrStat, ErrMsg )
+! This routine sets the inputs required for FEAM.
+!..................................................................................................................................
+
+      ! Passed variables
+   TYPE(FEAM_InputType),        INTENT(INOUT) :: u_FEAM                       ! FEAM input
+   TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
+
+   INTEGER(IntKi),              INTENT(  OUT) :: ErrStat                      ! Error status of the operation
+   CHARACTER(*)  ,              INTENT(  OUT) :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
+
+
+      !----------------------------------------------------------------------------------------------------
+      ! Map ED outputs to MAP inputs
+      !----------------------------------------------------------------------------------------------------
+
+   CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_FEAM%PtFairleadDisplacement, MeshMapData%ED_P_2_FEAM_P, ErrStat, ErrMsg )
+
+
+END SUBROUTINE FEAM_InputSolve
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SD_InputSolve(  u_SD, y_SD, y_ED, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for MAP.
 !..................................................................................................................................
@@ -2195,10 +2326,15 @@ SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_
          u_SD_LMesh%Moment = u_SD_LMesh%Moment + u_mapped%Moment     
          
 #ifdef DEBUG_MESH_TRANSFER2              
-         CALL WrScr('SD to HD point-to-point (morison lumped):')
+         CALL WrScr('********************************************************')
+         CALL WrScr('****   SD to HD point-to-point (morison lumped)    *****')
+         CALL WrScr('********************************************************')
          CALL WriteMappingTransferToFile(u_mapped, u_mapped_positions, u_HD_M_LumpedMesh, y_HD%Morison%LumpedMesh,&
                MeshMapData%SD_P_2_HD_M_P, MeshMapData%HD_M_P_2_SD_P, &
                'SD_y2_HD_ML_Meshes_t'//TRIM(Num2LStr(0))//'.bin' )
+         print *
+         !pause
+         
 #endif         
                   
       END IF
@@ -2212,13 +2348,15 @@ SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_
          u_SD_LMesh%Force  = u_SD_LMesh%Force  + u_mapped%Force
          u_SD_LMesh%Moment = u_SD_LMesh%Moment + u_mapped%Moment
 
-#ifdef DEBUG_MESH_TRANSFER2         
-         CALL WrScr('SD to HD point-to-line2 (morison distributed):')
+#ifdef DEBUG_MESH_TRANSFER2        
+         CALL WrScr('********************************************************')
+         CALL WrScr('**** SD to HD point-to-line2 (morison distributed) *****')
+         CALL WrScr('********************************************************')
          CALL WriteMappingTransferToFile(u_mapped, u_mapped_positions, u_HD_M_DistribMesh,y_HD%Morison%DistribMesh,&
                MeshMapData%SD_P_2_HD_M_L, MeshMapData%HD_M_L_2_SD_P, &
                'SD_y2_HD_MD_Meshes_t'//TRIM(Num2LStr(0))//'.bin' )         
          print *
-         pause
+        ! pause
 #endif         
                   
       END IF
@@ -2336,14 +2474,12 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    ! Note: p_FAST%UJacSclFact is a scaling factor that gets us similar magnitudes between loads and accelerations...
  
 !bjj: note, that this routine may have a problem if there is remapping done
-! We may also be able to save some time if we don't remap more than once in this routine:
-!   LOGICAL                                           :: RemapThisMesh(4)      ! saves us some computational time if remapping isn't done each time... (1=ED%PlatformPtMesh; 2=HD%WAMIT%Mesh; 3 = HD%Morison%LumpedMesh; 4=HD%Morison%DistbMesh)
     
    ErrStat = ErrID_None
    ErrMsg  = ""
 
    ! note this routine should be called only
-   ! IF ( p_FAST%CompHydro .AND. .NOT. p_FAST%CompSub ) 
+   ! IF ( p_FAST%CompHydro == Module_HD .AND. p_FAST%CompSub /= Module_SD ) 
       
    
       !----------------------------------------------------------------------------------------------------
@@ -2729,9 +2865,7 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    INTEGER(IntKi)                                    :: K                         ! Input-output-solve iteration counter
    INTEGER(IntKi)                                    :: ErrStat2                  ! temporary Error status of the operation
    CHARACTER(LEN(ErrMsg))                            :: ErrMsg2                   ! temporary Error message if ErrStat /= ErrID_None
-   
-   LOGICAL                                           :: Temp_RemapFlag(4)         ! we want to reset the ElasoDyn (and for consistancy, other module's remap flags so this doesn't interfere with other mappings)
-   
+      
    ! Note: p_FAST%UJacSclFact is a scaling factor that gets us similar magnitudes between loads and accelerations...
  
 !bjj: note, that this routine may have a problem if there is remapping done
@@ -2742,7 +2876,7 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    ErrMsg  = ""
 
    ! note this routine should be called only
-   ! IF ( p_FAST%CompSub .AND. .NOT. p_FAST%CompHydro ) 
+   ! IF ( p_FAST%CompSub == Module_SD .AND. p_FAST%CompHydro /= Module_HD ) 
    
    
       !----------------------------------------------------------------------------------------------------
@@ -2965,7 +3099,7 @@ CONTAINS
    
       ! Loads (outputs) on the SD transition piece transfered to ED input location/mesh:
          ! we're mapping loads, so we also need the sibling meshes' displacements:
-      CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, u_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_TPMesh, y_ED2%PlatformPtMesh ) !u_TPMesh contains the orientations needed for moment calculations
+      CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, u_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_TPMesh, y_ED2%PlatformPtMesh ) !u_TPMesh and PlatformPtMesh contain the translation displacements needed for moment calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
                  
@@ -3124,15 +3258,13 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    ! Note: p_FAST%UJacSclFact is a scaling factor that gets us similar magnitudes between loads and accelerations...
  
 !bjj: note, that this routine may have a problem if there is remapping done
-! We may also be able to save some time if we don't remap more than once in this routine:
-!   LOGICAL                                           :: RemapThisMesh(4)      ! saves us some computational time if remapping isn't done each time... (1=ED%PlatformPtMesh; 2=HD%WAMIT%Mesh; 3 = HD%Morison%LumpedMesh; 4=HD%Morison%DistbMesh)
     
     
    ErrStat = ErrID_None
    ErrMsg  = ""
 
    ! note this routine should be called only
-   ! IF ( p_FAST%CompHydro .AND. p_FAST%CompSub ) 
+   ! IF ( p_FAST%CompHydro == Module_HD .AND. p_FAST%CompSub == Module_SD ) 
    
    
    
@@ -4078,7 +4210,7 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
    
    
       ! Set up the AeroDyn parameters
-   InitInData_AD%ADFileName   = p_FAST%ADFile
+   InitInData_AD%ADFileName   = p_FAST%AeroFile
    InitInData_AD%OutRootName  = p_FAST%OutFileRoot
    InitInData_AD%WrSumFile    = p_FAST%SumPrint      
    InitInData_AD%NumBl        = InitOutData_ED%NumBl
@@ -4168,7 +4300,7 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
    !
    !   ! Check that the hub-heights are Set up other parameters only if we need them
    !
-   !IF ( p_FAST%CompAero )  THEN
+   !IF ( p_FAST%CompAero == Module_AD )  THEN
    !
    !   ! Let's see if the hub-height in AeroDyn and FAST are within 10%:
    !   AD_RefHt = AD_GetConstant('RefHt', ErrStat)

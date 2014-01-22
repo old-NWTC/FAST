@@ -51,6 +51,13 @@
 		<File RelativePath="..\..\Source\FAST_IO.f90"/>
 		<File RelativePath="..\..\Source\FAST_Mods.f90"/>
 		<File RelativePath="..\..\Source\FAST_Prog.f90"/></Filter>
+		<Filter Name="FEAMooring">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\FEAMooring\FEAM_Registry.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat FEAMooring" Description="Running Registry for FEAMooring" Outputs="..\..\Source\dependencies\ElastoDyn\FEAMooring_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\FEAMooring\FEAMooring_Types.f90"/></Filter>
+		<File RelativePath="..\..\Source\dependencies\FEAMooring\FEAM.f90"/></Filter>
 		<Filter Name="HydroDyn">
 		<Filter Name="ExternalCode">
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\fftpack.f">

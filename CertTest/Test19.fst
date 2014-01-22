@@ -1,4 +1,4 @@
-------- FAST V8.03.* INPUT FILE ------------------------------------------------
+------- FAST V8.05.* INPUT FILE ------------------------------------------------
 FAST Certification Test #19: NREL 5.0 MW Baseline Wind Turbine with Monopile RF Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -9,21 +9,21 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
           1   NumCrctn        - Number of correction iterations {0=explicit calculation, i.e., no corrections} (-)
       99999   DT_UJac         - Time between calls to get Jacobians (s)
       1E+06   UJacSclFact     - Scaling factor used in Jacobians (-)
----------------------- FEATURE FLAGS -------------------------------------------
-True          CompAero        - Compute aerodynamic forces (flag)
-True          CompServo       - Compute servodynamics (flag)
-True          CompHydro       - Compute hydrodynamic forces (flag)
-True          CompSub         - Compute sub-structural dynamics (flag)
-False         CompMAP         - Compute mooring line dynamics (flag)
+---------------------- FEATURE SWITCHES AND FLAGS ------------------------------
+          1   CompAero        - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}
+          1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
+          1   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
+          1   CompSub         - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn}
+          0   CompMooring     - Compute mooring system (switch) {0=None; 1=MAP, 2=FEAMooring}
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
-"5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_ElastoDyn.dat"   EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_DT05.ipt"            ADFile          - Name of file containing AeroDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_ServoDyn.dat"    SrvDFile        - Name of file containing ServoDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_HydroDyn.dat"    HDFile          - Name of file containing HydroDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_SubDyn.dat"      SDFile          - Name of file containing SubDyn input parameters (quoted string)
-"unused"      MAPFile         - Name of file containing MAP input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_DT05.ipt"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_HydroDyn.dat"    HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_SubDyn.dat"    SubFile         - Name of file containing sub-structural input parameters (quoted string)
+"unused"      MooringFile     - Name of file containing mooring system input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (sec)

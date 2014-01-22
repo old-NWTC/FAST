@@ -7,7 +7,7 @@ MODULE SD_FEM
   USE NWTC_Library
   USE SubDyn_Types
   
-  
+  IMPLICIT NONE
   
     CONTAINS
     
@@ -15,8 +15,6 @@ SUBROUTINE NodeCon(Init,p, ErrStat, ErrMsg)
   
 !This Subroutine maps nodes to elements
 ! allocate for NodesConnE and NodesConnN                                                                               
-  USE NWTC_Library
-  USE SubDyn_Types
   USE qsort_c_module
   IMPLICIT NONE
 
@@ -77,9 +75,6 @@ END SUBROUTINE NodeCon
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
-   USE NWTC_Library
-   USE SubDyn_Types
-   IMPLICIT NONE
 
    TYPE(SD_InitInputType),       INTENT(INOUT)  ::Init
    TYPE(SD_ParameterType),       INTENT(INOUT)  ::p
@@ -325,7 +320,7 @@ IF (Init%NDiv .GT. 1) THEN
       
       IF ( Node1==Node2 ) THEN
          ErrMsg = ' Same starting and ending node in the member.'
-         ErrStat = 4
+         ErrStat = ErrID_Fatal
          RETURN
       ENDIF
     
@@ -380,7 +375,7 @@ IF (Init%NDiv .GT. 1) THEN
            
            kprop = kprop + 1
            CALL GetNewProp(kprop, TempProps(Prop1, 2), TempProps(Prop1, 3),&
-                           TempProps(Prop1, 4), d1+dd, t1+dt, TempProps, TempNProp, Init%PropSetsCol)           
+                           TempProps(Prop1, 4), d1+dd, t1+dt, TempProps)           
            kelem = kelem + 1
            CALL GetNewElem(kelem, Node1, knode, Prop1, kprop, p)  
            nprop = kprop              
@@ -406,13 +401,13 @@ IF (Init%NDiv .GT. 1) THEN
               kprop = kprop + 1
               CALL GetNewProp(kprop, TempProps(Prop1, 2), TempProps(Prop1, 3),&
                               Init%PropSets(Prop1, 4), d1 + J*dd, t1 + J*dt, &
-                              TempProps, TempNProp, Init%PropSetsCol)           
+                              TempProps)           
               kelem = kelem + 1
               CALL GetNewElem(kelem, knode-1, knode, nprop, kprop, p)
               nprop = kprop                
          ELSE
               kelem = kelem + 1
-              CALL GetNewElem(kelem, knode-1, knode, nprop, nprop, p)                
+              CALL GetNewElem(kelem, knode-1, knode, nprop, nprop, p)      ! bjj: I don't see how nprop is necessarially set before calling this routine....          
                
          ENDIF
       ENDDO
@@ -437,8 +432,7 @@ IF ( Sttus /= 0 )  THEN
    RETURN
 ENDIF
 Init%NProp = kprop
-Init%Props(1:kprop, 1:Init%PropSetsCol) = TempProps
-
+Init%Props(1:kprop, 1:Init%PropSetsCol) = TempProps(1:kprop, 1:Init%PropSetsCol)
 ! deallocate temp matrices
 IF (ALLOCATED(TempProps)) DEALLOCATE(TempProps)
 IF (ALLOCATED(TempMembers)) DEALLOCATE(TempMembers)
@@ -448,15 +442,11 @@ END SUBROUTINE SD_Discrt
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
 SUBROUTINE GetNewNode(k, x, y, z, Init)
-   USE NWTC_Library
-   USE SubDyn_Types
-   IMPLICIT NONE
 
-   TYPE(SD_InitInputType)   ::Init
+   TYPE(SD_InitInputType), INTENT(INOUT) :: Init
    
-   ! local variables
-   INTEGER          :: k
-   REAL(ReKi)       :: x, y, z
+   INTEGER,                INTENT(IN)    :: k
+   REAL(ReKi),             INTENT(IN)    :: x, y, z
    
    Init%Nodes(k, 1) = k
    Init%Nodes(k, 2) = x
@@ -468,9 +458,6 @@ END SUBROUTINE GetNewNode
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
 SUBROUTINE GetNewElem(k, n1, n2, p1, p2, p)
-   USE NWTC_Library
-   USE SubDyn_Types
-   IMPLICIT NONE
 
    INTEGER,                INTENT(IN   )   :: k
    INTEGER,                INTENT(IN   )   :: n1
@@ -491,17 +478,11 @@ SUBROUTINE GetNewElem(k, n1, n2, p1, p2, p)
 END SUBROUTINE GetNewElem
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
-SUBROUTINE GetNewProp(k, E, G, rho, d, t, TempProps, NTempProps, PropCol)
-   USE NWTC_Library
-   USE SubDyn_Types
-   IMPLICIT NONE
-
-   TYPE(SD_InitInputType)   ::Init
+SUBROUTINE GetNewProp(k, E, G, rho, d, t, TempProps)
    
-   ! local variables
-   INTEGER                  :: k, NTempProps, PropCol
-   REAL(ReKi)               :: E, G, rho, d, t
-   REAL(ReKi)               :: TempProps(NTempProps, PropCol)
+   INTEGER   , INTENT(IN)   :: k
+   REAL(ReKi), INTENT(IN)   :: E, G, rho, d, t
+   REAL(ReKi), INTENT(INOUT):: TempProps(:, :)
    
    TempProps(k, 1) = k
    TempProps(k, 2) = E
@@ -515,10 +496,7 @@ END SUBROUTINE GetNewProp
 !------------------------------------------------------------------------------------------------------
 !SUBROUTINE InitIAJA(Init)                                                                                                 
 !   ! for 2-node element only                                                                                              
-!   USE NWTC_Library                                                                                                       
-!   USE SubDyn_Types                                                                                                       
 !   USE qsort_c_module                                                                                                     
-!   IMPLICIT NONE                                                                                                          
 !                                                                                                                          
 !   TYPE(SD_InitInputType)   ::Init                                                                                        
 !                                                                                                                          
@@ -720,10 +698,6 @@ END SUBROUTINE GetNewProp
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
 SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
-
-   USE NWTC_Library
-   USE SubDyn_Types
-   IMPLICIT NONE
 
    TYPE(SD_InitInputType),       INTENT(INOUT)  ::Init
    TYPE(SD_ParameterType),       INTENT(INOUT)  ::p
@@ -1061,8 +1035,6 @@ END SUBROUTINE AssembleKM
 SUBROUTINE GetDirCos(X1, Y1, Z1, X2, Y2, Z2, DirCos, xyz, ErrStat, ErrMsg)
    !This should be from local to global -RRD
    !Convention used: keep x (local) in global X-Z plane in the general x positive direction  THIS IS THE OLD WAY (huimin's)
-   USE NWTC_Library
-   IMPLICIT NONE
 
    REAL(ReKi) , INTENT(IN)         :: x1, y1, z1, x2, y2, z2
    REAL(ReKi) , INTENT(OUT)        :: DirCos(3, 3)
@@ -1147,8 +1119,6 @@ SUBROUTINE ElemK(A, L, Ixx, Iyy, Jzz, Shear, kappa, E, G, DirCos, K)
    ! element stiffness matrix for classical beam elements
    ! shear is true  -- non-tapered Timoshenko beam 
    ! shear is false -- non-tapered Euler-Bernoulli beam 
-   USE NWTC_Library
-   IMPLICIT NONE
 
    REAL(ReKi), INTENT( IN)               :: A, L, Ixx, Iyy, Jzz, E, G, kappa
    REAL(ReKi), INTENT( IN)               :: DirCos(3,3)
@@ -1231,8 +1201,6 @@ END SUBROUTINE ElemK
 SUBROUTINE ElemM(A, L, Ixx, Iyy, Jzz, rho, DirCos, M)
    ! element mass matrix for classical beam elements
 
-   USE NWTC_Library
-   IMPLICIT NONE
 
    REAL(ReKi), INTENT( IN)               :: A, L, Ixx, Iyy, Jzz, rho
    REAL(ReKi), INTENT( IN)               :: DirCos(3,3)
@@ -1308,11 +1276,6 @@ END SUBROUTINE ElemM
 
 SUBROUTINE ApplyConstr(Init,p)
 
-   USE NWTC_Library
-  
-   USE SubDyn_Types
-   
-   IMPLICIT NONE
 
    TYPE(SD_InitInputType), INTENT(INOUT)   :: Init
    TYPE(SD_ParameterType), INTENT(IN)   :: p

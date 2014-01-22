@@ -1,4 +1,4 @@
-------- FAST V8.03.* INPUT FILE ------------------------------------------------
+------- FAST V8.05.* INPUT FILE ------------------------------------------------
 FAST Certification Test #24: NREL 5.0 MW Baseline Wind Turbine with OC3 Hywind Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -9,26 +9,26 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
           0   NumCrctn        - Number of correction iterations {0=explicit calculation, i.e., no corrections} (-)
         1.5   DT_UJac         - Time between calls to get Jacobians (s)
       1E+06   UJacSclFact     - Scaling factor used in Jacobians (-)
----------------------- FEATURE FLAGS -------------------------------------------
-True          CompAero        - Compute aerodynamic forces (flag)
-True          CompServo       - Compute servodynamics (flag)
-True          CompHydro       - Compute hydrodynamic forces (flag)
-False         CompSub         - Compute sub-structural dynamics (flag)
-True          CompMAP         - Compute mooring line dynamics (flag)
+---------------------- FEATURE SWITCHES AND FLAGS ------------------------------
+          1   CompAero        - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}
+          1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
+          1   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
+          0   CompSub         - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn}
+          2   CompMooring     - Compute mooring system (switch) {0=None; 1=MAP, 2=FEAMooring}
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
-"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_ElastoDyn.dat"   EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_DT5.ipt"           ADFile          - Name of file containing AeroDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_ServoDyn.dat"    SrvDFile        - Name of file containing ServoDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"    HDFile          - Name of file containing HydroDyn input parameters (quoted string)
-"unused"                                                     SDFile          - Name of file containing SubDyn input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_MAP.dat"         MAPFile         - Name of file containing MAP input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn_DT5.ipt"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"    HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
+"unused"      SubFile         - Name of file containing sub-structural input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_FEAMooring.dat"    MooringFile     - Name of file containing mooring system input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (sec)
       0.005   DT_Out          - Time step for tabular output (sec)
           0   TStart          - Time to begin tabular output (s)
-    3      2   OutFileFmt      - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)
+   3      2   OutFileFmt      - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)
 True          TabDelim        - Use tab delimiters in text tabular output file? (flag) {uses spaces if false}
 "ES10.3E2"    OutFmt          - Format used for text tabular output (except time).  Resulting field should be 10 characters. (quoted string)

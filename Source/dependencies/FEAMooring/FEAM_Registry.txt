@@ -133,7 +133,7 @@ typedef  ^	              ^                     ReKi     Line_Coordinate  {:}{:}{
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
 typedef  FEAMooring/FEAM  ParameterType  DbKi             DT          -           -  -   "Time step for continuous state integration & discrete state update"	seconds
 typedef  ^                ^              ReKi             GRAV       {3}          -  -   "Gravity"	-
-# parameters from Mooring                                                       
+# parameters from Mooring
 typedef  ^                ^              ReKi             EPS	      -           -  -   "Tolerance for static iteration"
 typedef  ^                ^              ReKi             Gravity	  -           -  -   "Gravity"
 typedef  ^                ^              ReKi             WtrDens	  -           -  -   "Water density"
@@ -164,7 +164,7 @@ typedef  ^                ^              ReKi             GAUSSW     {6}        
 typedef  ^                ^              IntKi            NGAUSS      -           -  -  "6 POINT GAUSSIAN QUADRATURE INTEGRATION"
 typedef  ^                ^              ReKi             SHAPT      {10}{4}      -  -  "Shape function"
 typedef  ^                ^              ReKi             SHAPTS     {10}{4}      -  -  "Shape function"
-typedef  ^                ^              ReKi             NTRAP       -           -  -  "10 TRANPEZOIDE INTEGRATION point"
+typedef  ^                ^              IntKi            NTRAP       -           -  -  "10 TRANPEZOIDE INTEGRATION point"
 typedef  ^                ^              ReKi             SBEND      {4}{4}       -  -  "Internal"
 typedef  ^                ^              ReKi             STEN       {3}{4}{4}    -  -  "Internal"
 typedef  ^                ^              ReKi             RMASS      {4}{4}       -  -  "Internal"
@@ -192,6 +192,6 @@ typedef  ^                ^          MeshType  PtFairleadDisplacement  -  -  -  
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
 # Define outputs that are not on this mesh here:
-typedef  FEAMooring/FEAM  OutputType	ReKi       WriteOutput	     {:}   -  -  "Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt" 
+typedef  FEAMooring/FEAM  OutputType	ReKi       WriteOutput	     {:}   -  -  "Data to be written to an output file: see WriteOutputHdr for names of each variable"	"see WriteOutputUnt"
 typedef  ^                ^             MeshType   PtFairleadLoad    -  -  -  "Meshed output data"	-
 typedef  ^                ^             MeshType   LineMeshPosition  -  -  -  "Meshed output data"	-

@@ -154,16 +154,6 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    p%NumBl  = NB
    p%Blade%NB = NB
 
-   IF (.NOT. ALLOCATED( u%TurbineComponents%Blade ) ) THEN
-      ALLOCATE( u%TurbineComponents%Blade( NB ), STAT = ErrStat )
-      IF ( ErrStat /= 0 ) THEN
-         ErrMess = ' Error allocating space for u%TurbineComponents%Blade.'
-         ErrStat = ErrID_Fatal
-         RETURN         
-      END IF
-   END IF
-
-
          ! Define initial system states here:
    !-------------------------------------------------------------------------------------------------
    ! Read the AeroDyn input file and open the output file if requested
@@ -176,12 +166,6 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
 
       ! allocate variables for aerodyn forces
-   IF (.NOT. ALLOCATED(u%MulTabLoc)) THEN
-      ALLOCATE( u%MulTabLoc(p%Element%NELM, NB), STAT = ErrStat )
-      IF ( ErrStat /= 0 ) CALL ProgAbort ( ' Error allocating memory for u%MulTabLoc array.' )
-   END IF
-
-   u%MulTabLoc(:,:) = 0.0
    p%LinearizeFlag     = .FALSE.
 
 
@@ -190,37 +174,14 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
    Interval = p%DtAero
 
-   ALLOCATE( u%InputMarkers(NB) )
-   ALLOCATE( y%OutputLoads(NB) )
 !   ALLOCATE( o%StoredLoads%Blade(NB) )
 
-
    DO IB = 1, NB
-     CALL MeshCreate( BlankMesh      = u%InputMarkers(IB)  &
-                     ,IOS            = COMPONENT_INPUT          &
-                     ,NNodes         = p%Element%NELM           &
-                     ,Orientation    = .TRUE.                 &
-                     ,TranslationVel = .TRUE.                 &
-                     ,RotationVel    = .TRUE.                 &
-                     ,nScalars       = 2                        &  ! scalar 1 is W, scalar 2 is Alpha
-                     ,ErrStat        = ErrStat2                 &
-                     ,ErrMess        = ErrMess2                 )
-
-      
-     
-     DO IE = 1, p%Element%NELM-1 ! construct the blades into Line2 elements
-       CALL MeshConstructElement ( Mesh = u%InputMarkers(IB)   &
-                                  ,Xelement = ELEMENT_LINE2       &
-                                  ,P1       = IE                  &
-                                  ,P2       = IE+1                &
-                                  ,ErrStat  = ErrStat2            &
-                                  ,ErrMess  = ErrMess             )
+       IF ( .NOT. ALLOCATED( o%StoredForces ))   ALLOCATE(o%StoredForces(3,p%Element%NELM,NB))
+       IF ( .NOT. ALLOCATED( o%StoredMoments ))  ALLOCATE(o%StoredMoments(3,p%Element%NELM,NB))
      ENDDO
 
-     ! bjj: later we will position nodes, and commit the mesh.
-
-   ENDDO
-
+     
    IF (.NOT. ALLOCATED(O%Element%W2) ) THEN
       ALLOCATE(O%Element%W2(p%Element%NELM,NB), STAT=ErrStat)
       IF (ErrStat /= 0 ) THEN
@@ -520,37 +481,66 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
    ENDIF
 
+   !-------------------------------------------------------------------------------------------------
+   ! Set initial guesses for inputs:
+   !-------------------------------------------------------------------------------------------------
+   
+   !..........
+   ! u%TurbineComponents
+   !..........
 
+   IF (.NOT. ALLOCATED( u%TurbineComponents%Blade ) ) THEN
+      ALLOCATE( u%TurbineComponents%Blade( NB ), STAT = ErrStat )
+      IF ( ErrStat /= 0 ) THEN
+         ErrMess = ' Error allocating space for u%TurbineComponents%Blade.'
+         ErrStat = ErrID_Fatal
+         RETURN         
+      END IF
+      
+   END IF
 
-      ! RELATIVE POSITION OF BLADE ELEMENTS
+   u%TurbineComponents = InitInp%TurbineComponents
+   
+   !..........
+   ! u%InputMarkers (blade meshes):
+   !..........
+   
+   ALLOCATE( u%InputMarkers(NB) )
 
-     u%TurbineComponents%Hub%Position          =   InitInp%TurbineComponents%Hub%Position
-     u%TurbineComponents%Hub%Orientation       =   InitInp%TurbineComponents%Hub%Orientation
-     u%TurbineComponents%RotorFurl%Position    =   InitInp%TurbineComponents%RotorFurl%Position
-     u%TurbineComponents%RotorFurl%Orientation =   InitInp%TurbineComponents%RotorFurl%Orientation
-     u%TurbineComponents%Nacelle%Position      =   InitInp%TurbineComponents%Nacelle%Position
-     u%TurbineComponents%Nacelle%Orientation   =   InitInp%TurbineComponents%Nacelle%Orientation
-     u%TurbineComponents%TailFin%Position      =   InitInp%TurbineComponents%TailFin%Position
-     u%TurbineComponents%TailFin%Orientation   =   InitInp%TurbineComponents%TailFin%Orientation
-     u%TurbineComponents%Tower%Position        =   InitInp%TurbineComponents%Tower%Position
-     u%TurbineComponents%Tower%Orientation     =   InitInp%TurbineComponents%Tower%Orientation
+   DO IB = 1, NB
+      CALL MeshCreate( BlankMesh      = u%InputMarkers(IB)  &
+                     ,IOS            = COMPONENT_INPUT          &
+                     ,NNodes         = p%Element%NELM           &
+                     ,Orientation    = .TRUE.                 &
+                     ,TranslationVel = .TRUE.                 &
+                     ,RotationVel    = .TRUE.                 &
+                     ,nScalars       = 2                        &  ! scalar 1 is W, scalar 2 is Alpha
+                     ,ErrStat        = ErrStat2                 &
+                     ,ErrMess        = ErrMess2                 )
 
-     DO IB = 1, NB
-
-       u%TurbineComponents%Blade(IB)%Position    =   InitInp%TurbineComponents%Blade(IB)%Position
-       u%TurbineComponents%Blade(IB)%Orientation =   InitInp%TurbineComponents%Blade(IB)%Orientation
-
-       DO IE = 1, p%Element%NELM
+      
+      ! create the elements
+      DO IE = 1, p%Element%NELM-1 ! construct the blades into Line2 elements
+         CALL MeshConstructElement ( Mesh = u%InputMarkers(IB)   &
+                                  ,Xelement = ELEMENT_LINE2       &
+                                  ,P1       = IE                  &
+                                  ,P2       = IE+1                &
+                                  ,ErrStat  = ErrStat2            &
+                                  ,ErrMess  = ErrMess             )
+      ENDDO
+     
+      ! position/orient the nodes
+      DO IE = 1, p%Element%NELM
          TmpPos(1) = 0.
          TmpPos(2) = 0.
          TmpPos(3) = p%Element%Relm(IE) - HubRadius
          CALL MeshPositionNode ( Mesh = u%InputMarkers(IB)           &
-                                ,INode = IE                             &
-                                ,Pos= TmpPos                            &  ! this info comes from FAST (not yet)
-                                ,ErrStat   = ErrStat2                   &
-                                ,ErrMess   = ErrMess2                )
+                                 ,INode = IE                             &
+                                 ,Pos= TmpPos                            &  ! this info comes from FAST (not yet)
+                                 ,ErrStat   = ErrStat2                   &
+                                 ,ErrMess   = ErrMess2                )
 
-        ! RELATIVE ORIENTATION OF BLADE ELEMENTS
+         ! RELATIVE ORIENTATION OF BLADE ELEMENTS
          u%InputMarkers(IB)%Orientation(1,1,IE) = COS( P%Element%TWIST(IE) )
          u%InputMarkers(IB)%Orientation(2,1,IE) = SIN( P%Element%TWIST(IE) )
          u%InputMarkers(IB)%Orientation(3,1,IE) = SIN( P%Element%TWIST(IE) )
@@ -560,57 +550,64 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
          u%InputMarkers(IB)%Orientation(1,3,IE) = 0.0
          u%InputMarkers(IB)%Orientation(2,3,IE) = 0.0
          u%InputMarkers(IB)%Orientation(3,3,IE) = 1.0
-       ENDDO
+      ENDDO
+     
        CALL MeshCommit ( Mesh = u%InputMarkers(IB)   &
-                        ,ErrStat  = ErrStat2            &
-                        ,ErrMess   = ErrMess2             )
-       CALL MeshCopy ( SrcMesh  = u%InputMarkers(IB)  &
-                      ,DestMesh = y%OutputLoads(IB)     &
-                      ,CtrlCode = MESH_SIBLING           &
-                      ,Force    = .TRUE.                 &
-                      ,Moment   = .TRUE.                 &
-                      ,ErrStat  = ErrStat2               &
-                      ,ErrMess  = ErrMess2                )
-       IF ( .NOT. ALLOCATED( o%StoredForces ))   ALLOCATE(o%StoredForces(3,p%Element%NELM,NB))
-       IF ( .NOT. ALLOCATED( o%StoredMoments ))  ALLOCATE(o%StoredMoments(3,p%Element%NELM,NB))
+                        ,ErrStat  = ErrStat2         &
+                        ,ErrMess   = ErrMess2        )
+          
+   ENDDO
+         
 
-     ENDDO
+   !..........
+   ! u%Twr_InputMarkers (tower meshes):
+   !..........
+     
+   !bjj: done above in section for IF Tower Loads is on
+   
 
-
-!bjj start of plotting info:
-   IF ( p%OutputPlottingInfo ) THEN
-
-      CALL OpenFOutFile( p%UnADPlt, TRIM(InitInp%OutRootName)//'_plotInfo.txt' )
-      WRITE( p%UnADPlt, '(A,1X,F20.5)' ) 'HubRadius',   HubRadius
-      WRITE( p%UnADPlt, '(A,1X,F20.5)' ) 'TipRadius',   TipRadius
-      WRITE( p%UnADPlt, '(A,1X,F20.5)' ) 'BladeLength', InitInp%TurbineComponents%BladeLength
-      WRITE( p%UnADPlt, '(A,1X,I2)'    ) 'NumBlades',   NB
-      WRITE( p%UnADPlt, '(A,1X,I2)'    ) 'NumElements', p%Element%NElm
-
-      WRITE( p%UnADPlt, '("AeroConfig:")' )
-      DO IB=1,NB
-         WRITE( p%UnADPlt, '(A,I1,A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-             'Blade',IB,'_Position      ', InitInp%TurbineComponents%Blade(IB)%Position(:), InitInp%TurbineComponents%Blade(IB)%Orientation(:,:)
-      END DO
-
-      WRITE( p%UnADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-        'Hub_Position         ',InitInp%TurbineComponents%Hub%Position(:),InitInp%TurbineComponents%Hub%Orientation(:,:)
-
-      WRITE( p%UnADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-        'RotorFurl_Position   ',InitInp%TurbineComponents%RotorFurl%Position(:),InitInp%TurbineComponents%RotorFurl%Orientation(:,:)
-
-      WRITE( p%UnADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-        'Nacelle_Position     ',InitInp%TurbineComponents%Nacelle%Position(:),InitInp%TurbineComponents%Nacelle%Orientation(:,:)
-
-      WRITE( p%UnADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-        'TailFin_Position     ',InitInp%TurbineComponents%TailFin%Position(:), InitInp%TurbineComponents%TailFin%Orientation(:,:)
-
-      WRITE( p%UnADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-        'Tower_Position       ',InitInp%TurbineComponents%Tower%Position(:),InitInp%TurbineComponents%Tower%Orientation(:,:)
-
+   !..........
+   ! u%MulTabLoc:
+   !..........
+   
+   IF (.NOT. ALLOCATED(u%MulTabLoc)) THEN
+      ALLOCATE( u%MulTabLoc(p%Element%NELM, NB), STAT = ErrStat )
+      IF ( ErrStat /= 0 ) CALL ProgAbort ( ' Error allocating memory for u%MulTabLoc array.' )
    END IF
-!bjj end of plotting info:
 
+   u%MulTabLoc(:,:) = 0.0
+   
+   
+   !-------------------------------------------------------------------------------------------------
+   ! Allocate space for outputs and set up output meshes:
+   !-------------------------------------------------------------------------------------------------
+   
+   !..........
+   ! y%OutputLoads (blade meshes):
+   !..........
+   
+   
+   ALLOCATE( y%OutputLoads(NB) )
+   
+   DO IB = 1, NB
+
+       CALL MeshCopy ( SrcMesh  = u%InputMarkers(IB)  &
+                      ,DestMesh = y%OutputLoads(IB)   &
+                      ,CtrlCode = MESH_SIBLING        &
+                      ,Force    = .TRUE.              &
+                      ,Moment   = .TRUE.              &
+                      ,ErrStat  = ErrStat2            &
+                      ,ErrMess  = ErrMess2             )
+   ENDDO
+   
+   
+   !..........
+   ! y%Twr_OutputLoads (tower meshes):
+   !..........
+
+   !bjj: done above in section for IF Tower Loads is on
+   
+     
    !-------------------------------------------------------------------------------------------------
    ! Initialize AeroDyn variables not initialized elsewhere (except in module initialization)
    ! and return
@@ -1262,7 +1259,7 @@ SUBROUTINE AD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSta
 
          ! Compute the first time derivatives of the continuous states here:
 
-     dxdt%DummyDiscState = 0
+     dxdt%DummyDiscState = 0.
 
 
 END SUBROUTINE AD_CalcContStateDeriv
@@ -1320,7 +1317,7 @@ SUBROUTINE AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
 
          ! Solve for the constraint states here:
 
-      z_residual%DummyConstrState = 0
+      z_residual%DummyConstrState = 0.
 
 END SUBROUTINE AD_CalcConstrStateResidual
 

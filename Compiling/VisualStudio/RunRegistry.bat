@@ -30,6 +30,7 @@ SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
 SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
+SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 
 SET MAP_Include_Lib=%MAP_Loc%\map.lib
 SET HD_Reg_Loc=%HD_Loc%
@@ -93,6 +94,11 @@ rem %MAP_Loc%
 rem need the syntax for generating the c-to-fortran code...
 GOTO checkError
 
+
+:FEAMooring
+SET CURR_LOC=%FEAM_Loc%
+%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I %NWTC_Lib_Loc%
+GOTO checkError
 
 
 

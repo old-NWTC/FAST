@@ -70,6 +70,8 @@ SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
 SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
+SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
+
 
 SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
 SET HD_Reg_Loc=%HD_Loc%
@@ -187,6 +189,11 @@ SET MAP_SOURCES=^
  "%MAP_Loc%\MAP_Types.f90"   ^
  "%MAP_Loc%\MAP.f90"
 
+SET FEAM_SOURCES=^
+ "%FEAM_Loc%\FEAMooring_Types.f90"   ^
+ "%FEAM_Loc%\FEAM.f90"
+
+
 
 SET FAST_SOURCES=^
  "%FAST_LOC%\FAST_Mods.f90" ^
@@ -227,6 +234,11 @@ SET ModuleName=AeroDyn
 %REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
+ECHO %Lines%
+SET CURR_LOC=%FEAM_Loc%
+SET ModuleName=FEAMooring
+%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"
+MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
 ECHO %Lines%
@@ -324,6 +336,12 @@ IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 
 ECHO %Lines%
+ECHO Compiling FEAMooring:
+ifort %COMPOPTS% %FEAM_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
+
+ECHO %Lines%
 ECHO Compiling FAST glue code:
 ifort %COMPOPTS% %FAST_SOURCES% /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
@@ -389,6 +407,7 @@ SET MAP_Loc=
 SET FAST_Loc=
 SET MAP_Include_Lib=
 SET HD_Reg_Loc=
+SET FEAM_Loc=
 
 SET NWTC_SOURCES=
 SET NETLIB_SOURCES=
@@ -399,6 +418,7 @@ SET HD_SOURCES=
 SET SrvD_SOURCES=
 SET SD_SOURCES=
 SET MAP_SOURCES=
+SET FEAM_SOURCES=
 SET FAST_SOURCES=
 
 SET COMPOPTS=

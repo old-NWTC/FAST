@@ -42,6 +42,7 @@ IfW_DIR      = $(FAST_DIR)/dependencies/InflowWind
 HD_DIR       = $(FAST_DIR)/dependencies/HydroDyn
 SD_DIR       = $(FAST_DIR)/dependencies/SubDyn
 MAP_DIR      = $(FAST_DIR)/dependencies/MAP
+FEAM_DIR     = $(FAST_DIR)/dependencies/FEAMooring
 
 HD_DIR_Reg   = $(HD_DIR)
 BIN_DIR      = ../bin
@@ -60,7 +61,8 @@ endif
    # Name of compiler to use and flags to use.
 FC      = gfortran
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
+#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -C -Wconversion-extra -Wconversion
 
 LDFLAGS = -O2 -m$(BITS) -fbacktrace -llapack -lblas -L$(LAPACK_DIR)
 
@@ -163,6 +165,11 @@ MAP_SOURCES =              \
 	MAP_Types.f90           \
 	MAP.f90
 
+FEAM_SOURCES =              \
+	FEAMooring_Types.f90     \
+	FEAM.f90
+
+
 SD_SOURCES =               \
 	qsort_c_module.f90      \
 	SD_FEM.f90              \
@@ -194,11 +201,11 @@ FAST_SOURCES =          \
 	FAST_IO.f90          \
 	FAST_Prog.f90
 
-vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR)
+vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR)
 vpath %.f   $(HD_DIR) $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
-vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(ED_DIR) $(SrvD_DIR)
+vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR)
 
 NETLIB_OBJS   = NWTC_LAPACK.obj NWTC_ScaLAPACK.obj DLASRT2.obj SLASRT2.obj
 LIB_OBJS      = $(LIB_SOURCES:.f90=.obj)
@@ -209,8 +216,9 @@ ED_OBJS       = $(ED_SOURCES:.f90=.obj)
 HD_OBJS       = $(HD_SOURCES:.f90=.obj) fftpack.obj
 SD_OBJS       = $(SD_SOURCES:.f90=.obj)
 MAP_OBJS      = $(MAP_SOURCES:.f90=.obj)
+FEAM_OBJS     = $(FEAM_SOURCES:.f90=.obj)
 FAST_OBJS     = $(FAST_SOURCES:.f90=.obj)
-ALL_OBJS      = $(LIB_OBJS) $(IfW_OBJS) $(AD_OBJS) $(SrvD_OBJS) $(ED_OBJS) $(HD_OBJS) $(SD_OBJS) $(FAST_OBJS) $(NETLIB_OBJS) $(MAP_OBJS)
+ALL_OBJS      = $(LIB_OBJS) $(IfW_OBJS) $(AD_OBJS) $(SrvD_OBJS) $(ED_OBJS) $(HD_OBJS) $(SD_OBJS) $(FAST_OBJS) $(NETLIB_OBJS) $(MAP_OBJS) $(FEAM_OBJS)
 
    # Rule to do everything.
 
@@ -269,6 +277,10 @@ IfW_FFWind_Types.f90:
 
 InflowWind_Types.f90:
 	$(Registry) Reg-InflowWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
+
+
+FEAMooring_Types.f90:
+	$(Registry) FEAM_Registry.txt -I $(NWTC_Lib_DIR)
 
 
 
@@ -347,6 +359,11 @@ MAP_C_Types.obj:           NWTC_Library.obj
 MAP_Types.obj:             NWTC_Library.obj MAP_C_Types.obj
 MAP.obj:                   MAP_Types.obj MAP_C_Types.obj
 
+# FEAMooring dependency rules:
+FEAMooring_Types.obj:      NWTC_Library.obj  FEAM_Registry.txt
+FEAM.obj:                  NWTC_Library.obj  FEAMooring_Types.obj
+
+
 # ElastoDyn dependency rules:
 ElastoDyn_Types.obj:        NWTC_Library.obj  ElastoDyn_Registry.txt
 ElastoDyn.obj:              NWTC_Library.obj  ElastoDyn_Types.obj
@@ -361,7 +378,7 @@ UserVSCont_KP.obj:          NWTC_Library.obj
 
 # FAST dependency rules:
 FAST_Mods.obj:              NWTC_Library.obj  AeroDyn.obj
-FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj ElastoDyn.obj HydroDyn.obj NWTC_LAPACK.obj MAP.obj
+FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj ElastoDyn.obj HydroDyn.obj NWTC_LAPACK.obj MAP.obj FEAM.obj
 FAST_Prog.obj:              NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj
 
 
