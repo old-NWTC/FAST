@@ -14,7 +14,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
           1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
           1   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
           0   CompSub         - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn}
-          2   CompMooring     - Compute mooring system (switch) {0=None; 1=MAP, 2=FEAMooring}
+          1   CompMooring     - Compute mooring system (switch) {0=None; 1=MAP, 2=FEAMooring}
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
@@ -23,7 +23,7 @@ False         CompUserTwrLd   - Compute additional tower loading {false: none, t
 "5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_HydroDyn.dat"    HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
 "unused"      SubFile         - Name of file containing sub-structural input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_FEAMooring.dat"    MooringFile     - Name of file containing mooring system input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_OC3Hywind_MAP.dat"    MooringFile     - Name of file containing mooring system input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (sec)

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-12 09:55:15 -0700 (Thu, 12 Dec 2013) $
-! (File) Revision #: $Rev: 293 $
+! File last committed: $Date: 2014-01-23 12:43:28 -0700 (Thu, 23 Jan 2014) $
+! (File) Revision #: $Rev: 319 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -27,8 +27,11 @@ MODULE HydroDyn_Input
 
    USE                              NWTC_Library
    USE                              HydroDyn_Types
+   USE                              HydroDyn_Output
    USE                              Waves
    USE                              Morison
+   USE                              WAMIT_Output
+   USE                              Morison_Output
    IMPLICIT                         NONE
    
    PRIVATE :: CleanupEchoFile
@@ -1131,7 +1134,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    
       ! AddF0 - Additional preload
       
-   CALL ReadAry ( UnIn, FileName, InitInp%WAMIT%AddF0, 6, 'AddF0', &
+   CALL ReadAry ( UnIn, FileName, InitInp%AddF0, 6, 'AddF0', &
                            ' Additional preload vector', ErrStat,  ErrMsg, UnEchoLocal )
    
       ! AddCLin
@@ -1139,7 +1142,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    DO I=1,6 
         
       WRITE(strI,'(I1)') I
-      CALL ReadAry ( UnIn, FileName, InitInp%WAMIT%AddCLin(I,:), 6, 'AddCLin', &
+      CALL ReadAry ( UnIn, FileName, InitInp%AddCLin(I,:), 6, 'AddCLin', &
                            ' Row '//strI//' of the additional linear stiffness matrix', ErrStat,  ErrMsg, UnEchoLocal )         
       
       IF ( ErrStat /= ErrID_None ) THEN
@@ -1157,7 +1160,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    DO I=1,6 
         
       WRITE(strI,'(I1)') I
-      CALL ReadAry ( UnIn, FileName, InitInp%WAMIT%AddBLin(I,:), 6, 'AddBLin', &
+      CALL ReadAry ( UnIn, FileName, InitInp%AddBLin(I,:), 6, 'AddBLin', &
                            ' Row '//strI//' of the additional linear damping matrix', ErrStat,  ErrMsg, UnEchoLocal )         
       
       IF ( ErrStat /= ErrID_None ) THEN
@@ -1175,7 +1178,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    DO I=1,6 
         
       WRITE(strI,'(I1)') I
-      CALL ReadAry ( UnIn, FileName, InitInp%WAMIT%AddBQuad(I,:), 6, 'AddBQuad', &
+      CALL ReadAry ( UnIn, FileName, InitInp%AddBQuad(I,:), 6, 'AddBQuad', &
                            ' Row '//strI//' of the additional quadratic damping matrix', ErrStat,  ErrMsg, UnEchoLocal )         
       
       IF ( ErrStat /= ErrID_None ) THEN
@@ -2330,54 +2333,65 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
 
       ! Header
       
-   CALL ReadCom( UnIn, FileName, 'Floating Platform Outputs header', ErrStat, ErrMsg, UnEchoLocal )
+   !CALL ReadCom( UnIn, FileName, 'Floating Platform Outputs header', ErrStat, ErrMsg, UnEchoLocal )
+   !
+   !IF ( ErrStat /= ErrID_None ) THEN
+   !   ErrMsg  = ' Failed to read Floating Platform Outputs header line.'
+   !   ErrStat = ErrID_Fatal
+   !   CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
+   !   CLOSE( UnIn )
+   !   RETURN
+   !END IF
+   CALL ReadCom( UnIn, FileName, 'Outputs header', ErrStat, ErrMsg, UnEchoLocal )
    
    IF ( ErrStat /= ErrID_None ) THEN
-      ErrMsg  = ' Failed to read Floating Platform Outputs header line.'
+      ErrMsg  = ' Failed to read Outputs header line.'
       ErrStat = ErrID_Fatal
       CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
       CLOSE( UnIn )
       RETURN
    END IF
-   
          ! OutList - list of requested parameters to output to a file
 
-   CALL ReadOutputList ( UnIn, FileName, InitInp%WAMIT%OutList, InitInp%WAMIT%NumOuts, &
-                                              'OutList', 'List of floating platform outputs requested', ErrStat, ErrMsg, UnEchoLocal )
+   !CALL ReadOutputList ( UnIn, FileName, InitInp%WAMIT%OutList, InitInp%WAMIT%NumOuts, &
+   !                                           'OutList', 'List of floating platform outputs requested', ErrStat, ErrMsg, UnEchoLocal )
+   ALLOCATE( InitInp%UserOutputs(2778))
+   CALL ReadOutputList ( UnIn, FileName, InitInp%UserOutputs, InitInp%NUserOutputs, &
+                                              'OutList', 'List of user requested outputs', ErrStat, ErrMsg, UnEchoLocal )
    
    IF ( ErrStat /= 0 ) THEN
       CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
       CLOSE( UnIn )
       RETURN
    END IF
-   
-   
-   !-------------------------------------------------------------------------------------------------
-   ! Data section for MESH-BASED OUTPUTS
-   !-------------------------------------------------------------------------------------------------
-
-      ! Header
-      
-   CALL ReadCom( UnIn, FileName, 'Mesh-based Outputs header', ErrStat, ErrMsg, UnEchoLocal )
-   
-   IF ( ErrStat /= ErrID_None ) THEN
-      ErrMsg  = ' Failed to read Mesh-based Outputs header line.'
-      ErrStat = ErrID_Fatal
-      CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
-      CLOSE( UnIn )
-      RETURN
-   END IF
-   
-         ! OutList - list of requested parameters to output to a file
-
-   CALL ReadOutputList ( UnIn, FileName, InitInp%Morison%OutList, InitInp%Morison%NumOuts, &
-                                              'OutList', 'List of mesh-based outputs requested', ErrStat, ErrMsg, UnEchoLocal )
-   
-   IF ( ErrStat /= 0 ) THEN
-      CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
-      CLOSE( UnIn )
-      RETURN
-   END IF
+   !
+   !
+   !!-------------------------------------------------------------------------------------------------
+   !! Data section for MESH-BASED OUTPUTS
+   !!-------------------------------------------------------------------------------------------------
+   !
+   !   ! Header
+   !   
+   !CALL ReadCom( UnIn, FileName, 'Mesh-based Outputs header', ErrStat, ErrMsg, UnEchoLocal )
+   !
+   !IF ( ErrStat /= ErrID_None ) THEN
+   !   ErrMsg  = ' Failed to read Mesh-based Outputs header line.'
+   !   ErrStat = ErrID_Fatal
+   !   CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
+   !   CLOSE( UnIn )
+   !   RETURN
+   !END IF
+   !
+   !      ! OutList - list of requested parameters to output to a file
+   !
+   !CALL ReadOutputList ( UnIn, FileName, InitInp%Morison%OutList, InitInp%Morison%NumOuts, &
+   !                                           'OutList', 'List of mesh-based outputs requested', ErrStat, ErrMsg, UnEchoLocal )
+   !
+   !IF ( ErrStat /= 0 ) THEN
+   !   CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
+   !   CLOSE( UnIn )
+   !   RETURN
+   !END IF
    
    !-------------------------------------------------------------------------------------------------
    ! This is the end of the input file
@@ -2425,7 +2439,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    LOGICAL                                          :: JointUsed
    REAL(ReKi)                                       :: l
    REAL(ReKi)                                       :: lvec(3)
-   
+   LOGICAL, ALLOCATABLE                             :: foundMask(:)
       ! Initialize ErrStat
          
    ErrStat = ErrID_None         
@@ -2610,7 +2624,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    
       ! WaveTp - Peak spectral period.
 
-   IF ( ( InitInp%Waves%WaveMod /= 0 ) .AND. ( InitInp%Waves%WaveMod /= 4 ) .AND. ( InitInp%Waves%WaveMod /= 5 ) ) THEN   ! .TRUE. (when WaveMod = 1, 2, 3, or 10) if we have plane progressive (regular), JONSWAP/Pierson-Moskowitz spectrum (irregular) waves, or white-noise waves, but not user-defined or GH Bladed wave data.
+   IF ( ( InitInp%Waves%WaveMod == 1 ) .OR. ( InitInp%Waves%WaveMod == 2 ) .OR. ( InitInp%Waves%WaveMod == 10 ) ) THEN   ! .TRUE. (when WaveMod = 1, 2, or 10) if we have plane progressive (regular), JONSWAP/Pierson-Moskowitz spectrum (irregular) waves.
 
       IF ( InitInp%Waves%WaveTp <= 0.0 )  THEN
          ErrMsg  = ' WaveTp must be greater than zero.'
@@ -3808,6 +3822,38 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          ! OutList - list of requested parameters to output to a file
 
   
+   !----------------------------------------------------------
+   !  Output List
+   !----------------------------------------------------------
+   
+      ! First we need to extract module-specific output lists from the user-input list.
+      ! Any unidentified channels will be attached to the HydroDyn module's output list.
+   IF (  InitInp%NUserOutputs > 0 ) THEN
+      ALLOCATE ( foundMask(InitInp%NUserOutputs) , STAT = ErrStat )
+      IF ( ErrStat /= ErrID_None ) THEN
+         ErrMsg  = ' Error allocating space for temporary array: foundMask in the HydroDynInput_GetInput subroutine.'
+         ErrStat = ErrID_Fatal
+         
+         RETURN
+      END IF
+      foundMask = .FALSE.
+      ! Extract WAMIT list
+   InitInp%WAMIT%NumOuts   = GetWAMITChannels    ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%WAMIT%OutList, foundMask, ErrStat, ErrMsg )
+   
+      ! Extract Morison list
+      !foundMask = .FALSE.
+   InitInp%Morison%NumOuts = GetMorisonChannels  ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%Morison%OutList, foundMask, ErrStat, ErrMsg )
+   
+      ! Attach remaining items to the HydroDyn list
+      !foundMask = .FALSE.
+   InitInp%NumOuts       = HDOut_GetChannels ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%OutList        , foundMask, ErrStat, ErrMsg )  
+   
+   DEALLOCATE(foundMask)
+   END IF
+      ! Now that we have the sub-lists organized, lets do some additional validation.
+   
+   
+   
    
    !----------------------------------------------------------
    ! Mesh-related Output List
@@ -3828,7 +3874,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          InitInp%Morison%ValidOutList(I) = CheckMeshOutput( InitInp%Morison%OutList(I), InitInp%Morison%NMOutputs, InitInp%Morison%MOutLst, InitInp%Morison%NJOutputs ) 
 
       END DO
-      
+   
    END IF
    
    

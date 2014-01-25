@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-16 13:32:01 -0700 (Mon, 16 Dec 2013) $
-! (File) Revision #: $Rev: 242 $
+! File last committed: $Date: 2014-01-24 09:54:50 -0700 (Fri, 24 Jan 2014) $
+! (File) Revision #: $Rev: 264 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -204,6 +204,7 @@ SUBROUTINE CreateY2Meshes( NNode, JointsCol, Nodes, NNodes_I, IDI, NNodes_L, IDL
                                               )
          
    END DO
+     
    
    !---------------------------------------------------------------------
    !    Interior nodes
@@ -264,7 +265,6 @@ SUBROUTINE CreateY2Meshes( NNode, JointsCol, Nodes, NNodes_I, IDI, NNodes_L, IDL
          
    END DO
      
-   
    CALL MeshCommit ( inputMesh   &
                    , ErrStat     &
                    , ErrMsg       )
@@ -290,7 +290,7 @@ SUBROUTINE CreateY2Meshes( NNode, JointsCol, Nodes, NNodes_I, IDI, NNodes_L, IDL
    
    
      ! Set the Orientation (rotational) field for the nodes based on assumed 0 (rotational) deflections
-                 
+          
          !Identity should mean no rotation, which is our first guess at the output -RRD
        CALL Eye( outputMesh%Orientation, ErrStat, ErrMsg )         
        
@@ -490,7 +490,7 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
    xd%DummyDiscState          = 0
    z%DummyConstrState         = 0
    
-
+   
          ! Allocate OtherState%xdot if using multi-step method; initialize n
 
    IF ( ( p%IntMethod .eq. 2) .OR. ( p%IntMethod .eq. 3)) THEN
@@ -521,7 +521,6 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
       RETURN
    END IF 
  
-   
        ! Finish writing the summary file
            
    IF ( Init%UnSum /= -1 ) THEN  !note p%KBB/MBB are KBBt/MBBt
@@ -3110,6 +3109,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
    
    CALL TrnsfTI(Init, p%TI, DOFI, IDI, CBparams%TI2, DOFR, IDR, ErrStat, ErrMsg)
    IF ( ErrStat /= ErrID_None ) RETURN
+   
    CALL CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, DOFM, &
                  CBparams%MBB, CBparams%MBM, CBparams%KBB, CBparams%PhiM, CBparams%PhiR, CBparams%OmegaM, ErrStat, ErrMsg, Init,p)
    IF ( ErrStat /= ErrID_None ) RETURN
@@ -3348,7 +3348,6 @@ SUBROUTINE CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, &
   !!    RETURN
   !! ENDIF
    CALL WrScr('Calculate Internal Modal Eigenvectors')
-
    CALL EigenSolve(KLL, MLL, DOFL, DOFM, .False.,Init,p, PhiM, OmegaM,  rootname, ErrStat, ErrMsg)
    IF ( ErrStat /= ErrID_None ) RETURN
 
@@ -3412,6 +3411,7 @@ SUBROUTINE CBMatrix(DOFI, DOFR, DOFL, MRR, MLL, MRL, KRR, KLL, KRL, FGR, FGL, &
    !CLOSE( 15, IOSTAT = ErrStat )
    !CALL SymMatDebug(DOFR,REAL(KRR,ReKi)) !debug
    !CALL SymMatDebug(DOFR,REAL(KBB,ReKi)) !debug
+   
    
 END SUBROUTINE CBMatrix
 

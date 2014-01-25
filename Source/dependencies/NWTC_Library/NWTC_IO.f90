@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-10 13:39:34 -0700 (Fri, 10 Jan 2014) $
-! (File) Revision #: $Rev: 209 $
+! File last committed: $Date: 2014-01-23 12:12:56 -0700 (Thu, 23 Jan 2014) $
+! (File) Revision #: $Rev: 214 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_IO
@@ -35,7 +35,7 @@ MODULE NWTC_IO
 !=======================================================================
 
    TYPE(ProgDesc), PARAMETER    :: NWTC_Ver = &                               ! The name, version, and date of the NWTC Subroutine Library.
-                                    ProgDesc( 'NWTC Subroutine Library', 'v2.03.00c-bjj', '4-Jan-2014')
+                                    ProgDesc( 'NWTC Subroutine Library', 'v2.03.00d-bjj', '22-Jan-2014')
 
    TYPE, PUBLIC                 :: FNlist_Type                                ! This type stores a linked list of file names.
       CHARACTER(1024)                        :: FileName                      ! A file name.

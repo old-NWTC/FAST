@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-12 09:55:15 -0700 (Thu, 12 Dec 2013) $
-! (File) Revision #: $Rev: 293 $
+! File last committed: $Date: 2014-01-23 12:14:17 -0700 (Thu, 23 Jan 2014) $
+! (File) Revision #: $Rev: 314 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/WAMIT.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT
@@ -226,28 +226,13 @@ SUBROUTINE WAMIT_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
          ! Copy Input Init data into parameters
          
       p%PtfmVol0     = InitInp%PtfmVol0     
-      p%NWaveElev    = InitInp%NWaveElev
       p%PtfmCOBxt     = InitInp%PtfmCOBxt
       p%PtfmCOByt     = InitInp%PtfmCOByt
       
-      
-         ! Copy Input Init data into parameters
-      ALLOCATE ( p%WaveElev      (0:p%NStepWave, p%NWaveElev  ) , STAT=ErrStat )
-      IF ( ErrStat /= ErrID_None )  THEN
-         ErrMsg  = ' Error allocating memory for the WaveElev array.'
-         ErrStat = ErrID_Fatal
-         RETURN
-      END IF
-      
-      p%WaveElev     = InitInp%WaveElev
+           
       
       
       
-         ! Copy Additional preload, stiffness, and damping to the parameters
-      P%AddF0        = InitInp%AddF0
-      p%AddCLin      = InitInp%AddCLin
-      p%AddBLin      = InitInp%AddBLin
-      p%AddBQuad     = InitInp%AddBQuad
       
       
      
@@ -1383,16 +1368,15 @@ SUBROUTINE WAMIT_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMs
       
             
          ! Local Variables:
-      REAL(ReKi)                           :: WaveElev (p%NWaveElev)                  ! Instantaneous elevation of incident waves at each of the NWaveElev points where the incident wave elevations can be output (meters)
       !REAL(ReKi)                           :: F_HS     (6)                            ! Total load contribution from hydrostatics, including the effects of waterplane area and the center of buoyancy (N, N-m)
       !REAL(ReKi)                           :: F_Waves  (6)                            ! Total load contribution from incident waves (i.e., the diffraction problem) (N, N-m)   
       !REAL(ReKi)                           :: F_Rdtn   (6)                            ! Total load contribution from wave radiation damping (i.e., the diffraction problem) (N, N-m)
       INTEGER(IntKi)                       :: I                                       ! Generic index
       INTEGER(IntKi)                       :: J                                       ! Generic index
       INTEGER(IntKi)                       :: K                                       ! Generic index
-      REAL(ReKi)                           :: q(6), qdot(6), qdotsq(6), qdotdot(6)
+      REAL(ReKi)                           :: q(6), qdot(6), qdotdot(6)
       REAL(ReKi)                           :: rotdisp(3)                              ! small angle rotational displacements
-      REAL(ReKi)                           :: AllOuts(MaxOutputs)  
+      REAL(ReKi)                           :: AllOuts(MaxWAMITOutputs)  
       
          ! Create dummy variables required by framework but which are not used by the module
          ! TODO Think about adding the types below to the WAMIT type to avoid instantiation at every time step
@@ -1440,13 +1424,12 @@ SUBROUTINE WAMIT_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMs
 
       q         = reshape((/u%Mesh%TranslationDisp(:,1),rotdisp(:)/),(/6/))
       qdot      = reshape((/u%Mesh%TranslationVel(:,1),u%Mesh%RotationVel(:,1)/),(/6/))
-      qdotsq    = abs(qdot)*qdot
       qdotdot   = reshape((/u%Mesh%TranslationAcc(:,1),u%Mesh%RotationAcc(:,1)/),(/6/))
       
       
          ! Compute the load contirbution from user-supplied added stiffness and damping
-         
-      OtherState%F_PtfmAdd = p%AddF0 - matmul(p%AddCLin, q) - matmul(p%AddBLin, qdot) - matmul(p%AddBQuad, qdotsq)
+      ! This is being done by the HydroDyn Module now.  GJH 1/6/14  
+      OtherState%F_PtfmAdd = 0.0  !  p%AddF0 - matmul(p%AddCLin, q) - matmul(p%AddBLin, qdot) - matmul(p%AddBQuad, qdotsq)
       
       
       
@@ -1504,7 +1487,7 @@ SUBROUTINE WAMIT_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMs
          
          !added mass:
 
-      OtherState%F_PtfmAM     =  -matmul(p%HdroAdMsI, qdotdot)
+      OtherState%F_PtfmAM     =   -matmul(p%HdroAdMsI, qdotdot)
 
       
       
@@ -1520,14 +1503,10 @@ SUBROUTINE WAMIT_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, ErrMs
       
       
       
-         ! Compute the wave elevations at the requested output locations for this time
-      DO I=1,p%NWaveElev   
-         WaveElev(I) = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%WaveElev(:,I), &
-                                    OtherState%LastIndWave, p%NStepWave + 1       )
-      END DO
       
-         ! Map calculated results into the WriteOutput Array
-      CALL WMTOut_MapOutputs(Time, y, p%NWaveElev, WaveElev, OtherState%F_Waves, OtherState%F_HS, OtherState%F_Rdtn,  OtherState%F_PtfmAdd, AllOuts, ErrStat, ErrMsg)
+      
+         ! Map calculated results into the AllOuts Array
+      CALL WMTOut_MapOutputs(Time, y, OtherState%F_Waves, OtherState%F_HS, OtherState%F_Rdtn, AllOuts, ErrStat, ErrMsg)
       
 
               ! Put the output data in the OutData array

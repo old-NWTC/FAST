@@ -1,9 +1,9 @@
 !STARTOFREGISTRYGENERATEDFILE './Morison_Types.f90'
-
+!
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.02, 16-Dec-2013)
+! FAST Registry (v2.01.03, 20-Jan-2014)
 !*********************************************************************************************************************************
 ! Morison_Types
 !.................................................................................................................................
@@ -33,7 +33,7 @@ MODULE Morison_Types
 !---------------------------------------------------------------------------------------------------------------------------------
 USE NWTC_Library
 IMPLICIT NONE
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxOutputs = 2745 
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxMrsnOutputs = 2736 
 ! =========  Morison_JointType  =======
   TYPE, PUBLIC :: Morison_JointType
     INTEGER(IntKi)  :: JointID 
@@ -248,8 +248,6 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: UnOutFile 
     INTEGER(IntKi)  :: UnSum 
     INTEGER(IntKi)  :: NStepWave 
-    INTEGER(IntKi)  :: NWaveElev 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev 
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveAcc0 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime 
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveDynP0 
@@ -330,8 +328,6 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveDynP0 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime 
     INTEGER(IntKi)  :: NStepWave 
-    INTEGER(IntKi)  :: NWaveElev 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev 
     INTEGER(IntKi)  :: NMOutputs 
     TYPE(Morison_MOutput) , DIMENSION(:), ALLOCATABLE  :: MOutLst 
     INTEGER(IntKi)  :: NJOutputs 
@@ -2645,22 +2641,6 @@ ENDIF
    DstInitInputData%UnOutFile = SrcInitInputData%UnOutFile
    DstInitInputData%UnSum = SrcInitInputData%UnSum
    DstInitInputData%NStepWave = SrcInitInputData%NStepWave
-   DstInitInputData%NWaveElev = SrcInitInputData%NWaveElev
-IF (ALLOCATED(SrcInitInputData%WaveElev)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveElev,1)
-   i1_u = UBOUND(SrcInitInputData%WaveElev,1)
-   i2_l = LBOUND(SrcInitInputData%WaveElev,2)
-   i2_u = UBOUND(SrcInitInputData%WaveElev,2)
-   IF (.NOT.ALLOCATED(DstInitInputData%WaveElev)) THEN 
-      ALLOCATE(DstInitInputData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%WaveElev.'
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveElev = SrcInitInputData%WaveElev
-ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveAcc0)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveAcc0,1)
    i1_u = UBOUND(SrcInitInputData%WaveAcc0,1)
@@ -2807,9 +2787,6 @@ ENDDO
 ENDIF
 IF (ALLOCATED(InitInputData%ValidOutList)) THEN
    DEALLOCATE(InitInputData%ValidOutList)
-ENDIF
-IF (ALLOCATED(InitInputData%WaveElev)) THEN
-   DEALLOCATE(InitInputData%WaveElev)
 ENDIF
 IF (ALLOCATED(InitInputData%WaveAcc0)) THEN
    DEALLOCATE(InitInputData%WaveAcc0)
@@ -3031,8 +3008,6 @@ ENDDO
   Int_BufSz  = Int_BufSz  + 1  ! UnOutFile
   Int_BufSz  = Int_BufSz  + 1  ! UnSum
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
-  Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev )  ! WaveElev 
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc0 )  ! WaveAcc0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDynP0 )  ! WaveDynP0 
@@ -3312,12 +3287,6 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NWaveElev )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(InData%WaveElev) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev))-1 ) =  PACK(InData%WaveElev ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev)
-  ENDIF
   IF ( ALLOCATED(InData%WaveAcc0) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveAcc0))-1 ) =  PACK(InData%WaveAcc0 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveAcc0)
@@ -3665,14 +3634,6 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   OutData%NStepWave = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  OutData%NWaveElev = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(OutData%WaveElev) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev,1),SIZE(OutData%WaveElev,2))); mask2 = .TRUE.
-    OutData%WaveElev = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev))-1 ),mask2,OutData%WaveElev)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev)
-  ENDIF
   IF ( ALLOCATED(OutData%WaveAcc0) ) THEN
   ALLOCATE(mask3(SIZE(OutData%WaveAcc0,1),SIZE(OutData%WaveAcc0,2),SIZE(OutData%WaveAcc0,3))); mask3 = .TRUE.
     OutData%WaveAcc0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc0))-1 ),mask3,OutData%WaveAcc0)
@@ -5183,22 +5144,6 @@ IF (ALLOCATED(SrcParamData%WaveTime)) THEN
    DstParamData%WaveTime = SrcParamData%WaveTime
 ENDIF
    DstParamData%NStepWave = SrcParamData%NStepWave
-   DstParamData%NWaveElev = SrcParamData%NWaveElev
-IF (ALLOCATED(SrcParamData%WaveElev)) THEN
-   i1_l = LBOUND(SrcParamData%WaveElev,1)
-   i1_u = UBOUND(SrcParamData%WaveElev,1)
-   i2_l = LBOUND(SrcParamData%WaveElev,2)
-   i2_u = UBOUND(SrcParamData%WaveElev,2)
-   IF (.NOT.ALLOCATED(DstParamData%WaveElev)) THEN 
-      ALLOCATE(DstParamData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%WaveElev.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%WaveElev = SrcParamData%WaveElev
-ENDIF
    DstParamData%NMOutputs = SrcParamData%NMOutputs
 IF (ALLOCATED(SrcParamData%MOutLst)) THEN
    i1_l = LBOUND(SrcParamData%MOutLst,1)
@@ -5332,9 +5277,6 @@ ENDIF
 IF (ALLOCATED(ParamData%WaveTime)) THEN
    DEALLOCATE(ParamData%WaveTime)
 ENDIF
-IF (ALLOCATED(ParamData%WaveElev)) THEN
-   DEALLOCATE(ParamData%WaveElev)
-ENDIF
 IF (ALLOCATED(ParamData%MOutLst)) THEN
 DO i1 = LBOUND(ParamData%MOutLst,1), UBOUND(ParamData%MOutLst,1)
   CALL Morison_Destroymoutput( ParamData%MOutLst(i1), ErrStat, ErrMsg )
@@ -5437,8 +5379,6 @@ ENDDO
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDynP0 )  ! WaveDynP0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
-  Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev )  ! WaveElev 
   Int_BufSz  = Int_BufSz  + 1  ! NMOutputs
 DO i1 = LBOUND(InData%MOutLst,1), UBOUND(InData%MOutLst,1)
   CALL Morison_Packmoutput( Re_MOutLst_Buf, Db_MOutLst_Buf, Int_MOutLst_Buf, InData%MOutLst(i1), ErrStat, ErrMsg, .TRUE. ) ! MOutLst 
@@ -5589,12 +5529,6 @@ ENDDO
   ENDIF
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NWaveElev )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(InData%WaveElev) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev))-1 ) =  PACK(InData%WaveElev ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev)
-  ENDIF
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NMOutputs )
   Int_Xferred   = Int_Xferred   + 1
 DO i1 = LBOUND(InData%MOutLst,1), UBOUND(InData%MOutLst,1)
@@ -5863,14 +5797,6 @@ ENDDO
   ENDIF
   OutData%NStepWave = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  OutData%NWaveElev = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(OutData%WaveElev) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev,1),SIZE(OutData%WaveElev,2))); mask2 = .TRUE.
-    OutData%WaveElev = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev))-1 ),mask2,OutData%WaveElev)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev)
-  ENDIF
   OutData%NMOutputs = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
 DO i1 = LBOUND(OutData%MOutLst,1), UBOUND(OutData%MOutLst,1)

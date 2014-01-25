@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-09-21 22:37:32 -0600 (Sat, 21 Sep 2013) $
-! (File) Revision #: $Rev: 175 $
+! File last committed: $Date: 2014-01-23 12:12:56 -0700 (Thu, 23 Jan 2014) $
+! (File) Revision #: $Rev: 214 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SingPrec.f90 $
 !**********************************************************************************************************************************
 MODULE Precision

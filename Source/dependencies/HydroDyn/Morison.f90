@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-12 09:55:15 -0700 (Thu, 12 Dec 2013) $
-! (File) Revision #: $Rev: 293 $
+! File last committed: $Date: 2014-01-23 12:28:42 -0700 (Thu, 23 Jan 2014) $
+! (File) Revision #: $Rev: 316 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -291,6 +291,16 @@ SUBROUTINE DistrBuoyancy2( densWater, R, tMG, dRdz, Z, C, g, F_B  )
    F_B(4) = -f2*( CC(1,1)*CC(3,2) - CC(1,2)*CC(3,1) )
    F_B(5) = -f2*( CC(2,1)*CC(3,2) - CC(2,2)*CC(3,1) )
    F_B(6) = -f2*( CC(3,1)*CC(3,2) - CC(3,2)*CC(3,1) )
+   
+   
+   !F_B(1) = ( (f1*CC(1,1)*CC(3,1) + f1*CC(1,2)*CC(3,2))*ReffSq - 2.0*CC(1,3)*f3 )
+   !F_B(2) = ( (f1*CC(2,1)*CC(3,1) + f1*CC(2,2)*CC(3,2))*ReffSq - 2.0*CC(2,3)*f3 )
+  !  F_B(3) = ( (f1*(CC(3,1)*CC(3,1)) + f1*(CC(3,2)*CC(3,2)))*ReffSq - 2.0*CC(3,3)*f3 )
+  !  F_B(3) = ( (f1*(CC(3,1)*CC(3,1)*ReffSq) + f1*(CC(3,2)*CC(3,2)*ReffSq)) - 2.0*CC(3,3)*f3 )
+  !  F_B(3) = f1*( (CC(3,1)*CC(3,1) + CC(3,2)*CC(3,2))*ReffSq - (2.0*CC(3,3))*f3 )
+   !F_B(4) = ( -f2*CC(1,1)*CC(3,2) + f2*CC(1,2)*CC(3,1) )
+   !F_B(5) = ( -f2*CC(2,1)*CC(3,2) + f2*CC(2,2)*CC(3,1) )
+   !F_B(6) = ( -f2*CC(3,1)*CC(3,2) + f2*CC(3,2)*CC(3,1) )
    
    
 END SUBROUTINE DistrBuoyancy2
@@ -964,7 +974,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
    TYPE(MeshType)                              :: WRP_Mesh            ! mesh representing the WAMIT reference point (0,0,0)
    TYPE(MeshType)                              :: WRP_Mesh_position   ! mesh representing the WAMIT reference point (0,0,0)   (with no displaced position)
    TYPE(MeshMapType)                           :: M_L_2_P             ! Map  Morison Line2 to  WRP_Mesh point
-   TYPE(MeshMapType)                           :: M_P_2_P             ! Map  Morison Line2 to  WRP_Mesh point
+   TYPE(MeshMapType)                           :: M_P_2_P             ! Map  Morison Point to  WRP_Mesh point
    REAL(ReKi)                                  :: elementVol            ! displaced volume of an element
    REAL(ReKi)                                  :: totalDisplVol       ! total displaced volume of the structure
    REAL(ReKi)                                  :: totalVol            ! total volume of structure
@@ -2816,7 +2826,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
      
       
             ! Determine bounds checking based on what load we are calculating, 
-            ! This is for AM_M
+            ! This is for L_An
          IF ( nodes(I)%JointPos(3) <= MSL2SWL .AND. nodes(I)%JointPos(3) >= z0 ) THEN
          
                ! exclude internal member nodes and end nodes which were connected to a joint made into a super member
@@ -2871,13 +2881,13 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                      END DO
                   
                      nodes(I)%NConnectPreSplit = nCommon
-                        ! Divide the added mass equally across all connected markers but make sure it is positive in magnitude
+                        ! Divide the directed area equally across all connected markers 
                      
                      DO J=1,nCommon
                      
                         IF ( nodes(I)%JointPos(3) <= MSL2SWL .AND.     nodes(I)%JointPos(3) >= z0 ) THEN
                         
-                           L_An(:,nodeToLumpedIndx(commonNodeLst(J))) = An                        
+                           L_An(:,nodeToLumpedIndx(commonNodeLst(J))) = An / nCommon                     
                         
                         ELSE
                            ! Should we ever land in here?
@@ -2917,7 +2927,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
             !Process Lumped loads for this node
          node = node1
          sgn = 1.0
-         IF ( node%JointPos(3) <= MSL2SWL .AND. node%JointPos(3) >= z0 ) THEN
+         IF ( ( node%JointPos(3) <= MSL2SWL .AND. node%JointPos(3) >= z0 ) .AND. (.NOT. node%PropWAMIT) )THEN
             CALL GenerateLumpedLoads( element%Node1Indx, sgn, node, gravity, MSL2SWL, densWater, NStepWave, WaveDynP0, dragConst, F_DP, F_B, F_BF, ErrStat, ErrMsg )
             L_F_DP(:, :, nodeToLumpedIndx(element%Node1Indx)) = F_DP
             L_F_B (:, nodeToLumpedIndx(element%Node1Indx))    = F_B
@@ -2951,7 +2961,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
          
             ! Generate the loads regardless of node location, and then make the bounds check per load type because the range is different
          CALL GenerateLumpedLoads( element%Node2Indx, sgn, node, gravity, MSL2SWL, densWater, NStepWave, WaveDynP0, dragConst, F_DP, F_B, F_BF, ErrStat, ErrMsg )
-         IF ( node%JointPos(3) <= MSL2SWL .AND. node%JointPos(3) >= z0 ) THEN
+         IF ( ( node%JointPos(3) <= MSL2SWL .AND. node%JointPos(3) >= z0 ) .AND. (.NOT. node%PropWAMIT) ) THEN
             
             L_F_DP(:, :, nodeToLumpedIndx(element%Node2Indx)) = F_DP
             L_F_B (:, nodeToLumpedIndx(element%Node2Indx))    = F_B
@@ -3244,20 +3254,27 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
             k =  nodes(I)%R_LToG(:,3)
             
             IF ( nodes(I)%JointPos(3) <= MSL2SWL .AND. nodes(I)%JointPos(3) >= z0 ) THEN
-               CALL DistrDynPressure( I, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz, NStepWave, WaveDynP0, F_DP, ErrStat, ErrMsg)
-               D_F_DP(:,:,count) = F_DP
-               CALL DistrBuoyancy2( densWater, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz, nodes(I)%JointPos(3) - MSL2SWL, nodes(I)%R_LToG, gravity, F_B  ) 
-               D_F_B(:,count)    = F_B
+               
                
                
                IF ( elementWaterState == 0 ) THEN
                      ! Element is in the water
+                     
+                  CALL DistrDynPressure( I, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz, NStepWave, WaveDynP0, F_DP, ErrStat, ErrMsg)
+                  D_F_DP(:,:,count) = F_DP
+                  
+                  CALL DistrBuoyancy2( densWater, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz, nodes(I)%JointPos(3) - MSL2SWL, nodes(I)%R_LToG, gravity, F_B  ) 
+                  D_F_B(:,count)    = F_B
+               
                   CALL DistrInertialLoads( I, densWater, nodes(I)%Ca, nodes(I)%R, nodes(I)%tMG, k, NStepWave, WaveAcc0, F_I, ErrStat, ErrMsg  )       
                   D_F_I(:,:,count)  = F_I          
                
-                  CALL DistrAddedMass( densWater, nodes(I)%Ca, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, D_AM_M(:,:,count) )   
+                  CALL DistrAddedMass( densWater, nodes(I)%Ca, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, D_AM_M(:,:,count) )  
+                  
                ELSE
                      ! Element is out of the water
+                  D_F_DP(:,:,count) = 0.0
+                  D_F_B(:,count)    = 0.0
                   D_F_I(:,:,count)  = 0.0
                   D_AM_M(:,:,count) = 0.0
                END IF
@@ -3292,10 +3309,9 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
          IF ( nodes(I)%FillFlag ) THEN
             IF ( nodes(I)%JointPos(3) <= nodes(I)%FillFSLoc   .AND. nodes(I)%JointPos(3) >= z0 ) THEN
                
-               CALL DistrFloodedBuoyancy2( nodes(I)%FillDensity, nodes(I)%FillFSLoc, nodes(I)%R, nodes(I)%t, nodes(I)%dRdZ, nodes(I)%JointPos(3) - MSL2SWL, nodes(I)%R_LToG, gravity, F_BF )
-               D_F_BF(:,count  ) = F_BF
                
-                  ! different check for filled element
+               
+                  ! different check for filled element, based on free-surface location
                IF ( node2Indx > 0 ) THEN
                   IF ( nodes(node2Indx)%JointPos(3) > nodes(I)%FillFSLoc ) THEN
                      elementWaterState = 1
@@ -3310,8 +3326,11 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
                
                IF (elementWaterState == 0 ) THEN
                   CALL DistrAddedMassFlood( nodes(I)%FillDensity, nodes(I)%R, nodes(I)%t, D_AM_F(:,:,count) )
+                  CALL DistrFloodedBuoyancy2( nodes(I)%FillDensity, nodes(I)%FillFSLoc, nodes(I)%R, nodes(I)%t, nodes(I)%dRdZ, nodes(I)%JointPos(3) - MSL2SWL, nodes(I)%R_LToG, gravity, F_BF )
+                  D_F_BF(:,count  ) = F_BF
                ELSE
                   D_AM_F(:,:,count) = 0.0
+                  D_F_BF(:,count  ) = 0.0
                END IF
                
             ELSE
@@ -3878,18 +3897,7 @@ IF (ALLOCATED(InitInp%JOutLst) ) &
          RETURN
       END IF     
       p%WaveTime     = InitInp%WaveTime
-        
-       
-      p%NWaveElev    = InitInp%NWaveElev
       
-         ! Copy Input Init data into parameters
-      ALLOCATE ( p%WaveElev      (0:p%NStepWave, p%NWaveElev  ) , STAT=ErrStat )
-      IF ( ErrStat /= ErrID_None )  THEN
-         ErrMsg  = ' Error allocating memory for the WaveElev array.'
-         ErrStat = ErrID_Fatal
-         RETURN
-      END IF    
-      p%WaveElev     = InitInp%WaveElev
       
       
          ! Use the processed geometry information to create the distributed load mesh and associated marker parameters
@@ -4254,15 +4262,15 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
       INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                      INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
-      REAL(ReKi)                                        :: WaveElev (p%NWaveElev)                  ! Instantaneous elevation of incident waves at each of the NWaveElev points where the incident wave elevations can be output (meters)
       REAL(ReKi)                                        :: F_D(6), F_DP(6), F_I(6), kvec(3), v(3), m(3), vf(3), vrel(3), vmag
       INTEGER                                           :: I, J, K, nodeIndx
-      REAL(ReKi)                                        :: AllOuts(MaxOutputs)  ! TODO: think about adding to OtherState
+      REAL(ReKi)                                        :: AllOuts(MaxMrsnOutputs)  ! TODO: think about adding to OtherState
       REAL(ReKi)                                        :: qdotdot(6)     ! The structural acceleration of a mesh node
       REAL(ReKi)                                        :: dragFactor     ! The lumped drag factor
       REAL(ReKi)                                        :: AnProd         ! Dot product of the directional area of the joint
-      
-      
+      REAL(ReKi)                                        :: F_B(6)
+      REAL(ReKi)                                        :: C(3,3)
+      REAL(ReKi)                                        :: sgn
          ! Initialize ErrStat
          
       ErrStat = ErrID_None         
@@ -4279,7 +4287,7 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
          
             ! Obtain the node index because WaveVel0, WaveAcc0, and WaveDynP0 are defined in the node indexing scheme, not the markers
          nodeIndx = p%distribToNodeIndx(J)
-              
+          
          
          ! Determine the dynamic pressure at the marker
          OtherState%D_FDynP(J) = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%WaveDynP0(:,nodeIndx), &
@@ -4296,7 +4304,7 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
          END DO
          
             ! (k x vrel x k)
-         kvec =  p%Nodes(p%distribToNodeIndx(J))%R_LToG(:,3)
+         kvec =  p%Nodes(nodeIndx)%R_LToG(:,3)
          m =  Cross_Product( kvec, vrel )
          v =  Cross_Product( m, kvec ) 
          v = Dot_Product(kvec,kvec)*vrel - Dot_Product(kvec,vrel)*kvec
@@ -4312,6 +4320,11 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
          OtherState%D_F_AM_F(:,J)  = -matmul( p%D_AM_F(:,:,J) , qdotdot )
          OtherState%D_F_AM(:,J)    = OtherState%D_F_AM_M(:,J) + OtherState%D_F_AM_MG(:,J) + OtherState%D_F_AM_F(:,J)    ! vector-based addition
          
+            ! Time-varying Buoyancy loads
+            
+         !C = matmul(u%DistribMesh%Orientation(:,:,J), p%Nodes(nodeIndx)%R_LToG)
+         !CALL DistrBuoyancy2( 1025.0, p%Nodes(nodeIndx)%R, p%Nodes(nodeIndx)%tMG, p%Nodes(nodeIndx)%dRdz, p%Nodes(nodeIndx)%JointPos(3)+u%DistribMesh%TranslationDisp(3,J), C, 9.80665, F_B  )
+
          DO I=1,6
             
             
@@ -4325,11 +4338,12 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
                
                !y%DistribMesh%Force(I,J) = OtherState%D_F_D(I,J)  + OtherState%D_F_I(I,J) + p%D_F_B(I,J) + OtherState%D_F_DP(I,J) + p%D_F_MG(I,J) + p%D_F_BF(I,J)
                y%DistribMesh%Force(I,J) = OtherState%D_F_AM(I,J) + OtherState%D_F_D(I,J)  + OtherState%D_F_I(I,J) + p%D_F_B(I,J) + OtherState%D_F_DP(I,J) + p%D_F_MG(I,J) + p%D_F_BF(I,J)
-            
+               !y%DistribMesh%Force(I,J) =  OtherState%D_F_D(I,J)  + OtherState%D_F_I(I,J) +  OtherState%D_F_DP(I,J) + p%D_F_MG(I,J) 
             ELSE
                
                !y%DistribMesh%Moment(I-3,J) =   p%D_F_B(I,J) + p%D_F_BF(I,J)
                 y%DistribMesh%Moment(I-3,J) =   OtherState%D_F_AM(I,J) + p%D_F_B(I,J) + p%D_F_BF(I,J)
+               ! y%DistribMesh%Moment(I-3,J) =  0.0 ! OtherState%D_F_AM(I,J) 
                
             END IF
            
@@ -4380,7 +4394,12 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
          qdotdot                 = reshape((/u%LumpedMesh%TranslationAcc(:,J),u%LumpedMesh%RotationAcc(:,J)/),(/6/))   
          OtherState%L_F_AM(:,J)  = -matmul( p%L_AM_M(:,:,J) , qdotdot )
          
+            ! Time-varying Buoyancy loads
+         !sgn = 1.0   
+         !C = matmul(u%LumpedMesh%Orientation(:,:,J), p%Nodes(nodeIndx)%R_LToG)
+         !CALL LumpBuoyancy( sgn, 1025.0, p%Nodes(nodeIndx)%R, p%Nodes(nodeIndx)%tMG, p%Nodes(nodeIndx)%JointPos(3)+u%LumpedMesh%TranslationDisp(3,J), C, 9.80665, F_B  )
          
+
          DO I=1,6
             
             OtherState%L_F_DP(I,J) = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%L_F_DP(:,I,J), &
@@ -4392,10 +4411,11 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
                
                !y%LumpedMesh%Force(I,J) = OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_DP(I,J) +  p%L_F_BF(I,J)
                y%LumpedMesh%Force(I,J) = OtherState%L_F_AM(I,J) + OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_DP(I,J) +  p%L_F_BF(I,J)
-            
+               !y%LumpedMesh%Force(I,J) =  OtherState%L_F_DP(I,J) 
             ELSE
                !y%LumpedMesh%Moment(I-3,J) =  p%L_F_B(I,J) +   p%L_F_BF(I,J)
                y%LumpedMesh%Moment(I-3,J) =   OtherState%L_F_AM(I,J) + p%L_F_B(I,J) +   p%L_F_BF(I,J)
+               !y%LumpedMesh%Moment(I-3,J) =   0.0 !OtherState%L_F_AM(I,J)
             END IF
             
             
@@ -4409,15 +4429,9 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
          ! via the WriteOutput array.
          
       IF ( p%OutSwtch > 0 ) THEN
-         
-            ! Compute the wave elevations at the requested output locations for this time, this is only needed if we are generating outputs
-         DO I=1,p%NWaveElev   
-            WaveElev(I) = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%WaveElev(:,I), &
-                                    OtherState%LastIndWave, p%NStepWave + 1       )
-         END DO
-         
+     
             ! Map calculated results into the AllOuts Array
-         CALL MrsnOut_MapOutputs(Time, y, p, OtherState, p%NWaveElev, WaveElev, AllOuts, ErrStat, ErrMsg)
+         CALL MrsnOut_MapOutputs(Time, y, p, OtherState, AllOuts, ErrStat, ErrMsg)
                
       
             ! Put the output data in the WriteOutput array

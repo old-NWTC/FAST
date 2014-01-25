@@ -1862,10 +1862,10 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, u_mapped_positions, y_HD, u_HD, Me
          ! Morison loads and added mass
                   
          ! WAMIT loads and added mass and possibly Morison Elements for viscous drag, filled/flooded bouyancy, and filled/flooded added mass
-   IF ( y_HD%WAMIT%Mesh%Committed  ) THEN
+   IF ( y_HD%WRP_Mesh%Committed  ) THEN
 
          ! we're mapping loads, so we also need the sibling meshes' displacements:
-      CALL Transfer_Point_to_Point( y_HD%WAMIT%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%WAMIT%Mesh, u_mapped_positions) !u_HD and u_mapped_positions contain the displaced positions for load calculations
+      CALL Transfer_Point_to_Point( y_HD%WRP_Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%Mesh, u_mapped_positions) !u_HD and u_mapped_positions contain the displaced positions for load calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
@@ -1874,32 +1874,6 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, u_mapped_positions, y_HD, u_HD, Me
 
    END IF      
       
-   IF ( y_HD%Morison%LumpedMesh%Committed ) THEN 
-
-         ! This is viscous drag associate with the WAMIT body and/or filled/flooded forces of the WAMIT body
-
-         ! we're mapping loads, so we also need the sibling meshes' displacements:
-      CALL Transfer_Point_to_Point( y_HD%Morison%LumpedMesh, u_mapped, MeshMapData%HD_M_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%Morison%LumpedMesh, u_mapped_positions )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF (ErrStat >= AbortErrLev) RETURN
-            
-      u_ED%PlatformPtMesh%Force  = u_ED%PlatformPtMesh%Force  + u_mapped%Force
-      u_ED%PlatformPtMesh%Moment = u_ED%PlatformPtMesh%Moment + u_mapped%Moment
-
-   END IF
-   
-   IF ( y_HD%Morison%DistribMesh%Committed ) THEN 
-
-         ! we're mapping loads, so we also need the sibling meshes' displacements:
-      CALL Transfer_Line2_to_Point( y_HD%Morison%DistribMesh, u_mapped, MeshMapData%HD_M_L_2_ED_P, ErrStat2, ErrMsg2, u_HD%Morison%DistribMesh, u_mapped_positions )
-         CALL CheckError( ErrStat2, ErrMsg2 )
-         IF (ErrStat >= AbortErrLev) RETURN
- 
-      u_ED%PlatformPtMesh%Force  = u_ED%PlatformPtMesh%Force  + u_mapped%Force
-      u_ED%PlatformPtMesh%Moment = u_ED%PlatformPtMesh%Moment + u_mapped%Moment
-         
-   END IF
-
 CONTAINS   
    !...............................................................................................................................
    SUBROUTINE CheckError(ErrID,Msg)
@@ -2113,14 +2087,14 @@ SUBROUTINE Transfer_ED_to_HD( u_HD, y_ED, MeshMapData, ErrStat, ErrMsg )
    
    !bjj: We do this without all the extra meshcopy/destroy calls with u_mapped because these inputs are only from one mesh
    
-   IF ( u_HD%WAMIT%Mesh%Committed ) THEN
+   IF ( u_HD%Mesh%Committed ) THEN
 
       ! These are the lumped point loads associated the WAMIT body and include: hydrostatics, radiation memory effect,
       !    wave kinematics, additional preload, additional stiffness, additional linear damping, additional quadratic damping,
       !    hydrodynamic added mass
 
-      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_HD%WAMIT%Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat, ErrMsg )
-         IF (ErrStat /= ErrID_None) ErrMsg = ' Transfer_ED_to_HD (u_HD%WAMIT%Mesh):'//TRIM(ErrMsg)
+      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_HD%Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat, ErrMsg )
+         IF (ErrStat /= ErrID_None) ErrMsg = ' Transfer_ED_to_HD (u_HD%Mesh):'//TRIM(ErrMsg)
 
    END IF !WAMIT
    
@@ -3384,9 +3358,6 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'INPUTS; K=',K            
 !   write(unOut,*) '------------------------------------------------'            
-!   write(unOut,*) 'u_HD%Wamit%Mesh:'            
-!   call MeshPrintInfo ( unOut, u_HD%WAMIT%Mesh, u_HD%WAMIT%Mesh%NNodes)
-!   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'u_HD%Morison%lumpedMesh:'            
 !   call MeshPrintInfo ( unOut, u_HD%Morison%lumpedMesh, u_HD%Morison%lumpedMesh%NNodes)
 !   write(unOut,*) '------------------------------------------------'            
@@ -3394,9 +3365,6 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
 !   call MeshPrintInfo ( unOut, u_HD%Morison%DistribMesh, u_HD%Morison%DistribMesh%NNodes)
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'OUTPUTS; K=',K               
-!   write(unOut,*) '------------------------------------------------'            
-!   write(unOut,*) 'y_HD%Wamit%Mesh:'            
-!   call MeshPrintInfo ( unOut, y_HD%WAMIT%Mesh, y_HD%WAMIT%Mesh%NNodes)
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'y_HD%Morison%lumpedMesh:'            
 !   call MeshPrintInfo ( unOut, y_HD%Morison%lumpedMesh, y_HD%Morison%lumpedMesh%NNodes)
@@ -3495,9 +3463,6 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'INPUTS'            
 !   write(unOut,*) '------------------------------------------------'            
-!   write(unOut,*) 'u_HD%Wamit%Mesh:'            
-!   call MeshPrintInfo ( unOut, u_HD_perturb%WAMIT%Mesh, u_HD_perturb%WAMIT%Mesh%NNodes)
-!   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'u_HD%Morison%lumpedMesh:'            
 !   call MeshPrintInfo ( unOut, u_HD_perturb%Morison%lumpedMesh, u_HD_perturb%Morison%lumpedMesh%NNodes)
 !   write(unOut,*) '------------------------------------------------'            
@@ -3505,9 +3470,6 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
 !   call MeshPrintInfo ( unOut, u_HD_perturb%Morison%DistribMesh, u_HD_perturb%Morison%DistribMesh%NNodes)
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'OUTPUTS'            
-!   write(unOut,*) '------------------------------------------------'            
-!   write(unOut,*) 'y_HD%Wamit%Mesh:'            
-!   call MeshPrintInfo ( unOut, y_HD_perturb%WAMIT%Mesh, y_HD_perturb%WAMIT%Mesh%NNodes)
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'y_HD%Morison%lumpedMesh:'            
 !   call MeshPrintInfo ( unOut, y_HD_perturb%Morison%lumpedMesh, y_HD_perturb%Morison%lumpedMesh%NNodes)
@@ -4366,7 +4328,7 @@ SUBROUTINE WriteInputMeshesToFile(u_ED, u_SD, u_HD, u_MAP, u_AD, FileName, ErrSt
    CALL MeshWrBin( unOut, u_SD%LMesh,                   ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_HD%Morison%distribMesh,     ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_HD%Morison%lumpedMesh,      ErrStat, ErrMsg )
-   CALL MeshWrBin( unOut, u_HD%WAMIT%Mesh,              ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_HD%Mesh,                    ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_MAP%PtFairleadDisplacement, ErrStat, ErrMsg )
       
       
@@ -4429,7 +4391,7 @@ SUBROUTINE WriteMotionMeshesToFile(time, y_ED, u_SD, y_SD, u_HD, u_MAP, UnOut, E
    CALL MeshWrBin( unOut, y_SD%y2Mesh,                  ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_HD%Morison%distribMesh,     ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_HD%Morison%lumpedMesh,      ErrStat, ErrMsg )
-   CALL MeshWrBin( unOut, u_HD%WAMIT%Mesh,              ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_HD%Mesh,                    ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_MAP%PtFairleadDisplacement, ErrStat, ErrMsg )
       
    !   

@@ -293,7 +293,7 @@ NWTC_IO.obj:             NWTC_Library_Types.obj
 NWTC_Num.obj:            NWTC_IO.obj
 ModMesh_Types.obj:       NWTC_Num.obj
 ModMesh.obj:             ModMesh_Types.obj
-ModMesh_Mapping.obj:     ModMesh.f90
+ModMesh_Mapping.obj:     ModMesh.obj NWTC_LAPACK.obj
 NWTC_Library.obj:        ModMesh.obj  ModMesh_Mapping.obj
 
 NWTC_LAPACK.obj:         NWTC_Base.obj

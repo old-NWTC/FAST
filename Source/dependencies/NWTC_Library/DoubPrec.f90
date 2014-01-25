@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-04 21:43:08 -0700 (Sat, 04 Jan 2014) $
-! (File) Revision #: $Rev: 207 $
+! File last committed: $Date: 2014-01-23 12:12:56 -0700 (Thu, 23 Jan 2014) $
+! (File) Revision #: $Rev: 214 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/DoubPrec.f90 $
 !**********************************************************************************************************************************
 MODULE Precision

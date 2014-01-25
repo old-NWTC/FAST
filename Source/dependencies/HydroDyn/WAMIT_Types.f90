@@ -1,9 +1,9 @@
 !STARTOFREGISTRYGENERATEDFILE './WAMIT_Types.f90'
-
+!
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.02, 16-Dec-2013)
+! FAST Registry (v2.01.03, 20-Jan-2014)
 !*********************************************************************************************************************************
 ! WAMIT_Types
 !.................................................................................................................................
@@ -36,7 +36,7 @@ USE SS_Radiation_Types
 USE Waves_Types
 USE NWTC_Library
 IMPLICIT NONE
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxOutputs = 33 
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxWAMITOutputs = 18 
 ! =========  WAMIT_InitInputType  =======
   TYPE, PUBLIC :: WAMIT_InitInputType
     REAL(ReKi)  :: PtfmVol0 
@@ -47,10 +47,6 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: RdtnMod 
     REAL(DbKi)  :: RdtnTMax 
     CHARACTER(1024)  :: WAMITFile 
-    REAL(ReKi) , DIMENSION(1:6)  :: AddF0 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddCLin 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBLin 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBQuad 
     TYPE(Conv_Rdtn_InitInputType)  :: Conv_Rdtn 
     TYPE(SS_Rad_InitInputType)  :: SS_Rdtn 
     REAL(ReKi)  :: Rhoxg 
@@ -59,12 +55,10 @@ IMPLICIT NONE
     REAL(ReKi)  :: WaveDOmega 
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevC0 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime 
-    INTEGER(IntKi)  :: NWaveElev 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev 
     INTEGER(IntKi)  :: WaveMod 
     REAL(ReKi)  :: WtrDens 
     REAL(ReKi)  :: WaveDir 
-    CHARACTER(10) , DIMENSION(1:33)  :: OutList 
+    CHARACTER(10) , DIMENSION(1:18)  :: OutList 
     LOGICAL  :: OutAll 
     INTEGER(IntKi)  :: NumOuts 
   END TYPE WAMIT_InitInputType
@@ -114,10 +108,6 @@ IMPLICIT NONE
     REAL(ReKi)  :: RhoXg 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime 
     INTEGER(IntKi)  :: NStepWave 
-    REAL(ReKi) , DIMENSION(1:6)  :: AddF0 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddCLin 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBLin 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBQuad 
     TYPE(Conv_Rdtn_ParameterType)  :: Conv_Rdtn 
     TYPE(SS_Rad_ParameterType)  :: SS_Rdtn 
     REAL(DbKi)  :: DT 
@@ -134,8 +124,6 @@ IMPLICIT NONE
     CHARACTER(20)  :: OutSFmt 
     CHARACTER(10)  :: Delim 
     INTEGER(IntKi)  :: UnOutFile 
-    INTEGER(IntKi)  :: NWaveElev 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev 
   END TYPE WAMIT_ParameterType
 ! =======================
 ! =========  WAMIT_InputType  =======
@@ -171,10 +159,6 @@ CONTAINS
    DstInitInputData%RdtnMod = SrcInitInputData%RdtnMod
    DstInitInputData%RdtnTMax = SrcInitInputData%RdtnTMax
    DstInitInputData%WAMITFile = SrcInitInputData%WAMITFile
-   DstInitInputData%AddF0 = SrcInitInputData%AddF0
-   DstInitInputData%AddCLin = SrcInitInputData%AddCLin
-   DstInitInputData%AddBLin = SrcInitInputData%AddBLin
-   DstInitInputData%AddBQuad = SrcInitInputData%AddBQuad
       CALL Conv_Rdtn_CopyInitInput( SrcInitInputData%Conv_Rdtn, DstInitInputData%Conv_Rdtn, CtrlCode, ErrStat, ErrMsg )
       CALL SS_Rad_CopyInitInput( SrcInitInputData%SS_Rdtn, DstInitInputData%SS_Rdtn, CtrlCode, ErrStat, ErrMsg )
    DstInitInputData%Rhoxg = SrcInitInputData%Rhoxg
@@ -209,22 +193,6 @@ IF (ALLOCATED(SrcInitInputData%WaveTime)) THEN
    END IF
    DstInitInputData%WaveTime = SrcInitInputData%WaveTime
 ENDIF
-   DstInitInputData%NWaveElev = SrcInitInputData%NWaveElev
-IF (ALLOCATED(SrcInitInputData%WaveElev)) THEN
-   i1_l = LBOUND(SrcInitInputData%WaveElev,1)
-   i1_u = UBOUND(SrcInitInputData%WaveElev,1)
-   i2_l = LBOUND(SrcInitInputData%WaveElev,2)
-   i2_u = UBOUND(SrcInitInputData%WaveElev,2)
-   IF (.NOT.ALLOCATED(DstInitInputData%WaveElev)) THEN 
-      ALLOCATE(DstInitInputData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyInitInput: Error allocating DstInitInputData%WaveElev.'
-         RETURN
-      END IF
-   END IF
-   DstInitInputData%WaveElev = SrcInitInputData%WaveElev
-ENDIF
    DstInitInputData%WaveMod = SrcInitInputData%WaveMod
    DstInitInputData%WtrDens = SrcInitInputData%WtrDens
    DstInitInputData%WaveDir = SrcInitInputData%WaveDir
@@ -248,9 +216,6 @@ IF (ALLOCATED(InitInputData%WaveElevC0)) THEN
 ENDIF
 IF (ALLOCATED(InitInputData%WaveTime)) THEN
    DEALLOCATE(InitInputData%WaveTime)
-ENDIF
-IF (ALLOCATED(InitInputData%WaveElev)) THEN
-   DEALLOCATE(InitInputData%WaveElev)
 ENDIF
  END SUBROUTINE WAMIT_DestroyInitInput
 
@@ -300,10 +265,6 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! PtfmCOByt
   Int_BufSz  = Int_BufSz  + 1  ! RdtnMod
   Db_BufSz   = Db_BufSz   + 1  ! RdtnTMax
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AddF0 )  ! AddF0 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AddCLin )  ! AddCLin 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AddBLin )  ! AddBLin 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AddBQuad )  ! AddBQuad 
   CALL Conv_Rdtn_PackInitInput( Re_Conv_Rdtn_Buf, Db_Conv_Rdtn_Buf, Int_Conv_Rdtn_Buf, InData%Conv_Rdtn, ErrStat, ErrMsg, .TRUE. ) ! Conv_Rdtn 
   IF(ALLOCATED(Re_Conv_Rdtn_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Conv_Rdtn_Buf  ) ! Conv_Rdtn
   IF(ALLOCATED(Db_Conv_Rdtn_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Conv_Rdtn_Buf  ) ! Conv_Rdtn
@@ -324,8 +285,6 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! WaveDOmega
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevC0 )  ! WaveElevC0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
-  Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev )  ! WaveElev 
   Int_BufSz  = Int_BufSz  + 1  ! WaveMod
   Re_BufSz   = Re_BufSz   + 1  ! WtrDens
   Re_BufSz   = Re_BufSz   + 1  ! WaveDir
@@ -345,14 +304,6 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%RdtnTMax )
   Db_Xferred   = Db_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddF0))-1 ) =  PACK(InData%AddF0 ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%AddF0)
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddCLin))-1 ) =  PACK(InData%AddCLin ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%AddCLin)
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddBLin))-1 ) =  PACK(InData%AddBLin ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%AddBLin)
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddBQuad))-1 ) =  PACK(InData%AddBQuad ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%AddBQuad)
   CALL Conv_Rdtn_PackInitInput( Re_Conv_Rdtn_Buf, Db_Conv_Rdtn_Buf, Int_Conv_Rdtn_Buf, InData%Conv_Rdtn, ErrStat, ErrMsg, OnlySize ) ! Conv_Rdtn 
   IF(ALLOCATED(Re_Conv_Rdtn_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Conv_Rdtn_Buf)-1 ) = Re_Conv_Rdtn_Buf
@@ -400,12 +351,6 @@ ENDIF
   IF ( ALLOCATED(InData%WaveTime) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) =  PACK(InData%WaveTime ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
-  ENDIF
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NWaveElev )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(InData%WaveElev) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev))-1 ) =  PACK(InData%WaveElev ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev)
   ENDIF
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%WaveMod )
   Int_Xferred   = Int_Xferred   + 1
@@ -468,22 +413,6 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%RdtnTMax = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%AddF0,1))); mask1 = .TRUE.
-  OutData%AddF0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddF0))-1 ),mask1,OutData%AddF0)
-  DEALLOCATE(mask1)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%AddF0)
-  ALLOCATE(mask2(SIZE(OutData%AddCLin,1),SIZE(OutData%AddCLin,2))); mask2 = .TRUE.
-  OutData%AddCLin = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddCLin))-1 ),mask2,OutData%AddCLin)
-  DEALLOCATE(mask2)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%AddCLin)
-  ALLOCATE(mask2(SIZE(OutData%AddBLin,1),SIZE(OutData%AddBLin,2))); mask2 = .TRUE.
-  OutData%AddBLin = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddBLin))-1 ),mask2,OutData%AddBLin)
-  DEALLOCATE(mask2)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%AddBLin)
-  ALLOCATE(mask2(SIZE(OutData%AddBQuad,1),SIZE(OutData%AddBQuad,2))); mask2 = .TRUE.
-  OutData%AddBQuad = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddBQuad))-1 ),mask2,OutData%AddBQuad)
-  DEALLOCATE(mask2)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%AddBQuad)
  ! first call Conv_Rdtn_PackInitInput to get correctly sized buffers for unpacking
   CALL Conv_Rdtn_PackInitInput( Re_Conv_Rdtn_Buf, Db_Conv_Rdtn_Buf, Int_Conv_Rdtn_Buf, OutData%Conv_Rdtn, ErrStat, ErrMsg, .TRUE. ) ! Conv_Rdtn 
   IF(ALLOCATED(Re_Conv_Rdtn_Buf)) THEN
@@ -533,14 +462,6 @@ ENDIF
     OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
-  ENDIF
-  OutData%NWaveElev = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(OutData%WaveElev) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev,1),SIZE(OutData%WaveElev,2))); mask2 = .TRUE.
-    OutData%WaveElev = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev))-1 ),mask2,OutData%WaveElev)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev)
   ENDIF
   OutData%WaveMod = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
@@ -1382,10 +1303,6 @@ IF (ALLOCATED(SrcParamData%WaveTime)) THEN
    DstParamData%WaveTime = SrcParamData%WaveTime
 ENDIF
    DstParamData%NStepWave = SrcParamData%NStepWave
-   DstParamData%AddF0 = SrcParamData%AddF0
-   DstParamData%AddCLin = SrcParamData%AddCLin
-   DstParamData%AddBLin = SrcParamData%AddBLin
-   DstParamData%AddBQuad = SrcParamData%AddBQuad
       CALL Conv_Rdtn_CopyParam( SrcParamData%Conv_Rdtn, DstParamData%Conv_Rdtn, CtrlCode, ErrStat, ErrMsg )
       CALL SS_Rad_CopyParam( SrcParamData%SS_Rdtn, DstParamData%SS_Rdtn, CtrlCode, ErrStat, ErrMsg )
    DstParamData%DT = SrcParamData%DT
@@ -1416,22 +1333,6 @@ ENDIF
    DstParamData%OutSFmt = SrcParamData%OutSFmt
    DstParamData%Delim = SrcParamData%Delim
    DstParamData%UnOutFile = SrcParamData%UnOutFile
-   DstParamData%NWaveElev = SrcParamData%NWaveElev
-IF (ALLOCATED(SrcParamData%WaveElev)) THEN
-   i1_l = LBOUND(SrcParamData%WaveElev,1)
-   i1_u = UBOUND(SrcParamData%WaveElev,1)
-   i2_l = LBOUND(SrcParamData%WaveElev,2)
-   i2_u = UBOUND(SrcParamData%WaveElev,2)
-   IF (.NOT.ALLOCATED(DstParamData%WaveElev)) THEN 
-      ALLOCATE(DstParamData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyParam: Error allocating DstParamData%WaveElev.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%WaveElev = SrcParamData%WaveElev
-ENDIF
  END SUBROUTINE WAMIT_CopyParam
 
  SUBROUTINE WAMIT_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -1455,9 +1356,6 @@ DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
   CALL NWTC_Library_Destroyoutparmtype( ParamData%OutParam(i1), ErrStat, ErrMsg )
 ENDDO
    DEALLOCATE(ParamData%OutParam)
-ENDIF
-IF (ALLOCATED(ParamData%WaveElev)) THEN
-   DEALLOCATE(ParamData%WaveElev)
 ENDIF
  END SUBROUTINE WAMIT_DestroyParam
 
@@ -1514,10 +1412,6 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! RhoXg
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AddF0 )  ! AddF0 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AddCLin )  ! AddCLin 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AddBLin )  ! AddBLin 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AddBQuad )  ! AddBQuad 
   CALL Conv_Rdtn_PackParam( Re_Conv_Rdtn_Buf, Db_Conv_Rdtn_Buf, Int_Conv_Rdtn_Buf, InData%Conv_Rdtn, ErrStat, ErrMsg, .TRUE. ) ! Conv_Rdtn 
   IF(ALLOCATED(Re_Conv_Rdtn_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Conv_Rdtn_Buf  ) ! Conv_Rdtn
   IF(ALLOCATED(Db_Conv_Rdtn_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Conv_Rdtn_Buf  ) ! Conv_Rdtn
@@ -1545,8 +1439,6 @@ ENDDO
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
   Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
   Int_BufSz  = Int_BufSz  + 1  ! UnOutFile
-  Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev )  ! WaveElev 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1574,14 +1466,6 @@ ENDDO
   ENDIF
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddF0))-1 ) =  PACK(InData%AddF0 ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%AddF0)
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddCLin))-1 ) =  PACK(InData%AddCLin ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%AddCLin)
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddBLin))-1 ) =  PACK(InData%AddBLin ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%AddBLin)
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddBQuad))-1 ) =  PACK(InData%AddBQuad ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%AddBQuad)
   CALL Conv_Rdtn_PackParam( Re_Conv_Rdtn_Buf, Db_Conv_Rdtn_Buf, Int_Conv_Rdtn_Buf, InData%Conv_Rdtn, ErrStat, ErrMsg, OnlySize ) ! Conv_Rdtn 
   IF(ALLOCATED(Re_Conv_Rdtn_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Conv_Rdtn_Buf)-1 ) = Re_Conv_Rdtn_Buf
@@ -1640,12 +1524,6 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnOutFile )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NWaveElev )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(InData%WaveElev) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev))-1 ) =  PACK(InData%WaveElev ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev)
-  ENDIF
  END SUBROUTINE WAMIT_PackParam
 
  SUBROUTINE WAMIT_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1722,22 +1600,6 @@ ENDDO
   ENDIF
   OutData%NStepWave = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%AddF0,1))); mask1 = .TRUE.
-  OutData%AddF0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddF0))-1 ),mask1,OutData%AddF0)
-  DEALLOCATE(mask1)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%AddF0)
-  ALLOCATE(mask2(SIZE(OutData%AddCLin,1),SIZE(OutData%AddCLin,2))); mask2 = .TRUE.
-  OutData%AddCLin = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddCLin))-1 ),mask2,OutData%AddCLin)
-  DEALLOCATE(mask2)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%AddCLin)
-  ALLOCATE(mask2(SIZE(OutData%AddBLin,1),SIZE(OutData%AddBLin,2))); mask2 = .TRUE.
-  OutData%AddBLin = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddBLin))-1 ),mask2,OutData%AddBLin)
-  DEALLOCATE(mask2)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%AddBLin)
-  ALLOCATE(mask2(SIZE(OutData%AddBQuad,1),SIZE(OutData%AddBQuad,2))); mask2 = .TRUE.
-  OutData%AddBQuad = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddBQuad))-1 ),mask2,OutData%AddBQuad)
-  DEALLOCATE(mask2)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%AddBQuad)
  ! first call Conv_Rdtn_PackParam to get correctly sized buffers for unpacking
   CALL Conv_Rdtn_PackParam( Re_Conv_Rdtn_Buf, Db_Conv_Rdtn_Buf, Int_Conv_Rdtn_Buf, OutData%Conv_Rdtn, ErrStat, ErrMsg, .TRUE. ) ! Conv_Rdtn 
   IF(ALLOCATED(Re_Conv_Rdtn_Buf)) THEN
@@ -1793,14 +1655,6 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   OutData%UnOutFile = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  OutData%NWaveElev = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( ALLOCATED(OutData%WaveElev) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev,1),SIZE(OutData%WaveElev,2))); mask2 = .TRUE.
-    OutData%WaveElev = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev))-1 ),mask2,OutData%WaveElev)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev)
-  ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1

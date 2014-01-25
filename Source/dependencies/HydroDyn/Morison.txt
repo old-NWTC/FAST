@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2013-11-12 16:57:49 -0700 (Tue, 12 Nov 2013) $
-# (File) Revision #: $Rev: 289 $
+# File last committed: $Date: 2014-01-22 10:03:43 -0700 (Wed, 22 Jan 2014) $
+# (File) Revision #: $Rev: 309 $
 # URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/RegistryFiles/Morison.txt $
 ###################################################################################################################################
 
@@ -19,7 +19,7 @@
 include   Registry_NWTC_Library.txt
 #
 #
-param     Morison/Morison              unused                        INTEGER          MaxOutputs               -       2745        -         ""    -
+param     Morison/Morison              unused                        INTEGER          MaxMrsnOutputs               -       2736        -         ""    -
 typedef   Morison/Morison              Morison_JointType             INTEGER          JointID                  -          -        -         ""    -
 typedef   ^                            ^                             ReKi             JointPos                 {3}        -        -         ""    -
 typedef   ^                            ^                             INTEGER          JointHvID                -          -        -         ""    -
@@ -192,8 +192,6 @@ typedef   ^                            ^                             CHARACTER(1
 typedef   ^                            ^                             INTEGER                  UnOutFile                        -          -        -         ""    -
 typedef   ^                            ^                             INTEGER                  UnSum                            -          -        -         ""    -
 typedef   ^                            ^                             INTEGER                  NStepWave                        -          -        -         ""    -
-typedef   ^                            ^                             INTEGER                  NWaveElev                        -          -        -         ""    -
-typedef   ^                            ^                             ReKi                     WaveElev                        {:}{:}      -        -         ""    -
 typedef   ^                            ^                             ReKi                     WaveAcc0                         {:}{:}{:}  -        -         ""    -
 typedef   ^                            ^                             ReKi                     WaveTime                         {:}        -        -         ""    -
 typedef   ^                            ^                             ReKi                     WaveDynP0                        {:}{:}     -        -         ""    -
@@ -277,8 +275,6 @@ typedef   ^                            ^                             ReKi       
 typedef   ^                            ^                             ReKi                     WaveDynP0                       {:}{:}     -         -         ""        -
 typedef   ^                            ^                             ReKi                     WaveTime                        {:}        -         -         ""        -
 typedef   ^                            ^                             INTEGER                  NStepWave                       -          -         -         ""        -
-typedef   ^                            ^                             INTEGER                  NWaveElev                       -          -         -         ""        -
-typedef   ^                            ^                             ReKi                     WaveElev                        {:}{:}     -         -         ""        -
 typedef   ^                            ^                             INTEGER                  NMOutputs                       -          -         -         ""        -
 typedef   ^                            ^                             Morison_MOutput          MOutLst                         {:}        -         -         ""        -
 typedef   ^                            ^                             INTEGER                  NJOutputs                       -          -         -         ""        -

@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-12 14:03:05 -0700 (Thu, 12 Dec 2013) $
-! (File) Revision #: $Rev: 238 $
+! File last committed: $Date: 2014-01-24 09:54:50 -0700 (Fri, 24 Jan 2014) $
+! (File) Revision #: $Rev: 264 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM
@@ -8,6 +8,7 @@ MODULE SD_FEM
   USE SubDyn_Types
   
   IMPLICIT NONE
+  
   
     CONTAINS
     
@@ -107,7 +108,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
    ! Total number of element
    Init%NElem = p%NMembers*Init%NDiv
    ! Total number of property sets (temp)
-   TempNProp = Init%NElem*NPE
+   TempNProp = Init%NElem*NPE ! This is property set per element node, for all elements
    
    ! Calculate total number of nodes and elements according to element types
    ! for 3-node or 4-node beam elements
@@ -153,7 +154,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
       ! Allocate Temp members and property sets
    ALLOCATE(TempMembers(p%NMembers, Init%MembersCol), STAT=Sttus)
    IF ( Sttus /= 0 )  THEN
-      ErrMsg = ' Error allocating TempProps arrays'
+      ErrMsg = ' Error allocating TempMembers arrays'
       ErrStat = ErrID_Fatal
       RETURN
    ENDIF
@@ -213,8 +214,10 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
 
    ENDDO
    
-   ! Initialize Temp property set
-   TempProps(1:Init%NPropSets, :) = Init%PropSets(1:Init%NPropSets, :)   
+   ! Initialize Temp property set, first user defined sets
+   TempProps(1:Init%NPropSets, :) = Init%PropSets   
+   !TempProps(1:Init%NPropSets, :) = Init%PropSets(1:Init%NPropSets, :)   
+   
    
    ! Initialize boundary constraint vector
    ! Change the node number
@@ -427,12 +430,14 @@ ENDIF ! if NDiv is greater than 1
 ! set the props in Init
 ALLOCATE(Init%Props(kprop, Init%PropSetsCol), STAT=Sttus)
 IF ( Sttus /= 0 )  THEN
-   ErrMsg = ' Error allocating TempProps arrays'
+   ErrMsg = ' Error allocating Props arrays in SD_FEM'
    ErrStat = ErrID_Fatal
    RETURN
 ENDIF
 Init%NProp = kprop
-Init%Props(1:kprop, 1:Init%PropSetsCol) = TempProps(1:kprop, 1:Init%PropSetsCol)
+!Init%Props(1:kprop, 1:Init%PropSetsCol) = TempProps
+Init%Props = TempProps(1:kprop, :)  !!RRD fixed it on 1/23/14 to account for NDIV=1
+
 ! deallocate temp matrices
 IF (ALLOCATED(TempProps)) DEALLOCATE(TempProps)
 IF (ALLOCATED(TempMembers)) DEALLOCATE(TempMembers)
@@ -479,6 +484,7 @@ END SUBROUTINE GetNewElem
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
 SUBROUTINE GetNewProp(k, E, G, rho, d, t, TempProps)
+!RRD-modifying this routine: This routine intends to calculate new member properties in case NDIV>1 ; 1/23/14
    
    INTEGER   , INTENT(IN)   :: k
    REAL(ReKi), INTENT(IN)   :: E, G, rho, d, t
