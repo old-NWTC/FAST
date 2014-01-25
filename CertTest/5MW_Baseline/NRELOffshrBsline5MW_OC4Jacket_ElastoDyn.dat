@@ -3,7 +3,7 @@ OC4 TOWER+ NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Prope
 ---------------------- SIMULATION CONTROL --------------------------------------
 true False         Echo        - Echo input data to "<RootName>.ech" (flag)
           3   Method      - Integration method: {1: RK4, 2: AB4, or 3: ABM4} (-)
-   0.0001   DT          - Integration time step (s)
+    0.002     DT          - Integration time step (s)
 ---------------------- ENVIRONMENTAL CONDITION ---------------------------------
     9.80665   Gravity     - Gravitational acceleration (m/s^2)
 ---------------------- DEGREES OF FREEDOM --------------------------------------

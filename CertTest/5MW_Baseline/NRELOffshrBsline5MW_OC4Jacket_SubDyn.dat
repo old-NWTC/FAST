@@ -4,13 +4,13 @@ OC4 'Jacket' SubStructure Input File. The grouted connection is simulated with a
 -------------------------- SIMULATION CONTROL  ---------------------------------
 True       Echo        - Echo input data to "echo.out" (flag)
 0.0        SDdeltaT    - Local Integration Step. If 0.0, the glue-code integration step will be used.
-4 	   IntMethod   - Integration Method (0/1/2/3/4 = GlueCode(tight Coupling)/RK4/AB4/ABM4/AM2)
+1          IntMethod   - Integration Method (0/1/2/3/4 = GlueCode(tight Coupling)/RK4/AB4/ABM4/AM2)
 -------------------- FEA and CRAIG-BAMPTON PARAMETERS---------------------------
 3          FEMMod     - FEM switch: element model in the FEM: 1= Euler-Bernoulli(E-B) ; 2=Tapered E-B; 3= 2-node Timoshenko;  4= 2-node tapered Timoshenko
 1 2          NDiv       - Number of sub-elements per member
-false true      CBMod      - If True perform C-B reduction, else full FEM dofs will be retained. IF True, select modes to retain in C-B
-25	      Nmodes     - Number of internal modes to retain (ignored if CBMod=False). If Nmodes=0 --> Guyan Reduction. If Nmodes>0, list Nmodes structural damping ratios for each retained mode (% of critical)
-2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0      JDampings  -  Damping Ratios  for each retained mode (% of critical)
+true      CBMod      - If True perform C-B reduction, else full FEM dofs will be retained. IF True, select modes to retain in C-B
+100       Nmodes     - Number of internal modes to retain (ignored if CBMod=False). If Nmodes=0 --> Guyan Reduction. If Nmodes>0, list Nmodes structural damping ratios for each retained mode (% of critical)  2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0 2.0      JDampings  -  Damping Ratios  for each retained mode (% of critical)
+2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2	2
 ---- STRUCTURE JOINTS: joints connect structure members (~Hydrodyn Input File)---
 64	    NJoints     - Number of joints (-)
 JointID          JointXss                 JointYss               JointZss	-Coordinates of Member joints in SS-Coordinate System
