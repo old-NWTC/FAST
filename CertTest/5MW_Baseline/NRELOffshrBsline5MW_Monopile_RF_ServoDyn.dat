@@ -2,7 +2,7 @@
 NREL 5.0 MW Baseline Wind Turbine for Use in Offshore Analysis. Properties from Dutch Offshore Wind Energy Converter (DOWEC) 6MW Pre-Design (10046_009.pdf) and REpower 5M 5MW (5m_uk.pdf);
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo         - Echo input data to <RootName>.ech (flag)
-      0.002   DT           - Communication interval for controllers (s)
+      0.001   DT           - Communication interval for controllers (s)
 ---------------------- PITCH CONTROL -------------------------------------------
           5   PCMode       - Pitch control mode {0: none, 1: user-defined from routine PitchCntrl, 2: user-defined from Simulink/Labview, 5: user-defined from Bladed-style DLL} (switch)
           0   TPCOn        - Time to enable active pitch control (s) [unused when PCMode=0]

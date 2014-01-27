@@ -1,24 +1,27 @@
 
 FAST Summary File
 
-Predictions were generated on 11-Oct-2013 at 14:30:55 using FAST (v8.03.02b-bjj, 3-Oct-2013), compiled for 32-bit systems using single precision
+Predictions were generated on 27-Jan-2014 at 10:44:27 using FAST (v8.05.00b-bjj, 22-Jan-2014), compiled for 32-bit systems using single precision
   compiled with
-    NWTC Subroutine Library (v2.03.00b-bjj, 1-Oct-2013)
+    NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014)
     ElastoDyn (v1.01.02b-bjj, 03-Oct-2013)
     ServoDyn (v1.01.01b-bjj, 03-Oct-2013)
-    AeroDyn (v14.02.00c-mlb, 02-Oct-2013)
-    InflowWind (v2.00.00b-adp, 17-Sept-2013)
-    HydroDyn (unknown version, unknown date) [not called]
-    SubDyn (v0.04.00a-rrd, 3-Oct-2013)
+    AeroDyn (v14.02.01a-bjj, 07-Jan-2014)
+    InflowWind (v2.00.01a-bjj, 22-Jan-2014)
+    HydroDyn (v2.00.02d-gjh, 23-Jan-2014)
+    SubDyn (v1.00.00b-rrd, 12-Dec-2013)
     MAP (unknown version, unknown date) [not called]
+    FEAM (unknown version, unknown date) [not called]
 
 
-Modeling an onshore turbine
+Modeling a fixed-bottom offshore turbine
 Description from the FAST input file: 
   FAST Certification Test #19: NREL 5.0 MW Baseline Wind Turbine with Monopile RF Configuration, for use in offshore analysis
 
 Interpolation order for input/output time histories: 2 (quadratic)
-Number of correction iterations:  0
+Number of correction iterations:  1
+Glue code time step (seconds): 1.00000E-03
+Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and HydroDyn:    498
 
 
    Requested Channels in FAST Output File(s) 
@@ -64,51 +67,33 @@ Number of correction iterations:  0
       37  YawBrMzp    (kN·m)      ElastoDyn
       38  GenPwr      (kW)        ServoDyn
       39  GenTq       (kN·m)      ServoDyn
-      40  ReactXss    (N)         SubDyn
-      41  ReactYss    (N)         SubDyn
-      42  ReactZss    (N)         SubDyn
-      43  ReactMXss   (Nm)        SubDyn
-      44  ReactMYss   (Nm)        SubDyn
-      45  ReactMZss   (Nm)        SubDyn
-      46  IntfXss     (N)         SubDyn
-      47  IntfYss     (N)         SubDyn
-      48  IntfZss     (N)         SubDyn
-      49  IntfMXss    (Nm)        SubDyn
-      50  IntfMYss    (Nm)        SubDyn
-      51  IntfMZss    (Nm)        SubDyn
-      52  IntfTDXss   (m)         SubDyn
-      53  IntfTDYss   (m)         SubDyn
-      54  IntfTDZss   (m)         SubDyn
-      55  IntfRDXss   (rad)       SubDyn
-      56  IntfRDYss   (rad)       SubDyn
-      57  IntfRDZss   (rad)       SubDyn
-      58  IntfTAXss   (m/s^2)     SubDyn
-      59  IntfTAYss   (m/s^2)     SubDyn
-      60  IntfTAZss   (m/s^2)     SubDyn
-      61  IntfRAXss   (rad/s^2)   SubDyn
-      62  IntfRAYss   (rad/s^2)   SubDyn
-      63  IntfRAZss   (rad/s^2)   SubDyn
-      64  M1J1FKxe    (N)         SubDyn
-      65  M1J1FKye    (N)         SubDyn
-      66  M1J1FKze    (N)         SubDyn
-      67  M1J1MKxe    (N*m)       SubDyn
-      68  M1J1MKye    (N*m)       SubDyn
-      69  M1J1MKze    (N*m)       SubDyn
-      70  M1J1FMxe    (N)         SubDyn
-      71  M1J1FMye    (N)         SubDyn
-      72  M1J1FMze    (N)         SubDyn
-      73  M1J1MMxe    (N*m)       SubDyn
-      74  M1J1MMye    (N*m)       SubDyn
-      75  M1J1MMze    (N*m)       SubDyn
-      76  M1J2FKxe    (N)         SubDyn
-      77  M1J2FKye    (N)         SubDyn
-      78  M1J2FKze    (N)         SubDyn
-      79  M1J2MKxe    (N*m)       SubDyn
-      80  M1J2MKye    (N*m)       SubDyn
-      81  M1J2MKze    (N*m)       SubDyn
-      82  M1J2FMxe    (N)         SubDyn
-      83  M1J2FMye    (N)         SubDyn
-      84  M1J2FMze    (N)         SubDyn
-      85  M1J2MMxe    (N*m)       SubDyn
-      86  M1J2MMye    (N*m)       SubDyn
-      87  M1J2MMze    (N*m)       SubDyn
+      40  Wave1Elev   (m)         HydroDyn
+      41  ReactXss    (N)         SubDyn
+      42  ReactYss    (N)         SubDyn
+      43  ReactZss    (N)         SubDyn
+      44  ReactMXss   (Nm)        SubDyn
+      45  ReactMYss   (Nm)        SubDyn
+      46  ReactMZss   (Nm)        SubDyn
+      47  IntfXss     (N)         SubDyn
+      48  IntfYss     (N)         SubDyn
+      49  IntfZss     (N)         SubDyn
+      50  IntfMXss    (Nm)        SubDyn
+      51  IntfMYss    (Nm)        SubDyn
+      52  IntfMZss    (Nm)        SubDyn
+      53  IntfTDXss   (m)         SubDyn
+      54  IntfTDYss   (m)         SubDyn
+      55  IntfTDZss   (m)         SubDyn
+      56  IntfRDXss   (rad)       SubDyn
+      57  IntfRDYss   (rad)       SubDyn
+      58  IntfRDZss   (rad)       SubDyn
+      59  IntfTAXss   (m/s^2)     SubDyn
+      60  IntfTAYss   (m/s^2)     SubDyn
+      61  IntfTAZss   (m/s^2)     SubDyn
+      62  IntfRAXss   (rad/s^2)   SubDyn
+      63  IntfRAYss   (rad/s^2)   SubDyn
+      64  IntfRAZss   (rad/s^2)   SubDyn
+      65  M1N1TAxE    (m/s^2)     SubDyn
+      66  M1N2TAxE    (m/s^2)     SubDyn
+      67  M1N3TAxE    (m/s^2)     SubDyn
+      68  M1N4TAxE    (m/s^2)     SubDyn
+      69  M1N5TAxE    (m/s^2)     SubDyn
