@@ -1023,9 +1023,6 @@ CONTAINS
      IF ( Int_Buf(HDR_FIELDMASK+MASKID_ROTATIONACC-1)    .EQ. 1 ) RotationAcc = .TRUE.
      IF ( Int_Buf(HDR_FIELDMASK+MASKID_SCALAR-1)      .GT. 0 ) nScalars = Int_Buf(HDR_FIELDMASK+MASKID_SCALAR-1)
 
-!write(0,*)'Int_Buf(HDR_INTBUFSIZE) ',Int_Buf(HDR_INTBUFSIZE)
-!write(0,*)'Int_Buf(HDR_IOS) ',Int_Buf(HDR_IOS)
-!write(0,*)'Int_Buf(HDR_NUMNODES) ',Int_Buf(HDR_NUMNODES)
      CALL MeshCreate( Mesh, Int_Buf(HDR_IOS), Int_Buf(HDR_NUMNODES)                    &
                      ,ErrStat=ErrStat, ErrMess=ErrMess                                 &
                      ,Force=Force, Moment=Moment, Orientation=Orientation              &
@@ -1036,12 +1033,10 @@ CONTAINS
                     )
      IF (ErrStat >= AbortErrLev) RETURN
 
-!write(0,*)'Int_Buf(HDR_NUMELEMREC) ',Int_Buf(HDR_NUMELEMREC)
      ic = HDR_FIRSTELEM
      DO i = 1, Int_Buf(HDR_NUMELEMREC)
        Xelement = Int_Buf(ic) ; ic = ic + 1
        nelemnodes = Int_Buf(ic) ; ic = ic + 1
-!write(0,*)'ic ',ic,' Xelement: ',Xelement,' nelemnodes ',nelemnodes
        SELECT CASE (nelemnodes )
          CASE (1)
            CALL MeshConstructElement( Mesh, Xelement, ErrStat, ErrMess                          &

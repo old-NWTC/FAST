@@ -489,17 +489,10 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    ! u%TurbineComponents
    !..........
 
-   IF (.NOT. ALLOCATED( u%TurbineComponents%Blade ) ) THEN
-      ALLOCATE( u%TurbineComponents%Blade( NB ), STAT = ErrStat )
-      IF ( ErrStat /= 0 ) THEN
-         ErrMess = ' Error allocating space for u%TurbineComponents%Blade.'
-         ErrStat = ErrID_Fatal
-         RETURN         
-      END IF
-      
-   END IF
+   CALL AD_CopyAeroConfig( InitInp%TurbineComponents, u%TurbineComponents, MESH_NEWCOPY, ErrStat2, ErrMess2 )
+      CALL SetErrStat(ErrStat2, ErrMess2, ErrStat, ErrMess, 'AD_Init')
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
-   u%TurbineComponents = InitInp%TurbineComponents
    
    !..........
    ! u%InputMarkers (blade meshes):

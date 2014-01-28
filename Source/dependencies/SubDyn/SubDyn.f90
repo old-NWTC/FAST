@@ -580,7 +580,7 @@ SUBROUTINE SD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, E
          ! Local variables
 
       TYPE(SD_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at t
-      TYPE(SD_InputType)                           :: u           ! Instantaneous inputs
+      TYPE(SD_InputType)                           :: u_interp    ! Instantaneous inputs
       INTEGER(IntKi)                               :: ErrStat2    ! Error status of the operation (occurs after initial error)
       CHARACTER(LEN(ErrMsg))                       :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
 
@@ -591,20 +591,29 @@ SUBROUTINE SD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, E
       ErrMsg    = ""
             
       
+      
          ! Get the inputs, based on the array of values sent by the glue code:
-         
-    CALL SD_CopyInput( Inputs(1), u, MESH_NEWCOPY, ErrStat, ErrMsg )          ! bjj: this will need to be changed when the routine is implemented
-
-    
+      CALL SD_CopyInput( Inputs(1), u_interp, MESH_NEWCOPY, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) THEN
+         CALL SD_DestroyInput(u_interp, ErrStat2, ErrMsg2)         
          RETURN
       END IF
+         
+      CALL SD_Input_ExtrapInterp( Inputs, InputTimes, u_interp, t, ErrStat, ErrMsg )
+      IF ( ErrStat >= AbortErrLev ) THEN
+         CALL SD_DestroyInput(u_interp, ErrStat2, ErrMsg2)         
+         ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
+         CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+         ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
+         RETURN
+      END IF       
+            
       
-   
-
          ! Get first time derivatives of continuous states (dxdt): NOT SURE THIS IS NEEDED SINCE it is BEING CALLED WITHIN THE INTEGRATOR
-
-      CALL SD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
+         
+      ! find xdot at t
+      CALL SD_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
+      CALL SD_DestroyInput(u_interp, ErrStat2, ErrMsg2)         
       IF ( ErrStat >= AbortErrLev ) THEN
          CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
          ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
@@ -640,14 +649,8 @@ SUBROUTINE SD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, E
   
     ! Destroy dxdt because it is not necessary for the rest of the subroutine
     
-      CALL SD_DestroyContState( dxdt, ErrStat, ErrMsg)
-
-      
-      
-      CALL SD_DestroyInput(u, ErrStat, ErrMsg)
-      
-      
-      IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+                  
       
 END SUBROUTINE SD_UpdateStates
 
@@ -689,7 +692,6 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ! Initialize ErrStat
       ErrStat = ErrID_None
       ErrMsg  = ""
-
           
       L1=p%qmL /2   !Length of array qm (half length of x)
            
@@ -809,12 +811,10 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%Y2mesh%TranslationAcc (  :,L1:L2)   = 0.0
       y%Y2mesh%RotationAcc    (  :,L1:L2)   = 0.0
          
-      
-      
+
       ! ---------------------------------------------------------------------------------
       !Y1= TP reaction Forces, i.e. force that the jacket exerts onto the TP and above  
-      ! ---------------------------------------------------------------------------------
-      
+      ! ---------------------------------------------------------------------------------      
       Y1 = -( matmul(p%C1_11, x%qm)       + matmul(p%C1_12,x%qmdot)    + matmul(p%D1_11, u_TP) + &
               matmul(p%D1_13, udotdot_TP) + matmul(p%D1_14, UFL)       + p%FY )
       
@@ -2567,35 +2567,15 @@ SUBROUTINE SD_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       ErrMsg  = "" 
 
       ! Initialize interim vars
-      k1=x
-      x_tmp=x
-      k2=x
-      k3=x
-      k4=x
+      !bjj: the state type contains allocatable arrays, so we must first allocate space:
+      CALL SD_CopyContState( x, k1,       MESH_NEWCOPY, ErrStat, ErrMsg )
+      CALL SD_CopyContState( x, k2,       MESH_NEWCOPY, ErrStat, ErrMsg )
+      CALL SD_CopyContState( x, k3,       MESH_NEWCOPY, ErrStat, ErrMsg )
+      CALL SD_CopyContState( x, k4,       MESH_NEWCOPY, ErrStat, ErrMsg )
+      CALL SD_CopyContState( x, x_tmp,    MESH_NEWCOPY, ErrStat, ErrMsg )      
       
-      !bjj: you could also do this: 
-      ! CALL SD_CopyInput( u(1), u_interp, MESH_NEWCOPY, ErrStat, ErrMsg) ! make copy so that arrays/meshes 
-      CALL MeshCopy ( SrcMesh  = u(1)%TPMesh         &
-                    , DestMesh = u_interp%TPMesh     &
-                    , CtrlCode = MESH_NEWCOPY        &
-                    , ErrStat  = ErrStat             &
-                    , ErrMess  = ErrMsg               )
-
-      CALL MeshCopy ( SrcMesh  = u(1)%LMesh          &
-                    , DestMesh = u_interp%LMesh      &
-                    , CtrlCode = MESH_NEWCOPY        &
-                    , ErrStat  = ErrStat             &
-                    , ErrMess  = ErrMsg               )
-      
-     ! ALLOCATE(u_interp%UFL(p%uL), STAT=ErrStat)   !need to 
-     ! IF ( ErrStat/= ErrID_None ) THEN
-     !    ErrStat = ErrID_Fatal
-     !    ErrMsg  = 'Error allocating input u_interp%UFL in  SD_RK4'
-     !    RETURN
-     ! END IF
-     !u_interp%UFL=0
-     
       ! interpolate u to find u_interp = u(t)
+      CALL SD_CopyInput(u(1), u_interp, MESH_NEWCOPY, ErrStat, ErrMsg  )  ! we need to allocate input arrays/meshes before calling ExtrapInterp...     
       CALL SD_Input_ExtrapInterp( u, utimes, u_interp, t, ErrStat, ErrMsg )
 
       ! find xdot at t
@@ -2640,7 +2620,29 @@ SUBROUTINE SD_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       x%qm    = x%qm    +  ( k1%qm    + 2. * k2%qm    + 2. * k3%qm    + k4%qm    ) / 6.      
       x%qmdot = x%qmdot +  ( k1%qmdot + 2. * k2%qmdot + 2. * k3%qmdot + k4%qmdot ) / 6.      
 
-      CALL SD_DestroyInput( u_interp, ErrStat, ErrMsg )
+      CALL ExitThisRoutine()
+      
+CONTAINS      
+   !...............................................................................................................................
+   SUBROUTINE ExitThisRoutine()
+   ! This subroutine destroys all the local variables
+   !...............................................................................................................................
+
+         ! local variables
+      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
+      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
+   
+   
+      CALL SD_DestroyContState( xdot,     ErrStat3, ErrMsg3 )
+      CALL SD_DestroyContState( k1,       ErrStat3, ErrMsg3 )
+      CALL SD_DestroyContState( k2,       ErrStat3, ErrMsg3 )
+      CALL SD_DestroyContState( k3,       ErrStat3, ErrMsg3 )
+      CALL SD_DestroyContState( k4,       ErrStat3, ErrMsg3 )
+      CALL SD_DestroyContState( x_tmp,    ErrStat3, ErrMsg3 )
+
+      CALL SD_DestroyInput(     u_interp, ErrStat3, ErrMsg3 )
+         
+   END SUBROUTINE ExitThisRoutine            
       
 END SUBROUTINE SD_RK4
 
@@ -3743,16 +3745,35 @@ SUBROUTINE EigenSolve(K, M, TDOF, NOmega, Reduced, Init,p, Phi, Omega, RootName,
     Kred2=Kred
     Mred2=Mred
    
-    
     CALL  LAPACK_ggev('N','V',N ,Kred2 ,LDA, Mred2,LDB, ALPHAR, ALPHAI, BETA, VL, 1, VR,  LDVR, work, lwork, ErrStat, ErrMsg)
     IF (ErrStat /= ErrID_None) RETURN
+       
+ ! bjj: the debugger stops here from floating-point exceptions. This comes from the LAPACK documentation:
+ !   Note: the quotients ALPHAR(j)/BETA(j) and ALPHAI(j)/BETA(j) may easily over- or underflow, and BETA(j) may even be zero.
+ !   Thus, the user should avoid naively computing the ratio alpha/beta.  However, ALPHAR and ALPHAI will be always less
+ !   than and usually comparable with norm(A) in magnitude, and BETA always less than and usually comparable with norm(B).    
+  
     
-    Omega2=ALPHAR/BETA  !Note this may not be correct if ALPHAI<>0 and/or BETA=0 TO INCLUDE ERROR CHECK, also they need to be sorted
+    !Omega2=ALPHAR/BETA  !Note this may not be correct if ALPHAI<>0 and/or BETA=0 TO INCLUDE ERROR CHECK, also they need to be sorted
     ALLOCATE( KEY(N), STAT = ErrStat )
-    DO I=1,N !Initialize the key
-        KEY(I)=I 
+    DO I=1,N !Initialize the key and calculate Omega2
+        KEY(I)=I
+        
+        IF ( EqualRealNos(Beta(I),0.0_ReKi) ) THEN
+           !bjj: not sure what this should be, but we're getting problems with division by zero in alphar/beta in some cases
+           !IF ( EqualRealNos(ALPHAR(I),0.0_ReKi) ) THEN
+           !    Omega2(I) = HUGE(ALPHAR)? 0.0  ?
+           !ELSE
+               Omega2(I) = HUGE(ALPHAR)
+           !END IF
+        ELSE
+           Omega2(I) = ALPHAR(I)/BETA(I)
+        END IF
+           
+ 
     ENDDO  
    
+    
     CALL ScaLAPACK_LASRT('I',N,Omega2,key,ErrStat,ErrMsg)
     IF (ErrStat /= ErrID_None) RETURN
     
@@ -3800,7 +3821,7 @@ SUBROUTINE EigenSolve(K, M, TDOF, NOmega, Reduced, Init,p, Phi, Omega, RootName,
    
 Omega=Omega2(1:NOmega)  !Assign my new Omega and below my new Phi (eigenvectors)
 
-IF (.NOT.(Reduced)) THEN !For the time being Phi gets updated only when CB eigensolver is requested. I need to fix it for the other case (full fem) and tehn get rid of the other eigensolver, this implies "unreducing" the VR
+IF (.NOT.(Reduced)) THEN !For the time being Phi gets updated only when CB eigensolver is requested. I need to fix it for the other case (full fem) and then get rid of the other eigensolver, this implies "unreducing" the VR
       ! This is done as part of the CB-reduced eigensolve
    Phi=VR(:,1:NOmega)   
 ELSE !Need to expand eigenvectors for removed DOFs
@@ -4735,11 +4756,11 @@ SUBROUTINE OutSummary(Init, p, FEMparams,CBparams, ErrStat,ErrMsg)
    
     WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
     WRITE(Init%UnSum, '(A, I6)') 'FEM Eigenvalues [Hz]. Number of shown eigenvalues (total # of DOFs minus restrained nodes'' DOFs):', FEMparams%NOmega 
-    WRITE(Init%UnSum, '(I6, e15.6)') ( i, SQRT(FEMparams%Omega(i))/2.0/pi, i = 1, FEMparams%NOmega )
+    WRITE(Init%UnSum, '(I6, e15.6)') ( i, SQRT(FEMparams%Omega(i))/TwoPi, i = 1, FEMparams%NOmega )
 
     WRITE(Init%UnSum, '(A)') '__________'
     WRITE(Init%UnSum, '(A, I6)') 'CB Reduced Eigenvalues [Hz].  Number of retained modes'' eigenvalues:', CBparams%DOFM 
-    WRITE(Init%UnSum, '(I6, e15.6)') ( i, SQRT(CBparams%OmegaM(i))/2.0/pi, i = 1, CBparams%DOFM )
+    WRITE(Init%UnSum, '(I6, e15.6)') ( i, CBparams%OmegaM(i)/TwoPi, i = 1, CBparams%DOFM )
     
    !--------------------------------------
    ! write Eigenvectors of full SYstem 

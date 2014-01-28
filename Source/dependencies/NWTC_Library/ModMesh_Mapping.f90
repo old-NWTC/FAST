@@ -1737,7 +1737,7 @@ FUNCTION GetLoadsScaleFactor( Src )
    END IF
    
    IF ( MaxLoad > 10. ) THEN
-      GetLoadsScaleFactor = 10**NINT(log10(MaxLoad))
+      GetLoadsScaleFactor = 10**MIN( NINT(log10(MaxLoad)), 15 )  ! Let's not get carried away and cause overflow 10E8 is as far as we'll go
    END IF
    
 

@@ -725,7 +725,7 @@ CONTAINS
 
 
       REAL(SiKi),     intent(inout) :: A( LDA, * )       ! dimension (LDA, N). On entry, the matrix A in the pair (A,B). On exit, A has been overwritten.
-      REAL,           intent(inout) :: B( LDB, * )       ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
+      REAL(SiKi),     intent(inout) :: B( LDB, * )       ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
 
 
       REAL(SiKi),     intent(  out) :: ALPHAR( * )       ! dimension (N). See comments for variable "Beta"

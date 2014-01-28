@@ -155,7 +155,7 @@ SUBROUTINE FAST_End( p_FAST, y_FAST, ErrStat, ErrMsg )
 
 END SUBROUTINE FAST_End
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
+SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
 ! This subroutine checks for command-line arguments, gets the root name of the input files
 ! (including full path name), and creates the names of the output files.
 !..................................................................................................................................
@@ -165,6 +165,7 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
    ! Passed variables
 
    TYPE(FAST_ParameterType), INTENT(INOUT)         :: p                 ! The parameter data for the FAST (glue-code) simulation
+   TYPE(FAST_OutputType),    INTENT(INOUT)         :: y_FAST            ! The output data for the FAST (glue-code) simulation
    INTEGER(IntKi),           INTENT(OUT)           :: ErrStat           ! Error status
    CHARACTER(*),             INTENT(OUT)           :: ErrMsg            ! Error message
    CHARACTER(*),             INTENT(IN), OPTIONAL  :: InFile            ! A CHARACTER string containing the name of the primary FAST input file (if not present, we'll get it from the command line)
@@ -172,6 +173,7 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
       ! Local variables
 
    REAL(DbKi)                   :: TmpTime                              ! A temporary variable for error checking
+   INTEGER                      :: i                                    ! loop counter
    INTEGER                      :: Stat                                 ! The status of the call to GET_CWD
    CHARACTER(1024)              :: DirName                              ! A CHARACTER string containing the path of the current working directory
    CHARACTER(1024)              :: InputFile                            ! A CHARACTER string containing the name of the primary FAST input file
@@ -222,7 +224,25 @@ SUBROUTINE FAST_Init( p, ErrStat, ErrMsg, InFile  )
       END IF
    END IF
 
+   !...............................................................................................................................
+   ! Initialize the module name/date/version info:
+   !...............................................................................................................................
 
+   DO i=1,NumModules
+      y_FAST%Module_Ver(i)%Date = 'unknown date'
+      y_FAST%Module_Ver(i)%Ver  = 'unknown version'
+   END DO       
+   Y_FAST%Module_Ver( Module_IfW  )%Name = 'InflowWind'
+   Y_FAST%Module_Ver( Module_ED   )%Name = 'ElastoDyn'
+   Y_FAST%Module_Ver( Module_AD   )%Name = 'AeroDyn'
+   Y_FAST%Module_Ver( Module_SrvD )%Name = 'ServoDyn'
+   Y_FAST%Module_Ver( Module_HD   )%Name = 'HydroDyn'
+   Y_FAST%Module_Ver( Module_SD   )%Name = 'SubDyn'
+   Y_FAST%Module_Ver( Module_MAP  )%Name = 'MAP'
+   Y_FAST%Module_Ver( Module_FEAM )%Name = 'FEAMooring'
+         
+   p%n_substeps = 1                                                ! number of substeps for between modules and global/FAST time
+         
    !...............................................................................................................................
    ! Read the primary file for the glue code:
    !...............................................................................................................................
@@ -387,69 +407,38 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    ! and save the module version info for later use, too:
    !......................................................
 
-   y_FAST%ED_Ver   = InitOutData_ED%Ver
-   y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%ED_Ver  ))
+   y_FAST%Module_Ver( Module_ED )   = InitOutData_ED%Ver
+   y_FAST%FileDescLines(2)          = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_ED )  ))
 
    IF ( p_FAST%CompAero == Module_AD )  THEN
-      y_FAST%IfW_Ver  = InitOutData_AD%IfW_InitOutput%Ver
-      y_FAST%AD_Ver   = InitOutData_AD%Ver
+      y_FAST%Module_Ver( Module_IfW ) = InitOutData_AD%IfW_InitOutput%Ver ! call copy routine?
+      y_FAST%Module_Ver( Module_AD  ) = InitOutData_AD%Ver
      
-      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%IfW_Ver)) 
-      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%AD_Ver ))      
-   ELSE
-      y_FAST%AD_Ver%Name = 'AeroDyn'
-      y_FAST%AD_Ver%Date = 'unknown date'
-      y_FAST%AD_Ver%Ver  = 'unknown version'
-      
-      y_FAST%IfW_Ver%Name = 'InflowWind'
-      y_FAST%IfW_Ver%Date = 'unknown date'
-      y_FAST%IfW_Ver%Ver  = 'unknown version'
-            
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_IfW ))) 
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_AD  ) ))                  
    END IF
 
    IF ( p_FAST%CompServo == Module_SrvD ) THEN
-      y_FAST%SrvD_Ver = InitOutData_SrvD%Ver
-      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%SrvD_Ver))
-   ELSE
-      y_FAST%SrvD_Ver%Name = 'ServoDyn'
-      y_FAST%SrvD_Ver%Date = 'unknown date'
-      y_FAST%SrvD_Ver%Ver  = 'unknown version'
+      y_FAST%Module_Ver( Module_SrvD ) = InitOutData_SrvD%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_SrvD )))
    END IF
          
    IF ( p_FAST%CompHydro == Module_HD ) THEN
-      y_FAST%HD_Ver   = InitOutData_HD%Ver
-      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%HD_Ver))
-   ELSE
-      y_FAST%HD_Ver%Name = 'HydroDyn'
-      y_FAST%HD_Ver%Date = 'unknown date'
-      y_FAST%HD_Ver%Ver  = 'unknown version'
+      y_FAST%Module_Ver( Module_HD )   = InitOutData_HD%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_HD )))
    END IF
 
    IF ( p_FAST%CompSub == Module_SD ) THEN
-      y_FAST%SD_Ver   = InitOutData_SD%Ver
-      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%SD_Ver))
-   ELSE
-      y_FAST%SD_Ver%Name = 'SubDyn'
-      y_FAST%SD_Ver%Date = 'unknown date'
-      y_FAST%SD_Ver%Ver  = 'unknown version'
+      y_FAST%Module_Ver( Module_SD )   = InitOutData_SD%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_SD )))
    END IF
 
    IF ( p_FAST%CompMooring == Module_MAP ) THEN
-      y_FAST%MAP_Ver   = InitOutData_MAP%Ver
-      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%MAP_Ver))
-   ELSE
-      y_FAST%MAP_Ver%Name = 'MAP'
-      y_FAST%MAP_Ver%Date = 'unknown date'
-      y_FAST%MAP_Ver%Ver  = 'unknown version'
-   END IF   
-   
-   IF ( p_FAST%CompMooring == Module_FEAM ) THEN
-      y_FAST%FEAM_Ver   = InitOutData_FEAM%Ver
-      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%FEAM_Ver))
-   ELSE
-      y_FAST%FEAM_Ver%Name = 'FEAM'
-      y_FAST%FEAM_Ver%Date = 'unknown date'
-      y_FAST%FEAM_Ver%Ver  = 'unknown version'
+      y_FAST%Module_Ver( Module_MAP )   = InitOutData_MAP%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_MAP )))
+   ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
+      y_FAST%Module_Ver( Module_FEAM )   = InitOutData_FEAM%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_FEAM )))
    END IF   
    
             
@@ -504,12 +493,6 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
       y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_AD%IfW_InitOutput%WriteOutputHdr
       y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_AD%IfW_InitOutput%WriteOutputUnt
       
-      !y_FAST%ChannelNames(indxNext:indxLast) = (/ 'WindVxi   ', 'WindVyi   ', 'WindVzi   ' /)
-      !IF ( p_FAST%CompAero == Module_AD ) THEN
-      !   y_FAST%ChannelUnits(indxNext:indxLast) = (/ '(m/s)     ', '(m/s)     ', '(m/s)     ' /)
-      !ELSE
-      !   y_FAST%ChannelUnits(indxNext:indxLast) = (/ 'INVALID   ', 'INVALID   ', 'INVALID   ' /)
-      !END IF
       indxNext = indxLast + 1
    END IF
 
@@ -676,33 +659,33 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    WRITE (y_FAST%UnSum,'(2X,A)'   )  'compiled with'
    Fmt = '(4x,A)'
    WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD(        NWTC_Ver ) )
-   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%ED_Ver   ) )
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%Module_Ver( Module_ED )   ) )
    
-   DescStr = GetNVD( y_FAST%SrvD_Ver )
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_SrvD ) )
    IF ( p_FAST%CompServo /= Module_SrvD ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
-   DescStr = GetNVD( y_FAST%AD_Ver )
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_AD ) )
    IF ( p_FAST%CompAero /= Module_AD ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
-   DescStr = GetNVD( y_FAST%IfW_Ver )
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_IfW ) )
    IF ( p_FAST%CompAero /= Module_AD ) DescStr = TRIM(DescStr)//NotUsedTxt !IfW is a submodule of AD right now
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
-   DescStr = GetNVD( y_FAST%HD_Ver )
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_HD ) )
    IF ( p_FAST%CompHydro /= Module_HD  ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
-   DescStr = GetNVD( y_FAST%SD_Ver )
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_SD ) )
    IF ( p_FAST%CompSub /= Module_SD ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
-   DescStr = GetNVD( y_FAST%MAP_Ver )
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_MAP ) )
    IF ( p_FAST%CompMooring /= Module_MAP ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
 
-   DescStr = GetNVD( y_FAST%FEAM_Ver )
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_FEAM ) )
    IF ( p_FAST%CompMooring /= Module_FEAM ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
@@ -745,13 +728,10 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    
    WRITE(y_FAST%UnSum,'(/A,I1,A)'  ) 'Interpolation order for input/output time histories: ', p_FAST%InterpOrder, TRIM(DescStr)
    WRITE(y_FAST%UnSum,'( A,I2)'    ) 'Number of correction iterations: ', p_FAST%NumCrctn
-   WRITE(y_FAST%UnSum,'( A,A)' ) 'Glue code time step (seconds): ', TRIM(Num2LStr(p_FAST%DT))
-            
    
+      
    !.......................... Information About Coupling ...................................................
-   
-
-   
+      
    IF ( ALLOCATED( MeshMapData%Jacobian_ED_SD_HD ) ) then
       
       IF ( p_FAST%CompHydro == Module_HD ) THEN ! HydroDyn <-> {ElastoDyn or SubDyn}
@@ -771,11 +751,27 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
                                        SIZE(MeshMapData%Jacobian_ED_SD_HD, 1)
    END IF
 
+   !.......................... Time step information: ...................................................
+   
+   WRITE (y_FAST%UnSum,'(//,2X,A)') " Requested Time Steps  "
+   WRITE (y_FAST%UnSum,   '(2X,A)') "-------------------------------------------------"
+   Fmt = '(2X,A17,2X,A15,2X,A13)'
+   WRITE (y_FAST%UnSum, Fmt ) "Component        ", "Time Step (s)  ", "Subcycles (-)"
+   WRITE (y_FAST%UnSum, Fmt ) "-----------------", "---------------", "-------------"
+   Fmt = '(2X,A17,2X,'//TRIM(p_FAST%OutFmt)//',:,T37,2X,I8,:,A)'
+   WRITE (y_FAST%UnSum, Fmt ) "FAST (glue code) ", p_FAST%DT
+   DO i=1,NumModules
+      IF (p_FAST%ModuleInitialized(i)) THEN
+         WRITE (y_FAST%UnSum, Fmt ) y_FAST%Module_Ver(i)%Name, p_FAST%DT_module(i), p_FAST%n_substeps(i)
+      END IF
+   END DO
+   WRITE (y_FAST%UnSum, Fmt ) "FAST output files", p_FAST%DT_out, NINT( p_FAST%DT_out / p_FAST%DT ),"^-1"
+   
    
    !.......................... Requested Output Channels ............................................
 
-   WRITE (y_FAST%UnSum,'(//,2X,A)') " Requested Channels in FAST Output File(s) "
-   WRITE (y_FAST%UnSum,   '(2X,A)') "-------------------------------------------"
+   WRITE (y_FAST%UnSum,'(//,2X,A)') " Requested Channels in FAST Output File(s)  "
+   WRITE (y_FAST%UnSum,   '(2X,A)') "--------------------------------------------"
    Fmt = '(2X,A6,2(2X,A'//trim(num2lstr(ChanLen))//'),2X,A)'
    WRITE (y_FAST%UnSum, Fmt ) "Number", "Name      ", "Units     ", "Generated by"
    WRITE (y_FAST%UnSum, Fmt ) "------", "----------", "----------", "------------"
@@ -787,43 +783,43 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
       ! InflowWind
    DO J = 1,y_FAST%numOuts_IfW
       I = I + 1
-      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%IfW_Ver%Name)
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%Module_Ver( MODULE_IfW )%Name)
    END DO
 
       ! ElastoDyn
    DO J = 1,y_FAST%numOuts_ED
       I = I + 1
-      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%ED_Ver%Name)
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%Module_Ver( MODULE_ED )%Name)
    END DO
 
       ! ServoDyn
    DO J = 1,y_FAST%numOuts_SrvD
       I = I + 1
-      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%SrvD_Ver%Name)
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%Module_Ver( MODULE_SrvD )%Name)
    END DO
 
       ! HydroDyn
    DO J = 1,y_FAST%numOuts_HD
       I = I + 1
-      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%HD_Ver%Name)
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%Module_Ver( MODULE_HD )%Name)
    END DO
 
       ! SubDyn
    DO J = 1,y_FAST%numOuts_SD
       I = I + 1
-      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%SD_Ver%Name)
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%Module_Ver( MODULE_SD )%Name)
    END DO
 
       ! MAP (Mooring Analysis Program)
    DO J = 1,y_FAST%numOuts_MAP
       I = I + 1
-      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%MAP_Ver%Name)
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%Module_Ver( MODULE_MAP )%Name)
    END DO
       
       ! FEAMooring
    DO J = 1,y_FAST%numOuts_FEAM
       I = I + 1
-      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%FEAM_Ver%Name)
+      WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%Module_Ver( MODULE_FEAM )%Name)
    END DO
    
    
@@ -2170,7 +2166,7 @@ SUBROUTINE FEAM_InputSolve(  u_FEAM, y_ED, MeshMapData, ErrStat, ErrMsg )
 END SUBROUTINE FEAM_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE SD_InputSolve(  u_SD, y_SD, y_ED, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg )
-! This routine sets the inputs required for MAP.
+! This routine sets the inputs required for SubDyn. It is not currently used, though.
 !..................................................................................................................................
 
       ! Passed variables
@@ -2306,7 +2302,7 @@ SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_
          CALL WriteMappingTransferToFile(u_mapped, u_mapped_positions, u_HD_M_LumpedMesh, y_HD%Morison%LumpedMesh,&
                MeshMapData%SD_P_2_HD_M_P, MeshMapData%HD_M_P_2_SD_P, &
                'SD_y2_HD_ML_Meshes_t'//TRIM(Num2LStr(0))//'.bin' )
-         print *
+         !print *
          !pause
          
 #endif         
@@ -2329,7 +2325,7 @@ SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_
          CALL WriteMappingTransferToFile(u_mapped, u_mapped_positions, u_HD_M_DistribMesh,y_HD%Morison%DistribMesh,&
                MeshMapData%SD_P_2_HD_M_L, MeshMapData%HD_M_L_2_SD_P, &
                'SD_y2_HD_MD_Meshes_t'//TRIM(Num2LStr(0))//'.bin' )         
-         print *
+         !print *
         ! pause
 #endif         
                   

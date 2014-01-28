@@ -2084,7 +2084,6 @@ INTEGER(IntKi), PARAMETER :: ControlMode_Extern = 3
    y%YawMom = - p%YawSpr *( u%Yaw     - YawPosCom  )     &          ! {-f(qd,q,t)}SpringYaw
               - p%YawDamp*( u%YawRate - YawRateCom )                ! {-f(qd,q,t)}DampYaw;
    
-!write(54,'(8ES15.7)') t,  u%Yaw, u%YawRate, YawPosCom, YawRateCom, y%YawMom, p%YawSpr,p%YawDamp
    
 END SUBROUTINE Yaw_CalcOutput
 !----------------------------------------------------------------------------------------------------------------------------------
