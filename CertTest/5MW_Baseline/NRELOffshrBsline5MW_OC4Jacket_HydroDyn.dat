@@ -154,7 +154,7 @@ PropSetID    PropD            PropThck
 6          2.082000          0.060000
 ---------------------- SIMPLE HYDRODYNAMIC COEFFICIENTS (model 1) -------------------------
 SimplCd      SimplCdMG    SimplCa     SimplCaMG
-(-)           (-)           (-)         (-) 1.0          1.05          0.6         1.0
+(-)           (-)           (-)         (-)
 1.0          1.05          0.6         1.0
 ---------------------- DEPTH-BASED HYDRODYNAMIC COEFFICIENTS (model 2) ---------------------
 2             NCoefDpth      - Number of depth-dependent coefficients (-)
@@ -170,125 +170,126 @@ MemberID   MemberCd1   MemberCd2   MemberCdMG1   MemberCdMG2   MemberCa1   Membe
 ---------------------- MEMBERS -------------------------------------------------
 112              NMembers       - Number of members (-)
 MemberID   MJointID1   MJointID2   MPropSetID1  MPropSetID2   MDivSize  MCoefMod  PropWAMIT   [ PropWAMIT = TRUE if member is modeled in WAMIT] ! MCoefMod = 1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table
- (-)        (-)         (-)         (-)          (-)           (-)       (switch)    (flag)
-  1          1           2           2            2             10          1        false
-  2          2           3           2            2             10          1        false
-  3          3           4           2            2             10          1        false
-  4          4           5           2            2             10          1        false
-  5          6           7           2            2             10          1        false
-  6          7           8           2            2             10          1        false
-  7          8           9           2            2             10          1        false
-  8          9          10           2            2             10          1        false
-  9         11          12           2            2             10          1        false
- 10         12          13           2            2             10          1        false
- 11         13          14           2            2             10          1        false
- 12         14          15           2            2             10          1        false
- 13         16          17           2            2             10          1        false
- 14         17          18           2            2             10          1        false
- 15         18          19           2            2             10          1        false
- 16         19          20           2            2             10          1        false
- 17          5          21           3            3             10          1        false
- 18         21          22           3            3             10          1        false
- 19         22          23           3            3             10          1        false
- 20         23          24           3            3             10          1        false
- 21         10          25           3            3             10          1        false
- 22         25          26           3            3             10          1        false
- 23         26          27           3            3             10          1        false
- 24         27          28           3            3             10          1        false
- 25         15          29           3            3             10          1        false
- 26         29          30           3            3             10          1        false
- 27         30          31           3            3             10          1        false
- 28         31          32           3            3             10          1        false
- 29         20          33           3            3             10          1        false
- 30         33          34           3            3             10          1        false
- 31         34          35           3            3             10          1        false
- 32         35          36           3            3             10          1        false
- 33          3           8           1            1             10          1        false
- 34          8          13           1            1             10          1        false
- 35         13          18           1            1             10          1        false
- 36         18           3           1            1             10          1        false
- 37          4          37           1            1             10          1        false
- 38         37          20           1            1             10          1        false
- 39         19          37           1            1             10          1        false
- 40         37           5           1            1             10          1        false
- 41          9          38           1            1             10          1        false
- 42         38          15           1            1             10          1        false
- 43         14          38           1            1             10          1        false
- 44         38          10           1            1             10          1        false
- 45          4          39           1            1             10          1        false
- 46         39          10           1            1             10          1        false
- 47          9          39           1            1             10          1        false
- 48         39           5           1            1             10          1        false
- 49         19          40           1            1             10          1        false
- 50         40          15           1            1             10          1        false
- 51         14          40           1            1             10          1        false
- 52         40          20           1            1             10          1        false
- 53          5          41           1            1             10          1        false
- 54         41          33           1            1             10          1        false
- 55         20          41           1            1             10          1        false
- 56         41          21           1            1             10          1        false
- 57         10          42           1            1             10          1        false
- 58         42          29           1            1             10          1        false
- 59         15          42           1            1             10          1        false
- 60         42          25           1            1             10          1        false
- 61          5          43           1            1             10          1        false
- 62         43          25           1            1             10          1        false
- 63         10          43           1            1             10          1        false
- 64         43          21           1            1             10          1        false
- 65         20          44           1            1             10          1        false
- 66         44          29           1            1             10          1        false
- 67         15          44           1            1             10          1        false
- 68         44          33           1            1             10          1        false
- 69         21          45           1            1             10          1        false
- 70         45          34           1            1             10          1        false
- 71         33          45           1            1             10          1        false
- 72         45          22           1            1             10          1        false
- 73         25          46           1            1             10          1        false
- 74         46          30           1            1             10          1        false
- 75         29          46           1            1             10          1        false
- 76         46          26           1            1             10          1        false
- 77         21          47           1            1             10          1        false
- 78         47          26           1            1             10          1        false
- 79         25          47           1            1             10          1        false
- 80         47          22           1            1             10          1        false
- 81         33          48           1            1             10          1        false
- 82         48          30           1            1             10          1        false
- 83         29          48           1            1             10          1        false
- 84         48          34           1            1             10          1        false
- 85         22          49           1            1             10          1        false
- 86         49          35           1            1             10          1        false
- 87         34          49           1            1             10          1        false
- 88         49          23           1            1             10          1        false
- 89         26          50           1            1             10          1        false
- 90         50          31           1            1             10          1        false
- 91         30          50           1            1             10          1        false
- 92         50          27           1            1             10          1        false
- 93         22          51           1            1             10          1        false
- 94         51          27           1            1             10          1        false
- 95         26          51           1            1             10          1        false
- 96         51          23           1            1             10          1        false
- 97         34          52           1            1             10          1        false
- 98         52          31           1            1             10          1        false
- 99         30          52           1            1             10          1        false
-100         52          35           1            1             10          1        false
-101         24          53           4            4             10          1        false
-102         28          54           4            4             10          1        false
-103         32          56           4            4             10          1        false
-104         36          55           4            4             10          1        false
-105          1          58           5            5             10          1        false
-106         16          57           5            5             10          1        false
-107          6          60           5            5             10          1        false
-108         11          59           5            5             10          1        false
-109         58          62           6            6             10          1        false
-110         57          61           6            6             10          1        false
-111         60          64           6            6             10          1        false
-112         59          63           6            6             10          1        false
+ (-)        (-)         (-)         (-)          (-)           (m)       (switch)    (flag)
+  1          1           2           2            2             1           1        false
+  2          2           3           2            2             1           1        false
+  3          3           4           2            2             1           1        false
+  4          4           5           2            2             1           1        false
+  5          6           7           2            2             1           1        false
+  6          7           8           2            2             1           1        false
+  7          8           9           2            2             1           1        false
+  8          9          10           2            2             1           1        false
+  9         11          12           2            2             1           1        false
+ 10         12          13           2            2             1           1        false
+ 11         13          14           2            2             1           1        false
+ 12         14          15           2            2             1           1        false
+ 13         16          17           2            2             1           1        false
+ 14         17          18           2            2             1           1        false
+ 15         18          19           2            2             1           1        false
+ 16         19          20           2            2             1           1        false
+ 17          5          21           3            3             1           1        false
+ 18         21          22           3            3             1           1        false
+ 19         22          23           3            3             1           1        false
+ 20         23          24           3            3             1           1        false
+ 21         10          25           3            3             1           1        false
+ 22         25          26           3            3             1           1        false
+ 23         26          27           3            3             1           1        false
+ 24         27          28           3            3             1           1        false
+ 25         15          29           3            3             1           1        false
+ 26         29          30           3            3             1           1        false
+ 27         30          31           3            3             1           1        false
+ 28         31          32           3            3             1           1        false
+ 29         20          33           3            3             1           1        false
+ 30         33          34           3            3             1           1        false
+ 31         34          35           3            3             1           1        false
+ 32         35          36           3            3             1           1        false
+ 33          3           8           1            1             1           1        false
+ 34          8          13           1            1             1           1        false
+ 35         13          18           1            1             1           1        false
+ 36         18           3           1            1             1           1        false
+ 37          4          37           1            1             1           1        false
+ 38         37          20           1            1             1           1        false
+ 39         19          37           1            1             1           1        false
+ 40         37           5           1            1             1           1        false
+ 41          9          38           1            1             1           1        false
+ 42         38          15           1            1             1           1        false
+ 43         14          38           1            1             1           1        false
+ 44         38          10           1            1             1           1        false
+ 45          4          39           1            1             1           1        false
+ 46         39          10           1            1             1           1        false
+ 47          9          39           1            1             1           1        false
+ 48         39           5           1            1             1           1        false
+ 49         19          40           1            1             1           1        false
+ 50         40          15           1            1             1           1        false
+ 51         14          40           1            1             1           1        false
+ 52         40          20           1            1             1           1        false
+ 53          5          41           1            1             1           1        false
+ 54         41          33           1            1             1           1        false
+ 55         20          41           1            1             1           1        false
+ 56         41          21           1            1             1           1        false
+ 57         10          42           1            1             1           1        false
+ 58         42          29           1            1             1           1        false
+ 59         15          42           1            1             1           1        false
+ 60         42          25           1            1             1           1        false
+ 61          5          43           1            1             1           1        false
+ 62         43          25           1            1             1           1        false
+ 63         10          43           1            1             1           1        false
+ 64         43          21           1            1             1           1        false
+ 65         20          44           1            1             1           1        false
+ 66         44          29           1            1             1           1        false
+ 67         15          44           1            1             1           1        false
+ 68         44          33           1            1             1           1        false
+ 69         21          45           1            1             1           1        false
+ 70         45          34           1            1             1           1        false
+ 71         33          45           1            1             1           1        false
+ 72         45          22           1            1             1           1        false
+ 73         25          46           1            1             1           1        false
+ 74         46          30           1            1             1           1        false
+ 75         29          46           1            1             1           1        false
+ 76         46          26           1            1             1           1        false
+ 77         21          47           1            1             1           1        false
+ 78         47          26           1            1             1           1        false
+ 79         25          47           1            1             1           1        false
+ 80         47          22           1            1             1           1        false
+ 81         33          48           1            1             1           1        false
+ 82         48          30           1            1             1           1        false
+ 83         29          48           1            1             1           1        false
+ 84         48          34           1            1             1           1        false
+ 85         22          49           1            1             1           1        false
+ 86         49          35           1            1             1           1        false
+ 87         34          49           1            1             1           1        false
+ 88         49          23           1            1             1           1        false
+ 89         26          50           1            1             1           1        false
+ 90         50          31           1            1             1           1        false
+ 91         30          50           1            1             1           1        false
+ 92         50          27           1            1             1           1        false
+ 93         22          51           1            1             1           1        false
+ 94         51          27           1            1             1           1        false
+ 95         26          51           1            1             1           1        false
+ 96         51          23           1            1             1           1        false
+ 97         34          52           1            1             1           1        false
+ 98         52          31           1            1             1           1        false
+ 99         30          52           1            1             1           1        false
+100         52          35           1            1             1           1        false
+101         24          53           4            4             1           1        false
+102         28          54           4            4             1           1        false
+103         32          56           4            4             1           1        false
+104         36          55           4            4             1           1        false
+105          1          58           5            5             1           1        false
+106         16          57           5            5             1           1        false
+107          6          60           5            5             1           1        false
+108         11          59           5            5             1           1        false
+109         58          62           6            6             1           1        false
+110         57          61           6            6             1           1        false
+111         60          64           6            6             1           1        false
+112         59          63           6            6             1           1        false
 ---------------------- FILLED MEMBERS ------------------------------------------
-0 1              NFillGroups     - Number of filled member groups (-) [If FillDens = DEFAULT, then FillDens = WtrDens property, and FillFSLoc is related to MSL2SWL]
-FillNumM FillMList             FillFSLoc     FillDens
-(-)      (-)                   (m)           (kg/m^3) 32        1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 21 22 25 26 29 30 105 106 107 108 109 110 111 112        0      1025
+1              NFillGroups     - Number of filled member groups (-) [If FillDens = DEFAULT, then FillDens = WtrDens property, and FillFSLoc is related to MSL2SWL]
+FillNumM FillMList                                                                                            FillFSLoc     FillDens
+(-)      (-)                                                                                                  (m)           (kg/m^3)
+32        1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 21 22 25 26 29 30 105 106 107 108 109 110 111 112       0              1025
 ---------------------- MARINE GROWTH -------------------------------------------
-0              NMGDepths      - Number of marine-growth depths specified (-)
+0 2              NMGDepths      - Number of marine-growth depths specified (-)
 MGDpth     MGThck       MGDens   -2          .100          1100
 (m)        (m)         (kg/m^3)  -40         .100          1100
 ---------------------- MEMBER OUTPUT LIST ----------------------------------

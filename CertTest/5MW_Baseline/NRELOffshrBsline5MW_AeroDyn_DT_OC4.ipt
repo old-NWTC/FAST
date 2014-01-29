@@ -7,14 +7,14 @@ SWIRL       IndModel     - Induction-factor model [NONE or WAKE or SWIRL] (unquo
    0.005    AToler       - Induction-factor tolerance (convergence criteria) (-)
 PRANDtl     TLModel      - Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] (unquoted string)
 PRANDtl     HLModel      - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquoted string)
-"Wind/NoShr_12.wnd" "Wind/90m_12mps.bts"       WindFile    - Name of file containing wind data (quoted string)
+"Wind/90m_12mps_twr.bts"  "Wind/NoShr_12.wnd"        WindFile    - Name of file containing wind data (quoted string)
   90.0      HH           - Wind reference (hub) height [TowerHt+Twr2Shft+OverHang*SIN(ShftTilt)] (m)
    0.0      TwrShad      - Tower-shadow velocity deficit (-)
 9999.9      ShadHWid     - Tower-shadow half width (m)
 9999.9      T_Shad_Refpt - Tower-shadow reference point (m)
    1.225    AirDens      - Air density (kg/m^3)
    1.464E-5 KinVisc      - Kinematic air viscosity [CURRENTLY IGNORED] (m^2/sec)
-   0.002    DTAero       - Time interval for aerodynamic calculations (sec) !bjj: was 0.02479
+   0.0002   DTAero       - Time interval for aerodynamic calculations (sec) !bjj: was 0.02479
    8        NumFoil      - Number of airfoil files (-)
 "AeroData/Cylinder1.dat"                         FoilNm      - Names of the airfoil files [NumFoil lines] (quoted strings)
 "AeroData/Cylinder2.dat"
