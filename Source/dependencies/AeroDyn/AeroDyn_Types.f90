@@ -163,7 +163,6 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: DR 
     REAL(ReKi)  :: R 
     REAL(ReKi)  :: BladeLength 
-    INTEGER(IntKi)  :: NB 
   END TYPE BladeParms
 ! =======================
 ! =========  DynInflow  =======
@@ -3423,7 +3422,6 @@ IF (ALLOCATED(SrcbladeparmsData%DR)) THEN
 ENDIF
    DstbladeparmsData%R = SrcbladeparmsData%R
    DstbladeparmsData%BladeLength = SrcbladeparmsData%BladeLength
-   DstbladeparmsData%NB = SrcbladeparmsData%NB
  END SUBROUTINE AD_Copybladeparms
 
  SUBROUTINE AD_Destroybladeparms( bladeparmsData, ErrStat, ErrMsg )
@@ -3480,7 +3478,6 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%DR )  ! DR 
   Re_BufSz   = Re_BufSz   + 1  ! R
   Re_BufSz   = Re_BufSz   + 1  ! BladeLength
-  Int_BufSz  = Int_BufSz  + 1  ! NB
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -3496,8 +3493,6 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%BladeLength )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NB )
-  Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE AD_Packbladeparms
 
  SUBROUTINE AD_UnPackbladeparms( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -3549,8 +3544,6 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%BladeLength = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%NB = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1

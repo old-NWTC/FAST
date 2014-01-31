@@ -4,8 +4,8 @@
 # It also contains copy, destroy, pack, and unpack routines associated with each defined data types.
 # See the NWTC Programmer's Handbook for further information on the format/contents of this file.
 ###################################################################################################################################
-# File last committed: $Date: 2014-01-10 13:24:23 -0700 (Fri, 10 Jan 2014) $
-# (File) Revision #: $Rev: 102 $
+# File last committed: $Date: 2014-01-29 22:17:28 -0700 (Wed, 29 Jan 2014) $
+# (File) Revision #: $Rev: 103 $
 # URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/Registry-AD.txt $
 ###################################################################################################################################
 #
@@ -136,7 +136,7 @@ typedef	^	BladeParms	ReKi	C	{:}	-	-	"Chord of each blade element from input file
 typedef	^	BladeParms	ReKi	DR	{:}	-	-	"Span-wise width of elem (len of elem ctred at RELM(i)"
 typedef	^	BladeParms	ReKi	R	-	-	-	"Rotor radius"
 typedef	^	BladeParms	ReKi	BladeLength	-	-	-	"Blade Length"
-typedef	^	BladeParms	INTEGER	NB	-	-	-	"Number odem blades"
+#typedef	^	BladeParms	INTEGER	NB	-	-	-	"Number odem blades"
 
 #DynInflow
 dimspec	maxinfl	constant=6

@@ -70,6 +70,7 @@ FUNCTION GetVersion()
          GetVersion = TRIM(GetVersion)//' unknown'
       ENDIF
 
+!   GetVersion = TRIM(GetVersion)//' precision with '//OS_Desc
    GetVersion = TRIM(GetVersion)//' precision'
 
 
@@ -1781,7 +1782,24 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
          u_ED%PlatformPtMesh%Moment = u_ED%PlatformPtMesh%Moment + u_mapped%Moment
    
       END IF      
-                        
+                 
+      IF ( p_FAST%CompHydro == Module_HD ) THEN
+         
+               ! WAMIT loads
+         IF ( y_HD%Mesh%Committed  ) THEN
+   
+            ! we're mapping loads, so we also need the sibling meshes' displacements:
+            CALL Transfer_Point_to_Point( y_HD%Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%Mesh, y_ED%PlatformPtMesh ) !u_SD contains the orientations needed for moment calculations
+               CALL CheckError( ErrStat2, ErrMsg2 )
+               IF (ErrStat >= AbortErrLev) RETURN
+         
+            u_ED%PlatformPtMesh%Force  = u_ED%PlatformPtMesh%Force  + u_mapped%Force
+            u_ED%PlatformPtMesh%Moment = u_ED%PlatformPtMesh%Moment + u_mapped%Moment
+   
+         END IF        
+         
+      END IF
+      
    ELSEIF ( p_FAST%CompHydro == Module_HD ) THEN ! connect to HydroDyn if SubDyn isn't used
                   
          CALL Transfer_HD_to_ED( u_mapped, u_ED, y_ED%PlatformPtMesh, y_HD, u_HD, MeshMapData, ErrStat2, ErrMsg2 ) !three meshes getting summed with u_ED%PlatformPtMesh
@@ -1858,10 +1876,10 @@ SUBROUTINE Transfer_HD_to_ED( u_mapped, u_ED, u_mapped_positions, y_HD, u_HD, Me
          ! Morison loads and added mass
                   
          ! WAMIT loads and added mass and possibly Morison Elements for viscous drag, filled/flooded bouyancy, and filled/flooded added mass
-   IF ( y_HD%WRP_Mesh%Committed  ) THEN
+   IF ( y_HD%AllHdroOrigin%Committed  ) THEN
 
          ! we're mapping loads, so we also need the sibling meshes' displacements:
-      CALL Transfer_Point_to_Point( y_HD%WRP_Mesh, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%Mesh, u_mapped_positions) !u_HD and u_mapped_positions contain the displaced positions for load calculations
+      CALL Transfer_Point_to_Point( y_HD%AllHdroOrigin, u_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_HD%Mesh, u_mapped_positions) !u_HD and u_mapped_positions contain the displaced positions for load calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
@@ -1977,45 +1995,7 @@ SUBROUTINE SrvD_InputSolve( p_FAST, u_SrvD, y_ED, y_IfW, y_SrvD_prev )
    !END IF
    !
 
-
-
-
 END SUBROUTINE SrvD_InputSolve
-!----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE HD_InputSolve(  p_FAST, u_HD, y_ED, y_SD, MeshMapData, ErrStat, ErrMsg )
-! This routine sets the inputs required for HydroDyn.
-!..................................................................................................................................
-
-      ! Passed variables
-   TYPE(FAST_ParameterType),    INTENT(IN   ) :: p_FAST                       ! Glue-code simulation parameters
-   TYPE(HydroDyn_InputType),    INTENT(INOUT) :: u_HD                         ! HydroDyn input
-   TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
-   TYPE(SD_OutputType),         INTENT(IN   ) :: y_SD                         ! The outputs of subdyn
-   TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
-
-   INTEGER(IntKi),              INTENT(OUT)   :: ErrStat                       ! Error status of the operation
-   CHARACTER(*),                INTENT(OUT)   :: ErrMsg                        ! Error message if ErrStat /= ErrID_None
-   
-
-   IF ( p_FAST%CompSub /= Module_SD ) THEN
-      
-      !----------------------------------------------------------------------------------------------------
-      ! Map ED outputs (motions) to HydroDyn inputs
-      !----------------------------------------------------------------------------------------------------
-      CALL Transfer_ED_to_HD( u_HD, y_ED, MeshMapData, ErrStat, ErrMsg )
-      
-   ELSE
-      
-      !----------------------------------------------------------------------------------------------------
-      ! Map SD outputs (motions) to HydroDyn inputs
-      !----------------------------------------------------------------------------------------------------
-      
-      CALL Transfer_SD_to_HD( u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, y_SD, MeshMapData, ErrStat, ErrMsg )      
-      
-   END IF
-      
-
-END SUBROUTINE HD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Transfer_SD_to_HD( u_HD_M_LumpedMesh, u_HD_M_DistribMesh, y_SD, MeshMapData, ErrStat, ErrMsg )
 ! This routine transfers the SD outputs into inputs required for HD
@@ -2165,102 +2145,6 @@ SUBROUTINE FEAM_InputSolve(  u_FEAM, y_ED, MeshMapData, ErrStat, ErrMsg )
 
 END SUBROUTINE FEAM_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SD_InputSolve(  u_SD, y_SD, y_ED, y_HD, u_HD, MeshMapData, ErrStat, ErrMsg )
-! This routine sets the inputs required for SubDyn. It is not currently used, though.
-!..................................................................................................................................
-
-      ! Passed variables
-   TYPE(SD_InputType),          INTENT(INOUT) :: u_SD                         ! SubDyn input
-   TYPE(SD_OutputType),         INTENT(INOUT) :: y_SD                         ! SubDyn output (need translational displacement for loads mapping)
-   TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
-   TYPE(HydroDyn_OutputType),   INTENT(IN   ) :: y_HD                         ! The outputs of the hydrodynamics module
-   TYPE(HydroDyn_InputType),    INTENT(IN   ) :: u_HD                         ! The inputs from the hydrodynamics module (used for
-   TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
-
-   INTEGER(IntKi),              INTENT(  OUT) :: ErrStat                      ! Error status of the operation
-   CHARACTER(*)  ,              INTENT(  OUT) :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
-
-
-   INTEGER(IntKi)                             :: ErrStat2
-   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2
-   TYPE(MeshType)                             :: u_mapped                 ! interpolated value of input
-   
-      !----------------------------------------------------------------------------------------------------
-      ! Map ED outputs to SD inputs
-      !----------------------------------------------------------------------------------------------------
-   ErrStat = ErrID_None
-   ErrMsg  = ""
-
-   IF ( u_SD%TPMesh%Committed ) THEN
-   
-      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_SD%TPMesh, MeshMapData%ED_P_2_SD_TP, ErrStat2, ErrMsg2 ) 
-         CALL CheckError(ErrStat2,ErrMsg2)
-         IF (ErrStat >= AbortErrLev) RETURN      
-      
-   END IF
-   
-      !----------------------------------------------------------------------------------------------------
-      ! Map HD outputs to SD inputs
-      !----------------------------------------------------------------------------------------------------
-   
-   
-   IF (u_SD%LMesh%Committed ) THEN
-
-         ! Create a local copy of the SD mesh (we need the Position and RefOrientation fields on the nodes for the mapping; we'll sum the total loads from each module being used):
-      CALL MeshCopy ( u_SD%LMesh, u_mapped, MESH_NEWCOPY, ErrStat2, ErrMsg2 )        
-         CALL CheckError(ErrStat2,ErrMsg2)
-         IF (ErrStat >= AbortErrLev) RETURN      
-      
-      u_SD%LMesh%Force = 0.0_ReKi
-      u_SD%LMesh%Moment = 0.0_ReKi
-         
-      CALL Transfer_HD_to_SD( u_mapped, u_SD%LMesh, y_SD%Y2Mesh, y_HD, u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, MeshMapData, ErrStat2, ErrMsg2 )
-         CALL CheckError(ErrStat2,ErrMsg2)
-         IF (ErrStat >= AbortErrLev) RETURN      
-      
-         ! Destroy local copy of SD inputs
-      CALL MeshDestroy ( u_mapped, ErrStat2, ErrMsg2 )
-                  
-   END IF
-      
-      
-CONTAINS
-   !...............................................................................................................................
-   SUBROUTINE CheckError(ErrID,Msg)
-   ! This subroutine sets the error message and level and cleans up if the error is >= AbortErrLev
-   !...............................................................................................................................
-
-         ! Passed arguments
-      INTEGER(IntKi), INTENT(IN) :: ErrID       ! The error identifier (ErrStat)
-      CHARACTER(*),   INTENT(IN) :: Msg         ! The error message (ErrMsg)
-
-      INTEGER(IntKi)             :: ErrStat3    ! The error identifier (ErrStat)
-      CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
-
-      !............................................................................................................................
-      ! Set error status/message;
-      !............................................................................................................................
-
-      IF ( ErrID /= ErrID_None ) THEN
-
-         CALL WrScr( ' SD_InputSolve: '//TRIM(Msg) )
-
-         !.........................................................................................................................
-         ! Clean up if we're going to return on error: close files, deallocate local arrays
-         !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) THEN
-            CALL MeshDestroy ( u_mapped, ErrStat3, ErrMsg3 )
-            IF (ErrStat3 /= ErrID_None) CALL WrScr(' SD_InputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
-         END IF
-
-      END IF
-
-
-   END SUBROUTINE CheckError   
-      
-
-END SUBROUTINE SD_InputSolve
-!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_HD_M_LumpedMesh, u_HD_M_DistribMesh, MeshMapData, ErrStat, ErrMsg )
 ! This routine transfers the HD outputs into inputs required for ED. Note that this *adds* to the values already in 
 ! u_SD_LMesh (so initialize it before calling this routine).
@@ -2409,7 +2293,6 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    TYPE(HydroDyn_OutputType)         , INTENT(INOUT) :: y_HD                      ! System outputs
    
    TYPE(MeshType)                    , INTENT(IN   ) :: u_ED_Without_SD_HD        ! The current ED inputs on PlatformPtMesh, except for the HD and SD contributions 
-!BJJ: we would also need the UserPlatform loads (everything that gets mapped to the platform ref point in ED)   
    
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat                   ! Error status of the operation
@@ -2441,6 +2324,11 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    INTEGER(IntKi)                                    :: ErrStat2                  ! temporary Error status of the operation
    CHARACTER(LEN(ErrMsg))                            :: ErrMsg2                   ! temporary Error message if ErrStat /= ErrID_None
    
+#ifdef OUTPUT_ADDEDMASS   
+   REAL(ReKi)                                        :: AddedMassMatrix(6,6)
+   INTEGER                                           :: UnAM
+#endif
+
    ! Note: p_FAST%UJacSclFact is a scaling factor that gets us similar magnitudes between loads and accelerations...
  
 !bjj: note, that this routine may have a problem if there is remapping done
@@ -2600,6 +2488,17 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                                                   
             END DO ! HydroDyn contribution ( columns 7-12 )
                
+#ifdef OUTPUT_ADDEDMASS  
+   UnAM = -1
+   CALL GetNewUnit( UnAM, ErrStat, ErrMsg )
+   CALL OpenFOutFile( UnAM, 'AddedMassMatrix.out', ErrStat, ErrMsg)
+
+   AddedMassMatrix = MeshMapData%Jacobian_ED_SD_HD(1:6,7:12) * p_FAST%UJacSclFact   
+   CALL WrMatrix(AddedMassMatrix,UnAM, p_FAST%OutFmt)
+   CLOSE( UnAM )
+#endif   
+            
+            
                ! Get the LU decomposition of this matrix using a LAPACK routine: 
                ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
 
@@ -3186,7 +3085,6 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    
    
    TYPE(MeshType)                    , INTENT(IN   ) :: u_ED_Without_SD_HD        ! The current ED inputs on PlatformPtMesh, except for the HD and SD contributions 
-!BJJ: we would also need the UserPlatform loads (everything that gets mapped to the platform ref point in ED)   
    
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat                   ! Error status of the operation
@@ -3204,11 +3102,13 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    REAL(ReKi)                                        :: Fn_U_Resid(  p_FAST%SizeJac_ED_SD_HD(4))   ! Residual of U
          
    TYPE(MeshType)                                    :: u_PlatformPtMesh          ! copy of u_ED input mesh
+   TYPE(MeshType)                                    :: u_PlatformPtMesh_mapped   ! copy of u_ED input mesh (used only for temporary storage)
    TYPE(MeshType)                                    :: u_TPMesh                  ! copy of u_SD input mesh
    TYPE(MeshType)                                    :: u_LMesh                   ! copy of u_SD input mesh
    TYPE(MeshType)                                    :: u_LMesh_mapped            ! copy of u_SD input mesh (used only for temporary storage)
    TYPE(MeshType)                                    :: u_M_LumpedMesh            ! copy of u_HD input mesh
    TYPE(MeshType)                                    :: u_M_DistribMesh           ! copy of u_HD input mesh
+   TYPE(MeshType)                                    :: u_WAMIT_Mesh              ! copy of u_HD input mesh
                                                                                   
    TYPE(ED_InputType)                                :: u_ED_perturb              ! Perturbed system inputs
    TYPE(ED_OutputType)                               :: y_ED_perturb              ! Perturbed system outputs
@@ -3264,6 +3164,14 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          CALL CheckError( ErrStat2, 'u_M_DistribMesh:'//ErrMsg2  )
          IF ( ErrStat >= AbortErrLev ) RETURN
          
+      CALL MeshCopy ( u_HD%Mesh, u_WAMIT_Mesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+         CALL CheckError( ErrStat2, 'u_WAMIT_Mesh:'//ErrMsg2  )
+         IF ( ErrStat >= AbortErrLev ) RETURN
+         
+      CALL MeshCopy ( u_ED%PlatformPtMesh, u_PlatformPtMesh_mapped, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+         CALL CheckError( ErrStat2, 'u_PlatformPtMesh_mapped:'//ErrMsg2  )
+         IF ( ErrStat >= AbortErrLev ) RETURN         
+         
       CALL MeshCopy ( u_SD%LMesh, u_LMesh_mapped, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
          CALL CheckError( ErrStat2, 'u_LMesh_mapped:'//ErrMsg2  )
          IF ( ErrStat >= AbortErrLev ) RETURN         
@@ -3299,11 +3207,18 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          ! we set ED Inputs in Option 1; now we need to set HD and SD Inputs:
       
          !...............
-         ! HD inputs: (Map SD outputs to HD inputs )
-      
+         ! HD inputs: (from SD and ED)
+         
+            ! Map SD outputs to HD inputs      
          CALL Transfer_SD_to_HD( u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, y_SD, MeshMapData, ErrStat2, ErrMsg2 )      
             CALL CheckError( ErrStat2, ErrMsg2  )
             IF ( ErrStat >= AbortErrLev ) RETURN     
+            
+            ! Map ED outputs to HD inputs:
+         CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_HD%Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat2, ErrMsg2 ) 
+            CALL CheckError(ErrStat2,ErrMsg2)
+            IF (ErrStat >= AbortErrLev) RETURN      
+            
             
          !...............
          ! SD inputs: (from ED and HD)
@@ -3327,7 +3242,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
       ! set up u vector, using local initial guesses:
       !----------------------------------------------------------------------------------------------------                      
       
-      CALL Create_ED_SD_HD_UVector(u, u_ED%PlatformPtMesh, u_SD%TPMesh, u_SD%LMesh, u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, p_FAST )
+      CALL Create_ED_SD_HD_UVector(u, u_ED%PlatformPtMesh, u_SD%TPMesh, u_SD%LMesh, u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, u_HD%Mesh, p_FAST )
                   
       K = 0
       
@@ -3354,19 +3269,25 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'INPUTS; K=',K            
 !   write(unOut,*) '------------------------------------------------'            
-!   write(unOut,*) 'u_HD%Morison%lumpedMesh:'            
-!   call MeshPrintInfo ( unOut, u_HD%Morison%lumpedMesh, u_HD%Morison%lumpedMesh%NNodes)
-!   write(unOut,*) '------------------------------------------------'            
-!   write(unOut,*) 'u_HD%Morison%DistribMesh:'            
-!   call MeshPrintInfo ( unOut, u_HD%Morison%DistribMesh, u_HD%Morison%DistribMesh%NNodes)
+!!   write(unOut,*) 'u_HD%Morison%lumpedMesh:'            
+!!   call MeshPrintInfo ( unOut, u_HD%Morison%lumpedMesh)
+!!   write(unOut,*) '------------------------------------------------'            
+!!   write(unOut,*) 'u_HD%Morison%DistribMesh:'            
+!!   call MeshPrintInfo ( unOut, u_HD%Morison%DistribMesh)
+!!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'u_HD%Mesh:'            
+!   call MeshPrintInfo ( unOut, u_HD%Mesh)
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'OUTPUTS; K=',K               
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'y_HD%Morison%lumpedMesh:'            
-!   call MeshPrintInfo ( unOut, y_HD%Morison%lumpedMesh, y_HD%Morison%lumpedMesh%NNodes)
+!   call MeshPrintInfo ( unOut, y_HD%Morison%lumpedMesh)
 !   write(unOut,*) '------------------------------------------------'            
 !   write(unOut,*) 'y_HD%Morison%DistribMesh:'            
-!   call MeshPrintInfo ( unOut, y_HD%Morison%DistribMesh, y_HD%Morison%DistribMesh%NNodes)
+!   call MeshPrintInfo ( unOut, y_HD%Morison%DistribMesh)
+!   write(unOut,*) '------------------------------------------------'            
+!   write(unOut,*) 'y_HD%Mesh:'            
+!   call MeshPrintInfo ( unOut, y_HD%Mesh)
 !   write(unOut,*) '------------------------------------------------'            
 !end if                              
             
@@ -3586,6 +3507,10 @@ CONTAINS
          u_HD%Morison%DistribMesh%TranslationAcc(fieldIndx,node) = u_HD%Morison%DistribMesh%TranslationAcc(fieldIndx,node) + u_delta(n)        
       CASE (10) !Module/Mesh/Field: u_HD%Morison%DistribMesh%RotationAcc = 10
          u_HD%Morison%DistribMesh%RotationAcc(   fieldIndx,node) = u_HD%Morison%DistribMesh%RotationAcc(   fieldIndx,node) + u_delta(n)      
+      CASE (11) !Module/Mesh/Field: u_HD%Mesh%TranslationAcc = 11
+         u_HD%Mesh%TranslationAcc(   fieldIndx,node) = u_HD%Mesh%TranslationAcc(   fieldIndx,node) + u_delta(n)      
+      CASE (12) !Module/Mesh/Field: u_HD%Mesh%RotationAcc = 12
+         u_HD%Mesh%RotationAcc(   fieldIndx,node) = u_HD%Mesh%RotationAcc(   fieldIndx,node) + u_delta(n)      
       
       END SELECT
                                    
@@ -3648,6 +3573,13 @@ CONTAINS
    CASE (10) !Module/Mesh/Field: u_HD%Morison%DistribMesh%RotationAcc = 10
       perturb = GetPerturb( u_HD_perturb%Morison%DistribMesh%RotationAcc(fieldIndx , node) )
       u_HD_perturb%Morison%DistribMesh%RotationAcc(   fieldIndx,node) = u_HD_perturb%Morison%DistribMesh%RotationAcc(   fieldIndx,node) + perturb      
+   CASE (11) !Module/Mesh/Field: u_HD%Mesh%TranslationAcc = 11
+      perturb = GetPerturb( u_HD_perturb%Mesh%TranslationAcc(fieldIndx , node) )
+      u_HD_perturb%Mesh%TranslationAcc(   fieldIndx,node) = u_HD_perturb%Mesh%TranslationAcc(   fieldIndx,node) + perturb      
+   CASE (12) !Module/Mesh/Field: u_HD%Mesh%RotationAcc = 12
+      perturb = GetPerturb( u_HD_perturb%Mesh%RotationAcc(fieldIndx , node) )
+      u_HD_perturb%Mesh%RotationAcc(   fieldIndx,node) = u_HD_perturb%Mesh%RotationAcc(   fieldIndx,node) + perturb      
+            
       
    END SELECT
                                    
@@ -3678,6 +3610,12 @@ CONTAINS
          IF (ErrStat >= AbortErrLev) RETURN       
       
    
+         ! Map ED outputs to HD inputs:
+      CALL Transfer_Point_to_Point( y_ED2%PlatformPtMesh, u_WAMIT_Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat2, ErrMsg2 ) 
+         CALL CheckError(ErrStat2,ErrMsg2)
+         IF (ErrStat >= AbortErrLev) RETURN      
+         
+         
    !..................
    ! Get SD inputs (u_M_LumpedMesh and u_M_DistribMesh meshes must be set first)
    !..................
@@ -3698,7 +3636,7 @@ CONTAINS
    
    
    !..................
-   ! Get ED inputs on u_PlatformPtMesh (must do this after u_SD2%TPMesh is set)
+   ! Get ED inputs on u_PlatformPtMesh (must do this after u_TPMesh and u_WAMIT_Mesh are set)
    !..................
       
       ! Loads (outputs) on the SD transition piece transfered to ED input location/mesh:
@@ -3706,12 +3644,28 @@ CONTAINS
       CALL Transfer_Point_to_Point( y_SD2%Y1Mesh, u_PlatformPtMesh, MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2, u_TPMesh, y_ED2%PlatformPtMesh ) !u_TPMesh contains the orientations needed for moment calculations
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
-                              
+         
+               ! WAMIT loads from HD get added to this load:
+         IF ( y_HD2%Mesh%Committed  ) THEN
+   
+            ! we're mapping loads, so we also need the sibling meshes' displacements:
+            CALL Transfer_Point_to_Point( y_HD2%Mesh, u_PlatformPtMesh_mapped, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2, u_WAMIT_Mesh, y_ED2%PlatformPtMesh ) !u_SD contains the orientations needed for moment calculations
+               CALL CheckError( ErrStat2, ErrMsg2 )
+               IF (ErrStat >= AbortErrLev) RETURN
+         
+            u_PlatformPtMesh%Force  = u_PlatformPtMesh%Force  + u_PlatformPtMesh_mapped%Force
+            u_PlatformPtMesh%Moment = u_PlatformPtMesh%Moment + u_PlatformPtMesh_mapped%Moment
+   
+         END IF        
+         
+         u_PlatformPtMesh%Force  = u_PlatformPtMesh%Force  + u_ED_Without_SD_HD%Force
+         u_PlatformPtMesh%Moment = u_PlatformPtMesh%Moment + u_ED_Without_SD_HD%Moment
+                                                
    !..................
    ! Calculate the residual with these new inputs:
    !..................                  
          
-      CALL Create_ED_SD_HD_UVector(U_Resid, u_PlatformPtMesh, u_TPMesh, u_LMesh, u_M_LumpedMesh, u_M_DistribMesh, p_FAST )         
+      CALL Create_ED_SD_HD_UVector(U_Resid, u_PlatformPtMesh, u_TPMesh, u_LMesh, u_M_LumpedMesh, u_M_DistribMesh, u_WAMIT_Mesh, p_FAST )         
          
       U_Resid = u_in - U_Resid
    
@@ -3752,6 +3706,8 @@ CONTAINS
       
       CALL MeshDestroy ( u_PlatformPtMesh, ErrStat3, ErrMsg3 )
          IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_HD_InputOutputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
+      CALL MeshDestroy ( u_PlatformPtMesh_mapped, ErrStat3, ErrMsg3 )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_HD_InputOutputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
       CALL MeshDestroy ( u_TPMesh, ErrStat3, ErrMsg3 )
          IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_HD_InputOutputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
       CALL MeshDestroy ( u_LMesh, ErrStat3, ErrMsg3 )
@@ -3761,6 +3717,8 @@ CONTAINS
       CALL MeshDestroy ( u_M_DistribMesh, ErrStat3, ErrMsg3 )
          IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_HD_InputOutputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
       CALL MeshDestroy ( u_M_LumpedMesh, ErrStat3, ErrMsg3 )
+         IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_HD_InputOutputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
+      CALL MeshDestroy ( u_WAMIT_Mesh, ErrStat3, ErrMsg3 )
          IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_HD_InputOutputSolve/MeshDestroy: '//TRIM(ErrMsg3) )
             
          
@@ -3778,8 +3736,7 @@ CONTAINS
          CALL HydroDyn_DestroyInput( u_HD_perturb, ErrStat3, ErrMsg3 )
             IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_InputOutputSolve/HydroDyn_DestroyInput: '//TRIM(ErrMsg3) )
          CALL HydroDyn_DestroyOutput(y_HD_perturb, ErrStat3, ErrMsg3 )
-            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_InputOutputSolve/HydroDyn_DestroyOutput: '//TRIM(ErrMsg3) )                        
-      
+            IF (ErrStat3 /= ErrID_None) CALL WrScr(' ED_SD_InputOutputSolve/HydroDyn_DestroyOutput: '//TRIM(ErrMsg3) )                              
       END IF
       
    
@@ -3787,7 +3744,8 @@ CONTAINS
    !...............................................................................................................................
 END SUBROUTINE ED_SD_HD_InputOutputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Init_ED_SD_HD_Jacobian( p_FAST, MeshMapData, ED_PlatformPtMesh, SD_TPMesh, SD_LMesh, HD_M_LumpedMesh, HD_M_DistribMesh, ErrStat, ErrMsg)
+SUBROUTINE Init_ED_SD_HD_Jacobian( p_FAST, MeshMapData, ED_PlatformPtMesh, SD_TPMesh, SD_LMesh, HD_M_LumpedMesh, HD_M_DistribMesh, &
+                                   HD_WAMIT_Mesh, ErrStat, ErrMsg)
 
    TYPE(FAST_ParameterType)          , INTENT(INOUT) :: p_FAST                     
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
@@ -3798,6 +3756,7 @@ SUBROUTINE Init_ED_SD_HD_Jacobian( p_FAST, MeshMapData, ED_PlatformPtMesh, SD_TP
    TYPE(MeshType)                    , INTENT(IN   ) :: SD_LMesh
    TYPE(MeshType)                    , INTENT(IN   ) :: HD_M_LumpedMesh
    TYPE(MeshType)                    , INTENT(IN   ) :: HD_M_DistribMesh
+   TYPE(MeshType)                    , INTENT(IN   ) :: HD_WAMIT_Mesh
    
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat                   ! Error status of the operation
    CHARACTER(*)                      , INTENT(  OUT) :: ErrMsg                    ! Error message if ErrStat /= ErrID_None
@@ -3818,7 +3777,8 @@ SUBROUTINE Init_ED_SD_HD_Jacobian( p_FAST, MeshMapData, ED_PlatformPtMesh, SD_TP
                               + SD_LMesh%NNodes *6             ! SD inputs: 6 loads per node (size of SD input from HD)                                          
          
    p_FAST%SizeJac_ED_SD_HD(3) = HD_M_LumpedMesh%NNodes *6 &    ! HD inputs: 6 accelerations per node (on each Morison mesh) 
-                              + HD_M_DistribMesh%NNodes*6      ! HD inputs: 6 accelerations per node (on each Morison mesh)
+                              + HD_M_DistribMesh%NNodes*6 &    ! HD inputs: 6 accelerations per node (on each Morison mesh)
+                              + HD_WAMIT_Mesh%NNodes*6         ! HD inputs: 6 accelerations per node (on the WAMIT mesh)
          
    p_FAST%SizeJac_ED_SD_HD(4) = p_FAST%SizeJac_ED_SD_HD(1) &   ! all the inputs from these 3 modules
                               + p_FAST%SizeJac_ED_SD_HD(2) &
@@ -3952,9 +3912,29 @@ SUBROUTINE Init_ED_SD_HD_Jacobian( p_FAST, MeshMapData, ED_PlatformPtMesh, SD_TP
       end do !j      
    end do !i     
    
+   
+   !(Mesh)
+   do i=1,HD_WAMIT_Mesh%NNodes
+      do j=1,3
+         MeshMapData%Jac_u_indx(index,1) = 11 !Module/Mesh/Field: u_HD%Mesh%TranslationAcc = 11
+         MeshMapData%Jac_u_indx(index,2) =  j !index:  j
+         MeshMapData%Jac_u_indx(index,3) =  i !Node:   i
+         index = index + 1
+      end do !j      
+   end do !i
+   
+   do i=1,HD_WAMIT_Mesh%NNodes
+      do j=1,3
+         MeshMapData%Jac_u_indx(index,1) = 12 !Module/Mesh/Field:  u_HD%Mesh%RotationAcc = 12
+         MeshMapData%Jac_u_indx(index,2) =  j !index:  j
+         MeshMapData%Jac_u_indx(index,3) =  i !Node:   i
+         index = index + 1
+      end do !j      
+   end do !i        
+   
 END SUBROUTINE Init_ED_SD_HD_Jacobian
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE Create_ED_SD_HD_UVector(u, ED_PlatformPtMesh, SD_TPMesh, SD_LMesh, HD_M_LumpedMesh, HD_M_DistribMesh, p_FAST )
+SUBROUTINE Create_ED_SD_HD_UVector(u, ED_PlatformPtMesh, SD_TPMesh, SD_LMesh, HD_M_LumpedMesh, HD_M_DistribMesh, HD_WAMIT_Mesh, p_FAST )
 ! This routine basically packs the relevant parts of the modules' input meshes for use in this InputOutput solve.
 ! Do not change the order of this packing without changing subroutine Init_ED_SD_HD_Jacobian()!
 !...............................................................................................................................
@@ -3967,6 +3947,7 @@ SUBROUTINE Create_ED_SD_HD_UVector(u, ED_PlatformPtMesh, SD_TPMesh, SD_LMesh, HD
    TYPE(MeshType)                    , INTENT(IN   ) :: SD_LMesh
    TYPE(MeshType)                    , INTENT(IN   ) :: HD_M_LumpedMesh
    TYPE(MeshType)                    , INTENT(IN   ) :: HD_M_DistribMesh
+   TYPE(MeshType)                    , INTENT(IN   ) :: HD_WAMIT_Mesh
    
    TYPE(FAST_ParameterType)          , INTENT(IN   ) :: p_FAST
    
@@ -4028,6 +4009,19 @@ SUBROUTINE Create_ED_SD_HD_UVector(u, ED_PlatformPtMesh, SD_TPMesh, SD_LMesh, HD
       indx_first = indx_last + 1
    end do
                   
+   ! HD inputs (Mesh):
+   do i=1,HD_WAMIT_Mesh%NNodes
+      indx_last  = indx_first + 2 
+      u(indx_first:indx_last) = HD_WAMIT_Mesh%TranslationAcc(:,i)
+      indx_first = indx_last + 1
+   end do
+      
+   do i=1,HD_WAMIT_Mesh%NNodes
+      indx_last  = indx_first + 2 
+      u(indx_first:indx_last) = HD_WAMIT_Mesh%RotationAcc(:,i)
+      indx_first = indx_last + 1
+   end do   
+   
    
 END SUBROUTINE Create_ED_SD_HD_UVector
 !----------------------------------------------------------------------------------------------------------------------------------

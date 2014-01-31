@@ -33,6 +33,9 @@ MODULE ElastoDyn_Parameters
 
    USE NWTC_Library
 
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.03a-bjj', '29-Jan-2014' )
+   
+   
    REAL(ReKi), PARAMETER            :: SmallAngleLimit_Deg  =  15.0                     ! Largest input angle considered "small" (used as a check on input data), degrees
 
 
@@ -1280,7 +1283,7 @@ MODULE ElastoDyn
 
    PRIVATE
    
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.02b-bjj', '03-Oct-2013' )
+!   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.02b-bjj', '03-Oct-2013' )
 
 
 
@@ -1366,7 +1369,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       !............................................................................................
    p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(ED_Ver%Name) ! all of the output file names from this module will end with '_ElastoDyn'
 
-   CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, p%RootName, ErrStat2, ErrMsg2 )
+   CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, Interval, p%RootName, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -2976,12 +2979,13 @@ END SUBROUTINE ED_CalcConstrStateResidual
 ! WE ARE NOT YET IMPLEMENTING THE JACOBIANS...
 
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, OutFileRoot, ErrStat, ErrMsg )
+SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, Default_DT, OutFileRoot, ErrStat, ErrMsg )
 ! This subroutine reads the input file and stores all the data in the ED_InputFile structure.
 ! It does not perform data validation.
 !..................................................................................................................................
 
       ! Passed variables
+   REAL(DbKi),           INTENT(IN)       :: Default_DT     ! The default DT (from glue code)
 
    CHARACTER(*), INTENT(IN)               :: InputFileName  ! Name of the input file
    CHARACTER(*), INTENT(IN)               :: MeshFile       ! File that contains the blade mesh information (AeroDyn input file for now) -- later this info will be defined in one of the ED input files.
@@ -3009,10 +3013,11 @@ SUBROUTINE ED_ReadInput( InputFileName, MeshFile, InputFileData, ReadAdmVals, Ou
    ErrStat = ErrID_None
    ErrMsg  = ''
 
+   InputFileData%DT = Default_DT  ! the glue code's suggested DT for the module (may be overwritten in ReadPrimaryFile())
 
       ! get the primary/platform input-file data
       ! sets UnEcho, BldFile, FurlFile, TwrFile
-
+   
    CALL ReadPrimaryFile( InputFileName, InputFileData, BldFile, FurlFile, TwrFile, OutFileRoot, UnEcho, ErrStat2, ErrMsg2 )
       CALL CheckError(ErrStat2,ErrMsg2)
       IF ( ErrStat >= AbortErrLev ) RETURN
@@ -7013,7 +7018,8 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    CHARACTER(LEN(ErrMsg))       :: ErrMsg2                                   ! Temporary Error message
    CHARACTER(1024)              :: PriPath                                   ! Path name of the primary file
    CHARACTER(1024)              :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
-
+   CHARACTER(200)               :: Line                                      ! Temporary storage of a line from the input file (to compare with "default")
+   
       ! Initialize some variables:
    Echo = .FALSE.
    UnEc = -1                             ! Echo file not opened, yet
@@ -7109,9 +7115,18 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       IF ( ErrStat >= AbortErrLev ) RETURN
       
       ! DT - Requested integration time for ElastoDyn (seconds):
-   CALL ReadVar( UnIn, InputFile, InputFileData%DT, "DT", "Requested integration time for ElastoDyn (seconds)", ErrStat2, ErrMsg2, UnEc)
+   CALL ReadVar( UnIn, InputFile, Line, "DT", "Requested integration time for ElastoDyn (seconds)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
+      CALL Conv2UC( Line )
+      IF ( INDEX(Line, "DEFAULT" ) /= 1 ) THEN ! If it's not "default", read this variable; otherwise use the value already stored in InputFileData%DT
+         READ( Line, *, IOSTAT=ErrStat2) InputFileData%DT
+         IF ( ErrStat2 /= 0 ) THEN
+            CALL CheckIOS ( ErrStat2, InputFile, "DT", NumType, .TRUE., ErrMsg2 )
+            CALL CheckError( ErrID_Fatal, ErrMsg2 )
+            RETURN
+         END IF
+      END IF
 
    !---------------------- ENVIRONMENTAL CONDITION ---------------------------------
       CALL ReadCom( UnIn, InputFile, 'Section Header: Environmental Condition', ErrStat2, ErrMsg2, UnEc )

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-23 12:43:28 -0700 (Thu, 23 Jan 2014) $
-! (File) Revision #: $Rev: 319 $
+! File last committed: $Date: 2014-01-27 12:33:25 -0700 (Mon, 27 Jan 2014) $
+! (File) Revision #: $Rev: 321 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -1192,16 +1192,16 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    
    
    !-------------------------------------------------------------------------------------------------
-   !  Heave Coefficients Section
+   !  Axial Coefficients Section
    !-------------------------------------------------------------------------------------------------
    
    
        ! Header
       
-   CALL ReadCom( UnIn, FileName, 'Heave coefs header', ErrStat, ErrMsg, UnEchoLocal )
+   CALL ReadCom( UnIn, FileName, 'Axial coefs header', ErrStat, ErrMsg, UnEchoLocal )
    
    IF ( ErrStat /= ErrID_None ) THEN
-      ErrMsg  = ' Failed to read heave coefs header line.'
+      ErrMsg  = ' Failed to read axial coefs header line.'
       ErrStat = ErrID_Fatal
       CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
       CLOSE( UnIn )
@@ -1209,12 +1209,12 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    END IF
    
    
-      ! NHvCoef - Number of heave coefficients
+      ! NAxCoef - Number of axial coefficients
    
-   CALL ReadVar ( UnIn, FileName, InitInp%Morison%NHvCoefs, 'NHvCoefs', 'Number of heave coefficients', ErrStat, ErrMsg, UnEchoLocal )
+   CALL ReadVar ( UnIn, FileName, InitInp%Morison%NAxCoefs, 'NAxCoefs', 'Number of axial coefficients', ErrStat, ErrMsg, UnEchoLocal )
 
    IF ( ErrStat /= ErrID_None ) THEN
-      ErrMsg  = ' Failed to read NHvCoefs parameter.'
+      ErrMsg  = ' Failed to read NAxCoefs parameter.'
       ErrStat = ErrID_Fatal
       CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
       CLOSE( UnIn )
@@ -1223,10 +1223,10 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    
          ! Table header
       
-      CALL ReadCom( UnIn, FileName, 'Heave coefficient table header', ErrStat, ErrMsg, UnEchoLocal )
+      CALL ReadCom( UnIn, FileName, 'Axial coefficient table header', ErrStat, ErrMsg, UnEchoLocal )
    
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg  = ' Failed to read heave coefficient table header line.'
+         ErrMsg  = ' Failed to read axial coefficient table header line.'
          ErrStat = ErrID_Fatal
          CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
          CLOSE( UnIn )
@@ -1235,40 +1235,40 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
       
          ! Table header
       
-      CALL ReadCom( UnIn, FileName, 'Heave coefficient table header', ErrStat, ErrMsg, UnEchoLocal )
+      CALL ReadCom( UnIn, FileName, 'Axial coefficient table header', ErrStat, ErrMsg, UnEchoLocal )
    
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg  = ' Failed to read heave coefficient table header line.'
+         ErrMsg  = ' Failed to read axial coefficient table header line.'
          ErrStat = ErrID_Fatal
          CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
          CLOSE( UnIn )
          RETURN
       END IF
    
-   IF ( InitInp%Morison%NHvCoefs > 0 ) THEN
+   IF ( InitInp%Morison%NAxCoefs > 0 ) THEN
       
       
-         ! Allocate memory for Heave Coef-related arrays
+         ! Allocate memory for Axial Coef-related arrays
          
-      ALLOCATE ( InitInp%Morison%HeaveCoefs(InitInp%Morison%NHvCoefs), STAT = ErrStat )
+      ALLOCATE ( InitInp%Morison%AxialCoefs(InitInp%Morison%NAxCoefs), STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg  = ' Error allocating space for HeaveCoefs array.'
+         ErrMsg  = ' Error allocating space for AxialCoefs array.'
          ErrStat = ErrID_Fatal
          CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
          CLOSE( UnIn )
          RETURN
       END IF    
           
-      DO I = 1,InitInp%Morison%NHvCoefs
-            ! read the table entries   HvCoefID   CdHv  CaHv    in the HydroDyn input file
+      DO I = 1,InitInp%Morison%NAxCoefs
+            ! read the table entries   AxCoefID   CdAx  CaAx    in the HydroDyn input file
          READ(UnIn,'(A)',IOSTAT=ErrStat) Line      !read into a line 
             
          IF (ErrStat == 0) THEN
-            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%HeaveCoefs(I)%HvCoefID, InitInp%Morison%HeaveCoefs(I)%HvCd, InitInp%Morison%HeaveCoefs(I)%HvCa
+            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%AxialCoefs(I)%AxCoefID, InitInp%Morison%AxialCoefs(I)%AxCd, InitInp%Morison%AxialCoefs(I)%AxCa
          END IF      
        
          IF ( ErrStat /= ErrID_None ) THEN
-            ErrMsg  = ' Failed to read heave coefficients.'
+            ErrMsg  = ' Failed to read axial coefficients.'
             ErrStat = ErrID_Fatal
             CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
             CLOSE( UnIn )
@@ -1353,11 +1353,11 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
       END IF    
           
       DO I = 1,InitInp%Morison%NJoints
-            ! read the table entries   JointID   Jointxi     Jointyi    Jointzi      JointHvID   JointOvrlp    in the HydroDyn input file
+            ! read the table entries   JointID   Jointxi     Jointyi    Jointzi      JointAxID   JointOvrlp    in the HydroDyn input file
          READ(UnIn,'(A)',IOSTAT=ErrStat) Line      !read into a line 
             
          IF (ErrStat == 0) THEN
-            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%InpJoints(I)%JointID, InitInp%Morison%InpJoints(I)%JointPos(1), InitInp%Morison%InpJoints(I)%JointPos(2), InitInp%Morison%InpJoints(I)%JointPos(3), InitInp%Morison%InpJoints(I)%JointHvID, InitInp%Morison%InpJoints(I)%JointOvrlp
+            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%InpJoints(I)%JointID, InitInp%Morison%InpJoints(I)%JointPos(1), InitInp%Morison%InpJoints(I)%JointPos(2), InitInp%Morison%InpJoints(I)%JointPos(3), InitInp%Morison%InpJoints(I)%JointAxID, InitInp%Morison%InpJoints(I)%JointOvrlp
          END IF      
        
          IF ( ErrStat /= ErrID_None ) THEN
@@ -2465,6 +2465,12 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
    
       ! MSL2SWL - Mean sea level to still water level
+      
+   IF ( InitInp%HasWAMIT .AND. .NOT. EqualRealNos(InitInp%Morison%MSL2SWL, 0.0_ReKi) ) THEN
+      ErrMsg  = ' MSL2SWL must be 0 when HasWAMIT is True.'
+      ErrStat = ErrID_Fatal         
+      RETURN
+   END IF
    
    IF ( .NOT. EqualRealNos(InitInp%Morison%MSL2SWL, 0.0_ReKi) ) THEN  !TODO  Alter this check when we support MSL2SWL
       ErrMsg  = ' MSL2SWL must be 0. Future versions of HydroDyn will once again support any value of MSL2SWL.'
@@ -3108,38 +3114,38 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    
    
      
-      ! Check the heave coefs are >= 0 and IDs are unique
-   IF ( InitInp%Morison%NHvCoefs > 0 ) THEN
+      ! Check the axial coefs are >= 0 and IDs are unique
+   IF ( InitInp%Morison%NAxCoefs > 0 ) THEN
    
-      DO I = 1,InitInp%Morison%NHvCoefs 
+      DO I = 1,InitInp%Morison%NAxCoefs 
          
-         !IF (  .NOT. EqualRealNos(InitInp%Morison%HeaveCoefs(I)%HvCd, 0.0) ) THEN
-         !   ErrMsg  = ' HvCd must be equal to zero.  Future versions will allow for non-zero heave coefficients.'
+         !IF (  .NOT. EqualRealNos(InitInp%Morison%AxialCoefs(I)%AxCd, 0.0) ) THEN
+         !   ErrMsg  = ' AxCd must be equal to zero.  Future versions will allow for non-zero axial coefficients.'
          !   ErrStat = ErrID_Fatal
          !   RETURN
          !END IF   
-         !IF (  .NOT. EqualRealNos(InitInp%Morison%HeaveCoefs(I)%HvCa, 0.0) ) THEN
-         !   ErrMsg  = ' HvCa must be equal to zero.  Future versions will allow for non-zero heave coefficients.'
+         !IF (  .NOT. EqualRealNos(InitInp%Morison%AxialCoefs(I)%AxCa, 0.0) ) THEN
+         !   ErrMsg  = ' AxCa must be equal to zero.  Future versions will allow for non-zero axial coefficients.'
          !   ErrStat = ErrID_Fatal
          !   RETURN
          !END IF   
          
-         ! TODO: Once Heave Coefs are working remove the above checks and uncomment the checks below.  GJH 9/29/2013
-         IF (  InitInp%Morison%HeaveCoefs(I)%HvCd < 0 ) THEN
-            ErrMsg  = ' HvCd must be greater or equal to zero.'
+         ! TODO: Once Axial Coefs are working remove the above checks and uncomment the checks below.  GJH 9/29/2013
+         IF (  InitInp%Morison%AxialCoefs(I)%AxCd < 0 ) THEN
+            ErrMsg  = ' AxCd must be greater or equal to zero.'
             ErrStat = ErrID_Fatal
             RETURN
          END IF   
-         IF (  InitInp%Morison%HeaveCoefs(I)%HvCa < 0 ) THEN
-            ErrMsg  = ' HvCa must be greater or equal to zero.'
+         IF (  InitInp%Morison%AxialCoefs(I)%AxCa < 0 ) THEN
+            ErrMsg  = ' AxCa must be greater or equal to zero.'
             ErrStat = ErrID_Fatal
             RETURN
          END IF   
          
-            ! Make sure that the current HvCoefID is not used elsewhere in the table.
-         DO J = I+1,InitInp%Morison%NHvCoefs
-            IF ( InitInp%Morison%HeaveCoefs(I)%HvCoefID == InitInp%Morison%HeaveCoefs(J)%HvCoefID ) THEN
-               ErrMsg = ' Duplicate HvCoefIDs were found in the Heave Coefficients table.'
+            ! Make sure that the current AxCoefID is not used elsewhere in the table.
+         DO J = I+1,InitInp%Morison%NAxCoefs
+            IF ( InitInp%Morison%AxialCoefs(I)%AxCoefID == InitInp%Morison%AxialCoefs(J)%AxCoefID ) THEN
+               ErrMsg = ' Duplicate AxCoefIDs were found in the Axial Coefficients table.'
                ErrStat = ErrID_Fatal
                RETURN
             END IF
@@ -3211,20 +3217,20 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          !   RETURN
          !END IF   
          
-            ! Make sure the heave coef id appears in the hv table
-         IF ( InitInp%Morison%NHvCoefs > 0 ) THEN
-            InitInp%Morison%InpJoints(I)%JointHvIDIndx = -1
-            DO J = 1,InitInp%Morison%NHvCoefs         
-               IF ( InitInp%Morison%InpJoints(I)%JointHvID == InitInp%Morison%HeaveCoefs(J)%HvCoefID ) &
-                  InitInp%Morison%InpJoints(I)%JointHvIDIndx = J   
+            ! Make sure the axial coef id appears in the Ax table
+         IF ( InitInp%Morison%NAxCoefs > 0 ) THEN
+            InitInp%Morison%InpJoints(I)%JointAxIDIndx = -1
+            DO J = 1,InitInp%Morison%NAxCoefs         
+               IF ( InitInp%Morison%InpJoints(I)%JointAxID == InitInp%Morison%AxialCoefs(J)%AxCoefID ) &
+                  InitInp%Morison%InpJoints(I)%JointAxIDIndx = J   
             END DO
-            IF ( InitInp%Morison%InpJoints(I)%JointHvIDIndx == -1 ) THEN
-               ErrMsg  = ' The specified JointHvID in the Joints Table does not appear in the Heave Coefficients table.'
+            IF ( InitInp%Morison%InpJoints(I)%JointAxIDIndx == -1 ) THEN
+               ErrMsg  = ' The specified JointAxID in the Joints Table does not appear in the Axial Coefficients table.'
                ErrStat = ErrID_Fatal
                RETURN
             END IF
          ELSE
-            ! TODO: Issue error because we need at least one Heave coef table entry GJH  8/1/31
+            ! TODO: Issue error because we need at least one Axial coef table entry GJH  8/1/31
          END IF
       
       END DO
@@ -3883,18 +3889,23 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !----------------------------------------------------------
    
       ! Current
-      InitInp%Current%WtrDpth    = InitInp%Morison%WtrDpth - InitInp%Morison%MSL2SWL ! Adjust for the MSL2SWL
+         ! For wave kinematic calculations, the effective water depth is the user input water depth (positive valued) + MSL2SWL (positive when SWL is above MSL).
+      InitInp%Current%WtrDpth    = InitInp%Morison%WtrDpth + InitInp%Morison%MSL2SWL ! Adjust for the MSL2SWL.  
+                                                       
       
       ! Waves
       InitInp%Waves%Gravity      = InitInp%Gravity
       InitInp%Waves%UnSum        = InitInp%UnSum
-      InitInp%Waves%WtrDpth      = InitInp%Morison%WtrDpth - InitInp%Morison%MSL2SWL ! Adjust for the MSL2SWL
+         ! For wave kinematic calculations, the effective water depth is the user input water depth (positive valued) + MSL2SWL (positive when SWL is above MSL).
+      InitInp%Waves%WtrDpth      = InitInp%Morison%WtrDpth + InitInp%Morison%MSL2SWL ! Adjust for the MSL2SWL
+      
       ! WAMIT
       InitInp%WAMIT%WtrDens      = InitInp%Waves%WtrDens
       InitInp%WAMIT%WaveDir      = InitInp%Waves%WaveDir
       InitInp%WAMIT%WaveMod      = InitInp%Waves%WaveMod
       InitInp%WAMIT%OutAll       = InitInp%OutAll
       InitInp%WAMIT%HasWAMIT     = InitInp%HasWAMIT
+      
       ! Morison
       InitInp%Morison%UnSum      = InitInp%UnSum
       InitInp%Morison%Gravity    = InitInp%Gravity
@@ -3945,7 +3956,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       DO I=1,InitInp%Morison%NNodes
          InitInp%Waves%WaveKinxi0(I)      = InitInp%Morison%Nodes(I)%JointPos(1)                          ! xi-coordinates for points where the incident wave kinematics will be computed; 
          InitInp%Waves%WaveKinyi0(I)      = InitInp%Morison%Nodes(I)%JointPos(2)                          ! yi-coordinates for points where the incident wave kinematics will be computed; 
-         InitInp%Waves%WaveKinzi0(I)      = InitInp%Morison%Nodes(I)%JointPos(3) - InitInp%Morison%MSL2SWL   ! zi-coordinates for points where the incident wave kinematics will be computed, adjusted to the mean see level (meters)     
+         InitInp%Waves%WaveKinzi0(I)      = InitInp%Morison%Nodes(I)%JointPos(3) - InitInp%Morison%MSL2SWL   ! zi-coordinates for points where the incident wave kinematics will be computed, adjusted to the still water level(meters)     
          InitInp%Current%MorisonNodezi(I) = InitInp%Waves%WaveKinzi0(I)
       END DO
       

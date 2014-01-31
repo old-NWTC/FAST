@@ -92,6 +92,13 @@ IMPLICIT NONE
     REAL(ReKi)  :: WtrDpth 
   END TYPE HydroDyn_InitOutputType
 ! =======================
+! =========  HD_ModuleMapType  =======
+  TYPE, PUBLIC :: HD_ModuleMapType
+    TYPE(MeshMapType)  :: HD_P_2_WRP_P 
+    TYPE(MeshMapType)  :: M_P_2_WRP_P 
+    TYPE(MeshMapType)  :: M_L_2_WRP_P 
+  END TYPE HD_ModuleMapType
+! =======================
 ! =========  HydroDyn_ContinuousStateType  =======
   TYPE, PUBLIC :: HydroDyn_ContinuousStateType
     TYPE(WAMIT_ContinuousStateType)  :: WAMIT 
@@ -115,9 +122,10 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(1:6)  :: F_PtfmAdd 
     REAL(ReKi) , DIMENSION(1:6)  :: F_Hydro 
     TYPE(MeshType)  :: y_mapped 
-    TYPE(MeshType)  :: WRP_Mesh_position 
+    TYPE(MeshType)  :: AllHdroOrigin_position 
     TYPE(MeshType)  :: MrsnLumpedMesh_position 
     TYPE(MeshType)  :: MrsnDistribMesh_position 
+    TYPE(HD_ModuleMapType)  :: HD_MeshMap 
   END TYPE HydroDyn_OtherStateType
 ! =======================
 ! =========  HydroDyn_ParameterType  =======
@@ -154,7 +162,7 @@ IMPLICIT NONE
     TYPE(WAMIT_OutputType)  :: WAMIT 
     TYPE(Morison_OutputType)  :: Morison 
     TYPE(MeshType)  :: Mesh 
-    TYPE(MeshType)  :: WRP_Mesh 
+    TYPE(MeshType)  :: AllHdroOrigin 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput 
   END TYPE HydroDyn_OutputType
 ! =======================
@@ -835,6 +843,246 @@ ENDIF
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE HydroDyn_UnPackInitOutput
 
+ SUBROUTINE HydroDyn_Copyhd_modulemaptype( Srchd_modulemaptypeData, Dsthd_modulemaptypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(hd_modulemaptype), INTENT(INOUT) :: Srchd_modulemaptypeData
+   TYPE(hd_modulemaptype), INTENT(INOUT) :: Dsthd_modulemaptypeData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
+   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
+   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%HD_P_2_WRP_P, Dsthd_modulemaptypeData%HD_P_2_WRP_P, CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%M_P_2_WRP_P, Dsthd_modulemaptypeData%M_P_2_WRP_P, CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%M_L_2_WRP_P, Dsthd_modulemaptypeData%M_L_2_WRP_P, CtrlCode, ErrStat, ErrMsg )
+ END SUBROUTINE HydroDyn_Copyhd_modulemaptype
+
+ SUBROUTINE HydroDyn_Destroyhd_modulemaptype( hd_modulemaptypeData, ErrStat, ErrMsg )
+  TYPE(hd_modulemaptype), INTENT(INOUT) :: hd_modulemaptypeData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  CALL NWTC_Library_Destroymeshmaptype( hd_modulemaptypeData%HD_P_2_WRP_P, ErrStat, ErrMsg )
+  CALL NWTC_Library_Destroymeshmaptype( hd_modulemaptypeData%M_P_2_WRP_P, ErrStat, ErrMsg )
+  CALL NWTC_Library_Destroymeshmaptype( hd_modulemaptypeData%M_L_2_WRP_P, ErrStat, ErrMsg )
+ END SUBROUTINE HydroDyn_Destroyhd_modulemaptype
+
+ SUBROUTINE HydroDyn_Packhd_modulemaptype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(hd_modulemaptype),  INTENT(INOUT) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+ ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_HD_P_2_WRP_P_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_HD_P_2_WRP_P_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_HD_P_2_WRP_P_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_M_P_2_WRP_P_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_M_P_2_WRP_P_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_M_P_2_WRP_P_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_M_L_2_WRP_P_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_M_L_2_WRP_P_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_M_L_2_WRP_P_Buf(:)
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  CALL NWTC_Library_Packmeshmaptype( Re_HD_P_2_WRP_P_Buf, Db_HD_P_2_WRP_P_Buf, Int_HD_P_2_WRP_P_Buf, InData%HD_P_2_WRP_P, ErrStat, ErrMsg, .TRUE. ) ! HD_P_2_WRP_P 
+  IF(ALLOCATED(Re_HD_P_2_WRP_P_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_HD_P_2_WRP_P_Buf  ) ! HD_P_2_WRP_P
+  IF(ALLOCATED(Db_HD_P_2_WRP_P_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_HD_P_2_WRP_P_Buf  ) ! HD_P_2_WRP_P
+  IF(ALLOCATED(Int_HD_P_2_WRP_P_Buf))Int_BufSz = Int_BufSz + SIZE( Int_HD_P_2_WRP_P_Buf ) ! HD_P_2_WRP_P
+  IF(ALLOCATED(Re_HD_P_2_WRP_P_Buf))  DEALLOCATE(Re_HD_P_2_WRP_P_Buf)
+  IF(ALLOCATED(Db_HD_P_2_WRP_P_Buf))  DEALLOCATE(Db_HD_P_2_WRP_P_Buf)
+  IF(ALLOCATED(Int_HD_P_2_WRP_P_Buf)) DEALLOCATE(Int_HD_P_2_WRP_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_M_P_2_WRP_P_Buf, Db_M_P_2_WRP_P_Buf, Int_M_P_2_WRP_P_Buf, InData%M_P_2_WRP_P, ErrStat, ErrMsg, .TRUE. ) ! M_P_2_WRP_P 
+  IF(ALLOCATED(Re_M_P_2_WRP_P_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_M_P_2_WRP_P_Buf  ) ! M_P_2_WRP_P
+  IF(ALLOCATED(Db_M_P_2_WRP_P_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_M_P_2_WRP_P_Buf  ) ! M_P_2_WRP_P
+  IF(ALLOCATED(Int_M_P_2_WRP_P_Buf))Int_BufSz = Int_BufSz + SIZE( Int_M_P_2_WRP_P_Buf ) ! M_P_2_WRP_P
+  IF(ALLOCATED(Re_M_P_2_WRP_P_Buf))  DEALLOCATE(Re_M_P_2_WRP_P_Buf)
+  IF(ALLOCATED(Db_M_P_2_WRP_P_Buf))  DEALLOCATE(Db_M_P_2_WRP_P_Buf)
+  IF(ALLOCATED(Int_M_P_2_WRP_P_Buf)) DEALLOCATE(Int_M_P_2_WRP_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_M_L_2_WRP_P_Buf, Db_M_L_2_WRP_P_Buf, Int_M_L_2_WRP_P_Buf, InData%M_L_2_WRP_P, ErrStat, ErrMsg, .TRUE. ) ! M_L_2_WRP_P 
+  IF(ALLOCATED(Re_M_L_2_WRP_P_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_M_L_2_WRP_P_Buf  ) ! M_L_2_WRP_P
+  IF(ALLOCATED(Db_M_L_2_WRP_P_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_M_L_2_WRP_P_Buf  ) ! M_L_2_WRP_P
+  IF(ALLOCATED(Int_M_L_2_WRP_P_Buf))Int_BufSz = Int_BufSz + SIZE( Int_M_L_2_WRP_P_Buf ) ! M_L_2_WRP_P
+  IF(ALLOCATED(Re_M_L_2_WRP_P_Buf))  DEALLOCATE(Re_M_L_2_WRP_P_Buf)
+  IF(ALLOCATED(Db_M_L_2_WRP_P_Buf))  DEALLOCATE(Db_M_L_2_WRP_P_Buf)
+  IF(ALLOCATED(Int_M_L_2_WRP_P_Buf)) DEALLOCATE(Int_M_L_2_WRP_P_Buf)
+  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
+  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
+  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  CALL NWTC_Library_Packmeshmaptype( Re_HD_P_2_WRP_P_Buf, Db_HD_P_2_WRP_P_Buf, Int_HD_P_2_WRP_P_Buf, InData%HD_P_2_WRP_P, ErrStat, ErrMsg, OnlySize ) ! HD_P_2_WRP_P 
+  IF(ALLOCATED(Re_HD_P_2_WRP_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HD_P_2_WRP_P_Buf)-1 ) = Re_HD_P_2_WRP_P_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_HD_P_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_HD_P_2_WRP_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_HD_P_2_WRP_P_Buf)-1 ) = Db_HD_P_2_WRP_P_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_HD_P_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_HD_P_2_WRP_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_HD_P_2_WRP_P_Buf)-1 ) = Int_HD_P_2_WRP_P_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_HD_P_2_WRP_P_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_HD_P_2_WRP_P_Buf) )  DEALLOCATE(Re_HD_P_2_WRP_P_Buf)
+  IF( ALLOCATED(Db_HD_P_2_WRP_P_Buf) )  DEALLOCATE(Db_HD_P_2_WRP_P_Buf)
+  IF( ALLOCATED(Int_HD_P_2_WRP_P_Buf) ) DEALLOCATE(Int_HD_P_2_WRP_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_M_P_2_WRP_P_Buf, Db_M_P_2_WRP_P_Buf, Int_M_P_2_WRP_P_Buf, InData%M_P_2_WRP_P, ErrStat, ErrMsg, OnlySize ) ! M_P_2_WRP_P 
+  IF(ALLOCATED(Re_M_P_2_WRP_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_M_P_2_WRP_P_Buf)-1 ) = Re_M_P_2_WRP_P_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_M_P_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_M_P_2_WRP_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_M_P_2_WRP_P_Buf)-1 ) = Db_M_P_2_WRP_P_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_M_P_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_M_P_2_WRP_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_M_P_2_WRP_P_Buf)-1 ) = Int_M_P_2_WRP_P_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_M_P_2_WRP_P_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_M_P_2_WRP_P_Buf) )  DEALLOCATE(Re_M_P_2_WRP_P_Buf)
+  IF( ALLOCATED(Db_M_P_2_WRP_P_Buf) )  DEALLOCATE(Db_M_P_2_WRP_P_Buf)
+  IF( ALLOCATED(Int_M_P_2_WRP_P_Buf) ) DEALLOCATE(Int_M_P_2_WRP_P_Buf)
+  CALL NWTC_Library_Packmeshmaptype( Re_M_L_2_WRP_P_Buf, Db_M_L_2_WRP_P_Buf, Int_M_L_2_WRP_P_Buf, InData%M_L_2_WRP_P, ErrStat, ErrMsg, OnlySize ) ! M_L_2_WRP_P 
+  IF(ALLOCATED(Re_M_L_2_WRP_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_M_L_2_WRP_P_Buf)-1 ) = Re_M_L_2_WRP_P_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_M_L_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_M_L_2_WRP_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_M_L_2_WRP_P_Buf)-1 ) = Db_M_L_2_WRP_P_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_M_L_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_M_L_2_WRP_P_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_M_L_2_WRP_P_Buf)-1 ) = Int_M_L_2_WRP_P_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_M_L_2_WRP_P_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_M_L_2_WRP_P_Buf) )  DEALLOCATE(Re_M_L_2_WRP_P_Buf)
+  IF( ALLOCATED(Db_M_L_2_WRP_P_Buf) )  DEALLOCATE(Db_M_L_2_WRP_P_Buf)
+  IF( ALLOCATED(Int_M_L_2_WRP_P_Buf) ) DEALLOCATE(Int_M_L_2_WRP_P_Buf)
+ END SUBROUTINE HydroDyn_Packhd_modulemaptype
+
+ SUBROUTINE HydroDyn_UnPackhd_modulemaptype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(hd_modulemaptype), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+ ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_HD_P_2_WRP_P_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_HD_P_2_WRP_P_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_HD_P_2_WRP_P_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_M_P_2_WRP_P_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_M_P_2_WRP_P_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_M_P_2_WRP_P_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_M_L_2_WRP_P_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_M_L_2_WRP_P_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_M_L_2_WRP_P_Buf(:)
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+ ! first call NWTC_Library_Packmeshmaptype to get correctly sized buffers for unpacking
+  CALL NWTC_Library_Packmeshmaptype( Re_HD_P_2_WRP_P_Buf, Db_HD_P_2_WRP_P_Buf, Int_HD_P_2_WRP_P_Buf, OutData%HD_P_2_WRP_P, ErrStat, ErrMsg, .TRUE. ) ! HD_P_2_WRP_P 
+  IF(ALLOCATED(Re_HD_P_2_WRP_P_Buf)) THEN
+    Re_HD_P_2_WRP_P_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HD_P_2_WRP_P_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_HD_P_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_HD_P_2_WRP_P_Buf)) THEN
+    Db_HD_P_2_WRP_P_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_HD_P_2_WRP_P_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_HD_P_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_HD_P_2_WRP_P_Buf)) THEN
+    Int_HD_P_2_WRP_P_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_HD_P_2_WRP_P_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_HD_P_2_WRP_P_Buf)
+  ENDIF
+  CALL NWTC_Library_UnPackmeshmaptype( Re_HD_P_2_WRP_P_Buf, Db_HD_P_2_WRP_P_Buf, Int_HD_P_2_WRP_P_Buf, OutData%HD_P_2_WRP_P, ErrStat, ErrMsg ) ! HD_P_2_WRP_P 
+ ! first call NWTC_Library_Packmeshmaptype to get correctly sized buffers for unpacking
+  CALL NWTC_Library_Packmeshmaptype( Re_M_P_2_WRP_P_Buf, Db_M_P_2_WRP_P_Buf, Int_M_P_2_WRP_P_Buf, OutData%M_P_2_WRP_P, ErrStat, ErrMsg, .TRUE. ) ! M_P_2_WRP_P 
+  IF(ALLOCATED(Re_M_P_2_WRP_P_Buf)) THEN
+    Re_M_P_2_WRP_P_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_M_P_2_WRP_P_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_M_P_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_M_P_2_WRP_P_Buf)) THEN
+    Db_M_P_2_WRP_P_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_M_P_2_WRP_P_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_M_P_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_M_P_2_WRP_P_Buf)) THEN
+    Int_M_P_2_WRP_P_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_M_P_2_WRP_P_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_M_P_2_WRP_P_Buf)
+  ENDIF
+  CALL NWTC_Library_UnPackmeshmaptype( Re_M_P_2_WRP_P_Buf, Db_M_P_2_WRP_P_Buf, Int_M_P_2_WRP_P_Buf, OutData%M_P_2_WRP_P, ErrStat, ErrMsg ) ! M_P_2_WRP_P 
+ ! first call NWTC_Library_Packmeshmaptype to get correctly sized buffers for unpacking
+  CALL NWTC_Library_Packmeshmaptype( Re_M_L_2_WRP_P_Buf, Db_M_L_2_WRP_P_Buf, Int_M_L_2_WRP_P_Buf, OutData%M_L_2_WRP_P, ErrStat, ErrMsg, .TRUE. ) ! M_L_2_WRP_P 
+  IF(ALLOCATED(Re_M_L_2_WRP_P_Buf)) THEN
+    Re_M_L_2_WRP_P_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_M_L_2_WRP_P_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_M_L_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_M_L_2_WRP_P_Buf)) THEN
+    Db_M_L_2_WRP_P_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_M_L_2_WRP_P_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_M_L_2_WRP_P_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_M_L_2_WRP_P_Buf)) THEN
+    Int_M_L_2_WRP_P_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_M_L_2_WRP_P_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_M_L_2_WRP_P_Buf)
+  ENDIF
+  CALL NWTC_Library_UnPackmeshmaptype( Re_M_L_2_WRP_P_Buf, Db_M_L_2_WRP_P_Buf, Int_M_L_2_WRP_P_Buf, OutData%M_L_2_WRP_P, ErrStat, ErrMsg ) ! M_L_2_WRP_P 
+  Re_Xferred   = Re_Xferred-1
+  Db_Xferred   = Db_Xferred-1
+  Int_Xferred  = Int_Xferred-1
+ END SUBROUTINE HydroDyn_UnPackhd_modulemaptype
+
  SUBROUTINE HydroDyn_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
    TYPE(HydroDyn_continuousstatetype), INTENT(INOUT) :: SrcContStateData
    TYPE(HydroDyn_continuousstatetype), INTENT(INOUT) :: DstContStateData
@@ -1258,9 +1506,10 @@ ENDIF
    DstOtherStateData%F_PtfmAdd = SrcOtherStateData%F_PtfmAdd
    DstOtherStateData%F_Hydro = SrcOtherStateData%F_Hydro
      CALL MeshCopy( SrcOtherStateData%y_mapped, DstOtherStateData%y_mapped, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcOtherStateData%WRP_Mesh_position, DstOtherStateData%WRP_Mesh_position, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcOtherStateData%AllHdroOrigin_position, DstOtherStateData%AllHdroOrigin_position, CtrlCode, ErrStat, ErrMsg )
      CALL MeshCopy( SrcOtherStateData%MrsnLumpedMesh_position, DstOtherStateData%MrsnLumpedMesh_position, CtrlCode, ErrStat, ErrMsg )
      CALL MeshCopy( SrcOtherStateData%MrsnDistribMesh_position, DstOtherStateData%MrsnDistribMesh_position, CtrlCode, ErrStat, ErrMsg )
+      CALL HydroDyn_Copyhd_modulemaptype( SrcOtherStateData%HD_MeshMap, DstOtherStateData%HD_MeshMap, CtrlCode, ErrStat, ErrMsg )
  END SUBROUTINE HydroDyn_CopyOtherState
 
  SUBROUTINE HydroDyn_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -1274,9 +1523,10 @@ ENDIF
   CALL WAMIT_DestroyOtherState( OtherStateData%WAMIT, ErrStat, ErrMsg )
   CALL Morison_DestroyOtherState( OtherStateData%Morison, ErrStat, ErrMsg )
   CALL MeshDestroy( OtherStateData%y_mapped, ErrStat, ErrMsg )
-  CALL MeshDestroy( OtherStateData%WRP_Mesh_position, ErrStat, ErrMsg )
+  CALL MeshDestroy( OtherStateData%AllHdroOrigin_position, ErrStat, ErrMsg )
   CALL MeshDestroy( OtherStateData%MrsnLumpedMesh_position, ErrStat, ErrMsg )
   CALL MeshDestroy( OtherStateData%MrsnDistribMesh_position, ErrStat, ErrMsg )
+  CALL HydroDyn_Destroyhd_modulemaptype( OtherStateData%HD_MeshMap, ErrStat, ErrMsg )
  END SUBROUTINE HydroDyn_DestroyOtherState
 
  SUBROUTINE HydroDyn_PackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -1309,15 +1559,18 @@ ENDIF
   REAL(ReKi),     ALLOCATABLE :: Re_y_mapped_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_y_mapped_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_y_mapped_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_WRP_Mesh_position_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_WRP_Mesh_position_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_WRP_Mesh_position_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_AllHdroOrigin_position_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_AllHdroOrigin_position_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_AllHdroOrigin_position_Buf(:)
   REAL(ReKi),     ALLOCATABLE :: Re_MrsnLumpedMesh_position_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_MrsnLumpedMesh_position_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_MrsnLumpedMesh_position_Buf(:)
   REAL(ReKi),     ALLOCATABLE :: Re_MrsnDistribMesh_position_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_MrsnDistribMesh_position_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_MrsnDistribMesh_position_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_HD_MeshMap_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_HD_MeshMap_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_HD_MeshMap_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -1356,13 +1609,13 @@ ENDIF
   IF(ALLOCATED(Re_y_mapped_Buf))  DEALLOCATE(Re_y_mapped_Buf)
   IF(ALLOCATED(Db_y_mapped_Buf))  DEALLOCATE(Db_y_mapped_Buf)
   IF(ALLOCATED(Int_y_mapped_Buf)) DEALLOCATE(Int_y_mapped_Buf)
-  CALL MeshPack( InData%WRP_Mesh_position, Re_WRP_Mesh_position_Buf, Db_WRP_Mesh_position_Buf, Int_WRP_Mesh_position_Buf, ErrStat, ErrMsg, .TRUE. ) ! WRP_Mesh_position 
-  IF(ALLOCATED(Re_WRP_Mesh_position_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_WRP_Mesh_position_Buf  ) ! WRP_Mesh_position
-  IF(ALLOCATED(Db_WRP_Mesh_position_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_WRP_Mesh_position_Buf  ) ! WRP_Mesh_position
-  IF(ALLOCATED(Int_WRP_Mesh_position_Buf))Int_BufSz = Int_BufSz + SIZE( Int_WRP_Mesh_position_Buf ) ! WRP_Mesh_position
-  IF(ALLOCATED(Re_WRP_Mesh_position_Buf))  DEALLOCATE(Re_WRP_Mesh_position_Buf)
-  IF(ALLOCATED(Db_WRP_Mesh_position_Buf))  DEALLOCATE(Db_WRP_Mesh_position_Buf)
-  IF(ALLOCATED(Int_WRP_Mesh_position_Buf)) DEALLOCATE(Int_WRP_Mesh_position_Buf)
+  CALL MeshPack( InData%AllHdroOrigin_position, Re_AllHdroOrigin_position_Buf, Db_AllHdroOrigin_position_Buf, Int_AllHdroOrigin_position_Buf, ErrStat, ErrMsg, .TRUE. ) ! AllHdroOrigin_position 
+  IF(ALLOCATED(Re_AllHdroOrigin_position_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_AllHdroOrigin_position_Buf  ) ! AllHdroOrigin_position
+  IF(ALLOCATED(Db_AllHdroOrigin_position_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_AllHdroOrigin_position_Buf  ) ! AllHdroOrigin_position
+  IF(ALLOCATED(Int_AllHdroOrigin_position_Buf))Int_BufSz = Int_BufSz + SIZE( Int_AllHdroOrigin_position_Buf ) ! AllHdroOrigin_position
+  IF(ALLOCATED(Re_AllHdroOrigin_position_Buf))  DEALLOCATE(Re_AllHdroOrigin_position_Buf)
+  IF(ALLOCATED(Db_AllHdroOrigin_position_Buf))  DEALLOCATE(Db_AllHdroOrigin_position_Buf)
+  IF(ALLOCATED(Int_AllHdroOrigin_position_Buf)) DEALLOCATE(Int_AllHdroOrigin_position_Buf)
   CALL MeshPack( InData%MrsnLumpedMesh_position, Re_MrsnLumpedMesh_position_Buf, Db_MrsnLumpedMesh_position_Buf, Int_MrsnLumpedMesh_position_Buf, ErrStat, ErrMsg, .TRUE. ) ! MrsnLumpedMesh_position 
   IF(ALLOCATED(Re_MrsnLumpedMesh_position_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_MrsnLumpedMesh_position_Buf  ) ! MrsnLumpedMesh_position
   IF(ALLOCATED(Db_MrsnLumpedMesh_position_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_MrsnLumpedMesh_position_Buf  ) ! MrsnLumpedMesh_position
@@ -1377,6 +1630,13 @@ ENDIF
   IF(ALLOCATED(Re_MrsnDistribMesh_position_Buf))  DEALLOCATE(Re_MrsnDistribMesh_position_Buf)
   IF(ALLOCATED(Db_MrsnDistribMesh_position_Buf))  DEALLOCATE(Db_MrsnDistribMesh_position_Buf)
   IF(ALLOCATED(Int_MrsnDistribMesh_position_Buf)) DEALLOCATE(Int_MrsnDistribMesh_position_Buf)
+  CALL HydroDyn_Packhd_modulemaptype( Re_HD_MeshMap_Buf, Db_HD_MeshMap_Buf, Int_HD_MeshMap_Buf, InData%HD_MeshMap, ErrStat, ErrMsg, .TRUE. ) ! HD_MeshMap 
+  IF(ALLOCATED(Re_HD_MeshMap_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_HD_MeshMap_Buf  ) ! HD_MeshMap
+  IF(ALLOCATED(Db_HD_MeshMap_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_HD_MeshMap_Buf  ) ! HD_MeshMap
+  IF(ALLOCATED(Int_HD_MeshMap_Buf))Int_BufSz = Int_BufSz + SIZE( Int_HD_MeshMap_Buf ) ! HD_MeshMap
+  IF(ALLOCATED(Re_HD_MeshMap_Buf))  DEALLOCATE(Re_HD_MeshMap_Buf)
+  IF(ALLOCATED(Db_HD_MeshMap_Buf))  DEALLOCATE(Db_HD_MeshMap_Buf)
+  IF(ALLOCATED(Int_HD_MeshMap_Buf)) DEALLOCATE(Int_HD_MeshMap_Buf)
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1434,22 +1694,22 @@ ENDIF
   IF( ALLOCATED(Re_y_mapped_Buf) )  DEALLOCATE(Re_y_mapped_Buf)
   IF( ALLOCATED(Db_y_mapped_Buf) )  DEALLOCATE(Db_y_mapped_Buf)
   IF( ALLOCATED(Int_y_mapped_Buf) ) DEALLOCATE(Int_y_mapped_Buf)
-  CALL MeshPack( InData%WRP_Mesh_position, Re_WRP_Mesh_position_Buf, Db_WRP_Mesh_position_Buf, Int_WRP_Mesh_position_Buf, ErrStat, ErrMsg, OnlySize ) ! WRP_Mesh_position 
-  IF(ALLOCATED(Re_WRP_Mesh_position_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_WRP_Mesh_position_Buf)-1 ) = Re_WRP_Mesh_position_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_WRP_Mesh_position_Buf)
+  CALL MeshPack( InData%AllHdroOrigin_position, Re_AllHdroOrigin_position_Buf, Db_AllHdroOrigin_position_Buf, Int_AllHdroOrigin_position_Buf, ErrStat, ErrMsg, OnlySize ) ! AllHdroOrigin_position 
+  IF(ALLOCATED(Re_AllHdroOrigin_position_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_AllHdroOrigin_position_Buf)-1 ) = Re_AllHdroOrigin_position_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_AllHdroOrigin_position_Buf)
   ENDIF
-  IF(ALLOCATED(Db_WRP_Mesh_position_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_WRP_Mesh_position_Buf)-1 ) = Db_WRP_Mesh_position_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_WRP_Mesh_position_Buf)
+  IF(ALLOCATED(Db_AllHdroOrigin_position_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_AllHdroOrigin_position_Buf)-1 ) = Db_AllHdroOrigin_position_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_AllHdroOrigin_position_Buf)
   ENDIF
-  IF(ALLOCATED(Int_WRP_Mesh_position_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_WRP_Mesh_position_Buf)-1 ) = Int_WRP_Mesh_position_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_WRP_Mesh_position_Buf)
+  IF(ALLOCATED(Int_AllHdroOrigin_position_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_AllHdroOrigin_position_Buf)-1 ) = Int_AllHdroOrigin_position_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_AllHdroOrigin_position_Buf)
   ENDIF
-  IF( ALLOCATED(Re_WRP_Mesh_position_Buf) )  DEALLOCATE(Re_WRP_Mesh_position_Buf)
-  IF( ALLOCATED(Db_WRP_Mesh_position_Buf) )  DEALLOCATE(Db_WRP_Mesh_position_Buf)
-  IF( ALLOCATED(Int_WRP_Mesh_position_Buf) ) DEALLOCATE(Int_WRP_Mesh_position_Buf)
+  IF( ALLOCATED(Re_AllHdroOrigin_position_Buf) )  DEALLOCATE(Re_AllHdroOrigin_position_Buf)
+  IF( ALLOCATED(Db_AllHdroOrigin_position_Buf) )  DEALLOCATE(Db_AllHdroOrigin_position_Buf)
+  IF( ALLOCATED(Int_AllHdroOrigin_position_Buf) ) DEALLOCATE(Int_AllHdroOrigin_position_Buf)
   CALL MeshPack( InData%MrsnLumpedMesh_position, Re_MrsnLumpedMesh_position_Buf, Db_MrsnLumpedMesh_position_Buf, Int_MrsnLumpedMesh_position_Buf, ErrStat, ErrMsg, OnlySize ) ! MrsnLumpedMesh_position 
   IF(ALLOCATED(Re_MrsnLumpedMesh_position_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MrsnLumpedMesh_position_Buf)-1 ) = Re_MrsnLumpedMesh_position_Buf
@@ -1482,6 +1742,22 @@ ENDIF
   IF( ALLOCATED(Re_MrsnDistribMesh_position_Buf) )  DEALLOCATE(Re_MrsnDistribMesh_position_Buf)
   IF( ALLOCATED(Db_MrsnDistribMesh_position_Buf) )  DEALLOCATE(Db_MrsnDistribMesh_position_Buf)
   IF( ALLOCATED(Int_MrsnDistribMesh_position_Buf) ) DEALLOCATE(Int_MrsnDistribMesh_position_Buf)
+  CALL HydroDyn_Packhd_modulemaptype( Re_HD_MeshMap_Buf, Db_HD_MeshMap_Buf, Int_HD_MeshMap_Buf, InData%HD_MeshMap, ErrStat, ErrMsg, OnlySize ) ! HD_MeshMap 
+  IF(ALLOCATED(Re_HD_MeshMap_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HD_MeshMap_Buf)-1 ) = Re_HD_MeshMap_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_HD_MeshMap_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_HD_MeshMap_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_HD_MeshMap_Buf)-1 ) = Db_HD_MeshMap_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_HD_MeshMap_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_HD_MeshMap_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_HD_MeshMap_Buf)-1 ) = Int_HD_MeshMap_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_HD_MeshMap_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_HD_MeshMap_Buf) )  DEALLOCATE(Re_HD_MeshMap_Buf)
+  IF( ALLOCATED(Db_HD_MeshMap_Buf) )  DEALLOCATE(Db_HD_MeshMap_Buf)
+  IF( ALLOCATED(Int_HD_MeshMap_Buf) ) DEALLOCATE(Int_HD_MeshMap_Buf)
  END SUBROUTINE HydroDyn_PackOtherState
 
  SUBROUTINE HydroDyn_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1517,15 +1793,18 @@ ENDIF
   REAL(ReKi),    ALLOCATABLE :: Re_y_mapped_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_y_mapped_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_y_mapped_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_WRP_Mesh_position_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_WRP_Mesh_position_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_WRP_Mesh_position_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_AllHdroOrigin_position_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_AllHdroOrigin_position_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_AllHdroOrigin_position_Buf(:)
   REAL(ReKi),    ALLOCATABLE :: Re_MrsnLumpedMesh_position_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_MrsnLumpedMesh_position_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_MrsnLumpedMesh_position_Buf(:)
   REAL(ReKi),    ALLOCATABLE :: Re_MrsnDistribMesh_position_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_MrsnDistribMesh_position_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_MrsnDistribMesh_position_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_HD_MeshMap_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_HD_MeshMap_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_HD_MeshMap_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -1593,23 +1872,23 @@ ENDIF
   IF( ALLOCATED(Re_y_mapped_Buf) )  DEALLOCATE(Re_y_mapped_Buf)
   IF( ALLOCATED(Db_y_mapped_Buf) )  DEALLOCATE(Db_y_mapped_Buf)
   IF( ALLOCATED(Int_y_mapped_Buf) ) DEALLOCATE(Int_y_mapped_Buf)
-  CALL MeshPack( OutData%WRP_Mesh_position, Re_WRP_Mesh_position_Buf, Db_WRP_Mesh_position_Buf, Int_WRP_Mesh_position_Buf, ErrStat, ErrMsg , .TRUE. ) ! WRP_Mesh_position 
-  IF(ALLOCATED(Re_WRP_Mesh_position_Buf)) THEN
-    Re_WRP_Mesh_position_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_WRP_Mesh_position_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_WRP_Mesh_position_Buf)
+  CALL MeshPack( OutData%AllHdroOrigin_position, Re_AllHdroOrigin_position_Buf, Db_AllHdroOrigin_position_Buf, Int_AllHdroOrigin_position_Buf, ErrStat, ErrMsg , .TRUE. ) ! AllHdroOrigin_position 
+  IF(ALLOCATED(Re_AllHdroOrigin_position_Buf)) THEN
+    Re_AllHdroOrigin_position_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_AllHdroOrigin_position_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_AllHdroOrigin_position_Buf)
   ENDIF
-  IF(ALLOCATED(Db_WRP_Mesh_position_Buf)) THEN
-    Db_WRP_Mesh_position_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_WRP_Mesh_position_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_WRP_Mesh_position_Buf)
+  IF(ALLOCATED(Db_AllHdroOrigin_position_Buf)) THEN
+    Db_AllHdroOrigin_position_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_AllHdroOrigin_position_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_AllHdroOrigin_position_Buf)
   ENDIF
-  IF(ALLOCATED(Int_WRP_Mesh_position_Buf)) THEN
-    Int_WRP_Mesh_position_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_WRP_Mesh_position_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_WRP_Mesh_position_Buf)
+  IF(ALLOCATED(Int_AllHdroOrigin_position_Buf)) THEN
+    Int_AllHdroOrigin_position_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_AllHdroOrigin_position_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_AllHdroOrigin_position_Buf)
   ENDIF
-  CALL MeshUnPack( OutData%WRP_Mesh_position, Re_WRP_Mesh_position_Buf, Db_WRP_Mesh_position_Buf, Int_WRP_Mesh_position_Buf, ErrStat, ErrMsg ) ! WRP_Mesh_position 
-  IF( ALLOCATED(Re_WRP_Mesh_position_Buf) )  DEALLOCATE(Re_WRP_Mesh_position_Buf)
-  IF( ALLOCATED(Db_WRP_Mesh_position_Buf) )  DEALLOCATE(Db_WRP_Mesh_position_Buf)
-  IF( ALLOCATED(Int_WRP_Mesh_position_Buf) ) DEALLOCATE(Int_WRP_Mesh_position_Buf)
+  CALL MeshUnPack( OutData%AllHdroOrigin_position, Re_AllHdroOrigin_position_Buf, Db_AllHdroOrigin_position_Buf, Int_AllHdroOrigin_position_Buf, ErrStat, ErrMsg ) ! AllHdroOrigin_position 
+  IF( ALLOCATED(Re_AllHdroOrigin_position_Buf) )  DEALLOCATE(Re_AllHdroOrigin_position_Buf)
+  IF( ALLOCATED(Db_AllHdroOrigin_position_Buf) )  DEALLOCATE(Db_AllHdroOrigin_position_Buf)
+  IF( ALLOCATED(Int_AllHdroOrigin_position_Buf) ) DEALLOCATE(Int_AllHdroOrigin_position_Buf)
   CALL MeshPack( OutData%MrsnLumpedMesh_position, Re_MrsnLumpedMesh_position_Buf, Db_MrsnLumpedMesh_position_Buf, Int_MrsnLumpedMesh_position_Buf, ErrStat, ErrMsg , .TRUE. ) ! MrsnLumpedMesh_position 
   IF(ALLOCATED(Re_MrsnLumpedMesh_position_Buf)) THEN
     Re_MrsnLumpedMesh_position_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_MrsnLumpedMesh_position_Buf)-1 )
@@ -1644,6 +1923,21 @@ ENDIF
   IF( ALLOCATED(Re_MrsnDistribMesh_position_Buf) )  DEALLOCATE(Re_MrsnDistribMesh_position_Buf)
   IF( ALLOCATED(Db_MrsnDistribMesh_position_Buf) )  DEALLOCATE(Db_MrsnDistribMesh_position_Buf)
   IF( ALLOCATED(Int_MrsnDistribMesh_position_Buf) ) DEALLOCATE(Int_MrsnDistribMesh_position_Buf)
+ ! first call HydroDyn_Packhd_modulemaptype to get correctly sized buffers for unpacking
+  CALL HydroDyn_Packhd_modulemaptype( Re_HD_MeshMap_Buf, Db_HD_MeshMap_Buf, Int_HD_MeshMap_Buf, OutData%HD_MeshMap, ErrStat, ErrMsg, .TRUE. ) ! HD_MeshMap 
+  IF(ALLOCATED(Re_HD_MeshMap_Buf)) THEN
+    Re_HD_MeshMap_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HD_MeshMap_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_HD_MeshMap_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_HD_MeshMap_Buf)) THEN
+    Db_HD_MeshMap_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_HD_MeshMap_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_HD_MeshMap_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_HD_MeshMap_Buf)) THEN
+    Int_HD_MeshMap_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_HD_MeshMap_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_HD_MeshMap_Buf)
+  ENDIF
+  CALL HydroDyn_UnPackhd_modulemaptype( Re_HD_MeshMap_Buf, Db_HD_MeshMap_Buf, Int_HD_MeshMap_Buf, OutData%HD_MeshMap, ErrStat, ErrMsg ) ! HD_MeshMap 
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -2301,7 +2595,7 @@ ENDDO
       CALL WAMIT_CopyOutput( SrcOutputData%WAMIT, DstOutputData%WAMIT, CtrlCode, ErrStat, ErrMsg )
       CALL Morison_CopyOutput( SrcOutputData%Morison, DstOutputData%Morison, CtrlCode, ErrStat, ErrMsg )
      CALL MeshCopy( SrcOutputData%Mesh, DstOutputData%Mesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcOutputData%WRP_Mesh, DstOutputData%WRP_Mesh, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcOutputData%AllHdroOrigin, DstOutputData%AllHdroOrigin, CtrlCode, ErrStat, ErrMsg )
 IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
@@ -2328,7 +2622,7 @@ ENDIF
   CALL WAMIT_DestroyOutput( OutputData%WAMIT, ErrStat, ErrMsg )
   CALL Morison_DestroyOutput( OutputData%Morison, ErrStat, ErrMsg )
   CALL MeshDestroy( OutputData%Mesh, ErrStat, ErrMsg )
-  CALL MeshDestroy( OutputData%WRP_Mesh, ErrStat, ErrMsg )
+  CALL MeshDestroy( OutputData%AllHdroOrigin, ErrStat, ErrMsg )
 IF (ALLOCATED(OutputData%WriteOutput)) THEN
    DEALLOCATE(OutputData%WriteOutput)
 ENDIF
@@ -2364,9 +2658,9 @@ ENDIF
   REAL(ReKi),     ALLOCATABLE :: Re_Mesh_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_Mesh_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_Mesh_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_WRP_Mesh_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_WRP_Mesh_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_WRP_Mesh_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_AllHdroOrigin_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_AllHdroOrigin_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_AllHdroOrigin_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -2402,13 +2696,13 @@ ENDIF
   IF(ALLOCATED(Re_Mesh_Buf))  DEALLOCATE(Re_Mesh_Buf)
   IF(ALLOCATED(Db_Mesh_Buf))  DEALLOCATE(Db_Mesh_Buf)
   IF(ALLOCATED(Int_Mesh_Buf)) DEALLOCATE(Int_Mesh_Buf)
-  CALL MeshPack( InData%WRP_Mesh, Re_WRP_Mesh_Buf, Db_WRP_Mesh_Buf, Int_WRP_Mesh_Buf, ErrStat, ErrMsg, .TRUE. ) ! WRP_Mesh 
-  IF(ALLOCATED(Re_WRP_Mesh_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_WRP_Mesh_Buf  ) ! WRP_Mesh
-  IF(ALLOCATED(Db_WRP_Mesh_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_WRP_Mesh_Buf  ) ! WRP_Mesh
-  IF(ALLOCATED(Int_WRP_Mesh_Buf))Int_BufSz = Int_BufSz + SIZE( Int_WRP_Mesh_Buf ) ! WRP_Mesh
-  IF(ALLOCATED(Re_WRP_Mesh_Buf))  DEALLOCATE(Re_WRP_Mesh_Buf)
-  IF(ALLOCATED(Db_WRP_Mesh_Buf))  DEALLOCATE(Db_WRP_Mesh_Buf)
-  IF(ALLOCATED(Int_WRP_Mesh_Buf)) DEALLOCATE(Int_WRP_Mesh_Buf)
+  CALL MeshPack( InData%AllHdroOrigin, Re_AllHdroOrigin_Buf, Db_AllHdroOrigin_Buf, Int_AllHdroOrigin_Buf, ErrStat, ErrMsg, .TRUE. ) ! AllHdroOrigin 
+  IF(ALLOCATED(Re_AllHdroOrigin_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_AllHdroOrigin_Buf  ) ! AllHdroOrigin
+  IF(ALLOCATED(Db_AllHdroOrigin_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_AllHdroOrigin_Buf  ) ! AllHdroOrigin
+  IF(ALLOCATED(Int_AllHdroOrigin_Buf))Int_BufSz = Int_BufSz + SIZE( Int_AllHdroOrigin_Buf ) ! AllHdroOrigin
+  IF(ALLOCATED(Re_AllHdroOrigin_Buf))  DEALLOCATE(Re_AllHdroOrigin_Buf)
+  IF(ALLOCATED(Db_AllHdroOrigin_Buf))  DEALLOCATE(Db_AllHdroOrigin_Buf)
+  IF(ALLOCATED(Int_AllHdroOrigin_Buf)) DEALLOCATE(Int_AllHdroOrigin_Buf)
   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
@@ -2461,22 +2755,22 @@ ENDIF
   IF( ALLOCATED(Re_Mesh_Buf) )  DEALLOCATE(Re_Mesh_Buf)
   IF( ALLOCATED(Db_Mesh_Buf) )  DEALLOCATE(Db_Mesh_Buf)
   IF( ALLOCATED(Int_Mesh_Buf) ) DEALLOCATE(Int_Mesh_Buf)
-  CALL MeshPack( InData%WRP_Mesh, Re_WRP_Mesh_Buf, Db_WRP_Mesh_Buf, Int_WRP_Mesh_Buf, ErrStat, ErrMsg, OnlySize ) ! WRP_Mesh 
-  IF(ALLOCATED(Re_WRP_Mesh_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_WRP_Mesh_Buf)-1 ) = Re_WRP_Mesh_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_WRP_Mesh_Buf)
+  CALL MeshPack( InData%AllHdroOrigin, Re_AllHdroOrigin_Buf, Db_AllHdroOrigin_Buf, Int_AllHdroOrigin_Buf, ErrStat, ErrMsg, OnlySize ) ! AllHdroOrigin 
+  IF(ALLOCATED(Re_AllHdroOrigin_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_AllHdroOrigin_Buf)-1 ) = Re_AllHdroOrigin_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_AllHdroOrigin_Buf)
   ENDIF
-  IF(ALLOCATED(Db_WRP_Mesh_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_WRP_Mesh_Buf)-1 ) = Db_WRP_Mesh_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_WRP_Mesh_Buf)
+  IF(ALLOCATED(Db_AllHdroOrigin_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_AllHdroOrigin_Buf)-1 ) = Db_AllHdroOrigin_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_AllHdroOrigin_Buf)
   ENDIF
-  IF(ALLOCATED(Int_WRP_Mesh_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_WRP_Mesh_Buf)-1 ) = Int_WRP_Mesh_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_WRP_Mesh_Buf)
+  IF(ALLOCATED(Int_AllHdroOrigin_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_AllHdroOrigin_Buf)-1 ) = Int_AllHdroOrigin_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_AllHdroOrigin_Buf)
   ENDIF
-  IF( ALLOCATED(Re_WRP_Mesh_Buf) )  DEALLOCATE(Re_WRP_Mesh_Buf)
-  IF( ALLOCATED(Db_WRP_Mesh_Buf) )  DEALLOCATE(Db_WRP_Mesh_Buf)
-  IF( ALLOCATED(Int_WRP_Mesh_Buf) ) DEALLOCATE(Int_WRP_Mesh_Buf)
+  IF( ALLOCATED(Re_AllHdroOrigin_Buf) )  DEALLOCATE(Re_AllHdroOrigin_Buf)
+  IF( ALLOCATED(Db_AllHdroOrigin_Buf) )  DEALLOCATE(Db_AllHdroOrigin_Buf)
+  IF( ALLOCATED(Int_AllHdroOrigin_Buf) ) DEALLOCATE(Int_AllHdroOrigin_Buf)
   IF ( ALLOCATED(InData%WriteOutput) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) =  PACK(InData%WriteOutput ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
@@ -2516,9 +2810,9 @@ ENDIF
   REAL(ReKi),    ALLOCATABLE :: Re_Mesh_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_Mesh_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_Mesh_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_WRP_Mesh_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_WRP_Mesh_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_WRP_Mesh_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_AllHdroOrigin_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_AllHdroOrigin_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_AllHdroOrigin_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -2576,23 +2870,23 @@ ENDIF
   IF( ALLOCATED(Re_Mesh_Buf) )  DEALLOCATE(Re_Mesh_Buf)
   IF( ALLOCATED(Db_Mesh_Buf) )  DEALLOCATE(Db_Mesh_Buf)
   IF( ALLOCATED(Int_Mesh_Buf) ) DEALLOCATE(Int_Mesh_Buf)
-  CALL MeshPack( OutData%WRP_Mesh, Re_WRP_Mesh_Buf, Db_WRP_Mesh_Buf, Int_WRP_Mesh_Buf, ErrStat, ErrMsg , .TRUE. ) ! WRP_Mesh 
-  IF(ALLOCATED(Re_WRP_Mesh_Buf)) THEN
-    Re_WRP_Mesh_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_WRP_Mesh_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_WRP_Mesh_Buf)
+  CALL MeshPack( OutData%AllHdroOrigin, Re_AllHdroOrigin_Buf, Db_AllHdroOrigin_Buf, Int_AllHdroOrigin_Buf, ErrStat, ErrMsg , .TRUE. ) ! AllHdroOrigin 
+  IF(ALLOCATED(Re_AllHdroOrigin_Buf)) THEN
+    Re_AllHdroOrigin_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_AllHdroOrigin_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_AllHdroOrigin_Buf)
   ENDIF
-  IF(ALLOCATED(Db_WRP_Mesh_Buf)) THEN
-    Db_WRP_Mesh_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_WRP_Mesh_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_WRP_Mesh_Buf)
+  IF(ALLOCATED(Db_AllHdroOrigin_Buf)) THEN
+    Db_AllHdroOrigin_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_AllHdroOrigin_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_AllHdroOrigin_Buf)
   ENDIF
-  IF(ALLOCATED(Int_WRP_Mesh_Buf)) THEN
-    Int_WRP_Mesh_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_WRP_Mesh_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_WRP_Mesh_Buf)
+  IF(ALLOCATED(Int_AllHdroOrigin_Buf)) THEN
+    Int_AllHdroOrigin_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_AllHdroOrigin_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_AllHdroOrigin_Buf)
   ENDIF
-  CALL MeshUnPack( OutData%WRP_Mesh, Re_WRP_Mesh_Buf, Db_WRP_Mesh_Buf, Int_WRP_Mesh_Buf, ErrStat, ErrMsg ) ! WRP_Mesh 
-  IF( ALLOCATED(Re_WRP_Mesh_Buf) )  DEALLOCATE(Re_WRP_Mesh_Buf)
-  IF( ALLOCATED(Db_WRP_Mesh_Buf) )  DEALLOCATE(Db_WRP_Mesh_Buf)
-  IF( ALLOCATED(Int_WRP_Mesh_Buf) ) DEALLOCATE(Int_WRP_Mesh_Buf)
+  CALL MeshUnPack( OutData%AllHdroOrigin, Re_AllHdroOrigin_Buf, Db_AllHdroOrigin_Buf, Int_AllHdroOrigin_Buf, ErrStat, ErrMsg ) ! AllHdroOrigin 
+  IF( ALLOCATED(Re_AllHdroOrigin_Buf) )  DEALLOCATE(Re_AllHdroOrigin_Buf)
+  IF( ALLOCATED(Db_AllHdroOrigin_Buf) )  DEALLOCATE(Db_AllHdroOrigin_Buf)
+  IF( ALLOCATED(Int_AllHdroOrigin_Buf) ) DEALLOCATE(Int_AllHdroOrigin_Buf)
   IF ( ALLOCATED(OutData%WriteOutput) ) THEN
   ALLOCATE(mask1(SIZE(OutData%WriteOutput,1))); mask1 = .TRUE.
     OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
@@ -3369,7 +3663,7 @@ ENDIF
       CALL WAMIT_Output_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat, ErrMsg )
       CALL Morison_Output_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat, ErrMsg )
   CALL MeshCopy(u(1)%Mesh, u_out%Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
-  CALL MeshCopy(u(1)%WRP_Mesh, u_out%WRP_Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
+  CALL MeshCopy(u(1)%AllHdroOrigin, u_out%AllHdroOrigin, MESH_UPDATECOPY, ErrStat, ErrMsg )
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   u_out%WriteOutput = u(1)%WriteOutput
 END IF ! check if allocated
@@ -3382,7 +3676,7 @@ END IF ! check if allocated
       CALL WAMIT_Output_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat, ErrMsg )
       CALL Morison_Output_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp1(u(1)%Mesh, u(2)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp1(u(1)%WRP_Mesh, u(2)%WRP_Mesh, tin, u_out%WRP_Mesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp1(u(1)%AllHdroOrigin, u(2)%AllHdroOrigin, tin, u_out%AllHdroOrigin, tin_out, ErrStat, ErrMsg )
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))
@@ -3410,7 +3704,7 @@ END IF ! check if allocated
       CALL WAMIT_Output_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat, ErrMsg )
       CALL Morison_Output_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat, ErrMsg )
   CALL MeshExtrapInterp2(u(1)%Mesh, u(2)%Mesh, u(3)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp2(u(1)%WRP_Mesh, u(2)%WRP_Mesh, u(3)%WRP_Mesh, tin, u_out%WRP_Mesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp2(u(1)%AllHdroOrigin, u(2)%AllHdroOrigin, u(3)%AllHdroOrigin, tin, u_out%AllHdroOrigin, tin_out, ErrStat, ErrMsg )
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))

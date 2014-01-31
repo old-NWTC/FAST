@@ -38,8 +38,8 @@ IMPLICIT NONE
   TYPE, PUBLIC :: Morison_JointType
     INTEGER(IntKi)  :: JointID 
     REAL(ReKi) , DIMENSION(1:3)  :: JointPos 
-    INTEGER(IntKi)  :: JointHvID 
-    INTEGER(IntKi)  :: JointHvIDIndx 
+    INTEGER(IntKi)  :: JointAxID 
+    INTEGER(IntKi)  :: JointAxIDIndx 
     INTEGER(IntKi)  :: JointOvrlp 
     INTEGER(IntKi)  :: NConnections 
     INTEGER(IntKi) , DIMENSION(1:10)  :: ConnectionList 
@@ -70,12 +70,12 @@ IMPLICIT NONE
     REAL(ReKi)  :: DpthCaMG 
   END TYPE Morison_CoefDpths
 ! =======================
-! =========  Morison_HeaveCoefType  =======
-  TYPE, PUBLIC :: Morison_HeaveCoefType
-    INTEGER(IntKi)  :: HvCoefID 
-    REAL(ReKi)  :: HvCd 
-    REAL(ReKi)  :: HvCa 
-  END TYPE Morison_HeaveCoefType
+! =========  Morison_AxialCoefType  =======
+  TYPE, PUBLIC :: Morison_AxialCoefType
+    INTEGER(IntKi)  :: AxCoefID 
+    REAL(ReKi)  :: AxCd 
+    REAL(ReKi)  :: AxCa 
+  END TYPE Morison_AxialCoefType
 ! =======================
 ! =========  Morison_MemberInputType  =======
   TYPE, PUBLIC :: Morison_MemberInputType
@@ -104,7 +104,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: JointIndx 
     REAL(ReKi) , DIMENSION(1:3)  :: JointPos 
     INTEGER(IntKi)  :: JointOvrlp 
-    INTEGER(IntKi)  :: JointHvIDIndx 
+    INTEGER(IntKi)  :: JointAxIDIndx 
     INTEGER(IntKi)  :: NConnections 
     INTEGER(IntKi) , DIMENSION(1:10)  :: ConnectionList 
     INTEGER(IntKi)  :: NConnectPreSplit 
@@ -112,8 +112,8 @@ IMPLICIT NONE
     REAL(ReKi)  :: CdMG 
     REAL(ReKi)  :: Ca 
     REAL(ReKi)  :: CaMG 
-    REAL(ReKi)  :: HvCd 
-    REAL(ReKi)  :: HvCa 
+    REAL(ReKi)  :: AxCd 
+    REAL(ReKi)  :: AxCa 
     REAL(ReKi)  :: R 
     REAL(ReKi)  :: t 
     REAL(ReKi)  :: tMG 
@@ -215,8 +215,8 @@ IMPLICIT NONE
     TYPE(Morison_NodeType) , DIMENSION(:), ALLOCATABLE  :: Nodes 
     INTEGER(IntKi)  :: NElements 
     TYPE(Morison_MemberType) , DIMENSION(:), ALLOCATABLE  :: Elements 
-    INTEGER(IntKi)  :: NHvCoefs 
-    TYPE(Morison_HeaveCoefType) , DIMENSION(:), ALLOCATABLE  :: HeaveCoefs 
+    INTEGER(IntKi)  :: NAxCoefs 
+    TYPE(Morison_AxialCoefType) , DIMENSION(:), ALLOCATABLE  :: AxialCoefs 
     INTEGER(IntKi)  :: NPropSets 
     TYPE(Morison_MemberPropType) , DIMENSION(:), ALLOCATABLE  :: MPropSets 
     REAL(ReKi)  :: SimplCd 
@@ -371,8 +371,8 @@ CONTAINS
    ErrMsg  = ""
    DstjointtypeData%JointID = SrcjointtypeData%JointID
    DstjointtypeData%JointPos = SrcjointtypeData%JointPos
-   DstjointtypeData%JointHvID = SrcjointtypeData%JointHvID
-   DstjointtypeData%JointHvIDIndx = SrcjointtypeData%JointHvIDIndx
+   DstjointtypeData%JointAxID = SrcjointtypeData%JointAxID
+   DstjointtypeData%JointAxIDIndx = SrcjointtypeData%JointAxIDIndx
    DstjointtypeData%JointOvrlp = SrcjointtypeData%JointOvrlp
    DstjointtypeData%NConnections = SrcjointtypeData%NConnections
    DstjointtypeData%ConnectionList = SrcjointtypeData%ConnectionList
@@ -424,8 +424,8 @@ CONTAINS
   Int_BufSz  = 0
   Int_BufSz  = Int_BufSz  + 1  ! JointID
   Re_BufSz    = Re_BufSz    + SIZE( InData%JointPos )  ! JointPos 
-  Int_BufSz  = Int_BufSz  + 1  ! JointHvID
-  Int_BufSz  = Int_BufSz  + 1  ! JointHvIDIndx
+  Int_BufSz  = Int_BufSz  + 1  ! JointAxID
+  Int_BufSz  = Int_BufSz  + 1  ! JointAxIDIndx
   Int_BufSz  = Int_BufSz  + 1  ! JointOvrlp
   Int_BufSz  = Int_BufSz  + 1  ! NConnections
   Int_BufSz   = Int_BufSz   + SIZE( InData%ConnectionList )  ! ConnectionList 
@@ -436,9 +436,9 @@ CONTAINS
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%JointPos))-1 ) =  PACK(InData%JointPos ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%JointPos)
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%JointHvID )
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%JointAxID )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%JointHvIDIndx )
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%JointAxIDIndx )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%JointOvrlp )
   Int_Xferred   = Int_Xferred   + 1
@@ -487,9 +487,9 @@ CONTAINS
   OutData%JointPos = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%JointPos))-1 ),mask1,OutData%JointPos)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%JointPos)
-  OutData%JointHvID = IntKiBuf ( Int_Xferred )
+  OutData%JointAxID = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  OutData%JointHvIDIndx = IntKiBuf ( Int_Xferred )
+  OutData%JointAxIDIndx = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   OutData%JointOvrlp = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
@@ -904,9 +904,9 @@ ENDIF
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE Morison_UnPackcoefdpths
 
- SUBROUTINE Morison_Copyheavecoeftype( SrcheavecoeftypeData, DstheavecoeftypeData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(morison_heavecoeftype), INTENT(INOUT) :: SrcheavecoeftypeData
-   TYPE(morison_heavecoeftype), INTENT(INOUT) :: DstheavecoeftypeData
+ SUBROUTINE Morison_Copyaxialcoeftype( SrcaxialcoeftypeData, DstaxialcoeftypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(morison_axialcoeftype), INTENT(INOUT) :: SrcaxialcoeftypeData
+   TYPE(morison_axialcoeftype), INTENT(INOUT) :: DstaxialcoeftypeData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -917,26 +917,26 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstheavecoeftypeData%HvCoefID = SrcheavecoeftypeData%HvCoefID
-   DstheavecoeftypeData%HvCd = SrcheavecoeftypeData%HvCd
-   DstheavecoeftypeData%HvCa = SrcheavecoeftypeData%HvCa
- END SUBROUTINE Morison_Copyheavecoeftype
+   DstaxialcoeftypeData%AxCoefID = SrcaxialcoeftypeData%AxCoefID
+   DstaxialcoeftypeData%AxCd = SrcaxialcoeftypeData%AxCd
+   DstaxialcoeftypeData%AxCa = SrcaxialcoeftypeData%AxCa
+ END SUBROUTINE Morison_Copyaxialcoeftype
 
- SUBROUTINE Morison_Destroyheavecoeftype( heavecoeftypeData, ErrStat, ErrMsg )
-  TYPE(morison_heavecoeftype), INTENT(INOUT) :: heavecoeftypeData
+ SUBROUTINE Morison_Destroyaxialcoeftype( axialcoeftypeData, ErrStat, ErrMsg )
+  TYPE(morison_axialcoeftype), INTENT(INOUT) :: axialcoeftypeData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE Morison_Destroyheavecoeftype
+ END SUBROUTINE Morison_Destroyaxialcoeftype
 
- SUBROUTINE Morison_Packheavecoeftype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE Morison_Packaxialcoeftype( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(morison_heavecoeftype),  INTENT(INOUT) :: InData
+  TYPE(morison_axialcoeftype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -966,25 +966,25 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Int_BufSz  = Int_BufSz  + 1  ! HvCoefID
-  Re_BufSz   = Re_BufSz   + 1  ! HvCd
-  Re_BufSz   = Re_BufSz   + 1  ! HvCa
+  Int_BufSz  = Int_BufSz  + 1  ! AxCoefID
+  Re_BufSz   = Re_BufSz   + 1  ! AxCd
+  Re_BufSz   = Re_BufSz   + 1  ! AxCa
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%HvCoefID )
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%AxCoefID )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HvCd )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCd )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HvCa )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCa )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE Morison_Packheavecoeftype
+ END SUBROUTINE Morison_Packaxialcoeftype
 
- SUBROUTINE Morison_UnPackheavecoeftype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE Morison_UnPackaxialcoeftype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(morison_heavecoeftype), INTENT(INOUT) :: OutData
+  TYPE(morison_axialcoeftype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1013,16 +1013,16 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  OutData%HvCoefID = IntKiBuf ( Int_Xferred )
+  OutData%AxCoefID = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  OutData%HvCd = ReKiBuf ( Re_Xferred )
+  OutData%AxCd = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%HvCa = ReKiBuf ( Re_Xferred )
+  OutData%AxCa = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPackheavecoeftype
+ END SUBROUTINE Morison_UnPackaxialcoeftype
 
  SUBROUTINE Morison_Copymemberinputtype( SrcmemberinputtypeData, DstmemberinputtypeData, CtrlCode, ErrStat, ErrMsg )
    TYPE(morison_memberinputtype), INTENT(INOUT) :: SrcmemberinputtypeData
@@ -1244,7 +1244,7 @@ ENDIF
    DstnodetypeData%JointIndx = SrcnodetypeData%JointIndx
    DstnodetypeData%JointPos = SrcnodetypeData%JointPos
    DstnodetypeData%JointOvrlp = SrcnodetypeData%JointOvrlp
-   DstnodetypeData%JointHvIDIndx = SrcnodetypeData%JointHvIDIndx
+   DstnodetypeData%JointAxIDIndx = SrcnodetypeData%JointAxIDIndx
    DstnodetypeData%NConnections = SrcnodetypeData%NConnections
    DstnodetypeData%ConnectionList = SrcnodetypeData%ConnectionList
    DstnodetypeData%NConnectPreSplit = SrcnodetypeData%NConnectPreSplit
@@ -1252,8 +1252,8 @@ ENDIF
    DstnodetypeData%CdMG = SrcnodetypeData%CdMG
    DstnodetypeData%Ca = SrcnodetypeData%Ca
    DstnodetypeData%CaMG = SrcnodetypeData%CaMG
-   DstnodetypeData%HvCd = SrcnodetypeData%HvCd
-   DstnodetypeData%HvCa = SrcnodetypeData%HvCa
+   DstnodetypeData%AxCd = SrcnodetypeData%AxCd
+   DstnodetypeData%AxCa = SrcnodetypeData%AxCa
    DstnodetypeData%R = SrcnodetypeData%R
    DstnodetypeData%t = SrcnodetypeData%t
    DstnodetypeData%tMG = SrcnodetypeData%tMG
@@ -1316,7 +1316,7 @@ ENDIF
   Int_BufSz  = Int_BufSz  + 1  ! JointIndx
   Re_BufSz    = Re_BufSz    + SIZE( InData%JointPos )  ! JointPos 
   Int_BufSz  = Int_BufSz  + 1  ! JointOvrlp
-  Int_BufSz  = Int_BufSz  + 1  ! JointHvIDIndx
+  Int_BufSz  = Int_BufSz  + 1  ! JointAxIDIndx
   Int_BufSz  = Int_BufSz  + 1  ! NConnections
   Int_BufSz   = Int_BufSz   + SIZE( InData%ConnectionList )  ! ConnectionList 
   Int_BufSz  = Int_BufSz  + 1  ! NConnectPreSplit
@@ -1324,8 +1324,8 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! CdMG
   Re_BufSz   = Re_BufSz   + 1  ! Ca
   Re_BufSz   = Re_BufSz   + 1  ! CaMG
-  Re_BufSz   = Re_BufSz   + 1  ! HvCd
-  Re_BufSz   = Re_BufSz   + 1  ! HvCa
+  Re_BufSz   = Re_BufSz   + 1  ! AxCd
+  Re_BufSz   = Re_BufSz   + 1  ! AxCa
   Re_BufSz   = Re_BufSz   + 1  ! R
   Re_BufSz   = Re_BufSz   + 1  ! t
   Re_BufSz   = Re_BufSz   + 1  ! tMG
@@ -1347,7 +1347,7 @@ ENDIF
   Re_Xferred   = Re_Xferred   + SIZE(InData%JointPos)
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%JointOvrlp )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%JointHvIDIndx )
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%JointAxIDIndx )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NConnections )
   Int_Xferred   = Int_Xferred   + 1
@@ -1363,9 +1363,9 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%CaMG )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HvCd )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCd )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%HvCa )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCa )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%R )
   Re_Xferred   = Re_Xferred   + 1
@@ -1432,7 +1432,7 @@ ENDIF
   Re_Xferred   = Re_Xferred   + SIZE(OutData%JointPos)
   OutData%JointOvrlp = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  OutData%JointHvIDIndx = IntKiBuf ( Int_Xferred )
+  OutData%JointAxIDIndx = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   OutData%NConnections = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
@@ -1450,9 +1450,9 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%CaMG = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%HvCd = ReKiBuf ( Re_Xferred )
+  OutData%AxCd = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%HvCa = ReKiBuf ( Re_Xferred )
+  OutData%AxCa = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%R = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
@@ -2470,20 +2470,20 @@ IF (ALLOCATED(SrcInitInputData%Elements)) THEN
       CALL Morison_Copymembertype( SrcInitInputData%Elements(i1), DstInitInputData%Elements(i1), CtrlCode, ErrStat, ErrMsg )
    ENDDO
 ENDIF
-   DstInitInputData%NHvCoefs = SrcInitInputData%NHvCoefs
-IF (ALLOCATED(SrcInitInputData%HeaveCoefs)) THEN
-   i1_l = LBOUND(SrcInitInputData%HeaveCoefs,1)
-   i1_u = UBOUND(SrcInitInputData%HeaveCoefs,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%HeaveCoefs)) THEN 
-      ALLOCATE(DstInitInputData%HeaveCoefs(i1_l:i1_u),STAT=ErrStat)
+   DstInitInputData%NAxCoefs = SrcInitInputData%NAxCoefs
+IF (ALLOCATED(SrcInitInputData%AxialCoefs)) THEN
+   i1_l = LBOUND(SrcInitInputData%AxialCoefs,1)
+   i1_u = UBOUND(SrcInitInputData%AxialCoefs,1)
+   IF (.NOT.ALLOCATED(DstInitInputData%AxialCoefs)) THEN 
+      ALLOCATE(DstInitInputData%AxialCoefs(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%HeaveCoefs.'
+         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%AxialCoefs.'
          RETURN
       END IF
    END IF
-   DO i1 = LBOUND(SrcInitInputData%HeaveCoefs,1), UBOUND(SrcInitInputData%HeaveCoefs,1)
-      CALL Morison_Copyheavecoeftype( SrcInitInputData%HeaveCoefs(i1), DstInitInputData%HeaveCoefs(i1), CtrlCode, ErrStat, ErrMsg )
+   DO i1 = LBOUND(SrcInitInputData%AxialCoefs,1), UBOUND(SrcInitInputData%AxialCoefs,1)
+      CALL Morison_Copyaxialcoeftype( SrcInitInputData%AxialCoefs(i1), DstInitInputData%AxialCoefs(i1), CtrlCode, ErrStat, ErrMsg )
    ENDDO
 ENDIF
    DstInitInputData%NPropSets = SrcInitInputData%NPropSets
@@ -2731,11 +2731,11 @@ DO i1 = LBOUND(InitInputData%Elements,1), UBOUND(InitInputData%Elements,1)
 ENDDO
    DEALLOCATE(InitInputData%Elements)
 ENDIF
-IF (ALLOCATED(InitInputData%HeaveCoefs)) THEN
-DO i1 = LBOUND(InitInputData%HeaveCoefs,1), UBOUND(InitInputData%HeaveCoefs,1)
-  CALL Morison_Destroyheavecoeftype( InitInputData%HeaveCoefs(i1), ErrStat, ErrMsg )
+IF (ALLOCATED(InitInputData%AxialCoefs)) THEN
+DO i1 = LBOUND(InitInputData%AxialCoefs,1), UBOUND(InitInputData%AxialCoefs,1)
+  CALL Morison_Destroyaxialcoeftype( InitInputData%AxialCoefs(i1), ErrStat, ErrMsg )
 ENDDO
-   DEALLOCATE(InitInputData%HeaveCoefs)
+   DEALLOCATE(InitInputData%AxialCoefs)
 ENDIF
 IF (ALLOCATED(InitInputData%MPropSets)) THEN
 DO i1 = LBOUND(InitInputData%MPropSets,1), UBOUND(InitInputData%MPropSets,1)
@@ -2832,9 +2832,9 @@ ENDIF
   REAL(ReKi),     ALLOCATABLE :: Re_Elements_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_Elements_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_Elements_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_HeaveCoefs_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_HeaveCoefs_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_HeaveCoefs_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_AxialCoefs_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_AxialCoefs_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_AxialCoefs_Buf(:)
   REAL(ReKi),     ALLOCATABLE :: Re_MPropSets_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_MPropSets_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_MPropSets_Buf(:)
@@ -2907,15 +2907,15 @@ DO i1 = LBOUND(InData%Elements,1), UBOUND(InData%Elements,1)
   IF(ALLOCATED(Db_Elements_Buf))  DEALLOCATE(Db_Elements_Buf)
   IF(ALLOCATED(Int_Elements_Buf)) DEALLOCATE(Int_Elements_Buf)
 ENDDO
-  Int_BufSz  = Int_BufSz  + 1  ! NHvCoefs
-DO i1 = LBOUND(InData%HeaveCoefs,1), UBOUND(InData%HeaveCoefs,1)
-  CALL Morison_Packheavecoeftype( Re_HeaveCoefs_Buf, Db_HeaveCoefs_Buf, Int_HeaveCoefs_Buf, InData%HeaveCoefs(i1), ErrStat, ErrMsg, .TRUE. ) ! HeaveCoefs 
-  IF(ALLOCATED(Re_HeaveCoefs_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_HeaveCoefs_Buf  ) ! HeaveCoefs
-  IF(ALLOCATED(Db_HeaveCoefs_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_HeaveCoefs_Buf  ) ! HeaveCoefs
-  IF(ALLOCATED(Int_HeaveCoefs_Buf))Int_BufSz = Int_BufSz + SIZE( Int_HeaveCoefs_Buf ) ! HeaveCoefs
-  IF(ALLOCATED(Re_HeaveCoefs_Buf))  DEALLOCATE(Re_HeaveCoefs_Buf)
-  IF(ALLOCATED(Db_HeaveCoefs_Buf))  DEALLOCATE(Db_HeaveCoefs_Buf)
-  IF(ALLOCATED(Int_HeaveCoefs_Buf)) DEALLOCATE(Int_HeaveCoefs_Buf)
+  Int_BufSz  = Int_BufSz  + 1  ! NAxCoefs
+DO i1 = LBOUND(InData%AxialCoefs,1), UBOUND(InData%AxialCoefs,1)
+  CALL Morison_Packaxialcoeftype( Re_AxialCoefs_Buf, Db_AxialCoefs_Buf, Int_AxialCoefs_Buf, InData%AxialCoefs(i1), ErrStat, ErrMsg, .TRUE. ) ! AxialCoefs 
+  IF(ALLOCATED(Re_AxialCoefs_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_AxialCoefs_Buf  ) ! AxialCoefs
+  IF(ALLOCATED(Db_AxialCoefs_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_AxialCoefs_Buf  ) ! AxialCoefs
+  IF(ALLOCATED(Int_AxialCoefs_Buf))Int_BufSz = Int_BufSz + SIZE( Int_AxialCoefs_Buf ) ! AxialCoefs
+  IF(ALLOCATED(Re_AxialCoefs_Buf))  DEALLOCATE(Re_AxialCoefs_Buf)
+  IF(ALLOCATED(Db_AxialCoefs_Buf))  DEALLOCATE(Db_AxialCoefs_Buf)
+  IF(ALLOCATED(Int_AxialCoefs_Buf)) DEALLOCATE(Int_AxialCoefs_Buf)
 ENDDO
   Int_BufSz  = Int_BufSz  + 1  ! NPropSets
 DO i1 = LBOUND(InData%MPropSets,1), UBOUND(InData%MPropSets,1)
@@ -3085,25 +3085,25 @@ DO i1 = LBOUND(InData%Elements,1), UBOUND(InData%Elements,1)
   IF( ALLOCATED(Db_Elements_Buf) )  DEALLOCATE(Db_Elements_Buf)
   IF( ALLOCATED(Int_Elements_Buf) ) DEALLOCATE(Int_Elements_Buf)
 ENDDO
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NHvCoefs )
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NAxCoefs )
   Int_Xferred   = Int_Xferred   + 1
-DO i1 = LBOUND(InData%HeaveCoefs,1), UBOUND(InData%HeaveCoefs,1)
-  CALL Morison_Packheavecoeftype( Re_HeaveCoefs_Buf, Db_HeaveCoefs_Buf, Int_HeaveCoefs_Buf, InData%HeaveCoefs(i1), ErrStat, ErrMsg, OnlySize ) ! HeaveCoefs 
-  IF(ALLOCATED(Re_HeaveCoefs_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HeaveCoefs_Buf)-1 ) = Re_HeaveCoefs_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_HeaveCoefs_Buf)
+DO i1 = LBOUND(InData%AxialCoefs,1), UBOUND(InData%AxialCoefs,1)
+  CALL Morison_Packaxialcoeftype( Re_AxialCoefs_Buf, Db_AxialCoefs_Buf, Int_AxialCoefs_Buf, InData%AxialCoefs(i1), ErrStat, ErrMsg, OnlySize ) ! AxialCoefs 
+  IF(ALLOCATED(Re_AxialCoefs_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_AxialCoefs_Buf)-1 ) = Re_AxialCoefs_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_AxialCoefs_Buf)
   ENDIF
-  IF(ALLOCATED(Db_HeaveCoefs_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_HeaveCoefs_Buf)-1 ) = Db_HeaveCoefs_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_HeaveCoefs_Buf)
+  IF(ALLOCATED(Db_AxialCoefs_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_AxialCoefs_Buf)-1 ) = Db_AxialCoefs_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_AxialCoefs_Buf)
   ENDIF
-  IF(ALLOCATED(Int_HeaveCoefs_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_HeaveCoefs_Buf)-1 ) = Int_HeaveCoefs_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_HeaveCoefs_Buf)
+  IF(ALLOCATED(Int_AxialCoefs_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_AxialCoefs_Buf)-1 ) = Int_AxialCoefs_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_AxialCoefs_Buf)
   ENDIF
-  IF( ALLOCATED(Re_HeaveCoefs_Buf) )  DEALLOCATE(Re_HeaveCoefs_Buf)
-  IF( ALLOCATED(Db_HeaveCoefs_Buf) )  DEALLOCATE(Db_HeaveCoefs_Buf)
-  IF( ALLOCATED(Int_HeaveCoefs_Buf) ) DEALLOCATE(Int_HeaveCoefs_Buf)
+  IF( ALLOCATED(Re_AxialCoefs_Buf) )  DEALLOCATE(Re_AxialCoefs_Buf)
+  IF( ALLOCATED(Db_AxialCoefs_Buf) )  DEALLOCATE(Db_AxialCoefs_Buf)
+  IF( ALLOCATED(Int_AxialCoefs_Buf) ) DEALLOCATE(Int_AxialCoefs_Buf)
 ENDDO
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NPropSets )
   Int_Xferred   = Int_Xferred   + 1
@@ -3338,9 +3338,9 @@ ENDDO
   REAL(ReKi),    ALLOCATABLE :: Re_Elements_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_Elements_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_Elements_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_HeaveCoefs_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_HeaveCoefs_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_HeaveCoefs_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_AxialCoefs_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_AxialCoefs_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_AxialCoefs_Buf(:)
   REAL(ReKi),    ALLOCATABLE :: Re_MPropSets_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_MPropSets_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_MPropSets_Buf(:)
@@ -3441,24 +3441,24 @@ DO i1 = LBOUND(OutData%Elements,1), UBOUND(OutData%Elements,1)
   ENDIF
   CALL Morison_UnPackmembertype( Re_Elements_Buf, Db_Elements_Buf, Int_Elements_Buf, OutData%Elements(i1), ErrStat, ErrMsg ) ! Elements 
 ENDDO
-  OutData%NHvCoefs = IntKiBuf ( Int_Xferred )
+  OutData%NAxCoefs = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-DO i1 = LBOUND(OutData%HeaveCoefs,1), UBOUND(OutData%HeaveCoefs,1)
- ! first call Morison_Packheavecoeftype to get correctly sized buffers for unpacking
-  CALL Morison_Packheavecoeftype( Re_HeaveCoefs_Buf, Db_HeaveCoefs_Buf, Int_HeaveCoefs_Buf, OutData%HeaveCoefs(i1), ErrStat, ErrMsg, .TRUE. ) ! HeaveCoefs 
-  IF(ALLOCATED(Re_HeaveCoefs_Buf)) THEN
-    Re_HeaveCoefs_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_HeaveCoefs_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_HeaveCoefs_Buf)
+DO i1 = LBOUND(OutData%AxialCoefs,1), UBOUND(OutData%AxialCoefs,1)
+ ! first call Morison_Packaxialcoeftype to get correctly sized buffers for unpacking
+  CALL Morison_Packaxialcoeftype( Re_AxialCoefs_Buf, Db_AxialCoefs_Buf, Int_AxialCoefs_Buf, OutData%AxialCoefs(i1), ErrStat, ErrMsg, .TRUE. ) ! AxialCoefs 
+  IF(ALLOCATED(Re_AxialCoefs_Buf)) THEN
+    Re_AxialCoefs_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_AxialCoefs_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_AxialCoefs_Buf)
   ENDIF
-  IF(ALLOCATED(Db_HeaveCoefs_Buf)) THEN
-    Db_HeaveCoefs_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_HeaveCoefs_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_HeaveCoefs_Buf)
+  IF(ALLOCATED(Db_AxialCoefs_Buf)) THEN
+    Db_AxialCoefs_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_AxialCoefs_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_AxialCoefs_Buf)
   ENDIF
-  IF(ALLOCATED(Int_HeaveCoefs_Buf)) THEN
-    Int_HeaveCoefs_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_HeaveCoefs_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_HeaveCoefs_Buf)
+  IF(ALLOCATED(Int_AxialCoefs_Buf)) THEN
+    Int_AxialCoefs_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_AxialCoefs_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_AxialCoefs_Buf)
   ENDIF
-  CALL Morison_UnPackheavecoeftype( Re_HeaveCoefs_Buf, Db_HeaveCoefs_Buf, Int_HeaveCoefs_Buf, OutData%HeaveCoefs(i1), ErrStat, ErrMsg ) ! HeaveCoefs 
+  CALL Morison_UnPackaxialcoeftype( Re_AxialCoefs_Buf, Db_AxialCoefs_Buf, Int_AxialCoefs_Buf, OutData%AxialCoefs(i1), ErrStat, ErrMsg ) ! AxialCoefs 
 ENDDO
   OutData%NPropSets = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1

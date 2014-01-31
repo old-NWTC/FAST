@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-10-04 01:00:55 -0600 (Fri, 04 Oct 2013) $
-! (File) Revision #: $Rev: 542 $
+! File last committed: $Date: 2014-01-28 15:06:18 -0700 (Tue, 28 Jan 2014) $
+! (File) Revision #: $Rev: 623 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -31,7 +31,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.01b-bjj', '03-Oct-2013' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.02a-bjj', '29-Jan-2014' )
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4SFun  = .FALSE.                            ! Is the module being compiled as an S-Function for Simulink?
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4LV    = .FALSE.                            ! Is the module being compiled for Labview?
    
@@ -179,7 +179,7 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(SrvD_Ver%Name) ! all of the output file names from this module will end with '_ModuleName'
    p%NumBl    = InitInp%NumBl         
       
-   CALL SrvD_ReadInput( InitInp%InputFile, InputFileData, p%RootName, ErrStat2, ErrMsg2 )
+   CALL SrvD_ReadInput( InitInp%InputFile, InputFileData, Interval, p%RootName, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
 
@@ -799,19 +799,18 @@ END SUBROUTINE SrvD_CalcConstrStateResidual
 ! WE ARE NOT YET IMPLEMENTING THE JACOBIANS...
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE SrvD_ReadInput( InputFileName, InputFileData, OutFileRoot, ErrStat, ErrMsg )
+SUBROUTINE SrvD_ReadInput( InputFileName, InputFileData, Default_DT, OutFileRoot, ErrStat, ErrMsg )
 ! This subroutine reads the input file and stores all the data in the SrvD_InputFile structure.
 ! It does not perform data validation.
 !..................................................................................................................................
 
       ! Passed variables
+   REAL(DbKi),           INTENT(IN)       :: Default_DT     ! The default DT (from glue code)
 
    CHARACTER(*), INTENT(IN)               :: InputFileName  ! Name of the input file
    CHARACTER(*), INTENT(IN)               :: OutFileRoot    ! The rootname of all the output files written by this routine.
 
-   !BJJ MODIFIED HERE ONLY FOR TESTING:
-!   TYPE(SrvD_InputFile),   INTENT(OUT)      :: InputFileData  ! Data stored in the module's input file
-   TYPE(SrvD_InputFile),   INTENT(inOUT)      :: InputFileData  ! Data stored in the module's input file
+   TYPE(SrvD_InputFile),  INTENT(OUT)     :: InputFileData  ! Data stored in the module's input file
 
    INTEGER(IntKi),       INTENT(OUT)      :: ErrStat        ! The error status code
    CHARACTER(*),         INTENT(OUT)      :: ErrMsg         ! The error message, if an error occurred
@@ -827,6 +826,7 @@ SUBROUTINE SrvD_ReadInput( InputFileName, InputFileData, OutFileRoot, ErrStat, E
    ErrStat = ErrID_None
    ErrMsg  = ''
 
+   InputFileData%DT = Default_DT  ! the glue code's suggested DT for the module (may be overwritten in ReadPrimaryFile())
    
       ! get the primary/platform input-file data
    
@@ -906,6 +906,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    CHARACTER(LEN(ErrMsg))        :: ErrMsg2                                   ! Temporary Error message
    CHARACTER(1024)               :: PriPath                                   ! Path name of the primary file
    CHARACTER(1024)               :: FTitle                                    ! "File Title": the 2nd line of the input file, which contains a description of its contents
+   CHARACTER(200)                :: Line                                      ! Temporary storage of a line from the input file (to compare with "default")
 
    
       ! Initialize some variables:
@@ -993,10 +994,20 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
    
    
       ! DT - Communication interval for controllers (s):
-   CALL ReadVar( UnIn, InputFile, InputFileData%DT, "DT", "Communication interval for controllers (s)", ErrStat2, ErrMsg2, UnEc)
+   CALL ReadVar( UnIn, InputFile, Line, "DT", "Communication interval for controllers (s)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   
+      CALL Conv2UC( Line )
+      IF ( INDEX(Line, "DEFAULT" ) /= 1 ) THEN ! If it's not "default", read this variable; otherwise use the value already stored in InputFileData%DT
+         READ( Line, *, IOSTAT=ErrStat2) InputFileData%DT
+         IF ( ErrStat2 /= 0 ) THEN
+            CALL CheckIOS ( ErrStat2, InputFile, "DT", NumType, .TRUE., ErrMsg2 )
+            CALL CheckError( ErrID_Fatal, ErrMsg2 )
+            RETURN
+         END IF
+      END IF   
+      
+      
    !---------------------- PITCH CONTROL -------------------------------------------
    CALL ReadCom( UnIn, InputFile, 'Section Header: Pitch Control', ErrStat2, ErrMsg2, UnEc )
       CALL CheckError( ErrStat2, ErrMsg2 )

@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-10-14 12:22:43 -0600 (Mon, 14 Oct 2013) $
-! (File) Revision #: $Rev: 97 $
+! File last committed: $Date: 2014-01-29 22:17:28 -0700 (Wed, 29 Jan 2014) $
+! (File) Revision #: $Rev: 103 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/GenSubs.f90 $
 !**********************************************************************************************************************************
  MODULE AeroGenSubs
@@ -46,7 +46,7 @@ INTEGER(4)   :: Sttus
 
 INTEGER :: NElm, NB, MaxTable, NumCl, NumFoil, NumElOut, NumWndElOut
 
-NB          = P%Blade%NB
+NB          = P%NumBl
 Nelm        = P%Element%Nelm
 NumFoil     = P%AirFoil%NumFoil
 NumCl       = P%AirFoil%NumCl

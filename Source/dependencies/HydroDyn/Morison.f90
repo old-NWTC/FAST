@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-23 12:28:42 -0700 (Thu, 23 Jan 2014) $
-! (File) Revision #: $Rev: 316 $
+! File last committed: $Date: 2014-01-27 12:34:41 -0700 (Mon, 27 Jan 2014) $
+! (File) Revision #: $Rev: 322 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -2089,11 +2089,11 @@ SUBROUTINE SetElementCoefs( SimplCd, SimplCdMG, SimplCa, SimplCaMG, CoefMembers,
 END SUBROUTINE SetElementCoefs
 
 
-SUBROUTINE SetHeaveCoefs( NJoints, NHvCoefs, HeaveCoefs, numNodes, nodes, numElements, elements )
+SUBROUTINE SetAxialCoefs( NJoints, NAxCoefs, AxialCoefs, numNodes, nodes, numElements, elements )
 
    INTEGER,                    INTENT( IN    )  :: NJoints
-   INTEGER,                    INTENT( IN    )  :: NHvCoefs
-   TYPE(Morison_HeaveCoefType),INTENT( IN    )  :: HeaveCoefs(:)
+   INTEGER,                    INTENT( IN    )  :: NAxCoefs
+   TYPE(Morison_AxialCoefType),INTENT( IN    )  :: AxialCoefs(:)
    INTEGER,                    INTENT( IN    )  :: numNodes
    INTEGER,                    INTENT( IN    )  :: numElements
    TYPE(Morison_MemberType),   INTENT( INOUT )  :: elements(:)
@@ -2105,12 +2105,12 @@ SUBROUTINE SetHeaveCoefs( NJoints, NHvCoefs, HeaveCoefs, numNodes, nodes, numEle
    
    DO I=1,numNodes
       
-      IF ( nodes(I)%JointHvIDIndx > 0 .AND. nodes(I)%JointIndx > 0 .AND. nodes(I)%JointIndx <= NJoints) THEN
-         nodes(I)%HvCd = HeaveCoefs(nodes(I)%JointHvIDIndx)%HvCd
-         nodes(I)%HvCa = HeaveCoefs(nodes(I)%JointHvIDIndx)%HvCa
+      IF ( nodes(I)%JointAxIDIndx > 0 .AND. nodes(I)%JointIndx > 0 .AND. nodes(I)%JointIndx <= NJoints) THEN
+         nodes(I)%AxCd = AxialCoefs(nodes(I)%JointAxIDIndx)%AxCd
+         nodes(I)%AxCa = AxialCoefs(nodes(I)%JointAxIDIndx)%AxCa
       ELSE
-         nodes(I)%HvCd = 0.0
-         nodes(I)%HvCa = 0.0
+         nodes(I)%AxCd = 0.0
+         nodes(I)%AxCa = 0.0
       END IF
       
       !node1    = nodes(elements(I)%Node1Indx)
@@ -2118,7 +2118,7 @@ SUBROUTINE SetHeaveCoefs( NJoints, NHvCoefs, HeaveCoefs, numNodes, nodes, numEle
       
    END DO
    
-END SUBROUTINE SetHeaveCoefs
+END SUBROUTINE SetAxialCoefs
 
 
 SUBROUTINE SetNodeMG( numMGDepths, MGDepths, numNodes, nodes )
@@ -2437,7 +2437,8 @@ SUBROUTINE GenerateLumpedLoads( nodeIndx, sgn, node, gravity, MSL2SWL, densWater
       
       CALL LumpDynPressure( nodeIndx, k, node%R, node%tMG, NStepWave, WaveDynP0, F_DP, ErrStat, ErrMsg)
       
-           
+         ! For buoyancy calculations we need to adjust the Z-location based on MSL2SWL. If MSL2SWL > 0 then SWL above MSL, and so we need to place the Z value at a deeper position.  
+         !   SWL is at Z=0 for buoyancy calcs, but geometry was specified relative to MSL (MSL2SWL = 0) 
       CALL LumpBuoyancy( sgn, densWater, node%R, node%tMG, node%JointPos(3) - MSL2SWL, node%R_LToG, gravity, F_B  ) 
                     
        
@@ -2462,7 +2463,8 @@ SUBROUTINE GenerateLumpedLoads( nodeIndx, sgn, node, gravity, MSL2SWL, densWater
    
    
    IF ( node%FillDensity /= 0.0 ) THEN
-      
+         ! For buoyancy calculations we need to adjust the Z-location based on MSL2SWL. If MSL2SWL > 0 then SWL above MSL, and so we need to place the Z value at a deeper position.  
+         !   SWL is at Z=0 for buoyancy calcs, but geometry was specified relative to MSL (MSL2SWL = 0) 
       CALL LumpFloodedBuoyancy( sgn, node%FillDensity, node%R, node%t, node%FillFSLoc, node%JointPos(3) - MSL2SWL, node%R_LToG, gravity, F_BF )      
       
    END IF
@@ -2533,10 +2535,10 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    
    
    numLumpedMarkers = 0
-   z0                = -(wtrDpth + MSL2SWL) ! The total sea depth is the still water depth of the seabed + the mean sea level to still water level offset
+   z0                = -(wtrDpth) ! The total sea depth is the still water depth of the seabed 
    
       ! CA is the added mass coefficient for three dimensional bodies in infinite fluid (far from boundaries) The default value is 2/Pi
-   !CA = 0.0 ! TODO: GJH 9/26/13 This needs to be wired up to heave coefs2.0 / Pi   
+   !CA = 0.0 ! TODO: GJH 9/26/13 This needs to be wired up to axial coefs 2.0 / Pi   
    
    AMfactor = 2.0 * densWater * Pi / 3.0
    
@@ -2762,16 +2764,16 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                            
                            IF ( .NOT. nodes(J)%FillFlag ) THEN
                             
-                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,1)*f1*nodes(J)%HvCa
-                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,2)*f1*nodes(J)%HvCa
-                              AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*f1*nodes(J)%HvCa
+                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,1)*f1*nodes(J)%AxCa
+                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,2)*f1*nodes(J)%AxCa
+                              AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*f1*nodes(J)%AxCa
                            
                            ELSE
                            
                               f2 = (nodes(J)%R-nodes(J)%t)*(nodes(J)%R-nodes(J)%t)*(nodes(J)%R-nodes(J)%t)                       
-                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,1)*( f1 - f2  )*nodes(J)%HvCa
-                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,2)*( f1 - f2  )*nodes(J)%HvCa
-                              AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*( f1 - f2  )*nodes(J)%HvCa
+                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,1)*( f1 - f2  )*nodes(J)%AxCa
+                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,2)*( f1 - f2  )*nodes(J)%AxCa
+                              AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*( f1 - f2  )*nodes(J)%AxCa
                            
                            END IF
                         
@@ -2816,7 +2818,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    
    
  
-       ! Loop over nodes again in order to create lumped heave drag. 
+       ! Loop over nodes again in order to create lumped axial drag. 
        
    usedJointList = .FALSE.   
    commonNodeLst = -1
@@ -3078,7 +3080,7 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
    INTEGER, ALLOCATABLE       :: nodeToDistribIndx(:)
    
    numDistribMarkers = 0
-   z0                = -(wtrDpth + MSL2SWL) ! The total sea depth is the still water depth of the seabed + the mean sea level to still water level offset
+   z0                = -(wtrDpth) ! The total sea depth is the still water depth of the seabed 
    
       ! Count how many distributed markers we need to create by looping over the nodes
       
@@ -3262,7 +3264,8 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
                      
                   CALL DistrDynPressure( I, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz, NStepWave, WaveDynP0, F_DP, ErrStat, ErrMsg)
                   D_F_DP(:,:,count) = F_DP
-                  
+                     ! For buoyancy calculations we need to adjust the Z-location based on MSL2SWL. If MSL2SWL > 0 then SWL above MSL, and so we need to place the Z value at a deeper position.  
+                     !   SWL is at Z=0 for buoyancy calcs, but geometry was specified relative to MSL (MSL2SWL = 0) 
                   CALL DistrBuoyancy2( densWater, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz, nodes(I)%JointPos(3) - MSL2SWL, nodes(I)%R_LToG, gravity, F_B  ) 
                   D_F_B(:,count)    = F_B
                
@@ -3326,6 +3329,8 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
                
                IF (elementWaterState == 0 ) THEN
                   CALL DistrAddedMassFlood( nodes(I)%FillDensity, nodes(I)%R, nodes(I)%t, D_AM_F(:,:,count) )
+                     ! For buoyancy calculations we need to adjust the Z-location based on MSL2SWL. If MSL2SWL > 0 then SWL above MSL, and so we need to place the Z value at a deeper position.  
+                     !   SWL is at Z=0 for buoyancy calcs, but geometry was specified relative to MSL (MSL2SWL = 0) 
                   CALL DistrFloodedBuoyancy2( nodes(I)%FillDensity, nodes(I)%FillFSLoc, nodes(I)%R, nodes(I)%t, nodes(I)%dRdZ, nodes(I)%JointPos(3) - MSL2SWL, nodes(I)%R_LToG, gravity, F_BF )
                   D_F_BF(:,count  ) = F_BF
                ELSE
@@ -3582,13 +3587,13 @@ SUBROUTINE Morison_ProcessMorisonGeometry( InitInp, ErrStat, ErrMsg )
       DO I = 1,InitInp%NNodes
          ! Copy all necessary data from the input joints to these node data structures
          InitInp%Nodes(I)%JointPos       = InitInp%InpJoints(I)%JointPos
-         InitInp%Nodes(I)%JointHvIDIndx  = InitInp%InpJoints(I)%JointHvIDIndx
+         InitInp%Nodes(I)%JointAxIDIndx  = InitInp%InpJoints(I)%JointAxIDIndx
          InitInp%Nodes(I)%JointOvrlp     = InitInp%InpJoints(I)%JointOvrlp
          InitInp%Nodes(I)%NConnections   = InitInp%InpJoints(I)%NConnections
          InitInp%Nodes(I)%ConnectionList = InitInp%InpJoints(I)%ConnectionList
          InitInp%Nodes(I)%JointIndx      = I
          InitInp%Nodes(I)%NodeType       = 1  ! 1 = end of a member, 2 = interior of a member, 3 = super member node
-         InitInp%Nodes(I)%FillFSLoc      = 0  ! TODO: This should be MSL2SWL once this is implemented
+         InitInp%Nodes(I)%FillFSLoc      = InitInp%MSL2SWL  
          InitInp%Nodes(I)%FillFlag       = .FALSE.
          InitInp%Nodes(I)%FillDensity    = 0.0
          
@@ -3724,8 +3729,8 @@ SUBROUTINE Morison_ProcessMorisonGeometry( InitInp, ErrStat, ErrMsg )
       CALL SetElementCoefs( InitInp%SimplCd, InitInp%SimplCdMG, InitInp%SimplCa, InitInp%SimplCaMG, InitInp%CoefMembers, InitInp%NCoefDpth, InitInp%CoefDpths, InitInp%NNodes, InitInp%Nodes, InitInp%NElements, InitInp%Elements )   
       
       
-         ! Set the heave coefs HvCd and HvCa
-     CALL SetHeaveCoefs( InitInp%NJoints, InitInp%NHvCoefs, InitInp%HeaveCoefs, InitInp%NNodes, InitInp%Nodes, InitInp%NElements, InitInp%Elements )      
+         ! Set the axial coefs AxCd and AxCa
+     CALL SetAxialCoefs( InitInp%NJoints, InitInp%NAxCoefs, InitInp%AxialCoefs, InitInp%NNodes, InitInp%Nodes, InitInp%NElements, InitInp%Elements )      
       
          ! Set the marine growth thickness and density information onto the nodes (this is not a per-element quantity, but a per-node quantity
          
@@ -4382,7 +4387,7 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
          IF (EqualRealNos(AnProd, 0.0_ReKi)) THEN
             dragFactor = 0.0
          ELSE
-            dragFactor = p%Nodes(nodeIndx)%HvCd*p%WtrDens*abs(vmag)*vmag / ( 4.0_ReKi * AnProd )
+            dragFactor = p%Nodes(nodeIndx)%AxCd*p%WtrDens*abs(vmag)*vmag / ( 4.0_ReKi * AnProd )
          END IF
          
          !  v = Dot_Product(kvec,kvec)*vrel - Dot_Product(kvec,vrel)*kvec
@@ -4407,7 +4412,7 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
             
             IF (I < 4 ) THEN
    
-               OtherState%L_F_D(I,J) =  p%L_An(I,J)*dragFactor !vmag*v(I) * p%L_dragConst(J)   ! TODO: Verify newly added heave drag GJH 11/07/13
+               OtherState%L_F_D(I,J) =  p%L_An(I,J)*dragFactor !vmag*v(I) * p%L_dragConst(J)   ! TODO: Verify newly added axial drag GJH 11/07/13
                
                !y%LumpedMesh%Force(I,J) = OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_DP(I,J) +  p%L_F_BF(I,J)
                y%LumpedMesh%Force(I,J) = OtherState%L_F_AM(I,J) + OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_DP(I,J) +  p%L_F_BF(I,J)

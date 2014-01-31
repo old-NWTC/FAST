@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-09-21 22:37:32 -0600 (Sat, 21 Sep 2013) $
-! (File) Revision #: $Rev: 175 $
+! File last committed: $Date: 2014-01-31 10:20:04 -0700 (Fri, 31 Jan 2014) $
+! (File) Revision #: $Rev: 217 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SysMatlab.f90 $
 !**********************************************************************************************************************************
 MODULE SysSubs
@@ -62,7 +62,7 @@ MODULE SysSubs
 
    CHARACTER(10), PARAMETER      :: Endian      = 'BIG_ENDIAN'                      ! The internal format of numbers.
    CHARACTER(*),  PARAMETER      :: NewLine     = ACHAR(10)                         ! The delimiter for New Lines [ Windows is CHAR(13)//CHAR(10); MAC is CHAR(13); Unix is CHAR(10) {CHAR(13)=\r is a line feed, CHAR(10)=\n is a new line}]
-   CHARACTER(*),  PARAMETER      :: OS_Desc     = 'Intel Visual Fortran for Windows with Matlab' ! Description of the language/OS
+   CHARACTER(*),  PARAMETER      :: OS_Desc     = 'Intel Visual Fortran for Windows/Matlab' ! Description of the language/OS
    CHARACTER( 1), PARAMETER      :: PathSep     = '\'                               ! The path separater.
    CHARACTER( 1), PARAMETER      :: SwChar      = '/'                               ! The switch character for command-line options.
    CHARACTER(11), PARAMETER      :: UnfForm     = 'UNFORMATTED'                     ! The string to specify unformatted I/O files.

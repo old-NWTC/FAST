@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-23 12:39:30 -0700 (Thu, 23 Jan 2014) $
-! (File) Revision #: $Rev: 318 $
+! File last committed: $Date: 2014-01-31 11:14:57 -0700 (Fri, 31 Jan 2014) $
+! (File) Revision #: $Rev: 326 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -43,14 +43,14 @@ MODULE HydroDyn
   
    TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.00.02d-gjh', '23-Jan-2014' )
 
-   TYPE, PUBLIC :: HD_ModuleMapType            
-      TYPE(MeshMapType) ::           HD_P_2_WRP_P               !Map HD point mesh to WAMIT Reference Point, point mesh
-      TYPE(MeshMapType) ::           M_P_2_WRP_P                !Map Morison point mesh to WAMIT Reference Point, point mesh
-      TYPE(MeshMapType) ::           M_L_2_WRP_P                !Map Morison line2 mesh to WAMIT Reference Point, point mesh
-   END TYPE HD_ModuleMapType
+   !TYPE, PUBLIC :: HD_ModuleMapType            
+   !   TYPE(MeshMapType) ::           HD_P_2_WRP_P               !Map HD point mesh to WAMIT Reference Point, point mesh
+   !   TYPE(MeshMapType) ::           M_P_2_WRP_P                !Map Morison point mesh to WAMIT Reference Point, point mesh
+   !   TYPE(MeshMapType) ::           M_L_2_WRP_P                !Map Morison line2 mesh to WAMIT Reference Point, point mesh
+   !END TYPE HD_ModuleMapType
    
    !HACK - HACK ALERT - HACK  TODO Remove this!!!!! GJH
-   TYPE(HD_ModuleMapType) :: HD_MeshMap
+   !TYPE(HD_ModuleMapType) :: HD_MeshMap
    ! End HACK ALERT
    
    
@@ -542,8 +542,8 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       u%Mesh%RemapFlag  = .TRUE.
       y%Mesh%RemapFlag  = .TRUE.
      
-     CALL MeshCopy (   SrcMesh      = y%Mesh               &
-                     ,DestMesh     = y%WRP_Mesh                 &
+     CALL MeshCopy (   SrcMesh     = y%Mesh                 &
+                     ,DestMesh     = y%AllHdroOrigin        &
                      ,CtrlCode     = MESH_NEWCOPY           &
                      ,IOS          = COMPONENT_OUTPUT       &
                      ,ErrStat      = ErrStat                &
@@ -552,11 +552,11 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
                      ,Moment       = .TRUE.                 )
      
       
-      y%WRP_Mesh%RemapFlag  = .TRUE.
+      y%AllHdroOrigin%RemapFlag  = .TRUE.
       
          ! we need the translation displacement mesh for loads transfer:
       CALL MeshCopy ( SrcMesh  = u%Mesh            &
-                    , DestMesh = OtherState%WRP_Mesh_position   &
+                    , DestMesh = OtherState%AllHdroOrigin_position   &
                     , CtrlCode = MESH_NEWCOPY        &
                     , IOS      = COMPONENT_INPUT     &
                     , TranslationDisp = .TRUE.       &
@@ -564,7 +564,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
                     , ErrMess  = ErrMsg              )  ! automatically sets    DestMesh%RemapFlag = .TRUE.
                     
       IF ( ErrStat /= ErrID_None ) RETURN
-      OtherState%WRP_Mesh_position%TranslationDisp = 0.0  ! bjj: this is actually initialized in the ModMesh module, but I'll do it here anyway.
+      OtherState%AllHdroOrigin_position%TranslationDisp = 0.0  ! bjj: this is actually initialized in the ModMesh module, but I'll do it here anyway.
       
      
          ! Create the Output file if requested
@@ -592,9 +592,9 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
           
       OtherState%y_mapped%RemapFlag  = .TRUE.
  
-      CALL MeshMapCreate( y%Mesh,                OtherState%y_mapped, HD_MeshMap%HD_P_2_WRP_P, ErrStat, ErrMsg  )
-      CALL MeshMapCreate( y%Morison%LumpedMesh,  OtherState%y_mapped, HD_MeshMap%M_P_2_WRP_P,  ErrStat, ErrMsg  )
-      CALL MeshMapCreate( y%Morison%DistribMesh, OtherState%y_mapped, HD_MeshMap%M_L_2_WRP_P,  ErrStat, ErrMsg  )
+      CALL MeshMapCreate( y%Mesh,                OtherState%y_mapped, OtherState%HD_MeshMap%HD_P_2_WRP_P, ErrStat, ErrMsg  )
+      CALL MeshMapCreate( y%Morison%LumpedMesh,  OtherState%y_mapped, OtherState%HD_MeshMap%M_P_2_WRP_P,  ErrStat, ErrMsg  )
+      CALL MeshMapCreate( y%Morison%DistribMesh, OtherState%y_mapped, OtherState%HD_MeshMap%M_L_2_WRP_P,  ErrStat, ErrMsg  )
       
          ! Define initial guess for the system inputs here:
 
@@ -671,11 +671,11 @@ SUBROUTINE HydroDyn_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          
       CALL HydroDyn_DestroyOutput( y, ErrStat, ErrMsg )
 
-
+!bjj: this is done in HydroDyn_DestroyOtherState now:
          ! Destroy mesh mapping data
-      CALL MeshMapDestroy( HD_MeshMap%HD_P_2_WRP_P, ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
-      CALL MeshMapDestroy( HD_MeshMap%M_P_2_WRP_P,  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
-      CALL MeshMapDestroy( HD_MeshMap%M_L_2_WRP_P,  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
+      CALL MeshMapDestroy( OtherState%HD_MeshMap%HD_P_2_WRP_P, ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
+      CALL MeshMapDestroy( OtherState%HD_MeshMap%M_P_2_WRP_P,  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
+      CALL MeshMapDestroy( OtherState%HD_MeshMap%M_L_2_WRP_P,  ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
       
 
 END SUBROUTINE HydroDyn_End
@@ -860,7 +860,7 @@ SUBROUTINE HydroDyn_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Er
       
       
          ! Integrate all the mesh loads onto the WAMIT reference Point (WRP) at (0,0,0)
-      OtherState%F_Hydro = CalcLoadsAtWRP( y, u, OtherState%y_mapped, OtherState%WRP_Mesh_position, OtherState%MrsnLumpedMesh_position, OtherState%MrsnDistribMesh_position, HD_MeshMap, ErrStat, ErrMsg )
+      OtherState%F_Hydro = CalcLoadsAtWRP( y, u, OtherState%y_mapped, OtherState%AllHdroOrigin_position, OtherState%MrsnLumpedMesh_position, OtherState%MrsnDistribMesh_position, OtherState%HD_MeshMap, ErrStat, ErrMsg )
       
       
          ! Compute the wave elevations at the requested output locations for this time
@@ -1016,12 +1016,12 @@ SUBROUTINE HydroDyn_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z
 END SUBROUTINE HydroDyn_CalcConstrStateResidual
 
 
-FUNCTION CalcLoadsAtWRP( y, u, y_mapped, WRP_Mesh_Position, MrsnLumpedMesh_Postion, MrsnDistribMesh_Position, MeshMapData, ErrStat, ErrMsg )
+FUNCTION CalcLoadsAtWRP( y, u, y_mapped, AllHdroOrigin_position, MrsnLumpedMesh_Postion, MrsnDistribMesh_Position, MeshMapData, ErrStat, ErrMsg )
 
    TYPE(HydroDyn_OutputType),  INTENT(INOUT)  :: y                   ! Hydrodyn outputs
    TYPE(HydroDyn_InputType),   INTENT(IN   )  :: u                   ! Hydrodyn inputs
    TYPE(MeshType),             INTENT(INOUT)  :: y_mapped            ! This is the mesh which data is mapped onto.  We pass it in to avoid allocating it at each call
-   TYPE(MeshType),             INTENT(IN   )  :: WRP_Mesh_Position            ! This is the mesh which data is mapped onto.  We pass it in to avoid allocating it at each call
+   TYPE(MeshType),             INTENT(IN   )  :: AllHdroOrigin_position            ! This is the mesh which data is mapped onto.  We pass it in to avoid allocating it at each call
    TYPE(MeshType),             INTENT(IN   )  :: MrsnLumpedMesh_Postion            ! This is the mesh which data is mapped onto.  We pass it in to avoid allocating it at each call 
    TYPE(MeshType),             INTENT(IN   )  :: MrsnDistribMesh_Position            ! This is the mesh which data is mapped onto.  We pass it in to avoid allocating it at each call
    TYPE(HD_ModuleMapType),     INTENT(INOUT)  :: MeshMapData         ! Map  data structures 
@@ -1033,15 +1033,15 @@ FUNCTION CalcLoadsAtWRP( y, u, y_mapped, WRP_Mesh_Position, MrsnLumpedMesh_Posti
    INTEGER(IntKi)                                 :: ErrStat2                  ! temporary Error status of the operation
    CHARACTER(LEN(ErrMsg))                         :: ErrMsg2                   ! temporary Error message if ErrStat /= ErrID_None
    
-   y%WRP_Mesh%Force = 0.0
-   y%WRP_Mesh%Moment= 0.0
+   y%AllHdroOrigin%Force = 0.0
+   y%AllHdroOrigin%Moment= 0.0
    
    IF ( y%Mesh%Committed  ) THEN
 
       ! Just transfer the loads because the meshes are at the same location (0,0,0)
 
-      y%WRP_Mesh%Force  =  y%Mesh%Force
-      y%WRP_Mesh%Moment =  y%Mesh%Moment
+      y%AllHdroOrigin%Force  =  y%Mesh%Force
+      y%AllHdroOrigin%Moment =  y%Mesh%Moment
 
    END IF      
       
@@ -1049,28 +1049,28 @@ FUNCTION CalcLoadsAtWRP( y, u, y_mapped, WRP_Mesh_Position, MrsnLumpedMesh_Posti
 
          ! This is viscous drag associate with the WAMIT body and/or filled/flooded forces of the WAMIT body
 
-      CALL Transfer_Point_to_Point( y%Morison%LumpedMesh, y_mapped, MeshMapData%M_P_2_WRP_P, ErrStat2, ErrMsg2, MrsnLumpedMesh_Postion, WRP_Mesh_Position )
+      CALL Transfer_Point_to_Point( y%Morison%LumpedMesh, y_mapped, MeshMapData%M_P_2_WRP_P, ErrStat2, ErrMsg2, MrsnLumpedMesh_Postion, AllHdroOrigin_position )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
             
-      y%WRP_Mesh%Force  = y%WRP_Mesh%Force  + y_mapped%Force
-      y%WRP_Mesh%Moment = y%WRP_Mesh%Moment + y_mapped%Moment
+      y%AllHdroOrigin%Force  = y%AllHdroOrigin%Force  + y_mapped%Force
+      y%AllHdroOrigin%Moment = y%AllHdroOrigin%Moment + y_mapped%Moment
 
    END IF
    
    IF ( y%Morison%DistribMesh%Committed ) THEN 
 
-      CALL Transfer_Line2_to_Point( y%Morison%DistribMesh, y_mapped, MeshMapData%M_L_2_WRP_P, ErrStat2, ErrMsg2,  MrsnDistribMesh_Position, WRP_Mesh_Position )
+      CALL Transfer_Line2_to_Point( y%Morison%DistribMesh, y_mapped, MeshMapData%M_L_2_WRP_P, ErrStat2, ErrMsg2,  MrsnDistribMesh_Position, AllHdroOrigin_position )
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
  
-      y%WRP_Mesh%Force  = y%WRP_Mesh%Force  + y_mapped%Force
-      y%WRP_Mesh%Moment = y%WRP_Mesh%Moment + y_mapped%Moment
+      y%AllHdroOrigin%Force  = y%AllHdroOrigin%Force  + y_mapped%Force
+      y%AllHdroOrigin%Moment = y%AllHdroOrigin%Moment + y_mapped%Moment
          
    END IF
    
-   CalcLoadsAtWRP(1:3) = y%WRP_Mesh%Force(:,1)
-   CalcLoadsAtWRP(4:6) = y%WRP_Mesh%Moment(:,1)
+   CalcLoadsAtWRP(1:3) = y%AllHdroOrigin%Force(:,1)
+   CalcLoadsAtWRP(4:6) = y%AllHdroOrigin%Moment(:,1)
 
 CONTAINS   
    !...............................................................................................................................

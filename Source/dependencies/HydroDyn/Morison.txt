@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2014-01-22 10:03:43 -0700 (Wed, 22 Jan 2014) $
-# (File) Revision #: $Rev: 309 $
+# File last committed: $Date: 2014-01-27 15:39:10 -0700 (Mon, 27 Jan 2014) $
+# (File) Revision #: $Rev: 323 $
 # URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/RegistryFiles/Morison.txt $
 ###################################################################################################################################
 
@@ -22,8 +22,8 @@ include   Registry_NWTC_Library.txt
 param     Morison/Morison              unused                        INTEGER          MaxMrsnOutputs               -       2736        -         ""    -
 typedef   Morison/Morison              Morison_JointType             INTEGER          JointID                  -          -        -         ""    -
 typedef   ^                            ^                             ReKi             JointPos                 {3}        -        -         ""    -
-typedef   ^                            ^                             INTEGER          JointHvID                -          -        -         ""    -
-typedef   ^                            ^                             INTEGER          JointHvIDIndx                -          -        -         ""    -
+typedef   ^                            ^                             INTEGER          JointAxID                -          -        -         ""    -
+typedef   ^                            ^                             INTEGER          JointAxIDIndx                -          -        -         ""    -
 typedef   ^                            ^                             INTEGER          JointOvrlp               -          -        -         ""    -
 typedef   ^                            ^                             INTEGER          NConnections             -          -        -         ""    -
 typedef   ^                            ^                             INTEGER          ConnectionList           {10}       -        -         ""    -
@@ -40,9 +40,9 @@ typedef   ^                            ^                             ReKi       
 typedef   ^                            ^                             ReKi             DpthCdMG                 -          -        -         ""    -
 typedef   ^                            ^                             ReKi             DpthCa                   -          -        -         ""    -
 typedef   ^                            ^                             ReKi             DpthCaMG                 -          -        -         ""    -
-typedef   Morison/Morison              Morison_HeaveCoefType         INTEGER          HvCoefID                 -          -        -         ""    -
-typedef   ^                            ^                             ReKi             HvCd                     -          -        -         ""    -
-typedef   ^                            ^                             ReKi             HvCa                     -          -        -         ""    -
+typedef   Morison/Morison              Morison_AxialCoefType         INTEGER          AxCoefID                 -          -        -         ""    -
+typedef   ^                            ^                             ReKi             AxCd                     -          -        -         ""    -
+typedef   ^                            ^                             ReKi             AxCa                     -          -        -         ""    -
 typedef   Morison/Morison              Morison_MemberInputType       INTEGER          MemberID                 -          -        -         ""    -
 typedef   ^                            ^                             INTEGER          MJointID1                -          -        -         ""    -
 typedef   ^                            ^                             INTEGER          MJointID2                -          -        -         ""    -
@@ -66,7 +66,7 @@ typedef   Morison/Morison              Morison_NodeType              INTEGER    
 typedef   ^                            ^                             INTEGER          JointIndx                -          -        -         ""    -
 typedef   ^                            ^                             ReKi             JointPos                 {3}        -        -         ""    -
 typedef   ^                            ^                             INTEGER          JointOvrlp               -          -        -         ""    -
-typedef   ^                            ^                             INTEGER          JointHvIDIndx            -          -        -         ""    -
+typedef   ^                            ^                             INTEGER          JointAxIDIndx            -          -        -         ""    -
 typedef   ^                            ^                             INTEGER          NConnections             -          -        -         ""    -
 typedef   ^                            ^                             INTEGER          ConnectionList           {10}       -        -         ""    -
 typedef   ^                            ^                             INTEGER          NConnectPreSplit         -          -        -         ""    -
@@ -74,8 +74,8 @@ typedef   ^                            ^                             ReKi       
 typedef   ^                            ^                             ReKi             CdMG                     -          -        -         ""    -
 typedef   ^                            ^                             ReKi             Ca                       -          -        -         ""    -
 typedef   ^                            ^                             ReKi             CaMG                     -          -        -         ""    -
-typedef   ^                            ^                             ReKi             HvCd                     -          -        -         ""    -
-typedef   ^                            ^                             ReKi             HvCa                     -          -        -         ""    -
+typedef   ^                            ^                             ReKi             AxCd                     -          -        -         ""    -
+typedef   ^                            ^                             ReKi             AxCa                     -          -        -         ""    -
 typedef   ^                            ^                             ReKi             R                        -          -        -         ""    -
 typedef   ^                            ^                             ReKi             t                        -          -        -         ""    -
 typedef   ^                            ^                             ReKi             tMG                      -          -        -         ""    -
@@ -159,8 +159,8 @@ typedef   ^                            ^                             Morison_Joi
 typedef   ^                            ^                             Morison_NodeType         Nodes                            {:}        -        -         ""    -
 typedef   ^                            ^                             INTEGER                  NElements                        -          -        -         ""    -
 typedef   ^                            ^                             Morison_MemberType       Elements                         {:}        -        -         ""    -
-typedef   ^                            ^                             INTEGER                  NHvCoefs                          -          -        -         ""    -
-typedef   ^                            ^                             Morison_HeaveCoefType    HeaveCoefs                       {:}        -        -         ""    -
+typedef   ^                            ^                             INTEGER                  NAxCoefs                          -          -        -         ""    -
+typedef   ^                            ^                             Morison_AxialCoefType    AxialCoefs                       {:}        -        -         ""    -
 typedef   ^                            ^                             INTEGER                  NPropSets                        -          -        -         ""    -
 typedef   ^                            ^                             Morison_MemberPropType   MPropSets                        {:}        -        -         ""    -
 typedef   ^                            ^                             ReKi                     SimplCd                          -          -        -         ""    -
