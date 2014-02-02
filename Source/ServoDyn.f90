@@ -31,7 +31,8 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.02a-bjj', '29-Jan-2014' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.02a-bjj', '31-Jan-2014' )
+   CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4SFun  = .FALSE.                            ! Is the module being compiled as an S-Function for Simulink?
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4LV    = .FALSE.                            ! Is the module being compiled for Labview?
    
@@ -176,7 +177,7 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       ! Read the input file and validate the data
       ! (note p%NumBl and p%RootName must be set first!) 
       !............................................................................................      
-   p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(SrvD_Ver%Name) ! all of the output file names from this module will end with '_ModuleName'
+   p%RootName = TRIM(InitInp%RootName)//'.'//SrvD_Nickname ! all of the output file names from this module will end with '_ModuleName'
    p%NumBl    = InitInp%NumBl         
       
    CALL SrvD_ReadInput( InitInp%InputFile, InputFileData, Interval, p%RootName, ErrStat2, ErrMsg2 )
@@ -416,8 +417,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
           
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//' SrvD_Init:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -693,8 +694,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//' SrvD_CalcOutput:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -859,8 +860,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'SrvD_ReadInput:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -1462,8 +1463,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//'Error in ServoDyn ReadPrimaryFile: '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ReadPrimaryFile:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -1962,9 +1963,9 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
 !         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)  !bjj: note that when you pass a literal string "", it somehow adds an extra space at the beginning.
-         ErrMsg = TRIM(ErrMsg)//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//'SrvD_SetParameters:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
          
          !.........................................................................................................................

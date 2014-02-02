@@ -140,7 +140,7 @@ typedef	^	ED_InputFile	ReKi	DTTorSpr	-	-	-	"Drivetrain torsional spring"	N-m/rad
 typedef	^	ED_InputFile	ReKi	DTTorDmp	-	-	-	"Drivetrain torsional damper"	N-m/(rad/s)
 typedef	^	ED_InputFile	LOGICAL	Furling	-	-	-	"Use Additional Furling parameters?"	-
 typedef	^	ED_InputFile	IntKi	TwrNodes	-	-	-	"Number of tower nodes used in the analysis"	-
-typedef	^	ED_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName>_ElastoDyn.sum"	-
+typedef	^	ED_InputFile	LOGICAL	SumPrint	-	-	-	"Print summary data to <RootName>.sum"	-
 typedef	^	ED_InputFile	IntKi	OutFile	-	-	-	"Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both)"	-
 #typedef	^	ED_InputFile	IntKi	OutFileFmt	-	-	-	"Format for module tabular (time-marching) output: {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}"	-
 typedef	^	ED_InputFile	LOGICAL	TabDelim	-	-	-	"Flag to cause tab-delimited text output (delimited by space otherwise)"	-
