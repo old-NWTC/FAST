@@ -12,11 +12,11 @@ PRANDtl                          HLModel        - Hub-loss model (EQUIL only) [P
 NEWTOWER                         TwrShad        - INSTEAD OF:   0.0      TwrShad     - Tower-shadow velocity deficit (-)
 True                             TwrPotent      - Calculate tower potential flow (flag)  INSTEAD OF  9999.9      ShadHWid    - Tower-shadow half width (m)
 False                            TwrShadow      - Calculate tower shadow (flag)          INSTEAD OF  9999.9      T_Shad_Refpt- Tower-shadow reference point (m)
-"NRELOffshrBsline5MW_AeroDyn_DT5_TwrDrag_Tower.dat"   TwrFile        - Tower drag file name (quoted string)
+"NRELOffshrBsline5MW_AeroDyn_TwrDrag_Tower.dat"   TwrFile        - Tower drag file name (quoted string)
 True                             CalcTwrAero    - Calculate aerodynamic drag of the tower at the ElastoDyn nodes.  TwrPotent must be true.
    1.225                         AirDens        - Air density (kg/m^3)
    1.464E-5                      KinVisc        - Kinematic air viscosity [CURRENTLY IGNORED] (m^2/sec)
-   0.005                         DTAero         - Time interval for aerodynamic calculations (sec) !bjj: was 0.02479
+   default                       DTAero         - Time interval for aerodynamic calculations (sec) !bjj: was 0.02479
    8                             NumFoil        - Number of airfoil files (-)
 "AeroData/Cylinder1.dat"         FoilNm         - Names of the airfoil files [NumFoil lines] (quoted strings)
 "AeroData/Cylinder2.dat"

@@ -3,7 +3,7 @@
 OC4 'Jacket' SubStructure Input File. The grouted connection is simulated with an equivalent tubular beam of enhanced properties. RRD 10/15/2013
 -------------------------- SIMULATION CONTROL  ---------------------------------
 True       Echo        - Echo input data to "echo.out" (flag)
-0.0002     SDdeltaT    - Local Integration Step. If 0.0, the glue-code integration step will be used.
+0.0006 0.0002     SDdeltaT    - Local Integration Step. If 0.0, the glue-code integration step will be used.
 1          IntMethod   - Integration Method (0/1/2/3/4 = GlueCode(tight Coupling)/RK4/AB4/ABM4/AM2)
 -------------------- FEA and CRAIG-BAMPTON PARAMETERS---------------------------
 3          FEMMod     - FEM switch: element model in the FEM: 1= Euler-Bernoulli(E-B) ; 2=Tapered E-B; 3= 2-node Timoshenko;  4= 2-node tapered Timoshenko

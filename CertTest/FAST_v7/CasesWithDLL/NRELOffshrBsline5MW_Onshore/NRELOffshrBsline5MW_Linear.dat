@@ -4,8 +4,8 @@ NREL 5.0 MW offshore baseline linearization input properties.
 ---------------------- PERIODIC STEADY STATE SOLUTION --------------------------
 True        CalcStdy    - Calculate periodic steady state condition {False: linearize about initial conditions} (flag)
    3        TrimCase    - Trim case {1: find nacelle yaw, 2: find generator torque, 3: find collective blade pitch} (switch) [used only when CalcStdy=True and GenDOF=True]
-   0.0001   DispTol     - Convergence tolerance for the 2-norm of displacements in the periodic steady state calculation (rad  ) [used only when CalcStdy=True]
-   0.0010   VelTol      - Convergence tolerance for the 2-norm of velocities    in the periodic steady state calculation (rad/s) [used only when CalcStdy=True]
+0.001   0.0001   DispTol     - Convergence tolerance for the 2-norm of displacements in the periodic steady state calculation (rad  ) [used only when CalcStdy=True]
+0.01   0.0010   VelTol      - Convergence tolerance for the 2-norm of velocities    in the periodic steady state calculation (rad/s) [used only when CalcStdy=True]
 ---------------------- MODEL LINEARIZATION -------------------------------------
   36        NAzimStep   - Number of equally-spaced azimuth steps in periodic linearized model (-)
    1        MdlOrder    - Order of output linearized model {1: 1st order A, B, Bd, C, D, Dd; 2: 2nd order M, C, K, F, Fd, VelC, DspC, D, Dd} (switch)

@@ -1,4 +1,4 @@
-NREL 5.0 MW offshore baseline aerodynamic input properties; Compatible with AeroDyn v12.58.
+NREL 5.0 MW offshore baseline aerodynamic input properties; Compatible with AeroDyn v14.00.
 SI          SysUnits     - System of units for used for input and output [must be SI for FAST] (unquoted string)
 BEDDOES     StallMod     - Dynamic stall included [BEDDOES or STEADY] (unquoted string)
 USE_CM      UseCm        - Use aerodynamic pitching moment model? [USE_CM or NO_CM] (unquoted string)
@@ -14,7 +14,7 @@ PRANDtl     HLModel      - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquot
 9999.9      T_Shad_Refpt - Tower-shadow reference point (m)
    1.225    AirDens      - Air density (kg/m^3)
    1.464E-5 KinVisc      - Kinematic air viscosity [CURRENTLY IGNORED] (m^2/sec)
-   0.02479  DTAero       - Time interval for aerodynamic calculations (sec)
+   default  DTAero       - Time interval for aerodynamic calculations (sec)  ! bjj: was 0.02479
    8        NumFoil      - Number of airfoil files (-)
 "AeroData/Cylinder1.dat"                         FoilNm      - Names of the airfoil files [NumFoil lines] (quoted strings)
 "AeroData/Cylinder2.dat"
