@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-11-07 12:13:14 -0700 (Thu, 07 Nov 2013) $
-! (File) Revision #: $Rev: 184 $
+! File last committed: $Date: 2014-02-03 13:28:54 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 219 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Num
@@ -1026,8 +1026,9 @@ CONTAINS
    DO L = 1,NumEq             ! Loop through all rows
 
       IF ( EqualRealNos( AugMat(L,L), 0.0_ReKi ) ) THEN
-         ErrStat = ErrID_Warn
+         ErrStat = ErrID_Fatal
          ErrMsg  = 'Division by zero in NWTC Library subroutine GaussElim.'
+         RETURN
       END IF
 
       DO I = ( L + 1 ), NAug  ! Loop through all columns above current row number

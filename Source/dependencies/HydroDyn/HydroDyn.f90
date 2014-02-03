@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-31 11:14:57 -0700 (Fri, 31 Jan 2014) $
-! (File) Revision #: $Rev: 326 $
+! File last committed: $Date: 2014-02-03 11:16:44 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 327 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -205,7 +205,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          
       IF ( InitLocal%HDSum ) THEN 
          
-         SummaryName = TRIM(InitLocal%OutRootName)//'_HydroDyn.sum'
+         SummaryName = TRIM(InitLocal%OutRootName)//'.HD.sum'
          CALL HDOut_OpenSum( InitLocal%UnSum, SummaryName, HydroDyn_ProgDesc, ErrStat, ErrMsg )    !this must be called before the Waves_Init() routine so that the appropriate wave data can be written to the summary file
          IF ( ErrStat > ErrID_Warn ) RETURN
       

@@ -138,7 +138,7 @@ SUBROUTINE FEAM_Init(  InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
       ! Read the input file and validate the data
       ! (note p%NumBl and p%RootName must be set first!) 
       !............................................................................................      
-   p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(FEAM_Ver%Name) ! all of the output file names from this module will end with '_ModuleName'   
+   p%RootName = TRIM(InitInp%RootName)//'.FEAM' ! all of the output file names from this module will end with '.FEAM.*'   
       
    CALL FEAM_ReadInput( InitInp%InputFile, InputFileData, p%RootName, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )

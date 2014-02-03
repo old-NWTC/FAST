@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-22 12:59:34 -0700 (Wed, 22 Jan 2014) $
-! (File) Revision #: $Rev: 616 $
+! File last committed: $Date: 2014-02-01 17:39:02 -0700 (Sat, 01 Feb 2014) $
+! (File) Revision #: $Rev: 627 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -33,8 +33,8 @@ MODULE ElastoDyn_Parameters
 
    USE NWTC_Library
 
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.03a-bjj', '29-Jan-2014' )
-   
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.03a-bjj', '31-Jan-2014' )
+   CHARACTER(*),   PARAMETER  :: ED_Nickname = 'ED'
    
    REAL(ReKi), PARAMETER            :: SmallAngleLimit_Deg  =  15.0                     ! Largest input angle considered "small" (used as a check on input data), degrees
 
@@ -1367,7 +1367,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
       !............................................................................................
       ! Read the input file and validate the data
       !............................................................................................
-   p%RootName = TRIM(InitInp%RootName)//'_'//TRIM(ED_Ver%Name) ! all of the output file names from this module will end with '_ElastoDyn'
+   p%RootName = TRIM(InitInp%RootName)//'.'//ED_Nickname ! all of the output file names from this module will contain '.ED' before the extension
 
    CALL ED_ReadInput( InitInp%InputFile, InitInp%ADInputFile, InputFileData, GetAdamsVals, Interval, p%RootName, ErrStat2, ErrMsg2 )
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -1510,10 +1510,10 @@ CONTAINS
       ! Set error status/message;
       !............................................................................................................................
 
-      IF ( ErrID /= ErrID_None ) THEN
-
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+      IF ( ErrID /= ErrID_None ) THEN         
+         
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ED_Init:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -2877,26 +2877,19 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
    CALL GaussElim( OtherState%AugMat( p%DOFs%SrtPS(    1: p%DOFs%NActvDOF   ),     &
                                       p%DOFs%SrtPSNAUG(1:(p%DOFs%NActvDOF+1)) ),   &
                                       p%DOFs%NActvDOF,  SolnVec, ErrStat2, ErrMsg2 )
-   IF ( ErrStat2 /= ErrID_None ) THEN
-      ErrStat = MAX(ErrStat, ErrStat2)
-      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-      ErrMsg = TRIM(ErrMsg)//TRIM(ErrMsg2)
-   END IF
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ED_CalcContStateDeriv')
+      IF ( ErrStat >= AbortErrLev ) RETURN
 
    !bjj: because the deriv is INTENT(OUT), this is reallocated each time:
 IF (.NOT. ALLOCATED(dxdt%qt) ) THEN
    CALL AllocAry( dxdt%qt,  SIZE(x%qt),  'dxdt%qt',  ErrStat2, ErrMsg2 )
-   ErrStat = MAX(ErrStat, ErrStat2)
-   IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-   ErrMsg = TRIM(ErrMsg)//TRIM(ErrMsg2)
+   CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ED_CalcContStateDeriv')
    IF ( ErrStat >= AbortErrLev ) RETURN
 END IF
 
 IF (.NOT. ALLOCATED(dxdt%qdt) ) THEN
    CALL AllocAry( dxdt%qdt, SIZE(x%qdt), 'dxdt%qdt', ErrStat2, ErrMsg2 )
-   ErrStat = MAX(ErrStat, ErrStat2)
-   IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-   ErrMsg = TRIM(ErrMsg)//TRIM(ErrMsg2)
+   CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ED_CalcContStateDeriv')
    IF ( ErrStat >= AbortErrLev ) RETURN
 END IF
 
@@ -3129,8 +3122,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ED_ReadInput:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -3216,8 +3209,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ED_ValidateInput:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
       END IF
@@ -3297,8 +3290,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ED_SetParameters:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -5579,20 +5572,14 @@ CONTAINS
       ! Set error status/message;
       !............................................................................................................................
 
-      IF ( ErrID /= ErrID_None ) THEN
-
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
-         ErrStat = MAX(ErrStat, ErrID)
+      CALL SetErrStat(ErrID,Msg,ErrStat,ErrMsg,'ReadBladeInputs')
 
          !.........................................................................................................................
-         ! Clean up if we're going to return on error: close file, deallocate local arrays
-         !.........................................................................................................................
-         IF ( ErrStat >= AbortErrLev ) THEN
-
-         END IF
-
-      END IF
+         !! Clean up if we're going to return on error: close file, deallocate local arrays
+         !!.........................................................................................................................
+         !IF ( ErrStat >= AbortErrLev ) THEN
+         !
+         !END IF
 
 
    END SUBROUTINE CheckError
@@ -5874,8 +5861,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ReadBladeFile:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -6045,8 +6032,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ReadBladeMeshFile:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -6673,8 +6660,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ReadFurlFile:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -6968,8 +6955,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ReadTowerFile:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -7629,8 +7616,8 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! SumPrint - Print summary data to <RootName>_ElastoDyn.sum (flag):
-   CALL ReadVar( UnIn, InputFile, InputFileData%SumPrint, "SumPrint", "Print summary data to <RootName>_ElastoDyn.sum (flag)", ErrStat2, ErrMsg2, UnEc)
+      ! SumPrint - Print summary data to <RootName>.sum (flag):
+   CALL ReadVar( UnIn, InputFile, InputFileData%SumPrint, "SumPrint", "Print summary data to <RootName>.sum (flag)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -7729,8 +7716,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//'Error in ElastoDyn ReadPrimaryFile: '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ReadPrimaryFile:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -9889,8 +9876,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//'Blade '//TRIM(Num2LStr(K))// &
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'InitBlDefl:Blade '//TRIM(Num2LStr(K))// &
                      ' initial blade tip displacements are Incompat with enabled DOFs: '//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
@@ -10669,8 +10656,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'SetCoordSy:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -13243,8 +13230,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ED_AllocOutput:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -13521,8 +13508,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ED_AllocInput:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -13723,10 +13710,10 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
-         ErrStat = MAX(ErrStat, ErrID)
-
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ED_RK4:'//TRIM(Msg)         
+         ErrStat = MAX(ErrStat,ErrID)
+         
          !.........................................................................................................................
          ! Clean up if we're going to return on error: close files, deallocate local arrays
          !.........................................................................................................................
@@ -13885,8 +13872,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ED_AB4:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -14026,8 +14013,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'ED_ABM4:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................

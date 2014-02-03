@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-09-29 21:58:29 -0600 (Sun, 29 Sep 2013) $
-! (File) Revision #: $Rev: 524 $
+! File last committed: $Date: 2014-02-01 17:39:02 -0700 (Sat, 01 Feb 2014) $
+! (File) Revision #: $Rev: 627 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/BladedInterface.f90 $
 !**********************************************************************************************************************************
 MODULE BladedInterface
@@ -242,8 +242,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'BladedInterface_Init:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -319,7 +319,7 @@ SUBROUTINE BladedInterface_CalcOutput(t, u, p, OtherState, ErrStat, ErrMsg)
       
    CALL Retrieve_avrSWAP( p, OtherState%dll_data, ErrStat2, ErrMsg2 )
       IF ( ErrStat2 /= ErrID_None ) THEN
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+         IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
          ErrMsg = TRIM(ErrMsg)//TRIM(ErrMsg2)
          ErrStat = MAX(ErrStat, ErrStat2)
          IF ( ErrStat >= AbortErrLev ) RETURN
@@ -492,10 +492,11 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
       
          ! Generator contactor indicates something other than off or main; abort program
          
-      ErrStat = ErrID_Fatal
-      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Only off and main generators supported in '//TRIM( GetNVD( BladedInterface_Ver ) )// &
                '. Set avrSWAP(35) to 0 or 1 in '//TRIM(p%DLL_Trgt%FileName)//'.'
+      ErrStat = ErrID_Fatal
+      
    END IF   
    
    
@@ -507,11 +508,11 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
       
          ! Shaft brake status specified incorrectly; abort program
 
-      ErrStat = ErrID_Fatal
-      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Shaft brake status improperly set in '//TRIM( GetNVD( BladedInterface_Ver ) )//&
                '. Set avrSWAP(36) to 0 or 1 in '//TRIM(p%DLL_Trgt%FileName)//'.'      
-   
+      ErrStat = ErrID_Fatal
+
    END IF   
 
 ! Records 38-40 are reserved
@@ -541,10 +542,10 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
 
          ! Pitch  override requested by DLL; abort program
          
-      ErrStat = ErrID_Fatal
-      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Built-in pitch unsupported in '//TRIM( GetNVD( BladedInterface_Ver ) )//&
                '. Set avrSWAP(55) to 0 in '//TRIM(p%DLL_Trgt%FileName)//'.'
+      ErrStat = ErrID_Fatal
    END IF
    
 
@@ -553,10 +554,10 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
       
          ! Torque override requested by DLL; abort program
          
-      ErrStat = ErrID_Fatal
-      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Built-in torque unsupported in '//TRIM( GetNVD( BladedInterface_Ver ) )//&
                '. Set avrSWAP(56) to 0 in '//TRIM(p%DLL_Trgt%FileName)//'.'
+      ErrStat = ErrID_Fatal
    END IF
 
 
@@ -567,11 +568,11 @@ SUBROUTINE Retrieve_avrSWAP( p, dll_data, ErrStat, ErrMsg )
       
          ! Return variables for logging requested by DLL; abort program
          
-      ErrStat = ErrID_Fatal
-      IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
+      IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
       ErrMsg = TRIM(ErrMsg)//'Return variables unsupported in '//TRIM( GetNVD( BladedInterface_Ver ) )//&
                '. Set avrSWAP(65) to 0 in '//TRIM(p%DLL_Trgt%FileName)//'.'
-      
+      ErrStat = ErrID_Fatal
+
    ENDIF
 
 ! Record 72, the generator start-up resistance, is ignored

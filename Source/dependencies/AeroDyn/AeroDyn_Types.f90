@@ -433,13 +433,8 @@ IMPLICIT NONE
     LOGICAL  :: Swirl 
     REAL(DbKi)  :: DtAero 
     REAL(ReKi)  :: HubRad 
-    INTEGER(IntKi)  :: UnEc = 19 
+    INTEGER(IntKi)  :: UnEc = -1 
     INTEGER(IntKi)  :: UnElem = -1 
-    INTEGER(IntKi)  :: UnADPlt = 70 
-    INTEGER(IntKi)  :: UnADin = 90 
-    INTEGER(IntKi)  :: UnWind = 91 
-    INTEGER(IntKi)  :: UnADopt = 92 
-    INTEGER(IntKi)  :: UnAirfl = 93 
     INTEGER(IntKi)  :: UnWndOut = -1 
     INTEGER(IntKi)  :: MAXICOUNT = 1000 
     LOGICAL  :: WrOptFile = .TRUE. 
@@ -8152,11 +8147,6 @@ ENDIF
    DstParamData%HubRad = SrcParamData%HubRad
    DstParamData%UnEc = SrcParamData%UnEc
    DstParamData%UnElem = SrcParamData%UnElem
-   DstParamData%UnADPlt = SrcParamData%UnADPlt
-   DstParamData%UnADin = SrcParamData%UnADin
-   DstParamData%UnWind = SrcParamData%UnWind
-   DstParamData%UnADopt = SrcParamData%UnADopt
-   DstParamData%UnAirfl = SrcParamData%UnAirfl
    DstParamData%UnWndOut = SrcParamData%UnWndOut
    DstParamData%MAXICOUNT = SrcParamData%MAXICOUNT
    DstParamData%WrOptFile = SrcParamData%WrOptFile
@@ -8264,11 +8254,6 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! HubRad
   Int_BufSz  = Int_BufSz  + 1  ! UnEc
   Int_BufSz  = Int_BufSz  + 1  ! UnElem
-  Int_BufSz  = Int_BufSz  + 1  ! UnADPlt
-  Int_BufSz  = Int_BufSz  + 1  ! UnADin
-  Int_BufSz  = Int_BufSz  + 1  ! UnWind
-  Int_BufSz  = Int_BufSz  + 1  ! UnADopt
-  Int_BufSz  = Int_BufSz  + 1  ! UnAirfl
   Int_BufSz  = Int_BufSz  + 1  ! UnWndOut
   Int_BufSz  = Int_BufSz  + 1  ! MAXICOUNT
   Int_BufSz  = Int_BufSz  + 1  ! DEFAULT_Wind
@@ -8358,16 +8343,6 @@ ENDIF
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnEc )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnElem )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnADPlt )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnADin )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnWind )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnADopt )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnAirfl )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnWndOut )
   Int_Xferred   = Int_Xferred   + 1
@@ -8613,16 +8588,6 @@ ENDIF
   OutData%UnEc = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   OutData%UnElem = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%UnADPlt = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%UnADin = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%UnWind = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%UnADopt = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%UnAirfl = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   OutData%UnWndOut = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1

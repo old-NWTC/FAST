@@ -1,6 +1,6 @@
 ##################	Registry	for	SubDyn	###############
-# File last committed: $Date: 2013-12-12 11:46:04 -0700 (Thu, 12 Dec 2013) $
-# (File) Revision #: $Rev: 237 $
+# File last committed: $Date: 2014-01-28 16:19:37 -0700 (Tue, 28 Jan 2014) $
+# (File) Revision #: $Rev: 267 $
 # URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Registry.txt $
 ###################################################################################################################################
 #	column	1	<keyword>
@@ -57,6 +57,7 @@ typedef	^	^	ReKi	        TP_RefPoint 	{3} 	-	-	Gravity acceleration
 typedef	^	^	ReKi          SubRotateZ  - - - Rotation angle in degrees about global Z
 typedef	^	^	CHARACTER(1024)	SubDynSum	-	-	-	SubDyn summary and elem files
 typedef	^	^	CHARACTER(1024)	RootName	-	-	-	SubDyn rootname
+typedef ^ ^ CHARACTER(80) SDdeltaTChr  - - - Time step in input file (DEFAULT = use glue code time step) seconds
 typedef	^	^       DbKi		DT	        -	-	-	Time step from Glue Code	seconds
 typedef	^	^	INTEGER	ErrStat	-	-	-	Error status
 typedef	^	^	INTEGER	NJoints	-	-	-	Number of joints of the sub structure
@@ -130,7 +131,6 @@ typedef	^			^	CHARACTER(10)	SSOutList	{:}	-	-	List of Output Channels
 typedef    ^              ContinuousStateType ReKi     DummyContState -     -   -  "Remove this variable if you have continuous states" -
 typedef    ^                       ^          ReKi     qm             {:}   -   -  Virtual states, Nmod elements
 typedef    ^                       ^          ReKi     qmdot          {:}   -   -  Derivative of states, Nmod elements
-typedef    ^                       ^          ReKi     qmdotdot       {:}   -   -  2nd Derivative of states, used only for output-file purposes
 # Define discrete (nondifferentiable) states here:
 typedef   ^               DiscreteStateType   ReKi     DummyDiscState - - -  "Remove this variable if you have discrete states" -
 # Define constraint states here:
@@ -139,7 +139,8 @@ typedef   ^               ConstraintStateType ReKi     DummyConstrState - - - "R
 #   e.g. data used only for efficiency purposes (indices for searching in an array, copies of previous calculations of output
 #   at a given time, etc.)
 typedef SubDyn/SD OtherStateType SD_ContinuousStateType  xdot  {:} - - "previous state derivs for m-step time integrator"  -
-typedef      ^             ^        IntKi                  n     - - - "tracks time step for which OtherState was updated last" -
+typedef    ^               ^          ReKi     qmdotdot       {:}   -   -  2nd Derivative of states, used only for output-file purposes
+typedef    ^             ^        IntKi                  n     - - - "tracks time step for which OtherState was updated last" -
 typedef   ^                 ^                 ReKi     Udotdot     {:} - -   Structure accelerations
 typedef   ^                 ^                 ReKi     Y2          {:} - -   Structure Deflections and velocities
 # ============================== SD_OutVar_Type (not OutputType) ============================================================================================================================================
@@ -151,6 +152,7 @@ typedef     ^                      ^           CHARACTER(10)    Name          - 
 # ============================== Parameters ============================================================================================================================================
 # Define parameters here:
 # Time step for integration of continuous states (if a fixed-step integrator is used) and update of discrete states:
+typedef	 ^	                ParameterType    Logical	  SttcSolve     -	-	-	Solve dynamics about static equilibrium point (flag)
 typedef	 ^	                ParameterType    ReKi	    	A_21          {:}{:}	-	-	Coefficient of x in X
 typedef	 ^	                 ^               ReKi	    	A_22          {:}{:}	-	-	Coefficient of x in X
 typedef	 ^	                 ^               ReKi	    	B_23          {:}{:}	-	-	Coefficient of u in X

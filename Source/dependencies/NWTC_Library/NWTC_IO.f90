@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-23 12:12:56 -0700 (Thu, 23 Jan 2014) $
-! (File) Revision #: $Rev: 214 $
+! File last committed: $Date: 2014-02-03 13:28:54 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 219 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_IO
@@ -6668,8 +6668,8 @@ CONTAINS
 
       IF ( ErrID /= ErrID_None ) THEN
 
-         IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+         IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
+         ErrMsg = TRIM(ErrMsg)//'WrBinFAST:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................
@@ -7134,7 +7134,7 @@ SUBROUTINE SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,RoutineName )
    IF ( ErrStatLcl /= ErrID_None ) THEN
    
       IF (ErrStat /= ErrID_None) ErrMess = TRIM(ErrMess)//NewLine
-      ErrMess = TRIM(RoutineName)//':'//TRIM(ErrMessLcl)         
+      ErrMess = TRIM(ErrMess)//TRIM(RoutineName)//':'//TRIM(ErrMessLcl)         
       ErrStat = MAX(ErrStat,ErrStatLcl)
       
    END IF

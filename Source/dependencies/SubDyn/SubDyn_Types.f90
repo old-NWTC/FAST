@@ -1,9 +1,9 @@
 !STARTOFREGISTRYGENERATEDFILE './SubDyn_Types.f90'
-!
+
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.03, 20-Jan-2014)
+! FAST Registry (v2.01.02, 16-Dec-2013)
 !*********************************************************************************************************************************
 ! SubDyn_Types
 !.................................................................................................................................
@@ -75,6 +75,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: SubRotateZ 
     CHARACTER(1024)  :: SubDynSum 
     CHARACTER(1024)  :: RootName 
+    CHARACTER(80)  :: SDdeltaTChr 
     REAL(DbKi)  :: DT 
     INTEGER(IntKi)  :: ErrStat 
     INTEGER(IntKi)  :: NJoints 
@@ -139,7 +140,6 @@ IMPLICIT NONE
     REAL(ReKi)  :: DummyContState 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qm 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdot 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdotdot 
   END TYPE SD_ContinuousStateType
 ! =======================
 ! =========  SD_DiscreteStateType  =======
@@ -155,6 +155,7 @@ IMPLICIT NONE
 ! =========  SD_OtherStateType  =======
   TYPE, PUBLIC :: SD_OtherStateType
     TYPE(SD_ContinuousStateType) , DIMENSION(:), ALLOCATABLE  :: xdot 
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdotdot 
     INTEGER(IntKi)  :: n 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Udotdot 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Y2 
@@ -170,6 +171,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  SD_ParameterType  =======
   TYPE, PUBLIC :: SD_ParameterType
+    LOGICAL  :: SttcSolve 
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_21 
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_22 
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_23 
@@ -892,6 +894,7 @@ ENDIF
    DstInitInputData%SubRotateZ = SrcInitInputData%SubRotateZ
    DstInitInputData%SubDynSum = SrcInitInputData%SubDynSum
    DstInitInputData%RootName = SrcInitInputData%RootName
+   DstInitInputData%SDdeltaTChr = SrcInitInputData%SDdeltaTChr
    DstInitInputData%DT = SrcInitInputData%DT
    DstInitInputData%ErrStat = SrcInitInputData%ErrStat
    DstInitInputData%NJoints = SrcInitInputData%NJoints
@@ -1967,19 +1970,6 @@ IF (ALLOCATED(SrcContStateData%qmdot)) THEN
    END IF
    DstContStateData%qmdot = SrcContStateData%qmdot
 ENDIF
-IF (ALLOCATED(SrcContStateData%qmdotdot)) THEN
-   i1_l = LBOUND(SrcContStateData%qmdotdot,1)
-   i1_u = UBOUND(SrcContStateData%qmdotdot,1)
-   IF (.NOT.ALLOCATED(DstContStateData%qmdotdot)) THEN 
-      ALLOCATE(DstContStateData%qmdotdot(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SD_CopyContState: Error allocating DstContStateData%qmdotdot.'
-         RETURN
-      END IF
-   END IF
-   DstContStateData%qmdotdot = SrcContStateData%qmdotdot
-ENDIF
  END SUBROUTINE SD_CopyContState
 
  SUBROUTINE SD_DestroyContState( ContStateData, ErrStat, ErrMsg )
@@ -1995,9 +1985,6 @@ IF (ALLOCATED(ContStateData%qm)) THEN
 ENDIF
 IF (ALLOCATED(ContStateData%qmdot)) THEN
    DEALLOCATE(ContStateData%qmdot)
-ENDIF
-IF (ALLOCATED(ContStateData%qmdotdot)) THEN
-   DEALLOCATE(ContStateData%qmdotdot)
 ENDIF
  END SUBROUTINE SD_DestroyContState
 
@@ -2038,7 +2025,6 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! DummyContState
   Re_BufSz    = Re_BufSz    + SIZE( InData%qm )  ! qm 
   Re_BufSz    = Re_BufSz    + SIZE( InData%qmdot )  ! qmdot 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%qmdotdot )  ! qmdotdot 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -2051,10 +2037,6 @@ ENDIF
   IF ( ALLOCATED(InData%qmdot) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%qmdot))-1 ) =  PACK(InData%qmdot ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%qmdot)
-  ENDIF
-  IF ( ALLOCATED(InData%qmdotdot) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%qmdotdot))-1 ) =  PACK(InData%qmdotdot ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%qmdotdot)
   ENDIF
  END SUBROUTINE SD_PackContState
 
@@ -2104,12 +2086,6 @@ ENDIF
     OutData%qmdot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%qmdot))-1 ),mask1,OutData%qmdot)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%qmdot)
-  ENDIF
-  IF ( ALLOCATED(OutData%qmdotdot) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%qmdotdot,1))); mask1 = .TRUE.
-    OutData%qmdotdot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%qmdotdot))-1 ),mask1,OutData%qmdotdot)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%qmdotdot)
   ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
@@ -2360,6 +2336,19 @@ IF (ALLOCATED(SrcOtherStateData%xdot)) THEN
       CALL SD_CopyContState( SrcOtherStateData%xdot(i1), DstOtherStateData%xdot(i1), CtrlCode, ErrStat, ErrMsg )
    ENDDO
 ENDIF
+IF (ALLOCATED(SrcOtherStateData%qmdotdot)) THEN
+   i1_l = LBOUND(SrcOtherStateData%qmdotdot,1)
+   i1_u = UBOUND(SrcOtherStateData%qmdotdot,1)
+   IF (.NOT.ALLOCATED(DstOtherStateData%qmdotdot)) THEN 
+      ALLOCATE(DstOtherStateData%qmdotdot(i1_l:i1_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'SD_CopyOtherState: Error allocating DstOtherStateData%qmdotdot.'
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%qmdotdot = SrcOtherStateData%qmdotdot
+ENDIF
    DstOtherStateData%n = SrcOtherStateData%n
 IF (ALLOCATED(SrcOtherStateData%Udotdot)) THEN
    i1_l = LBOUND(SrcOtherStateData%Udotdot,1)
@@ -2402,6 +2391,9 @@ DO i1 = LBOUND(OtherStateData%xdot,1), UBOUND(OtherStateData%xdot,1)
   CALL SD_DestroyContState( OtherStateData%xdot(i1), ErrStat, ErrMsg )
 ENDDO
    DEALLOCATE(OtherStateData%xdot)
+ENDIF
+IF (ALLOCATED(OtherStateData%qmdotdot)) THEN
+   DEALLOCATE(OtherStateData%qmdotdot)
 ENDIF
 IF (ALLOCATED(OtherStateData%Udotdot)) THEN
    DEALLOCATE(OtherStateData%Udotdot)
@@ -2457,6 +2449,7 @@ DO i1 = LBOUND(InData%xdot,1), UBOUND(InData%xdot,1)
   IF(ALLOCATED(Db_xdot_Buf))  DEALLOCATE(Db_xdot_Buf)
   IF(ALLOCATED(Int_xdot_Buf)) DEALLOCATE(Int_xdot_Buf)
 ENDDO
+  Re_BufSz    = Re_BufSz    + SIZE( InData%qmdotdot )  ! qmdotdot 
   Int_BufSz  = Int_BufSz  + 1  ! n
   Re_BufSz    = Re_BufSz    + SIZE( InData%Udotdot )  ! Udotdot 
   Re_BufSz    = Re_BufSz    + SIZE( InData%Y2 )  ! Y2 
@@ -2481,6 +2474,10 @@ DO i1 = LBOUND(InData%xdot,1), UBOUND(InData%xdot,1)
   IF( ALLOCATED(Db_xdot_Buf) )  DEALLOCATE(Db_xdot_Buf)
   IF( ALLOCATED(Int_xdot_Buf) ) DEALLOCATE(Int_xdot_Buf)
 ENDDO
+  IF ( ALLOCATED(InData%qmdotdot) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%qmdotdot))-1 ) =  PACK(InData%qmdotdot ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%qmdotdot)
+  ENDIF
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%n )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(InData%Udotdot) ) THEN
@@ -2546,6 +2543,12 @@ DO i1 = LBOUND(OutData%xdot,1), UBOUND(OutData%xdot,1)
   ENDIF
   CALL SD_UnPackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, OutData%xdot(i1), ErrStat, ErrMsg ) ! xdot 
 ENDDO
+  IF ( ALLOCATED(OutData%qmdotdot) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%qmdotdot,1))); mask1 = .TRUE.
+    OutData%qmdotdot = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%qmdotdot))-1 ),mask1,OutData%qmdotdot)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%qmdotdot)
+  ENDIF
   OutData%n = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%Udotdot) ) THEN
@@ -2694,6 +2697,7 @@ ENDDO
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
+   DstParamData%SttcSolve = SrcParamData%SttcSolve
 IF (ALLOCATED(SrcParamData%A_21)) THEN
    i1_l = LBOUND(SrcParamData%A_21,1)
    i1_u = UBOUND(SrcParamData%A_21,1)

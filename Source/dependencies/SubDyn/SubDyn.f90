@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-24 09:54:50 -0700 (Fri, 24 Jan 2014) $
-! (File) Revision #: $Rev: 264 $
+! File last committed: $Date: 2014-02-03 11:07:13 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 269 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -360,7 +360,11 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
 
       ! Establish the GLUECODE requested/suggested time step.  This may be overridden by SubDyn based on the SDdeltaT parameter of the SubDyn input file.
    Init%DT  = Interval                
-   
+   IF ( LEN_TRIM(Init%RootName) == 0 ) THEN
+      CALL GetRoot( Init%SDInputFile, Init%RootName )
+   ELSE
+      Init%RootName = TRIM(Init%RootName)//'.SD'
+   END IF
    
       ! Parse the SubDyn inputs 
       
@@ -379,7 +383,7 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
          
    IF ( Init%SSSum ) THEN 
          
-      SummaryName = TRIM(Init%RootName)//'_SD.sum'
+      SummaryName = TRIM(Init%RootName)//'.sum'
       CALL SDOut_OpenSum( Init%UnSum, SummaryName, SD_ProgDesc, ErrStat, ErrMsg )    !this must be called before the Waves_Init() routine so that the appropriate wave data can be written to the summary file
       IF ( ErrStat > ErrID_Warn ) RETURN
       
@@ -478,14 +482,14 @@ SUBROUTINE SD_Init( Init, u, p, x, xd, z, OtherState, y, Interval, InitOut, ErrS
    END IF
    x%qmdot                     = 0
    
-   ALLOCATE(x%qmdotdot(p%qmL), STAT=ErrStat)
+   ALLOCATE(OtherState%qmdotdot(p%qmL), STAT=ErrStat)
    IF ( ErrStat/= 0 ) THEN
       CALL SDOut_CloseSum( Init%UnSum, ErrStat, ErrMsg )
       ErrStat = ErrID_Fatal
       ErrMsg  = 'Error allocating states 2nd derivatives in SD_Init'
       RETURN
    END IF
-   x%qmdotdot=0
+   OtherState%qmdotdot=0
    
    xd%DummyDiscState          = 0
    z%DummyConstrState         = 0
@@ -591,7 +595,6 @@ SUBROUTINE SD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, E
       ErrMsg    = ""
             
       
-      
          ! Get the inputs, based on the array of values sent by the glue code:
       CALL SD_CopyInput( Inputs(1), u_interp, MESH_NEWCOPY, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) THEN
@@ -645,7 +648,7 @@ SUBROUTINE SD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, E
       END IF
 
     !Assign the acceleration to the x variable since it will be used for output file purposes for SSqmdd01-99, and dxdt will disappear
-    x%qmdotdot=dxdt%qmdot
+    OtherState%qmdotdot=dxdt%qmdot
   
     ! Destroy dxdt because it is not necessary for the rest of the subroutine
     
@@ -692,6 +695,7 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ! Initialize ErrStat
       ErrStat = ErrID_None
       ErrMsg  = ""
+
           
       L1=p%qmL /2   !Length of array qm (half length of x)
            
@@ -811,10 +815,12 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%Y2mesh%TranslationAcc (  :,L1:L2)   = 0.0
       y%Y2mesh%RotationAcc    (  :,L1:L2)   = 0.0
          
-
+      
+      
       ! ---------------------------------------------------------------------------------
       !Y1= TP reaction Forces, i.e. force that the jacket exerts onto the TP and above  
-      ! ---------------------------------------------------------------------------------      
+      ! ---------------------------------------------------------------------------------
+      
       Y1 = -( matmul(p%C1_11, x%qm)       + matmul(p%C1_12,x%qmdot)    + matmul(p%D1_11, u_TP) + &
               matmul(p%D1_13, udotdot_TP) + matmul(p%D1_14, UFL)       + p%FY )
       
@@ -963,7 +969,7 @@ INTEGER(IntKi)               :: UnIn
 INTEGER(IntKi)               :: UnOut 
 INTEGER(IntKi)               :: UnEc    !Echo file ID
 
-
+REAL(ReKi),PARAMETER        :: WrongNo=-9999.   ! Placeholder value for bad(old) values in JDampings
 
 INTEGER(IntKi)               :: I, J, flg, K
 
@@ -984,7 +990,6 @@ IF ( ErrStat /= ErrID_None ) THEN
 END IF
 
 CALL GetPath( Init%SDInputFile, PriPath )    ! Input files will be relative to the path where the primary input file is located.
-CALL GetRoot( Init%SDInputFile, Init%RootName )
 
 
 !-------------------------- HEADER ---------------------------------------------
@@ -1042,17 +1047,42 @@ IF ( Echo )  THEN
 ENDIF
 
 ! Read time step  
-CALL ReadVar ( UnIn, Init%SDInputFile, p%SDdeltaT, 'SDdeltaT', 'Subdyn Time Step',ErrStat, ErrMsg, UnEc )
+CALL ReadVar( UnIn, Init%SDInputFile, Init%SDdeltaTChr, 'SDdeltaT', 'Subdyn Time Step',ErrStat, ErrMsg, UnEc )
+      
 IF ( ErrStat /= ErrID_None ) THEN
-    
     CLOSE( UnIn )
     IF (Echo) CLOSE( UnEc )
     RETURN
 END IF
 
-IF ((p%SDdeltaT .EQ. 0)) THEN
+CALL Conv2UC( Init%SDdeltaTChr )    ! Convert Line to upper case.
+
+IF ( TRIM(Init%SDdeltaTChr) == 'DEFAULT' )  THEN   ! .TRUE. when one wants to use the default value timestep provided by the glue code.
+
     p%SDdeltaT=Init%DT
+
+ELSE                                   ! The input must have been specified numerically.
+
+   READ (Init%SDdeltaTChr,*,IOSTAT=ErrStat)  p%SDdeltaT
+   CALL CheckIOS ( ErrStat, "", 'SDdeltaT', NumType, .TRUE. )
+
+   IF ( ErrStat /= ErrID_None ) THEN
+      CLOSE( UnIn )
+      IF (Echo) CLOSE( UnEc )
+      RETURN
 ENDIF    
+
+   IF ( ( p%SDdeltaT <=  0 ) )  THEN 
+      ErrMsg  = ' SDdeltaT must be greater than or equal to 0.' 
+      ErrStat = ErrID_Fatal
+      CLOSE( UnIn )
+      IF (Echo) CLOSE( UnEc )
+      RETURN         
+   END IF  
+
+END IF
+      
+
 
 ! Read Integration Method
 CALL ReadVar ( UnIn, Init%SDInputFile, p%IntMethod, 'IntMethod', 'Integration Method',ErrStat, ErrMsg, UnEc )
@@ -1063,14 +1093,23 @@ IF ( ErrStat /= ErrID_None ) THEN
     RETURN
 END IF
 
-IF ((p%IntMethod < 0) .OR.(p%IntMethod > 4) ) THEN
-    ErrMsg = ' Error in file "'//TRIM(Init%SDInputFile)//': IntMethod must be 0 through 4.'
+IF ((p%IntMethod < 1) .OR.(p%IntMethod > 4) ) THEN
+    ErrMsg = ' Error in file "'//TRIM(Init%SDInputFile)//': IntMethod must be 1 through 4.'
    ErrStat = ErrID_Fatal
    CLOSE( UnIn )
    IF (Echo) CLOSE( UnEc )
    RETURN
 ENDIF    
     
+
+CALL ReadLVar(UnIn, Init%SDInputFile, p%SttcSolve, 'SttcSolve', 'Solve dynamics about static equilibrium point', ErrStat, ErrMsg  )
+
+IF ( ErrStat /= ErrID_None ) THEN
+  
+   CLOSE( UnIn )
+   IF (Echo) CLOSE( UnEc )
+   RETURN
+END IF
 
  !RRD - end modification
 !-------------------- FEA and CRAIG-BAMPTON PARAMETERS---------------------------
@@ -1140,6 +1179,7 @@ IF (Init%CBMod) THEN
    
       ! Damping ratios for retained modes
    ALLOCATE(Init%JDampings(p%Nmodes), STAT=Sttus)
+   Init%JDampings=WrongNo !Initialize
    
    IF ( Sttus /= 0 )  THEN
       ErrMsg = ' Error allocating memory for the damping ratio array Init%JDampings in SD_Input.' 
@@ -1150,29 +1190,32 @@ IF (Init%CBMod) THEN
    ENDIF
 
    CALL ReadAry( UnIn, Init%SDInputFile, Init%JDampings, p%Nmodes, 'JDamping', 'Damping ratio of the internal modes', ErrStat, ErrMsg, UnEc  )
-      
-   DO I = 1, p%Nmodes
-      IF ( ( Init%JDampings(I) .LT. 0 ) .OR.( Init%JDampings(I) .GE. 100.0 ) ) THEN    !-Huimin, I do not understand this condition? Are you considering the value or the number of values? -RRD
-         WRITE(Comment, *) p%Nmodes                                                 ! HS: I am thinking damping ratios should be greater than 0 and less than 100
-         ErrMsg = ' Number of damping ratio should be larger than 0 and less than '//trim(Comment)//'.'  !TODO:  Modify this error check for consistency with the IF statement, and add # check, too. GJH 4/26/13
+   
+   !Check 1st value, we need at least one good value from user or throw error
+   IF ((Init%JDampings(1) .LT. 0 ) .OR. (Init%JDampings(1) .GE. 100.0)) THEN
+         ErrMsg = 'Damping ratio should be larger than 0 and less than 100'
          ErrStat = ErrID_Fatal
          CLOSE(UnIn)
          IF (Echo) CLOSE( UnEc )
          RETURN
-      ENDIF
-      
-      Init%JDampings(I) = Init%JDampings(I)/100.0
-      
-   ENDDO
-   
-ELSE
-      ! skip 2 lines
-   ! RRD - start modification 
-   !READ (UnIn,'(A)',IOSTAT=IOS)  Comment
-   !CALL CheckIOS( IOS, Init%SDInputFile, 'Nmodes ', StrType )
-   !READ (UnIn,'(A)',IOSTAT=IOS)  Comment
-   !CALL CheckIOS( IOS, Init%SDInputFile, 'Damping ratio', StrType )
-   
+   ELSE
+      DO I = 2, p%Nmodes
+         IF ( Init%JDampings(I) .EQ. WrongNo ) THEN
+            Init%Jdampings(I:p%Nmodes)=Init%JDampings(I-1)
+            EXIT
+         ELSEIF ( ( Init%JDampings(I) .LT. 0 ) .OR.( Init%JDampings(I) .GE. 100.0 ) ) THEN    
+            ErrMsg = 'Damping ratio should be larger than 0 and less than 100'
+            ErrStat = ErrID_Fatal
+            CLOSE(UnIn)
+            IF (Echo) CLOSE( UnEc )
+            RETURN
+         ENDIF      
+     ENDDO
+   ENDIF   
+
+ELSE   !CBMOD=FALSE  -all modes are retained, not sure how many they are yet
+    
+   !Ignore next line
    CALL ReadCom( UnIn, Init%SDInputFile, ' Nmodes ', ErrStat, ErrMsg, UnEc  )
    IF ( ErrStat /= ErrID_None ) THEN
       CLOSE( UnIn )
@@ -1180,14 +1223,13 @@ ELSE
       RETURN
    END IF
    
-   
    !Read 1 damping value for all modes
    ALLOCATE( Init%JDampings(1), STAT = ErrStat )  !This will be de-reallocated later in CB
-      IF ( ErrStat/= ErrID_None ) THEN
+   IF ( ErrStat/= ErrID_None ) THEN
          ErrStat = ErrID_Fatal
          ErrMsg  = 'Error allocating array Init%JDampings in SD_Input for CBMOD=false'
          RETURN
-      END IF
+   END IF
       
    CALL ReadVar ( UnIn, Init%SDInputFile, Init%JDampings(1), 'JDampings', 'Damping ratio',ErrStat, ErrMsg, UnEc )
     IF ( ErrStat /= ErrID_None ) THEN
@@ -1195,18 +1237,19 @@ ELSE
        IF (Echo) CLOSE( UnEc )
        RETURN
     ELSEIF ( ( Init%JDampings(1) .LT. 0 ) .OR.( Init%JDampings(1) .GE. 100.0 ) ) THEN 
-         WRITE(Comment, *) Init%JDampings(1)                                                 
-         ErrMsg = ' Number of damping ratio should be larger than 0 and less than 100.'  
+         ErrMsg = 'Damping ratio should be larger than 0 and less than 100.'  
          ErrStat = ErrID_Fatal
          CLOSE(UnIn)
          IF (Echo) CLOSE( UnEc )
          RETURN
     ENDIF
-   Init%JDampings(1)=Init%JDampings(1)/100. !Assign real value that was given in %
+
+   !Now, Nmodes will be updated later for the FULL FEM CASE. Here set to 0, note at this stage I do not know DOFL yet, so set to 0 as a flag for later
+   p%Nmodes = 0  
    
-   ! RRD - end modification 
-   p%Nmodes = 0  !This will be updated later for the FULL FEM CASE. Here set to 0
 ENDIF
+
+Init%JDampings = Init%JDampings/100.0   !now the 20 is .20 as it should in all cases for 1 or Nmodes JDampings
 
 !---- STRUCTURE JOINTS: joints connect structure members -----------------------------------
 
@@ -2572,7 +2615,7 @@ SUBROUTINE SD_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       CALL SD_CopyContState( x, k2,       MESH_NEWCOPY, ErrStat, ErrMsg )
       CALL SD_CopyContState( x, k3,       MESH_NEWCOPY, ErrStat, ErrMsg )
       CALL SD_CopyContState( x, k4,       MESH_NEWCOPY, ErrStat, ErrMsg )
-      CALL SD_CopyContState( x, x_tmp,    MESH_NEWCOPY, ErrStat, ErrMsg )      
+      CALL SD_CopyContState( x, x_tmp,    MESH_NEWCOPY, ErrStat, ErrMsg )
       
       ! interpolate u to find u_interp = u(t)
       CALL SD_CopyInput(u(1), u_interp, MESH_NEWCOPY, ErrStat, ErrMsg  )  ! we need to allocate input arrays/meshes before calling ExtrapInterp...     
@@ -3745,6 +3788,7 @@ SUBROUTINE EigenSolve(K, M, TDOF, NOmega, Reduced, Init,p, Phi, Omega, RootName,
     Kred2=Kred
     Mred2=Mred
    
+    
     CALL  LAPACK_ggev('N','V',N ,Kred2 ,LDA, Mred2,LDB, ALPHAR, ALPHAI, BETA, VL, 1, VR,  LDVR, work, lwork, ErrStat, ErrMsg)
     IF (ErrStat /= ErrID_None) RETURN
        
@@ -3773,7 +3817,6 @@ SUBROUTINE EigenSolve(K, M, TDOF, NOmega, Reduced, Init,p, Phi, Omega, RootName,
  
     ENDDO  
    
-    
     CALL ScaLAPACK_LASRT('I',N,Omega2,key,ErrStat,ErrMsg)
     IF (ErrStat /= ErrID_None) RETURN
     
@@ -4756,11 +4799,11 @@ SUBROUTINE OutSummary(Init, p, FEMparams,CBparams, ErrStat,ErrMsg)
    
     WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
     WRITE(Init%UnSum, '(A, I6)') 'FEM Eigenvalues [Hz]. Number of shown eigenvalues (total # of DOFs minus restrained nodes'' DOFs):', FEMparams%NOmega 
-    WRITE(Init%UnSum, '(I6, e15.6)') ( i, SQRT(FEMparams%Omega(i))/TwoPi, i = 1, FEMparams%NOmega )
+    WRITE(Init%UnSum, '(I6, e15.6)') ( i, SQRT(FEMparams%Omega(i))/2.0/pi, i = 1, FEMparams%NOmega )
 
     WRITE(Init%UnSum, '(A)') '__________'
     WRITE(Init%UnSum, '(A, I6)') 'CB Reduced Eigenvalues [Hz].  Number of retained modes'' eigenvalues:', CBparams%DOFM 
-    WRITE(Init%UnSum, '(I6, e15.6)') ( i, CBparams%OmegaM(i)/TwoPi, i = 1, CBparams%DOFM )
+    WRITE(Init%UnSum, '(I6, e15.6)') ( i, CBparams%OmegaM(i)/2.0/pi, i = 1, CBparams%DOFM )    !note OmegaM was square-rooted already
     
    !--------------------------------------
    ! write Eigenvectors of full SYstem 

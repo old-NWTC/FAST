@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-27 12:33:25 -0700 (Mon, 27 Jan 2014) $
-! (File) Revision #: $Rev: 321 $
+! File last committed: $Date: 2014-02-03 11:16:44 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 327 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -267,7 +267,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
       
    IF ( InitInp%Echo ) THEN
       
-      EchoFile = TRIM(FileName)//'.echo'
+      EchoFile = TRIM(InitInp%OutRootName)//'.HD.ech'
       CALL GetNewUnit( UnEchoLocal )   
       CALL OpenEcho ( UnEchoLocal, EchoFile, ErrStat, ErrMsg )
       IF ( ErrStat /= ErrID_None ) THEN

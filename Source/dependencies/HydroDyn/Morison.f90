@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-27 12:34:41 -0700 (Mon, 27 Jan 2014) $
-! (File) Revision #: $Rev: 322 $
+! File last committed: $Date: 2014-02-03 11:16:44 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 327 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -4061,7 +4061,7 @@ IF (ALLOCATED(InitInp%JOutLst) ) &
          ! Determine if we need to perform output file handling
       
       IF ( p%OutSwtch == 1 .OR. p%OutSwtch == 3 ) THEN  
-         CALL MrsnOUT_OpenOutput( Morison_ProgDesc%Name, InitInp%OutRootName, p, InitOut, ErrStat, ErrMsg )
+         CALL MrsnOUT_OpenOutput( Morison_ProgDesc%Name, TRIM(InitInp%OutRootName)//'.HD', p, InitOut, ErrStat, ErrMsg )
          IF ( ErrStat > ErrID_None ) RETURN
       END IF
       

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-24 09:54:50 -0700 (Fri, 24 Jan 2014) $
-! (File) Revision #: $Rev: 264 $
+! File last committed: $Date: 2014-01-28 16:19:37 -0700 (Tue, 28 Jan 2014) $
+! (File) Revision #: $Rev: 267 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -4388,7 +4388,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
   maxOutModes = min(p%Nmodes,99)
   Allouts(SSqm01  :SSqm01  +maxOutModes-1) = x%qm      (1:maxOutModes)
   Allouts(SSqmd01 :SSqmd01 +maxOutModes-1) = x%qmdot   (1:maxOutModes)
-  Allouts(SSqmdd01:SSqmdd01+maxOutModes-1) = x%qmdotdot(1:maxOutModes)
+  Allouts(SSqmdd01:SSqmdd01+maxOutModes-1) = OtherState%qmdotdot(1:maxOutModes)
    
   !Need to Calculate Reaction Forces Now, but only if requested
   IF (p%OutReact) THEN 

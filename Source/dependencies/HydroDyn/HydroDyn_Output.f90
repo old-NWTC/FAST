@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-23 12:12:20 -0700 (Thu, 23 Jan 2014) $
-! (File) Revision #: $Rev: 313 $
+! File last committed: $Date: 2014-02-03 11:16:44 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 327 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Output
@@ -506,7 +506,7 @@ SUBROUTINE HDOut_OpenOutput( HydroDyn_ProgDesc, OutRootName,  p, InitOut, ErrSta
    IF ( (ALLOCATED( p%OutParam ) .AND. p%NumOuts > 0) .OR. (ALLOCATED( p%WAMIT%OutParam ) .AND. p%WAMIT%NumOuts > 0) .OR. (ALLOCATED( p%Morison%OutParam ) .AND. p%Morison%NumOuts > 0) ) THEN           ! Output has been requested so let's open an output file            
       
          ! Open the file for output
-      OutFileName = TRIM(OutRootName)//'_HydroDyn.out'
+      OutFileName = TRIM(OutRootName)//'.HD.out'
       CALL GetNewUnit( p%UnOutFile )
    
       CALL OpenFOutFile ( p%UnOutFile, OutFileName, ErrStat ) 

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-31 10:20:04 -0700 (Fri, 31 Jan 2014) $
-! (File) Revision #: $Rev: 217 $
+! File last committed: $Date: 2014-02-03 13:28:54 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 219 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh.f90 $
 !**********************************************************************************************************************************
 MODULE ModMesh
@@ -204,8 +204,8 @@ CONTAINS
 
          IF ( ErrID /= ErrID_None ) THEN
 
-            IF ( LEN_TRIM(ErrMsg) > 0 ) ErrMsg = TRIM(ErrMsg)//NewLine
-            ErrMsg = TRIM(ErrMsg)//' '//TRIM(Msg)
+            IF ( ErrStat /= ErrID_None ) ErrMsg = TRIM(ErrMsg)//NewLine
+            ErrMsg = TRIM(ErrMsg)//'MeshWrBin:'//TRIM(Msg)
             ErrStat = MAX(ErrStat, ErrID)
 
             !......................................................................................................................

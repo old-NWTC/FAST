@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-29 22:17:28 -0700 (Wed, 29 Jan 2014) $
-! (File) Revision #: $Rev: 103 $
+! File last committed: $Date: 2014-02-01 17:28:55 -0700 (Sat, 01 Feb 2014) $
+! (File) Revision #: $Rev: 104 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE AeroDyn
@@ -93,12 +93,10 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
    CHARACTER(1024)                  :: Title
 
-   INTEGER(IntKi)                   :: ErrStat2          ! Error status of the operation
-   CHARACTER(LEN(ErrMess))           :: ErrMess2           ! Error message
    INTEGER                                   :: Elem                          ! Index for mesh element.
-   INTEGER                                   :: ErrStatLcL        ! Error status returned by called routines.
    INTEGER                                   :: InterpIndx                 ! Index telling the interpolation routine where to start in the array.
    INTEGER                                   :: Node                          ! Index used to pull points out of the array of values at given node location.
+   INTEGER                                   :: ErrStatLcL        ! Error status returned by called routines.
 
    CHARACTER(LEN(ErrMess))                   :: ErrMessLcl          ! Error message returned by called routines.
 
@@ -108,20 +106,16 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
    ErrStat = ErrID_None
    ErrMess  = ""
-   ErrMessLcl = '<none>'
    InterpIndx = 1
-   ErrStatLcL = ErrID_None
    !-------------------------------------------------------------------------------------------------
    ! Check that the module hasn't already been initialized.
    !-------------------------------------------------------------------------------------------------
 
    IF ( p%Initialized ) THEN
-      CALL WrScr( ' AeroDyn has already been initialized.' )
-      ErrStat = ErrID_Warn
+      CALL SetErrStat( ErrID_Warn,'AeroDyn has already been initialized.',ErrStat,ErrMess,' AD_Init')
       RETURN
    ELSE
       p%Initialized = .TRUE.
-      ErrStat = ErrID_None
       CALL NWTC_Init( )
    END IF
 
@@ -147,8 +141,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
    p%NumBl   = SIZE( InitInp%TurbineComponents%Blade )
    IF ( p%NumBl < 1 ) THEN
-      ErrMess = ' Error: AeroDyn cannot run without blades in the model.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'AeroDyn cannot run without blades in the model.',ErrStat,ErrMess,' AD_Init')
       RETURN
    END IF
 !bjj: what's the difference between p%NumBl, p%Blade%NB, and InitInp%NumBl?
@@ -159,8 +152,9 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    ! Read the AeroDyn input file and open the output file if requested
    ! bjj: these should perhaps be combined
    !-------------------------------------------------------------------------------------------------
-   CALL AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess )
-   IF (ErrStat /= ErrID_None ) RETURN !bjj: shouldn't this be >= AbortErrLev instead?
+   CALL AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStatLcl, ErrMessLcl )
+      CALL SetErrStat( ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init')
+      IF (ErrStat >= AbortErrLev ) RETURN 
 
    p%WindFileName      = InitInp%WindFileName ! InitInp%WindFileName  gets set in AD_GetInput
 
@@ -170,30 +164,38 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
    Interval = p%DtAero
 
-   IF ( .NOT. ALLOCATED( o%StoredForces ))   ALLOCATE(o%StoredForces( 3,p%Element%NELM,p%NumBl))
-   IF ( .NOT. ALLOCATED( o%StoredMoments ))  ALLOCATE(o%StoredMoments(3,p%Element%NELM,p%NumBl))
-
+   IF ( .NOT. ALLOCATED( o%StoredForces  )) THEN
+      CALL AllocAry(O%StoredForces, 3,p%Element%NELM,p%NumBl,'O%StoredForces',ErrStatLcl,ErrMessLcl  )
+         CALL SetErrStat( ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init')
+         IF (ErrStat >= AbortErrLev ) RETURN 
+   END IF
+   IF ( .NOT. ALLOCATED( o%StoredMoments ))  THEN
+      CALL AllocAry(O%StoredMoments, 3,p%Element%NELM,p%NumBl,'O%StoredForces',ErrStatLcl,ErrMessLcl  )
+         CALL SetErrStat( ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init')
+         IF (ErrStat >= AbortErrLev ) RETURN 
+   END IF
      
    IF (.NOT. ALLOCATED(O%Element%W2) ) THEN
-      ALLOCATE(O%Element%W2(p%Element%NELM,p%NumBl), STAT=ErrStat)
-      IF (ErrStat /= 0 ) THEN
-         CALL WrScr( ' Error in AeroDyn allocating memory for W2.')
-         RETURN
-      END IF
+      CALL AllocAry(O%Element%W2, p%Element%NELM, p%NumBl,'O%Element%W2',ErrStatLcl,ErrMessLcl  )
+         CALL SetErrStat( ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init')
+         IF (ErrStat >= AbortErrLev ) RETURN 
    END IF
 
    IF (.NOT. ALLOCATED(O%Element%Alpha) ) THEN
-      ALLOCATE(O%Element%Alpha(p%Element%NELM,p%NumBl), STAT=ErrStat)
-      IF (ErrStat /= 0 ) THEN
-         CALL WrScr( ' Error in AeroDyn allocating memory for Alpha.')
-         RETURN
-      END IF
+      CALL AllocAry(O%Element%Alpha, p%Element%NELM, p%NumBl,'O%Element%Alpha',ErrStatLcl,ErrMessLcl  )
+         CALL SetErrStat( ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init')
+         IF (ErrStat >= AbortErrLev ) RETURN 
    END IF
 
    
    P%UnWndOut = -1
    P%UnElem = -1   
-   IF ( p%ElemPrn )  CALL ElemOpen ( TRIM( InitInp%OutRootName )//'.elm', P, O, ErrStat, ErrMess, AD_Ver )
+   IF ( p%ElemPrn )  THEN
+      CALL ElemOpen ( TRIM( InitInp%OutRootName )//'.AD.out', P, O, ErrStat, ErrMess, AD_Ver )
+         CALL SetErrStat( ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init')
+         IF (ErrStat >= AbortErrLev ) RETURN 
+   END IF
+      
 
    !-------------------------------------------------------------------------------------------------
    ! Calculate the rotor and hub radaii from the input values
@@ -249,8 +251,9 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
       ElemRad = p%Element%RELM(IElm)*CosPrecone
 
       IF( ElemRad == 0.0 )  THEN  !BJJ: should this be 0.001 (or another small number) instead of exactly 0.0?
-         CALL WrScr( 'Error calculating tip loss constant for element '//TRIM(Int2LStr(IElm))//'. Division by zero.' )
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'Error calculating tip loss constant for element '//TRIM(Int2LStr(IElm))//&
+                          '. Division by zero.',ErrStat,ErrMess,' AD_Init')
+         
          RETURN
       ELSE
          DTip         = p%Blade%R - ElemRad
@@ -310,11 +313,8 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                       , ErrStat         = ErrStatLcl              &
                       , ErrMess         = ErrMessLcl              )
 
-      !CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMsg,' AD_Init' )
-      IF ( ErrStat >= AbortErrLev )  THEN
-         CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
-         RETURN
-      END IF
+      CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init' )
+      IF ( ErrStat >= AbortErrLev )  RETURN
 
 
          ! Set the positions of the nodes.  MeshCreate() allocated the Position array.
@@ -325,10 +325,9 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                                 ,Pos   = InitInp%TwrNodeLocs(:,Node) &  
                                 ,ErrStat   = ErrStatLcl              &
                                 ,ErrMess   = ErrMessLcl              )
-               IF ( ErrStatLcl >= AbortErrLev )  THEN
-                  CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
-                  RETURN
-               END IF
+         CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init' )
+         IF ( ErrStat >= AbortErrLev )  RETURN
+
       END DO         
 
 
@@ -343,10 +342,8 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                                    , ErrStat  = ErrStatLcl         &
                                    , ErrMess  = ErrMessLcl         )
 
-         IF ( ErrStatLcl >= AbortErrLev )  THEN
-            CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
-            RETURN
-         END IF
+         CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init' )
+         IF ( ErrStat >= AbortErrLev )  RETURN
 
       ENDDO
 
@@ -354,11 +351,8 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
          ! Commit the mesh to the funny farm.
 
       CALL MeshCommit ( u%Twr_InputMarkers, ErrStatLcl, ErrMessLcl )
-
-      IF ( ErrStatLcl >= AbortErrLev )  THEN
-         CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
-         RETURN
-      END IF
+         CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init' )
+         IF ( ErrStat >= AbortErrLev )  RETURN
 
 
          ! Copy the input mesh to create the output mesh.  Does
@@ -370,17 +364,14 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                     , ErrStat  = ErrStatLcl         &
                     , ErrMess  = ErrMessLcl         )
 
-      IF ( ErrStatLcl >= AbortErrLev )  THEN
-         CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
-         RETURN
-      END IF
+         CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init' )
+         IF ( ErrStat >= AbortErrLev )  RETURN
 
 
          ! Check to ensure that the user did not specify more than one set of Cd(Re) tables.  Temporary restriction.
 
       IF ( p%TwrProps%NTwrCD /= 1 )  THEN
-         CALL ExitThisRoutine ( AbortErrLev, NewLine &
-                            //' >> Fatal Error: You must have one and only one set of drag coefficients for the AeroDyn tower file.' )
+         CALL SetErrStat(ErrID_Fatal,'You must have one and only one set of drag coefficients for the AeroDyn tower file.',ErrStat,ErrMess,' AD_Init' )
          RETURN
       END IF
 
@@ -391,10 +382,8 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
       IF (.NOT. ALLOCATED( p%TwrProps%TwrNodeWidth ) ) THEN
          CALL AllocAry( p%TwrProps%TwrNodeWidth, p%TwrProps%NumTwrNodes, "array for tower widths at ED node locations", ErrStatLcl, ErrMessLcl )
-         IF ( ErrStatLcl >= AbortErrLev )  THEN
-            CALL ExitThisRoutine ( ErrStatLcl, ErrMessLcl )
-            RETURN
-         END IF
+         CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init' )
+         IF ( ErrStat >= AbortErrLev )  RETURN
       END IF
 
       DO Node=1,p%TwrProps%NumTwrNodes
@@ -409,20 +398,15 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
 
 
    !-------------------------------------------------------------------------------------------------
-   ! Write the opt file, then close it
+   ! Write the summary (opt) file, then close it
    !-------------------------------------------------------------------------------------------------
 
    IF (p%WrOptFile) THEN
-      !CALL GetNewUnit( p%UnADopt, ErrStat, ErrMess )
-      CALL OpenFOutFile( p%UnADopt, TRIM(InitInp%OutRootName)//'.opt', ErrStat)
-      IF (ErrStat /= ErrID_None ) RETURN
 
-      WRITE (p%UnADopt,"(/A)")  'This file was generated by '//TRIM(GetNVD(AD_Ver))//&
-                                ' on '//CurDate()//' at '//CurTime()//'.'
+      CALL ADOut(InitInp, P, O, AD_Ver, TRIM(InitInp%OutRootName)//'.AD.sum', ErrStatLcl, ErrMessLcl )
+         CALL SetErrStat(ErrStatLcl,ErrMessLcl,ErrStat,ErrMess,' AD_Init' )
+         IF ( ErrStat >= AbortErrLev )  RETURN
 
-      CALL ADOut(InitInp, P, O, ErrStat, ErrMess )
-
-      CLOSE(p%UnADopt)
    ENDIF
 
 
@@ -448,10 +432,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    IF (.NOT. ALLOCATED(o%IfW_Inputs%Position) ) THEN
       CALL AllocAry( o%IfW_Inputs%Position, 3, 1, "position vectors to be sent to IfW_CalcOutput", ErrStatLcl, ErrMessLcl )
          CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
-         IF (ErrStat >= AbortErrLev) THEN
-           ! CALL CleanUp()
-            RETURN
-         END IF
+         IF (ErrStat >= AbortErrLev) RETURN
    END IF     
 
    !-------------------------------------------------------------------------------------------------
@@ -463,12 +444,12 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    IF (p%DynInfl) THEN
 
       IF ( p%IfW_Params%WindFileType /= FF_WINDNumber ) THEN
-         ErrStat = ErrID_Info
-         ErrMess = ' Dynamic inflow will not check for low mean wind speed.'
+         CALL SetErrStat(ErrID_Info,'Dynamic inflow will not check for low mean wind speed.',ErrStat,ErrMess,' AD_Init' )
+         IF ( ErrStat >= AbortErrLev )  RETURN
       ELSE IF ( O%IfW_OtherStates%FFWind%MeanFFWS  < 8.0 ) THEN
          p%DynInfl = .FALSE.
-         ErrStat = ErrID_Info
-         ErrMess = ' Estimated average wind speed in FF wind file is less than 8 m/s. Dynamic Inflow will be turned off.'
+         CALL SetErrStat(ErrID_Info,'Estimated average wind speed in FF wind file is less than 8 m/s. Dynamic Inflow will be turned off.',ErrStat,ErrMess,' AD_Init' )
+         IF ( ErrStat >= AbortErrLev )  RETURN
       END IF
 
    ENDIF
@@ -481,37 +462,46 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    ! u%TurbineComponents
    !..........
 
-   CALL AD_CopyAeroConfig( InitInp%TurbineComponents, u%TurbineComponents, MESH_NEWCOPY, ErrStat2, ErrMess2 )
-      CALL SetErrStat(ErrStat2, ErrMess2, ErrStat, ErrMess, 'AD_Init')
-      IF ( ErrStat >= AbortErrLev ) RETURN
-
+   CALL AD_CopyAeroConfig( InitInp%TurbineComponents, u%TurbineComponents, MESH_NEWCOPY, ErrStatLcl, ErrMessLcl )
+      CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
+      IF (ErrStat >= AbortErrLev) RETURN
    
    !..........
    ! u%InputMarkers (blade meshes):
    !..........
    
-   ALLOCATE( u%InputMarkers(p%NumBl) )
+   ALLOCATE( u%InputMarkers(p%NumBl), STAT=ErrStatLcl )
+   IF (ErrStatLcl /= 0 ) THEN
+      CALL SetErrStat ( ErrID_Fatal, 'Could not allocate u%InputMarkers (meshes)', ErrStat,ErrMess,' AD_Init' )
+      RETURN
+   END IF
+
 
    DO IB = 1, p%NumBl
-      CALL MeshCreate( BlankMesh      = u%InputMarkers(IB)  &
-                     ,IOS            = COMPONENT_INPUT          &
-                     ,NNodes         = p%Element%NELM           &
+      CALL MeshCreate( BlankMesh      = u%InputMarkers(IB)    &
+                     ,IOS            = COMPONENT_INPUT        &
+                     ,NNodes         = p%Element%NELM         &
                      ,Orientation    = .TRUE.                 &
                      ,TranslationVel = .TRUE.                 &
                      ,RotationVel    = .TRUE.                 &
-                     ,nScalars       = 2                        &  ! scalar 1 is W, scalar 2 is Alpha
-                     ,ErrStat        = ErrStat2                 &
-                     ,ErrMess        = ErrMess2                 )
+                     ,nScalars       = 2                      &  ! scalar 1 is W, scalar 2 is Alpha
+                     ,ErrStat        = ErrStatLcl             &
+                     ,ErrMess        = ErrMessLcl             )
 
+      CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
+      IF (ErrStat >= AbortErrLev) RETURN
       
       ! create the elements
       DO IE = 1, p%Element%NELM-1 ! construct the blades into Line2 elements
-         CALL MeshConstructElement ( Mesh = u%InputMarkers(IB)   &
+         CALL MeshConstructElement ( Mesh = u%InputMarkers(IB)    &
                                   ,Xelement = ELEMENT_LINE2       &
                                   ,P1       = IE                  &
                                   ,P2       = IE+1                &
-                                  ,ErrStat  = ErrStat2            &
-                                  ,ErrMess  = ErrMess             )
+                                  ,ErrStat  = ErrStatLcl          &
+                                  ,ErrMess  = ErrMessLcl          )
+         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
+         IF (ErrStat >= AbortErrLev) RETURN
+         
       ENDDO
      
       ! position/orient the nodes
@@ -519,11 +509,13 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
          TmpPos(1) = 0.
          TmpPos(2) = 0.
          TmpPos(3) = p%Element%Relm(IE) - HubRadius
-         CALL MeshPositionNode ( Mesh = u%InputMarkers(IB)           &
-                                 ,INode = IE                             &
-                                 ,Pos= TmpPos                            &  ! this info comes from FAST (not yet)
-                                 ,ErrStat   = ErrStat2                   &
-                                 ,ErrMess   = ErrMess2                )
+         CALL MeshPositionNode ( Mesh = u%InputMarkers(IB)              &
+                                 ,INode = IE                            &
+                                 ,Pos= TmpPos                           &  ! this info comes from FAST (not yet)
+                                 ,ErrStat   = ErrStatLcl                &
+                                 ,ErrMess   = ErrMessLcl                )
+         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
+         IF (ErrStat >= AbortErrLev) RETURN
 
          ! RELATIVE ORIENTATION OF BLADE ELEMENTS
          u%InputMarkers(IB)%Orientation(1,1,IE) = COS( P%Element%TWIST(IE) )
@@ -537,9 +529,11 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
          u%InputMarkers(IB)%Orientation(3,3,IE) = 1.0
       ENDDO
      
-       CALL MeshCommit ( Mesh = u%InputMarkers(IB)   &
-                        ,ErrStat  = ErrStat2         &
-                        ,ErrMess   = ErrMess2        )
+       CALL MeshCommit ( Mesh = u%InputMarkers(IB)    &
+                        ,ErrStat  = ErrStatLcl        &
+                        ,ErrMess  = ErrMessLcl        )
+         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
+         IF (ErrStat >= AbortErrLev) RETURN
           
    ENDDO
          
@@ -556,8 +550,11 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    !..........
    
    IF (.NOT. ALLOCATED(u%MulTabLoc)) THEN
-      ALLOCATE( u%MulTabLoc(p%Element%NELM, p%NumBl), STAT = ErrStat )
-      IF ( ErrStat /= 0 ) CALL ProgAbort ( ' Error allocating memory for u%MulTabLoc array.' )
+      ALLOCATE( u%MulTabLoc(p%Element%NELM, p%NumBl), STAT = ErrStatLcl )
+      IF (ErrStatLcl /= 0) THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Could not allocate u%MulTabLoc', ErrStat,ErrMess,' AD_Init' )
+         RETURN
+      END IF
    END IF
 
    u%MulTabLoc(:,:) = 0.0
@@ -572,7 +569,11 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    !..........
    
    
-   ALLOCATE( y%OutputLoads(p%NumBl) )
+   ALLOCATE( y%OutputLoads(p%NumBl), STAT = ErrStatLcl )
+      IF (ErrStatLcl /= 0) THEN
+         CALL SetErrStat ( ErrID_Fatal, 'Could not allocate y%OutputLoads (meshes)', ErrStat,ErrMess,' AD_Init' )
+         RETURN
+      END IF
    
    DO IB = 1, p%NumBl
 
@@ -581,8 +582,10 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                       ,CtrlCode = MESH_SIBLING        &
                       ,Force    = .TRUE.              &
                       ,Moment   = .TRUE.              &
-                      ,ErrStat  = ErrStat2            &
-                      ,ErrMess  = ErrMess2             )
+                      ,ErrStat  = ErrStatLcl          &
+                      ,ErrMess  = ErrMessLcl          )
+         CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
+         IF (ErrStat >= AbortErrLev) RETURN
    ENDDO
    
    
@@ -597,50 +600,23 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    ! Initialize AeroDyn variables not initialized elsewhere (except in module initialization)
    ! and return
    !-------------------------------------------------------------------------------------------------
-   o%InducedVel%SumInfl     = 0.0
-   o%Rotor%AvgInfl     = 0.0
-   o%OldTime     = 0.0_DbKi
+   o%InducedVel%SumInfl  = 0.0_ReKi
+   o%Rotor%AvgInfl       = 0.0_ReKi
+   o%OldTime             = 0.0_DbKi
+   O%SuperSonic          = .FALSE.   
+   o%NoLoadsCalculated   = .TRUE.
 
    p%TwoPiNB     = TwoPi / REAL( p%NumBl, ReKi )
 
    p%Initialized = .TRUE.
-   o%NoLoadsCalculated = .TRUE.
    
         
    
    DO ie = 1, maxInfl
-      p%DynInflow%xMinv(ie) = PIBY2 / hfunc(MRvector(ie), NJvector(ie))   !bjj: this is really just a parameter, too.
+      p%DynInflow%xMinv(ie) = PIBY2 / hfunc(MRvector(ie), NJvector(ie))   !bjj: this is really just a Fortran parameter, too.
    END DO !ie   
 
    RETURN
-
-   !=======================================================================
-   CONTAINS
-   !=======================================================================
-   SUBROUTINE ExitThisRoutine ( ErrID, Msg )
-
-
-      ! This subroutine cleans up the parent routine before exiting.
-
-
-         ! Argument declarations.
-
-      INTEGER(IntKi), INTENT(IN)                :: ErrID                      ! The error identifier (ErrStat)
-
-      CHARACTER(*),   INTENT(IN)                :: Msg                        ! The error message (ErrMess)
-
-
-
-         ! Set error status/message
-
-      ErrStat = ErrID
-      ErrMess = Msg
-
-
-      RETURN
-
-   END SUBROUTINE ExitThisRoutine ! ( ErrID, Msg )
-
 
 END SUBROUTINE AD_Init
 
@@ -656,8 +632,8 @@ SUBROUTINE AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
       TYPE(AD_ConstraintStateType), INTENT(INOUT)  :: z           ! Constraint states
       TYPE(AD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
       TYPE(AD_OutputType),          INTENT(INOUT)  :: y           ! System outputs
-      INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                      INTENT(  OUT)  :: ErrMess      ! Error message if ErrStat /= ErrID_None
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
 
@@ -675,15 +651,10 @@ SUBROUTINE AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
          ! Close files here:
 
       ! AD_IOParams
-   IF (P%UnADin > 0)  CLOSE(P%UnADin)              ! ipt file
-   IF (P%UnADopt > 0) CLOSE(P%UnADopt)             ! opt file
-   IF (P%UnAirfl > 0) CLOSE(P%UnAirfl)             ! Airfoil data file
-   IF (P%UnWind > 0)  CLOSE(P%UnWind)              ! HH or FF wind file
-   IF (P%UnEc > 0)    CLOSE(P%UnEc)
+   IF (P%UnEc > 0)    CLOSE(P%UnEc) ! not currently used
 
    IF (P%UnWndOut > 0) CLOSE(P%UnWndOut)
-   IF (P%UnADPlt > 0)  CLOSE(P%UnADPlt)
-
+   IF (P%UnElem   > 0) CLOSE(P%UnElem)
 
          ! Destroy the input data:
 
@@ -807,8 +778,6 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
    ! Initialize ErrStat
       ErrStat = ErrID_None
       ErrMess  = ""
-      ErrStatLcL = ErrID_None
-      ErrMessLcl = '<none>'
 
    !-------------------------------------------------------------------------------------------------
    ! Check that the module has been initialized.
@@ -817,8 +786,6 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
       ErrStat = ErrID_Fatal
       ErrMess = 'AeroDyn must be initialized before trying to calculate aerodynamic loads.'
       RETURN
-   ELSE
-      ErrStat = ErrID_None
    END IF
 
 
@@ -859,56 +826,11 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
             RETURN
          END IF
       END IF
-      
-      
+            
       RETURN
 
    ENDIF
 
-
-!BJJ start of plotting info
-
-      ! This is debugging output, so it's OK to abort afterwards.
-
-   IF ( p%OutputPlottingInfo ) THEN
-
-      WRITE( p%UNADPlt, '("AeroConfig: Time =",F20.5)' ) Time
-      DO IBlade=1,p%NumBl
-         WRITE( p%UNADPlt, '(A,I1,A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-             'Blade',IBlade,'_Position      ', u%TurbineComponents%Blade(IBlade)%Position(:), &
-                                               u%TurbineComponents%Blade(IBlade)%Orientation(:,:)
-      END DO
-
-      WRITE( p%UNADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-               'Hub_Position         ', u%TurbineComponents%Hub%Position(:),u%TurbineComponents%Hub%Orientation(:,:)
-
-      WRITE( p%UNADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-               'RotorFurl_Position   ', u%TurbineComponents%RotorFurl%Position(:),u%TurbineComponents%RotorFurl%Orientation(:,:)
-
-      WRITE( p%UNADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-               'Nacelle_Position     ', u%TurbineComponents%Nacelle%Position(:),u%TurbineComponents%Nacelle%Orientation(:,:)
-
-      WRITE( p%UNADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-               'TailFin_Position     ', u%TurbineComponents%TailFin%Position(:), u%TurbineComponents%TailFin%Orientation(:,:)
-
-      WRITE( p%UNADPlt, '(A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-               'Tower_Position       ', u%TurbineComponents%Tower%Position(:),u%TurbineComponents%Tower%Orientation(:,:)
-
-
-      WRITE( p%UNADPlt, '("AllAeroMarkers:")' )
-      DO IBlade=1,p%NumBl
-         DO IElement = 1,p%Element%NElm
-            WRITE( p%UNADPlt, '(A,I1,A,I1,A,3(1X,F20.5)," Orientation",9(1X,F20.5))' ) &
-              'Blade',IBlade,'_Elm',IElement,'_Position', u%InputMarkers(IBlade)%Position(:,IElement),    &
-                                                          u%InputMarkers(IBlade)%Orientation(:,:,IElement)
-         END DO
-      END DO
-
-
-      CLOSE( p%UNADPlt )
-      CALL ProgAbort(' Closing program due to plot output file.  This is only for debugging.')
-   END IF
-!BJJ end of plotting info
 
    !-------------------------------------------------------------------------------------------------
    ! Calculate the forces and moments for the blade: SUBROUTINE AeroFrcIntrface( FirstLoop, JElemt, DFN, DFT, PMA )
