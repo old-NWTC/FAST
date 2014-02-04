@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-10-03 21:39:29 -0600 (Thu, 03 Oct 2013) $
-! (File) Revision #: $Rev: 266 $
+! File last committed: $Date: 2014-02-03 13:52:25 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 328 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/SS_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE SS_Radiation
@@ -36,7 +36,7 @@ MODULE SS_Radiation
    PRIVATE
 
 !   INTEGER(IntKi), PARAMETER            :: DataFormatID = 1   ! Update this value if the data types change (used in SS_Rad_Pack)
-   TYPE(ProgDesc), PARAMETER            :: SS_Rad_ProgDesc = ProgDesc( 'SS_Radiation', '(v1.00.01, 19-October-2012)', '05-Mar-2013' )
+   TYPE(ProgDesc), PARAMETER            :: SS_Rad_ProgDesc = ProgDesc( 'SS_Radiation', 'v1.00.01', '05-Mar-2013' )
 
    
       ! ..... Public Subroutines ...................................................................................................

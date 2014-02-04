@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 11:16:44 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 327 $
+! File last committed: $Date: 2014-02-03 14:49:02 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 336 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -168,10 +168,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
 
       CALL DispNVD( HydroDyn_ProgDesc )        
       
-         ! If you want to choose your own rate instead of using what the glue code suggests, tell the glue code the rate at which
-         !   this module must be called here:
-                 
-      p%DT  = Interval
+      
       
       
       IF ( InitInp%UseInputFile ) THEN
@@ -187,6 +184,10 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       END IF
            
       
+         ! Start with the glue code's timestep.  This may be altered in the Input file processing, and we will check that afterwards.
+                 
+      InitLocal%DT  = Interval
+      
       
          ! Verify all the necessary initialization data. Do this at the HydroDynInput module-level 
          !   because the HydroDynInput module is also responsible for parsing all this 
@@ -198,9 +199,15 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       END IF
       
       
-     
-         
-         
+        ! Since the Convolution Radiation module is currently the only module which requires knowledge of the time step size, 
+        !  we will set Hydrodyn's time step to be that of the Convolution radiation module if it is being used.  Otherwise, we
+        !  will set it to be equal to the glue-codes
+      IF ((Initlocal%HasWAMIT) .AND. (Initlocal%WAMIT%RdtnMod == 1) ) THEN
+         p%DT = InitLocal%WAMIT%Conv_Rdtn%RdtnDT
+      ELSE
+         p%DT = Interval
+      END IF  
+      
          ! Open a summary of the HydroDyn Initialization. Note: OutRootName must be set by the caller because there may not be an input file to obtain this rootname from.
          
       IF ( InitLocal%HDSum ) THEN 
@@ -755,7 +762,7 @@ SUBROUTINE HydroDyn_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherSt
       
       CALL WAMIT_UpdateStates( t, n, Inputs_WAMIT, InputTimes, p%WAMIT, x%WAMIT, xd%WAMIT, WAMIT_z, OtherState%WAMIT, ErrStat, ErrMsg )
      
-!bjj: fix for memory leak:
+
       DO I=1,nTime
          CALL WAMIT_DestroyInput( Inputs_WAMIT(I), ErrStat, ErrMsg )     
       END DO

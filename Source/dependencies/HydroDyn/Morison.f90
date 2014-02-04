@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 11:16:44 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 327 $
+! File last committed: $Date: 2014-02-03 22:11:31 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 338 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -39,7 +39,7 @@ MODULE Morison
    PRIVATE
 
 !   INTEGER(IntKi), PARAMETER            :: DataFormatID = 1   ! Update this value if the data types change (used in Morison_Pack)
-   TYPE(ProgDesc), PARAMETER            :: Morison_ProgDesc = ProgDesc( 'Morison', '(v1.00.01, 1-Apr-2013)', '1-Apr-2013' )
+   TYPE(ProgDesc), PARAMETER            :: Morison_ProgDesc = ProgDesc( 'Morison', 'v1.00.01', '1-Apr-2013' )
 
    
       ! ..... Public Subroutines ...................................................................................................
@@ -1864,7 +1864,7 @@ SUBROUTINE SetDepthBasedCoefs( z, NCoefDpth, CoefDpths, Cd, CdMG, Ca, CaMG )
    
    INTEGER                 :: I, indx1, indx2
    REAL(ReKi)              :: dd, s
-   LOGICAL                 :: foundLess ! = .FALSE. bjj: this variable will have the SAVE attribute if you add the "= .FALSE." here in its declaration statement
+   LOGICAL                 :: foundLess 
    
    
       !Find the table entry(ies) which match the node's depth value
@@ -2764,15 +2764,15 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                            
                            IF ( .NOT. nodes(J)%FillFlag ) THEN
                             
-                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,1)*f1*nodes(J)%AxCa
-                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,2)*f1*nodes(J)%AxCa
+                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,3)*f1*nodes(J)%AxCa
+                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,3)*f1*nodes(J)%AxCa
                               AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*f1*nodes(J)%AxCa
                            
                            ELSE
                            
                               f2 = (nodes(J)%R-nodes(J)%t)*(nodes(J)%R-nodes(J)%t)*(nodes(J)%R-nodes(J)%t)                       
-                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,1)*( f1 - f2  )*nodes(J)%AxCa
-                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,2)*( f1 - f2  )*nodes(J)%AxCa
+                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,3)*( f1 - f2  )*nodes(J)%AxCa
+                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,3)*( f1 - f2  )*nodes(J)%AxCa
                               AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*( f1 - f2  )*nodes(J)%AxCa
                            
                            END IF

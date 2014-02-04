@@ -1,9 +1,8 @@
 !STARTOFREGISTRYGENERATEDFILE './Waves_Types.f90'
-!
+
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.03, 20-Jan-2014)
 !*********************************************************************************************************************************
 ! Waves_Types
 !.................................................................................................................................

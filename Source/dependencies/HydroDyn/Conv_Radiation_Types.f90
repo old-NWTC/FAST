@@ -1,9 +1,8 @@
 !STARTOFREGISTRYGENERATEDFILE './Conv_Radiation_Types.f90'
-!
+
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.03, 20-Jan-2014)
 !*********************************************************************************************************************************
 ! Conv_Radiation_Types
 !.................................................................................................................................
@@ -36,8 +35,9 @@ IMPLICIT NONE
 ! =========  Conv_Rdtn_InitInputType  =======
   TYPE, PUBLIC :: Conv_Rdtn_InitInputType
     REAL(DbKi)  :: RdtnDT 
+    CHARACTER(80)  :: RdtnDTChr 
     REAL(ReKi)  :: HighFreq 
-    CHARACTER(10)  :: WAMITFile 
+    CHARACTER(1024)  :: WAMITFile 
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: HdroAddMs 
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: HdroFreq 
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: HdroDmpng 
@@ -108,6 +108,7 @@ CONTAINS
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstInitInputData%RdtnDT = SrcInitInputData%RdtnDT
+   DstInitInputData%RdtnDTChr = SrcInitInputData%RdtnDTChr
    DstInitInputData%HighFreq = SrcInitInputData%HighFreq
    DstInitInputData%WAMITFile = SrcInitInputData%WAMITFile
 IF (ALLOCATED(SrcInitInputData%HdroAddMs)) THEN

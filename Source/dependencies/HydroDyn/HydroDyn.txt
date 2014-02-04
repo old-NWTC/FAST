@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2014-01-31 11:14:57 -0700 (Fri, 31 Jan 2014) $
-# (File) Revision #: $Rev: 326 $
+# File last committed: $Date: 2014-02-03 14:34:41 -0700 (Mon, 03 Feb 2014) $
+# (File) Revision #: $Rev: 329 $
 # URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/RegistryFiles/HydroDyn.txt $
 ###################################################################################################################################
 
@@ -27,6 +27,7 @@ param     HydroDyn/HydroDyn            unused                        INTEGER    
 typedef   HydroDyn/HydroDyn            InitInputType                 CHARACTER(1024)          InputFile                       -          -          -         "Supplied by Driver:  full path and filename for the HydroDyn module"    -
 typedef   ^                            ^                             LOGICAL                  UseInputFile                    -          -          -         "Supplied by Driver:  .TRUE. if using a input file, .FALSE. if all inputs are being passed in by the caller"    -
 typedef   ^                            ^                             CHARACTER(1024)          OutRootName                     -          -          -         "Supplied by Driver:  The name of the root file (without extension) including the full path"    -
+typedef   ^                            ^                             ReKi                     DT                              -          -          -         "Supplied by Driver:  Simulation time step (sec)"    -
 typedef   ^                            ^                             ReKi                     Gravity                         -          -          -         "Supplied by Driver:  Gravitational acceleration (m/s^2)"    -
 typedef   ^                            ^                             DbKi                     TMax                            -          -          -         "Supplied by Driver:  The total simulation time (sec)"    -
 typedef   ^                            ^                             CHARACTER(80)            PtfmSgFChr                      -          -          -         "Platform horizontal surge translation force (flag) or DEFAULT"    -

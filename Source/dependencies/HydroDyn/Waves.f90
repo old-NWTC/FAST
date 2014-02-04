@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-12-12 09:55:15 -0700 (Thu, 12 Dec 2013) $
-! (File) Revision #: $Rev: 293 $
+! File last committed: $Date: 2014-02-03 14:46:01 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 334 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -38,7 +38,7 @@ MODULE Waves
    PRIVATE
 
 !   INTEGER(IntKi), PARAMETER            :: DataFormatID = 1   ! Update this value if the data types change (used in Waves_Pack)
-   TYPE(ProgDesc), PARAMETER            :: Waves_ProgDesc = ProgDesc( 'Waves', '(v1.00.01, 19-October-2012)', '05-Mar-2013' )
+   TYPE(ProgDesc), PARAMETER            :: Waves_ProgDesc = ProgDesc( 'Waves', 'v1.00.01', '05-Mar-2013' )
 
    
       ! ..... Public Subroutines ...................................................................................................
@@ -522,8 +522,8 @@ CONTAINS
 
          ! Compute the hyperbolic numerator over denominator:
 
-!bjj: should this be compared with epsilon instead of 0.0 to avoid numerical instability?
-      IF (     k   == 0.0  )  THEN  ! When .TRUE., the shallow water formulation is ill-conditioned; thus, HUGE(k) is returned to approximate the known value of infinity.
+
+      IF (   k  < EPSILON(0.0_ReKi)  )  THEN  ! When .TRUE., the shallow water formulation is ill-conditioned; thus, HUGE(k) is returned to approximate the known value of infinity.
 
          COSHNumOvrSINHDen = HUGE( k )
 
@@ -1796,7 +1796,11 @@ SUBROUTINE GH_BladedWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
    !   input parameters, then close it again:
 
    CALL OpenFInpFile ( UnFA, TRIM(InitInp%GHWvFile)//'_FAST.txt', ErrStat ) ! Open file.
-   IF ( ErrStat /= ErrID_None ) RETURN
+   IF ( ErrStat /= ErrID_None ) THEN
+      ErrMsg = '  Could not open GH Bladed wave data file.'
+      ErrStat = ErrID_Fatal
+      RETURN
+   END IF
 
 
 
@@ -1807,6 +1811,7 @@ SUBROUTINE GH_BladedWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
    IF ( GHNWvDpth <= 0 )  THEN
       ErrMsg = ' GHNWvDpth must be greater than zero.'
       ErrStat = ErrID_Fatal
+      CLOSE ( UnFA ) 
       RETURN
    END IF
 
@@ -1816,22 +1821,23 @@ SUBROUTINE GH_BladedWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
    IF ( ErrStat /= ErrID_None )  THEN
       ErrMsg  =' Error allocating memory for the GHWvDpth array.'
       ErrStat = ErrID_Fatal
+      CLOSE ( UnFA ) 
       RETURN
    END IF
 
    DO J = 1,GHNWvDpth   ! Loop through all vertical locations in the GH Bladed wave data files
-      READ (unFA,*)  GHWvDpth(J)
+      READ (UnFA,*)  GHWvDpth(J)
    END DO                ! J - All vertical locations in the GH Bladed wave data files
 
    IF ( GHWvDpth(1) /= -InitInp%WtrDpth )  THEN  !TODO: Verify this check is valid if MSL2SWL is /= 0  GJH 9/6/13
       ErrMsg  = ' GHWvDpth(1) must be set to -WtrDpth when WaveMod is set to 5.'
       ErrStat = ErrID_Fatal
+      CLOSE ( UnFA ) 
       RETURN
    END IF
 
    CLOSE ( UnFA )                                        ! Close file.
 
-!BJJ CHECK THAT UnFA gets closed when it's supposed to, even with error!!!!
 
 
    ! ALLOCATE arrays associated with the GH Bladed wave data:

@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-23 12:14:17 -0700 (Thu, 23 Jan 2014) $
-! (File) Revision #: $Rev: 314 $
+! File last committed: $Date: 2014-02-03 13:52:25 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 328 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/WAMIT.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT
@@ -44,7 +44,7 @@ MODULE WAMIT
    REAL(DbKi), PARAMETER, PRIVATE       :: OnePlusEps  = 1.0 + EPSILON(OnePlusEps)   ! The number slighty greater than unity in the precision of DbKi.
 
 !   INTEGER(IntKi), PARAMETER            :: DataFormatID = 1   ! Update this value if the data types change (used in WAMIT_Pack)
-   TYPE(ProgDesc), PARAMETER            :: WAMIT_ProgDesc = ProgDesc( 'WAMIT', '(v1.00.01, 19-October-2012)', '05-Mar-2013' )
+   TYPE(ProgDesc), PARAMETER            :: WAMIT_ProgDesc = ProgDesc( 'WAMIT', 'v1.00.01', '05-Mar-2013' )
 
    
       ! ..... Public Subroutines ...................................................................................................

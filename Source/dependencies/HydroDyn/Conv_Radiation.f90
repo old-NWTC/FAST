@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-11-12 16:57:49 -0700 (Tue, 12 Nov 2013) $
-! (File) Revision #: $Rev: 289 $
+! File last committed: $Date: 2014-02-03 14:43:23 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 333 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Conv_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE Conv_Radiation
@@ -41,7 +41,7 @@ MODULE Conv_Radiation
 
 
 !   INTEGER(IntKi), PARAMETER            :: DataFormatID = 1   ! Update this value if the data types change (used in Conv_Rdtn_Pack)
-   TYPE(ProgDesc), PARAMETER            :: Conv_Rdtn_ProgDesc = ProgDesc( 'Conv_Radiation', '(v1.00.00, 06-December-2012)', '05-Mar-2013' )
+   TYPE(ProgDesc), PARAMETER            :: Conv_Rdtn_ProgDesc = ProgDesc( 'Conv_Radiation', 'v1.00.00', '05-Mar-2013' )
 
    
       ! ..... Public Subroutines ...................................................................................................
@@ -168,6 +168,11 @@ RdtnFrmAM = .FALSE.
       END IF
       
       
+      
+
+      u%Velocity = 0.0 !this is an initial guess;  
+      
+   
          ! Perform some initialization computations including calculating the total
          !   number of frequency components = total number of time steps in the wave,
          !   radiation kernel, calculating the frequency step, and ALLOCATing the
@@ -405,16 +410,13 @@ RdtnFrmAM = .FALSE.
          ! If you want to choose your own rate instead of using what the glue code suggests, tell the glue code the rate at which
          !   this module must be called here:
          
-      Interval = p%RdtnDT                                              
+   Interval = p%RdtnDT                                              
 
-!bjj: initialized these    >>>>>   
-   u%Velocity = 0.0 !this is an initial guess;   
-   
    OtherState%LastIndRdtn = 0
    OtherState%LastIndRdtn2 = 0
    OtherState%IndRdtn = 0
    
-   ! these don't matter, but I don't like seeing the compilation warning in IVF:
+      ! these don't matter, but I don't like seeing the compilation warning in IVF:
    x%DummyContState = 0.0
    z%DummyConstrState = 0.0
    y%F_Rdtn = 0.0  
@@ -794,7 +796,7 @@ SUBROUTINE Conv_Rdtn_UpdateDiscState( Time, n, u, p, x, xd, z, OtherState, ErrSt
       RdtnRmndr    = Time - ( OtherState%IndRdtn*p%RdtnDT ) ! = Time - RdtnTime(IndRdtn); however, RdtnTime(:) has a maximum index of NStepRdtn-1
 
          ! This subroutine can only be called at integer multiples of p%RdtnDT, if RdtnRmdr > 0, then this requirement has been violated!
-      IF (RdtnRmndr > EPSILON(0.0) ) THEN
+      IF (RdtnRmndr > EPSILON(0.0_ReKi) ) THEN
          ErrStat = ErrID_FATAL         
          ErrMsg  = "Conv_Rdtn_UpdateDiscState() must be called at integer multiples of the radiation timestep."
          RETURN

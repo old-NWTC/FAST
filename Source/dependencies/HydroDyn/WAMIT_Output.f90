@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-23 12:07:08 -0700 (Thu, 23 Jan 2014) $
-! (File) Revision #: $Rev: 312 $
+! File last committed: $Date: 2014-02-03 14:41:52 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 332 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/WAMIT_Output.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT_Output
@@ -527,13 +527,7 @@ SUBROUTINE WMTOUT_ChkOutLst( OutList, y, p, ErrStat, ErrMsg )
       
    END DO
    
-   !-------------------------------------------------------------------------------------------------
-   ! Initialize all output channels to zero so that we can avoid doing resetting them to zero at every time step.
-   !-------------------------------------------------------------------------------------------------
-!bjj: this isn't allocated, yet:
-   !y%WriteOutput = 0.0 
-   
-   
+ 
    RETURN
 END SUBROUTINE WMTOUT_ChkOutLst
 

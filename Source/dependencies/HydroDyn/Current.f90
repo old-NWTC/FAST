@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-09-21 23:01:53 -0600 (Sat, 21 Sep 2013) $
-! (File) Revision #: $Rev: 199 $
+! File last committed: $Date: 2014-02-03 14:40:24 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 331 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Current.f90 $
 !**********************************************************************************************************************************
 MODULE Current
@@ -269,7 +269,7 @@ SUBROUTINE Current_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
    END IF   
       
 
-      ! Compute the partial dirivative for wave stretching
+      ! Compute the partial derivative for wave stretching
    CALL    Calc_Current( InitInp,  0.0_ReKi, InitInp%WtrDpth, InitInp%DirRoot, CurrVxi0, CurrVyi0 )
    CALL    Calc_Current( InitInp, -SmllNmbr, InitInp%WtrDpth, InitInp%DirRoot, CurrVxiS, CurrVyiS )
 

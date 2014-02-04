@@ -1,9 +1,8 @@
 !STARTOFREGISTRYGENERATEDFILE './HydroDyn_Types.f90'
-!
+
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.03, 20-Jan-2014)
 !*********************************************************************************************************************************
 ! HydroDyn_Types
 !.................................................................................................................................
@@ -45,6 +44,7 @@ IMPLICIT NONE
     CHARACTER(1024)  :: InputFile 
     LOGICAL  :: UseInputFile 
     CHARACTER(1024)  :: OutRootName 
+    REAL(ReKi)  :: DT 
     REAL(ReKi)  :: Gravity 
     REAL(DbKi)  :: TMax 
     CHARACTER(80)  :: PtfmSgFChr 
@@ -183,6 +183,7 @@ CONTAINS
    DstInitInputData%InputFile = SrcInitInputData%InputFile
    DstInitInputData%UseInputFile = SrcInitInputData%UseInputFile
    DstInitInputData%OutRootName = SrcInitInputData%OutRootName
+   DstInitInputData%DT = SrcInitInputData%DT
    DstInitInputData%Gravity = SrcInitInputData%Gravity
    DstInitInputData%TMax = SrcInitInputData%TMax
    DstInitInputData%PtfmSgFChr = SrcInitInputData%PtfmSgFChr
@@ -294,6 +295,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+  Re_BufSz   = Re_BufSz   + 1  ! DT
   Re_BufSz   = Re_BufSz   + 1  ! Gravity
   Db_BufSz   = Db_BufSz   + 1  ! TMax
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddF0 )  ! AddF0 
@@ -335,6 +337,8 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DT )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Gravity )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TMax )
@@ -466,6 +470,8 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+  OutData%DT = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
   OutData%Gravity = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%TMax = DbKiBuf ( Db_Xferred )

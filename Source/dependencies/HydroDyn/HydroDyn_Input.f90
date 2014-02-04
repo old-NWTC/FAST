@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 11:16:44 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 327 $
+! File last committed: $Date: 2014-02-03 14:47:45 -0700 (Mon, 03 Feb 2014) $
+! (File) Revision #: $Rev: 335 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -386,45 +386,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
       RETURN
    END IF
 
-
-!BJJ: verify that these tests can be performed (i.e., do we have the correct data to compare here?)
-!   IF ( InitInp%StrctType == FixedBtm_Type ) THEN
-!
-!!!JASON: WHAT LOADING DO WE APPLY TO THE FLEXIBLE PORTION OF THE TOWER EXTENDING BELOW THE SEABED?
-! bjj: replace this :
-!         IF ( ( TwrDraft - TwrRBHt ) < WtrDpth )  THEN   ! Print out a warning when the flexible portion of the support structure does not extend to the seabed.
-! with this:
-!         IF ( ( HydroConfig%Substructure%Position(3) ) < -WtrDpth )  THEN   ! Print out a warning when the flexible portion of the support structure does not extend to the seabed.
-!            CALL ProgWarn( ' Hydrodynamic loading will only be applied to the flexible portion of the support structure.'// &
-!                           ' Make sure that ( TwrDraft - TwrRBHt ) >= WtrDpth if you want hydrodynamic loading applied'// &
-!                           ' along the entire submerged portion of the support structure. ')
-!         END IF
-!      
-!   ELSE IF ( InitInp%StrctType == FloatPltfm_Type ) THEN
-!   
-!      IF ( WtrDpth <= PtfmDraft  )  THEN
-!         ErrMsg  = ' WtrDpth must be greater than PtfmDraft.'
-!         CLOSE( UnIn )
-!         RETURN
-!      END IF
-!         
-!      IF ( FP_InitData%LineMod == 1 )  THEN  ! .TRUE if we have standard quasi-static mooring lines.
-!         DO I = 1,FP_InitData%NumLines ! Loop through all mooring lines
-!
-!            IF ( WtrDpth < -FP_InitData%MooringLine(I)%LAnchzi )  THEN
-!               ErrMsg  = ' WtrDpth must not be less than LDpthAnch('//TRIM( Int2LStr( I ) )//').'
-!               ErrStat = ErrID_Fatal
-!               CLOSE( UnIn )
-!               RETURN
-!            END IF
-!               
-!         END DO             ! I - All mooring lines
-!      END IF
-!      
-!   END IF
-
-
-      
+   
       ! WaveMod - Wave kinematics model switch.
 
    CALL ReadVar ( UnIn, FileName, InitInp%Waves%WaveModChr, 'WaveMod', 'Wave kinematics model switch', ErrStat, ErrMsg, UnEchoLocal )
@@ -845,33 +807,8 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
       CLOSE( UnIn )
       RETURN
    END IF
-   !!!!!!!!!!!!!!!!!!!!!!!!
    
-!   IF ( HD_Data%StrctType == FloatPltfm_Type ) THEN ! (should this be done in FAST?)
-!
-!instead of the following 2 checks, now check that the HydroConfig marker for platform is at 0,0,0
-!      IF ( TwrDraft > 0.0 ) THEN
-!         ErrMsg  = ' TwrDraft must be less than or equal to zero when PtfmLdMod is set to "'//TRIM(Line)//'".'  ! Do not allow the combination of tower hydrodynamics using Morison's equation and platform hydrodynamics using the true form of the using the true form of the hydrodynamics equations since the true equations require that the shape of the platform does not change above the MSL (platform reference point)--Consider the linear hydrostatic restoring matrix, for example.
-!         ErrStat = ErrID_Fatal
-!         CLOSE( UnIn )
-!         RETURN
-!      END IF
-!
-!      IF ( PtfmRef /= 0.0 ) THEN
-!         ErrMsg  = ' PtfmRef must be zero when PtfmLdMod is set to "'//TRIM(Line)//'".'
-!         ErrStat = ErrID_Fatal
-!         CLOSE( UnIn )
-!         RETURN
-!      END IF
-!bjj: like this:
-!      IF ( HydroConfig%Substructure%Position  /= ( 0,0,0 ) .OR.
-!           HydroConfig%Substructure%Orientation /= eye(3) ) THEN
-!      
-!         ErrMsg  = ' HydroConfig%Substructure%Position must be zero and Orientation must be the identity matrix when PtfmLdMod is set to "'//TRIM(Line)//'".'
-!           
-!      END IF
-!
-!   END IF
+
 
       ! HasWAMIT - Flag indicating whether or not WAMIT is used in the simulation.  
       
@@ -986,7 +923,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
       ! RdtnDT - Time step for wave radiation kernel calculations
 
    
-   CALL ReadVar ( UnIn, FileName, InitInp%WAMIT%Conv_Rdtn%RdtnDT, 'RdtnDT', 'Time step for wave radiation kernel calculations', ErrStat, ErrMsg, UnEchoLocal )
+   CALL ReadVar ( UnIn, FileName, InitInp%WAMIT%Conv_Rdtn%RdtnDTChr, 'RdtnDT', 'Time step for wave radiation kernel calculations', ErrStat, ErrMsg, UnEchoLocal )
 
    IF ( ErrStat /= ErrID_None ) THEN
       ErrMsg  = ' Failed to read RdtnDT parameter.'
@@ -996,7 +933,8 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
       RETURN
    END IF
 
-
+   
+   
 !bjj: should we add this?
 !test for numerical stability
 !      IF ( FP_InitData%RdtnDT <= FP_InitData%RdtnTMax*EPSILON(FP_InitData%RdtnDT) )  THEN  ! Test RdtnDT and RdtnTMax to ensure numerical stability -- HINT: see the use of OnePlusEps." 
@@ -2690,8 +2628,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       RETURN
    END IF
    
-      ! Threshold upper cut-off based on sampling rate
-!bjj: changed WaveDT to ReKi in equation to avoid error about mixed data types in MIN() function.     
+      ! Threshold upper cut-off based on sampling rate    
    InitInp%Waves%WvHiCOff =  MIN( Pi/REAL(InitInp%Waves%WaveDT,ReKi), InitInp%Waves%WvHiCOff ) 
    !TODO Issue warning if we changed WvHiCOff  GJH 7/24/13
    
@@ -2942,6 +2879,8 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       
    END IF
 
+      ! Set the WAMIT file name on the Convolution module
+   InitInp%WAMIT%Conv_Rdtn%WAMITFile = InitInp%WAMIT%WAMITFile
 
       ! WAMITULEN - WAMIT characteristic body length scale
 
@@ -2996,7 +2935,25 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
        ! RdtnDT - Time step for wave radiation kernel calculations
 
    IF ( InitInp%HasWAMIT ) THEN
+      
+      CALL Conv2UC( InitInp%WAMIT%Conv_Rdtn%RdtnDTChr )    ! Convert Line to upper case.
+      
+      IF ( TRIM(InitInp%WAMIT%Conv_Rdtn%RdtnDTChr) == 'DEFAULT' )  THEN   ! .TRUE. when one wants to use the default value timestep provided by the glue code.
 
+         InitInp%WAMIT%Conv_Rdtn%RdtnDT = InitInp%DT
+
+      ELSE                                   ! The input must have been specified numerically.
+
+         READ (InitInp%WAMIT%Conv_Rdtn%RdtnDTChr,*,IOSTAT=ErrStat)  InitInp%WAMIT%Conv_Rdtn%RdtnDT
+         CALL CheckIOS ( ErrStat, "", 'RdtnDT', NumType, .TRUE. )
+
+         IF ( ErrStat /= ErrID_None ) THEN
+            ErrMsg  = ' RdtnDT must be numerical if not set to DEFAULT.'
+            RETURN
+         ENDIF 
+         
+      END IF
+      
       IF ( InitInp%WAMIT%Conv_Rdtn%RdtnDT <= 0.0 ) THEN
          ErrMsg  = ' RdtnDT must be greater than zero.'
          ErrStat = ErrID_Fatal
