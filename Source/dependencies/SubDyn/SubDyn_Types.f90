@@ -1,9 +1,9 @@
 !STARTOFREGISTRYGENERATEDFILE './SubDyn_Types.f90'
-
+!
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.02, 16-Dec-2013)
+! FAST Registry (v2.02.01, 22-Feb-2014)
 !*********************************************************************************************************************************
 ! SubDyn_Types
 !.................................................................................................................................
@@ -35,314 +35,314 @@ USE NWTC_Library
 IMPLICIT NONE
 ! =========  MeshAuxDataType  =======
   TYPE, PUBLIC :: MeshAuxDataType
-    INTEGER(IntKi)  :: MemberID 
-    INTEGER(IntKi)  :: NOutCnt 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeCnt 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeIDs 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmIDs 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmNds 
-    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmID2s 
-    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmNd2s 
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Me 
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Ke 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Fg 
-    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Me2 
-    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Ke2 
-    REAL(ReKi) , DIMENSION(1:12,1:2)  :: Fg2 
+    INTEGER(IntKi)  :: MemberID      ! Member [ID]
+    INTEGER(IntKi)  :: NOutCnt      ! Number [of]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeCnt      ! Node [ordinal]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeIDs      ! Node [IDs]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmIDs      ! Element [IDs]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmNds      ! Flag [to]
+    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmID2s      ! Element [IDs]
+    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmNd2s      ! Flag [to]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Me      ! Mass [matrix]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Ke      ! Mass [matrix]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Fg      ! Gravity [load]
+    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Me2      ! Mass [matrix]
+    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Ke2      ! Mass [matrix]
+    REAL(ReKi) , DIMENSION(1:12,1:2)  :: Fg2      ! Gravity [load]
   END TYPE MeshAuxDataType
 ! =======================
 ! =========  ElemPropType  =======
   TYPE, PUBLIC :: ElemPropType
-    REAL(ReKi)  :: Area 
-    REAL(ReKi)  :: Length 
-    REAL(ReKi)  :: Ixx 
-    REAL(ReKi)  :: Iyy 
-    REAL(ReKi)  :: Jzz 
-    LOGICAL  :: Shear 
-    REAL(ReKi)  :: Kappa 
-    REAL(ReKi)  :: YoungE 
-    REAL(ReKi)  :: ShearG 
-    REAL(ReKi)  :: Rho 
-    REAL(ReKi) , DIMENSION(1:3,1:3)  :: DirCos 
+    REAL(ReKi)  :: Area      ! Area [of]
+    REAL(ReKi)  :: Length      ! Length [of]
+    REAL(ReKi)  :: Ixx      ! Moment [of]
+    REAL(ReKi)  :: Iyy      ! Moment [of]
+    REAL(ReKi)  :: Jzz      ! Moment [of]
+    LOGICAL  :: Shear      ! Use [timoshenko]
+    REAL(ReKi)  :: Kappa      ! Shear [coefficient]
+    REAL(ReKi)  :: YoungE      ! Young's [modulus]
+    REAL(ReKi)  :: ShearG      ! Shear [modulus]
+    REAL(ReKi)  :: Rho      ! Density [-]
+    REAL(ReKi) , DIMENSION(1:3,1:3)  :: DirCos      ! Element [direction]
   END TYPE ElemPropType
 ! =======================
 ! =========  SD_InitInputType  =======
   TYPE, PUBLIC :: SD_InitInputType
-    CHARACTER(1024)  :: SDInputFile 
-    REAL(ReKi)  :: g 
-    REAL(ReKi)  :: WtrDpth 
-    REAL(ReKi) , DIMENSION(1:3)  :: TP_RefPoint 
-    REAL(ReKi)  :: SubRotateZ 
-    CHARACTER(1024)  :: SubDynSum 
-    CHARACTER(1024)  :: RootName 
-    CHARACTER(80)  :: SDdeltaTChr 
-    REAL(DbKi)  :: DT 
-    INTEGER(IntKi)  :: ErrStat 
-    INTEGER(IntKi)  :: NJoints 
-    INTEGER(IntKi)  :: JointsCol = 4 
-    INTEGER(IntKi)  :: MembersCol = 5 
-    INTEGER(IntKi)  :: NPropSets 
-    INTEGER(IntKi)  :: PropSetsCol = 6 
-    INTEGER(IntKi)  :: NXPropSets 
-    INTEGER(IntKi)  :: XPropSetsCol = 10 
-    INTEGER(IntKi)  :: ReactCol = 7 
-    INTEGER(IntKi)  :: NInterf 
-    INTEGER(IntKi)  :: InterfCol = 7 
-    INTEGER(IntKi)  :: NCMass 
-    INTEGER(IntKi)  :: CMassCol = 5 
-    INTEGER(IntKi)  :: NCOSMs 
-    INTEGER(IntKi)  :: COSMsCol = 10 
-    INTEGER(IntKi)  :: FEMMod 
-    INTEGER(IntKi)  :: NDiv 
-    LOGICAL  :: CBMod 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Joints 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PropSets 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: XPropSets 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: COSMs 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: CMass 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: JDampings 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Members 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Interf 
-    INTEGER(IntKi)  :: NNode 
-    INTEGER(IntKi)  :: NElem 
-    INTEGER(IntKi)  :: NProp 
-    INTEGER(IntKi)  :: TDOF 
-    INTEGER(IntKi)  :: MaxMemJnt = 10 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Nodes 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Props 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: K 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: M 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: F 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FG 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ElemProps 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: BCs 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: IntFc 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: MemberNodes 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnN 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnE 
-    LOGICAL  :: SSSum 
-    INTEGER(IntKi)  :: UnSum 
+    CHARACTER(1024)  :: SDInputFile      ! Name [of]
+    REAL(ReKi)  :: g      ! Gravity [acceleration]
+    REAL(ReKi)  :: WtrDpth      ! Water [Depth]
+    REAL(ReKi) , DIMENSION(1:3)  :: TP_RefPoint      ! Gravity [acceleration]
+    REAL(ReKi)  :: SubRotateZ      ! Rotation [angle]
+    CHARACTER(1024)  :: SubDynSum      ! SubDyn [summary]
+    CHARACTER(1024)  :: RootName      ! SubDyn [rootname]
+    CHARACTER(80)  :: SDdeltaTChr      ! Time [step]
+    REAL(DbKi)  :: DT      ! Time [step]
+    INTEGER(IntKi)  :: ErrStat      ! Error [status]
+    INTEGER(IntKi)  :: NJoints      ! Number [of]
+    INTEGER(IntKi)  :: JointsCol = 4      ! Number [of]
+    INTEGER(IntKi)  :: MembersCol = 5      ! Number [of]
+    INTEGER(IntKi)  :: NPropSets      ! Number [of]
+    INTEGER(IntKi)  :: PropSetsCol = 6      ! Number [of]
+    INTEGER(IntKi)  :: NXPropSets      ! Number [of]
+    INTEGER(IntKi)  :: XPropSetsCol = 10      ! Number [of]
+    INTEGER(IntKi)  :: ReactCol = 7      ! Number [of]
+    INTEGER(IntKi)  :: NInterf      ! Number [of]
+    INTEGER(IntKi)  :: InterfCol = 7      ! Number [of]
+    INTEGER(IntKi)  :: NCMass      ! Number [of]
+    INTEGER(IntKi)  :: CMassCol = 5      ! Number [of]
+    INTEGER(IntKi)  :: NCOSMs      ! Number [of]
+    INTEGER(IntKi)  :: COSMsCol = 10      ! Number [of]
+    INTEGER(IntKi)  :: FEMMod      ! FEM [switch:]
+    INTEGER(IntKi)  :: NDiv      ! Number [of]
+    LOGICAL  :: CBMod      ! Perform [C-B]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Joints      ! Joints [number]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PropSets      ! Property [sets]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: XPropSets      ! Extended [property]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: COSMs      ! Independent [direction]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: CMass      ! Concentrated [mass]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: JDampings      ! Damping [coefficients]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Members      ! Member [joints]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Interf      ! Interface [degree]
+    INTEGER(IntKi)  :: NNode      ! Total [number]
+    INTEGER(IntKi)  :: NElem      ! Total [number]
+    INTEGER(IntKi)  :: NProp      ! Total [number]
+    INTEGER(IntKi)  :: TDOF      ! Total [degree]
+    INTEGER(IntKi)  :: MaxMemJnt = 10      ! Maximum [number]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Nodes      ! Nodes [number]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Props      ! Property [sets]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: K      ! System [stiffness]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: M      ! System [mass]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: F      ! System [force]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FG      ! Gravity [force]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ElemProps      ! Element [properties(A,]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: BCs      ! Boundary [constraint]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: IntFc      ! Interface [constraint]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: MemberNodes      ! Member [number]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnN      ! Nodes [that]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnE      ! Elements [that]
+    LOGICAL  :: SSSum      ! SubDyn [Summary]
+    INTEGER(IntKi)  :: UnSum      ! File unit for the SubDyn summary file [-1 = no summary file] [-]
   END TYPE SD_InitInputType
 ! =======================
 ! =========  SD_InitOutputType  =======
   TYPE, PUBLIC :: SD_InitOutputType
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt 
-    TYPE(ProgDesc)  :: Ver 
-    INTEGER(IntKi)  :: MaxOutChs = 2000 
-    LOGICAL  :: TabDelim 
-    LOGICAL  :: OutCOSM 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: SSOutList 
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
+    TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
+    INTEGER(IntKi)  :: MaxOutChs = 2000      ! Max [number]
+    LOGICAL  :: TabDelim      ! Generate [a]
+    LOGICAL  :: OutCOSM      ! Output [Cos-matrices]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: SSOutList      ! List [of]
   END TYPE SD_InitOutputType
 ! =======================
 ! =========  SD_ContinuousStateType  =======
   TYPE, PUBLIC :: SD_ContinuousStateType
-    REAL(ReKi)  :: DummyContState 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qm 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdot 
+    REAL(ReKi)  :: DummyContState      ! Remove this variable if you have continuous states [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qm      ! Virtual [states,]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdot      ! Derivative [of]
   END TYPE SD_ContinuousStateType
 ! =======================
 ! =========  SD_DiscreteStateType  =======
   TYPE, PUBLIC :: SD_DiscreteStateType
-    REAL(ReKi)  :: DummyDiscState 
+    REAL(ReKi)  :: DummyDiscState      ! Remove this variable if you have discrete states [-]
   END TYPE SD_DiscreteStateType
 ! =======================
 ! =========  SD_ConstraintStateType  =======
   TYPE, PUBLIC :: SD_ConstraintStateType
-    REAL(ReKi)  :: DummyConstrState 
+    REAL(ReKi)  :: DummyConstrState      ! Remove this variable if you have constraint states [-]
   END TYPE SD_ConstraintStateType
 ! =======================
 ! =========  SD_OtherStateType  =======
   TYPE, PUBLIC :: SD_OtherStateType
-    TYPE(SD_ContinuousStateType) , DIMENSION(:), ALLOCATABLE  :: xdot 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdotdot 
-    INTEGER(IntKi)  :: n 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Udotdot 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Y2 
+    TYPE(SD_ContinuousStateType) , DIMENSION(:), ALLOCATABLE  :: xdot      ! previous state derivs for m-step time integrator [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdotdot      ! 2nd [Derivative]
+    INTEGER(IntKi)  :: n      ! tracks time step for which OtherState was updated last [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Udotdot      ! Structure [accelerations]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Y2      ! Structure [Deflections]
   END TYPE SD_OtherStateType
 ! =======================
 ! =========  SD_OutVar_Type  =======
   TYPE, PUBLIC :: SD_OutVar_Type
-    INTEGER(IntKi)  :: Indx 
-    INTEGER(IntKi)  :: SignM 
-    CHARACTER(10)  :: Units 
-    CHARACTER(10)  :: Name 
+    INTEGER(IntKi)  :: Indx      ! Index [into]
+    INTEGER(IntKi)  :: SignM      ! Sign [(output]
+    CHARACTER(10)  :: Units      ! Units [corresponding]
+    CHARACTER(10)  :: Name      ! Name [of]
   END TYPE SD_OutVar_Type
 ! =======================
 ! =========  SD_ParameterType  =======
   TYPE, PUBLIC :: SD_ParameterType
-    LOGICAL  :: SttcSolve 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_21 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_22 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_23 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_24 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FX 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_11 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_12 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_11 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_13 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_14 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FY 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_21 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_42 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_11 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_21 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_32 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_42 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Cbar_21 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Cbar_22 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dbar_13 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dbar_23 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dbar_24 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Fbar_21 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBB 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: KBB 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBM 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_R 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_M 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AM2InvJac 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TI 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TIreact 
-    INTEGER(IntKi)  :: NModes 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Elems 
-    INTEGER(IntKi)  :: qmL 
-    INTEGER(IntKi)  :: uL 
-    INTEGER(IntKi)  :: DofL 
-    INTEGER(IntKi)  :: NNodes_I 
-    INTEGER(IntKi)  :: NNodes_L 
-    INTEGER(IntKi)  :: NNodes_RbarL 
-    INTEGER(IntKi)  :: DofI 
-    INTEGER(IntKi)  :: DofR 
-    INTEGER(IntKi)  :: DofRbarL 
-    INTEGER(IntKi)  :: DofC 
-    INTEGER(IntKi)  :: NReact 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Reacts 
-    INTEGER(IntKi)  :: Nmembers 
-    INTEGER(IntKi)  :: TPdofL = 6 
-    INTEGER(IntKi)  :: URbarL 
-    INTEGER(IntKi)  :: URdotdotL 
-    INTEGER(IntKi)  :: UdotdotL 
-    INTEGER(IntKi)  :: Y2L 
-    INTEGER(IntKi)  :: IntMethod 
-    INTEGER(IntKi)  :: NAvgEls = 2 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDI 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDR 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDL 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDC 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDY 
-    INTEGER(IntKi)  :: NMOutputs 
-    INTEGER(IntKi)  :: NumOuts 
-    REAL(DbKi)  :: SDDeltaT 
-    INTEGER(IntKi)  :: OutSwtch 
-    INTEGER(IntKi)  :: UnJckF 
-    CHARACTER(1)  :: Delim 
-    CHARACTER(20)  :: OutFmt 
-    CHARACTER(20)  :: OutSFmt 
-    CHARACTER(1024)  :: OutJckF 
-    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst 
-    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst2 
-    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst3 
-    TYPE(ElemPropType) , DIMENSION(:), ALLOCATABLE  :: ElemProps 
-    TYPE(SD_OutVar_Type) , DIMENSION(:), ALLOCATABLE  :: OutParam 
-    LOGICAL  :: OutAll 
-    LOGICAL  :: OutReact 
-    INTEGER(IntKi)  :: OutAllInt 
-    INTEGER(IntKi)  :: OutAllDims 
-    INTEGER(IntKi)  :: OutDec 
-    INTEGER(IntKi)  :: MaxOUtPts 
+    LOGICAL  :: SttcSolve      ! Solve [dynamics]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_21      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_22      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_23      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_24      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FX      ! Load [components]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_11      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_12      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_11      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_13      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_14      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! Load [Components]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_21      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_42      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_11      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_21      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_32      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_42      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Cbar_21      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Cbar_22      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dbar_13      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dbar_23      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dbar_24      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Fbar_21      ! Load [Component]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBB      ! Matrix [after]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: KBB      ! Matrix [after]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBM      ! Matrix [after]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_R      ! Matrix [after]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_M      ! Matrix [after]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AM2InvJac      ! Inverse [Jacobian]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TI      ! Matrix [to]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TIreact      ! Matrix [to]
+    INTEGER(IntKi)  :: NModes      ! Number [of]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Elems      ! Element [nodes]
+    INTEGER(IntKi)  :: qmL      ! Length [of]
+    INTEGER(IntKi)  :: uL      ! Length [of]
+    INTEGER(IntKi)  :: DofL      ! Internal [nodes]
+    INTEGER(IntKi)  :: NNodes_I      ! Number [of]
+    INTEGER(IntKi)  :: NNodes_L      ! Number [ofInternal]
+    INTEGER(IntKi)  :: NNodes_RbarL      ! Number [of]
+    INTEGER(IntKi)  :: DofI      ! Interface [nodes]
+    INTEGER(IntKi)  :: DofR      ! Interface [and]
+    INTEGER(IntKi)  :: DofRbarL      ! Interface [+]
+    INTEGER(IntKi)  :: DofC      ! Contrained [nodes]
+    INTEGER(IntKi)  :: NReact      ! Number [of]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Reacts      ! React [degree]
+    INTEGER(IntKi)  :: Nmembers      ! Number [of]
+    INTEGER(IntKi)  :: TPdofL = 6      ! Length [of]
+    INTEGER(IntKi)  :: URbarL      ! Length [of]
+    INTEGER(IntKi)  :: URdotdotL      ! Length [of]
+    INTEGER(IntKi)  :: UdotdotL      ! Length [of]
+    INTEGER(IntKi)  :: Y2L      ! Length [of]
+    INTEGER(IntKi)  :: IntMethod      ! INtegration [Method]
+    INTEGER(IntKi)  :: NAvgEls = 2      ! Max [number]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDI      ! Index [array]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDR      ! Index [array]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDL      ! Index [array]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDC      ! Index [array]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDY      ! Index [array]
+    INTEGER(IntKi)  :: NMOutputs      ! Number [of]
+    INTEGER(IntKi)  :: NumOuts      ! Number [of]
+    REAL(DbKi)  :: SDDeltaT      ! Time [step]
+    INTEGER(IntKi)  :: OutSwtch      ! Output [Requested]
+    INTEGER(IntKi)  :: UnJckF      ! Unit [of]
+    CHARACTER(1)  :: Delim      ! Column delimiter for output text files [-]
+    CHARACTER(20)  :: OutFmt      ! Format [for]
+    CHARACTER(20)  :: OutSFmt      ! Format [for]
+    CHARACTER(1024)  :: OutJckF      ! Name [of]
+    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst      ! List [of]
+    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst2      ! List [of]
+    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst3      ! List [of]
+    TYPE(ElemPropType) , DIMENSION(:), ALLOCATABLE  :: ElemProps      ! List [of]
+    TYPE(SD_OutVar_Type) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! An [array]
+    LOGICAL  :: OutAll      ! Flag [to]
+    LOGICAL  :: OutReact      ! Flag [to]
+    INTEGER(IntKi)  :: OutAllInt      ! Integer [version]
+    INTEGER(IntKi)  :: OutAllDims      ! Integer [version]
+    INTEGER(IntKi)  :: OutDec      ! Output [Decimation]
+    INTEGER(IntKi)  :: MaxOUtPts      ! Max [number]
   END TYPE SD_ParameterType
 ! =======================
 ! =========  SD_InputType  =======
   TYPE, PUBLIC :: SD_InputType
-    TYPE(MeshType)  :: TPMesh 
-    TYPE(MeshType)  :: LMesh 
+    TYPE(MeshType)  :: TPMesh      ! Transition piece inputs on a point mesh [-]
+    TYPE(MeshType)  :: LMesh      ! Point mesh for interior node inputs [-]
   END TYPE SD_InputType
 ! =======================
 ! =========  SD_OutputType  =======
   TYPE, PUBLIC :: SD_OutputType
-    TYPE(MeshType)  :: Y1Mesh 
-    TYPE(MeshType)  :: Y2Mesh 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput 
+    TYPE(MeshType)  :: Y1Mesh      ! Transition piece outputs on a point mesh [-]
+    TYPE(MeshType)  :: Y2Mesh      ! Interior+Interface nodes outputs on a point mesh [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Example of data to be written to an output file [s,-]
   END TYPE SD_OutputType
 ! =======================
 ! =========  SD_PartialOutputPInputType  =======
   TYPE, PUBLIC :: SD_PartialOutputPInputType
-    TYPE(SD_InputType)  :: DummyOutput 
+    TYPE(SD_InputType)  :: DummyOutput      ! If you have output equations and input data, update this variable [-]
   END TYPE SD_PartialOutputPInputType
 ! =======================
 ! =========  SD_PartialContStatePInputType  =======
   TYPE, PUBLIC :: SD_PartialContStatePInputType
-    TYPE(SD_InputType)  :: DummyContState 
+    TYPE(SD_InputType)  :: DummyContState      ! If you have continuous state equations and input data, update this variable [-]
   END TYPE SD_PartialContStatePInputType
 ! =======================
 ! =========  SD_PartialDiscStatePInputType  =======
   TYPE, PUBLIC :: SD_PartialDiscStatePInputType
-    TYPE(SD_InputType)  :: DummyDiscState 
+    TYPE(SD_InputType)  :: DummyDiscState      ! If you have discrete state equations and input data, update this variable [-]
   END TYPE SD_PartialDiscStatePInputType
 ! =======================
 ! =========  SD_PartialConstrStatePInputType  =======
   TYPE, PUBLIC :: SD_PartialConstrStatePInputType
-    TYPE(SD_InputType)  :: DummyConstrState 
+    TYPE(SD_InputType)  :: DummyConstrState      ! If you have constraint state equations and input data, update this variable [-]
   END TYPE SD_PartialConstrStatePInputType
 ! =======================
 ! =========  SD_PartialOutputPContStateType  =======
   TYPE, PUBLIC :: SD_PartialOutputPContStateType
-    TYPE(SD_ContinuousStateType)  :: DummyOutput 
+    TYPE(SD_ContinuousStateType)  :: DummyOutput      ! If you have output equations and continuous states, update this variable [-]
   END TYPE SD_PartialOutputPContStateType
 ! =======================
 ! =========  SD_PartialContStatePContStateType  =======
   TYPE, PUBLIC :: SD_PartialContStatePContStateType
-    TYPE(SD_ContinuousStateType)  :: DummyContState 
+    TYPE(SD_ContinuousStateType)  :: DummyContState      ! If you have continuous state equations and continuous states, update this variable [-]
   END TYPE SD_PartialContStatePContStateType
 ! =======================
 ! =========  SD_PartialDiscStatePContStateType  =======
   TYPE, PUBLIC :: SD_PartialDiscStatePContStateType
-    TYPE(SD_ContinuousStateType)  :: DummyDiscState 
+    TYPE(SD_ContinuousStateType)  :: DummyDiscState      ! If you have discrete state equations and continuous states, update this variable [-]
   END TYPE SD_PartialDiscStatePContStateType
 ! =======================
 ! =========  SD_PartialConstrStatePContStateType  =======
   TYPE, PUBLIC :: SD_PartialConstrStatePContStateType
-    TYPE(SD_ContinuousStateType)  :: DummyConstrState 
+    TYPE(SD_ContinuousStateType)  :: DummyConstrState      ! If you have constraint state equations and continuous states, update this variable [-]
   END TYPE SD_PartialConstrStatePContStateType
 ! =======================
 ! =========  SD_PartialOutputPDiscStateType  =======
   TYPE, PUBLIC :: SD_PartialOutputPDiscStateType
-    TYPE(SD_DiscreteStateType)  :: DummyOutput 
+    TYPE(SD_DiscreteStateType)  :: DummyOutput      ! If you have output equations and discrete states, update this variable [-]
   END TYPE SD_PartialOutputPDiscStateType
 ! =======================
 ! =========  SD_PartialContStatePDiscStateType  =======
   TYPE, PUBLIC :: SD_PartialContStatePDiscStateType
-    TYPE(SD_DiscreteStateType)  :: DummyContState 
+    TYPE(SD_DiscreteStateType)  :: DummyContState      ! If you have continuous state equations and discrete states, update this variable [-]
   END TYPE SD_PartialContStatePDiscStateType
 ! =======================
 ! =========  SD_PartialDiscStatePDiscStateType  =======
   TYPE, PUBLIC :: SD_PartialDiscStatePDiscStateType
-    TYPE(SD_DiscreteStateType)  :: DummyDiscState 
+    TYPE(SD_DiscreteStateType)  :: DummyDiscState      ! If you have discrete state equations and discrete states, update this variable [-]
   END TYPE SD_PartialDiscStatePDiscStateType
 ! =======================
 ! =========  SD_PartialConstrStatePDiscStateType  =======
   TYPE, PUBLIC :: SD_PartialConstrStatePDiscStateType
-    TYPE(SD_DiscreteStateType)  :: DummyConstrState 
+    TYPE(SD_DiscreteStateType)  :: DummyConstrState      ! If you have constraint state equations and discrete states, update this variable [-]
   END TYPE SD_PartialConstrStatePDiscStateType
 ! =======================
 ! =========  SD_PartialOutputPConstrStateType  =======
   TYPE, PUBLIC :: SD_PartialOutputPConstrStateType
-    TYPE(SD_ConstraintStateType)  :: DummyOutput 
+    TYPE(SD_ConstraintStateType)  :: DummyOutput      ! If you have output equations and constraint states, update this variable [-]
   END TYPE SD_PartialOutputPConstrStateType
 ! =======================
 ! =========  SD_PartialContStatePConstrStateType  =======
   TYPE, PUBLIC :: SD_PartialContStatePConstrStateType
-    TYPE(SD_ConstraintStateType)  :: DummyContState 
+    TYPE(SD_ConstraintStateType)  :: DummyContState      ! If you have continuous state equations and constraint states, update this variable [-]
   END TYPE SD_PartialContStatePConstrStateType
 ! =======================
 ! =========  SD_PartialDiscStatePConstrStateType  =======
   TYPE, PUBLIC :: SD_PartialDiscStatePConstrStateType
-    TYPE(SD_ConstraintStateType)  :: DummyDiscState 
+    TYPE(SD_ConstraintStateType)  :: DummyDiscState      ! If you have discrete state equations and constraint states, update this variable [-]
   END TYPE SD_PartialDiscStatePConstrStateType
 ! =======================
 ! =========  SD_PartialConstrStatePConstrStateType  =======
   TYPE, PUBLIC :: SD_PartialConstrStatePConstrStateType
-    TYPE(SD_ConstraintStateType)  :: DummyConstrState 
+    TYPE(SD_ConstraintStateType)  :: DummyConstrState      ! If you have constraint state equations and constraint states, update this variable [-]
   END TYPE SD_PartialConstrStatePConstrStateType
 ! =======================
 CONTAINS
@@ -7202,512 +7202,6 @@ ENDIF
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE SD_UnPackpartialconstrstatepconstrstatetype
-
- SUBROUTINE SD_Pack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg, &
-                     SizeOnly )
-  TYPE(SD_InputType),           INTENT(INOUT) :: InData
-  TYPE(SD_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(SD_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(SD_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(SD_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(SD_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(SD_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(  OUT) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(  OUT) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,  INTENT(  OUT) :: Int_RetAry(:)
-  INTEGER(IntKi),               INTENT(  OUT) :: ErrStat
-  CHARACTER(*),                 INTENT(  OUT) :: ErrMsg
-  LOGICAL, OPTIONAL,            INTENT(IN   ) :: SizeOnly
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  LOGICAL                                :: OnlySize ! if present and true, do not pack, just allocate buffers
-    ! Executable statements
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  OnlySize = .FALSE.
-  IF ( PRESENT(SizeOnly) ) THEN
-    OnlySize = SizeOnly
-  ENDIF
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred  = Re_Xferred - 1
-  Db_Xferred  = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
-  IF ( ALLOCATED( Re_RetAry ) ) DEALLOCATE( Re_RetAry ) ;
-  IF ( Re_Xferred .GT. 0) ALLOCATE( Re_RetAry( Re_Xferred ) ) ;
-  IF ( ALLOCATED( Db_RetAry ) ) DEALLOCATE( Db_RetAry ) ;
-  IF ( Db_Xferred .GT. 0) ALLOCATE( Db_RetAry( Db_Xferred ) ) ;
-  IF ( ALLOCATED( Int_RetAry ) ) DEALLOCATE( Int_RetAry ) ;
-  IF ( Int_Xferred .GT. 0) ALLOCATE( Int_RetAry( Int_Xferred ) ) ;
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred   = Re_Xferred - 1
-  Db_Xferred   = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
- END SUBROUTINE SD_Pack
-
- SUBROUTINE SD_UnPack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg )
-  TYPE(SD_InputType),           INTENT(INOUT) :: InData
-  TYPE(SD_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(SD_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(SD_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(SD_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(SD_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(SD_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(IN   ) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(IN   ) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,   INTENT(IN   ) :: Int_RetAry(:)
-  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! UnPack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SD_UnPackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SD_UnPackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SD_UnPackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SD_UnPackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SD_UnPackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SD_UnPackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SD_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SD_UnPackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
- END SUBROUTINE SD_UnPack
 
 
  SUBROUTINE SD_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )

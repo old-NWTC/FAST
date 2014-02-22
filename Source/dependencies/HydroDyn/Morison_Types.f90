@@ -1,8 +1,9 @@
 !STARTOFREGISTRYGENERATEDFILE './Morison_Types.f90'
-
+!
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
+! FAST Registry (v2.02.01, 22-Feb-2014)
 !*********************************************************************************************************************************
 ! Morison_Types
 !.................................................................................................................................
@@ -32,326 +33,326 @@ MODULE Morison_Types
 !---------------------------------------------------------------------------------------------------------------------------------
 USE NWTC_Library
 IMPLICIT NONE
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxMrsnOutputs = 2736 
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxMrsnOutputs = 2736      !  [-]
 ! =========  Morison_JointType  =======
   TYPE, PUBLIC :: Morison_JointType
-    INTEGER(IntKi)  :: JointID 
-    REAL(ReKi) , DIMENSION(1:3)  :: JointPos 
-    INTEGER(IntKi)  :: JointAxID 
-    INTEGER(IntKi)  :: JointAxIDIndx 
-    INTEGER(IntKi)  :: JointOvrlp 
-    INTEGER(IntKi)  :: NConnections 
-    INTEGER(IntKi) , DIMENSION(1:10)  :: ConnectionList 
+    INTEGER(IntKi)  :: JointID      !  [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: JointPos      !  [-]
+    INTEGER(IntKi)  :: JointAxID      !  [-]
+    INTEGER(IntKi)  :: JointAxIDIndx      !  [-]
+    INTEGER(IntKi)  :: JointOvrlp      !  [-]
+    INTEGER(IntKi)  :: NConnections      !  [-]
+    INTEGER(IntKi) , DIMENSION(1:10)  :: ConnectionList      !  [-]
   END TYPE Morison_JointType
 ! =======================
 ! =========  Morison_MemberPropType  =======
   TYPE, PUBLIC :: Morison_MemberPropType
-    INTEGER(IntKi)  :: PropSetID 
-    REAL(ReKi)  :: PropD 
-    REAL(ReKi)  :: PropThck 
+    INTEGER(IntKi)  :: PropSetID      !  [-]
+    REAL(ReKi)  :: PropD      !  [-]
+    REAL(ReKi)  :: PropThck      !  [-]
   END TYPE Morison_MemberPropType
 ! =======================
 ! =========  Morison_FilledGroupType  =======
   TYPE, PUBLIC :: Morison_FilledGroupType
-    INTEGER(IntKi)  :: FillNumM 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: FillMList 
-    REAL(ReKi)  :: FillFSLoc 
-    CHARACTER(80)  :: FillDensChr 
-    REAL(ReKi)  :: FillDens 
+    INTEGER(IntKi)  :: FillNumM      !  [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: FillMList      !  [-]
+    REAL(ReKi)  :: FillFSLoc      !  [-]
+    CHARACTER(80)  :: FillDensChr      !  [-]
+    REAL(ReKi)  :: FillDens      !  [-]
   END TYPE Morison_FilledGroupType
 ! =======================
 ! =========  Morison_CoefDpths  =======
   TYPE, PUBLIC :: Morison_CoefDpths
-    REAL(ReKi)  :: Dpth 
-    REAL(ReKi)  :: DpthCd 
-    REAL(ReKi)  :: DpthCdMG 
-    REAL(ReKi)  :: DpthCa 
-    REAL(ReKi)  :: DpthCaMG 
+    REAL(ReKi)  :: Dpth      !  [-]
+    REAL(ReKi)  :: DpthCd      !  [-]
+    REAL(ReKi)  :: DpthCdMG      !  [-]
+    REAL(ReKi)  :: DpthCa      !  [-]
+    REAL(ReKi)  :: DpthCaMG      !  [-]
   END TYPE Morison_CoefDpths
 ! =======================
 ! =========  Morison_AxialCoefType  =======
   TYPE, PUBLIC :: Morison_AxialCoefType
-    INTEGER(IntKi)  :: AxCoefID 
-    REAL(ReKi)  :: AxCd 
-    REAL(ReKi)  :: AxCa 
+    INTEGER(IntKi)  :: AxCoefID      !  [-]
+    REAL(ReKi)  :: AxCd      !  [-]
+    REAL(ReKi)  :: AxCa      !  [-]
   END TYPE Morison_AxialCoefType
 ! =======================
 ! =========  Morison_MemberInputType  =======
   TYPE, PUBLIC :: Morison_MemberInputType
-    INTEGER(IntKi)  :: MemberID 
-    INTEGER(IntKi)  :: MJointID1 
-    INTEGER(IntKi)  :: MJointID2 
-    INTEGER(IntKi)  :: MJointID1Indx 
-    INTEGER(IntKi)  :: MJointID2Indx 
-    INTEGER(IntKi)  :: MPropSetID1 
-    INTEGER(IntKi)  :: MPropSetID2 
-    INTEGER(IntKi)  :: MPropSetID1Indx 
-    INTEGER(IntKi)  :: MPropSetID2Indx 
-    REAL(ReKi)  :: MDivSize 
-    INTEGER(IntKi)  :: MCoefMod 
-    INTEGER(IntKi)  :: MmbrCoefIDIndx 
-    INTEGER(IntKi)  :: MmbrFilledIDIndx 
-    LOGICAL  :: PropWAMIT 
-    INTEGER(IntKi)  :: NumSplits 
-    REAL(ReKi) , DIMENSION(1:5)  :: Splits 
-    REAL(ReKi) , DIMENSION(1:3,1:3)  :: R_LToG 
+    INTEGER(IntKi)  :: MemberID      !  [-]
+    INTEGER(IntKi)  :: MJointID1      !  [-]
+    INTEGER(IntKi)  :: MJointID2      !  [-]
+    INTEGER(IntKi)  :: MJointID1Indx      !  [-]
+    INTEGER(IntKi)  :: MJointID2Indx      !  [-]
+    INTEGER(IntKi)  :: MPropSetID1      !  [-]
+    INTEGER(IntKi)  :: MPropSetID2      !  [-]
+    INTEGER(IntKi)  :: MPropSetID1Indx      !  [-]
+    INTEGER(IntKi)  :: MPropSetID2Indx      !  [-]
+    REAL(ReKi)  :: MDivSize      !  [-]
+    INTEGER(IntKi)  :: MCoefMod      !  [-]
+    INTEGER(IntKi)  :: MmbrCoefIDIndx      !  [-]
+    INTEGER(IntKi)  :: MmbrFilledIDIndx      !  [-]
+    LOGICAL  :: PropWAMIT      !  [-]
+    INTEGER(IntKi)  :: NumSplits      !  [-]
+    REAL(ReKi) , DIMENSION(1:5)  :: Splits      !  [-]
+    REAL(ReKi) , DIMENSION(1:3,1:3)  :: R_LToG      !  [-]
   END TYPE Morison_MemberInputType
 ! =======================
 ! =========  Morison_NodeType  =======
   TYPE, PUBLIC :: Morison_NodeType
-    INTEGER(IntKi)  :: NodeType 
-    INTEGER(IntKi)  :: JointIndx 
-    REAL(ReKi) , DIMENSION(1:3)  :: JointPos 
-    INTEGER(IntKi)  :: JointOvrlp 
-    INTEGER(IntKi)  :: JointAxIDIndx 
-    INTEGER(IntKi)  :: NConnections 
-    INTEGER(IntKi) , DIMENSION(1:10)  :: ConnectionList 
-    INTEGER(IntKi)  :: NConnectPreSplit 
-    REAL(ReKi)  :: Cd 
-    REAL(ReKi)  :: CdMG 
-    REAL(ReKi)  :: Ca 
-    REAL(ReKi)  :: CaMG 
-    REAL(ReKi)  :: AxCd 
-    REAL(ReKi)  :: AxCa 
-    REAL(ReKi)  :: R 
-    REAL(ReKi)  :: t 
-    REAL(ReKi)  :: tMG 
-    REAL(ReKi)  :: dRdz 
-    REAL(ReKi)  :: MGdensity 
-    REAL(ReKi)  :: FillFSLoc 
-    LOGICAL  :: FillFlag 
-    REAL(ReKi)  :: FillDensity 
-    INTEGER(IntKi)  :: InpMbrIndx 
-    REAL(ReKi)  :: InpMbrDist 
-    LOGICAL  :: PropWAMIT 
-    REAL(ReKi) , DIMENSION(1:3,1:3)  :: R_LToG 
+    INTEGER(IntKi)  :: NodeType      !  [-]
+    INTEGER(IntKi)  :: JointIndx      !  [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: JointPos      !  [-]
+    INTEGER(IntKi)  :: JointOvrlp      !  [-]
+    INTEGER(IntKi)  :: JointAxIDIndx      !  [-]
+    INTEGER(IntKi)  :: NConnections      !  [-]
+    INTEGER(IntKi) , DIMENSION(1:10)  :: ConnectionList      !  [-]
+    INTEGER(IntKi)  :: NConnectPreSplit      !  [-]
+    REAL(ReKi)  :: Cd      !  [-]
+    REAL(ReKi)  :: CdMG      !  [-]
+    REAL(ReKi)  :: Ca      !  [-]
+    REAL(ReKi)  :: CaMG      !  [-]
+    REAL(ReKi)  :: AxCd      !  [-]
+    REAL(ReKi)  :: AxCa      !  [-]
+    REAL(ReKi)  :: R      !  [-]
+    REAL(ReKi)  :: t      !  [-]
+    REAL(ReKi)  :: tMG      !  [-]
+    REAL(ReKi)  :: dRdz      !  [-]
+    REAL(ReKi)  :: MGdensity      !  [-]
+    REAL(ReKi)  :: FillFSLoc      !  [-]
+    LOGICAL  :: FillFlag      !  [-]
+    REAL(ReKi)  :: FillDensity      !  [-]
+    INTEGER(IntKi)  :: InpMbrIndx      !  [-]
+    REAL(ReKi)  :: InpMbrDist      !  [-]
+    LOGICAL  :: PropWAMIT      !  [-]
+    REAL(ReKi) , DIMENSION(1:3,1:3)  :: R_LToG      !  [-]
   END TYPE Morison_NodeType
 ! =======================
 ! =========  Morison_MemberType  =======
   TYPE, PUBLIC :: Morison_MemberType
-    INTEGER(IntKi)  :: Node1Indx 
-    INTEGER(IntKi)  :: Node2Indx 
-    REAL(ReKi)  :: R1 
-    REAL(ReKi)  :: t1 
-    REAL(ReKi)  :: R2 
-    REAL(ReKi)  :: t2 
-    REAL(ReKi)  :: Cd1 
-    REAL(ReKi)  :: CdMG1 
-    REAL(ReKi)  :: Ca1 
-    REAL(ReKi)  :: CaMG1 
-    REAL(ReKi)  :: Cd2 
-    REAL(ReKi)  :: CdMG2 
-    REAL(ReKi)  :: Ca2 
-    REAL(ReKi)  :: CaMG2 
-    REAL(ReKi)  :: InpMbrDist1 
-    REAL(ReKi)  :: InpMbrDist2 
-    REAL(ReKi)  :: InpMbrLen 
-    INTEGER(IntKi)  :: InpMbrIndx 
-    REAL(ReKi) , DIMENSION(1:3,1:3)  :: R_LToG 
-    INTEGER(IntKi)  :: NumSplits 
-    REAL(ReKi) , DIMENSION(1:5)  :: Splits 
-    REAL(ReKi)  :: MGvolume 
-    REAL(ReKi)  :: MDivSize 
-    INTEGER(IntKi)  :: MCoefMod 
-    INTEGER(IntKi)  :: MmbrCoefIDIndx 
-    INTEGER(IntKi)  :: MmbrFilledIDIndx 
-    REAL(ReKi)  :: FillFSLoc 
-    REAL(ReKi)  :: FillDens 
-    REAL(ReKi) , DIMENSION(1:6)  :: F_Bouy 
-    REAL(ReKi) , DIMENSION(1:6)  :: F_DP 
-    LOGICAL  :: PropWAMIT 
+    INTEGER(IntKi)  :: Node1Indx      !  [-]
+    INTEGER(IntKi)  :: Node2Indx      !  [-]
+    REAL(ReKi)  :: R1      !  [-]
+    REAL(ReKi)  :: t1      !  [-]
+    REAL(ReKi)  :: R2      !  [-]
+    REAL(ReKi)  :: t2      !  [-]
+    REAL(ReKi)  :: Cd1      !  [-]
+    REAL(ReKi)  :: CdMG1      !  [-]
+    REAL(ReKi)  :: Ca1      !  [-]
+    REAL(ReKi)  :: CaMG1      !  [-]
+    REAL(ReKi)  :: Cd2      !  [-]
+    REAL(ReKi)  :: CdMG2      !  [-]
+    REAL(ReKi)  :: Ca2      !  [-]
+    REAL(ReKi)  :: CaMG2      !  [-]
+    REAL(ReKi)  :: InpMbrDist1      !  [-]
+    REAL(ReKi)  :: InpMbrDist2      !  [-]
+    REAL(ReKi)  :: InpMbrLen      !  [-]
+    INTEGER(IntKi)  :: InpMbrIndx      !  [-]
+    REAL(ReKi) , DIMENSION(1:3,1:3)  :: R_LToG      !  [-]
+    INTEGER(IntKi)  :: NumSplits      !  [-]
+    REAL(ReKi) , DIMENSION(1:5)  :: Splits      !  [-]
+    REAL(ReKi)  :: MGvolume      !  [-]
+    REAL(ReKi)  :: MDivSize      !  [-]
+    INTEGER(IntKi)  :: MCoefMod      !  [-]
+    INTEGER(IntKi)  :: MmbrCoefIDIndx      !  [-]
+    INTEGER(IntKi)  :: MmbrFilledIDIndx      !  [-]
+    REAL(ReKi)  :: FillFSLoc      !  [-]
+    REAL(ReKi)  :: FillDens      !  [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: F_Bouy      !  [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: F_DP      !  [-]
+    LOGICAL  :: PropWAMIT      !  [-]
   END TYPE Morison_MemberType
 ! =======================
 ! =========  Morison_CoefMembers  =======
   TYPE, PUBLIC :: Morison_CoefMembers
-    INTEGER(IntKi)  :: MemberID 
-    REAL(ReKi)  :: MemberCd1 
-    REAL(ReKi)  :: MemberCd2 
-    REAL(ReKi)  :: MemberCdMG1 
-    REAL(ReKi)  :: MemberCdMG2 
-    REAL(ReKi)  :: MemberCa1 
-    REAL(ReKi)  :: MemberCa2 
-    REAL(ReKi)  :: MemberCaMG1 
-    REAL(ReKi)  :: MemberCaMG2 
+    INTEGER(IntKi)  :: MemberID      !  [-]
+    REAL(ReKi)  :: MemberCd1      !  [-]
+    REAL(ReKi)  :: MemberCd2      !  [-]
+    REAL(ReKi)  :: MemberCdMG1      !  [-]
+    REAL(ReKi)  :: MemberCdMG2      !  [-]
+    REAL(ReKi)  :: MemberCa1      !  [-]
+    REAL(ReKi)  :: MemberCa2      !  [-]
+    REAL(ReKi)  :: MemberCaMG1      !  [-]
+    REAL(ReKi)  :: MemberCaMG2      !  [-]
   END TYPE Morison_CoefMembers
 ! =======================
 ! =========  Morison_MGDepthsType  =======
   TYPE, PUBLIC :: Morison_MGDepthsType
-    REAL(ReKi)  :: MGDpth 
-    REAL(ReKi)  :: MGThck 
-    REAL(ReKi)  :: MGDens 
+    REAL(ReKi)  :: MGDpth      !  [-]
+    REAL(ReKi)  :: MGThck      !  [-]
+    REAL(ReKi)  :: MGDens      !  [-]
   END TYPE Morison_MGDepthsType
 ! =======================
 ! =========  Morison_MOutput  =======
   TYPE, PUBLIC :: Morison_MOutput
-    INTEGER(IntKi)  :: MemberID 
-    INTEGER(IntKi)  :: NOutLoc 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: NodeLocs 
-    INTEGER(IntKi)  :: MemberIDIndx 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: Marker1 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: Marker2 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: s 
+    INTEGER(IntKi)  :: MemberID      !  [-]
+    INTEGER(IntKi)  :: NOutLoc      !  [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: NodeLocs      !  [-]
+    INTEGER(IntKi)  :: MemberIDIndx      !  [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: Marker1      !  [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: Marker2      !  [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: s      !  [-]
   END TYPE Morison_MOutput
 ! =======================
 ! =========  Morison_JOutput  =======
   TYPE, PUBLIC :: Morison_JOutput
-    INTEGER(IntKi)  :: JointID 
-    INTEGER(IntKi)  :: JointIDIndx 
-    INTEGER(IntKi)  :: NumMarkers 
-    INTEGER(IntKi) , DIMENSION(1:10)  :: Markers 
+    INTEGER(IntKi)  :: JointID      !  [-]
+    INTEGER(IntKi)  :: JointIDIndx      !  [-]
+    INTEGER(IntKi)  :: NumMarkers      !  [-]
+    INTEGER(IntKi) , DIMENSION(1:10)  :: Markers      !  [-]
   END TYPE Morison_JOutput
 ! =======================
 ! =========  Morison_InitInputType  =======
   TYPE, PUBLIC :: Morison_InitInputType
-    REAL(ReKi)  :: Gravity 
-    REAL(ReKi)  :: WtrDens 
-    REAL(ReKi)  :: WtrDpth 
-    REAL(ReKi)  :: MSL2SWL 
-    INTEGER(IntKi)  :: NJoints 
-    INTEGER(IntKi)  :: NNodes 
-    INTEGER(IntKi)  :: TotalPossibleSuperMembers 
-    TYPE(Morison_JointType) , DIMENSION(:), ALLOCATABLE  :: InpJoints 
-    TYPE(Morison_NodeType) , DIMENSION(:), ALLOCATABLE  :: Nodes 
-    INTEGER(IntKi)  :: NElements 
-    TYPE(Morison_MemberType) , DIMENSION(:), ALLOCATABLE  :: Elements 
-    INTEGER(IntKi)  :: NAxCoefs 
-    TYPE(Morison_AxialCoefType) , DIMENSION(:), ALLOCATABLE  :: AxialCoefs 
-    INTEGER(IntKi)  :: NPropSets 
-    TYPE(Morison_MemberPropType) , DIMENSION(:), ALLOCATABLE  :: MPropSets 
-    REAL(ReKi)  :: SimplCd 
-    REAL(ReKi)  :: SimplCdMG 
-    REAL(ReKi)  :: SimplCa 
-    REAL(ReKi)  :: SimplCaMG 
-    INTEGER(IntKi)  :: NCoefDpth 
-    TYPE(Morison_CoefDpths) , DIMENSION(:), ALLOCATABLE  :: CoefDpths 
-    INTEGER(IntKi)  :: NCoefMembers 
-    TYPE(Morison_CoefMembers) , DIMENSION(:), ALLOCATABLE  :: CoefMembers 
-    INTEGER(IntKi)  :: NMembers 
-    TYPE(Morison_MemberInputType) , DIMENSION(:), ALLOCATABLE  :: InpMembers 
-    INTEGER(IntKi)  :: NFillGroups 
-    TYPE(Morison_FilledGroupType) , DIMENSION(:), ALLOCATABLE  :: FilledGroups 
-    INTEGER(IntKi)  :: NMGDepths 
-    TYPE(Morison_MGDepthsType) , DIMENSION(:), ALLOCATABLE  :: MGDepths 
-    REAL(ReKi)  :: MGTop 
-    REAL(ReKi)  :: MGBottom 
-    INTEGER(IntKi)  :: NMOutputs 
-    TYPE(Morison_MOutput) , DIMENSION(:), ALLOCATABLE  :: MOutLst 
-    INTEGER(IntKi)  :: NJOutputs 
-    TYPE(Morison_JOutput) , DIMENSION(:), ALLOCATABLE  :: JOutLst 
-    CHARACTER(10) , DIMENSION(1:2745)  :: OutList 
-    LOGICAL , DIMENSION(:), ALLOCATABLE  :: ValidOutList 
-    INTEGER(IntKi)  :: NumOuts 
-    INTEGER(IntKi)  :: OutSwtch 
-    LOGICAL  :: OutAll 
-    CHARACTER(1024)  :: OutRootName 
-    INTEGER(IntKi)  :: UnOutFile 
-    INTEGER(IntKi)  :: UnSum 
-    INTEGER(IntKi)  :: NStepWave 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveAcc0 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveDynP0 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveVel0 
+    REAL(ReKi)  :: Gravity      !  [-]
+    REAL(ReKi)  :: WtrDens      !  [-]
+    REAL(ReKi)  :: WtrDpth      !  [-]
+    REAL(ReKi)  :: MSL2SWL      !  [-]
+    INTEGER(IntKi)  :: NJoints      !  [-]
+    INTEGER(IntKi)  :: NNodes      !  [-]
+    INTEGER(IntKi)  :: TotalPossibleSuperMembers      !  [-]
+    TYPE(Morison_JointType) , DIMENSION(:), ALLOCATABLE  :: InpJoints      !  [-]
+    TYPE(Morison_NodeType) , DIMENSION(:), ALLOCATABLE  :: Nodes      !  [-]
+    INTEGER(IntKi)  :: NElements      !  [-]
+    TYPE(Morison_MemberType) , DIMENSION(:), ALLOCATABLE  :: Elements      !  [-]
+    INTEGER(IntKi)  :: NAxCoefs      !  [-]
+    TYPE(Morison_AxialCoefType) , DIMENSION(:), ALLOCATABLE  :: AxialCoefs      !  [-]
+    INTEGER(IntKi)  :: NPropSets      !  [-]
+    TYPE(Morison_MemberPropType) , DIMENSION(:), ALLOCATABLE  :: MPropSets      !  [-]
+    REAL(ReKi)  :: SimplCd      !  [-]
+    REAL(ReKi)  :: SimplCdMG      !  [-]
+    REAL(ReKi)  :: SimplCa      !  [-]
+    REAL(ReKi)  :: SimplCaMG      !  [-]
+    INTEGER(IntKi)  :: NCoefDpth      !  [-]
+    TYPE(Morison_CoefDpths) , DIMENSION(:), ALLOCATABLE  :: CoefDpths      !  [-]
+    INTEGER(IntKi)  :: NCoefMembers      !  [-]
+    TYPE(Morison_CoefMembers) , DIMENSION(:), ALLOCATABLE  :: CoefMembers      !  [-]
+    INTEGER(IntKi)  :: NMembers      !  [-]
+    TYPE(Morison_MemberInputType) , DIMENSION(:), ALLOCATABLE  :: InpMembers      !  [-]
+    INTEGER(IntKi)  :: NFillGroups      !  [-]
+    TYPE(Morison_FilledGroupType) , DIMENSION(:), ALLOCATABLE  :: FilledGroups      !  [-]
+    INTEGER(IntKi)  :: NMGDepths      !  [-]
+    TYPE(Morison_MGDepthsType) , DIMENSION(:), ALLOCATABLE  :: MGDepths      !  [-]
+    REAL(ReKi)  :: MGTop      !  [-]
+    REAL(ReKi)  :: MGBottom      !  [-]
+    INTEGER(IntKi)  :: NMOutputs      !  [-]
+    TYPE(Morison_MOutput) , DIMENSION(:), ALLOCATABLE  :: MOutLst      !  [-]
+    INTEGER(IntKi)  :: NJOutputs      !  [-]
+    TYPE(Morison_JOutput) , DIMENSION(:), ALLOCATABLE  :: JOutLst      !  [-]
+    CHARACTER(10) , DIMENSION(1:2745)  :: OutList      ! This list size needs to be the maximum   of possible outputs because of the use of ReadAry() [-]
+    LOGICAL , DIMENSION(:), ALLOCATABLE  :: ValidOutList      !  [-]
+    INTEGER(IntKi)  :: NumOuts      !  [-]
+    INTEGER(IntKi)  :: OutSwtch      !  [-]
+    LOGICAL  :: OutAll      !  [-]
+    CHARACTER(1024)  :: OutRootName      !  [-]
+    INTEGER(IntKi)  :: UnOutFile      !  [-]
+    INTEGER(IntKi)  :: UnSum      !  [-]
+    INTEGER(IntKi)  :: NStepWave      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveAcc0      !  [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveDynP0      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveVel0      !  [-]
   END TYPE Morison_InitInputType
 ! =======================
 ! =========  Morison_InitOutputType  =======
   TYPE, PUBLIC :: Morison_InitOutputType
-    TYPE(MeshType)  :: DistribMesh 
-    TYPE(MeshType)  :: LumpedMesh 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt 
+    TYPE(MeshType)  :: DistribMesh      !  [-]
+    TYPE(MeshType)  :: LumpedMesh      !  [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      !  [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      !  [-]
   END TYPE Morison_InitOutputType
 ! =======================
 ! =========  Morison_ContinuousStateType  =======
   TYPE, PUBLIC :: Morison_ContinuousStateType
-    REAL(ReKi)  :: DummyContState 
+    REAL(ReKi)  :: DummyContState      ! Remove this variable if you have continuous states [-]
   END TYPE Morison_ContinuousStateType
 ! =======================
 ! =========  Morison_DiscreteStateType  =======
   TYPE, PUBLIC :: Morison_DiscreteStateType
-    REAL(ReKi)  :: DummyDiscState 
+    REAL(ReKi)  :: DummyDiscState      !  [-]
   END TYPE Morison_DiscreteStateType
 ! =======================
 ! =========  Morison_ConstraintStateType  =======
   TYPE, PUBLIC :: Morison_ConstraintStateType
-    REAL(ReKi)  :: DummyConstrState 
+    REAL(ReKi)  :: DummyConstrState      ! Remove this variable if you have constraint states [-]
   END TYPE Morison_ConstraintStateType
 ! =======================
 ! =========  Morison_OtherStateType  =======
   TYPE, PUBLIC :: Morison_OtherStateType
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_D 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_I 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_DP 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_AM 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_AM_M 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_AM_MG 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_AM_F 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_FV 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_FA 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: D_FDynP 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_D 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_DP 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_AM 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_FV 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_FA 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: L_FDynP 
-    INTEGER(IntKi)  :: LastIndWave 
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_D      ! Distributed viscous drag loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_I      ! Distributed inertial loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_DP      ! Distributed dynamic pressure loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_AM      ! Distributed total added mass loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_AM_M      ! Distributed member added mass loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_AM_MG      ! Distributed marine growth added mass (weight) loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_AM_F      ! Distributed added mass loads due to flooding/filled fluid [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_FV      ! Fluid velocity at line element node [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_FA      ! Fluid acceleration at line element node [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: D_FDynP      ! Fluid dynamic pressure at line element node [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_D      ! Lumped viscous drag loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_DP      ! Lumped dynamic pressure loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_AM      ! Lumped added mass loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_FV      ! Fluid velocity at point element node [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_FA      ! Fluid acceleration at point element node [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: L_FDynP      ! Fluid dynamic pressure at point element node [-]
+    INTEGER(IntKi)  :: LastIndWave      ! Last time index used in the wave kinematics arrays [-]
   END TYPE Morison_OtherStateType
 ! =======================
 ! =========  Morison_ParameterType  =======
   TYPE, PUBLIC :: Morison_ParameterType
-    REAL(DbKi)  :: DT 
-    REAL(ReKi)  :: WtrDens 
-    INTEGER(IntKi)  :: NNodes 
-    TYPE(Morison_NodeType) , DIMENSION(:), ALLOCATABLE  :: Nodes 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_F_I 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_B 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_F_DP 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_MG 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_BF 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_AM_M 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_AM_MG 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_AM_F 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: D_dragConst 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_An 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_B 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: L_F_DP 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_BF 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: L_AM_M 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: L_dragConst 
-    INTEGER(IntKi)  :: NDistribMarkers 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: distribToNodeIndx 
-    INTEGER(IntKi)  :: NLumpedMarkers 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: lumpedToNodeIndx 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveVel0 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveAcc0 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveDynP0 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime 
-    INTEGER(IntKi)  :: NStepWave 
-    INTEGER(IntKi)  :: NMOutputs 
-    TYPE(Morison_MOutput) , DIMENSION(:), ALLOCATABLE  :: MOutLst 
-    INTEGER(IntKi)  :: NJOutputs 
-    TYPE(Morison_JOutput) , DIMENSION(:), ALLOCATABLE  :: JOutLst 
-    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam 
-    INTEGER(IntKi)  :: NumOuts 
-    INTEGER(IntKi)  :: NumOutAll 
-    INTEGER(IntKi)  :: OutSwtch 
-    INTEGER(IntKi)  :: UnOutFile 
-    CHARACTER(20)  :: OutFmt 
-    CHARACTER(20)  :: OutSFmt 
-    CHARACTER(10)  :: Delim 
+    REAL(DbKi)  :: DT      ! Time step for continuous state integration & discrete state update [(sec)]
+    REAL(ReKi)  :: WtrDens      !  [-]
+    INTEGER(IntKi)  :: NNodes      !  [-]
+    TYPE(Morison_NodeType) , DIMENSION(:), ALLOCATABLE  :: Nodes      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_F_I      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_B      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_F_DP      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_MG      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_F_BF      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_AM_M      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_AM_MG      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: D_AM_F      !  [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: D_dragConst      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_An      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_B      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: L_F_DP      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_BF      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: L_AM_M      !  [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: L_dragConst      !  [-]
+    INTEGER(IntKi)  :: NDistribMarkers      !  [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: distribToNodeIndx      !  [-]
+    INTEGER(IntKi)  :: NLumpedMarkers      !  [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: lumpedToNodeIndx      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveVel0      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveAcc0      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveDynP0      !  [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      !  [-]
+    INTEGER(IntKi)  :: NStepWave      !  [-]
+    INTEGER(IntKi)  :: NMOutputs      !  [-]
+    TYPE(Morison_MOutput) , DIMENSION(:), ALLOCATABLE  :: MOutLst      !  [-]
+    INTEGER(IntKi)  :: NJOutputs      !  [-]
+    TYPE(Morison_JOutput) , DIMENSION(:), ALLOCATABLE  :: JOutLst      !  [-]
+    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      !  [-]
+    INTEGER(IntKi)  :: NumOuts      !  [-]
+    INTEGER(IntKi)  :: NumOutAll      !  [-]
+    INTEGER(IntKi)  :: OutSwtch      !  [-]
+    INTEGER(IntKi)  :: UnOutFile      !  [-]
+    CHARACTER(20)  :: OutFmt      !  [-]
+    CHARACTER(20)  :: OutSFmt      !  [-]
+    CHARACTER(10)  :: Delim      !  [-]
   END TYPE Morison_ParameterType
 ! =======================
 ! =========  Morison_InputType  =======
   TYPE, PUBLIC :: Morison_InputType
-    TYPE(MeshType)  :: DistribMesh 
-    TYPE(MeshType)  :: LumpedMesh 
+    TYPE(MeshType)  :: DistribMesh      ! Distributed Loads Meshed input data [-]
+    TYPE(MeshType)  :: LumpedMesh      ! Lumped Loads Meshed input data [-]
   END TYPE Morison_InputType
 ! =======================
 ! =========  Morison_OutputType  =======
   TYPE, PUBLIC :: Morison_OutputType
-    TYPE(MeshType)  :: DistribMesh 
-    TYPE(MeshType)  :: LumpedMesh 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput 
+    TYPE(MeshType)  :: DistribMesh      ! Distributed Loads Meshed output data [-]
+    TYPE(MeshType)  :: LumpedMesh      ! Lumped Loads Meshed output data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      !  [-]
   END TYPE Morison_OutputType
 ! =======================
 CONTAINS
@@ -6290,512 +6291,6 @@ ENDIF
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE Morison_UnPackOutput
-
- SUBROUTINE Morison_Pack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg, &
-                     SizeOnly )
-  TYPE(Morison_InputType),           INTENT(INOUT) :: InData
-  TYPE(Morison_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(Morison_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(Morison_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(Morison_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(Morison_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(Morison_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(  OUT) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(  OUT) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,  INTENT(  OUT) :: Int_RetAry(:)
-  INTEGER(IntKi),               INTENT(  OUT) :: ErrStat
-  CHARACTER(*),                 INTENT(  OUT) :: ErrMsg
-  LOGICAL, OPTIONAL,            INTENT(IN   ) :: SizeOnly
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  LOGICAL                                :: OnlySize ! if present and true, do not pack, just allocate buffers
-    ! Executable statements
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  OnlySize = .FALSE.
-  IF ( PRESENT(SizeOnly) ) THEN
-    OnlySize = SizeOnly
-  ENDIF
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred  = Re_Xferred - 1
-  Db_Xferred  = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
-  IF ( ALLOCATED( Re_RetAry ) ) DEALLOCATE( Re_RetAry ) ;
-  IF ( Re_Xferred .GT. 0) ALLOCATE( Re_RetAry( Re_Xferred ) ) ;
-  IF ( ALLOCATED( Db_RetAry ) ) DEALLOCATE( Db_RetAry ) ;
-  IF ( Db_Xferred .GT. 0) ALLOCATE( Db_RetAry( Db_Xferred ) ) ;
-  IF ( ALLOCATED( Int_RetAry ) ) DEALLOCATE( Int_RetAry ) ;
-  IF ( Int_Xferred .GT. 0) ALLOCATE( Int_RetAry( Int_Xferred ) ) ;
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred   = Re_Xferred - 1
-  Db_Xferred   = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
- END SUBROUTINE Morison_Pack
-
- SUBROUTINE Morison_UnPack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg )
-  TYPE(Morison_InputType),           INTENT(INOUT) :: InData
-  TYPE(Morison_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(Morison_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(Morison_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(Morison_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(Morison_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(Morison_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(IN   ) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(IN   ) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,   INTENT(IN   ) :: Int_RetAry(:)
-  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! UnPack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL Morison_UnPackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL Morison_UnPackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL Morison_UnPackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL Morison_UnPackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL Morison_UnPackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL Morison_UnPackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL Morison_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL Morison_UnPackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
- END SUBROUTINE Morison_UnPack
 
 
  SUBROUTINE Morison_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )

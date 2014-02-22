@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.03, 20-Jan-2014)
+! FAST Registry (v2.02.01, 22-Feb-2014)
 !*********************************************************************************************************************************
 ! FEAMooring_Types
 !.................................................................................................................................
@@ -35,177 +35,177 @@ USE NWTC_Library
 IMPLICIT NONE
 ! =========  FEAM_InputFile  =======
   TYPE, PUBLIC :: FEAM_InputFile
-    REAL(DbKi)  :: DT 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LEAStiff 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LMassDen 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDMassDen 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCI 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCD 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmElev 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmStiff 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LRadAnch 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAngAnch 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDpthAnch 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LRadFair 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAngFair 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDrftFair 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDiam 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LUnstrLen 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Tension 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GSL 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GSR 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GE 
-    INTEGER(IntKi)  :: NumLines 
-    INTEGER(IntKi)  :: NumElems 
-    LOGICAL  :: SumPrint 
-    INTEGER(IntKi)  :: OutFile 
-    LOGICAL  :: TabDelim 
-    CHARACTER(20)  :: OutFmt 
-    REAL(DbKi)  :: Tstart 
-    INTEGER(IntKi)  :: NumOuts 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: OutList 
+    REAL(DbKi)  :: DT      ! Communication interval for mooring dynamics [s]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LEAStiff      ! Mooring line inertia coefficient [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LMassDen      ! Mooring line mass per unit length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDMassDen      ! Mooring line displaced mass per unit length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCI      ! Mooring line inertia coefficient [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCD      ! Mooring line drag coefficient [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmElev      ! Anchor vertical position [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmStiff      ! Seabed spring stiffness [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LRadAnch      ! Anchor Radius [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAngAnch      ! Anchor Angle [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDpthAnch      ! Anchor Depth [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LRadFair      ! Fairlead Radius [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAngFair      ! Fairlead Radius [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDrftFair      ! Fairlead Draft [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDiam      ! Line Diameter [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LUnstrLen      ! Line unstretched length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Tension      ! Line Top Tension [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GSL      ! Linear spring stiffness at fairlead [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GSR      ! Rotational spring stiffness at fairlead [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GE      ! Reference tangent vector at fairlead [-]
+    INTEGER(IntKi)  :: NumLines      ! Number of lines [-]
+    INTEGER(IntKi)  :: NumElems      ! Number of elements [-]
+    LOGICAL  :: SumPrint      ! Print summary data to <RootName>.fsm? [-]
+    INTEGER(IntKi)  :: OutFile      ! Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) [-]
+    LOGICAL  :: TabDelim      ! Use tab delimiters in text tabular output file? [-]
+    CHARACTER(20)  :: OutFmt      ! Format used for text tabular output (except time) [-]
+    REAL(DbKi)  :: Tstart      ! Time to start module's tabular output [s]
+    INTEGER(IntKi)  :: NumOuts      ! Number of parameters in the output list (number of outputs requested) [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: OutList      ! List of user-requested output channels [-]
   END TYPE FEAM_InputFile
 ! =======================
 ! =========  FEAM_InitInputType  =======
   TYPE, PUBLIC :: FEAM_InitInputType
-    CHARACTER(1024)  :: InputFile 
-    CHARACTER(1024)  :: RootName 
-    REAL(ReKi) , DIMENSION(1:6)  :: PtfmInit 
+    CHARACTER(1024)  :: InputFile      ! Name of the input file [-]
+    CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: PtfmInit      ! Platform Initial Position [-]
   END TYPE FEAM_InitInputType
 ! =======================
 ! =========  FEAM_InitOutputType  =======
   TYPE, PUBLIC :: FEAM_InitOutputType
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt 
-    TYPE(ProgDesc)  :: Ver 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAnchxi 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAnchyi 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAnchzi 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LFairxt 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LFairyt 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LFairzt 
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
+    TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAnchxi      ! Anchor coordinate [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAnchyi      ! Anchor coordinate [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAnchzi      ! Anchor coordinate [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LFairxt      ! Fairlead coordinate [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LFairyt      ! Fairlead coordinate [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LFairzt      ! Fairlead coordinate [-]
   END TYPE FEAM_InitOutputType
 ! =======================
 ! =========  FEAM_ContinuousStateType  =======
   TYPE, PUBLIC :: FEAM_ContinuousStateType
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLU 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLDU 
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLU      ! Global matrix U (displacement) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLDU      ! Global matrix DU (velocity) [-]
   END TYPE FEAM_ContinuousStateType
 ! =======================
 ! =========  FEAM_DiscreteStateType  =======
   TYPE, PUBLIC :: FEAM_DiscreteStateType
-    REAL(ReKi)  :: DummyDiscState 
+    REAL(ReKi)  :: DummyDiscState      ! Remove this variable if you have discrete states [-]
   END TYPE FEAM_DiscreteStateType
 ! =======================
 ! =========  FEAM_ConstraintStateType  =======
   TYPE, PUBLIC :: FEAM_ConstraintStateType
-    REAL(ReKi) , DIMENSION(1:3)  :: TSN 
-    REAL(ReKi) , DIMENSION(1:3)  :: TZER 
+    REAL(ReKi) , DIMENSION(1:3)  :: TSN      ! Lagrangian multiplier [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: TZER      ! Lagrangian multiplier [-]
   END TYPE FEAM_ConstraintStateType
 ! =======================
 ! =========  FEAM_OtherStateType  =======
   TYPE, PUBLIC :: FEAM_OtherStateType
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLU0 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLDDU 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLF 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GLK 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GLUZR 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GTZER 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GFORC0 
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: GMASS0 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FAST_FP 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FAST_FPA 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FAIR_T 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FAST_RP 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: ANCH_T 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FAIR_ANG 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ANCH_ANG 
-    REAL(ReKi) , DIMENSION(1:15,1:15)  :: ESTIF 
-    REAL(ReKi) , DIMENSION(1:15,1:15)  :: EMASS 
-    REAL(ReKi) , DIMENSION(1:15)  :: FORCE 
-    REAL(ReKi) , DIMENSION(1:15)  :: RSDF 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: F_Lines 
-    REAL(ReKi) , DIMENSION(1:3,1:4)  :: U 
-    REAL(ReKi) , DIMENSION(1:3,1:4)  :: U0 
-    REAL(ReKi) , DIMENSION(1:3,1:4)  :: DU 
-    REAL(ReKi) , DIMENSION(1:3,1:4)  :: DDU 
-    REAL(ReKi) , DIMENSION(1:15)  :: FORC0 
-    REAL(ReKi) , DIMENSION(1:15,1:15)  :: EMAS0 
-    INTEGER(IntKi)  :: INCR 
-    LOGICAL  :: BottomTouch 
-    LOGICAL  :: Iteration1 
-    LOGICAL  :: Iteration2 
-    REAL(ReKi) , DIMENSION(1:3)  :: R 
-    REAL(ReKi) , DIMENSION(1:3)  :: RP 
-    REAL(ReKi) , DIMENSION(1:3)  :: FP 
-    REAL(ReKi) , DIMENSION(1:3)  :: SLIN 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: STIFR 
-    REAL(ReKi) , DIMENSION(1:6)  :: RHSR 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Line_Coordinate 
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLU0      ! Global matrix U0 (previous state) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLDDU      ! Global matrix DDU (accleration) -- other state [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GLF      ! Global forcing matrix [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GLK      ! Global stiffness matrix [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GLUZR      ! Line coordinate & direction cosine [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GTZER      ! Line tension [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GFORC0      ! Old element force matrix [-]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: GMASS0      ! Old element mass matrix [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FAST_FP      ! Fairlead position [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FAST_FPA      ! Fairlead position [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FAIR_T      ! Fairlead tension [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FAST_RP      ! Fairlead tangent [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: ANCH_T      ! Anchor tension [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FAIR_ANG      ! Fairlead angle [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ANCH_ANG      ! Anchor angle [-]
+    REAL(ReKi) , DIMENSION(1:15,1:15)  :: ESTIF      ! Line element stiffness [-]
+    REAL(ReKi) , DIMENSION(1:15,1:15)  :: EMASS      ! Line element mass [-]
+    REAL(ReKi) , DIMENSION(1:15)  :: FORCE      ! Line external force [-]
+    REAL(ReKi) , DIMENSION(1:15)  :: RSDF      ! Line residue force [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: F_Lines      ! Mooring restoring force [-]
+    REAL(ReKi) , DIMENSION(1:3,1:4)  :: U      ! Local matrix U [-]
+    REAL(ReKi) , DIMENSION(1:3,1:4)  :: U0      ! Local matrix U0 [-]
+    REAL(ReKi) , DIMENSION(1:3,1:4)  :: DU      ! Local matrix DU [-]
+    REAL(ReKi) , DIMENSION(1:3,1:4)  :: DDU      ! Local matrix DDU [-]
+    REAL(ReKi) , DIMENSION(1:15)  :: FORC0      ! - [Local old element force matrix]
+    REAL(ReKi) , DIMENSION(1:15,1:15)  :: EMAS0      ! Local old element mass matrix [-]
+    INTEGER(IntKi)  :: INCR      ! FEAM step [-]
+    LOGICAL  :: BottomTouch      ! Bottom touch flag [-]
+    LOGICAL  :: Iteration1      ! Static iteration flag [-]
+    LOGICAL  :: Iteration2      ! Static iteration flag [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: R      ! POSITION VECTOR OF NODE OF ROD ELEMENT [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: RP      ! DR/DS AT R (TANGENT - NEED NOT BE UNIT VECTOR) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: FP      ! Fairlead position [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: SLIN      ! LINEAR SPRING CONSTANT (UNITS OF FORCE/LENGTH) [-]
+    REAL(ReKi) , DIMENSION(1:6,1:6)  :: STIFR      ! STIFFNESS COEFFICIENTS FOR 6 DEGREES OF FREEDOM OF ROD NODE (X,DX/DS,Y,DY/DS,Z,DZ/DS) [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: RHSR      ! RIGHT HAND SIDE CONTRIBUTION TO 6 DEGREES OF FREEDOM OF ROD NODE [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Line_Coordinate      ! Mooring line coordinate [-]
   END TYPE FEAM_OtherStateType
 ! =======================
 ! =========  FEAM_ParameterType  =======
   TYPE, PUBLIC :: FEAM_ParameterType
-    REAL(DbKi)  :: DT 
-    REAL(ReKi) , DIMENSION(1:3)  :: GRAV 
-    REAL(ReKi)  :: EPS 
-    REAL(ReKi)  :: Gravity 
-    REAL(ReKi)  :: WtrDens 
-    INTEGER(IntKi)  :: MITER 
-    INTEGER(IntKi)  :: NHBD 
-    INTEGER(IntKi)  :: NDIM 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NEQ 
-    INTEGER(IntKi)  :: NBAND 
-    LOGICAL  :: DYN 
-    INTEGER(IntKi)  :: NumLines 
-    INTEGER(IntKi)  :: NumElems 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GSL 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GP 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCI 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCD 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SectionA 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Elength 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmElev 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmStiff 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LMassDen 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDMassDen 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LEAStiff 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Bvp 
-    REAL(ReKi) , DIMENSION(1:6,1:4)  :: SHAP 
-    REAL(ReKi) , DIMENSION(1:6,1:4)  :: SHAPS 
-    REAL(ReKi) , DIMENSION(1:6)  :: GAUSSW 
-    INTEGER(IntKi)  :: NGAUSS 
-    REAL(ReKi) , DIMENSION(1:10,1:4)  :: SHAPT 
-    REAL(ReKi) , DIMENSION(1:10,1:4)  :: SHAPTS 
-    INTEGER(IntKi)  :: NTRAP 
-    REAL(ReKi) , DIMENSION(1:4,1:4)  :: SBEND 
-    REAL(ReKi) , DIMENSION(1:3,1:4,1:4)  :: STEN 
-    REAL(ReKi) , DIMENSION(1:4,1:4)  :: RMASS 
-    REAL(ReKi) , DIMENSION(1:4,1:4,1:4,1:4)  :: RADDM 
-    REAL(ReKi) , DIMENSION(1:3,1:3)  :: PMPN 
-    REAL(ReKi) , DIMENSION(1:4)  :: AM 
-    REAL(ReKi) , DIMENSION(1:3)  :: PM 
-    INTEGER(IntKi) , DIMENSION(1:3,1:4)  :: IDOF 
-    INTEGER(IntKi) , DIMENSION(1:3)  :: JDOF 
-    REAL(ReKi) , DIMENSION(1:3,1:3,1:4)  :: PPA 
-    REAL(ReKi)  :: PtfmRefzt 
-    INTEGER(IntKi)  :: NumOuts 
-    CHARACTER(1024)  :: RootName 
-    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam 
-    CHARACTER(1)  :: Delim 
+    REAL(DbKi)  :: DT      ! Time step for continuous state integration & discrete state update [seconds]
+    REAL(ReKi) , DIMENSION(1:3)  :: GRAV      ! Gravity [-]
+    REAL(ReKi)  :: EPS      ! Tolerance for static iteration [-]
+    REAL(ReKi)  :: Gravity      ! Gravity [-]
+    REAL(ReKi)  :: WtrDens      ! Water density [-]
+    INTEGER(IntKi)  :: MITER      ! Maximum number of iteration step for static analysis [-]
+    INTEGER(IntKi)  :: NHBD      ! Bandwidth = (NBAND+1)/2 [-]
+    INTEGER(IntKi)  :: NDIM      ! Dimension = 3 [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NEQ      ! Number of equation [-]
+    INTEGER(IntKi)  :: NBAND      ! Bandwidth [-]
+    LOGICAL  :: DYN      ! Flag - dynamic analysis [-]
+    INTEGER(IntKi)  :: NumLines      ! Number of lines [-]
+    INTEGER(IntKi)  :: NumElems      ! Number of elements [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GSL      ! Linear spring stiffness at fairlead [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GP      ! Fairlead position [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCI      ! Line CI [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCD      ! Line CD [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SectionA      ! Cross section area [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Elength      ! Element length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmElev      ! Bottom elevation [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmStiff      ! Bottom stiffness [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LMassDen      ! Line mass per unit length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDMassDen      ! Line displaced mass per unit length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LEAStiff      ! Line axial stiffness [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Bvp      ! Boundary condtion [-]
+    REAL(ReKi) , DIMENSION(1:6,1:4)  :: SHAP      ! Shape function [-]
+    REAL(ReKi) , DIMENSION(1:6,1:4)  :: SHAPS      ! Shape function [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: GAUSSW      ! Shape function [-]
+    INTEGER(IntKi)  :: NGAUSS      ! 6 POINT GAUSSIAN QUADRATURE INTEGRATION [-]
+    REAL(ReKi) , DIMENSION(1:10,1:4)  :: SHAPT      ! Shape function [-]
+    REAL(ReKi) , DIMENSION(1:10,1:4)  :: SHAPTS      ! Shape function [-]
+    INTEGER(IntKi)  :: NTRAP      ! 10 TRANPEZOIDE INTEGRATION point [-]
+    REAL(ReKi) , DIMENSION(1:4,1:4)  :: SBEND      ! Internal [-]
+    REAL(ReKi) , DIMENSION(1:3,1:4,1:4)  :: STEN      ! Internal [-]
+    REAL(ReKi) , DIMENSION(1:4,1:4)  :: RMASS      ! Internal [-]
+    REAL(ReKi) , DIMENSION(1:4,1:4,1:4,1:4)  :: RADDM      ! Internal [-]
+    REAL(ReKi) , DIMENSION(1:3,1:3)  :: PMPN      ! Internal [-]
+    REAL(ReKi) , DIMENSION(1:4)  :: AM      ! Internal [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: PM      ! Internal [-]
+    INTEGER(IntKi) , DIMENSION(1:3,1:4)  :: IDOF      ! Internal [-]
+    INTEGER(IntKi) , DIMENSION(1:3)  :: JDOF      ! Internal [-]
+    REAL(ReKi) , DIMENSION(1:3,1:3,1:4)  :: PPA      ! Internal [-]
+    REAL(ReKi)  :: PtfmRefzt      ! Platform reference [-]
+    INTEGER(IntKi)  :: NumOuts      ! Number of parameters in the output list (number of outputs requested) [-]
+    CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
+    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! Names and units (and other characteristics) of all requested output parameters [-]
+    CHARACTER(1)  :: Delim      ! Column delimiter for output text files [-]
   END TYPE FEAM_ParameterType
 ! =======================
 ! =========  FEAM_InputType  =======
   TYPE, PUBLIC :: FEAM_InputType
-    TYPE(MeshType)  :: HydroForceLineMesh 
-    TYPE(MeshType)  :: PtFairleadDisplacement 
+    TYPE(MeshType)  :: HydroForceLineMesh      ! Meshed input data [-]
+    TYPE(MeshType)  :: PtFairleadDisplacement      ! Meshed input data [-]
   END TYPE FEAM_InputType
 ! =======================
 ! =========  FEAM_OutputType  =======
   TYPE, PUBLIC :: FEAM_OutputType
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput 
-    TYPE(MeshType)  :: PtFairleadLoad 
-    TYPE(MeshType)  :: LineMeshPosition 
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Data to be written to an output file: see WriteOutputHdr for names of each variable [see WriteOutputUnt]
+    TYPE(MeshType)  :: PtFairleadLoad      ! Meshed output data [-]
+    TYPE(MeshType)  :: LineMeshPosition      ! Meshed output data [-]
   END TYPE FEAM_OutputType
 ! =======================
 CONTAINS
@@ -3642,512 +3642,6 @@ ENDIF
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE FEAM_UnPackOutput
-
- SUBROUTINE FEAM_Pack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg, &
-                     SizeOnly )
-  TYPE(FEAM_InputType),           INTENT(INOUT) :: InData
-  TYPE(FEAM_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(FEAM_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(FEAM_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(FEAM_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(FEAM_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(FEAM_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(  OUT) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(  OUT) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,  INTENT(  OUT) :: Int_RetAry(:)
-  INTEGER(IntKi),               INTENT(  OUT) :: ErrStat
-  CHARACTER(*),                 INTENT(  OUT) :: ErrMsg
-  LOGICAL, OPTIONAL,            INTENT(IN   ) :: SizeOnly
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  LOGICAL                                :: OnlySize ! if present and true, do not pack, just allocate buffers
-    ! Executable statements
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  OnlySize = .FALSE.
-  IF ( PRESENT(SizeOnly) ) THEN
-    OnlySize = SizeOnly
-  ENDIF
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred  = Re_Xferred - 1
-  Db_Xferred  = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
-  IF ( ALLOCATED( Re_RetAry ) ) DEALLOCATE( Re_RetAry ) ;
-  IF ( Re_Xferred .GT. 0) ALLOCATE( Re_RetAry( Re_Xferred ) ) ;
-  IF ( ALLOCATED( Db_RetAry ) ) DEALLOCATE( Db_RetAry ) ;
-  IF ( Db_Xferred .GT. 0) ALLOCATE( Db_RetAry( Db_Xferred ) ) ;
-  IF ( ALLOCATED( Int_RetAry ) ) DEALLOCATE( Int_RetAry ) ;
-  IF ( Int_Xferred .GT. 0) ALLOCATE( Int_RetAry( Int_Xferred ) ) ;
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred   = Re_Xferred - 1
-  Db_Xferred   = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
- END SUBROUTINE FEAM_Pack
-
- SUBROUTINE FEAM_UnPack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg )
-  TYPE(FEAM_InputType),           INTENT(INOUT) :: InData
-  TYPE(FEAM_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(FEAM_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(FEAM_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(FEAM_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(FEAM_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(FEAM_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(IN   ) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(IN   ) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,   INTENT(IN   ) :: Int_RetAry(:)
-  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! UnPack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL FEAM_UnPackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL FEAM_UnPackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL FEAM_UnPackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL FEAM_UnPackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL FEAM_UnPackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL FEAM_UnPackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL FEAM_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL FEAM_UnPackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
- END SUBROUTINE FEAM_UnPack
 
 
  SUBROUTINE FEAM_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )

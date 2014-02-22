@@ -1,8 +1,9 @@
 !STARTOFREGISTRYGENERATEDFILE './HydroDyn_Types.f90'
-
+!
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
+! FAST Registry (v2.02.01, 22-Feb-2014)
 !*********************************************************************************************************************************
 ! HydroDyn_Types
 !.................................................................................................................................
@@ -38,58 +39,58 @@ USE WAMIT_Types
 USE Morison_Types
 USE NWTC_Library
 IMPLICIT NONE
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxHDOutputs = 21 
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxHDOutputs = 21      ! The maximum number of output channels supported by this module [-]
 ! =========  HydroDyn_InitInputType  =======
   TYPE, PUBLIC :: HydroDyn_InitInputType
-    CHARACTER(1024)  :: InputFile 
-    LOGICAL  :: UseInputFile 
-    CHARACTER(1024)  :: OutRootName 
-    REAL(ReKi)  :: DT 
-    REAL(ReKi)  :: Gravity 
-    REAL(DbKi)  :: TMax 
-    CHARACTER(80)  :: PtfmSgFChr 
-    LOGICAL  :: PtfmSgF 
-    CHARACTER(80)  :: PtfmSwFChr 
-    LOGICAL  :: PtfmSwF 
-    CHARACTER(80)  :: PtfmHvFChr 
-    LOGICAL  :: PtfmHvF 
-    CHARACTER(80)  :: PtfmRFChr 
-    LOGICAL  :: PtfmRF 
-    CHARACTER(80)  :: PtfmPFChr 
-    LOGICAL  :: PtfmPF 
-    CHARACTER(80)  :: PtfmYFChr 
-    LOGICAL  :: PtfmYF 
-    REAL(ReKi) , DIMENSION(1:6)  :: AddF0 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddCLin 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBLin 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBQuad 
-    TYPE(Waves_InitInputType)  :: Waves 
-    TYPE(Current_InitInputType)  :: Current 
-    TYPE(WAMIT_InitInputType)  :: WAMIT 
-    TYPE(Morison_InitInputType)  :: Morison 
-    LOGICAL  :: Echo 
-    LOGICAL  :: HasWAMIT 
-    INTEGER(IntKi)  :: NUserOutputs 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: UserOutputs 
-    INTEGER(IntKi)  :: OutSwtch 
-    LOGICAL  :: OutAll 
-    INTEGER(IntKi)  :: NumOuts 
-    CHARACTER(10) , DIMENSION(1:21)  :: OutList 
-    LOGICAL  :: HDSum 
-    INTEGER(IntKi)  :: UnSum 
-    CHARACTER(20)  :: OutFmt 
-    CHARACTER(20)  :: OutSFmt 
+    CHARACTER(1024)  :: InputFile      ! Supplied by Driver:  full path and filename for the HydroDyn module [-]
+    LOGICAL  :: UseInputFile      ! Supplied by Driver:  .TRUE. if using a input file, .FALSE. if all inputs are being passed in by the caller [-]
+    CHARACTER(1024)  :: OutRootName      ! Supplied by Driver:  The name of the root file (without extension) including the full path [-]
+    REAL(ReKi)  :: DT      ! Supplied by Driver:  Simulation time step (sec) [-]
+    REAL(ReKi)  :: Gravity      ! Supplied by Driver:  Gravitational acceleration (m/s^2) [-]
+    REAL(DbKi)  :: TMax      ! Supplied by Driver:  The total simulation time (sec) [-]
+    CHARACTER(80)  :: PtfmSgFChr      ! Platform horizontal surge translation force (flag) or DEFAULT [-]
+    LOGICAL  :: PtfmSgF      ! Optionally Supplied by Driver:  Platform horizontal surge translation force (flag) [-]
+    CHARACTER(80)  :: PtfmSwFChr      ! Platform horizontal sway translation force (flag) or DEFAULT [-]
+    LOGICAL  :: PtfmSwF      ! Optionally Supplied by Driver:  Platform horizontal sway translation force (flag) [-]
+    CHARACTER(80)  :: PtfmHvFChr      ! Platform vertical heave translation force (flag) or DEFAULT [-]
+    LOGICAL  :: PtfmHvF      ! Optionally Supplied by Driver:  Platform vertical heave translation force (flag) [-]
+    CHARACTER(80)  :: PtfmRFChr      ! Platform roll tilt rotation force (flag) or DEFAULT [-]
+    LOGICAL  :: PtfmRF      ! Optionally Supplied by Driver:  Platform roll tilt rotation force (flag) [-]
+    CHARACTER(80)  :: PtfmPFChr      ! Platform pitch tilt rotation force (flag) or DEFAULT [-]
+    LOGICAL  :: PtfmPF      ! Optionally Supplied by Driver:  Platform pitch tilt rotation force (flag) [-]
+    CHARACTER(80)  :: PtfmYFChr      ! Platform yaw rotation force (flag) or DEFAULT [-]
+    LOGICAL  :: PtfmYF      ! Optionally Supplied by Driver:  Platform yaw rotation force (flag) [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: AddF0      ! Additional pre-load forces and moments (N,N,N,N-m,N-m,N-m) [-]
+    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddCLin      ! Additional stiffness matrix [-]
+    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBLin      ! Additional linear damping matrix [-]
+    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBQuad      ! Additional quadratic damping (drag) matrix [-]
+    TYPE(Waves_InitInputType)  :: Waves      ! Initialization data for Waves module [-]
+    TYPE(Current_InitInputType)  :: Current      ! Initialization data for Current module [-]
+    TYPE(WAMIT_InitInputType)  :: WAMIT      ! Initialization data for WAMIT module [-]
+    TYPE(Morison_InitInputType)  :: Morison      ! Initialization data for Morison module [-]
+    LOGICAL  :: Echo      ! Echo the input files to a file with the same name as the input but with a .echo extension [T/F] [-]
+    LOGICAL  :: HasWAMIT      ! .TRUE. if using WAMIT model, .FALSE. otherwise [-]
+    INTEGER(IntKi)  :: NUserOutputs      ! Number of Hydrodyn-level requested output channels [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: UserOutputs      ! This should really be dimensioned with MaxOutPts [-]
+    INTEGER(IntKi)  :: OutSwtch      ! Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files] [-]
+    LOGICAL  :: OutAll      ! Output all user-specified member and joint loads (only at each member end, not interior locations) [T/F] [-]
+    INTEGER(IntKi)  :: NumOuts      ! The number of outputs for this module as requested in the input file [-]
+    CHARACTER(10) , DIMENSION(1:21)  :: OutList      ! The user-requested output channel labels for this modules. This should really be dimensioned with MaxOutPts [-]
+    LOGICAL  :: HDSum      ! Generate a HydroDyn summary file [T/F] [-]
+    INTEGER(IntKi)  :: UnSum      ! File unit for the HydroDyn summary file [-1 = no summary file] [-]
+    CHARACTER(20)  :: OutFmt      ! Output format for numerical results [-]
+    CHARACTER(20)  :: OutSFmt      ! Output format for header strings [-]
   END TYPE HydroDyn_InitInputType
 ! =======================
 ! =========  HydroDyn_InitOutputType  =======
   TYPE, PUBLIC :: HydroDyn_InitOutputType
-    TYPE(WAMIT_InitOutputType)  :: WAMIT 
-    TYPE(Morison_InitOutputType)  :: Morison 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt 
-    TYPE(ProgDesc)  :: Ver 
-    REAL(ReKi)  :: WtrDens 
-    REAL(ReKi)  :: WtrDpth 
+    TYPE(WAMIT_InitOutputType)  :: WAMIT      ! Initialization output from the WAMIT module [-]
+    TYPE(Morison_InitOutputType)  :: Morison      ! Initialization output from the Morison module [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! The is the list of all HD-related output channel header strings (includes all sub-module channels) [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! The is the list of all HD-related output channel unit strings (includes all sub-module channels) [-]
+    TYPE(ProgDesc)  :: Ver      ! Version of HydroDyn [-]
+    REAL(ReKi)  :: WtrDens      ! Water density (kg/m^3) [-]
+    REAL(ReKi)  :: WtrDpth      ! Water depth (m) [-]
   END TYPE HydroDyn_InitOutputType
 ! =======================
 ! =========  HD_ModuleMapType  =======
@@ -101,69 +102,69 @@ IMPLICIT NONE
 ! =======================
 ! =========  HydroDyn_ContinuousStateType  =======
   TYPE, PUBLIC :: HydroDyn_ContinuousStateType
-    TYPE(WAMIT_ContinuousStateType)  :: WAMIT 
+    TYPE(WAMIT_ContinuousStateType)  :: WAMIT      ! continuous states from the State Space radiation module [-]
   END TYPE HydroDyn_ContinuousStateType
 ! =======================
 ! =========  HydroDyn_DiscreteStateType  =======
   TYPE, PUBLIC :: HydroDyn_DiscreteStateType
-    TYPE(WAMIT_DiscreteStateType)  :: WAMIT 
+    TYPE(WAMIT_DiscreteStateType)  :: WAMIT      ! discrete states from the convolution radiation module [-]
   END TYPE HydroDyn_DiscreteStateType
 ! =======================
 ! =========  HydroDyn_ConstraintStateType  =======
   TYPE, PUBLIC :: HydroDyn_ConstraintStateType
-    REAL(ReKi)  :: DummyConstrState 
+    REAL(ReKi)  :: DummyConstrState      ! Remove this variable if you have constraint states [-]
   END TYPE HydroDyn_ConstraintStateType
 ! =======================
 ! =========  HydroDyn_OtherStateType  =======
   TYPE, PUBLIC :: HydroDyn_OtherStateType
-    TYPE(WAMIT_OtherStateType)  :: WAMIT 
-    TYPE(Morison_OtherStateType)  :: Morison 
-    INTEGER(IntKi)  :: LastIndWave 
-    REAL(ReKi) , DIMENSION(1:6)  :: F_PtfmAdd 
-    REAL(ReKi) , DIMENSION(1:6)  :: F_Hydro 
-    TYPE(MeshType)  :: y_mapped 
-    TYPE(MeshType)  :: AllHdroOrigin_position 
-    TYPE(MeshType)  :: MrsnLumpedMesh_position 
-    TYPE(MeshType)  :: MrsnDistribMesh_position 
+    TYPE(WAMIT_OtherStateType)  :: WAMIT      ! OtherState information from the WAMIT module [-]
+    TYPE(Morison_OtherStateType)  :: Morison      ! OtherState information from the Morison module [-]
+    INTEGER(IntKi)  :: LastIndWave      ! The last index used in the wave kinematics arrays, used to optimize interpolation [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: F_PtfmAdd      ! The total forces and moments due to additional pre-load, stiffness, and damping [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: F_Hydro      ! The total hydrodynamic forces and moments integrated about the WAMIT reference point [-]
+    TYPE(MeshType)  :: y_mapped      ! An intermediate mesh used to transfer hydrodynamic loads from the various HD-related meshes to the AllHdroOrigin mesh [-]
+    TYPE(MeshType)  :: AllHdroOrigin_position      ! A motions mesh which has all translational displacements set to zero.  Used in the transfer of hydrodynamic loads from the various HD-related meshes to the AllHdroOrigin mesh [-]
+    TYPE(MeshType)  :: MrsnLumpedMesh_position      ! A motions mesh which has all translational displacements set to zero.  Used in the transfer of hydrodynamic loads from the various HD-related meshes to the AllHdroOrigin mesh [-]
+    TYPE(MeshType)  :: MrsnDistribMesh_position      ! A motions mesh which has all translational displacements set to zero.  Used in the transfer of hydrodynamic loads from the various HD-related meshes to the AllHdroOrigin mesh [-]
     TYPE(HD_ModuleMapType)  :: HD_MeshMap 
   END TYPE HydroDyn_OtherStateType
 ! =======================
 ! =========  HydroDyn_ParameterType  =======
   TYPE, PUBLIC :: HydroDyn_ParameterType
-    TYPE(WAMIT_ParameterType)  :: WAMIT 
-    TYPE(Morison_ParameterType)  :: Morison 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime 
-    INTEGER(IntKi)  :: NStepWave 
-    INTEGER(IntKi)  :: NWaveElev 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev 
-    REAL(ReKi) , DIMENSION(1:6)  :: AddF0 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddCLin 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBLin 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBQuad 
-    REAL(DbKi)  :: DT 
-    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam 
-    INTEGER(IntKi)  :: NumOuts 
-    INTEGER(IntKi)  :: OutSwtch 
-    CHARACTER(20)  :: OutFmt 
-    CHARACTER(20)  :: OutSFmt 
-    CHARACTER(10)  :: Delim 
-    INTEGER(IntKi)  :: UnOutFile 
+    TYPE(WAMIT_ParameterType)  :: WAMIT      ! Parameter data for the WAMIT module [-]
+    TYPE(Morison_ParameterType)  :: Morison      ! Parameter data for the Morison module [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      ! Array of time samples, (sec) [-]
+    INTEGER(IntKi)  :: NStepWave      ! Number of data points in the wave kinematics arrays [-]
+    INTEGER(IntKi)  :: NWaveElev      ! Number of wave elevation outputs [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      !  [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: AddF0      ! Additional pre-load forces and moments (N,N,N,N-m,N-m,N-m) [-]
+    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddCLin      ! Additional stiffness matrix [-]
+    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBLin      ! Additional linear damping matrix [-]
+    REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBQuad      ! Additional quadratic damping (drag) matrix [-]
+    REAL(DbKi)  :: DT      ! Time step in seconds for integration of continuous states (if a fixed-step integrator is used) and update of discrete states [-]
+    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      !  [-]
+    INTEGER(IntKi)  :: NumOuts      !  [-]
+    INTEGER(IntKi)  :: OutSwtch      ! Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files] [-]
+    CHARACTER(20)  :: OutFmt      ! Output format for numerical results [-]
+    CHARACTER(20)  :: OutSFmt      ! Output format for header strings [-]
+    CHARACTER(10)  :: Delim      ! Delimiter string for outputs, defaults to tab-delimiters [-]
+    INTEGER(IntKi)  :: UnOutFile      ! File unit for the HydroDyn outputs [-]
   END TYPE HydroDyn_ParameterType
 ! =======================
 ! =========  HydroDyn_InputType  =======
   TYPE, PUBLIC :: HydroDyn_InputType
-    TYPE(WAMIT_InputType)  :: WAMIT 
-    TYPE(Morison_InputType)  :: Morison 
-    TYPE(MeshType)  :: Mesh 
+    TYPE(WAMIT_InputType)  :: WAMIT      ! WAMIT module inputs [-]
+    TYPE(Morison_InputType)  :: Morison      ! Morison module inputs [-]
+    TYPE(MeshType)  :: Mesh      ! Displacements at the WAMIT reference point in the inertial frame [-]
   END TYPE HydroDyn_InputType
 ! =======================
 ! =========  HydroDyn_OutputType  =======
   TYPE, PUBLIC :: HydroDyn_OutputType
-    TYPE(WAMIT_OutputType)  :: WAMIT 
-    TYPE(Morison_OutputType)  :: Morison 
-    TYPE(MeshType)  :: Mesh 
-    TYPE(MeshType)  :: AllHdroOrigin 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput 
+    TYPE(WAMIT_OutputType)  :: WAMIT      ! WAMIT module outputs [-]
+    TYPE(Morison_OutputType)  :: Morison      ! Morison module outputs [-]
+    TYPE(MeshType)  :: Mesh      ! Point Loads at the WAMIT reference point in the inertial frame [-]
+    TYPE(MeshType)  :: AllHdroOrigin      ! All HD-related loads integrated to the origin, (0,0,0) in the inertial frame [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      !  [-]
   END TYPE HydroDyn_OutputType
 ! =======================
 CONTAINS
@@ -2903,512 +2904,6 @@ ENDIF
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE HydroDyn_UnPackOutput
-
- SUBROUTINE HydroDyn_Pack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg, &
-                     SizeOnly )
-  TYPE(HydroDyn_InputType),           INTENT(INOUT) :: InData
-  TYPE(HydroDyn_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(HydroDyn_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(HydroDyn_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(HydroDyn_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(HydroDyn_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(HydroDyn_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(  OUT) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(  OUT) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,  INTENT(  OUT) :: Int_RetAry(:)
-  INTEGER(IntKi),               INTENT(  OUT) :: ErrStat
-  CHARACTER(*),                 INTENT(  OUT) :: ErrMsg
-  LOGICAL, OPTIONAL,            INTENT(IN   ) :: SizeOnly
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  LOGICAL                                :: OnlySize ! if present and true, do not pack, just allocate buffers
-    ! Executable statements
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  OnlySize = .FALSE.
-  IF ( PRESENT(SizeOnly) ) THEN
-    OnlySize = SizeOnly
-  ENDIF
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred  = Re_Xferred - 1
-  Db_Xferred  = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
-  IF ( ALLOCATED( Re_RetAry ) ) DEALLOCATE( Re_RetAry ) ;
-  IF ( Re_Xferred .GT. 0) ALLOCATE( Re_RetAry( Re_Xferred ) ) ;
-  IF ( ALLOCATED( Db_RetAry ) ) DEALLOCATE( Db_RetAry ) ;
-  IF ( Db_Xferred .GT. 0) ALLOCATE( Db_RetAry( Db_Xferred ) ) ;
-  IF ( ALLOCATED( Int_RetAry ) ) DEALLOCATE( Int_RetAry ) ;
-  IF ( Int_Xferred .GT. 0) ALLOCATE( Int_RetAry( Int_Xferred ) ) ;
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred   = Re_Xferred - 1
-  Db_Xferred   = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
- END SUBROUTINE HydroDyn_Pack
-
- SUBROUTINE HydroDyn_UnPack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg )
-  TYPE(HydroDyn_InputType),           INTENT(INOUT) :: InData
-  TYPE(HydroDyn_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(HydroDyn_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(HydroDyn_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(HydroDyn_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(HydroDyn_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(HydroDyn_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(IN   ) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(IN   ) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,   INTENT(IN   ) :: Int_RetAry(:)
-  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! UnPack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL HydroDyn_UnPackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL HydroDyn_UnPackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL HydroDyn_UnPackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL HydroDyn_UnPackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL HydroDyn_UnPackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL HydroDyn_UnPackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL HydroDyn_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL HydroDyn_UnPackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
- END SUBROUTINE HydroDyn_UnPack
 
 
  SUBROUTINE HydroDyn_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )

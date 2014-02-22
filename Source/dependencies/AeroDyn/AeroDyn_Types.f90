@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.03, 20-Jan-2014)
+! FAST Registry (v2.02.01, 22-Feb-2014)
 !*********************************************************************************************************************************
 ! AeroDyn_Types
 !.................................................................................................................................
@@ -150,19 +150,19 @@ IMPLICIT NONE
 ! =======================
 ! =========  BeddoesParms  =======
   TYPE, PUBLIC :: BeddoesParms
-    REAL(ReKi)  :: AS 
-    REAL(ReKi)  :: TF 
-    REAL(ReKi)  :: TP 
-    REAL(ReKi)  :: TV 
-    REAL(ReKi)  :: TVL 
+    REAL(ReKi)  :: AS      ! Speed of sound for mach num calc [-]
+    REAL(ReKi)  :: TF      ! Time constant applied to loc of separation pt [-]
+    REAL(ReKi)  :: TP      ! Time constant for pressure lag [-]
+    REAL(ReKi)  :: TV      ! Time constant for strength and shed of vortex [-]
+    REAL(ReKi)  :: TVL      ! Nondim time of transit of vort moving across airfoil surf [-]
   END TYPE BeddoesParms
 ! =======================
 ! =========  BladeParms  =======
   TYPE, PUBLIC :: BladeParms
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: C 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: DR 
-    REAL(ReKi)  :: R 
-    REAL(ReKi)  :: BladeLength 
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: C      ! Chord of each blade element from input file [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: DR      ! Span-wise width of elem (len of elem ctred at RELM(i) [-]
+    REAL(ReKi)  :: R      ! Rotor radius [-]
+    REAL(ReKi)  :: BladeLength      ! Blade Length [-]
   END TYPE BladeParms
 ! =======================
 ! =========  DynInflow  =======
@@ -243,12 +243,12 @@ IMPLICIT NONE
     REAL(ReKi)  :: VXSAV 
     REAL(ReKi)  :: VYSAV 
     REAL(ReKi)  :: VZSAV 
-    INTEGER(IntKi)  :: NumWndElOut 
+    INTEGER(IntKi)  :: NumWndElOut      ! Number of Blade Elements [-]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: WndElPrList 
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: WndElPrNum 
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: ElPrList 
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: ElPrNum 
-    INTEGER(IntKi)  :: NumElOut 
+    INTEGER(IntKi)  :: NumElOut      ! Number of Blade Elements [-]
   END TYPE ElOutParms
 ! =======================
 ! =========  InducedVel  =======
@@ -258,18 +258,18 @@ IMPLICIT NONE
 ! =======================
 ! =========  InducedVelParms  =======
   TYPE, PUBLIC :: InducedVelParms
-    REAL(ReKi)  :: AToler 
-    REAL(ReKi)  :: EqAIDmult 
-    LOGICAL  :: EquilDA 
-    LOGICAL  :: EquilDT 
-    LOGICAL  :: TLoss 
-    LOGICAL  :: GTech 
-    LOGICAL  :: HLoss 
+    REAL(ReKi)  :: AToler      ! Convergence tolerance for induction factor [-]
+    REAL(ReKi)  :: EqAIDmult      ! Multiplier for drag term in axial-induction equation. [-]
+    LOGICAL  :: EquilDA      ! False unless DB or DA appended to EQUIL [-]
+    LOGICAL  :: EquilDT      ! False unless DB or DT appended to EQUIL [-]
+    LOGICAL  :: TLoss      ! Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] [-]
+    LOGICAL  :: GTech      ! Tip-loss model (EQUIL only) [PRANDtl, GTECH, or NONE] [-]
+    LOGICAL  :: HLoss      ! Hub-loss model (EQUIL only) [PRANDtl or NONE] [-]
   END TYPE InducedVelParms
 ! =======================
 ! =========  Rotor  =======
   TYPE, PUBLIC :: Rotor
-    REAL(ReKi)  :: AVGINFL 
+    REAL(ReKi)  :: AVGINFL      ! average induced velocity at the previous time [-]
     REAL(ReKi)  :: CTILT 
     REAL(ReKi)  :: CYaw 
     REAL(ReKi)  :: REVS 
@@ -293,22 +293,22 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwrRe 
     REAL(ReKi) , DIMENSION(1:3)  :: VTwr 
     REAL(ReKi)  :: Tower_Wake_Constant 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NTwrCDCol 
-    INTEGER(IntKi)  :: NTwrHT 
-    INTEGER(IntKi)  :: NTwrRe 
-    INTEGER(IntKi)  :: NTwrCD 
-    LOGICAL  :: TwrPotent 
-    LOGICAL  :: TwrShadow 
-    REAL(ReKi)  :: ShadHWid 
-    REAL(ReKi)  :: TShadC1 
-    REAL(ReKi)  :: TShadC2 
-    REAL(ReKi)  :: TwrShad 
-    LOGICAL  :: PJM_Version 
-    CHARACTER(1024)  :: TwrFile 
-    REAL(ReKi)  :: T_Shad_Refpt 
-    LOGICAL  :: CalcTwrAero 
-    INTEGER(IntKi)  :: NumTwrNodes 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwrNodeWidth 
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NTwrCDCol      ! The tower CD column that represents a particular twr ht [-]
+    INTEGER(IntKi)  :: NTwrHT      ! The number of tower height rows in the table [-]
+    INTEGER(IntKi)  :: NTwrRe      ! The number of tower Re entry rows in the table [-]
+    INTEGER(IntKi)  :: NTwrCD      ! The number of tower CD columns in the table [-]
+    LOGICAL  :: TwrPotent      ! Tower influence model [-]
+    LOGICAL  :: TwrShadow      ! Tower shadow model [-]
+    REAL(ReKi)  :: ShadHWid      ! Tower-shadow half width [m]
+    REAL(ReKi)  :: TShadC1      ! Tower-shadow constant [-]
+    REAL(ReKi)  :: TShadC2      ! Tower-shadow constant [-]
+    REAL(ReKi)  :: TwrShad      ! Tower-shadow velocity deficit [-]
+    LOGICAL  :: PJM_Version      ! Only true if new tower influence model, by PJM [-]
+    CHARACTER(1024)  :: TwrFile      ! Tower data file name [-]
+    REAL(ReKi)  :: T_Shad_Refpt      ! Tower-shadow reference point [m]
+    LOGICAL  :: CalcTwrAero      ! Flag to tell AeroDyn to calculate drag on the tower [m]
+    INTEGER(IntKi)  :: NumTwrNodes      ! Number of ElastoDyn tower nodes.  Tower drag will be computed at those points. [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwrNodeWidth      ! The width (diameter) of the tower at the ElastoDyn node locations. [-]
   END TYPE TwrPropsParms
 ! =======================
 ! =========  Wind  =======
@@ -323,39 +323,39 @@ IMPLICIT NONE
 ! =======================
 ! =========  WindParms  =======
   TYPE, PUBLIC :: WindParms
-    REAL(ReKi)  :: Rho 
-    REAL(ReKi)  :: KinVisc 
+    REAL(ReKi)  :: Rho      ! Air density [kg/m&3]
+    REAL(ReKi)  :: KinVisc      ! Kinematic air viscosity [(m^2/sec)]
   END TYPE WindParms
 ! =======================
 ! =========  PositionType  =======
   TYPE, PUBLIC :: PositionType
-    REAL(ReKi) , DIMENSION(1:3)  :: Pos 
+    REAL(ReKi) , DIMENSION(1:3)  :: Pos      ! X,Y,Z coordinate of a point [-]
   END TYPE PositionType
 ! =======================
 ! =========  OrientationType  =======
   TYPE, PUBLIC :: OrientationType
-    REAL(ReKi) , DIMENSION(1:3,1:3)  :: Orient 
+    REAL(ReKi) , DIMENSION(1:3,1:3)  :: Orient      ! Direction Cosine Matrix [-]
   END TYPE OrientationType
 ! =======================
 ! =========  AD_InitInputType  =======
   TYPE, PUBLIC :: AD_InitInputType
-    CHARACTER(1024)  :: Title 
+    CHARACTER(1024)  :: Title      ! Title [-]
     CHARACTER(1024)  :: OutRootName 
-    CHARACTER(1024)  :: ADFileName 
-    CHARACTER(1024)  :: WindFileName 
-    LOGICAL  :: WrSumFile 
-    INTEGER(IntKi)  :: NumBl 
-    REAL(ReKi)  :: BladeLength 
+    CHARACTER(1024)  :: ADFileName      ! AeroDyn file name [-]
+    CHARACTER(1024)  :: WindFileName      ! Inflow init file name [-]
+    LOGICAL  :: WrSumFile      ! T/F: Write an AeroDyn summary [-]
+    INTEGER(IntKi)  :: NumBl      ! Number of Blades [-]
+    REAL(ReKi)  :: BladeLength      ! Blade Length [-]
     LOGICAL  :: LinearizeFlag 
     TYPE(AeroConfig)  :: TurbineComponents 
-    INTEGER(IntKi)  :: NumTwrNodes 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TwrNodeLocs 
+    INTEGER(IntKi)  :: NumTwrNodes      ! Number of ElastoDyn tower nodes.  Tower drag will be computed at those points. [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TwrNodeLocs      ! Location of ElastoDyn tower nodes with respect to the inertial origin. [-]
     TYPE(IfW_InitInputType)  :: IfW_InitInputs 
   END TYPE AD_InitInputType
 ! =======================
 ! =========  AD_InitOutputType  =======
   TYPE, PUBLIC :: AD_InitOutputType
-    TYPE(ProgDesc)  :: Ver 
+    TYPE(ProgDesc)  :: Ver      ! version information [-]
     TYPE(IfW_InitOutputType)  :: IfW_InitOutput 
   END TYPE AD_InitOutputType
 ! =======================
@@ -380,7 +380,7 @@ IMPLICIT NONE
 ! =========  AD_OtherStateType  =======
   TYPE, PUBLIC :: AD_OtherStateType
     INTEGER(IntKi)  :: DummyOtherState 
-    REAL(DbKi)  :: DT 
+    REAL(DbKi)  :: DT      ! Time step [seconds]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: ElPrNum 
     REAL(DbKi)  :: OldTime 
     REAL(ReKi)  :: HubLoss = 1 
@@ -404,40 +404,40 @@ IMPLICIT NONE
     TYPE(InducedVel)  :: InducedVel 
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: StoredForces 
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: StoredMoments 
-    LOGICAL  :: FirstWarn 
+    LOGICAL  :: FirstWarn      ! If it's the first warning about AeroDyn not recalculating loads [-]
     TYPE(ElOutParms)  :: ElOut 
     LOGICAL  :: Skew 
-    LOGICAL  :: DynInit 
-    TYPE(IfW_InputType)  :: IfW_Inputs 
+    LOGICAL  :: DynInit      ! FALSE=EQUIL, TRUE=DYNIN [-]
+    TYPE(IfW_InputType)  :: IfW_Inputs      ! inputs to IfW module; set here so we don't have to recreate it every time [-]
   END TYPE AD_OtherStateType
 ! =======================
 ! =========  AD_ParameterType  =======
   TYPE, PUBLIC :: AD_ParameterType
-    CHARACTER(1024)  :: Title 
-    CHARACTER(1024)  :: WindFileName 
+    CHARACTER(1024)  :: Title      ! Title [-]
+    CHARACTER(1024)  :: WindFileName      ! Inflow init file name [-]
     LOGICAL  :: SIUnit 
     LOGICAL  :: Echo = .FALSE. 
     LOGICAL  :: MultiTab 
     LOGICAL  :: LinearizeFlag 
     LOGICAL  :: OutputPlottingInfo = .FALSE. 
     LOGICAL  :: Initialized = .FALSE. 
-    REAL(ReKi)  :: TwoPiNB 
-    INTEGER(IntKi)  :: NumBl 
-    INTEGER(IntKi)  :: NBlInpSt 
+    REAL(ReKi)  :: TwoPiNB      ! 2*pi/num of blades [-]
+    INTEGER(IntKi)  :: NumBl      ! Number of Blades [-]
+    INTEGER(IntKi)  :: NBlInpSt      ! Number of Blade Input Stations [-]
     LOGICAL  :: ElemPrn 
-    LOGICAL  :: DStall 
-    LOGICAL  :: PMoment 
+    LOGICAL  :: DStall      ! FALSE=Steady, TRUE=BEDDOES [-]
+    LOGICAL  :: PMoment      ! FALSE=NO_CM, TRUE=USE_CM [-]
     LOGICAL  :: Reynolds 
-    LOGICAL  :: DynInfl 
-    LOGICAL  :: Wake 
-    LOGICAL  :: Swirl 
-    REAL(DbKi)  :: DtAero 
-    REAL(ReKi)  :: HubRad 
+    LOGICAL  :: DynInfl      ! FALSE=EQUIL, TRUE=DYNIN [-]
+    LOGICAL  :: Wake      ! False unless WAKE or SWIRL [-]
+    LOGICAL  :: Swirl      ! False unless WAKE or SWIRL [-]
+    REAL(DbKi)  :: DtAero      ! Time interval for aerodynamic calculations [-]
+    REAL(ReKi)  :: HubRad      ! Hub radius [m]
     INTEGER(IntKi)  :: UnEc = -1 
     INTEGER(IntKi)  :: UnElem = -1 
     INTEGER(IntKi)  :: UnWndOut = -1 
     INTEGER(IntKi)  :: MAXICOUNT = 1000 
-    LOGICAL  :: WrOptFile = .TRUE. 
+    LOGICAL  :: WrOptFile = .TRUE.      ! T/F: Write an AeroDyn summary [-]
     INTEGER(IntKi)  :: DEFAULT_Wind = -1 
     TYPE(AirFoilParms)  :: AirFoil 
     TYPE(BladeParms)  :: Blade 
@@ -453,16 +453,16 @@ IMPLICIT NONE
 ! =======================
 ! =========  AD_InputType  =======
   TYPE, PUBLIC :: AD_InputType
-    TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: InputMarkers 
-    TYPE(MeshType)  :: Twr_InputMarkers 
-    TYPE(AeroConfig)  :: TurbineComponents 
+    TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: InputMarkers      ! Input Forces and positions for the blades (mesh) for each blade [-]
+    TYPE(MeshType)  :: Twr_InputMarkers      ! Input Forces and positions for the tower (mesh) [-]
+    TYPE(AeroConfig)  :: TurbineComponents      ! Current locations of components [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MulTabLoc 
   END TYPE AD_InputType
 ! =======================
 ! =========  AD_OutputType  =======
   TYPE, PUBLIC :: AD_OutputType
-    TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: OutputLoads 
-    TYPE(MeshType)  :: Twr_OutputLoads 
+    TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: OutputLoads      ! Output Loads (mesh) for each blade [-]
+    TYPE(MeshType)  :: Twr_OutputLoads      ! Tower Output Loads (mesh) [-]
     TYPE(IfW_OutputType)  :: IfW_Outputs 
   END TYPE AD_OutputType
 ! =======================
@@ -9320,512 +9320,6 @@ ENDDO
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE AD_UnPackOutput
-
- SUBROUTINE AD_Pack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg, &
-                     SizeOnly )
-  TYPE(AD_InputType),           INTENT(INOUT) :: InData
-  TYPE(AD_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(AD_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(AD_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(AD_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(AD_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(AD_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(  OUT) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(  OUT) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,  INTENT(  OUT) :: Int_RetAry(:)
-  INTEGER(IntKi),               INTENT(  OUT) :: ErrStat
-  CHARACTER(*),                 INTENT(  OUT) :: ErrMsg
-  LOGICAL, OPTIONAL,            INTENT(IN   ) :: SizeOnly
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  LOGICAL                                :: OnlySize ! if present and true, do not pack, just allocate buffers
-    ! Executable statements
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  OnlySize = .FALSE.
-  IF ( PRESENT(SizeOnly) ) THEN
-    OnlySize = SizeOnly
-  ENDIF
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred  = Re_Xferred - 1
-  Db_Xferred  = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
-  IF ( ALLOCATED( Re_RetAry ) ) DEALLOCATE( Re_RetAry ) ;
-  IF ( Re_Xferred .GT. 0) ALLOCATE( Re_RetAry( Re_Xferred ) ) ;
-  IF ( ALLOCATED( Db_RetAry ) ) DEALLOCATE( Db_RetAry ) ;
-  IF ( Db_Xferred .GT. 0) ALLOCATE( Db_RetAry( Db_Xferred ) ) ;
-  IF ( ALLOCATED( Int_RetAry ) ) DEALLOCATE( Int_RetAry ) ;
-  IF ( Int_Xferred .GT. 0) ALLOCATE( Int_RetAry( Int_Xferred ) ) ;
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred   = Re_Xferred - 1
-  Db_Xferred   = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
- END SUBROUTINE AD_Pack
-
- SUBROUTINE AD_UnPack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg )
-  TYPE(AD_InputType),           INTENT(INOUT) :: InData
-  TYPE(AD_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(AD_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(AD_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(AD_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(AD_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(AD_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(IN   ) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(IN   ) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,   INTENT(IN   ) :: Int_RetAry(:)
-  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! UnPack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL AD_UnPackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL AD_UnPackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL AD_UnPackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL AD_UnPackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL AD_UnPackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL AD_UnPackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL AD_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL AD_UnPackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
- END SUBROUTINE AD_UnPack
 
 
  SUBROUTINE AD_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
