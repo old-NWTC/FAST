@@ -33,7 +33,7 @@ MODULE ElastoDyn_Parameters
 
    USE NWTC_Library
 
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.03a-bjj', '31-Jan-2014' )
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.04a-bjj', '3-Mar-2014' )
    CHARACTER(*),   PARAMETER  :: ED_Nickname = 'ED'
    
    REAL(ReKi), PARAMETER            :: SmallAngleLimit_Deg  =  15.0                     ! Largest input angle considered "small" (used as a check on input data), degrees
@@ -5379,6 +5379,8 @@ SUBROUTINE SetPrimaryParameters( p, InputFileData, ErrStat, ErrMsg  )
       p%Delim = TAB
    ELSE
       p%Delim = ' '
+   !ELSE
+   !   p%Delim = ','
    END IF
 
    !...............................................................................................................................
@@ -13759,7 +13761,6 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
 
       ! local variables
-      TYPE(ED_ContinuousStateType)                   :: xdot        ! Continuous state derivs at t
       TYPE(ED_InputType)                             :: u_interp
          
       INTEGER(IntKi)                                 :: ErrStat2    ! local error status
@@ -13770,6 +13771,23 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       ErrStat = ErrID_None
       ErrMsg  = "" 
+      
+      
+      if (OtherState%n .lt. n) then
+
+         OtherState%n = n
+            
+         ! Update IC() index so IC(1) is the location of current xdot values.
+         ! (this allows us to shift the indices into the array, not copy all of the values)
+         OtherState%IC = CSHIFT( OtherState%IC, -1 ) ! circular shift of all values to the right
+            
+      elseif (OtherState%n .gt. n) then
+ 
+         CALL CheckError( ErrID_Fatal, ' Backing up in time is not supported with a multistep method.')
+         RETURN
+
+      endif        
+      
       
       ! Allocate the input arrays
       CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )      
@@ -13782,49 +13800,18 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
          
-      CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, xdot, ErrStat2, ErrMsg2 )
+      CALL ED_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, OtherState%xdot ( OtherState%IC(1) ), ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
+                                                    
       if (n .le. 2) then
-
-         OtherState%n = n
-
-            ! Update IC() index so IC(1) is the location of current xdot values.
-            ! (this allows us to shift the indices into the array, not copy all of the values)
-         OtherState%IC = CSHIFT( OtherState%IC, -1 ) ! circular shift of all values to the right         
-         CALL ED_CopyContState( xdot, OtherState%xdot ( OtherState%IC(1) ), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )   
-            CALL CheckError(ErrStat2,ErrMsg2)
-            IF ( ErrStat >= AbortErrLev ) RETURN
-
+                                               
          CALL ED_RK4(t, n, u, utimes, p, x, xd, z, OtherState, ErrStat2, ErrMsg2 )
             CALL CheckError(ErrStat2,ErrMsg2)
             IF ( ErrStat >= AbortErrLev ) RETURN
 
       else
-
-         if (OtherState%n .lt. n) then
-
-            OtherState%n = n
-            
-            ! Update IC() index so IC(1) is the location of current xdot values.
-            ! (this allows us to shift the indices into the array, not copy all of the values)
-            OtherState%IC = CSHIFT( OtherState%IC, -1 ) ! circular shift of all values to the right
-            
-            !OtherState%xdot(4)    = OtherState%xdot(3)
-            !OtherState%xdot(3)    = OtherState%xdot(2)
-            !OtherState%xdot(2)    = OtherState%xdot(1)
-
-         elseif (OtherState%n .gt. n) then
- 
-            CALL CheckError( ErrID_Fatal, ' Backing up in time is not supported with a multistep method.')
-            RETURN
-
-         endif
-
-         CALL ED_CopyContState( xdot, OtherState%xdot ( OtherState%IC(1) ), MESH_UPDATECOPY, ErrStat2, ErrMsg2 )  ! make sure this is most up to date
-            CALL CheckError(ErrStat2,ErrMsg2)
-            IF ( ErrStat >= AbortErrLev ) RETURN
 
          x%qt  = x%qt  + p%DT24 * ( 55.*OtherState%xdot(OtherState%IC(1))%qt  - 59.*OtherState%xdot(OtherState%IC(2))%qt   &
                                   + 37.*OtherState%xdot(OtherState%IC(3))%qt   - 9.*OtherState%xdot(OtherState%IC(4))%qt )
@@ -13849,7 +13836,6 @@ CONTAINS
       CHARACTER(1024)            :: ErrMsg3     ! The error message (ErrMsg)
    
    
-      CALL ED_DestroyContState( xdot,     ErrStat3, ErrMsg3 )
       CALL ED_DestroyInput(     u_interp, ErrStat3, ErrMsg3 )
          
    END SUBROUTINE ExitThisRoutine    

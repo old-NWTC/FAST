@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.03, 20-Jan-2014)
+! FAST Registry (v2.02.01, 22-Feb-2014)
 !*********************************************************************************************************************************
 ! ElastoDyn_Types
 !.................................................................................................................................
@@ -35,786 +35,786 @@ USE NWTC_Library
 IMPLICIT NONE
 ! =========  BladeInputData  =======
   TYPE, PUBLIC :: BladeInputData
-    INTEGER(IntKi)  :: NBlInpSt 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlFract 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PitchAx 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StrcTwst 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BMassDen 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FlpStff 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EdgStff 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GJStff 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EAStff 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Alpha 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FlpIner 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EdgIner 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PrecrvRef 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PreswpRef 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FlpcgOf 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EdgcgOf 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FlpEAOf 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EdgEAOf 
-    REAL(ReKi) , DIMENSION(1:2)  :: BldFlDmp 
-    REAL(ReKi) , DIMENSION(1:1)  :: BldEdDmp 
-    REAL(ReKi) , DIMENSION(1:2)  :: FlStTunr 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldFl1Sh 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldFl2Sh 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldEdgSh 
+    INTEGER(IntKi)  :: NBlInpSt      ! Number of blade input stations [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlFract      ! Blade fractional radius for distributed input data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PitchAx      ! Pitch axis for distributed input data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StrcTwst      ! Structural twist for distributed input data [radians]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BMassDen      ! Blade mass density for distributed input data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FlpStff      ! Blade flap stiffness for distributed input data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EdgStff      ! Blade edge stiffness for distributed input data [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GJStff      ! Blade torsional stiffness for a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EAStff      ! Blade extensional stiffness for a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Alpha      ! Blade coupling coefficient between flap and twist for a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FlpIner      ! Blade flap (about local structural yb-axis) mass inertia per unit length for a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EdgIner      ! Blade edge (about local structural xb-axis) mass inertia per unit length for a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PrecrvRef      ! Offset for defining the reference axis from the pitch axis for precurved blades at a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PreswpRef      ! Offset for defining the reference axis from the pitch axis for preswept blades at a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FlpcgOf      ! Blade flap (along local aerodynamic xb-axis) mass cg offset for a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EdgcgOf      ! Blade edge (along local aerodynamic yb-axis) mass cg offset for a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FlpEAOf      ! Blade flap (along local aerodynamic xb-axis) elastic axis offset for a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: EdgEAOf      ! Blade edge (along local aerodynamic yb-axis) elastic axis offset for a given input station [-]
+    REAL(ReKi) , DIMENSION(1:2)  :: BldFlDmp      ! Blade structural damping ratios in flapwise direction [-]
+    REAL(ReKi) , DIMENSION(1:1)  :: BldEdDmp      ! Blade structural damping ratios in edgewise direction [-]
+    REAL(ReKi) , DIMENSION(1:2)  :: FlStTunr      ! Blade flapwise modal stiffness tuners (input) [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldFl1Sh      ! Blade-flap-mode-1 shape coefficients [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldFl2Sh      ! Blade-flap-mode-2 shape coefficients [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldEdgSh      ! Blade-edge-mode shape coefficients [-]
   END TYPE BladeInputData
 ! =======================
 ! =========  ED_BladeMeshInputData  =======
   TYPE, PUBLIC :: ED_BladeMeshInputData
-    INTEGER(IntKi)  :: BldNodes 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: RNodes 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AeroTwst 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Chord 
+    INTEGER(IntKi)  :: BldNodes      ! Number of blade nodes used for analysis [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: RNodes      ! Radius to analysis nodes relative to hub ( 0 < RNodes(:) < BldFlexL ) [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AeroTwst      ! Aerodynamic twist of the blade at the analysis nodes [radians]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Chord      ! Chord of the blade at the analysis nodes [-]
   END TYPE ED_BladeMeshInputData
 ! =======================
 ! =========  ED_InputFile  =======
   TYPE, PUBLIC :: ED_InputFile
-    REAL(DbKi)  :: DT 
-    REAL(ReKi)  :: Gravity 
-    LOGICAL  :: FlapDOF1 
-    LOGICAL  :: FlapDOF2 
-    LOGICAL  :: EdgeDOF 
-    LOGICAL  :: TeetDOF 
-    LOGICAL  :: DrTrDOF 
-    LOGICAL  :: GenDOF 
-    LOGICAL  :: YawDOF 
-    LOGICAL  :: TwFADOF1 
-    LOGICAL  :: TwFADOF2 
-    LOGICAL  :: TwSSDOF1 
-    LOGICAL  :: TwSSDOF2 
-    LOGICAL  :: PtfmSgDOF 
-    LOGICAL  :: PtfmSwDOF 
-    LOGICAL  :: PtfmHvDOF 
-    LOGICAL  :: PtfmRDOF 
-    LOGICAL  :: PtfmPDOF 
-    LOGICAL  :: PtfmYDOF 
-    REAL(ReKi)  :: OoPDefl 
-    REAL(ReKi)  :: IPDefl 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch 
-    REAL(ReKi)  :: TeetDefl 
-    REAL(ReKi)  :: Azimuth 
-    REAL(ReKi)  :: RotSpeed 
-    REAL(ReKi)  :: NacYaw 
-    REAL(ReKi)  :: TTDspFA 
-    REAL(ReKi)  :: TTDspSS 
-    REAL(ReKi)  :: PtfmSurge 
-    REAL(ReKi)  :: PtfmSway 
-    REAL(ReKi)  :: PtfmHeave 
-    REAL(ReKi)  :: PtfmRoll 
-    REAL(ReKi)  :: PtfmPitch 
-    REAL(ReKi)  :: PtfmYaw 
-    INTEGER(IntKi)  :: NumBl 
-    REAL(ReKi)  :: TipRad 
-    REAL(ReKi)  :: HubRad 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PreCone 
-    REAL(ReKi)  :: HubCM 
-    REAL(ReKi)  :: UndSling 
-    REAL(ReKi)  :: Delta3 
-    REAL(ReKi)  :: AzimB1Up 
-    REAL(ReKi)  :: OverHang 
-    REAL(ReKi)  :: ShftGagL 
-    REAL(ReKi)  :: ShftTilt 
-    REAL(ReKi)  :: NacCMxn 
-    REAL(ReKi)  :: NacCMyn 
-    REAL(ReKi)  :: NacCMzn 
-    REAL(ReKi)  :: NcIMUxn 
-    REAL(ReKi)  :: NcIMUyn 
-    REAL(ReKi)  :: NcIMUzn 
-    REAL(ReKi)  :: Twr2Shft 
-    REAL(ReKi)  :: TowerHt 
-    REAL(ReKi)  :: TowerBsHt 
-    REAL(ReKi)  :: PtfmCMxt 
-    REAL(ReKi)  :: PtfmCMyt 
-    REAL(ReKi)  :: PtfmCMzt 
-    REAL(ReKi)  :: PtfmRefzt 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TipMass 
-    REAL(ReKi)  :: HubMass 
-    REAL(ReKi)  :: HubIner 
-    REAL(ReKi)  :: GenIner 
-    REAL(ReKi)  :: NacMass 
-    REAL(ReKi)  :: NacYIner 
-    REAL(ReKi)  :: YawBrMass 
-    REAL(ReKi)  :: PtfmMass 
-    REAL(ReKi)  :: PtfmRIner 
-    REAL(ReKi)  :: PtfmPIner 
-    REAL(ReKi)  :: PtfmYIner 
-    TYPE(ED_BladeMeshInputData) , DIMENSION(:), ALLOCATABLE  :: InpBlMesh 
-    TYPE(BladeInputData) , DIMENSION(:), ALLOCATABLE  :: InpBl 
-    INTEGER(IntKi)  :: TeetMod 
-    REAL(ReKi)  :: TeetDmpP 
-    REAL(ReKi)  :: TeetDmp 
-    REAL(ReKi)  :: TeetCDmp 
-    REAL(ReKi)  :: TeetSStP 
-    REAL(ReKi)  :: TeetHStP 
-    REAL(ReKi)  :: TeetSSSp 
-    REAL(ReKi)  :: TeetHSSp 
-    REAL(ReKi)  :: GBoxEff 
-    REAL(ReKi)  :: GBRatio 
-    REAL(ReKi)  :: DTTorSpr 
-    REAL(ReKi)  :: DTTorDmp 
-    LOGICAL  :: Furling 
-    INTEGER(IntKi)  :: TwrNodes 
-    LOGICAL  :: SumPrint 
-    INTEGER(IntKi)  :: OutFile 
-    LOGICAL  :: TabDelim 
-    CHARACTER(20)  :: OutFmt 
-    REAL(DbKi)  :: Tstart 
-    INTEGER(IntKi)  :: DecFact 
-    INTEGER(IntKi)  :: NTwGages 
-    INTEGER(IntKi) , DIMENSION(1:9)  :: TwrGagNd 
-    INTEGER(IntKi)  :: NBlGages 
-    INTEGER(IntKi) , DIMENSION(1:9)  :: BldGagNd 
-    INTEGER(IntKi)  :: NumOuts 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: OutList 
-    INTEGER(IntKi)  :: NTwInpSt 
-    REAL(ReKi) , DIMENSION(1:2)  :: TwrFADmp 
-    REAL(ReKi) , DIMENSION(1:2)  :: TwrSSDmp 
-    REAL(ReKi) , DIMENSION(1:2)  :: FAStTunr 
-    REAL(ReKi) , DIMENSION(1:2)  :: SSStTunr 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: HtFract 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TMassDen 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAStif 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSSStif 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAM1Sh 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAM2Sh 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSSM1Sh 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSSM2Sh 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwGJStif 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwEAStif 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAIner 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSSIner 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAcgOf 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSScgOf 
-    LOGICAL  :: RFrlDOF 
-    LOGICAL  :: TFrlDOF 
-    REAL(ReKi)  :: RotFurl 
-    REAL(ReKi)  :: TailFurl 
-    REAL(ReKi)  :: Yaw2Shft 
-    REAL(ReKi)  :: ShftSkew 
-    REAL(ReKi)  :: RFrlCMxn 
-    REAL(ReKi)  :: RFrlCMyn 
-    REAL(ReKi)  :: RFrlCMzn 
-    REAL(ReKi)  :: BoomCMxn 
-    REAL(ReKi)  :: BoomCMyn 
-    REAL(ReKi)  :: BoomCMzn 
-    REAL(ReKi)  :: TFinCMxn 
-    REAL(ReKi)  :: TFinCMyn 
-    REAL(ReKi)  :: TFinCMzn 
-    REAL(ReKi)  :: TFinCPxn 
-    REAL(ReKi)  :: TFinCPyn 
-    REAL(ReKi)  :: TFinCPzn 
-    REAL(ReKi)  :: TFinSkew 
-    REAL(ReKi)  :: TFinTilt 
-    REAL(ReKi)  :: TFinBank 
-    REAL(ReKi)  :: RFrlPntxn 
-    REAL(ReKi)  :: RFrlPntyn 
-    REAL(ReKi)  :: RFrlPntzn 
-    REAL(ReKi)  :: RFrlSkew 
-    REAL(ReKi)  :: RFrlTilt 
-    REAL(ReKi)  :: TFrlPntxn 
-    REAL(ReKi)  :: TFrlPntyn 
-    REAL(ReKi)  :: TFrlPntzn 
-    REAL(ReKi)  :: TFrlSkew 
-    REAL(ReKi)  :: TFrlTilt 
-    REAL(ReKi)  :: RFrlMass 
-    REAL(ReKi)  :: BoomMass 
-    REAL(ReKi)  :: TFinMass 
-    REAL(ReKi)  :: RFrlIner 
-    REAL(ReKi)  :: TFrlIner 
-    INTEGER(IntKi)  :: RFrlMod 
-    REAL(ReKi)  :: RFrlSpr 
-    REAL(ReKi)  :: RFrlDmp 
-    REAL(ReKi)  :: RFrlCDmp 
-    REAL(ReKi)  :: RFrlUSSP 
-    REAL(ReKi)  :: RFrlDSSP 
-    REAL(ReKi)  :: RFrlUSSpr 
-    REAL(ReKi)  :: RFrlDSSpr 
-    REAL(ReKi)  :: RFrlUSDP 
-    REAL(ReKi)  :: RFrlDSDP 
-    REAL(ReKi)  :: RFrlUSDmp 
-    REAL(ReKi)  :: RFrlDSDmp 
-    INTEGER(IntKi)  :: TFrlMod 
-    REAL(ReKi)  :: TFrlSpr 
-    REAL(ReKi)  :: TFrlDmp 
-    REAL(ReKi)  :: TFrlCDmp 
-    REAL(ReKi)  :: TFrlUSSP 
-    REAL(ReKi)  :: TFrlDSSP 
-    REAL(ReKi)  :: TFrlUSSpr 
-    REAL(ReKi)  :: TFrlDSSpr 
-    REAL(ReKi)  :: TFrlUSDP 
-    REAL(ReKi)  :: TFrlDSDP 
-    REAL(ReKi)  :: TFrlUSDmp 
-    REAL(ReKi)  :: TFrlDSDmp 
-    INTEGER(IntKi)  :: method 
+    REAL(DbKi)  :: DT      ! Requested integration time for ElastoDyn [seconds]
+    REAL(ReKi)  :: Gravity      ! Gravitational acceleration [m/s^2]
+    LOGICAL  :: FlapDOF1      ! First flapwise blade mode DOF [-]
+    LOGICAL  :: FlapDOF2      ! Second flapwise blade mode DOF [-]
+    LOGICAL  :: EdgeDOF      ! Edgewise blade mode DOF [-]
+    LOGICAL  :: TeetDOF      ! Rotor-teeter DOF [-]
+    LOGICAL  :: DrTrDOF      ! Drivetrain rotational-flexibility DOF [-]
+    LOGICAL  :: GenDOF      ! Generator DOF [-]
+    LOGICAL  :: YawDOF      ! Nacelle-yaw DOF [-]
+    LOGICAL  :: TwFADOF1      ! First tower fore-aft bending-mode DOF [-]
+    LOGICAL  :: TwFADOF2      ! Second tower fore-aft bending-mode DOF [-]
+    LOGICAL  :: TwSSDOF1      ! First tower side-to-side bending-mode DOF [-]
+    LOGICAL  :: TwSSDOF2      ! Second tower side-to-side bending-mode DOF [-]
+    LOGICAL  :: PtfmSgDOF      ! Platform horizontal surge translation DOF [-]
+    LOGICAL  :: PtfmSwDOF      ! Platform horizontal sway translation DOF [-]
+    LOGICAL  :: PtfmHvDOF      ! Platform vertical heave translation DOF [-]
+    LOGICAL  :: PtfmRDOF      ! Platform roll tilt rotation DOF [-]
+    LOGICAL  :: PtfmPDOF      ! Platform pitch tilt rotation DOF [-]
+    LOGICAL  :: PtfmYDOF      ! Platform yaw rotation DOF [-]
+    REAL(ReKi)  :: OoPDefl      ! Initial out-of-plane blade-tip displacement [meters]
+    REAL(ReKi)  :: IPDefl      ! Initial in-plane blade-tip deflection [meters]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Initial blade pitch angles [radians]
+    REAL(ReKi)  :: TeetDefl      ! Initial teeter angle [radians]
+    REAL(ReKi)  :: Azimuth      ! Initial azimuth angle for blade 1 [radians]
+    REAL(ReKi)  :: RotSpeed      ! Initial rotor speed [rad/s]
+    REAL(ReKi)  :: NacYaw      ! Initial nacelle-yaw angle [radians]
+    REAL(ReKi)  :: TTDspFA      ! Initial fore-aft tower-top displacement [meters]
+    REAL(ReKi)  :: TTDspSS      ! Initial side-to-side tower-top displacement [meters]
+    REAL(ReKi)  :: PtfmSurge      ! Initial horizontal surge translational displacement of platform [meters]
+    REAL(ReKi)  :: PtfmSway      ! Initial horizontal sway translational displacement of platform [meters]
+    REAL(ReKi)  :: PtfmHeave      ! Initial vertical heave translational displacement of platform [meters]
+    REAL(ReKi)  :: PtfmRoll      ! Initial roll tilt rotational displacement of platform [radians]
+    REAL(ReKi)  :: PtfmPitch      ! Initial pitch tilt rotational displacement of platform [radians]
+    REAL(ReKi)  :: PtfmYaw      ! Initial yaw rotational displacement of platform [radians]
+    INTEGER(IntKi)  :: NumBl      ! Number of blades [-]
+    REAL(ReKi)  :: TipRad      ! Preconed blade-tip radius (distance from the rotor apex to the blade tip) [meters]
+    REAL(ReKi)  :: HubRad      ! Preconed hub radius (distance from the rotor apex to the blade root) [meters]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PreCone      ! Rotor precone angles [radians]
+    REAL(ReKi)  :: HubCM      ! Distance from rotor apex to hub mass [meters]
+    REAL(ReKi)  :: UndSling      ! Undersling length [meters]
+    REAL(ReKi)  :: Delta3      ! Delta-3 angle for teetering rotors [radians]
+    REAL(ReKi)  :: AzimB1Up      ! Azimuth value to use for I/O when blade 1 points up [radians]
+    REAL(ReKi)  :: OverHang      ! Distance from yaw axis to rotor apex or teeter pin [meters]
+    REAL(ReKi)  :: ShftGagL      ! Distance from hub or teeter pin to shaft strain gages [meters]
+    REAL(ReKi)  :: ShftTilt      ! Rotor shaft tilt angle [radians]
+    REAL(ReKi)  :: NacCMxn      ! Downwind distance from tower-top to nacelle CM [meters]
+    REAL(ReKi)  :: NacCMyn      ! Lateral distance from tower-top to nacelle CM [meters]
+    REAL(ReKi)  :: NacCMzn      ! Vertical distance from tower-top to nacelle CM [meters]
+    REAL(ReKi)  :: NcIMUxn      ! Downwind distance from the tower-top to the nacelle IMU [meters]
+    REAL(ReKi)  :: NcIMUyn      ! Lateral distance from the tower-top to the nacelle IMU [meters]
+    REAL(ReKi)  :: NcIMUzn      ! Vertical distance from the tower-top to the nacelle IMU [meters]
+    REAL(ReKi)  :: Twr2Shft      ! Vertical distance from the tower-top to the rotor shaft [meters]
+    REAL(ReKi)  :: TowerHt      ! Height of tower above ground level [onshore] or MSL [offshore] [meters]
+    REAL(ReKi)  :: TowerBsHt      ! Height of tower base above ground level [onshore] or MSL [offshore] [meters]
+    REAL(ReKi)  :: PtfmCMxt      ! Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM [meters]
+    REAL(ReKi)  :: PtfmCMyt      ! Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM [meters]
+    REAL(ReKi)  :: PtfmCMzt      ! Vertical distance from the ground [onshore] or MSL [offshore] to the platform CM [meters]
+    REAL(ReKi)  :: PtfmRefzt      ! Vertical distance from the ground [onshore] or MSL [offshore] to the platform reference point [meters]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TipMass      ! Tip-brake masses [kg]
+    REAL(ReKi)  :: HubMass      ! Hub mass [kg]
+    REAL(ReKi)  :: HubIner      ! Hub inertia about teeter axis (2-blader) or rotor axis (3-blader) [kg m^2]
+    REAL(ReKi)  :: GenIner      ! Generator inertia about HSS [kg m^2]
+    REAL(ReKi)  :: NacMass      ! Nacelle mass [kg]
+    REAL(ReKi)  :: NacYIner      ! Nacelle yaw inertia [kg m^2]
+    REAL(ReKi)  :: YawBrMass      ! Yaw bearing mass [kg]
+    REAL(ReKi)  :: PtfmMass      ! Platform mass [kg]
+    REAL(ReKi)  :: PtfmRIner      ! Platform inertia for roll tilt rotation about the platform CM [kg m^2]
+    REAL(ReKi)  :: PtfmPIner      ! Platform inertia for pitch tilt rotation about the platform CM [kg m^2]
+    REAL(ReKi)  :: PtfmYIner      ! Platform inertia for yaw rotation about the platform CM [kg m^2]
+    TYPE(ED_BladeMeshInputData) , DIMENSION(:), ALLOCATABLE  :: InpBlMesh      ! Input data for blade discretizations (could be on each blade) [see BladeMeshInputData]
+    TYPE(BladeInputData) , DIMENSION(:), ALLOCATABLE  :: InpBl      ! Input data for individual blades [see BladeInputData type]
+    INTEGER(IntKi)  :: TeetMod      ! Rotor-teeter spring/damper model switch [-]
+    REAL(ReKi)  :: TeetDmpP      ! Rotor-teeter damper position [radians]
+    REAL(ReKi)  :: TeetDmp      ! Rotor-teeter damping constant [N-m/(rad/s)]
+    REAL(ReKi)  :: TeetCDmp      ! Rotor-teeter rate-independent Coulomb-damping [N-m]
+    REAL(ReKi)  :: TeetSStP      ! Rotor-teeter soft-stop position [radians]
+    REAL(ReKi)  :: TeetHStP      ! Rotor-teeter hard-stop position [radians]
+    REAL(ReKi)  :: TeetSSSp      ! Rotor-teeter soft-stop linear-spring constant [N-m/rad]
+    REAL(ReKi)  :: TeetHSSp      ! Rotor-teeter hard-stop linear-spring constant [N-m/rad]
+    REAL(ReKi)  :: GBoxEff      ! Gearbox efficiency [%]
+    REAL(ReKi)  :: GBRatio      ! Gearbox ratio [-]
+    REAL(ReKi)  :: DTTorSpr      ! Drivetrain torsional spring [N-m/rad]
+    REAL(ReKi)  :: DTTorDmp      ! Drivetrain torsional damper [N-m/(rad/s)]
+    LOGICAL  :: Furling      ! Use Additional Furling parameters? [-]
+    INTEGER(IntKi)  :: TwrNodes      ! Number of tower nodes used in the analysis [-]
+    LOGICAL  :: SumPrint      ! Print summary data to <RootName>.sum [-]
+    INTEGER(IntKi)  :: OutFile      ! Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) [-]
+    LOGICAL  :: TabDelim      ! Flag to cause tab-delimited text output (delimited by space otherwise) [-]
+    CHARACTER(20)  :: OutFmt      ! Format used for module's text tabular output (except time); resulting field should be 10 characters [-]
+    REAL(DbKi)  :: Tstart      ! Time to start module's tabular output [seconds]
+    INTEGER(IntKi)  :: DecFact      ! Decimation factor for module's tabular output (1=output every step) [-]
+    INTEGER(IntKi)  :: NTwGages      ! Number of tower strain gages [-]
+    INTEGER(IntKi) , DIMENSION(1:9)  :: TwrGagNd      ! Nodes closest to the tower strain gages [-]
+    INTEGER(IntKi)  :: NBlGages      ! Number of blade strain gages [-]
+    INTEGER(IntKi) , DIMENSION(1:9)  :: BldGagNd      ! Nodes closest to the blade strain gages [-]
+    INTEGER(IntKi)  :: NumOuts      ! Number of parameters in the output list (number of outputs requested) [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: OutList      ! List of user-requested output channels [-]
+    INTEGER(IntKi)  :: NTwInpSt      ! Number of tower input stations [-]
+    REAL(ReKi) , DIMENSION(1:2)  :: TwrFADmp      ! Tower fore-aft structural damping ratios [%]
+    REAL(ReKi) , DIMENSION(1:2)  :: TwrSSDmp      ! Tower side-to-side structural damping ratios [%]
+    REAL(ReKi) , DIMENSION(1:2)  :: FAStTunr      ! Tower fore-aft modal stiffness tuners [-]
+    REAL(ReKi) , DIMENSION(1:2)  :: SSStTunr      ! Tower side-to-side modal stiffness tuners [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: HtFract      ! Fractional height of the flexible portion of tower for a given input station [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TMassDen      ! Tower mass density for a given input station [kg/m]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAStif      ! Tower fore-aft stiffness for a given input station [Nm^2]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSSStif      ! Tower side-to-side stiffness for a given input station [Nm^2]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAM1Sh      ! Tower fore-aft mode-1 shape coefficients [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAM2Sh      ! Tower fore-aft mode-2 shape coefficients [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSSM1Sh      ! Tower side-to-side mode-1 shape coefficients [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSSM2Sh      ! Tower side-to-side mode-2 shape coefficients [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwGJStif      ! Tower torsional stiffness for a given input station [Nm^2]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwEAStif      ! Tower extensional stiffness for a given input station [N]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAIner      ! Tower fore-aft (about yt-axis) mass inertia per unit length for a given input station [kg m]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSSIner      ! Tower side-to-side (about xt-axis) mass inertia per unit length for a given input station [kg m]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwFAcgOf      ! Tower fore-aft (along the xt-axis) mass cg offset for a given input station [meters]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TwSScgOf      ! Tower fore-aft (along the yt-axis) mass cg offset for a given input station [meters]
+    LOGICAL  :: RFrlDOF      ! Rotor-furl DOF [-]
+    LOGICAL  :: TFrlDOF      ! Tail-furl DOF [-]
+    REAL(ReKi)  :: RotFurl      ! Initial or fixed rotor-furl angle [radians]
+    REAL(ReKi)  :: TailFurl      ! Initial or fixed tail-furl angle [radians]
+    REAL(ReKi)  :: Yaw2Shft      ! Lateral distance from the yaw axis to the rotor shaft [meters]
+    REAL(ReKi)  :: ShftSkew      ! Rotor shaft skew angle [radians]
+    REAL(ReKi)  :: RFrlCMxn      ! Downwind distance from tower-top to rotor-furl CM [meters]
+    REAL(ReKi)  :: RFrlCMyn      ! Lateral distance from tower-top to rotor-furl CM [meters]
+    REAL(ReKi)  :: RFrlCMzn      ! Vertical distance from tower-top to rotor-furl CM [meters]
+    REAL(ReKi)  :: BoomCMxn      ! Downwind distance from tower-top to tail boom CM [meters]
+    REAL(ReKi)  :: BoomCMyn      ! Lateral distance from tower-top to tail boom CM [meters]
+    REAL(ReKi)  :: BoomCMzn      ! Vertical distance from tower-top to tail boom CM [meters]
+    REAL(ReKi)  :: TFinCMxn      ! Downwind distance from tower-top to tail fin CM [meters]
+    REAL(ReKi)  :: TFinCMyn      ! Lateral distance from tower-top to tail fin CM [meters]
+    REAL(ReKi)  :: TFinCMzn      ! Vertical distance from tower-top to tail fin CM [meters]
+    REAL(ReKi)  :: TFinCPxn      ! Downwind distance from tower-top to tail fin CP [meters]
+    REAL(ReKi)  :: TFinCPyn      ! Lateral distance from tower-top to tail fin CP [meters]
+    REAL(ReKi)  :: TFinCPzn      ! Vertical distance from tower-top to tail fin CP [meters]
+    REAL(ReKi)  :: TFinSkew      ! Tail fin chordline skew angle [radians]
+    REAL(ReKi)  :: TFinTilt      ! Tail fin chordline tilt angle [radians]
+    REAL(ReKi)  :: TFinBank      ! Tail fin planform bank angle [radians]
+    REAL(ReKi)  :: RFrlPntxn      ! Downwind distance from tower-top to arbitrary point on rotor-furl axis [meters]
+    REAL(ReKi)  :: RFrlPntyn      ! Lateral distance from tower-top to arbitrary point on rotor-furl axis [meters]
+    REAL(ReKi)  :: RFrlPntzn      ! Vertical distance from tower-top to arbitrary point on rotor-furl axis [meters]
+    REAL(ReKi)  :: RFrlSkew      ! Rotor-furl axis skew angle [radians]
+    REAL(ReKi)  :: RFrlTilt      ! Rotor-furl axis tilt angle [radians]
+    REAL(ReKi)  :: TFrlPntxn      ! Downwind distance from tower-top to arbitrary point on tail-furl axis [meters]
+    REAL(ReKi)  :: TFrlPntyn      ! Lateral distance from tower-top to arbitrary point on tail-furl axis [meters]
+    REAL(ReKi)  :: TFrlPntzn      ! Vertical distance from tower-top to arbitrary point on tail-furl axis [meters]
+    REAL(ReKi)  :: TFrlSkew      ! Rotor-furl axis skew angle [radians]
+    REAL(ReKi)  :: TFrlTilt      ! Rotor-furl axis tilt angle [radians]
+    REAL(ReKi)  :: RFrlMass      ! Rotor-furl mass [kg]
+    REAL(ReKi)  :: BoomMass      ! Tail boom mass [kg]
+    REAL(ReKi)  :: TFinMass      ! Tail fin mass [kg]
+    REAL(ReKi)  :: RFrlIner      ! Rotor-furl inertia about rotor-furl axis [kg m^2]
+    REAL(ReKi)  :: TFrlIner      ! Tail boom inertia about tail-furl axis [kg m^2]
+    INTEGER(IntKi)  :: RFrlMod      ! Rotor-furl spring/damper model switch [-]
+    REAL(ReKi)  :: RFrlSpr      ! Rotor-furl spring constant [N-m/rad]
+    REAL(ReKi)  :: RFrlDmp      ! Rotor-furl damping constant [N-m/(rad/s)]
+    REAL(ReKi)  :: RFrlCDmp      ! Rotor-furl rate-independent Coulomb-damping moment [N-m]
+    REAL(ReKi)  :: RFrlUSSP      ! Rotor-furl up-stop spring position [radians]
+    REAL(ReKi)  :: RFrlDSSP      ! Rotor-furl down-stop spring position [radians]
+    REAL(ReKi)  :: RFrlUSSpr      ! Rotor-furl up-stop spring constant [N-m/rad]
+    REAL(ReKi)  :: RFrlDSSpr      ! Rotor-furl down-stop spring constant [N-m/rad]
+    REAL(ReKi)  :: RFrlUSDP      ! Rotor-furl up-stop damper position [radians]
+    REAL(ReKi)  :: RFrlDSDP      ! Rotor-furl down-stop damper position [radians]
+    REAL(ReKi)  :: RFrlUSDmp      ! Rotor-furl up-stop damping constant [N-m/(rad/s)]
+    REAL(ReKi)  :: RFrlDSDmp      ! Rotor-furl down-stop damping constant [N-m/(rad/s)]
+    INTEGER(IntKi)  :: TFrlMod      ! Tail-furl spring/damper model switch [-]
+    REAL(ReKi)  :: TFrlSpr      ! Tail-furl spring constant [N-m/rad]
+    REAL(ReKi)  :: TFrlDmp      ! Tail-furl damping constant [N-m/(rad/s)]
+    REAL(ReKi)  :: TFrlCDmp      ! Tail-furl rate-independent Coulomb-damping moment [N-m]
+    REAL(ReKi)  :: TFrlUSSP      ! Tail-furl up-stop spring position [radians]
+    REAL(ReKi)  :: TFrlDSSP      ! Tail-furl down-stop spring position [radians]
+    REAL(ReKi)  :: TFrlUSSpr      ! Tail-furl up-stop spring constant [N-m/rad]
+    REAL(ReKi)  :: TFrlDSSpr      ! Tail-furl down-stop spring constant [N-m/rad]
+    REAL(ReKi)  :: TFrlUSDP      ! Tail-furl up-stop damper position [radians]
+    REAL(ReKi)  :: TFrlDSDP      ! Tail-furl down-stop damper position [radians]
+    REAL(ReKi)  :: TFrlUSDmp      ! Tail-furl up-stop damping constant [N-m/(rad/s)]
+    REAL(ReKi)  :: TFrlDSDmp      ! Tail-furl down-stop damping constant [N-m/(rad/s)]
+    INTEGER(IntKi)  :: method      ! Identifier for integration method (1 [RK4], 2 [AB4], or 3 [ABM4]) [-]
   END TYPE ED_InputFile
 ! =======================
 ! =========  ED_CoordSys  =======
   TYPE, PUBLIC :: ED_CoordSys
-    REAL(ReKi) , DIMENSION(1:3)  :: a1 
-    REAL(ReKi) , DIMENSION(1:3)  :: a2 
-    REAL(ReKi) , DIMENSION(1:3)  :: a3 
-    REAL(ReKi) , DIMENSION(1:3)  :: b1 
-    REAL(ReKi) , DIMENSION(1:3)  :: b2 
-    REAL(ReKi) , DIMENSION(1:3)  :: b3 
-    REAL(ReKi) , DIMENSION(1:3)  :: c1 
-    REAL(ReKi) , DIMENSION(1:3)  :: c2 
-    REAL(ReKi) , DIMENSION(1:3)  :: c3 
-    REAL(ReKi) , DIMENSION(1:3)  :: d1 
-    REAL(ReKi) , DIMENSION(1:3)  :: d2 
-    REAL(ReKi) , DIMENSION(1:3)  :: d3 
-    REAL(ReKi) , DIMENSION(1:3)  :: e1 
-    REAL(ReKi) , DIMENSION(1:3)  :: e2 
-    REAL(ReKi) , DIMENSION(1:3)  :: e3 
-    REAL(ReKi) , DIMENSION(1:3)  :: f1 
-    REAL(ReKi) , DIMENSION(1:3)  :: f2 
-    REAL(ReKi) , DIMENSION(1:3)  :: f3 
-    REAL(ReKi) , DIMENSION(1:3)  :: g1 
-    REAL(ReKi) , DIMENSION(1:3)  :: g2 
-    REAL(ReKi) , DIMENSION(1:3)  :: g3 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: i1 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: i2 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: i3 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: j1 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: j2 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: j3 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: m1 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: m2 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: m3 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: n1 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: n2 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: n3 
-    REAL(ReKi) , DIMENSION(1:3)  :: p1 
-    REAL(ReKi) , DIMENSION(1:3)  :: p2 
-    REAL(ReKi) , DIMENSION(1:3)  :: p3 
-    REAL(ReKi) , DIMENSION(1:3)  :: rf1 
-    REAL(ReKi) , DIMENSION(1:3)  :: rf2 
-    REAL(ReKi) , DIMENSION(1:3)  :: rf3 
-    REAL(ReKi) , DIMENSION(1:3)  :: rfa 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: t1 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: t2 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: t3 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: te1 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: te2 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: te3 
-    REAL(ReKi) , DIMENSION(1:3)  :: tf1 
-    REAL(ReKi) , DIMENSION(1:3)  :: tf2 
-    REAL(ReKi) , DIMENSION(1:3)  :: tf3 
-    REAL(ReKi) , DIMENSION(1:3)  :: tfa 
-    REAL(ReKi) , DIMENSION(1:3)  :: z1 
-    REAL(ReKi) , DIMENSION(1:3)  :: z2 
-    REAL(ReKi) , DIMENSION(1:3)  :: z3 
+    REAL(ReKi) , DIMENSION(1:3)  :: a1      ! Vector / direction a1 (=  xt from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: a2      ! Vector / direction a2 (=  zt from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: a3      ! Vector / direction a3 (= -yt from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: b1      ! Vector / direction b1 (=  xp from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: b2      ! Vector / direction b2 (=  zp from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: b3      ! Vector / direction b3 (= -yp from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: c1      ! Vector / direction c1 (=  xs from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: c2      ! Vector / direction c2 (=  zs from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: c3      ! Vector / direction c3 (= -ys from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: d1      ! Vector / direction d1 (=  xn from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: d2      ! Vector / direction d2 (=  zn from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: d3      ! Vector / direction d3 (= -yn from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: e1      ! Vector / direction e1 (=  xa from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: e2      ! Vector / direction e2 (=  ya from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: e3      ! Vector / direction e3 (=  za from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: f1      ! Vector / direction f1 [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: f2      ! Vector / direction f2 [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: f3      ! Vector / direction f3 [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: g1      ! Vector / direction g1 (=  xh from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: g2      ! Vector / direction g2 (=  yh from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: g3      ! Vector / direction g3 (=  zh from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: i1      ! i1(K,:) = vector / direction i1 for blade K (=  xcK from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: i2      ! i2(K,:) = vector / direction i2 for blade K (=  ycK from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: i3      ! i3(K,:) = vector / direction i3 for blade K (=  zcK from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: j1      ! j1(K,:) = vector / direction j1 for blade K (=  xbK from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: j2      ! j2(K,:) = vector / direction j2 for blade K (=  ybK from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: j3      ! j3(K,:) = vector / direction j3 for blade K (=  zbK from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: m1      ! m1(K,J,:) = vector / direction m1 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: m2      ! m2(K,J,:) = vector / direction m2 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: m3      ! m3(K,J,:) = vector / direction m3 for node J of blade K (used to calc. and return aerodynamic loads from AeroDyn) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: n1      ! n1(K,J,:) = vector / direction n1 for node J of blade K (= LxbK from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: n2      ! n2(K,J,:) = vector / direction n2 for node J of blade K (= LybK from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: n3      ! n3(K,J,:) = vector / direction n3 for node J of blade K (= LzbK from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: p1      ! Vector / direction p1 (used to calc. and return tail aerodynamic loads from AeroDyn) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: p2      ! Vector / direction p2 (used to calc. and return tail aerodynamic loads from AeroDyn) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: p3      ! Vector / direction p3 (used to calc. and return tail aerodynamic loads from AeroDyn) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: rf1      ! Vector / direction rf1 (rotor-furl coordinate system = d1 when rotor-furl angle = 0) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: rf2      ! Vector / direction rf2 (rotor-furl coordinate system = d2 when rotor-furl angle = 0) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: rf3      ! Vector / direction rf3 (rotor-furl coordinate system = d3 when rotor-furl angle = 0) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: rfa      ! Vector / direction of the rotor-furl axis [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: t1      ! Vector / direction t1 for tower node J (=  Lxt from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: t2      ! Vector / direction t2 for tower node J (=  Lzt from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: t3      ! Vector / direction t3 for tower node J (= -Lyt from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: te1      ! te1(K,J,:) = vector / direction te1 for node J of blade K (used to calc. noise) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: te2      ! te2(K,J,:) = vector / direction te2 for node J of blade K (used to calc. noise) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: te3      ! te3(K,J,:) = vector / direction te3 for node J of blade K (used to calc. noise) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: tf1      ! Vector / direction tf1 (tail-furl coordinate system = d1 when rotor-furl angle = 0) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: tf2      ! Vector / direction tf2 (tail-furl coordinate system = d2 when rotor-furl angle = 0) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: tf3      ! Vector / direction tf3 (tail-furl coordinate system = d3 when rotor-furl angle = 0) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: tfa      ! Vector / direction of the tail-furl axis [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: z1      ! Vector / direction z1 (=  xi from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: z2      ! Vector / direction z2 (=  zi from the IEC coord. system) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: z3      ! Vector / direction z3 (= -yi from the IEC coord. system) [-]
   END TYPE ED_CoordSys
 ! =======================
 ! =========  ED_ActiveDOFs  =======
   TYPE, PUBLIC :: ED_ActiveDOFs
-    INTEGER(IntKi)  :: NActvDOF 
-    INTEGER(IntKi)  :: NPCE 
-    INTEGER(IntKi)  :: NPDE 
-    INTEGER(IntKi)  :: NPIE 
-    INTEGER(IntKi)  :: NPTE 
-    INTEGER(IntKi)  :: NPTTE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NPSBE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NPSE 
-    INTEGER(IntKi)  :: NPUE 
-    INTEGER(IntKi)  :: NPYE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PCE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PDE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PIE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PTE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PTTE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PS 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: PSBE 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: PSE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PUE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PYE 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: SrtPS 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: SrtPSNAUG 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: Diag 
+    INTEGER(IntKi)  :: NActvDOF      ! The number of active (enabled) DOFs in the model [-]
+    INTEGER(IntKi)  :: NPCE      ! Number of DOFs that contribute to the QD2T-related linear accelerations of the hub center of mass (point C) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi)  :: NPDE      ! Number of DOFs that contribute to the QD2T-related linear accelerations of the center of mass of the structure that furls with the rotor (not including rotor) (point D) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi)  :: NPIE      ! Number of DOFs that contribute to the QD2T-related linear accelerations of the tail boom center of mass (point I) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi)  :: NPTE      ! Number of DOFs that contribute to the QD2T-related linear accelerations of the tower nodes (point T) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi)  :: NPTTE      ! Number of tower DOFs that contribute to the QD2T-related linear accelerations of the tower nodes (point T) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NPSBE      ! Number of blade DOFs that contribute to the QD2T-related linear accelerations of the blade nodes (point S) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NPSE      ! Number of DOFs that contribute to the QD2T-related linear accelerations of the blade nodes (point S) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi)  :: NPUE      ! Number of DOFs that contribute to the QD2T-related linear accelerations of the nacelle center of mass (point U) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi)  :: NPYE      ! Number of DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PCE      ! Array of DOF indices (pointers) that contribute to the QD2T-related linear accelerations of the hub center of mass (point C) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PDE      ! Array of DOF indices (pointers) that contribute to the QD2T-related linear accelerations of the center of mass of the structure that furls with the rotor (not including rotor) (point D) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PIE      ! Array of DOF indices (pointers) that contribute to the QD2T-related linear accelerations of the tail boom center of mass (point I) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PTE      ! Array of DOF indices (pointers) that contribute to the QD2T-related linear accelerations of the tower nodes (point T) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PTTE      ! Array of tower DOF indices (pointers) that contribute to the QD2T-related linear accelerations of the tower nodes (point T) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PS      ! Array of DOF indices (pointers) to the active (enabled) DOFs/states [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: PSBE      ! Array of blade DOF indices (pointers) that contribute to the QD2T-related linear accelerations of the blade nodes (point S) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: PSE      ! Array of DOF indices (pointers) that contribute to the QD2T-related linear accelerations of the blade nodes (point S) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PUE      ! Array of DOF indices (pointers) that contribute to the QD2T-related linear accelerations of the nacelle center of mass (point U) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PYE      ! Array of DOF indices (pointers) that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y) in the inertia frame, based on which DOFs are presently enabled [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: SrtPS      ! Sorted (from smallest to largest DOF index) version of PS() [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: SrtPSNAUG      ! SrtPS() with the additional value of NAUG [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: Diag      ! Array containing the indices of SrtPS() associated with each enabled DOF; that is, SrtPS(Diag(I)) = I [-]
   END TYPE ED_ActiveDOFs
 ! =======================
 ! =========  ED_RtHndSide  =======
   TYPE, PUBLIC :: ED_RtHndSide
-    REAL(ReKi) , DIMENSION(1:3)  :: rO 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rQS 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rS 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rS0S 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rT 
-    REAL(ReKi) , DIMENSION(1:3)  :: rT0O 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rT0T 
-    REAL(ReKi) , DIMENSION(1:3)  :: rZ 
-    REAL(ReKi) , DIMENSION(1:3)  :: rZO 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rZT 
-    REAL(ReKi) , DIMENSION(1:3)  :: rPQ 
-    REAL(ReKi) , DIMENSION(1:3)  :: rP 
-    REAL(ReKi) , DIMENSION(1:3)  :: rV 
-    REAL(ReKi) , DIMENSION(1:3)  :: rZY 
-    REAL(ReKi) , DIMENSION(1:3)  :: rOU 
-    REAL(ReKi) , DIMENSION(1:3)  :: rOV 
-    REAL(ReKi) , DIMENSION(1:3)  :: rVD 
-    REAL(ReKi) , DIMENSION(1:3)  :: rOW 
-    REAL(ReKi) , DIMENSION(1:3)  :: rPC 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rPS0 
-    REAL(ReKi) , DIMENSION(1:3)  :: rQC 
-    REAL(ReKi) , DIMENSION(1:3)  :: rVIMU 
-    REAL(ReKi) , DIMENSION(1:3)  :: rVP 
-    REAL(ReKi) , DIMENSION(1:3)  :: rWI 
-    REAL(ReKi) , DIMENSION(1:3)  :: rWJ 
-    REAL(ReKi) , DIMENSION(1:3)  :: rWK 
-    REAL(ReKi) , DIMENSION(1:3)  :: rZT0 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngPosEF 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngPosXF 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AngPosHM 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngPosXB 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngPosEX 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEA 
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: PAngVelEF 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEG 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEH 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEL 
-    REAL(ReKi) , DIMENSION(:,:,:,:,:), ALLOCATABLE  :: PAngVelEM 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEN 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEA 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEB 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelER 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEX 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEG 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEH 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEL 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEN 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEB 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngVelER 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEX 
-    REAL(ReKi)  :: TeetAngVel 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEBt 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngAccERt 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEXt 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngAccEFt 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngVelEF 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEAt 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEGt 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEHt 
-    REAL(ReKi) , DIMENSION(1:3)  :: AngAccENt 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinAccECt 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEDt 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEIt 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEJt 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEUt 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEYt 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: LinVelES 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: LinVelET 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LinVelESm2 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEIMU 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEO 
-    REAL(ReKi) , DIMENSION(:,:,:,:,:), ALLOCATABLE  :: PLinVelES 
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: PLinVelET 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEZ 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEC 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelED 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEI 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEJ 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEK 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEP 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEQ 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEU 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEV 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEW 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEY 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEIMUt 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEOt 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: LinAccESt 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: LinAccETt 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEZt 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinVelEIMU 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinVelEZ 
-    REAL(ReKi) , DIMENSION(1:3)  :: LinVelEO 
-    REAL(ReKi) , DIMENSION(1:3)  :: FrcONcRtt 
-    REAL(ReKi) , DIMENSION(1:3)  :: FrcPRott 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FrcS0Bt 
-    REAL(ReKi) , DIMENSION(1:3)  :: FrcT0Trbt 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FSAero 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FSTipDrag 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FTHydrot 
-    REAL(ReKi) , DIMENSION(1:3)  :: FZHydrot 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MFHydrot 
-    REAL(ReKi) , DIMENSION(1:3)  :: MomBNcRtt 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MomH0Bt 
-    REAL(ReKi) , DIMENSION(1:3)  :: MomLPRott 
-    REAL(ReKi) , DIMENSION(1:3)  :: MomNGnRtt 
-    REAL(ReKi) , DIMENSION(1:3)  :: MomNTailt 
-    REAL(ReKi) , DIMENSION(1:3)  :: MomX0Trbt 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: MMAero 
-    REAL(ReKi) , DIMENSION(1:3)  :: MXHydrot 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcONcRt 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcPRot 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PFrcS0B 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcT0Trb 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PFTHydro 
-    REAL(ReKi) , DIMENSION(1:6,1:3)  :: PFZHydro 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PMFHydro 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomBNcRt 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PMomH0B 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomLPRot 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomNGnRt 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomNTail 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomX0Trb 
-    REAL(ReKi) , DIMENSION(1:6,1:3)  :: PMXHydro 
-    REAL(ReKi)  :: TeetAng 
-    REAL(ReKi) , DIMENSION(1:3)  :: FrcVGnRtt 
-    REAL(ReKi) , DIMENSION(1:3)  :: FrcWTailt 
-    REAL(ReKi) , DIMENSION(1:3)  :: FrcZAllt 
-    REAL(ReKi) , DIMENSION(1:3)  :: MomXAllt 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcVGnRt 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcWTail 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcZAll 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomXAll 
-    REAL(ReKi)  :: TeetMom 
-    REAL(ReKi)  :: TFrlMom 
-    REAL(ReKi)  :: RFrlMom 
-    REAL(ReKi)  :: GBoxEffFac 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rSAerCen 
+    REAL(ReKi) , DIMENSION(1:3)  :: rO      ! Position vector from inertial frame origin to tower-top / base plate (point O) [m]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rQS      ! Position vector from the apex of rotation (point Q) to a point on a blade (point S) [m]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rS      ! Position vector from inertial frame origin to a point on a blade (point S) [m]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rS0S      ! Position vector from the blade root (point S(0)) to a point on a blade (point S) [m]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rT      ! Position vector from inertial frame origin to the current node (point T(HNodes(J)) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rT0O      ! Position vector from the tower base (point T(0)) to tower-top / base plate (point O) [m]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rT0T      ! Position vector from a height of TowerBsHt (base of flexible portion of tower) (point T(0)) to a point on the tower (point T) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rZ      ! Position vector from inertia frame origin to platform reference (point Z) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rZO      ! Position vector from platform reference (point Z) to tower-top / base plate (point O) [m]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rZT      ! Position vector from platform reference (point Z) to a point on a tower (point T) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rPQ      ! Position vector from teeter pin (point P) to apex of rotation (point Q) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rP      ! Position vector from inertial frame origin to teeter pin (point P) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rV      ! Position vector from inertial frame origin to specified point on rotor-furl axis (point V) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rZY      ! Position vector from platform reference (point Z) to platform mass center (point Y) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rOU      ! Position vector from tower-top / base plate (point O) to nacelle center of mass (point U). [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rOV      ! Position vector from tower-top / base plate (point O) to specified point on rotor-furl axis (point V) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rVD      ! Position vector from specified point on rotor-furl axis (point V) to center of mass of structure that furls with the rotor (not including rotor) (point D) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rOW      ! Position vector from tower-top / base plate (point O) to specified point on  tail-furl axis (point W) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rPC      ! Position vector from teeter pin (point P) to hub center of mass (point C) [m]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rPS0      ! Position vector from teeter pin (point P) to blade root (point S(0)) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rQC      ! Position vector from apex of rotation (point Q) to hub center of mass (point C) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rVIMU      ! Position vector from specified point on rotor-furl axis (point V) to nacelle IMU (point IMU) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rVP      ! Position vector from specified point on rotor-furl axis (point V) to teeter pin (point P) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rWI      ! Position vector from specified point on  tail-furl axis (point W) to tail boom center of mass     (point I) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rWJ      ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of mass     (point J) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rWK      ! Position vector from specified point on  tail-furl axis (point W) to tail fin  center of pressure (point K) [m]
+    REAL(ReKi) , DIMENSION(1:3)  :: rZT0      ! Position vector from platform reference (point Z) to tower base (point T(0)) [m]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngPosEF      ! Angular position of the current point on the tower (body F) in the inertial frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngPosXF      ! Angular position of the current point on the tower (body F) in the platform (body X) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AngPosHM      ! Angular position of eleMent J of blade K (body M) in the hub (body H) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngPosXB      ! Angular position of the base plate (body B) in the platform (body X) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngPosEX      ! Angular position of the platform                   (body X) in the inertial frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEA      ! Partial angular velocity (and its 1st time derivative) of the tail (body A) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: PAngVelEF      ! Partial angular velocity (and its 1st time derivative) of tower element J (body F) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEG      ! Partial angular velocity (and its 1st time derivative) of the generator (body G) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEH      ! Partial angular velocity (and its 1st time derivative) of the hub (body H) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEL      ! Partial angular velocity (and its 1st time derivative) of the low-speed shaft (body L) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:,:,:), ALLOCATABLE  :: PAngVelEM      ! Partial angular velocity (and its 1st time derivative) of eleMent J of blade K (body M) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEN      ! Partial angular velocity (and its 1st time derivative) of the nacelle (body N) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEA      ! Angular velocity of the tail (body A) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEB      ! Partial angular velocity (and its 1st time derivative) of the base plate (body B) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelER      ! Partial angular velocity (and its 1st time derivative) of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PAngVelEX      ! Partial angular velocity (and its 1st time derivative) of the platform (body B) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEG      ! Angular velocity of the generator (body G) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEH      ! Angular velocity of the hub (body H) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEL      ! Angular velocity of the low-speed shaft (body L) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEN      ! Angular velocity of the nacelle (body N) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEB      ! Angular velocity of the base plate (body B) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngVelER      ! Angular velocity of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngVelEX      ! Angular velocity of the platform (body X) in the inertia frame (body E for earth) [-]
+    REAL(ReKi)  :: TeetAngVel      ! Angular velocity of the teeter motion [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEBt      ! Portion of the angular acceleration of the base plate (body B) in the inertia frame (body E for earth) associated with everything but the QD2T()s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngAccERt      ! Portion of the angular acceleration of the structure that furls with the rotor (not including rotor) (body R) in the inertia frame (body E for earth) associated with everything but the QD2T()s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEXt      ! Portion of the angular acceleration of the platform (body X) in the inertia frame (body E for earth) associated with everything but the QD2T()s [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngAccEFt      ! Portion of the angular acceleration of tower element J (body F) in the inertia frame (body E for earth) associated with everything but the QD2T()s [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AngVelEF      ! Angular velocity of the current point on the tower (body F) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEAt      ! Portion of the angular acceleration of the tail (body A) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEGt      ! Portion of the angular acceleration of the generator (body G) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngAccEHt      ! Portion of the angular acceleration of the hub (body H) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: AngAccENt      ! Portion of the angular acceleration of the nacelle (body N) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinAccECt      ! Portion of the linear acceleration of the hub center of mass (point C) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEDt      ! Portion of the linear acceleration of the center of mass of the structure that furls with the rotor (not including rotor) (point D) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEIt      ! Portion of the linear acceleration of the tail boom center of mass (point I) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEJt      ! Portion of the linear acceleration of the tail fin  center of mass (point J) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEUt      ! Portion of the linear acceleration of the nacelle center of mass (point U) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEYt      ! Portion of the linear acceleration of the platform center of mass (point Y) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: LinVelES      ! Linear velocity of current point on the current blade (point S) in the inertia frame [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: LinVelET      ! Linear velocity of current point on the tower (point T) in the inertia frame [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LinVelESm2      ! The m2-component (closest to tip) of LinVelES [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEIMU      ! Partial linear velocity (and its 1st time derivative) of the nacelle IMU (point IMU) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEO      ! Partial linear velocity (and its 1st time derivative) of the base plate (point O) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:,:,:), ALLOCATABLE  :: PLinVelES      ! Partial linear velocity (and its 1st time derivative) of a point on a blade (point S) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: PLinVelET      ! Partial linear velocity (and its 1st time derivative) of a point on the tower (point T) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEZ      ! Partial linear velocity (and its 1st time derivative) of the platform reference point (point Z) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEC      ! Partial linear velocity (and its 1st time derivative) of the hub center of mass (point C) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelED      ! Partial linear velocity (and its 1st time derivative) of the center of mass of the structure that furls with the rotor (not including rotor) (point D) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEI      ! Partial linear velocity (and its 1st time derivative) of the tail boom center of mass (point I) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEJ      ! Partial linear velocity (and its 1st time derivative) of the tail fin center of mass (point J) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEK      ! Partial linear velocity (and its 1st time derivative) of the tail fin center of pressure(point K) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEP      ! Partial linear velocity (and its 1st time derivative) of the teeter pin (point P) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEQ      ! Partial linear velocity (and its 1st time derivative) of the apex of rotation (point Q) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEU      ! Partial linear velocity (and its 1st time derivative) of the nacelle center of mass (point U) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEV      ! Partial linear velocity (and its 1st time derivative) of the selected point on the rotor-furl axis (point V) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEW      ! Partial linear velocity (and its 1st time derivative) of the selected point on the tail-furl axis (point W) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PLinVelEY      ! Partial linear velocity (and its 1st time derivative) of the platform mass center (point Y) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEIMUt      ! Portion of the linear acceleration of the nacelle IMU (point IMU) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEOt      ! Portion of the linear acceleration of the base plate (point O) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: LinAccESt      ! Portion of the linear acceleration of a point on a blade (point S) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: LinAccETt      ! Portion of the linear acceleration of a point on the tower (point T) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinAccEZt      ! Portion of the linear acceleration of the platform reference (point Z) in the inertia frame (body E for earth) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinVelEIMU      ! Linear velocity of the nacelle IMU (point IMU) in the inertia frame [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinVelEZ      ! Linear velocity of platform reference (point Z) in the inertia frame [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: LinVelEO      ! Linear velocity of the base plate (point O) in the inertia frame (body E for earth) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: FrcONcRtt      ! Portion of the force at yaw bearing (point O) due to the nacelle, generator, and rotor associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: FrcPRott      ! Portion of the force at the teeter pin (point P) due to the rotor associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FrcS0Bt      ! Portion of the force at the blade root (point S(0)) due to the blade associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: FrcT0Trbt      ! Portion of the force at tower base (point T(0)) due to the turbine associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FSAero      ! The aerodynamic force per unit span acting on a blade at point S [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FSTipDrag      ! The aerodynamic force at a blade tip resulting from tip drag [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FTHydrot      ! Portion of the hydrodynamic force (& all other external forces, including aerodynamic) per unit length acting on the tower at point T associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: FZHydrot      ! Portion of the platform hydrodynamic force at the platform reference (point Z) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MFHydrot      ! Portion of the hydrodynamic moment (and all other external moments, including aerodynamic) per unit length acting on a tower element (body F) at point T associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: MomBNcRtt      ! Portion of the moment at the base plate (body B) / yaw bearing (point O) due to the nacelle, generator, and rotor associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MomH0Bt      ! Portion of the moment at the hub (body H) / blade root (point S(0)) due to the blade associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: MomLPRott      ! Portion of the moment at the teeter pin (point P) on the low-speed shaft (body L) due to the rotor associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: MomNGnRtt      ! Portion of the moment at the nacelle (body N) / selected point on rotor-furl axis (point V) due the structure that furls with the rotor, generator, and rotor associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: MomNTailt      ! Portion of the moment at the nacelle (body N) / selected point on tail-furl axis (point W) due the tail associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: MomX0Trbt      ! Portion of the moment at the platform (body X) / tower base (point T(0)) due to the turbine associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: MMAero      ! The aerodynamic moment per unit span acting on a blade at point S [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: MXHydrot      ! Portion of the platform hydrodynamic moment acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcONcRt      ! Partial force at the yaw bearing (point O) due to the nacelle, generator, and rotor [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcPRot      ! Partial force at the teeter pin (point P) due to the rotor [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PFrcS0B      ! Partial force at the blade root (point S(0)) due to the blade [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcT0Trb      ! Partial force at the tower base (point T(0)) due to the turbine [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PFTHydro      ! Partial hydrodynamic force per unit length acting on the tower at point T [-]
+    REAL(ReKi) , DIMENSION(1:6,1:3)  :: PFZHydro      ! Partial platform hydrodynamic force at the platform reference (point Z) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PMFHydro      ! Partial hydrodynamic moment per unit length acting on a tower element (body F) at point T [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomBNcRt      ! Partial moment at the base plate (body B) / yaw bearing (point O) due the nacelle, generator, and rotor [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: PMomH0B      ! Partial moment at the hub (body H) / blade root (point S(0)) due to the blade [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomLPRot      ! Partial moment at the teeter pin (point P) on the low-speed shaft (body L) due to the rotor [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomNGnRt      ! Partial moment at the nacelle (body N) / selected point on rotor-furl axis (point V) due the structure that furls with the rotor, generator, and rotor [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomNTail      ! Partial moment at the nacelle (body N) / selected point on tail-furl axis (point W) due the tail [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomX0Trb      ! Partial moment at the platform (body X) / tower base (point T(0)) due to the turbine [-]
+    REAL(ReKi) , DIMENSION(1:6,1:3)  :: PMXHydro      ! Partial platform hydrodynamic moment at the platform (body X) / platform reference (point Z) [-]
+    REAL(ReKi)  :: TeetAng      ! Current teeter angle = QT(DOF_Teet) for 2-blader or 0 for 3-blader (this is used in place of QT(DOF_Teet) throughout RtHS() [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: FrcVGnRtt      ! Portion of the force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: FrcWTailt      ! Portion of the force at the tail-furl axis (point W) due to the tail associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: FrcZAllt      ! Portion of the force at platform reference (point Z) due to everything associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: MomXAllt      ! Portion of the moment at the platform (body X) / platform reference (point Z) due to everything associated with everything but the QD2T()'s [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcVGnRt      ! Partial force at the rotor-furl axis (point V) due to the structure that furls with the rotor, generator, and rotor [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcWTail      ! Partial force at the tail-furl axis (point W) due to the tail [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PFrcZAll      ! Partial force at the platform reference (point Z) due to everything [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PMomXAll      ! Partial moment at the platform (body X) / platform reference (point Z) due to the everything [-]
+    REAL(ReKi)  :: TeetMom      ! The total moment supplied by the stop, spring, and damper of the teeter mechanism [-]
+    REAL(ReKi)  :: TFrlMom      ! The total tail-furl spring and damper moment [-]
+    REAL(ReKi)  :: RFrlMom      ! The total rotor-furl spring and damper moment [-]
+    REAL(ReKi)  :: GBoxEffFac      ! The factor used to apply the gearbox efficiency effects to the equation associated with the generator DOF [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: rSAerCen      ! aerodynamic pitching moment arm (i.e., the position vector from point S on the blade to the aerodynamic center of the element) [-]
   END TYPE ED_RtHndSide
 ! =======================
 ! =========  ED_InitInputType  =======
   TYPE, PUBLIC :: ED_InitInputType
-    CHARACTER(1024)  :: InputFile 
-    CHARACTER(1024)  :: ADInputFile 
-    CHARACTER(1024)  :: RootName 
+    CHARACTER(1024)  :: InputFile      ! Name of the input file [-]
+    CHARACTER(1024)  :: ADInputFile      ! Name of the AeroDyn input file (in this verison, that is where we'll get the blade mesh info [-]
+    CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
   END TYPE ED_InitInputType
 ! =======================
 ! =========  ED_InitOutputType  =======
   TYPE, PUBLIC :: ED_InitOutputType
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt 
-    TYPE(ProgDesc)  :: Ver 
-    INTEGER(IntKi)  :: NumBl 
-    REAL(ReKi)  :: Gravity 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch 
-    REAL(ReKi)  :: BladeLength 
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
+    TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
+    INTEGER(IntKi)  :: NumBl      ! Number of blades on the turbine [-]
+    REAL(ReKi)  :: Gravity      ! Gravitational acceleration [m/s^2]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Initial blade pitch angles [radians]
+    REAL(ReKi)  :: BladeLength      ! Blade length (for AeroDyn) [meters]
   END TYPE ED_InitOutputType
 ! =======================
 ! =========  ED_ContinuousStateType  =======
   TYPE, PUBLIC :: ED_ContinuousStateType
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: QT 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: QDT 
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: QT      ! Current estimate of Q (displacement matrix) for each degree of freedom [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: QDT      ! Current estimate of QD (velocity matrix) for each degree of freedom [-]
   END TYPE ED_ContinuousStateType
 ! =======================
 ! =========  ED_DiscreteStateType  =======
   TYPE, PUBLIC :: ED_DiscreteStateType
-    REAL(ReKi)  :: DummyDiscState 
+    REAL(ReKi)  :: DummyDiscState      ! Remove this variable if you have discrete states [-]
   END TYPE ED_DiscreteStateType
 ! =======================
 ! =========  ED_ConstraintStateType  =======
   TYPE, PUBLIC :: ED_ConstraintStateType
-    REAL(ReKi)  :: DummyConstrState 
+    REAL(ReKi)  :: DummyConstrState      ! Remove this variable if you have constraint states [-]
   END TYPE ED_ConstraintStateType
 ! =======================
 ! =========  ED_OtherStateType  =======
   TYPE, PUBLIC :: ED_OtherStateType
-    TYPE(ED_CoordSys)  :: CoordSys 
-    TYPE(ED_RtHndSide)  :: RtHS 
-    INTEGER(IntKi)  :: n 
-    TYPE(ED_ContinuousStateType) , DIMENSION(1:4)  :: xdot 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IC 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: QD2T 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMat 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMatOut 
-    TYPE(ED_ContinuousStateType)  :: k1 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AllOuts 
+    TYPE(ED_CoordSys)  :: CoordSys      ! Coordinate systems in the FAST framework [-]
+    TYPE(ED_RtHndSide)  :: RtHS      ! Values used in calculating the right-hand-side RtHS (and outputs) [-]
+    INTEGER(IntKi)  :: n      ! tracks time step for which OtherState was updated [-]
+    TYPE(ED_ContinuousStateType) , DIMENSION(1:4)  :: xdot      ! previous state deriv for multi-step [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IC      ! Array which stores pointers to predictor-corrector results [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: QD2T      ! Solution (acceleration) vector; the first time derivative of QDT [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Current blade pitch angles [radians]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMat      ! The augmented matrix used for the solution of the QD2T()s [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMatOut      ! Copy of AugMat (when calculating cont state deriv) for routine that fixes the HSSBrTrq [-]
+    TYPE(ED_ContinuousStateType)  :: k1      ! Constant for ED_RK4 routine [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AllOuts      ! An array holding the value of all of the calculated (not only selected) output channels [see OutListParameters.xlsx spreadsheet]
   END TYPE ED_OtherStateType
 ! =======================
 ! =========  ED_ParameterType  =======
   TYPE, PUBLIC :: ED_ParameterType
-    REAL(DbKi)  :: DT 
-    REAL(DbKi)  :: DT24 
-    INTEGER(IntKi)  :: BldNodes 
-    INTEGER(IntKi)  :: TipNode 
-    INTEGER(IntKi)  :: NDOF 
-    REAL(ReKi)  :: TwoPiNB 
-    INTEGER(IntKi)  :: NAug 
-    INTEGER(IntKi)  :: NPH 
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PH 
-    INTEGER(IntKi)  :: NPM 
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: PM 
-    LOGICAL , DIMENSION(:), ALLOCATABLE  :: DOF_Flag 
-    CHARACTER(99) , DIMENSION(:), ALLOCATABLE  :: DOF_Desc 
-    TYPE(ED_ActiveDOFs)  :: DOFs 
-    INTEGER(IntKi)  :: NumOuts = 0 
-    CHARACTER(20)  :: OutFmt 
-    INTEGER(IntKi)  :: NBlGages = 0 
-    INTEGER(IntKi)  :: NTwGages = 0 
-    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam 
-    CHARACTER(1)  :: Delim 
-    REAL(ReKi)  :: AvgNrmTpRd 
-    REAL(ReKi)  :: AzimB1Up 
-    REAL(ReKi)  :: CosDel3 = 1.0 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CosPreC 
-    REAL(ReKi)  :: CRFrlSkew 
-    REAL(ReKi)  :: CRFrlSkw2 
-    REAL(ReKi)  :: CRFrlTilt 
-    REAL(ReKi)  :: CRFrlTlt2 
-    REAL(ReKi)  :: CShftSkew 
-    REAL(ReKi)  :: CShftTilt 
-    REAL(ReKi)  :: CSRFrlSkw 
-    REAL(ReKi)  :: CSRFrlTlt 
-    REAL(ReKi)  :: CSTFrlSkw 
-    REAL(ReKi)  :: CSTFrlTlt 
-    REAL(ReKi)  :: CTFinBank 
-    REAL(ReKi)  :: CTFinSkew 
-    REAL(ReKi)  :: CTFinTilt 
-    REAL(ReKi)  :: CTFrlSkew 
-    REAL(ReKi)  :: CTFrlSkw2 
-    REAL(ReKi)  :: CTFrlTilt 
-    REAL(ReKi)  :: CTFrlTlt2 
-    REAL(ReKi)  :: HubHt 
-    REAL(ReKi)  :: HubCM 
-    REAL(ReKi)  :: HubRad 
-    REAL(ReKi)  :: NacCMxn 
-    REAL(ReKi)  :: NacCMyn 
-    REAL(ReKi)  :: NacCMzn 
-    REAL(ReKi)  :: OverHang 
-    REAL(ReKi)  :: ProjArea 
-    REAL(ReKi)  :: PtfmRefzt 
-    REAL(ReKi)  :: RefTwrHt 
-    REAL(ReKi)  :: RFrlPntxn 
-    REAL(ReKi)  :: RFrlPntyn 
-    REAL(ReKi)  :: RFrlPntzn 
-    REAL(ReKi)  :: rVDxn 
-    REAL(ReKi)  :: rVDyn 
-    REAL(ReKi)  :: rVDzn 
-    REAL(ReKi)  :: rVIMUxn 
-    REAL(ReKi)  :: rVIMUyn 
-    REAL(ReKi)  :: rVIMUzn 
-    REAL(ReKi)  :: rVPxn 
-    REAL(ReKi)  :: rVPyn 
-    REAL(ReKi)  :: rVPzn 
-    REAL(ReKi)  :: rWIxn 
-    REAL(ReKi)  :: rWIyn 
-    REAL(ReKi)  :: rWIzn 
-    REAL(ReKi)  :: rWJxn 
-    REAL(ReKi)  :: rWJyn 
-    REAL(ReKi)  :: rWJzn 
-    REAL(ReKi)  :: rWKxn 
-    REAL(ReKi)  :: rWKyn 
-    REAL(ReKi)  :: rWKzn 
-    REAL(ReKi)  :: rZT0zt 
-    REAL(ReKi)  :: rZYzt 
-    REAL(ReKi)  :: SinDel3 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SinPreC 
-    REAL(ReKi)  :: SRFrlSkew 
-    REAL(ReKi)  :: SRFrlSkw2 
-    REAL(ReKi)  :: SRFrlTilt 
-    REAL(ReKi)  :: SRFrlTlt2 
-    REAL(ReKi)  :: SShftSkew 
-    REAL(ReKi)  :: SShftTilt 
-    REAL(ReKi)  :: STFinBank 
-    REAL(ReKi)  :: STFinSkew 
-    REAL(ReKi)  :: STFinTilt 
-    REAL(ReKi)  :: STFrlSkew 
-    REAL(ReKi)  :: STFrlSkw2 
-    REAL(ReKi)  :: STFrlTilt 
-    REAL(ReKi)  :: STFrlTlt2 
-    REAL(ReKi)  :: TFrlPntxn 
-    REAL(ReKi)  :: TFrlPntyn 
-    REAL(ReKi)  :: TFrlPntzn 
-    REAL(ReKi)  :: TipRad 
-    REAL(ReKi)  :: TowerHt 
-    REAL(ReKi)  :: TowerBsHt 
-    REAL(ReKi)  :: UndSling 
-    INTEGER(IntKi)  :: NumBl 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AxRedTFA 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AxRedTSS 
-    REAL(ReKi) , DIMENSION(1:2,1:2)  :: CTFA 
-    REAL(ReKi) , DIMENSION(1:2,1:2)  :: CTSS 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: DHNodes 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: HNodes 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: HNodesNorm 
-    REAL(ReKi) , DIMENSION(1:2,1:2)  :: KTFA 
-    REAL(ReKi) , DIMENSION(1:2,1:2)  :: KTSS 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: MassT 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StiffTSS 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: TwrFASF 
-    REAL(ReKi)  :: TwrFlexL 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: TwrSSSF 
-    INTEGER(IntKi)  :: TTopNode 
-    INTEGER(IntKi)  :: TwrNodes 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: InerTFA 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: InerTSS 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StiffTGJ 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StiffTEA 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StiffTFA 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: cgOffTFA 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: cgOffTSS 
-    REAL(ReKi)  :: AtfaIner 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldCG 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldMass 
-    REAL(ReKi)  :: BoomMass 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FirstMom 
-    REAL(ReKi)  :: GenIner 
-    REAL(ReKi)  :: Hubg1Iner 
-    REAL(ReKi)  :: Hubg2Iner 
-    REAL(ReKi)  :: HubMass 
-    REAL(ReKi)  :: Nacd2Iner 
-    REAL(ReKi)  :: NacMass 
-    REAL(ReKi)  :: PtfmMass 
-    REAL(ReKi)  :: PtfmPIner 
-    REAL(ReKi)  :: PtfmRIner 
-    REAL(ReKi)  :: PtfmYIner 
-    REAL(ReKi)  :: RFrlMass 
-    REAL(ReKi)  :: RotIner 
-    REAL(ReKi)  :: RotMass 
-    REAL(ReKi)  :: RrfaIner 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SecondMom 
-    REAL(ReKi)  :: TFinMass 
-    REAL(ReKi)  :: TFrlIner 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TipMass 
-    REAL(ReKi)  :: TurbMass 
-    REAL(ReKi)  :: TwrMass 
-    REAL(ReKi)  :: TwrTpMass 
-    REAL(ReKi)  :: YawBrMass 
-    REAL(ReKi)  :: Gravity 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PitchAxis 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AeroTwst 
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: AxRedBld 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BAlpha 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldEDamp 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldFDamp 
-    REAL(ReKi)  :: BldFlexL 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CAeroTwst 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: CBE 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: CBF 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: cgOffBEdg 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: cgOffBFlp 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Chord 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: CThetaS 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: DRNodes 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: EAOffBEdg 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: EAOffBFlp 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FStTunr 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: InerBEdg 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: InerBFlp 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: KBE 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: KBF 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MassB 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: RefAxisxb 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: RefAxisyb 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: RNodes 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: RNodesNorm 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rSAerCenn1 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rSAerCenn2 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SAeroTwst 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: StiffBE 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: StiffBEA 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: StiffBF 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: StiffBGJ 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: SThetaS 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ThetaS 
-    REAL(ReKi) , DIMENSION(:,:,:,:,:), ALLOCATABLE  :: TwistedSF 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldFl1Sh 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldFl2Sh 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldEdgSh 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FreqBE 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FreqBF 
-    REAL(ReKi) , DIMENSION(1:2,1:2)  :: FreqTFA 
-    REAL(ReKi) , DIMENSION(1:2,1:2)  :: FreqTSS 
-    REAL(ReKi)  :: TeetCDmp 
-    REAL(ReKi)  :: TeetDmp 
-    REAL(ReKi)  :: TeetDmpP 
-    REAL(ReKi)  :: TeetHSSp 
-    REAL(ReKi)  :: TeetHStP 
-    REAL(ReKi)  :: TeetSSSp 
-    REAL(ReKi)  :: TeetSStP 
-    INTEGER(IntKi)  :: TeetMod 
-    REAL(ReKi)  :: TFrlCDmp 
-    REAL(ReKi)  :: TFrlDmp 
-    REAL(ReKi)  :: TFrlDSDmp 
-    REAL(ReKi)  :: TFrlDSDP 
-    REAL(ReKi)  :: TFrlDSSP 
-    REAL(ReKi)  :: TFrlDSSpr 
-    REAL(ReKi)  :: TFrlSpr 
-    REAL(ReKi)  :: TFrlUSDmp 
-    REAL(ReKi)  :: TFrlUSDP 
-    REAL(ReKi)  :: TFrlUSSP 
-    REAL(ReKi)  :: TFrlUSSpr 
-    INTEGER(IntKi)  :: TFrlMod 
-    REAL(ReKi)  :: RFrlCDmp 
-    REAL(ReKi)  :: RFrlDmp 
-    REAL(ReKi)  :: RFrlDSDmp 
-    REAL(ReKi)  :: RFrlDSDP 
-    REAL(ReKi)  :: RFrlDSSP 
-    REAL(ReKi)  :: RFrlDSSpr 
-    REAL(ReKi)  :: RFrlSpr 
-    REAL(ReKi)  :: RFrlUSDmp 
-    REAL(ReKi)  :: RFrlUSDP 
-    REAL(ReKi)  :: RFrlUSSP 
-    REAL(ReKi)  :: RFrlUSSpr 
-    INTEGER(IntKi)  :: RFrlMod 
-    REAL(ReKi)  :: ShftGagL 
-    INTEGER(IntKi) , DIMENSION(1:9)  :: BldGagNd 
-    INTEGER(IntKi) , DIMENSION(1:9)  :: TwrGagNd 
-    REAL(DbKi)  :: TStart 
-    REAL(ReKi)  :: DTTorDmp 
-    REAL(ReKi)  :: DTTorSpr 
-    REAL(ReKi)  :: GBRatio 
-    REAL(ReKi)  :: GBoxEff 
-    REAL(ReKi)  :: RotSpeed 
-    CHARACTER(1024)  :: RootName 
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BElmntMass 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TElmntMass 
-    INTEGER(IntKi)  :: method 
-    REAL(ReKi)  :: PtfmCMxt 
-    REAL(ReKi)  :: PtfmCMyt 
+    REAL(DbKi)  :: DT      ! Time step for continuous state integration & discrete state update [seconds]
+    REAL(DbKi)  :: DT24      ! =DT/24 (used in loose coupling) [seconds]
+    INTEGER(IntKi)  :: BldNodes      ! Number of blade nodes used in the analysis [-]
+    INTEGER(IntKi)  :: TipNode      ! Index of the additional node located at the blade tip = BldNodes + 1 [-]
+    INTEGER(IntKi)  :: NDOF      ! Number of total degrees of freedom (DOFs) [-]
+    REAL(ReKi)  :: TwoPiNB      ! Two pi divided by the number of blades [radians]
+    INTEGER(IntKi)  :: NAug      ! Dimension of augmented solution matrix [-]
+    INTEGER(IntKi)  :: NPH      ! Number of DOFs that contribute to the angular velocity of the hub (body H) in the inertia frame [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: PH      ! Array of DOF indices (pointers) that contribute to the angular velocity of the hub (body H) in the inertia frame [-]
+    INTEGER(IntKi)  :: NPM      ! Number of DOFs that contribute to the angular velocity of the blade elements (body M) in the inertia frame [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: PM      ! Array of DOF indices (pointers) that contribute to the angular velocity of the blade elements (body M) in the inertia frame [-]
+    LOGICAL , DIMENSION(:), ALLOCATABLE  :: DOF_Flag      ! Array which stores values of the feature flags for each DOF [-]
+    CHARACTER(99) , DIMENSION(:), ALLOCATABLE  :: DOF_Desc      ! Array which stores descriptions of each DOF [-]
+    TYPE(ED_ActiveDOFs)  :: DOFs      ! Active degrees of freedom in the model [-]
+    INTEGER(IntKi)  :: NumOuts = 0      ! Number of parameters in the output list (number of outputs requested) [-]
+    CHARACTER(20)  :: OutFmt      ! Output format for tabular data [-]
+    INTEGER(IntKi)  :: NBlGages = 0      ! Number of blade strain gages [-]
+    INTEGER(IntKi)  :: NTwGages = 0      ! Number of tower strain gages [-]
+    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! Names and units (and other characteristics) of all requested output parameters [-]
+    CHARACTER(1)  :: Delim      ! Column delimiter for output text files [-]
+    REAL(ReKi)  :: AvgNrmTpRd      ! Average tip radius normal to the shaft [meters]
+    REAL(ReKi)  :: AzimB1Up      ! Azimuth value to use for I/O when blade 1 points up [radians]
+    REAL(ReKi)  :: CosDel3 = 1.0      ! Cosine of the Delta-3 angle for teetering rotors [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CosPreC      ! Cosines of the precone angles [-]
+    REAL(ReKi)  :: CRFrlSkew      ! Cosine of the rotor-furl axis skew angle [-]
+    REAL(ReKi)  :: CRFrlSkw2      ! Cosine-squared of the rotor-furl axis skew angle [-]
+    REAL(ReKi)  :: CRFrlTilt      ! Cosine of the rotor-furl axis tilt angle [-]
+    REAL(ReKi)  :: CRFrlTlt2      ! Cosine-squared of the rotor-furl axis tilt angle [-]
+    REAL(ReKi)  :: CShftSkew      ! Cosine of the shaft skew angle [-]
+    REAL(ReKi)  :: CShftTilt      ! Cosine of the shaft tilt angle [-]
+    REAL(ReKi)  :: CSRFrlSkw      ! Cosine*Sine of the rotor-furl axis skew angle [-]
+    REAL(ReKi)  :: CSRFrlTlt      ! Cosine*Sine of the rotor-furl axis tilt angle [-]
+    REAL(ReKi)  :: CSTFrlSkw      ! Cosine*Sine of the tail-furl axis skew angle [-]
+    REAL(ReKi)  :: CSTFrlTlt      ! Cosine*Sine of the tail-furl axis tilt angle [-]
+    REAL(ReKi)  :: CTFinBank      ! Cosine of the tail fin planform bank angle [-]
+    REAL(ReKi)  :: CTFinSkew      ! Cosine of the tail fin chordline skew angle [-]
+    REAL(ReKi)  :: CTFinTilt      ! Cosine of the tail fin chordline tilt angle [-]
+    REAL(ReKi)  :: CTFrlSkew      ! Cosine of the tail-furl axis skew angle [-]
+    REAL(ReKi)  :: CTFrlSkw2      ! Cosine-squared of the tail-furl axis skew angle [-]
+    REAL(ReKi)  :: CTFrlTilt      ! Cosine of the tail-furl axis tilt angle [-]
+    REAL(ReKi)  :: CTFrlTlt2      ! Cosine-squared of the tail-furl axis tilt angle [-]
+    REAL(ReKi)  :: HubHt      ! Hub-height as computed using FAST inputs [= TowerHt + Twr2Shft + OverHang*SIN( ShftTilt ) ] (was FASTHH) [-]
+    REAL(ReKi)  :: HubCM      ! Distance from rotor apex to hub mass [-]
+    REAL(ReKi)  :: HubRad      ! Preconed hub radius [-]
+    REAL(ReKi)  :: NacCMxn      ! Downwind distance from tower-top to nacelle CM [-]
+    REAL(ReKi)  :: NacCMyn      ! Lateral distance from tower-top to nacelle CM [-]
+    REAL(ReKi)  :: NacCMzn      ! Vertical distance from tower-top to nacelle CM [-]
+    REAL(ReKi)  :: OverHang      ! Distance from yaw axis to rotor apex or teeter pin [-]
+    REAL(ReKi)  :: ProjArea      ! Swept area of the rotor projected onto the rotor plane (the plane normal to the low-speed shaft) [-]
+    REAL(ReKi)  :: PtfmRefzt      ! Vertical distance from the ground [onshore] or MSL [offshore] to the platform reference point [-]
+    REAL(ReKi)  :: RefTwrHt      ! Vertical distance between FAST's undisplaced tower height (variable TowerHt) and FAST's inertia frame reference point (variable PtfmRef); that is, RefTwrHt = TowerHt - PtfmRefzt [-]
+    REAL(ReKi)  :: RFrlPntxn      ! Downwind distance from tower-top to arbitrary point on rotor-furl axis [-]
+    REAL(ReKi)  :: RFrlPntyn      ! Lateral distance from tower-top to arbitrary point on rotor-furl axis [-]
+    REAL(ReKi)  :: RFrlPntzn      ! Vertical distance from tower-top to arbitrary point on rotor-furl axis [-]
+    REAL(ReKi)  :: rVDxn      ! xn-component of position vector Rvd [-]
+    REAL(ReKi)  :: rVDyn      ! yn-component of position vector rVD [-]
+    REAL(ReKi)  :: rVDzn      ! zn-component of position vector rVD [-]
+    REAL(ReKi)  :: rVIMUxn      ! xn-component of position vector rVIMU [-]
+    REAL(ReKi)  :: rVIMUyn      ! yn-component of position vector rVIMU [-]
+    REAL(ReKi)  :: rVIMUzn      ! zn-component of position vector rVIMU [-]
+    REAL(ReKi)  :: rVPxn      ! xn-component of position vector rVP [-]
+    REAL(ReKi)  :: rVPyn      ! yn-component of position vector rVP [-]
+    REAL(ReKi)  :: rVPzn      ! zn-component of position vector rVP [-]
+    REAL(ReKi)  :: rWIxn      ! xn-component of position vector rWI [-]
+    REAL(ReKi)  :: rWIyn      ! yn-component of position vector rWI [-]
+    REAL(ReKi)  :: rWIzn      ! zn-component of position vector rWI [-]
+    REAL(ReKi)  :: rWJxn      ! xn-component of position vector rWJ [-]
+    REAL(ReKi)  :: rWJyn      ! yn-component of position vector rWJ [-]
+    REAL(ReKi)  :: rWJzn      ! zn-component of position vector rWJ [-]
+    REAL(ReKi)  :: rWKxn      ! xn-component of position vector rWK [-]
+    REAL(ReKi)  :: rWKyn      ! yn-component of position vector rWK [-]
+    REAL(ReKi)  :: rWKzn      ! zn-component of position vector rWK [-]
+    REAL(ReKi)  :: rZT0zt      ! zt-component of position vector rZT0 [-]
+    REAL(ReKi)  :: rZYzt      ! zt-component of position vector rZY [-]
+    REAL(ReKi)  :: SinDel3      ! Sine of the Delta-3 angle for teetering rotors [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SinPreC      ! Sines of the precone angles [-]
+    REAL(ReKi)  :: SRFrlSkew      ! Sine of the rotor-furl axis skew angle [-]
+    REAL(ReKi)  :: SRFrlSkw2      ! Sine-squared of the rotor-furl axis skew angle [-]
+    REAL(ReKi)  :: SRFrlTilt      ! Sine of the rotor-furl axis tilt angle [-]
+    REAL(ReKi)  :: SRFrlTlt2      ! Sine-squared of the rotor-furl axis tilt angle [-]
+    REAL(ReKi)  :: SShftSkew      ! Sine of the shaft skew angle [-]
+    REAL(ReKi)  :: SShftTilt      ! Sine of the shaft tilt angle [-]
+    REAL(ReKi)  :: STFinBank      ! Sine of the tail fin planform bank angle [-]
+    REAL(ReKi)  :: STFinSkew      ! Sine of the tail fin chordline skew angle [-]
+    REAL(ReKi)  :: STFinTilt      ! Sine of the tail fin chordline tilt angle [-]
+    REAL(ReKi)  :: STFrlSkew      ! Sine of the tail-furl axis skew angle [-]
+    REAL(ReKi)  :: STFrlSkw2      ! Sine-squared of the tail-furl axis skew angle [-]
+    REAL(ReKi)  :: STFrlTilt      ! Sine of the tail-furl axis tilt angle [-]
+    REAL(ReKi)  :: STFrlTlt2      ! Sine-squared of the tail-furl axis tilt angle [-]
+    REAL(ReKi)  :: TFrlPntxn      ! Downwind distance from tower-top to arbitrary point on tail-furl axis [-]
+    REAL(ReKi)  :: TFrlPntyn      ! Lateral distance from tower-top to arbitrary point on tail-furl axis [-]
+    REAL(ReKi)  :: TFrlPntzn      ! Vertical distance from tower-top to arbitrary point on tail-furl axis [-]
+    REAL(ReKi)  :: TipRad      ! Preconed blade-tip radius [-]
+    REAL(ReKi)  :: TowerHt      ! Height of tower above ground level [-]
+    REAL(ReKi)  :: TowerBsHt      ! Height of tower base above ground level [onshore] or MSL [offshore] [meters]
+    REAL(ReKi)  :: UndSling      ! Undersling length [-]
+    INTEGER(IntKi)  :: NumBl      ! Number of turbine blades [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AxRedTFA      ! The axial-reduction terms for the fore-aft tower mode shapes [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: AxRedTSS      ! The axial-reduction terms for the side-to-side tower mode shapes [-]
+    REAL(ReKi) , DIMENSION(1:2,1:2)  :: CTFA      ! Generalized damping of tower in fore-aft direction [-]
+    REAL(ReKi) , DIMENSION(1:2,1:2)  :: CTSS      ! Generalized damping of tower in side-to-side direction [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: DHNodes      ! Length of variable-length tower elements [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: HNodes      ! Location of variable-spaced tower nodes (relative to the tower rigid base height [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: HNodesNorm      ! Normalized location of variable-spaced tower nodes (relative to the tower rigid base height) (0 < HNodesNorm(:) < 1) [-]
+    REAL(ReKi) , DIMENSION(1:2,1:2)  :: KTFA      ! Generalized stiffness of tower in fore-aft direction [-]
+    REAL(ReKi) , DIMENSION(1:2,1:2)  :: KTSS      ! Generalized stiffness of tower in side-to-side direction [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: MassT      ! Interpolated lineal mass density of tower [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StiffTSS      ! Interpolated side-side tower stiffness [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: TwrFASF      ! Tower fore-aft shape functions [-]
+    REAL(ReKi)  :: TwrFlexL      ! Height / length of the flexible portion of the tower [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: TwrSSSF      ! Tower side-to-side shape functions [-]
+    INTEGER(IntKi)  :: TTopNode      ! Index of the additional node located at the tower-top = TwrNodes + 1 [-]
+    INTEGER(IntKi)  :: TwrNodes      ! Number of tower nodes used in the analysis [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: InerTFA      ! Interpolated tower fore-aft (about yt-axis) mass inertia per unit length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: InerTSS      ! Interpolated tower side-to-side (about xt-axis) mass inertia per unit length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StiffTGJ      ! Interpolated tower torsional stiffness [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StiffTEA      ! Interpolated tower extensional stiffness [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StiffTFA      ! Interpolated fore-aft tower stiffness [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: cgOffTFA      ! Interpolated tower fore-aft mass cg offset [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: cgOffTSS      ! Interpolated tower side-to-side mass cg offset [-]
+    REAL(ReKi)  :: AtfaIner      ! Inertia of tail boom about the tail-furl axis whose origin is the tail boom center of mass [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldCG      ! Blade center of mass wrt the blade root [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BldMass      ! Blade masses [-]
+    REAL(ReKi)  :: BoomMass      ! Tail boom mass [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FirstMom      ! First mass moment of inertia of blades wrt the root [-]
+    REAL(ReKi)  :: GenIner      ! Generator inertia about HSS [-]
+    REAL(ReKi)  :: Hubg1Iner      ! Inertia of hub about g1-axis (rotor centerline) [-]
+    REAL(ReKi)  :: Hubg2Iner      ! Inertia of hub about g2-axis (transverse to the cyclinder and passing through its c.g.) [-]
+    REAL(ReKi)  :: HubMass      ! Hub mass [-]
+    REAL(ReKi)  :: Nacd2Iner      ! Inertia of nacelle about the d2-axis whose origin is the nacelle center of mass [-]
+    REAL(ReKi)  :: NacMass      ! Nacelle mass [-]
+    REAL(ReKi)  :: PtfmMass      ! Platform mass [-]
+    REAL(ReKi)  :: PtfmPIner      ! Platform inertia for pitch tilt rotation about the platform CM. [-]
+    REAL(ReKi)  :: PtfmRIner      ! Platform inertia for roll tilt rotation about the platform CM. [-]
+    REAL(ReKi)  :: PtfmYIner      ! Platform inertia for yaw rotation about the platform CM. [-]
+    REAL(ReKi)  :: RFrlMass      ! Rotor-furl mass [-]
+    REAL(ReKi)  :: RotIner      ! Inertia of rotor about its centerline [-]
+    REAL(ReKi)  :: RotMass      ! Rotor mass (blades, tips, and hub) [-]
+    REAL(ReKi)  :: RrfaIner      ! Inertia of structure that furls with the rotor (not including rotor) about the rotor-furl axis whose origin is the center of mass of the structure that furls with the rotor (not including rotor) [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SecondMom      ! Second mass moment of inertia of blades wrt the root [-]
+    REAL(ReKi)  :: TFinMass      ! Tail fin mass [-]
+    REAL(ReKi)  :: TFrlIner      ! Tail boom inertia about tail-furl axis [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TipMass      ! Tip-brake masses [-]
+    REAL(ReKi)  :: TurbMass      ! Mass of turbine (tower + rotor + nacelle) [-]
+    REAL(ReKi)  :: TwrMass      ! Mass of tower [-]
+    REAL(ReKi)  :: TwrTpMass      ! Tower-top mass (rotor + nacelle) [-]
+    REAL(ReKi)  :: YawBrMass      ! Yaw bearing mass [-]
+    REAL(ReKi)  :: Gravity      ! Gravitational acceleration [m/s^2]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PitchAxis      ! Pitch axis for analysis nodes [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AeroTwst      ! Aerodynamic twist of the blade at the analysis nodes [-]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: AxRedBld      ! The axial-reduction terms of the blade shape function [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BAlpha      ! Interpolated blade coupling coefficient between flap and twist [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldEDamp      ! Blade edgewise damping coefficients [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldFDamp      ! Blade flapwise damping coefficients [-]
+    REAL(ReKi)  :: BldFlexL      ! Flexible blade length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: CAeroTwst      ! Cosine of the aerodynamic twist of the blade at the analysis nodes [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: CBE      ! Generalized edgewise damping of the blades [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: CBF      ! Generalized flapwise damping of the blades [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: cgOffBEdg      ! Interpolated blade edge (along local aerodynamic yb-axis) mass cg offset [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: cgOffBFlp      ! Interpolated blade flap (along local aerodynamic xb-axis) mass cg offset [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Chord      ! Chord of the blade at the analysis nodes [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: CThetaS      ! COS( ThetaS ) [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: DRNodes      ! Length of variable-spaced blade elements [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: EAOffBEdg      ! Interpolated blade edge (along local aerodynamic yb-axis) elastic axis offset [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: EAOffBFlp      ! Interpolated blade flap (along local aerodynamic xb-axis) elastic axis offset [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: FStTunr      ! Blade flapwise modal stiffness tuners (stored for all blades) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: InerBEdg      ! Interpolated blade edge (about local structural xb-axis) mass inertia per unit length [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: InerBFlp      ! Interpolated blade flap (about local structural yb-axis) mass inertia per unit length [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: KBE      ! Generalized edgewise stiffness of the blades [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: KBF      ! Generalized flapwise stiffness of the blades [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MassB      ! Interpolated lineal blade mass density [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: RefAxisxb      ! Interpolated Offset for defining the reference axis from the pitch axis for precurved blades at a given input station (along xb-axis) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: RefAxisyb      ! Interpolated Offset for defining the reference axis from the pitch axis for preswept blades at a given input station (along yb-axis) [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: RNodes      ! Radius to analysis nodes relative to hub ( 0 < RNodes(:) < BldFlexL ) [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: RNodesNorm      ! Normalized radius to analysis nodes relative to hub ( 0 < RNodesNorm(:) < 1 ) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rSAerCenn1      ! Distance from point S on a blade to the aerodynamic center in the n1 direction (m) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: rSAerCenn2      ! Distance from point S on a blade to the aerodynamic center in the n2 direction (m) [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SAeroTwst      ! Sine of the aerodynamic twist of the blade at the analysis nodes [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: StiffBE      ! Interpolated edgewise blade stiffness [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: StiffBEA      ! Interpolated blade extensional stiffness [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: StiffBF      ! Interpolated flapwise blade stiffness [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: StiffBGJ      ! Interpolated blade torsional stiffness [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: SThetaS      ! SIN( ThetaS ) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ThetaS      ! Structural twist for analysis nodes [radians]
+    REAL(ReKi) , DIMENSION(:,:,:,:,:), ALLOCATABLE  :: TwistedSF      ! Interpolated lineal blade mass density [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldFl1Sh      ! Blade-flap-mode-1 shape coefficients [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldFl2Sh      ! Blade-flap-mode-2 shape coefficients [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BldEdgSh      ! Blade-edge-mode shape coefficients [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FreqBE      ! Blade edgewise natural frequencies (both w/ and w/o centrifugal stiffening) [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: FreqBF      ! Blade flapwise natural frequencies (both w/ and w/o centrifugal stiffening) [-]
+    REAL(ReKi) , DIMENSION(1:2,1:2)  :: FreqTFA      ! Computed fore-aft tower natural frequencies [-]
+    REAL(ReKi) , DIMENSION(1:2,1:2)  :: FreqTSS      ! Computed side-to-side tower natural frequencies [-]
+    REAL(ReKi)  :: TeetCDmp      ! Rotor-teeter rate-independent Coulomb-damping [-]
+    REAL(ReKi)  :: TeetDmp      ! Rotor-teeter damping constant [-]
+    REAL(ReKi)  :: TeetDmpP      ! Rotor-teeter damper position [-]
+    REAL(ReKi)  :: TeetHSSp      ! Rotor-teeter hard-stop linear-spring constant [-]
+    REAL(ReKi)  :: TeetHStP      ! Rotor-teeter hard-stop position [-]
+    REAL(ReKi)  :: TeetSSSp      ! Rotor-teeter soft-stop linear-spring constant [-]
+    REAL(ReKi)  :: TeetSStP      ! Rotor-teeter soft-stop position [-]
+    INTEGER(IntKi)  :: TeetMod      ! Rotor-teeter spring/damper model switch [-]
+    REAL(ReKi)  :: TFrlCDmp      ! Tail-furl rate-independent Coulomb-damping moment [-]
+    REAL(ReKi)  :: TFrlDmp      ! Tail-furl damping constant [-]
+    REAL(ReKi)  :: TFrlDSDmp      ! Tail-furl down-stop damping constant [-]
+    REAL(ReKi)  :: TFrlDSDP      ! Tail-furl down-stop damper position [-]
+    REAL(ReKi)  :: TFrlDSSP      ! Tail-furl down-stop spring position [-]
+    REAL(ReKi)  :: TFrlDSSpr      ! Tail-furl down-stop spring constant [-]
+    REAL(ReKi)  :: TFrlSpr      ! Tail-furl spring constant [-]
+    REAL(ReKi)  :: TFrlUSDmp      ! Tail-furl up-stop damping constant [-]
+    REAL(ReKi)  :: TFrlUSDP      ! Tail-furl up-stop damper position [-]
+    REAL(ReKi)  :: TFrlUSSP      ! Tail-furl up-stop spring position [-]
+    REAL(ReKi)  :: TFrlUSSpr      ! Tail-furl up-stop spring constant [-]
+    INTEGER(IntKi)  :: TFrlMod      ! Tail-furl spring/damper model switch [-]
+    REAL(ReKi)  :: RFrlCDmp      ! Rotor-furl rate-independent Coulomb-damping moment [-]
+    REAL(ReKi)  :: RFrlDmp      ! Rotor-furl damping constant [-]
+    REAL(ReKi)  :: RFrlDSDmp      ! Rotor-furl down-stop damping constant [-]
+    REAL(ReKi)  :: RFrlDSDP      ! Rotor-furl down-stop damper position [-]
+    REAL(ReKi)  :: RFrlDSSP      ! Rotor-furl down-stop spring position [-]
+    REAL(ReKi)  :: RFrlDSSpr      ! Rotor-furl down-stop spring constant [-]
+    REAL(ReKi)  :: RFrlSpr      ! Rotor-furl spring constant [-]
+    REAL(ReKi)  :: RFrlUSDmp      ! Rotor-furl up-stop damping constant [-]
+    REAL(ReKi)  :: RFrlUSDP      ! Rotor-furl up-stop damper position [-]
+    REAL(ReKi)  :: RFrlUSSP      ! Rotor-furl up-stop spring position [-]
+    REAL(ReKi)  :: RFrlUSSpr      ! Rotor-furl up-stop spring constant [-]
+    INTEGER(IntKi)  :: RFrlMod      ! Rotor-furl spring/damper model switch [-]
+    REAL(ReKi)  :: ShftGagL      ! Distance from hub or teeter pin to shaft strain gages [-]
+    INTEGER(IntKi) , DIMENSION(1:9)  :: BldGagNd      ! Nodes closest to the blade strain gages [-]
+    INTEGER(IntKi) , DIMENSION(1:9)  :: TwrGagNd      ! Nodes closest to the tower strain gages [-]
+    REAL(DbKi)  :: TStart      ! Time to begin tabular output [-]
+    REAL(ReKi)  :: DTTorDmp      ! Drivetrain torsional damper [-]
+    REAL(ReKi)  :: DTTorSpr      ! Drivetrain torsional spring [-]
+    REAL(ReKi)  :: GBRatio      ! Gearbox ratio [-]
+    REAL(ReKi)  :: GBoxEff      ! Gearbox efficiency [-]
+    REAL(ReKi)  :: RotSpeed      ! Initial or fixed rotor speed [rad/s]
+    CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: BElmntMass      ! Mass of the blade elements [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TElmntMass      ! Mass of the tower elements [-]
+    INTEGER(IntKi)  :: method      ! Identifier for integration method (1 [RK4], 2 [AB4], or 3 [ABM4]) [-]
+    REAL(ReKi)  :: PtfmCMxt      ! Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM [meters]
+    REAL(ReKi)  :: PtfmCMyt      ! Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM [meters]
   END TYPE ED_ParameterType
 ! =======================
 ! =========  ED_InputType  =======
   TYPE, PUBLIC :: ED_InputType
-    TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: BladeLn2Mesh 
-    TYPE(MeshType)  :: PlatformPtMesh 
-    TYPE(MeshType)  :: TowerLn2Mesh 
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: TwrAddedMass 
-    REAL(ReKi) , DIMENSION(1:6,1:6)  :: PtfmAddedMass 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchCom 
-    REAL(ReKi)  :: YawMom 
-    REAL(ReKi)  :: GenTrq 
-    REAL(ReKi)  :: HSSBrTrq 
+    TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: BladeLn2Mesh      ! A mesh on each blade, containing aerodynamic forces and moments (formerly AeroBladeForce and AeroBladeMoment) [-]
+    TYPE(MeshType)  :: PlatformPtMesh      ! A mesh at the platform reference (point Z), containing force: surge/xi (1), sway/yi (2), and heave/zi (3)-components; and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components acting at the platform (body X) / platform reference (point Z) associated with everything but the QD2T()s [N]
+    TYPE(MeshType)  :: TowerLn2Mesh      ! Tower line2 mesh with forces: surge/xi (1), sway/yi (2), and heave/zi (3)-components of the portion of the tower force at the current tower node (point T); and moments: roll/xi (1), pitch/yi (2), and yaw/zi (3)-components of the portion of the tower moment acting at the current tower node [N/m]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: TwrAddedMass      ! 6-by-6 added mass matrix of the tower elements, per unit length-bjj: place on a mesh [per unit length]
+    REAL(ReKi) , DIMENSION(1:6,1:6)  :: PtfmAddedMass      ! Platform added mass matrix [kg, kg-m, kg-m^2]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchCom      ! Commanded blade pitch angles [radians]
+    REAL(ReKi)  :: YawMom      ! Torque transmitted through the yaw bearing [N-m]
+    REAL(ReKi)  :: GenTrq      ! Electrical generator torque [N-m]
+    REAL(ReKi)  :: HSSBrTrq      ! Instantaneous HSS brake torque [N-m]
   END TYPE ED_InputType
 ! =======================
 ! =========  ED_OutputType  =======
   TYPE, PUBLIC :: ED_OutputType
-    TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: BladeLn2Mesh 
-    TYPE(MeshType)  :: PlatformPtMesh 
-    TYPE(MeshType)  :: TowerLn2Mesh 
-    TYPE(MeshType)  :: HubPtMotion 
-    TYPE(MeshType)  :: BladeRootMotions 
-    TYPE(MeshType)  :: RotorFurlMotion 
-    TYPE(MeshType)  :: NacelleMotion 
-    TYPE(MeshType)  :: TowerMotion 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch 
-    REAL(ReKi)  :: Yaw 
-    REAL(ReKi)  :: YawRate 
-    REAL(ReKi)  :: LSS_Spd 
-    REAL(ReKi)  :: HSS_Spd 
-    REAL(ReKi)  :: RotSpeed 
-    REAL(ReKi)  :: TwrAccel 
-    REAL(ReKi)  :: YawAngle 
-    REAL(ReKi) , DIMENSION(1:3)  :: RootMyc 
-    REAL(ReKi)  :: YawBrTAxp 
-    REAL(ReKi)  :: YawBrTAyp 
-    REAL(ReKi)  :: LSSTipPxa 
-    REAL(ReKi) , DIMENSION(1:3)  :: RootMxc 
-    REAL(ReKi)  :: LSSTipMya 
-    REAL(ReKi)  :: LSSTipMza 
-    REAL(ReKi)  :: LSSTipMys 
-    REAL(ReKi)  :: LSSTipMzs 
-    REAL(ReKi)  :: YawBrMyn 
-    REAL(ReKi)  :: YawBrMzn 
-    REAL(ReKi)  :: NcIMURAxs 
-    REAL(ReKi)  :: NcIMURAys 
-    REAL(ReKi)  :: NcIMURAzs 
-    REAL(ReKi)  :: RotPwr 
+    TYPE(MeshType) , DIMENSION(:), ALLOCATABLE  :: BladeLn2Mesh      ! A mesh on each blade, containing positions and orientations of the blade elements [-]
+    TYPE(MeshType)  :: PlatformPtMesh      ! Platform reference point positions/orientations/velocities/accelerations [-]
+    TYPE(MeshType)  :: TowerLn2Mesh      ! Tower line2 mesh with positions/orientations/velocities/accelerations [-]
+    TYPE(MeshType)  :: HubPtMotion      ! For AeroDyn: motions of the hub [-]
+    TYPE(MeshType)  :: BladeRootMotions      ! For AeroDyn: motions of the blade roots [-]
+    TYPE(MeshType)  :: RotorFurlMotion      ! For AeroDyn: motions of the rotor furl point. [-]
+    TYPE(MeshType)  :: NacelleMotion      ! For AeroDyn: motions of the nacelle. [-]
+    TYPE(MeshType)  :: TowerMotion      ! For AeroDyn: motions of the tower [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Data to be written to an output file: see WriteOutputHdr for names of each variable [see WriteOutputUnt]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Current blade pitch angles [radians]
+    REAL(ReKi)  :: Yaw      ! Current nacelle yaw [radians]
+    REAL(ReKi)  :: YawRate      ! Current nacelle yaw rate [rad/s]
+    REAL(ReKi)  :: LSS_Spd      ! Low-speed shaft (LSS) speed at entrance to gearbox [rad/s]
+    REAL(ReKi)  :: HSS_Spd      ! High-speed shaft (HSS) speed [rad/s]
+    REAL(ReKi)  :: RotSpeed      ! Rotor azimuth angular speed [rad/s]
+    REAL(ReKi)  :: TwrAccel      ! Tower acceleration for tower feedback control (user routine only) [m/s^2]
+    REAL(ReKi)  :: YawAngle      ! Yaw angle to be used for yaw error calculations [radians]
+    REAL(ReKi) , DIMENSION(1:3)  :: RootMyc      ! Out-of-plane moment (i.e., the moment caused by out-of-plane forces) at the blade root for each of the blades (max 3) [N-m]
+    REAL(ReKi)  :: YawBrTAxp      ! Tower-top / yaw bearing fore-aft (translational) acceleration (absolute) [m/s^2]
+    REAL(ReKi)  :: YawBrTAyp      ! Tower-top / yaw bearing side-to-side (translational) acceleration (absolute) [m/s^2]
+    REAL(ReKi)  :: LSSTipPxa      ! Rotor azimuth angle (position) [radians]
+    REAL(ReKi) , DIMENSION(1:3)  :: RootMxc      ! In-plane moment (i.e., the moment caused by in-plane forces) at the blade root [N-m]
+    REAL(ReKi)  :: LSSTipMya      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
+    REAL(ReKi)  :: LSSTipMza      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
+    REAL(ReKi)  :: LSSTipMys      ! Nonrotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
+    REAL(ReKi)  :: LSSTipMzs      ! Nonrotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
+    REAL(ReKi)  :: YawBrMyn      ! Rotating (with nacelle) tower-top / yaw bearing pitch moment [N-m]
+    REAL(ReKi)  :: YawBrMzn      ! Tower-top / yaw bearing yaw moment [N-m]
+    REAL(ReKi)  :: NcIMURAxs      ! Nacelle inertial measurement unit angular (rotational) acceleration (absolute) [rad/s^2]
+    REAL(ReKi)  :: NcIMURAys      ! Nacelle inertial measurement unit angular (rotational) acceleration (absolute) [rad/s^2]
+    REAL(ReKi)  :: NcIMURAzs      ! Nacelle inertial measurement unit angular (rotational) acceleration (absolute) [rad/s^2]
+    REAL(ReKi)  :: RotPwr      ! Rotor power (this is equivalent to the low-speed shaft power) [W]
   END TYPE ED_OutputType
 ! =======================
 CONTAINS
@@ -12836,512 +12836,6 @@ ENDDO
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE ED_UnPackOutput
-
- SUBROUTINE ED_Pack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg, &
-                     SizeOnly )
-  TYPE(ED_InputType),           INTENT(INOUT) :: InData
-  TYPE(ED_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(ED_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(ED_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(ED_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(ED_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(ED_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(  OUT) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(  OUT) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,  INTENT(  OUT) :: Int_RetAry(:)
-  INTEGER(IntKi),               INTENT(  OUT) :: ErrStat
-  CHARACTER(*),                 INTENT(  OUT) :: ErrMsg
-  LOGICAL, OPTIONAL,            INTENT(IN   ) :: SizeOnly
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  LOGICAL                                :: OnlySize ! if present and true, do not pack, just allocate buffers
-    ! Executable statements
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  OnlySize = .FALSE.
-  IF ( PRESENT(SizeOnly) ) THEN
-    OnlySize = SizeOnly
-  ENDIF
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred  = Re_Xferred - 1
-  Db_Xferred  = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
-  IF ( ALLOCATED( Re_RetAry ) ) DEALLOCATE( Re_RetAry ) ;
-  IF ( Re_Xferred .GT. 0) ALLOCATE( Re_RetAry( Re_Xferred ) ) ;
-  IF ( ALLOCATED( Db_RetAry ) ) DEALLOCATE( Db_RetAry ) ;
-  IF ( Db_Xferred .GT. 0) ALLOCATE( Db_RetAry( Db_Xferred ) ) ;
-  IF ( ALLOCATED( Int_RetAry ) ) DEALLOCATE( Int_RetAry ) ;
-  IF ( Int_Xferred .GT. 0) ALLOCATE( Int_RetAry( Int_Xferred ) ) ;
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred   = Re_Xferred - 1
-  Db_Xferred   = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
- END SUBROUTINE ED_Pack
-
- SUBROUTINE ED_UnPack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg )
-  TYPE(ED_InputType),           INTENT(INOUT) :: InData
-  TYPE(ED_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(ED_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(ED_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(ED_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(ED_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(ED_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(IN   ) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(IN   ) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,   INTENT(IN   ) :: Int_RetAry(:)
-  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! UnPack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL ED_UnPackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL ED_UnPackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL ED_UnPackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL ED_UnPackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL ED_UnPackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL ED_UnPackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL ED_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL ED_UnPackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ED_UnPack
 
 
  SUBROUTINE ED_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )

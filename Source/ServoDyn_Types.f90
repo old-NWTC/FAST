@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.03, 20-Jan-2014)
+! FAST Registry (v2.02.01, 22-Feb-2014)
 !*********************************************************************************************************************************
 ! ServoDyn_Types
 !.................................................................................................................................
@@ -35,271 +35,271 @@ USE NWTC_Library
 IMPLICIT NONE
 ! =========  SrvD_InputFile  =======
   TYPE, PUBLIC :: SrvD_InputFile
-    REAL(DbKi)  :: DT 
-    INTEGER(IntKi)  :: PCMode 
-    REAL(DbKi)  :: TPCOn 
-    REAL(DbKi) , DIMENSION(1:3)  :: TPitManS 
-    REAL(ReKi) , DIMENSION(1:3)  :: PitManRat 
-    REAL(ReKi) , DIMENSION(1:3)  :: BlPitchF 
-    INTEGER(IntKi)  :: VSContrl 
-    INTEGER(IntKi)  :: GenModel 
-    REAL(ReKi)  :: GenEff 
-    LOGICAL  :: GenTiStr 
-    LOGICAL  :: GenTiStp 
-    REAL(ReKi)  :: SpdGenOn 
-    REAL(DbKi)  :: TimGenOn 
-    REAL(DbKi)  :: TimGenOf 
-    REAL(ReKi)  :: VS_RtGnSp 
-    REAL(ReKi)  :: VS_RtTq 
-    REAL(ReKi)  :: VS_Rgn2K 
-    REAL(ReKi)  :: VS_SlPc 
-    REAL(ReKi)  :: SIG_SlPc 
-    REAL(ReKi)  :: SIG_SySp 
-    REAL(ReKi)  :: SIG_RtTq 
-    REAL(ReKi)  :: SIG_PORt 
-    REAL(ReKi)  :: TEC_Freq 
-    INTEGER(IntKi)  :: TEC_NPol 
-    REAL(ReKi)  :: TEC_SRes 
-    REAL(ReKi)  :: TEC_RRes 
-    REAL(ReKi)  :: TEC_VLL 
-    REAL(ReKi)  :: TEC_SLR 
-    REAL(ReKi)  :: TEC_RLR 
-    REAL(ReKi)  :: TEC_MR 
-    INTEGER(IntKi)  :: HSSBrMode 
-    REAL(DbKi)  :: THSSBrDp 
-    REAL(DbKi)  :: HSSBrDT 
-    REAL(ReKi)  :: HSSBrTqF 
-    INTEGER(IntKi)  :: YCMode 
-    REAL(DbKi)  :: TYCOn 
-    REAL(ReKi)  :: YawNeut 
-    REAL(ReKi)  :: YawSpr 
-    REAL(ReKi)  :: YawDamp 
-    REAL(DbKi)  :: TYawManS 
-    REAL(ReKi)  :: YawManRat 
-    REAL(ReKi)  :: NacYawF 
-    LOGICAL  :: SumPrint 
-    INTEGER(IntKi)  :: OutFile 
-    LOGICAL  :: TabDelim 
-    CHARACTER(20)  :: OutFmt 
-    REAL(DbKi)  :: Tstart 
-    INTEGER(IntKi)  :: NumOuts 
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: OutList 
-    CHARACTER(1024)  :: DLL_FileName 
-    CHARACTER(1024)  :: DLL_ProcName 
-    CHARACTER(1024)  :: DLL_InFile 
-    REAL(ReKi)  :: NacYaw_North 
-    INTEGER(IntKi)  :: Ptch_Cntrl 
-    REAL(ReKi)  :: Ptch_SetPnt 
-    REAL(ReKi)  :: Ptch_Min 
-    REAL(ReKi)  :: Ptch_Max 
-    REAL(ReKi)  :: PtchRate_Min 
-    REAL(ReKi)  :: PtchRate_Max 
-    REAL(ReKi)  :: Gain_OM 
-    REAL(ReKi)  :: GenSpd_MinOM 
-    REAL(ReKi)  :: GenSpd_MaxOM 
-    REAL(ReKi)  :: GenSpd_Dem 
-    REAL(ReKi)  :: GenTrq_Dem 
-    REAL(ReKi)  :: GenPwr_Dem 
-    INTEGER(IntKi)  :: DLL_NumTrq 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenSpd_TLU 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenTrq_TLU 
+    REAL(DbKi)  :: DT      ! Communication interval for controllers [s]
+    INTEGER(IntKi)  :: PCMode      ! Pitch control mode [-]
+    REAL(DbKi)  :: TPCOn      ! Time to enable active pitch control [unused when PCMode=0] [s]
+    REAL(DbKi) , DIMENSION(1:3)  :: TPitManS      ! Time to start override pitch maneuver for blade (K) and end standard pitch control [s]
+    REAL(ReKi) , DIMENSION(1:3)  :: PitManRat      ! Pitch rates at which override pitch maneuvers head toward final pitch angles [rad/s]
+    REAL(ReKi) , DIMENSION(1:3)  :: BlPitchF      ! Blade (K) final pitch for pitch maneuvers [radians]
+    INTEGER(IntKi)  :: VSContrl      ! Variable-speed control mode [-]
+    INTEGER(IntKi)  :: GenModel      ! Generator model [used only when VSContrl=0] [-]
+    REAL(ReKi)  :: GenEff      ! Generator efficiency [ignored by the Thevenin and user-defined generator models] [-]
+    LOGICAL  :: GenTiStr      ! Method to start the generator {T: timed using TimGenOn, F: generator speed using SpdGenOn} [-]
+    LOGICAL  :: GenTiStp      ! Method to stop the generator {T: timed using TimGenOf, F: when generator power = 0} [-]
+    REAL(ReKi)  :: SpdGenOn      ! Generator speed to turn on the generator for a startup (HSS speed) [used only when GenTiStr=False] [rad/s]
+    REAL(DbKi)  :: TimGenOn      ! Time to turn on the generator for a startup [used only when GenTiStr=True] [s]
+    REAL(DbKi)  :: TimGenOf      ! Time to turn off the generator [used only when GenTiStp=True] [s]
+    REAL(ReKi)  :: VS_RtGnSp      ! Rated generator speed for simple variable-speed generator control (HSS side) [used only when VSContrl=1] [rad/s]
+    REAL(ReKi)  :: VS_RtTq      ! Rated generator torque/constant generator torque in Region 3 for simple variable-speed generator control (HSS side) [used only when VSContrl=1] [N-m]
+    REAL(ReKi)  :: VS_Rgn2K      ! Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) [used only when VSContrl=1] [N-m/(rad/s)^2]
+    REAL(ReKi)  :: VS_SlPc      ! Rated generator slip percentage in Region 2 1/2 for simple variable-speed generator control [used only when VSContrl=1] [-]
+    REAL(ReKi)  :: SIG_SlPc      ! Rated generator slip percentage [used only when VSContrl=0 and GenModel=1] [-]
+    REAL(ReKi)  :: SIG_SySp      ! Synchronous (zero-torque) generator speed [used only when VSContrl=0 and GenModel=1] [rad/s]
+    REAL(ReKi)  :: SIG_RtTq      ! Rated torque [used only when VSContrl=0 and GenModel=1] [N-m]
+    REAL(ReKi)  :: SIG_PORt      ! Pull-out ratio (Tpullout/Trated) [used only when VSContrl=0 and GenModel=1] [-]
+    REAL(ReKi)  :: TEC_Freq      ! Line frequency [50 or 60] [used only when VSContrl=0 and GenModel=2] [Hz]
+    INTEGER(IntKi)  :: TEC_NPol      ! Number of poles [even integer > 0] [used only when VSContrl=0 and GenModel=2] [-]
+    REAL(ReKi)  :: TEC_SRes      ! Stator resistance [used only when VSContrl=0 and GenModel=2] [ohms]
+    REAL(ReKi)  :: TEC_RRes      ! Rotor resistance [used only when VSContrl=0 and GenModel=2] [ohms]
+    REAL(ReKi)  :: TEC_VLL      ! Line-to-line RMS voltage [used only when VSContrl=0 and GenModel=2] [volts]
+    REAL(ReKi)  :: TEC_SLR      ! Stator leakage reactance [used only when VSContrl=0 and GenModel=2] [ohms]
+    REAL(ReKi)  :: TEC_RLR      ! Rotor leakage reactance [used only when VSContrl=0 and GenModel=2] [ohms]
+    REAL(ReKi)  :: TEC_MR      ! Magnetizing reactance [used only when VSContrl=0 and GenModel=2] [ohms]
+    INTEGER(IntKi)  :: HSSBrMode      ! HSS brake model [-]
+    REAL(DbKi)  :: THSSBrDp      ! Time to initiate deployment of the HSS brake [s]
+    REAL(DbKi)  :: HSSBrDT      ! Time for HSS-brake to reach full deployment once initiated [used only when HSSBrMode=1] [s]
+    REAL(ReKi)  :: HSSBrTqF      ! Fully deployed HSS-brake torque [N-m]
+    INTEGER(IntKi)  :: YCMode      ! Yaw control mode [-]
+    REAL(DbKi)  :: TYCOn      ! Time to enable active yaw control [unused when YCMode=0] [s]
+    REAL(ReKi)  :: YawNeut      ! Neutral yaw position--yaw spring force is zero at this yaw [radians]
+    REAL(ReKi)  :: YawSpr      ! Nacelle-yaw spring constant [N-m/rad]
+    REAL(ReKi)  :: YawDamp      ! Nacelle-yaw constant [N-m/(rad/s)]
+    REAL(DbKi)  :: TYawManS      ! Time to start override yaw maneuver and end standard yaw control [s]
+    REAL(ReKi)  :: YawManRat      ! Yaw maneuver rate (in absolute value) [rad/s]
+    REAL(ReKi)  :: NacYawF      ! Final yaw angle for override yaw maneuvers [radians]
+    LOGICAL  :: SumPrint      ! Print summary data to <RootName>.fsm? [-]
+    INTEGER(IntKi)  :: OutFile      ! Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) [-]
+    LOGICAL  :: TabDelim      ! Use tab delimiters in text tabular output file? [-]
+    CHARACTER(20)  :: OutFmt      ! Format used for text tabular output (except time) [-]
+    REAL(DbKi)  :: Tstart      ! Time to start module's tabular output [s]
+    INTEGER(IntKi)  :: NumOuts      ! Number of parameters in the output list (number of outputs requested) [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: OutList      ! List of user-requested output channels [-]
+    CHARACTER(1024)  :: DLL_FileName      ! Name of the DLL file including the full path [-]
+    CHARACTER(1024)  :: DLL_ProcName      ! Name of the procedure in the DLL that will be called [-]
+    CHARACTER(1024)  :: DLL_InFile      ! Name of input file used in DLL [-]
+    REAL(ReKi)  :: NacYaw_North      ! Reference yaw angle of the nacelle when the upwind end points due North [used only with DLL Interface] [radians]
+    INTEGER(IntKi)  :: Ptch_Cntrl      ! Record 28: Use individual pitch control {0: collective pitch; 1: individual pitch control} [used only with DLL Interface] [-]
+    REAL(ReKi)  :: Ptch_SetPnt      ! Record  5: Below-rated pitch angle set-point [used only with DLL Interface] [radians]
+    REAL(ReKi)  :: Ptch_Min      ! Record  6: Minimum pitch angle [used only with DLL Interface] [radians]
+    REAL(ReKi)  :: Ptch_Max      ! Record  7: Maximum pitch angle [used only with DLL Interface] [radians]
+    REAL(ReKi)  :: PtchRate_Min      ! Record  8: Minimum pitch rate (most negative value allowed) [used only with DLL Interface] [rad/s]
+    REAL(ReKi)  :: PtchRate_Max      ! Record  9: Maximum pitch rate [used only with DLL Interface] [rad/s]
+    REAL(ReKi)  :: Gain_OM      ! Record 16: Optimal mode gain [used only with DLL Interface] [Nm/(rad/s)^2]
+    REAL(ReKi)  :: GenSpd_MinOM      ! Record 17: Minimum generator speed [used only with DLL Interface] [rad/s]
+    REAL(ReKi)  :: GenSpd_MaxOM      ! Record 18: Optimal mode maximum speed [used only with DLL Interface] [rad/s]
+    REAL(ReKi)  :: GenSpd_Dem      ! Record 19: Demanded generator speed above rated [used only with DLL Interface] [rad/s]
+    REAL(ReKi)  :: GenTrq_Dem      ! Record 22: Demanded generator torque above rated [used only with DLL Interface] [Nm]
+    REAL(ReKi)  :: GenPwr_Dem      ! Record 13: Demanded power [used only with DLL Interface] [W]
+    INTEGER(IntKi)  :: DLL_NumTrq      ! Record 26: No. of points in torque-speed look-up table {0 = none and use the optimal mode PARAMETERs instead, nonzero = ignore the optimal mode PARAMETERs by setting Gain_OM (Record 16) to 0.0} [used only with DLL Interface] [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenSpd_TLU      ! Records R:2:R+2*DLL_NumTrq-2: Generator speed values in look-up table [used only with DLL Interface] [rad/s]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenTrq_TLU      ! Records R+1:2:R+2*DLL_NumTrq-1: Generator torque values in look-up table [used only with DLL Interface] [Nm]
   END TYPE SrvD_InputFile
 ! =======================
 ! =========  BladedDLLType  =======
   TYPE, PUBLIC :: BladedDLLType
-    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: avrSWAP 
-    REAL(ReKi)  :: HSSBrFrac 
-    REAL(ReKi)  :: YawRateCom 
-    REAL(ReKi)  :: GenTrq 
-    INTEGER(IntKi)  :: GenState 
-    REAL(ReKi) , DIMENSION(1:3)  :: BlPitchCom 
+    REAL(SiKi) , DIMENSION(:), ALLOCATABLE  :: avrSWAP      ! The swap array: used to pass data to and from the DLL controller [see Bladed DLL documentation]
+    REAL(ReKi)  :: HSSBrFrac      ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full) - from Bladed DLL [-]
+    REAL(ReKi)  :: YawRateCom      ! Nacelle yaw rate demanded from Bladed DLL [rad/s]
+    REAL(ReKi)  :: GenTrq      ! Electrical generator torque from Bladed DLL [N-m]
+    INTEGER(IntKi)  :: GenState      ! Generator state from Bladed DLL [N-m]
+    REAL(ReKi) , DIMENSION(1:3)  :: BlPitchCom      ! Commanded blade pitch angles [radians]
   END TYPE BladedDLLType
 ! =======================
 ! =========  SrvD_InitInputType  =======
   TYPE, PUBLIC :: SrvD_InitInputType
-    CHARACTER(1024)  :: InputFile 
-    INTEGER(IntKi)  :: NumBl 
-    CHARACTER(1024)  :: RootName 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchInit 
+    CHARACTER(1024)  :: InputFile      ! Name of the input file [-]
+    INTEGER(IntKi)  :: NumBl      ! Number of blades on the turbine [-]
+    CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchInit      ! Initial blade pitch [-]
   END TYPE SrvD_InitInputType
 ! =======================
 ! =========  SrvD_InitOutputType  =======
   TYPE, PUBLIC :: SrvD_InitOutputType
-    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr 
-    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt 
-    TYPE(ProgDesc)  :: Ver 
-    INTEGER(IntKi)  :: CouplingScheme 
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
+    TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
+    INTEGER(IntKi)  :: CouplingScheme      ! Switch that indicates if a particular coupling scheme is required [-]
   END TYPE SrvD_InitOutputType
 ! =======================
 ! =========  SrvD_ContinuousStateType  =======
   TYPE, PUBLIC :: SrvD_ContinuousStateType
-    REAL(ReKi)  :: DummyContState 
+    REAL(ReKi)  :: DummyContState      ! Remove this variable if you have continuous states [-]
   END TYPE SrvD_ContinuousStateType
 ! =======================
 ! =========  SrvD_DiscreteStateType  =======
   TYPE, PUBLIC :: SrvD_DiscreteStateType
-    REAL(ReKi)  :: DummyDiscState 
+    REAL(ReKi)  :: DummyDiscState      ! Remove this variable if you have discrete states [-]
   END TYPE SrvD_DiscreteStateType
 ! =======================
 ! =========  SrvD_ConstraintStateType  =======
   TYPE, PUBLIC :: SrvD_ConstraintStateType
-    REAL(ReKi)  :: DummyConstrState 
+    REAL(ReKi)  :: DummyConstrState      ! Remove this variable if you have constraint states [-]
   END TYPE SrvD_ConstraintStateType
 ! =======================
 ! =========  SrvD_OtherStateType  =======
   TYPE, PUBLIC :: SrvD_OtherStateType
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchI 
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: BegPitMan 
-    REAL(DbKi)  :: BegYawMan 
-    REAL(ReKi)  :: NacYawI 
-    REAL(ReKi)  :: YawManRat 
-    REAL(DbKi)  :: TYawManE 
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TTpBrDp 
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TTpBrFl 
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TPitManE 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PitManRat 
-    REAL(DbKi)  :: TOff4Good 
-    REAL(DbKi)  :: TGenOnLine 
-    TYPE(BladedDLLType)  :: dll_data 
-    REAL(DbKi)  :: LastTimeCalled 
-    LOGICAL  :: FirstWarn 
-    LOGICAL  :: FirstWarn_THSSBrDp 
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchI      ! Initial blade pitch angles at the start of the override pitch maneuver [radians]
+    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: BegPitMan      ! Time that the override pitch manuever actually began [seconds]
+    REAL(DbKi)  :: BegYawMan      ! Time that the yaw maneuver actually began [seconds]
+    REAL(ReKi)  :: NacYawI      ! Initial yaw angle at the start of the override yaw maneuver [radians]
+    REAL(ReKi)  :: YawManRat      ! Yaw rate at which override yaw maneuver head toward for final yaw angle (includes sign) [rad/s]
+    REAL(DbKi)  :: TYawManE      ! Time to end override yaw maneuver [s]
+    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TTpBrDp      ! Times to initiate deployment of tip brakes [s]
+    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TTpBrFl      ! Times at which tip brakes are fully deployed [s]
+    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TPitManE      ! Time to end pitch maneuvers for each blade [s]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: PitManRat      ! Pitch rates at which override pitch maneuvers head toward final pitch angles (includes sign) [rad/s]
+    REAL(DbKi)  :: TOff4Good      ! Time that the generator went offline (for rest of simulation) [s]
+    REAL(DbKi)  :: TGenOnLine      ! Time that the generator first went online [s]
+    TYPE(BladedDLLType)  :: dll_data      ! data used for Bladed DLL [-]
+    REAL(DbKi)  :: LastTimeCalled      ! last time the CalcOutput/Bladed DLL was called [s]
+    LOGICAL  :: FirstWarn      ! Whether or not this is the first warning about the DLL being called without Explicit-Loose coupling. [-]
+    LOGICAL  :: FirstWarn_THSSBrDp      ! Whether or not this is the first warning about the THSSBrDp not being enabled in this version of SrvD. [-]
   END TYPE SrvD_OtherStateType
 ! =======================
 ! =========  SrvD_ParameterType  =======
   TYPE, PUBLIC :: SrvD_ParameterType
-    REAL(DbKi)  :: DT 
-    REAL(DbKi)  :: HSSBrDT 
-    REAL(ReKi)  :: HSSBrFrac 
-    REAL(ReKi)  :: HSSBrTqF 
-    REAL(ReKi)  :: SIG_POSl 
-    REAL(ReKi)  :: SIG_POTq 
-    REAL(ReKi)  :: SIG_SlPc 
-    REAL(ReKi)  :: SIG_Slop 
-    REAL(ReKi)  :: SIG_SySp 
-    REAL(ReKi)  :: TEC_A0 
-    REAL(ReKi)  :: TEC_C0 
-    REAL(ReKi)  :: TEC_C1 
-    REAL(ReKi)  :: TEC_C2 
-    REAL(ReKi)  :: TEC_K2 
-    REAL(ReKi)  :: TEC_MR 
-    REAL(ReKi)  :: TEC_Re1 
-    REAL(ReKi)  :: TEC_RLR 
-    REAL(ReKi)  :: TEC_RRes 
-    REAL(ReKi)  :: TEC_SRes 
-    REAL(ReKi)  :: TEC_SySp 
-    REAL(ReKi)  :: TEC_V1a 
-    REAL(ReKi)  :: TEC_VLL 
-    REAL(ReKi)  :: TEC_Xe1 
-    REAL(ReKi)  :: GenEff 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchInit 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchF 
-    REAL(ReKi)  :: NacYawF 
-    REAL(ReKi)  :: SpdGenOn 
-    REAL(DbKi)  :: THSSBrDp 
-    REAL(DbKi)  :: THSSBrFl 
-    REAL(DbKi)  :: TimGenOf 
-    REAL(DbKi)  :: TimGenOn 
-    REAL(DbKi)  :: TPCOn 
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TPitManS 
-    REAL(DbKi)  :: TYawManS 
-    REAL(DbKi)  :: TYCOn 
-    REAL(ReKi)  :: VS_RtGnSp 
-    REAL(ReKi)  :: VS_RtTq 
-    REAL(ReKi)  :: VS_Slope 
-    REAL(ReKi)  :: VS_SlPc 
-    REAL(ReKi)  :: VS_SySp 
-    REAL(ReKi)  :: VS_TrGnSp 
-    REAL(ReKi)  :: YawPosCom 
-    REAL(ReKi)  :: YawRateCom 
-    INTEGER(IntKi)  :: GenModel 
-    INTEGER(IntKi)  :: HSSBrMode 
-    INTEGER(IntKi)  :: PCMode 
-    INTEGER(IntKi)  :: VSContrl 
-    INTEGER(IntKi)  :: YCMode 
-    LOGICAL  :: GenTiStp 
-    LOGICAL  :: GenTiStr 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TBDepISp 
-    REAL(ReKi)  :: VS_Rgn2K 
-    REAL(ReKi)  :: YawNeut 
-    REAL(ReKi)  :: YawSpr 
-    REAL(ReKi)  :: YawDamp 
-    REAL(DbKi)  :: TpBrDT 
-    REAL(ReKi)  :: TBDrConN 
-    REAL(ReKi)  :: TBDrConD 
-    INTEGER(IntKi)  :: NumBl 
-    INTEGER(IntKi)  :: NumOuts 
-    CHARACTER(1024)  :: RootName 
-    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam 
-    CHARACTER(1)  :: Delim 
-    LOGICAL  :: UseBladedInterface 
-    INTEGER(IntKi)  :: DLL_NumTrq 
-    INTEGER(IntKi)  :: Ptch_Cntrl 
-    REAL(ReKi)  :: Gain_OM 
-    REAL(ReKi)  :: GenPwr_Dem 
-    REAL(ReKi)  :: GenSpd_Dem 
-    REAL(ReKi)  :: GenSpd_MaxOM 
-    REAL(ReKi)  :: GenSpd_MinOM 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenSpd_TLU 
-    REAL(ReKi)  :: GenTrq_Dem 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenTrq_TLU 
-    REAL(ReKi)  :: Ptch_Max 
-    REAL(ReKi)  :: Ptch_Min 
-    REAL(ReKi)  :: Ptch_SetPnt 
-    REAL(ReKi)  :: PtchRate_Max 
-    REAL(ReKi)  :: PtchRate_Min 
-    REAL(ReKi)  :: NacYaw_North 
-    CHARACTER(1024)  :: DLL_InFile 
-    TYPE(DLL_Type)  :: DLL_Trgt 
+    REAL(DbKi)  :: DT      ! Time step for continuous state integration & discrete state update [seconds]
+    REAL(DbKi)  :: HSSBrDT      ! Time it takes for HSS brake to reach full deployment once deployed [seconds]
+    REAL(ReKi)  :: HSSBrFrac      ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full), (-) [-]
+    REAL(ReKi)  :: HSSBrTqF      ! Fully deployed HSS brake torque [-]
+    REAL(ReKi)  :: SIG_POSl      ! Pullout slip [-]
+    REAL(ReKi)  :: SIG_POTq      ! Pullout torque [-]
+    REAL(ReKi)  :: SIG_SlPc      ! Rated generator slip percentage [-]
+    REAL(ReKi)  :: SIG_Slop      ! Torque/Speed slope for simple induction generator [-]
+    REAL(ReKi)  :: SIG_SySp      ! Synchronous (zero-torque) generator speed [rad/s]
+    REAL(ReKi)  :: TEC_A0      ! A0 term for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_C0      ! C0 term for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_C1      ! C1 term for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_C2      ! C2 term for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_K2      ! K2 term for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_MR      ! Magnetizing reactance for Thevenin-equivalent circuit [ohms]
+    REAL(ReKi)  :: TEC_Re1      ! Thevenin's equivalent stator resistance (ohms) [ohms]
+    REAL(ReKi)  :: TEC_RLR      ! Rotor leakage reactance for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_RRes      ! Rotor resistance for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_SRes      ! Stator resistance for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_SySp      ! Synchronous speed for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_V1a      ! Source voltage for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_VLL      ! Line-to-line RMS voltage for Thevenin-equivalent circuit [-]
+    REAL(ReKi)  :: TEC_Xe1      ! Thevenin's equivalent stator leakage reactance (ohms) [ohms]
+    REAL(ReKi)  :: GenEff      ! Generator efficiency [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchInit      ! Initial blade pitch angles [radians]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchF      ! Final blade pitch [-]
+    REAL(ReKi)  :: NacYawF      ! Final yaw angle after override yaw maneuver [-]
+    REAL(ReKi)  :: SpdGenOn      ! Generator speed to turn on the generator for a startup [-]
+    REAL(DbKi)  :: THSSBrDp      ! Time to initiate deployment of the shaft brake [s]
+    REAL(DbKi)  :: THSSBrFl      ! Time at which shaft brake is fully deployed [s]
+    REAL(DbKi)  :: TimGenOf      ! Time to turn off generator for braking or modeling a run-away [s]
+    REAL(DbKi)  :: TimGenOn      ! Time to turn on generator for startup [s]
+    REAL(DbKi)  :: TPCOn      ! Time to enable active pitch control [s]
+    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TPitManS      ! Time to start pitch maneuvers for each blade [s]
+    REAL(DbKi)  :: TYawManS      ! Time to start override yaw maneuver [s]
+    REAL(DbKi)  :: TYCOn      ! Time to enable active yaw control [s]
+    REAL(ReKi)  :: VS_RtGnSp      ! Rated generator speed (HSS side) [rad/s]
+    REAL(ReKi)  :: VS_RtTq      ! Rated generator torque/constant generator torque in Region 3 (HSS side) [N-m]
+    REAL(ReKi)  :: VS_Slope      ! Torque/speed slope of region 2 1/2 induction generator [-]
+    REAL(ReKi)  :: VS_SlPc      ! Rated generator slip percentage in Region 2 1/2 [-]
+    REAL(ReKi)  :: VS_SySp      ! Synchronous speed of region 2 1/2 induction generator [-]
+    REAL(ReKi)  :: VS_TrGnSp      ! Transitional generator speed between regions 2 and 2 1/2 [-]
+    REAL(ReKi)  :: YawPosCom      ! Commanded yaw angle from user-defined routines [rad]
+    REAL(ReKi)  :: YawRateCom      ! Commanded yaw rate  from user-defined routines [rad/s]
+    INTEGER(IntKi)  :: GenModel      ! Generator model [-]
+    INTEGER(IntKi)  :: HSSBrMode      ! HSS brake model [-]
+    INTEGER(IntKi)  :: PCMode      ! Pitch control mode [-]
+    INTEGER(IntKi)  :: VSContrl      ! Variable-speed-generator control switch [-]
+    INTEGER(IntKi)  :: YCMode      ! Yaw control mode [-]
+    LOGICAL  :: GenTiStp      ! Stop generator based upon T: time or F: generator power = 0 [-]
+    LOGICAL  :: GenTiStr      ! Start generator based upon T: time or F: generator speed [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TBDepISp      ! Deployment-initiation speed for the tip brakes [rad/s]
+    REAL(ReKi)  :: VS_Rgn2K      ! Generator torque constant in Region 2 for simple variable-speed generator control (HSS side) [used only when VSContrl=1] [N-m/(rad/s)^2]
+    REAL(ReKi)  :: YawNeut      ! Neutral yaw position--yaw spring force is zero at this yaw [radians]
+    REAL(ReKi)  :: YawSpr      ! Nacelle-yaw spring constant [N-m/rad]
+    REAL(ReKi)  :: YawDamp      ! Nacelle-yaw constant [N-m/(rad/s)]
+    REAL(DbKi)  :: TpBrDT      ! Time for tip-brake to reach full deployment once released [s]
+    REAL(ReKi)  :: TBDrConN      ! Tip-brake drag constant during normal operation, Cd*Area [-]
+    REAL(ReKi)  :: TBDrConD      ! Tip-brake drag constant during fully-deployed operation, Cd*Area [-]
+    INTEGER(IntKi)  :: NumBl      ! Number of blades on the turbine [-]
+    INTEGER(IntKi)  :: NumOuts      ! Number of parameters in the output list (number of outputs requested) [-]
+    CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
+    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! Names and units (and other characteristics) of all requested output parameters [-]
+    CHARACTER(1)  :: Delim      ! Column delimiter for output text files [-]
+    LOGICAL  :: UseBladedInterface      ! Flag that determines if BladedInterface was used [-]
+    INTEGER(IntKi)  :: DLL_NumTrq      ! No. of points in torque-speed look-up table, 0 = none and use the optimal mode PARAMETERs instead;  nonzero = ignore the optimal mode PARAMETERs by setting Record 16 to 0.0 [-]
+    INTEGER(IntKi)  :: Ptch_Cntrl      ! Pitch control: 0 = collective;  1 = individual [-]
+    REAL(ReKi)  :: Gain_OM      ! Optimal mode gain [Nm/(rad/s)^2]
+    REAL(ReKi)  :: GenPwr_Dem      ! Demanded power [W]
+    REAL(ReKi)  :: GenSpd_Dem      ! Demanded generator speed above rated [rad/s]
+    REAL(ReKi)  :: GenSpd_MaxOM      ! Optimal mode maximum speed [rad/s]
+    REAL(ReKi)  :: GenSpd_MinOM      ! Minimum generator speed [rad/s]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenSpd_TLU      ! Table (array) containing DLL_NumTrq generator speeds  for the torque-speed table look-up (TLU) -- this should be defined using an array constructor; for example,  if DLL_NumTrq = 3,  GenSpd_TLU(DLL_NumTrq)    = (/ 0.0, 99.9,  999.9 /) [rad/s]
+    REAL(ReKi)  :: GenTrq_Dem      ! Demanded generator torque [Nm]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: GenTrq_TLU      ! Table (array) containing DLL_NumTrq generator torques for the torque-speed table look-up (TLU) -- this should be defined using an array constructor, for example,  if DLL_NumTrq = 3,  GenTrq_TLU(DLL_NumTrq)    = (/ 0.0, 10,  200.0 /) [Nm]
+    REAL(ReKi)  :: Ptch_Max      ! Maximum pitch angle [rad]
+    REAL(ReKi)  :: Ptch_Min      ! Minimum pitch angle [rad]
+    REAL(ReKi)  :: Ptch_SetPnt      ! Below-rated pitch angle set-point [rad]
+    REAL(ReKi)  :: PtchRate_Max      ! Maximum pitch rate [rad/s]
+    REAL(ReKi)  :: PtchRate_Min      ! Minimum pitch rate (most negative value allowed) [rad/s]
+    REAL(ReKi)  :: NacYaw_North      ! Reference yaw angle of the nacelle when the upwind end points due North [rad]
+    CHARACTER(1024)  :: DLL_InFile      ! Name of input file used in DLL [-]
+    TYPE(DLL_Type)  :: DLL_Trgt      ! The addresses and names of the Bladed DLL and its procedure [-]
   END TYPE SrvD_ParameterType
 ! =======================
 ! =========  SrvD_InputType  =======
   TYPE, PUBLIC :: SrvD_InputType
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch 
-    REAL(ReKi)  :: Yaw 
-    REAL(ReKi)  :: YawRate 
-    REAL(ReKi)  :: LSS_Spd 
-    REAL(ReKi)  :: HSS_Spd 
-    REAL(ReKi)  :: RotSpeed 
-    REAL(ReKi)  :: ExternalYawPosCom 
-    REAL(ReKi)  :: ExternalYawRateCom 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: ExternalBlPitchCom 
-    REAL(ReKi)  :: ExternalGenTrq 
-    REAL(ReKi)  :: ExternalElecPwr 
-    REAL(ReKi)  :: ExternalHSSBrFrac 
-    REAL(ReKi)  :: TwrAccel 
-    REAL(ReKi)  :: YawErr 
-    REAL(ReKi)  :: WindDir 
-    REAL(ReKi) , DIMENSION(1:3)  :: RootMyc 
-    REAL(ReKi)  :: YawBrTAxp 
-    REAL(ReKi)  :: YawBrTAyp 
-    REAL(ReKi)  :: LSSTipPxa 
-    REAL(ReKi) , DIMENSION(1:3)  :: RootMxc 
-    REAL(ReKi)  :: LSSTipMya 
-    REAL(ReKi)  :: LSSTipMza 
-    REAL(ReKi)  :: LSSTipMys 
-    REAL(ReKi)  :: LSSTipMzs 
-    REAL(ReKi)  :: YawBrMyn 
-    REAL(ReKi)  :: YawBrMzn 
-    REAL(ReKi)  :: NcIMURAxs 
-    REAL(ReKi)  :: NcIMURAys 
-    REAL(ReKi)  :: NcIMURAzs 
-    REAL(ReKi)  :: RotPwr 
-    REAL(ReKi)  :: HorWindV 
-    REAL(ReKi)  :: YawAngle 
-    REAL(ReKi)  :: ElecPwr_prev 
-    REAL(ReKi)  :: GenTrq_prev 
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Current blade pitch angles [radians]
+    REAL(ReKi)  :: Yaw      ! Current nacelle yaw [radians]
+    REAL(ReKi)  :: YawRate      ! Current nacelle yaw rate [rad/s]
+    REAL(ReKi)  :: LSS_Spd      ! Low-speed shaft (LSS) speed at entrance to gearbox [rad/s]
+    REAL(ReKi)  :: HSS_Spd      ! High-speed shaft (HSS) speed [rad/s]
+    REAL(ReKi)  :: RotSpeed      ! Rotor azimuth angular speed [rad/s]
+    REAL(ReKi)  :: ExternalYawPosCom      ! Commanded nacelle yaw position from Simulink or Labview [radians]
+    REAL(ReKi)  :: ExternalYawRateCom      ! Commanded nacelle yaw rate from Simulink or Labview [rad/s]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: ExternalBlPitchCom      ! Commanded blade pitch from Simulink or LabVIEW [radians]
+    REAL(ReKi)  :: ExternalGenTrq      ! Electrical generator torque from Simulink or LabVIEW [N-m]
+    REAL(ReKi)  :: ExternalElecPwr      ! Electrical power from Simulink or LabVIEW [W]
+    REAL(ReKi)  :: ExternalHSSBrFrac      ! Fraction of full braking torque: 0 (off) <= HSSBrFrac <= 1 (full) from LabVIEW [-]
+    REAL(ReKi)  :: TwrAccel      ! Tower acceleration for tower feedback control (user routine only) [m/s^2]
+    REAL(ReKi)  :: YawErr      ! Yaw error [radians]
+    REAL(ReKi)  :: WindDir      ! Wind direction [radians]
+    REAL(ReKi) , DIMENSION(1:3)  :: RootMyc      ! Out-of-plane moment (i.e., the moment caused by out-of-plane forces) at the blade root for each of the blades (max 3) [N-m]
+    REAL(ReKi)  :: YawBrTAxp      ! Tower-top / yaw bearing fore-aft (translational) acceleration (absolute) [m/s^2]
+    REAL(ReKi)  :: YawBrTAyp      ! Tower-top / yaw bearing side-to-side (translational) acceleration (absolute) [m/s^2]
+    REAL(ReKi)  :: LSSTipPxa      ! Rotor azimuth angle (position) [radians]
+    REAL(ReKi) , DIMENSION(1:3)  :: RootMxc      ! In-plane moment (i.e., the moment caused by in-plane forces) at the blade root [N-m]
+    REAL(ReKi)  :: LSSTipMya      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
+    REAL(ReKi)  :: LSSTipMza      ! Rotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
+    REAL(ReKi)  :: LSSTipMys      ! Nonrotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
+    REAL(ReKi)  :: LSSTipMzs      ! Nonrotating low-speed shaft bending moment at the shaft tip (teeter pin for 2-blader, apex of rotation for 3-blader) [N-m]
+    REAL(ReKi)  :: YawBrMyn      ! Rotating (with nacelle) tower-top / yaw bearing pitch moment [N-m]
+    REAL(ReKi)  :: YawBrMzn      ! Tower-top / yaw bearing yaw moment [N-m]
+    REAL(ReKi)  :: NcIMURAxs      ! Nacelle inertial measurement unit angular (rotational) acceleration (absolute) [rad/s^2]
+    REAL(ReKi)  :: NcIMURAys      ! Nacelle inertial measurement unit angular (rotational) acceleration (absolute) [rad/s^2]
+    REAL(ReKi)  :: NcIMURAzs      ! Nacelle inertial measurement unit angular (rotational) acceleration (absolute) [rad/s^2]
+    REAL(ReKi)  :: RotPwr      ! Rotor power (this is equivalent to the low-speed shaft power) [W]
+    REAL(ReKi)  :: HorWindV      ! Horizontal hub-height wind velocity magnitude [m/s]
+    REAL(ReKi)  :: YawAngle      ! Estimate of yaw (nacelle + platform) [radians]
+    REAL(ReKi)  :: ElecPwr_prev      ! Electrical power (from previous step), sent to Bladed DLL [W]
+    REAL(ReKi)  :: GenTrq_prev      ! Electrical generator torque (from previous step), sent to Bladed DLL [N-m]
   END TYPE SrvD_InputType
 ! =======================
 ! =========  SrvD_OutputType  =======
   TYPE, PUBLIC :: SrvD_OutputType
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchCom 
-    REAL(ReKi)  :: YawMom 
-    REAL(ReKi)  :: GenTrq 
-    REAL(ReKi)  :: HSSBrTrq 
-    REAL(ReKi)  :: ElecPwr 
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TBDrCon 
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Data to be written to an output file: see WriteOutputHdr for names of each variable [see WriteOutputUnt]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitchCom      ! Commanded blade pitch angles [radians]
+    REAL(ReKi)  :: YawMom      ! Torque transmitted through the yaw bearing [N-m]
+    REAL(ReKi)  :: GenTrq      ! Electrical generator torque [N-m]
+    REAL(ReKi)  :: HSSBrTrq      ! Instantaneous HSS brake torque [N-m]
+    REAL(ReKi)  :: ElecPwr      ! Electrical power [W]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: TBDrCon      ! Instantaneous tip-brake drag constant, Cd*Area [-]
   END TYPE SrvD_OutputType
 ! =======================
 CONTAINS
@@ -3332,512 +3332,6 @@ ENDIF
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE SrvD_UnPackOutput
-
- SUBROUTINE SrvD_Pack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg, &
-                     SizeOnly )
-  TYPE(SrvD_InputType),           INTENT(INOUT) :: InData
-  TYPE(SrvD_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(SrvD_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(SrvD_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(SrvD_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(SrvD_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(SrvD_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(  OUT) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(  OUT) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,  INTENT(  OUT) :: Int_RetAry(:)
-  INTEGER(IntKi),               INTENT(  OUT) :: ErrStat
-  CHARACTER(*),                 INTENT(  OUT) :: ErrMsg
-  LOGICAL, OPTIONAL,            INTENT(IN   ) :: SizeOnly
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  LOGICAL                                :: OnlySize ! if present and true, do not pack, just allocate buffers
-    ! Executable statements
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  OnlySize = .FALSE.
-  IF ( PRESENT(SizeOnly) ) THEN
-    OnlySize = SizeOnly
-  ENDIF
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred  = Re_Xferred - 1
-  Db_Xferred  = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
-  IF ( ALLOCATED( Re_RetAry ) ) DEALLOCATE( Re_RetAry ) ;
-  IF ( Re_Xferred .GT. 0) ALLOCATE( Re_RetAry( Re_Xferred ) ) ;
-  IF ( ALLOCATED( Db_RetAry ) ) DEALLOCATE( Db_RetAry ) ;
-  IF ( Db_Xferred .GT. 0) ALLOCATE( Db_RetAry( Db_Xferred ) ) ;
-  IF ( ALLOCATED( Int_RetAry ) ) DEALLOCATE( Int_RetAry ) ;
-  IF ( Int_Xferred .GT. 0) ALLOCATE( Int_RetAry( Int_Xferred ) ) ;
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! Pack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-    ! Pack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)=Re_Ary
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-    DEALLOCATE(Re_Ary)
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)=Db_Ary
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-    DEALLOCATE(Db_Ary)
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    IF ( .NOT. OnlySize ) Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)=Int_Ary
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-    DEALLOCATE(Int_Ary)
-  ENDIF
-  Re_Xferred   = Re_Xferred - 1
-  Db_Xferred   = Db_Xferred - 1
-  Int_Xferred  = Int_Xferred - 1
- END SUBROUTINE SrvD_Pack
-
- SUBROUTINE SrvD_UnPack( Re_RetAry, Db_RetAry, Int_RetAry, &
-                     InData, ParamData, ContStateData, DiscStateData, &
-                     ConstrStateData, OtherStateData, OutData, ErrStat, ErrMsg )
-  TYPE(SrvD_InputType),           INTENT(INOUT) :: InData
-  TYPE(SrvD_ParameterType),       INTENT(INOUT) :: ParamData
-  TYPE(SrvD_ContinuousStateType), INTENT(INOUT) :: ContStateData
-  TYPE(SrvD_DiscreteStateType),   INTENT(INOUT) :: DiscStateData
-  TYPE(SrvD_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
-  TYPE(SrvD_OtherStateType),      INTENT(INOUT) :: OtherStateData
-  TYPE(SrvD_OutputType),          INTENT(INOUT) :: OutData
-  REAL(ReKi), ALLOCATABLE,      INTENT(IN   ) :: Re_RetAry(:)
-  REAL(DbKi), ALLOCATABLE,      INTENT(IN   ) :: Db_RetAry(:)
-  INTEGER(IntKi), ALLOCATABLE,   INTENT(IN   ) :: Int_RetAry(:)
-  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local variables
-  REAL(ReKi), ALLOCATABLE                :: Re_Ary(:)
-  REAL(DbKi), ALLOCATABLE                :: Db_Ary(:)
-  INTEGER(IntKi), ALLOCATABLE            :: Int_Ary(:)
-  INTEGER(IntKi)                         :: Re_BufSz
-  INTEGER(IntKi)                         :: Re_Xferred
-  INTEGER(IntKi)                         :: Re_CurrSz
-  INTEGER(IntKi)                         :: Db_BufSz
-  INTEGER(IntKi)                         :: Db_Xferred
-  INTEGER(IntKi)                         :: Db_CurrSz
-  INTEGER(IntKi)                         :: Int_BufSz
-  INTEGER(IntKi)                         :: Int_Xferred
-  INTEGER(IntKi)                         :: Int_CurrSz
-  INTEGER(IntKi)                         :: ErrStat2
-  CHARACTER(Len(ErrMsg))                 :: ErrMsg2
-  ErrStat = ErrID_None
-  ErrMsg  = ""
-  Re_Xferred  = 1
-  Db_Xferred  = 1
-  Int_Xferred  = 1
-    ! UnPack Input
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SrvD_UnPackInput(Re_Ary,Db_Ary,Int_Ary,InData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Param
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SrvD_UnPackParam(Re_Ary,Db_Ary,Int_Ary,ParamData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ContState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SrvD_UnPackContState(Re_Ary,Db_Ary,Int_Ary,ContStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack DiscState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SrvD_UnPackDiscState(Re_Ary,Db_Ary,Int_Ary,DiscStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack ConstrState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SrvD_UnPackConstrState(Re_Ary,Db_Ary,Int_Ary,ConstrStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack OtherState
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SrvD_UnPackOtherState(Re_Ary,Db_Ary,Int_Ary,OtherStateData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-    ! UnPack Output
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  CALL SrvD_PackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2,SizeOnly=.TRUE.)
-  IF ( ALLOCATED( Re_Ary ) ) THEN
-    Re_Ary = Re_RetAry(Re_Xferred:Re_Xferred+SIZE(Re_Ary)-1)
-    Re_Xferred = Re_Xferred + SIZE( Re_Ary )
-  ENDIF
-  IF ( ALLOCATED( Db_Ary ) ) THEN
-    DB_Ary = Db_RetAry(Db_Xferred:Db_Xferred+SIZE(Db_Ary)-1)
-    Db_Xferred = Db_Xferred + SIZE( Db_Ary )
-  ENDIF
-  IF ( ALLOCATED( Int_Ary ) ) THEN
-    Int_Ary = Int_RetAry(Int_Xferred:Int_Xferred+SIZE(Int_Ary)-1)
-    Int_Xferred = Int_Xferred + SIZE( Int_Ary )
-  ENDIF
-  CALL SrvD_UnPackOutput(Re_Ary,Db_Ary,Int_Ary,OutData,ErrStat2,ErrMsg2)
-  IF ( ALLOCATED( Re_Ary ) )  DEALLOCATE(Re_Ary)
-  IF ( ALLOCATED( Db_Ary ) )  DEALLOCATE(Db_Ary)
-  IF ( ALLOCATED( Int_Ary ) )  DEALLOCATE(Int_Ary)
-  Re_Xferred   = Re_Xferred-1
-  Db_Xferred   = Db_Xferred-1
-  Int_Xferred  = Int_Xferred-1
- END SUBROUTINE SrvD_UnPack
 
 
  SUBROUTINE SrvD_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
