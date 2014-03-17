@@ -1615,7 +1615,7 @@ END SUBROUTINE WrOutputLine
 
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u_MAP, y_SD, u_SD, &
-                          y_FEAM, u_FEAM, MeshMapData, u_ED_Without_SD_HD, ErrStat, ErrMsg )
+                          y_FEAM, u_FEAM, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for ED
 !..................................................................................................................................
 
@@ -1634,7 +1634,6 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
    TYPE(FEAM_InputType),           INTENT(IN   )  :: u_FEAM                   ! FEAM inputs
    
    TYPE(FAST_ModuleMapType),       INTENT(INOUT)  :: MeshMapData              ! Data for mapping between modules
-   TYPE(MeshType),                 INTENT(INOUT)  :: u_ED_Without_SD_HD       ! in: u_ED%PlatformPtMesh with contribution from modules other than HD and SD [MAP, etc]
    INTEGER(IntKi),                 INTENT(  OUT)  :: ErrStat                  ! Error status
    CHARACTER(*),                   INTENT(  OUT)  :: ErrMsg                   ! Error message
    
@@ -1724,12 +1723,12 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
 
    !IF ( p_FAST%CompUserPtfmLd ) THEN
    !   u_ED%PtfmAddedMass = y_UsrPtfm%AddedMass
-   !   u_ED_Without_SD_HD%Force  = y_UsrPtfm%Force
-   !   u_ED_Without_SD_HD%Moment = y_UsrPtfm%Moment
+   !   MeshMapData%u_ED_PlatformPtMesh_2%Force  = y_UsrPtfm%Force
+   !   MeshMapData%u_ED_PlatformPtMesh_2%Moment = y_UsrPtfm%Moment
    !ELSE
       u_ED%PtfmAddedMass = 0.0_ReKi
-      u_ED_Without_SD_HD%Force = 0.0_ReKi
-      u_ED_Without_SD_HD%Moment = 0.0_ReKi
+      MeshMapData%u_ED_PlatformPtMesh_2%Force = 0.0_ReKi
+      MeshMapData%u_ED_PlatformPtMesh_2%Moment = 0.0_ReKi
    !   u_ED%PlatformPtMesh%Force(:,1) = 0.0_ReKi
    !   u_ED%PlatformPtMesh%Moment(:,1) = 0.0_ReKi
    !!END IF
@@ -1747,8 +1746,8 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
-      u_ED_Without_SD_HD%Force  = u_ED_Without_SD_HD%Force  + u_mapped%Force 
-      u_ED_Without_SD_HD%Moment = u_ED_Without_SD_HD%Moment + u_mapped%Moment 
+      MeshMapData%u_ED_PlatformPtMesh_2%Force  = MeshMapData%u_ED_PlatformPtMesh_2%Force  + u_mapped%Force 
+      MeshMapData%u_ED_PlatformPtMesh_2%Moment = MeshMapData%u_ED_PlatformPtMesh_2%Moment + u_mapped%Moment 
                
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          ! we're mapping loads, so we also need the sibling meshes' displacements:
@@ -1756,13 +1755,13 @@ SUBROUTINE ED_InputSolve( p_FAST, u_ED, y_ED, y_AD, y_SrvD, y_HD, u_HD, y_MAP, u
          CALL CheckError( ErrStat2, ErrMsg2 )
          IF (ErrStat >= AbortErrLev) RETURN
 
-      u_ED_Without_SD_HD%Force  = u_ED_Without_SD_HD%Force  + u_mapped%Force 
-      u_ED_Without_SD_HD%Moment = u_ED_Without_SD_HD%Moment + u_mapped%Moment 
+      MeshMapData%u_ED_PlatformPtMesh_2%Force  = MeshMapData%u_ED_PlatformPtMesh_2%Force  + u_mapped%Force 
+      MeshMapData%u_ED_PlatformPtMesh_2%Moment = MeshMapData%u_ED_PlatformPtMesh_2%Moment + u_mapped%Moment 
       
    END IF
    
-   u_ED%PlatformPtMesh%Force  = u_ED_Without_SD_HD%Force
-   u_ED%PlatformPtMesh%Moment = u_ED_Without_SD_HD%Moment
+   u_ED%PlatformPtMesh%Force  = MeshMapData%u_ED_PlatformPtMesh_2%Force
+   u_ED%PlatformPtMesh%Moment = MeshMapData%u_ED_PlatformPtMesh_2%Moment
 
    
       ! ED inputs from HydroDyn or SubDyn (done in separate routine due to two-way direct feed-through [we call it again])
@@ -2092,6 +2091,72 @@ SUBROUTINE Transfer_ED_to_HD( y_ED, u_HD, MeshMapData, ErrStat, ErrMsg )
    
 END SUBROUTINE Transfer_ED_to_HD
 !----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE Transfer_ED_to_HD_SD_Mooring( p_FAST, y_ED, u_HD, u_SD, u_MAP, u_FEAM, MeshMapData, ErrStat, ErrMsg )
+! This routine transfers the ED outputs into inputs required for HD, SD, MAP, and/or FEAM
+!..................................................................................................................................
+   TYPE(FAST_ParameterType),    INTENT(IN)    :: p_FAST                       ! Glue-code simulation parameters
+   TYPE(ED_OutputType),         INTENT(IN   ) :: y_ED                         ! The outputs of the structural dynamics module
+   TYPE(HydroDyn_InputType),    INTENT(INOUT) :: u_HD                         ! HydroDyn input
+   TYPE(SD_InputType),          INTENT(INOUT) :: u_SD                         ! SubDyn input
+   TYPE(MAP_InputType),         INTENT(INOUT) :: u_MAP                        ! MAP input
+   TYPE(FEAM_InputType),        INTENT(INOUT) :: u_FEAM                       ! FEAM input
+   TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
+
+   INTEGER(IntKi),              INTENT(OUT)   :: ErrStat                      ! Error status of the operation
+   CHARACTER(*),                INTENT(OUT)   :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
+   
+      ! local variables
+   INTEGER(IntKi)                             :: ErrStat2                     ! temporary Error status of the operation
+   CHARACTER(LEN(ErrMsg))                     :: ErrMsg2                      ! temporary Error message if ErrStat /= ErrID_None
+      
+      
+   ErrStat = ErrID_None
+   ErrMsg = ""
+     
+      ! transfer ED outputs to other modules used in option 1:
+            
+   IF ( p_FAST%CompSub == Module_SD  ) THEN
+      
+         ! Map ED outputs to SD inputs:                     
+      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_SD%TPMesh, MeshMapData%ED_P_2_SD_TP, ErrStat2, ErrMsg2 ) 
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring (u_SD%TPMesh)' )
+               
+         
+         ! HD's other inputs are set by SD:
+         
+      !IF ( p_FAST%CompHydro == Module_HD  ) THEN
+      !      
+      !      ! SD motions to HD:
+      !   CALL Transfer_SD_to_HD( y_SD, u_HD%Morison%LumpedMesh, u_HD%Morison%DistribMesh, MeshMapData, ErrStat, ErrMsg )
+      !      CALL ChecEkrror( ErrStat, 'Message from Transfer_ED_to_HD_SD_Mooring: '//NewLine//ErrMsg  )    
+      !                                                                            
+      !END IF         
+         
+                  
+   ELSEIF ( p_FAST%CompHydro == Module_HD ) THEN
+      
+         ! Map ED outputs to HD inputs:
+      CALL Transfer_ED_to_HD( y_ED, u_HD, MeshMapData, ErrStat2, ErrMsg2 )                        
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring' )
+            
+   END IF      
+   
+   
+   IF ( p_FAST%CompMooring == Module_MAP ) THEN
+      
+      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairleadDisplacement, MeshMapData%ED_P_2_MAP_P, ErrStat, ErrMsg )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring (u_MAP%PtFairleadDisplacement)' )
+                                 
+   ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
+         
+      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_FEAM%PtFairleadDisplacement, MeshMapData%ED_P_2_FEAM_P, ErrStat, ErrMsg )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring (u_FEAM%PtFairleadDisplacement)' )
+                        
+   END IF
+   
+            
+END SUBROUTINE Transfer_ED_to_HD_SD_Mooring
+!----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE MAP_InputSolve(  u_MAP, y_ED, MeshMapData, ErrStat, ErrMsg )
 ! This routine sets the inputs required for MAP.
 !..................................................................................................................................
@@ -2252,7 +2317,7 @@ END FUNCTION GetPerturb
 SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                   , u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED &
                                   , u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD & 
-                                  , u_ED_Without_SD_HD, MeshMapData , ErrStat, ErrMsg )
+                                  , MeshMapData , ErrStat, ErrMsg )
 ! This routine performs the Input-Output solve for ED and HD.
 ! Note that this has been customized for the physics in the problems and is not a general solution.
 !..................................................................................................................................
@@ -2283,9 +2348,7 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    TYPE(HydroDyn_ParameterType)      , INTENT(IN   ) :: p_HD                      ! Parameters
    TYPE(HydroDyn_InputType)          , INTENT(INOUT) :: u_HD                      ! System inputs
    TYPE(HydroDyn_OutputType)         , INTENT(INOUT) :: y_HD                      ! System outputs
-   
-   TYPE(MeshType)                    , INTENT(IN   ) :: u_ED_Without_SD_HD        ! The current ED inputs on PlatformPtMesh, except for the HD and SD contributions 
-   
+      
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat                   ! Error status of the operation
    CHARACTER(*)                      , INTENT(  OUT) :: ErrMsg                    ! Error message if ErrStat /= ErrID_None
@@ -2343,8 +2406,8 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
       ! Add the HD outputs to ED ? 
       !----------------------------------------------------------------------------------------------------   
       
-      !u_ED%PlatformPtMesh%Force  = u_ED_Without_SD_HD%Force
-      !u_ED%PlatformPtMesh%Moment = u_ED_Without_SD_HD%Moment
+      !u_ED%PlatformPtMesh%Force  = MeshMapData%u_ED_PlatformPtMesh_2%Force
+      !u_ED%PlatformPtMesh%Moment = MeshMapData%u_ED_PlatformPtMesh_2%Moment
       !
       !CALL Transfer_HD_to_ED( u_PlatformPtMesh, u_ED, y_HD, u_HD, MeshMapData, ErrStat2, ErrMsg2 )         
       !   CALL CheckError( ErrStat2, ErrMsg2  )
@@ -2616,8 +2679,8 @@ CONTAINS
    ! we use the copy of u_ED for it's underlying mesh (we don't need to update values in it because they are overwritten in this routine):            
             
    ! these mesh fields need to be reinitialized before calling Transfer_HD_to_ED because the resulting loads get SUMMED there.      
-      u_ED_copy%PlatformPtMesh%Force = u_ED_Without_SD_HD%Force
-      u_ED_copy%PlatformPtMesh%Moment = u_ED_Without_SD_HD%Moment
+      u_ED_copy%PlatformPtMesh%Force = MeshMapData%u_ED_PlatformPtMesh_2%Force
+      u_ED_copy%PlatformPtMesh%Moment = MeshMapData%u_ED_PlatformPtMesh_2%Moment
           
       CALL Transfer_HD_to_ED( u_PlatformPtMesh, u_ED_copy, y_ED2%PlatformPtMesh, y_HD2, u_HD2, MeshMapData, ErrStat2, ErrMsg2 )         
          CALL CheckError( ErrStat2, ErrMsg2  )
@@ -2692,7 +2755,7 @@ END SUBROUTINE ED_HD_InputOutputSolve
 SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                   , u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED &
                                   , u_SD, p_SD, x_SD, xd_SD, z_SD, OtherSt_SD, y_SD & 
-                                  , u_ED_Without_SD_HD, MeshMapData , ErrStat, ErrMsg )
+                                  , MeshMapData , ErrStat, ErrMsg )
 ! This routine performs the Input-Output solve for ED and SD.
 ! Note that this has been customized for the physics in the problems and is not a general solution.
 !..................................................................................................................................
@@ -2724,7 +2787,6 @@ SUBROUTINE ED_SD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    TYPE(SD_InputType)                , INTENT(INOUT) :: u_SD                      ! System inputs
    TYPE(SD_OutputType)               , INTENT(INOUT) :: y_SD                      ! System outputs
                                                                                   
-   TYPE(MeshType)                    , INTENT(IN   ) :: u_ED_Without_SD_HD        ! The current ED inputs on PlatformPtMesh, except for the HD and SD contributions 
 !BJJ: we would also need the UserPlatform loads (everything that gets mapped to the platform ref point in ED)   
    
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
@@ -2995,8 +3057,8 @@ CONTAINS
                  
          
             
-      U_Resid( 1: 3) = u_in( 1: 3) - (u_ED_Without_SD_HD%Force( :,1) + u_PlatformPtMesh%Force( :,1)) / p_FAST%UJacSclFact
-      U_Resid( 4: 6) = u_in( 4: 6) - (u_ED_Without_SD_HD%Moment(:,1) + u_PlatformPtMesh%Moment(:,1)) / p_FAST%UJacSclFact      
+      U_Resid( 1: 3) = u_in( 1: 3) - (MeshMapData%u_ED_PlatformPtMesh_2%Force( :,1) + u_PlatformPtMesh%Force( :,1)) / p_FAST%UJacSclFact
+      U_Resid( 4: 6) = u_in( 4: 6) - (MeshMapData%u_ED_PlatformPtMesh_2%Moment(:,1) + u_PlatformPtMesh%Moment(:,1)) / p_FAST%UJacSclFact      
       U_Resid( 7: 9) = u_in( 7: 9) - u_TPMesh%TranslationAcc(:,1)
       U_Resid(10:12) = u_in(10:12) - u_TPMesh%RotationAcc(:,1)
    
@@ -3062,7 +3124,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                      , u_ED, p_ED, x_ED, xd_ED, z_ED, OtherSt_ED, y_ED &
                                      , u_SD, p_SD, x_SD, xd_SD, z_SD, OtherSt_SD, y_SD & 
                                      , u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD & 
-                                     , u_ED_Without_SD_HD, MeshMapData , ErrStat, ErrMsg )
+                                     , MeshMapData , ErrStat, ErrMsg )
 ! This routine performs the Input-Output solve for ED, SD, and HD.
 ! Note that this has been customized for the physics in the problems and is not a general solution.
 !..................................................................................................................................
@@ -3103,10 +3165,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    TYPE(HydroDyn_ParameterType)      , INTENT(IN   ) :: p_HD                      ! Parameters
    TYPE(HydroDyn_InputType)          , INTENT(INOUT) :: u_HD                      ! System inputs
    TYPE(HydroDyn_OutputType)         , INTENT(INOUT) :: y_HD                      ! System outputs
-   
-   
-   TYPE(MeshType)                    , INTENT(IN   ) :: u_ED_Without_SD_HD        ! The current ED inputs on PlatformPtMesh, except for the HD and SD contributions 
-   
+      
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat                   ! Error status of the operation
    CHARACTER(*)                      , INTENT(  OUT) :: ErrMsg                    ! Error message if ErrStat /= ErrID_None
@@ -3740,8 +3799,8 @@ CONTAINS
    
          END IF        
          
-         u_PlatformPtMesh%Force  = u_PlatformPtMesh%Force  + u_ED_Without_SD_HD%Force
-         u_PlatformPtMesh%Moment = u_PlatformPtMesh%Moment + u_ED_Without_SD_HD%Moment
+         u_PlatformPtMesh%Force  = u_PlatformPtMesh%Force  + MeshMapData%u_ED_PlatformPtMesh_2%Force
+         u_PlatformPtMesh%Moment = u_PlatformPtMesh%Moment + MeshMapData%u_ED_PlatformPtMesh_2%Moment
                                                 
    !..................
    ! Calculate the residual with these new inputs:
