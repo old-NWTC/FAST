@@ -90,10 +90,11 @@ SET CURR_LOC=%SD_Loc%
 GOTO checkError
 
 :MAP
-rem %MAP_Loc%
-rem need the syntax for generating the c-to-fortran code...
+SET CURR_LOC=%MAP_Loc%
+IF /I "%2"=="bjonkman" (
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -ccode -I %NWTC_Lib_Loc%
 GOTO checkError
-
+)
 
 :FEAMooring
 SET CURR_LOC=%FEAM_Loc%
@@ -107,8 +108,9 @@ ECHO.
 IF %ERRORLEVEL% NEQ 0 (
 ECHO Error running FAST Registry for %ModuleName%.
 ) ELSE (
-ECHO %ModuleName%_Types.f90 was created.
-COPY /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+ECHO Registry for %ModuleName% completed.
+COPY /Y "%ModuleName%_Types.f90"   "%CURR_LOC%"
+IF /I "%ModuleName%"=="MAP" COPY /Y "%ModuleName%_C_Types.f90" "%CURR_LOC%"
 )
 
 

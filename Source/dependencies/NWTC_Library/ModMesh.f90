@@ -1363,17 +1363,23 @@ CONTAINS
          ENDDO
 
       ELSE IF ( CtrlCode .EQ. MESH_UPDATECOPY ) THEN
+         
          IF ( SrcMesh%nNodes .NE. DestMesh%nNodes ) THEN
             ErrStat = ErrID_Fatal
             ErrMess = "MeshCopy: MESH_UPDATECOPY of meshes with different numbers of nodes."
-         ELSE
-
-            ! bjj: should we update positions?
-            !DestMesh%RemapFlag = SrcMesh%RemapFlag
-            !DestMesh%nextelem  = SrcMesh%nextelem
-
          ENDIF
+                  
+      ELSE IF ( CtrlCode .EQ. MESH_UPDATEREFERENCE ) THEN
 
+         IF ( SrcMesh%nNodes .NE. DestMesh%nNodes ) THEN
+            ErrStat = ErrID_Fatal
+            ErrMess = "MeshCopy:MESH_UPDATEREFERENCE of meshes with different numbers of nodes."
+         ENDIF         ! if we have a different number of nodes or different element connectivity, we'll have to redo this
+         
+         DestMesh%Position       = SrcMesh%Position
+         DestMesh%RefOrientation = SrcMesh%RefOrientation
+         DestMesh%RemapFlag      = SrcMesh%RemapFlag            
+                        
       ELSE
          ErrStat = ErrID_Fatal
          ErrMess  = 'MeshCopy: Invalid CtrlCode.'

@@ -32,14 +32,15 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= [1:19 22:24] %1:24 
+    for i= 24 % [1:19 21:24] %1:25 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
+% fileRoot = ['Test' num2str(i,'%02.0f') '_simple'];
+%      fileRoot = ['Test' num2str(i,'%02.0f') '_noHD'];
         
         oldRoot  = strcat( oldPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
         newRoot  = strcat( newPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
         
-% oldRoot = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest\5MWTestCases\NRELOffshrBsline5MW_Onshore\NRELOffshrBsline5MW_Onshore'
         if i == 14 % linearization case
 continue; %bjj: linearization not yet available in FAST 8.0.0
             oldFiles = strcat( oldRoot,  {'.eig', '_LIN.out', '.eig'} );
@@ -59,27 +60,32 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
                 oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
                 newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                
                 
-%                 if i==22 || i==23
-%                      newFiles = strrep(newFiles,'.outb','.out')
-%                 end
+if  i==14 %|| i==19 ||
+     newFiles = strrep(newFiles,'.outb','.out')
+end
+% if i==24
+%     oldFiles = strcat( newRoot,  {'_MAP.outb', '.plt', '_MAP.outb'} ); 
+% end    
+
             else  % use the text format
                 oldFiles = strcat( oldRoot,  {'.out', '.plt', '.out'} );
                 newFiles = strcat( newRoot,  {'.out', '.plt', '.out'} );
             end
-                                             
-            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' Output Time Series'], SaveFiles, [fileRoot '_ts'] );
+                           
+            TitleLocDesc = cellstr(['new: ' newFiles{end} ' | old: ' oldFiles{end}]);
+            
+            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' Output Time Series'], SaveFiles, [fileRoot '_ts'],TitleLocDesc );
         end % time series
-
-%%   bjj: removed block for less plotting     
  
         if i == 10
-                % Compare .elm files
+                % Compare (.AD.out) .elm files
                 
-            oldFiles = strcat( oldRoot,  '.elm' );
-            newFiles = strcat( newRoot,  '.elm' );
+            oldFiles = strcat( oldRoot,  '.AD.out' );
+            newFiles = strcat( newRoot,  '.AD.out' );
                                    
-            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [4, 2, 3], descFiles(plotFiles), [fileRoot ' AeroDyn Time Series'], true, [fileRoot '_elm'] );
+            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [3, 2, 3], descFiles(plotFiles), [fileRoot ' AeroDyn Time Series'], true, [fileRoot '_elm'] );
         end % elm files
+%%   bjj: removed block for less plotting     
 continue;            
         if i==1 || i==3 || i==8    
                 % Compare .azi files
@@ -112,7 +118,7 @@ continue;
 return;
 end
 %% --------------------------------------------------------------------------
-function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles, descTitle, savePlts, saveName )
+function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles, descTitle, savePlts, saveName, TitleLocDesc )
 % Required Input:
 %    pltType     - scalar that determines the content of the data files:
 %                  when = 1, data file has one X column and many Y columns;
@@ -173,6 +179,12 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
     else
         descTitle = ['File Comparisons for ' descTitle];
     end
+    if nargin > 8  %bjj:there is a better way to do this, but I don't feel like figuring it out right now       
+        descTitle = cellstr(descTitle);
+        for i=1:length(TitleLocDesc)
+            descTitle{1+i}=TitleLocDesc{i};
+        end
+    end
 
     if (nargin <= 4) || (numFiles ~= length(descFiles))
         descFiles = cell(nf,1);
@@ -230,14 +242,14 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
         if length(oldFiles{iFile}) > 4 && strcmpi( oldFiles{iFile}((end-4):end),'.outb' )
             [oldData{iFile}, oldCols{iFile}, oldUnits{iFile}] =  ReadFASTbinary(oldFiles{iFile});
         else
-            [oldData{iFile}, oldCols{iFile}, oldUnits{iFile}] = getColumnData(oldFiles{iFile}, '', HdrLines(1), HdrLines(2), HdrLines(3));
+            [oldData{iFile}, oldCols{iFile}, oldUnits{iFile}] = ReadFASTtext(oldFiles{iFile}, '', HdrLines(1), HdrLines(2), HdrLines(3));
         end
         
         
         if length(newFiles{iFile}) > 4 && strcmpi( newFiles{iFile}((end-4):end),'.outb' )
             [newData{iFile}, colName{iFile}                 ] = ReadFASTbinary(newFiles{iFile});
         else
-            [newData{iFile}, colName{iFile}                 ] = getColumnData(newFiles{iFile}, '', HdrLines(1), HdrLines(2), HdrLines(3));
+            [newData{iFile}, colName{iFile}                 ] = ReadFASTtext(newFiles{iFile}, '', HdrLines(1), HdrLines(2), HdrLines(3));
         end
         
         nCols     = max(nCols,     size(oldData{iFile},2));
@@ -402,12 +414,15 @@ function CompareCertTestResults(pltType, newFiles, oldFiles, HdrLines, descFiles
                 grid on;
             end %iSubPl
 
-            t=title( descTitle,'interpreter','none' );
-            set(t,'interpreter','none');
+            t=title( descTitle,'interpreter','none','FontSize',FntSz-1 );
+%             set(t,'interpreter','none')
+%             set(t,'FontSize',FntSz-1);
             h=legend('show');
             set(h,'interpreter','none','FontSize',FntSz-3); %'location','best');
 
-            set(fig,'paperorientation','landscape','paperposition',[0.25 0.25 10.5 8])
+            set(fig,'paperorientation','landscape','paperposition',[0.25 0.25 10.5 8] ...
+                   ,'Name',oldCols{iFile}{yCol_old});
+            
             if savePlts
                 print(['-f' num2str(fig)],'-dpng','-r150',[OutFileRoot '_' num2str(iPlot-1) '.png']);
                 close(fig)
@@ -433,13 +448,7 @@ function [ChannelName_new,scaleFact] = getNewChannelName(ChannelName)
             ChannelName_new = strrep( strrep( ChannelName,'Anch','TAnch['),'Ten',']');
         elseif strncmpi( ChannelName,'Anch',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TAnch[i] = AnchiTen
             ChannelName_new = strrep( strrep( ChannelName,'Anch','TAnch['),'Ten',']');
-        else
-            ChannelName_new = strrep(ChannelName,'Wave1V','M1N1V');
-            ChannelName_new = strrep(ChannelName_new,'Wave1A','M1N1A');
-            %ChannelName_new = ChannelName_new;              
-        end
-        
-        
+            
 %         elseif strcmpi(ChannelName,'TTDspFA')
 %             ChannelName_new = 'TwHt1TPxi';            
 %         elseif strcmpi(ChannelName,'TTDspSS')
@@ -462,7 +471,13 @@ function [ChannelName_new,scaleFact] = getNewChannelName(ChannelName)
 %         elseif strcmpi(ChannelName,'-TwrBsMzt')
 %             ChannelName_new = 'ReactMZss';       
 %             scaleFact = 1000;
-        
+                                                          
+        else
+            ChannelName_new = strrep(ChannelName,'Wave1V','M1N1V');
+            ChannelName_new = strrep(ChannelName_new,'Wave1A','M1N1A');
+            %ChannelName_new = ChannelName_new;              
+        end
+                        
         
 return     
 end 
@@ -613,132 +628,3 @@ function [eivalues] = getEigenvaluesFromFile(fileName)
 return;
 end
 %% ------------------------------------------------------------------------
-function [data, colNames, colUnits] = getColumnData(fileName, delim, HeaderRows, NameLine, UnitsLine )
-% this function reads the text file, fileName, which is presumed to contain a 
-% number of header rows and columns of numerical data.
-%
-% Required Input:
-%    fname      - the name of the file to be opened
-% Optional Input:
-%    delim      - the column delimiter, default is all whitespace
-%    HeaderRows - the number of header rows in the file; default is 8
-%    NameLine   - the line number containing the column names; default is
-%                 max( HeaderRows - 1, 0);
-%    UnitsLine  - the line number containing the column units; default is
-%                 min( NameLine + 1, HeaderRows );
-%
-% Output:
-%    data       - matrix containing the data from the file
-%    colNames   - a cell array containing the text for the columns
-%    colUnits   - a cell array containing the units for the columns
-
-    switch nargin;
-        case 1
-            delim = '';
-            HeaderRows = 8;
-            NameLine   = 7;
-            UnitsLine  = 8;
-        case 2
-            HeaderRows = 8;
-            NameLine   = 7;
-            UnitsLine  = 8;
-        case 3
-            NameLine   = max(HeaderRows - 1, 0);
-            UnitsLine  = NameLine + 1;
-        case 4
-            UnitsLine  = NameLine + 1;
-        case 5
-        otherwise
-            error('getColumnData::Invalid number of inputs.')
-    end
-              
-    if nargout < 3
-        UnitsLine = 0;
-        if nargout < 2
-            NameLine = 0;
-        end
-    end
-    
-    if UnitsLine > HeaderRows
-        UnitsLine = 0;
-    end
-    
-    if NameLine > HeaderRows
-        NameLine = 0;
-    end
-
-    
-     
-    fid = fopen(fileName);
-    if fid <= 0
-        disp(['getColumnData::Error ' int2str(fid) ' reading from file, "' fileName '"'] )
-        data     = [];
-        colNames = {};
-        colUnits = {};
-    else    
-        nCols1 = 0;
-        nCols2 = 0;
-    
-        if UnitsLine == 0 && NameLine == 0
-            fclose(fid);
-            data = dlmread(fileName,delim,HeaderRows,0);
-            nCols = size(data, 2);
-        else
-            for i = 1:HeaderRows
-                line = fgetl(fid);
-                
-                if i == NameLine
-                    if isempty( delim )
-                        colNames = textscan( line, '%s' );  %all whitespace; consecutive whitespace is okay
-                    else
-                        colNames = textscan( line, '%s', 'delimiter', delim ); %consecutive delimiters are separate columns
-                    end
-                    colNames = colNames{1};                    
-                    nCols1 = length(colNames);
-                    
-                elseif i == UnitsLine
-                    if isempty( delim )
-                        colUnits = textscan( line, '%s' );
-                    else
-                        colUnits = textscan( line, '%s', 'delimiter', delim );
-                    end
-                    colUnits = colUnits{1};
-                    nCols2 = length(colUnits);
-                   
-                end %if i
-                
-            end %for i
-            
-            if nCols1 ~= nCols2 && nCols1*nCols2 > 0
-                 disp( ['getColumnData::Column names and units are different sizes in file, "' fileName '."']  );
-            end 
-            nCols = max( nCols1, nCols2 );
-             
-            fmtStr = repmat('%f',1,nCols);
-            if isempty( delim )
-               data = cell2mat( textscan( fid, fmtStr ) );
-            else
-               data = cell2mat( textscan( line, fmtStr, 'delimiter', delim ) );
-            end
-
-            fclose(fid);
-
-        end %UnitsLine == 0 && NameLine == 0
-            
-        if nargout > 1
-          if nCols < nCols1
-             colNames(nCols+1:end) = cell(nCols1-nCols,1);
-          end
-
-          if nargout > 2
-             if nCols < nCols2
-                colUnits(nCOls+1:end) = cell(nCols2-nCols,1);
-             end
-          end
-        end
-    
-    end
-
-
-return;
-end

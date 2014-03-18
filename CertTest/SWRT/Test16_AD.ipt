@@ -37,6 +37,6 @@ RNodes    AeroTwst  DRNodes  Chord  NFoil  PrnElm
 2.4672    0.00      0.1731   0.213  2      NOPRINT
 2.6403    1.60      0.1731   0.201  3      NOPRINT
 2.8134    3.20      0.1731   0.181  4      NOPRINT
-ReNum
+ReNum       MultiTab -  multiple airfoil table option ("ReNum","User","Single")
 
 

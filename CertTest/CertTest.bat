@@ -125,6 +125,12 @@ echo %EXE_VER%
 echo %FAST%
 echo %DASHES%
 
+rem ------------------
+rem Bonnie: remove this!
+goto test24
+rem ------------------
+
+
 
 rem *******************************************************
 :Test1
@@ -132,14 +138,10 @@ rem *******************************************************
 @CALL :RunFASTandCrunch 01 out
 
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.azi TstFiles\Test%TEST%.azi >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
+@CALL :CompareFiles 01 sts
+@CALL :CompareFiles 01 azi
+@CALL :CompareFiles 01 sum
+@CALL :CompareFiles 01 AD.sum
 
 
 rem *******************************************************
@@ -149,12 +151,9 @@ rem *******************************************************
 
 @IF NOT EXIST Test%TEST%.out   GOTO ERROR
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
+@CALL :CompareFiles 02 sts
+@CALL :CompareFiles 02 ED.sum
+@CALL :CompareFiles 02 AD.sum
 
 
 rem *******************************************************
@@ -162,15 +161,10 @@ rem *******************************************************
 @CALL :GenTestHeader %Test03%
 @CALL :RunFASTandCrunch 03 out
 
-
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.azi TstFiles\Test%TEST%.azi >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
+@CALL :CompareFiles 03 sts
+@CALL :CompareFiles 03 azi
+@CALL :CompareFiles 03 ED.sum
+@CALL :CompareFiles 03 AD.sum
 
 
 rem *******************************************************
@@ -178,15 +172,10 @@ rem *******************************************************
 @CALL :GenTestHeader %Test04%
 @CALL :RunFASTandCrunch 04 outb
 
-
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.pmf TstFiles\Test%TEST%.pmf >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
+@CALL :CompareFiles 04 sts
+@CALL :CompareFiles 04 pmf
+@CALL :CompareFiles 04 ED.sum
+@CALL :CompareFiles 04 AD.sum
 
 
 rem *******************************************************
@@ -194,13 +183,9 @@ rem *******************************************************
 @CALL :GenTestHeader %Test05%
 @CALL :RunFASTandCrunch 05 out
 
-
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
+@CALL :CompareFiles 05 sts
+@CALL :CompareFiles 05 ED.sum
+@CALL :CompareFiles 05 AD.sum
 
 
 rem *******************************************************
@@ -208,57 +193,38 @@ rem *******************************************************
 @CALL :GenTestHeader %Test06%
 @CALL :RunFASTandCrunch 06 out
 
-
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
+@CALL :CompareFiles 06 sts
+@CALL :CompareFiles 06 sum
+@CALL :CompareFiles 06 AD.sum
 
 rem *******************************************************
 :Test7
 @CALL :GenTestHeader %Test07%
 @CALL :RunFASTandCrunch 07 out
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.pmf TstFiles\Test%TEST%.pmf >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
+@CALL :CompareFiles 07 sts
+@CALL :CompareFiles 07 pmf
+@CALL :CompareFiles 07 ED.sum
+@CALL :CompareFiles 07 AD.sum
 
 rem *******************************************************
 :Test8
 @CALL :GenTestHeader %Test08%
 @CALL :RunFASTandCrunch 08 out
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.azi TstFiles\Test%TEST%.azi >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
+@CALL :CompareFiles 08 sts
+@CALL :CompareFiles 08 azi
+@CALL :CompareFiles 08 ED.sum
+@CALL :CompareFiles 08 AD.sum
 
 rem *******************************************************
 :Test9
 @CALL :GenTestHeader %Test09%
 @CALL :RunFASTandCrunch 09 out
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
+@CALL :CompareFiles 09 sts
+@CALL :CompareFiles 09 ED.sum
+@CALL :CompareFiles 09 AD.sum
 
 rem *******************************************************
 :Test10
@@ -266,12 +232,9 @@ rem *******************************************************
 @CALL :RunFASTandCrunch 10 out
 
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
+@CALL :CompareFiles 10 sts
+@CALL :CompareFiles 10 ED.sum
+@CALL :CompareFiles 10 AD.sum
 
 
 rem *******************************************************
@@ -279,12 +242,9 @@ rem *******************************************************
 @CALL :GenTestHeader %Test11%
 @CALL :RunFASTandCrunch 11 out
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
+@CALL :CompareFiles 11 sts
+@CALL :CompareFiles 11 sum
+@CALL :CompareFiles 11 AD.sum
 
 
 rem *******************************************************
@@ -292,28 +252,19 @@ rem *******************************************************
 @CALL :GenTestHeader %Test12%
 @CALL :RunFASTandCrunch 12 out
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
+@CALL :CompareFiles 12 sts
+@CALL :CompareFiles 12 ED.sum
+@CALL :CompareFiles 12 AD.sum
 
 rem *******************************************************
 :Test13
 @CALL :GenTestHeader %Test13%
 @CALL :RunFASTandCrunch 13 out
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.pmf TstFiles\Test%TEST%.pmf >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
+@CALL :CompareFiles 13 sts
+@CALL :CompareFiles 13 pmf
+@CALL :CompareFiles 13 ED.sum
+@CALL :CompareFiles 13 AD.sum
 
 rem *******************************************************
 :Test14
@@ -347,10 +298,9 @@ echo.                                            >> CertTest.out
 echo %POUNDS%                                    >> CertTest.out
 echo.                                            >> CertTest.out
 echo %TEST14%                                    >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.eig TstFiles\Test%TEST%.eig >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
+
+@CALL :CompareFiles 14 eig
+@CALL :CompareFiles 14 sum
 
 
 rem *******************************************************
@@ -359,26 +309,18 @@ rem *******************************************************
 @CALL :GenTestHeader %Test15%
 @CALL :RunFASTandCrunch 15 out
 
-
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sum TstFiles\Test%TEST%.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
+@CALL :CompareFiles 15 sts
+@CALL :CompareFiles 15 sum
+@CALL :CompareFiles 15 AD.sum
 
 rem *******************************************************
 :Test16
 @CALL :GenTestHeader %Test16%
 @CALL :RunFASTandCrunch 16 out
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
+@CALL :CompareFiles 16 sts
+@CALL :CompareFiles 16 ED.sum
+@CALL :CompareFiles 16 AD.sum
 
 
 rem *******************************************************
@@ -388,15 +330,10 @@ rem *******************************************************
 @CALL :GenTestHeader %Test17%
 @CALL :RunFASTandCrunch 17  out
 
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.sts TstFiles\Test%TEST%.sts >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.pmf TstFiles\Test%TEST%.pmf >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%_ElastoDyn.sum TstFiles\Test%TEST%_ElastoDyn.sum >> CertTest.out
-echo %DASHES%                                    >> CertTest.out
-%Compare% Test%TEST%.opt TstFiles\Test%TEST%.opt >> CertTest.out
-
+@CALL :CompareFiles 17 sts
+@CALL :CompareFiles 17 pmf
+@CALL :CompareFiles 17 ED.sum
+@CALL :CompareFiles 17 AD.sum
 
 
 rem *******************************************************
@@ -411,6 +348,8 @@ rem *******************************************************
 @CALL :GenTestHeader %Test19%
 @CALL :RunFASTandCrunch 19 outb
 @CALL :CompareOutput 19
+@CALL :CompareFiles 19 HD.sum
+
 
 rem *******************************************************
 :Test20
@@ -419,10 +358,11 @@ GOTO Test21
 
 rem *******************************************************
 :Test21
-GOTO Test22
 @CALL :GenTestHeader %Test21%
 @CALL :RunFASTandCrunch 21 outb
 @CALL :CompareOutput 21
+@CALL :CompareFiles 21 HD.sum
+@CALL :CompareFiles 21 SD.sum
 
 
 rem *******************************************************
@@ -444,6 +384,13 @@ rem *******************************************************
 @CALL :RunFASTandCrunch 24 outb
 @CALL :CompareOutput 24
 
+
+rem *******************************************************
+rem I put this at the end because it takes a long time to complete.
+rem :Test21b
+rem @CALL :GenTestHeader %Test21%
+rem @CALL :RunFASTandCrunch 21 outb
+rem @CALL :CompareOutput 21
 
 rem ******************************************************
 rem  Let's look at the comparisons.
@@ -489,14 +436,19 @@ EXIT /B
 rem ******************************************************
 :CompareOutput
 
-echo %DASHES%                            >> %CompareFile%
-%Compare% Test%1.sts TstFiles\Test%1.sts >> %CompareFile%
-echo %DASHES%                            >> %CompareFile%
-%Compare% Test%1.sum TstFiles\Test%1.sum >> %CompareFile%
-echo %DASHES%                            >> %CompareFile%
-%Compare% Test%1.opt TstFiles\Test%1.opt >> %CompareFile%
+@CALL :CompareFiles %1 sts
+@CALL :CompareFiles %1 sum
+@CALL :CompareFiles %1 AD.sum
 
 EXIT /B
+
+:CompareFiles
+
+echo %DASHES%                          >> %CompareFile%
+%Compare% Test%1.%2 TstFiles\Test%1.%2 >> %CompareFile%
+
+EXIT /B
+
 
 
 :ERROR
