@@ -51,7 +51,7 @@ BIN_DIR      = ../bin
 ifeq ($(OS),Windows_NT)
    Registry     = $(BIN_DIR)/Registry_win32.exe
    MAP_lib      = $(MAP_DIR)/MAP_win32.lib
-   LAPACK_DIR   = C:/LAPACK/win32
+   LAPACK_DIR   = -LC:/LAPACK/win32
 else
    Registry     = registry.exe
    MAP_lib      = $(MAP_DIR)/MAP.a
@@ -64,7 +64,7 @@ FC      = gfortran
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
 FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -C -Wconversion-extra -Wconversion
 
-LDFLAGS = -O2 -m$(BITS) -fbacktrace -llapack -lblas -L$(LAPACK_DIR)
+LDFLAGS = -O2 -m$(BITS) -fbacktrace -llapack -lblas $(LAPACK_DIR)
 
 # other useful gfortran options:
 #  -fdefault-real-8 -fcheck=bounds -std=f2003 -O0 -v -Wall

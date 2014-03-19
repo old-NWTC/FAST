@@ -1,4 +1,4 @@
-------- FAST V8.05.* INPUT FILE ------------------------------------------------
+------- FAST V8.06.* INPUT FILE ------------------------------------------------
 FAST Certification Test #11: WindPACT 1.5 MW Baseline with many DOFs undergoing a pitch failure.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -15,6 +15,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
           0   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
           0   CompSub         - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn}
           0   CompMooring     - Compute mooring system (switch) {0=None; 1=MAP, 2=FEAMooring}
+   0          CompIce         - Compute ice loads (switch) {0=None; 1=IceFloe}
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
@@ -24,6 +25,7 @@ False         CompUserTwrLd   - Compute additional tower loading {false: none, t
 "unused"      HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
 "unused"      SubFile         - Name of file containing sub-structural input parameters (quoted string)
 "unused"      MooringFile     - Name of file containing mooring system input parameters (quoted string)
+"unused"      IceFile         - Name of file containing ice input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (sec)

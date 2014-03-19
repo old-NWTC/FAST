@@ -14,7 +14,7 @@ newDir = '.';
 
 for i=[1:19 21:24]
    
-    baseFileName  = ['Test' num2str(i,'%02.0f') ];
+    baseFileName  = ['Test' num2str(i,'%02.0f')  ]; %'_noHD'
     inputfile = [oldDir filesep baseFileName '.fst'];      
     
     

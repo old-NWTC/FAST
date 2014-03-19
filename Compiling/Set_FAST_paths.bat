@@ -33,6 +33,8 @@ SET MAP_Include_Lib=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\
 ECHO BONNIE: FIX THE FEAM LOCATION!!!
 SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 
+SET IceF_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceFloe\SVNDirectory\IceFloe\source
+
 GOTO End
 
 REM --------------------------------------------------------------------------------------------------------------------------------
