@@ -57,17 +57,22 @@ SUBROUTINE AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess )
    LOGICAL                    :: PremEOF_indicator
    CHARACTER(1024)            :: LINE
    CHARACTER(1024)            :: FilePath             ! The path name of the AeroDyn input file (so files listed in it can be defined relative to the main input file location)
+   CHARACTER(LEN(ErrMess))    :: ErrMessLcl
 
    !bjj: error handling here needs to be fixed! (we overwrite any non-AbortErrLev errors)
    
+   ErrStat = ErrID_None
+   ErrMess = ''
+   
       ! Function definition
 
-   call GetNewUnit(UnIn, ErrStat, ErrMess)
+   call GetNewUnit(UnIn, ErrStatLcl, ErrMessLcl)
 
    !-------------------------------------------------------------------------------------------------
    ! Open the AeroDyn input file
    !-------------------------------------------------------------------------------------------------
-   CALL OpenFInpFile(UnIn, TRIM(InitInp%ADFileName), ErrStat, ErrMess)
+   CALL OpenFInpFile(UnIn, TRIM(InitInp%ADFileName), ErrStatLcl, ErrMessLcl)
+   CALL SetErrStat(ErrStatLcl, ErrMessLcl,ErrStat, ErrMess,'AD_GetInput')
    IF (ErrStat >= AbortErrLev) THEN
       CLOSE(UnIn)
       RETURN
@@ -87,7 +92,8 @@ SUBROUTINE AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess )
    !-------------------------------------------------------------------------------------------------
 
       ! Read in the title line
-   CALL ReadStr( UnIn, InitInp%ADFileName, InitInp%Title, VarName='Title', VarDescr='File title', ErrStat=ErrStat, ErrMsg=ErrMess)
+   CALL ReadStr( UnIn, InitInp%ADFileName, InitInp%Title, VarName='Title', VarDescr='File title', ErrStat=ErrStatLcl, ErrMsg=ErrMessLcl)
+   CALL SetErrStat(ErrStatLcl, ErrMessLcl,ErrStat, ErrMess,'AD_GetInput')
    IF (ErrStat >= AbortErrLev) THEN
       CLOSE(UnIn)
       RETURN
@@ -99,7 +105,8 @@ SUBROUTINE AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess )
    p%TITLE = InitInp%TITLE
 
       ! Read in the units specifier  - REMOVE SOON!!!!!
-   CALL ReadVar( UnIn, InitInp%ADFileName, LINE, VarName='Units', VarDescr='Units option', ErrStat=ErrStat, ErrMsg=ErrMess)
+   CALL ReadVar( UnIn, InitInp%ADFileName, LINE, VarName='Units', VarDescr='Units option', ErrStat=ErrStatLcl, ErrMsg=ErrMessLcl)
+   CALL SetErrStat(ErrStatLcl, ErrMessLcl,ErrStat, ErrMess,'AD_GetInput')
    IF (ErrStat >= AbortErrLev) THEN
       CLOSE(UnIn)
       RETURN
@@ -628,7 +635,13 @@ SUBROUTINE AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess )
    !-------------------------------------------------------------------------------------------------
    ! Read airfoil data and check for MultiTab values using LINE, which was read above
    !-------------------------------------------------------------------------------------------------
-   CALL READFL(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess)                                      !
+   CALL READFL(InitInp, P, x, xd, z, O, y, ErrStatLcl, ErrMessLcl)     
+   CALL SetErrStat(ErrStatLcl, ErrMessLcl, ErrStat, ErrMess,'AD_GetInput')   
+   IF ( ErrStat >= AbortErrLev ) THEN
+      close(unin)
+      RETURN
+   END IF
+      
    O%AirFoil%MulTabLoc = 0.0                                    ! Initialize this value
 
 
@@ -639,7 +652,7 @@ SUBROUTINE AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess )
       END IF
       p%MultiTab = .FALSE.
       p%Reynolds = .FALSE.
-   ELSE ! PremEOF_indicator
+   ELSE ! not PremEOF_indicator
 
       IF ( ANY( p%AirFoil%NTables(1:p%AirFoil%NumFoil) > 1 ) ) THEN
          CALL Conv2UC(LINE(1:6))
@@ -671,7 +684,7 @@ SUBROUTINE AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess )
                p%MultiTab = .FALSE.
                p%Reynolds = .FALSE.
             CASE DEFAULT
-               CALL WrScr( ' Error: control model option must be "SINGLE" or "MULTI".' )
+               CALL WrScr( ' Error: control model option must be "USER", "RENUM" or "SINGLE".' )
          END SELECT
       ELSE
          p%MultiTab = .FALSE.
@@ -874,14 +887,14 @@ ELSE
 ENDIF
 
 
-WRITE(UnOut,Ec_StrFrmt) 'WindFile','Wind file name',InitInp%WindFileName
+WRITE(UnOut,Ec_StrFrmt) 'WindFile','Wind file name',TRIM(InitInp%WindFileName)
 WRITE(UnOut,Ec_ReFrmt) p%Rotor%HH,'HH','Wind reference (hub) height, '//TRIM(Dst_Unit)
 
 IF ( p%TwrProps%PJM_Version ) THEN
    WRITE(UnOut,Ec_LgFrmt) p%TwrProps%TwrPotent,'TwrPotent','Calculate tower potential flow [T or F]'
    WRITE(UnOut,Ec_LgFrmt) p%TwrProps%TwrShadow,'TwrShadow','Calculate tower shadow [T or F]'
    IF ( p%TwrProps%TwrPotent .OR. p%TwrProps%TwrShadow ) THEN
-      WRITE(UnOut,Ec_StrFrmt) 'TwrFile','Tower drag file name',P%TwrProps%TwrFile
+      WRITE(UnOut,Ec_StrFrmt) 'TwrFile','Tower drag file name',TRIM(P%TwrProps%TwrFile)
    ELSE
       WRITE(UnOut,Ec_Ch11Frmt) '[none]','TwrFile','No tower drag properties file'
    ENDIF

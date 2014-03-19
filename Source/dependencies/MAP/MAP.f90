@@ -381,7 +381,7 @@ CONTAINS
     InitInp%C_Obj%gravity         =  InitInp%gravity
     InitInp%C_Obj%sea_density     =  InitInp%sea_density
     InitInp%C_Obj%depth           = -InitInp%depth
-    InitInp%C_obj%coupled_to_FAST = .TRUE.  
+    InitInp%C_obj%coupled_to_FAST =  InitInp%coupled_to_FAST
     
     ! Set the gravity constant, water depth, and sea density in MAP.
     ! This calls functions in MAP_FortranBinding.cpp

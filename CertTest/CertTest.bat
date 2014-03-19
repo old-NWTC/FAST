@@ -127,7 +127,7 @@ echo %DASHES%
 
 rem ------------------
 rem Bonnie: remove this!
-goto test24
+rem goto test24
 rem ------------------
 
 
