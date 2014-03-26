@@ -35,92 +35,92 @@ USE NWTC_Library
 IMPLICIT NONE
 ! =========  MeshAuxDataType  =======
   TYPE, PUBLIC :: MeshAuxDataType
-    INTEGER(IntKi)  :: MemberID      ! Member [ID]
-    INTEGER(IntKi)  :: NOutCnt      ! Number [of]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeCnt      ! Node [ordinal]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeIDs      ! Node [IDs]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmIDs      ! Element [IDs]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmNds      ! Flag [to]
-    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmID2s      ! Element [IDs]
-    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmNd2s      ! Flag [to]
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Me      ! Mass [matrix]
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Ke      ! Mass [matrix]
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Fg      ! Gravity [load]
-    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Me2      ! Mass [matrix]
-    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Ke2      ! Mass [matrix]
-    REAL(ReKi) , DIMENSION(1:12,1:2)  :: Fg2      ! Gravity [load]
+    INTEGER(IntKi)  :: MemberID      ! Member ID for Output [-]
+    INTEGER(IntKi)  :: NOutCnt      ! Number of Nodes for the output member [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeCnt      ! Node ordinal numbers for the output member [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeIDs      ! Node IDs associated with ordinal numbers for the output member [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmIDs      ! Element IDs connected to each NodeIDs; max 10 elements [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmNds      ! Flag to indicate 1st or 2nd node of element for each ElmIDs [-]
+    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmID2s      ! Element IDs connected to each joint node [-]
+    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmNd2s      ! Flag to indicate 1st or 2nd node of element which is attached to member joint (for outAll) [-]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Me      ! Mass matrix connected to each joint element for outAll output [-]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Ke      ! Mass matrix connected to each joint element for outAll output [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Fg      ! Gravity load vector connected to each joint element for requested member output [-]
+    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Me2      ! Mass matrix connected to each joint element for outAll output [-]
+    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Ke2      ! Mass matrix connected to each joint element for outAll output [-]
+    REAL(ReKi) , DIMENSION(1:12,1:2)  :: Fg2      ! Gravity load vector connected to each joint element for outAll output [-]
   END TYPE MeshAuxDataType
 ! =======================
 ! =========  ElemPropType  =======
   TYPE, PUBLIC :: ElemPropType
-    REAL(ReKi)  :: Area      ! Area [of]
-    REAL(ReKi)  :: Length      ! Length [of]
-    REAL(ReKi)  :: Ixx      ! Moment [of]
-    REAL(ReKi)  :: Iyy      ! Moment [of]
-    REAL(ReKi)  :: Jzz      ! Moment [of]
-    LOGICAL  :: Shear      ! Use [timoshenko]
-    REAL(ReKi)  :: Kappa      ! Shear [coefficient]
-    REAL(ReKi)  :: YoungE      ! Young's [modulus]
-    REAL(ReKi)  :: ShearG      ! Shear [modulus]
+    REAL(ReKi)  :: Area      ! Area of an element [-]
+    REAL(ReKi)  :: Length      ! Length of an element [-]
+    REAL(ReKi)  :: Ixx      ! Moment of inertia of an element [-]
+    REAL(ReKi)  :: Iyy      ! Moment of inertia of an element [-]
+    REAL(ReKi)  :: Jzz      ! Moment of inertia of an element [-]
+    LOGICAL  :: Shear      ! Use timoshenko (true) E-B (false) [-]
+    REAL(ReKi)  :: Kappa      ! Shear coefficient [-]
+    REAL(ReKi)  :: YoungE      ! Young's modulus [-]
+    REAL(ReKi)  :: ShearG      ! Shear modulus [-]
     REAL(ReKi)  :: Rho      ! Density [-]
-    REAL(ReKi) , DIMENSION(1:3,1:3)  :: DirCos      ! Element [direction]
+    REAL(ReKi) , DIMENSION(1:3,1:3)  :: DirCos      ! Element direction cosine matrix [-]
   END TYPE ElemPropType
 ! =======================
 ! =========  SD_InitInputType  =======
   TYPE, PUBLIC :: SD_InitInputType
-    CHARACTER(1024)  :: SDInputFile      ! Name [of]
-    REAL(ReKi)  :: g      ! Gravity [acceleration]
-    REAL(ReKi)  :: WtrDpth      ! Water [Depth]
-    REAL(ReKi) , DIMENSION(1:3)  :: TP_RefPoint      ! Gravity [acceleration]
-    REAL(ReKi)  :: SubRotateZ      ! Rotation [angle]
-    CHARACTER(1024)  :: SubDynSum      ! SubDyn [summary]
-    CHARACTER(1024)  :: RootName      ! SubDyn [rootname]
-    CHARACTER(80)  :: SDdeltaTChr      ! Time [step]
-    REAL(DbKi)  :: DT      ! Time [step]
+    CHARACTER(1024)  :: SDInputFile      ! Name of the input file [-]
+    REAL(ReKi)  :: g      ! Gravity acceleration [-]
+    REAL(ReKi)  :: WtrDpth      ! Water Depth (positive valued) [-]
+    REAL(ReKi) , DIMENSION(1:3)  :: TP_RefPoint      ! Gravity acceleration [-]
+    REAL(ReKi)  :: SubRotateZ      ! Rotation angle in degrees about global Z [-]
+    CHARACTER(1024)  :: SubDynSum      ! SubDyn summary and elem files [-]
+    CHARACTER(1024)  :: RootName      ! SubDyn rootname [-]
+    CHARACTER(80)  :: SDdeltaTChr      ! Time step in input file (DEFAULT = use glue code time step) [seconds]
+    REAL(DbKi)  :: DT      ! Time step from Glue Code [seconds]
     INTEGER(IntKi)  :: ErrStat      ! Error [status]
-    INTEGER(IntKi)  :: NJoints      ! Number [of]
-    INTEGER(IntKi)  :: JointsCol = 4      ! Number [of]
-    INTEGER(IntKi)  :: MembersCol = 5      ! Number [of]
-    INTEGER(IntKi)  :: NPropSets      ! Number [of]
-    INTEGER(IntKi)  :: PropSetsCol = 6      ! Number [of]
-    INTEGER(IntKi)  :: NXPropSets      ! Number [of]
-    INTEGER(IntKi)  :: XPropSetsCol = 10      ! Number [of]
-    INTEGER(IntKi)  :: ReactCol = 7      ! Number [of]
-    INTEGER(IntKi)  :: NInterf      ! Number [of]
-    INTEGER(IntKi)  :: InterfCol = 7      ! Number [of]
-    INTEGER(IntKi)  :: NCMass      ! Number [of]
-    INTEGER(IntKi)  :: CMassCol = 5      ! Number [of]
-    INTEGER(IntKi)  :: NCOSMs      ! Number [of]
-    INTEGER(IntKi)  :: COSMsCol = 10      ! Number [of]
-    INTEGER(IntKi)  :: FEMMod      ! FEM [switch:]
-    INTEGER(IntKi)  :: NDiv      ! Number [of]
-    LOGICAL  :: CBMod      ! Perform [C-B]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Joints      ! Joints [number]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PropSets      ! Property [sets]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: XPropSets      ! Extended [property]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: COSMs      ! Independent [direction]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: CMass      ! Concentrated [mass]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: JDampings      ! Damping [coefficients]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Members      ! Member [joints]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Interf      ! Interface [degree]
-    INTEGER(IntKi)  :: NNode      ! Total [number]
-    INTEGER(IntKi)  :: NElem      ! Total [number]
-    INTEGER(IntKi)  :: NProp      ! Total [number]
-    INTEGER(IntKi)  :: TDOF      ! Total [degree]
-    INTEGER(IntKi)  :: MaxMemJnt = 10      ! Maximum [number]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Nodes      ! Nodes [number]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Props      ! Property [sets]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: K      ! System [stiffness]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: M      ! System [mass]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: F      ! System [force]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FG      ! Gravity [force]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ElemProps      ! Element [properties(A,]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: BCs      ! Boundary [constraint]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: IntFc      ! Interface [constraint]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: MemberNodes      ! Member [number]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnN      ! Nodes [that]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnE      ! Elements [that]
-    LOGICAL  :: SSSum      ! SubDyn [Summary]
+    INTEGER(IntKi)  :: NJoints      ! Number of joints of the sub structure [-]
+    INTEGER(IntKi)  :: JointsCol = 4      ! Number of columns in Joints [-]
+    INTEGER(IntKi)  :: MembersCol = 5      ! Number of columns in Members [-]
+    INTEGER(IntKi)  :: NPropSets      ! Number of property sets [-]
+    INTEGER(IntKi)  :: PropSetsCol = 6      ! Number of columns in PropSets [-]
+    INTEGER(IntKi)  :: NXPropSets      ! Number of extended property sets [-]
+    INTEGER(IntKi)  :: XPropSetsCol = 10      ! Number of columns in XPropSets [-]
+    INTEGER(IntKi)  :: ReactCol = 7      ! Number of columns in reaction dof array [-]
+    INTEGER(IntKi)  :: NInterf      ! Number of joints attached to transition piece [-]
+    INTEGER(IntKi)  :: InterfCol = 7      ! Number of columns in interf matrix [-]
+    INTEGER(IntKi)  :: NCMass      ! Number of joints with concentrated mass [-]
+    INTEGER(IntKi)  :: CMassCol = 5      ! Number of columns in CMass [-]
+    INTEGER(IntKi)  :: NCOSMs      ! Number of independent cosine matrices [-]
+    INTEGER(IntKi)  :: COSMsCol = 10      ! Number of columns in COSMs [-]
+    INTEGER(IntKi)  :: FEMMod      ! FEM switch: element model in the FEM [-]
+    INTEGER(IntKi)  :: NDiv      ! Number of divisions for each member [-]
+    LOGICAL  :: CBMod      ! Perform C-B flag [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Joints      ! Joints number and coordinate values [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PropSets      ! Property sets number and values [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: XPropSets      ! Extended property sets [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: COSMs      ! Independent direction cosine matrices [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: CMass      ! Concentrated mass information [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: JDampings      ! Damping coefficients for internal modes [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Members      ! Member joints connection [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Interf      ! Interface degree of freedoms [-]
+    INTEGER(IntKi)  :: NNode      ! Total number of nodes [-]
+    INTEGER(IntKi)  :: NElem      ! Total number of elements [-]
+    INTEGER(IntKi)  :: NProp      ! Total number of property sets [-]
+    INTEGER(IntKi)  :: TDOF      ! Total degree of freedom [-]
+    INTEGER(IntKi)  :: MaxMemJnt = 10      ! Maximum number of members at one joint [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Nodes      ! Nodes number and coordinates [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Props      ! Property sets and values [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: K      ! System stiffness matrix [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: M      ! System mass matrix [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: F      ! System force vector [N]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FG      ! Gravity force vector [N]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ElemProps      ! Element properties(A, L, Ixx, Iyy, Jzz, Shear, Kappa, E, G, Rho, DirCos(1,1), DirCos(2, 1), ....., DirCos(3, 3) ) [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: BCs      ! Boundary constraint degree of freedoms. First column - DOFs(rows in the system matrices), Second column - constrained(1) or not(0) [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: IntFc      ! Interface constraint degree of freedoms [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: MemberNodes      ! Member number and nodes in the member [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnN      ! Nodes that connect to a common node [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnE      ! Elements that connect to a common node [-]
+    LOGICAL  :: SSSum      ! SubDyn Summary File Flag [-]
     INTEGER(IntKi)  :: UnSum      ! File unit for the SubDyn summary file [-1 = no summary file] [-]
   END TYPE SD_InitInputType
 ! =======================
@@ -129,17 +129,17 @@ IMPLICIT NONE
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
     TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
-    INTEGER(IntKi)  :: MaxOutChs = 2000      ! Max [number]
-    LOGICAL  :: TabDelim      ! Generate [a]
-    LOGICAL  :: OutCOSM      ! Output [Cos-matrices]
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: SSOutList      ! List [of]
+    INTEGER(IntKi)  :: MaxOutChs = 2000      ! Max number of Output Channels to be read in [-]
+    LOGICAL  :: TabDelim      ! Generate a tab-delimited output file in OutJckF-Flag [-]
+    LOGICAL  :: OutCOSM      ! Output [Cos-matrices Flag]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: SSOutList      ! List of Output Channels [-]
   END TYPE SD_InitOutputType
 ! =======================
 ! =========  SD_ContinuousStateType  =======
   TYPE, PUBLIC :: SD_ContinuousStateType
     REAL(ReKi)  :: DummyContState      ! Remove this variable if you have continuous states [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qm      ! Virtual [states,]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdot      ! Derivative [of]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qm      ! Virtual states, Nmod elements [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdot      ! Derivative of states, Nmod elements [-]
   END TYPE SD_ContinuousStateType
 ! =======================
 ! =========  SD_DiscreteStateType  =======
@@ -155,101 +155,101 @@ IMPLICIT NONE
 ! =========  SD_OtherStateType  =======
   TYPE, PUBLIC :: SD_OtherStateType
     TYPE(SD_ContinuousStateType) , DIMENSION(:), ALLOCATABLE  :: xdot      ! previous state derivs for m-step time integrator [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdotdot      ! 2nd [Derivative]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdotdot      ! 2nd Derivative of states, used only for output-file purposes [-]
     INTEGER(IntKi)  :: n      ! tracks time step for which OtherState was updated last [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Udotdot      ! Structure [accelerations]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Y2      ! Structure [Deflections]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Udotdot      ! Structure accelerations [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Y2      ! Structure Deflections and velocities [-]
   END TYPE SD_OtherStateType
 ! =======================
 ! =========  SD_OutVar_Type  =======
   TYPE, PUBLIC :: SD_OutVar_Type
-    INTEGER(IntKi)  :: Indx      ! Index [into]
-    INTEGER(IntKi)  :: SignM      ! Sign [(output]
-    CHARACTER(10)  :: Units      ! Units [corresponding]
-    CHARACTER(10)  :: Name      ! Name [of]
+    INTEGER(IntKi)  :: Indx      ! Index into WriteOutput output array [-]
+    INTEGER(IntKi)  :: SignM      ! Sign (output multiplier). [-]
+    CHARACTER(10)  :: Units      ! Units corresponding to the output parameter.array [-]
+    CHARACTER(10)  :: Name      ! Name of the output parameter. [-]
   END TYPE SD_OutVar_Type
 ! =======================
 ! =========  SD_ParameterType  =======
   TYPE, PUBLIC :: SD_ParameterType
-    LOGICAL  :: SttcSolve      ! Solve [dynamics]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_21      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_22      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_23      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_24      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FX      ! Load [components]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_11      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_12      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_11      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_13      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_14      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! Load [Components]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_21      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_42      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_11      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_21      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_32      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_42      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Cbar_21      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Cbar_22      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dbar_13      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dbar_23      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Dbar_24      ! Coefficient [of]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Fbar_21      ! Load [Component]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBB      ! Matrix [after]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: KBB      ! Matrix [after]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBM      ! Matrix [after]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_R      ! Matrix [after]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_M      ! Matrix [after]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AM2InvJac      ! Inverse [Jacobian]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TI      ! Matrix [to]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TIreact      ! Matrix [to]
-    INTEGER(IntKi)  :: NModes      ! Number [of]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Elems      ! Element [nodes]
-    INTEGER(IntKi)  :: qmL      ! Length [of]
-    INTEGER(IntKi)  :: uL      ! Length [of]
-    INTEGER(IntKi)  :: DofL      ! Internal [nodes]
-    INTEGER(IntKi)  :: NNodes_I      ! Number [of]
-    INTEGER(IntKi)  :: NNodes_L      ! Number [ofInternal]
-    INTEGER(IntKi)  :: NNodes_RbarL      ! Number [of]
-    INTEGER(IntKi)  :: DofI      ! Interface [nodes]
-    INTEGER(IntKi)  :: DofR      ! Interface [and]
-    INTEGER(IntKi)  :: DofRbarL      ! Interface [+]
-    INTEGER(IntKi)  :: DofC      ! Contrained [nodes]
-    INTEGER(IntKi)  :: NReact      ! Number [of]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Reacts      ! React [degree]
-    INTEGER(IntKi)  :: Nmembers      ! Number [of]
-    INTEGER(IntKi)  :: TPdofL = 6      ! Length [of]
-    INTEGER(IntKi)  :: URbarL      ! Length [of]
-    INTEGER(IntKi)  :: URdotdotL      ! Length [of]
-    INTEGER(IntKi)  :: UdotdotL      ! Length [of]
-    INTEGER(IntKi)  :: Y2L      ! Length [of]
-    INTEGER(IntKi)  :: IntMethod      ! INtegration [Method]
-    INTEGER(IntKi)  :: NAvgEls = 2      ! Max [number]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDI      ! Index [array]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDR      ! Index [array]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDL      ! Index [array]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDC      ! Index [array]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDY      ! Index [array]
-    INTEGER(IntKi)  :: NMOutputs      ! Number [of]
-    INTEGER(IntKi)  :: NumOuts      ! Number [of]
-    REAL(DbKi)  :: SDDeltaT      ! Time [step]
-    INTEGER(IntKi)  :: OutSwtch      ! Output [Requested]
-    INTEGER(IntKi)  :: UnJckF      ! Unit [of]
+    LOGICAL  :: SttcSolve      ! Solve dynamics about static equilibrium point (flag) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_21      ! Coefficient of x in X [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_22      ! Coefficient of x in X [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_23      ! Coefficient of u in X [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_24      ! Coefficient of u in X [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FX      ! Load components in X [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_11      ! Coefficient of x in Y1 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_12      ! Coefficient of x in Y1 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_11      ! Coefficient of u in Y1 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_13      ! Coefficient of u in Y1 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_14      ! Coefficient of u in Y1 [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! Load Components in  Y1 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_21      ! Coefficient of x in Y2 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_42      ! Coefficient of x in Y2 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_61      ! Coefficient of x in Y2 (URdotdot ULdotdot) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_62      ! Coefficient of x in Y2 (URdotdot ULdotdot) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_11      ! Coefficient of u in Y2 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_21      ! Coefficient of u in Y2 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_32      ! Coefficient of u in Y2 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_42      ! Coefficient of u in Y2 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_53      ! Coefficient of u in Y2 (URdotdot ULdotdot) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_63      ! Coefficient of u in Y2 (URdotdot ULdotdot) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_64      ! Coefficient of u in Y2 (URdotdot ULdotdot [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: F2_61      ! Load Component in Y2 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBB      ! Matrix after C-B reduction [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: KBB      ! Matrix after C-B reduction [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBM      ! Matrix after C-B reduction [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_R      ! Matrix after C-B reduction [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_M      ! Matrix after C-B reduction [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AM2InvJac      ! Inverse Jacobian for Adams-Boulton 2nd order Integration [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TI      ! Matrix to calculate TP reference point reaction at top of structure [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TIreact      ! Matrix to calculate single point reaction at base of structure [-]
+    INTEGER(IntKi)  :: NModes      ! Number of modes to retain in C-B method [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Elems      ! Element nodes connections [-]
+    INTEGER(IntKi)  :: qmL      ! Length of state array [-]
+    INTEGER(IntKi)  :: uL      ! Length of input array [-]
+    INTEGER(IntKi)  :: DofL      ! Internal nodes   of DOFs [-]
+    INTEGER(IntKi)  :: NNodes_I      ! Number of Interface nodes [-]
+    INTEGER(IntKi)  :: NNodes_L      ! Number ofInternal nodes [-]
+    INTEGER(IntKi)  :: NNodes_RbarL      ! Number of Interface + Internal nodes [-]
+    INTEGER(IntKi)  :: DofI      ! Interface nodes   of DOFs [-]
+    INTEGER(IntKi)  :: DofR      ! Interface and restrained nodes   of DOFs [-]
+    INTEGER(IntKi)  :: DofRbarL      ! Interface + internal nodes   of DOFs [-]
+    INTEGER(IntKi)  :: DofC      ! Contrained nodes   of DOFs [-]
+    INTEGER(IntKi)  :: NReact      ! Number of joints with reactions [-]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Reacts      ! React degree of freedoms [-]
+    INTEGER(IntKi)  :: Nmembers      ! Number of members of the sub structure [-]
+    INTEGER(IntKi)  :: TPdofL = 6      ! Length of u subarray (UTP) [-]
+    INTEGER(IntKi)  :: URbarL      ! Length of URbar, subarray of y2 array (DOFRb) [-]
+    INTEGER(IntKi)  :: URdotdotL      ! Length of URdotdot [-]
+    INTEGER(IntKi)  :: UdotdotL      ! Length of {URdotdot^bar ULdotdot^bar) [-]
+    INTEGER(IntKi)  :: Y2L      ! Length of y2 array [-]
+    INTEGER(IntKi)  :: IntMethod      ! INtegration Method (1/2/3)Length of y2 array [-]
+    INTEGER(IntKi)  :: NAvgEls = 2      ! Max number of elements that should be averaged when calculating outputs at nodes [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDI      ! Index array of the interface(nodes connect to TP) dofs [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDR      ! Index array of the interface and restraint dofs [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDL      ! Index array of the internal dofs [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDC      ! Index array of the contraint dofs [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDY      ! Index array of the all dofs in Y2 [-]
+    INTEGER(IntKi)  :: NMOutputs      ! Number of members whose output is written [-]
+    INTEGER(IntKi)  :: NumOuts      ! Number of output channels read from input file [-]
+    REAL(DbKi)  :: SDDeltaT      ! Time step [seconds]
+    INTEGER(IntKi)  :: OutSwtch      ! Output Requested Channels to local or global output file [1/2/3] [-]
+    INTEGER(IntKi)  :: UnJckF      ! Unit of SD ouput file [-]
     CHARACTER(1)  :: Delim      ! Column delimiter for output text files [-]
-    CHARACTER(20)  :: OutFmt      ! Format [for]
-    CHARACTER(20)  :: OutSFmt      ! Format [for]
-    CHARACTER(1024)  :: OutJckF      ! Name [of]
-    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst      ! List [of]
-    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst2      ! List [of]
-    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst3      ! List [of]
-    TYPE(ElemPropType) , DIMENSION(:), ALLOCATABLE  :: ElemProps      ! List [of]
-    TYPE(SD_OutVar_Type) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! An [array]
-    LOGICAL  :: OutAll      ! Flag [to]
-    LOGICAL  :: OutReact      ! Flag [to]
-    INTEGER(IntKi)  :: OutAllInt      ! Integer [version]
-    INTEGER(IntKi)  :: OutAllDims      ! Integer [version]
-    INTEGER(IntKi)  :: OutDec      ! Output [Decimation]
-    INTEGER(IntKi)  :: MaxOUtPts      ! Max [number]
+    CHARACTER(20)  :: OutFmt      ! Format for Output [-]
+    CHARACTER(20)  :: OutSFmt      ! Format for Output Headers [-]
+    CHARACTER(1024)  :: OutJckF      ! Name of the SD ouput file [-]
+    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst      ! List of user requested members and nodes [-]
+    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst2      ! List of all member joint nodes and elements for output [-]
+    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst3      ! List of all member joint nodes and elements for output [-]
+    TYPE(ElemPropType) , DIMENSION(:), ALLOCATABLE  :: ElemProps      ! List of element properties [-]
+    TYPE(SD_OutVar_Type) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! An array holding names, units, and indices of all of the selected output channels.   logical [-]
+    LOGICAL  :: OutAll      ! Flag to output or not all joint forces [-]
+    LOGICAL  :: OutReact      ! Flag to check whether reactions are requested [-]
+    INTEGER(IntKi)  :: OutAllInt      ! Integer version of OutAll [-]
+    INTEGER(IntKi)  :: OutAllDims      ! Integer version of OutAll [-]
+    INTEGER(IntKi)  :: OutDec      ! Output Decimation for Requested Channels [-]
+    INTEGER(IntKi)  :: MaxOUtPts      ! Max number of channels [-]
   END TYPE SD_ParameterType
 ! =======================
 ! =========  SD_InputType  =======
@@ -262,7 +262,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: SD_OutputType
     TYPE(MeshType)  :: Y1Mesh      ! Transition piece outputs on a point mesh [-]
     TYPE(MeshType)  :: Y2Mesh      ! Interior+Interface nodes outputs on a point mesh [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Example of data to be written to an output file [s,-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Example of data to be written to an output file [-]
   END TYPE SD_OutputType
 ! =======================
 ! =========  SD_PartialOutputPInputType  =======
@@ -2889,6 +2889,36 @@ IF (ALLOCATED(SrcParamData%C2_42)) THEN
    END IF
    DstParamData%C2_42 = SrcParamData%C2_42
 ENDIF
+IF (ALLOCATED(SrcParamData%C2_61)) THEN
+   i1_l = LBOUND(SrcParamData%C2_61,1)
+   i1_u = UBOUND(SrcParamData%C2_61,1)
+   i2_l = LBOUND(SrcParamData%C2_61,2)
+   i2_u = UBOUND(SrcParamData%C2_61,2)
+   IF (.NOT.ALLOCATED(DstParamData%C2_61)) THEN 
+      ALLOCATE(DstParamData%C2_61(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%C2_61.'
+         RETURN
+      END IF
+   END IF
+   DstParamData%C2_61 = SrcParamData%C2_61
+ENDIF
+IF (ALLOCATED(SrcParamData%C2_62)) THEN
+   i1_l = LBOUND(SrcParamData%C2_62,1)
+   i1_u = UBOUND(SrcParamData%C2_62,1)
+   i2_l = LBOUND(SrcParamData%C2_62,2)
+   i2_u = UBOUND(SrcParamData%C2_62,2)
+   IF (.NOT.ALLOCATED(DstParamData%C2_62)) THEN 
+      ALLOCATE(DstParamData%C2_62(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%C2_62.'
+         RETURN
+      END IF
+   END IF
+   DstParamData%C2_62 = SrcParamData%C2_62
+ENDIF
 IF (ALLOCATED(SrcParamData%D2_11)) THEN
    i1_l = LBOUND(SrcParamData%D2_11,1)
    i1_u = UBOUND(SrcParamData%D2_11,1)
@@ -2949,93 +2979,63 @@ IF (ALLOCATED(SrcParamData%D2_42)) THEN
    END IF
    DstParamData%D2_42 = SrcParamData%D2_42
 ENDIF
-IF (ALLOCATED(SrcParamData%Cbar_21)) THEN
-   i1_l = LBOUND(SrcParamData%Cbar_21,1)
-   i1_u = UBOUND(SrcParamData%Cbar_21,1)
-   i2_l = LBOUND(SrcParamData%Cbar_21,2)
-   i2_u = UBOUND(SrcParamData%Cbar_21,2)
-   IF (.NOT.ALLOCATED(DstParamData%Cbar_21)) THEN 
-      ALLOCATE(DstParamData%Cbar_21(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+IF (ALLOCATED(SrcParamData%D2_53)) THEN
+   i1_l = LBOUND(SrcParamData%D2_53,1)
+   i1_u = UBOUND(SrcParamData%D2_53,1)
+   i2_l = LBOUND(SrcParamData%D2_53,2)
+   i2_u = UBOUND(SrcParamData%D2_53,2)
+   IF (.NOT.ALLOCATED(DstParamData%D2_53)) THEN 
+      ALLOCATE(DstParamData%D2_53(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%Cbar_21.'
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%D2_53.'
          RETURN
       END IF
    END IF
-   DstParamData%Cbar_21 = SrcParamData%Cbar_21
+   DstParamData%D2_53 = SrcParamData%D2_53
 ENDIF
-IF (ALLOCATED(SrcParamData%Cbar_22)) THEN
-   i1_l = LBOUND(SrcParamData%Cbar_22,1)
-   i1_u = UBOUND(SrcParamData%Cbar_22,1)
-   i2_l = LBOUND(SrcParamData%Cbar_22,2)
-   i2_u = UBOUND(SrcParamData%Cbar_22,2)
-   IF (.NOT.ALLOCATED(DstParamData%Cbar_22)) THEN 
-      ALLOCATE(DstParamData%Cbar_22(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+IF (ALLOCATED(SrcParamData%D2_63)) THEN
+   i1_l = LBOUND(SrcParamData%D2_63,1)
+   i1_u = UBOUND(SrcParamData%D2_63,1)
+   i2_l = LBOUND(SrcParamData%D2_63,2)
+   i2_u = UBOUND(SrcParamData%D2_63,2)
+   IF (.NOT.ALLOCATED(DstParamData%D2_63)) THEN 
+      ALLOCATE(DstParamData%D2_63(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%Cbar_22.'
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%D2_63.'
          RETURN
       END IF
    END IF
-   DstParamData%Cbar_22 = SrcParamData%Cbar_22
+   DstParamData%D2_63 = SrcParamData%D2_63
 ENDIF
-IF (ALLOCATED(SrcParamData%Dbar_13)) THEN
-   i1_l = LBOUND(SrcParamData%Dbar_13,1)
-   i1_u = UBOUND(SrcParamData%Dbar_13,1)
-   i2_l = LBOUND(SrcParamData%Dbar_13,2)
-   i2_u = UBOUND(SrcParamData%Dbar_13,2)
-   IF (.NOT.ALLOCATED(DstParamData%Dbar_13)) THEN 
-      ALLOCATE(DstParamData%Dbar_13(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+IF (ALLOCATED(SrcParamData%D2_64)) THEN
+   i1_l = LBOUND(SrcParamData%D2_64,1)
+   i1_u = UBOUND(SrcParamData%D2_64,1)
+   i2_l = LBOUND(SrcParamData%D2_64,2)
+   i2_u = UBOUND(SrcParamData%D2_64,2)
+   IF (.NOT.ALLOCATED(DstParamData%D2_64)) THEN 
+      ALLOCATE(DstParamData%D2_64(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%Dbar_13.'
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%D2_64.'
          RETURN
       END IF
    END IF
-   DstParamData%Dbar_13 = SrcParamData%Dbar_13
+   DstParamData%D2_64 = SrcParamData%D2_64
 ENDIF
-IF (ALLOCATED(SrcParamData%Dbar_23)) THEN
-   i1_l = LBOUND(SrcParamData%Dbar_23,1)
-   i1_u = UBOUND(SrcParamData%Dbar_23,1)
-   i2_l = LBOUND(SrcParamData%Dbar_23,2)
-   i2_u = UBOUND(SrcParamData%Dbar_23,2)
-   IF (.NOT.ALLOCATED(DstParamData%Dbar_23)) THEN 
-      ALLOCATE(DstParamData%Dbar_23(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+IF (ALLOCATED(SrcParamData%F2_61)) THEN
+   i1_l = LBOUND(SrcParamData%F2_61,1)
+   i1_u = UBOUND(SrcParamData%F2_61,1)
+   IF (.NOT.ALLOCATED(DstParamData%F2_61)) THEN 
+      ALLOCATE(DstParamData%F2_61(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%Dbar_23.'
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%F2_61.'
          RETURN
       END IF
    END IF
-   DstParamData%Dbar_23 = SrcParamData%Dbar_23
-ENDIF
-IF (ALLOCATED(SrcParamData%Dbar_24)) THEN
-   i1_l = LBOUND(SrcParamData%Dbar_24,1)
-   i1_u = UBOUND(SrcParamData%Dbar_24,1)
-   i2_l = LBOUND(SrcParamData%Dbar_24,2)
-   i2_u = UBOUND(SrcParamData%Dbar_24,2)
-   IF (.NOT.ALLOCATED(DstParamData%Dbar_24)) THEN 
-      ALLOCATE(DstParamData%Dbar_24(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%Dbar_24.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%Dbar_24 = SrcParamData%Dbar_24
-ENDIF
-IF (ALLOCATED(SrcParamData%Fbar_21)) THEN
-   i1_l = LBOUND(SrcParamData%Fbar_21,1)
-   i1_u = UBOUND(SrcParamData%Fbar_21,1)
-   IF (.NOT.ALLOCATED(DstParamData%Fbar_21)) THEN 
-      ALLOCATE(DstParamData%Fbar_21(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%Fbar_21.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%Fbar_21 = SrcParamData%Fbar_21
+   DstParamData%F2_61 = SrcParamData%F2_61
 ENDIF
 IF (ALLOCATED(SrcParamData%MBB)) THEN
    i1_l = LBOUND(SrcParamData%MBB,1)
@@ -3411,6 +3411,12 @@ ENDIF
 IF (ALLOCATED(ParamData%C2_42)) THEN
    DEALLOCATE(ParamData%C2_42)
 ENDIF
+IF (ALLOCATED(ParamData%C2_61)) THEN
+   DEALLOCATE(ParamData%C2_61)
+ENDIF
+IF (ALLOCATED(ParamData%C2_62)) THEN
+   DEALLOCATE(ParamData%C2_62)
+ENDIF
 IF (ALLOCATED(ParamData%D2_11)) THEN
    DEALLOCATE(ParamData%D2_11)
 ENDIF
@@ -3423,23 +3429,17 @@ ENDIF
 IF (ALLOCATED(ParamData%D2_42)) THEN
    DEALLOCATE(ParamData%D2_42)
 ENDIF
-IF (ALLOCATED(ParamData%Cbar_21)) THEN
-   DEALLOCATE(ParamData%Cbar_21)
+IF (ALLOCATED(ParamData%D2_53)) THEN
+   DEALLOCATE(ParamData%D2_53)
 ENDIF
-IF (ALLOCATED(ParamData%Cbar_22)) THEN
-   DEALLOCATE(ParamData%Cbar_22)
+IF (ALLOCATED(ParamData%D2_63)) THEN
+   DEALLOCATE(ParamData%D2_63)
 ENDIF
-IF (ALLOCATED(ParamData%Dbar_13)) THEN
-   DEALLOCATE(ParamData%Dbar_13)
+IF (ALLOCATED(ParamData%D2_64)) THEN
+   DEALLOCATE(ParamData%D2_64)
 ENDIF
-IF (ALLOCATED(ParamData%Dbar_23)) THEN
-   DEALLOCATE(ParamData%Dbar_23)
-ENDIF
-IF (ALLOCATED(ParamData%Dbar_24)) THEN
-   DEALLOCATE(ParamData%Dbar_24)
-ENDIF
-IF (ALLOCATED(ParamData%Fbar_21)) THEN
-   DEALLOCATE(ParamData%Fbar_21)
+IF (ALLOCATED(ParamData%F2_61)) THEN
+   DEALLOCATE(ParamData%F2_61)
 ENDIF
 IF (ALLOCATED(ParamData%MBB)) THEN
    DEALLOCATE(ParamData%MBB)
@@ -3580,16 +3580,16 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%FY )  ! FY 
   Re_BufSz    = Re_BufSz    + SIZE( InData%C2_21 )  ! C2_21 
   Re_BufSz    = Re_BufSz    + SIZE( InData%C2_42 )  ! C2_42 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%C2_61 )  ! C2_61 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%C2_62 )  ! C2_62 
   Re_BufSz    = Re_BufSz    + SIZE( InData%D2_11 )  ! D2_11 
   Re_BufSz    = Re_BufSz    + SIZE( InData%D2_21 )  ! D2_21 
   Re_BufSz    = Re_BufSz    + SIZE( InData%D2_32 )  ! D2_32 
   Re_BufSz    = Re_BufSz    + SIZE( InData%D2_42 )  ! D2_42 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Cbar_21 )  ! Cbar_21 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Cbar_22 )  ! Cbar_22 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Dbar_13 )  ! Dbar_13 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Dbar_23 )  ! Dbar_23 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Dbar_24 )  ! Dbar_24 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Fbar_21 )  ! Fbar_21 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%D2_53 )  ! D2_53 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%D2_63 )  ! D2_63 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%D2_64 )  ! D2_64 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%F2_61 )  ! F2_61 
   Re_BufSz    = Re_BufSz    + SIZE( InData%MBB )  ! MBB 
   Re_BufSz    = Re_BufSz    + SIZE( InData%KBB )  ! KBB 
   Re_BufSz    = Re_BufSz    + SIZE( InData%MBM )  ! MBM 
@@ -3734,6 +3734,14 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%C2_42))-1 ) =  PACK(InData%C2_42 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%C2_42)
   ENDIF
+  IF ( ALLOCATED(InData%C2_61) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%C2_61))-1 ) =  PACK(InData%C2_61 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%C2_61)
+  ENDIF
+  IF ( ALLOCATED(InData%C2_62) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%C2_62))-1 ) =  PACK(InData%C2_62 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%C2_62)
+  ENDIF
   IF ( ALLOCATED(InData%D2_11) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%D2_11))-1 ) =  PACK(InData%D2_11 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%D2_11)
@@ -3750,29 +3758,21 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%D2_42))-1 ) =  PACK(InData%D2_42 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%D2_42)
   ENDIF
-  IF ( ALLOCATED(InData%Cbar_21) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Cbar_21))-1 ) =  PACK(InData%Cbar_21 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Cbar_21)
+  IF ( ALLOCATED(InData%D2_53) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%D2_53))-1 ) =  PACK(InData%D2_53 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%D2_53)
   ENDIF
-  IF ( ALLOCATED(InData%Cbar_22) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Cbar_22))-1 ) =  PACK(InData%Cbar_22 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Cbar_22)
+  IF ( ALLOCATED(InData%D2_63) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%D2_63))-1 ) =  PACK(InData%D2_63 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%D2_63)
   ENDIF
-  IF ( ALLOCATED(InData%Dbar_13) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Dbar_13))-1 ) =  PACK(InData%Dbar_13 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Dbar_13)
+  IF ( ALLOCATED(InData%D2_64) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%D2_64))-1 ) =  PACK(InData%D2_64 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%D2_64)
   ENDIF
-  IF ( ALLOCATED(InData%Dbar_23) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Dbar_23))-1 ) =  PACK(InData%Dbar_23 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Dbar_23)
-  ENDIF
-  IF ( ALLOCATED(InData%Dbar_24) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Dbar_24))-1 ) =  PACK(InData%Dbar_24 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Dbar_24)
-  ENDIF
-  IF ( ALLOCATED(InData%Fbar_21) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Fbar_21))-1 ) =  PACK(InData%Fbar_21 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%Fbar_21)
+  IF ( ALLOCATED(InData%F2_61) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F2_61))-1 ) =  PACK(InData%F2_61 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%F2_61)
   ENDIF
   IF ( ALLOCATED(InData%MBB) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%MBB))-1 ) =  PACK(InData%MBB ,.TRUE.)
@@ -4110,6 +4110,18 @@ ENDDO
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%C2_42)
   ENDIF
+  IF ( ALLOCATED(OutData%C2_61) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%C2_61,1),SIZE(OutData%C2_61,2))); mask2 = .TRUE.
+    OutData%C2_61 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C2_61))-1 ),mask2,OutData%C2_61)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%C2_61)
+  ENDIF
+  IF ( ALLOCATED(OutData%C2_62) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%C2_62,1),SIZE(OutData%C2_62,2))); mask2 = .TRUE.
+    OutData%C2_62 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%C2_62))-1 ),mask2,OutData%C2_62)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%C2_62)
+  ENDIF
   IF ( ALLOCATED(OutData%D2_11) ) THEN
   ALLOCATE(mask2(SIZE(OutData%D2_11,1),SIZE(OutData%D2_11,2))); mask2 = .TRUE.
     OutData%D2_11 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_11))-1 ),mask2,OutData%D2_11)
@@ -4134,41 +4146,29 @@ ENDDO
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D2_42)
   ENDIF
-  IF ( ALLOCATED(OutData%Cbar_21) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%Cbar_21,1),SIZE(OutData%Cbar_21,2))); mask2 = .TRUE.
-    OutData%Cbar_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Cbar_21))-1 ),mask2,OutData%Cbar_21)
+  IF ( ALLOCATED(OutData%D2_53) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%D2_53,1),SIZE(OutData%D2_53,2))); mask2 = .TRUE.
+    OutData%D2_53 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_53))-1 ),mask2,OutData%D2_53)
   DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Cbar_21)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%D2_53)
   ENDIF
-  IF ( ALLOCATED(OutData%Cbar_22) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%Cbar_22,1),SIZE(OutData%Cbar_22,2))); mask2 = .TRUE.
-    OutData%Cbar_22 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Cbar_22))-1 ),mask2,OutData%Cbar_22)
+  IF ( ALLOCATED(OutData%D2_63) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%D2_63,1),SIZE(OutData%D2_63,2))); mask2 = .TRUE.
+    OutData%D2_63 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_63))-1 ),mask2,OutData%D2_63)
   DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Cbar_22)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%D2_63)
   ENDIF
-  IF ( ALLOCATED(OutData%Dbar_13) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%Dbar_13,1),SIZE(OutData%Dbar_13,2))); mask2 = .TRUE.
-    OutData%Dbar_13 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dbar_13))-1 ),mask2,OutData%Dbar_13)
+  IF ( ALLOCATED(OutData%D2_64) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%D2_64,1),SIZE(OutData%D2_64,2))); mask2 = .TRUE.
+    OutData%D2_64 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D2_64))-1 ),mask2,OutData%D2_64)
   DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Dbar_13)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%D2_64)
   ENDIF
-  IF ( ALLOCATED(OutData%Dbar_23) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%Dbar_23,1),SIZE(OutData%Dbar_23,2))); mask2 = .TRUE.
-    OutData%Dbar_23 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dbar_23))-1 ),mask2,OutData%Dbar_23)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Dbar_23)
-  ENDIF
-  IF ( ALLOCATED(OutData%Dbar_24) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%Dbar_24,1),SIZE(OutData%Dbar_24,2))); mask2 = .TRUE.
-    OutData%Dbar_24 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Dbar_24))-1 ),mask2,OutData%Dbar_24)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Dbar_24)
-  ENDIF
-  IF ( ALLOCATED(OutData%Fbar_21) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Fbar_21,1))); mask1 = .TRUE.
-    OutData%Fbar_21 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Fbar_21))-1 ),mask1,OutData%Fbar_21)
+  IF ( ALLOCATED(OutData%F2_61) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%F2_61,1))); mask1 = .TRUE.
+    OutData%F2_61 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F2_61))-1 ),mask1,OutData%F2_61)
   DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%Fbar_21)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%F2_61)
   ENDIF
   IF ( ALLOCATED(OutData%MBB) ) THEN
   ALLOCATE(mask2(SIZE(OutData%MBB,1),SIZE(OutData%MBB,2))); mask2 = .TRUE.

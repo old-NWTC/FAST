@@ -750,7 +750,7 @@ SUBROUTINE Conv_Rdtn_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt,
       
          ! Compute the first time derivatives of the continuous states here:
       
-      dxdt%DummyContState = 0
+      dxdt%DummyContState = 0.0
          
 
 END SUBROUTINE Conv_Rdtn_CalcContStateDeriv
@@ -1010,7 +1010,7 @@ END SUBROUTINE Conv_Rdtn_CalcConstrStateResidual
 !
 !         ! Calculate the partial derivative of the output equations (Y) with respect to the continuous states (x) here:
 !
-!         dYdx%DummyOutput%DummyContState = 0
+!         dYdx%DummyOutput%DummyContState = 0.0
 !
 !      END IF
 !      
@@ -1018,7 +1018,7 @@ END SUBROUTINE Conv_Rdtn_CalcConstrStateResidual
 !      
 !         ! Calculate the partial derivative of the continuous state equations (X) with respect to the continuous states (x) here:
 !      
-!         dXdx%DummyContState%DummyContState = 0
+!         dXdx%DummyContState%DummyContState = 0.0
 !
 !      END IF
 !      
@@ -1026,7 +1026,7 @@ END SUBROUTINE Conv_Rdtn_CalcConstrStateResidual
 !
 !         ! Calculate the partial derivative of the discrete state equations (Xd) with respect to the continuous states (x) here:
 !
-!         dXddx%DummyDiscState%DummyContState = 0
+!         dXddx%DummyDiscState%DummyContState = 0.0
 !         
 !      END IF
 !      
@@ -1035,7 +1035,7 @@ END SUBROUTINE Conv_Rdtn_CalcConstrStateResidual
 !
 !         ! Calculate the partial derivative of the constraint state equations (Z) with respect to the continuous states (x) here:
 !      
-!         dZdx%DummyConstrState%DummyContState = 0
+!         dZdx%DummyConstrState%DummyContState = 0.0
 !
 !      END IF
 !      

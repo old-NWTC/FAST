@@ -65,8 +65,8 @@ True           TabDelim       - Generate a tab-delimited output file in OutJckF
 "ES11.4e2"     OutFmt         - Output format for numerical results in OutJckF
 "A11"          OutSFmt        - Output format for header strings
 ------ SSOutList    - The next line(s) contains a list of output parameters that will be output in the main FAST .out. ------
-"ReactXss, ReactYss, ReactZss, ReactMXss, ReactMYss, ReactMZss"   -Base reactions (forces onto SS structure)
-"IntfXss,  IntfYss,  IntfZss,  IntfMXss, IntfMYss, IntfMZss"      -Interface reactions (forces onto SS structure)
+"ReactFXss, ReactFYss, ReactFZss, ReactMXss, ReactMYss, ReactMZss"   -Base reactions (forces onto SS structure)
+"IntfFXss,  IntfFYss,  IntfFZss,  IntfMXss, IntfMYss, IntfMZss"      -Interface reactions (forces onto SS structure)
 "IntfTDXss,  IntfTDYss,  IntfTDZss,  IntfRDXss, IntfRDYss, IntfRDZss"      -Interface deflections
 "IntfTAXss,  IntfTAYss,  IntfTAZss,  IntfRAXss, IntfRAYss, IntfRAZss"      -Interface accelerations
 "M1N1TAxE"

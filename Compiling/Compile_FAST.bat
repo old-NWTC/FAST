@@ -71,7 +71,7 @@ SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
-
+SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
 
 SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
 SET HD_Reg_Loc=%HD_Loc%
@@ -186,12 +186,29 @@ SET SD_SOURCES=^
 
 SET MAP_SOURCES=^
  "%MAP_Loc%\MAP_C_Types.f90" ^
- "%MAP_Loc%\MAP_Types.f90"   ^
+ "%MAP_Loc%\MAP_Types.f90" ^
  "%MAP_Loc%\MAP.f90"
 
 SET FEAM_SOURCES=^
- "%FEAM_Loc%\FEAMooring_Types.f90"   ^
+ "%FEAM_Loc%\FEAMooring_Types.f90" ^
  "%FEAM_Loc%\FEAM.f90"
+
+SET ICEF_SOURCE=^
+ "%IceF_Loc%\coupledCrushing.F90" ^
+ "%IceF_Loc%\crushingIEC.F90" ^
+ "%IceF_Loc%\crushingISO.F90" ^
+ "%IceF_Loc%\IceFlexBase.F90" ^
+ "%IceF_Loc%\IceFlexIEC.f90" ^
+ "%IceF_Loc%\IceFlexISO.f90" ^
+ "%IceF_Loc%\IceFloeBase.F90" ^
+ "%IceF_Loc%\IceFloe_Types.f90" ^
+ "%IceF_Loc%\iceInput.f90" ^
+ "%IceF_Loc%\iceLog.F90" ^
+ "%IceF_Loc%\intermittentCrushing.F90" ^
+ "%IceF_Loc%\lockInISO.F90" ^
+ "%IceF_Loc%\randomCrushing.F90" ^
+ "%IceF_Loc%\ranlux\RANLUX.f90" ^
+ "%IceF_Loc%\IceFloe.f90"
 
 
 
@@ -234,10 +251,18 @@ SET ModuleName=AeroDyn
 %REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
+
 ECHO %Lines%
 SET CURR_LOC=%FEAM_Loc%
 SET ModuleName=FEAMooring
 %REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"
+MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+
+
+ECHO %Lines%
+SET CURR_LOC=%IceF_Loc%
+SET ModuleName=IceFloe
+%REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I "%NWTC_Lib_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
@@ -338,6 +363,12 @@ IF %ERRORLEVEL% NEQ 0 GOTO checkError
 ECHO %Lines%
 ECHO Compiling FEAMooring:
 ifort %COMPOPTS% %FEAM_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
+
+ECHO %Lines%
+ECHO Compiling IceFloe:
+ifort %COMPOPTS% %ICEF_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 

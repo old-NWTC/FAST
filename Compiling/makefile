@@ -43,6 +43,7 @@ HD_DIR       = $(FAST_DIR)/dependencies/HydroDyn
 SD_DIR       = $(FAST_DIR)/dependencies/SubDyn
 MAP_DIR      = $(FAST_DIR)/dependencies/MAP
 FEAM_DIR     = $(FAST_DIR)/dependencies/FEAMooring
+IceF_DIR     = $(FAST_DIR)/dependencies/IceFloe
 
 HD_DIR_Reg   = $(HD_DIR)
 BIN_DIR      = ../bin
@@ -51,10 +52,11 @@ BIN_DIR      = ../bin
 ifeq ($(OS),Windows_NT)
    Registry     = $(BIN_DIR)/Registry_win32.exe
    MAP_lib      = $(MAP_DIR)/MAP_win32.lib
-   LAPACK_DIR   = -LC:/LAPACK/win32
+   LAPACK_LINK  = -llapack -lblas -LC:/LAPACK/win32
 else
    Registry     = registry.exe
    MAP_lib      = $(MAP_DIR)/MAP.a
+   LAPACK_LINK  = -llapack -lblas
 endif
 
 
@@ -62,9 +64,9 @@ endif
 FC      = gfortran
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -C -Wconversion-extra -Wconversion
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -C
 
-LDFLAGS = -O2 -m$(BITS) -fbacktrace -llapack -lblas $(LAPACK_DIR)
+LDFLAGS = -O2 -m$(BITS) -fbacktrace  $(LAPACK_LINK)
 
 # other useful gfortran options:
 #  -fdefault-real-8 -fcheck=bounds -std=f2003 -O0 -v -Wall
@@ -124,6 +126,12 @@ LIB_SOURCES =           \
 	ModMesh_Mapping.f90  \
 	NWTC_Library.f90
 
+NetLib_SOURCES =         \
+	NWTC_LAPACK.f90       \
+	NWTC_ScaLAPACK.f90    \
+	dlasrt2.f             \
+	slasrt2.f
+
 IfW_SOURCES =            \
 	IfW_FFWind_Types.f90  \
 	IfW_FFWind.f90        \
@@ -180,8 +188,8 @@ SD_SOURCES =               \
 NETLIB_SOURCES=            \
 	NWTC_ScaLAPACK.f90      \
 	NWTC_LAPACK.f90         \
-	DLASRT2.f               \
-	SLASRT2.f
+	dlasrt2.f               \
+	slasrt2.f
 
 
 ED_SOURCES =            \
@@ -196,39 +204,60 @@ SrvD_SOURCES =          \
 	UserSubs.f90         \
 	UserVSCont_KP.f90
 
+
+IceF_SOURCES =              \
+	IceFloe_Types.f90        \
+	iceLog.F90               \
+	coupledCrushing.F90      \
+	crushingIEC.F90          \
+	crushingISO.F90          \
+	IceFlexBase.F90          \
+	IceFlexIEC.f90           \
+	IceFlexISO.f90           \
+	IceFloeBase.F90          \
+	iceInput.f90             \
+	intermittentCrushing.F90 \
+	lockInISO.F90            \
+	randomCrushing.F90       \
+	RANLUX.f90               \
+	IceFloe.f90
+
+
 FAST_SOURCES =          \
 	FAST_Mods.f90        \
 	FAST_IO.f90          \
 	FAST_Prog.f90
 
-vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR)
+vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(IceF_DIR)
 vpath %.f   $(HD_DIR) $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
 vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR)
+vpath %.inp $(IceF_DIR)
+#apparently vpath doesn't work as expected if I use %.F90
+#vpath %.F90     $(IceF_DIR)
+vpath %     $(IceF_DIR)
 
-NETLIB_OBJS   = NWTC_LAPACK.obj NWTC_ScaLAPACK.obj DLASRT2.obj SLASRT2.obj
-LIB_OBJS      = $(LIB_SOURCES:.f90=.obj)
-IfW_OBJS      = $(IfW_SOURCES:.f90=.obj)
-AD_OBJS       = $(AD_SOURCES:.f90=.obj)
-SrvD_OBJS     = $(SrvD_SOURCES:.f90=.obj)
-ED_OBJS       = $(ED_SOURCES:.f90=.obj)
-HD_OBJS       = $(HD_SOURCES:.f90=.obj) fftpack.obj
-SD_OBJS       = $(SD_SOURCES:.f90=.obj)
-MAP_OBJS      = $(MAP_SOURCES:.f90=.obj)
-FEAM_OBJS     = $(FEAM_SOURCES:.f90=.obj)
-FAST_OBJS     = $(FAST_SOURCES:.f90=.obj)
-ALL_OBJS      = $(LIB_OBJS) $(IfW_OBJS) $(AD_OBJS) $(SrvD_OBJS) $(ED_OBJS) $(HD_OBJS) $(SD_OBJS) $(FAST_OBJS) $(NETLIB_OBJS) $(MAP_OBJS) $(FEAM_OBJS)
+
+ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NetLib_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES)
+tmp_objs1   = $(ALL_SOURCES:.f90=.obj)
+tmp_objs2   = $(tmp_objs1:.F90=.obj)       #note the upper case here (from IceFloe)
+ALL_OBJS    = $(tmp_objs2:.f=.obj)
+
 
    # Rule to do everything.
 
 all:     default
+#all:     ; $(info $$IceF_SOURCES is [${IceF_SOURCES}]) echo debugging
 default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 
 
    # General rules for compliling the files.
 
 %.obj: %.f90
+	$(FC) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
+
+%.obj: %.F90
 	$(FC) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
 %.obj: %.f
@@ -283,6 +312,9 @@ FEAMooring_Types.f90:
 	$(Registry) FEAM_Registry.txt -I $(NWTC_Lib_DIR)
 
 
+IceFloe_Types.f90:
+	$(Registry) IceFloe_FASTRegistry.inp -I $(NWTC_Lib_DIR)
+
 
    #  Dependency rules.
 #NWTC Library dependency rules:
@@ -311,9 +343,9 @@ InflowWind.obj:          InflowWind_Subs.obj
 
 
 #AeroDyn dependency rules:
-AeroDyn_Types.obj:       NWTC_Library.obj InflowWind_Types.obj
+AeroDyn_Types.obj:       NWTC_Library.obj  InflowWind_Types.obj
 GenSubs.obj:             NWTC_Library.obj  AeroDyn_Types.obj
-AeroSubs.obj:            NWTC_Library.obj  AeroDyn_Types.obj
+AeroSubs.obj:            NWTC_Library.obj  AeroDyn_Types.obj InflowWind.obj GenSubs.obj
 AeroDyn.obj:             AeroDyn_Types.obj AeroSubs.obj  GenSubs.obj  InflowWind.obj
 
 
@@ -344,7 +376,7 @@ WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj
 HydroDyn_Output.obj:        HydroDyn_Types.obj Waves.obj
 
 HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj Morison_Types.obj
-HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj
+HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj  HydroDyn_Output.obj WAMIT_Output.obj
 HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj
 
 
@@ -354,10 +386,12 @@ SD_FEM.obj:                NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
 SubDyn_Output.obj:         SD_FEM.obj
 SubDyn.obj:                SubDyn_Output.obj  SD_FEM.obj  qsort_c_module.obj NWTC_ScaLAPACK.obj NWTC_LAPACK.obj
 
+
 # MAP dependency rules:
 MAP_C_Types.obj:           NWTC_Library.obj
 MAP_Types.obj:             NWTC_Library.obj MAP_C_Types.obj
 MAP.obj:                   MAP_Types.obj MAP_C_Types.obj
+
 
 # FEAMooring dependency rules:
 FEAMooring_Types.obj:      NWTC_Library.obj  FEAM_Registry.txt
@@ -365,20 +399,40 @@ FEAM.obj:                  NWTC_Library.obj  FEAMooring_Types.obj
 
 
 # ElastoDyn dependency rules:
-ElastoDyn_Types.obj:        NWTC_Library.obj  ElastoDyn_Registry.txt
-ElastoDyn.obj:              NWTC_Library.obj  ElastoDyn_Types.obj
+ElastoDyn_Types.obj:       NWTC_Library.obj  ElastoDyn_Registry.txt
+ElastoDyn.obj:             NWTC_Library.obj  ElastoDyn_Types.obj
+
 
 # ServoDyn dependency rules:
-ServoDyn_Types.obj:         NWTC_Library.obj  ServoDyn_Registry.txt
-BladedInterface.obj:        NWTC_Library.obj  ServoDyn_Types.obj
-ServoDyn.obj:               NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj
-PitchCntrl_ACH.obj:         NWTC_Library.obj
-UserSubs.obj:               NWTC_Library.obj
-UserVSCont_KP.obj:          NWTC_Library.obj
+ServoDyn_Types.obj:        NWTC_Library.obj  ServoDyn_Registry.txt
+BladedInterface.obj:       NWTC_Library.obj  ServoDyn_Types.obj
+ServoDyn.obj:              NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj
+PitchCntrl_ACH.obj:        NWTC_Library.obj
+UserSubs.obj:              NWTC_Library.obj
+UserVSCont_KP.obj:         NWTC_Library.obj
+
+
+# IceFloe dependency rules:
+#RANLUX.obj:
+iceLog.obj:                NWTC_Library.obj
+iceInput.obj:              iceLog.F90 NWTC_Library.obj
+IceFloeBase.obj:           NWTC_Library.obj  iceInput.obj  RANLUX.obj
+coupledCrushing.obj:       iceFloeBase.obj
+crushingIEC.obj:           IceFloeBase.obj
+crushingISO.obj:           IceFloeBase.obj
+intermittentCrushing.obj:  crushingISO.obj
+lockInISO.obj:             crushingISO.obj
+randomCrushing.obj:        crushingISO.obj
+IceFlexBase.obj:           IceFloeBase.obj
+IceFlexIEC.obj:            IceFlexBase.obj
+IceFlexISO.obj:            IceFlexBase.obj
+IceFloe_Types.obj:         NWTC_Library.obj
+IceFloe.obj:               IceFloe_Types.obj iceLog.obj coupledCrushing.obj crushingIEC.obj crushingISO.obj IceFlexBase.obj IceFlexIEC.obj IceFlexISO.obj intermittentCrushing.obj lockInISO.obj randomCrushing.obj
+
 
 # FAST dependency rules:
-FAST_Mods.obj:              NWTC_Library.obj  AeroDyn.obj
-FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj ElastoDyn.obj HydroDyn.obj NWTC_LAPACK.obj MAP.obj FEAM.obj
+FAST_Mods.obj:              NWTC_Library.obj
+FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  NWTC_LAPACK.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj  ElastoDyn.obj  SubDyn.obj  HydroDyn.obj  MAP.obj  FEAM.obj  IceFloe.obj
 FAST_Prog.obj:              NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj
 
 
@@ -402,3 +456,6 @@ $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT): $(ALL_OBJS) | $(INTER_DIR)
 clean:
 	$(DEL_CMD) $(INTER_DIR)$(PATH_SEP)*.mod $(INTER_DIR)$(PATH_SEP)*.obj
 
+#superclean:
+#	$(DEL_CMD) $(INTER_DIR)$(PATH_SEP)*.mod $(INTER_DIR)$(PATH_SEP)*.obj
+# also delete all the registry-generated ModuleName_Types.f90 files

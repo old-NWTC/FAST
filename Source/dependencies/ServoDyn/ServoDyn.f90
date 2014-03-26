@@ -735,7 +735,7 @@ SUBROUTINE SrvD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat
 
          ! Compute the first time derivatives of the continuous states here:
 
-      dxdt%DummyContState = 0
+      dxdt%DummyContState = 0.0
 
 
 END SUBROUTINE SrvD_CalcContStateDeriv

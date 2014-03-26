@@ -816,7 +816,7 @@ SUBROUTINE IfW_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSt
 
          ! Compute the first time derivatives of the continuous states here:
 
-      dxdt%DummyContState = 0
+      dxdt%DummyContState = 0.0
 
 
 END SUBROUTINE IfW_CalcContStateDeriv

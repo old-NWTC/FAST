@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 14:49:02 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 336 $
+! File last committed: $Date: 2014-03-04 07:56:06 -0700 (Tue, 04 Mar 2014) $
+! (File) Revision #: $Rev: 360 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -41,19 +41,9 @@ MODULE HydroDyn
    PRIVATE
 
   
-   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.00.02d-gjh', '23-Jan-2014' )
+   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.00.04b-gjh', '04-Mar-2014' )
 
-   !TYPE, PUBLIC :: HD_ModuleMapType            
-   !   TYPE(MeshMapType) ::           HD_P_2_WRP_P               !Map HD point mesh to WAMIT Reference Point, point mesh
-   !   TYPE(MeshMapType) ::           M_P_2_WRP_P                !Map Morison point mesh to WAMIT Reference Point, point mesh
-   !   TYPE(MeshMapType) ::           M_L_2_WRP_P                !Map Morison line2 mesh to WAMIT Reference Point, point mesh
-   !END TYPE HD_ModuleMapType
-   
-   !HACK - HACK ALERT - HACK  TODO Remove this!!!!! GJH
-   !TYPE(HD_ModuleMapType) :: HD_MeshMap
-   ! End HACK ALERT
-   
-   
+    
    
    
       ! ..... Public Subroutines ...................................................................................................

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-28 16:19:37 -0700 (Tue, 28 Jan 2014) $
-! (File) Revision #: $Rev: 267 $
+! File last committed: $Date: 2014-03-04 11:16:28 -0700 (Tue, 04 Mar 2014) $
+! (File) Revision #: $Rev: 274 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -47,7 +47,7 @@ MODULE SubDyn_Output
 
     ! Member Forces:
 
-   INTEGER(IntKi), PARAMETER      :: M1N1FKxe  =    1
+  INTEGER(IntKi), PARAMETER      :: M1N1FKxe  =    1
    INTEGER(IntKi), PARAMETER      :: M1N2FKxe  =    2
    INTEGER(IntKi), PARAMETER      :: M1N3FKxe  =    3
    INTEGER(IntKi), PARAMETER      :: M1N4FKxe  =    4
@@ -2003,18 +2003,18 @@ MODULE SubDyn_Output
 
   ! Reactions:
 
-   INTEGER(IntKi), PARAMETER      :: ReactXss  = 1945
-   INTEGER(IntKi), PARAMETER      :: ReactYss  = 1946
-   INTEGER(IntKi), PARAMETER      :: ReactZss  = 1947
-   INTEGER(IntKi), PARAMETER      :: ReactMXss = 1948
-   INTEGER(IntKi), PARAMETER      :: ReactMYss = 1949
-   INTEGER(IntKi), PARAMETER      :: ReactMZss = 1950
-   INTEGER(IntKi), PARAMETER      :: IntfXss   = 1951
-   INTEGER(IntKi), PARAMETER      :: IntfYss   = 1952
-   INTEGER(IntKi), PARAMETER      :: IntfZss   = 1953
-   INTEGER(IntKi), PARAMETER      :: IntfMXss  = 1954
-   INTEGER(IntKi), PARAMETER      :: IntfMYss  = 1955
-   INTEGER(IntKi), PARAMETER      :: IntfMZss  = 1956
+   INTEGER(IntKi), PARAMETER      :: ReactFXss  = 1945
+   INTEGER(IntKi), PARAMETER      :: ReactFYss  = 1946
+   INTEGER(IntKi), PARAMETER      :: ReactFZss  = 1947
+   INTEGER(IntKi), PARAMETER      :: ReactMXss  = 1948
+   INTEGER(IntKi), PARAMETER      :: ReactMYss  = 1949
+   INTEGER(IntKi), PARAMETER      :: ReactMZss  = 1950
+   INTEGER(IntKi), PARAMETER      :: IntfFXss   = 1951
+   INTEGER(IntKi), PARAMETER      :: IntfFYss   = 1952
+   INTEGER(IntKi), PARAMETER      :: IntfFZss   = 1953
+   INTEGER(IntKi), PARAMETER      :: IntfMXss   = 1954
+   INTEGER(IntKi), PARAMETER      :: IntfMYss   = 1955
+   INTEGER(IntKi), PARAMETER      :: IntfMZss   = 1956
 
 
   ! Interface Deflections:
@@ -2756,10 +2756,10 @@ INTEGER, PARAMETER             :: MNRDe (3,9,9) = reshape((/M1N1RDxe,M1N1RDye,M1
                                                                     M9N8TAxe,M9N8TAye,M9N8TAze,M9N8RAxe,M9N8RAye,M9N8RAze,  &
                                                                     M9N9TAxe,M9N9TAye,M9N9TAze,M9N9RAxe,M9N9RAye,M9N9RAze/), (/6,9,9/))
    
-      INTEGER, PARAMETER             :: ReactSS(6) =    (/ReactXss,   ReactYss,   ReactZss   , &
+      INTEGER, PARAMETER             :: ReactSS(6) =    (/ReactFXss,   ReactFYss,   ReactFZss   , &
                                                           ReactMXss,  ReactMYss,  ReactMZss/)
 
-      INTEGER, PARAMETER             :: IntfSS(6) =    (/IntfXss,   IntfYss,   IntfZss   , &
+      INTEGER, PARAMETER             :: IntfSS(6) =    (/IntfFXss,   IntfFYss,   IntfFZss   , &
                                                          IntfMXss,  IntfMYss,  IntfMZss/)
 
 
@@ -2775,10 +2775,10 @@ INTEGER, PARAMETER             :: MNRDe (3,9,9) = reshape((/M1N1RDxe,M1N1RDye,M1
   
 
  
-     CHARACTER(10), PARAMETER  :: ValidParamAry(2265) =  (/ &                         ! This lists the names of the allowed parameters, which must be sorted alphabetically
-                               "INTFMXSS ","INTFMYSS ","INTFMZSS ","INTFRAXSS","INTFRAYSS","INTFRAZSS","INTFRDXSS", &
-                               "INTFRDYSS","INTFRDZSS","INTFTAXSS","INTFTAYSS","INTFTAZSS","INTFTDXSS","INTFTDYSS", &
-                               "INTFTDZSS","INTFXSS  ","INTFYSS  ","INTFZSS  ","M1N1FKXE ","M1N1FKYE ","M1N1FKZE ", &
+   CHARACTER(10), PARAMETER  :: ValidParamAry(2265) =  (/ &                  ! This lists the names of the allowed parameters, which must be sorted alphabetically
+                               "INTFFXSS ","INTFFYSS ","INTFFZSS ","INTFMXSS ","INTFMYSS ","INTFMZSS ","INTFRAXSS", &
+                               "INTFRAYSS","INTFRAZSS","INTFRDXSS","INTFRDYSS","INTFRDZSS","INTFTAXSS","INTFTAYSS", &
+                               "INTFTAZSS","INTFTDXSS","INTFTDYSS","INTFTDZSS","M1N1FKXE ","M1N1FKYE ","M1N1FKZE ", &
                                "M1N1FMXE ","M1N1FMYE ","M1N1FMZE ","M1N1MKXE ","M1N1MKYE ","M1N1MKZE ","M1N1MMXE ", &
                                "M1N1MMYE ","M1N1MMZE ","M1N1RAXE ","M1N1RAYE ","M1N1RAZE ","M1N1RDXE ","M1N1RDYE ", &
                                "M1N1RDZE ","M1N1TAXE ","M1N1TAYE ","M1N1TAZE ","M1N1TDXSS","M1N1TDYSS","M1N1TDZSS", &
@@ -3056,8 +3056,8 @@ INTEGER, PARAMETER             :: MNRDe (3,9,9) = reshape((/M1N1RDxe,M1N1RDye,M1
                                "M9N9FKYE ","M9N9FKZE ","M9N9FMXE ","M9N9FMYE ","M9N9FMZE ","M9N9MKXE ","M9N9MKYE ", &
                                "M9N9MKZE ","M9N9MMXE ","M9N9MMYE ","M9N9MMZE ","M9N9RAXE ","M9N9RAYE ","M9N9RAZE ", &
                                "M9N9RDXE ","M9N9RDYE ","M9N9RDZE ","M9N9TAXE ","M9N9TAYE ","M9N9TAZE ","M9N9TDXSS", &
-                               "M9N9TDYSS","M9N9TDZSS","REACTMXSS","REACTMYSS","REACTMZSS","REACTXSS ","REACTYSS ", &
-                               "REACTZSS ","SSQM01   ","SSQM02   ","SSQM03   ","SSQM04   ","SSQM05   ","SSQM06   ", &
+                               "M9N9TDYSS","M9N9TDZSS","REACTFXSS","REACTFYSS","REACTFZSS","REACTMXSS","REACTMYSS", &
+                               "REACTMZSS","SSQM01   ","SSQM02   ","SSQM03   ","SSQM04   ","SSQM05   ","SSQM06   ", &
                                "SSQM07   ","SSQM08   ","SSQM09   ","SSQM10   ","SSQM11   ","SSQM12   ","SSQM13   ", &
                                "SSQM14   ","SSQM15   ","SSQM16   ","SSQM17   ","SSQM18   ","SSQM19   ","SSQM20   ", &
                                "SSQM21   ","SSQM22   ","SSQM23   ","SSQM24   ","SSQM25   ","SSQM26   ","SSQM27   ", &
@@ -3100,11 +3100,10 @@ INTEGER, PARAMETER             :: MNRDe (3,9,9) = reshape((/M1N1RDxe,M1N1RDye,M1
                                "SSQMDD82 ","SSQMDD83 ","SSQMDD84 ","SSQMDD85 ","SSQMDD86 ","SSQMDD87 ","SSQMDD88 ", &
                                "SSQMDD89 ","SSQMDD90 ","SSQMDD91 ","SSQMDD92 ","SSQMDD93 ","SSQMDD94 ","SSQMDD95 ", &
                                "SSQMDD96 ","SSQMDD97 ","SSQMDD98 ","SSQMDD99 "/)
- 
- INTEGER(IntKi), PARAMETER :: ParamIndxAry(2265) =  (/ &                          ! This lists the index into AllOuts(:) of the allowed parameters ValidParamAry(:)
-                                 IntfMXss ,  IntfMYss ,  IntfMZss , IntfRAXss , IntfRAYss , IntfRAZss , IntfRDXss , &
-                                IntfRDYss , IntfRDZss , IntfTAXss , IntfTAYss , IntfTAZss , IntfTDXss , IntfTDYss , &
-                                IntfTDZss ,   IntfXss ,   IntfYss ,   IntfZss ,  M1N1FKxe ,  M1N1FKye ,  M1N1FKze , &
+   INTEGER(IntKi), PARAMETER :: ParamIndxAry(2265) =  (/ &                            ! This lists the index into AllOuts(:) of the allowed parameters ValidParamAry(:)
+                                 IntfFXss ,  IntfFYss ,  IntfFZss ,  IntfMXss ,  IntfMYss ,  IntfMZss , IntfRAXss , &
+                                IntfRAYss , IntfRAZss , IntfRDXss , IntfRDYss , IntfRDZss , IntfTAXss , IntfTAYss , &
+                                IntfTAZss , IntfTDXss , IntfTDYss , IntfTDZss ,  M1N1FKxe ,  M1N1FKye ,  M1N1FKze , &
                                  M1N1FMxe ,  M1N1FMye ,  M1N1FMze ,  M1N1MKxe ,  M1N1MKye ,  M1N1MKze ,  M1N1MMxe , &
                                  M1N1MMye ,  M1N1MMze ,  M1N1RAxe ,  M1N1RAye ,  M1N1RAze ,  M1N1RDxe ,  M1N1RDye , &
                                  M1N1RDze ,  M1N1TAxe ,  M1N1TAye ,  M1N1TAze , M1N1TDxss , M1N1TDyss , M1N1TDzss , &
@@ -3382,8 +3381,8 @@ INTEGER, PARAMETER             :: MNRDe (3,9,9) = reshape((/M1N1RDxe,M1N1RDye,M1
                                  M9N9FKye ,  M9N9FKze ,  M9N9FMxe ,  M9N9FMye ,  M9N9FMze ,  M9N9MKxe ,  M9N9MKye , &
                                  M9N9MKze ,  M9N9MMxe ,  M9N9MMye ,  M9N9MMze ,  M9N9RAxe ,  M9N9RAye ,  M9N9RAze , &
                                  M9N9RDxe ,  M9N9RDye ,  M9N9RDze ,  M9N9TAxe ,  M9N9TAye ,  M9N9TAze , M9N9TDxss , &
-                                M9N9TDyss , M9N9TDzss , ReactMXss , ReactMYss , ReactMZss ,  ReactXss ,  ReactYss , &
-                                 ReactZss ,    SSqm01 ,    SSqm02 ,    SSqm03 ,    SSqm04 ,    SSqm05 ,    SSqm06 , &
+                                M9N9TDyss , M9N9TDzss , ReactFXss , ReactFYss , ReactFZss , ReactMXss , ReactMYss , &
+                                ReactMZss ,    SSqm01 ,    SSqm02 ,    SSqm03 ,    SSqm04 ,    SSqm05 ,    SSqm06 , &
                                    SSqm07 ,    SSqm08 ,    SSqm09 ,    SSqm10 ,    SSqm11 ,    SSqm12 ,    SSqm13 , &
                                    SSqm14 ,    SSqm15 ,    SSqm16 ,    SSqm17 ,    SSqm18 ,    SSqm19 ,    SSqm20 , &
                                    SSqm21 ,    SSqm22 ,    SSqm23 ,    SSqm24 ,    SSqm25 ,    SSqm26 ,    SSqm27 , &
@@ -3426,33 +3425,8 @@ INTEGER, PARAMETER             :: MNRDe (3,9,9) = reshape((/M1N1RDxe,M1N1RDye,M1
                                  SSqmdd82 ,  SSqmdd83 ,  SSqmdd84 ,  SSqmdd85 ,  SSqmdd86 ,  SSqmdd87 ,  SSqmdd88 , &
                                  SSqmdd89 ,  SSqmdd90 ,  SSqmdd91 ,  SSqmdd92 ,  SSqmdd93 ,  SSqmdd94 ,  SSqmdd95 , &
                                  SSqmdd96 ,  SSqmdd97 ,  SSqmdd98 ,  SSqmdd99 /)
-  
-  CHARACTER(10), PARAMETER :: ParamUnitsAry(2265) =  (/ &                         ! This lists the units corresponding to the allowed parameters
-                               "(Nm)      ","(Nm)      ","(Nm)      ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ","(rad)     ", &
-                               "(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ", &
-                               "(m)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ", &
-                               "(N)       ","(N)       ","(N)       ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ", &
-                               "(N*m)     ","(N*m)     ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ","(rad)     ","(rad)     ", &
-                               "(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ","(m)       ", &
-                               "(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N*m)     ", &
-                               "(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(rad/s^2) ","(rad/s^2) ", &
-                               "(rad/s^2) ","(rad)     ","(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
-                               "(m)       ","(m)       ","(m)       ","(N)       ","(N)       ","(N)       ","(N)       ", &
-                               "(N)       ","(N)       ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ", &
-                               "(N*m)     ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ","(rad)     ","(rad)     ","(rad)     ", &
-                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ","(m)       ","(N)       ", &
-                               "(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N*m)     ","(N*m)     ", &
-                               "(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ", &
-                               "(rad)     ","(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ", &
-                               "(m)       ","(m)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ", &
-                               "(N)       ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ", &
-                               "(rad/s^2) ","(rad/s^2) ","(rad/s^2) ","(rad)     ","(rad)     ","(rad)     ","(m/s^2)   ", &
-                               "(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ","(m)       ","(N)       ","(N)       ", &
-                               "(N)       ","(N)       ","(N)       ","(N)       ","(N*m)     ","(N*m)     ","(N*m)     ", &
-                               "(N*m)     ","(N*m)     ","(N*m)     ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ","(rad)     ", &
-                               "(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ", &
-                               "(m)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ", &
-                               "(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(rad/s^2) ", &
+   CHARACTER(ChanLen), PARAMETER :: ParamUnitsAry(2265) =  (/ &                     ! This lists the units corresponding to the allowed parameters
+                               "(N)       ","(N)       ","(N)       ","(Nm)      ","(Nm)      ","(Nm)      ","(rad/s^2) ", &
                                "(rad/s^2) ","(rad/s^2) ","(rad)     ","(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ", &
                                "(m/s^2)   ","(m)       ","(m)       ","(m)       ","(N)       ","(N)       ","(N)       ", &
                                "(N)       ","(N)       ","(N)       ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ", &
@@ -3708,8 +3682,32 @@ INTEGER, PARAMETER             :: MNRDe (3,9,9) = reshape((/M1N1RDxe,M1N1RDye,M1
                                "(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N*m)     ","(N*m)     ", &
                                "(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ", &
                                "(rad)     ","(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ", &
-                               "(m)       ","(m)       ","(Nm)      ","(Nm)      ","(Nm)      ","(N)       ","(N)       ", &
-                               "(N)       ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ", &
+                               "(m)       ","(m)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ", &
+                               "(N)       ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ", &
+                               "(rad/s^2) ","(rad/s^2) ","(rad/s^2) ","(rad)     ","(rad)     ","(rad)     ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ","(m)       ","(N)       ","(N)       ", &
+                               "(N)       ","(N)       ","(N)       ","(N)       ","(N*m)     ","(N*m)     ","(N*m)     ", &
+                               "(N*m)     ","(N*m)     ","(N*m)     ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ","(rad)     ", &
+                               "(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ", &
+                               "(m)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ", &
+                               "(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(rad/s^2) ", &
+                               "(rad/s^2) ","(rad/s^2) ","(rad)     ","(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m/s^2)   ","(m)       ","(m)       ","(m)       ","(N)       ","(N)       ","(N)       ", &
+                               "(N)       ","(N)       ","(N)       ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ", &
+                               "(N*m)     ","(N*m)     ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ","(rad)     ","(rad)     ", &
+                               "(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ","(m)       ", &
+                               "(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N*m)     ", &
+                               "(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(rad/s^2) ","(rad/s^2) ", &
+                               "(rad/s^2) ","(rad)     ","(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ", &
+                               "(m)       ","(m)       ","(m)       ","(N)       ","(N)       ","(N)       ","(N)       ", &
+                               "(N)       ","(N)       ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ", &
+                               "(N*m)     ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ","(rad)     ","(rad)     ","(rad)     ", &
+                               "(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ","(m)       ","(m)       ","(N)       ", &
+                               "(N)       ","(N)       ","(N)       ","(N)       ","(N)       ","(N*m)     ","(N*m)     ", &
+                               "(N*m)     ","(N*m)     ","(N*m)     ","(N*m)     ","(rad/s^2) ","(rad/s^2) ","(rad/s^2) ", &
+                               "(rad)     ","(rad)     ","(rad)     ","(m/s^2)   ","(m/s^2)   ","(m/s^2)   ","(m)       ", &
+                               "(m)       ","(m)       ","(N)       ","(N)       ","(N)       ","(Nm)      ","(Nm)      ", &
+                               "(Nm)      ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ", &
                                "(--)      ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ", &
                                "(--)      ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ", &
                                "(--)      ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ","(--)      ", &
@@ -4613,7 +4611,7 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
    IF ( ALLOCATED( p%OutParam ) .AND. p%NumOuts > 0 ) THEN           ! Output has been requested so let's open an output file            
       
          ! Open the file for output
-      OutFileName = TRIM(OutRootName)//'_SD.out'
+      OutFileName = TRIM(OutRootName)//'.out'
       CALL GetNewUnit( p%UnJckF )
    
       CALL OpenFOutFile ( p%UnJckF, OutFileName, ErrStat ) 

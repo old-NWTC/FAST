@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 11:07:13 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 269 $
+! File last committed: $Date: 2014-03-20 15:13:24 -0600 (Thu, 20 Mar 2014) $
+! (File) Revision #: $Rev: 280 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -584,45 +584,43 @@ SUBROUTINE SD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, E
          ! Local variables
 
       TYPE(SD_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at t
-      TYPE(SD_InputType)                           :: u_interp    ! Instantaneous inputs
-      INTEGER(IntKi)                               :: ErrStat2    ! Error status of the operation (occurs after initial error)
-      CHARACTER(LEN(ErrMsg))                       :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
-
+      
       
          ! Initialize variables
 
       ErrStat   = ErrID_None           ! no error has occurred
       ErrMsg    = ""
             
-      
-         ! Get the inputs, based on the array of values sent by the glue code:
-      CALL SD_CopyInput( Inputs(1), u_interp, MESH_NEWCOPY, ErrStat, ErrMsg )
-      IF ( ErrStat >= AbortErrLev ) THEN
-         CALL SD_DestroyInput(u_interp, ErrStat2, ErrMsg2)         
-         RETURN
-      END IF
+      !No need of the next few lines since u_interp is not being used anymore as qmdotdot is calculated in Calc_output
+         ! Get the inputs, based on the array of values sent by the glue code:  
+      !!CALL SD_CopyInput( Inputs(1), u_interp, MESH_NEWCOPY, ErrStat, ErrMsg )
+      !!IF ( ErrStat >= AbortErrLev ) THEN
+      !!   CALL SD_DestroyInput(u_interp, ErrStat2, ErrMsg2)         
+      !!   RETURN
+      !!END IF
+      !!   
+      !!CALL SD_Input_ExtrapInterp( Inputs, InputTimes, u_interp, t, ErrStat, ErrMsg )
+      !!IF ( ErrStat >= AbortErrLev ) THEN
+      !!   CALL SD_DestroyInput(u_interp, ErrStat2, ErrMsg2)         
+      !!   ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
+      !!   CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+      !!   ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
+      !!   RETURN
+      !!END IF       
+      !!      
+!_________________________!      
+         ! Get first time derivatives of continuous states (dxdt): NOT SURE THIS IS NEEDED SINCE it is BEING CALLED WITHIN THE INTEGRATOR- I am commenting it on 2/19/14 check with Greg
          
-      CALL SD_Input_ExtrapInterp( Inputs, InputTimes, u_interp, t, ErrStat, ErrMsg )
-      IF ( ErrStat >= AbortErrLev ) THEN
-         CALL SD_DestroyInput(u_interp, ErrStat2, ErrMsg2)         
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
-         CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
-         RETURN
-      END IF       
-            
-      
-         ! Get first time derivatives of continuous states (dxdt): NOT SURE THIS IS NEEDED SINCE it is BEING CALLED WITHIN THE INTEGRATOR
-         
-      ! find xdot at t
-      CALL SD_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
-      CALL SD_DestroyInput(u_interp, ErrStat2, ErrMsg2)         
-      IF ( ErrStat >= AbortErrLev ) THEN
-         CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
-         ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
-         RETURN
-      END IF
-
+        !! find xdot at t
+        !CALL SD_CalcContStateDeriv( t, u_interp, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
+        !CALL SD_DestroyInput(u_interp, ErrStat2, ErrMsg2)         
+        !IF ( ErrStat >= AbortErrLev ) THEN
+        !    CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+        !    ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
+        !    RETURN
+        !END IF
+!_________________________!
+        
      !x%qm=x%qm + dxdt%qm*p%SDDELTAt
      !x%qmdot=x%qmdot+dxdt%qmdot*p%SDDELTAt
             ! Integrate (update) continuous states (x) here:
@@ -647,12 +645,10 @@ SUBROUTINE SD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, E
 
       END IF
 
-    !Assign the acceleration to the x variable since it will be used for output file purposes for SSqmdd01-99, and dxdt will disappear
-    OtherState%qmdotdot=dxdt%qmdot
   
     ! Destroy dxdt because it is not necessary for the rest of the subroutine
     
-      CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+      CALL SD_DestroyContState( dxdt, ErrStat, ErrMsg)
                   
       
 END SUBROUTINE SD_UpdateStates
@@ -691,7 +687,11 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       INTEGER(IntKi)                               :: startDOF
       REAL(ReKi)                                   :: DCM(3,3),junk(6,p%NNodes_L)  
       REAL(ReKi)                                   :: HydroForces(6*p%NNodes_I),HydroTP(6)  !Forces from all interface nodes listed in one big array and those translated to TP ref point
-                                                       
+
+      TYPE(SD_ContinuousStateType)                 :: dxdt        ! Continuous state derivatives at t- for output file qmdotdot purposes only
+      INTEGER(IntKi)                               :: ErrStat2    ! Error status of the operation (occurs after initial error)
+      CHARACTER(LEN(ErrMsg))                       :: ErrMsg2     ! Error message if ErrStat2 /= ErrID_None
+                                                 
       ! Initialize ErrStat
       ErrStat = ErrID_None
       ErrMsg  = ""
@@ -719,7 +719,8 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       OtherState%Y2(p%URbarL+1:L4-1)   = matmul( p%C2_21  , x%qm       ) + matmul( p%D2_21, u_TP    )     ! UL
       OtherState%Y2(L4:L5-1)           = matmul( p%D2_32  , udot_TP    )                                  ! UR_bar_dot
       OtherState%Y2(L5:p%Y2L)          = matmul( p%C2_42  , x%qmdot    ) + matmul( p%D2_42, udot_TP )     ! UL_dot
-      OtherState%Udotdot(1:p%URbarL)   = matmul( p%Dbar_13, udotdot_TP )                                  ! U_R_bar_dotdot 
+!      OtherState%Udotdot(1:p%URbarL)   = matmul( p%Dbar_13, udotdot_TP )                                  ! U_R_bar_dotdot 
+      OtherState%Udotdot(1:p%URbarL)   = matmul( p%D2_53, udotdot_TP )                                  ! U_R_bar_dotdot 
       
           
       UR_bar= OtherState%Y2(1:p%URbarL)
@@ -785,12 +786,15 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          
       END DO
       
-      !Repeat for the acceleration, there should be a way to combine into 1 loop; for now I can calculate Udotdot from the jsut calculated UFL
-       OtherState%Udotdot(p%URbarL+1:p%URbarL+p%DOFL) =                               &    !This is UL_dotdot
-                  matmul( p%Cbar_21, x%qm       ) + matmul( p%Cbar_22, x%qmdot ) + & 
-                  matmul( p%Dbar_23, udotdot_TP ) + matmul( p%Dbar_24, UFL     ) + &
-                          p%Fbar_21
-       
+      !!Repeat for the acceleration, there should be a way to combine into 1 loop; for now I can calculate Udotdot from the jsut calculated UFL
+      ! OtherState%Udotdot(p%URbarL+1:p%URbarL+p%DOFL) =                               &    !This is UL_dotdot
+      !            matmul( p%Cbar_21, x%qm       ) + matmul( p%Cbar_22, x%qmdot ) + & 
+      !            matmul( p%Dbar_23, udotdot_TP ) + matmul( p%Dbar_24, UFL     ) + &
+      !                    p%Fbar_21
+        OtherState%Udotdot(p%URbarL+1:p%URbarL+p%DOFL) =                               &    !This is UL_dotdot
+                  matmul( p%C2_61, x%qm       ) + matmul( p%C2_62, x%qmdot ) + & 
+                  matmul( p%D2_63, udotdot_TP ) + matmul( p%D2_64, UFL     ) + &
+                          p%F2_61
       
       !Replaced DO loop with reshape, vectorization should be faster
       L1 = p%NNodes_I+1
@@ -835,11 +839,28 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       
       !Now I need to calculate the Output File Stuff
   
-   
+
                                   !_____________________________________!
                                 ! CALCULATE OUTPUT TO BE WRITTEN TO FILE !
                                   !_____________________________________!
-                                
+
+      !_________________________________________________!
+      ! call CalcContStateDeriv one more time to store these qmdotdot for debugging purposes in the output file
+      !find xdot at t
+      CALL SD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )
+      
+      IF ( ErrStat >= AbortErrLev ) THEN
+         CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+         ErrMsg = TRIM(ErrMsg)//' '//TRIM(ErrMsg2)
+         RETURN
+      END IF
+
+      !Assign the acceleration to the x variable since it will be used for output file purposes for SSqmdd01-99, and dxdt will disappear
+      OtherState%qmdotdot=dxdt%qmdot
+      ! Destroy dxdt because it is not necessary for the rest of the subroutine
+      CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+      !_________________________________________________!
+      
          ! OutSwtch determines whether or not to actually output results via the WriteOutput array
          ! 1 = SubDyn will generate an output file of its own.  2 = the caller will handle the outputs, but
          ! SubDyn needs to provide them.  3 = Both 1 and 2, 0 = No one needs the SubDyn outputs provided
@@ -880,7 +901,7 @@ SUBROUTINE SD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
       REAL(DbKi),                        INTENT(IN   )  :: t           ! Current simulation time in seconds
       TYPE(SD_InputType),           INTENT(IN   )  :: u           ! Inputs at t
       TYPE(SD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(SD_ContinuousStateType), INTENT(INOUT)  :: x           ! Continuous states at t
+      TYPE(SD_ContinuousStateType), INTENT(IN)     :: x           ! Continuous states at t -WHY IS THIS INOUT and not JUST IN? RRD, changed to IN on2/19/14 check with Greg
       TYPE(SD_DiscreteStateType),   INTENT(IN   )  :: xd          ! Discrete states at t
       TYPE(SD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at t
       TYPE(SD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
@@ -906,7 +927,7 @@ SUBROUTINE SD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
       L3=p%TPdofL*3+1       !start index for array FL (Subarray of u)
          ! Compute the first time derivatives of the continuous states here:
         
-      dxdt%DummyContState = 0
+      dxdt%DummyContState = 0.0
       !How is it possible that we have to check this all the time?
 !bjj: INTENT(OUT) automatically deallocates the array on entry.      
       ALLOCATE(dxdt%qm(p%qmL),STAT=ErrStat)  
@@ -2231,7 +2252,7 @@ SUBROUTINE SD_JacobianPContState( Time, u, p, x, xd, z, OtherState, dYdx, dXdx, 
 
          ! Calculate the partial derivative of the output equations (Y) with respect to the continuous states (x) here:
 
-         dYdx%DummyOutput%DummyContState = 0
+         dYdx%DummyOutput%DummyContState = 0.0
 
       END IF
       
@@ -2239,7 +2260,7 @@ SUBROUTINE SD_JacobianPContState( Time, u, p, x, xd, z, OtherState, dYdx, dXdx, 
       
          ! Calculate the partial derivative of the continuous state equations (X) with respect to the continuous states (x) here:
       
-         dXdx%DummyContState%DummyContState = 0
+         dXdx%DummyContState%DummyContState = 0.0
 
       END IF
       
@@ -2247,7 +2268,7 @@ SUBROUTINE SD_JacobianPContState( Time, u, p, x, xd, z, OtherState, dYdx, dXdx, 
 
          ! Calculate the partial derivative of the discrete state equations (Xd) with respect to the continuous states (x) here:
 
-         dXddx%DummyDiscState%DummyContState = 0
+         dXddx%DummyDiscState%DummyContState = 0.0
          
       END IF
       
@@ -2256,7 +2277,7 @@ SUBROUTINE SD_JacobianPContState( Time, u, p, x, xd, z, OtherState, dYdx, dXdx, 
 
          ! Calculate the partial derivative of the constraint state equations (Z) with respect to the continuous states (x) here:
       
-         dZdx%DummyConstrState%DummyContState = 0
+         dZdx%DummyConstrState%DummyContState = 0.0
 
       END IF
       
@@ -2455,8 +2476,9 @@ SUBROUTINE SD_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
          OtherState%n = n
 
-         OtherState%xdot ( 3 - n ) = xdot
-
+         !OtherState%xdot ( 3 - n ) = xdot
+         CALL SD_CopyContState( xdot, OtherState%xdot ( 3 - n ), MESH_UPDATECOPY, ErrStat, ErrMsg )
+         
          CALL SD_RK4(t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       else
@@ -2464,9 +2486,12 @@ SUBROUTINE SD_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
          if (OtherState%n .lt. n) then
 
             OtherState%n = n
-            OtherState%xdot(4)    = OtherState%xdot(3)
-            OtherState%xdot(3)    = OtherState%xdot(2)
-            OtherState%xdot(2)    = OtherState%xdot(1)
+            CALL SD_CopyContState( OtherState%xdot ( 3 ), OtherState%xdot ( 4 ), MESH_UPDATECOPY, ErrStat, ErrMsg )
+            CALL SD_CopyContState( OtherState%xdot ( 2 ), OtherState%xdot ( 3 ), MESH_UPDATECOPY, ErrStat, ErrMsg )
+            CALL SD_CopyContState( OtherState%xdot ( 1 ), OtherState%xdot ( 2 ), MESH_UPDATECOPY, ErrStat, ErrMsg )
+            !OtherState%xdot(4)    = OtherState%xdot(3)
+            !OtherState%xdot(3)    = OtherState%xdot(2)
+            !OtherState%xdot(2)    = OtherState%xdot(1)
 
          elseif (OtherState%n .gt. n) then
  
@@ -2476,7 +2501,8 @@ SUBROUTINE SD_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
          endif
 
-         OtherState%xdot ( 1 )     = xdot  ! make sure this is most up to date
+         CALL SD_CopyContState( xdot, OtherState%xdot ( 1 ), MESH_UPDATECOPY, ErrStat, ErrMsg )
+         !OtherState%xdot ( 1 )     = xdot  ! make sure this is most up to date
 
          x%qm    = x%qm    + (p%SDDeltaT / 24.) * ( 55.*OtherState%xdot(1)%qm - 59.*OtherState%xdot(2)%qm    + 37.*OtherState%xdot(3)%qm  &
                                        - 9. * OtherState%xdot(4)%qm )
@@ -3785,7 +3811,7 @@ SUBROUTINE EigenSolve(K, M, TDOF, NOmega, Reduced, Init,p, Phi, Omega, RootName,
     VR = 0.0
     VL = 0.0
     ALLOCATE( Kred2(N,N),Mred2(N,N), STAT = ErrStat )
-    Kred2=Kred
+    Kred2=Kred !I think I used these when I was playiung with double and single precison and xxxx3 should be removed
     Mred2=Mred
    
     
@@ -4271,6 +4297,25 @@ SUBROUTINE SetParameters(Init, p, TI, MBBb, MBmb, KBBb, FGRb, PhiRb, OmegaM,  &
       RETURN
    END IF   
    p%C2_42 = 0      
+  
+    ! Allocate C2_61
+   ALLOCATE( p%C2_61(DOFL, DOFM), STAT = ErrStat )
+   IF ( ErrStat/= ErrID_None ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating parameter matrix p%C2_61 in SD_Init/Set parameters'
+      RETURN
+   END IF   
+   p%C2_61 = 0  
+
+   ! Allocate C2_62
+   ALLOCATE( p%C2_62(DOFL, DOFM), STAT = ErrStat )
+   IF ( ErrStat/= ErrID_None ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating parameter matrix p%C2_62 in SD_Init/Set parameters'
+      RETURN
+   END IF   
+   p%C2_62 = 0  
+
    
       ! Allocate D2_11
    ALLOCATE( p%D2_11(DOFI, p%TPdofL), STAT = ErrStat )
@@ -4307,61 +4352,97 @@ SUBROUTINE SetParameters(Init, p, TI, MBBb, MBmb, KBBb, FGRb, PhiRb, OmegaM,  &
       RETURN
    END IF   
    p%D2_42 = 0         
-   
-      ! Allocate Cbar_21
-   ALLOCATE( p%Cbar_21(DOFL, DOFM), STAT = ErrStat )
+
+   ! Allocate D2_53
+   ALLOCATE( p%D2_53(DOFI, p%TPdofL), STAT = ErrStat )
    IF ( ErrStat/= ErrID_None ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating parameter matrix p%Cbar_21 in SD_Init/Set parameters'
+      ErrMsg  = 'Error allocating parameter matrix p%D2_53 in SD_Init/Set parameters'
       RETURN
    END IF   
-   p%Cbar_21 = 0            
-   
-      ! Allocate Cbar_22
-   ALLOCATE( p%Cbar_22(DOFL, DOFM), STAT = ErrStat )
+   p%D2_53 = 0         
+
+  ! Allocate D2_63
+   ALLOCATE( p%D2_63(DOFL, p%TPdofL), STAT = ErrStat )
    IF ( ErrStat/= ErrID_None ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating parameter matrix p%Cbar_22 in SD_Init/Set parameters'
+      ErrMsg  = 'Error allocating parameter matrix p%D2_63 in SD_Init/Set parameters'
       RETURN
    END IF   
-   p%Cbar_22 = 0               
+   p%D2_63 = 0 
+
+     ! Allocate D2_64
+   ALLOCATE( p%D2_64(DOFL, DOFL), STAT = ErrStat )
+   IF ( ErrStat/= ErrID_None ) THEN
+      ErrStat = ErrID_Fatal
+      ErrMsg  = 'Error allocating parameter matrix p%D2_64 in SD_Init/Set parameters'
+      RETURN
+   END IF   
+   p%D2_64 = 0 
+   
+   !   ! Allocate Cbar_21
+   !ALLOCATE( p%Cbar_21(DOFL, DOFM), STAT = ErrStat )
+   !IF ( ErrStat/= ErrID_None ) THEN
+   !   ErrStat = ErrID_Fatal
+   !   ErrMsg  = 'Error allocating parameter matrix p%Cbar_21 in SD_Init/Set parameters'
+   !   RETURN
+   !END IF   
+   !p%Cbar_21 = 0            
+   !
+   !   ! Allocate Cbar_22
+   !ALLOCATE( p%Cbar_22(DOFL, DOFM), STAT = ErrStat )
+   !IF ( ErrStat/= ErrID_None ) THEN
+   !   ErrStat = ErrID_Fatal
+   !   ErrMsg  = 'Error allocating parameter matrix p%Cbar_22 in SD_Init/Set parameters'
+   !   RETURN
+   !END IF   
+   !p%Cbar_22 = 0               
    
       ! Allocate Dbar_13
-   ALLOCATE( p%Dbar_13(DOFI, p%TPdofL), STAT = ErrStat )
-   IF ( ErrStat/= ErrID_None ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating parameter matrix p%Dbar_13 in SD_Init/Set parameters'
-      RETURN
-   END IF   
-   p%Dbar_13 = 0               
+   !ALLOCATE( p%Dbar_13(DOFI, p%TPdofL), STAT = ErrStat )
+   !IF ( ErrStat/= ErrID_None ) THEN
+   !   ErrStat = ErrID_Fatal
+   !   ErrMsg  = 'Error allocating parameter matrix p%Dbar_13 in SD_Init/Set parameters'
+   !   RETURN
+   !END IF   
+   !p%Dbar_13 = 0               
+   !
+   !   ! Allocate Dbar_23
+   !ALLOCATE( p%Dbar_23(DOFL, p%TPdofL), STAT = ErrStat )
+   !IF ( ErrStat/= ErrID_None ) THEN
+   !   ErrStat = ErrID_Fatal
+   !   ErrMsg  = 'Error allocating parameter matrix p%Dbar_23 in SD_Init/Set parameters'
+   !   RETURN
+   !END IF   
+   !p%Dbar_23 = 0               
+   !
+   !   ! Allocate Dbar_24
+   !ALLOCATE( p%Dbar_24(DOFL, DOFL), STAT = ErrStat )
+   !IF ( ErrStat/= ErrID_None ) THEN
+   !   ErrStat = ErrID_Fatal
+   !   ErrMsg  = 'Error allocating parameter matrix p%Dbar_24 in SD_Init/Set parameters'
+   !   RETURN
+   !END IF   
+   !p%Dbar_24 = 0
    
-      ! Allocate Dbar_23
-   ALLOCATE( p%Dbar_23(DOFL, p%TPdofL), STAT = ErrStat )
+   !   ! Allocate Fbar_21
+   !ALLOCATE( p%Fbar_21(DOFL), STAT = ErrStat )
+   !IF ( ErrStat/= ErrID_None ) THEN
+   !   ErrStat = ErrID_Fatal
+   !   ErrMsg  = 'Error allocating parameter matrix p%Fbar_21 in SD_Init/Set parameters'
+   !   RETURN
+   !END IF   
+   !p%Fbar_21 = 0
+ 
+   ! Allocate F2_61
+   ALLOCATE( p%F2_61(DOFL), STAT = ErrStat )
    IF ( ErrStat/= ErrID_None ) THEN
       ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating parameter matrix p%Dbar_23 in SD_Init/Set parameters'
+      ErrMsg  = 'Error allocating parameter matrix p%F2_61 in SD_Init/Set parameters'
       RETURN
    END IF   
-   p%Dbar_23 = 0               
-
-      ! Allocate Dbar_24
-   ALLOCATE( p%Dbar_24(DOFL, DOFL), STAT = ErrStat )
-   IF ( ErrStat/= ErrID_None ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating parameter matrix p%Dbar_24 in SD_Init/Set parameters'
-      RETURN
-   END IF   
-   p%Dbar_24 = 0
-   
-      ! Allocate Fbar_21
-   ALLOCATE( p%Fbar_21(DOFL), STAT = ErrStat )
-   IF ( ErrStat/= ErrID_None ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating parameter matrix p%Fbar_21 in SD_Init/Set parameters'
-      RETURN
-   END IF   
-   p%Fbar_21 = 0
-   
+   p%F2_61 = 0
+ 
    ! set values for the parameter matrices
    
    ! A_21, A_22
@@ -4420,18 +4501,30 @@ SUBROUTINE SetParameters(Init, p, TI, MBBb, MBmb, KBBb, FGRb, PhiRb, OmegaM,  &
    ! C2_21, C2_42
    p%C2_21 = PhiM
    p%C2_42 = PhiM
-   
+   ! C2_61, C2_62
+   DO I = 1, DOFM
+         p%C2_61(:, i) = -PhiM(:, i)*OmegaM(i)*OmegaM(i)
+         P%C2_62(:, i) = -2.0*PhiM(:, i)*OmegaM(i)*Init%JDampings(i)
+   ENDDO   
+ 
    ! D2_11, D2_21, D2_32, D2_42
    p%D2_11 = TI
    p%D2_21 = MATMUL(PhiRb, TI)
    p%D2_32 = TI
    p%D2_42 = MATMUL(PhiRb, TI)
    
-   ! Cbar_21, Cbar_22
-   DO I = 1, DOFM
-         p%Cbar_21(:, i) = -PhiM(:, i)*OmegaM(i)*OmegaM(i)
-         P%Cbar_22(:, i) = -2.0*PhiM(:, i)*OmegaM(i)*Init%JDampings(i)
-   ENDDO   
+   ! D2_53, D2_63, D2_64 
+   p%D2_53 = TI
+   p%D2_63 = MATMUL( PhiRb, TI ) - MATMUL( PhiM, TRANSPOSE(MBMt) )
+   p%D2_64 = MATMUL( PhiM, TRANSPOSE( PhiM ) )
+   
+   !! Cbar_21, Cbar_22
+   !DO I = 1, DOFM
+   !      p%Cbar_21(:, i) = -PhiM(:, i)*OmegaM(i)*OmegaM(i)
+   !      P%Cbar_22(:, i) = -2.0*PhiM(:, i)*OmegaM(i)*Init%JDampings(i)
+   !ENDDO   
+   
+   
 !   TempOmega = 0
 !   DO I = 1, DOFM
 !      TempOmega(I, I) = OmegaM(i)*OmegaM(i)   
@@ -4444,13 +4537,15 @@ SUBROUTINE SetParameters(Init, p, TI, MBBb, MBmb, KBBb, FGRb, PhiRb, OmegaM,  &
 !   ENDDO
 !   p%Cbar_22 = -2.0*MATMUL(PhiM, TempOmega)
    
-   ! Dbar_13, Dbar_23, Dbar_24 
-   p%Dbar_13 = TI
-   p%Dbar_23 = MATMUL( PhiRb, TI ) - MATMUL( PhiM, TRANSPOSE(MBMt) )
-   p%Dbar_24 = MATMUL( PhiM, TRANSPOSE( PhiM ) )
+   !! Dbar_13, Dbar_23, Dbar_24 
+   !p%Dbar_13 = TI
+   !p%Dbar_23 = MATMUL( PhiRb, TI ) - MATMUL( PhiM, TRANSPOSE(MBMt) )
+   !p%Dbar_24 = MATMUL( PhiM, TRANSPOSE( PhiM ) )
    
-   ! Fbar_21
-   p%Fbar_21 = MATMUL( PhiM, MATMUL( TRANSPOSE(PhiM), FGL) )
+   !! Fbar_21
+   !p%Fbar_21 = MATMUL( PhiM, MATMUL( TRANSPOSE(PhiM), FGL) )
+   ! F2_61
+   p%F2_61 = MATMUL( PhiM, MATMUL( TRANSPOSE(PhiM), FGL) )
    
    ! matrix dimension paramters
    p%DOFI = DOFI
@@ -4803,7 +4898,7 @@ SUBROUTINE OutSummary(Init, p, FEMparams,CBparams, ErrStat,ErrMsg)
 
     WRITE(Init%UnSum, '(A)') '__________'
     WRITE(Init%UnSum, '(A, I6)') 'CB Reduced Eigenvalues [Hz].  Number of retained modes'' eigenvalues:', CBparams%DOFM 
-    WRITE(Init%UnSum, '(I6, e15.6)') ( i, CBparams%OmegaM(i)/2.0/pi, i = 1, CBparams%DOFM )    !note OmegaM was square-rooted already
+    WRITE(Init%UnSum, '(I6, e15.6)') ( i, CBparams%OmegaM(i)/2.0/pi, i = 1, CBparams%DOFM )    !note OmegaM is already square rooted as opposed to Omega- fixed 1/27/14
     
    !--------------------------------------
    ! write Eigenvectors of full SYstem 

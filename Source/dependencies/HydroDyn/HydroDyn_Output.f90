@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 11:16:44 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 327 $
+! File last committed: $Date: 2014-03-19 09:17:51 -0600 (Wed, 19 Mar 2014) $
+! (File) Revision #: $Rev: 370 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Output
@@ -268,7 +268,7 @@ SUBROUTINE HDOut_WriteOutputs( Time, y, p, ErrStat, ErrMsg )
    
    !WRITE(p%UnOutFile,Frmt) Time, ( p%Delim, y%WAMIT%WriteOutput(I), I=1,p%WAMIT%NumOuts), ( p%Delim, y%Morison%WriteOutput(I), I=1,p%Morison%NumOuts)
    
-   Frmt = '(F8.3)'
+   Frmt = '(F10.4)'
    
    WRITE(p%UnOutFile,Frmt,ADVANCE='no')  Time
       

@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 14:47:45 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 335 $
+! File last committed: $Date: 2014-02-08 19:48:22 -0700 (Sat, 08 Feb 2014) $
+! (File) Revision #: $Rev: 345 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -1202,7 +1202,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
          READ(UnIn,'(A)',IOSTAT=ErrStat) Line      !read into a line 
             
          IF (ErrStat == 0) THEN
-            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%AxialCoefs(I)%AxCoefID, InitInp%Morison%AxialCoefs(I)%AxCd, InitInp%Morison%AxialCoefs(I)%AxCa
+            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%AxialCoefs(I)%AxCoefID, InitInp%Morison%AxialCoefs(I)%AxCd, InitInp%Morison%AxialCoefs(I)%AxCa, InitInp%Morison%AxialCoefs(I)%AxCp
          END IF      
        
          IF ( ErrStat /= ErrID_None ) THEN
@@ -1459,7 +1459,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    READ(UnIn,'(A)',IOSTAT=ErrStat) Line      !read into a line 
 
    IF (ErrStat == 0) THEN
-      READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%SimplCd, InitInp%Morison%SimplCdMG, InitInp%Morison%SimplCa, InitInp%Morison%SimplCaMG
+      READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%SimplCd, InitInp%Morison%SimplCdMG, InitInp%Morison%SimplCa, InitInp%Morison%SimplCaMG, InitInp%Morison%SimplCp, InitInp%Morison%SimplCpMG
    END IF      
        
    IF ( ErrStat /= ErrID_None ) THEN
@@ -1551,7 +1551,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
          READ(UnIn,'(A)',IOSTAT=ErrStat) Line      !read into a line 
 
          IF (ErrStat == 0) THEN
-            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%CoefDpths(I)%Dpth, InitInp%Morison%CoefDpths(I)%DpthCd, InitInp%Morison%CoefDpths(I)%DpthCdMG, InitInp%Morison%CoefDpths(I)%DpthCa, InitInp%Morison%CoefDpths(I)%DpthCaMG
+            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%CoefDpths(I)%Dpth, InitInp%Morison%CoefDpths(I)%DpthCd, InitInp%Morison%CoefDpths(I)%DpthCdMG, InitInp%Morison%CoefDpths(I)%DpthCa, InitInp%Morison%CoefDpths(I)%DpthCaMG, InitInp%Morison%CoefDpths(I)%DpthCp, InitInp%Morison%CoefDpths(I)%DpthCpMG
          END IF      
        
          IF ( ErrStat /= ErrID_None ) THEN
@@ -1649,7 +1649,9 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
                                         InitInp%Morison%CoefMembers(I)%MemberCd1,   InitInp%Morison%CoefMembers(I)%MemberCd2,   &
                                         InitInp%Morison%CoefMembers(I)%MemberCdMG1, InitInp%Morison%CoefMembers(I)%MemberCdMG2, &
                                         InitInp%Morison%CoefMembers(I)%MemberCa1,   InitInp%Morison%CoefMembers(I)%MemberCa2,   &
-                                        InitInp%Morison%CoefMembers(I)%MemberCaMG1, InitInp%Morison%CoefMembers(I)%MemberCaMG2
+                                        InitInp%Morison%CoefMembers(I)%MemberCaMG1, InitInp%Morison%CoefMembers(I)%MemberCaMG2, &
+                                        InitInp%Morison%CoefMembers(I)%MemberCp1,   InitInp%Morison%CoefMembers(I)%MemberCp2,   &
+                                        InitInp%Morison%CoefMembers(I)%MemberCpMG1, InitInp%Morison%CoefMembers(I)%MemberCpMG2
          END IF      
        
          IF ( ErrStat /= ErrID_None ) THEN
@@ -2143,7 +2145,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Morison%NJOutputs > 0 ) THEN
       
       ALLOCATE ( InitInp%Morison%JOutLst(InitInp%Morison%NJOutputs), STAT = ErrStat )
-             
+   
       IF ( ErrStat /= ErrID_None ) THEN
          ErrMsg  = ' Error allocating space for JOutLst data structures.'
          ErrStat = ErrID_Fatal
@@ -2168,19 +2170,33 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
          ErrStat = ErrID_Fatal
          CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
          CLOSE( UnIn )
+         DEALLOCATE(tmpArray)
          RETURN
       END IF
    
       DO I = 1,InitInp%Morison%NJOutputs
          
          InitInp%Morison%JOutLst(I)%JointID = tmpArray(I)
-      
          
       END DO
+      
+      DEALLOCATE(tmpArray)   
+      
+   ELSE
+      
+      ! There are no Joint Outputs, but there is a line to be parsed in the input file!
+      
+      ALLOCATE ( tmpArray(1), STAT = ErrStat )
+      IF ( ErrStat /= ErrID_None ) THEN
+         ErrMsg  = ' Error allocating space for temporary array for Joint outputs.'
+         ErrStat = ErrID_Fatal
+         CALL CleanupEchoFile( InitInp%Echo, UnEchoLocal )
+         CLOSE( UnIn )
          
-      
-      
-      
+         RETURN
+      END IF
+      CALL ReadAry ( UnIn, FileName, tmpArray, 1, 'JOutLst', 'Joint output list', ErrStat,  ErrMsg, UnEchoLocal )      
+      DEALLOCATE(tmpArray)
       
    END IF
    

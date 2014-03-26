@@ -332,16 +332,19 @@ contains
       character(*), intent(in)      :: varName     ! This is the variable requested
       logical, intent(out)          :: outVal
       character(len_trim(varName))  :: tmpName
-      integer(IntKi)                :: n
+      integer(IntKi)                :: n, tmpInt
       logical                       :: foundParam
 
       tmpName = varName
       call Conv2UC (tmpName)
 
+      
       foundParam = .false.
       do n = 1, input%count
          if(index(input%params(n)%name, tmpName) > 0) then
-            outVal = input%params(n)%value ! warning #6192: Fortran 2003 does not allow this data type conversion. <- real to logical
+            !outVal = input%params(n)%value ! warning #6192: Fortran 2003 does not allow this data type conversion. <- real to logical
+            tmpInt=NINT(input%params(n)%value)
+            outVal = (tmpInt /= 0)  !Intel: The numeric value of .TRUE. and .FALSE. can be -1 and 0 or 1 and 0 depending on compiler option fpscomp 
             foundParam = .true.
             exit
          endif
