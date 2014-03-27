@@ -50,7 +50,7 @@ contains
    subroutine initCpldCrushing (iceInput, myIceParams, iceLog)
 
       type(iceInputType), intent(in)            :: iceInput    ! Input parameters read from file
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
       type(iceFloe_LoggingType), intent(inout)   :: iceLog      ! structure with message and error logging variables
       type(inputParams)                         :: inParams    ! specific input parameter variable list
 
@@ -97,7 +97,7 @@ contains
 
 !****************************************************************************
    function outputCpldCrushLoad (myIceParams, iceLog, inVels, time)  result(iceLoads)
-      type(iceFloeSaveParams), intent(in)      :: myIceParams
+      type(IceFloe_ParameterType), intent(in)      :: myIceParams
       type(iceFloe_LoggingType), intent(inout) :: iceLog   ! structure with message and error logging variables
       real(ReKi), intent(in)                  :: inVels(2,myIceParams%numLegs)
       real(DbKi), intent(in)                  :: time

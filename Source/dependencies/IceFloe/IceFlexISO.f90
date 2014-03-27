@@ -41,7 +41,7 @@ contains
    subroutine initFlexISO (iceInput, myIceParams, iceLog)
 
       type(iceInputType), intent(in)            :: iceInput    ! Parameters from input file for initialization
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams ! saved parameters
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams ! saved parameters
       type(iceFloe_LoggingType), intent(inout)   :: iceLog      ! structure with message and error logging variables
       type(inputParams)                         :: inParams    ! specific input parameter variable list
 
@@ -253,7 +253,7 @@ contains
 !  Calculate a sawtooth loading time series with random periods and peaks
    subroutine randomFlexLoadTimeSeries (myIceParams, iceLog, maxLoad)
       real(ReKi), intent(in)                    :: maxLoad
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
       type(iceFloe_LoggingType), intent(inout)   :: iceLog   ! structure with message and error logging variables
 
       integer(IntKi), parameter                 :: LuxLevel = 3
@@ -346,7 +346,7 @@ contains
 !--------------------------------------------------------------------
 !  get load for requested time
    function outputFlexLoadISO (myIceParams, iceLog, time) result(iceLoads)
-      type(iceFloeSaveParams), intent(in)      :: myIceParams
+      type(IceFloe_ParameterType), intent(in)      :: myIceParams
       type(iceFloe_LoggingType), intent(inout) :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)                  :: time
       real(ReKi)                              :: iceLoads(6,myIceParams%numLegs)

@@ -75,6 +75,7 @@ SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
 
 SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
 SET HD_Reg_Loc=%HD_Loc%
+SET IceF_RanLux_Loc=%IceF_Loc%
 
 REM ----------------------------------------------------------------------------
 REM The following script changes the above paths for Bonnie Jonkman; other users
@@ -113,14 +114,13 @@ SET NWTC_SOURCES=^
  "%NWTC_Lib_Loc%\NWTC_Num.f90" ^
  "%NWTC_Lib_Loc%\ModMesh_Types.f90" ^
  "%NWTC_Lib_Loc%\ModMesh.f90" ^
- "%NWTC_Lib_Loc%\ModMesh_Mapping.f90" ^
- "%NWTC_Lib_Loc%\NWTC_Library.f90"
-
-SET NETLIB_SOURCES=^
  "%NETLIB_Loc%\DLASRT2.f" ^
  "%NETLIB_Loc%\SLASRT2.f" ^
  "%NETLIB_Loc%\NWTC_ScaLAPACK.f90" ^
- "%NETLIB_Loc%\NWTC_LAPACK.f90"
+ "%NETLIB_Loc%\NWTC_LAPACK.f90" ^
+ "%NWTC_Lib_Loc%\ModMesh_Mapping.f90" ^
+ "%NWTC_Lib_Loc%\NWTC_Library.f90"
+
 
 SET IfW_SOURCES=^
  "%IfW_Loc%\IFW_FFWind_Types.f90" ^
@@ -189,27 +189,28 @@ SET MAP_SOURCES=^
  "%MAP_Loc%\MAP_Types.f90" ^
  "%MAP_Loc%\MAP.f90"
 
+
 SET FEAM_SOURCES=^
  "%FEAM_Loc%\FEAMooring_Types.f90" ^
  "%FEAM_Loc%\FEAM.f90"
 
-SET ICEF_SOURCE=^
+
+SET IceF_SOURCES=^
+ "%IceF_RanLux_Loc%\RANLUX.f90" ^
+ "%IceF_Loc%\IceFloe_Types.f90" ^
+ "%IceF_Loc%\iceLog.F90" ^
+ "%IceF_Loc%\iceInput.f90" ^
+ "%IceF_Loc%\IceFloeBase.F90" ^
  "%IceF_Loc%\coupledCrushing.F90" ^
  "%IceF_Loc%\crushingIEC.F90" ^
  "%IceF_Loc%\crushingISO.F90" ^
- "%IceF_Loc%\IceFlexBase.F90" ^
- "%IceF_Loc%\IceFlexIEC.f90" ^
- "%IceF_Loc%\IceFlexISO.f90" ^
- "%IceF_Loc%\IceFloeBase.F90" ^
- "%IceF_Loc%\IceFloe_Types.f90" ^
- "%IceF_Loc%\iceInput.f90" ^
- "%IceF_Loc%\iceLog.F90" ^
  "%IceF_Loc%\intermittentCrushing.F90" ^
  "%IceF_Loc%\lockInISO.F90" ^
  "%IceF_Loc%\randomCrushing.F90" ^
- "%IceF_Loc%\ranlux\RANLUX.f90" ^
+ "%IceF_Loc%\IceFlexBase.F90" ^
+ "%IceF_Loc%\IceFlexIEC.f90" ^
+ "%IceF_Loc%\IceFlexISO.f90" ^
  "%IceF_Loc%\IceFloe.f90"
-
 
 
 SET FAST_SOURCES=^
@@ -316,7 +317,7 @@ rem NOTE that I'm compiling the modules separately then linking them later. I sp
 
 ECHO %Lines%
 ECHO Compiling NWTC Library:
-ifort %COMPOPTS% %NWTC_SOURCES% %NETLIB_SOURCES% /Qmkl:sequential  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+ifort %COMPOPTS% %NWTC_SOURCES%  /Qmkl:sequential  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 ECHO %Lines%
@@ -368,7 +369,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 ECHO %Lines%
 ECHO Compiling IceFloe:
-ifort %COMPOPTS% %ICEF_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+ifort %COMPOPTS% %IceF_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 
@@ -428,6 +429,7 @@ SET ROOT_NAME=
 SET REGISTRY=
 
 SET NWTC_Lib_Loc=
+SET NETLIB_Loc=
 SET ED_Loc=
 SET SrvD_Loc=
 SET AD_Loc=
@@ -439,9 +441,10 @@ SET FAST_Loc=
 SET MAP_Include_Lib=
 SET HD_Reg_Loc=
 SET FEAM_Loc=
+SET IceF_Loc=
+SET IceF_RanLux_Loc=
 
 SET NWTC_SOURCES=
-SET NETLIB_SOURCES=
 SET IfW_SOURCES=
 SET AD_SOURCES=
 SET ED_SOURCES=
@@ -450,6 +453,7 @@ SET SrvD_SOURCES=
 SET SD_SOURCES=
 SET MAP_SOURCES=
 SET FEAM_SOURCES=
+SET IceF_SOURCES=
 SET FAST_SOURCES=
 
 SET COMPOPTS=

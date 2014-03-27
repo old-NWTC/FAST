@@ -40,7 +40,7 @@ contains
    subroutine initIceCrushISO (iceInput, inParams, myIceParams, iceLog)
 
       type(iceInputType), intent(in)            :: iceInput
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
       type(iceFloe_LoggingType), intent(inout)   :: iceLog   ! structure with message and error logging variables
 
       type(inputParams), intent(out)            :: inParams ! specific input parameter variable list
@@ -83,7 +83,7 @@ contains
    subroutine crushLoadTimeSeriesISO (myIceParams, inParams, iceLog, peakLoad, minLoad, period, riseTime, fallTime)
 
       type(inputParams), intent(in)             :: inParams ! specific input parameter variable list
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
       type(iceFloe_LoggingType), intent(inout)   :: iceLog   ! structure with message and error logging variables
       real(ReKi), intent(in)                    :: peakLoad    ! Global maximum load, Newtons
       real(ReKi), intent(in)                    :: minLoad     ! Lower limit of dynamic load, Newtons
@@ -160,7 +160,7 @@ contains
 
 !****************************************************************************
    function outputCrushLoadISO (myIceParams, iceLog, time)  result(iceLoads)
-      type(iceFloeSaveParams), intent(in)      :: myIceParams
+      type(IceFloe_ParameterType), intent(in)      :: myIceParams
       type(iceFloe_LoggingType), intent(inout) :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)                  :: time
       real(ReKi)                              :: iceLoads(6,myIceParams%numLegs)

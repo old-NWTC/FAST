@@ -148,6 +148,7 @@ AD_SOURCES =            \
 	AeroDyn.f90
 
 HD_SOURCES =                 \
+	fftpack.f                 \
 	FFTMod.f90                \
 	SS_Radiation_Types.f90    \
 	SS_Radiation.f90          \
@@ -234,7 +235,7 @@ vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
 vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR)
 vpath %.inp $(IceF_DIR)
-#apparently vpath doesn't work as expected if I use %.F90
+#apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90     $(IceF_DIR)
 vpath %     $(IceF_DIR)
 
@@ -416,7 +417,7 @@ UserVSCont_KP.obj:         NWTC_Library.obj
 #RANLUX.obj:
 iceLog.obj:                NWTC_Library.obj
 iceInput.obj:              iceLog.F90 NWTC_Library.obj
-IceFloeBase.obj:           NWTC_Library.obj  iceInput.obj  RANLUX.obj
+IceFloeBase.obj:           NWTC_Library.obj  iceInput.obj  RANLUX.obj IceFloe_Types.obj
 coupledCrushing.obj:       iceFloeBase.obj
 crushingIEC.obj:           IceFloeBase.obj
 crushingISO.obj:           IceFloeBase.obj

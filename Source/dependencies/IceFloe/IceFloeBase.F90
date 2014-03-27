@@ -37,6 +37,8 @@ module IceFloeBase
    use Ran_Lux_Mod
    use NWTC_IO, only : Num2LStr
 
+   use IceFloe_Types, only: IceFloe_ParameterType
+   
    implicit none
 
    public
@@ -57,26 +59,6 @@ module IceFloeBase
    integer(IntKi), parameter :: flexFailISO    = 6
    integer(IntKi), parameter :: flexFailIEC    = 7
 
-!  type for iceFloe saved parameters, mirrors FAST parameterType
-   type iceFloeSaveParams
-      REAL(ReKi), pointer  :: loadSeries(:,:) => null()
-      REAL(ReKi)           :: iceVel 
-      REAL(ReKi)           :: iceDirection 
-      REAL(ReKi)           :: minStrength
-      REAL(ReKi)           :: minStrengthNegVel 
-      REAL(ReKi)           :: minStressRate
-      REAL(ReKi)           :: crushArea 
-      REAL(ReKi)           :: coeffStressRate 
-      REAL(ReKi)           :: C(4)
-      REAL(ReKi)           :: dt 
-      REAL(ReKi), pointer  :: legX(:) => null()
-      REAL(ReKi), pointer  :: legY(:) => null()
-      REAL(ReKi), pointer  :: ks(:)   => null()
-      INTEGER(IntKi)       :: numLegs 
-      INTEGER(IntKi)       :: iceType 
-      LOGICAL              :: singleLoad 
-   end type iceFloeSaveParams
-
 !  for input checking
    integer(IntKi), parameter :: lowTypeLimit   = min(randomCrush, interCrush, lockInISO, crushIEC,    &
                                                      cpldCrush, flexFailISO, flexFailIEC)
@@ -94,7 +76,7 @@ contains
 !  Only function is to assign input parameters to convenient variables in module
    subroutine initIceFloe (iceInput, inParams, myIceParams, iceLog)
       type(iceInputType), intent(in)            :: iceInput    ! Parameters from input file for initialization
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams ! saved parameters
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams ! saved parameters
       type(iceFloe_LoggingType), intent(inout)   :: iceLog      ! structure with message and error logging variables
       type(inputParams), intent(out)            :: inParams    ! specific input parameter variable list
       integer(IntKi)                            :: err
@@ -243,7 +225,7 @@ contains
 ! Calculate a sinusoidal load time series per IEC 61400-3 Ed 1 Annex E section E.4.6
    subroutine IECLoadTimeSeries (myIceParams, inParams, iceLog, maxLoad, freq)
       real(ReKi), intent(in)                    :: maxLoad, freq
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
       type(inputParams), intent(in)             :: inParams ! specific input parameter variable list
       type(iceFloe_LoggingType), intent(inout)   :: iceLog   ! structure with message and error logging variables
       integer(IntKi) :: err
@@ -267,7 +249,7 @@ contains
 !  Generic update function - really just an interpolation
 !  routine for the precalculated load time series
    function outputIceLoads (myIceParams, iceLog, time)  result(iceLoads)
-      type(iceFloeSaveParams), intent(in)        :: myIceParams
+      type(IceFloe_ParameterType), intent(in)        :: myIceParams
       type(iceFloe_LoggingType),  intent(inout)  :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)  :: time
       real(ReKi)              :: iceLoads(6,myIceParams%numLegs)
@@ -315,7 +297,7 @@ contains
 !  Function to handle ice forces from a specified direction relative to ground coordinates (in horizontal plane)
    function iceLoadDirection(iceForceMag, myIceParams)   result(loadVect)
       real(ReKi), intent(in)             :: iceForceMag
-      type(iceFloeSaveParams), intent(in) :: myIceParams
+      type(IceFloe_ParameterType), intent(in) :: myIceParams
       real(ReKi)                         :: loadVect(6)
 
       loadVect(1) = iceForceMag * cos(myIceParams%iceDirection)
@@ -330,7 +312,7 @@ contains
 !===================================================================================================
 !  Function to calculate a single equivalent load vector from multiple leg locad vectors
    function iceLoadEquivalent(inLoads, myIceParams)   result(equiv)
-      type(iceFloeSaveParams), intent(in) :: myIceParams
+      type(IceFloe_ParameterType), intent(in) :: myIceParams
       real(ReKi)                         :: inLoads(6,myIceParams%numLegs)
       real(ReKi)                         :: equiv(6)
       integer(IntKi)                     :: nL

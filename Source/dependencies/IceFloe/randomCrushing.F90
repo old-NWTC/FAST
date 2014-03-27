@@ -44,7 +44,7 @@ contains
    subroutine initRandomCrushing (iceInput, myIceParams, iceLog)
 
       type(iceInputType), intent(in)            :: iceInput    ! Parameters read from file for initialization
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams ! saved parameters
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams ! saved parameters
       type(iceFloe_LoggingType), intent(inout)   :: iceLog      ! structure with message and error logging variables
       type(inputParams)                         :: inParams    ! specific input parameter variable list
 
@@ -82,7 +82,7 @@ contains
 ! Generate a random time series by randomizing the phase of sinusoids
 ! based on a spectrum
    subroutine randomCrushLoadTimeSeries (myIceParams, iceLog, maxLoad)
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
       type(iceFloe_LoggingType), intent(inout)   :: iceLog   ! structure with message and error logging variables
       real(ReKi), intent(in)                    :: maxLoad  ! global crushing maximum load
 
@@ -171,7 +171,7 @@ contains
 !  Continuous crushing uses the standard inerpolation routine
 !  of the precalculated time series
    function outputRandomCrushLoad (myIceParams, iceLog, time)  result(iceLoads)
-      type(iceFloeSaveParams), intent(in)      :: myIceParams
+      type(IceFloe_ParameterType), intent(in)      :: myIceParams
       type(iceFloe_LoggingType), intent(inout) :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)                  :: time
       real(ReKi)                              :: iceLoads(6,myIceParams%numLegs)

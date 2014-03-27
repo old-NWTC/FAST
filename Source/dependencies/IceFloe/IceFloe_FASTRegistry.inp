@@ -7,6 +7,10 @@
 # keyword <modulename/modname> <TypeBeingDefined> <FieldType> <FieldName> <Dims> <InitialValue> <Ctrl> "<DESCRIP>" "<UNITS>"
 ##################################################################################################################################
 
+# ...... Include files (definitions from NWTC Library) ............................................................................
+include	Registry_NWTC_Library.txt
+
+
 # ..... Initialization data .......................................................................................................
 # Define inputs that the initialization routine may need here:
 # e.g., the name of the input file, the file root name, etc.
@@ -15,7 +19,9 @@ typedef IceFloe InitInputType ReKi            simLength - - - "Duration of simul
 
 # Define outputs that the initialization routine may need here:
 # e.g., the name of the input file, the file root name, etc.
-typedef IceFloe InitOutputType Reki DummyInitVar - - - "None currently used" -
+typedef IceFloe InitOutputType   CHARACTER(ChanLen)   WriteOutputHdr {:}   -  -  "Names of the output-to-file channels" -
+typedef IceFloe InitOutputType   CHARACTER(ChanLen)   WriteOutputUnt {:}   -  -  "Units of the output-to-file channels" -
+typedef IceFloe InitOutputType   ProgDesc             Ver             -    -  -  "This module's name, version, and date"   -
 
 # ..... States ....................................................................................................................
 # Define continuous (differentiable) states here:
@@ -61,3 +67,4 @@ typedef IceFloe    InputType  MeshType  iceMesh        - - - "Horizontal velocit
 # ..... Outputs ...................................................................................................................
 # Define outputs that are contained on the mesh here:
 typedef IceFloe   OutputType  MeshType  iceMesh        - - - "Horizontal forces and torsional moment(s) on support structure leg(s) at water line" -
+typedef IceFloe   OutputType  ReKi      WriteOutput  {:} - - "Data to be written to an output file: see WriteOutputHdr for names of each variable"  "see WriteOutputUnt"

@@ -43,7 +43,7 @@ contains
    subroutine initFlexIEC (iceInput, myIceParams, iceLog)
 
       type(iceInputType), intent(in)            :: iceInput
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
       type(iceFloe_LoggingType), intent(inout)   :: iceLog   ! structure with message and error logging variables
       type(inputParams)                         :: inParams ! specific input parameter variable list
 
@@ -180,7 +180,7 @@ contains
 !--------------------------------------------------------------------
 !  get load for requested time
    function outputFlexLoadIEC (myIceParams, iceLog, time) result(iceLoads)
-      type(iceFloeSaveParams), intent(in)      :: myIceParams
+      type(IceFloe_ParameterType), intent(in)      :: myIceParams
       type(iceFloe_LoggingType), intent(inout) :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)                  :: time
       real(ReKi)                              :: iceLoads(6,myIceParams%numLegs)

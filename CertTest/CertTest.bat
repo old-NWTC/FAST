@@ -353,16 +353,15 @@ rem *******************************************************
 
 rem *******************************************************
 :Test20
-GOTO Test21
-
 
 rem *******************************************************
-:Test21
-@CALL :GenTestHeader %Test21%
-@CALL :RunFASTandCrunch 21 outb
-@CALL :CompareOutput 21
-@CALL :CompareFiles 21 HD.sum
-@CALL :CompareFiles 21 SD.sum
+rem  :Test21
+rem  goto Test22
+rem  @CALL :GenTestHeader %Test21%
+rem  @CALL :RunFASTandCrunch 21 outb
+rem  @CALL :CompareOutput 21
+rem  @CALL :CompareFiles 21 HD.sum
+rem  @CALL :CompareFiles 21 SD.sum
 
 
 rem *******************************************************
@@ -387,10 +386,12 @@ rem *******************************************************
 
 rem *******************************************************
 rem I put this at the end because it takes a long time to complete.
-rem :Test21b
-rem @CALL :GenTestHeader %Test21%
-rem @CALL :RunFASTandCrunch 21 outb
-rem @CALL :CompareOutput 21
+:Test21
+@CALL :GenTestHeader %Test21%
+@CALL :RunFASTandCrunch 21 outb
+@CALL :CompareOutput 21
+@CALL :CompareFiles 21 HD.sum
+@CALL :CompareFiles 21 SD.sum
 
 rem ******************************************************
 rem  Let's look at the comparisons.

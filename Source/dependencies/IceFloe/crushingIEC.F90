@@ -43,7 +43,7 @@ contains
    subroutine initCrushingIEC (iceInput, myIceParams, iceLog)
 
       type(iceInputType), intent(in)            :: iceInput    ! Parameter read from input file for initialization
-      type(iceFloeSaveParams), intent(inout)     :: myIceParams ! saved parameters
+      type(IceFloe_ParameterType), intent(inout)     :: myIceParams ! saved parameters
       type(iceFloe_LoggingType), intent(inout)   :: iceLog      ! structure with message and error logging variables
       type(inputParams)                         :: inParams    ! specific input parameter variable list
 
@@ -111,7 +111,7 @@ contains
 !  Continuous crushing uses the standard inerpolation routine
 !  of the precalculated time series
    function outputCrushLoadIEC (myIceParams, iceLog, time)  result(iceLoads)
-      type(iceFloeSaveParams), intent(in)        :: myIceParams
+      type(IceFloe_ParameterType), intent(in)        :: myIceParams
       type(iceFloe_LoggingType), intent(inout)   :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)                    :: time
       real(ReKi)                                :: iceLoads(6,myIceParams%numLegs)

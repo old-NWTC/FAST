@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-01 17:39:02 -0700 (Sat, 01 Feb 2014) $
-! (File) Revision #: $Rev: 627 $
+! File last committed: $Date: 2014-03-25 22:06:37 -0600 (Tue, 25 Mar 2014) $
+! (File) Revision #: $Rev: 667 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn

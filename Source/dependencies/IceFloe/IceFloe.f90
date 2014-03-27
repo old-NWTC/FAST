@@ -110,7 +110,6 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       TYPE(IceFloe_OtherStateType),      INTENT(  OUT)  :: OtherState  ! Initial other/optimization states
 
 ! More (unregistered) IceFloe types
-      type(iceFloeSaveParams)    :: icep     ! Parameters that mirror the iceFloe_parameterTypes from FAST
       type(iceInputType)         :: iceInput ! hold list of input names and values from file
       type(iceFloe_LoggingType)  :: iceLog   ! structure with message and error logging variables
       character(132)             :: logFile  ! File name for message logging
@@ -122,6 +121,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       INTEGER(IntKi)             :: Err         ! for array allocation error
       INTEGER(IntKi)             :: n
 
+      InitOut%Ver = IceFloe_Ver
       p%initFlag = .false.
 
     ! Define initial system states here:
@@ -162,7 +162,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       call logMessage(iceLog, ' Parameter input file read finished.'//newLine)
 
    ! get selected input parameter
-      call getIceInput(iceInput, 'iceType',icep%iceType, iceLog, lowTypeLimit, hiTypeLimit)
+      call getIceInput(iceInput, 'iceType',p%iceType, iceLog, lowTypeLimit, hiTypeLimit)
       if (iceLog%ErrID >= AbortErrLev) then
          ErrStat = iceLog%ErrID
          ErrMsg = 'Error retrieving ice type from inputs in IceFloe_Init '//newLine//trim(iceLog%ErrMsg)
@@ -170,7 +170,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       endif
 
    !  Set the time step as the minimum of the suggested interval and the time step from the ice input file
-      call getIceInput(iceInput, 'timeStep',icep%dt, iceLog, 0.0)
+      call getIceInput(iceInput, 'timeStep',p%dt, iceLog, 0.0)
       if (iceLog%ErrID >= AbortErrLev) then
          ErrStat = iceLog%ErrID
          ErrMsg = 'Error retrieving time step from inputs in IceFloe_Init '//newLine//trim(iceLog%ErrMsg)
@@ -179,8 +179,8 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
 
    !  Select the smallest time step between calling program suggestion and user input
    !  Then store as a parameter
-      icep%dt = min(icep%dt, REAL(interval,ReKi) )                      ! bjj: if icep%dt == interval, the type casting may be a problem.
-      interval = icep%dt   ! for return back to the calling program     ! bjj: icep%dt is single precision; interval is double; FAST may complain that the icep%dt isn't an integer divisor of interval
+      p%dt = min(p%dt, REAL(interval,ReKi) )                      ! bjj: if p%dt == interval, the type casting may be a problem.
+      interval = p%dt   ! for return back to the calling program     ! bjj: p%dt is single precision; interval is double; FAST may complain that the p%dt isn't an integer divisor of interval
 
    ! get the duration of the simulation
    ! this should eventually come from FAST
@@ -188,7 +188,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       call logMessage(iceLog, ' Load time series duration = '//TRIM(Num2LStr(duration))//' sec')
 
    ! get the number of legs on the support structure
-      call getIceInput(iceInput, 'numLegs', icep%numLegs, iceLog, 1, 4)
+      call getIceInput(iceInput, 'numLegs', p%numLegs, iceLog, 1, 4)
       if (iceLog%ErrID >= AbortErrLev) then
          ErrStat = iceLog%ErrID
          ErrMsg = 'Error retrieving duration or number of legs from ice input file '//newLine//trim(iceLog%ErrMsg)
@@ -196,67 +196,60 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       endif
 
    ! allocate storage for load series
-      nSteps = ceiling(duration/icep%dt) + 1  ! + 1 for zero point
-      allocate(p%loadSeries(nSteps, icep%numLegs), stat=err)
+      nSteps = ceiling(duration/p%dt) + 1  ! + 1 for zero point
+      allocate(p%loadSeries(nSteps, p%numLegs), stat=err)
       if (err /= 0) then
          call iceErrorHndlr (iceLog, ErrID_Fatal, 'Error in time series array allocation in IceFloe_init', 1)
          ErrStat = iceLog%ErrID
          ErrMsg  = trim(iceLog%ErrMsg)
          return
       endif   
-   ! point internal iceFloe array to the load series stored by FAST
-   ! this is a bit tricky because FAST registered types can't be set as targets
-      call c_f_pointer(c_loc(p%loadseries), icep%loadSeries, [nSteps,icep%numLegs])
-
+      
    ! allocate storage for the leg positions
-      allocate (p%legX(icep%numLegs), stat=err)
-      allocate (p%legY(icep%numLegs), stat=err)
-      allocate (p%ks(icep%numLegs), stat=err)
+      allocate (p%legX(p%numLegs), stat=err)
+      allocate (p%legY(p%numLegs), stat=err)
+      allocate (p%ks(p%numLegs), stat=err)
       if (err /= 0) then
          call iceErrorHndlr (iceLog, ErrID_Fatal, 'Error in allocation of leg data in parameters', 1)
          return  !  error in array allocation
       endif   
-   ! point internal iceFloe parameter array to leg positions stored by FAST
-      call c_f_pointer(c_loc(p%legX), icep%legX, [icep%numLegs])
-      call c_f_pointer(c_loc(p%legY), icep%legY, [icep%numLegs])
-      call c_f_pointer(c_loc(p%ks), icep%ks, [icep%numLegs])
 
-      iceType: select case (icep%iceType)
+      iceType: select case (p%iceType)
         case (randomCrush)
-           call initRandomCrushing(iceInput, icep, iceLog)
+           call initRandomCrushing(iceInput, p, iceLog)
            if (iceLog%ErrID <= ErrID_Warn)  &
               call logMessage(iceLog, newLine//' Random continuous ice crushing via ISO/Karna initialized'//newLine)
         case (interCrush)
-           call initInterCrushing(iceInput, icep, iceLog)
+           call initInterCrushing(iceInput, p, iceLog)
            if (iceLog%ErrID <= ErrID_Warn)  &
               call logMessage(iceLog, newLine//' Intermittent ice crushing loads initialized'//newLine)
         case (crushIEC)
-           call initCrushingIEC(iceInput, icep, iceLog)
+           call initCrushingIEC(iceInput, p, iceLog)
            if (iceLog%ErrID <= ErrID_Warn)  &
               call logMessage(iceLog, newLine//' Ice crushing loads IEC/Korzhavin initialized'//newLine)
         case (flexFailISO)
-           call initFlexISO(iceInput, icep, iceLog)
+           call initFlexISO(iceInput, p, iceLog)
            if (iceLog%ErrID <= ErrID_Warn)  &
               call logMessage(iceLog, newLine//' ISO/Croasdale ice flexural failure loads initialized'//newLine)
         case (flexFailIEC)
-           call initFlexIEC(iceInput, icep, iceLog)
+           call initFlexIEC(iceInput, p, iceLog)
            if (iceLog%ErrID <= ErrID_Warn)  &
               call logMessage(iceLog, newLine//' IEC/Ralston ice flexural failure loads initialized'//newLine)
         case (lockInISO)
-           call initLockInCrushingISO(iceInput, icep, iceLog)
+           call initLockInCrushingISO(iceInput, p, iceLog)
            if (iceLog%ErrID <= ErrID_Warn)  &
               call logMessage(iceLog, newLine//' Frequency lock-in ice crushing loads via ISO initialized'//newLine)
         case (cpldCrush)
-           call initCpldCrushing(iceInput, icep, iceLog)
+           call initCpldCrushing(iceInput, p, iceLog)
            if (iceLog%ErrID <= ErrID_Warn)  &
               call logMessage(iceLog, newLine//' Coupled crushing ice loads (Maattanen) initialized'//newLine)
         case default
-           call iceErrorHndlr(iceLog, ErrID_Fatal, 'Invalid ice type, '//TRIM(Num2LStr(icep%IceType))//' is not a valid selection', 1)
+           call iceErrorHndlr(iceLog, ErrID_Fatal, 'Invalid ice type, '//TRIM(Num2LStr(p%IceType))//' is not a valid selection', 1)
       end select iceType
 
  ! initialize mesh for tower/leg load point velocities for input to iceFloe
-      numLdsOut = icep%numLegs
-      if (icep%singleLoad) numLdsOut = 1
+      numLdsOut = p%numLegs
+      if (p%singleLoad) numLdsOut = 1
       CALL MeshCreate( BlankMesh       = u%iceMesh              &
                       ,IOS             = COMPONENT_INPUT        &
                       ,NNodes          = numLdsOut              &
@@ -276,7 +269,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
 
          CALL MeshPositionNode ( Mesh = u%iceMesh                    &
                                , INode = n                           &
-                               , Pos = (/icep%legX(n), icep%legX(n), 0.0/) &  ! TODO get these from FAST, Z would be height at water line
+                               , Pos = (/p%legX(n), p%legX(n), 0.0/) &  ! TODO get these from FAST, Z would be height at water line
                                , ErrStat   = ErrStat                 &
                                , ErrMess   = ErrMsg                  )
          call iceErrorHndlr(iceLog, ErrStat, ErrMsg//' in IceFloe_init ', 1)
@@ -313,27 +306,6 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
 
       if (ErrStat <= ErrID_Warn) p%initFlag = .true.
 
-   ! Map iceFloe parameters to FAST parameter type
-      p%iceVel          = icep%iceVel
-      p%iceDirection    = icep%iceDirection
-      p%minStrength     = icep%minStrength
-      p%minStrengthNegVel = icep%minStrengthNegVel
-      p%minStressRate   = icep%minStressRate
-      p%crushArea       = icep%crushArea
-      p%coeffStressRate = icep%coeffStressRate
-      p%C               = icep%C
-      p%dt              = icep%dt
-      p%numLegs         = icep%numLegs
-      p%iceType         = icep%iceType
-      p%singleLoad      = icep%singleLoad
-      p%logUnitNum      = iceLog%unitNum
-
-   !  deallocate pointers
-      icep%loadSeries => null()
-      icep%legX => null()
-      icep%legY => null()
-      icep%ks   => null()
-
 END SUBROUTINE IceFloe_Init
 
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -357,32 +329,13 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
       TYPE(IceFloe_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
 
 ! IceFloe specific types and other internal variables
-      type(iceFloeSaveParams)     :: icep     ! Parameters that mirror the iceFloe_parameterTypes from FAST
       type(iceFloe_LoggingType)   :: iceLog                  ! structure with message and error logging variables
       real(ReKi)                 :: loadVect(6,p%numLegs)
       real(ReKi)                 :: inVels(2,p%numLegs)
       integer(IntKi)             :: nL, nSteps
 
-!  map FAST parameter type to iceFloe internal parameters
-      icep%iceVel          = p%iceVel
-      icep%iceDirection    = p%iceDirection
-      icep%minStrength     = p%minStrength
-      icep%minStrengthNegVel  = p%minStrengthNegVel
-      icep%minStressRate   = p%minStressRate
-      icep%crushArea       = p%crushArea
-      icep%coeffStressRate = p%coeffStressRate
-      icep%C               = p%C
-      icep%dt              = p%dt
-      icep%numLegs         = p%numLegs
-      icep%iceType         = p%iceType
-      icep%singleLoad      = p%singleLoad
    ! point internal iceFloe parameter array to load time series stored by FAST
       nSteps = size(p%loadSeries,1)
-      call c_f_pointer(c_loc(p%loadSeries), icep%loadSeries, [nSteps, icep%numLegs])
-   ! point internal iceFloe parameter array to leg positions stored by FAST
-      call c_f_pointer(c_loc(p%legX), icep%legX, [icep%numLegs])
-      call c_f_pointer(c_loc(p%legY), icep%legY, [icep%numLegs])
-      call c_f_pointer(c_loc(p%ks), icep%ks, [icep%numLegs])
 
 !   Re-Set up error logging
       iceLog%unitNum  = p%logUnitNum
@@ -410,19 +363,19 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
 !  get loads from IceFloe
       iceType: select case (p%iceType)
         case (randomCrush)
-           loadVect = outputRandomCrushLoad(icep, iceLog, t)
+           loadVect = outputRandomCrushLoad(p, iceLog, t)
         case (crushIEC)
-           loadVect = outputCrushLoadIEC(icep, iceLog, t)
+           loadVect = outputCrushLoadIEC(p, iceLog, t)
         case (interCrush)
-           loadVect = outputInterCrushLoad(icep, iceLog, t)
+           loadVect = outputInterCrushLoad(p, iceLog, t)
         case (flexFailISO)
-           loadVect = outputFlexLoadISO(icep, iceLog, t)
+           loadVect = outputFlexLoadISO(p, iceLog, t)
         case (flexFailIEC)
-           loadVect = outputFlexLoadIEC(icep, iceLog, t)
+           loadVect = outputFlexLoadIEC(p, iceLog, t)
         case (lockInISO)
-           loadVect = outputLockInLoadISO(icep, iceLog, t)
+           loadVect = outputLockInLoadISO(p, iceLog, t)
         case (cpldCrush)
-           loadVect = outputCpldCrushLoad(icep, iceLog, inVels, t)
+           loadVect = outputCpldCrushLoad(p, iceLog, inVels, t)
         case default   ! this should have been caught during init but just in case
            call iceErrorHndlr (iceLog, ErrID_Fatal, 'Invalid ice floe type, '//TRIM(Num2LStr(p%IceType))//     &
                                                     ' is not a valid selection', 1)
@@ -446,11 +399,6 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
       ErrStat = iceLog%ErrID
       ErrMsg  = trim(iceLog%ErrMsg)
 
-   !  deallocate pointers
-      icep%loadSeries => null()
-      icep%legX => null()
-      icep%legY => null()
-      icep%ks   => null()
 
 END SUBROUTINE IceFloe_CalcOutput
 
