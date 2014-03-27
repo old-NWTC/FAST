@@ -418,7 +418,7 @@ UserVSCont_KP.obj:         NWTC_Library.obj
 iceLog.obj:                NWTC_Library.obj
 iceInput.obj:              iceLog.F90 NWTC_Library.obj
 IceFloeBase.obj:           NWTC_Library.obj  iceInput.obj  RANLUX.obj IceFloe_Types.obj
-coupledCrushing.obj:       iceFloeBase.obj
+coupledCrushing.obj:       IceFloeBase.obj
 crushingIEC.obj:           IceFloeBase.obj
 crushingISO.obj:           IceFloeBase.obj
 intermittentCrushing.obj:  crushingISO.obj
