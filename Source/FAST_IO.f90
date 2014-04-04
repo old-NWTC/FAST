@@ -2762,8 +2762,6 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    ! note this routine should be called only
    ! IF ( p_FAST%CompHydro == Module_HD .AND. p_FAST%CompSub == Module_SD ) 
    
-   
-   
       !----------------------------------------------------------------------------------------------------
       ! Some record keeping stuff:
       !----------------------------------------------------------------------------------------------------      
@@ -3202,11 +3200,13 @@ CONTAINS
       
       IF ( p_FAST%CompSub == Module_SD ) THEN
       
-         ! initialize these SD loads inputs here in case HD is used
+         IF ( p_FAST%CompHydro == Module_HD ) THEN
+            
+         ! initialize these SD loads inputs here in case HD is used         
          MeshMapData%u_SD_LMesh%Force  = 0.0_ReKi
          MeshMapData%u_SD_LMesh%Moment = 0.0_ReKi
       
-         IF ( p_FAST%CompHydro == Module_HD ) THEN
+            
       !..................
       ! Get HD inputs on Morison%LumpedMesh and Morison%DistribMesh
       !..................
@@ -3232,18 +3232,21 @@ CONTAINS
                CALL CheckError(ErrStat2,ErrMsg2)
                IF (ErrStat >= AbortErrLev) RETURN               
          
-         END IF
 
-         ! SD loads from IceFloe:
-         IF ( y_IceF%iceMesh%Committed ) THEN      
-            ! we're mapping loads, so we also need the sibling meshes' displacements:
-            CALL Transfer_Point_to_Point( y_IceF%iceMesh, MeshMapData%u_SD_LMesh_2, MeshMapData%IceF_P_2_SD_P, ErrStat2, ErrMsg2, u_IceF%iceMesh, y_SD2%Y2Mesh )   
-               CALL CheckError( ErrStat2, ErrMsg2 )
-               IF (ErrStat >= AbortErrLev) RETURN
+            ! SD loads from IceFloe:
+            IF ( y_IceF%iceMesh%Committed ) THEN      
+               ! we're mapping loads, so we also need the sibling meshes' displacements:
+               CALL Transfer_Point_to_Point( y_IceF%iceMesh, MeshMapData%u_SD_LMesh_2, MeshMapData%IceF_P_2_SD_P, ErrStat2, ErrMsg2, u_IceF%iceMesh, y_SD2%Y2Mesh )   
+                  CALL CheckError( ErrStat2, ErrMsg2 )
+                  IF (ErrStat >= AbortErrLev) RETURN
 
-            MeshMapData%u_SD_LMesh%Force  = MeshMapData%u_SD_LMesh%Force  + MeshMapData%u_SD_LMesh_2%Force
-            MeshMapData%u_SD_LMesh%Moment = MeshMapData%u_SD_LMesh%Moment + MeshMapData%u_SD_LMesh_2%Moment     
-         END IF
+               MeshMapData%u_SD_LMesh%Force  = MeshMapData%u_SD_LMesh%Force  + MeshMapData%u_SD_LMesh_2%Force
+               MeshMapData%u_SD_LMesh%Moment = MeshMapData%u_SD_LMesh%Moment + MeshMapData%u_SD_LMesh_2%Moment     
+            END IF
+               
+               
+         END IF ! HD is used (IceFloe can't be used unless HydroDyn is used)
+
 
          
       !..................
@@ -3871,6 +3874,7 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
       !CALL Transfer_Line2_to_Line2( y_ED%BladeLn2Mesh(K), u_AD%InputMarkers(K), MeshMapData%ED_L_2_AD_L_B(K), ErrStat, ErrMsg )
       !   IF (ErrStat >= AbortErrLev ) RETURN
          
+      u_AD%InputMarkers(K)%RotationVel = 0.0_ReKi ! bjj: we don't need this field
       
       DO J = 1,BldNodes !p%BldNodes ! Loop through the blade nodes / elements
 
@@ -3891,12 +3895,17 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
    u_AD%TurbineComponents%Hub%Orientation = y_ED%HubPtMotion%Orientation(:,:,1)   
    u_AD%TurbineComponents%Hub%RotationVel = y_ED%HubPtMotion%RotationVel(:,1)
    
+   u_AD%TurbineComponents%Hub%TranslationVel = 0.0_ReKi !bjj we don't need this field
    !-------------------------------------------------------------------------------------------------
    ! Blade root orientations:
    !-------------------------------------------------------------------------------------------------
    
    DO K=1,NumBl
       u_AD%TurbineComponents%Blade(K)%Orientation = y_ED%BladeRootMotions%Orientation(:,:,K)
+      
+      u_AD%TurbineComponents%Blade(K)%Position       = 0.0_ReKi !bjj we don't need this field
+      u_AD%TurbineComponents%Blade(K)%RotationVel    = 0.0_ReKi !bjj we don't need this field
+      u_AD%TurbineComponents%Blade(K)%TranslationVel = 0.0_ReKi !bjj we don't need this field
    END DO
             
 
@@ -3907,6 +3916,7 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
    u_AD%TurbineComponents%RotorFurl%Position    = y_ED%RotorFurlMotion%TranslationDisp(:,1) + y_ED%RotorFurlMotion%Position(:,1)  
    u_AD%TurbineComponents%RotorFurl%Orientation = y_ED%RotorFurlMotion%Orientation(:,:,1)         
    u_AD%TurbineComponents%RotorFurl%RotationVel = y_ED%RotorFurlMotion%RotationVel(:,1)
+   u_AD%TurbineComponents%RotorFurl%TranslationVel = 0.0_ReKi !bjj we don't need this field
    
    !-------------------------------------------------------------------------------------------------
    ! Nacelle position, orientation, rotational velocity:
@@ -3915,6 +3925,7 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
    u_AD%TurbineComponents%Nacelle%Position    = y_ED%NacelleMotion%TranslationDisp(:,1) + y_ED%NacelleMotion%Position(:,1)
    u_AD%TurbineComponents%Nacelle%Orientation = y_ED%NacelleMotion%Orientation(:,:,1)      
    u_AD%TurbineComponents%Nacelle%RotationVel = y_ED%NacelleMotion%RotationVel(:,1)  
+   u_AD%TurbineComponents%Nacelle%TranslationVel = 0.0_ReKi !bjj we don't need this field
    
    !-------------------------------------------------------------------------------------------------
    ! Tower base position, rotational velocity:
@@ -3925,6 +3936,8 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
       ! the HubVDue2Yaw calculation:
    u_AD%TurbineComponents%Tower%Position     = y_ED%TowerMotion%TranslationDisp(:,1) + y_ED%TowerMotion%Position(:,1)
    u_AD%TurbineComponents%Tower%RotationVel  = y_ED%TowerMotion%RotationVel(:,1)
+   u_AD%TurbineComponents%Tower%Orientation    = 0.0_ReKi !bjj we don't need this field
+   u_AD%TurbineComponents%Tower%TranslationVel = 0.0_ReKi !bjj we don't need this field
   
 
    !-------------------------------------------------------------------------------------------------
