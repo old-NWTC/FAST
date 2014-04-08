@@ -55,13 +55,14 @@ ifeq ($(OS),Windows_NT)
    LAPACK_LINK  = -llapack -lblas -LC:/LAPACK/win32
 else
    Registry     = registry.exe
-   MAP_lib      = $(MAP_DIR)/MAP.a
+   MAP_lib      = $(MAP_DIR)/MAP.so
    LAPACK_LINK  = -llapack -lblas
 endif
 
 
    # Name of compiler to use and flags to use.
 FC      = gfortran
+
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
 FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -C
@@ -69,6 +70,8 @@ FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fc
 LDFLAGS = -O2 -m$(BITS) -fbacktrace  $(LAPACK_LINK)
 
 # other useful gfortran options:
+#  -large-address-aware
+#  -Wconversion-extra -Wconversion
 #  -fdefault-real-8 -fcheck=bounds -std=f2003 -O0 -v -Wall
 # http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
 
@@ -125,12 +128,6 @@ LIB_SOURCES =           \
 	ModMesh.f90          \
 	ModMesh_Mapping.f90  \
 	NWTC_Library.f90
-
-NetLib_SOURCES =         \
-	NWTC_LAPACK.f90       \
-	NWTC_ScaLAPACK.f90    \
-	dlasrt2.f             \
-	slasrt2.f
 
 IfW_SOURCES =            \
 	IfW_FFWind_Types.f90  \
@@ -240,7 +237,7 @@ vpath %.inp $(IceF_DIR)
 vpath %     $(IceF_DIR)
 
 
-ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NetLib_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES)
+ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES)
 tmp_objs1   = $(ALL_SOURCES:.f90=.obj)
 tmp_objs2   = $(tmp_objs1:.F90=.obj)       #note the upper case here (from IceFloe)
 ALL_OBJS    = $(tmp_objs2:.f=.obj)
@@ -261,6 +258,7 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 %.obj: %.F90
 	$(FC) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
+#bjj: what is $(F77)????
 %.obj: %.f
 	$(F77) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
@@ -330,7 +328,7 @@ ModMesh_Mapping.obj:     ModMesh.obj NWTC_LAPACK.obj
 NWTC_Library.obj:        ModMesh.obj  ModMesh_Mapping.obj
 
 NWTC_LAPACK.obj:         NWTC_Base.obj
-NWTC_ScaLAPACK.obj:      NWTC_Base.obj DLASRT2.obj SLASRT2.obj
+NWTC_ScaLAPACK.obj:      NWTC_Base.obj dlasrt2.obj slasrt2.obj
 
 
 #InflowWind dependency rules:
@@ -427,7 +425,7 @@ randomCrushing.obj:        crushingISO.obj
 IceFlexBase.obj:           IceFloeBase.obj
 IceFlexIEC.obj:            IceFlexBase.obj
 IceFlexISO.obj:            IceFlexBase.obj
-IceFloe_Types.obj:         NWTC_Library.obj
+IceFloe_Types.obj:         NWTC_Library.obj IceFloe_FASTRegistry.inp
 IceFloe.obj:               IceFloe_Types.obj iceLog.obj coupledCrushing.obj crushingIEC.obj crushingISO.obj IceFlexBase.obj IceFlexIEC.obj IceFlexISO.obj intermittentCrushing.obj lockInISO.obj randomCrushing.obj
 
 
