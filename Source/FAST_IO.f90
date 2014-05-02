@@ -203,7 +203,18 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    ELSE ! get it from the command line
       InputFile = ""  ! initialize to empty string to make sure it's input from the command line
       CALL CheckArgs( InputFile, Stat )  ! if Stat /= ErrID_None, we'll ignore and deal with the problem when we try to read the input file
+      
+      IF (LEN_TRIM(InputFile) == 0) THEN ! no input file was specified
+         CALL SetErrors( ErrID_Fatal, 'The required input file was not specified on the command line.') 
+         CALL NWTC_DisplaySyntax( InputFile, 'FAST_Win32.exe' )
+                  !bjj: FAST_Win32.exe isn't correct for x64 or other versions of the executable, but it IS the only version we
+                  ! distribute, and if people have compiled for other architectures, they should be able to figure that out, right?
+         RETURN
+      END IF            
    END IF
+   
+
+   
 
       ! Determine the root name of the primary file (will be used for output files)
    CALL GetRoot( InputFile, p%OutFileRoot )
