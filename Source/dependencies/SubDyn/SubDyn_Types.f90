@@ -9,7 +9,7 @@
 !.................................................................................................................................
 ! This file is part of SubDyn.
 !
-! Copyright (C) 2012, 2013 National Renewable Energy Laboratory
+! Copyright (C) 2012-2014 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -35,92 +35,92 @@ USE NWTC_Library
 IMPLICIT NONE
 ! =========  MeshAuxDataType  =======
   TYPE, PUBLIC :: MeshAuxDataType
-    INTEGER(IntKi)  :: MemberID      ! Member ID for Output [-]
-    INTEGER(IntKi)  :: NOutCnt      ! Number of Nodes for the output member [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeCnt      ! Node ordinal numbers for the output member [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeIDs      ! Node IDs associated with ordinal numbers for the output member [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmIDs      ! Element IDs connected to each NodeIDs; max 10 elements [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmNds      ! Flag to indicate 1st or 2nd node of element for each ElmIDs [-]
-    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmID2s      ! Element IDs connected to each joint node [-]
-    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmNd2s      ! Flag to indicate 1st or 2nd node of element which is attached to member joint (for outAll) [-]
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Me      ! Mass matrix connected to each joint element for outAll output [-]
-    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Ke      ! Mass matrix connected to each joint element for outAll output [-]
-    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Fg      ! Gravity load vector connected to each joint element for requested member output [-]
-    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Me2      ! Mass matrix connected to each joint element for outAll output [-]
-    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Ke2      ! Mass matrix connected to each joint element for outAll output [-]
-    REAL(ReKi) , DIMENSION(1:12,1:2)  :: Fg2      ! Gravity load vector connected to each joint element for outAll output [-]
+    INTEGER(IntKi)  :: MemberID      ! Member [ID]
+    INTEGER(IntKi)  :: NOutCnt      ! Number [of]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeCnt      ! Node [ordinal]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NodeIDs      ! Node [IDs]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmIDs      ! Element [IDs]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: ElmNds      ! Flag [to]
+    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmID2s      ! Element [IDs]
+    INTEGER(IntKi) , DIMENSION(1:2)  :: ElmNd2s      ! Flag [to]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Me      ! Mass [matrix]
+    REAL(ReKi) , DIMENSION(:,:,:,:), ALLOCATABLE  :: Ke      ! Mass [matrix]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Fg      ! Gravity [load]
+    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Me2      ! Mass [matrix]
+    REAL(ReKi) , DIMENSION(1:12,1:12,1:2)  :: Ke2      ! Mass [matrix]
+    REAL(ReKi) , DIMENSION(1:12,1:2)  :: Fg2      ! Gravity [load]
   END TYPE MeshAuxDataType
 ! =======================
 ! =========  ElemPropType  =======
   TYPE, PUBLIC :: ElemPropType
-    REAL(ReKi)  :: Area      ! Area of an element [-]
-    REAL(ReKi)  :: Length      ! Length of an element [-]
-    REAL(ReKi)  :: Ixx      ! Moment of inertia of an element [-]
-    REAL(ReKi)  :: Iyy      ! Moment of inertia of an element [-]
-    REAL(ReKi)  :: Jzz      ! Moment of inertia of an element [-]
-    LOGICAL  :: Shear      ! Use timoshenko (true) E-B (false) [-]
-    REAL(ReKi)  :: Kappa      ! Shear coefficient [-]
-    REAL(ReKi)  :: YoungE      ! Young's modulus [-]
-    REAL(ReKi)  :: ShearG      ! Shear modulus [-]
+    REAL(ReKi)  :: Area      ! Area [of]
+    REAL(ReKi)  :: Length      ! Length [of]
+    REAL(ReKi)  :: Ixx      ! Moment [of]
+    REAL(ReKi)  :: Iyy      ! Moment [of]
+    REAL(ReKi)  :: Jzz      ! Moment [of]
+    LOGICAL  :: Shear      ! Use [timoshenko]
+    REAL(ReKi)  :: Kappa      ! Shear [coefficient]
+    REAL(ReKi)  :: YoungE      ! Young's [modulus]
+    REAL(ReKi)  :: ShearG      ! Shear [modulus]
     REAL(ReKi)  :: Rho      ! Density [-]
-    REAL(ReKi) , DIMENSION(1:3,1:3)  :: DirCos      ! Element direction cosine matrix [-]
+    REAL(ReKi) , DIMENSION(1:3,1:3)  :: DirCos      ! Element [direction]
   END TYPE ElemPropType
 ! =======================
 ! =========  SD_InitInputType  =======
   TYPE, PUBLIC :: SD_InitInputType
-    CHARACTER(1024)  :: SDInputFile      ! Name of the input file [-]
-    REAL(ReKi)  :: g      ! Gravity acceleration [-]
-    REAL(ReKi)  :: WtrDpth      ! Water Depth (positive valued) [-]
-    REAL(ReKi) , DIMENSION(1:3)  :: TP_RefPoint      ! Gravity acceleration [-]
-    REAL(ReKi)  :: SubRotateZ      ! Rotation angle in degrees about global Z [-]
-    CHARACTER(1024)  :: SubDynSum      ! SubDyn summary and elem files [-]
-    CHARACTER(1024)  :: RootName      ! SubDyn rootname [-]
-    CHARACTER(80)  :: SDdeltaTChr      ! Time step in input file (DEFAULT = use glue code time step) [seconds]
-    REAL(DbKi)  :: DT      ! Time step from Glue Code [seconds]
+    CHARACTER(1024)  :: SDInputFile      ! Name [of]
+    REAL(ReKi)  :: g      ! Gravity [acceleration]
+    REAL(ReKi)  :: WtrDpth      ! Water [Depth]
+    REAL(ReKi) , DIMENSION(1:3)  :: TP_RefPoint      ! Gravity [acceleration]
+    REAL(ReKi)  :: SubRotateZ      ! Rotation [angle]
+    CHARACTER(1024)  :: SubDynSum      ! SubDyn [summary]
+    CHARACTER(1024)  :: RootName      ! SubDyn [rootname]
+    CHARACTER(80)  :: SDdeltaTChr      ! Time [step]
+    REAL(DbKi)  :: DT      ! Time [step]
     INTEGER(IntKi)  :: ErrStat      ! Error [status]
-    INTEGER(IntKi)  :: NJoints      ! Number of joints of the sub structure [-]
-    INTEGER(IntKi)  :: JointsCol = 4      ! Number of columns in Joints [-]
-    INTEGER(IntKi)  :: MembersCol = 5      ! Number of columns in Members [-]
-    INTEGER(IntKi)  :: NPropSets      ! Number of property sets [-]
-    INTEGER(IntKi)  :: PropSetsCol = 6      ! Number of columns in PropSets [-]
-    INTEGER(IntKi)  :: NXPropSets      ! Number of extended property sets [-]
-    INTEGER(IntKi)  :: XPropSetsCol = 10      ! Number of columns in XPropSets [-]
-    INTEGER(IntKi)  :: ReactCol = 7      ! Number of columns in reaction dof array [-]
-    INTEGER(IntKi)  :: NInterf      ! Number of joints attached to transition piece [-]
-    INTEGER(IntKi)  :: InterfCol = 7      ! Number of columns in interf matrix [-]
-    INTEGER(IntKi)  :: NCMass      ! Number of joints with concentrated mass [-]
-    INTEGER(IntKi)  :: CMassCol = 5      ! Number of columns in CMass [-]
-    INTEGER(IntKi)  :: NCOSMs      ! Number of independent cosine matrices [-]
-    INTEGER(IntKi)  :: COSMsCol = 10      ! Number of columns in COSMs [-]
-    INTEGER(IntKi)  :: FEMMod      ! FEM switch: element model in the FEM [-]
-    INTEGER(IntKi)  :: NDiv      ! Number of divisions for each member [-]
-    LOGICAL  :: CBMod      ! Perform C-B flag [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Joints      ! Joints number and coordinate values [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PropSets      ! Property sets number and values [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: XPropSets      ! Extended property sets [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: COSMs      ! Independent direction cosine matrices [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: CMass      ! Concentrated mass information [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: JDampings      ! Damping coefficients for internal modes [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Members      ! Member joints connection [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Interf      ! Interface degree of freedoms [-]
-    INTEGER(IntKi)  :: NNode      ! Total number of nodes [-]
-    INTEGER(IntKi)  :: NElem      ! Total number of elements [-]
-    INTEGER(IntKi)  :: NProp      ! Total number of property sets [-]
-    INTEGER(IntKi)  :: TDOF      ! Total degree of freedom [-]
-    INTEGER(IntKi)  :: MaxMemJnt = 10      ! Maximum number of members at one joint [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Nodes      ! Nodes number and coordinates [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Props      ! Property sets and values [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: K      ! System stiffness matrix [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: M      ! System mass matrix [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: F      ! System force vector [N]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FG      ! Gravity force vector [N]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ElemProps      ! Element properties(A, L, Ixx, Iyy, Jzz, Shear, Kappa, E, G, Rho, DirCos(1,1), DirCos(2, 1), ....., DirCos(3, 3) ) [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: BCs      ! Boundary constraint degree of freedoms. First column - DOFs(rows in the system matrices), Second column - constrained(1) or not(0) [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: IntFc      ! Interface constraint degree of freedoms [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: MemberNodes      ! Member number and nodes in the member [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnN      ! Nodes that connect to a common node [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnE      ! Elements that connect to a common node [-]
-    LOGICAL  :: SSSum      ! SubDyn Summary File Flag [-]
+    INTEGER(IntKi)  :: NJoints      ! Number [of]
+    INTEGER(IntKi)  :: JointsCol = 4      ! Number [of]
+    INTEGER(IntKi)  :: MembersCol = 5      ! Number [of]
+    INTEGER(IntKi)  :: NPropSets      ! Number [of]
+    INTEGER(IntKi)  :: PropSetsCol = 6      ! Number [of]
+    INTEGER(IntKi)  :: NXPropSets      ! Number [of]
+    INTEGER(IntKi)  :: XPropSetsCol = 10      ! Number [of]
+    INTEGER(IntKi)  :: ReactCol = 7      ! Number [of]
+    INTEGER(IntKi)  :: NInterf      ! Number [of]
+    INTEGER(IntKi)  :: InterfCol = 7      ! Number [of]
+    INTEGER(IntKi)  :: NCMass      ! Number [of]
+    INTEGER(IntKi)  :: CMassCol = 5      ! Number [of]
+    INTEGER(IntKi)  :: NCOSMs      ! Number [of]
+    INTEGER(IntKi)  :: COSMsCol = 10      ! Number [of]
+    INTEGER(IntKi)  :: FEMMod      ! FEM [switch:]
+    INTEGER(IntKi)  :: NDiv      ! Number [of]
+    LOGICAL  :: CBMod      ! Perform [C-B]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Joints      ! Joints [number]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PropSets      ! Property [sets]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: XPropSets      ! Extended [property]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: COSMs      ! Independent [direction]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: CMass      ! Concentrated [mass]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: JDampings      ! Damping [coefficients]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Members      ! Member [joints]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Interf      ! Interface [degree]
+    INTEGER(IntKi)  :: NNode      ! Total [number]
+    INTEGER(IntKi)  :: NElem      ! Total [number]
+    INTEGER(IntKi)  :: NProp      ! Total [number]
+    INTEGER(IntKi)  :: TDOF      ! Total [degree]
+    INTEGER(IntKi)  :: MaxMemJnt = 10      ! Maximum [number]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Nodes      ! Nodes [number]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Props      ! Property [sets]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: K      ! System [stiffness]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: M      ! System [mass]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: F      ! System [force]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FG      ! Gravity [force]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: ElemProps      ! Element [properties(A,]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: BCs      ! Boundary [constraint]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: IntFc      ! Interface [constraint]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: MemberNodes      ! Member [number]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnN      ! Nodes [that]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnE      ! Elements [that]
+    LOGICAL  :: SSSum      ! SubDyn [Summary]
     INTEGER(IntKi)  :: UnSum      ! File unit for the SubDyn summary file [-1 = no summary file] [-]
   END TYPE SD_InitInputType
 ! =======================
@@ -129,17 +129,17 @@ IMPLICIT NONE
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
     TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
-    INTEGER(IntKi)  :: MaxOutChs = 2000      ! Max number of Output Channels to be read in [-]
-    LOGICAL  :: TabDelim      ! Generate a tab-delimited output file in OutJckF-Flag [-]
-    LOGICAL  :: OutCOSM      ! Output [Cos-matrices Flag]
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: SSOutList      ! List of Output Channels [-]
+    INTEGER(IntKi)  :: MaxOutChs = 2000      ! Max [number]
+    LOGICAL  :: TabDelim      ! Generate [a]
+    LOGICAL  :: OutCOSM      ! Output [Cos-matrices]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: SSOutList      ! List [of]
   END TYPE SD_InitOutputType
 ! =======================
 ! =========  SD_ContinuousStateType  =======
   TYPE, PUBLIC :: SD_ContinuousStateType
     REAL(ReKi)  :: DummyContState      ! Remove this variable if you have continuous states [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qm      ! Virtual states, Nmod elements [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdot      ! Derivative of states, Nmod elements [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qm      ! Virtual [states,]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdot      ! Derivative [of]
   END TYPE SD_ContinuousStateType
 ! =======================
 ! =========  SD_DiscreteStateType  =======
@@ -155,101 +155,102 @@ IMPLICIT NONE
 ! =========  SD_OtherStateType  =======
   TYPE, PUBLIC :: SD_OtherStateType
     TYPE(SD_ContinuousStateType) , DIMENSION(:), ALLOCATABLE  :: xdot      ! previous state derivs for m-step time integrator [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdotdot      ! 2nd Derivative of states, used only for output-file purposes [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: qmdotdot      ! 2nd [Derivative]
     INTEGER(IntKi)  :: n      ! tracks time step for which OtherState was updated last [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Udotdot      ! Structure accelerations [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Y2      ! Structure Deflections and velocities [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Udotdot      ! Structure [accelerations]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Y2      ! Structure [Deflections]
   END TYPE SD_OtherStateType
 ! =======================
 ! =========  SD_OutVar_Type  =======
   TYPE, PUBLIC :: SD_OutVar_Type
-    INTEGER(IntKi)  :: Indx      ! Index into WriteOutput output array [-]
-    INTEGER(IntKi)  :: SignM      ! Sign (output multiplier). [-]
-    CHARACTER(10)  :: Units      ! Units corresponding to the output parameter.array [-]
-    CHARACTER(10)  :: Name      ! Name of the output parameter. [-]
+    INTEGER(IntKi)  :: Indx      ! Index [into]
+    INTEGER(IntKi)  :: SignM      ! Sign [(output]
+    CHARACTER(10)  :: Units      ! Units [corresponding]
+    CHARACTER(10)  :: Name      ! Name [of]
   END TYPE SD_OutVar_Type
 ! =======================
 ! =========  SD_ParameterType  =======
   TYPE, PUBLIC :: SD_ParameterType
-    LOGICAL  :: SttcSolve      ! Solve dynamics about static equilibrium point (flag) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_21      ! Coefficient of x in X [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_22      ! Coefficient of x in X [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_23      ! Coefficient of u in X [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_24      ! Coefficient of u in X [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FX      ! Load components in X [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_11      ! Coefficient of x in Y1 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_12      ! Coefficient of x in Y1 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_11      ! Coefficient of u in Y1 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_13      ! Coefficient of u in Y1 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_14      ! Coefficient of u in Y1 [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! Load Components in  Y1 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_21      ! Coefficient of x in Y2 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_42      ! Coefficient of x in Y2 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_61      ! Coefficient of x in Y2 (URdotdot ULdotdot) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_62      ! Coefficient of x in Y2 (URdotdot ULdotdot) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_11      ! Coefficient of u in Y2 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_21      ! Coefficient of u in Y2 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_32      ! Coefficient of u in Y2 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_42      ! Coefficient of u in Y2 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_53      ! Coefficient of u in Y2 (URdotdot ULdotdot) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_63      ! Coefficient of u in Y2 (URdotdot ULdotdot) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_64      ! Coefficient of u in Y2 (URdotdot ULdotdot [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: F2_61      ! Load Component in Y2 [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBB      ! Matrix after C-B reduction [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: KBB      ! Matrix after C-B reduction [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBM      ! Matrix after C-B reduction [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_R      ! Matrix after C-B reduction [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PHI_M      ! Matrix after C-B reduction [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AM2InvJac      ! Inverse Jacobian for Adams-Boulton 2nd order Integration [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TI      ! Matrix to calculate TP reference point reaction at top of structure [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TIreact      ! Matrix to calculate single point reaction at base of structure [-]
-    INTEGER(IntKi)  :: NModes      ! Number of modes to retain in C-B method [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Elems      ! Element nodes connections [-]
-    INTEGER(IntKi)  :: qmL      ! Length of state array [-]
-    INTEGER(IntKi)  :: uL      ! Length of input array [-]
-    INTEGER(IntKi)  :: DofL      ! Internal nodes   of DOFs [-]
-    INTEGER(IntKi)  :: NNodes_I      ! Number of Interface nodes [-]
-    INTEGER(IntKi)  :: NNodes_L      ! Number ofInternal nodes [-]
-    INTEGER(IntKi)  :: NNodes_RbarL      ! Number of Interface + Internal nodes [-]
-    INTEGER(IntKi)  :: DofI      ! Interface nodes   of DOFs [-]
-    INTEGER(IntKi)  :: DofR      ! Interface and restrained nodes   of DOFs [-]
-    INTEGER(IntKi)  :: DofRbarL      ! Interface + internal nodes   of DOFs [-]
-    INTEGER(IntKi)  :: DofC      ! Contrained nodes   of DOFs [-]
-    INTEGER(IntKi)  :: NReact      ! Number of joints with reactions [-]
-    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Reacts      ! React degree of freedoms [-]
-    INTEGER(IntKi)  :: Nmembers      ! Number of members of the sub structure [-]
-    INTEGER(IntKi)  :: TPdofL = 6      ! Length of u subarray (UTP) [-]
-    INTEGER(IntKi)  :: URbarL      ! Length of URbar, subarray of y2 array (DOFRb) [-]
-    INTEGER(IntKi)  :: URdotdotL      ! Length of URdotdot [-]
-    INTEGER(IntKi)  :: UdotdotL      ! Length of {URdotdot^bar ULdotdot^bar) [-]
-    INTEGER(IntKi)  :: Y2L      ! Length of y2 array [-]
-    INTEGER(IntKi)  :: IntMethod      ! INtegration Method (1/2/3)Length of y2 array [-]
-    INTEGER(IntKi)  :: NAvgEls = 2      ! Max number of elements that should be averaged when calculating outputs at nodes [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDI      ! Index array of the interface(nodes connect to TP) dofs [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDR      ! Index array of the interface and restraint dofs [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDL      ! Index array of the internal dofs [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDC      ! Index array of the contraint dofs [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDY      ! Index array of the all dofs in Y2 [-]
-    INTEGER(IntKi)  :: NMOutputs      ! Number of members whose output is written [-]
-    INTEGER(IntKi)  :: NumOuts      ! Number of output channels read from input file [-]
-    REAL(DbKi)  :: SDDeltaT      ! Time step [seconds]
-    INTEGER(IntKi)  :: OutSwtch      ! Output Requested Channels to local or global output file [1/2/3] [-]
-    INTEGER(IntKi)  :: UnJckF      ! Unit of SD ouput file [-]
+    LOGICAL  :: SttcSolve      ! Solve [dynamics]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_21      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: A_22      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_23      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: B_24      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FX      ! Load [components]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_11      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_12      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_11      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_13      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_14      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! Load [Components]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_21      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_42      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_61      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_62      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_11      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_21      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_32      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_42      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_53      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_63      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D2_64      ! Coefficient [of]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: F2_61      ! Load [Component]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBB      ! Matrix [after]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: KBB      ! Matrix [after]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: MBM      ! Matrix [after]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PhiL_T      ! Transpose [of]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PhiLInvOmgL2      ! Matrix [of]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FGL      ! Internal [node]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AM2InvJac      ! Inverse [Jacobian]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TI      ! Matrix [to]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: TIreact      ! Matrix [to]
+    INTEGER(IntKi)  :: NModes      ! Number [of]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Elems      ! Element [nodes]
+    INTEGER(IntKi)  :: qmL      ! Length [of]
+    INTEGER(IntKi)  :: uL      ! Length [of]
+    INTEGER(IntKi)  :: DofL      ! Internal [nodes]
+    INTEGER(IntKi)  :: NNodes_I      ! Number [of]
+    INTEGER(IntKi)  :: NNodes_L      ! Number [ofInternal]
+    INTEGER(IntKi)  :: NNodes_RbarL      ! Number [of]
+    INTEGER(IntKi)  :: DofI      ! Interface [nodes]
+    INTEGER(IntKi)  :: DofR      ! Interface [and]
+    INTEGER(IntKi)  :: DofRbarL      ! Interface [+]
+    INTEGER(IntKi)  :: DofC      ! Contrained [nodes]
+    INTEGER(IntKi)  :: NReact      ! Number [of]
+    INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: Reacts      ! React [degree]
+    INTEGER(IntKi)  :: Nmembers      ! Number [of]
+    INTEGER(IntKi)  :: TPdofL = 6      ! Length [of]
+    INTEGER(IntKi)  :: URbarL      ! Length [of]
+    INTEGER(IntKi)  :: URdotdotL      ! Length [of]
+    INTEGER(IntKi)  :: UdotdotL      ! Length [of]
+    INTEGER(IntKi)  :: Y2L      ! Length [of]
+    INTEGER(IntKi)  :: IntMethod      ! INtegration [Method]
+    INTEGER(IntKi)  :: NAvgEls = 2      ! Max [number]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDI      ! Index [array]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDR      ! Index [array]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDL      ! Index [array]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDC      ! Index [array]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: IDY      ! Index [array]
+    INTEGER(IntKi)  :: NMOutputs      ! Number [of]
+    INTEGER(IntKi)  :: NumOuts      ! Number [of]
+    REAL(DbKi)  :: SDDeltaT      ! Time [step]
+    INTEGER(IntKi)  :: OutSwtch      ! Output [Requested]
+    INTEGER(IntKi)  :: UnJckF      ! Unit [of]
     CHARACTER(1)  :: Delim      ! Column delimiter for output text files [-]
-    CHARACTER(20)  :: OutFmt      ! Format for Output [-]
-    CHARACTER(20)  :: OutSFmt      ! Format for Output Headers [-]
-    CHARACTER(1024)  :: OutJckF      ! Name of the SD ouput file [-]
-    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst      ! List of user requested members and nodes [-]
-    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst2      ! List of all member joint nodes and elements for output [-]
-    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst3      ! List of all member joint nodes and elements for output [-]
-    TYPE(ElemPropType) , DIMENSION(:), ALLOCATABLE  :: ElemProps      ! List of element properties [-]
-    TYPE(SD_OutVar_Type) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! An array holding names, units, and indices of all of the selected output channels.   logical [-]
-    LOGICAL  :: OutAll      ! Flag to output or not all joint forces [-]
-    LOGICAL  :: OutReact      ! Flag to check whether reactions are requested [-]
-    INTEGER(IntKi)  :: OutAllInt      ! Integer version of OutAll [-]
-    INTEGER(IntKi)  :: OutAllDims      ! Integer version of OutAll [-]
-    INTEGER(IntKi)  :: OutDec      ! Output Decimation for Requested Channels [-]
-    INTEGER(IntKi)  :: MaxOUtPts      ! Max number of channels [-]
+    CHARACTER(20)  :: OutFmt      ! Format [for]
+    CHARACTER(20)  :: OutSFmt      ! Format [for]
+    CHARACTER(1024)  :: OutJckF      ! Name [of]
+    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst      ! List [of]
+    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst2      ! List [of]
+    TYPE(MeshAuxDataType) , DIMENSION(:), ALLOCATABLE  :: MoutLst3      ! List [of]
+    TYPE(ElemPropType) , DIMENSION(:), ALLOCATABLE  :: ElemProps      ! List [of]
+    TYPE(SD_OutVar_Type) , DIMENSION(:), ALLOCATABLE  :: OutParam      ! An [array]
+    LOGICAL  :: OutAll      ! Flag [to]
+    LOGICAL  :: OutReact      ! Flag [to]
+    INTEGER(IntKi)  :: OutAllInt      ! Integer [version]
+    INTEGER(IntKi)  :: OutAllDims      ! Integer [version]
+    INTEGER(IntKi)  :: OutDec      ! Output [Decimation]
+    INTEGER(IntKi)  :: MaxOUtPts      ! Max [number]
   END TYPE SD_ParameterType
 ! =======================
 ! =========  SD_InputType  =======
@@ -262,7 +263,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: SD_OutputType
     TYPE(MeshType)  :: Y1Mesh      ! Transition piece outputs on a point mesh [-]
     TYPE(MeshType)  :: Y2Mesh      ! Interior+Interface nodes outputs on a point mesh [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Example of data to be written to an output file [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Example of data to be written to an output file [s,-]
   END TYPE SD_OutputType
 ! =======================
 ! =========  SD_PartialOutputPInputType  =======
@@ -3082,35 +3083,48 @@ IF (ALLOCATED(SrcParamData%MBM)) THEN
    END IF
    DstParamData%MBM = SrcParamData%MBM
 ENDIF
-IF (ALLOCATED(SrcParamData%PHI_R)) THEN
-   i1_l = LBOUND(SrcParamData%PHI_R,1)
-   i1_u = UBOUND(SrcParamData%PHI_R,1)
-   i2_l = LBOUND(SrcParamData%PHI_R,2)
-   i2_u = UBOUND(SrcParamData%PHI_R,2)
-   IF (.NOT.ALLOCATED(DstParamData%PHI_R)) THEN 
-      ALLOCATE(DstParamData%PHI_R(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+IF (ALLOCATED(SrcParamData%PhiL_T)) THEN
+   i1_l = LBOUND(SrcParamData%PhiL_T,1)
+   i1_u = UBOUND(SrcParamData%PhiL_T,1)
+   i2_l = LBOUND(SrcParamData%PhiL_T,2)
+   i2_u = UBOUND(SrcParamData%PhiL_T,2)
+   IF (.NOT.ALLOCATED(DstParamData%PhiL_T)) THEN 
+      ALLOCATE(DstParamData%PhiL_T(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%PHI_R.'
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%PhiL_T.'
          RETURN
       END IF
    END IF
-   DstParamData%PHI_R = SrcParamData%PHI_R
+   DstParamData%PhiL_T = SrcParamData%PhiL_T
 ENDIF
-IF (ALLOCATED(SrcParamData%PHI_M)) THEN
-   i1_l = LBOUND(SrcParamData%PHI_M,1)
-   i1_u = UBOUND(SrcParamData%PHI_M,1)
-   i2_l = LBOUND(SrcParamData%PHI_M,2)
-   i2_u = UBOUND(SrcParamData%PHI_M,2)
-   IF (.NOT.ALLOCATED(DstParamData%PHI_M)) THEN 
-      ALLOCATE(DstParamData%PHI_M(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+IF (ALLOCATED(SrcParamData%PhiLInvOmgL2)) THEN
+   i1_l = LBOUND(SrcParamData%PhiLInvOmgL2,1)
+   i1_u = UBOUND(SrcParamData%PhiLInvOmgL2,1)
+   i2_l = LBOUND(SrcParamData%PhiLInvOmgL2,2)
+   i2_u = UBOUND(SrcParamData%PhiLInvOmgL2,2)
+   IF (.NOT.ALLOCATED(DstParamData%PhiLInvOmgL2)) THEN 
+      ALLOCATE(DstParamData%PhiLInvOmgL2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%PHI_M.'
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%PhiLInvOmgL2.'
          RETURN
       END IF
    END IF
-   DstParamData%PHI_M = SrcParamData%PHI_M
+   DstParamData%PhiLInvOmgL2 = SrcParamData%PhiLInvOmgL2
+ENDIF
+IF (ALLOCATED(SrcParamData%FGL)) THEN
+   i1_l = LBOUND(SrcParamData%FGL,1)
+   i1_u = UBOUND(SrcParamData%FGL,1)
+   IF (.NOT.ALLOCATED(DstParamData%FGL)) THEN 
+      ALLOCATE(DstParamData%FGL(i1_l:i1_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%FGL.'
+         RETURN
+      END IF
+   END IF
+   DstParamData%FGL = SrcParamData%FGL
 ENDIF
 IF (ALLOCATED(SrcParamData%AM2InvJac)) THEN
    i1_l = LBOUND(SrcParamData%AM2InvJac,1)
@@ -3450,11 +3464,14 @@ ENDIF
 IF (ALLOCATED(ParamData%MBM)) THEN
    DEALLOCATE(ParamData%MBM)
 ENDIF
-IF (ALLOCATED(ParamData%PHI_R)) THEN
-   DEALLOCATE(ParamData%PHI_R)
+IF (ALLOCATED(ParamData%PhiL_T)) THEN
+   DEALLOCATE(ParamData%PhiL_T)
 ENDIF
-IF (ALLOCATED(ParamData%PHI_M)) THEN
-   DEALLOCATE(ParamData%PHI_M)
+IF (ALLOCATED(ParamData%PhiLInvOmgL2)) THEN
+   DEALLOCATE(ParamData%PhiLInvOmgL2)
+ENDIF
+IF (ALLOCATED(ParamData%FGL)) THEN
+   DEALLOCATE(ParamData%FGL)
 ENDIF
 IF (ALLOCATED(ParamData%AM2InvJac)) THEN
    DEALLOCATE(ParamData%AM2InvJac)
@@ -3593,8 +3610,9 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%MBB )  ! MBB 
   Re_BufSz    = Re_BufSz    + SIZE( InData%KBB )  ! KBB 
   Re_BufSz    = Re_BufSz    + SIZE( InData%MBM )  ! MBM 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%PHI_R )  ! PHI_R 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%PHI_M )  ! PHI_M 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%PhiL_T )  ! PhiL_T 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%PhiLInvOmgL2 )  ! PhiLInvOmgL2 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%FGL )  ! FGL 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AM2InvJac )  ! AM2InvJac 
   Re_BufSz    = Re_BufSz    + SIZE( InData%TI )  ! TI 
   Re_BufSz    = Re_BufSz    + SIZE( InData%TIreact )  ! TIreact 
@@ -3786,13 +3804,17 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%MBM))-1 ) =  PACK(InData%MBM ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%MBM)
   ENDIF
-  IF ( ALLOCATED(InData%PHI_R) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PHI_R))-1 ) =  PACK(InData%PHI_R ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%PHI_R)
+  IF ( ALLOCATED(InData%PhiL_T) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PhiL_T))-1 ) =  PACK(InData%PhiL_T ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%PhiL_T)
   ENDIF
-  IF ( ALLOCATED(InData%PHI_M) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PHI_M))-1 ) =  PACK(InData%PHI_M ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%PHI_M)
+  IF ( ALLOCATED(InData%PhiLInvOmgL2) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PhiLInvOmgL2))-1 ) =  PACK(InData%PhiLInvOmgL2 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%PhiLInvOmgL2)
+  ENDIF
+  IF ( ALLOCATED(InData%FGL) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%FGL))-1 ) =  PACK(InData%FGL ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%FGL)
   ENDIF
   IF ( ALLOCATED(InData%AM2InvJac) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AM2InvJac))-1 ) =  PACK(InData%AM2InvJac ,.TRUE.)
@@ -4188,17 +4210,23 @@ ENDDO
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%MBM)
   ENDIF
-  IF ( ALLOCATED(OutData%PHI_R) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%PHI_R,1),SIZE(OutData%PHI_R,2))); mask2 = .TRUE.
-    OutData%PHI_R = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PHI_R))-1 ),mask2,OutData%PHI_R)
+  IF ( ALLOCATED(OutData%PhiL_T) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%PhiL_T,1),SIZE(OutData%PhiL_T,2))); mask2 = .TRUE.
+    OutData%PhiL_T = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PhiL_T))-1 ),mask2,OutData%PhiL_T)
   DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%PHI_R)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%PhiL_T)
   ENDIF
-  IF ( ALLOCATED(OutData%PHI_M) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%PHI_M,1),SIZE(OutData%PHI_M,2))); mask2 = .TRUE.
-    OutData%PHI_M = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PHI_M))-1 ),mask2,OutData%PHI_M)
+  IF ( ALLOCATED(OutData%PhiLInvOmgL2) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%PhiLInvOmgL2,1),SIZE(OutData%PhiLInvOmgL2,2))); mask2 = .TRUE.
+    OutData%PhiLInvOmgL2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PhiLInvOmgL2))-1 ),mask2,OutData%PhiLInvOmgL2)
   DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%PHI_M)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%PhiLInvOmgL2)
+  ENDIF
+  IF ( ALLOCATED(OutData%FGL) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%FGL,1))); mask1 = .TRUE.
+    OutData%FGL = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%FGL))-1 ),mask1,OutData%FGL)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%FGL)
   ENDIF
   IF ( ALLOCATED(OutData%AM2InvJac) ) THEN
   ALLOCATE(mask2(SIZE(OutData%AM2InvJac,1),SIZE(OutData%AM2InvJac,2))); mask2 = .TRUE.

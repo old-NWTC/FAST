@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-03-14 22:10:34 -0600 (Fri, 14 Mar 2014) $
-! (File) Revision #: $Rev: 656 $
+! File last committed: $Date: 2014-05-02 12:31:20 -0600 (Fri, 02 May 2014) $
+! (File) Revision #: $Rev: 684 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 
@@ -33,7 +33,7 @@ MODULE ElastoDyn_Parameters
 
    USE NWTC_Library
 
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.04a-bjj', '3-Mar-2014' )
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.06a-bjj', '2-May-2014' )
    CHARACTER(*),   PARAMETER  :: ED_Nickname = 'ED'
    
    REAL(ReKi), PARAMETER            :: SmallAngleLimit_Deg  =  15.0                     ! Largest input angle considered "small" (used as a check on input data), degrees
@@ -1641,10 +1641,13 @@ SUBROUTINE ED_UpdateStates( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, E
          
       END SELECT
       
-      !bjj: do we need to add this in the ABM4 routine????
+         ! Make sure the rotor azimuth is not greater or equal to 360 degrees: 
+         
+      ! bjj: per jmj, the subtraction of TwoPi here is so that we don't run into numerical issues with large GeAz (in large simulations)
+      !   this subtraction is okay because we use x%QT(DOF_GeAz) only in equations with SIN() and/or COS() so it doesn't matter
+      !   if there is a discontinunity in the channel.
+      ! bjj: why don't we just do a modulo on x%QT(DOF_GeAz) instead of using x%QT(DOF_DrTr) with it?   
       
-         ! Make sure the rotor azimuth is not greater or equal to 360 degrees: (can't we do a mod here?)
-
       IF ( ( x%QT(DOF_GeAz) + x%QT(DOF_DrTr) ) >= TwoPi )  x%QT(DOF_GeAz) = x%QT(DOF_GeAz) - TwoPi
             
       
@@ -1711,13 +1714,13 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    REAL(ReKi)                   :: TmpVec    (3)                                   ! A temporary vector used in various computations.
    REAL(ReKi)                   :: TmpVec2   (3)                                   ! A temporary vector.
 
-
-   REAL(ReKi)                   :: LinAccES (p%NumBl,p%TipNode,3)                  ! Total linear acceleration of a point on a   blade (point S) in the inertia frame (body E for earth).
-   REAL(ReKi)                   :: LinAccET (p%TwrNodes,3)                         ! Total linear acceleration of a point on the tower (point T) in the inertia frame (body E for earth).
-   REAL(ReKi)                   :: FrcS0B   (p%NumBl,3)                            ! Total force at the blade root (point S(0)) due to the blade.
-   REAL(ReKi)                   :: FTTower  (p%TwrNodes,3)                         ! Total hydrodynamic + aerodynamic force per unit length acting on the tower at point T.
-   REAL(ReKi)                   :: MFHydro  (p%TwrNodes,3)                         ! Total hydrodynamic + aerodynamic moment per unit length acting on a tower element (body F) at point T.
-   REAL(ReKi)                   :: MomH0B   (p%NumBl,3)                            ! Total moment at the hub (body H) / blade root (point S(0)) due to the blade.
+   INTEGER, PARAMETER           :: NDims = 3
+   REAL(ReKi)                   :: LinAccES (NDims,p%NumBl,p%TipNode)              ! Total linear acceleration of a point on a   blade (point S) in the inertia frame (body E for earth).
+   REAL(ReKi)                   :: LinAccET (NDims,p%TwrNodes)                     ! Total linear acceleration of a point on the tower (point T) in the inertia frame (body E for earth).
+   REAL(ReKi)                   :: FrcS0B   (NDims,p%NumBl)                        ! Total force at the blade root (point S(0)) due to the blade.
+   REAL(ReKi)                   :: FTTower  (NDims,p%TwrNodes)                     ! Total hydrodynamic + aerodynamic force per unit length acting on the tower at point T.
+   REAL(ReKi)                   :: MFHydro  (NDims,p%TwrNodes)                     ! Total hydrodynamic + aerodynamic moment per unit length acting on a tower element (body F) at point T.
+   REAL(ReKi)                   :: MomH0B   (NDims,p%NumBl)                        ! Total moment at the hub (body H) / blade root (point S(0)) due to the blade.
 
 
    INTEGER(IntKi)               :: I                                               ! Generic index
@@ -1754,10 +1757,10 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       !u_UsrPtfm%X  = x_ED%QT(1:6)
       !u_UsrPtfm%XD = x_ED%QDT(1:6)
 
-      !u_UsrTwr%X(:,J) = (/ OtherSt_ED%RtHS%rT(J,1),       -OtherSt_ED%RtHS%rT(J,3),       OtherSt_ED%RtHS%rT( J,2)+ p%PtfmRefzt,&
-      !                     OtherSt_ED%RtHS%AngPosEF(J,1), -OtherSt_ED%RtHS%AngPosEF(J,3), OtherSt_ED%RtHS%AngPosEF(J,2)         /) 
-      !u_UsrTwr%XD(:,J) = (/ OtherSt_ED%RtHS%LinVelET(J,1), -OtherSt_ED%RtHS%LinVelET(J,3), OtherSt_ED%RtHS%LinVelET(J,2),&
-      !                      OtherSt_ED%RtHS%AngVelEF(J,1), -OtherSt_ED%RtHS%AngVelEF(J,3), OtherSt_ED%RtHS%AngVelEF(J,2) /)                     
+      !u_UsrTwr%X(:,J) = (/ OtherSt_ED%RtHS%rT(1,J),       -OtherSt_ED%RtHS%rT(3,J),       OtherSt_ED%RtHS%rT( 2,J)+ p%PtfmRefzt,&
+      !                     OtherSt_ED%RtHS%AngPosEF(1,J), -OtherSt_ED%RtHS%AngPosEF(3,J), OtherSt_ED%RtHS%AngPosEF(2,J)         /) 
+      !u_UsrTwr%XD(:,J) = (/ OtherSt_ED%RtHS%LinVelET(1,J), -OtherSt_ED%RtHS%LinVelET(3,J), OtherSt_ED%RtHS%LinVelET(2,J),&
+      !                      OtherSt_ED%RtHS%AngVelEF(1,J), -OtherSt_ED%RtHS%AngVelEF(3,J), OtherSt_ED%RtHS%AngVelEF(2,J) /)                     
    
    
    
@@ -1802,14 +1805,14 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       AngAccER   = AngAccER   + OtherState%RtHS%PAngVelER  (p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))
       LinAccEIMU = LinAccEIMU + OtherState%RtHS%PLinVelEIMU(p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))
       LinAccEO   = LinAccEO   + OtherState%RtHS%PLinVelEO  (p%DOFs%SrtPS(I),0,:)*OtherState%QD2T(p%DOFs%SrtPS(I))
-      FrcONcRt   = FrcONcRt   + OtherState%RtHS%PFrcONcRt  (p%DOFs%SrtPS(I),  :)*OtherState%QD2T(p%DOFs%SrtPS(I))
-      FrcPRot    = FrcPRot    + OtherState%RtHS%PFrcPRot   (p%DOFs%SrtPS(I),  :)*OtherState%QD2T(p%DOFs%SrtPS(I))
-      FrcT0Trb   = FrcT0Trb   + OtherState%RtHS%PFrcT0Trb  (p%DOFs%SrtPS(I),  :)*OtherState%QD2T(p%DOFs%SrtPS(I))
-      MomBNcRt   = MomBNcRt   + OtherState%RtHS%PMomBNcRt  (p%DOFs%SrtPS(I),  :)*OtherState%QD2T(p%DOFs%SrtPS(I))
-      MomLPRot   = MomLPRot   + OtherState%RtHS%PMomLPRot  (p%DOFs%SrtPS(I),  :)*OtherState%QD2T(p%DOFs%SrtPS(I))
-      MomNGnRt   = MomNGnRt   + OtherState%RtHS%PMomNGnRt  (p%DOFs%SrtPS(I),  :)*OtherState%QD2T(p%DOFs%SrtPS(I))
-      MomNTail   = MomNTail   + OtherState%RtHS%PMomNTail  (p%DOFs%SrtPS(I),  :)*OtherState%QD2T(p%DOFs%SrtPS(I))
-      MomX0Trb   = MomX0Trb   + OtherState%RtHS%PMomX0Trb  (p%DOFs%SrtPS(I),  :)*OtherState%QD2T(p%DOFs%SrtPS(I))
+      FrcONcRt   = FrcONcRt   + OtherState%RtHS%PFrcONcRt  (:,p%DOFs%SrtPS(I)  )*OtherState%QD2T(p%DOFs%SrtPS(I))
+      FrcPRot    = FrcPRot    + OtherState%RtHS%PFrcPRot   (:,p%DOFs%SrtPS(I)  )*OtherState%QD2T(p%DOFs%SrtPS(I))
+      FrcT0Trb   = FrcT0Trb   + OtherState%RtHS%PFrcT0Trb  (:,p%DOFs%SrtPS(I)  )*OtherState%QD2T(p%DOFs%SrtPS(I))
+      MomBNcRt   = MomBNcRt   + OtherState%RtHS%PMomBNcRt  (:,p%DOFs%SrtPS(I)  )*OtherState%QD2T(p%DOFs%SrtPS(I))
+      MomLPRot   = MomLPRot   + OtherState%RtHS%PMomLPRot  (:,p%DOFs%SrtPS(I)  )*OtherState%QD2T(p%DOFs%SrtPS(I))
+      MomNGnRt   = MomNGnRt   + OtherState%RtHS%PMomNGnRt  (:,p%DOFs%SrtPS(I)  )*OtherState%QD2T(p%DOFs%SrtPS(I))
+      MomNTail   = MomNTail   + OtherState%RtHS%PMomNTail  (:,p%DOFs%SrtPS(I)  )*OtherState%QD2T(p%DOFs%SrtPS(I))
+      MomX0Trb   = MomX0Trb   + OtherState%RtHS%PMomX0Trb  (:,p%DOFs%SrtPS(I)  )*OtherState%QD2T(p%DOFs%SrtPS(I))
    ENDDO             ! I - All active (enabled) DOFs
    DO I = 1,p%DOFs%NPYE     ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
       AngAccEX   = AngAccEX   + OtherState%RtHS%PAngVelEX  (p%DOFs%PYE  (I),0,:)*OtherState%QD2T(p%DOFs%PYE  (I))
@@ -1832,22 +1835,22 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    DO K = 1,p%NumBl ! Loop through all blades
 
-      LinAccES(K,p%TipNode,:) = OtherState%RtHS%LinAccESt(K,p%TipNode,:)
-      FrcS0B  (K,          :) = OtherState%RtHS%FrcS0Bt  (K,          :)
-      MomH0B  (K,          :) = OtherState%RtHS%MomH0Bt  (K,          :)
+      LinAccES(:,K,p%TipNode) = OtherState%RtHS%LinAccESt(:,K,p%TipNode)
+      FrcS0B  (:,K          ) = OtherState%RtHS%FrcS0Bt  (:,K          )
+      MomH0B  (:,K          ) = OtherState%RtHS%MomH0Bt  (:,K          )
 
       DO I = 1,p%DOFs%NPSE(K)  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
-         LinAccES(K,p%TipNode,:) = LinAccES(K,p%TipNode,:) + OtherState%RtHS%PLinVelES(K,p%TipNode,p%DOFs%PSE(K,I),0,:)*OtherState%QD2T(p%DOFs%PSE(K,I))
-         FrcS0B  (K,          :) = FrcS0B  (K,          :) + OtherState%RtHS%PFrcS0B  (K,          p%DOFs%PSE(K,I),  :)*OtherState%QD2T(p%DOFs%PSE(K,I))
-         MomH0B  (K,          :) = MomH0B  (K,          :) + OtherState%RtHS%PMomH0B  (K,          p%DOFs%PSE(K,I),  :)*OtherState%QD2T(p%DOFs%PSE(K,I))
+         LinAccES(:,K,p%TipNode) = LinAccES(:,K,p%TipNode) + OtherState%RtHS%PLinVelES(K,p%TipNode,p%DOFs%PSE(K,I),0,:)*OtherState%QD2T(p%DOFs%PSE(K,I))
+         FrcS0B  (:,K          ) = FrcS0B  (:,K          ) + OtherState%RtHS%PFrcS0B  (:,K,          p%DOFs%PSE(K,I)  )*OtherState%QD2T(p%DOFs%PSE(K,I))
+         MomH0B  (:,K          ) = MomH0B  (:,K          ) + OtherState%RtHS%PMomH0B  (:,K,          p%DOFs%PSE(K,I)  )*OtherState%QD2T(p%DOFs%PSE(K,I))
       ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
       DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
 
-         LinAccES(K,J,:) = OtherState%RtHS%LinAccESt(K,J,:)
+         LinAccES(:,K,J) = OtherState%RtHS%LinAccESt(:,K,J)
 
          DO I = 1,p%DOFs%NPSE(K)  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
-            LinAccES(K,J,:) = LinAccES(K,J,:) + OtherState%RtHS%PLinVelES(K,J,p%DOFs%PSE(K,I),0,:)*OtherState%QD2T(p%DOFs%PSE(K,I))
+            LinAccES(:,K,J) = LinAccES(:,K,J) + OtherState%RtHS%PLinVelES(K,J,p%DOFs%PSE(K,I),0,:)*OtherState%QD2T(p%DOFs%PSE(K,I))
          ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
       ENDDO             ! J - Blade nodes / elements
@@ -1856,14 +1859,14 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    DO J = 1,p%TwrNodes  ! Loop through the tower nodes / elements
 
-      LinAccET(J,:) = OtherState%RtHS%LinAccETt(J,:)
-      FTTower (J,:) = OtherState%RtHS%FTHydrot (J,:)
-      MFHydro (J,:) = OtherState%RtHS%MFHydrot (J,:)
+      LinAccET(:,J) = OtherState%RtHS%LinAccETt(:,J)
+      FTTower (:,J) = OtherState%RtHS%FTHydrot (:,J)
+      MFHydro (:,J) = OtherState%RtHS%MFHydrot (:,J)
 
       DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
-         LinAccET(J,:) = LinAccET(J,:) + OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,:)*OtherState%QD2T(p%DOFs%PTE(I))
-         FTTower (J,:) = FTTower (J,:) + OtherState%RtHS%PFTHydro (J,p%DOFs%PTE(I),  :)*OtherState%QD2T(p%DOFs%PTE(I))
-         MFHydro (J,:) = MFHydro (J,:) + OtherState%RtHS%PMFHydro (J,p%DOFs%PTE(I),  :)*OtherState%QD2T(p%DOFs%PTE(I))
+         LinAccET(:,J) = LinAccET(:,J) + OtherState%RtHS%PLinVelET(J,p%DOFs%PTE(I),0,:)*OtherState%QD2T(p%DOFs%PTE(I))
+         FTTower (:,J) = FTTower (:,J) + OtherState%RtHS%PFTHydro (:,J,p%DOFs%PTE(I)  )*OtherState%QD2T(p%DOFs%PTE(I))
+         MFHydro (:,J) = MFHydro (:,J) + OtherState%RtHS%PMFHydro (:,J,p%DOFs%PTE(I)  )*OtherState%QD2T(p%DOFs%PTE(I))
       ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
 
    ENDDO ! J - Tower nodes / elements
@@ -1897,8 +1900,8 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ! Blade (1-3) Tip Motions:
 
    DO K = 1,p%NumBl
-      rSTipPSTip = OtherState%RtHS%rS0S(K,p%TipNode,:) - p%BldFlexL*OtherState%CoordSys%j3(K,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
-      rOSTip     = OtherState%RtHS%rS  (K,p%TipNode,:) - OtherState%RtHS%rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 1.
+      rSTipPSTip = OtherState%RtHS%rS0S(:,K,p%TipNode) - p%BldFlexL*OtherState%CoordSys%j3(K,:)  ! Position vector from the undeflected blade tip (point S tip prime) to the deflected blade tip (point S tip) of blade 1.
+      rOSTip     = OtherState%RtHS%rS  (:,K,p%TipNode) - OtherState%RtHS%rO                ! Position vector from the deflected tower top (point O) to the deflected blade tip (point S tip) of blade 1.
       rOSTipxn   =      DOT_PRODUCT( rOSTip, OtherState%CoordSys%d1 )                ! Component of rOSTip directed along the xn-axis.
       rOSTipyn   = -1.0*DOT_PRODUCT( rOSTip, OtherState%CoordSys%d3 )                ! Component of rOSTip directed along the yn-axis.
       rOSTipzn   =      DOT_PRODUCT( rOSTip, OtherState%CoordSys%d2 )                ! Component of rOSTip directed along the zn-axis.
@@ -1909,11 +1912,11 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       OtherState%AllOuts(  TipDxb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j1(K,         :) )
       OtherState%AllOuts(  TipDyb(K) ) = DOT_PRODUCT(            rSTipPSTip, OtherState%CoordSys%j2(K,         :) )
       !JASON: USE TipNode HERE INSTEAD OF BldNodes IF YOU ALLOCATE AND DEFINE n1, n2, n3, m1, m2, AND m3 TO USE TipNode.  THIS WILL REQUIRE THAT THE AERODYNAMIC AND STRUCTURAL TWISTS, AeroTwst() AND ThetaS(), BE KNOWN AT THE TIP!!!
-      OtherState%AllOuts( TipALxb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n1(K,p%BldNodes,:) )
-      OtherState%AllOuts( TipALyb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n2(K,p%BldNodes,:) )
-      OtherState%AllOuts( TipALzb(K) ) = DOT_PRODUCT( LinAccES(K,p%TipNode,:), OtherState%CoordSys%n3(K,p%BldNodes,:) )
-      OtherState%AllOuts( TipRDxb(K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%TipNode,:), OtherState%CoordSys%j1(K,         :) )*R2D
-      OtherState%AllOuts( TipRDyb(K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%TipNode,:), OtherState%CoordSys%j2(K,         :) )*R2D
+      OtherState%AllOuts( TipALxb(K) ) = DOT_PRODUCT( LinAccES(:,K,p%TipNode), OtherState%CoordSys%n1(K,p%BldNodes,:) )
+      OtherState%AllOuts( TipALyb(K) ) = DOT_PRODUCT( LinAccES(:,K,p%TipNode), OtherState%CoordSys%n2(K,p%BldNodes,:) )
+      OtherState%AllOuts( TipALzb(K) ) = DOT_PRODUCT( LinAccES(:,K,p%TipNode), OtherState%CoordSys%n3(K,p%BldNodes,:) )
+      OtherState%AllOuts( TipRDxb(K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(:,K,p%TipNode), OtherState%CoordSys%j1(K,         :) )*R2D
+      OtherState%AllOuts( TipRDyb(K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(:,K,p%TipNode), OtherState%CoordSys%j2(K,         :) )*R2D
       ! There is no sense computing AllOuts( TipRDzc(K) ) here since it is always zero for FAST simulation results.
       IF ( rOSTipzn > 0.0 )  THEN   ! Tip of blade K is above the yaw bearing.
          OtherState%AllOuts(TipClrnc(K) ) = SQRT( rOSTipxn*rOSTipxn + rOSTipyn*rOSTipyn + rOSTipzn*rOSTipzn ) ! Absolute distance from the tower top / yaw bearing to the tip of blade 1.
@@ -1928,19 +1931,19 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    DO K = 1,p%NumBl
       DO I = 1, p%NBlGages
 
-         OtherState%AllOuts( SpnALxb(I,K) ) = DOT_PRODUCT( LinAccES(K,p%BldGagNd(I),:), OtherState%CoordSys%n1(K,p%BldGagNd(I),:) )
-         OtherState%AllOuts( SpnALyb(I,K) ) = DOT_PRODUCT( LinAccES(K,p%BldGagNd(I),:), OtherState%CoordSys%n2(K,p%BldGagNd(I),:) )
-         OtherState%AllOuts( SpnALzb(I,K) ) = DOT_PRODUCT( LinAccES(K,p%BldGagNd(I),:), OtherState%CoordSys%n3(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts( SpnALxb(I,K) ) = DOT_PRODUCT( LinAccES(:,K,p%BldGagNd(I)), OtherState%CoordSys%n1(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts( SpnALyb(I,K) ) = DOT_PRODUCT( LinAccES(:,K,p%BldGagNd(I)), OtherState%CoordSys%n2(K,p%BldGagNd(I),:) )
+         OtherState%AllOuts( SpnALzb(I,K) ) = DOT_PRODUCT( LinAccES(:,K,p%BldGagNd(I)), OtherState%CoordSys%n3(K,p%BldGagNd(I),:) )
 
-         rSPS                      = OtherState%RtHS%rS0S(K,p%BldGagNd(I),:) - p%RNodes(p%BldGagNd(I))*OtherState%CoordSys%j3(K,:)
+         rSPS                      = OtherState%RtHS%rS0S(:,K,p%BldGagNd(I)) - p%RNodes(p%BldGagNd(I))*OtherState%CoordSys%j3(K,:)
 
          OtherState%AllOuts( SpnTDxb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j1(K,:) )
          OtherState%AllOuts( SpnTDyb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j2(K,:) )
          OtherState%AllOuts( SpnTDzb(I,K) ) = DOT_PRODUCT( rSPS, OtherState%CoordSys%j3(K,:) )
 
-         OtherState%AllOuts( SpnRDxb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%BldGagNd(I),:), OtherState%CoordSys%j1(K,:) )*R2D
-         OtherState%AllOuts( SpnRDyb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%BldGagNd(I),:), OtherState%CoordSys%j2(K,:) )*R2D
-        !OtherState%AllOuts( SpnRDzb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(K,p%BldGagNd(I),:), OtherState%CoordSys%j3(K,:) )*R2D           ! this is always zero for FAST
+         OtherState%AllOuts( SpnRDxb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(:,K,p%BldGagNd(I)), OtherState%CoordSys%j1(K,:) )*R2D
+         OtherState%AllOuts( SpnRDyb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(:,K,p%BldGagNd(I)), OtherState%CoordSys%j2(K,:) )*R2D
+        !OtherState%AllOuts( SpnRDzb(I,K) ) = DOT_PRODUCT( OtherState%RtHS%AngPosHM(:,K,p%BldGagNd(I)), OtherState%CoordSys%j3(K,:) )*R2D           ! this is always zero for FAST
 
       END DO !I
    END DO !K
@@ -1969,12 +1972,15 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
       ! Shaft Motions:
 
-   OtherState%AllOuts(LSSTipPxa) = MOD( ( x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) + p%AzimB1Up)*R2D  + 90.0, 360.0 ) !bjj: this used IgnoreMod for linearization
-   OtherState%AllOuts(LSSGagPxa) = MOD( ( x%QT (DOF_GeAz)                    + p%AzimB1Up)*R2D  + 90.0, 360.0 ) !bjj: this used IgnoreMod for linearization
-   OtherState%AllOuts(   LSSTipVxa) =    ( x%QDT (DOF_GeAz) +  x%QDT (DOF_DrTr) )*RPS2RPM
-   OtherState%AllOuts(   LSSTipAxa) =    (   OtherState%QD2T(DOF_GeAz) +    OtherState%QD2T(DOF_DrTr) )*R2D
-   OtherState%AllOuts(   LSSGagVxa) =      x%QDT (DOF_GeAz)                      *RPS2RPM
-   OtherState%AllOuts(   LSSGagAxa) =        OtherState%QD2T(DOF_GeAz)                      *R2D
+   y%LSSTipPxa = x%QT (DOF_GeAz) + x%QT  (DOF_DrTr) + p%AzimB1Up + PiBy2 !bjj: this used IgnoreMod for linearization
+   CALL Zero2TwoPi(y%LSSTipPxa)  ! Return value between 0 and 2pi (LSSTipPxa is used only in calculations of SIN and COS, so it's okay to take MOD/MODULO here; this wouldn't be oaky for linearization)
+   OtherState%AllOuts(LSSTipPxa) = y%LSSTipPxa*R2D
+   
+   OtherState%AllOuts(LSSGagPxa) = MODULO( (      x%QT (DOF_GeAz)                            + p%AzimB1Up)*R2D  + 90.0, 360.0 ) !bjj: this used IgnoreMod for linearization (Zero2TwoPi)
+   OtherState%AllOuts(   LSSTipVxa) =      (     x%QDT (DOF_GeAz) +          x%QDT (DOF_DrTr) )*RPS2RPM
+   OtherState%AllOuts(   LSSTipAxa) = ( OtherState%QD2T(DOF_GeAz) + OtherState%QD2T(DOF_DrTr) )*R2D
+   OtherState%AllOuts(   LSSGagVxa) =            x%QDT (DOF_GeAz)                              *RPS2RPM
+   OtherState%AllOuts(   LSSGagAxa) =   OtherState%QD2T(DOF_GeAz)                              *R2D
    OtherState%AllOuts(     HSShftV) = ABS(p%GBRatio)*OtherState%AllOuts(LSSGagVxa)
    OtherState%AllOuts(     HSShftA) = ABS(p%GBRatio)*OtherState%AllOuts(LSSGagAxa)
 
@@ -2050,28 +2056,28 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
    DO I = 1, p%NTwGages
 
-      OtherState%AllOuts( TwHtALxt(I) ) =      DOT_PRODUCT( LinAccET(p%TwrGagNd(I),:), OtherState%CoordSys%t1(p%TwrGagNd(I),:) )
-      OtherState%AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(p%TwrGagNd(I),:), OtherState%CoordSys%t3(p%TwrGagNd(I),:) )
-      OtherState%AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(p%TwrGagNd(I),:), OtherState%CoordSys%t2(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtALxt(I) ) =      DOT_PRODUCT( LinAccET(:,p%TwrGagNd(I)), OtherState%CoordSys%t1(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtALyt(I) ) = -1.0*DOT_PRODUCT( LinAccET(:,p%TwrGagNd(I)), OtherState%CoordSys%t3(p%TwrGagNd(I),:) )
+      OtherState%AllOuts( TwHtALzt(I) ) =      DOT_PRODUCT( LinAccET(:,p%TwrGagNd(I)), OtherState%CoordSys%t2(p%TwrGagNd(I),:) )
 
-      rTPT                   = OtherState%RtHS%rT0T(p%TwrGagNd(I),:) - p%HNodes(p%TwrGagNd(I))*OtherState%CoordSys%a2(:)
+      rTPT                   = OtherState%RtHS%rT0T(:,p%TwrGagNd(I)) - p%HNodes(p%TwrGagNd(I))*OtherState%CoordSys%a2(:)
 
       OtherState%AllOuts( TwHtTDxt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a1 )
       OtherState%AllOuts( TwHtTDyt(I) ) = -1.0*DOT_PRODUCT( rTPT,     OtherState%CoordSys%a3 )
       OtherState%AllOuts( TwHtTDzt(I) ) =      DOT_PRODUCT( rTPT,     OtherState%CoordSys%a2 )
 
-      OtherState%AllOuts( TwHtRDxt(I) ) =      DOT_PRODUCT( OtherState%RtHS%AngPosXF(p%TwrGagNd(I),:), OtherState%CoordSys%a1 )*R2D  !why is this zero???
-      OtherState%AllOuts( TwHtRDyt(I) ) = -1.0*DOT_PRODUCT( OtherState%RtHS%AngPosXF(p%TwrGagNd(I),:), OtherState%CoordSys%a3 )*R2D
-   !   OtherState%AllOuts( TwHtRDzt(I) ) =     DOT_PRODUCT( OtherState%RtHS%AngPosXF(p%TwrGagNd(I),:), OtherState%CoordSys%a2 )*R2D  !this will always be 0 in FAST, so no need to calculate
+      OtherState%AllOuts( TwHtRDxt(I) ) =      DOT_PRODUCT( OtherState%RtHS%AngPosXF(:,p%TwrGagNd(I)), OtherState%CoordSys%a1 )*R2D  !why is this zero???
+      OtherState%AllOuts( TwHtRDyt(I) ) = -1.0*DOT_PRODUCT( OtherState%RtHS%AngPosXF(:,p%TwrGagNd(I)), OtherState%CoordSys%a3 )*R2D
+   !   OtherState%AllOuts( TwHtRDzt(I) ) =     DOT_PRODUCT( OtherState%RtHS%AngPosXF(:,p%TwrGagNd(I)), OtherState%CoordSys%a2 )*R2D  !this will always be 0 in FAST, so no need to calculate
 
 
-      OtherState%AllOuts( TwHtTPxi(I) ) =      OtherState%RtHS%rT(p%TwrGagNd(I),1)
-      OtherState%AllOuts( TwHtTPyi(I) ) = -1.0*OtherState%RtHS%rT(p%TwrGagNd(I),3)
-      OtherState%AllOuts( TwHtTPzi(I) ) =      OtherState%RtHS%rT(p%TwrGagNd(I),2) + p%PtfmRefzt
+      OtherState%AllOuts( TwHtTPxi(I) ) =      OtherState%RtHS%rT(1,p%TwrGagNd(I))
+      OtherState%AllOuts( TwHtTPyi(I) ) = -1.0*OtherState%RtHS%rT(3,p%TwrGagNd(I))
+      OtherState%AllOuts( TwHtTPzi(I) ) =      OtherState%RtHS%rT(2,p%TwrGagNd(I)) + p%PtfmRefzt
 
-      OtherState%AllOuts( TwHtRPxi(I) ) =  OtherState%RtHS%AngPosEF(p%TwrGagNd(I),1)*R2D
-      OtherState%AllOuts( TwHtRPyi(I) ) = -OtherState%RtHS%AngPosEF(p%TwrGagNd(I),3)*R2D
-      OtherState%AllOuts( TwHtRPzi(I) ) =  OtherState%RtHS%AngPosEF(p%TwrGagNd(I),2)*R2D
+      OtherState%AllOuts( TwHtRPxi(I) ) =  OtherState%RtHS%AngPosEF(1,p%TwrGagNd(I))*R2D
+      OtherState%AllOuts( TwHtRPyi(I) ) = -OtherState%RtHS%AngPosEF(3,p%TwrGagNd(I))*R2D
+      OtherState%AllOuts( TwHtRPzi(I) ) =  OtherState%RtHS%AngPosEF(2,p%TwrGagNd(I))*R2D
 
    END DO !I
 
@@ -2116,16 +2122,16 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ! Blade Root Loads:
 
    DO K=1,p%NumBl
-      OtherState%AllOuts( RootFxc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i1(K,:) )
-      OtherState%AllOuts( RootFyc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i2(K,:) )
-      OtherState%AllOuts( RootFzc(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%i3(K,:) )
-      OtherState%AllOuts( RootFxb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j1(K,:) )
-      OtherState%AllOuts( RootFyb(K) ) = DOT_PRODUCT( FrcS0B(K,:), OtherState%CoordSys%j2(K,:) )
-      OtherState%AllOuts( RootMxc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i1(K,:) )
-      OtherState%AllOuts( RootMyc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i2(K,:) )
-      OtherState%AllOuts( RootMzc(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%i3(K,:) )
-      OtherState%AllOuts( RootMxb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j1(K,:) )
-      OtherState%AllOuts( RootMyb(K) ) = DOT_PRODUCT( MomH0B(K,:), OtherState%CoordSys%j2(K,:) )
+      OtherState%AllOuts( RootFxc(K) ) = DOT_PRODUCT( FrcS0B(:,K), OtherState%CoordSys%i1(K,:) )
+      OtherState%AllOuts( RootFyc(K) ) = DOT_PRODUCT( FrcS0B(:,K), OtherState%CoordSys%i2(K,:) )
+      OtherState%AllOuts( RootFzc(K) ) = DOT_PRODUCT( FrcS0B(:,K), OtherState%CoordSys%i3(K,:) )
+      OtherState%AllOuts( RootFxb(K) ) = DOT_PRODUCT( FrcS0B(:,K), OtherState%CoordSys%j1(K,:) )
+      OtherState%AllOuts( RootFyb(K) ) = DOT_PRODUCT( FrcS0B(:,K), OtherState%CoordSys%j2(K,:) )
+      OtherState%AllOuts( RootMxc(K) ) = DOT_PRODUCT( MomH0B(:,K), OtherState%CoordSys%i1(K,:) )
+      OtherState%AllOuts( RootMyc(K) ) = DOT_PRODUCT( MomH0B(:,K), OtherState%CoordSys%i2(K,:) )
+      OtherState%AllOuts( RootMzc(K) ) = DOT_PRODUCT( MomH0B(:,K), OtherState%CoordSys%i3(K,:) )
+      OtherState%AllOuts( RootMxb(K) ) = DOT_PRODUCT( MomH0B(:,K), OtherState%CoordSys%j1(K,:) )
+      OtherState%AllOuts( RootMyb(K) ) = DOT_PRODUCT( MomH0B(:,K), OtherState%CoordSys%j2(K,:) )
    END DO !K
 
 
@@ -2136,17 +2142,17 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
       ! Initialize FrcMGagB and MomMGagB using the tip brake effects:
 
-         FrcMGagB = OtherState%RtHS%FSTipDrag(K,:) - p%TipMass(K)*( p%Gravity*OtherState%CoordSys%z2 + LinAccES(K,p%TipNode,:) )
-         MomMGagB = CROSS_PRODUCT( OtherState%RtHS%rS0S(K,p%TipNode,:) - OtherState%RtHS%rS0S(K,p%BldGagNd(I),:), FrcMGagB )
+         FrcMGagB = OtherState%RtHS%FSTipDrag(:,K) - p%TipMass(K)*( p%Gravity*OtherState%CoordSys%z2 + LinAccES(:,K,p%TipNode) )
+         MomMGagB = CROSS_PRODUCT( OtherState%RtHS%rS0S(:,K,p%TipNode) - OtherState%RtHS%rS0S(:,K,p%BldGagNd(I)), FrcMGagB )
 
       ! Integrate to find FrcMGagB and MomMGagB using all of the nodes / elements above the current strain gage location:
          DO J = ( p%BldGagNd(I) + 1 ),p%BldNodes ! Loop through blade nodes / elements above strain gage node
 
-            TmpVec2  = OtherState%RtHS%FSAero(K,J,:) - p%MassB(K,J)*( p%Gravity*OtherState%CoordSys%z2 + LinAccES(K,J,:) )  ! Portion of FrcMGagB associated with element J
+            TmpVec2  = OtherState%RtHS%FSAero(:,K,J) - p%MassB(K,J)*( p%Gravity*OtherState%CoordSys%z2 + LinAccES(:,K,J) )  ! Portion of FrcMGagB associated with element J
             FrcMGagB = FrcMGagB + TmpVec2*p%DRNodes(J)
 
-            TmpVec = CROSS_PRODUCT( OtherState%RtHS%rS0S(K,J,:) - OtherState%RtHS%rS0S(K,p%BldGagNd(I),:), TmpVec2 )           ! Portion of MomMGagB associated with element J
-            MomMGagB = MomMGagB + ( TmpVec + OtherState%RtHS%MMAero(K,J,:) )*p%DRNodes(J)
+            TmpVec = CROSS_PRODUCT( OtherState%RtHS%rS0S(:,K,J) - OtherState%RtHS%rS0S(:,K,p%BldGagNd(I)), TmpVec2 )           ! Portion of MomMGagB associated with element J
+            MomMGagB = MomMGagB + ( TmpVec + OtherState%RtHS%MMAero(:,K,J) )*p%DRNodes(J)
 
          ENDDO ! J - Blade nodes / elements above strain gage node
 
@@ -2156,14 +2162,14 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       !   the moment arm for the force is 1/4 of p%DRNodes() and the element
       !   length is 1/2 of p%DRNodes().
 
-         TmpVec2  = OtherState%RtHS%FSAero(K,p%BldGagNd(I),:) - p%MassB(K,p%BldGagNd(I))* ( p%Gravity*OtherState%CoordSys%z2 + LinAccES(K,p%BldGagNd(I),:) ) ! Portion of FrcMGagB associated with 1/2 of the strain gage element
+         TmpVec2  = OtherState%RtHS%FSAero(:,K,p%BldGagNd(I)) - p%MassB(K,p%BldGagNd(I))* ( p%Gravity*OtherState%CoordSys%z2 + LinAccES(:,K,p%BldGagNd(I)) ) ! Portion of FrcMGagB associated with 1/2 of the strain gage element
          FrcMGagB = FrcMGagB + TmpVec2 * 0.5 * p%DRNodes(p%BldGagNd(I))                                                    ! Portion of FrcMGagB associated with 1/2 of the strain gage element
          FrcMGagB = 0.001*FrcMGagB           ! Convert the local force to kN
 
 
          TmpVec = CROSS_PRODUCT( ( 0.25*p%DRNodes(p%BldGagNd(I)) )*OtherState%CoordSys%j3(K,:), TmpVec2 )                              ! Portion of MomMGagB associated with 1/2 of the strain gage element
 
-         MomMGagB = MomMGagB + ( TmpVec + OtherState%RtHS%MMAero(K,p%BldGagNd(I),:) )* ( 0.5 *p%DRNodes(p%BldGagNd(I)) )
+         MomMGagB = MomMGagB + ( TmpVec + OtherState%RtHS%MMAero(:,K,p%BldGagNd(I)) )* ( 0.5 *p%DRNodes(p%BldGagNd(I)) )
          MomMGagB = 0.001*MomMGagB           ! Convert the local moment to kN-m
 
 
@@ -2300,16 +2306,16 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
 
       ! Initialize FrcFGagT and MomFGagT using the tower-top and yaw bearing mass effects:
       FrcFGagT = FrcONcRt - p%YawBrMass*( p%Gravity*OtherState%CoordSys%z2 + LinAccEO )
-      MomFGagT = CROSS_PRODUCT( OtherState%RtHS%rZO - OtherState%RtHS%rZT(p%TwrGagNd(I),:), FrcFGagT )
+      MomFGagT = CROSS_PRODUCT( OtherState%RtHS%rZO - OtherState%RtHS%rZT(:,p%TwrGagNd(I)), FrcFGagT )
       MomFGagT = MomFGagT + MomBNcRt
 
       ! Integrate to find FrcFGagT and MomFGagT using all of the nodes / elements above the current strain gage location:
       DO J = ( p%TwrGagNd(I) + 1 ),p%TwrNodes ! Loop through tower nodes / elements above strain gage node
-         TmpVec2  = FTTower(J,:) - p%MassT(J)*( p%Gravity*OtherState%CoordSys%z2 + LinAccET(J,:) )           ! Portion of FrcFGagT associated with element J
+         TmpVec2  = FTTower(:,J) - p%MassT(J)*( p%Gravity*OtherState%CoordSys%z2 + LinAccET(:,J) )           ! Portion of FrcFGagT associated with element J
          FrcFGagT = FrcFGagT + TmpVec2*p%DHNodes(J)
 
-         TmpVec = CROSS_PRODUCT( OtherState%RtHS%rZT(J,:) - OtherState%RtHS%rZT(p%TwrGagNd(I),:), TmpVec2 )                          ! Portion of MomFGagT associated with element J
-         MomFGagT = MomFGagT + ( TmpVec + MFHydro(J,:) )*p%DHNodes(J)
+         TmpVec = CROSS_PRODUCT( OtherState%RtHS%rZT(:,J) - OtherState%RtHS%rZT(:,p%TwrGagNd(I)), TmpVec2 )                          ! Portion of MomFGagT associated with element J
+         MomFGagT = MomFGagT + ( TmpVec + MFHydro(:,J) )*p%DHNodes(J)
       ENDDO ! J -Tower nodes / elements above strain gage node
 
       ! Add the effects of 1/2 the strain gage element:
@@ -2317,13 +2323,13 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       !   effect (due to tower bending) within the element.  Thus, the moment arm
       !   for the force is 1/4 of DHNodes() and the element length is 1/2 of DHNodes().
 
-      TmpVec2  = FTTower(p%TwrGagNd(I),:) - p%MassT(p%TwrGagNd(I))*( p%Gravity*OtherState%CoordSys%z2 + LinAccET(p%TwrGagNd(I),:))
+      TmpVec2  = FTTower(:,p%TwrGagNd(I)) - p%MassT(p%TwrGagNd(I))*( p%Gravity*OtherState%CoordSys%z2 + LinAccET(:,p%TwrGagNd(I)))
 
       FrcFGagT = FrcFGagT + TmpVec2 * 0.5 * p%DHNodes(p%TwrGagNd(I))
       FrcFGagT = 0.001*FrcFGagT  ! Convert the local force to kN
 
       TmpVec = CROSS_PRODUCT( ( 0.25*p%DHNodes( p%TwrGagNd(I)) )*OtherState%CoordSys%a2, TmpVec2 )              ! Portion of MomFGagT associated with 1/2 of the strain gage element
-      TmpVec   = TmpVec   + MFHydro(p%TwrGagNd(I),:)
+      TmpVec   = TmpVec   + MFHydro(:,p%TwrGagNd(I))
       MomFGagT = MomFGagT + TmpVec * 0.5 * p%DHNodes(p%TwrGagNd(I))
       MomFGagT = 0.001*MomFGagT  ! Convert the local moment to kN-m
 
@@ -2469,9 +2475,9 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             NodeNum = J
                        
                ! Translational Displacement
-            y%BladeLn2Mesh(K)%TranslationDisp(1,NodeNum) =     OtherState%RtHS%rS (K,J,1) + OtherState%RtHS%rSAerCen(1,J,K)               ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the xi ( z1) direction
-            y%BladeLn2Mesh(K)%TranslationDisp(2,NodeNum) = -1.*OtherState%RtHS%rS (K,J,3) - OtherState%RtHS%rSAerCen(3,J,K)               ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the yi (-z3) direction
-            y%BladeLn2Mesh(K)%TranslationDisp(3,NodeNum) =     OtherState%RtHS%rS (K,J,2) + OtherState%RtHS%rSAerCen(2,J,K) + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
+            y%BladeLn2Mesh(K)%TranslationDisp(1,NodeNum) =     OtherState%RtHS%rS (1,K,J) + OtherState%RtHS%rSAerCen(1,J,K)               ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the xi ( z1) direction
+            y%BladeLn2Mesh(K)%TranslationDisp(2,NodeNum) = -1.*OtherState%RtHS%rS (3,K,J) - OtherState%RtHS%rSAerCen(3,J,K)               ! = the distance from the undeflected tower centerline                                     to the current blade aerodynamic center in the yi (-z3) direction
+            y%BladeLn2Mesh(K)%TranslationDisp(3,NodeNum) =     OtherState%RtHS%rS (2,K,J) + OtherState%RtHS%rSAerCen(2,J,K) + p%PtfmRefzt ! = the distance from the nominal tower base position (i.e., the undeflected position of the tower base) to the current blade aerodynamic center in the zi ( z2) direction
             
             y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) = y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) - y%BladeLn2Mesh(K)%Position(:,NodeNum)
                         
@@ -2670,9 +2676,9 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    !...............................................................................................................................
       
    DO J=1,p%TwrNodes
-      y%TowerLn2Mesh%TranslationDisp(1,J) =     OtherState%RtHS%rT( J,1) - y%TowerLn2Mesh%Position(1,J)
-      y%TowerLn2Mesh%TranslationDisp(2,J) = -1.*OtherState%RtHS%rT( J,3) - y%TowerLn2Mesh%Position(2,J)
-      y%TowerLn2Mesh%TranslationDisp(3,J) =     OtherState%RtHS%rT( J,2) - y%TowerLn2Mesh%Position(3,J) + p%PtfmRefzt
+      y%TowerLn2Mesh%TranslationDisp(1,J) =     OtherState%RtHS%rT( 1,J) - y%TowerLn2Mesh%Position(1,J)
+      y%TowerLn2Mesh%TranslationDisp(2,J) = -1.*OtherState%RtHS%rT( 3,J) - y%TowerLn2Mesh%Position(2,J)
+      y%TowerLn2Mesh%TranslationDisp(3,J) =     OtherState%RtHS%rT( 2,J) - y%TowerLn2Mesh%Position(3,J) + p%PtfmRefzt
             
       y%TowerLn2Mesh%Orientation(1,1,J)   =     OtherState%CoordSys%t1(J,1)
       y%TowerLn2Mesh%Orientation(3,1,J)   =     OtherState%CoordSys%t2(J,1)
@@ -2684,13 +2690,13 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%TowerLn2Mesh%Orientation(3,3,J)   =     OtherState%CoordSys%t2(J,2)
       y%TowerLn2Mesh%Orientation(2,3,J)   = -1.*OtherState%CoordSys%t3(J,2)     
       
-      y%TowerLn2Mesh%TranslationVel(1,J)  =     OtherState%RtHS%LinVelET(J,1)
-      y%TowerLn2Mesh%TranslationVel(2,J)  = -1.*OtherState%RtHS%LinVelET(J,3)
-      y%TowerLn2Mesh%TranslationVel(3,J)  =     OtherState%RtHS%LinVelET(J,2)
+      y%TowerLn2Mesh%TranslationVel(1,J)  =     OtherState%RtHS%LinVelET(1,J)
+      y%TowerLn2Mesh%TranslationVel(2,J)  = -1.*OtherState%RtHS%LinVelET(3,J)
+      y%TowerLn2Mesh%TranslationVel(3,J)  =     OtherState%RtHS%LinVelET(2,J)
             
-      y%TowerLn2Mesh%RotationVel(1,J)     =     OtherState%RtHS%AngVelEF(J,1)
-      y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEF(J,3)
-      y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEF(J,2) 
+      y%TowerLn2Mesh%RotationVel(1,J)     =     OtherState%RtHS%AngVelEF(1,J)
+      y%TowerLn2Mesh%RotationVel(2,J)     = -1.*OtherState%RtHS%AngVelEF(3,J)
+      y%TowerLn2Mesh%RotationVel(3,J)     =     OtherState%RtHS%AngVelEF(2,J) 
    END DO
                
    
@@ -2780,7 +2786,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    END DO
    y%YawBrTAxp = OtherState%AllOuts( YawBrTAxp)
    y%YawBrTAyp = OtherState%AllOuts( YawBrTAyp)
-   y%LSSTipPxa = OtherState%AllOuts( LSSTipPxa)*D2R
+   !y%LSSTipPxa = OtherState%AllOuts( LSSTipPxa)*D2R ! bjj: did this above already
 
    y%LSSTipMya = OtherState%AllOuts(LSSTipMya)*1000.                ! Rotating hub My (GL co-ords) (Nm)
    y%LSSTipMza = OtherState%AllOuts(LSSTipMza)*1000.                ! Rotating hub Mz (GL co-ords) (Nm)
@@ -4572,21 +4578,20 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
 
 
       ! positions:
-   CALL AllocAry( RtHS%rZT,       p%TwrNodes,        Dims, 'rZT',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%rT,        p%TwrNodes,        Dims, 'rT',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%rT0T,      p%TwrNodes,        Dims, 'rT0T',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%rQS,       p%NumBl,p%TipNode, Dims, 'rQS',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%rS,        p%NumBl,p%TipNode, Dims, 'rS',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%rS0S,      p%NumBl,p%TipNode, Dims, 'rS0S',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%rPS0,      p%NumBl,           Dims, 'rPS0',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   
+   CALL AllocAry( RtHS%rZT,       Dims, p%TwrNodes,        'rZT',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%rT,        Dims, p%TwrNodes,        'rT',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%rT0T,      Dims, p%TwrNodes,        'rT0T',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%rQS,       Dims, p%NumBl,p%TipNode, 'rQS',       ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%rS,        Dims, p%NumBl,p%TipNode, 'rS',        ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%rS0S,      Dims, p%NumBl,p%TipNode, 'rS0S',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%rPS0,      Dims, p%NumBl,           'rPS0',      ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    CALL AllocAry( RtHS%rSAerCen,  Dims, p%TipNode, p%NumBl,'rSAerCen',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
    
 
       ! angular velocities (including partial angular velocities):
-   CALL AllocAry( RtHS%AngVelEF, p%TwrNodes,         Dims, 'AngVelEF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%AngPosEF, p%TwrNodes,         Dims, 'AngPosEF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%AngPosXF, p%TwrNodes,         Dims, 'AngPosXF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%AngVelEF,  Dims, p%TwrNodes,        'AngVelEF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%AngPosEF,  Dims, p%TwrNodes,        'AngPosEF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%AngPosXF,  Dims, p%TwrNodes,        'AngPosXF',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
 
 
          ! These angular velocities are allocated to start numbering a dimension with 0 instead of 1:
@@ -4656,15 +4661,12 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
    ENDIF
 
       ! angular accelerations:
-   CALL AllocAry( RtHS%AngAccEFt, p%TwrNodes,        Dims, 'AngAccEFt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%AngAccEFt, Dims, p%TwrNodes,         'AngAccEFt', ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN
 
       ! linear velocities (including partial linear velocities):
-   CALL AllocAry( RtHS%LinVelET, p%TwrNodes,         Dims, 'LinVelET',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-   
-      ! The m2-component (closest to tip) of LinVelES
-   CALL AllocAry( RtHS%LinVelESm2,               p%NumBl, 'LinVelESm2', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
-
-   CALL AllocAry( RtHS%LinVelES, Dims, p%TipNode, p%NumBl, 'LinVelES',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%LinVelET,  Dims, p%TwrNodes,         'LinVelET',  ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN         
+   CALL AllocAry( RtHS%LinVelESm2,                 p%NumBl, 'LinVelESm2',ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN ! The m2-component (closest to tip) of LinVelES
+   CALL AllocAry( RtHS%LinVelES,  Dims, p%TipNode, p%NumBl, 'LinVelES',  ErrStat, ErrMsg );  IF ( ErrStat /= ErrID_None ) RETURN
 
             ! These linear velocities are allocated to start numbering a dimension with 0 instead of 1:
 
@@ -4773,59 +4775,33 @@ SUBROUTINE Alloc_RtHS( RtHS, p, ErrStat, ErrMsg  )
       ! ....
 
 
-   CALL AllocAry( RtHS%LinAccESt,p%NumBl, p%TipNode, Dims, 'LinAccESt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%LinAccETt,p%TwrNodes,         Dims, 'LinAccETt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PFrcS0B,  p%NumBl,p%NDOF,     Dims, 'PFrcS0B',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%FrcS0Bt,  p%NumBl,            Dims, 'FrcS0Bt',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomH0B,  p%NumBl, p%NDOF,    Dims, 'PMomH0B',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%MomH0Bt,  p%NumBl,            Dims, 'MomH0Bt',   ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PFrcPRot,  p%NDOF,            Dims, 'PFrcPRot',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomLPRot, p%NDOF,            Dims, 'PMomLPRot', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomNGnRt, p%NDOF,            Dims, 'PMomNGnRt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomNTail, p%NDOF,            Dims, 'PMomNTail', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PFrcONcRt, p%NDOF,            Dims, 'PFrcONcRt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomBNcRt, p%NDOF,            Dims, 'PMomBNcRt', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PFrcT0Trb, p%NDOF,            Dims, 'PFrcT0Trb', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomX0Trb, p%NDOF,            Dims, 'PMomX0Trb', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%FSAero,    p%NumBl,p%BldNodes,Dims, 'FSAero',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%MMAero,    p%NumBl,p%BldNodes,Dims, 'MMAero',    ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%FSTipDrag, p%NumBl,           Dims, 'FSTipDrag', ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%AngPosHM,  p%NumBl,p%TipNode, Dims, 'AngPosHM',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PFTHydro,  p%TwrNodes, p%NDOF,Dims, 'PFTHydro',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMFHydro,  p%TwrNodes, p%NDOF,Dims, 'PMFHydro',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%FTHydrot,  p%TwrNodes,        Dims, 'FTHydrot',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%MFHydrot,  p%TwrNodes,        Dims, 'MFHydrot',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%LinAccESt, Dims, p%NumBl, p%TipNode,'LinAccESt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%LinAccETt, Dims, p%TwrNodes,        'LinAccETt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcS0B,   Dims, p%NumBl,p%NDOF,    'PFrcS0B',   ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%FrcS0Bt,   Dims, p%NumBl,           'FrcS0Bt',   ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomH0B,   Dims, p%NumBl, p%NDOF,   'PMomH0B',   ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%MomH0Bt,   Dims, p%NumBl,           'MomH0Bt',   ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcPRot,  Dims, p%NDOF,            'PFrcPRot',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomLPRot, Dims, p%NDOF,            'PMomLPRot', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomNGnRt, Dims, p%NDOF,            'PMomNGnRt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomNTail, Dims, p%NDOF,            'PMomNTail', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcONcRt, Dims, p%NDOF,            'PFrcONcRt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomBNcRt, Dims, p%NDOF,            'PMomBNcRt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcT0Trb, Dims, p%NDOF,            'PFrcT0Trb', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomX0Trb, Dims, p%NDOF,            'PMomX0Trb', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%FSAero,    Dims, p%NumBl,p%BldNodes,'FSAero',    ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%MMAero,    Dims, p%NumBl,p%BldNodes,'MMAero',    ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%FSTipDrag, Dims, p%NumBl,           'FSTipDrag', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%AngPosHM,  Dims, p%NumBl,p%TipNode, 'AngPosHM',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFTHydro,  Dims, p%TwrNodes, p%NDOF,'PFTHydro',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMFHydro,  Dims, p%TwrNodes, p%NDOF,'PMFHydro',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%FTHydrot,  Dims, p%TwrNodes,        'FTHydrot',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%MFHydrot,  Dims, p%TwrNodes,        'MFHydrot',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
 
-   CALL AllocAry( RtHS%PFrcVGnRt,  p%NDOF,           Dims, 'PFrcVGnRt',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PFrcWTail,  p%NDOF,           Dims, 'PFrcWTail',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PFrcZAll,  p%NDOF,            Dims, 'PFrcZAll',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( RtHS%PMomXAll,  p%NDOF,            Dims, 'PMomXAll',  ErrStat, ErrMsg )
-   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcVGnRt, Dims, p%NDOF,            'PFrcVGnRt', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcWTail, Dims, p%NDOF,            'PFrcWTail', ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PFrcZAll,  Dims, p%NDOF,            'PFrcZAll',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( RtHS%PMomXAll,  Dims, p%NDOF,            'PMomXAll',  ErrStat, ErrMsg );   IF ( ErrStat /= ErrID_None ) RETURN
 
 END SUBROUTINE Alloc_RtHS
 !----------------------------------------------------------------------------------------------------------------------------------
@@ -8099,7 +8075,10 @@ SUBROUTINE Init_ContStates( x, p, InputFileData, OtherState, ErrStat, ErrMsg  )
       !   fixed rpm.
 
    !JASON: CHANGE THESE MOD() FUNCTIONS INTO MODULO() FUNCTIONS SO THAT YOU CAN ELIMINATE ADDING 360:
-   x%QT (DOF_GeAz) = MOD( (InputFileData%Azimuth - p%AzimB1Up)*R2D + 270.0 + 360.0, 360.0 )*D2R   ! Internal position of blade 1
+!   x%QT (DOF_GeAz) = MOD( (InputFileData%Azimuth - p%AzimB1Up)*R2D + 270.0 + 360.0, 360.0 )*D2R   ! Internal position of blade 1
+   
+   x%QT (DOF_GeAz) = InputFileData%Azimuth - p%AzimB1Up - Piby2
+   CALL Zero2TwoPi( x%QT (DOF_GeAz) )
    x%QDT(DOF_GeAz) = p%RotSpeed                                               ! Rotor speed in rad/sec.
 
 
@@ -10959,7 +10938,7 @@ FUNCTION SignLSSTrq( p, OtherState )
    MomLPRot = OtherState%RtHS%MomLPRott ! Initialize MomLPRot using MomLPRott
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 
-      MomLPRot = MomLPRot + OtherState%RtHS%PMomLPRot(p%DOFs%SrtPS(I),:)*OtherState%QD2T(p%DOFs%SrtPS(I))  ! Add the moments associated with the accelerations of the DOFs
+      MomLPRot = MomLPRot + OtherState%RtHS%PMomLPRot(:,p%DOFs%SrtPS(I))*OtherState%QD2T(p%DOFs%SrtPS(I))  ! Add the moments associated with the accelerations of the DOFs
 
    ENDDO             ! I - All active (enabled) DOFs
 
@@ -11033,7 +11012,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
 
       ! Calculate the position vector of the tip:
 
-      RtHSdat%rS0S(K,p%TipNode,:) = ( p%TwistedSF(K,1,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &                                       ! Position vector from the blade root (point S(0)) to the blade tip (point S(p%BldFlexL)).
+      RtHSdat%rS0S(:,K,p%TipNode) = ( p%TwistedSF(K,1,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &                                       ! Position vector from the blade root (point S(0)) to the blade tip (point S(p%BldFlexL)).
                                     + p%TwistedSF(K,1,2,p%TipNode,0)*x%QT( DOF_BF(K,2) ) &
                                     + p%TwistedSF(K,1,3,p%TipNode,0)*x%QT( DOF_BE(K,1) )                     )*CoordSys%j1(K,:) &
                                   + ( p%TwistedSF(K,2,1,p%TipNode,0)*x%QT( DOF_BF(K,1) ) &
@@ -11046,12 +11025,12 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
                                     + 2.*p%AxRedBld(K,1,2,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
                                     + 2.*p%AxRedBld(K,2,3,p%TipNode)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
                                     + 2.*p%AxRedBld(K,1,3,p%TipNode)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) ) ) )*CoordSys%j3(K,:)
-      RtHSdat%rQS (K,p%TipNode,:) = RtHSdat%rS0S(K,p%TipNode,:) + p%HubRad*CoordSys%j3(K,:)                                      ! Position vector from apex of rotation (point Q) to the blade tip (point S(p%BldFlexL)).
-      RtHSdat%rS  (K,p%TipNode,:) = RtHSdat%rQS (K,p%TipNode,:) + rQ                                                             ! Position vector from inertial frame origin      to the blade tip (point S(p%BldFlexL)).
+      RtHSdat%rQS (:,K,p%TipNode) = RtHSdat%rS0S(:,K,p%TipNode) + p%HubRad*CoordSys%j3(K,:)                                      ! Position vector from apex of rotation (point Q) to the blade tip (point S(p%BldFlexL)).
+      RtHSdat%rS  (:,K,p%TipNode) = RtHSdat%rQS (:,K,p%TipNode) + rQ                                                             ! Position vector from inertial frame origin      to the blade tip (point S(p%BldFlexL)).
 
          ! Calculate the position vector from the teeter pin to the blade root:
    
-      RtHSdat%rPS0(K,:) = RtHSdat%rPQ + p%HubRad*CoordSys%j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
+      RtHSdat%rPS0(:,K) = RtHSdat%rPQ + p%HubRad*CoordSys%j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
 
       
       DO J = 1,p%BldNodes ! Loop through the blade nodes / elements
@@ -11059,7 +11038,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
 
       ! Calculate the position vector of the current node:
 
-         RtHSdat%rS0S(K,J,:) = (  p%TwistedSF(K,1,1,J,0)*x%QT( DOF_BF(K,1) ) &                                                   ! Position vector from the blade root (point S(0)) to the current node (point S(RNodes(J)).
+         RtHSdat%rS0S(:,K,J) = (  p%TwistedSF(K,1,1,J,0)*x%QT( DOF_BF(K,1) ) &                                                   ! Position vector from the blade root (point S(0)) to the current node (point S(RNodes(J)).
                                 + p%TwistedSF(K,1,2,J,0)*x%QT( DOF_BF(K,2) ) &
                                 + p%TwistedSF(K,1,3,J,0)*x%QT( DOF_BE(K,1) )                          )*CoordSys%j1(K,:) &
                             + (   p%TwistedSF(K,2,1,J,0)*x%QT( DOF_BF(K,1) ) &
@@ -11072,8 +11051,8 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
                                + 2.0*p%AxRedBld(K,1,2,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BF(K,2) ) &
                                + 2.0*p%AxRedBld(K,2,3,J)*x%QT( DOF_BF(K,2) )*x%QT( DOF_BE(K,1) ) &
                                + 2.0*p%AxRedBld(K,1,3,J)*x%QT( DOF_BF(K,1) )*x%QT( DOF_BE(K,1) )    ) )*CoordSys%j3(K,:)
-         RtHSdat%rQS (K,J,:) = RtHSdat%rS0S(K,J,:) + p%HubRad*CoordSys%j3(K,:)                                                ! Position vector from apex of rotation (point Q) to the current node (point S(RNodes(J)).
-         RtHSdat%rS  (K,J,:) = RtHSdat%rQS (K,J,:) + rQ                                                                       ! Position vector from inertial frame origin      to the current node (point S(RNodes(J)).
+         RtHSdat%rQS (:,K,J) = RtHSdat%rS0S(:,K,J) + p%HubRad*CoordSys%j3(K,:)                                                ! Position vector from apex of rotation (point Q) to the current node (point S(RNodes(J)).
+         RtHSdat%rS  (:,K,J) = RtHSdat%rQS (:,K,J) + rQ                                                                       ! Position vector from inertial frame origin      to the current node (point S(RNodes(J)).
 
 
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
@@ -11095,7 +11074,7 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
 
       ! Calculate the position vector of the current node:
 
-      RtHSdat%rT0T(J,:) = ( p%TwrFASF(1,J,0)*x%QT(DOF_TFA1) + p%TwrFASF(2,J,0)*x%QT(DOF_TFA2)           )*CoordSys%a1 &       ! Position vector from base of flexible portion of tower (point T(0)) to current node (point T(J)).
+      RtHSdat%rT0T(:,J) = ( p%TwrFASF(1,J,0)*x%QT(DOF_TFA1) + p%TwrFASF(2,J,0)*x%QT(DOF_TFA2)           )*CoordSys%a1 &       ! Position vector from base of flexible portion of tower (point T(0)) to current node (point T(J)).
                         + ( p%HNodes(J) - 0.5*(     p%AxRedTFA(1,1,J)*x%QT(DOF_TFA1)*x%QT(DOF_TFA1) &
                                               +     p%AxRedTFA(2,2,J)*x%QT(DOF_TFA2)*x%QT(DOF_TFA2) &
                                               + 2.0*p%AxRedTFA(1,2,J)*x%QT(DOF_TFA1)*x%QT(DOF_TFA2) &
@@ -11103,10 +11082,10 @@ SUBROUTINE CalculatePositions( p, x, CoordSys, RtHSdat )
                                               +     p%AxRedTSS(2,2,J)*x%QT(DOF_TSS2)*x%QT(DOF_TSS2) &
                                               + 2.0*p%AxRedTSS(1,2,J)*x%QT(DOF_TSS1)*x%QT(DOF_TSS2)   ) )*CoordSys%a2 &
                         + ( p%TwrSSSF(1,J,0)*x%QT(DOF_TSS1) + p%TwrSSSF(2,J,0)*x%QT(DOF_TSS2)           )*CoordSys%a3
-      RtHSdat%rZT (J,:) = RtHSdat%rZT0 + RtHSdat%rT0T(J,:)                                                                    ! Position vector from platform reference (point Z) to the current node (point T(HNodes(J)).
+      RtHSdat%rZT (:,J) = RtHSdat%rZT0 + RtHSdat%rT0T(:,J)                                                                    ! Position vector from platform reference (point Z) to the current node (point T(HNodes(J)).
 
 
-      RtHSdat%rT(J,:)   = RtHSdat%rZ   + RtHSdat%rZT (J,:)                                                                    ! Position vector from inertial frame origin        to the current node (point T(HNodes(J)).
+      RtHSdat%rT(:,J)   = RtHSdat%rZ   + RtHSdat%rZT (:,J)                                                                    ! Position vector from inertial frame origin        to the current node (point T(HNodes(J)).
 
    END DO
 
@@ -11257,7 +11236,7 @@ ENDIF
    !           AngVelHM(K,p%TipNode              ,:) =  RtHSdat%AngVelEH + x%QDT(DOF_BF(K,1))*RtHSdat%PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) & ! Currently
    !                                                                     + x%QDT(DOF_BF(K,2))*RtHSdat%PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:) & ! unused
    !                                                                     + x%QDT(DOF_BE(K,1))*RtHSdat%PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:)   ! calculations
-       RtHSdat%AngPosHM(K,p%TipNode,:) =        x%QT (DOF_BF(K,1))*RtHSdat%PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) &
+       RtHSdat%AngPosHM(:,K,p%TipNode) =        x%QT (DOF_BF(K,1))*RtHSdat%PAngVelEM(K,p%TipNode,DOF_BF(K,1),0,:) &
                                               + x%QT (DOF_BF(K,2))*RtHSdat%PAngVelEM(K,p%TipNode,DOF_BF(K,2),0,:) &
                                               + x%QT (DOF_BE(K,1))*RtHSdat%PAngVelEM(K,p%TipNode,DOF_BE(K,1),0,:)
 
@@ -11291,7 +11270,7 @@ ENDIF
 !                 AngVelHM(K,J              ,:) =  RtHSdat%AngVelEH + x%QDT(DOF_BF(K,1))*RtHSdat%PAngVelEM(K,J,DOF_BF(K,1),0,:) & ! Currently
 !                                                                   + x%QDT(DOF_BF(K,2))*RtHSdat%PAngVelEM(K,J,DOF_BF(K,2),0,:) & ! unused
 !                                                                   + x%QDT(DOF_BE(K,1))*RtHSdat%PAngVelEM(K,J,DOF_BE(K,1),0,:)   ! calculations
-          RtHSdat%AngPosHM(K,J              ,:) =             x%QT (DOF_BF(K,1))*RtHSdat%PAngVelEM(K,J,DOF_BF(K,1),0,:) &
+          RtHSdat%AngPosHM(:,K,J              ) =             x%QT (DOF_BF(K,1))*RtHSdat%PAngVelEM(K,J,DOF_BF(K,1),0,:) &
                                                     + x%QT (DOF_BF(K,2))*RtHSdat%PAngVelEM(K,J,DOF_BF(K,2),0,:) &
                                                     + x%QT (DOF_BE(K,1))*RtHSdat%PAngVelEM(K,J,DOF_BE(K,1),0,:)
 
@@ -11341,29 +11320,29 @@ ENDIF
       RtHSdat%PAngVelEF (J,DOF_TSS2,1,:) = CROSS_PRODUCT(  RtHSdat%AngVelEX  ,  RtHSdat%PAngVelEF(J,DOF_TSS2,0,:) )
 
 
-      RtHSdat%AngVelEF (J,:)            =  RtHSdat%AngVelEX  + x%QDT(DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,0,:) &
+      RtHSdat%AngVelEF (:,J)            =  RtHSdat%AngVelEX  + x%QDT(DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,0,:) &
                                                              + x%QDT(DOF_TSS1)*RtHSdat%PAngVelEF(J,DOF_TSS1,0,:) &
                                                              + x%QDT(DOF_TFA2)*RtHSdat%PAngVelEF(J,DOF_TFA2,0,:) &
                                                              + x%QDT(DOF_TSS2)*RtHSdat%PAngVelEF(J,DOF_TSS2,0,:)
 
-      RtHSdat%AngPosXF (J,:)            =                      x%QT (DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,0,:) &
+      RtHSdat%AngPosXF (:,J)            =                      x%QT (DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,0,:) &
                                                              + x%QT (DOF_TSS1)*RtHSdat%PAngVelEF(J,DOF_TSS1,0,:) &
                                                              + x%QT (DOF_TFA2)*RtHSdat%PAngVelEF(J,DOF_TFA2,0,:) &
                                                              + x%QT (DOF_TSS2)*RtHSdat%PAngVelEF(J,DOF_TSS2,0,:)
-      RtHSdat%AngPosEF (J,:)            =  RtHSdat%AngPosEX  + RtHSdat%AngPosXF(J,:)
-      RtHSdat%AngAccEFt(J,:)            =  RtHSdat%AngAccEXt + x%QDT(DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,1,:) &
+      RtHSdat%AngPosEF (:,J)            =  RtHSdat%AngPosEX  + RtHSdat%AngPosXF(:,J)
+      RtHSdat%AngAccEFt(:,J)            =  RtHSdat%AngAccEXt + x%QDT(DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,1,:) &
                                                              + x%QDT(DOF_TSS1)*RtHSdat%PAngVelEF(J,DOF_TSS1,1,:) &
                                                              + x%QDT(DOF_TFA2)*RtHSdat%PAngVelEF(J,DOF_TFA2,1,:) &
                                                              + x%QDT(DOF_TSS2)*RtHSdat%PAngVelEF(J,DOF_TSS2,1,:)
 
 
 
-      RtHSdat%AngPosXF (J,:)            =                      x%QT (DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,0,:) &
+      RtHSdat%AngPosXF (:,J)            =                      x%QT (DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,0,:) &
                                                              + x%QT (DOF_TSS1)*RtHSdat%PAngVelEF(J,DOF_TSS1,0,:) &
                                                              + x%QT (DOF_TFA2)*RtHSdat%PAngVelEF(J,DOF_TFA2,0,:) &
                                                              + x%QT (DOF_TSS2)*RtHSdat%PAngVelEF(J,DOF_TSS2,0,:)
-      RtHSdat%AngPosEF (J,:)            =  RtHSdat%AngPosEX  + RtHSdat%AngPosXF(J,:)
-      RtHSdat%AngAccEFt(J,:)            =  RtHSdat%AngAccEXt + x%QDT(DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,1,:) &
+      RtHSdat%AngPosEF (:,J)            =  RtHSdat%AngPosEX  + RtHSdat%AngPosXF(:,J)
+      RtHSdat%AngAccEFt(:,J)            =  RtHSdat%AngAccEXt + x%QDT(DOF_TFA1)*RtHSdat%PAngVelEF(J,DOF_TFA1,1,:) &
                                                              + x%QDT(DOF_TSS1)*RtHSdat%PAngVelEF(J,DOF_TSS1,1,:) &
                                                              + x%QDT(DOF_TFA2)*RtHSdat%PAngVelEF(J,DOF_TFA2,1,:) &
                                                              + x%QDT(DOF_TSS2)*RtHSdat%PAngVelEF(J,DOF_TSS2,1,:)
@@ -11659,7 +11638,7 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
       !   define the portion of the linear acceleration of the blade tip in the
       !   inertia frame associated with everything but the QD2T()'s:
 
-      EwHXrQS = CROSS_PRODUCT( RtHSdat%AngVelEH, RtHSdat%rQS(K,p%TipNode,:) )
+      EwHXrQS = CROSS_PRODUCT( RtHSdat%AngVelEH, RtHSdat%rQS(:,K,p%TipNode) )
 
       RtHSdat%PLinVelES(K,p%TipNode,          :,:,:) = RtHSdat%PLinVelEQ(:,:,:)
       RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) = p%TwistedSF(K,1,1,p%TipNode,0)                          *CoordSys%j1(K,:) &
@@ -11698,23 +11677,23 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
       LinVelHS                         = x%QDT( DOF_BF(K,1) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,1),0,:) &
                                        + x%QDT( DOF_BE(K,1) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BE(K,1),0,:) &
                                        + x%QDT( DOF_BF(K,2) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,2),0,:)
-      RtHSdat%LinAccESt(K,p%TipNode,:) = x%QDT( DOF_BF(K,1) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,1),1,:) &
+      RtHSdat%LinAccESt(:,K,p%TipNode) = x%QDT( DOF_BF(K,1) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,1),1,:) &
                                        + x%QDT( DOF_BE(K,1) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BE(K,1),1,:) &
                                        + x%QDT( DOF_BF(K,2) )*RtHSdat%PLinVelES(K,p%TipNode,DOF_BF(K,2),1,:)
 
       RtHSdat%LinVelES(:,p%TipNode,K)    = LinVelHS + RtHSdat%LinVelEZ
       DO I = 1,p%NPH   ! Loop through all DOFs associated with the angular motion of the hub (body H)
 
-         TmpVec0 = CROSS_PRODUCT( RtHSdat%PAngVelEH(p%PH(I),0,:), RtHSdat%rQS(K,p%TipNode,:)            )
+         TmpVec0 = CROSS_PRODUCT( RtHSdat%PAngVelEH(p%PH(I),0,:), RtHSdat%rQS(:,K,p%TipNode)            )
          TmpVec1 = CROSS_PRODUCT( RtHSdat%PAngVelEH(p%PH(I),0,:),     EwHXrQS              + LinVelHS   )
-         TmpVec2 = CROSS_PRODUCT( RtHSdat%PAngVelEH(p%PH(I),1,:), RtHSdat%rQS(K,p%TipNode,:)            )
+         TmpVec2 = CROSS_PRODUCT( RtHSdat%PAngVelEH(p%PH(I),1,:), RtHSdat%rQS(:,K,p%TipNode)            )
 
          RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),0,:) = RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),0,:) + TmpVec0
          RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),1,:) = RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),1,:) + TmpVec1 + TmpVec2
 
          RtHSdat%LinVelES( :,p%TipNode,K) = RtHSdat%LinVelES(:,p%TipNode,K)  + x%QDT(p%PH(I))* &
                                             RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),0,:)
-         RtHSdat%LinAccESt(K,p%TipNode,:) = RtHSdat%LinAccESt(K,p%TipNode,:) + x%QDT(p%PH(I))* &
+         RtHSdat%LinAccESt(:,K,p%TipNode) = RtHSdat%LinAccESt(:,K,p%TipNode) + x%QDT(p%PH(I))* &
                                             RtHSdat%PLinVelES(K,p%TipNode,p%PH(I),1,:)
 
       ENDDO          ! I - all DOFs associated with the angular motion of the hub (body H)
@@ -11731,7 +11710,7 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
       !   Also, define the portion of the linear acceleration of the current node
       !   in the inertia frame associated with everything but the QD2T()'s:
 
-         EwHXrQS = CROSS_PRODUCT(  RtHSdat%AngVelEH, RtHSdat%rQS(K,J,:) )
+         EwHXrQS = CROSS_PRODUCT(  RtHSdat%AngVelEH, RtHSdat%rQS(:,K,J) )
 
          RtHSdat%PLinVelES(K,J,          :,:,:) = RtHSdat%PLinVelEQ(:,:,:)
          RtHSdat%PLinVelES(K,J,DOF_BF(K,1),0,:) = p%TwistedSF(K,1,1,J,0)                          *CoordSys%j1(K,:) &
@@ -11770,22 +11749,22 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
          LinVelHS                 = x%QDT( DOF_BF(K,1) )*RtHSdat%PLinVelES(K,J,DOF_BF(K,1),0,:) &
                                   + x%QDT( DOF_BE(K,1) )*RtHSdat%PLinVelES(K,J,DOF_BE(K,1),0,:) &
                                   + x%QDT( DOF_BF(K,2) )*RtHSdat%PLinVelES(K,J,DOF_BF(K,2),0,:)
-         RtHSdat%LinAccESt(K,J,:) = x%QDT( DOF_BF(K,1) )*RtHSdat%PLinVelES(K,J,DOF_BF(K,1),1,:) &
+         RtHSdat%LinAccESt(:,K,J) = x%QDT( DOF_BF(K,1) )*RtHSdat%PLinVelES(K,J,DOF_BF(K,1),1,:) &
                                   + x%QDT( DOF_BE(K,1) )*RtHSdat%PLinVelES(K,J,DOF_BE(K,1),1,:) &
                                   + x%QDT( DOF_BF(K,2) )*RtHSdat%PLinVelES(K,J,DOF_BF(K,2),1,:)
 
          RtHSdat%LinVelES(:,J,K)  = LinVelHS + RtHSdat%LinVelEZ
          DO I = 1,p%NPH   ! Loop through all DOFs associated with the angular motion of the hub (body H)
 
-            TmpVec0 = CROSS_PRODUCT(   RtHSdat%PAngVelEH(p%PH(I),0,:), RtHSdat%rQS(K,J,:)            )
+            TmpVec0 = CROSS_PRODUCT(   RtHSdat%PAngVelEH(p%PH(I),0,:), RtHSdat%rQS(:,K,J)            )
             TmpVec1 = CROSS_PRODUCT(   RtHSdat%PAngVelEH(p%PH(I),0,:),     EwHXrQS        + LinVelHS )
-            TmpVec2 = CROSS_PRODUCT(   RtHSdat%PAngVelEH(p%PH(I),1,:), RtHSdat%rQS(K,J,:)            )
+            TmpVec2 = CROSS_PRODUCT(   RtHSdat%PAngVelEH(p%PH(I),1,:), RtHSdat%rQS(:,K,J)            )
 
             RtHSdat%PLinVelES(K,J,p%PH(I),0,:) = RtHSdat%PLinVelES(K,J,p%PH(I),0,:) + TmpVec0
             RtHSdat%PLinVelES(K,J,p%PH(I),1,:) = RtHSdat%PLinVelES(K,J,p%PH(I),1,:) + TmpVec1 + TmpVec2
 
             RtHSdat%LinVelES(:,J,K)          = RtHSdat%LinVelES(:,J,K)   + x%QDT(p%PH(I))*RtHSdat%PLinVelES(K,J,p%PH(I),0,:)
-            RtHSdat%LinAccESt(K,J,        :) = RtHSdat%LinAccESt(K,J, :) + x%QDT(p%PH(I))*RtHSdat%PLinVelES(K,J,p%PH(I),1,:)
+            RtHSdat%LinAccESt(:,K,J)         = RtHSdat%LinAccESt(:,K,J)  + x%QDT(p%PH(I))*RtHSdat%PLinVelES(K,J,p%PH(I),1,:)
 
          END DO ! I - all DOFs associated with the angular motion of the hub (body H)
 
@@ -11866,7 +11845,7 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
       !  Also, define the portion of the linear acceleration of the current node in the inertia frame associated with
       !    everything but the QD2T()'s:
 
-      EwXXrZT                   = CROSS_PRODUCT(  RtHSdat%AngVelEX, RtHSdat%rZT(J,:) )
+      EwXXrZT                   = CROSS_PRODUCT(  RtHSdat%AngVelEX, RtHSdat%rZT(:,J) )
 
       RtHSdat%PLinVelET(J,       :,:,:) = RtHSdat%PLinVelEZ(:,:,:)
       RtHSdat%PLinVelET(J,DOF_TFA1,0,:) = p%TwrFASF(1,J,0)*CoordSys%a1 - (   p%AxRedTFA(1,1,J)* x%QT(DOF_TFA1) &
@@ -11896,22 +11875,22 @@ SUBROUTINE CalculateLinearVelAcc( p, x, CoordSys, RtHSdat )
                              + x%QDT(DOF_TSS1)*RtHSdat%PLinVelET(J,DOF_TSS1,0,:) &
                              + x%QDT(DOF_TFA2)*RtHSdat%PLinVelET(J,DOF_TFA2,0,:) &
                              + x%QDT(DOF_TSS2)*RtHSdat%PLinVelET(J,DOF_TSS2,0,:)
-      RtHSdat%LinAccETt(J,:) = x%QDT(DOF_TFA1)*RtHSdat%PLinVelET(J,DOF_TFA1,1,:) &
+      RtHSdat%LinAccETt(:,J) = x%QDT(DOF_TFA1)*RtHSdat%PLinVelET(J,DOF_TFA1,1,:) &
                              + x%QDT(DOF_TSS1)*RtHSdat%PLinVelET(J,DOF_TSS1,1,:) &
                              + x%QDT(DOF_TFA2)*RtHSdat%PLinVelET(J,DOF_TFA2,1,:) &
                              + x%QDT(DOF_TSS2)*RtHSdat%PLinVelET(J,DOF_TSS2,1,:)
 
-      RtHSdat%LinVelET(J,:)  = LinVelXT + RtHSdat%LinVelEZ
+      RtHSdat%LinVelET(:,J)  = LinVelXT + RtHSdat%LinVelEZ
       DO I = 1,NPX   ! Loop through all DOFs associated with the angular motion of the platform (body X)
 
-         TmpVec0   = CROSS_PRODUCT( RtHSdat%PAngVelEX(PX(I),0,:), RtHSdat%rZT(J,:)            )
+         TmpVec0   = CROSS_PRODUCT( RtHSdat%PAngVelEX(PX(I),0,:), RtHSdat%rZT(:,J)            )
          TmpVec1   = CROSS_PRODUCT( RtHSdat%PAngVelEX(PX(I),0,:), EwXXrZT      + LinVelXT )
 
          RtHSdat%PLinVelET(J,PX(I),0,:) = RtHSdat%PLinVelET(J,PX(I),0,:) + TmpVec0
          RtHSdat%PLinVelET(J,PX(I),1,:) = RtHSdat%PLinVelET(J,PX(I),1,:) + TmpVec1
 
-         RtHSdat%LinVelET( J,        :) = RtHSdat%LinVelET( J,        :) + x%QDT(PX(I))*RtHSdat%PLinVelET(J,PX(I),0,:)
-         RtHSdat%LinAccETt(J,        :) = RtHSdat%LinAccETt(J,        :) + x%QDT(PX(I))*RtHSdat%PLinVelET(J,PX(I),1,:)
+         RtHSdat%LinVelET( :,        J) = RtHSdat%LinVelET( :,        J) + x%QDT(PX(I))*RtHSdat%PLinVelET(J,PX(I),0,:)
+         RtHSdat%LinAccETt(:,        J) = RtHSdat%LinAccETt(:,        J) + x%QDT(PX(I))*RtHSdat%PLinVelET(J,PX(I),1,:)
 
       ENDDO          ! I - all DOFs associated with the angular motion of the platform (body X)
 
@@ -11960,7 +11939,7 @@ SUBROUTINE CalculateForcesMoments( p, x, CoordSys, u, RtHSdat )
       
          ! Calculate the tip drag forces if necessary:
       !bjj: add this back when we've figured out how to handle the tip brakes:
-      !RtHSdat%FSTipDrag(K,:) = OtherState%CoordSys%m2(K,p%BldNodes,:)*SIGN( 0.5*p%AirDens*(RtHSdat%LinVelESm2(K)**2)*u%TBDrCon(K), -1.*RtHSdat%LinVelESm2(K) )
+      !RtHSdat%FSTipDrag(:,K) = OtherState%CoordSys%m2(K,p%BldNodes,:)*SIGN( 0.5*p%AirDens*(RtHSdat%LinVelESm2(K)**2)*u%TBDrCon(K), -1.*RtHSdat%LinVelESm2(K) )
       RtHSdat%FSTipDrag = 0.0_ReKi         ! Calculate the tip drag forces if necessary
 
       
@@ -11976,8 +11955,8 @@ SUBROUTINE CalculateForcesMoments( p, x, CoordSys, u, RtHSdat )
 
          RtHSdat%rSAerCen(:,J,K) = p%rSAerCenn1(K,J)*CoordSys%n1(K,J,:) + p%rSAerCenn2(K,J)*CoordSys%n2(K,J,:)   
 
-!        rPAerCen     = OtherState%RtHS%rPQ + OtherState%RtHS%rQS(K,J,:) + OtherState%RtHS%rSAerCen(:,J,K)     ! Position vector from teeter pin (point P)  to blade analysis node aerodynamic center.
-!        rAerCen      =                       OtherState%RtHS%rS (K,J,:) + OtherState%RtHS%rSAerCen(:,J,K)     ! Position vector from inertial frame origin to blade analysis node aerodynamic center.
+!        rPAerCen     = OtherState%RtHS%rPQ + OtherState%RtHS%rQS(:,K,J) + OtherState%RtHS%rSAerCen(:,J,K)     ! Position vector from teeter pin (point P)  to blade analysis node aerodynamic center.
+!        rAerCen      =                       OtherState%RtHS%rS (:,K,J) + OtherState%RtHS%rSAerCen(:,J,K)     ! Position vector from inertial frame origin to blade analysis node aerodynamic center.
          
 
    ! fill FSAero() and MMAero() with the forces resulting from inputs u%BladeLn2Mesh(K)%Force(1:2,:) and u%BladeLn2Mesh(K)%Moment(3,:):
@@ -11985,10 +11964,10 @@ SUBROUTINE CalculateForcesMoments( p, x, CoordSys, u, RtHSdat )
    
          NodeNum = J
          
-         RtHSdat%FSAero(K,J,:) = u%BladeLn2Mesh(K)%Force(1,NodeNum) * CoordSys%te1(K,J,:) &
+         RtHSdat%FSAero(:,K,J) = u%BladeLn2Mesh(K)%Force(1,NodeNum) * CoordSys%te1(K,J,:) &
                                + u%BladeLn2Mesh(K)%Force(2,NodeNum) * CoordSys%te2(K,J,:)
 
-         RtHSdat%MMAero(K,J,:) = CROSS_PRODUCT( RtHSdat%rSAerCen(:,J,K), RtHSdat%FSAero(K,J,:) )&
+         RtHSdat%MMAero(:,K,J) = CROSS_PRODUCT( RtHSdat%rSAerCen(:,J,K), RtHSdat%FSAero(:,K,J) )&
                                + u%BladeLn2Mesh(K)%Moment(3,NodeNum) * CoordSys%te3(K,J,:)        
          
       END DO !J
@@ -12004,14 +11983,14 @@ DO K = 1,p%NumBl ! Loop through all blades
       !   with the QD2T()'s and those that are not) at the blade root (point S(0))
       !   using the tip brake effects:
 
-      RtHSdat%PFrcS0B(K,:,:) = 0.0 ! Initialize these partial
-      RtHSdat%PMomH0B(K,:,:) = 0.0 ! forces and moments to zero
+      RtHSdat%PFrcS0B(:,K,:) = 0.0 ! Initialize these partial
+      RtHSdat%PMomH0B(:,K,:) = 0.0 ! forces and moments to zero
       DO I = 1,p%DOFs%NPSE(K)  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
          TmpVec1 = -p%TipMass(K)*RtHSdat%PLinVelES(K,p%TipNode,p%DOFs%PSE(K,I),0,:)                            ! The portion of PFrcS0B associated with the tip brake
 
-         RtHSdat%PFrcS0B(K,p%DOFs%PSE(K,I),:) = TmpVec1
-         RtHSdat%PMomH0B(K,p%DOFs%PSE(K,I),:) = CROSS_PRODUCT( RtHSdat%rS0S(K,p%TipNode,:), TmpVec1 )          ! The portion of PMomH0B associated with the tip brake
+         RtHSdat%PFrcS0B(:,K,p%DOFs%PSE(K,I)) = TmpVec1
+         RtHSdat%PMomH0B(:,K,p%DOFs%PSE(K,I)) = CROSS_PRODUCT( RtHSdat%rS0S(:,K,p%TipNode), TmpVec1 )          ! The portion of PMomH0B associated with the tip brake
 
       ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K  
    
@@ -12025,9 +12004,9 @@ DO K = 1,p%NumBl ! Loop through all blades
 
             TmpVec1 = -p%BElmntMass(J,K)*RtHSdat%PLinVelES(K,J,p%DOFs%PSE(K,I),0,:)   ! The portion of PFrcS0B associated with blade element J
 
-            RtHSdat%PFrcS0B(K,p%DOFs%PSE(K,I),:) = RtHSdat%PFrcS0B(K,p%DOFs%PSE(K,I),:) + TmpVec1
-            RtHSdat%PMomH0B(K,p%DOFs%PSE(K,I),:) = RtHSdat%PMomH0B(K,p%DOFs%PSE(K,I),:) + &
-                                                    CROSS_PRODUCT( RtHSdat%rS0S(K,J,:), TmpVec1 )                   ! The portion of PMomH0B associated with blade element J
+            RtHSdat%PFrcS0B(:,K,p%DOFs%PSE(K,I)) = RtHSdat%PFrcS0B(:,K,p%DOFs%PSE(K,I)) + TmpVec1
+            RtHSdat%PMomH0B(:,K,p%DOFs%PSE(K,I)) = RtHSdat%PMomH0B(:,K,p%DOFs%PSE(K,I)) + &
+                                                    CROSS_PRODUCT( RtHSdat%rS0S(:,K,J), TmpVec1 )                   ! The portion of PMomH0B associated with blade element J
 
          ENDDO             ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
       END DO
@@ -12041,18 +12020,18 @@ DO K = 1,p%NumBl ! Loop through all blades
 !.....................................
    DO K = 1,p%NumBl ! Loop through all blades
    
-      TmpVec1 = RtHSdat%FSTipDrag(K,:) - p%TipMass(K)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccESt(K,p%TipNode,:) ) ! The portion of FrcS0Bt associated with the tip brake
-      RtHSdat%FrcS0Bt(K,:) = TmpVec1
-      RtHSdat%MomH0Bt(K,:) = CROSS_PRODUCT(  RtHSdat%rS0S(K,p%TipNode,:), TmpVec1 )                                 ! The portion of MomH0Bt associated with the tip brake
+      TmpVec1 = RtHSdat%FSTipDrag(:,K) - p%TipMass(K)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccESt(:,K,p%TipNode) ) ! The portion of FrcS0Bt associated with the tip brake
+      RtHSdat%FrcS0Bt(:,K) = TmpVec1
+      RtHSdat%MomH0Bt(:,K) = CROSS_PRODUCT(  RtHSdat%rS0S(:,K,p%TipNode), TmpVec1 )                                 ! The portion of MomH0Bt associated with the tip brake
 
       DO J = 1,p%BldNodes ! Loop through the blade nodes / elements      
       
-         TmpVec1 = RtHSdat%FSAero(K,J,:)*p%DRNodes(J) - p%BElmntMass(J,K)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccESt(K,J,:) ) ! The portion of FrcS0Bt associated with blade element J
-         TmpVec2 = CROSS_PRODUCT( RtHSdat%rS0S(K,J,:), TmpVec1 )                                    ! The portion of MomH0Bt associated with blade element J
-         TmpVec3 = RtHSdat%MMAero(K,J,:)*p%DRNodes(J)                                               ! The total external moment applied to blade element J
+         TmpVec1 = RtHSdat%FSAero(:,K,J)*p%DRNodes(J) - p%BElmntMass(J,K)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccESt(:,K,J) ) ! The portion of FrcS0Bt associated with blade element J
+         TmpVec2 = CROSS_PRODUCT( RtHSdat%rS0S(:,K,J), TmpVec1 )                                    ! The portion of MomH0Bt associated with blade element J
+         TmpVec3 = RtHSdat%MMAero(:,K,J)*p%DRNodes(J)                                               ! The total external moment applied to blade element J
 
-         RtHSdat%FrcS0Bt(K,:) = RtHSdat%FrcS0Bt(K,:) + TmpVec1
-         RtHSdat%MomH0Bt(K,:) = RtHSdat%MomH0Bt(K,:) + TmpVec2 + TmpVec3
+         RtHSdat%FrcS0Bt(:,K) = RtHSdat%FrcS0Bt(:,K) + TmpVec1
+         RtHSdat%MomH0Bt(:,K) = RtHSdat%MomH0Bt(:,K) + TmpVec2 + TmpVec3
       
       END DO !J
       
@@ -12073,8 +12052,8 @@ DO K = 1,p%NumBl ! Loop through all blades
       TmpVec1 = -p%HubMass*RtHSdat%PLinVelEC(p%DOFs%PCE(I),0,:)     ! The portion of PFrcPRot  associated with the HubMass
       TmpVec2 = CROSS_PRODUCT( RtHSdat%rPC, TmpVec1 )      ! The portion of PMomLPRot associated with the HubMass
 
-      RtHSdat%PFrcPRot (p%DOFs%PCE(I),:) = TmpVec1
-      RtHSdat%PMomLPRot(p%DOFs%PCE(I),:) = TmpVec2 - p%Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, RtHSdat%PAngVelEH(p%DOFs%PCE(I),0,:) ) &
+      RtHSdat%PFrcPRot (:,p%DOFs%PCE(I)) = TmpVec1
+      RtHSdat%PMomLPRot(:,p%DOFs%PCE(I)) = TmpVec2 - p%Hubg1Iner*CoordSys%g1*DOT_PRODUCT( CoordSys%g1, RtHSdat%PAngVelEH(p%DOFs%PCE(I),0,:) ) &
                                                    - p%Hubg2Iner*CoordSys%g2*DOT_PRODUCT( CoordSys%g2, RtHSdat%PAngVelEH(p%DOFs%PCE(I),0,:) )
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the hub center of mass (point C)
@@ -12084,17 +12063,17 @@ DO K = 1,p%NumBl ! Loop through all blades
    
          ! Calculate the position vector from the teeter pin to the blade root:
    
-      !rPS0(K,:) = RtHSdat%rPQ + p%HubRad*CoordSys%j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
+      !rPS0(:,K) = RtHSdat%rPQ + p%HubRad*CoordSys%j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
             
       ! Add the blade effects to the partial forces and moments (including those associated with the QD2T()'s and those that are 
       !   not) at the teeter pin (point P):
 
       DO I = 1,p%DOFs%NPSE(K)  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
-         TmpVec = CROSS_PRODUCT( RtHSdat%rPS0(K,:), RtHSdat%PFrcS0B(K,p%DOFs%PSE(K,I),:) ) ! The portion of PMomLPRot associated with PFrcS0B.
+         TmpVec = CROSS_PRODUCT( RtHSdat%rPS0(:,K), RtHSdat%PFrcS0B(:,K,p%DOFs%PSE(K,I)) ) ! The portion of PMomLPRot associated with PFrcS0B.
 
-         RtHSdat%PFrcPRot (p%DOFs%PSE(K,I),:) = RtHSdat%PFrcPRot (p%DOFs%PSE(K,I),:) + RtHSdat%PFrcS0B(K,p%DOFs%PSE(K,I),:)
-         RtHSdat%PMomLPRot(p%DOFs%PSE(K,I),:) = RtHSdat%PMomLPRot(p%DOFs%PSE(K,I),:) + RtHSdat%PMomH0B(K,p%DOFs%PSE(K,I),:)+TmpVec
+         RtHSdat%PFrcPRot (:,p%DOFs%PSE(K,I)) = RtHSdat%PFrcPRot (:,p%DOFs%PSE(K,I)) + RtHSdat%PFrcS0B(:,K,p%DOFs%PSE(K,I))
+         RtHSdat%PMomLPRot(:,p%DOFs%PSE(K,I)) = RtHSdat%PMomLPRot(:,p%DOFs%PSE(K,I)) + RtHSdat%PMomH0B(:,K,p%DOFs%PSE(K,I))+TmpVec
 
       ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of blade K
 
@@ -12123,10 +12102,10 @@ DO K = 1,p%NumBl ! Loop through all blades
    
       !rPS0 = RtHSdat%rPQ + p%HubRad*OtherState%CoordSys%j3(K,:)   ! Position vector from teeter pin (point P) to blade root (point S(0)).
             
-      TmpVec = CROSS_PRODUCT( RtHSdat%rPS0(K,:), RtHSdat%FrcS0Bt(K,:) )       ! The portion of MomLPRott associated with FrcS0Bt.
+      TmpVec = CROSS_PRODUCT( RtHSdat%rPS0(:,K), RtHSdat%FrcS0Bt(:,K) )       ! The portion of MomLPRott associated with FrcS0Bt.
 
-      RtHSdat%FrcPRott  = RtHSdat%FrcPRott  + RtHSdat%FrcS0Bt(K,:)
-      RtHSdat%MomLPRott = RtHSdat%MomLPRott + RtHSdat%MomH0Bt(K,:) + TmpVec
+      RtHSdat%FrcPRott  = RtHSdat%FrcPRott  + RtHSdat%FrcS0Bt(:,K)
+      RtHSdat%MomLPRott = RtHSdat%MomLPRott + RtHSdat%MomH0Bt(:,K) + TmpVec
 
    END DO   ! K
 
@@ -12144,9 +12123,9 @@ DO K = 1,p%NumBl ! Loop through all blades
    RtHSdat%PMomNGnRt = RtHSdat%PMomLPRot   ! moments using the rotor effects
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 
-      TmpVec = CROSS_PRODUCT( RtHSdat%rVP, RtHSdat%PFrcPRot(p%DOFs%SrtPS(I),:) )  ! The portion of PMomNGnRt associated with the PFrcPRot
+      TmpVec = CROSS_PRODUCT( RtHSdat%rVP, RtHSdat%PFrcPRot(:,p%DOFs%SrtPS(I)) )  ! The portion of PMomNGnRt associated with the PFrcPRot
 
-      RtHSdat%PMomNGnRt(p%DOFs%SrtPS(I),:) = RtHSdat%PMomNGnRt(p%DOFs%SrtPS(I),:) + TmpVec
+      RtHSdat%PMomNGnRt(:,p%DOFs%SrtPS(I)) = RtHSdat%PMomNGnRt(:,p%DOFs%SrtPS(I)) + TmpVec
 
    ENDDO             ! I - All active (enabled) DOFs
    DO I = 1,p%DOFs%NPDE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the center of mass of the structure that furls with the rotor (not including rotor) (point D)
@@ -12154,16 +12133,16 @@ DO K = 1,p%NumBl ! Loop through all blades
       TmpVec1 = -p%RFrlMass*RtHSdat%PLinVelED(p%DOFs%PDE(I)  ,0,:)           ! The portion of PFrcVGnRt associated with the RFrlMass
       TmpVec2 = CROSS_PRODUCT( RtHSdat%rVD,              TmpVec1 )  ! The portion of PMomNGnRt associated with the RFrlMass
 
-      RtHSdat%PFrcVGnRt(p%DOFs%PDE(I)  ,:) = RtHSdat%PFrcVGnRt(p%DOFs%PDE(I)  ,:) + TmpVec1
+      RtHSdat%PFrcVGnRt(:,p%DOFs%PDE(I)  ) = RtHSdat%PFrcVGnRt(:,p%DOFs%PDE(I)  ) + TmpVec1
 
-      RtHSdat%PMomNGnRt(p%DOFs%PDE(I)  ,:) = RtHSdat%PMomNGnRt(p%DOFs%PDE(I)  ,:) + TmpVec2                                   &
+      RtHSdat%PMomNGnRt(:,p%DOFs%PDE(I)  ) = RtHSdat%PMomNGnRt(:,p%DOFs%PDE(I)  ) + TmpVec2                                   &
                                            - p%RrfaIner*CoordSys%rfa*DOT_PRODUCT( CoordSys%rfa, RtHSdat%PAngVelER(p%DOFs%PDE(I) ,0,:) ) &
                                            - p%GenIner*CoordSys%c1 *DOT_PRODUCT(  CoordSys%c1 , RtHSdat%PAngVelEG(p%DOFs%PDE(I) ,0,:) )
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the center of mass of the structure that furls with the rotor (not including rotor) (point D)
    IF ( p%DOF_Flag(DOF_GeAz) )  THEN
 
-      RtHSdat%PMomNGnRt(DOF_GeAz,:) = RtHSdat%PMomNGnRt(DOF_GeAz,:)                                             &     ! The previous loop (DO I = 1,NPDE) misses the DOF_GeAz-contribution to: ( Generator inertia dyadic ) dot ( partial angular velocity of the generator in the inertia frame )
+      RtHSdat%PMomNGnRt(:,DOF_GeAz) = RtHSdat%PMomNGnRt(:,DOF_GeAz)                                             &     ! The previous loop (DO I = 1,NPDE) misses the DOF_GeAz-contribution to: ( Generator inertia dyadic ) dot ( partial angular velocity of the generator in the inertia frame )
                             -  p%GenIner*CoordSys%c1 *DOT_PRODUCT( CoordSys%c1, RtHSdat%PAngVelEG(DOF_GeAz,0,:) )     ! Thus, add this contribution if necessary.
 
    ENDIF   
@@ -12201,8 +12180,8 @@ DO K = 1,p%NumBl ! Loop through all blades
       TmpVec3 = CROSS_PRODUCT( RtHSdat%rWI, TmpVec1 )                      ! The portion of PMomNTail associated with the BoomMass
       TmpVec4 = CROSS_PRODUCT( RtHSdat%rWJ, TmpVec2 )                      ! The portion of PMomNTail associated with the TFinMass
 
-      RtHSdat%PFrcWTail(p%DOFs%PIE(I),:) = TmpVec1 + TmpVec2
-      RtHSdat%PMomNTail(p%DOFs%PIE(I),:) = TmpVec3 + TmpVec4 - p%AtfaIner*CoordSys%tfa* &
+      RtHSdat%PFrcWTail(:,p%DOFs%PIE(I)) = TmpVec1 + TmpVec2
+      RtHSdat%PMomNTail(:,p%DOFs%PIE(I)) = TmpVec3 + TmpVec4 - p%AtfaIner*CoordSys%tfa* &
                                                              DOT_PRODUCT( CoordSys%tfa, RtHSdat%PAngVelEA(p%DOFs%PIE(I),0,:) )
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tail boom center of mass (point I)
@@ -12237,16 +12216,16 @@ DO K = 1,p%NumBl ! Loop through all blades
    RtHSdat%PMomBNcRt = RtHSdat%PMomNGnRt + RtHSdat%PMomNTail   ! the rotor, rotor-furl, generator, and tail effects
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 
-      TmpVec = CROSS_PRODUCT( RtHSdat%rOV, RtHSdat%PFrcVGnRt(p%DOFs%SrtPS(I),:) ) ! The portion of PMomBNcRt associated with the PFrcVGnRt
+      TmpVec = CROSS_PRODUCT( RtHSdat%rOV, RtHSdat%PFrcVGnRt(:,p%DOFs%SrtPS(I)) ) ! The portion of PMomBNcRt associated with the PFrcVGnRt
 
-      RtHSdat%PMomBNcRt(p%DOFs%SrtPS(I),:) = RtHSdat%PMomBNcRt(p%DOFs%SrtPS(I),:) + TmpVec
+      RtHSdat%PMomBNcRt(:,p%DOFs%SrtPS(I)) = RtHSdat%PMomBNcRt(:,p%DOFs%SrtPS(I)) + TmpVec
 
    ENDDO             ! I - All active (enabled) DOFs
    DO I = 1,p%DOFs%NPIE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tail boom center of mass (point I)
 
-      TmpVec = CROSS_PRODUCT( RtHSdat%rOW, RtHSdat%PFrcWTail(p%DOFs%PIE(I)  ,:) ) ! The portion of PMomBNcRt associated with the PFrcWTail
+      TmpVec = CROSS_PRODUCT( RtHSdat%rOW, RtHSdat%PFrcWTail(:,p%DOFs%PIE(I)  ) ) ! The portion of PMomBNcRt associated with the PFrcWTail
 
-      RtHSdat%PMomBNcRt(p%DOFs%PIE(I)  ,:) = RtHSdat%PMomBNcRt(p%DOFs%PIE(I)  ,:) + TmpVec
+      RtHSdat%PMomBNcRt(:,p%DOFs%PIE(I) ) = RtHSdat%PMomBNcRt(:,p%DOFs%PIE(I) ) + TmpVec
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tail boom center of mass (point I)
    DO I = 1,p%DOFs%NPUE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the nacelle center of mass (point U)
@@ -12254,8 +12233,8 @@ DO K = 1,p%NumBl ! Loop through all blades
       TmpVec1 = -p%NacMass*RtHSdat%PLinVelEU(p%DOFs%PUE(I),0,:)              ! The portion of PFrcONcRt associated with the NacMass
       TmpVec2 = CROSS_PRODUCT( RtHSdat%rOU,               TmpVec1 ) ! The portion of PMomBNcRt associated with the NacMass
 
-      RtHSdat%PFrcONcRt(p%DOFs%PUE(I)  ,:) = RtHSdat%PFrcONcRt(p%DOFs%PUE(I)  ,:) + TmpVec1
-      RtHSdat%PMomBNcRt(p%DOFs%PUE(I)  ,:) = RtHSdat%PMomBNcRt(p%DOFs%PUE(I)  ,:) + TmpVec2 - p%Nacd2Iner*CoordSys%d2* &
+      RtHSdat%PFrcONcRt(:,p%DOFs%PUE(I)  ) = RtHSdat%PFrcONcRt(:,p%DOFs%PUE(I) ) + TmpVec1
+      RtHSdat%PMomBNcRt(:,p%DOFs%PUE(I)  ) = RtHSdat%PMomBNcRt(:,p%DOFs%PUE(I) ) + TmpVec2 - p%Nacd2Iner*CoordSys%d2* &
                                              DOT_PRODUCT( CoordSys%d2, RtHSdat%PAngVelEN(p%DOFs%PUE(I),0,:) )
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the nacelle center of mass (point U)
@@ -12295,11 +12274,11 @@ DO K = 1,p%NumBl ! Loop through all blades
 
    DO J=1,p%TwrNodes
    
-      RtHSdat%PFTHydro(J,:,:) = 0.0
-      RtHSdat%PMFHydro(J,:,:) = 0.0
+      RtHSdat%PFTHydro(:,J,:) = 0.0
+      RtHSdat%PMFHydro(:,J,:) = 0.0
       DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-         RtHSdat%PFTHydro(J,p%DOFs%PTE(I),:) = &
+         RtHSdat%PFTHydro(:,J,p%DOFs%PTE(I)) = &
                                 CoordSys%z1*( - u%TwrAddedMass(DOF_Sg,DOF_Sg,J)*RtHSdat%PLinVelET(J,p%DOFs%PTE(I),0,1) &
                                               + u%TwrAddedMass(DOF_Sg,DOF_Sw,J)*RtHSdat%PLinVelET(J,p%DOFs%PTE(I),0,3) &
                                               - u%TwrAddedMass(DOF_Sg,DOF_Hv,J)*RtHSdat%PLinVelET(J,p%DOFs%PTE(I),0,2) &
@@ -12318,7 +12297,7 @@ DO K = 1,p%NumBl ! Loop through all blades
                                               - u%TwrAddedMass(DOF_Hv,DOF_R ,J)*RtHSdat%PAngVelEF(J,p%DOFs%PTE(I),0,1) &
                                               + u%TwrAddedMass(DOF_Hv,DOF_P ,J)*RtHSdat%PAngVelEF(J,p%DOFs%PTE(I),0,3) &
                                               - u%TwrAddedMass(DOF_Hv,DOF_Y ,J)*RtHSdat%PAngVelEF(J,p%DOFs%PTE(I),0,2)   )
-         RtHSdat%PMFHydro(J,p%DOFs%PTE(I),:) = &
+         RtHSdat%PMFHydro(:,J,p%DOFs%PTE(I)) = &
                                 CoordSys%z1*( - u%TwrAddedMass(DOF_R ,DOF_Sg,J)*RtHSdat%PLinVelET(J,p%DOFs%PTE(I),0,1) &
                                               + u%TwrAddedMass(DOF_R ,DOF_Sw,J)*RtHSdat%PLinVelET(J,p%DOFs%PTE(I),0,3) &
                                               - u%TwrAddedMass(DOF_R ,DOF_Hv,J)*RtHSdat%PLinVelET(J,p%DOFs%PTE(I),0,2) &
@@ -12347,48 +12326,48 @@ DO K = 1,p%NumBl ! Loop through all blades
 !.....................................
    
    DO J=1,p%TwrNodes
-      RtHSdat%FTHydrot(J,:) = CoordSys%z1*( u%TowerLn2Mesh%Force(DOF_Sg,J) &
-                                                  - u%TwrAddedMass(DOF_Sg,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
-                                                  + u%TwrAddedMass(DOF_Sg,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
-                                                  - u%TwrAddedMass(DOF_Sg,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
-                                                  - u%TwrAddedMass(DOF_Sg,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
-                                                  + u%TwrAddedMass(DOF_Sg,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
-                                                  - u%TwrAddedMass(DOF_Sg,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   ) &
+      RtHSdat%FTHydrot(:,J) = CoordSys%z1*( u%TowerLn2Mesh%Force(DOF_Sg,J) &
+                                                  - u%TwrAddedMass(DOF_Sg,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
+                                                  + u%TwrAddedMass(DOF_Sg,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
+                                                  - u%TwrAddedMass(DOF_Sg,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
+                                                  - u%TwrAddedMass(DOF_Sg,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
+                                                  + u%TwrAddedMass(DOF_Sg,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
+                                                  - u%TwrAddedMass(DOF_Sg,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   ) &
                             - CoordSys%z3*( u%TowerLn2Mesh%Force(DOF_Sw,J) &
-                                                  - u%TwrAddedMass(DOF_Sw,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
-                                                  + u%TwrAddedMass(DOF_Sw,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
-                                                  - u%TwrAddedMass(DOF_Sw,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
-                                                  - u%TwrAddedMass(DOF_Sw,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
-                                                  + u%TwrAddedMass(DOF_Sw,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
-                                                  - u%TwrAddedMass(DOF_Sw,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   ) &
+                                                  - u%TwrAddedMass(DOF_Sw,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
+                                                  + u%TwrAddedMass(DOF_Sw,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
+                                                  - u%TwrAddedMass(DOF_Sw,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
+                                                  - u%TwrAddedMass(DOF_Sw,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
+                                                  + u%TwrAddedMass(DOF_Sw,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
+                                                  - u%TwrAddedMass(DOF_Sw,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   ) &
                              + CoordSys%z2*( u%TowerLn2Mesh%Force(DOF_Hv,J) &
-                                                  - u%TwrAddedMass(DOF_Hv,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
-                                                  + u%TwrAddedMass(DOF_Hv,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
-                                                  - u%TwrAddedMass(DOF_Hv,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
-                                                  - u%TwrAddedMass(DOF_Hv,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
-                                                  + u%TwrAddedMass(DOF_Hv,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
-                                                  - u%TwrAddedMass(DOF_Hv,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   )
-      RtHSdat%MFHydrot(J,:) = CoordSys%z1*( u%TowerLn2Mesh%Moment(DOF_R-3,J) &
-                                                  - u%TwrAddedMass(DOF_R ,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
-                                                  + u%TwrAddedMass(DOF_R ,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
-                                                  - u%TwrAddedMass(DOF_R ,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
-                                                  - u%TwrAddedMass(DOF_R ,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
-                                                  + u%TwrAddedMass(DOF_R ,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
-                                                  - u%TwrAddedMass(DOF_R ,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   ) &
+                                                  - u%TwrAddedMass(DOF_Hv,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
+                                                  + u%TwrAddedMass(DOF_Hv,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
+                                                  - u%TwrAddedMass(DOF_Hv,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
+                                                  - u%TwrAddedMass(DOF_Hv,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
+                                                  + u%TwrAddedMass(DOF_Hv,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
+                                                  - u%TwrAddedMass(DOF_Hv,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   )
+      RtHSdat%MFHydrot(:,J) = CoordSys%z1*( u%TowerLn2Mesh%Moment(DOF_R-3,J) &
+                                                  - u%TwrAddedMass(DOF_R ,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
+                                                  + u%TwrAddedMass(DOF_R ,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
+                                                  - u%TwrAddedMass(DOF_R ,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
+                                                  - u%TwrAddedMass(DOF_R ,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
+                                                  + u%TwrAddedMass(DOF_R ,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
+                                                  - u%TwrAddedMass(DOF_R ,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   ) &
                             - CoordSys%z3*( u%TowerLn2Mesh%Moment(DOF_P-3 ,J) &
-                                                  - u%TwrAddedMass(DOF_P ,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
-                                                  + u%TwrAddedMass(DOF_P ,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
-                                                  - u%TwrAddedMass(DOF_P ,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
-                                                  - u%TwrAddedMass(DOF_P ,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
-                                                  + u%TwrAddedMass(DOF_P ,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
-                                                  - u%TwrAddedMass(DOF_P ,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   ) &
+                                                  - u%TwrAddedMass(DOF_P ,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
+                                                  + u%TwrAddedMass(DOF_P ,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
+                                                  - u%TwrAddedMass(DOF_P ,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
+                                                  - u%TwrAddedMass(DOF_P ,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
+                                                  + u%TwrAddedMass(DOF_P ,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
+                                                  - u%TwrAddedMass(DOF_P ,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   ) &
                             + CoordSys%z2*( u%TowerLn2Mesh%Moment(DOF_Y-3 ,J) &
-                                                  - u%TwrAddedMass(DOF_Y ,DOF_Sg,J)*RtHSdat%LinAccETt(J,1) &
-                                                  + u%TwrAddedMass(DOF_Y ,DOF_Sw,J)*RtHSdat%LinAccETt(J,3) &
-                                                  - u%TwrAddedMass(DOF_Y ,DOF_Hv,J)*RtHSdat%LinAccETt(J,2) &
-                                                  - u%TwrAddedMass(DOF_Y ,DOF_R ,J)*RtHSdat%AngAccEFt(J,1) &
-                                                  + u%TwrAddedMass(DOF_Y ,DOF_P ,J)*RtHSdat%AngAccEFt(J,3) &
-                                                  - u%TwrAddedMass(DOF_Y ,DOF_Y ,J)*RtHSdat%AngAccEFt(J,2)   )
+                                                  - u%TwrAddedMass(DOF_Y ,DOF_Sg,J)*RtHSdat%LinAccETt(1,J) &
+                                                  + u%TwrAddedMass(DOF_Y ,DOF_Sw,J)*RtHSdat%LinAccETt(3,J) &
+                                                  - u%TwrAddedMass(DOF_Y ,DOF_Hv,J)*RtHSdat%LinAccETt(2,J) &
+                                                  - u%TwrAddedMass(DOF_Y ,DOF_R ,J)*RtHSdat%AngAccEFt(1,J) &
+                                                  + u%TwrAddedMass(DOF_Y ,DOF_P ,J)*RtHSdat%AngAccEFt(3,J) &
+                                                  - u%TwrAddedMass(DOF_Y ,DOF_Y ,J)*RtHSdat%AngAccEFt(2,J)   )
 
    END DO !J
    
@@ -12404,9 +12383,9 @@ DO K = 1,p%NumBl ! Loop through all blades
    RtHSdat%PMomX0Trb = RtHSdat%PMomBNcRt   ! using all of the effects above the yaw bearing
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 
-      TmpVec  = CROSS_PRODUCT(  RtHSdat%rT0O, RtHSdat%PFrcONcRt(p%DOFs%SrtPS(I),:) )   ! The portion of PMomX0Trb associated with the PFrcONcRt
+      TmpVec  = CROSS_PRODUCT(  RtHSdat%rT0O, RtHSdat%PFrcONcRt(:,p%DOFs%SrtPS(I)) )   ! The portion of PMomX0Trb associated with the PFrcONcRt
 
-      RtHSdat%PMomX0Trb(p%DOFs%SrtPS(I),:) = RtHSdat%PMomX0Trb(p%DOFs%SrtPS(I),:) + TmpVec
+      RtHSdat%PMomX0Trb(:,p%DOFs%SrtPS(I)) = RtHSdat%PMomX0Trb(:,p%DOFs%SrtPS(I)) + TmpVec
 
    ENDDO             ! I - All active (enabled) DOFs
    DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
@@ -12414,8 +12393,8 @@ DO K = 1,p%NumBl ! Loop through all blades
       TmpVec1 = -p%YawBrMass*RtHSdat%PLinVelEO(p%DOFs%PTE(I),0,:)               ! The portion of PFrcT0Trb associated with the YawBrMass
       TmpVec2 = CROSS_PRODUCT( RtHSdat%rT0O,               TmpVec1 )   ! The portion of PMomX0Trb associated with the YawBrMass
 
-      RtHSdat%PFrcT0Trb(p%DOFs%PTE(I)  ,:) = RtHSdat%PFrcT0Trb(p%DOFs%PTE(I)  ,:) + TmpVec1
-      RtHSdat%PMomX0Trb(p%DOFs%PTE(I)  ,:) = RtHSdat%PMomX0Trb(p%DOFs%PTE(I)  ,:) + TmpVec2
+      RtHSdat%PFrcT0Trb(:,p%DOFs%PTE(I)  ) = RtHSdat%PFrcT0Trb(:,p%DOFs%PTE(I)  ) + TmpVec1
+      RtHSdat%PMomX0Trb(:,p%DOFs%PTE(I)  ) = RtHSdat%PMomX0Trb(:,p%DOFs%PTE(I)  ) + TmpVec2
 
    ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the yaw bearing center of mass (point O)
 
@@ -12432,19 +12411,19 @@ DO K = 1,p%NumBl ! Loop through all blades
 
       DO I = 1,p%DOFs%NPTE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-         TmpVec1 = RtHSdat%PFTHydro(J,p%DOFs%PTE(I),:)*p%DHNodes(J) - p%TElmntMass(J)*RtHSdat%PLinVelET(J,p%DOFs%PTE(I),0,:)           ! The portion of PFrcT0Trb associated with tower element J
-         TmpVec2 = CROSS_PRODUCT( RtHSdat%rT0T(J,:), TmpVec1 )                 ! The portion of PMomX0Trb associated with tower element J
-         TmpVec3 = RtHSdat%PMFHydro(J,p%DOFs%PTE(I),:)*p%DHNodes(J)             ! The added moment applied at tower element J
+         TmpVec1 = RtHSdat%PFTHydro(:,J,p%DOFs%PTE(I))*p%DHNodes(J) - p%TElmntMass(J)*RtHSdat%PLinVelET(J,p%DOFs%PTE(I),0,:)           ! The portion of PFrcT0Trb associated with tower element J
+         TmpVec2 = CROSS_PRODUCT( RtHSdat%rT0T(:,J), TmpVec1 )                 ! The portion of PMomX0Trb associated with tower element J
+         TmpVec3 = RtHSdat%PMFHydro(:,J,p%DOFs%PTE(I))*p%DHNodes(J)             ! The added moment applied at tower element J
 
-         RtHSdat%PFrcT0Trb(p%DOFs%PTE(I),:) = RtHSdat%PFrcT0Trb(p%DOFs%PTE(I),:) + TmpVec1
-         RtHSdat%PMomX0Trb(p%DOFs%PTE(I),:) = RtHSdat%PMomX0Trb(p%DOFs%PTE(I),:) + TmpVec2 + TmpVec3
+         RtHSdat%PFrcT0Trb(:,p%DOFs%PTE(I)) = RtHSdat%PFrcT0Trb(:,p%DOFs%PTE(I)) + TmpVec1
+         RtHSdat%PMomX0Trb(:,p%DOFs%PTE(I)) = RtHSdat%PMomX0Trb(:,p%DOFs%PTE(I)) + TmpVec2 + TmpVec3
 
       ENDDO          ! I - All active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-      TmpVec1 = ( RtHSdat%FTHydrot(J,:) )*p%DHNodes(J) &
-              - p%TElmntMass(J)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccETt(J,:) )          ! The portion of FrcT0Trbt associated with tower element J
-      TmpVec2 = CROSS_PRODUCT( RtHSdat%rT0T(J,:), TmpVec1 )                                 ! The portion of MomX0Trbt associated with tower element J
-      TmpVec3 = ( RtHSdat%MFHydrot(J,:) )*p%DHNodes(J)                                      ! The external moment applied to tower element J
+      TmpVec1 = ( RtHSdat%FTHydrot(:,J) )*p%DHNodes(J) &
+              - p%TElmntMass(J)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccETt(:,J) )          ! The portion of FrcT0Trbt associated with tower element J
+      TmpVec2 = CROSS_PRODUCT( RtHSdat%rT0T(:,J), TmpVec1 )                                 ! The portion of MomX0Trbt associated with tower element J
+      TmpVec3 = ( RtHSdat%MFHydrot(:,J) )*p%DHNodes(J)                                      ! The external moment applied to tower element J
 
       RtHSdat%FrcT0Trbt = RtHSdat%FrcT0Trbt + TmpVec1
 
@@ -12501,9 +12480,9 @@ DO K = 1,p%NumBl ! Loop through all blades
    RtHSdat%PMomXAll = RtHSdat%PMomX0Trb ! using the effects from the wind turbine
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
 
-      TmpVec = CROSS_PRODUCT( RtHSdat%rZT0, RtHSdat%PFrcT0Trb(p%DOFs%SrtPS(I),:) )   ! The portion of PMomXAll associated with the PFrcT0Trb
+      TmpVec = CROSS_PRODUCT( RtHSdat%rZT0, RtHSdat%PFrcT0Trb(:,p%DOFs%SrtPS(I)) )   ! The portion of PMomXAll associated with the PFrcT0Trb
 
-      RtHSdat%PMomXAll(p%DOFs%SrtPS(I),:) = RtHSdat%PMomXAll(p%DOFs%SrtPS(I),:) + TmpVec
+      RtHSdat%PMomXAll(:,p%DOFs%SrtPS(I)) = RtHSdat%PMomXAll(:,p%DOFs%SrtPS(I)) + TmpVec
 
    ENDDO             ! I - All active (enabled) DOFs
    DO I = 1,p%DOFs%NPYE  ! Loop through all active (enabled) DOFs that contribute to the QD2T-related linear accelerations of the platform center of mass (point Y)
@@ -12511,8 +12490,8 @@ DO K = 1,p%NumBl ! Loop through all blades
       TmpVec1 = -p%PtfmMass*RtHSdat%PLinVelEY(p%DOFs%PYE(I),0,:)                ! The portion of PFrcZAll associated with the PtfmMass
       TmpVec2 = CROSS_PRODUCT( RtHSdat%rZY ,               TmpVec1 )   ! The portion of PMomXAll associated with the PtfmMass
 
-      RtHSdat%PFrcZAll(p%DOFs%PYE(I),:) = RtHSdat%PFrcZAll(p%DOFs%PYE(I)  ,:)        + RtHSdat%PFZHydro(p%DOFs%PYE(I),:) + TmpVec1
-      RtHSdat%PMomXAll(p%DOFs%PYE(I),:) = RtHSdat%PMomXAll(p%DOFs%PYE(I)  ,:)        + RtHSdat%PMXHydro(p%DOFs%PYE(I),:) + TmpVec2 &
+      RtHSdat%PFrcZAll(:,p%DOFs%PYE(I)) = RtHSdat%PFrcZAll(:,p%DOFs%PYE(I)  )        + RtHSdat%PFZHydro(p%DOFs%PYE(I),:) + TmpVec1
+      RtHSdat%PMomXAll(:,p%DOFs%PYE(I)) = RtHSdat%PMomXAll(:,p%DOFs%PYE(I)  )        + RtHSdat%PMXHydro(p%DOFs%PYE(I),:) + TmpVec2 &
                                     - p%PtfmRIner*CoordSys%a1*DOT_PRODUCT( CoordSys%a1, RtHSdat%PAngVelEX(p%DOFs%PYE(I),0,:) )   &
                                     - p%PtfmYIner*CoordSys%a2*DOT_PRODUCT( CoordSys%a2, RtHSdat%PAngVelEX(p%DOFs%PYE(I),0,:) )   &
                                     - p%PtfmPIner*CoordSys%a3*DOT_PRODUCT( CoordSys%a3, RtHSdat%PAngVelEX(p%DOFs%PYE(I),0,:) )
@@ -12588,7 +12567,7 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
          ENDDO             ! I - All active (enabled) blade DOFs greater than or equal to L
       ENDDO                ! L - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(p%BldFlexL))
 
-      TmpVec1 = RtHSdat%FSTipDrag(K,:) - p%TipMass(K)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccESt(K,p%TipNode,:) ) ! The portion of FrcS0Bt associated with the tip brake
+      TmpVec1 = RtHSdat%FSTipDrag(:,K) - p%TipMass(K)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccESt(:,K,p%TipNode) ) ! The portion of FrcS0Bt associated with the tip brake
       DO I = 1,p%DOFs%NPSBE(K)    ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the tip of blade K (point S(p%BldFlexL))
             AugMat(p%DOFs%PSBE(K,I), p%NAug) = DOT_PRODUCT( RtHSdat%PLinVelES(K,p%TipNode,p%DOFs%PSBE(K,I),0,:), &   ! {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
                                                               TmpVec1                               ) ! NOTE: TmpVec1 is still the portion of FrcS0Bt associated with the tip brake
@@ -12614,8 +12593,8 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
             ENDDO             ! I - All active (enabled) blade DOFs greater than or equal to L
          ENDDO                ! L - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the blade
       
-         TmpVec1 = RtHSdat%FSAero(K,J,:)*p%DRNodes(J) - p%BElmntMass(J,K)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccESt(K,J,:) ) ! The portion of FrcS0Bt associated with blade element J
-         TmpVec3 = RtHSdat%MMAero(K,J,:)*p%DRNodes(J)                                               ! The total external moment applied to blade element J
+         TmpVec1 = RtHSdat%FSAero(:,K,J)*p%DRNodes(J) - p%BElmntMass(J,K)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccESt(:,K,J) ) ! The portion of FrcS0Bt associated with blade element J
+         TmpVec3 = RtHSdat%MMAero(:,K,J)*p%DRNodes(J)                                               ! The total external moment applied to blade element J
          DO I = 1,p%DOFs%NPSBE(K)    ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the blade
                AugMat(p%DOFs%PSBE(K,I), p%NAug) = AugMat(p%DOFs%PSBE(K,I),     p%NAug)                      & ! {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
                                            + DOT_PRODUCT( RtHSdat%PLinVelES(K,J,p%DOFs%PSBE(K,I),0,:), TmpVec1 ) & ! NOTE: TmpVec1 is still the portion of FrcS0Bt associated with blade element J
@@ -12634,7 +12613,7 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
       IF ( ( p%NumBl == 2 ) .AND. ( p%DOF_Flag(DOF_Teet) ) )  THEN
          DO L = 1,p%DOFs%NPSBE(K) ! Loop through all active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the blade
             AugMat(DOF_Teet,p%DOFs%PSBE(K,L)) = -DOT_PRODUCT( RtHSdat%PAngVelEH(DOF_Teet,0,:), &
-                                                              RtHSdat%PMomLPRot(p%DOFs%PSBE(K,L),:) )  ! [C(q,t)]B
+                                                              RtHSdat%PMomLPRot(:,p%DOFs%PSBE(K,L)) )  ! [C(q,t)]B
          ENDDO             ! L - All active (enabled) blade DOFs that contribute to the QD2T-related linear accelerations of the blade
       ENDIF
 
@@ -12711,15 +12690,15 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
                                                   + p%TElmntMass(J)   *DOT_PRODUCT( RtHSdat%PLinVelET(J,p%DOFs%PTTE(I),0,:),  &
                                                                               RtHSdat%PLinVelET(J,p%DOFs%PTTE(L),0,:) ) &   ! [C(q,t)]T + [C(q,t)]HydroT
                                                   - p%DHNodes(J)*DOT_PRODUCT( RtHSdat%PLinVelET(J,p%DOFs%PTTE(I),0,:),  &
-                                                                              RtHSdat%PFTHydro (J,p%DOFs%PTTE(L),  :) ) &
+                                                                              RtHSdat%PFTHydro (:,J,p%DOFs%PTTE(L)  ) ) &
                                                   - p%DHNodes(J)*DOT_PRODUCT( RtHSdat%PAngVelEF(J,p%DOFs%PTTE(I),0,:),  &
-                                                                              RtHSdat%PMFHydro (J,p%DOFs%PTTE(L),  :) )
+                                                                              RtHSdat%PMFHydro (:,J,p%DOFs%PTTE(L)  ) )
          ENDDO                 ! I - All active (enabled) tower DOFs greater than or equal to L
       ENDDO                    ! L - All active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the tower
 
-      TmpVec1 = ( RtHSdat%FTHydrot(J,:) )*p%DHNodes(J) &
-              - p%TElmntMass(J)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccETt(J,:) )          ! The portion of FrcT0Trbt associated with tower element J
-      TmpVec3 = ( RtHSdat%MFHydrot(J,:) )*p%DHNodes(J)             ! The external moment applied to tower element J
+      TmpVec1 = ( RtHSdat%FTHydrot(:,J) )*p%DHNodes(J) &
+              - p%TElmntMass(J)*( p%Gravity*CoordSys%z2 + RtHSdat%LinAccETt(:,J) )          ! The portion of FrcT0Trbt associated with tower element J
+      TmpVec3 = ( RtHSdat%MFHydrot(:,J) )*p%DHNodes(J)             ! The external moment applied to tower element J
       DO I = 1,p%DOFs%NPTTE    ! Loop through all active (enabled) tower DOFs that contribute to the QD2T-related linear accelerations of the tower
             AugMat(p%DOFs%PTTE(I),        p%NAug) = AugMat(p%DOFs%PTTE(I),   p%NAug)                         &                 ! {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT
                                                   +  DOT_PRODUCT( RtHSdat%PLinVelET(J,p%DOFs%PTTE(I),0,:), TmpVec1        ) &  ! NOTE: TmpVec1 is still the portion of FrcT0Trbt associated with tower element J
@@ -12768,21 +12747,21 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
 
    IF ( p%DOF_Flag (DOF_Sg  ) )  THEN
       DO I = p%DOFs%Diag(DOF_Sg  ),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-         AugMat(p%DOFs%SrtPS(I),DOF_Sg  ) = -1.*DOT_PRODUCT( RtHSdat%PLinVelEZ(DOF_Sg ,0,:), RtHSdat%PFrcZAll (p%DOFs%SrtPS(I),:) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+         AugMat(p%DOFs%SrtPS(I),DOF_Sg  ) = -1.*DOT_PRODUCT( RtHSdat%PLinVelEZ(DOF_Sg ,0,:), RtHSdat%PFrcZAll (:,p%DOFs%SrtPS(I)) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_Sg  ,         p%NAug) =     DOT_PRODUCT( RtHSdat%PLinVelEZ(DOF_Sg ,0,:), RtHSdat%FrcZAllt              )        ! {-f(qd,q,t)}X + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}R + {-f(qd,q,t)}H + {-f(qd,q,t)}B + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}AeroA
    ENDIF
 
    IF ( p%DOF_Flag (DOF_Sw  ) )  THEN
       DO I = p%DOFs%Diag(DOF_Sw  ),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-         AugMat(p%DOFs%SrtPS(I),DOF_Sw  ) = -1.*DOT_PRODUCT( RtHSdat%PLinVelEZ(DOF_Sw ,0,:), RtHSdat%PFrcZAll (p%DOFs%SrtPS(I),:) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+         AugMat(p%DOFs%SrtPS(I),DOF_Sw  ) = -1.*DOT_PRODUCT( RtHSdat%PLinVelEZ(DOF_Sw ,0,:), RtHSdat%PFrcZAll (:,p%DOFs%SrtPS(I)) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_Sw  ,         p%NAug) =     DOT_PRODUCT( RtHSdat%PLinVelEZ(DOF_Sw ,0,:), RtHSdat%FrcZAllt              )        ! {-f(qd,q,t)}X + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}R + {-f(qd,q,t)}H + {-f(qd,q,t)}B + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}AeroA
    ENDIF
 
    IF ( p%DOF_Flag (DOF_Hv  ) )  THEN
       DO I = p%DOFs%Diag(DOF_Hv  ),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-         AugMat(p%DOFs%SrtPS(I),DOF_Hv  ) = -1.*DOT_PRODUCT( RtHSdat%PLinVelEZ(DOF_Hv ,0,:), RtHSdat%PFrcZAll (p%DOFs%SrtPS(I),:) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+         AugMat(p%DOFs%SrtPS(I),DOF_Hv  ) = -1.*DOT_PRODUCT( RtHSdat%PLinVelEZ(DOF_Hv ,0,:), RtHSdat%PFrcZAll (:,p%DOFs%SrtPS(I)) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_Hv  ,         p%NAug) =     DOT_PRODUCT( RtHSdat%PLinVelEZ(DOF_Hv ,0,:), RtHSdat%FrcZAllt              )        ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
    ENDIF
@@ -12790,21 +12769,21 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
    IF ( p%DOF_Flag (DOF_R   ) )  THEN
       DO I = p%DOFs%Diag(DOF_R   ),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
 
-         AugMat(p%DOFs%SrtPS(I),DOF_R   ) = -1.*DOT_PRODUCT( RtHSdat%PAngVelEX(DOF_R  ,0,:), RtHSdat%PMomXAll (p%DOFs%SrtPS(I),:) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+         AugMat(p%DOFs%SrtPS(I),DOF_R   ) = -1.*DOT_PRODUCT( RtHSdat%PAngVelEX(DOF_R  ,0,:), RtHSdat%PMomXAll (:,p%DOFs%SrtPS(I)) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_R   ,         p%NAug) =     DOT_PRODUCT( RtHSdat%PAngVelEX(DOF_R  ,0,:), RtHSdat%MomXAllt              )        ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
    ENDIF
 
    IF ( p%DOF_Flag (DOF_P   ) )  THEN
       DO I = p%DOFs%Diag(DOF_P   ),p%DOFs%NActvDOF    ! Loop through all active (enabled) DOFs on or below the diagonal
-         AugMat(p%DOFs%SrtPS(I),DOF_P   ) = -1.*DOT_PRODUCT( RtHSdat%PAngVelEX(DOF_P  ,0,:), RtHSdat%PMomXAll (p%DOFs%SrtPS(I),:) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+         AugMat(p%DOFs%SrtPS(I),DOF_P   ) = -1.*DOT_PRODUCT( RtHSdat%PAngVelEX(DOF_P  ,0,:), RtHSdat%PMomXAll (:,p%DOFs%SrtPS(I)) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       ENDDO                                                             ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_P            ,p%NAug) =     DOT_PRODUCT( RtHSdat%PAngVelEX(DOF_P  ,0,:), RtHSdat%MomXAllt              )        ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
    END IF
 
    IF ( p%DOF_Flag (DOF_Y   ) )  THEN
       DO I = p%DOFs%Diag(DOF_Y   ),p%DOFs%NActvDOF    ! Loop through all active (enabled) DOFs on or below the diagonal
-         AugMat(p%DOFs%SrtPS(I),DOF_Y   ) = -1.*DOT_PRODUCT( RtHSdat%PAngVelEX(DOF_Y  ,0,:), RtHSdat%PMomXAll (p%DOFs%SrtPS(I),:) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+         AugMat(p%DOFs%SrtPS(I),DOF_Y   ) = -1.*DOT_PRODUCT( RtHSdat%PAngVelEX(DOF_Y  ,0,:), RtHSdat%PMomXAll (:,p%DOFs%SrtPS(I)) ) ! [C(q,t)]X + [C(q,t)]HydroX + [C(q,t)]T + [C(q,t)]HydroT + [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       ENDDO                                                             ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_Y   ,         p%NAug) =     DOT_PRODUCT( RtHSdat%PAngVelEX(DOF_Y  ,0,:), RtHSdat%MomXAllt              )        ! {-f(qd,q,t)}X + {-f(qd,q,t)}GravX + {-f(qd,q,t)}HydroX + {-f(qd,q,t)}T + {-f(qd,q,t)}GravT + {-f(qd,q,t)}AeroT + {-f(qd,q,t)}HydroT + {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
    ENDIF
@@ -12813,9 +12792,9 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
       DO I = p%DOFs%Diag(DOF_TFA1),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
          AugMat(p%DOFs%SrtPS(I),DOF_TFA1) = AugMat(p%DOFs%SrtPS(I),DOF_TFA1)                             &
                                           -  DOT_PRODUCT( RtHSdat%PLinVelEO(DOF_TFA1,0,:),       &
-                                                          RtHSdat%PFrcONcRt(p%DOFs%SrtPS(I),:) ) &                          ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+                                                          RtHSdat%PFrcONcRt(:,p%DOFs%SrtPS(I)) ) &                          ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
                                           -  DOT_PRODUCT( RtHSdat%PAngVelEB(DOF_TFA1,0,:),       &
-                                                          RtHSdat%PMomBNcRt(p%DOFs%SrtPS(I),:) )
+                                                          RtHSdat%PMomBNcRt(:,p%DOFs%SrtPS(I)) )
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_TFA1,         p%NAug) = AugMat(DOF_TFA1,    p%NAug)                                  &
                                           +  DOT_PRODUCT( RtHSdat%PLinVelEO(DOF_TFA1,0,:), RtHSdat%FrcONcRtt  ) &   ! {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
@@ -12826,9 +12805,9 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
       DO I = p%DOFs%Diag(DOF_TSS1),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
          AugMat(p%DOFs%SrtPS(I),DOF_TSS1) = AugMat(p%DOFs%SrtPS(I),DOF_TSS1)                             &
                                           -  DOT_PRODUCT( RtHSdat%PLinVelEO(DOF_TSS1,0,:),       &
-                                                          RtHSdat%PFrcONcRt(p%DOFs%SrtPS(I),:) ) &                          ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+                                                          RtHSdat%PFrcONcRt(:,p%DOFs%SrtPS(I)) ) &                          ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
                                           -  DOT_PRODUCT( RtHSdat%PAngVelEB(DOF_TSS1,0,:),       &
-                                                          RtHSdat%PMomBNcRt(p%DOFs%SrtPS(I),:) )
+                                                          RtHSdat%PMomBNcRt(:,p%DOFs%SrtPS(I)) )
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_TSS1,         p%NAug) = AugMat(DOF_TSS1,    p%NAug)                                  &
                                           +  DOT_PRODUCT( RtHSdat%PLinVelEO(DOF_TSS1,0,:), RtHSdat%FrcONcRtt  ) &   ! {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
@@ -12839,9 +12818,9 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
       DO I = p%DOFs%Diag(DOF_TFA2),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
          AugMat(p%DOFs%SrtPS(I),DOF_TFA2) = AugMat(p%DOFs%SrtPS(I),DOF_TFA2)                             &
                                           -  DOT_PRODUCT( RtHSdat%PLinVelEO(DOF_TFA2,0,:),       &
-                                                          RtHSdat%PFrcONcRt(p%DOFs%SrtPS(I),:) ) &                          ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+                                                          RtHSdat%PFrcONcRt(:,p%DOFs%SrtPS(I)) ) &                          ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
                                           -  DOT_PRODUCT( RtHSdat%PAngVelEB(DOF_TFA2,0,:),       &
-                                                          RtHSdat%PMomBNcRt(p%DOFs%SrtPS(I),:) )
+                                                          RtHSdat%PMomBNcRt(:,p%DOFs%SrtPS(I)) )
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_TFA2,         p%NAug) = AugMat(DOF_TFA2,    p%NAug)                                  &
                                           +  DOT_PRODUCT( RtHSdat%PLinVelEO(DOF_TFA2,0,:), RtHSdat%FrcONcRtt  ) &   ! {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
@@ -12852,9 +12831,9 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
       DO I = p%DOFs%Diag(DOF_TSS2),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
          AugMat(p%DOFs%SrtPS(I),DOF_TSS2) = AugMat(p%DOFs%SrtPS(I),DOF_TSS2)                             &
                                           -  DOT_PRODUCT( RtHSdat%PLinVelEO(DOF_TSS2,0,:),       &
-                                                          RtHSdat%PFrcONcRt(p%DOFs%SrtPS(I),:) ) &                          ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+                                                          RtHSdat%PFrcONcRt(:,p%DOFs%SrtPS(I)) ) &                          ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
                                           -  DOT_PRODUCT( RtHSdat%PAngVelEB(DOF_TSS2,0,:),       &
-                                                          RtHSdat%PMomBNcRt(p%DOFs%SrtPS(I),:) )
+                                                          RtHSdat%PMomBNcRt(:,p%DOFs%SrtPS(I)) )
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_TSS2,         p%NAug) = AugMat(DOF_TSS2,    p%NAug)                                  &
                                           +  DOT_PRODUCT( RtHSdat%PLinVelEO(DOF_TSS2,0,:), RtHSdat%FrcONcRtt  ) &   ! {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
@@ -12863,7 +12842,7 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
    
    IF ( p%DOF_Flag (DOF_Yaw ) )  THEN
       DO I = p%DOFs%Diag(DOF_Yaw ),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-         AugMat(p%DOFs%SrtPS(I),DOF_Yaw ) = -DOT_PRODUCT( RtHSdat%PAngVelEN(DOF_Yaw ,0,:), RtHSdat%PMomBNcRt(p%DOFs%SrtPS(I),:) )   ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
+         AugMat(p%DOFs%SrtPS(I),DOF_Yaw ) = -DOT_PRODUCT( RtHSdat%PAngVelEN(DOF_Yaw ,0,:), RtHSdat%PMomBNcRt(:,p%DOFs%SrtPS(I)) )   ! [C(q,t)]N + [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B + [C(q,t)]A
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_Yaw ,         p%NAug) =  DOT_PRODUCT( RtHSdat%PAngVelEN(DOF_Yaw ,0,:), RtHSdat%MomBNcRtt             ) &        ! {-f(qd,q,t)}N + {-f(qd,q,t)}GravN + {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB + {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
                                                               + u%YawMom                                                            ! + {-f(qd,q,t)}SpringYaw  + {-f(qd,q,t)}DampYaw; NOTE: The neutral yaw rate, YawRateNeut, defaults to zero.  It is only used for yaw control.
@@ -12873,7 +12852,7 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
    IF ( p%DOF_Flag (DOF_RFrl) )  THEN
       DO I = p%DOFs%Diag(DOF_RFrl),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
          AugMat(p%DOFs%SrtPS(I),DOF_RFrl) = -DOT_PRODUCT( RtHSdat%PAngVelER(DOF_RFrl,0,:),       &
-                                                          RtHSdat%PMomNGnRt(p%DOFs%SrtPS(I),:) )                            ! [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B
+                                                          RtHSdat%PMomNGnRt(:,p%DOFs%SrtPS(I)) )                            ! [C(q,t)]R + [C(q,t)]G + [C(q,t)]H + [C(q,t)]B
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_RFrl,         p%NAug) =  DOT_PRODUCT( RtHSdat%PAngVelER(DOF_RFrl,0,:), RtHSdat%MomNGnRtt  ) &   ! {-f(qd,q,t)}R + {-f(qd,q,t)}GravR + {-f(qd,q,t)}G + {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
                                                                               +  RtHSdat%RFrlMom                            ! + {-f(qd,q,t)}SpringRF + {-f(qd,q,t)}DampRF
@@ -12883,7 +12862,7 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
 
    IF ( p%DOF_Flag (DOF_GeAz) )  THEN
       DO I = p%DOFs%Diag(DOF_GeAz),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-         AugMat(p%DOFs%SrtPS(I),DOF_GeAz) = -DOT_PRODUCT( RtHSdat%PAngVelEL(DOF_GeAz,0,:), RtHSdat%PMomLPRot(p%DOFs%SrtPS(I),:) )! [C(q,t)]H + [C(q,t)]B
+         AugMat(p%DOFs%SrtPS(I),DOF_GeAz) = -DOT_PRODUCT( RtHSdat%PAngVelEL(DOF_GeAz,0,:), RtHSdat%PMomLPRot(:,p%DOFs%SrtPS(I)) )! [C(q,t)]H + [C(q,t)]B
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_GeAz,         p%NAug) =  DOT_PRODUCT( RtHSdat%PAngVelEL(DOF_GeAz,0,:), RtHSdat%MomLPRott             ) &     ! {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
                                                               -  GBoxTrq                                                         ! + {-f(qd,q,t)}Gen + {-f(qd,q,t)}Brake
@@ -12904,7 +12883,7 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
 
    IF ( p%DOF_Flag (DOF_DrTr) )  THEN
       DO I = p%DOFs%Diag(DOF_DrTr),p%DOFs%NActvDOF   ! Loop through all active (enabled) DOFs on or below the diagonal
-         AugMat(p%DOFs%SrtPS(I),DOF_DrTr) = -DOT_PRODUCT( RtHSdat%PAngVelEL(DOF_DrTr,0,:), RtHSdat%PMomLPRot(p%DOFs%SrtPS(I),:) ) ! [C(q,t)]H + [C(q,t)]B
+         AugMat(p%DOFs%SrtPS(I),DOF_DrTr) = -DOT_PRODUCT( RtHSdat%PAngVelEL(DOF_DrTr,0,:), RtHSdat%PMomLPRot(:,p%DOFs%SrtPS(I)) ) ! [C(q,t)]H + [C(q,t)]B
       ENDDO                            ! I - All active (enabled) DOFs on or below the diagonal
          AugMat(DOF_DrTr,         p%NAug) =  DOT_PRODUCT( RtHSdat%PAngVelEL(DOF_DrTr,0,:), RtHSdat%MomLPRott             ) &      ! {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
                                                           -  p%DTTorSpr*x%QT (DOF_DrTr)                                    &      ! + {-f(qd,q,t)}ElasticDrive
@@ -12913,14 +12892,14 @@ SUBROUTINE FillAugMat( p, x, CoordSys, u, RtHSdat, AugMat )
 
    IF ( p%DOF_Flag (DOF_TFrl) )  THEN
       ! The tail-furl DOF does not affect any DOF index larger than DOF_TFrl.  Therefore, there is no need to perform the loop: DO I = Diag(DOF_TFrl),NActvDOF
-         AugMat(DOF_TFrl,       DOF_TFrl) = -DOT_PRODUCT( RtHSdat%PAngVelEA(DOF_TFrl,0,:), RtHSdat%PMomNTail(DOF_TFrl,:) )        ! [C(q,t)]A
+         AugMat(DOF_TFrl,       DOF_TFrl) = -DOT_PRODUCT( RtHSdat%PAngVelEA(DOF_TFrl,0,:), RtHSdat%PMomNTail(:,DOF_TFrl) )        ! [C(q,t)]A
          AugMat(DOF_TFrl,         p%NAug) =  DOT_PRODUCT( RtHSdat%PAngVelEA(DOF_TFrl,0,:), RtHSdat%MomNTailt             ) &      ! {-f(qd,q,t)}A + {-f(qd,q,t)}GravA + {-f(qd,q,t)}AeroA
                                                               +  RtHSdat%TFrlMom                                                  ! + {-f(qd,q,t)}SpringTF + {-f(qd,q,t)}DampTF
    ENDIF
 
    IF ( ( p%NumBl == 2 ) .AND. ( p%DOF_Flag(DOF_Teet) ) )  THEN
       ! The teeter DOF does not affect any DOF index larger than DOF_Teet.  Therefore, there is no need to perform the loop: DO I = Diag(DOF_Teet),NActvDOF
-         AugMat(DOF_Teet,       DOF_Teet) = -DOT_PRODUCT( RtHSdat%PAngVelEH(DOF_Teet,0,:), RtHSdat%PMomLPRot(DOF_Teet,:) )        ! [C(q,t)]H + [C(q,t)]B
+         AugMat(DOF_Teet,       DOF_Teet) = -DOT_PRODUCT( RtHSdat%PAngVelEH(DOF_Teet,0,:), RtHSdat%PMomLPRot(:,DOF_Teet) )        ! [C(q,t)]H + [C(q,t)]B
          AugMat(DOF_Teet,         p%NAug) =  DOT_PRODUCT( RtHSdat%PAngVelEH(DOF_Teet,0,:), RtHSdat%MomLPRott             ) &      ! {-f(qd,q,t)}H + {-f(qd,q,t)}GravH + {-f(qd,q,t)}B + {-f(qd,q,t)}GravB + {-f(qd,q,t)}AeroB
                                                               +  RtHSdat%TeetMom                                                  ! + {-f(qd,q,t)}SpringTeet + {-f(qd,q,t)}DampTeet
    ENDIF
@@ -13575,38 +13554,20 @@ SUBROUTINE ED_RK4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       ErrStat = ErrID_None
       ErrMsg  = "" 
 
-      CALL AllocAry( k1%qt,     p%NDOF, 'k1%qt',     ErrStat2, ErrMsg2 )
+      CALL ED_CopyContState( x, k1, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      CALL AllocAry( k1%qdt,    p%NDOF, 'k1%qdt',    ErrStat2, ErrMsg2 )
+      CALL ED_CopyContState( x, k2, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      CALL AllocAry( k2%qt,     p%NDOF, 'k2%qt',     ErrStat2, ErrMsg2 )
+      CALL ED_CopyContState( x, k3, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      CALL AllocAry( k2%qdt,    p%NDOF, 'k2%qdt',    ErrStat2, ErrMsg2 )
+      CALL ED_CopyContState( x, k4,    MESH_NEWCOPY, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      CALL AllocAry( k3%qt,     p%NDOF, 'k3%qt',     ErrStat2, ErrMsg2 )
-         CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      CALL AllocAry( k3%qdt,    p%NDOF, 'k3%qdt',    ErrStat2, ErrMsg2 )
-         CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      CALL AllocAry( k4%qt,     p%NDOF, 'k4%qt',     ErrStat2, ErrMsg2 )
-         CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      CALL AllocAry( k4%qdt,    p%NDOF, 'k4%qdt',    ErrStat2, ErrMsg2 )
-         CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      CALL AllocAry( x_tmp%qt,  p%NDOF, 'x_tmp%qt',  ErrStat2, ErrMsg2 )
-         CALL CheckError(ErrStat2,ErrMsg2)
-         IF ( ErrStat >= AbortErrLev ) RETURN
-      CALL AllocAry( x_tmp%qdt, p%NDOF, 'x_tmp%qdt', ErrStat2, ErrMsg2 )
+      CALL ED_CopyContState( x, x_tmp, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
-      CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )  
+
+      CALL ED_CopyInput( u(1), u_interp, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
                      
@@ -13790,7 +13751,8 @@ SUBROUTINE ED_AB4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       
       
       ! Allocate the input arrays
-      CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )      
+      CALL ED_CopyInput( u(1), u_interp, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
+      !CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )      
          CALL CheckError(ErrStat2,ErrMsg2)
          IF ( ErrStat >= AbortErrLev ) RETURN
 
@@ -13933,7 +13895,8 @@ SUBROUTINE ED_ABM4( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
 
       if (n .gt. 2_IntKi) then
             ! allocate the arrays in u_interp
-         CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )      
+         CALL ED_CopyInput( u(1), u_interp, MESH_NEWCOPY, ErrStat2, ErrMsg2 )
+         !CALL ED_AllocInput( u_interp, p, ErrStat2, ErrMsg2 )      
             CALL CheckError(ErrStat2,ErrMsg2)
             IF ( ErrStat >= AbortErrLev ) RETURN
          

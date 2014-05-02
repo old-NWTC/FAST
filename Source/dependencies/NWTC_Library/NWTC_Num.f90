@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 13:28:54 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 219 $
+! File last committed: $Date: 2014-05-02 12:21:13 -0600 (Fri, 02 May 2014) $
+! (File) Revision #: $Rev: 223 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Num
@@ -53,6 +53,7 @@ MODULE NWTC_Num
    !  SUBROUTINE LocateStp             ( XVal, XAry, Ind, AryLen )
    !  FUNCTION   Mean                  ( Ary, AryLen )                                                ! Function to calculate the mean value of a vector array.
    !  SUBROUTINE MPi2Pi                ( Angle )
+   !  SUBROUTINE Zero2TwoPi            ( Angle )   
    !  SUBROUTINE RegCubicSplineInit    ( AryLen, XAry, YAry, DelX, Coef )                             ! Calculate coefficients for regularly spaced array to use cubic splines.
    !  SUBROUTINE RegCubicSplineInitM   ( XAry, YAry, DelX, Coef, ErrStat, ErrMsg )                    ! Interpolate using cubic splines for multiple tables of regularly space data.
    !  FUNCTION   RegCubicSplineInterp  ( X, AryLen, XAry, YAry, DelX, Coef )                          ! Interpolate a regularly spaced array using cubic splines.
@@ -1959,6 +1960,33 @@ CONTAINS
 
    RETURN
    END SUBROUTINE MPi2Pi
+!=======================================================================
+   SUBROUTINE Zero2TwoPi ( Angle )
+
+
+      ! This routine ensures that Angle lies between 0 and 2*pi.
+
+
+      ! Argument declarations:
+
+   REAL(ReKi), INTENT(INOUT)    :: Angle
+
+
+
+      ! Get the angle between 0 and 2Pi.
+
+   Angle = MODULO( Angle, TwoPi )   
+
+
+      ! Check numerical case where Angle == 2Pi.
+
+   IF ( Angle == TwoPi )  THEN
+      Angle = 0.0_ReKi
+   END IF
+
+
+   RETURN
+   END SUBROUTINE Zero2TwoPi   
 !=======================================================================
    SUBROUTINE RegCubicSplineInit ( AryLen, XAry, YAry, DelX, Coef, ErrStat, ErrMsg )
 

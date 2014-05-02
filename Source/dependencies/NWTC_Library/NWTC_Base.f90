@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-10-01 22:05:26 -0600 (Tue, 01 Oct 2013) $
-! (File) Revision #: $Rev: 177 $
+! File last committed: $Date: 2014-04-22 14:46:48 -0600 (Tue, 22 Apr 2014) $
+! (File) Revision #: $Rev: 222 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Base.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Base
@@ -57,7 +57,7 @@ MODULE NWTC_Base
    TYPE DLL_Type
 
       INTEGER(C_INTPTR_T)       :: FileAddr                                        ! The address of file FileName.         (RETURN value from LoadLibrary ) [Windows]
-      TYPE(C_PTR)               :: FileAddrX                                       ! The address of file FileName.         (RETURN value dlopen ) [Linux]
+      TYPE(C_PTR)               :: FileAddrX                                       ! The address of file FileName.         (RETURN value from dlopen ) [Linux]
       TYPE(C_FUNPTR)            :: ProcAddr                                        ! The address of procedure ProcName.    (RETURN value from GetProcAddress or dlsym)
 
       CHARACTER(1024)           :: FileName                                        ! The name of the DLL file including the full path to the current working directory.

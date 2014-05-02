@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-03-06 13:30:32 -0700 (Thu, 06 Mar 2014) $
-! (File) Revision #: $Rev: 365 $
+! File last committed: $Date: 2014-04-02 12:11:01 -0600 (Wed, 02 Apr 2014) $
+! (File) Revision #: $Rev: 374 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison_Output.f90 $
 !**********************************************************************************************************************************
 MODULE Morison_Output
@@ -7954,7 +7954,7 @@ SUBROUTINE MrsnOut_OpenOutput( ProgName, OutRootName,  p, InitOut, ErrStat, ErrM
 
       ! Passed variables
 
-   CHARACTER(24),                 INTENT( IN    ) :: ProgName
+   CHARACTER(*),                  INTENT( IN    ) :: ProgName
    CHARACTER(*),                  INTENT( IN    ) :: OutRootName          ! Root name for the output file
    TYPE(Morison_ParameterType),   INTENT( INOUT ) :: p   
    TYPE(Morison_InitOutPutType ), INTENT( IN    ) :: InitOut              !

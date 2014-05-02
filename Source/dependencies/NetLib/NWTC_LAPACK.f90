@@ -94,7 +94,7 @@ CONTAINS
                                                           ! On exit, details of the factorization: U is stored as an upper triangular band matrix with KL+KU superdiagonals in
                                                           ! rows 1 to KL+KU+1, and the multipliers used during the factorization are stored in rows KL+KU+2 to 2*KL+KU+1.
       REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
-      INTEGER,         intent(  out) :: IPIV( * )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -143,7 +143,7 @@ CONTAINS
                                                           ! On exit, details of the factorization: U is stored as an upper triangular band matrix with KL+KU superdiagonals in
                                                           ! rows 1 to KL+KU+1, and the multipliers used during the factorization are stored in rows KL+KU+2 to 2*KL+KU+1.
       REAL(SiKi)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
-      INTEGER,         intent(  out) :: IPIV( * )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -186,7 +186,7 @@ CONTAINS
       !     .. Array Arguments ..
       REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! On entry, the N-by-N coefficient matrix A.  On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
       REAL(R8Ki)      ,intent(inout) :: B( LDA, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
-      INTEGER,         intent(  out) :: IPIV( * )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -229,7 +229,7 @@ CONTAINS
       !     .. Array Arguments ..
       REAL(SiKi)      ,intent(inout) :: A( LDA, * )       ! On entry, the N-by-N coefficient matrix A.  On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
       REAL(SiKi)      ,intent(inout) :: B( LDA, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
-      INTEGER,         intent(  out) :: IPIV( * )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -270,7 +270,7 @@ CONTAINS
 
       !     .. Array Arguments ..
       REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! On entry, the M-by-N matrix to be factored. On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
-      INTEGER,         intent(  out) :: IPIV( * )         ! The pivot indices; for 1 <= i <= min(M,N), row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices; for 1 <= i <= min(M,N), row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -310,7 +310,7 @@ CONTAINS
 
       !     .. Array Arguments ..
       REAL(SiKi)     ,intent(inout) :: A( LDA, * )       ! On entry, the M-by-N matrix to be factored. On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
-      INTEGER,        intent(  out) :: IPIV( * )         ! The pivot indices; for 1 <= i <= min(M,N), row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,        intent(  out) :: IPIV( : )         ! The pivot indices; for 1 <= i <= min(M,N), row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
@@ -352,7 +352,7 @@ CONTAINS
       INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      INTEGER,         intent(in   ) :: IPIV( * )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,         intent(in   ) :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
       REAL(R8Ki)      ,intent(in   ) :: A( LDA, * )       ! The factors L and U from the factorization A = P*L*U as computed by DGETRF.
       REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
 
@@ -395,9 +395,9 @@ CONTAINS
       INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      INTEGER,         intent(in   ) :: IPIV( * )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,         intent(in   ) :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
       REAL(R8Ki)      ,intent(in   ) :: A( LDA, * )       ! The factors L and U from the factorization A = P*L*U as computed by DGETRF.
-      REAL(R8Ki)      ,intent(inout) :: B( *      )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
+      REAL(R8Ki)      ,intent(inout) :: B( :      )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -438,7 +438,7 @@ CONTAINS
       INTEGER,        intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      INTEGER,        intent(in   ) :: IPIV( * )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,        intent(in   ) :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
       REAL(SiKi),     intent(in   ) :: A( LDA, * )       ! The factors L and U from the factorization A = P*L*U as computed by SGETRF.
       REAL(SiKi),     intent(inout) :: B( LDB, * )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
 
@@ -489,9 +489,9 @@ CONTAINS
       INTEGER,        intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      INTEGER,        intent(in   ) :: IPIV( * )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,        intent(in   ) :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
       REAL(SiKi),     intent(in   ) :: A( LDA, * )       ! The factors L and U from the factorization A = P*L*U as computed by SGETRF.
-      REAL(SiKi),     intent(inout) :: B( *      )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
+      REAL(SiKi),     intent(inout) :: B( :      )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
 
       INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
@@ -538,9 +538,9 @@ CONTAINS
                                                           ! entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
 
       !     .. Array Arguments ..
-      INTEGER,         intent(in   ) :: IPIV( * )         ! dimension (N). The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,         intent(in   ) :: IPIV( : )         ! dimension (N). The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
       REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! On entry, the factors L and U from the factorization A = P*L*U as computed by DGETRF. On exit, if INFO = 0, the inverse of the original matrix A.
-      REAL(R8Ki)      ,intent(  out) :: WORK( * )         ! On exit, if INFO=0, then WORK(1) returns the optimal LWORK.
+      REAL(R8Ki)      ,intent(inout) :: WORK( : )         ! On exit, if INFO=0, then WORK(1) returns the optimal LWORK.
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -586,9 +586,9 @@ CONTAINS
                                                          ! entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
 
       !     .. Array Arguments ..
-      INTEGER,        intent(in   ) :: IPIV( * )         ! dimension (N). The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
+      INTEGER,        intent(in   ) :: IPIV( : )         ! dimension (N). The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
       REAL(SiKi),     intent(inout) :: A( LDA, * )       ! On entry, the factors L and U from the factorization A = P*L*U as computed by SGETRF. On exit, if INFO = 0, the inverse of the original matrix A.
-      REAL(SiKi),     intent(  out) :: WORK( * )         ! On exit, if INFO=0, then WORK(1) returns the optimal LWORK.
+      REAL(SiKi),     intent(inout) :: WORK( : )         ! On exit, if INFO=0, then WORK(1) returns the optimal LWORK.
 
       INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
@@ -637,9 +637,9 @@ CONTAINS
       REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! dimension (LDA, N). On entry, the matrix A in the pair (A,B). On exit, A has been overwritten.
       REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
 
-      REAL(R8Ki)      ,intent(  out) :: ALPHAR( * )       ! dimension (N). See comments for variable "Beta"
-      REAL(R8Ki)      ,intent(  out) :: ALPHAI( * )       ! dimension (N). See comments for variable "Beta".
-      REAL(R8Ki)      ,intent(  out) :: BETA( * )         ! On exit, (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N, will be the generalized eigenvalues.  If ALPHAI(j) is zero, then
+      REAL(R8Ki)      ,intent(  out) :: ALPHAR( : )       ! dimension (N). See comments for variable "Beta"
+      REAL(R8Ki)      ,intent(  out) :: ALPHAI( : )       ! dimension (N). See comments for variable "Beta".
+      REAL(R8Ki)      ,intent(  out) :: BETA( : )         ! On exit, (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N, will be the generalized eigenvalues.  If ALPHAI(j) is zero, then
                                                           !   the j-th eigenvalue is real; if positive, then the j-th and (j+1)-st eigenvalues are a complex conjugate pair, with
                                                           !   ALPHAI(j+1) negative.
                                                           !
@@ -657,7 +657,7 @@ CONTAINS
                                                           !   (j+1)-th eigenvalues form a complex conjugate pair, then v(j) = VR(:,j)+i*VR(:,j+1) and v(j+1) = VR(:,j)-i*VR(:,j+1).
                                                           !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVR = 'N'.
 
-      REAL(R8Ki)      ,intent(  out) :: WORK( * )         ! dimension (MAX(1,LWORK)). On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
+      REAL(R8Ki)      ,intent(inout) :: WORK( : )         ! dimension (MAX(1,LWORK)). On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
 
 
 
@@ -728,9 +728,9 @@ CONTAINS
       REAL(SiKi),     intent(inout) :: B( LDB, * )       ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
 
 
-      REAL(SiKi),     intent(  out) :: ALPHAR( * )       ! dimension (N). See comments for variable "Beta"
-      REAL(SiKi),     intent(  out) :: ALPHAI( * )       ! dimension (N). See comments for variable "Beta".
-      REAL(SiKi),     intent(  out) :: BETA( * )         ! On exit, (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N, will be the generalized eigenvalues.  If ALPHAI(j) is zero, then
+      REAL(SiKi),     intent(  out) :: ALPHAR( : )       ! dimension (N). See comments for variable "Beta"
+      REAL(SiKi),     intent(  out) :: ALPHAI( : )       ! dimension (N). See comments for variable "Beta".
+      REAL(SiKi),     intent(  out) :: BETA( : )         ! On exit, (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N, will be the generalized eigenvalues.  If ALPHAI(j) is zero, then
                                                          !   the j-th eigenvalue is real; if positive, then the j-th and (j+1)-st eigenvalues are a complex conjugate pair, with
                                                          !   ALPHAI(j+1) negative.
                                                          !
@@ -748,7 +748,7 @@ CONTAINS
                                                          !   (j+1)-th eigenvalues form a complex conjugate pair, then v(j) = VR(:,j)+i*VR(:,j+1) and v(j+1) = VR(:,j)-i*VR(:,j+1).
                                                          !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVR = 'N'.
 
-      REAL(SiKi),     intent(  out) :: WORK( * )         ! dimension (MAX(1,LWORK)). On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
+      REAL(SiKi),     intent(inout) :: WORK( : )         ! dimension (MAX(1,LWORK)). On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
 
 
 

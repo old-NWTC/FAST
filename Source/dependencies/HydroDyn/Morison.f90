@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-03-19 09:20:43 -0600 (Wed, 19 Mar 2014) $
-! (File) Revision #: $Rev: 371 $
+! File last committed: $Date: 2014-04-02 12:11:01 -0600 (Wed, 02 Apr 2014) $
+! (File) Revision #: $Rev: 374 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -39,7 +39,7 @@ MODULE Morison
    PRIVATE
 
 !   INTEGER(IntKi), PARAMETER            :: DataFormatID = 1   ! Update this value if the data types change (used in Morison_Pack)
-   TYPE(ProgDesc), PARAMETER            :: Morison_ProgDescrip = ProgDesc( 'Morison', 'v1.00.01', '1-Apr-2013' )
+   TYPE(ProgDesc), PARAMETER            :: Morison_ProgDesc = ProgDesc( 'Morison', 'v1.00.01', '1-Apr-2013' )
 
    
       ! ..... Public Subroutines ...................................................................................................
@@ -4089,7 +4089,7 @@ IF (ALLOCATED(InitInp%JOutLst) ) &
          ! Determine if we need to perform output file handling
       
       IF ( p%OutSwtch == 1 .OR. p%OutSwtch == 3 ) THEN  
-         CALL MrsnOUT_OpenOutput( Morison_ProgDescrip%Name, TRIM(InitInp%OutRootName)//'.HD', p, InitOut, ErrStat, ErrMsg )
+         CALL MrsnOUT_OpenOutput( Morison_ProgDesc%Name, TRIM(InitInp%OutRootName)//'.HD', p, InitOut, ErrStat, ErrMsg )
          IF ( ErrStat > ErrID_None ) RETURN
       END IF
       

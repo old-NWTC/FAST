@@ -425,7 +425,7 @@ CONTAINS
        CALL MAP_CheckError("MAP ERROR: cannot read the MAP input file.",ErrMSg)
        RETURN
     END IF
-    
+
     ! This binds MSQS_Init function in C++ with Fortran
     CALL MSQS_Init( InitInp%C_obj   , &
                     u%C_obj         , &
@@ -451,8 +451,6 @@ CONTAINS
           RETURN
        END IF
     END IF
-
-
     !==========   MAP_InitInpInputType   ======     <--------------------------+
     ! get header information for the FAST output file               !          | 
     numHeaderStr = MAP_NumberOfHeaders( O%C_obj )                   !          | 

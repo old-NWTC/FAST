@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-03-04 11:16:28 -0700 (Tue, 04 Mar 2014) $
-! (File) Revision #: $Rev: 274 $
+! File last committed: $Date: 2014-04-11 11:41:17 -0600 (Fri, 11 Apr 2014) $
+! (File) Revision #: $Rev: 292 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -4245,6 +4245,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
    REAL(ReKi), DIMENSION (6)                 :: FM_elm2, FK_elm2  !output static and dynamic forces and moments
    Real(ReKi), DIMENSION (3,3)              :: DIRCOS    !direction cosice matrix (global to local) (3x3)
    Real(ReKi), ALLOCATABLE                  :: ReactNs(:)    !6*Nreact reactions
+   REAL(ReKi)                               :: Tmp_Udotdot(12), Tmp_y2(12) !temporary storage for calls to CALC_LOCAL
    
    Real(reKi), DIMENSION(p%Y2L/2+6*p%Nreact)          :: yout            ! modifications to Y2 and Udotdot to include constrained node DOFs
    Real(ReKi),  DIMENSION(p%UdotdotL+6*p%Nreact)      ::uddout           ! modifications to Y2 and Udotdot to include constrained node DOFs
@@ -4290,8 +4291,16 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
              !I need to find the Udotdot() for the two nodes of the element of interest 
              !I need to move the displacements to the local ref system
              
-             CALL CALC_LOCAL( DIRCOS,p%MOutLst(I)%Me(:,:,J,1),p%MOutLst(I)%Ke(:,:,J,1),(/uddout( L : L+5  ),uddout( L2 : L2+5 )/), &
-                             (/yout( L : L+5 ),       yout( L2 : L2+5 )/),p%MoutLst(I)%Fg(:,J,1), K2,FM_elm,FK_elm) 
+               ! bjj: added these temporary storage variables so that the CALC_LOCAL call doesn't created
+               !      new temporary *every time* it's called
+             Tmp_Udotdot(1: 6) = uddout( L : L+5  )
+             Tmp_Udotdot(7:12) = uddout( L2 : L2+5 )
+             
+             Tmp_y2(1: 6)      = yout( L : L+5 )
+             Tmp_y2(7:12)      = yout( L2 : L2+5 )
+
+             CALL CALC_LOCAL( DIRCOS,p%MOutLst(I)%Me(:,:,J,1),p%MOutLst(I)%Ke(:,:,J,1),Tmp_Udotdot, &
+                              Tmp_y2,p%MoutLst(I)%Fg(:,J,1), K2,FM_elm,FK_elm) 
              
              FM_elm2=sgn*FM_elm
              FK_elm2=sgn*FK_elm
@@ -4592,8 +4601,8 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
    
       ! Local variables
    INTEGER                                        :: I                    ! Generic loop counter      
-   INTEGER                                        :: J                    ! Generic loop counter      
-   INTEGER                                        :: Indx                 ! Counts the current index into the WaveKinNd array
+!   INTEGER                                        :: J                    ! Generic loop counter      
+!   INTEGER                                        :: Indx                 ! Counts the current index into the WaveKinNd array
    CHARACTER(1024)                                :: OutFileName          ! The name of the output file  including the full path.
    CHARACTER(200)                                 :: Frmt                 ! a string to hold a format statement
                  

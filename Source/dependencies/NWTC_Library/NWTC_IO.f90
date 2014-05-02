@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 13:28:54 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 219 $
+! File last committed: $Date: 2014-05-02 12:21:13 -0600 (Fri, 02 May 2014) $
+! (File) Revision #: $Rev: 223 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_IO.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_IO
@@ -79,8 +79,8 @@ MODULE NWTC_IO
 
       ! Parameters for writing to echo files (in this module only)
 
-   INTEGER(IntKi), PARAMETER, PRIVATE :: MaxAryLen = 100 ! the maximum length of arrays that can be printed with the array formats below (used to make sure we don't crash when trying to write too many):
-   ! >>> Note that the following array formats use 100, the value of MaxAryLen above. Please keep the two numbers consistant!
+   INTEGER(IntKi), PARAMETER :: NWTC_MaxAryLen = 100 ! the maximum length of arrays that can be printed with the array formats below (used to make sure we don't crash when trying to write too many):
+   ! >>> Note that the following array formats use 100, the value of NWTC_MaxAryLen above. Please keep the two numbers consistant!
    CHARACTER(*),PARAMETER :: Ec_StrAryFrmt =              "(15X,A,T30,' - ',A,/,2X,100('""',A,'""',:,1X))"   ! Output format for array of string parameters.
    CHARACTER(*),PARAMETER :: Ec_StrFrmt    =              "(15X,A,T30,' - ',A,/,2X, A )"                     ! Output format for string parameters
    CHARACTER(*),PARAMETER :: Ec_ReAryFrmt  =              "(15X,A,T30,' - ',A,/,100(2X,ES11.4e2,:))"         ! Output format for array of real parameters.
@@ -90,7 +90,7 @@ MODULE NWTC_IO
    CHARACTER(*),PARAMETER :: Ec_IntAryFrmt =              "(15X,A,T30,' - ',A,/,100(2X,I11,:))"              ! Output format for array of integer parameters.
    CHARACTER(*),PARAMETER :: Ec_IntFrmt    =      "( 2X, I11,2X,A,T30,' - ',A )"                             ! Output format for integer parameters
    CHARACTER(*),PARAMETER :: Ec_Ch11Frmt   =      "( 2X, A11,2X,A,T30,' - ',A )"                             ! Output format for 11-character string parameters
-   ! <<< End of arrays that use number defined in MaxAryLen
+   ! <<< End of arrays that use number defined in NWTC_MaxAryLen
 
 !=======================================================================
 
@@ -205,7 +205,13 @@ MODULE NWTC_IO
       MODULE PROCEDURE DispNVD2        ! Two arguments of TYPE character
    END INTERFACE
 
-
+      ! Create interface for writing matrix and array values (useful for debugging)
+   INTERFACE WrMatrix
+      MODULE PROCEDURE WrMatrix1       ! Single dimension matrix (Ary) or ReKi
+      MODULE PROCEDURE WrMatrix2       ! Two dimension matrix of ReKi
+   END INTERFACE
+   
+   
 CONTAINS
 
    ! It contains the following routines:
@@ -1279,7 +1285,6 @@ CONTAINS
       ! Local declarations.
 
    INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
 
 
 
@@ -1325,7 +1330,6 @@ CONTAINS
       ! Local declarations.
 
    INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
 
 
 
@@ -1373,7 +1377,6 @@ CONTAINS
       ! Local declarations.
 
    INTEGER                           :: Sttus                                      ! Status of allocation attempt.
-   CHARACTER(200)                    :: Msg                                        ! Temporary string to hold error message
 
 
 
@@ -1444,21 +1447,8 @@ CONTAINS
 
          IF ( Arg(1:1) == SwChar )  THEN
 
-            CALL WrScr ( NewLine//' Syntax is:' )
-            IF ( LEN_TRIM( InputFile ) == 0 )  THEN
-               CALL WrScr ( NewLine//'    '//TRIM( ProgName )//' ['//SwChar//'h] <InputFile>' )
-               CALL WrScr ( NewLine//' where:' )
-               CALL WrScr ( NewLine//'    '//SwChar//'h generates this help message.' )
-               CALL WrScr    ( '    <InputFile> is the name of the required primary input file.' )
-            ELSE
-               CALL WrScr ( NewLine//'    '//TRIM( ProgName )//' ['//SwChar//'h] [<InputFile>]' )
-               CALL WrScr ( NewLine//' where:' )
-               CALL WrScr ( NewLine//'    '//SwChar//'h generates this help message.' )
-               CALL WrScr    ( '    <InputFile> is the name of the primary input file.  If omitted, the default file is "' &
-                             //TRIM( InputFile )//'".' )
-            END IF
-            CALL WrScr    ( ' ')
-
+            CALL NWTC_DisplaySyntax( InputFile, ProgName )
+            
             IF ( INDEX( 'Hh?', Arg(2:2)  ) > 0 )  THEN
                IF ( PRESENT(ErrStat) ) THEN
                   ErrStat = ErrID_Info !bjj? do we want to check if an input file was specified later?
@@ -1485,7 +1475,33 @@ CONTAINS
    IF ( PRESENT( ErrStat ) ) ErrStat = ErrID_None
 
    RETURN
+      
    END SUBROUTINE CheckArgs ! ( InputFile [, ErrStat] )
+!=======================================================================
+   SUBROUTINE NWTC_DisplaySyntax( DefaultInputFile, ThisProgName )
+   
+      CHARACTER(*),  INTENT(IN)  :: DefaultInputFile
+      CHARACTER(*),  INTENT(IN)  :: ThisProgName
+      
+               
+      CALL WrScr ( NewLine//' Syntax is:' )
+      IF ( LEN_TRIM( DefaultInputFile ) == 0 )  THEN
+         CALL WrScr ( NewLine//'    '//TRIM( ThisProgName )//' ['//SwChar//'h] <InputFile>' )
+         CALL WrScr ( NewLine//' where:' )
+         CALL WrScr ( NewLine//'    '//SwChar//'h generates this help message.' )
+         CALL WrScr    ( '    <InputFile> is the name of the required primary input file.' )
+      ELSE
+         CALL WrScr ( NewLine//'    '//TRIM( ThisProgName )//' ['//SwChar//'h] [<InputFile>]' )
+         CALL WrScr ( NewLine//' where:' )
+         CALL WrScr ( NewLine//'    '//SwChar//'h generates this help message.' )
+         CALL WrScr    ( '    <InputFile> is the name of the primary input file.  If omitted, the default file is "' &
+                        //TRIM( DefaultInputFile )//'".' )
+      END IF
+      CALL WrScr    ( NewLine//' Note: values enclosed in square brackets [] are optional. Do not enter the brackets.')      
+      CALL WrScr    ( ' ')
+                     
+   END SUBROUTINE NWTC_DisplaySyntax
+
 !=======================================================================
    SUBROUTINE ChkParseData ( Words, ExpVarName, FileName, FileLineNum, NameIndx, ErrStat, ErrMsg )
 
@@ -4310,7 +4326,7 @@ CONTAINS
 
    IF ( PRESENT(UnEc) )  THEN
       IF ( UnEc > 0 ) &
-         WRITE (UnEc,Ec_StrAryFrmt)  TRIM( AryName ), AryDescr, ( TRIM( CharAry(Ind) ), Ind=1,MIN(AryLen,MaxAryLen) )
+         WRITE (UnEc,Ec_StrAryFrmt)  TRIM( AryName ), AryDescr, ( TRIM( CharAry(Ind) ), Ind=1,MIN(AryLen,NWTC_MaxAryLen) )
    END IF
 
    END IF
@@ -5029,7 +5045,7 @@ CONTAINS
 
    IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 ) THEN
-            WRITE( UnEc, Ec_IntAryFrmt ) TRIM( AryName ), AryDescr, IntAry(1:MIN(AryLen,MaxAryLen))
+            WRITE( UnEc, Ec_IntAryFrmt ) TRIM( AryName ), AryDescr, IntAry(1:MIN(AryLen,NWTC_MaxAryLen))
          END IF
       END IF !present(unec)
 
@@ -5152,7 +5168,7 @@ CONTAINS
 
       IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 ) THEN
-            WRITE( UnEc, Ec_LgAryFrmt ) TRIM( AryName ), AryDescr, LogAry(1:MIN(AryLen,MaxAryLen))
+            WRITE( UnEc, Ec_LgAryFrmt ) TRIM( AryName ), AryDescr, LogAry(1:MIN(AryLen,NWTC_MaxAryLen))
          END IF
       END IF !present(unec)
 
@@ -5472,7 +5488,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
       IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 ) THEN
-            WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,MaxAryLen))
+            WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,NWTC_MaxAryLen))
          END IF
       END IF
 
@@ -5522,7 +5538,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
       IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 ) THEN
-            WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,MaxAryLen))
+            WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,NWTC_MaxAryLen))
          END IF
       END IF
 
@@ -5572,7 +5588,7 @@ SUBROUTINE ReadLine ( UnIn, CommChars, Line, LineLen, ErrStat )
 
       IF ( PRESENT(UnEc) )  THEN
          IF ( UnEc > 0 ) THEN
-            WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,MaxAryLen))
+            WRITE( UnEc, Ec_ReAryFrmt ) TRIM( AryName ), AryDescr, RealAry(1:MIN(AryLen,NWTC_MaxAryLen))
          END IF
       END IF
 
@@ -6724,8 +6740,31 @@ END SUBROUTINE WrBinFAST
 
    RETURN
    END SUBROUTINE WrFileNR ! ( Unit, Str )
+!=======================================================================  
+   SUBROUTINE WrMatrix1( A, Un, ReFmt )
+      REAL(ReKi),        INTENT(IN) :: A(:)
+      INTEGER,           INTENT(IN) :: Un
+      CHARACTER(*),      INTENT(IN) :: ReFmt   ! Format for printing ReKi numbers  
+      
+      INTEGER        :: ErrStat
+      INTEGER        :: nr  ! size (rows and columns) of A
+      CHARACTER(256) :: Fmt
+   
+   
+      nr = SIZE(A,1)
+
+      Fmt = "(2x, "//TRIM(Num2LStr(nr))//"(1x,"//ReFmt//"))"   
+   
+      WRITE( Un, Fmt, IOSTAT=ErrStat ) A(:)
+      IF (ErrStat /= 0) THEN
+         CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix().')
+         RETURN
+      END IF
+
+   RETURN
+   END SUBROUTINE WrMatrix1
 !=======================================================================
-   SUBROUTINE WrMatrix( A, Un, ReFmt )
+   SUBROUTINE WrMatrix2( A, Un, ReFmt )
       REAL(ReKi),     INTENT(IN) :: A(:,:)
       INTEGER,        INTENT(IN) :: Un
       CHARACTER(*),   INTENT(IN) :: ReFmt   ! Format for printing ReKi numbers  
@@ -6752,7 +6791,7 @@ END SUBROUTINE WrBinFAST
       END DO
 
    RETURN
-   END SUBROUTINE WrMatrix
+   END SUBROUTINE WrMatrix2
 !=======================================================================  
    SUBROUTINE WrML ( Str )
 

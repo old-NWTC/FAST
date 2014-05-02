@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-24 09:54:50 -0700 (Fri, 24 Jan 2014) $
-! (File) Revision #: $Rev: 264 $
+! File last committed: $Date: 2014-04-11 11:41:17 -0600 (Fri, 11 Apr 2014) $
+! (File) Revision #: $Rev: 292 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM
@@ -25,7 +25,7 @@ SUBROUTINE NodeCon(Init,p, ErrStat, ErrMsg)
   CHARACTER(1024),                INTENT(   OUT )  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
    
   !local variable
-  INTEGER(IntKi) :: SortA(Init%MaxMemjnt,2)  !To sort nodes and elements
+  INTEGER(IntKi) :: SortA(Init%MaxMemjnt,1)  !To sort nodes and elements
   INTEGER(IntKi) :: I,J,K  !counter
   
   ALLOCATE(Init%NodesConnE(Init%NNode, Init%MaxMemJnt+1), STAT=ErrStat)                !the row index is the number of the real node, i.e. ID, 1st col has number of elements attached to node, and 2nd col has element numbers (up to 10)                                    
@@ -46,8 +46,8 @@ SUBROUTINE NodeCon(Init,p, ErrStat, ErrMsg)
                                                                                                                           
 !   ! find the node connectivity, nodes/elements that connect to a common node                                             
 !   ! initialize the temp array for sorting                                                                             
-   SortA(Init%MaxMemjnt,2) = 0                                                                                            
-                                                                                                                          
+   !SortA(Init%MaxMemjnt,2) = 0                                                                                            
+   
    DO I = 1, Init%NNode                                                                                                   
       Init%NodesConnN(I, 1) = NINT( Init%Nodes(I, 1) )      !This should not be needed, could remove the extra 1st column like for the other array                                                                      
                                                                                                                           
@@ -62,8 +62,8 @@ SUBROUTINE NodeCon(Init,p, ErrStat, ErrMsg)
       ENDDO                                                                                                               
                                                                                                                           
       IF( k>1 )THEN ! sort the nodes ascendingly                                                                          
-         SortA(1:k, 1) = Init%NodesConnN(I, 3:(k+2))                                                                      
-         CALL QsortC( SortA(1:k, 1:2) )                                                                                   
+         SortA(1:k, 1) = Init%NodesConnN(I, 3:(k+2))  
+         CALL QsortC( SortA(1:k, 1:1) )                                                                                   
          Init%NodesConnN(I, 3:(k+2)) = SortA(1:k, 1)                                                                      
       ENDIF                                                                                                               
                                                                                                                           
@@ -89,9 +89,9 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
    INTEGER                       :: TempNProp
    REAL(ReKi), ALLOCATABLE       :: TempProps(:, :)
    INTEGER, ALLOCATABLE          :: TempMembers(:, :) ,TempReacts(:,:)         
-   CHARACTER(1024)               :: OutFile
+!   CHARACTER(1024)               :: OutFile
    CHARACTER(  50)               :: tempStr ! string number of nodes in member
-   CHARACTER(1024)               :: OutFmt
+!   CHARACTER(1024)               :: OutFmt
    INTEGER                       :: knode, kelem, kprop, nprop
    REAL(ReKi)                    :: x1, y1, z1, x2, y2, z2, dx, dy, dz, dd, dt, d1, d2, t1, t2
    
@@ -535,7 +535,7 @@ END SUBROUTINE GetNewProp
 !   ! find the node connectivity, nodes/elements that connect to a common node                                             
 !      ! initialize the temp array for sorting                                                                             
 !   SortA(Init%MaxMemjnt,2) = 0                                                                                            
-!                                                                                                                          
+!bjj:   SortA = 0                      
 !   DO I = 1, Init%NNode                                                                                                   
 !      Init%NodesConnE(I, 1) = Init%Nodes(I, 1)                                                                            
 !      Init%NodesConnN(I, 1) = Init%Nodes(I, 1)                                                                            
@@ -726,11 +726,13 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
    LOGICAL                  :: shear
    REAL(ReKi), ALLOCATABLE  :: Ke(:,:), Me(:, :), FGe(:) ! element stiffness and mass matrices gravity force vector
    INTEGER, ALLOCATABLE     :: nn(:)                     ! node number in element 
-   INTEGER                  :: tgt_row_sys(6), row_in_elem(6), tgt_col_sys(6), col_in_elem(6)
+!   INTEGER                  :: tgt_row_sys(6), row_in_elem(6), tgt_col_sys(6), col_in_elem(6)
    
-   INTEGER                  :: ei, ej, ti, tj, r, s, beg_jA, end_jA, ii, jj
-   CHARACTER(1024)          :: tempstr1, tempstr2, outfile
-   INTEGER                  :: UnDbg, Sttus 
+!   INTEGER                  :: ei, ej, ti, tj, r, s, beg_jA, end_jA, ii, jj
+   INTEGER                  :: r
+!   CHARACTER(1024)          :: tempstr1, tempstr2, outfile
+!   INTEGER                  :: UnDbg 
+   INTEGER                  :: Sttus 
    
    
 
@@ -1286,8 +1288,8 @@ SUBROUTINE ApplyConstr(Init,p)
    TYPE(SD_InitInputType), INTENT(INOUT)   :: Init
    TYPE(SD_ParameterType), INTENT(IN)   :: p
    
-   INTEGER                  :: I, J, k
-   INTEGER                  :: bgn_j, end_j, row_n
+   INTEGER                  :: I !, J, k
+   INTEGER                  :: row_n !bgn_j, end_j, 
    
    DO I = 1, p%NReact*6
       row_n = Init%BCs(I, 1)
