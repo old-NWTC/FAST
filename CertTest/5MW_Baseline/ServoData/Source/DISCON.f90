@@ -128,7 +128,7 @@ aviFAIL      = 0
    ! Read any External Controller Parameters specified in the User Interface
    !   and initialize variables:
 
-IF ( iStatus == 0 )  THEN  ! .TRUE. if were on the first call to the DLL
+IF ( iStatus == 0 )  THEN  ! .TRUE. if we're on the first call to the DLL
 
    ! Inform users that we are using this user-defined routine:
 
@@ -248,10 +248,12 @@ IF ( iStatus == 0 )  THEN  ! .TRUE. if were on the first call to the DLL
       WRITE (UnDb,'(/////)')
       WRITE (UnDb,'(A)')  'Time '//Tab//'ElapTime'//Tab//'HorWindV'//Tab//'GenSpeed'//Tab//'GenSpeedF'//Tab//'RelSpdErr'//Tab// &
                           'SpdErr '//Tab//'IntSpdErr'//Tab//'GK '//Tab//'PitComP'//Tab//'PitComI'//Tab//'PitComT'//Tab//        &
-                          'PitRate1'//Tab//'PitCom1'
+                          'PitRate1'//Tab//'PitRate2'//Tab//'PitRate3'//Tab//'PitCom1'//Tab//'PitCom2'//Tab//'PitCom3'//Tab// &
+                          'BlPitch1'//Tab//'BlPitch2'//Tab//'BlPitch3'//Tab//'PC_MaxRat'
       WRITE (UnDb,'(A)')  '(sec)'//Tab//'(sec)   '//Tab//'(m/sec) '//Tab//'(rpm)   '//Tab//'(rpm)    '//Tab//'(%)      '//Tab// &
                           '(rad/s)'//Tab//'(rad)    '//Tab//'(-)'//Tab//'(deg)  '//Tab//'(deg)  '//Tab//'(deg)  '//Tab//        &
-                          '(deg/s) '//Tab//'(deg)  '
+                          '(deg/s) '//Tab//'(deg/s) '//Tab//'(deg/s) '//Tab//'(deg)  '//Tab//'(deg)  '//Tab//'(deg)  '//Tab// &
+                          '(deg)   '//Tab//'(deg)   '//Tab//'(deg)   '//Tab//'(deg/s) '
 
    ENDIF
 
@@ -456,10 +458,12 @@ IF ( ( iStatus >= 0 ) .AND. ( aviFAIL >= 0 ) )  THEN  ! Only compute control cal
 
    ! Output debugging information if requested:
 
-      IF ( PC_DbgOut )  WRITE (UnDb,FmtDat)  Time, ElapTime, HorWindV, GenSpeed*RPS2RPM, GenSpeedF*RPS2RPM,           &
+      IF ( PC_DbgOut )  THEN
+                        WRITE (UnDb,FmtDat)  Time, ElapTime, HorWindV, GenSpeed*RPS2RPM, GenSpeedF*RPS2RPM,           &
                                              100.0*SpdErr/PC_RefSpd, SpdErr, IntSpdErr, GK, PitComP*R2D, PitComI*R2D, &
-                                             PitComT*R2D, PitRate(1)*R2D, PitCom(1)*R2D
+                                             PitComT*R2D, PitRate*R2D, PitCom*R2D, BlPitch*R2D, PC_MaxRat*R2D
 
+      END IF
 
    ENDIF
 

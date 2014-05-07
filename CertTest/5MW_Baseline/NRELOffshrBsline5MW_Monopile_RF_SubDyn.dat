@@ -3,33 +3,33 @@
 OC3 Monopile configuration (pile only).
 -------------------------- SIMULATION CONTROL  ---------------------------------
 True       Echo        - Echo input data to "echo.out" (flag)
-0.001      SDdeltaT    - Local Integration Step. If "default", the glue-code integration step will be used.
+default    SDdeltaT    - Local Integration Step. If "default", the glue-code integration step will be used.
 3          IntMethod   - Integration Method (0/1/2/3/4 = GlueCode(tight Coupling)/RK4/AB4/ABM4/AM2)
-false      SttcSolve   - Solve dynamics about static equilibrium point
+true       SttcSolve   - Solve dynamics about static equilibrium point
 -------------------- FEA and CRAIG-BAMPTON PARAMETERS---------------------------
-3          FEMMod     - FEM switch: element model in the FEM: 1= Euler-Bernoulli(E-B) ; 2=Tapered E-B; 3= 2-node Timoshenko;  4= 2-node tapered Timoshenko
-10         NDiv       - Number of sub-elements per member
-true       CBMod      - If True perform C-B reduction, else full FEM dofs will be retained. IF True, select modes to retain in C-B
- 8         Nmodes     - Number of internal modes to retain (ignored if CBMod=False). If Nmodes=0 --> Guyan Reduction. If Nmodes>0, list Nmodes structural damping ratios for each retained mode (% of critical)
-1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0  1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0  JDampings  -  Damping Ratios  for each retained mode (% of critical)
+3          FEMMod      - FEM switch: element model in the FEM: 1= Euler-Bernoulli(E-B) ; 2=Tapered E-B; 3= 2-node Timoshenko;  4= 2-node tapered Timoshenko
+10         NDiv        - Number of sub-elements per member
+true       CBMod       - If True perform C-B reduction, else full FEM dofs will be retained. IF True, select modes to retain in C-B
+  2        Nmodes      - Number of internal modes to retain (ignored if CBMod=False). If Nmodes=0 --> Guyan Reduction. If Nmodes>0, list Nmodes structural damping ratios for each retained mode (% of critical)
+ 1.0       JDampings   - Damping Ratios for each retained mode (% of critical)
 ---- STRUCTURE JOINTS: joints connect structure members (~Hydrodyn Input File)---
-2	   NJoints     - Number of joints (-)
-JointID          JointXss                 JointYss               JointZss	-Coordinates of Member joints in SS-Coordinate System
+2          NJoints     - Number of joints (-)
+JointID          JointXss                 JointYss               JointZss  -Coordinates of Member joints in SS-Coordinate System
 (-)                 (m)                     (m)                     (m)
 1                   0.0                     0.0                 -20.0001
 2                   0.0                     0.0                  10.0
 ------------------- BASE REACTION JOINTS: 1/0 for Locked/Free DOF @ each Reaction Node ---------------------
 1          NReact      - Number of Joints with reaction forces; be sure to remove all rigid motion dofs of the structure  (else det([K])=[0])
-JointID	 RctTDXss     RctTDYss    RctTDZss   RctRDXss   RctRDYss   RctRDZss	   - Global Coordinate System
-1             1            1	    1	       1          1	     1
+JointID   RctTDXss     RctTDYss    RctTDZss   RctRDXss   RctRDYss   RctRDZss     - Global Coordinate System
+1             1            1      1        1          1       1
 ------- INTERFACE JOINTS: 1/0 for Locked (to the TP)/Free DOF @each Interface Joint (only Locked-to-TP implemented thus far (=rigid TP)) ---------
 1          NInterf     - Number of interface joints locked to the Transition Piece (TP):  be sure to remove all rigid motion dofs
-JointID	ItfTDXss     ItfTDYss    ItfTDZss   ItfRDXss   ItfRDYss   ItfRDZss   - Global Coordinate System
-2             1            1	    1	       1          1	     1
+JointID  ItfTDXss     ItfTDYss    ItfTDZss   ItfRDXss   ItfRDYss   ItfRDZss   - Global Coordinate System
+2             1            1      1        1          1       1
 ----------------------------------- MEMBERS --------------------------------------
-1       NMembers       	     - Number of frame members
+1       NMembers             - Number of frame members
 MemberID   MJointID1   MJointID2   MPropSetID1   MPropSetID2     COSMID
-1	     1          2            1           1
+1       1          2            1           1
 ------------------ MEMBER X-SECTION PROPERTY data 1/2 [isotropic material for now: use this table if circular-tubular elements ------------------------
 4       NPropSets     - Number of structurally unique x-sections (i.e. how many groups of X-sectional properties are utilized trhoughout all of the members)
             YoungE       ShearG       MatDens     XsecD      XsecT
@@ -41,14 +41,14 @@ PropSetID   (N/m2)       (N/m2)       (kg/m3)     (m)        (m)
 ------------------ MEMBER X-SECTION PROPERTY data 2/2 (isotropic material for now: use this table if any section other than circular, however provide COSM(i,j) below) ------------------------
 0       NXPropSets     - Number of structurally unique non-circular x-sections (if 0 the following table is ignored)
             YoungE       ShearG       MatDens     XsecA          XsecAsx        XsecAsy          XsecJxx          XsecJyy          XsecJ0
-PropSetID   (N/m2)       (N/m2)       (kg/m3)     (m2)          (m2)            (m2)             (m4)              (m4) 	   (m4)
+PropSetID   (N/m2)       (N/m2)       (kg/m3)     (m2)          (m2)            (m2)             (m4)              (m4)       (m4)
 ---------------------- MEMBER COSINE MATRICES COSM(i,j) ------------------------
-0       NCOSMs	     - Number of unique cosine matrices (i.e., of unique member alignments including principal axis rotations); ignored if NXPropSets=0	or 9999 in any element below
-COSMID	COSM11    COSM12      COSM13       COSM21      COSM22      COSM23     COSM31       COSM32	COSM33
+0       NCOSMs      - Number of unique cosine matrices (i.e., of unique member alignments including principal axis rotations); ignored if NXPropSets=0   or 9999 in any element below
+COSMID   COSM11    COSM12      COSM13       COSM21      COSM22      COSM23     COSM31       COSM32 COSM33
 ------------------------ JOINT ADDITIONAL CONCENTRATED MASSES--------------------------
-0        NCmass	     - Number of joints with concentrated masses; Global Coordinate System
-JointID	JMass		JMXX	        JMYY	        JMZZ
-      	(kg)          (kg*m2)         (kg*m2)	       (kg*m2)
+0        NCmass        - Number of joints with concentrated masses; Global Coordinate System
+JointID  JMass    JMXX          JMYY           JMZZ
+         (kg)          (kg*m2)         (kg*m2)         (kg*m2)
 ---------------------------- OUTPUT: SUMMARY & OUTFILE ------------------------------
 True       SSSum    - Output a Summary File True or False.It contains: matrices K,M  and C-B reduced M_BB, M-BM, K_BB, K_MM(OMG^2), PHI_R, PHI_L. IT can also contain COSMs if requested
 True       OutCOSM  - Output cosine matrices with the selected output member forces (flag)

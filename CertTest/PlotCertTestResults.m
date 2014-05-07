@@ -32,11 +32,9 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= 24 % [1:19 21:24] %1:25 
+    for i= 19 %[1:19 21:24]  % [1:19 21:24] %1:25 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
-% fileRoot = ['Test' num2str(i,'%02.0f') '_simple'];
-%      fileRoot = ['Test' num2str(i,'%02.0f') '_noHD'];
         
         oldRoot  = strcat( oldPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
         newRoot  = strcat( newPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
@@ -53,6 +51,7 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
         else
             
             SaveFiles = true;  %setting this to false will keep ALL of the plot windows open
+SaveFiles = false;  %setting this to false will keep ALL of the plot windows open
             
                 % Compare time series
                 
@@ -60,9 +59,9 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
                 oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
                 newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                
                 
-if  i==14 %|| i==19 ||
-     newFiles = strrep(newFiles,'.outb','.out')
-end
+% if  i==21 %|| i==19 ||
+%      newFiles = strrep(newFiles,'.outb','.out')
+% end
 % if i==24
 %     oldFiles = strcat( newRoot,  {'_MAP.outb', '.plt', '_MAP.outb'} ); 
 % end    
@@ -448,19 +447,32 @@ function [ChannelName_new,scaleFact] = getNewChannelName(ChannelName)
             ChannelName_new = strrep( strrep( ChannelName,'Anch','TAnch['),'Ten',']');
         elseif strncmpi( ChannelName,'Anch',4 ) && strcmpi( ChannelName((end-2):end), 'Ten') %TAnch[i] = AnchiTen
             ChannelName_new = strrep( strrep( ChannelName,'Anch','TAnch['),'Ten',']');
+        elseif strcmpi(ChannelName,'IntfXss')
+            ChannelName_new = 'IntfFXss';            
+        elseif strcmpi(ChannelName,'IntfYss')
+            ChannelName_new = 'IntfFYss';            
+        elseif strcmpi(ChannelName,'IntfZss')
+            ChannelName_new = 'IntfFZss';            
+        elseif strcmpi(ChannelName,'ReactXss')
+            ChannelName_new = 'ReactFXss';            
+        elseif strcmpi(ChannelName,'ReactYss')
+            ChannelName_new = 'ReactFYss';            
+        elseif strcmpi(ChannelName,'ReactZss')
+            ChannelName_new = 'ReactFZss';            
+            
             
 %         elseif strcmpi(ChannelName,'TTDspFA')
 %             ChannelName_new = 'TwHt1TPxi';            
 %         elseif strcmpi(ChannelName,'TTDspSS')
 %             ChannelName_new = 'TwHt1TPyi';                    
 %         elseif strcmpi(ChannelName,'-TwrBsFxt')
-%             ChannelName_new = 'ReactXss';
+%             ChannelName_new = 'ReactFXss';
 %             scaleFact = 1000;
 %         elseif strcmpi(ChannelName,'-TwrBsFyt')
-%             ChannelName_new = 'ReactYss';
+%             ChannelName_new = 'ReactFYss';
 %             scaleFact = 1000;
 %         elseif strcmpi(ChannelName,'-TwrBsFzt')
-%             ChannelName_new = 'ReactZss';
+%             ChannelName_new = 'ReactFZss';
 %             scaleFact = 1000;
 %         elseif strcmpi(ChannelName,'-TwrBsMxt')
 %             ChannelName_new = 'ReactMXss';
@@ -471,6 +483,8 @@ function [ChannelName_new,scaleFact] = getNewChannelName(ChannelName)
 %         elseif strcmpi(ChannelName,'-TwrBsMzt')
 %             ChannelName_new = 'ReactMZss';       
 %             scaleFact = 1000;
+            
+            
                                                           
         else
             ChannelName_new = strrep(ChannelName,'Wave1V','M1N1V');

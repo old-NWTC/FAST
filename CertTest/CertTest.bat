@@ -36,6 +36,7 @@ goto CertTest
 :gfortran
 @SET EXE_VER=Using FAST compiled with makefile (gfortran)
 @SET FAST=..\compiling\FAST_gwin32.exe
+SET PATH=%PATH%;C:\LAPACK\win32;
 goto CertTest
 
 :ifort
@@ -355,13 +356,12 @@ rem *******************************************************
 :Test20
 
 rem *******************************************************
-rem  :Test21
-rem  goto Test22
-rem  @CALL :GenTestHeader %Test21%
-rem  @CALL :RunFASTandCrunch 21 outb
-rem  @CALL :CompareOutput 21
-rem  @CALL :CompareFiles 21 HD.sum
-rem  @CALL :CompareFiles 21 SD.sum
+:Test21
+@CALL :GenTestHeader %Test21%
+@CALL :RunFASTandCrunch 21 outb
+@CALL :CompareOutput 21
+@CALL :CompareFiles 21 HD.sum
+@CALL :CompareFiles 21 SD.sum
 
 
 rem *******************************************************
@@ -383,15 +383,6 @@ rem *******************************************************
 @CALL :RunFASTandCrunch 24 outb
 @CALL :CompareOutput 24
 
-
-rem *******************************************************
-rem I put this at the end because it takes a long time to complete.
-:Test21
-@CALL :GenTestHeader %Test21%
-@CALL :RunFASTandCrunch 21 outb
-@CALL :CompareOutput 21
-@CALL :CompareFiles 21 HD.sum
-@CALL :CompareFiles 21 SD.sum
 
 rem ******************************************************
 rem  Let's look at the comparisons.
