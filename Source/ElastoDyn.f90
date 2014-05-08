@@ -9019,7 +9019,6 @@ SUBROUTINE Coeff(p,InputFileData, ErrStat, ErrMsg)
    ! Calculate the distances from point S on a blade to the aerodynamic center in the j1 and j2 directions:
    !...............................................................................................................................
 
-      !bjj: we're getting rid of rSAerCenn*, but I'll just set these to 0 now:
    DO K = 1,p%NumBl          ! Loop through the blades
 
       DO J = 1,p%BldNodes    ! Loop through the blade nodes / elements

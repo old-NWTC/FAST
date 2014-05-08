@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.02.02, 27-Mar-2014)
+! FAST Registry (v2.03.00, 2-May-2014)
 !*********************************************************************************************************************************
 ! Current_Types
 !.................................................................................................................................
 ! This file is part of Current.
 !
-! Copyright (C) 2012, 2013 National Renewable Energy Laboratory
+! Copyright (C) 2012-2014 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ CONTAINS
 IF (ALLOCATED(SrcInitInputData%MorisonNodezi)) THEN
    i1_l = LBOUND(SrcInitInputData%MorisonNodezi,1)
    i1_u = UBOUND(SrcInitInputData%MorisonNodezi,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%MorisonNodezi)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%MorisonNodezi)) THEN 
       ALLOCATE(DstInitInputData%MorisonNodezi(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -301,7 +301,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%CurrVxi)) THEN
    i1_l = LBOUND(SrcInitOutputData%CurrVxi,1)
    i1_u = UBOUND(SrcInitOutputData%CurrVxi,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%CurrVxi)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%CurrVxi)) THEN 
       ALLOCATE(DstInitOutputData%CurrVxi(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -314,7 +314,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%CurrVyi)) THEN
    i1_l = LBOUND(SrcInitOutputData%CurrVyi,1)
    i1_u = UBOUND(SrcInitOutputData%CurrVyi,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%CurrVyi)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%CurrVyi)) THEN 
       ALLOCATE(DstInitOutputData%CurrVyi(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 

@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.02.02, 27-Mar-2014)
+! FAST Registry (v2.03.00, 2-May-2014)
 !*********************************************************************************************************************************
 ! Conv_Radiation_Types
 !.................................................................................................................................
 ! This file is part of Conv_Radiation.
 !
-! Copyright (C) 2012, 2013 National Renewable Energy Laboratory
+! Copyright (C) 2012-2014 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ IF (ALLOCATED(SrcInitInputData%HdroAddMs)) THEN
    i1_u = UBOUND(SrcInitInputData%HdroAddMs,1)
    i2_l = LBOUND(SrcInitInputData%HdroAddMs,2)
    i2_u = UBOUND(SrcInitInputData%HdroAddMs,2)
-   IF (.NOT.ALLOCATED(DstInitInputData%HdroAddMs)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%HdroAddMs)) THEN 
       ALLOCATE(DstInitInputData%HdroAddMs(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -130,7 +130,7 @@ ENDIF
 IF (ALLOCATED(SrcInitInputData%HdroFreq)) THEN
    i1_l = LBOUND(SrcInitInputData%HdroFreq,1)
    i1_u = UBOUND(SrcInitInputData%HdroFreq,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%HdroFreq)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%HdroFreq)) THEN 
       ALLOCATE(DstInitInputData%HdroFreq(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -145,7 +145,7 @@ IF (ALLOCATED(SrcInitInputData%HdroDmpng)) THEN
    i1_u = UBOUND(SrcInitInputData%HdroDmpng,1)
    i2_l = LBOUND(SrcInitInputData%HdroDmpng,2)
    i2_u = UBOUND(SrcInitInputData%HdroDmpng,2)
-   IF (.NOT.ALLOCATED(DstInitInputData%HdroDmpng)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%HdroDmpng)) THEN 
       ALLOCATE(DstInitInputData%HdroDmpng(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -548,7 +548,7 @@ IF (ALLOCATED(SrcDiscStateData%XDHistory)) THEN
    i1_u = UBOUND(SrcDiscStateData%XDHistory,1)
    i2_l = LBOUND(SrcDiscStateData%XDHistory,2)
    i2_u = UBOUND(SrcDiscStateData%XDHistory,2)
-   IF (.NOT.ALLOCATED(DstDiscStateData%XDHistory)) THEN 
+   IF (.NOT. ALLOCATED(DstDiscStateData%XDHistory)) THEN 
       ALLOCATE(DstDiscStateData%XDHistory(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -917,7 +917,7 @@ IF (ALLOCATED(SrcParamData%RdtnKrnl)) THEN
    i2_u = UBOUND(SrcParamData%RdtnKrnl,2)
    i3_l = LBOUND(SrcParamData%RdtnKrnl,3)
    i3_u = UBOUND(SrcParamData%RdtnKrnl,3)
-   IF (.NOT.ALLOCATED(DstParamData%RdtnKrnl)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%RdtnKrnl)) THEN 
       ALLOCATE(DstParamData%RdtnKrnl(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 

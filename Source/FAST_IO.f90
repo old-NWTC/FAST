@@ -254,6 +254,8 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    y_FAST%Module_Ver( Module_MAP  )%Name = 'MAP'
    y_FAST%Module_Ver( Module_FEAM )%Name = 'FEAMooring'
    y_FAST%Module_Ver( Module_IceF )%Name = 'IceFloe'
+   y_FAST%Module_Ver( Module_IceD )%Name = 'IceDyn'
+   y_FAST%Module_Ver( Module_BD   )%Name = 'BeamDyn'
          
    p%n_substeps = 1                                                ! number of substeps for between modules and global/FAST time
          
@@ -310,6 +312,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    IF ( p%SttsTime <= 0.0_DbKi     ) CALL SetErrors( ErrID_Fatal, 'SttsTime must be greater than 0 seconds.' )
    IF ( p%KMax     <   1_IntKi     ) CALL SetErrors( ErrID_Fatal, 'KMax must be greater than 0.' )
    
+   IF (p%CompElast   == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompElast must be 1 (ElastoDyn) or 2 (BeamDyn).' )   
    IF (p%CompAero    == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompAero must be 0 (None) or 1 (AeroDyn).' )
    IF (p%CompServo   == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompServo must be 0 (None) or 1 (ServoDyn).' )
    IF (p%CompHydro   == Module_Unknown) CALL SetErrors( ErrID_Fatal, 'CompHydro must be 0 (None) or 1 (HydroDyn).' )
@@ -990,6 +993,19 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
+      ! CompElast - Compute blade loads (switch) {1=ElastoDyn; 2=BeamDyn}:
+   CALL ReadVar( UnIn, InputFile, p%CompElast, "CompElast", "Compute blade loads (switch) {1=ElastoDyn; 2=BeamDyn}", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+          ! immediately convert to values used inside the code:
+         IF ( p%CompElast == 1 ) THEN 
+            p%CompElast = Module_ED
+         ELSEIF ( p%CompElast == 2 ) THEN
+            p%CompElast = Module_BD
+         ELSE
+            p%CompElast = Module_Unknown
+         END IF
+                                  
       ! CompAero - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}:
    CALL ReadVar( UnIn, InputFile, p%CompAero, "CompAero", "Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
@@ -1093,6 +1109,14 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       IF ( ErrStat >= AbortErrLev ) RETURN
    IF ( PathIsRelative( p%EDFile ) ) p%EDFile = TRIM(PriPath)//TRIM(p%EDFile)
 
+DO i=1,MaxNBlades
+      ! BDBldFile - Name of file containing BeamDyn blade input parameters (-):
+   CALL ReadVar( UnIn, InputFile, p%BDBldFile(i), "BDBldFile("//TRIM(num2LStr(i))//")", "Name of file containing BeamDyn blade "//trim(num2lstr(i))//"input parameters (-)", ErrStat2, ErrMsg2, UnEc)
+      CALL CheckError( ErrStat2, ErrMsg2 )
+      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( PathIsRelative( p%BDBldFile(i) ) ) p%BDBldFile(i) = TRIM(PriPath)//TRIM(p%BDBldFile(i))
+END DO
+   
       ! AeroFile - Name of file containing aerodynamic input parameters (-):
    CALL ReadVar( UnIn, InputFile, p%AeroFile, "AeroFile", "Name of file containing aerodynamic input parameters (-)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )

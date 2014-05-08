@@ -1,4 +1,4 @@
-------- FAST V8.06.* INPUT FILE ------------------------------------------------
+------- FAST v8.06.* INPUT FILE ------------------------------------------------
 Loose coupling for the XXX model
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -14,8 +14,8 @@ FATAL         AbortLevel      - Error level when simulation should abort {"WARNI
    1          CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
    0          CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
    0          CompSub         - Compute sub-structural dynamics (switch) {0=None; 1=SubDyn}
-   0          CompMooring     - Compute mooring system (switch) {0=None; 1=MAP, 2=FEAMooring}
-   0          CompIce         - Compute ice loads (switch) {0=None; 1=IceFloe}
+   0          CompMooring     - Compute mooring system (switch) {0=None; 1=MAP; 2=FEAMooring}
+   0          CompIce         - Compute ice loads (switch) {0=None; 1=IceFloe; 2=IceDyn}
 False         CompUserPtfmLd  - Compute additional platform loading {false: none, true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none, true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------

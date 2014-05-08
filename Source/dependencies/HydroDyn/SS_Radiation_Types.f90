@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.02.02, 27-Mar-2014)
+! FAST Registry (v2.03.00, 2-May-2014)
 !*********************************************************************************************************************************
 ! SS_Radiation_Types
 !.................................................................................................................................
 ! This file is part of SS_Radiation.
 !
-! Copyright (C) 2012, 2013 National Renewable Energy Laboratory
+! Copyright (C) 2012-2014 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -323,7 +323,7 @@ IF (ALLOCATED(SrcContStateData%x)) THEN
    i1_u = UBOUND(SrcContStateData%x,1)
    i2_l = LBOUND(SrcContStateData%x,2)
    i2_u = UBOUND(SrcContStateData%x,2)
-   IF (.NOT.ALLOCATED(DstContStateData%x)) THEN 
+   IF (.NOT. ALLOCATED(DstContStateData%x)) THEN 
       ALLOCATE(DstContStateData%x(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -678,7 +678,7 @@ IF (ALLOCATED(SrcOtherStateData%dxdt)) THEN
    i1_u = UBOUND(SrcOtherStateData%dxdt,1)
    i2_l = LBOUND(SrcOtherStateData%dxdt,2)
    i2_u = UBOUND(SrcOtherStateData%dxdt,2)
-   IF (.NOT.ALLOCATED(DstOtherStateData%dxdt)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%dxdt)) THEN 
       ALLOCATE(DstOtherStateData%dxdt(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -820,7 +820,7 @@ IF (ALLOCATED(SrcParamData%A)) THEN
    i1_u = UBOUND(SrcParamData%A,1)
    i2_l = LBOUND(SrcParamData%A,2)
    i2_u = UBOUND(SrcParamData%A,2)
-   IF (.NOT.ALLOCATED(DstParamData%A)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%A)) THEN 
       ALLOCATE(DstParamData%A(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -835,7 +835,7 @@ IF (ALLOCATED(SrcParamData%B)) THEN
    i1_u = UBOUND(SrcParamData%B,1)
    i2_l = LBOUND(SrcParamData%B,2)
    i2_u = UBOUND(SrcParamData%B,2)
-   IF (.NOT.ALLOCATED(DstParamData%B)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%B)) THEN 
       ALLOCATE(DstParamData%B(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -850,7 +850,7 @@ IF (ALLOCATED(SrcParamData%C)) THEN
    i1_u = UBOUND(SrcParamData%C,1)
    i2_l = LBOUND(SrcParamData%C,2)
    i2_u = UBOUND(SrcParamData%C,2)
-   IF (.NOT.ALLOCATED(DstParamData%C)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%C)) THEN 
       ALLOCATE(DstParamData%C(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 

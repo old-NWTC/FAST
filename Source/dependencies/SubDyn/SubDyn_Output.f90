@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-04-11 11:41:17 -0600 (Fri, 11 Apr 2014) $
-! (File) Revision #: $Rev: 292 $
+! File last committed: $Date: 2014-05-06 14:55:45 -0600 (Tue, 06 May 2014) $
+! (File) Revision #: $Rev: 295 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -47,7 +47,7 @@ MODULE SubDyn_Output
 
     ! Member Forces:
 
-  INTEGER(IntKi), PARAMETER      :: M1N1FKxe  =    1
+   INTEGER(IntKi), PARAMETER      :: M1N1FKxe  =    1
    INTEGER(IntKi), PARAMETER      :: M1N2FKxe  =    2
    INTEGER(IntKi), PARAMETER      :: M1N3FKxe  =    3
    INTEGER(IntKi), PARAMETER      :: M1N4FKxe  =    4
@@ -3773,7 +3773,7 @@ INTEGER, PARAMETER             :: MNRDe (3,9,9) = reshape((/M1N1RDxe,M1N1RDye,M1
 CONTAINS
 
 
-SUBROUTINE SDOut_Init( Init, y,  p, OtherState, InitOut, ErrStat, ErrMsg )
+SUBROUTINE SDOut_Init( Init, y,  p, OtherState, InitOut, WtrDpth, ErrStat, ErrMsg )
 ! This subroutine initializes the output module, checking if the output parameter list (OutList)
 ! contains valid names, and opening the output file if there are any requested outputs
 !----------------------------------------------------------------------------------------------------
@@ -3781,11 +3781,12 @@ SUBROUTINE SDOut_Init( Init, y,  p, OtherState, InitOut, ErrStat, ErrMsg )
 
 ! Passed variables
 
- TYPE(SD_InitInputType ),  INTENT( INOUT ) :: Init                 ! data needed to initialize the output module     
+ TYPE(SD_InitType),        INTENT( INOUT ) :: Init                 ! data needed to initialize the output module     
  TYPE(SD_OutputType),      INTENT( INOUT ) :: y                    ! SubDyn module's output data
  TYPE(SD_ParameterType),   INTENT( INOUT ) :: p                    ! SubDyn module paramters
  TYPE(SD_OtherStateType),  INTENT( INOUT ) :: OtherState           ! SubDyn other states
  TYPE(SD_InitOutputType ), INTENT( INOUT ) :: InitOut              ! SubDyn module initialization output data
+ REAL(ReKi),               INTENT( IN    ) :: WtrDpth              ! water depth from initialization routine  
  INTEGER,                       INTENT(   OUT ) :: ErrStat              ! a non-zero value indicates an error occurred           
  CHARACTER(*),                  INTENT(   OUT ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
 
@@ -3808,13 +3809,13 @@ p%OutAllDims=12*p%Nmembers*2    !size of AllOut Member Joint forces
 !-------------------------------------------------------------------------------------------------      
 
 !   SDOut_Data%NumOuts = HDO_InitData%NumOuts   
-  CALL SDOut_ChkOutLst( InitOut%SSOutList(1:p%NumOuts), y, p,  ErrStat, ErrMsg )
+  CALL SDOut_ChkOutLst( Init%SSOutList(1:p%NumOuts), y, p,  ErrStat, ErrMsg )
   IF ( ErrStat /= 0 ) RETURN
 
 !-------------------------------------------------------------------------------------------------      
 ! INITIALIZE FAST-TYPE OUTPUT  (y)
 !-------------------------------------------------------------------------------------------------      
-  !ALLOCATE( y%Y1(p%TPdofL), STAT = ErrStat )
+  !ALLOCATE( y%Y1(TPdofL), STAT = ErrStat )
   !IF ( ErrStat/= 0 ) THEN
   !    ErrStat = ErrID_Fatal
   !    ErrMsg  = 'Error allocating output Y1 array in SDOut_Init'
@@ -4015,7 +4016,7 @@ p%OutAllDims=12*p%Nmembers*2    !size of AllOut Member Joint forces
  !_____________________________________REACTIONS_____________________________________________
  Junk=0
  DO I=1,p%NumOuts  !This should be vectorizable, in matlab i can do in 1 line
-      cstr=InitOut%SSOutList(I)
+      cstr=Init%SSOutList(I)
       IF ( cstr(1:5) .EQ. "React" ) THEN 
        Junk=1
        EXIT
@@ -4113,7 +4114,7 @@ p%OutAllDims=12*p%Nmembers*2    !size of AllOut Member Joint forces
     ENDDO
 
     !Store the matrix that will let me calculate single point reaction at the base of structure
-    CALL ReactMatx(Init, p, ErrStat, ErrMsg)
+    CALL ReactMatx(Init, p, WtrDpth, ErrStat, ErrMsg)
  ENDIF
 
  
@@ -4148,10 +4149,11 @@ RETURN
 END SUBROUTINE SDOut_Init
 
 !------------------------------------------------------------------------------------------------------
-SUBROUTINE ReactMatx(Init, p, ErrStat, ErrMsg)
+SUBROUTINE ReactMatx(Init, p, WtrDpth, ErrStat, ErrMsg)
 !This subroutine allocates and calculated TIreact, Matrix to go from local reactions at constrained nodes to single point reactions
-   TYPE(SD_InitInputType), INTENT(  IN)  :: Init         ! Input data for initialization routine
+   TYPE(SD_InitType),      INTENT(  IN)  :: Init         ! Input data for initialization routine
    TYPE(SD_ParameterType), INTENT(  INOUT)  :: p         ! Parameter data
+   REAL(ReKi),                   INTENT(IN)     :: WtrDpth
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
    CHARACTER(1024),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
@@ -4166,7 +4168,7 @@ SUBROUTINE ReactMatx(Init, p, ErrStat, ErrMsg)
    ErrStat=ErrID_None
    ErrMsg=""
    
-   DOFC = p%NReact*6  !Total DOFs at the base of structure 
+   DOFC = p%NReact*6 ! bjj, this is p%DOFC    !Total DOFs at the base of structure 
    
    ALLOCATE ( p%TIreact(6,DOFC), STAT = ErrStat )
    IF ( ErrStat /= ErrID_None ) THEN
@@ -4188,7 +4190,7 @@ SUBROUTINE ReactMatx(Init, p, ErrStat, ErrMsg)
       
       x = Init%Nodes(n, 2)
       y = Init%Nodes(n, 3)
-      z = Init%Nodes(n, 4) + Init%WtrDpth  !+ Wdepth here to be added- RRD TODO: 7/19/13
+      z = Init%Nodes(n, 4) + WtrDpth  !+ Wdepth here to be added- RRD TODO: 7/19/13
       
       rmndr = MOD(I, 6)  !It gives me the column index among the 6 different kinds
       SELECT CASE (rmndr)
@@ -4233,7 +4235,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
    TYPE(SD_OutputType),           INTENT( INOUT )  :: y                    ! SubDyn module's output data
    TYPE(SD_ParameterType),        INTENT( IN    )  :: p                    ! SubDyn module's parameter data
    TYPE(SD_OtherStateType),       INTENT( INOUT )  :: OtherState           ! Other/optimization states
-   REAL(ReKi),                         INTENT(   OUT )  :: AllOuts(0:p%MaxOutPts+p%OutAllInt*p%OutAllDims) ! Array of output data for all possible outputs
+   REAL(ReKi),                         INTENT(   OUT )  :: AllOuts(0:MaxOutPts+p%OutAllInt*p%OutAllDims) ! Array of output data for all possible outputs
    INTEGER(IntKi),                     INTENT(   OUT )  :: ErrStat              ! Error status of the operation
    CHARACTER(*),                       INTENT(   OUT )  :: ErrMsg               ! Error message if ErrStat /= ErrID_None
 
@@ -4369,7 +4371,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
                ! FK_elm2=sgn*FK_elm
           
                  !NOW HERE I WOULD NEED TO PUT IT INTO AllOuts
-                 L=p%MaxOutPts+(I-1)*24+(J-1)*12+1!start index
+                 L=MaxOutPts+(I-1)*24+(J-1)*12+1!start index
                  L2=L+11
                 AllOuts( L:L2 ) =sgn* (/FK_elm,FM_elm/)
                 
@@ -4380,16 +4382,15 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
    
   
   !Assign interface forces and moments 
-   AllOuts(IntfSS(1:P%TPdofL))= - (/y%Y1Mesh%Force (:,1), y%Y1Mesh%Moment(:,1)/) !-y%Y1  !Note this is the force that the TP applies to the Jacket, opposite to what the GLue Code needs thus "-" sign
-  ! AllOuts(IntfSS(1:P%TPdofL))=- (/y%Y1Mesh%Force (:,1), y%Y1Mesh%Moment(:,1)/) !y%Y1  !Note this is the force that the TP applies to the Jacket, opposite to what the GLue Code needs thus "-" sign
-  !Assign interface translations and rotations at the TP ref point
-  
+   AllOuts(IntfSS(1:TPdofL))= - (/y%Y1Mesh%Force (:,1), y%Y1Mesh%Moment(:,1)/) !-y%Y1  !Note this is the force that the TP applies to the Jacket, opposite to what the GLue Code needs thus "-" sign
+
+   !Assign interface translations and rotations at the TP ref point  
    rotations  = GetSmllRotAngs(u%TPMesh%Orientation(:,:,1), ErrStat, Errmsg)
    u_TP       = (/u%TPMesh%TranslationDisp(:,1), rotations/)
    udotdot_TP = (/u%TPMesh%TranslationAcc(:,1), u%TPMesh%RotationAcc(:,1)/)
-  AllOuts(IntfTRss(1:P%TPdofL))=u_TP !u%UFL(1:P%TPdofL) !TODO need to add these back in!!! GJH 6/6/13
+  AllOuts(IntfTRss(1:TPdofL))=u_TP !u%UFL(1:TPdofL) !TODO need to add these back in!!! GJH 6/6/13
   !Assign interface translations and rotations accelerations
-  AllOuts(IntfTRAss(1:P%TPdofL))= udotdot_TP !u%UFL(2*P%TPdofL+1:3*P%TPdofL)  !TODO need to add these back in!!! GJH 6/6/13
+  AllOuts(IntfTRAss(1:TPdofL))= udotdot_TP !u%UFL(2*TPdofL+1:3*TPdofL)  !TODO need to add these back in!!! GJH 6/6/13
   ! Assign all SSqm, SSqmdot, SSqmdotdot
    ! We only have space for the first 99 values
   maxOutModes = min(p%Nmodes,99)
@@ -4458,7 +4459,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
        
           !NOW HERE I WOULD NEED TO PUT IT INTO AllOuts
                 
-               AllOuts( ReactSS(1:P%TPdofL) ) = matmul(p%TIreact,ReactNs)
+               AllOuts( ReactSS(1:TPdofL) ) = matmul(p%TIreact,ReactNs)
   ENDIF
 
    if (allocated(ReactNs)) deallocate(ReactNs)
@@ -4512,37 +4513,34 @@ SUBROUTINE SDOut_CloseSum( UnSum, ErrStat, ErrMsg )
   
 
       ! Local variables
-   LOGICAL                                :: Err                                       ! determines if an error exists      
+   INTEGER                                     :: Stat                 ! status from I/) operation 
 
       ! Initialize ErrStat
          
    ErrStat = ErrID_None         
    ErrMsg  = ""
    
-   Err = .FALSE.
-
       ! Write any closing information in the summary file
       
    IF ( UnSum > 0 ) THEN
       
-      WRITE (UnSum,'(/,A/)', IOSTAT=ErrStat)  'This summary file was closed on '//CurDate()//' at '//CurTime()//'.'
-      IF (ErrStat /= 0) THEN
-         Err = .TRUE.
-         ErrMsg  = 'Problem writing to summary file'
+      WRITE (UnSum,'(/,A/)', IOSTAT=Stat)  'This summary file was closed on '//CurDate()//' at '//CurTime()//'.'
+      IF (Stat /= 0) THEN
+         ErrStat = ErrID_FATAL
+         ErrMsg  = ' Problem writing to summary file.'
       END IF
    
       ! Close the file
    
-   CLOSE( UnSum, IOSTAT=ErrStat )
-   IF (ErrStat /= 0) THEN
-      Err = .TRUE.
-      ErrMsg  = 'Problem closing summary file'
-   END IF
+      CLOSE( UnSum, IOSTAT=Stat )
+      IF (Stat /= 0) THEN
+         ErrStat = ErrID_FATAL
+         ErrMsg  = TRIM(ErrMsg)//' Problem closing summary file.'
+      END IF
    
-   IF ( Err ) ErrStat = ErrID_Fatal
+      IF ( ErrStat /= ErrID_None ) ErrMsg = 'SDOut_CloseSum'//TRIM(ErrMsg)
       
-   END IF   
-                      
+   END IF                      
                       
 END SUBROUTINE SDOut_CloseSum            
 
@@ -4558,7 +4556,7 @@ SUBROUTINE SDOut_OpenSum( UnSum, SummaryName, SD_Prog, ErrStat, ErrMsg )
    INTEGER,                 INTENT(   OUT )   :: ErrStat              ! returns a non-zero value when an error occurs  
    CHARACTER(*),            INTENT(   OUT )   :: ErrMsg               ! Error message if ErrStat /= ErrID_None
            
-
+   integer                                    :: ErrStat2
        ! Initialize ErrStat
          
    ErrStat = ErrID_None         
@@ -4566,18 +4564,16 @@ SUBROUTINE SDOut_OpenSum( UnSum, SummaryName, SD_Prog, ErrStat, ErrMsg )
       
 
    CALL GetNewUnit( UnSum )
-
-   CALL OpenFOutFile ( UnSum, SummaryName, ErrStat ) 
-   IF ( ErrStat /= 0 ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Failed to open summary file.'
+   CALL OpenFOutFile ( UnSum, SummaryName, ErrStat, ErrMsg ) 
+   IF ( ErrStat >= AbortErrLev ) THEN
+      ErrMsg  = 'Failed to open SubDyn summary file: '//TRIM(ErrMsg)
       RETURN
    END IF
       
       
          ! Write the summary file header
       
-   WRITE (UnSum,'(/,A/)', IOSTAT=ErrStat)  'This summary file was generated by '//TRIM( SD_Prog%Name )//&
+   WRITE (UnSum,'(/,A/)', IOSTAT=ErrStat2)  'This summary file was generated by '//TRIM( SD_Prog%Name )//&
                      ' '//TRIM( SD_Prog%Ver )//' on '//CurDate()//' at '//CurTime()//'.'
                       
 END SUBROUTINE SDOut_OpenSum 
@@ -4605,11 +4601,12 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
 !   INTEGER                                        :: Indx                 ! Counts the current index into the WaveKinNd array
    CHARACTER(1024)                                :: OutFileName          ! The name of the output file  including the full path.
    CHARACTER(200)                                 :: Frmt                 ! a string to hold a format statement
-                 
+   INTEGER                                        :: ErrStat2              
+   
    !-------------------------------------------------------------------------------------------------      
    ! Initialize local variables
    !-------------------------------------------------------------------------------------------------      
-   ErrStat = 0      
+   ErrStat = ErrID_None     
       
    !TODO Finish error handling
    
@@ -4623,18 +4620,20 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
       OutFileName = TRIM(OutRootName)//'.out'
       CALL GetNewUnit( p%UnJckF )
    
-      CALL OpenFOutFile ( p%UnJckF, OutFileName, ErrStat ) 
-      IF ( ErrStat /= 0 ) THEN
-         ErrMsg = ' Error opening SubDyn-level output file.'
+      CALL OpenFOutFile ( p%UnJckF, OutFileName, ErrStat, ErrMsg ) 
+      IF ( ErrStat >= AbortErrLev ) THEN
+         ErrMsg = ' Error opening SubDyn-level output file: '//TRIM(ErrMsg)
          RETURN
       END IF
       
        
          ! Write the output file header
       
-      WRITE (p%UnJckF,'(/,A/)', IOSTAT=ErrStat)  'These predictions were generated by '//TRIM(GETNVD(ProgVer))//&
+      WRITE (p%UnJckF,'(/,A/)', IOSTAT=ErrStat2)  'These predictions were generated by '//TRIM(GETNVD(ProgVer))//&
                       ' on '//CurDate()//' at '//CurTime()//'.'
-   
+!bjj: let's make this file format consistant with FAST v8: making the title headers appear on line 7, and units on line 8.
+      WRITE(p%UnJckF, '(//)') ! add 3 lines
+      
          ! Write the names of the output parameters:
       
       Frmt = '(A8,'//TRIM(Int2LStr(p%NumOuts+p%OutAllInt*p%OutAllDims))//'(:,A,'//TRIM( p%OutSFmt )//'))'
@@ -4643,7 +4642,7 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
       
       
       
-      WRITE (p%UnJckF,'()', IOSTAT=ErrStat)          ! write the line return
+     ! WRITE (p%UnJckF,'()', IOSTAT=ErrStat2)          ! write the line return
       
       
          ! Write the units of the output parameters:
@@ -4653,7 +4652,7 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
       WRITE(p%UnJckF,Frmt)  TRIM( 's'), ( p%Delim, TRIM( InitOut%WriteOutputUnt(I) ), I=1,p%NumOuts+p%OutAllInt*p%OutAllDims )
       
       
-      WRITE (p%UnJckF,'()', IOSTAT=ErrStat)          ! write the line return                               
+      !WRITE (p%UnJckF,'()', IOSTAT=ErrStat2)          ! write the blank line between header/units and results
       
       
    
@@ -4826,7 +4825,7 @@ SUBROUTINE SDOut_ChkOutLst( OutList, y, p, ErrStat, ErrMsg )
    CHARACTER(28), PARAMETER               :: OutPFmt    = "( I4, 3X,A 10,1 X, A10 )"   ! Output format parameter output list.
    CHARACTER(10), DIMENSION(24)           :: ToTUnits,ToTNames,ToTNames0
    
-   LOGICAL                  :: InvalidOutput(0:p%MaxOutPts)                        ! This array determines if the output channel is valid for this configuration
+   LOGICAL                  :: InvalidOutput(0:MaxOutPts)                        ! This array determines if the output channel is valid for this configuration
 
    LOGICAL                  :: CheckOutListAgain
    
@@ -4920,7 +4919,7 @@ SUBROUTINE SDOut_ChkOutLst( OutList, y, p, ErrStat, ErrMsg )
            p%OutParam(p%NumOuts+(I-1)*12*2+1:p%NumOuts+I*12*2)%Units =  ToTUnits
        ENDDO
        p%OutParam(p%NumOuts+1:p%NumOuts+p%OutAllDims)%SignM = 1
-       p%OutParam(p%NumOuts+1:p%NumOuts+p%OutAllDims)%Indx= p%MaxOutPts+(/(J, J=1, p%OutAllDims)/) 
+       p%OutParam(p%NumOuts+1:p%NumOuts+p%OutAllDims)%Indx= MaxOutPts+(/(J, J=1, p%OutAllDims)/) 
    ENDIF
 
    RETURN

@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.02.02, 27-Mar-2014)
+! FAST Registry (v2.03.00, 2-May-2014)
 !*********************************************************************************************************************************
 ! HydroDyn_Types
 !.................................................................................................................................
 ! This file is part of HydroDyn.
 !
-! Copyright (C) 2012, 2013 National Renewable Energy Laboratory
+! Copyright (C) 2012-2014 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -213,7 +213,7 @@ CONTAINS
 IF (ALLOCATED(SrcInitInputData%UserOutputs)) THEN
    i1_l = LBOUND(SrcInitInputData%UserOutputs,1)
    i1_u = UBOUND(SrcInitInputData%UserOutputs,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%UserOutputs)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%UserOutputs)) THEN 
       ALLOCATE(DstInitInputData%UserOutputs(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -584,7 +584,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -597,7 +597,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1968,7 +1968,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%WaveTime)) THEN
    i1_l = LBOUND(SrcParamData%WaveTime,1)
    i1_u = UBOUND(SrcParamData%WaveTime,1)
-   IF (.NOT.ALLOCATED(DstParamData%WaveTime)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%WaveTime)) THEN 
       ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1985,7 +1985,7 @@ IF (ALLOCATED(SrcParamData%WaveElev)) THEN
    i1_u = UBOUND(SrcParamData%WaveElev,1)
    i2_l = LBOUND(SrcParamData%WaveElev,2)
    i2_u = UBOUND(SrcParamData%WaveElev,2)
-   IF (.NOT.ALLOCATED(DstParamData%WaveElev)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%WaveElev)) THEN 
       ALLOCATE(DstParamData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2003,7 +2003,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
-   IF (.NOT.ALLOCATED(DstParamData%OutParam)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
       ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2606,7 +2606,7 @@ ENDDO
 IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
-   IF (.NOT.ALLOCATED(DstOutputData%WriteOutput)) THEN 
+   IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
       ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 

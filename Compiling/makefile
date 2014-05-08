@@ -14,13 +14,6 @@
 #                                                                                #
 # Older versions of the source code may not work with this makefile.             #
 #================================================================================#
-# for debugging, use this make option:
-# --warn-undefined-variables
-#
-
-# bjj: PLEASE NOTE THAT UNTIL WE RESOLVE ISSUES REGARDING THE USE OF INTEL'S MKL
-#      THIS MAKEFILE WILL NOT WORK.
-
 
    # 32-bit or 64-bit?
 BITS = 32
@@ -65,14 +58,15 @@ FC      = gfortran
 
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -C
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -C -DNO_IEEE_ARITHMETIC
 
 LDFLAGS = -O2 -m$(BITS) -fbacktrace  $(LAPACK_LINK)
 
 # other useful gfortran options:
 #  -large-address-aware
 #  -Wconversion-extra -Wconversion
-#  -fdefault-real-8 -fcheck=bounds -std=f2003 -O0 -v -Wall
+#  -fdefault-real-8 -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
+# --warn-undefined-variables
 # http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
 
 
@@ -129,6 +123,13 @@ LIB_SOURCES =           \
 	ModMesh_Mapping.f90  \
 	NWTC_Library.f90
 
+NETLIB_SOURCES=            \
+	NWTC_ScaLAPACK.f90      \
+	NWTC_LAPACK.f90         \
+	dlasrt2.f               \
+	slasrt2.f
+
+
 IfW_SOURCES =            \
 	IfW_FFWind_Types.f90  \
 	IfW_FFWind.f90        \
@@ -183,12 +184,6 @@ SD_SOURCES =               \
 	SubDyn_Output.f90       \
 	SubDyn.f90
 
-NETLIB_SOURCES=            \
-	NWTC_ScaLAPACK.f90      \
-	NWTC_LAPACK.f90         \
-	dlasrt2.f               \
-	slasrt2.f
-
 
 ED_SOURCES =            \
 	ElastoDyn_Types.f90  \
@@ -230,7 +225,7 @@ vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DI
 vpath %.f   $(HD_DIR) $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
-vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR)
+vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR)
 vpath %.inp $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90     $(IceF_DIR)
@@ -305,6 +300,9 @@ IfW_FFWind_Types.f90:
 
 InflowWind_Types.f90:
 	$(Registry) Reg-InflowWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
+
+SubDyn_Types.f90:
+	$(Registry) SubDyn_Registry.txt -I $(NWTC_Lib_DIR)
 
 
 FEAMooring_Types.f90:

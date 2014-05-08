@@ -36,6 +36,8 @@ SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET IceF_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceFloe\SVNDirectory\IceFloe\source
 SET IceF_RanLux_Loc=%IceF_Loc%\ranlux
 
+SET ID_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceDyn\SVNDirectory\source
+
 
 GOTO End
 

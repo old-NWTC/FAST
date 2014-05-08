@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.02.02, 27-Mar-2014)
+! FAST Registry (v2.03.00, 2-May-2014)
 !*********************************************************************************************************************************
 ! IceFloe_Types
 !.................................................................................................................................
@@ -225,7 +225,7 @@ CONTAINS
 IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -238,7 +238,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -839,7 +839,7 @@ IF (ALLOCATED(SrcParamData%loadSeries)) THEN
    i1_u = UBOUND(SrcParamData%loadSeries,1)
    i2_l = LBOUND(SrcParamData%loadSeries,2)
    i2_u = UBOUND(SrcParamData%loadSeries,2)
-   IF (.NOT.ALLOCATED(DstParamData%loadSeries)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%loadSeries)) THEN 
       ALLOCATE(DstParamData%loadSeries(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -861,7 +861,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%legX)) THEN
    i1_l = LBOUND(SrcParamData%legX,1)
    i1_u = UBOUND(SrcParamData%legX,1)
-   IF (.NOT.ALLOCATED(DstParamData%legX)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%legX)) THEN 
       ALLOCATE(DstParamData%legX(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -874,7 +874,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%legY)) THEN
    i1_l = LBOUND(SrcParamData%legY,1)
    i1_u = UBOUND(SrcParamData%legY,1)
-   IF (.NOT.ALLOCATED(DstParamData%legY)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%legY)) THEN 
       ALLOCATE(DstParamData%legY(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -887,7 +887,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%ks)) THEN
    i1_l = LBOUND(SrcParamData%ks,1)
    i1_u = UBOUND(SrcParamData%ks,1)
-   IF (.NOT.ALLOCATED(DstParamData%ks)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%ks)) THEN 
       ALLOCATE(DstParamData%ks(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1276,7 +1276,7 @@ ENDIF
 IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
-   IF (.NOT.ALLOCATED(DstOutputData%WriteOutput)) THEN 
+   IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
       ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 

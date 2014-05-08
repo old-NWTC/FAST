@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.02.02, 27-Mar-2014)
+! FAST Registry (v2.03.00, 2-May-2014)
 !*********************************************************************************************************************************
 ! IfW_FFWind_Types
 !.................................................................................................................................
 ! This file is part of IfW_FFWind.
 !
-! Copyright (C) 2012, 2013 National Renewable Energy Laboratory
+! Copyright (C) 2012-2014 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -241,7 +241,7 @@ CONTAINS
 IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -254,7 +254,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -434,7 +434,7 @@ IF (ALLOCATED(SrcOtherStateData%FFData)) THEN
    i3_u = UBOUND(SrcOtherStateData%FFData,3)
    i4_l = LBOUND(SrcOtherStateData%FFData,4)
    i4_u = UBOUND(SrcOtherStateData%FFData,4)
-   IF (.NOT.ALLOCATED(DstOtherStateData%FFData)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%FFData)) THEN 
       ALLOCATE(DstOtherStateData%FFData(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u,i4_l:i4_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -451,7 +451,7 @@ IF (ALLOCATED(SrcOtherStateData%FFTower)) THEN
    i2_u = UBOUND(SrcOtherStateData%FFTower,2)
    i3_l = LBOUND(SrcOtherStateData%FFTower,3)
    i3_u = UBOUND(SrcOtherStateData%FFTower,3)
-   IF (.NOT.ALLOCATED(DstOtherStateData%FFTower)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%FFTower)) THEN 
       ALLOCATE(DstOtherStateData%FFTower(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -833,7 +833,7 @@ IF (ALLOCATED(SrcInputData%Position)) THEN
    i1_u = UBOUND(SrcInputData%Position,1)
    i2_l = LBOUND(SrcInputData%Position,2)
    i2_u = UBOUND(SrcInputData%Position,2)
-   IF (.NOT.ALLOCATED(DstInputData%Position)) THEN 
+   IF (.NOT. ALLOCATED(DstInputData%Position)) THEN 
       ALLOCATE(DstInputData%Position(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -964,7 +964,7 @@ IF (ALLOCATED(SrcOutputData%Velocity)) THEN
    i1_u = UBOUND(SrcOutputData%Velocity,1)
    i2_l = LBOUND(SrcOutputData%Velocity,2)
    i2_u = UBOUND(SrcOutputData%Velocity,2)
-   IF (.NOT.ALLOCATED(DstOutputData%Velocity)) THEN 
+   IF (.NOT. ALLOCATED(DstOutputData%Velocity)) THEN 
       ALLOCATE(DstOutputData%Velocity(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 

@@ -9,14 +9,31 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2014-02-01 17:39:02 -0700 (Sat, 01 Feb 2014) $
-# (File) Revision #: $Rev: 627 $
-# URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn_Registry.txt $
+# File last committed $Date$
+# (File) Revision #: $Rev$
+# URL: $HeadURL$
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
 # make sure that the file name does not have any trailing white spaces!
 include	Registry_NWTC_Library.txt
 
+
+# ..... Initialization data .......................................................................................................
+# Define inputs that the initialization routine may need here:
+typedef	ElastoDyn/ED	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"	-
+typedef	^	InitInputType	CHARACTER(1024)	ADInputFile	-	-	-	"Name of the AeroDyn input file (in this verison, that is where we'll get the blade mesh info"	-
+#typedef	^	InitInputType	IntKi	AdamsUnit	-	-	-	"Unit number of (already-open-for-writing-text) Adams file: if <= 0, don't create Adams file"	-	"bjj: may need two of these unit numbers"
+typedef	^	InitInputType	LOGICAL	CompElast	-	-	-	"flag to determine if ElastoDyn is computing blade loads (true) or BeamDyn is (false)"	-
+typedef	^	InitInputType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"
+
+# Define outputs from the initialization routine here:
+typedef	^	InitOutputType	CHARACTER(10)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
+typedef	^	InitOutputType	CHARACTER(10)	WriteOutputUnt	{:}	-	-	"Units of the output-to-file channels"	-
+typedef	^	InitOutputType	ProgDesc	Ver	-	-	-	"This module's name, version, and date"	-
+typedef	^	InitOutputType	IntKi	NumBl	-	-	-	"Number of blades on the turbine"	-
+typedef	^	InitOutputType	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
+typedef	^	InitOutputType	ReKi	BlPitch	{:}	-	-	"Initial blade pitch angles"	radians
+typedef	^	InitOutputType	ReKi	BladeLength	-	-	-	"Blade length (for AeroDyn)"	meters
 
 # ..... Blade Input file data ...........................................................................................................
 typedef	ElastoDyn/ED	BladeInputData	IntKi	NBlInpSt	-	-	-	"Number of blade input stations"	-
@@ -483,22 +500,6 @@ typedef	^	ED_RtHndSide	ReKi	TFrlMom	-	-	-	"The total tail-furl spring and damper
 typedef	^	ED_RtHndSide	ReKi	RFrlMom	-	-	-	"The total rotor-furl spring and damper moment"
 typedef	^	ED_RtHndSide	ReKi	GBoxEffFac	-	-	-	"The factor used to apply the gearbox efficiency effects to the equation associated with the generator DOF"
 typedef	^	ED_RtHndSide	ReKi	rSAerCen	{:}{:}{:}	-	-	"aerodynamic pitching moment arm (i.e., the position vector from point S on the blade to the aerodynamic center of the element)"
-
-# ..... Initialization data .......................................................................................................
-# Define inputs that the initialization routine may need here:
-typedef	^	InitInputType	CHARACTER(1024)	InputFile	-	-	-	"Name of the input file"	-
-typedef	^	InitInputType	CHARACTER(1024)	ADInputFile	-	-	-	"Name of the AeroDyn input file (in this verison, that is where we'll get the blade mesh info"	-
-#typedef	^	InitInputType	IntKi	AdamsUnit	-	-	-	"Unit number of (already-open-for-writing-text) Adams file: if <= 0, don't create Adams file"	-	"bjj: may need two of these unit numbers"
-typedef	^	InitInputType	CHARACTER(1024)	RootName	-	-	-	"RootName for writing output files"
-
-# Define outputs from the initialization routine here:
-typedef	^	InitOutputType	CHARACTER(10)	WriteOutputHdr	{:}	-	-	"Names of the output-to-file channels"	-
-typedef	^	InitOutputType	CHARACTER(10)	WriteOutputUnt	{:}	-	-	"Units of the output-to-file channels"	-
-typedef	^	InitOutputType	ProgDesc	Ver	-	-	-	"This module's name, version, and date"	-
-typedef	^	InitOutputType	IntKi	NumBl	-	-	-	"Number of blades on the turbine"	-
-typedef	^	InitOutputType	ReKi	Gravity	-	-	-	"Gravitational acceleration"	m/s^2
-typedef	^	InitOutputType	ReKi	BlPitch	{:}	-	-	"Initial blade pitch angles"	radians
-typedef	^	InitOutputType	ReKi	BladeLength	-	-	-	"Blade length (for AeroDyn)"	meters
 
 # ..... States ....................................................................................................................
 # Define continuous (differentiable) states here:

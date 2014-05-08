@@ -135,16 +135,16 @@ IMPLICIT NONE
   TYPE, PUBLIC :: MAP_OtherStateType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_OtherStateType_C ) :: C_obj
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: FX      ! Connect node X force [[N]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! Connect node Y force [[N]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: FZ      ! Connect node Z force [[N]]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: u_index      ! input index set [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: p_index      ! parameter index set [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: x_index      ! continuous state index set [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: xd_index      ! discete state index set [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: z_index      ! constraint state index set [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: y_index      ! output index set [-]
-    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: o_index      ! other state (self) index set [-]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FX => NULL()      ! Connect node X force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FY => NULL()      ! Connect node Y force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FZ => NULL()      ! Connect node Z force [[N]]
+    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: u_index => NULL()      ! input index set [-]
+    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: p_index => NULL()      ! parameter index set [-]
+    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: x_index => NULL()      ! continuous state index set [-]
+    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: xd_index => NULL()      ! discete state index set [-]
+    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: z_index => NULL()      ! constraint state index set [-]
+    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: y_index => NULL()      ! output index set [-]
+    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: o_index => NULL()      ! other state (self) index set [-]
   END TYPE MAP_OtherStateType
 ! =======================
 ! =========  MAP_ConstraintStateType  =======
@@ -164,11 +164,11 @@ IMPLICIT NONE
   TYPE, PUBLIC :: MAP_ConstraintStateType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_ConstraintStateType_C ) :: C_obj
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: X      ! Connect node X position [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: Y      ! Connect node Y position [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: Z      ! Connect node Z position [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: H      ! Fairlead horizontal force [[N]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: V      ! Fairlead vertical force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: X => NULL()      ! Connect node X position [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Y => NULL()      ! Connect node Y position [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Z => NULL()      ! Connect node Z position [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: H => NULL()      ! Fairlead horizontal force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: V => NULL()      ! Fairlead vertical force [[N]]
   END TYPE MAP_ConstraintStateType
 ! =======================
 ! =========  MAP_ParameterType  =======
@@ -205,19 +205,19 @@ IMPLICIT NONE
   TYPE, PUBLIC :: MAP_ParameterType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_ParameterType_C ) :: C_obj
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: Diam      ! cable diameter [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: MassDenInAir      ! cable mass density in air [[kg/m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: EA      ! cable axial stiffness [[N]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: CB      ! cable/seabed frcition coeff [[]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: Lu      ! unstretched cable length [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: X      ! Fix node X position [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: Y      ! Fix node Y position [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: Z      ! Fix node X position [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: FX      ! Fix node sum forced in X (constant) [[N]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! Fix node sum forced in Y (constant) [[N]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: FZ      ! Fix node sum forced in Z (constant) [[N]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: M      ! Point mass at node [[kg]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: B      ! Buoyancy module (displacement) at node [[m^3]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Diam => NULL()      ! cable diameter [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: MassDenInAir => NULL()      ! cable mass density in air [[kg/m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: EA => NULL()      ! cable axial stiffness [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: CB => NULL()      ! cable/seabed frcition coeff [[]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Lu => NULL()      ! unstretched cable length [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: X => NULL()      ! Fix node X position [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Y => NULL()      ! Fix node Y position [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Z => NULL()      ! Fix node X position [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FX => NULL()      ! Fix node sum forced in X (constant) [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FY => NULL()      ! Fix node sum forced in Y (constant) [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FZ => NULL()      ! Fix node sum forced in Z (constant) [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: M => NULL()      ! Point mass at node [[kg]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: B => NULL()      ! Buoyancy module (displacement) at node [[m^3]]
     REAL(DbKi)  :: dt      ! delta t -- time step [[s]]
   END TYPE MAP_ParameterType
 ! =======================
@@ -234,9 +234,9 @@ IMPLICIT NONE
   TYPE, PUBLIC :: MAP_InputType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_InputType_C ) :: C_obj
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: X      ! fairlead X displacement [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: Y      ! fairlead Y displacement [[m]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: Z      ! fairlead Z displacement [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: X => NULL()      ! fairlead X displacement [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Y => NULL()      ! fairlead Y displacement [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Z => NULL()      ! fairlead Z displacement [[m]]
     TYPE(MeshType)  :: PtFairleadDisplacement      ! Position of each fairlead in X,Y,Z [[m]]
   END TYPE MAP_InputType
 ! =======================
@@ -255,9 +255,9 @@ IMPLICIT NONE
   TYPE, PUBLIC :: MAP_OutputType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_OutputType_C ) :: C_obj
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: FX      ! fairlead X force [[N]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! fairlead Y force [[N]]
-    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: FZ      ! fairlead Z force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FX => NULL()      ! fairlead X force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FY => NULL()      ! fairlead Y force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FZ => NULL()      ! fairlead Z force [[N]]
     TYPE(MeshType)  :: PtFairleadLoad      ! point mesh for forces in X,Y,Z [[N]]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: writeOutput      ! Buoyancy module (displacement) at node [[m^3]]
   END TYPE MAP_OutputType
@@ -843,7 +843,7 @@ CONTAINS
 IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -856,7 +856,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1322,7 +1322,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- FX OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%FX ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%FX ) ) THEN
        ALLOCATE( c_dbl_value(OtherStateData%C_obj%FX_Len) )
        DO i = 1 , OtherStateData%C_obj%FX_Len
           c_dbl_value(i) = OtherStateData%FX(i)
@@ -1332,7 +1332,7 @@ ENDIF
     ENDIF
 
     ! -- FY OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%FY ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%FY ) ) THEN
        ALLOCATE( c_dbl_value(OtherStateData%C_obj%FY_Len) )
        DO i = 1 , OtherStateData%C_obj%FY_Len
           c_dbl_value(i) = OtherStateData%FY(i)
@@ -1342,7 +1342,7 @@ ENDIF
     ENDIF
 
     ! -- FZ OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%FZ ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%FZ ) ) THEN
        ALLOCATE( c_dbl_value(OtherStateData%C_obj%FZ_Len) )
        DO i = 1 , OtherStateData%C_obj%FZ_Len
           c_dbl_value(i) = OtherStateData%FZ(i)
@@ -1352,7 +1352,7 @@ ENDIF
     ENDIF
 
     ! -- u_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%u_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%u_index ) ) THEN
        ALLOCATE( c_int_value(OtherStateData%C_obj%u_index_Len) )
        DO i = 1 , OtherStateData%C_obj%u_index_Len
           c_int_value(i) = OtherStateData%u_index(i)
@@ -1362,7 +1362,7 @@ ENDIF
     ENDIF
 
     ! -- p_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%p_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%p_index ) ) THEN
        ALLOCATE( c_int_value(OtherStateData%C_obj%p_index_Len) )
        DO i = 1 , OtherStateData%C_obj%p_index_Len
           c_int_value(i) = OtherStateData%p_index(i)
@@ -1372,7 +1372,7 @@ ENDIF
     ENDIF
 
     ! -- x_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%x_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%x_index ) ) THEN
        ALLOCATE( c_int_value(OtherStateData%C_obj%x_index_Len) )
        DO i = 1 , OtherStateData%C_obj%x_index_Len
           c_int_value(i) = OtherStateData%x_index(i)
@@ -1382,7 +1382,7 @@ ENDIF
     ENDIF
 
     ! -- xd_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%xd_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%xd_index ) ) THEN
        ALLOCATE( c_int_value(OtherStateData%C_obj%xd_index_Len) )
        DO i = 1 , OtherStateData%C_obj%xd_index_Len
           c_int_value(i) = OtherStateData%xd_index(i)
@@ -1392,7 +1392,7 @@ ENDIF
     ENDIF
 
     ! -- z_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%z_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%z_index ) ) THEN
        ALLOCATE( c_int_value(OtherStateData%C_obj%z_index_Len) )
        DO i = 1 , OtherStateData%C_obj%z_index_Len
           c_int_value(i) = OtherStateData%z_index(i)
@@ -1402,7 +1402,7 @@ ENDIF
     ENDIF
 
     ! -- y_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%y_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%y_index ) ) THEN
        ALLOCATE( c_int_value(OtherStateData%C_obj%y_index_Len) )
        DO i = 1 , OtherStateData%C_obj%y_index_Len
           c_int_value(i) = OtherStateData%y_index(i)
@@ -1412,7 +1412,7 @@ ENDIF
     ENDIF
 
     ! -- o_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%o_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%o_index ) ) THEN
        ALLOCATE( c_int_value(OtherStateData%C_obj%o_index_Len) )
        DO i = 1 , OtherStateData%C_obj%o_index_Len
           c_int_value(i) = OtherStateData%o_index(i)
@@ -1441,7 +1441,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- FX OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%FX ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%FX ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%FX, dbl_arr, (/OtherStateData%C_obj%FX_Len/) )
        DO i = 1, OtherStateData%C_obj%FX_Len
           OtherStateData%FX(i) = dbl_arr(i)
@@ -1449,7 +1449,7 @@ ENDIF
     ENDIF
 
     ! -- FY OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%FY ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%FY ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%FY, dbl_arr, (/OtherStateData%C_obj%FY_Len/) )
        DO i = 1, OtherStateData%C_obj%FY_Len
           OtherStateData%FY(i) = dbl_arr(i)
@@ -1457,7 +1457,7 @@ ENDIF
     ENDIF
 
     ! -- FZ OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%FZ ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%FZ ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%FZ, dbl_arr, (/OtherStateData%C_obj%FZ_Len/) )
        DO i = 1, OtherStateData%C_obj%FZ_Len
           OtherStateData%FZ(i) = dbl_arr(i)
@@ -1465,7 +1465,7 @@ ENDIF
     ENDIF
 
     ! -- u_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%u_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%u_index ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%u_index, int_arr, (/OtherStateData%C_obj%u_index_Len/) )
        DO i = 1, OtherStateData%C_obj%u_index_Len
           OtherStateData%u_index(i) = int_arr(i)
@@ -1473,7 +1473,7 @@ ENDIF
     ENDIF
 
     ! -- p_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%p_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%p_index ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%p_index, int_arr, (/OtherStateData%C_obj%p_index_Len/) )
        DO i = 1, OtherStateData%C_obj%p_index_Len
           OtherStateData%p_index(i) = int_arr(i)
@@ -1481,7 +1481,7 @@ ENDIF
     ENDIF
 
     ! -- x_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%x_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%x_index ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%x_index, int_arr, (/OtherStateData%C_obj%x_index_Len/) )
        DO i = 1, OtherStateData%C_obj%x_index_Len
           OtherStateData%x_index(i) = int_arr(i)
@@ -1489,7 +1489,7 @@ ENDIF
     ENDIF
 
     ! -- xd_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%xd_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%xd_index ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%xd_index, int_arr, (/OtherStateData%C_obj%xd_index_Len/) )
        DO i = 1, OtherStateData%C_obj%xd_index_Len
           OtherStateData%xd_index(i) = int_arr(i)
@@ -1497,7 +1497,7 @@ ENDIF
     ENDIF
 
     ! -- z_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%z_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%z_index ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%z_index, int_arr, (/OtherStateData%C_obj%z_index_Len/) )
        DO i = 1, OtherStateData%C_obj%z_index_Len
           OtherStateData%z_index(i) = int_arr(i)
@@ -1505,7 +1505,7 @@ ENDIF
     ENDIF
 
     ! -- y_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%y_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%y_index ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%y_index, int_arr, (/OtherStateData%C_obj%y_index_Len/) )
        DO i = 1, OtherStateData%C_obj%y_index_Len
           OtherStateData%y_index(i) = int_arr(i)
@@ -1513,7 +1513,7 @@ ENDIF
     ENDIF
 
     ! -- o_index OtherState Data fields
-    IF ( ALLOCATED( OtherStateData%o_index ) ) THEN
+    IF ( ASSOCIATED( OtherStateData%o_index ) ) THEN
        CALL C_F_POINTER( OtherStateData%C_obj%o_index, int_arr, (/OtherStateData%C_obj%o_index_Len/) )
        DO i = 1, OtherStateData%C_obj%o_index_Len
           OtherStateData%o_index(i) = int_arr(i)
@@ -1534,10 +1534,10 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcOtherStateData%FX)) THEN
+IF (ASSOCIATED(SrcOtherStateData%FX)) THEN
    i1_l = LBOUND(SrcOtherStateData%FX,1)
    i1_u = UBOUND(SrcOtherStateData%FX,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%FX)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%FX)) THEN 
       ALLOCATE(DstOtherStateData%FX(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1547,10 +1547,10 @@ IF (ALLOCATED(SrcOtherStateData%FX)) THEN
    END IF
    DstOtherStateData%FX = SrcOtherStateData%FX
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%FY)) THEN
+IF (ASSOCIATED(SrcOtherStateData%FY)) THEN
    i1_l = LBOUND(SrcOtherStateData%FY,1)
    i1_u = UBOUND(SrcOtherStateData%FY,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%FY)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%FY)) THEN 
       ALLOCATE(DstOtherStateData%FY(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1560,10 +1560,10 @@ IF (ALLOCATED(SrcOtherStateData%FY)) THEN
    END IF
    DstOtherStateData%FY = SrcOtherStateData%FY
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%FZ)) THEN
+IF (ASSOCIATED(SrcOtherStateData%FZ)) THEN
    i1_l = LBOUND(SrcOtherStateData%FZ,1)
    i1_u = UBOUND(SrcOtherStateData%FZ,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%FZ)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%FZ)) THEN 
       ALLOCATE(DstOtherStateData%FZ(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1573,10 +1573,10 @@ IF (ALLOCATED(SrcOtherStateData%FZ)) THEN
    END IF
    DstOtherStateData%FZ = SrcOtherStateData%FZ
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%u_index)) THEN
+IF (ASSOCIATED(SrcOtherStateData%u_index)) THEN
    i1_l = LBOUND(SrcOtherStateData%u_index,1)
    i1_u = UBOUND(SrcOtherStateData%u_index,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%u_index)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%u_index)) THEN 
       ALLOCATE(DstOtherStateData%u_index(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1586,10 +1586,10 @@ IF (ALLOCATED(SrcOtherStateData%u_index)) THEN
    END IF
    DstOtherStateData%u_index = SrcOtherStateData%u_index
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%p_index)) THEN
+IF (ASSOCIATED(SrcOtherStateData%p_index)) THEN
    i1_l = LBOUND(SrcOtherStateData%p_index,1)
    i1_u = UBOUND(SrcOtherStateData%p_index,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%p_index)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%p_index)) THEN 
       ALLOCATE(DstOtherStateData%p_index(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1599,10 +1599,10 @@ IF (ALLOCATED(SrcOtherStateData%p_index)) THEN
    END IF
    DstOtherStateData%p_index = SrcOtherStateData%p_index
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%x_index)) THEN
+IF (ASSOCIATED(SrcOtherStateData%x_index)) THEN
    i1_l = LBOUND(SrcOtherStateData%x_index,1)
    i1_u = UBOUND(SrcOtherStateData%x_index,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%x_index)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%x_index)) THEN 
       ALLOCATE(DstOtherStateData%x_index(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1612,10 +1612,10 @@ IF (ALLOCATED(SrcOtherStateData%x_index)) THEN
    END IF
    DstOtherStateData%x_index = SrcOtherStateData%x_index
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%xd_index)) THEN
+IF (ASSOCIATED(SrcOtherStateData%xd_index)) THEN
    i1_l = LBOUND(SrcOtherStateData%xd_index,1)
    i1_u = UBOUND(SrcOtherStateData%xd_index,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%xd_index)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%xd_index)) THEN 
       ALLOCATE(DstOtherStateData%xd_index(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1625,10 +1625,10 @@ IF (ALLOCATED(SrcOtherStateData%xd_index)) THEN
    END IF
    DstOtherStateData%xd_index = SrcOtherStateData%xd_index
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%z_index)) THEN
+IF (ASSOCIATED(SrcOtherStateData%z_index)) THEN
    i1_l = LBOUND(SrcOtherStateData%z_index,1)
    i1_u = UBOUND(SrcOtherStateData%z_index,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%z_index)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%z_index)) THEN 
       ALLOCATE(DstOtherStateData%z_index(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1638,10 +1638,10 @@ IF (ALLOCATED(SrcOtherStateData%z_index)) THEN
    END IF
    DstOtherStateData%z_index = SrcOtherStateData%z_index
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%y_index)) THEN
+IF (ASSOCIATED(SrcOtherStateData%y_index)) THEN
    i1_l = LBOUND(SrcOtherStateData%y_index,1)
    i1_u = UBOUND(SrcOtherStateData%y_index,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%y_index)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%y_index)) THEN 
       ALLOCATE(DstOtherStateData%y_index(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1651,10 +1651,10 @@ IF (ALLOCATED(SrcOtherStateData%y_index)) THEN
    END IF
    DstOtherStateData%y_index = SrcOtherStateData%y_index
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%o_index)) THEN
+IF (ASSOCIATED(SrcOtherStateData%o_index)) THEN
    i1_l = LBOUND(SrcOtherStateData%o_index,1)
    i1_u = UBOUND(SrcOtherStateData%o_index,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%o_index)) THEN 
+   IF (.NOT. ASSOCIATED(DstOtherStateData%o_index)) THEN 
       ALLOCATE(DstOtherStateData%o_index(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1674,35 +1674,45 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(OtherStateData%FX)) THEN
+IF (ASSOCIATED(OtherStateData%FX)) THEN
    DEALLOCATE(OtherStateData%FX)
+   OtherStateData%FX => NULL()
 ENDIF
-IF (ALLOCATED(OtherStateData%FY)) THEN
+IF (ASSOCIATED(OtherStateData%FY)) THEN
    DEALLOCATE(OtherStateData%FY)
+   OtherStateData%FY => NULL()
 ENDIF
-IF (ALLOCATED(OtherStateData%FZ)) THEN
+IF (ASSOCIATED(OtherStateData%FZ)) THEN
    DEALLOCATE(OtherStateData%FZ)
+   OtherStateData%FZ => NULL()
 ENDIF
-IF (ALLOCATED(OtherStateData%u_index)) THEN
+IF (ASSOCIATED(OtherStateData%u_index)) THEN
    DEALLOCATE(OtherStateData%u_index)
+   OtherStateData%u_index => NULL()
 ENDIF
-IF (ALLOCATED(OtherStateData%p_index)) THEN
+IF (ASSOCIATED(OtherStateData%p_index)) THEN
    DEALLOCATE(OtherStateData%p_index)
+   OtherStateData%p_index => NULL()
 ENDIF
-IF (ALLOCATED(OtherStateData%x_index)) THEN
+IF (ASSOCIATED(OtherStateData%x_index)) THEN
    DEALLOCATE(OtherStateData%x_index)
+   OtherStateData%x_index => NULL()
 ENDIF
-IF (ALLOCATED(OtherStateData%xd_index)) THEN
+IF (ASSOCIATED(OtherStateData%xd_index)) THEN
    DEALLOCATE(OtherStateData%xd_index)
+   OtherStateData%xd_index => NULL()
 ENDIF
-IF (ALLOCATED(OtherStateData%z_index)) THEN
+IF (ASSOCIATED(OtherStateData%z_index)) THEN
    DEALLOCATE(OtherStateData%z_index)
+   OtherStateData%z_index => NULL()
 ENDIF
-IF (ALLOCATED(OtherStateData%y_index)) THEN
+IF (ASSOCIATED(OtherStateData%y_index)) THEN
    DEALLOCATE(OtherStateData%y_index)
+   OtherStateData%y_index => NULL()
 ENDIF
-IF (ALLOCATED(OtherStateData%o_index)) THEN
+IF (ASSOCIATED(OtherStateData%o_index)) THEN
    DEALLOCATE(OtherStateData%o_index)
+   OtherStateData%o_index => NULL()
 ENDIF
  END SUBROUTINE MAP_DestroyOtherState
 
@@ -1753,43 +1763,43 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ALLOCATED(InData%FX) ) THEN
+  IF ( ASSOCIATED(InData%FX) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FX))-1 ) =  PACK(InData%FX ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%FX)
   ENDIF
-  IF ( ALLOCATED(InData%FY) ) THEN
+  IF ( ASSOCIATED(InData%FY) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FY))-1 ) =  PACK(InData%FY ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%FY)
   ENDIF
-  IF ( ALLOCATED(InData%FZ) ) THEN
+  IF ( ASSOCIATED(InData%FZ) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FZ))-1 ) =  PACK(InData%FZ ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%FZ)
   ENDIF
-  IF ( ALLOCATED(InData%u_index) ) THEN
+  IF ( ASSOCIATED(InData%u_index) ) THEN
     IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%u_index))-1 ) = PACK(InData%u_index ,.TRUE.)
     Int_Xferred   = Int_Xferred   + SIZE(InData%u_index)
   ENDIF
-  IF ( ALLOCATED(InData%p_index) ) THEN
+  IF ( ASSOCIATED(InData%p_index) ) THEN
     IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%p_index))-1 ) = PACK(InData%p_index ,.TRUE.)
     Int_Xferred   = Int_Xferred   + SIZE(InData%p_index)
   ENDIF
-  IF ( ALLOCATED(InData%x_index) ) THEN
+  IF ( ASSOCIATED(InData%x_index) ) THEN
     IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%x_index))-1 ) = PACK(InData%x_index ,.TRUE.)
     Int_Xferred   = Int_Xferred   + SIZE(InData%x_index)
   ENDIF
-  IF ( ALLOCATED(InData%xd_index) ) THEN
+  IF ( ASSOCIATED(InData%xd_index) ) THEN
     IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%xd_index))-1 ) = PACK(InData%xd_index ,.TRUE.)
     Int_Xferred   = Int_Xferred   + SIZE(InData%xd_index)
   ENDIF
-  IF ( ALLOCATED(InData%z_index) ) THEN
+  IF ( ASSOCIATED(InData%z_index) ) THEN
     IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%z_index))-1 ) = PACK(InData%z_index ,.TRUE.)
     Int_Xferred   = Int_Xferred   + SIZE(InData%z_index)
   ENDIF
-  IF ( ALLOCATED(InData%y_index) ) THEN
+  IF ( ASSOCIATED(InData%y_index) ) THEN
     IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%y_index))-1 ) = PACK(InData%y_index ,.TRUE.)
     Int_Xferred   = Int_Xferred   + SIZE(InData%y_index)
   ENDIF
-  IF ( ALLOCATED(InData%o_index) ) THEN
+  IF ( ASSOCIATED(InData%o_index) ) THEN
     IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%o_index))-1 ) = PACK(InData%o_index ,.TRUE.)
     Int_Xferred   = Int_Xferred   + SIZE(InData%o_index)
   ENDIF
@@ -1828,61 +1838,61 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%FX) ) THEN
+  IF ( ASSOCIATED(OutData%FX) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
     OutData%FX = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,OutData%FX)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FX)
   ENDIF
-  IF ( ALLOCATED(OutData%FY) ) THEN
+  IF ( ASSOCIATED(OutData%FY) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
     OutData%FY = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,OutData%FY)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FY)
   ENDIF
-  IF ( ALLOCATED(OutData%FZ) ) THEN
+  IF ( ASSOCIATED(OutData%FZ) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FZ,1))); mask1 = .TRUE.
     OutData%FZ = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,OutData%FZ)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FZ)
   ENDIF
-  IF ( ALLOCATED(OutData%u_index) ) THEN
+  IF ( ASSOCIATED(OutData%u_index) ) THEN
   ALLOCATE(mask1(SIZE(OutData%u_index,1))); mask1 = .TRUE.
     OutData%u_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%u_index))-1 ),mask1,OutData%u_index)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%u_index)
   ENDIF
-  IF ( ALLOCATED(OutData%p_index) ) THEN
+  IF ( ASSOCIATED(OutData%p_index) ) THEN
   ALLOCATE(mask1(SIZE(OutData%p_index,1))); mask1 = .TRUE.
     OutData%p_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%p_index))-1 ),mask1,OutData%p_index)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%p_index)
   ENDIF
-  IF ( ALLOCATED(OutData%x_index) ) THEN
+  IF ( ASSOCIATED(OutData%x_index) ) THEN
   ALLOCATE(mask1(SIZE(OutData%x_index,1))); mask1 = .TRUE.
     OutData%x_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%x_index))-1 ),mask1,OutData%x_index)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%x_index)
   ENDIF
-  IF ( ALLOCATED(OutData%xd_index) ) THEN
+  IF ( ASSOCIATED(OutData%xd_index) ) THEN
   ALLOCATE(mask1(SIZE(OutData%xd_index,1))); mask1 = .TRUE.
     OutData%xd_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%xd_index))-1 ),mask1,OutData%xd_index)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%xd_index)
   ENDIF
-  IF ( ALLOCATED(OutData%z_index) ) THEN
+  IF ( ASSOCIATED(OutData%z_index) ) THEN
   ALLOCATE(mask1(SIZE(OutData%z_index,1))); mask1 = .TRUE.
     OutData%z_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%z_index))-1 ),mask1,OutData%z_index)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%z_index)
   ENDIF
-  IF ( ALLOCATED(OutData%y_index) ) THEN
+  IF ( ASSOCIATED(OutData%y_index) ) THEN
   ALLOCATE(mask1(SIZE(OutData%y_index,1))); mask1 = .TRUE.
     OutData%y_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%y_index))-1 ),mask1,OutData%y_index)
   DEALLOCATE(mask1)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%y_index)
   ENDIF
-  IF ( ALLOCATED(OutData%o_index) ) THEN
+  IF ( ASSOCIATED(OutData%o_index) ) THEN
   ALLOCATE(mask1(SIZE(OutData%o_index,1))); mask1 = .TRUE.
     OutData%o_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%o_index))-1 ),mask1,OutData%o_index)
   DEALLOCATE(mask1)
@@ -1912,7 +1922,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- X ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%X ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%X ) ) THEN
        ALLOCATE( c_dbl_value(ConstrStateData%C_obj%X_Len) )
        DO i = 1 , ConstrStateData%C_obj%X_Len
           c_dbl_value(i) = ConstrStateData%X(i)
@@ -1922,7 +1932,7 @@ ENDIF
     ENDIF
 
     ! -- Y ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%Y ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%Y ) ) THEN
        ALLOCATE( c_dbl_value(ConstrStateData%C_obj%Y_Len) )
        DO i = 1 , ConstrStateData%C_obj%Y_Len
           c_dbl_value(i) = ConstrStateData%Y(i)
@@ -1932,7 +1942,7 @@ ENDIF
     ENDIF
 
     ! -- Z ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%Z ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%Z ) ) THEN
        ALLOCATE( c_dbl_value(ConstrStateData%C_obj%Z_Len) )
        DO i = 1 , ConstrStateData%C_obj%Z_Len
           c_dbl_value(i) = ConstrStateData%Z(i)
@@ -1942,7 +1952,7 @@ ENDIF
     ENDIF
 
     ! -- H ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%H ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%H ) ) THEN
        ALLOCATE( c_dbl_value(ConstrStateData%C_obj%H_Len) )
        DO i = 1 , ConstrStateData%C_obj%H_Len
           c_dbl_value(i) = ConstrStateData%H(i)
@@ -1952,7 +1962,7 @@ ENDIF
     ENDIF
 
     ! -- V ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%V ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%V ) ) THEN
        ALLOCATE( c_dbl_value(ConstrStateData%C_obj%V_Len) )
        DO i = 1 , ConstrStateData%C_obj%V_Len
           c_dbl_value(i) = ConstrStateData%V(i)
@@ -1981,7 +1991,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- X ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%X ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%X ) ) THEN
        CALL C_F_POINTER( ConstrStateData%C_obj%X, dbl_arr, (/ConstrStateData%C_obj%X_Len/) )
        DO i = 1, ConstrStateData%C_obj%X_Len
           ConstrStateData%X(i) = dbl_arr(i)
@@ -1989,7 +1999,7 @@ ENDIF
     ENDIF
 
     ! -- Y ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%Y ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%Y ) ) THEN
        CALL C_F_POINTER( ConstrStateData%C_obj%Y, dbl_arr, (/ConstrStateData%C_obj%Y_Len/) )
        DO i = 1, ConstrStateData%C_obj%Y_Len
           ConstrStateData%Y(i) = dbl_arr(i)
@@ -1997,7 +2007,7 @@ ENDIF
     ENDIF
 
     ! -- Z ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%Z ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%Z ) ) THEN
        CALL C_F_POINTER( ConstrStateData%C_obj%Z, dbl_arr, (/ConstrStateData%C_obj%Z_Len/) )
        DO i = 1, ConstrStateData%C_obj%Z_Len
           ConstrStateData%Z(i) = dbl_arr(i)
@@ -2005,7 +2015,7 @@ ENDIF
     ENDIF
 
     ! -- H ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%H ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%H ) ) THEN
        CALL C_F_POINTER( ConstrStateData%C_obj%H, dbl_arr, (/ConstrStateData%C_obj%H_Len/) )
        DO i = 1, ConstrStateData%C_obj%H_Len
           ConstrStateData%H(i) = dbl_arr(i)
@@ -2013,7 +2023,7 @@ ENDIF
     ENDIF
 
     ! -- V ConstrState Data fields
-    IF ( ALLOCATED( ConstrStateData%V ) ) THEN
+    IF ( ASSOCIATED( ConstrStateData%V ) ) THEN
        CALL C_F_POINTER( ConstrStateData%C_obj%V, dbl_arr, (/ConstrStateData%C_obj%V_Len/) )
        DO i = 1, ConstrStateData%C_obj%V_Len
           ConstrStateData%V(i) = dbl_arr(i)
@@ -2034,10 +2044,10 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcConstrStateData%X)) THEN
+IF (ASSOCIATED(SrcConstrStateData%X)) THEN
    i1_l = LBOUND(SrcConstrStateData%X,1)
    i1_u = UBOUND(SrcConstrStateData%X,1)
-   IF (.NOT.ALLOCATED(DstConstrStateData%X)) THEN 
+   IF (.NOT. ASSOCIATED(DstConstrStateData%X)) THEN 
       ALLOCATE(DstConstrStateData%X(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2047,10 +2057,10 @@ IF (ALLOCATED(SrcConstrStateData%X)) THEN
    END IF
    DstConstrStateData%X = SrcConstrStateData%X
 ENDIF
-IF (ALLOCATED(SrcConstrStateData%Y)) THEN
+IF (ASSOCIATED(SrcConstrStateData%Y)) THEN
    i1_l = LBOUND(SrcConstrStateData%Y,1)
    i1_u = UBOUND(SrcConstrStateData%Y,1)
-   IF (.NOT.ALLOCATED(DstConstrStateData%Y)) THEN 
+   IF (.NOT. ASSOCIATED(DstConstrStateData%Y)) THEN 
       ALLOCATE(DstConstrStateData%Y(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2060,10 +2070,10 @@ IF (ALLOCATED(SrcConstrStateData%Y)) THEN
    END IF
    DstConstrStateData%Y = SrcConstrStateData%Y
 ENDIF
-IF (ALLOCATED(SrcConstrStateData%Z)) THEN
+IF (ASSOCIATED(SrcConstrStateData%Z)) THEN
    i1_l = LBOUND(SrcConstrStateData%Z,1)
    i1_u = UBOUND(SrcConstrStateData%Z,1)
-   IF (.NOT.ALLOCATED(DstConstrStateData%Z)) THEN 
+   IF (.NOT. ASSOCIATED(DstConstrStateData%Z)) THEN 
       ALLOCATE(DstConstrStateData%Z(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2073,10 +2083,10 @@ IF (ALLOCATED(SrcConstrStateData%Z)) THEN
    END IF
    DstConstrStateData%Z = SrcConstrStateData%Z
 ENDIF
-IF (ALLOCATED(SrcConstrStateData%H)) THEN
+IF (ASSOCIATED(SrcConstrStateData%H)) THEN
    i1_l = LBOUND(SrcConstrStateData%H,1)
    i1_u = UBOUND(SrcConstrStateData%H,1)
-   IF (.NOT.ALLOCATED(DstConstrStateData%H)) THEN 
+   IF (.NOT. ASSOCIATED(DstConstrStateData%H)) THEN 
       ALLOCATE(DstConstrStateData%H(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2086,10 +2096,10 @@ IF (ALLOCATED(SrcConstrStateData%H)) THEN
    END IF
    DstConstrStateData%H = SrcConstrStateData%H
 ENDIF
-IF (ALLOCATED(SrcConstrStateData%V)) THEN
+IF (ASSOCIATED(SrcConstrStateData%V)) THEN
    i1_l = LBOUND(SrcConstrStateData%V,1)
    i1_u = UBOUND(SrcConstrStateData%V,1)
-   IF (.NOT.ALLOCATED(DstConstrStateData%V)) THEN 
+   IF (.NOT. ASSOCIATED(DstConstrStateData%V)) THEN 
       ALLOCATE(DstConstrStateData%V(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2109,20 +2119,25 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(ConstrStateData%X)) THEN
+IF (ASSOCIATED(ConstrStateData%X)) THEN
    DEALLOCATE(ConstrStateData%X)
+   ConstrStateData%X => NULL()
 ENDIF
-IF (ALLOCATED(ConstrStateData%Y)) THEN
+IF (ASSOCIATED(ConstrStateData%Y)) THEN
    DEALLOCATE(ConstrStateData%Y)
+   ConstrStateData%Y => NULL()
 ENDIF
-IF (ALLOCATED(ConstrStateData%Z)) THEN
+IF (ASSOCIATED(ConstrStateData%Z)) THEN
    DEALLOCATE(ConstrStateData%Z)
+   ConstrStateData%Z => NULL()
 ENDIF
-IF (ALLOCATED(ConstrStateData%H)) THEN
+IF (ASSOCIATED(ConstrStateData%H)) THEN
    DEALLOCATE(ConstrStateData%H)
+   ConstrStateData%H => NULL()
 ENDIF
-IF (ALLOCATED(ConstrStateData%V)) THEN
+IF (ASSOCIATED(ConstrStateData%V)) THEN
    DEALLOCATE(ConstrStateData%V)
+   ConstrStateData%V => NULL()
 ENDIF
  END SUBROUTINE MAP_DestroyConstrState
 
@@ -2168,23 +2183,23 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ALLOCATED(InData%X) ) THEN
+  IF ( ASSOCIATED(InData%X) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%X))-1 ) =  PACK(InData%X ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%X)
   ENDIF
-  IF ( ALLOCATED(InData%Y) ) THEN
+  IF ( ASSOCIATED(InData%Y) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Y))-1 ) =  PACK(InData%Y ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%Y)
   ENDIF
-  IF ( ALLOCATED(InData%Z) ) THEN
+  IF ( ASSOCIATED(InData%Z) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Z))-1 ) =  PACK(InData%Z ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%Z)
   ENDIF
-  IF ( ALLOCATED(InData%H) ) THEN
+  IF ( ASSOCIATED(InData%H) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%H))-1 ) =  PACK(InData%H ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%H)
   ENDIF
-  IF ( ALLOCATED(InData%V) ) THEN
+  IF ( ASSOCIATED(InData%V) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%V))-1 ) =  PACK(InData%V ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%V)
   ENDIF
@@ -2223,31 +2238,31 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%X) ) THEN
+  IF ( ASSOCIATED(OutData%X) ) THEN
   ALLOCATE(mask1(SIZE(OutData%X,1))); mask1 = .TRUE.
     OutData%X = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,OutData%X)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%X)
   ENDIF
-  IF ( ALLOCATED(OutData%Y) ) THEN
+  IF ( ASSOCIATED(OutData%Y) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Y,1))); mask1 = .TRUE.
     OutData%Y = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,OutData%Y)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Y)
   ENDIF
-  IF ( ALLOCATED(OutData%Z) ) THEN
+  IF ( ASSOCIATED(OutData%Z) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Z,1))); mask1 = .TRUE.
     OutData%Z = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,OutData%Z)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Z)
   ENDIF
-  IF ( ALLOCATED(OutData%H) ) THEN
+  IF ( ASSOCIATED(OutData%H) ) THEN
   ALLOCATE(mask1(SIZE(OutData%H,1))); mask1 = .TRUE.
     OutData%H = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%H))-1 ),mask1,OutData%H)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%H)
   ENDIF
-  IF ( ALLOCATED(OutData%V) ) THEN
+  IF ( ASSOCIATED(OutData%V) ) THEN
   ALLOCATE(mask1(SIZE(OutData%V,1))); mask1 = .TRUE.
     OutData%V = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%V))-1 ),mask1,OutData%V)
   DEALLOCATE(mask1)
@@ -2277,7 +2292,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- Diam Param Data fields
-    IF ( ALLOCATED( ParamData%Diam ) ) THEN
+    IF ( ASSOCIATED( ParamData%Diam ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%Diam_Len) )
        DO i = 1 , ParamData%C_obj%Diam_Len
           c_dbl_value(i) = ParamData%Diam(i)
@@ -2287,7 +2302,7 @@ ENDIF
     ENDIF
 
     ! -- MassDenInAir Param Data fields
-    IF ( ALLOCATED( ParamData%MassDenInAir ) ) THEN
+    IF ( ASSOCIATED( ParamData%MassDenInAir ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%MassDenInAir_Len) )
        DO i = 1 , ParamData%C_obj%MassDenInAir_Len
           c_dbl_value(i) = ParamData%MassDenInAir(i)
@@ -2297,7 +2312,7 @@ ENDIF
     ENDIF
 
     ! -- EA Param Data fields
-    IF ( ALLOCATED( ParamData%EA ) ) THEN
+    IF ( ASSOCIATED( ParamData%EA ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%EA_Len) )
        DO i = 1 , ParamData%C_obj%EA_Len
           c_dbl_value(i) = ParamData%EA(i)
@@ -2307,7 +2322,7 @@ ENDIF
     ENDIF
 
     ! -- CB Param Data fields
-    IF ( ALLOCATED( ParamData%CB ) ) THEN
+    IF ( ASSOCIATED( ParamData%CB ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%CB_Len) )
        DO i = 1 , ParamData%C_obj%CB_Len
           c_dbl_value(i) = ParamData%CB(i)
@@ -2317,7 +2332,7 @@ ENDIF
     ENDIF
 
     ! -- Lu Param Data fields
-    IF ( ALLOCATED( ParamData%Lu ) ) THEN
+    IF ( ASSOCIATED( ParamData%Lu ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%Lu_Len) )
        DO i = 1 , ParamData%C_obj%Lu_Len
           c_dbl_value(i) = ParamData%Lu(i)
@@ -2327,7 +2342,7 @@ ENDIF
     ENDIF
 
     ! -- X Param Data fields
-    IF ( ALLOCATED( ParamData%X ) ) THEN
+    IF ( ASSOCIATED( ParamData%X ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%X_Len) )
        DO i = 1 , ParamData%C_obj%X_Len
           c_dbl_value(i) = ParamData%X(i)
@@ -2337,7 +2352,7 @@ ENDIF
     ENDIF
 
     ! -- Y Param Data fields
-    IF ( ALLOCATED( ParamData%Y ) ) THEN
+    IF ( ASSOCIATED( ParamData%Y ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%Y_Len) )
        DO i = 1 , ParamData%C_obj%Y_Len
           c_dbl_value(i) = ParamData%Y(i)
@@ -2347,7 +2362,7 @@ ENDIF
     ENDIF
 
     ! -- Z Param Data fields
-    IF ( ALLOCATED( ParamData%Z ) ) THEN
+    IF ( ASSOCIATED( ParamData%Z ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%Z_Len) )
        DO i = 1 , ParamData%C_obj%Z_Len
           c_dbl_value(i) = ParamData%Z(i)
@@ -2357,7 +2372,7 @@ ENDIF
     ENDIF
 
     ! -- FX Param Data fields
-    IF ( ALLOCATED( ParamData%FX ) ) THEN
+    IF ( ASSOCIATED( ParamData%FX ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%FX_Len) )
        DO i = 1 , ParamData%C_obj%FX_Len
           c_dbl_value(i) = ParamData%FX(i)
@@ -2367,7 +2382,7 @@ ENDIF
     ENDIF
 
     ! -- FY Param Data fields
-    IF ( ALLOCATED( ParamData%FY ) ) THEN
+    IF ( ASSOCIATED( ParamData%FY ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%FY_Len) )
        DO i = 1 , ParamData%C_obj%FY_Len
           c_dbl_value(i) = ParamData%FY(i)
@@ -2377,7 +2392,7 @@ ENDIF
     ENDIF
 
     ! -- FZ Param Data fields
-    IF ( ALLOCATED( ParamData%FZ ) ) THEN
+    IF ( ASSOCIATED( ParamData%FZ ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%FZ_Len) )
        DO i = 1 , ParamData%C_obj%FZ_Len
           c_dbl_value(i) = ParamData%FZ(i)
@@ -2387,7 +2402,7 @@ ENDIF
     ENDIF
 
     ! -- M Param Data fields
-    IF ( ALLOCATED( ParamData%M ) ) THEN
+    IF ( ASSOCIATED( ParamData%M ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%M_Len) )
        DO i = 1 , ParamData%C_obj%M_Len
           c_dbl_value(i) = ParamData%M(i)
@@ -2397,7 +2412,7 @@ ENDIF
     ENDIF
 
     ! -- B Param Data fields
-    IF ( ALLOCATED( ParamData%B ) ) THEN
+    IF ( ASSOCIATED( ParamData%B ) ) THEN
        ALLOCATE( c_dbl_value(ParamData%C_obj%B_Len) )
        DO i = 1 , ParamData%C_obj%B_Len
           c_dbl_value(i) = ParamData%B(i)
@@ -2427,7 +2442,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- Diam Param Data fields
-    IF ( ALLOCATED( ParamData%Diam ) ) THEN
+    IF ( ASSOCIATED( ParamData%Diam ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%Diam, dbl_arr, (/ParamData%C_obj%Diam_Len/) )
        DO i = 1, ParamData%C_obj%Diam_Len
           ParamData%Diam(i) = dbl_arr(i)
@@ -2435,7 +2450,7 @@ ENDIF
     ENDIF
 
     ! -- MassDenInAir Param Data fields
-    IF ( ALLOCATED( ParamData%MassDenInAir ) ) THEN
+    IF ( ASSOCIATED( ParamData%MassDenInAir ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%MassDenInAir, dbl_arr, (/ParamData%C_obj%MassDenInAir_Len/) )
        DO i = 1, ParamData%C_obj%MassDenInAir_Len
           ParamData%MassDenInAir(i) = dbl_arr(i)
@@ -2443,7 +2458,7 @@ ENDIF
     ENDIF
 
     ! -- EA Param Data fields
-    IF ( ALLOCATED( ParamData%EA ) ) THEN
+    IF ( ASSOCIATED( ParamData%EA ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%EA, dbl_arr, (/ParamData%C_obj%EA_Len/) )
        DO i = 1, ParamData%C_obj%EA_Len
           ParamData%EA(i) = dbl_arr(i)
@@ -2451,7 +2466,7 @@ ENDIF
     ENDIF
 
     ! -- CB Param Data fields
-    IF ( ALLOCATED( ParamData%CB ) ) THEN
+    IF ( ASSOCIATED( ParamData%CB ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%CB, dbl_arr, (/ParamData%C_obj%CB_Len/) )
        DO i = 1, ParamData%C_obj%CB_Len
           ParamData%CB(i) = dbl_arr(i)
@@ -2459,7 +2474,7 @@ ENDIF
     ENDIF
 
     ! -- Lu Param Data fields
-    IF ( ALLOCATED( ParamData%Lu ) ) THEN
+    IF ( ASSOCIATED( ParamData%Lu ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%Lu, dbl_arr, (/ParamData%C_obj%Lu_Len/) )
        DO i = 1, ParamData%C_obj%Lu_Len
           ParamData%Lu(i) = dbl_arr(i)
@@ -2467,7 +2482,7 @@ ENDIF
     ENDIF
 
     ! -- X Param Data fields
-    IF ( ALLOCATED( ParamData%X ) ) THEN
+    IF ( ASSOCIATED( ParamData%X ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%X, dbl_arr, (/ParamData%C_obj%X_Len/) )
        DO i = 1, ParamData%C_obj%X_Len
           ParamData%X(i) = dbl_arr(i)
@@ -2475,7 +2490,7 @@ ENDIF
     ENDIF
 
     ! -- Y Param Data fields
-    IF ( ALLOCATED( ParamData%Y ) ) THEN
+    IF ( ASSOCIATED( ParamData%Y ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%Y, dbl_arr, (/ParamData%C_obj%Y_Len/) )
        DO i = 1, ParamData%C_obj%Y_Len
           ParamData%Y(i) = dbl_arr(i)
@@ -2483,7 +2498,7 @@ ENDIF
     ENDIF
 
     ! -- Z Param Data fields
-    IF ( ALLOCATED( ParamData%Z ) ) THEN
+    IF ( ASSOCIATED( ParamData%Z ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%Z, dbl_arr, (/ParamData%C_obj%Z_Len/) )
        DO i = 1, ParamData%C_obj%Z_Len
           ParamData%Z(i) = dbl_arr(i)
@@ -2491,7 +2506,7 @@ ENDIF
     ENDIF
 
     ! -- FX Param Data fields
-    IF ( ALLOCATED( ParamData%FX ) ) THEN
+    IF ( ASSOCIATED( ParamData%FX ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%FX, dbl_arr, (/ParamData%C_obj%FX_Len/) )
        DO i = 1, ParamData%C_obj%FX_Len
           ParamData%FX(i) = dbl_arr(i)
@@ -2499,7 +2514,7 @@ ENDIF
     ENDIF
 
     ! -- FY Param Data fields
-    IF ( ALLOCATED( ParamData%FY ) ) THEN
+    IF ( ASSOCIATED( ParamData%FY ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%FY, dbl_arr, (/ParamData%C_obj%FY_Len/) )
        DO i = 1, ParamData%C_obj%FY_Len
           ParamData%FY(i) = dbl_arr(i)
@@ -2507,7 +2522,7 @@ ENDIF
     ENDIF
 
     ! -- FZ Param Data fields
-    IF ( ALLOCATED( ParamData%FZ ) ) THEN
+    IF ( ASSOCIATED( ParamData%FZ ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%FZ, dbl_arr, (/ParamData%C_obj%FZ_Len/) )
        DO i = 1, ParamData%C_obj%FZ_Len
           ParamData%FZ(i) = dbl_arr(i)
@@ -2515,7 +2530,7 @@ ENDIF
     ENDIF
 
     ! -- M Param Data fields
-    IF ( ALLOCATED( ParamData%M ) ) THEN
+    IF ( ASSOCIATED( ParamData%M ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%M, dbl_arr, (/ParamData%C_obj%M_Len/) )
        DO i = 1, ParamData%C_obj%M_Len
           ParamData%M(i) = dbl_arr(i)
@@ -2523,7 +2538,7 @@ ENDIF
     ENDIF
 
     ! -- B Param Data fields
-    IF ( ALLOCATED( ParamData%B ) ) THEN
+    IF ( ASSOCIATED( ParamData%B ) ) THEN
        CALL C_F_POINTER( ParamData%C_obj%B, dbl_arr, (/ParamData%C_obj%B_Len/) )
        DO i = 1, ParamData%C_obj%B_Len
           ParamData%B(i) = dbl_arr(i)
@@ -2545,10 +2560,10 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcParamData%Diam)) THEN
+IF (ASSOCIATED(SrcParamData%Diam)) THEN
    i1_l = LBOUND(SrcParamData%Diam,1)
    i1_u = UBOUND(SrcParamData%Diam,1)
-   IF (.NOT.ALLOCATED(DstParamData%Diam)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%Diam)) THEN 
       ALLOCATE(DstParamData%Diam(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2558,10 +2573,10 @@ IF (ALLOCATED(SrcParamData%Diam)) THEN
    END IF
    DstParamData%Diam = SrcParamData%Diam
 ENDIF
-IF (ALLOCATED(SrcParamData%MassDenInAir)) THEN
+IF (ASSOCIATED(SrcParamData%MassDenInAir)) THEN
    i1_l = LBOUND(SrcParamData%MassDenInAir,1)
    i1_u = UBOUND(SrcParamData%MassDenInAir,1)
-   IF (.NOT.ALLOCATED(DstParamData%MassDenInAir)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%MassDenInAir)) THEN 
       ALLOCATE(DstParamData%MassDenInAir(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2571,10 +2586,10 @@ IF (ALLOCATED(SrcParamData%MassDenInAir)) THEN
    END IF
    DstParamData%MassDenInAir = SrcParamData%MassDenInAir
 ENDIF
-IF (ALLOCATED(SrcParamData%EA)) THEN
+IF (ASSOCIATED(SrcParamData%EA)) THEN
    i1_l = LBOUND(SrcParamData%EA,1)
    i1_u = UBOUND(SrcParamData%EA,1)
-   IF (.NOT.ALLOCATED(DstParamData%EA)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%EA)) THEN 
       ALLOCATE(DstParamData%EA(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2584,10 +2599,10 @@ IF (ALLOCATED(SrcParamData%EA)) THEN
    END IF
    DstParamData%EA = SrcParamData%EA
 ENDIF
-IF (ALLOCATED(SrcParamData%CB)) THEN
+IF (ASSOCIATED(SrcParamData%CB)) THEN
    i1_l = LBOUND(SrcParamData%CB,1)
    i1_u = UBOUND(SrcParamData%CB,1)
-   IF (.NOT.ALLOCATED(DstParamData%CB)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%CB)) THEN 
       ALLOCATE(DstParamData%CB(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2597,10 +2612,10 @@ IF (ALLOCATED(SrcParamData%CB)) THEN
    END IF
    DstParamData%CB = SrcParamData%CB
 ENDIF
-IF (ALLOCATED(SrcParamData%Lu)) THEN
+IF (ASSOCIATED(SrcParamData%Lu)) THEN
    i1_l = LBOUND(SrcParamData%Lu,1)
    i1_u = UBOUND(SrcParamData%Lu,1)
-   IF (.NOT.ALLOCATED(DstParamData%Lu)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%Lu)) THEN 
       ALLOCATE(DstParamData%Lu(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2610,10 +2625,10 @@ IF (ALLOCATED(SrcParamData%Lu)) THEN
    END IF
    DstParamData%Lu = SrcParamData%Lu
 ENDIF
-IF (ALLOCATED(SrcParamData%X)) THEN
+IF (ASSOCIATED(SrcParamData%X)) THEN
    i1_l = LBOUND(SrcParamData%X,1)
    i1_u = UBOUND(SrcParamData%X,1)
-   IF (.NOT.ALLOCATED(DstParamData%X)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%X)) THEN 
       ALLOCATE(DstParamData%X(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2623,10 +2638,10 @@ IF (ALLOCATED(SrcParamData%X)) THEN
    END IF
    DstParamData%X = SrcParamData%X
 ENDIF
-IF (ALLOCATED(SrcParamData%Y)) THEN
+IF (ASSOCIATED(SrcParamData%Y)) THEN
    i1_l = LBOUND(SrcParamData%Y,1)
    i1_u = UBOUND(SrcParamData%Y,1)
-   IF (.NOT.ALLOCATED(DstParamData%Y)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%Y)) THEN 
       ALLOCATE(DstParamData%Y(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2636,10 +2651,10 @@ IF (ALLOCATED(SrcParamData%Y)) THEN
    END IF
    DstParamData%Y = SrcParamData%Y
 ENDIF
-IF (ALLOCATED(SrcParamData%Z)) THEN
+IF (ASSOCIATED(SrcParamData%Z)) THEN
    i1_l = LBOUND(SrcParamData%Z,1)
    i1_u = UBOUND(SrcParamData%Z,1)
-   IF (.NOT.ALLOCATED(DstParamData%Z)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%Z)) THEN 
       ALLOCATE(DstParamData%Z(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2649,10 +2664,10 @@ IF (ALLOCATED(SrcParamData%Z)) THEN
    END IF
    DstParamData%Z = SrcParamData%Z
 ENDIF
-IF (ALLOCATED(SrcParamData%FX)) THEN
+IF (ASSOCIATED(SrcParamData%FX)) THEN
    i1_l = LBOUND(SrcParamData%FX,1)
    i1_u = UBOUND(SrcParamData%FX,1)
-   IF (.NOT.ALLOCATED(DstParamData%FX)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%FX)) THEN 
       ALLOCATE(DstParamData%FX(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2662,10 +2677,10 @@ IF (ALLOCATED(SrcParamData%FX)) THEN
    END IF
    DstParamData%FX = SrcParamData%FX
 ENDIF
-IF (ALLOCATED(SrcParamData%FY)) THEN
+IF (ASSOCIATED(SrcParamData%FY)) THEN
    i1_l = LBOUND(SrcParamData%FY,1)
    i1_u = UBOUND(SrcParamData%FY,1)
-   IF (.NOT.ALLOCATED(DstParamData%FY)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%FY)) THEN 
       ALLOCATE(DstParamData%FY(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2675,10 +2690,10 @@ IF (ALLOCATED(SrcParamData%FY)) THEN
    END IF
    DstParamData%FY = SrcParamData%FY
 ENDIF
-IF (ALLOCATED(SrcParamData%FZ)) THEN
+IF (ASSOCIATED(SrcParamData%FZ)) THEN
    i1_l = LBOUND(SrcParamData%FZ,1)
    i1_u = UBOUND(SrcParamData%FZ,1)
-   IF (.NOT.ALLOCATED(DstParamData%FZ)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%FZ)) THEN 
       ALLOCATE(DstParamData%FZ(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2688,10 +2703,10 @@ IF (ALLOCATED(SrcParamData%FZ)) THEN
    END IF
    DstParamData%FZ = SrcParamData%FZ
 ENDIF
-IF (ALLOCATED(SrcParamData%M)) THEN
+IF (ASSOCIATED(SrcParamData%M)) THEN
    i1_l = LBOUND(SrcParamData%M,1)
    i1_u = UBOUND(SrcParamData%M,1)
-   IF (.NOT.ALLOCATED(DstParamData%M)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%M)) THEN 
       ALLOCATE(DstParamData%M(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2701,10 +2716,10 @@ IF (ALLOCATED(SrcParamData%M)) THEN
    END IF
    DstParamData%M = SrcParamData%M
 ENDIF
-IF (ALLOCATED(SrcParamData%B)) THEN
+IF (ASSOCIATED(SrcParamData%B)) THEN
    i1_l = LBOUND(SrcParamData%B,1)
    i1_u = UBOUND(SrcParamData%B,1)
-   IF (.NOT.ALLOCATED(DstParamData%B)) THEN 
+   IF (.NOT. ASSOCIATED(DstParamData%B)) THEN 
       ALLOCATE(DstParamData%B(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2725,44 +2740,57 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(ParamData%Diam)) THEN
+IF (ASSOCIATED(ParamData%Diam)) THEN
    DEALLOCATE(ParamData%Diam)
+   ParamData%Diam => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%MassDenInAir)) THEN
+IF (ASSOCIATED(ParamData%MassDenInAir)) THEN
    DEALLOCATE(ParamData%MassDenInAir)
+   ParamData%MassDenInAir => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%EA)) THEN
+IF (ASSOCIATED(ParamData%EA)) THEN
    DEALLOCATE(ParamData%EA)
+   ParamData%EA => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%CB)) THEN
+IF (ASSOCIATED(ParamData%CB)) THEN
    DEALLOCATE(ParamData%CB)
+   ParamData%CB => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%Lu)) THEN
+IF (ASSOCIATED(ParamData%Lu)) THEN
    DEALLOCATE(ParamData%Lu)
+   ParamData%Lu => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%X)) THEN
+IF (ASSOCIATED(ParamData%X)) THEN
    DEALLOCATE(ParamData%X)
+   ParamData%X => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%Y)) THEN
+IF (ASSOCIATED(ParamData%Y)) THEN
    DEALLOCATE(ParamData%Y)
+   ParamData%Y => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%Z)) THEN
+IF (ASSOCIATED(ParamData%Z)) THEN
    DEALLOCATE(ParamData%Z)
+   ParamData%Z => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%FX)) THEN
+IF (ASSOCIATED(ParamData%FX)) THEN
    DEALLOCATE(ParamData%FX)
+   ParamData%FX => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%FY)) THEN
+IF (ASSOCIATED(ParamData%FY)) THEN
    DEALLOCATE(ParamData%FY)
+   ParamData%FY => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%FZ)) THEN
+IF (ASSOCIATED(ParamData%FZ)) THEN
    DEALLOCATE(ParamData%FZ)
+   ParamData%FZ => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%M)) THEN
+IF (ASSOCIATED(ParamData%M)) THEN
    DEALLOCATE(ParamData%M)
+   ParamData%M => NULL()
 ENDIF
-IF (ALLOCATED(ParamData%B)) THEN
+IF (ASSOCIATED(ParamData%B)) THEN
    DEALLOCATE(ParamData%B)
+   ParamData%B => NULL()
 ENDIF
  END SUBROUTINE MAP_DestroyParam
 
@@ -2817,55 +2845,55 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ALLOCATED(InData%Diam) ) THEN
+  IF ( ASSOCIATED(InData%Diam) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Diam))-1 ) =  PACK(InData%Diam ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%Diam)
   ENDIF
-  IF ( ALLOCATED(InData%MassDenInAir) ) THEN
+  IF ( ASSOCIATED(InData%MassDenInAir) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%MassDenInAir))-1 ) =  PACK(InData%MassDenInAir ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%MassDenInAir)
   ENDIF
-  IF ( ALLOCATED(InData%EA) ) THEN
+  IF ( ASSOCIATED(InData%EA) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%EA))-1 ) =  PACK(InData%EA ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%EA)
   ENDIF
-  IF ( ALLOCATED(InData%CB) ) THEN
+  IF ( ASSOCIATED(InData%CB) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%CB))-1 ) =  PACK(InData%CB ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%CB)
   ENDIF
-  IF ( ALLOCATED(InData%Lu) ) THEN
+  IF ( ASSOCIATED(InData%Lu) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Lu))-1 ) =  PACK(InData%Lu ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%Lu)
   ENDIF
-  IF ( ALLOCATED(InData%X) ) THEN
+  IF ( ASSOCIATED(InData%X) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%X))-1 ) =  PACK(InData%X ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%X)
   ENDIF
-  IF ( ALLOCATED(InData%Y) ) THEN
+  IF ( ASSOCIATED(InData%Y) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Y))-1 ) =  PACK(InData%Y ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%Y)
   ENDIF
-  IF ( ALLOCATED(InData%Z) ) THEN
+  IF ( ASSOCIATED(InData%Z) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Z))-1 ) =  PACK(InData%Z ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%Z)
   ENDIF
-  IF ( ALLOCATED(InData%FX) ) THEN
+  IF ( ASSOCIATED(InData%FX) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FX))-1 ) =  PACK(InData%FX ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%FX)
   ENDIF
-  IF ( ALLOCATED(InData%FY) ) THEN
+  IF ( ASSOCIATED(InData%FY) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FY))-1 ) =  PACK(InData%FY ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%FY)
   ENDIF
-  IF ( ALLOCATED(InData%FZ) ) THEN
+  IF ( ASSOCIATED(InData%FZ) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FZ))-1 ) =  PACK(InData%FZ ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%FZ)
   ENDIF
-  IF ( ALLOCATED(InData%M) ) THEN
+  IF ( ASSOCIATED(InData%M) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%M))-1 ) =  PACK(InData%M ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%M)
   ENDIF
-  IF ( ALLOCATED(InData%B) ) THEN
+  IF ( ASSOCIATED(InData%B) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%B))-1 ) =  PACK(InData%B ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%B)
   ENDIF
@@ -2906,79 +2934,79 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%Diam) ) THEN
+  IF ( ASSOCIATED(OutData%Diam) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Diam,1))); mask1 = .TRUE.
     OutData%Diam = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Diam))-1 ),mask1,OutData%Diam)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Diam)
   ENDIF
-  IF ( ALLOCATED(OutData%MassDenInAir) ) THEN
+  IF ( ASSOCIATED(OutData%MassDenInAir) ) THEN
   ALLOCATE(mask1(SIZE(OutData%MassDenInAir,1))); mask1 = .TRUE.
     OutData%MassDenInAir = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%MassDenInAir))-1 ),mask1,OutData%MassDenInAir)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%MassDenInAir)
   ENDIF
-  IF ( ALLOCATED(OutData%EA) ) THEN
+  IF ( ASSOCIATED(OutData%EA) ) THEN
   ALLOCATE(mask1(SIZE(OutData%EA,1))); mask1 = .TRUE.
     OutData%EA = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%EA))-1 ),mask1,OutData%EA)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%EA)
   ENDIF
-  IF ( ALLOCATED(OutData%CB) ) THEN
+  IF ( ASSOCIATED(OutData%CB) ) THEN
   ALLOCATE(mask1(SIZE(OutData%CB,1))); mask1 = .TRUE.
     OutData%CB = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%CB))-1 ),mask1,OutData%CB)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%CB)
   ENDIF
-  IF ( ALLOCATED(OutData%Lu) ) THEN
+  IF ( ASSOCIATED(OutData%Lu) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Lu,1))); mask1 = .TRUE.
     OutData%Lu = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Lu))-1 ),mask1,OutData%Lu)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Lu)
   ENDIF
-  IF ( ALLOCATED(OutData%X) ) THEN
+  IF ( ASSOCIATED(OutData%X) ) THEN
   ALLOCATE(mask1(SIZE(OutData%X,1))); mask1 = .TRUE.
     OutData%X = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,OutData%X)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%X)
   ENDIF
-  IF ( ALLOCATED(OutData%Y) ) THEN
+  IF ( ASSOCIATED(OutData%Y) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Y,1))); mask1 = .TRUE.
     OutData%Y = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,OutData%Y)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Y)
   ENDIF
-  IF ( ALLOCATED(OutData%Z) ) THEN
+  IF ( ASSOCIATED(OutData%Z) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Z,1))); mask1 = .TRUE.
     OutData%Z = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,OutData%Z)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Z)
   ENDIF
-  IF ( ALLOCATED(OutData%FX) ) THEN
+  IF ( ASSOCIATED(OutData%FX) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
     OutData%FX = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,OutData%FX)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FX)
   ENDIF
-  IF ( ALLOCATED(OutData%FY) ) THEN
+  IF ( ASSOCIATED(OutData%FY) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
     OutData%FY = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,OutData%FY)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FY)
   ENDIF
-  IF ( ALLOCATED(OutData%FZ) ) THEN
+  IF ( ASSOCIATED(OutData%FZ) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FZ,1))); mask1 = .TRUE.
     OutData%FZ = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,OutData%FZ)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FZ)
   ENDIF
-  IF ( ALLOCATED(OutData%M) ) THEN
+  IF ( ASSOCIATED(OutData%M) ) THEN
   ALLOCATE(mask1(SIZE(OutData%M,1))); mask1 = .TRUE.
     OutData%M = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%M))-1 ),mask1,OutData%M)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%M)
   ENDIF
-  IF ( ALLOCATED(OutData%B) ) THEN
+  IF ( ASSOCIATED(OutData%B) ) THEN
   ALLOCATE(mask1(SIZE(OutData%B,1))); mask1 = .TRUE.
     OutData%B = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%B))-1 ),mask1,OutData%B)
   DEALLOCATE(mask1)
@@ -3010,7 +3038,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- X Input Data fields
-    IF ( ALLOCATED( InputData%X ) ) THEN
+    IF ( ASSOCIATED( InputData%X ) ) THEN
        ALLOCATE( c_dbl_value(InputData%C_obj%X_Len) )
        DO i = 1 , InputData%C_obj%X_Len
           c_dbl_value(i) = InputData%X(i)
@@ -3020,7 +3048,7 @@ ENDIF
     ENDIF
 
     ! -- Y Input Data fields
-    IF ( ALLOCATED( InputData%Y ) ) THEN
+    IF ( ASSOCIATED( InputData%Y ) ) THEN
        ALLOCATE( c_dbl_value(InputData%C_obj%Y_Len) )
        DO i = 1 , InputData%C_obj%Y_Len
           c_dbl_value(i) = InputData%Y(i)
@@ -3030,7 +3058,7 @@ ENDIF
     ENDIF
 
     ! -- Z Input Data fields
-    IF ( ALLOCATED( InputData%Z ) ) THEN
+    IF ( ASSOCIATED( InputData%Z ) ) THEN
        ALLOCATE( c_dbl_value(InputData%C_obj%Z_Len) )
        DO i = 1 , InputData%C_obj%Z_Len
           c_dbl_value(i) = InputData%Z(i)
@@ -3059,7 +3087,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- X Input Data fields
-    IF ( ALLOCATED( InputData%X ) ) THEN
+    IF ( ASSOCIATED( InputData%X ) ) THEN
        CALL C_F_POINTER( InputData%C_obj%X, dbl_arr, (/InputData%C_obj%X_Len/) )
        DO i = 1, InputData%C_obj%X_Len
           InputData%X(i) = dbl_arr(i)
@@ -3067,7 +3095,7 @@ ENDIF
     ENDIF
 
     ! -- Y Input Data fields
-    IF ( ALLOCATED( InputData%Y ) ) THEN
+    IF ( ASSOCIATED( InputData%Y ) ) THEN
        CALL C_F_POINTER( InputData%C_obj%Y, dbl_arr, (/InputData%C_obj%Y_Len/) )
        DO i = 1, InputData%C_obj%Y_Len
           InputData%Y(i) = dbl_arr(i)
@@ -3075,7 +3103,7 @@ ENDIF
     ENDIF
 
     ! -- Z Input Data fields
-    IF ( ALLOCATED( InputData%Z ) ) THEN
+    IF ( ASSOCIATED( InputData%Z ) ) THEN
        CALL C_F_POINTER( InputData%C_obj%Z, dbl_arr, (/InputData%C_obj%Z_Len/) )
        DO i = 1, InputData%C_obj%Z_Len
           InputData%Z(i) = dbl_arr(i)
@@ -3096,10 +3124,10 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcInputData%X)) THEN
+IF (ASSOCIATED(SrcInputData%X)) THEN
    i1_l = LBOUND(SrcInputData%X,1)
    i1_u = UBOUND(SrcInputData%X,1)
-   IF (.NOT.ALLOCATED(DstInputData%X)) THEN 
+   IF (.NOT. ASSOCIATED(DstInputData%X)) THEN 
       ALLOCATE(DstInputData%X(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3109,10 +3137,10 @@ IF (ALLOCATED(SrcInputData%X)) THEN
    END IF
    DstInputData%X = SrcInputData%X
 ENDIF
-IF (ALLOCATED(SrcInputData%Y)) THEN
+IF (ASSOCIATED(SrcInputData%Y)) THEN
    i1_l = LBOUND(SrcInputData%Y,1)
    i1_u = UBOUND(SrcInputData%Y,1)
-   IF (.NOT.ALLOCATED(DstInputData%Y)) THEN 
+   IF (.NOT. ASSOCIATED(DstInputData%Y)) THEN 
       ALLOCATE(DstInputData%Y(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3122,10 +3150,10 @@ IF (ALLOCATED(SrcInputData%Y)) THEN
    END IF
    DstInputData%Y = SrcInputData%Y
 ENDIF
-IF (ALLOCATED(SrcInputData%Z)) THEN
+IF (ASSOCIATED(SrcInputData%Z)) THEN
    i1_l = LBOUND(SrcInputData%Z,1)
    i1_u = UBOUND(SrcInputData%Z,1)
-   IF (.NOT.ALLOCATED(DstInputData%Z)) THEN 
+   IF (.NOT. ASSOCIATED(DstInputData%Z)) THEN 
       ALLOCATE(DstInputData%Z(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3147,14 +3175,17 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(InputData%X)) THEN
+IF (ASSOCIATED(InputData%X)) THEN
    DEALLOCATE(InputData%X)
+   InputData%X => NULL()
 ENDIF
-IF (ALLOCATED(InputData%Y)) THEN
+IF (ASSOCIATED(InputData%Y)) THEN
    DEALLOCATE(InputData%Y)
+   InputData%Y => NULL()
 ENDIF
-IF (ALLOCATED(InputData%Z)) THEN
+IF (ASSOCIATED(InputData%Z)) THEN
    DEALLOCATE(InputData%Z)
+   InputData%Z => NULL()
 ENDIF
   CALL MeshDestroy( InputData%PtFairleadDisplacement, ErrStat, ErrMsg )
  END SUBROUTINE MAP_DestroyInput
@@ -3210,15 +3241,15 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ALLOCATED(InData%X) ) THEN
+  IF ( ASSOCIATED(InData%X) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%X))-1 ) =  PACK(InData%X ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%X)
   ENDIF
-  IF ( ALLOCATED(InData%Y) ) THEN
+  IF ( ASSOCIATED(InData%Y) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Y))-1 ) =  PACK(InData%Y ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%Y)
   ENDIF
-  IF ( ALLOCATED(InData%Z) ) THEN
+  IF ( ASSOCIATED(InData%Z) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Z))-1 ) =  PACK(InData%Z ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%Z)
   ENDIF
@@ -3276,19 +3307,19 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%X) ) THEN
+  IF ( ASSOCIATED(OutData%X) ) THEN
   ALLOCATE(mask1(SIZE(OutData%X,1))); mask1 = .TRUE.
     OutData%X = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,OutData%X)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%X)
   ENDIF
-  IF ( ALLOCATED(OutData%Y) ) THEN
+  IF ( ASSOCIATED(OutData%Y) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Y,1))); mask1 = .TRUE.
     OutData%Y = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,OutData%Y)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Y)
   ENDIF
-  IF ( ALLOCATED(OutData%Z) ) THEN
+  IF ( ASSOCIATED(OutData%Z) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Z,1))); mask1 = .TRUE.
     OutData%Z = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,OutData%Z)
   DEALLOCATE(mask1)
@@ -3336,7 +3367,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- FX Output Data fields
-    IF ( ALLOCATED( OutputData%FX ) ) THEN
+    IF ( ASSOCIATED( OutputData%FX ) ) THEN
        ALLOCATE( c_dbl_value(OutputData%C_obj%FX_Len) )
        DO i = 1 , OutputData%C_obj%FX_Len
           c_dbl_value(i) = OutputData%FX(i)
@@ -3346,7 +3377,7 @@ ENDIF
     ENDIF
 
     ! -- FY Output Data fields
-    IF ( ALLOCATED( OutputData%FY ) ) THEN
+    IF ( ASSOCIATED( OutputData%FY ) ) THEN
        ALLOCATE( c_dbl_value(OutputData%C_obj%FY_Len) )
        DO i = 1 , OutputData%C_obj%FY_Len
           c_dbl_value(i) = OutputData%FY(i)
@@ -3356,7 +3387,7 @@ ENDIF
     ENDIF
 
     ! -- FZ Output Data fields
-    IF ( ALLOCATED( OutputData%FZ ) ) THEN
+    IF ( ASSOCIATED( OutputData%FZ ) ) THEN
        ALLOCATE( c_dbl_value(OutputData%C_obj%FZ_Len) )
        DO i = 1 , OutputData%C_obj%FZ_Len
           c_dbl_value(i) = OutputData%FZ(i)
@@ -3395,7 +3426,7 @@ ENDIF
     ErrMsg  = ""
 
     ! -- FX Output Data fields
-    IF ( ALLOCATED( OutputData%FX ) ) THEN
+    IF ( ASSOCIATED( OutputData%FX ) ) THEN
        CALL C_F_POINTER( OutputData%C_obj%FX, dbl_arr, (/OutputData%C_obj%FX_Len/) )
        DO i = 1, OutputData%C_obj%FX_Len
           OutputData%FX(i) = dbl_arr(i)
@@ -3403,7 +3434,7 @@ ENDIF
     ENDIF
 
     ! -- FY Output Data fields
-    IF ( ALLOCATED( OutputData%FY ) ) THEN
+    IF ( ASSOCIATED( OutputData%FY ) ) THEN
        CALL C_F_POINTER( OutputData%C_obj%FY, dbl_arr, (/OutputData%C_obj%FY_Len/) )
        DO i = 1, OutputData%C_obj%FY_Len
           OutputData%FY(i) = dbl_arr(i)
@@ -3411,7 +3442,7 @@ ENDIF
     ENDIF
 
     ! -- FZ Output Data fields
-    IF ( ALLOCATED( OutputData%FZ ) ) THEN
+    IF ( ASSOCIATED( OutputData%FZ ) ) THEN
        CALL C_F_POINTER( OutputData%C_obj%FZ, dbl_arr, (/OutputData%C_obj%FZ_Len/) )
        DO i = 1, OutputData%C_obj%FZ_Len
           OutputData%FZ(i) = dbl_arr(i)
@@ -3440,10 +3471,10 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ALLOCATED(SrcOutputData%FX)) THEN
+IF (ASSOCIATED(SrcOutputData%FX)) THEN
    i1_l = LBOUND(SrcOutputData%FX,1)
    i1_u = UBOUND(SrcOutputData%FX,1)
-   IF (.NOT.ALLOCATED(DstOutputData%FX)) THEN 
+   IF (.NOT. ASSOCIATED(DstOutputData%FX)) THEN 
       ALLOCATE(DstOutputData%FX(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3453,10 +3484,10 @@ IF (ALLOCATED(SrcOutputData%FX)) THEN
    END IF
    DstOutputData%FX = SrcOutputData%FX
 ENDIF
-IF (ALLOCATED(SrcOutputData%FY)) THEN
+IF (ASSOCIATED(SrcOutputData%FY)) THEN
    i1_l = LBOUND(SrcOutputData%FY,1)
    i1_u = UBOUND(SrcOutputData%FY,1)
-   IF (.NOT.ALLOCATED(DstOutputData%FY)) THEN 
+   IF (.NOT. ASSOCIATED(DstOutputData%FY)) THEN 
       ALLOCATE(DstOutputData%FY(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3466,10 +3497,10 @@ IF (ALLOCATED(SrcOutputData%FY)) THEN
    END IF
    DstOutputData%FY = SrcOutputData%FY
 ENDIF
-IF (ALLOCATED(SrcOutputData%FZ)) THEN
+IF (ASSOCIATED(SrcOutputData%FZ)) THEN
    i1_l = LBOUND(SrcOutputData%FZ,1)
    i1_u = UBOUND(SrcOutputData%FZ,1)
-   IF (.NOT.ALLOCATED(DstOutputData%FZ)) THEN 
+   IF (.NOT. ASSOCIATED(DstOutputData%FZ)) THEN 
       ALLOCATE(DstOutputData%FZ(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3484,7 +3515,7 @@ ENDIF
 IF (ALLOCATED(SrcOutputData%writeOutput)) THEN
    i1_l = LBOUND(SrcOutputData%writeOutput,1)
    i1_u = UBOUND(SrcOutputData%writeOutput,1)
-   IF (.NOT.ALLOCATED(DstOutputData%writeOutput)) THEN 
+   IF (.NOT. ALLOCATED(DstOutputData%writeOutput)) THEN 
       ALLOCATE(DstOutputData%writeOutput(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3504,14 +3535,17 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(OutputData%FX)) THEN
+IF (ASSOCIATED(OutputData%FX)) THEN
    DEALLOCATE(OutputData%FX)
+   OutputData%FX => NULL()
 ENDIF
-IF (ALLOCATED(OutputData%FY)) THEN
+IF (ASSOCIATED(OutputData%FY)) THEN
    DEALLOCATE(OutputData%FY)
+   OutputData%FY => NULL()
 ENDIF
-IF (ALLOCATED(OutputData%FZ)) THEN
+IF (ASSOCIATED(OutputData%FZ)) THEN
    DEALLOCATE(OutputData%FZ)
+   OutputData%FZ => NULL()
 ENDIF
   CALL MeshDestroy( OutputData%PtFairleadLoad, ErrStat, ErrMsg )
 IF (ALLOCATED(OutputData%writeOutput)) THEN
@@ -3571,15 +3605,15 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ALLOCATED(InData%FX) ) THEN
+  IF ( ASSOCIATED(InData%FX) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FX))-1 ) =  PACK(InData%FX ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%FX)
   ENDIF
-  IF ( ALLOCATED(InData%FY) ) THEN
+  IF ( ASSOCIATED(InData%FY) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FY))-1 ) =  PACK(InData%FY ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%FY)
   ENDIF
-  IF ( ALLOCATED(InData%FZ) ) THEN
+  IF ( ASSOCIATED(InData%FZ) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FZ))-1 ) =  PACK(InData%FZ ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%FZ)
   ENDIF
@@ -3641,19 +3675,19 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%FX) ) THEN
+  IF ( ASSOCIATED(OutData%FX) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
     OutData%FX = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,OutData%FX)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FX)
   ENDIF
-  IF ( ALLOCATED(OutData%FY) ) THEN
+  IF ( ASSOCIATED(OutData%FY) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
     OutData%FY = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,OutData%FY)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FY)
   ENDIF
-  IF ( ALLOCATED(OutData%FZ) ) THEN
+  IF ( ASSOCIATED(OutData%FZ) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FZ,1))); mask1 = .TRUE.
     OutData%FZ = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,OutData%FZ)
   DEALLOCATE(mask1)
@@ -3797,13 +3831,13 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(u_out%X) .AND. ALLOCATED(u(1)%X)) THEN
+IF (ASSOCIATED(u_out%X) .AND. ASSOCIATED(u(1)%X)) THEN
   u_out%X = u(1)%X
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Y) .AND. ALLOCATED(u(1)%Y)) THEN
+IF (ASSOCIATED(u_out%Y) .AND. ASSOCIATED(u(1)%Y)) THEN
   u_out%Y = u(1)%Y
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Z) .AND. ALLOCATED(u(1)%Z)) THEN
+IF (ASSOCIATED(u_out%Z) .AND. ASSOCIATED(u(1)%Z)) THEN
   u_out%Z = u(1)%Z
 END IF ! check if allocated
   CALL MeshCopy(u(1)%PtFairleadDisplacement, u_out%PtFairleadDisplacement, MESH_UPDATECOPY, ErrStat, ErrMsg )
@@ -3813,7 +3847,7 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MAP_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ALLOCATED(u_out%X) .AND. ALLOCATED(u(1)%X)) THEN
+IF (ASSOCIATED(u_out%X) .AND. ASSOCIATED(u(1)%X)) THEN
   ALLOCATE(b1(SIZE(u_out%X,1)))
   ALLOCATE(c1(SIZE(u_out%X,1)))
   b1 = -(u(1)%X - u(2)%X)/t(2)
@@ -3821,7 +3855,7 @@ IF (ALLOCATED(u_out%X) .AND. ALLOCATED(u(1)%X)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Y) .AND. ALLOCATED(u(1)%Y)) THEN
+IF (ASSOCIATED(u_out%Y) .AND. ASSOCIATED(u(1)%Y)) THEN
   ALLOCATE(b1(SIZE(u_out%Y,1)))
   ALLOCATE(c1(SIZE(u_out%Y,1)))
   b1 = -(u(1)%Y - u(2)%Y)/t(2)
@@ -3829,7 +3863,7 @@ IF (ALLOCATED(u_out%Y) .AND. ALLOCATED(u(1)%Y)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Z) .AND. ALLOCATED(u(1)%Z)) THEN
+IF (ASSOCIATED(u_out%Z) .AND. ASSOCIATED(u(1)%Z)) THEN
   ALLOCATE(b1(SIZE(u_out%Z,1)))
   ALLOCATE(c1(SIZE(u_out%Z,1)))
   b1 = -(u(1)%Z - u(2)%Z)/t(2)
@@ -3854,7 +3888,7 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MAP_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ALLOCATED(u_out%X) .AND. ALLOCATED(u(1)%X)) THEN
+IF (ASSOCIATED(u_out%X) .AND. ASSOCIATED(u(1)%X)) THEN
   ALLOCATE(b1(SIZE(u_out%X,1)))
   ALLOCATE(c1(SIZE(u_out%X,1)))
   b1 = (t(3)**2*(u(1)%X - u(2)%X) + t(2)**2*(-u(1)%X + u(3)%X))/(t(2)*t(3)*(t(2) - t(3)))
@@ -3863,7 +3897,7 @@ IF (ALLOCATED(u_out%X) .AND. ALLOCATED(u(1)%X)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Y) .AND. ALLOCATED(u(1)%Y)) THEN
+IF (ASSOCIATED(u_out%Y) .AND. ASSOCIATED(u(1)%Y)) THEN
   ALLOCATE(b1(SIZE(u_out%Y,1)))
   ALLOCATE(c1(SIZE(u_out%Y,1)))
   b1 = (t(3)**2*(u(1)%Y - u(2)%Y) + t(2)**2*(-u(1)%Y + u(3)%Y))/(t(2)*t(3)*(t(2) - t(3)))
@@ -3872,7 +3906,7 @@ IF (ALLOCATED(u_out%Y) .AND. ALLOCATED(u(1)%Y)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%Z) .AND. ALLOCATED(u(1)%Z)) THEN
+IF (ASSOCIATED(u_out%Z) .AND. ASSOCIATED(u(1)%Z)) THEN
   ALLOCATE(b1(SIZE(u_out%Z,1)))
   ALLOCATE(c1(SIZE(u_out%Z,1)))
   b1 = (t(3)**2*(u(1)%Z - u(2)%Z) + t(2)**2*(-u(1)%Z + u(3)%Z))/(t(2)*t(3)*(t(2) - t(3)))
@@ -3998,13 +4032,13 @@ END IF ! check if allocated
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-IF (ALLOCATED(u_out%FX) .AND. ALLOCATED(u(1)%FX)) THEN
+IF (ASSOCIATED(u_out%FX) .AND. ASSOCIATED(u(1)%FX)) THEN
   u_out%FX = u(1)%FX
 END IF ! check if allocated
-IF (ALLOCATED(u_out%FY) .AND. ALLOCATED(u(1)%FY)) THEN
+IF (ASSOCIATED(u_out%FY) .AND. ASSOCIATED(u(1)%FY)) THEN
   u_out%FY = u(1)%FY
 END IF ! check if allocated
-IF (ALLOCATED(u_out%FZ) .AND. ALLOCATED(u(1)%FZ)) THEN
+IF (ASSOCIATED(u_out%FZ) .AND. ASSOCIATED(u(1)%FZ)) THEN
   u_out%FZ = u(1)%FZ
 END IF ! check if allocated
   CALL MeshCopy(u(1)%PtFairleadLoad, u_out%PtFairleadLoad, MESH_UPDATECOPY, ErrStat, ErrMsg )
@@ -4017,7 +4051,7 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MAP_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ALLOCATED(u_out%FX) .AND. ALLOCATED(u(1)%FX)) THEN
+IF (ASSOCIATED(u_out%FX) .AND. ASSOCIATED(u(1)%FX)) THEN
   ALLOCATE(b1(SIZE(u_out%FX,1)))
   ALLOCATE(c1(SIZE(u_out%FX,1)))
   b1 = -(u(1)%FX - u(2)%FX)/t(2)
@@ -4025,7 +4059,7 @@ IF (ALLOCATED(u_out%FX) .AND. ALLOCATED(u(1)%FX)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%FY) .AND. ALLOCATED(u(1)%FY)) THEN
+IF (ASSOCIATED(u_out%FY) .AND. ASSOCIATED(u(1)%FY)) THEN
   ALLOCATE(b1(SIZE(u_out%FY,1)))
   ALLOCATE(c1(SIZE(u_out%FY,1)))
   b1 = -(u(1)%FY - u(2)%FY)/t(2)
@@ -4033,7 +4067,7 @@ IF (ALLOCATED(u_out%FY) .AND. ALLOCATED(u(1)%FY)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%FZ) .AND. ALLOCATED(u(1)%FZ)) THEN
+IF (ASSOCIATED(u_out%FZ) .AND. ASSOCIATED(u(1)%FZ)) THEN
   ALLOCATE(b1(SIZE(u_out%FZ,1)))
   ALLOCATE(c1(SIZE(u_out%FZ,1)))
   b1 = -(u(1)%FZ - u(2)%FZ)/t(2)
@@ -4066,7 +4100,7 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MAP_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ALLOCATED(u_out%FX) .AND. ALLOCATED(u(1)%FX)) THEN
+IF (ASSOCIATED(u_out%FX) .AND. ASSOCIATED(u(1)%FX)) THEN
   ALLOCATE(b1(SIZE(u_out%FX,1)))
   ALLOCATE(c1(SIZE(u_out%FX,1)))
   b1 = (t(3)**2*(u(1)%FX - u(2)%FX) + t(2)**2*(-u(1)%FX + u(3)%FX))/(t(2)*t(3)*(t(2) - t(3)))
@@ -4075,7 +4109,7 @@ IF (ALLOCATED(u_out%FX) .AND. ALLOCATED(u(1)%FX)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%FY) .AND. ALLOCATED(u(1)%FY)) THEN
+IF (ASSOCIATED(u_out%FY) .AND. ASSOCIATED(u(1)%FY)) THEN
   ALLOCATE(b1(SIZE(u_out%FY,1)))
   ALLOCATE(c1(SIZE(u_out%FY,1)))
   b1 = (t(3)**2*(u(1)%FY - u(2)%FY) + t(2)**2*(-u(1)%FY + u(3)%FY))/(t(2)*t(3)*(t(2) - t(3)))
@@ -4084,7 +4118,7 @@ IF (ALLOCATED(u_out%FY) .AND. ALLOCATED(u(1)%FY)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ALLOCATED(u_out%FZ) .AND. ALLOCATED(u(1)%FZ)) THEN
+IF (ASSOCIATED(u_out%FZ) .AND. ASSOCIATED(u(1)%FZ)) THEN
   ALLOCATE(b1(SIZE(u_out%FZ,1)))
   ALLOCATE(c1(SIZE(u_out%FZ,1)))
   b1 = (t(3)**2*(u(1)%FZ - u(2)%FZ) + t(2)**2*(-u(1)%FZ + u(3)%FZ))/(t(2)*t(3)*(t(2) - t(3)))

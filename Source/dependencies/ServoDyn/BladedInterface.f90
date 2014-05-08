@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-01 17:39:02 -0700 (Sat, 01 Feb 2014) $
-! (File) Revision #: $Rev: 627 $
+! File last committed: $Date: 2014-05-02 12:31:20 -0600 (Fri, 02 May 2014) $
+! (File) Revision #: $Rev: 684 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/BladedInterface.f90 $
 !**********************************************************************************************************************************
 MODULE BladedInterface

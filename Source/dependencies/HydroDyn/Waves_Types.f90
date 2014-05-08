@@ -3,13 +3,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.02.02, 27-Mar-2014)
+! FAST Registry (v2.03.00, 2-May-2014)
 !*********************************************************************************************************************************
 ! Waves_Types
 !.................................................................................................................................
 ! This file is part of Waves.
 !
-! Copyright (C) 2012, 2013 National Renewable Energy Laboratory
+! Copyright (C) 2012-2014 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -163,7 +163,7 @@ CONTAINS
 IF (ALLOCATED(SrcInitInputData%WaveElevxi)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveElevxi,1)
    i1_u = UBOUND(SrcInitInputData%WaveElevxi,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%WaveElevxi)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%WaveElevxi)) THEN 
       ALLOCATE(DstInitInputData%WaveElevxi(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -176,7 +176,7 @@ ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveElevyi)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveElevyi,1)
    i1_u = UBOUND(SrcInitInputData%WaveElevyi,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%WaveElevyi)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%WaveElevyi)) THEN 
       ALLOCATE(DstInitInputData%WaveElevyi(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -190,7 +190,7 @@ ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveKinxi0)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveKinxi0,1)
    i1_u = UBOUND(SrcInitInputData%WaveKinxi0,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%WaveKinxi0)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%WaveKinxi0)) THEN 
       ALLOCATE(DstInitInputData%WaveKinxi0(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -203,7 +203,7 @@ ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveKinyi0)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveKinyi0,1)
    i1_u = UBOUND(SrcInitInputData%WaveKinyi0,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%WaveKinyi0)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%WaveKinyi0)) THEN 
       ALLOCATE(DstInitInputData%WaveKinyi0(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -216,7 +216,7 @@ ENDIF
 IF (ALLOCATED(SrcInitInputData%WaveKinzi0)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveKinzi0,1)
    i1_u = UBOUND(SrcInitInputData%WaveKinzi0,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%WaveKinzi0)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%WaveKinzi0)) THEN 
       ALLOCATE(DstInitInputData%WaveKinzi0(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -229,7 +229,7 @@ ENDIF
 IF (ALLOCATED(SrcInitInputData%CurrVxi)) THEN
    i1_l = LBOUND(SrcInitInputData%CurrVxi,1)
    i1_u = UBOUND(SrcInitInputData%CurrVxi,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%CurrVxi)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%CurrVxi)) THEN 
       ALLOCATE(DstInitInputData%CurrVxi(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -242,7 +242,7 @@ ENDIF
 IF (ALLOCATED(SrcInitInputData%CurrVyi)) THEN
    i1_l = LBOUND(SrcInitInputData%CurrVyi,1)
    i1_u = UBOUND(SrcInitInputData%CurrVyi,1)
-   IF (.NOT.ALLOCATED(DstInitInputData%CurrVyi)) THEN 
+   IF (.NOT. ALLOCATED(DstInitInputData%CurrVyi)) THEN 
       ALLOCATE(DstInitInputData%CurrVyi(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -566,7 +566,7 @@ IF (ALLOCATED(SrcInitOutputData%WaveElevC0)) THEN
    i1_u = UBOUND(SrcInitOutputData%WaveElevC0,1)
    i2_l = LBOUND(SrcInitOutputData%WaveElevC0,2)
    i2_u = UBOUND(SrcInitOutputData%WaveElevC0,2)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WaveElevC0)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WaveElevC0)) THEN 
       ALLOCATE(DstInitOutputData%WaveElevC0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -583,7 +583,7 @@ IF (ALLOCATED(SrcInitOutputData%WaveAcc0)) THEN
    i2_u = UBOUND(SrcInitOutputData%WaveAcc0,2)
    i3_l = LBOUND(SrcInitOutputData%WaveAcc0,3)
    i3_u = UBOUND(SrcInitOutputData%WaveAcc0,3)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WaveAcc0)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WaveAcc0)) THEN 
       ALLOCATE(DstInitOutputData%WaveAcc0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -600,7 +600,7 @@ IF (ALLOCATED(SrcInitOutputData%WaveDynP0)) THEN
    i1_u = UBOUND(SrcInitOutputData%WaveDynP0,1)
    i2_l = LBOUND(SrcInitOutputData%WaveDynP0,2)
    i2_u = UBOUND(SrcInitOutputData%WaveDynP0,2)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WaveDynP0)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WaveDynP0)) THEN 
       ALLOCATE(DstInitOutputData%WaveDynP0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -615,7 +615,7 @@ IF (ALLOCATED(SrcInitOutputData%WaveElev)) THEN
    i1_u = UBOUND(SrcInitOutputData%WaveElev,1)
    i2_l = LBOUND(SrcInitOutputData%WaveElev,2)
    i2_u = UBOUND(SrcInitOutputData%WaveElev,2)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WaveElev)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WaveElev)) THEN 
       ALLOCATE(DstInitOutputData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -632,7 +632,7 @@ IF (ALLOCATED(SrcInitOutputData%WaveVel0)) THEN
    i2_u = UBOUND(SrcInitOutputData%WaveVel0,2)
    i3_l = LBOUND(SrcInitOutputData%WaveVel0,3)
    i3_u = UBOUND(SrcInitOutputData%WaveVel0,3)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WaveVel0)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WaveVel0)) THEN 
       ALLOCATE(DstInitOutputData%WaveVel0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -645,7 +645,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveKinzi0)) THEN
    i1_l = LBOUND(SrcInitOutputData%WaveKinzi0,1)
    i1_u = UBOUND(SrcInitOutputData%WaveKinzi0,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WaveKinzi0)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WaveKinzi0)) THEN 
       ALLOCATE(DstInitOutputData%WaveKinzi0(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -658,7 +658,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveTime)) THEN
    i1_l = LBOUND(SrcInitOutputData%WaveTime,1)
    i1_u = UBOUND(SrcInitOutputData%WaveTime,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WaveTime)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WaveTime)) THEN 
       ALLOCATE(DstInitOutputData%WaveTime(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 

@@ -207,8 +207,10 @@ MODULE NWTC_IO
 
       ! Create interface for writing matrix and array values (useful for debugging)
    INTERFACE WrMatrix
-      MODULE PROCEDURE WrMatrix1       ! Single dimension matrix (Ary) or ReKi
-      MODULE PROCEDURE WrMatrix2       ! Two dimension matrix of ReKi
+      MODULE PROCEDURE WrMatrix1R4     ! Single dimension matrix (Ary) of SiKi
+      MODULE PROCEDURE WrMatrix2R4     ! Two dimension matrix of SiKi
+      MODULE PROCEDURE WrMatrix1R8     ! Single dimension matrix (Ary) of R8Ki
+      MODULE PROCEDURE WrMatrix2R8     ! Two dimension matrix of R8Ki
    END INTERFACE
    
    
@@ -6741,8 +6743,8 @@ END SUBROUTINE WrBinFAST
    RETURN
    END SUBROUTINE WrFileNR ! ( Unit, Str )
 !=======================================================================  
-   SUBROUTINE WrMatrix1( A, Un, ReFmt )
-      REAL(ReKi),        INTENT(IN) :: A(:)
+   SUBROUTINE WrMatrix1R4( A, Un, ReFmt )
+      REAL(SiKi),        INTENT(IN) :: A(:)
       INTEGER,           INTENT(IN) :: Un
       CHARACTER(*),      INTENT(IN) :: ReFmt   ! Format for printing ReKi numbers  
       
@@ -6757,15 +6759,38 @@ END SUBROUTINE WrBinFAST
    
       WRITE( Un, Fmt, IOSTAT=ErrStat ) A(:)
       IF (ErrStat /= 0) THEN
-         CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix().')
+         CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix1R4().')
          RETURN
       END IF
 
    RETURN
-   END SUBROUTINE WrMatrix1
+   END SUBROUTINE WrMatrix1R4
+!=======================================================================  
+   SUBROUTINE WrMatrix1R8( A, Un, ReFmt )
+      REAL(R8Ki),        INTENT(IN) :: A(:)
+      INTEGER,           INTENT(IN) :: Un
+      CHARACTER(*),      INTENT(IN) :: ReFmt   ! Format for printing ReKi numbers  
+      
+      INTEGER        :: ErrStat
+      INTEGER        :: nr  ! size (rows and columns) of A
+      CHARACTER(256) :: Fmt
+   
+   
+      nr = SIZE(A,1)
+
+      Fmt = "(2x, "//TRIM(Num2LStr(nr))//"(1x,"//ReFmt//"))"   
+   
+      WRITE( Un, Fmt, IOSTAT=ErrStat ) A(:)
+      IF (ErrStat /= 0) THEN
+         CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix1R8().')
+         RETURN
+      END IF
+
+   RETURN
+   END SUBROUTINE WrMatrix1R8
 !=======================================================================
-   SUBROUTINE WrMatrix2( A, Un, ReFmt )
-      REAL(ReKi),     INTENT(IN) :: A(:,:)
+   SUBROUTINE WrMatrix2R4( A, Un, ReFmt )
+      REAL(SiKi),     INTENT(IN) :: A(:,:)
       INTEGER,        INTENT(IN) :: Un
       CHARACTER(*),   INTENT(IN) :: ReFmt   ! Format for printing ReKi numbers  
 
@@ -6783,7 +6808,7 @@ END SUBROUTINE WrBinFAST
       DO i=1,nr
          WRITE( Un, Fmt, IOSTAT=ErrStat ) A(i,:)
          IF (ErrStat /= 0) THEN
-            CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix().')
+            CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix2R4().')
             RETURN
          END IF
          
@@ -6791,7 +6816,36 @@ END SUBROUTINE WrBinFAST
       END DO
 
    RETURN
-   END SUBROUTINE WrMatrix2
+   END SUBROUTINE WrMatrix2R4
+!=======================================================================
+   SUBROUTINE WrMatrix2R8( A, Un, ReFmt )
+      REAL(R8Ki),     INTENT(IN) :: A(:,:)
+      INTEGER,        INTENT(IN) :: Un
+      CHARACTER(*),   INTENT(IN) :: ReFmt   ! Format for printing ReKi numbers  
+
+      INTEGER        :: ErrStat
+      INTEGER        :: nr, nc  ! size (rows and columns) of A
+      INTEGER        :: i       ! indices into A
+      CHARACTER(256) :: Fmt
+   
+   
+      nr = SIZE(A,1)
+      nc = SIZE(A,2)
+
+      Fmt = "(2x, "//TRIM(Num2LStr(nc))//"(1x,"//ReFmt//"))"   
+
+      DO i=1,nr
+         WRITE( Un, Fmt, IOSTAT=ErrStat ) A(i,:)
+         IF (ErrStat /= 0) THEN
+            CALL WrScr('Error '//TRIM(Num2LStr(ErrStat))//' writing matrix in WrMatrix2R8().')
+            RETURN
+         END IF
+         
+         
+      END DO
+
+   RETURN
+   END SUBROUTINE WrMatrix2R8
 !=======================================================================  
    SUBROUTINE WrML ( Str )
 

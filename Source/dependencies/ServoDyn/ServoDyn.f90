@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-03-25 22:06:37 -0600 (Tue, 25 Mar 2014) $
-! (File) Revision #: $Rev: 667 $
+! File last committed: $Date: 2014-05-02 12:31:20 -0600 (Fri, 02 May 2014) $
+! (File) Revision #: $Rev: 684 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -295,7 +295,9 @@ SUBROUTINE SrvD_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    u%ElecPwr_prev = 0.
    u%GenTrq_prev = 0.   
 
-   ! These are values from previous step. I'll initialize them here, though the glue code may not use it.
+   ! These are values from previous step. I'll initialize them here, though the glue code may not use it. 
+   ! TODO: these need to be removed because they break the framework (though they're only for the Bladed-style 
+   !       DLL which also breaks the frameowrk)
    y%ElecPwr = u%ElecPwr_prev
    y%GenTrq  = u%GenTrq_prev      
    
@@ -1839,7 +1841,7 @@ SUBROUTINE SrvD_SetParameters( InputFileData, p, ErrStat, ErrMsg )
          p%SIG_SySp = InputFileData%SIG_SySp
       ELSEIF ( p%GenModel == 2_IntKi )  THEN   ! Thevenin-equivalent induction generator
 
-         ComDenom  = InputFileData%TEC_SRes**2 + ( InputFileData%TEC_SLR + InputFileData%TEC_MR )**2     ! common denominator used in many of the following equations
+         ComDenom    = InputFileData%TEC_SRes**2 + ( InputFileData%TEC_SLR + InputFileData%TEC_MR )**2   ! common denominator used in many of the following equations
          
          p%TEC_Re1   = InputFileData%TEC_SRes*( InputFileData%TEC_MR**2 )/ComDenom                       ! Thevenin's equivalent stator resistance (ohms)
          p%TEC_Xe1   = InputFileData%TEC_MR*( InputFileData%TEC_SRes**2 + InputFileData%TEC_SLR* &

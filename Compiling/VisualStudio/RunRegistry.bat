@@ -32,6 +32,7 @@ SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
+SET ID_Loc=%FAST_Loc%\dependencies\IceDyn
 
 SET MAP_Include_Lib=%MAP_Loc%\map.lib
 SET HD_Reg_Loc=%HD_Loc%
@@ -49,7 +50,6 @@ REM ----------------------------------------------------------------------------
 :ElastoDyn
 SET CURR_LOC=%ED_Loc%
 %REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I %NWTC_Lib_Loc%
-
 GOTO checkError
 
 
@@ -94,8 +94,8 @@ GOTO checkError
 SET CURR_LOC=%MAP_Loc%
 IF /I "%2"=="bjonkman" (
 %REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -ccode -I %NWTC_Lib_Loc%
-GOTO checkError
 )
+GOTO checkError
 
 :FEAMooring
 SET CURR_LOC=%FEAM_Loc%
@@ -105,6 +105,12 @@ GOTO checkError
 :IceFloe
 SET CURR_LOC=%IceF_Loc%
 %REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I %NWTC_Lib_Loc%
+GOTO checkError
+
+
+:IceDyn
+SET CURR_LOC=%ID_Loc%
+%REGISTRY% "%CURR_LOC%\Registry_%ModuleName%.txt" -I %NWTC_Lib_Loc%
 GOTO checkError
 
 

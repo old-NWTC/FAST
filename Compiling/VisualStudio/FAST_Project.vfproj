@@ -14,7 +14,7 @@
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
 		<Configuration Name="Release|Win32" OutputDirectory="..\..\bin">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" InterproceduralOptimizations="ipoSingleFile" Preprocess="preprocessYes" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" UseMkl="mklSequential"/>
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" InterproceduralOptimizations="ipoSingleFile" Preprocess="preprocessYes" PreprocessorDefinitions="FPE_TRAP_ENABLED" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" UseMkl="mklSequential"/>
 				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_$(PlatformName).exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole" StackReserveSize="999999999" LargeAddressAware="addrAwareLarge" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
