@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-04-02 12:11:01 -0600 (Wed, 02 Apr 2014) $
-! (File) Revision #: $Rev: 374 $
+! File last committed: $Date: 2014-05-09 10:55:39 -0600 (Fri, 09 May 2014) $
+! (File) Revision #: $Rev: 385 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -211,46 +211,46 @@ END SUBROUTINE FindInterpFactor
 
 
 
-SUBROUTINE DistrBuoyancy( L, densWater, R1, tMG1, Z1, R2, tMG2, Z2, C, g, F_B  ) 
-
-   REAL(ReKi),         INTENT ( IN    )  :: L
-   REAL(ReKi),         INTENT ( IN    )  :: densWater
-   REAL(ReKi),         INTENT ( IN    )  :: R1
-   REAL(ReKi),         INTENT ( IN    )  :: tMG1
-   REAL(ReKi),         INTENT ( IN    )  :: Z1
-   REAL(ReKi),         INTENT ( IN    )  :: R2
-   REAL(ReKi),         INTENT ( IN    )  :: tMG2
-   REAL(ReKi),         INTENT ( IN    )  :: Z2
-   REAL(ReKi),         INTENT ( IN    )  :: C(3,3)
-   REAL(ReKi),         INTENT ( IN    )  :: g
-   REAL(ReKi),         INTENT (   OUT )  :: F_B(6)
-   
-   REAL(DbKi)                           :: R1eff,R2eff,V,f1,f2,f3,f4,f5,f6,f7,f8
-    
-   R1eff  = (R1+tMG1)
-   R2eff  = (R2+tMG2)
-   
-   ! Switching buoyancy calculations per conversations with Jason 9/20/13
-   
-   V      = L*( R1eff*R1eff + R2eff*R2eff + R1eff*R2eff  ) / 3
-   f1     = densWater*g/L
-   f2     = Z1*R1eff*R1eff
-   f3     = Z2*R2eff*R2eff
-   f4     = (f2-f3)
-   f5     = -Pi*C(3,2)*R1eff*R1eff*R1eff*R1eff/4
-   f6     = Pi*C(3,1)*R1eff*R1eff*R1eff*R1eff/4
-   f7     = Pi*C(3,2)*R2eff*R2eff*R2eff*R2eff/4
-   f8     = -Pi*C(3,1)*R2eff*R2eff*R2eff*R2eff/4
-   
-   F_B(1) = Pi*f1*C(1,3)*f4
-   F_B(2) = Pi*f1*C(2,3)*f4
-   F_B(3) = Pi*f1*(V + C(3,3)*f4)
-   F_B(4) = f1*((C(1,1)*f5 + C(1,2)*f6)+(C(1,1)*f7+C(1,2)*f8))
-   F_B(5) = f1*((C(2,1)*f5 + C(2,2)*f6)+(C(2,1)*f7+C(2,2)*f8))
-   F_B(6) = f1*((C(3,1)*f5 + C(3,2)*f6)+(C(3,1)*f7+C(3,2)*f8))
-   
-   
-END SUBROUTINE DistrBuoyancy
+!SUBROUTINE DistrBuoyancy( L, densWater, R1, tMG1, Z1, R2, tMG2, Z2, C, g, F_B  ) 
+!
+!   REAL(ReKi),         INTENT ( IN    )  :: L
+!   REAL(ReKi),         INTENT ( IN    )  :: densWater
+!   REAL(ReKi),         INTENT ( IN    )  :: R1
+!   REAL(ReKi),         INTENT ( IN    )  :: tMG1
+!   REAL(ReKi),         INTENT ( IN    )  :: Z1
+!   REAL(ReKi),         INTENT ( IN    )  :: R2
+!   REAL(ReKi),         INTENT ( IN    )  :: tMG2
+!   REAL(ReKi),         INTENT ( IN    )  :: Z2
+!   REAL(ReKi),         INTENT ( IN    )  :: C(3,3)
+!   REAL(ReKi),         INTENT ( IN    )  :: g
+!   REAL(ReKi),         INTENT (   OUT )  :: F_B(6)
+!   
+!   REAL(DbKi)                           :: R1eff,R2eff,V,f1,f2,f3,f4,f5,f6,f7,f8
+!    
+!   R1eff  = (R1+tMG1)
+!   R2eff  = (R2+tMG2)
+!   
+!   ! Switching buoyancy calculations per conversations with Jason 9/20/13
+!   
+!   V      = L*( R1eff*R1eff + R2eff*R2eff + R1eff*R2eff  ) / 3
+!   f1     = densWater*g/L
+!   f2     = Z1*R1eff*R1eff
+!   f3     = Z2*R2eff*R2eff
+!   f4     = (f2-f3)
+!   f5     = -Pi*C(3,2)*R1eff*R1eff*R1eff*R1eff/4
+!   f6     = Pi*C(3,1)*R1eff*R1eff*R1eff*R1eff/4
+!   f7     = Pi*C(3,2)*R2eff*R2eff*R2eff*R2eff/4
+!   f8     = -Pi*C(3,1)*R2eff*R2eff*R2eff*R2eff/4
+!   
+!   F_B(1) = Pi*f1*C(1,3)*f4
+!   F_B(2) = Pi*f1*C(2,3)*f4
+!   F_B(3) = Pi*f1*(V + C(3,3)*f4)
+!   F_B(4) = f1*((C(1,1)*f5 + C(1,2)*f6)+(C(1,1)*f7+C(1,2)*f8))
+!   F_B(5) = f1*((C(2,1)*f5 + C(2,2)*f6)+(C(2,1)*f7+C(2,2)*f8))
+!   F_B(6) = f1*((C(3,1)*f5 + C(3,2)*f6)+(C(3,1)*f7+C(3,2)*f8))
+!   
+!   
+!END SUBROUTINE DistrBuoyancy
 
 
 SUBROUTINE DistrBuoyancy2( densWater, R, tMG, dRdz, Z, C, g, F_B  ) 
@@ -267,16 +267,17 @@ SUBROUTINE DistrBuoyancy2( densWater, R, tMG, dRdz, Z, C, g, F_B  )
    REAL(DbKi)                           :: Reff,ReffSq,ReffCub,f1,f2,f3
    
    REAL(DbKi) :: CC(3,3)
-   CC = DBLE(C)
-   Reff  = DBLE(R + tMG)
+   
+   CC    = REAL(C,DbKi)
+   Reff  = REAL(R + tMG,DbKi)
   
    
    
    ReffSq  = Reff*Reff 
    ReffCub = ReffSq*Reff
-   f1      = DBLE(densWater)*DBLE(g)*pi
-   f2      = f1*ReffCub*DBLE(dRdz)
-   f3      = Reff*DBLE(dRdz)*DBLE(Z)
+   f1      = REAL(denswater,DbKi)*REAL(g,DbKi)*Pi_D
+   f2      = f1*ReffCub*REAL(dRdz,DbKi)
+   f3      = Reff*REAL(dRdz,DbKi)*REAL(Z,DbKi)
    
    !F_B(1) = f1*( C(3,1)*ReffSq )
    !F_B(2) = f1*( C(3,2)*ReffSq  )
@@ -306,23 +307,28 @@ SUBROUTINE DistrBuoyancy2( densWater, R, tMG, dRdz, Z, C, g, F_B  )
 END SUBROUTINE DistrBuoyancy2
 
 
-SUBROUTINE DistrInertialLoads( nodeIndx, densWater, Ca, R, tMG, k, NStepWave, WaveAcc0, F_I, ErrStat, ErrMsg  )
+SUBROUTINE DistrInertialLoads( nodeIndx, densWater, Ca, Cp, AxCa, AxCp, R, tMG, dRdZ, k, NStepWave, WaveAcc0, WaveDynP0, F_I, ErrStat, ErrMsg  )
 
    INTEGER,            INTENT ( IN    )  :: nodeIndx
    REAL(ReKi),         INTENT ( IN    )  :: densWater
    REAL(ReKi),         INTENT ( IN    )  :: Ca
+   REAL(ReKi),         INTENT ( IN    )  :: Cp
+   REAL(ReKi),         INTENT ( IN    )  :: AxCa
+   REAL(ReKi),         INTENT ( IN    )  :: AxCp
    REAL(ReKi),         INTENT ( IN    )  :: R
    REAL(ReKi),         INTENT ( IN    )  :: tMG
+   REAL(ReKi),         INTENT ( IN    )  :: dRdZ
    REAL(ReKi),         INTENT ( IN    )  :: k(3)
    INTEGER,            INTENT ( IN    )  :: NStepWave
    REAL(ReKi),         INTENT ( IN    )  :: WaveAcc0(0:,:,:)
+   REAL(ReKi),         INTENT ( IN    )  :: WaveDynP0(0:,:)
    REAL(ReKi),ALLOCATABLE,  INTENT (   OUT )  :: F_I(:,:)
    INTEGER,            INTENT (   OUT )  :: ErrStat              ! returns a non-zero value when an error occurs  
    CHARACTER(*),       INTENT (   OUT )  :: ErrMsg               ! Error message if ErrStat /= ErrID_None
 
    INTEGER                               :: I
-   REAL(ReKi)                            :: f, v_len
-   REAL(ReKi)                            :: p0(3), m(3), v(3), l(3)
+   REAL(ReKi)                            :: f, f1, f2, f3, v_len, adotk, kdotk
+   REAL(ReKi)                            :: p0(3), m(3), v(3), af(3), v2(3)
    
       ! Initialize ErrStat
          
@@ -337,19 +343,38 @@ SUBROUTINE DistrInertialLoads( nodeIndx, densWater, Ca, R, tMG, k, NStepWave, Wa
       RETURN
    END IF  
    
+   f  = (Ca + Cp)*densWater*Pi*(R+tMG)*(R+tMG) 
+   f2 = AxCa*densWater*2.0*Pi*(R+tMG)*(R+tMG)*abs(dRdZ)       
+   f1 = AxCp*2.0*Pi*(R+tMG)*dRdz
+   
    DO I=0,NStepWave
-      l =  WaveAcc0(I,nodeIndx,:)
-      m =  Cross_Product( k, l )
-      v =  Cross_Product( m, k )
+      
+      af =  WaveAcc0(I,nodeIndx,:)
+      m  =  Cross_Product( k, af )
+      v2  =  Cross_Product( m, k )
+      
+      adotk = af(1)*k(1) + af(2)*k(2) + af(3)*k(3)
+      kdotk = k(1)**2 + k(2)**2 + k(3)**2
+      v  =  af - adotk*k
+      IF ( (.NOT. EqualRealNos(v(1),v2(1)) ) .OR. (.NOT. EqualRealNos(v(2),v2(2)) ) .OR. (.NOT. EqualRealNos(v(3),v2(3)) ) ) THEN
+         CALL WrScr('DistrInertialLoads:  Transverse WaveAcc0 calcs are not equal!')
+      END IF 
+      ! NOTE: (k cross l) x k = l - (l dot k)k
+      
+      f3 = f1*WaveDynP0(I,nodeIndx)
+      
       !CALL GetDistance( p0, v, v_len )  
       !TODO What about multiplying by the magnitude?
-      f = (Ca + 1)*densWater*Pi*(R+tMG)*(R+tMG)  ! *v_len    TODO:  I commented out this last factor because it is not in our equations document. GJH 5/21/13
-      F_I(I,1) = f*v(1)
-      F_I(I,2) = f*v(2)
-      F_I(I,3) = f*v(3)
+      
+      
+      
+      F_I(I,1) = f*v(1) + (f3 + f2*adotk)*k(1)
+      F_I(I,2) = f*v(2) + (f3 + f2*adotk)*k(2) 
+      F_I(I,3) = f*v(3) + (f3 + f2*adotk)*k(3)
       F_I(I,4) = 0.0
       F_I(I,5) = 0.0
       F_I(I,6) = 0.0
+      
    END DO
    
 END SUBROUTINE DistrInertialLoads
@@ -368,51 +393,64 @@ SUBROUTINE DistrMGLoads(MGdens, g, R, tMG, F_MG )
 END SUBROUTINE DistrMGLoads
 
 
-SUBROUTINE DistrDynPressure( nodeIndx, Cp, C, R, tMG, dRdz, NStepWave, WaveDynP0, F_DP, ErrStat, ErrMsg )
+!SUBROUTINE DistrDynPressure( nodeIndx, AxCa, AxCp, C, R, tMG, dRdz, NStepWave, WaveDynP0, WaveAcc0, F_DP, ErrStat, ErrMsg )
+!
+!   INTEGER,            INTENT ( IN    )  :: nodeIndx
+!   REAL(ReKi),         INTENT ( IN    )  :: AxCa
+!   REAL(ReKi),         INTENT ( IN    )  :: AxCp
+!   REAL(ReKi),         INTENT ( IN    )  :: C(3,3)
+!   REAL(ReKi),         INTENT ( IN    )  :: R
+!   REAL(ReKi),         INTENT ( IN    )  :: tMG
+!   REAL(ReKi),         INTENT ( IN    )  :: dRdz
+!   INTEGER,            INTENT ( IN    )  :: NStepWave
+!   REAL(ReKi),         INTENT ( IN    )  :: WaveAcc0(0:,:,:)
+!   REAL(ReKi),         INTENT ( IN    )  :: WaveDynP0(0:,:)
+!   REAL(ReKi),ALLOCATABLE,         INTENT (   OUT )  :: F_DP(:,:)
+!   INTEGER,            INTENT (   OUT )  :: ErrStat              ! returns a non-zero value when an error occurs  
+!   CHARACTER(*),       INTENT (   OUT )  :: ErrMsg               ! Error message if ErrStat /= ErrID_None
+!
+!   INTEGER                               :: I
+!   REAL(ReKi)                            :: f1, f2, f3
+!   
+!      ! Initialize ErrStat
+!         
+!   ErrStat = ErrID_None         
+!   ErrMsg  = "" 
+!   
+!   
+!      ! Allocate F_DP
+!   ALLOCATE ( F_DP(0:NStepWave,6), STAT = ErrStat )
+!   IF ( ErrStat /= ErrID_None ) THEN
+!      ErrMsg  = ' Error allocating distributed dynamic pressure loads array.'
+!      ErrStat = ErrID_Fatal
+!      RETURN
+!   END IF  
+!   
+!   f1 = AxCp*2.0*Pi*(R+tMG)*dRdz
+!   f2 = AxCa*2.0*Pi*(R+tMG)*(R+tMG)*abs(dRdz)
+!   
+!   DO I=0,NStepWave
+!      
+!      DO J=1,3
+!         dotp = WaveAcc0(I,nodeIndx,J)*C(J,3)
+!      END DO
+!      
+!      f3 = f1*WaveDynP0(I,nodeIndx) + f2*dotp
+!      
+!      F_DP(I,1) = C(1,3)*f3
+!      F_DP(I,2) = C(2,3)*f3
+!      F_DP(I,3) = C(3,3)*f3
+!      F_DP(I,4) = 0.0
+!      F_DP(I,5) = 0.0
+!      F_DP(I,6) = 0.0
+!   END DO
+!   
+!   
+!END SUBROUTINE DistrDynPressure
 
-   INTEGER,            INTENT ( IN    )  :: nodeIndx
-   REAL(ReKi),         INTENT ( IN    )  :: Cp
-   REAL(ReKi),         INTENT ( IN    )  :: C(3,3)
-   REAL(ReKi),         INTENT ( IN    )  :: R
-   REAL(ReKi),         INTENT ( IN    )  :: tMG
-   REAL(ReKi),         INTENT ( IN    )  :: dRdz
-   INTEGER,            INTENT ( IN    )  :: NStepWave
-   REAL(ReKi),         INTENT ( IN    )  :: WaveDynP0(0:,:)
-   REAL(ReKi),ALLOCATABLE,         INTENT (   OUT )  :: F_DP(:,:)
-   INTEGER,            INTENT (   OUT )  :: ErrStat              ! returns a non-zero value when an error occurs  
-   CHARACTER(*),       INTENT (   OUT )  :: ErrMsg               ! Error message if ErrStat /= ErrID_None
 
-   INTEGER                               :: I
-   
-      ! Initialize ErrStat
+
          
-   ErrStat = ErrID_None         
-   ErrMsg  = "" 
-   
-   
-      ! Allocate F_DP
-   ALLOCATE ( F_DP(0:NStepWave,6), STAT = ErrStat )
-   IF ( ErrStat /= ErrID_None ) THEN
-      ErrMsg  = ' Error allocating distributed dynamic pressure loads array.'
-      ErrStat = ErrID_Fatal
-      RETURN
-   END IF  
-   
-   DO I=0,NStepWave
-      F_DP(I,1) = Cp*C(1,3)*2.0*Pi*(R+tMG)*dRdz*WaveDynP0(I,nodeIndx) 
-      F_DP(I,2) = Cp*C(2,3)*2.0*Pi*(R+tMG)*dRdz*WaveDynP0(I,nodeIndx) 
-      F_DP(I,3) = Cp*C(3,3)*2.0*Pi*(R+tMG)*dRdz*WaveDynP0(I,nodeIndx) 
-      F_DP(I,4) = 0.0
-      F_DP(I,5) = 0.0
-      F_DP(I,6) = 0.0
-   END DO
-   
-   
-END SUBROUTINE DistrDynPressure
-
-
-
-            
          
             
            
@@ -431,44 +469,44 @@ SUBROUTINE DistrDragConst( densWater, Cd, R, tMG, DragConst  )
 END SUBROUTINE DistrDragConst
 
 
-SUBROUTINE DistrFloodedBuoyancy( L, densFluid, Z_f, R1, tM1, Z1, R2, tM2, Z2, C, g, F_B )  
-
-   REAL(ReKi),         INTENT ( IN    )  :: L
-   REAL(ReKi),         INTENT ( IN    )  :: densFluid
-   REAL(ReKi),         INTENT ( IN    )  :: Z_f
-   REAL(ReKi),         INTENT ( IN    )  :: R1
-   REAL(ReKi),         INTENT ( IN    )  :: tM1
-   REAL(ReKi),         INTENT ( IN    )  :: Z1
-   REAL(ReKi),         INTENT ( IN    )  :: R2
-   REAL(ReKi),         INTENT ( IN    )  :: tM2
-   REAL(ReKi),         INTENT ( IN    )  :: Z2
-   REAL(ReKi),         INTENT ( IN    )  :: C(3,3)
-   REAL(ReKi),         INTENT ( IN    )  :: g
-   REAL(ReKi),         INTENT (   OUT )  :: F_B(6)
-
-   REAL(DbKi)                           :: V,f1,f2,f3,f4,f5,f6,f7,f8
-   
-   V      = Pi*L*((R1-tM1)*(R1-tM1) + (R2-tM2)*(R2-tM2) + (R1-tM1)*(R2-tM2)  ) / 3
-   f1     = densFluid*g/L
-   f2     = -(Z1-Z_f)*Pi*(R1-tM1)*(R1-tM1)
-   f3     =  (Z2-Z_f)*Pi*(R2-tM2)*(R2-tM2)
-   f4     = (f1*f2+f1*f3)
-   
-   f5     = -Pi*C(3,2)*(R1-tM1)*(R1-tM1)*(R1-tM1)*(R1-tM1)/4
-   f6     = Pi*C(3,1)*(R1-tM1)*(R1-tM1)*(R1-tM1)*(R1-tM1)/4
-   f7     = Pi*C(3,2)*(R2-tM2)*(R2-tM2)*(R2-tM2)*(R2-tM2)/4
-   f8     = -Pi*C(3,1)*(R2-tM2)*(R2-tM2)*(R2-tM2)*(R2-tM2)/4
-   
-   F_B(1) = C(1,3)*f4
-   F_B(2) = C(2,3)*f4
-   F_B(3) = -densFluid*g*V/L + C(3,3)*f4
-   F_B(4) = f1*(C(1,1)*f5 + C(1,2)*f6)+f1*(C(1,1)*f7+C(1,2)*f8)
-   F_B(5) = f1*(C(2,1)*f5 + C(2,2)*f6)+f1*(C(2,1)*f7+C(2,2)*f8)
-   F_B(6) = f1*(C(3,1)*f5 + C(3,2)*f6)+f1*(C(3,1)*f7+C(3,2)*f8)
-   
-   
-   
-END SUBROUTINE DistrFloodedBuoyancy
+!SUBROUTINE DistrFloodedBuoyancy( L, densFluid, Z_f, R1, tM1, Z1, R2, tM2, Z2, C, g, F_B )  
+!
+!   REAL(ReKi),         INTENT ( IN    )  :: L
+!   REAL(ReKi),         INTENT ( IN    )  :: densFluid
+!   REAL(ReKi),         INTENT ( IN    )  :: Z_f
+!   REAL(ReKi),         INTENT ( IN    )  :: R1
+!   REAL(ReKi),         INTENT ( IN    )  :: tM1
+!   REAL(ReKi),         INTENT ( IN    )  :: Z1
+!   REAL(ReKi),         INTENT ( IN    )  :: R2
+!   REAL(ReKi),         INTENT ( IN    )  :: tM2
+!   REAL(ReKi),         INTENT ( IN    )  :: Z2
+!   REAL(ReKi),         INTENT ( IN    )  :: C(3,3)
+!   REAL(ReKi),         INTENT ( IN    )  :: g
+!   REAL(ReKi),         INTENT (   OUT )  :: F_B(6)
+!
+!   REAL(DbKi)                           :: V,f1,f2,f3,f4,f5,f6,f7,f8
+!   
+!   V      = Pi*L*((R1-tM1)*(R1-tM1) + (R2-tM2)*(R2-tM2) + (R1-tM1)*(R2-tM2)  ) / 3
+!   f1     = densFluid*g/L
+!   f2     = -(Z1-Z_f)*Pi*(R1-tM1)*(R1-tM1)
+!   f3     =  (Z2-Z_f)*Pi*(R2-tM2)*(R2-tM2)
+!   f4     = (f1*f2+f1*f3)
+!   
+!   f5     = -Pi*C(3,2)*(R1-tM1)*(R1-tM1)*(R1-tM1)*(R1-tM1)/4
+!   f6     = Pi*C(3,1)*(R1-tM1)*(R1-tM1)*(R1-tM1)*(R1-tM1)/4
+!   f7     = Pi*C(3,2)*(R2-tM2)*(R2-tM2)*(R2-tM2)*(R2-tM2)/4
+!   f8     = -Pi*C(3,1)*(R2-tM2)*(R2-tM2)*(R2-tM2)*(R2-tM2)/4
+!   
+!   F_B(1) = C(1,3)*f4
+!   F_B(2) = C(2,3)*f4
+!   F_B(3) = -densFluid*g*V/L + C(3,3)*f4
+!   F_B(4) = f1*(C(1,1)*f5 + C(1,2)*f6)+f1*(C(1,1)*f7+C(1,2)*f8)
+!   F_B(5) = f1*(C(2,1)*f5 + C(2,2)*f6)+f1*(C(2,1)*f7+C(2,2)*f8)
+!   F_B(6) = f1*(C(3,1)*f5 + C(3,2)*f6)+f1*(C(3,1)*f7+C(3,2)*f8)
+!   
+!   
+!   
+!END SUBROUTINE DistrFloodedBuoyancy
 
 
 SUBROUTINE DistrFloodedBuoyancy2( densFluid, Z_f, R, t, dRdz, Z, C, g, F_B  ) 
@@ -513,7 +551,7 @@ SUBROUTINE DistrFloodedBuoyancy2( densFluid, Z_f, R, t, dRdz, Z, C, g, F_B  )
    
    ReffSq  = Reff*Reff 
    ReffCub = ReffSq*Reff
-   f1      = -REAL(densFluid,DbKi)*REAL(g,DbKi)*pi_D
+   f1      = -REAL(densFluid,DbKi)*REAL(g,DbKi)*Pi_D
    f2      = f1*ReffCub*REAL(dRdz,DbKi)
    f3      = Reff*REAL(dRdz,DbKi)*Zeff
    
@@ -533,30 +571,33 @@ SUBROUTINE DistrFloodedBuoyancy2( densFluid, Z_f, R, t, dRdz, Z, C, g, F_B  )
    
 END SUBROUTINE DistrFloodedBuoyancy2
 
-SUBROUTINE DistrAddedMass( densWater, Ca, C, R, tMG, AM_M)
+SUBROUTINE DistrAddedMass( densWater, Ca, AxCa, C, R, tMG, dRdZ, AM_M)
 
    REAL(ReKi),         INTENT ( IN    )  :: densWater
    REAL(ReKi),         INTENT ( IN    )  :: Ca
+   REAL(ReKi),         INTENT ( IN    )  :: AxCa
    REAL(ReKi),         INTENT ( IN    )  :: C(3,3)
    REAL(ReKi),         INTENT ( IN    )  :: R
    REAL(ReKi),         INTENT ( IN    )  :: tMG
+   REAL(ReKi),         INTENT ( IN    )  :: dRdZ
    REAL(ReKi),         INTENT (   OUT )  :: AM_M(6,6)
    
-   REAL(ReKi)                            :: f
+   REAL(ReKi)                            :: f,f2
    
    f         = Ca*densWater*Pi*(R+tMG)*(R+tMG)
+   f2        = AxCa*2.0*densWater*Pi*abs(dRdZ)*(R+tMG)*(R+tMG)
    AM_M      = 0.0
-   AM_M(1,1) = f*(  C(2,3)*C(2,3) + C(3,3)*C(3,3) )
-   AM_M(1,2) = f*( -C(1,3)*C(2,3)                 )
-   AM_M(1,3) = f*( -C(1,3)*C(3,3)                 )
+   AM_M(1,1) = f*(  C(2,3)*C(2,3) + C(3,3)*C(3,3) ) -f2*C(1,3)*C(1,3)
+   AM_M(1,2) = f*( -C(1,3)*C(2,3)                 ) -f2*C(1,3)*C(2,3)
+   AM_M(1,3) = f*( -C(1,3)*C(3,3)                 ) -f2*C(1,3)*C(3,3)
    
-   AM_M(2,1) = f*( -C(1,3)*C(2,3)                 )
-   AM_M(2,2) = f*(  C(1,3)*C(1,3) + C(3,3)*C(3,3) )
-   AM_M(2,3) = f*( -C(2,3)*C(3,3)                 )
+   AM_M(2,1) = f*( -C(1,3)*C(2,3)                 ) -f2*C(2,3)*C(1,3)
+   AM_M(2,2) = f*(  C(1,3)*C(1,3) + C(3,3)*C(3,3) ) -f2*C(2,3)*C(2,3)
+   AM_M(2,3) = f*( -C(2,3)*C(3,3)                 ) -f2*C(2,3)*C(3,3)
    
-   AM_M(3,1) = f*( -C(1,3)*C(3,3)                 )
-   AM_M(3,2) = f*( -C(2,3)*C(3,3)                 )
-   AM_M(3,3) = f*(  C(1,3)*C(1,3) + C(2,3)*C(2,3) )
+   AM_M(3,1) = f*( -C(1,3)*C(3,3)                 ) -f2*C(3,3)*C(1,3)
+   AM_M(3,2) = f*( -C(2,3)*C(3,3)                 ) -f2*C(3,3)*C(2,3)
+   AM_M(3,3) = f*(  C(1,3)*C(1,3) + C(2,3)*C(2,3) ) -f2*C(3,3)*C(3,3)
 
 
 END SUBROUTINE DistrAddedMass
@@ -666,12 +707,12 @@ SUBROUTINE LumpBuoyancy( sgn, densWater, R, tMG, Z, C, g, F_B  )
 
 
    REAL(DbKi)                            :: f, f1, f2, f3, Reff, Rsq,R_4
-   Reff = DBLE(R+tMG)
+   Reff = REAL(R+tMG,DbKi)
    Rsq  = Reff**2
    R_4  = Rsq**2
-   f  = DBLE(g)*DBLE(densWater)*DBLE(sgn)
-   f1 = -Z*Pi*Rsq
-   f2 = f*Pi*R_4
+   f  = REAL(g,DbKi)*REAL(densWater,DbKi)*REAL(sgn,DbKi)
+   f1 = -REAL(Z,DbKi)*Pi_D*Rsq
+   f2 = f*Pi_D*R_4
    f3 =  C(3,1)*R_4
 
    F_B(1) = C(1,3)*f1*f
@@ -805,7 +846,8 @@ SUBROUTINE GetMaxSimQuantities( numMGDepths, MGTop, MGBottom, MSL2SWL, Zseabed, 
          ! Is the member filled?
       IF ( members(I)%MmbrFilledIDIndx /= -1 ) THEN
          nSplits =  1
-         possibleSplits(1) = filledGroups(members(I)%MmbrFilledIDIndx)%FillFSLoc
+            ! The free surface is specified relative to the MSL.
+         possibleSplits(1) = filledGroups(members(I)%MmbrFilledIDIndx)%FillFSLoc 
       END IF
       
       
@@ -933,7 +975,7 @@ SUBROUTINE GetMaxSimQuantities( numMGDepths, MGTop, MGBottom, MSL2SWL, Zseabed, 
    
 END SUBROUTINE GetMaxSimQuantities
 
-SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, elements, NOutputs, OutParam, NMOutputs, MOutLst, NJOutputs, JOutLst, inLumpedMesh, outLumpedMesh, inDistribMesh, outDistribMesh, L_F_B, L_F_BF, D_F_B, D_F_BF, D_F_MG, g, ErrStat, ErrMsg )  !, numDistribMarkers, distribMarkers, numLumpedMarkers, lumpedMarkers
+SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, elements, NOutputs, OutParam, NMOutputs, MOutLst, distribToNodeIndx, NJOutputs, JOutLst, inLumpedMesh, outLumpedMesh, inDistribMesh, outDistribMesh, L_F_B, L_F_BF, D_F_B, D_F_BF, D_F_MG, g, ErrStat, ErrMsg )  !, numDistribMarkers, distribMarkers, numLumpedMarkers, lumpedMarkers
 
    REAL(ReKi),               INTENT ( IN    )  :: MSL2SWL
    INTEGER,                  INTENT ( IN    )  :: UnSum
@@ -945,6 +987,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
    TYPE(OutParmType),        INTENT ( IN    )  :: OutParam(:)
    INTEGER,                  INTENT ( IN    )  :: NMOutputs
    TYPE(Morison_MOutput),    INTENT ( IN    )  :: MOutLst(:)
+   INTEGER,                  INTENT ( IN    )  :: distribToNodeIndx(:)
    INTEGER,                  INTENT ( IN    )  :: NJOutputs
    TYPE(Morison_JOutput),    INTENT ( IN    )  :: JOutLst(:)
    TYPE(MeshType),           INTENT ( INOUT )  :: inLumpedMesh
@@ -1111,14 +1154,20 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
                !Get Member index and Node index
             read (tmpName(2:2),*) mbrIndx
             read (tmpName(4:4),*) nodeIndx
+            
+            ! These indices are in the DistribMesh index system, not the overal nodes index system, so distribToNodeIndx() mapping needs to be performed if you want 
+            !   to index into the nodes array or wave kinematics arrays
+            
             m1 = MOutLst(mbrIndx)%Marker1(nodeIndx)
             m2 = MOutLst(mbrIndx)%Marker2(nodeIndx)
             s  = MOutLst(mbrIndx)%s      (nodeIndx)
          
                ! The member output is computed as a linear interpolation of the nearest two markers
+            node1 = nodes(distribToNodeIndx((m1)))
+            node2 = nodes(distribToNodeIndx((m2)))
             
-            outLoc    = nodes(m1)%JointPos*(1-s) + nodes(m2)%JointPos*s
-            WRITE( UnSum, '(1X,A10,3(2x,F10.4),2x,I10,6(2x,F10.4))' ) OutParam(I)%Name, outLoc, nodes(m1)%InpMbrIndx, nodes(m1)%JointPos, nodes(m2)%JointPos
+            outLoc    = node1%JointPos*(1-s) + node2%JointPos*s
+            WRITE( UnSum, '(1X,A10,3(2x,F10.4),2x,I10,7(2x,F10.4))' ) OutParam(I)%Name, outLoc, node1%InpMbrIndx, node1%JointPos, node2%JointPos, s
          END IF
          
           !  END IF 
@@ -1607,7 +1656,7 @@ SUBROUTINE SplitElements(numNodes, nodes, numElements, elements, ErrStat, ErrMsg
             
             CALL SplitElementOnZBoundary( 3, splits(J), iCurrent, numNodes, numElements, node1, node2, element, newNode, newElement, ErrStat, ErrMsg )
             
-               ! Was this split due to the location of an elements free surface location crossing through the element?
+               ! Was this split due to the location of an elements free surface location crossing through the element?  
             IF ( element%MmbrFilledIDIndx  /= -1 ) THEN
                IF ( EqualRealNos(element%FillFSLoc, splits(J)) )  THEN
                 !  Print*, 'Switching Element to unfilled: ',element%InpMbrIndx  DEBUG< TODO, Remove 9/30/13 GJH
@@ -1858,7 +1907,7 @@ END SUBROUTINE CreateSuperMembers
 
 
 !====================================================================================================
-SUBROUTINE SetDepthBasedCoefs( z, NCoefDpth, CoefDpths, Cd, CdMG, Ca, CaMG, Cp, CpMG )
+SUBROUTINE SetDepthBasedCoefs( z, NCoefDpth, CoefDpths, Cd, CdMG, Ca, CaMG, Cp, CpMG, AxCa, AxCaMG, AxCp, AxCpMG )
    
    REAL(ReKi), INTENT ( IN )              :: z
    INTEGER, INTENT (IN   ) :: NCoefDpth
@@ -1869,6 +1918,10 @@ SUBROUTINE SetDepthBasedCoefs( z, NCoefDpth, CoefDpths, Cd, CdMG, Ca, CaMG, Cp, 
    REAL(ReKi), INTENT (  OUT)             :: CaMG
    REAL(ReKi), INTENT (  OUT)             :: Cp
    REAL(ReKi), INTENT (  OUT)             :: CpMG
+   REAL(ReKi), INTENT (  OUT)             :: AxCa
+   REAL(ReKi), INTENT (  OUT)             :: AxCaMG
+   REAL(ReKi), INTENT (  OUT)             :: AxCp
+   REAL(ReKi), INTENT (  OUT)             :: AxCpMG
    
    INTEGER                 :: I, indx1, indx2
    REAL(ReKi)              :: dd, s
@@ -1904,9 +1957,13 @@ SUBROUTINE SetDepthBasedCoefs( z, NCoefDpth, CoefDpths, Cd, CdMG, Ca, CaMG, Cp, 
    Cd   = CoefDpths(indx1)%DpthCd*(1-s) + CoefDpths(indx2)%DpthCd*s
    Ca   = CoefDpths(indx1)%DpthCa*(1-s) + CoefDpths(indx2)%DpthCa*s
    Cp   = CoefDpths(indx1)%DpthCp*(1-s) + CoefDpths(indx2)%DpthCp*s
+   AxCa   = CoefDpths(indx1)%DpthCa*(1-s) + CoefDpths(indx2)%DpthAxCa*s
+   AxCp   = CoefDpths(indx1)%DpthCp*(1-s) + CoefDpths(indx2)%DpthAxCp*s
    CdMG = CoefDpths(indx1)%DpthCdMG*(1-s) + CoefDpths(indx2)%DpthCdMG*s
    CaMG = CoefDpths(indx1)%DpthCaMG*(1-s) + CoefDpths(indx2)%DpthCaMG*s
    CpMG = CoefDpths(indx1)%DpthCpMG*(1-s) + CoefDpths(indx2)%DpthCpMG*s
+   AxCaMG = CoefDpths(indx1)%DpthAxCaMG*(1-s) + CoefDpths(indx2)%DpthAxCaMG*s
+   AxCpMG = CoefDpths(indx1)%DpthAxCpMG*(1-s) + CoefDpths(indx2)%DpthAxCpMG*s
 
 END SUBROUTINE SetDepthBasedCoefs
 
@@ -1965,10 +2022,14 @@ SUBROUTINE SetSplitNodeProperties( numNodes, nodes, numElements, elements, ErrSt
                nodes(I)%Cd   = element%CdMG1
                nodes(I)%Ca   = element%CaMG1
                nodes(I)%Cp   = element%CpMG1
+               nodes(I)%AxCa   = element%AxCaMG1
+               nodes(I)%AxCp   = element%AxCpMG1
             ELSE
                nodes(I)%Cd   = element%Cd1
                nodes(I)%Ca   = element%Ca1
                nodes(I)%Cp   = element%Cp1
+               nodes(I)%AxCa   = element%AxCa1
+               nodes(I)%AxCp   = element%AxCp1
             END IF
             
             nodes(I)%R    = element%R1
@@ -1980,10 +2041,14 @@ SUBROUTINE SetSplitNodeProperties( numNodes, nodes, numElements, elements, ErrSt
                nodes(I)%Cd   = element%CdMG2
                nodes(I)%Ca   = element%CaMG2
                nodes(I)%Cp   = element%CpMG2
+               nodes(I)%AxCa   = element%AxCaMG2
+               nodes(I)%AxCp   = element%AxCpMG2
             ELSE
                nodes(I)%Cd   = element%Cd2
                nodes(I)%Ca   = element%Ca2
                nodes(I)%Cp   = element%Cp2
+               nodes(I)%AxCa   = element%AxCa2
+               nodes(I)%AxCp   = element%AxCp2
             END IF
             
             nodes(I)%R    = element%R2
@@ -2005,11 +2070,11 @@ SUBROUTINE SetSplitNodeProperties( numNodes, nodes, numElements, elements, ErrSt
          
          IF ( element%MmbrFilledIDIndx /= -1 ) THEN
             nodes(I)%FillFlag  = .TRUE.
-            nodes(I)%FillFSLoc    = element%FillFSLoc
+            nodes(I)%FillFSLoc    = element%FillFSLoc  ! This is relative to the MSL.
             nodes(I)%FillDensity  = element%FillDens
             
          ELSE
-            nodes(I)%FillFSLoc    = 0.0
+            nodes(I)%FillFSLoc    = 0.0  ! This is the MSL.
             nodes(I)%FillDensity  = 0.0
             elements(nodes(I)%ConnectionList(1))%FillDens  = 0.0
             elements(nodes(I)%ConnectionList(1))%FillFSLoc = 0.0
@@ -2027,7 +2092,7 @@ END SUBROUTINE SetSplitNodeProperties
 
 !====================================================================================================
 !SUBROUTINE SetMemberCoefs( SimplCd, SimplCdMG, SimplCa, SimplCaMG, CoefMembers, NCoefDpth, CoefDpths, element, node1, node2 )
-SUBROUTINE SetElementCoefs( SimplCd, SimplCdMG, SimplCa, SimplCaMG, SimplCp, SimplCpMG, CoefMembers, NCoefDpth, CoefDpths, numNodes, nodes, numElements, elements )   
+SUBROUTINE SetElementCoefs( SimplCd, SimplCdMG, SimplCa, SimplCaMG, SimplCp, SimplCpMG, SimplAxCa, SimplAxCaMG, SimplAxCp, SimplAxCpMG,CoefMembers, NCoefDpth, CoefDpths, numNodes, nodes, numElements, elements )   
 !     This private subroutine generates the Cd, Ca, Cp, CdMG, CaMG and CpMG coefs for the member based on
 !     the input data.  
 !---------------------------------------------------------------------------------------------------- 
@@ -2038,6 +2103,10 @@ SUBROUTINE SetElementCoefs( SimplCd, SimplCdMG, SimplCa, SimplCaMG, SimplCp, Sim
    REAL(ReKi),                INTENT( IN    )  :: SimplCaMG 
    REAL(ReKi),                INTENT( IN    )  :: SimplCp
    REAL(ReKi),                INTENT( IN    )  :: SimplCpMG 
+   REAL(ReKi),                INTENT( IN    )  :: SimplAxCa
+   REAL(ReKi),                INTENT( IN    )  :: SimplAxCaMG 
+   REAL(ReKi),                INTENT( IN    )  :: SimplAxCp
+   REAL(ReKi),                INTENT( IN    )  :: SimplAxCpMG 
    TYPE(Morison_CoefMembers), INTENT( IN    )  :: CoefMembers(:)
    INTEGER,                   INTENT( IN    )  :: NCoefDpth
    TYPE(Morison_CoefDpths),   INTENT( IN    )  :: CoefDpths(:)
@@ -2050,7 +2119,7 @@ SUBROUTINE SetElementCoefs( SimplCd, SimplCdMG, SimplCa, SimplCaMG, SimplCp, Sim
    
    INTEGER                                     :: MCoefMod
    INTEGER                                     :: I, J
-   REAL(ReKi)                                  :: Cd, CdMG, Ca, CaMG, Cp, CpMG
+   REAL(ReKi)                                  :: Cd, CdMG, Ca, CaMG, Cp, CpMG, AxCa, AxCp, AxCaMG, AxCpMG
    DO I=1,numElements
       
       
@@ -2068,30 +2137,46 @@ SUBROUTINE SetElementCoefs( SimplCd, SimplCdMG, SimplCa, SimplCaMG, SimplCp, Sim
          elements(I)%Ca2   = SimplCa
          elements(I)%Cp1   = SimplCp
          elements(I)%Cp2   = SimplCp
+         elements(I)%AxCa1   = SimplAxCa
+         elements(I)%AxCa2   = SimplAxCa
+         elements(I)%AxCp1   = SimplAxCp
+         elements(I)%AxCp2   = SimplAxCp
          elements(I)%CdMG1 = SimplCdMG
          elements(I)%CdMG2 = SimplCdMG
          elements(I)%CaMG1 = SimplCaMG
          elements(I)%CaMG2 = SimplCaMG
          elements(I)%CpMG1 = SimplCpMG
          elements(I)%CpMG2 = SimplCpMG
+         elements(I)%AxCaMG1 = SimplAxCaMG
+         elements(I)%AxCaMG2 = SimplAxCaMG
+         elements(I)%AxCpMG1 = SimplAxCpMG
+         elements(I)%AxCpMG2 = SimplAxCpMG
       
       CASE (2)
        
-         CALL SetDepthBasedCoefs( node1%JointPos(3), NCoefDpth, CoefDpths, Cd, CdMG, Ca, CaMG, Cp, CpMG )
+         CALL SetDepthBasedCoefs( node1%JointPos(3), NCoefDpth, CoefDpths, Cd, CdMG, Ca, CaMG, Cp, CpMG, AxCa, AxCaMG, AxCp, AxCpMG )
          elements(I)%Cd1     = Cd
          elements(I)%Ca1     = Ca
          elements(I)%Cp1     = Cp
+         elements(I)%AxCa1     = AxCa
+         elements(I)%AxCp1     = AxCp
          elements(I)%CdMG1   = CdMG
          elements(I)%CaMG1   = CaMG  
          elements(I)%CpMG1   = CpMG
+         elements(I)%AxCaMG1   = AxCaMG  
+         elements(I)%AxCpMG1   = AxCpMG
          
-         CALL SetDepthBasedCoefs( node2%JointPos(3), NCoefDpth, CoefDpths, Cd, CdMG, Ca, CaMG, Cp, CpMG )
+         CALL SetDepthBasedCoefs( node2%JointPos(3), NCoefDpth, CoefDpths, Cd, CdMG, Ca, CaMG, Cp, CpMG, AxCa, AxCaMG, AxCp, AxCpMG )
          elements(I)%Cd2     = Cd
          elements(I)%Ca2     = Ca
          elements(I)%Cp2     = Cp
+         elements(I)%AxCa2     = Ca
+         elements(I)%AxCp2     = Cp
          elements(I)%CdMG2   = CdMG
          elements(I)%CaMG2   = CaMG
          elements(I)%CpMG2   = CpMG
+         elements(I)%AxCaMG2   = AxCaMG
+         elements(I)%AxCpMG2   = AxCpMG
          
       CASE (3)
       
@@ -2102,12 +2187,20 @@ SUBROUTINE SetElementCoefs( SimplCd, SimplCdMG, SimplCa, SimplCaMG, SimplCp, Sim
          elements(I)%Ca2   = CoefMembers(J)%MemberCa2
          elements(I)%Cp1   = CoefMembers(J)%MemberCp1
          elements(I)%Cp2   = CoefMembers(J)%MemberCp2
+         elements(I)%AxCa1   = CoefMembers(J)%MemberAxCa1
+         elements(I)%AxCa2   = CoefMembers(J)%MemberAxCa2
+         elements(I)%AxCp1   = CoefMembers(J)%MemberAxCp1
+         elements(I)%AxCp2   = CoefMembers(J)%MemberAxCp2
          elements(I)%CdMG1 = CoefMembers(J)%MemberCdMG1
          elements(I)%CdMG2 = CoefMembers(J)%MemberCdMG2
          elements(I)%CaMG1 = CoefMembers(J)%MemberCaMG1
          elements(I)%CaMG2 = CoefMembers(J)%MemberCaMG2
          elements(I)%CpMG1 = CoefMembers(J)%MemberCpMG1
          elements(I)%CpMG2 = CoefMembers(J)%MemberCpMG2
+         elements(I)%AxCaMG1 = CoefMembers(J)%MemberAxCaMG1
+         elements(I)%AxCaMG2 = CoefMembers(J)%MemberAxCaMG2
+         elements(I)%AxCpMG1 = CoefMembers(J)%MemberAxCpMG1
+         elements(I)%AxCpMG2 = CoefMembers(J)%MemberAxCpMG2
          
       END SELECT
    
@@ -2134,13 +2227,13 @@ SUBROUTINE SetAxialCoefs( NJoints, NAxCoefs, AxialCoefs, numNodes, nodes, numEle
    DO I=1,numNodes
       
       IF ( nodes(I)%JointAxIDIndx > 0 .AND. nodes(I)%JointIndx > 0 .AND. nodes(I)%JointIndx <= NJoints) THEN
-         nodes(I)%AxCd = AxialCoefs(nodes(I)%JointAxIDIndx)%AxCd
-         nodes(I)%AxCa = AxialCoefs(nodes(I)%JointAxIDIndx)%AxCa
-         nodes(I)%AxCp = AxialCoefs(nodes(I)%JointAxIDIndx)%AxCp
+         nodes(I)%JAxCd = AxialCoefs(nodes(I)%JointAxIDIndx)%AxCd
+         nodes(I)%JAxCa = AxialCoefs(nodes(I)%JointAxIDIndx)%AxCa
+         nodes(I)%JAxCp = AxialCoefs(nodes(I)%JointAxIDIndx)%AxCp
       ELSE
-         nodes(I)%AxCd = 0.0
-         nodes(I)%AxCa = 0.0
-         nodes(I)%AxCp = 0.0
+         nodes(I)%JAxCd = 0.0
+         nodes(I)%JAxCa = 0.0
+         nodes(I)%JAxCp = 0.0
       END IF
       
       !node1    = nodes(elements(I)%Node1Indx)
@@ -2464,7 +2557,7 @@ SUBROUTINE GenerateLumpedLoads( nodeIndx, sgn, node, gravity, MSL2SWL, densWater
    
       k =  sgn * node%R_LToG(:,3)
       
-      CALL LumpDynPressure( nodeIndx, node%AxCp, k, node%R, node%tMG, NStepWave, WaveDynP0, F_DP, ErrStat, ErrMsg)
+      CALL LumpDynPressure( nodeIndx, node%JAxCp, k, node%R, node%tMG, NStepWave, WaveDynP0, F_DP, ErrStat, ErrMsg)
       
          ! For buoyancy calculations we need to adjust the Z-location based on MSL2SWL. If MSL2SWL > 0 then SWL above MSL, and so we need to place the Z value at a deeper position.  
          !   SWL is at Z=0 for buoyancy calcs, but geometry was specified relative to MSL (MSL2SWL = 0) 
@@ -2497,9 +2590,9 @@ END SUBROUTINE GenerateLumpedLoads
 
 
 
-SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, WaveDynP0, numNodes, nodes, numElements, elements, &
+SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, WaveDynP0, WaveAcc0, numNodes, nodes, numElements, elements, &
                                   numLumpedMarkers, lumpedMeshIn, lumpedMeshOut, lumpedToNodeIndx, L_An,        &
-                                  L_F_B, L_F_DP, L_F_BF, L_AM_M, L_dragConst, &
+                                  L_F_B, L_F_I, L_F_DP, L_F_BF, L_AM_M, L_dragConst, &
                                   ErrStat, ErrMsg )
 
    REAL(ReKi),                             INTENT( IN    )  ::  densWater
@@ -2508,6 +2601,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    REAL(ReKi),                             INTENT( IN    )  ::  wtrDpth
    INTEGER,                                INTENT( IN    )  ::  NStepWave
    REAL(ReKi),                             INTENT( IN    )  ::  WaveDynP0(0:,:)
+   REAL(ReKi),                             INTENT( IN    )  ::  WaveAcc0(0:,:,:)
    INTEGER,                                INTENT( IN    )  ::  numNodes
    INTEGER,                                INTENT( IN    )  ::  numElements
    TYPE(Morison_MemberType),               INTENT( IN    )  ::  elements(:)
@@ -2519,6 +2613,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    INTEGER, ALLOCATABLE,                   INTENT(   OUT )  ::  lumpedToNodeIndx(:)
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  L_An(:,:)                         ! The signed/summed end cap Area x k of all connected members at a common joint
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  L_F_B(:,:)                      ! Buoyancy force associated with the member
+   REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  L_F_I(:,:,:)                     ! Inertial force.  TODO:  Eventually the dynamic pressure will be included in this force! GJH 4/15/14
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  L_F_DP(:,:,:)                     ! Dynamic pressure force
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  L_F_BF(:,:)                     ! Flooded buoyancy force
    REAL(ReKi),ALLOCATABLE,                 INTENT(   OUT)   ::  L_AM_M(:,:,:)                   ! Added mass of member
@@ -2527,7 +2622,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    CHARACTER(*),                           INTENT(   OUT )  ::  ErrMsg               ! Error message if ErrStat /= ErrID_None
    
              
-   INTEGER                    ::  I, J, count
+   INTEGER                    ::  I, J, M, count
    TYPE(Morison_MemberType)   ::  element
    TYPE(Morison_NodeType)     ::  node, node1, node2
    REAL(ReKi)                 ::  L, sgn
@@ -2536,7 +2631,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    REAL(ReKi),ALLOCATABLE     ::  F_DP(:,:)
    REAL(ReKi)                 ::  F_B(6)
    REAL(ReKi)                 ::  F_BF(6)
-   REAL(ReKi)                 ::  AM(6,6)
+   REAL(ReKi)                 ::  AM(6,6), Vmat(3,1), F_I(6), AM_M(6,6)
    REAL(ReKi)                 ::  dragConst
    
    
@@ -2546,9 +2641,9 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    INTEGER                    :: nCommon
    REAL(ReKi)                 :: CA
    REAL(ReKi)                 :: AMfactor
-   REAL(ReKi)                 :: An(3)
+   REAL(ReKi)                 :: An(3), Vn(3), af(3)
    REAL(ReKi)                 :: AM11, AM22, AM33
-   REAL(ReKi)                 :: f1, f2
+   REAL(ReKi)                 :: f1, f2, VnDotAf, Vmag
    
    
       ! Initialize ErrStat
@@ -2560,10 +2655,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    numLumpedMarkers = 0
    z0                = -(wtrDpth) ! The total sea depth is the still water depth of the seabed 
    
-      ! CA is the added mass coefficient for three dimensional bodies in infinite fluid (far from boundaries) The default value is 2/Pi
-   !CA = 0.0 ! TODO: GJH 9/26/13 This needs to be wired up to axial coefs 2.0 / Pi   
    
-   AMfactor = 2.0 * densWater * Pi / 3.0
    
       ! Count how many lumped markers we need to create by looping over the nodes
       
@@ -2636,7 +2728,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    END IF  
    
    
-   
+      
    ALLOCATE ( L_F_B( 6, numLumpedMarkers ), STAT = ErrStat )
    IF ( ErrStat /= ErrID_None ) THEN
       ErrMsg  = ' Error allocating space for the lumped buoyancy forces/moments array.'
@@ -2653,6 +2745,15 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    END IF
    L_An = 0.0
    
+   ! This is 
+   ALLOCATE ( L_F_I( 0:NStepWave, 6, numLumpedMarkers ), STAT = ErrStat )
+   IF ( ErrStat /= ErrID_None ) THEN
+      ErrMsg  = ' Error allocating space for the lumped inertial forces/moments array.'
+      ErrStat = ErrID_Fatal
+      RETURN
+   END IF
+    L_F_DP = 0.0
+    
    ALLOCATE ( L_F_DP( 0:NStepWave, 6, numLumpedMarkers ), STAT = ErrStat )
    IF ( ErrStat /= ErrID_None ) THEN
       ErrMsg  = ' Error allocating space for the lumped dynamic pressure forces/moments array.'
@@ -2739,107 +2840,114 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
             
    END DO
    
+   !
+   !   ! Loop over nodes again in order to created lumped added mass 
+   !   
+   !DO I=1,numNodes
+   !   
+   !   IF ( .NOT. nodes(I)%PropWAMIT ) THEN
+   !   
+   !   
+   !         ! Determine bounds checking based on what load we are calculating, 
+   !         ! This is for AM_M
+   !      IF ( nodes(I)%JointPos(3) <= MSL2SWL .AND. nodes(I)%JointPos(3) >= z0 ) THEN
+   !      
+   !            ! exclude internal member nodes and end nodes which were connected to a joint made into a super member
+   !   
+   !      
+   !            
+   !               ! If this is a super member node, then generate the lumped loads now, otherwise save it for the loop over elements
+   !            
+   !            IF ( nodes(I)%NodeType == 3 ) THEN
+   !            
+   !            ELSE
+   !         
+   !               IF ( nodes(I)%JointIndx /= -1 ) THEN  ! TODO: MAYBE THIS SHOULD CHECK JointOvrlp value instead!!
+   !            
+   !                  ! Have we already set the added mass for this node?
+   !               IF ( .NOT. usedJointList(nodes(I)%JointIndx) ) THEN
+   !               
+   !                  nCommon = 0
+   !                  !AM11    = 0.0
+   !                  !AM22    = 0.0
+   !                  !AM33    = 0.0
+   !                  Vn      = 0.0
+   !                  DO J=1,numNodes
+   !                  
+   !                        ! must match joint index but also cannot be modeled using WAMIT
+   !                     IF ( ( nodes(I)%JointIndx == nodes(J)%JointIndx ) .AND. (.NOT. nodes(J)%PropWAMIT ) )THEN
+   !                        ! DEBUG.  TODO  Remove this
+   !                        IF ( ( nodes(I)%JointPos(1) /= nodes(J)%JointPos(1) ) .OR. ( nodes(I)%JointPos(2) /= nodes(J)%JointPos(2) ) .OR. ( nodes(I)%JointPos(3) /= nodes(J)%JointPos(3) ) ) THEN 
+   !                           CALL WrScr('Error with lumped joint forces')
+   !                        END IF 
+   !                        nCommon = nCommon + 1
+   !                        commonNodeLst(nCommon) = J
+   !                     
+   !                           ! Compute the signed volume of this member
+   !                        f1 = (nodes(J)%R+nodes(J)%tMG)*(nodes(J)%R+nodes(J)%tMG)*(nodes(J)%R+nodes(J)%tMG) 
+   !                        Vn = Vn + f1*nodes(J)%R_LToG(:,3)
+   !                        
+   !                        !IF ( .NOT. nodes(J)%FillFlag ) THEN
+   !                        !   
+   !                        !   AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,3)*f1*nodes(J)%JAxCa
+   !                        !   AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,3)*f1*nodes(J)%JAxCa
+   !                        !   AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*f1*nodes(J)%JAxCa
+   !                        !
+   !                        !ELSE
+   !                        !
+   !                        !   f2 = (nodes(J)%R-nodes(J)%t)*(nodes(J)%R-nodes(J)%t)*(nodes(J)%R-nodes(J)%t)                       
+   !                        !   AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,3)*( f1 - f2  )*nodes(J)%JAxCa
+   !                        !   AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,3)*( f1 - f2  )*nodes(J)%JAxCa
+   !                        !   AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*( f1 - f2  )*nodes(J)%JAxCa
+   !                        !
+   !                        !END IF
+   !                     
+   !                     END IF
+   !                  
+   !                  END DO
+   !               
+   !               
+   !                     ! Divide the added mass equally across all connected markers but make sure it is positive in magnitude
+   !                  
+   !                  DO J=1,nCommon
+   !                  
+   !                     IF ( nodes(I)%JointPos(3) <= MSL2SWL .AND.     nodes(I)%JointPos(3) >= z0 ) THEN
+   !                     
+   !                        L_AM_M(:,:,nodeToLumpedIndx(commonNodeLst(J))) = (JAxCa*AMfactor/REAL( nCommon, ReKi))*Vn*MatMul(Vn,TRANSPOSE(Vn))/ sqrt(Dot_Product(Vn,Vn))
+   !                        
+   !                        !L_AM_M(1,1,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM11) / REAL( nCommon, ReKi)
+   !                        !L_AM_M(2,2,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM22) / REAL( nCommon, ReKi)
+   !                        !L_AM_M(3,3,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM33) / REAL( nCommon, ReKi)
+   !                     
+   !                     ELSE
+   !                        ! Should we ever land in here?
+   !                        L_AM_M(:,:,nodeToLumpedIndx(commonNodeLst(J))) = 0.0
+   !                        !L_AM_M(2,2,nodeToLumpedIndx(commonNodeLst(J))) = 0.0
+   !                        !L_AM_M(3,3,nodeToLumpedIndx(commonNodeLst(J))) = 0.0
+   !                        !
+   !                     END IF
+   !                  
+   !                  END DO
+   !               
+   !                  usedJointList(nodes(I)%JointIndx) = .TRUE.
+   !               END IF
+   !            
+   !               END IF
+   !           END IF 
+   !           
+   !
+   !      
+   !      END IF   ! ( nodes(I)%JointPos(3) <= MSL2SWL .AND. nodes(I)%JointPos(3) >= z0 )
+   !   
+   !   END IF
+   !         
+   !END DO   ! I=1,numNodes
    
-      ! Loop over nodes again in order to created lumped added mass 
-      
-   DO I=1,numNodes
-      
-      IF ( .NOT. nodes(I)%PropWAMIT ) THEN
-      
-      
-            ! Determine bounds checking based on what load we are calculating, 
-            ! This is for AM_M
-         IF ( nodes(I)%JointPos(3) <= MSL2SWL .AND. nodes(I)%JointPos(3) >= z0 ) THEN
-         
-               ! exclude internal member nodes and end nodes which were connected to a joint made into a super member
-      
-         
-               
-                  ! If this is a super member node, then generate the lumped loads now, otherwise save it for the loop over elements
-               
-               IF ( nodes(I)%NodeType == 3 ) THEN
-               
-               ELSE
-            
-                  IF ( nodes(I)%JointIndx /= -1 ) THEN  ! TODO: MAYBE THIS SHOULD CHECK JointOvrlp value instead!!
-               
-                     ! Have we already set the added mass for this node?
-                  IF ( .NOT. usedJointList(nodes(I)%JointIndx) ) THEN
-                  
-                     nCommon = 0
-                     AM11    = 0.0
-                     AM22    = 0.0
-                     AM33    = 0.0
-                     
-                     DO J=1,numNodes
-                     
-                           ! must match joint index but also cannot be modeled using WAMIT
-                        IF ( ( nodes(I)%JointIndx == nodes(J)%JointIndx ) .AND. (.NOT. nodes(J)%PropWAMIT ) )THEN
-                           ! DEBUG.  TODO  Remove this
-                           IF ( ( nodes(I)%JointPos(1) /= nodes(J)%JointPos(1) ) .OR. ( nodes(I)%JointPos(2) /= nodes(J)%JointPos(2) ) .OR. ( nodes(I)%JointPos(3) /= nodes(J)%JointPos(3) ) ) THEN 
-                              CALL WrScr('Error with lumped joint forces')
-                           END IF 
-                           nCommon = nCommon + 1
-                           commonNodeLst(nCommon) = J
-                        
-                              ! Compute the signed volume of this member
-                           f1 = (nodes(J)%R+nodes(J)%tMG)*(nodes(J)%R+nodes(J)%tMG)*(nodes(J)%R+nodes(J)%tMG) 
-                           
-                           IF ( .NOT. nodes(J)%FillFlag ) THEN
-                            
-                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,3)*f1*nodes(J)%AxCa
-                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,3)*f1*nodes(J)%AxCa
-                              AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*f1*nodes(J)%AxCa
-                           
-                           ELSE
-                           
-                              f2 = (nodes(J)%R-nodes(J)%t)*(nodes(J)%R-nodes(J)%t)*(nodes(J)%R-nodes(J)%t)                       
-                              AM11 =  AM11 + AMfactor*nodes(J)%R_LToG(1,3)*( f1 - f2  )*nodes(J)%AxCa
-                              AM22 =  AM22 + AMfactor*nodes(J)%R_LToG(2,3)*( f1 - f2  )*nodes(J)%AxCa
-                              AM33 =  AM33 + AMfactor*nodes(J)%R_LToG(3,3)*( f1 - f2  )*nodes(J)%AxCa
-                           
-                           END IF
-                        
-                        END IF
-                     
-                     END DO
-                  
-                  
-                        ! Divide the added mass equally across all connected markers but make sure it is positive in magnitude
-                     
-                     DO J=1,nCommon
-                     
-                        IF ( nodes(I)%JointPos(3) <= MSL2SWL .AND.     nodes(I)%JointPos(3) >= z0 ) THEN
-                        
-                           L_AM_M(1,1,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM11) / REAL( nCommon, ReKi)
-                           L_AM_M(2,2,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM22) / REAL( nCommon, ReKi)
-                           L_AM_M(3,3,nodeToLumpedIndx(commonNodeLst(J))) = ABS(AM33) / REAL( nCommon, ReKi)
-                        
-                        ELSE
-                           ! Should we ever land in here?
-                           L_AM_M(1,1,nodeToLumpedIndx(commonNodeLst(J))) = 0.0
-                           L_AM_M(2,2,nodeToLumpedIndx(commonNodeLst(J))) = 0.0
-                           L_AM_M(3,3,nodeToLumpedIndx(commonNodeLst(J))) = 0.0
-                        
-                        END IF
-                     
-                     END DO
-                  
-                     usedJointList(nodes(I)%JointIndx) = .TRUE.
-                  END IF
-               
-                  END IF
-              END IF 
-              
    
-         
-         END IF   ! ( nodes(I)%JointPos(3) <= MSL2SWL .AND. nodes(I)%JointPos(3) >= z0 )
-      
-      END IF
-            
-   END DO   ! I=1,numNodes
+   ! CA is the added mass coefficient for three dimensional bodies in infinite fluid (far from boundaries) The default value is 2/Pi
+     
    
-   
+   AMfactor = 2.0 * densWater * Pi / 3.0
  
        ! Loop over nodes again in order to create lumped axial drag. 
        
@@ -2848,7 +2956,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
    
    DO I=1,numNodes
       
-     
+         
       
             ! Determine bounds checking based on what load we are calculating, 
             ! This is for L_An
@@ -2871,7 +2979,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                   
                      nCommon   = 0
                      An        = 0.0
-                    
+                     Vn        = 0.0
                      
                      DO J=1,numNodes
                      
@@ -2898,7 +3006,9 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                               ErrStat = ErrID_FATAL
                               RETURN
                            END IF
-                           
+                              ! Compute the signed volume of this member
+                           f1 = (nodes(J)%R+nodes(J)%tMG)*(nodes(J)%R+nodes(J)%tMG)*(nodes(J)%R+nodes(J)%tMG) 
+                           Vn = Vn + sgn*f1*nodes(J)%R_LToG(:,3)
                            An = An + sgn*nodes(J)%R_LtoG(:,3)*Pi*(nodes(J)%R+nodes(J)%tMG)**2
                                          
                         END IF
@@ -2906,27 +3016,54 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                      END DO
                   
                      nodes(I)%NConnectPreSplit = nCommon
+                     
                         ! Divide the directed area equally across all connected markers 
+                     Vmag = sqrt(Dot_Product(Vn,Vn))
+                     
+                     
+                     
+                     AM_M = 0.0
+                     IF ( (Vmag > 0.0) .AND. (.NOT. node%PropWAMIT) ) THEN
+                        Vmat = RESHAPE(Vn,(/3,1/))
+                        AM_M(1:3,1:3) = (nodes(I)%JAxCa*AMfactor/(REAL( nCommon, ReKi)*Vmag) )*MatMul(Vmat,TRANSPOSE(Vmat))
+                     END IF
                      
                      DO J=1,nCommon
                      
                         IF ( nodes(I)%JointPos(3) <= MSL2SWL .AND.     nodes(I)%JointPos(3) >= z0 ) THEN
                         
-                           L_An(:,nodeToLumpedIndx(commonNodeLst(J))) = An / nCommon                     
-                        
+                           L_An  (:,  nodeToLumpedIndx(commonNodeLst(J)))    =  An / nCommon   
+                           L_AM_M(:,:,nodeToLumpedIndx(commonNodeLst(J)))    =  AM_M
+                           
+                           DO M=0,NStepWave
+                              ! The WaveAcc0 array has indices of (timeIndx, nodeIndx, vectorIndx), the nodeIndx needs to correspond to the total list of nodes for which
+                              ! the wave kinematics were generated.  We can use the nodeToLumpedIndx however for L_F_I and it's indices are (timeIndx, nodeIndx, vectorIndx)
+                              
+                              
+                              F_I      = 0.0
+                              IF ( (Vmag > 0.0) .AND. (.NOT. node%PropWAMIT) ) THEN
+                                 af =  WaveAcc0(M,commonNodeLst(J),:)
+                                 VnDotAf = Dot_Product(Vn,af)
+                                 F_I(1:3) = ( nodes(I)%JAxCa*AMfactor*VnDotAf / ( REAL( nCommon, ReKi ) * Vmag ) ) * Vn
+                              END IF
+                              L_F_I(M, :,nodeToLumpedIndx(commonNodeLst(J)))   =  F_I
+                           END DO
+                           
                         ELSE
                            ! Should we ever land in here?
                            L_An(:,nodeToLumpedIndx(commonNodeLst(J))) = 0.0
-                        
+                           L_AM_M(:,:,nodeToLumpedIndx(commonNodeLst(J))) = 0.0
+                           L_F_I(:,:,nodeToLumpedIndx(commonNodeLst(J)))   = 0.0
                         END IF
                      
                      END DO
                   
                      usedJointList(nodes(I)%JointIndx) = .TRUE.
-                  END IF
+                  END IF   !IF ( .NOT. usedJointList(nodes(I)%JointIndx) )
                
-                  END IF
-              END IF 
+                  END IF  !  IF ( nodes(I)%JointIndx /= -1 )
+                  
+              END IF ! IF ( nodes(I)%NodeType == 3 ) THEN
               
    
          
@@ -3290,18 +3427,20 @@ SUBROUTINE CreateDistributedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWav
                IF ( elementWaterState == 0 ) THEN
                      ! Element is in the water
                      
-                  CALL DistrDynPressure( I, nodes(I)%Cp, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz, NStepWave, WaveDynP0, F_DP, ErrStat, ErrMsg)
-                  D_F_DP(:,:,count) = F_DP
+                  
+                  !CALL DistrDynPressure( I, nodes(I)%AxCa,nodes(I)%AxCp, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz, NStepWave, WaveDynP0, WaveAcc0, F_DP, ErrStat, ErrMsg)
+                  D_F_DP(:,:,count) = 0.0 !F_DP
                      ! For buoyancy calculations we need to adjust the Z-location based on MSL2SWL. If MSL2SWL > 0 then SWL above MSL, and so we need to place the Z value at a deeper position.  
                      !   SWL is at Z=0 for buoyancy calcs, but geometry was specified relative to MSL (MSL2SWL = 0) 
                   CALL DistrBuoyancy2( densWater, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz, nodes(I)%JointPos(3) - MSL2SWL, nodes(I)%R_LToG, gravity, F_B  ) 
                   D_F_B(:,count)    = F_B
                
-                  CALL DistrInertialLoads( I, densWater, nodes(I)%Ca, nodes(I)%R, nodes(I)%tMG, k, NStepWave, WaveAcc0, F_I, ErrStat, ErrMsg  )       
-                  D_F_I(:,:,count)  = F_I          
-               
-                  CALL DistrAddedMass( densWater, nodes(I)%Ca, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, D_AM_M(:,:,count) )  
+                  CALL DistrInertialLoads( I, densWater, nodes(I)%Ca, nodes(I)%Cp, nodes(I)%AxCa, nodes(I)%AxCp, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdZ, k, NStepWave, WaveAcc0, WaveDynP0, F_I, ErrStat, ErrMsg  ) 
                   
+                  D_F_I(:,:,count)  = F_I        
+               
+                  CALL DistrAddedMass( densWater, nodes(I)%Ca, nodes(I)%AxCa, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdZ, D_AM_M(:,:,count) )  
+                  !CALL DistrAddedMassConst(nodes(I)%AxCa, nodes(I)%R_LToG, nodes(I)%R, nodes(I)%tMG, nodes(I)%dRdz,  D_AM_Const(:,count))
                ELSE
                      ! Element is out of the water
                   D_F_DP(:,:,count) = 0.0
@@ -3754,7 +3893,7 @@ SUBROUTINE Morison_ProcessMorisonGeometry( InitInp, ErrStat, ErrMsg )
          
          ! Set the element Cd, Ca, and Cp coefs
          
-      CALL SetElementCoefs( InitInp%SimplCd, InitInp%SimplCdMG, InitInp%SimplCa, InitInp%SimplCaMG, InitInp%SimplCp, InitInp%SimplCpMG, InitInp%CoefMembers, InitInp%NCoefDpth, InitInp%CoefDpths, InitInp%NNodes, InitInp%Nodes, InitInp%NElements, InitInp%Elements )   
+      CALL SetElementCoefs( InitInp%SimplCd, InitInp%SimplCdMG, InitInp%SimplCa, InitInp%SimplCaMG, InitInp%SimplCp, InitInp%SimplCpMG, InitInp%SimplAxCa, InitInp%SimplAxCaMG, InitInp%SimplAxCp, InitInp%SimplAxCpMG,InitInp%CoefMembers, InitInp%NCoefDpth, InitInp%CoefDpths, InitInp%NNodes, InitInp%Nodes, InitInp%NElements, InitInp%Elements )   
       
       
          ! Set the axial coefs AxCd and AxCa
@@ -3944,9 +4083,11 @@ IF (ALLOCATED(InitInp%JOutLst) ) &
                                   p%D_F_I, p%D_F_B, p%D_F_DP, p%D_F_MG, p%D_F_BF, p%D_AM_M, p%D_AM_MG, p%D_AM_F, p%D_dragConst, &                 ! 
                                     ErrStat, ErrMsg )
      IF ( ErrStat > ErrID_None ) RETURN
-     CALL CreateLumpedMesh( InitInp%WtrDens, InitInp%Gravity, InitInp%MSL2SWL, InitInp%WtrDpth, InitInp%NStepWave, InitInp%WaveDynP0, p%NNodes, p%Nodes, InitInp%NElements, InitInp%Elements, &
+     
+         
+     CALL CreateLumpedMesh( InitInp%WtrDens, InitInp%Gravity, InitInp%MSL2SWL, InitInp%WtrDpth, InitInp%NStepWave, InitInp%WaveDynP0, InitInp%WaveAcc0,p%NNodes, p%Nodes, InitInp%NElements, InitInp%Elements, &
                                   p%NLumpedMarkers,  u%LumpedMesh, y%LumpedMesh, p%lumpedToNodeIndx,   p%L_An,     &
-                                  p%L_F_B, p%L_F_DP, p%L_F_BF, p%L_AM_M, p%L_dragConst, &
+                                  p%L_F_B, p%L_F_I, p%L_F_DP, p%L_F_BF, p%L_AM_M, p%L_dragConst, &
                                   ErrStat, ErrMsg )
      IF ( ErrStat > ErrID_None ) RETURN
       !,  p%DistribMarkers,  p%Nodes, p%distribToNodeIndx
@@ -4039,7 +4180,12 @@ IF (ALLOCATED(InitInp%JOutLst) ) &
          ErrStat = ErrID_Fatal
          RETURN
       END IF
-      
+      ALLOCATE ( OtherState%L_F_I(6,y%LumpedMesh%Nnodes), STAT = ErrStat )
+      IF ( ErrStat /= ErrID_None ) THEN
+         ErrMsg  = ' Error allocating space for L_F_I array.'
+         ErrStat = ErrID_Fatal
+         RETURN
+      END IF
       ALLOCATE ( OtherState%L_F_DP(6,y%LumpedMesh%Nnodes), STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN
          ErrMsg  = ' Error allocating space for L_F_DP array.'
@@ -4098,7 +4244,7 @@ IF (ALLOCATED(InitInp%JOutLst) ) &
    
       ! Write Summary information now that everything has been initialized.
       
-   CALL WriteSummaryFile( InitInp%UnSum, InitInp%MSL2SWL, InitInp%NNodes, InitInp%Nodes, InitInp%NElements, InitInp%Elements, p%NumOuts, p%OutParam, p%NMOutputs, p%MOutLst, p%NJOutputs, p%JOutLst, u%LumpedMesh, y%LumpedMesh,u%DistribMesh, y%DistribMesh, p%L_F_B, p%L_F_BF, p%D_F_B, p%D_F_BF, p%D_F_MG, InitInp%Gravity, ErrStat, ErrMsg ) !p%NDistribMarkers, distribMarkers, p%NLumpedMarkers, lumpedMarkers,
+   CALL WriteSummaryFile( InitInp%UnSum, InitInp%MSL2SWL, InitInp%NNodes, InitInp%Nodes, InitInp%NElements, InitInp%Elements, p%NumOuts, p%OutParam, p%NMOutputs, p%MOutLst, p%distribToNodeIndx, p%NJOutputs, p%JOutLst, u%LumpedMesh, y%LumpedMesh,u%DistribMesh, y%DistribMesh, p%L_F_B, p%L_F_BF, p%D_F_B, p%D_F_BF, p%D_F_MG, InitInp%Gravity, ErrStat, ErrMsg ) !p%NDistribMarkers, distribMarkers, p%NLumpedMarkers, lumpedMarkers,
    IF ( ErrStat > ErrID_None ) RETURN  
       
          ! If you want to choose your own rate instead of using what the glue code suggests, tell the glue code the rate at which
@@ -4299,6 +4445,7 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
       INTEGER                                           :: I, J, K, nodeIndx
       REAL(ReKi)                                        :: AllOuts(MaxMrsnOutputs)  ! TODO: think about adding to OtherState
       REAL(ReKi)                                        :: qdotdot(6)     ! The structural acceleration of a mesh node
+      REAL(ReKi)                                        :: accel_fluid(6) ! Acceleration of fluid at the mesh node
       REAL(ReKi)                                        :: dragFactor     ! The lumped drag factor
       REAL(ReKi)                                        :: AnProd         ! Dot product of the directional area of the joint
       REAL(ReKi)                                        :: F_B(6)
@@ -4418,7 +4565,7 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
          IF (EqualRealNos(AnProd, 0.0_ReKi)) THEN
             dragFactor = 0.0
          ELSE
-            dragFactor = p%Nodes(nodeIndx)%AxCd*p%WtrDens*abs(vmag)*vmag / ( 4.0_ReKi * AnProd )
+            dragFactor = p%Nodes(nodeIndx)%JAxCd*p%WtrDens*abs(vmag)*vmag / ( 4.0_ReKi * AnProd )
          END IF
          
          !  v = Dot_Product(kvec,kvec)*vrel - Dot_Product(kvec,vrel)*kvec
@@ -4428,7 +4575,8 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
          
             ! Lumped added mass loads
          qdotdot                 = reshape((/u%LumpedMesh%TranslationAcc(:,J),u%LumpedMesh%RotationAcc(:,J)/),(/6/))   
-         OtherState%L_F_AM(:,J)  = -matmul( p%L_AM_M(:,:,J) , qdotdot )
+         accel_fluid             = reshape((/OtherState%L_FA(:,J),[0.0,0.0,0.0]/),(/6/))  ! Add rotational accelerations of fluid which are zero 
+         OtherState%L_F_AM(:,J)  = matmul( p%L_AM_M(:,:,J) , (accel_fluid - qdotdot) )
          
             ! Time-varying Buoyancy loads
          !sgn = 1.0   
@@ -4441,12 +4589,15 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
             OtherState%L_F_DP(I,J) = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%L_F_DP(:,I,J), &
                                     OtherState%LastIndWave, p%NStepWave + 1       )
             
+            OtherState%L_F_I(I,J) = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%L_F_I(:,I,J), &
+                                    OtherState%LastIndWave, p%NStepWave + 1       )
+            
             IF (I < 4 ) THEN
    
                OtherState%L_F_D(I,J) =  p%L_An(I,J)*dragFactor !vmag*v(I) * p%L_dragConst(J)   ! TODO: Verify newly added axial drag GJH 11/07/13
                
                !y%LumpedMesh%Force(I,J) = OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_DP(I,J) +  p%L_F_BF(I,J)
-               y%LumpedMesh%Force(I,J) = OtherState%L_F_AM(I,J) + OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_DP(I,J) +  p%L_F_BF(I,J)
+               y%LumpedMesh%Force(I,J) = OtherState%L_F_AM(I,J) + OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_I(I,J) + OtherState%L_F_DP(I,J) +  p%L_F_BF(I,J)
                !y%LumpedMesh%Force(I,J) =  OtherState%L_F_DP(I,J) 
             ELSE
                !y%LumpedMesh%Moment(I-3,J) =  p%L_F_B(I,J) +   p%L_F_BF(I,J)

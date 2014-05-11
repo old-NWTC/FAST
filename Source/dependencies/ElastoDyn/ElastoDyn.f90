@@ -20,8 +20,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-02 12:31:20 -0600 (Fri, 02 May 2014) $
-! (File) Revision #: $Rev: 684 $
+! File last committed: $Date: 2014-05-08 09:36:49 -0600 (Thu, 08 May 2014) $
+! (File) Revision #: $Rev: 688 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn.f90 $
 !**********************************************************************************************************************************
 

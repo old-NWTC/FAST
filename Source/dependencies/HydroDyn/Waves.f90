@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 14:46:01 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 334 $
+! File last committed: $Date: 2014-04-30 09:41:52 -0600 (Wed, 30 Apr 2014) $
+! (File) Revision #: $Rev: 384 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -1351,6 +1351,8 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
             WGNC = (0.0,0.0)
          ELSEIF ( InitInp%WaveMod == 10 )  THEN                     ! .TRUE. for plane progressive (regular) waves with a specified phase
             WGNC = BoxMuller ( InitInp%WaveNDAmp, InitInp%WavePhase )
+            IF (  ( I == I_WaveTp ) )  WGNC = WGNC*( SQRT(2.0)/ABS(WGNC) )   ! This scaling of WGNC is used to ensure that the Box-Muller method is only providing a random phase, not a magnitude change, at the frequency of the plane progressive wave.  The SQRT(2.0) is used to ensure that the time series WGN process has unit variance (i.e. sinusoidal with amplitude SQRT(2.0)).  NOTE: the denominator here will never equal zero since U1 cannot equal 1.0, and thus, C1 cannot be 0.0 in the Box-Muller method.
+                                                                      !bjj: use (SQRT(2.0)/ABS(WGNC) ,0.0_ReKi) to explicitly convert this to a complex number, as opposed to having Fortran do it automatically?
          ELSE                                               ! All other Omega
             WGNC = BoxMuller ( InitInp%WaveNDAmp                    )
             IF ( ( InitInp%WaveMod == 1 ) .AND. ( I == I_WaveTp ) )  WGNC = WGNC*( SQRT(2.0)/ABS(WGNC) )   ! This scaling of WGNC is used to ensure that the Box-Muller method is only providing a random phase, not a magnitude change, at the frequency of the plane progressive wave.  The SQRT(2.0) is used to ensure that the time series WGN process has unit variance (i.e. sinusoidal with amplitude SQRT(2.0)).  NOTE: the denominator here will never equal zero since U1 cannot equal 1.0, and thus, C1 cannot be 0.0 in the Box-Muller method.
@@ -1576,8 +1578,8 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
 
       DO J = 1,NWaveKin0Prime ! Loop through all points where the incident wave kinematics will be computed without stretching
 
-         WaveVel0Hxi (:,J) =  WaveVel0H   (:,J)*CWaveDir +  InitInp%CurrVxi(J)     ! xi-direction
-         WaveVel0Hyi (:,J) =  WaveVel0H   (:,J)*SWaveDir +  InitInp%CurrVyi(J)     ! yi-direction
+         WaveVel0Hxi (:,J) =  WaveVel0H   (:,J)*CWaveDir +  InitInp%CurrVxi(WaveKinPrimeMap(J))     ! xi-direction
+         WaveVel0Hyi (:,J) =  WaveVel0H   (:,J)*SWaveDir +  InitInp%CurrVyi(WaveKinPrimeMap(J))     ! yi-direction
 
       END DO                   ! J - All points where the incident wave kinematics will be computed without stretching
 

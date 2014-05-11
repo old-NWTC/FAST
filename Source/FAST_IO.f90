@@ -993,8 +993,8 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
 
-      ! CompElast - Compute blade loads (switch) {1=ElastoDyn; 2=BeamDyn}:
-   CALL ReadVar( UnIn, InputFile, p%CompElast, "CompElast", "Compute blade loads (switch) {1=ElastoDyn; 2=BeamDyn}", ErrStat2, ErrMsg2, UnEc)
+      ! CompElast - Compute structural dynamics (switch) {1=ElastoDyn; 2=ElastoDyn + BeamDyn for blades}:
+   CALL ReadVar( UnIn, InputFile, p%CompElast, "CompElast", "Compute structural dynamics (switch) {1=ElastoDyn; 2=ElastoDyn + BeamDyn for blades}", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
           ! immediately convert to values used inside the code:

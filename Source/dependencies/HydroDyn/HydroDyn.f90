@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-03-04 07:56:06 -0700 (Tue, 04 Mar 2014) $
-! (File) Revision #: $Rev: 360 $
+! File last committed: $Date: 2014-05-09 10:55:39 -0600 (Fri, 09 May 2014) $
+! (File) Revision #: $Rev: 385 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -41,7 +41,7 @@ MODULE HydroDyn
    PRIVATE
 
   
-   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.00.04b-gjh', '04-Mar-2014' )
+   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.00.05c-gjh', '07-May-2014' )
 
     
    
@@ -213,7 +213,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       END IF
       
          ! Copy Additional preload, stiffness, and damping to the parameters
-      P%AddF0        = InitLocal%AddF0
+      p%AddF0        = InitLocal%AddF0
       p%AddCLin      = InitLocal%AddCLin
       p%AddBLin      = InitLocal%AddBLin
       p%AddBQuad     = InitLocal%AddBQuad

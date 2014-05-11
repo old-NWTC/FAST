@@ -10,7 +10,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
       99999   DT_UJac         - Time between calls to get Jacobians (s)
       1E+06   UJacSclFact     - Scaling factor used in Jacobians (-)
 ---------------------- FEATURE SWITCHES AND FLAGS ------------------------------
-          1   CompElast       - Compute blade loads (switch) {1=ElastoDyn; 2=BeamDyn}
+          1   CompElast       - Compute structural dynamics (switch) {1=ElastoDyn; 2=ElastoDyn + BeamDyn for blades}
           0   CompAero        - Compute aerodynamic loads (switch) {0=None; 1=AeroDyn}
           1   CompServo       - Compute control and electrical-drive dynamics (switch) {0=None; 1=ServoDyn}
           0   CompHydro       - Compute hydrodynamic loads (switch) {0=None; 1=HydroDyn}
@@ -20,7 +20,7 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
 False         CompUserPtfmLd  - Compute additional platform loading {false: none; true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none; true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
-"WP_Baseline/Test14_ElastoDyn.dat"    EDFile      - Name of file containing ElastoDyn input parameters (quoted string)
+"WP_Baseline/Test14_ElastoDyn.dat"    EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
 "unused"      BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
 "unused"      BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
 "unused"      BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)

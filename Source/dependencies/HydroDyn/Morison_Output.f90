@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-04-02 12:11:01 -0600 (Wed, 02 Apr 2014) $
-! (File) Revision #: $Rev: 374 $
+! File last committed: $Date: 2014-04-30 09:41:52 -0600 (Wed, 30 Apr 2014) $
+! (File) Revision #: $Rev: 384 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison_Output.f90 $
 !**********************************************************************************************************************************
 MODULE Morison_Output
@@ -7855,6 +7855,9 @@ SUBROUTINE MrsnOut_MapOutputs( CurrentTime, y, p, u, OtherState, AllOuts, ErrSta
       DO J=1,p%NMOutputs     
          DO I=1,p%MOutLst(J)%NOutLoc   
          
+            ! These indices are in the DistribMesh index system, not the overall nodes index system, so distribToNodeIndx() mapping needs to be performed if you want to index into the nodes array or wave kinematics arrays
+            ! But, all of the D_* arrays are already using the DistribMesh index system, so we are OK for those
+            
             m1 = p%MOutLst(J)%Marker1(I)
             m2 = p%MOutLst(J)%Marker2(I)
             s  = p%MOutLst(J)%s      (I)
@@ -8298,7 +8301,9 @@ END IF
             ! scale factor based on how far they are from the requested output location.
             ! Since this is being done on markers and not nodes, the subroutine must be called after the Morison_Init() subroutine is called
             CALL GetNeighboringMarkers(memberIndx, p%MOutLst(I)%NodeLocs(J), p%NDistribMarkers,  p%Nodes, p%distribToNodeIndx,  m1, m2, s, ErrStat, ErrMsg)  
-                                         
+                 
+            ! These indices are in the DistribMesh index system, not the overal nodes index system, so distribToNodeIndx() mapping needs to be performed if you 
+            !   want to index into the nodes array or wave kinematics arrays
             p%MOutLst(I)%Marker1(J) = m1
             p%MOutLst(I)%Marker2(J) = m2 ! The 2nd marker indx which is used to
             p%MOutLst(I)%s(J)       = s ! linear interpolation factor     

@@ -18,9 +18,11 @@ for i=[1:19 21:24]
     inputfile = [oldDir filesep baseFileName '.fst'];      
     
     
-    ConvertFAST8_3to5(inputfile,newDir);
+    ConvertFAST8_3to7(inputfile,newDir);
     
 end
+ConvertFAST8_3to7('Test19_noHD.fst',newDir);
+
 return;
 
 

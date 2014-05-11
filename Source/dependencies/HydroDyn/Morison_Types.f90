@@ -70,6 +70,10 @@ IMPLICIT NONE
     REAL(ReKi)  :: DpthCaMG      !  [-]
     REAL(ReKi)  :: DpthCp      !  [-]
     REAL(ReKi)  :: DpthCpMG      !  [-]
+    REAL(ReKi)  :: DpthAxCa      !  [-]
+    REAL(ReKi)  :: DpthAxCaMG      !  [-]
+    REAL(ReKi)  :: DpthAxCp      !  [-]
+    REAL(ReKi)  :: DpthAxCpMG      !  [-]
   END TYPE Morison_CoefDpths
 ! =======================
 ! =========  Morison_AxialCoefType  =======
@@ -117,9 +121,13 @@ IMPLICIT NONE
     REAL(ReKi)  :: CaMG      !  [-]
     REAL(ReKi)  :: Cp      !  [-]
     REAL(ReKi)  :: CpMG      !  [-]
-    REAL(ReKi)  :: AxCd      !  [-]
+    REAL(ReKi)  :: JAxCd      !  [-]
+    REAL(ReKi)  :: JAxCa      !  [-]
+    REAL(ReKi)  :: JAxCp      !  [-]
     REAL(ReKi)  :: AxCa      !  [-]
     REAL(ReKi)  :: AxCp      !  [-]
+    REAL(ReKi)  :: AxCaMG      !  [-]
+    REAL(ReKi)  :: AxCpMG      !  [-]
     REAL(ReKi)  :: R      !  [-]
     REAL(ReKi)  :: t      !  [-]
     REAL(ReKi)  :: tMG      !  [-]
@@ -148,12 +156,20 @@ IMPLICIT NONE
     REAL(ReKi)  :: CaMG1      !  [-]
     REAL(ReKi)  :: Cp1      !  [-]
     REAL(ReKi)  :: CpMG1      !  [-]
+    REAL(ReKi)  :: AxCa1      !  [-]
+    REAL(ReKi)  :: AxCaMG1      !  [-]
+    REAL(ReKi)  :: AxCp1      !  [-]
+    REAL(ReKi)  :: AxCpMG1      !  [-]
     REAL(ReKi)  :: Cd2      !  [-]
     REAL(ReKi)  :: CdMG2      !  [-]
     REAL(ReKi)  :: Ca2      !  [-]
     REAL(ReKi)  :: CaMG2      !  [-]
     REAL(ReKi)  :: Cp2      !  [-]
     REAL(ReKi)  :: CpMG2      !  [-]
+    REAL(ReKi)  :: AxCa2      !  [-]
+    REAL(ReKi)  :: AxCaMG2      !  [-]
+    REAL(ReKi)  :: AxCp2      !  [-]
+    REAL(ReKi)  :: AxCpMG2      !  [-]
     REAL(ReKi)  :: InpMbrDist1      !  [-]
     REAL(ReKi)  :: InpMbrDist2      !  [-]
     REAL(ReKi)  :: InpMbrLen      !  [-]
@@ -188,6 +204,14 @@ IMPLICIT NONE
     REAL(ReKi)  :: MemberCp2      !  [-]
     REAL(ReKi)  :: MemberCpMG1      !  [-]
     REAL(ReKi)  :: MemberCpMG2      !  [-]
+    REAL(ReKi)  :: MemberAxCa1      !  [-]
+    REAL(ReKi)  :: MemberAxCa2      !  [-]
+    REAL(ReKi)  :: MemberAxCaMG1      !  [-]
+    REAL(ReKi)  :: MemberAxCaMG2      !  [-]
+    REAL(ReKi)  :: MemberAxCp1      !  [-]
+    REAL(ReKi)  :: MemberAxCp2      !  [-]
+    REAL(ReKi)  :: MemberAxCpMG1      !  [-]
+    REAL(ReKi)  :: MemberAxCpMG2      !  [-]
   END TYPE Morison_CoefMembers
 ! =======================
 ! =========  Morison_MGDepthsType  =======
@@ -239,6 +263,10 @@ IMPLICIT NONE
     REAL(ReKi)  :: SimplCaMG      !  [-]
     REAL(ReKi)  :: SimplCp      !  [-]
     REAL(ReKi)  :: SimplCpMG      !  [-]
+    REAL(ReKi)  :: SimplAxCa      !  [-]
+    REAL(ReKi)  :: SimplAxCaMG      !  [-]
+    REAL(ReKi)  :: SimplAxCp      !  [-]
+    REAL(ReKi)  :: SimplAxCpMG      !  [-]
     INTEGER(IntKi)  :: NCoefDpth      !  [-]
     TYPE(Morison_CoefDpths) , DIMENSION(:), ALLOCATABLE  :: CoefDpths      !  [-]
     INTEGER(IntKi)  :: NCoefMembers      !  [-]
@@ -306,6 +334,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D_FA      ! Fluid acceleration at line element node [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: D_FDynP      ! Fluid dynamic pressure at line element node [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_D      ! Lumped viscous drag loads [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_I      ! Lumped intertia loads [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_DP      ! Lumped dynamic pressure loads [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_AM      ! Lumped added mass loads [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_FV      ! Fluid velocity at point element node [-]
@@ -331,6 +360,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: D_dragConst      !  [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_An      !  [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_B      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: L_F_I      !  [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: L_F_DP      !  [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: L_F_BF      !  [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: L_AM_M      !  [-]
@@ -808,6 +838,10 @@ ENDIF
    DstcoefdpthsData%DpthCaMG = SrccoefdpthsData%DpthCaMG
    DstcoefdpthsData%DpthCp = SrccoefdpthsData%DpthCp
    DstcoefdpthsData%DpthCpMG = SrccoefdpthsData%DpthCpMG
+   DstcoefdpthsData%DpthAxCa = SrccoefdpthsData%DpthAxCa
+   DstcoefdpthsData%DpthAxCaMG = SrccoefdpthsData%DpthAxCaMG
+   DstcoefdpthsData%DpthAxCp = SrccoefdpthsData%DpthAxCp
+   DstcoefdpthsData%DpthAxCpMG = SrccoefdpthsData%DpthAxCpMG
  END SUBROUTINE Morison_Copycoefdpths
 
  SUBROUTINE Morison_Destroycoefdpths( coefdpthsData, ErrStat, ErrMsg )
@@ -861,6 +895,10 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! DpthCaMG
   Re_BufSz   = Re_BufSz   + 1  ! DpthCp
   Re_BufSz   = Re_BufSz   + 1  ! DpthCpMG
+  Re_BufSz   = Re_BufSz   + 1  ! DpthAxCa
+  Re_BufSz   = Re_BufSz   + 1  ! DpthAxCaMG
+  Re_BufSz   = Re_BufSz   + 1  ! DpthAxCp
+  Re_BufSz   = Re_BufSz   + 1  ! DpthAxCpMG
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -877,6 +915,14 @@ ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DpthCp )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DpthCpMG )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DpthAxCa )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DpthAxCaMG )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DpthAxCp )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DpthAxCpMG )
   Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE Morison_Packcoefdpths
 
@@ -926,6 +972,14 @@ ENDIF
   OutData%DpthCp = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%DpthCpMG = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%DpthAxCa = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%DpthAxCaMG = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%DpthAxCp = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%DpthAxCpMG = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
@@ -1288,9 +1342,13 @@ ENDIF
    DstnodetypeData%CaMG = SrcnodetypeData%CaMG
    DstnodetypeData%Cp = SrcnodetypeData%Cp
    DstnodetypeData%CpMG = SrcnodetypeData%CpMG
-   DstnodetypeData%AxCd = SrcnodetypeData%AxCd
+   DstnodetypeData%JAxCd = SrcnodetypeData%JAxCd
+   DstnodetypeData%JAxCa = SrcnodetypeData%JAxCa
+   DstnodetypeData%JAxCp = SrcnodetypeData%JAxCp
    DstnodetypeData%AxCa = SrcnodetypeData%AxCa
    DstnodetypeData%AxCp = SrcnodetypeData%AxCp
+   DstnodetypeData%AxCaMG = SrcnodetypeData%AxCaMG
+   DstnodetypeData%AxCpMG = SrcnodetypeData%AxCpMG
    DstnodetypeData%R = SrcnodetypeData%R
    DstnodetypeData%t = SrcnodetypeData%t
    DstnodetypeData%tMG = SrcnodetypeData%tMG
@@ -1363,9 +1421,13 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! CaMG
   Re_BufSz   = Re_BufSz   + 1  ! Cp
   Re_BufSz   = Re_BufSz   + 1  ! CpMG
-  Re_BufSz   = Re_BufSz   + 1  ! AxCd
+  Re_BufSz   = Re_BufSz   + 1  ! JAxCd
+  Re_BufSz   = Re_BufSz   + 1  ! JAxCa
+  Re_BufSz   = Re_BufSz   + 1  ! JAxCp
   Re_BufSz   = Re_BufSz   + 1  ! AxCa
   Re_BufSz   = Re_BufSz   + 1  ! AxCp
+  Re_BufSz   = Re_BufSz   + 1  ! AxCaMG
+  Re_BufSz   = Re_BufSz   + 1  ! AxCpMG
   Re_BufSz   = Re_BufSz   + 1  ! R
   Re_BufSz   = Re_BufSz   + 1  ! t
   Re_BufSz   = Re_BufSz   + 1  ! tMG
@@ -1407,11 +1469,19 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%CpMG )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCd )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%JAxCd )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%JAxCa )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%JAxCp )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCa )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCp )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCaMG )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCpMG )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%R )
   Re_Xferred   = Re_Xferred   + 1
@@ -1500,11 +1570,19 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%CpMG = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%AxCd = ReKiBuf ( Re_Xferred )
+  OutData%JAxCd = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%JAxCa = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%JAxCp = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%AxCa = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%AxCp = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCaMG = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCpMG = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%R = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
@@ -1558,12 +1636,20 @@ ENDIF
    DstmembertypeData%CaMG1 = SrcmembertypeData%CaMG1
    DstmembertypeData%Cp1 = SrcmembertypeData%Cp1
    DstmembertypeData%CpMG1 = SrcmembertypeData%CpMG1
+   DstmembertypeData%AxCa1 = SrcmembertypeData%AxCa1
+   DstmembertypeData%AxCaMG1 = SrcmembertypeData%AxCaMG1
+   DstmembertypeData%AxCp1 = SrcmembertypeData%AxCp1
+   DstmembertypeData%AxCpMG1 = SrcmembertypeData%AxCpMG1
    DstmembertypeData%Cd2 = SrcmembertypeData%Cd2
    DstmembertypeData%CdMG2 = SrcmembertypeData%CdMG2
    DstmembertypeData%Ca2 = SrcmembertypeData%Ca2
    DstmembertypeData%CaMG2 = SrcmembertypeData%CaMG2
    DstmembertypeData%Cp2 = SrcmembertypeData%Cp2
    DstmembertypeData%CpMG2 = SrcmembertypeData%CpMG2
+   DstmembertypeData%AxCa2 = SrcmembertypeData%AxCa2
+   DstmembertypeData%AxCaMG2 = SrcmembertypeData%AxCaMG2
+   DstmembertypeData%AxCp2 = SrcmembertypeData%AxCp2
+   DstmembertypeData%AxCpMG2 = SrcmembertypeData%AxCpMG2
    DstmembertypeData%InpMbrDist1 = SrcmembertypeData%InpMbrDist1
    DstmembertypeData%InpMbrDist2 = SrcmembertypeData%InpMbrDist2
    DstmembertypeData%InpMbrLen = SrcmembertypeData%InpMbrLen
@@ -1639,12 +1725,20 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! CaMG1
   Re_BufSz   = Re_BufSz   + 1  ! Cp1
   Re_BufSz   = Re_BufSz   + 1  ! CpMG1
+  Re_BufSz   = Re_BufSz   + 1  ! AxCa1
+  Re_BufSz   = Re_BufSz   + 1  ! AxCaMG1
+  Re_BufSz   = Re_BufSz   + 1  ! AxCp1
+  Re_BufSz   = Re_BufSz   + 1  ! AxCpMG1
   Re_BufSz   = Re_BufSz   + 1  ! Cd2
   Re_BufSz   = Re_BufSz   + 1  ! CdMG2
   Re_BufSz   = Re_BufSz   + 1  ! Ca2
   Re_BufSz   = Re_BufSz   + 1  ! CaMG2
   Re_BufSz   = Re_BufSz   + 1  ! Cp2
   Re_BufSz   = Re_BufSz   + 1  ! CpMG2
+  Re_BufSz   = Re_BufSz   + 1  ! AxCa2
+  Re_BufSz   = Re_BufSz   + 1  ! AxCaMG2
+  Re_BufSz   = Re_BufSz   + 1  ! AxCp2
+  Re_BufSz   = Re_BufSz   + 1  ! AxCpMG2
   Re_BufSz   = Re_BufSz   + 1  ! InpMbrDist1
   Re_BufSz   = Re_BufSz   + 1  ! InpMbrDist2
   Re_BufSz   = Re_BufSz   + 1  ! InpMbrLen
@@ -1688,6 +1782,14 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%CpMG1 )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCa1 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCaMG1 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCp1 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCpMG1 )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Cd2 )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%CdMG2 )
@@ -1699,6 +1801,14 @@ ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Cp2 )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%CpMG2 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCa2 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCaMG2 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCp2 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%AxCpMG2 )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%InpMbrDist1 )
   Re_Xferred   = Re_Xferred   + 1
@@ -1791,6 +1901,14 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%CpMG1 = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCa1 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCaMG1 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCp1 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCpMG1 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
   OutData%Cd2 = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%CdMG2 = ReKiBuf ( Re_Xferred )
@@ -1802,6 +1920,14 @@ ENDIF
   OutData%Cp2 = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%CpMG2 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCa2 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCaMG2 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCp2 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%AxCpMG2 = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%InpMbrDist1 = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
@@ -1874,6 +2000,14 @@ ENDIF
    DstcoefmembersData%MemberCp2 = SrccoefmembersData%MemberCp2
    DstcoefmembersData%MemberCpMG1 = SrccoefmembersData%MemberCpMG1
    DstcoefmembersData%MemberCpMG2 = SrccoefmembersData%MemberCpMG2
+   DstcoefmembersData%MemberAxCa1 = SrccoefmembersData%MemberAxCa1
+   DstcoefmembersData%MemberAxCa2 = SrccoefmembersData%MemberAxCa2
+   DstcoefmembersData%MemberAxCaMG1 = SrccoefmembersData%MemberAxCaMG1
+   DstcoefmembersData%MemberAxCaMG2 = SrccoefmembersData%MemberAxCaMG2
+   DstcoefmembersData%MemberAxCp1 = SrccoefmembersData%MemberAxCp1
+   DstcoefmembersData%MemberAxCp2 = SrccoefmembersData%MemberAxCp2
+   DstcoefmembersData%MemberAxCpMG1 = SrccoefmembersData%MemberAxCpMG1
+   DstcoefmembersData%MemberAxCpMG2 = SrccoefmembersData%MemberAxCpMG2
  END SUBROUTINE Morison_Copycoefmembers
 
  SUBROUTINE Morison_Destroycoefmembers( coefmembersData, ErrStat, ErrMsg )
@@ -1933,6 +2067,14 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! MemberCp2
   Re_BufSz   = Re_BufSz   + 1  ! MemberCpMG1
   Re_BufSz   = Re_BufSz   + 1  ! MemberCpMG2
+  Re_BufSz   = Re_BufSz   + 1  ! MemberAxCa1
+  Re_BufSz   = Re_BufSz   + 1  ! MemberAxCa2
+  Re_BufSz   = Re_BufSz   + 1  ! MemberAxCaMG1
+  Re_BufSz   = Re_BufSz   + 1  ! MemberAxCaMG2
+  Re_BufSz   = Re_BufSz   + 1  ! MemberAxCp1
+  Re_BufSz   = Re_BufSz   + 1  ! MemberAxCp2
+  Re_BufSz   = Re_BufSz   + 1  ! MemberAxCpMG1
+  Re_BufSz   = Re_BufSz   + 1  ! MemberAxCpMG2
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1961,6 +2103,22 @@ ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberCpMG1 )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberCpMG2 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberAxCa1 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberAxCa2 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberAxCaMG1 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberAxCaMG2 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberAxCp1 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberAxCp2 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberAxCpMG1 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MemberAxCpMG2 )
   Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE Morison_Packcoefmembers
 
@@ -2022,6 +2180,22 @@ ENDIF
   OutData%MemberCpMG1 = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%MemberCpMG2 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MemberAxCa1 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MemberAxCa2 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MemberAxCaMG1 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MemberAxCaMG2 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MemberAxCp1 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MemberAxCp2 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MemberAxCpMG1 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MemberAxCpMG2 = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
@@ -2608,6 +2782,10 @@ ENDIF
    DstInitInputData%SimplCaMG = SrcInitInputData%SimplCaMG
    DstInitInputData%SimplCp = SrcInitInputData%SimplCp
    DstInitInputData%SimplCpMG = SrcInitInputData%SimplCpMG
+   DstInitInputData%SimplAxCa = SrcInitInputData%SimplAxCa
+   DstInitInputData%SimplAxCaMG = SrcInitInputData%SimplAxCaMG
+   DstInitInputData%SimplAxCp = SrcInitInputData%SimplAxCp
+   DstInitInputData%SimplAxCpMG = SrcInitInputData%SimplAxCpMG
    DstInitInputData%NCoefDpth = SrcInitInputData%NCoefDpth
 IF (ALLOCATED(SrcInitInputData%CoefDpths)) THEN
    i1_l = LBOUND(SrcInitInputData%CoefDpths,1)
@@ -3035,6 +3213,10 @@ ENDDO
   Re_BufSz   = Re_BufSz   + 1  ! SimplCaMG
   Re_BufSz   = Re_BufSz   + 1  ! SimplCp
   Re_BufSz   = Re_BufSz   + 1  ! SimplCpMG
+  Re_BufSz   = Re_BufSz   + 1  ! SimplAxCa
+  Re_BufSz   = Re_BufSz   + 1  ! SimplAxCaMG
+  Re_BufSz   = Re_BufSz   + 1  ! SimplAxCp
+  Re_BufSz   = Re_BufSz   + 1  ! SimplAxCpMG
   Int_BufSz  = Int_BufSz  + 1  ! NCoefDpth
 DO i1 = LBOUND(InData%CoefDpths,1), UBOUND(InData%CoefDpths,1)
   CALL Morison_Packcoefdpths( Re_CoefDpths_Buf, Db_CoefDpths_Buf, Int_CoefDpths_Buf, InData%CoefDpths(i1), ErrStat, ErrMsg, .TRUE. ) ! CoefDpths 
@@ -3240,6 +3422,14 @@ ENDDO
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SimplCp )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SimplCpMG )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SimplAxCa )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SimplAxCaMG )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SimplAxCp )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%SimplAxCpMG )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NCoefDpth )
   Int_Xferred   = Int_Xferred   + 1
@@ -3598,6 +3788,14 @@ ENDDO
   OutData%SimplCp = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%SimplCpMG = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%SimplAxCa = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%SimplAxCaMG = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%SimplAxCp = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%SimplAxCpMG = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%NCoefDpth = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
@@ -4507,6 +4705,21 @@ IF (ALLOCATED(SrcOtherStateData%L_F_D)) THEN
    END IF
    DstOtherStateData%L_F_D = SrcOtherStateData%L_F_D
 ENDIF
+IF (ALLOCATED(SrcOtherStateData%L_F_I)) THEN
+   i1_l = LBOUND(SrcOtherStateData%L_F_I,1)
+   i1_u = UBOUND(SrcOtherStateData%L_F_I,1)
+   i2_l = LBOUND(SrcOtherStateData%L_F_I,2)
+   i2_u = UBOUND(SrcOtherStateData%L_F_I,2)
+   IF (.NOT. ALLOCATED(DstOtherStateData%L_F_I)) THEN 
+      ALLOCATE(DstOtherStateData%L_F_I(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%L_F_I.'
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%L_F_I = SrcOtherStateData%L_F_I
+ENDIF
 IF (ALLOCATED(SrcOtherStateData%L_F_DP)) THEN
    i1_l = LBOUND(SrcOtherStateData%L_F_DP,1)
    i1_u = UBOUND(SrcOtherStateData%L_F_DP,1)
@@ -4624,6 +4837,9 @@ ENDIF
 IF (ALLOCATED(OtherStateData%L_F_D)) THEN
    DEALLOCATE(OtherStateData%L_F_D)
 ENDIF
+IF (ALLOCATED(OtherStateData%L_F_I)) THEN
+   DEALLOCATE(OtherStateData%L_F_I)
+ENDIF
 IF (ALLOCATED(OtherStateData%L_F_DP)) THEN
    DEALLOCATE(OtherStateData%L_F_DP)
 ENDIF
@@ -4686,6 +4902,7 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%D_FA )  ! D_FA 
   Re_BufSz    = Re_BufSz    + SIZE( InData%D_FDynP )  ! D_FDynP 
   Re_BufSz    = Re_BufSz    + SIZE( InData%L_F_D )  ! L_F_D 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%L_F_I )  ! L_F_I 
   Re_BufSz    = Re_BufSz    + SIZE( InData%L_F_DP )  ! L_F_DP 
   Re_BufSz    = Re_BufSz    + SIZE( InData%L_F_AM )  ! L_F_AM 
   Re_BufSz    = Re_BufSz    + SIZE( InData%L_FV )  ! L_FV 
@@ -4738,6 +4955,10 @@ ENDIF
   IF ( ALLOCATED(InData%L_F_D) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%L_F_D))-1 ) =  PACK(InData%L_F_D ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%L_F_D)
+  ENDIF
+  IF ( ALLOCATED(InData%L_F_I) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%L_F_I))-1 ) =  PACK(InData%L_F_I ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%L_F_I)
   ENDIF
   IF ( ALLOCATED(InData%L_F_DP) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%L_F_DP))-1 ) =  PACK(InData%L_F_DP ,.TRUE.)
@@ -4861,6 +5082,12 @@ ENDIF
     OutData%L_F_D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_D))-1 ),mask2,OutData%L_F_D)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_D)
+  ENDIF
+  IF ( ALLOCATED(OutData%L_F_I) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%L_F_I,1),SIZE(OutData%L_F_I,2))); mask2 = .TRUE.
+    OutData%L_F_I = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_I))-1 ),mask2,OutData%L_F_I)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_I)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_DP) ) THEN
   ALLOCATE(mask2(SIZE(OutData%L_F_DP,1),SIZE(OutData%L_F_DP,2))); mask2 = .TRUE.
@@ -5102,6 +5329,23 @@ IF (ALLOCATED(SrcParamData%L_F_B)) THEN
       END IF
    END IF
    DstParamData%L_F_B = SrcParamData%L_F_B
+ENDIF
+IF (ALLOCATED(SrcParamData%L_F_I)) THEN
+   i1_l = LBOUND(SrcParamData%L_F_I,1)
+   i1_u = UBOUND(SrcParamData%L_F_I,1)
+   i2_l = LBOUND(SrcParamData%L_F_I,2)
+   i2_u = UBOUND(SrcParamData%L_F_I,2)
+   i3_l = LBOUND(SrcParamData%L_F_I,3)
+   i3_u = UBOUND(SrcParamData%L_F_I,3)
+   IF (.NOT. ALLOCATED(DstParamData%L_F_I)) THEN 
+      ALLOCATE(DstParamData%L_F_I(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%L_F_I.'
+         RETURN
+      END IF
+   END IF
+   DstParamData%L_F_I = SrcParamData%L_F_I
 ENDIF
 IF (ALLOCATED(SrcParamData%L_F_DP)) THEN
    i1_l = LBOUND(SrcParamData%L_F_DP,1)
@@ -5359,6 +5603,9 @@ ENDIF
 IF (ALLOCATED(ParamData%L_F_B)) THEN
    DEALLOCATE(ParamData%L_F_B)
 ENDIF
+IF (ALLOCATED(ParamData%L_F_I)) THEN
+   DEALLOCATE(ParamData%L_F_I)
+ENDIF
 IF (ALLOCATED(ParamData%L_F_DP)) THEN
    DEALLOCATE(ParamData%L_F_DP)
 ENDIF
@@ -5478,6 +5725,7 @@ ENDDO
   Re_BufSz    = Re_BufSz    + SIZE( InData%D_dragConst )  ! D_dragConst 
   Re_BufSz    = Re_BufSz    + SIZE( InData%L_An )  ! L_An 
   Re_BufSz    = Re_BufSz    + SIZE( InData%L_F_B )  ! L_F_B 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%L_F_I )  ! L_F_I 
   Re_BufSz    = Re_BufSz    + SIZE( InData%L_F_DP )  ! L_F_DP 
   Re_BufSz    = Re_BufSz    + SIZE( InData%L_F_BF )  ! L_F_BF 
   Re_BufSz    = Re_BufSz    + SIZE( InData%L_AM_M )  ! L_AM_M 
@@ -5594,6 +5842,10 @@ ENDDO
   IF ( ALLOCATED(InData%L_F_B) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%L_F_B))-1 ) =  PACK(InData%L_F_B ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%L_F_B)
+  ENDIF
+  IF ( ALLOCATED(InData%L_F_I) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%L_F_I))-1 ) =  PACK(InData%L_F_I ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%L_F_I)
   ENDIF
   IF ( ALLOCATED(InData%L_F_DP) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%L_F_DP))-1 ) =  PACK(InData%L_F_DP ,.TRUE.)
@@ -5842,6 +6094,12 @@ ENDDO
     OutData%L_F_B = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_B))-1 ),mask2,OutData%L_F_B)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_B)
+  ENDIF
+  IF ( ALLOCATED(OutData%L_F_I) ) THEN
+  ALLOCATE(mask3(SIZE(OutData%L_F_I,1),SIZE(OutData%L_F_I,2),SIZE(OutData%L_F_I,3))); mask3 = .TRUE.
+    OutData%L_F_I = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%L_F_I))-1 ),mask3,OutData%L_F_I)
+  DEALLOCATE(mask3)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%L_F_I)
   ENDIF
   IF ( ALLOCATED(OutData%L_F_DP) ) THEN
   ALLOCATE(mask3(SIZE(OutData%L_F_DP,1),SIZE(OutData%L_F_DP,2),SIZE(OutData%L_F_DP,3))); mask3 = .TRUE.

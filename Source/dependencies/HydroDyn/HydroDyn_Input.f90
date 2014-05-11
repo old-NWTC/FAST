@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-08 19:48:22 -0700 (Sat, 08 Feb 2014) $
-! (File) Revision #: $Rev: 345 $
+! File last committed: $Date: 2014-04-30 09:41:52 -0600 (Wed, 30 Apr 2014) $
+! (File) Revision #: $Rev: 384 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -1459,7 +1459,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
    READ(UnIn,'(A)',IOSTAT=ErrStat) Line      !read into a line 
 
    IF (ErrStat == 0) THEN
-      READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%SimplCd, InitInp%Morison%SimplCdMG, InitInp%Morison%SimplCa, InitInp%Morison%SimplCaMG, InitInp%Morison%SimplCp, InitInp%Morison%SimplCpMG
+      READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%SimplCd, InitInp%Morison%SimplCdMG, InitInp%Morison%SimplCa, InitInp%Morison%SimplCaMG, InitInp%Morison%SimplCp, InitInp%Morison%SimplCpMG, InitInp%Morison%SimplAxCa, InitInp%Morison%SimplAxCaMG, InitInp%Morison%SimplAxCp, InitInp%Morison%SimplAxCpMG
    END IF      
        
    IF ( ErrStat /= ErrID_None ) THEN
@@ -1551,7 +1551,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
          READ(UnIn,'(A)',IOSTAT=ErrStat) Line      !read into a line 
 
          IF (ErrStat == 0) THEN
-            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%CoefDpths(I)%Dpth, InitInp%Morison%CoefDpths(I)%DpthCd, InitInp%Morison%CoefDpths(I)%DpthCdMG, InitInp%Morison%CoefDpths(I)%DpthCa, InitInp%Morison%CoefDpths(I)%DpthCaMG, InitInp%Morison%CoefDpths(I)%DpthCp, InitInp%Morison%CoefDpths(I)%DpthCpMG
+            READ(Line,*,IOSTAT=ErrStat) InitInp%Morison%CoefDpths(I)%Dpth, InitInp%Morison%CoefDpths(I)%DpthCd, InitInp%Morison%CoefDpths(I)%DpthCdMG, InitInp%Morison%CoefDpths(I)%DpthCa, InitInp%Morison%CoefDpths(I)%DpthCaMG, InitInp%Morison%CoefDpths(I)%DpthCp, InitInp%Morison%CoefDpths(I)%DpthCpMG, InitInp%Morison%CoefDpths(I)%DpthAxCa, InitInp%Morison%CoefDpths(I)%DpthAxCaMG, InitInp%Morison%CoefDpths(I)%DpthAxCp, InitInp%Morison%CoefDpths(I)%DpthAxCpMG
          END IF      
        
          IF ( ErrStat /= ErrID_None ) THEN
@@ -1651,8 +1651,13 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
                                         InitInp%Morison%CoefMembers(I)%MemberCa1,   InitInp%Morison%CoefMembers(I)%MemberCa2,   &
                                         InitInp%Morison%CoefMembers(I)%MemberCaMG1, InitInp%Morison%CoefMembers(I)%MemberCaMG2, &
                                         InitInp%Morison%CoefMembers(I)%MemberCp1,   InitInp%Morison%CoefMembers(I)%MemberCp2,   &
-                                        InitInp%Morison%CoefMembers(I)%MemberCpMG1, InitInp%Morison%CoefMembers(I)%MemberCpMG2
+                                        InitInp%Morison%CoefMembers(I)%MemberCpMG1, InitInp%Morison%CoefMembers(I)%MemberCpMG2, &
+                                        InitInp%Morison%CoefMembers(I)%MemberAxCa1,   InitInp%Morison%CoefMembers(I)%MemberAxCa2,   &
+                                        InitInp%Morison%CoefMembers(I)%MemberAxCaMG1, InitInp%Morison%CoefMembers(I)%MemberAxCaMG2, &
+                                        InitInp%Morison%CoefMembers(I)%MemberAxCp1,   InitInp%Morison%CoefMembers(I)%MemberAxCp2,   &
+                                        InitInp%Morison%CoefMembers(I)%MemberAxCpMG1, InitInp%Morison%CoefMembers(I)%MemberAxCpMG2
          END IF      
+         
        
          IF ( ErrStat /= ErrID_None ) THEN
             ErrMsg  = ' Failed to read member cross-section properties.'
@@ -2394,6 +2399,8 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    REAL(ReKi)                                       :: l
    REAL(ReKi)                                       :: lvec(3)
    LOGICAL, ALLOCATABLE                             :: foundMask(:)
+   INTEGER                                          :: WaveModIn
+   
       ! Initialize ErrStat
          
    ErrStat = ErrID_None         
@@ -2426,11 +2433,11 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       RETURN
    END IF
    
-   IF ( .NOT. EqualRealNos(InitInp%Morison%MSL2SWL, 0.0_ReKi) ) THEN  !TODO  Alter this check when we support MSL2SWL
-      ErrMsg  = ' MSL2SWL must be 0. Future versions of HydroDyn will once again support any value of MSL2SWL.'
-      ErrStat = ErrID_Fatal         
-      RETURN
-   END IF
+   !IF ( .NOT. EqualRealNos(InitInp%Morison%MSL2SWL, 0.0_ReKi) ) THEN  !TODO  Alter this check when we support MSL2SWL
+   !   ErrMsg  = ' MSL2SWL must be 0. Future versions of HydroDyn will once again support any value of MSL2SWL.'
+   !   ErrStat = ErrID_Fatal         
+   !   RETURN
+   !END IF
       
    
       ! WaveMod - Wave kinematics model switch.
@@ -2444,6 +2451,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             CALL CheckIOS ( ErrStat, "", 'WavePhase', NumType, .TRUE. )         
             RETURN
          END IF
+         WaveModIn               = 1
          InitInp%Waves%WaveMod   = 10                               ! Internally define WaveMod = 10 to mean regular waves with a specified (nonrandom) phase
          InitInp%Waves%WavePhase = InitInp%Waves%WavePhase*D2R     ! Convert the phase from degrees to radians
 
@@ -2452,9 +2460,9 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       END IF
    
    ELSE
-   
+         ! The line below only works for 1 digit reads
       READ( InitInp%Waves%WaveModChr, *, IOSTAT=ErrStat ) InitInp%Waves%WaveMod
-      
+      WaveModIn               = InitInp%Waves%WaveMod
       IF ( ErrStat /= ErrID_None ) THEN
          CALL CheckIOS ( ErrStat, "", 'WaveMod', NumType, .TRUE. )
          RETURN
@@ -2463,13 +2471,13 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    END IF ! LEN_TRIM(InitInp%Waves%WaveModChr)
    
 
-   IF ( InitInp%Waves%WaveMod == 5 ) THEN
+   IF ( WaveModIn == 5 ) THEN
       ErrMsg  = 'GH Bladed wave model is currently disabled in this release.  Future versions will support GH Bladed wave models.'
       ErrStat = ErrID_Fatal
       RETURN
    END IF
    
-   IF ( InitInp%Waves%WaveMod < 0 .OR. InitInp%Waves%WaveMod > 4 ) THEN
+   IF ( WaveModIn < 0 .OR. WaveModIn > 4 ) THEN
    
       IF ( InitInp%HasWAMIT  ) THEN
       
@@ -2478,7 +2486,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          
          RETURN
       
-      ELSE IF ( ErrStat /= ErrID_None .OR. InitInp%Waves%WaveMod /= 5)  THEN
+      ELSE IF ( ErrStat /= ErrID_None .OR. WaveModIn /= 5)  THEN
             
          ErrMsg  = ' WaveMod must be 0, 1, 1P#, 2, 3, 4, or 5.'
          ErrStat = ErrID_Fatal
@@ -2644,8 +2652,13 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       RETURN
    END IF
    
-      ! Threshold upper cut-off based on sampling rate    
-   InitInp%Waves%WvHiCOff =  MIN( Pi/REAL(InitInp%Waves%WaveDT,ReKi), InitInp%Waves%WvHiCOff ) 
+      ! Threshold upper cut-off based on sampling rate 
+   IF ( EqualRealNos(InitInp%Waves%WaveDT, 0.0_DbKi) ) THEN
+      InitInp%Waves%WvHiCOff = 10000.0;  ! This is not going to be used because WaveDT is zero.
+   ELSE
+      InitInp%Waves%WvHiCOff =  MIN( Pi/REAL(InitInp%Waves%WaveDT,ReKi), InitInp%Waves%WvHiCOff ) 
+   END IF
+   
    !TODO Issue warning if we changed WvHiCOff  GJH 7/24/13
    
    IF ( InitInp%Waves%WvLowCOff >= InitInp%Waves%WvHiCOff ) THEN
@@ -3267,6 +3280,16 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ErrStat = ErrID_Fatal
       RETURN
    END IF
+   IF ( InitInp%Morison%SimplAxCa < 0 ) THEN
+      ErrMsg  = ' SimplCa must be greater or equal to zero.'
+      ErrStat = ErrID_Fatal
+      RETURN
+   END IF
+   IF ( InitInp%Morison%SimplAxCaMG < 0 ) THEN
+      ErrMsg  = ' SimplCaMG must be greater or equal to zero.'
+      ErrStat = ErrID_Fatal
+      RETURN
+   END IF
    
    
    !-------------------------------------------------------------------------------------------------
@@ -3323,7 +3346,16 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             ErrStat = ErrID_Fatal
             RETURN
          END IF
-         
+         IF ( InitInp%Morison%CoefDpths(I)%DpthAxCa < 0 ) THEN 
+            ErrMsg  = ' In the Depth-based hydrodynamic coefficients table, DpthCa must be greater or equal to zero.'
+            ErrStat = ErrID_Fatal
+            RETURN
+         END IF
+         IF ( InitInp%Morison%CoefDpths(I)%DpthAxCaMG < 0 ) THEN
+            ErrMsg  = ' In the Depth-based hydrodynamic coefficients table, DpthCaMG must be greater or equal to zero.'
+            ErrStat = ErrID_Fatal
+            RETURN
+         END IF
       END DO
       
       ! TODO: Sort the table based on depth so that a linear interpolation can be easily performed between entries.
@@ -3396,7 +3428,26 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             ErrStat = ErrID_Fatal
             RETURN
          END IF
-         
+         IF ( InitInp%Morison%CoefMembers(I)%MemberAxCa1 < 0 ) THEN 
+            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCa1 must be greater or equal to zero.'
+            ErrStat = ErrID_Fatal
+            RETURN
+         END IF
+         IF ( InitInp%Morison%CoefMembers(I)%MemberAxCa2 < 0 ) THEN 
+            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCa2 must be greater or equal to zero.'
+            ErrStat = ErrID_Fatal
+            RETURN
+         END IF
+         IF ( InitInp%Morison%CoefMembers(I)%MemberAxCaMG1 < 0 ) THEN 
+            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCaMG1 must be greater or equal to zero.'
+            ErrStat = ErrID_Fatal
+            RETURN
+         END IF
+         IF ( InitInp%Morison%CoefMembers(I)%MemberAxCaMG2 < 0 ) THEN 
+            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCaMG2 must be greater or equal to zero.'
+            ErrStat = ErrID_Fatal
+            RETURN
+         END IF
       END DO
       
    END IF
