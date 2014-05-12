@@ -1,5 +1,5 @@
 
-Predictions were generated on 07-May-2014 at 14:49:29 using FAST (v8.07.00a-bjj, 7-May-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 12-May-2014 at 12:31:08 using FAST (v8.07.00a-bjj, 9-May-2014), compiled for 32-bit systems using single precision
  linked with  NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014); ElastoDyn (v1.01.06a-bjj, 2-May-2014); InflowWind (v2.00.01a-bjj, 22-Jan-2014); AeroDyn (v14.02.01b-bjj, 29-Jan-2014); ServoDyn (v1.01.02a-bjj, 31-Jan-2014)
 
 Description from the FAST input file: FAST Certification Test #15: SWRT 3-bladed upwind turbine with many DOFs, variable speed control, free yaw, tail-furl, EOG01 event

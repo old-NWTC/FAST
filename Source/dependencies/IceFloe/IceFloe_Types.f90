@@ -37,6 +37,7 @@ IMPLICIT NONE
   TYPE, PUBLIC :: IceFloe_InitInputType
     CHARACTER(1024)  :: InputFile      ! Name of the input file; remove if there is no file [-]
     REAL(ReKi)  :: simLength      ! Duration of simulation [sec]
+    character(1024)  :: RootName      ! Output file root name [-]
   END TYPE IceFloe_InitInputType
 ! =======================
 ! =========  IceFloe_InitOutputType  =======
@@ -73,7 +74,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: iceDirection      ! ice floe direction [degrees]
     REAL(ReKi)  :: minStrength      ! minimum dynamic ice strength [Pa]
     REAL(ReKi)  :: minStrengthNegVel      ! minimum dynamic ice strength for negative velocity [Pa]
-    REAL(ReKi)  :: minStressRate      ! stress rate at which minimum strength is reached for negative velocity [MPa/sec]
+    REAL(ReKi)  :: defaultArea      ! structure width to use in cpld crushin [m]
     REAL(ReKi)  :: crushArea      ! cross sectional area of ice against tower [m^2]
     REAL(ReKi)  :: coeffStressRate      ! coefficient to calc stress rate from relative vellocity [Pa/m]
     REAL(ReKi)  :: C(4)      ! coefficient of cubic transition curve for negative stress rates [-]
@@ -115,6 +116,7 @@ CONTAINS
    ErrMsg  = ""
    DstInitInputData%InputFile = SrcInitInputData%InputFile
    DstInitInputData%simLength = SrcInitInputData%simLength
+   DstInitInputData%RootName = SrcInitInputData%RootName
  END SUBROUTINE IceFloe_CopyInitInput
 
  SUBROUTINE IceFloe_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -853,7 +855,7 @@ ENDIF
    DstParamData%iceDirection = SrcParamData%iceDirection
    DstParamData%minStrength = SrcParamData%minStrength
    DstParamData%minStrengthNegVel = SrcParamData%minStrengthNegVel
-   DstParamData%minStressRate = SrcParamData%minStressRate
+   DstParamData%defaultArea = SrcParamData%defaultArea
    DstParamData%crushArea = SrcParamData%crushArea
    DstParamData%coeffStressRate = SrcParamData%coeffStressRate
    DstParamData%C(4) = SrcParamData%C(4)
@@ -965,7 +967,7 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! iceDirection
   Re_BufSz   = Re_BufSz   + 1  ! minStrength
   Re_BufSz   = Re_BufSz   + 1  ! minStrengthNegVel
-  Re_BufSz   = Re_BufSz   + 1  ! minStressRate
+  Re_BufSz   = Re_BufSz   + 1  ! defaultArea
   Re_BufSz   = Re_BufSz   + 1  ! crushArea
   Re_BufSz   = Re_BufSz   + 1  ! coeffStressRate
   Re_BufSz   = Re_BufSz   + 1  ! C(4)
@@ -991,7 +993,7 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%minStrengthNegVel )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%minStressRate )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%defaultArea )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%crushArea )
   Re_Xferred   = Re_Xferred   + 1
@@ -1068,7 +1070,7 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%minStrengthNegVel = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%minStressRate = ReKiBuf ( Re_Xferred )
+  OutData%defaultArea = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%crushArea = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1

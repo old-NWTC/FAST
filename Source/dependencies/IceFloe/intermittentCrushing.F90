@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-31 09:14:18 -0800 (Fri, 31 Jan 2014) $
-! (File) Revision #: $Rev: 130 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/intermittentCrushing.F90 $
+! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
+! (File) Revision #: $Rev: 692 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/intermittentCrushing.F90 $
 !**********************************************************************************************************************************
 
 ! Module to initialize and calculate a time series of intermittent
@@ -41,7 +41,7 @@ contains
    subroutine initInterCrushing (iceInput, myIceParams, iceLog)
 
       type(iceInputType), intent(in)            :: iceInput    ! Parameters from input file for initialization
-      type(IceFloe_ParameterType), intent(inout)     :: myIceParams ! saved parameters
+      type(iceFloe_ParameterType), intent(inout)     :: myIceParams ! saved parameters
       type(iceFloe_LoggingType), intent(inout)   :: iceLog      ! structure with message and error logging variables
 
       type(inputParams)    :: inParams    ! specific input parameter variable list
@@ -89,7 +89,7 @@ contains
 !  Continuous crushing uses the standard inerpolation routine
 !  of the precalculated time series
    function outputInterCrushLoad (myIceParams, iceLog, time)  result(iceLoads)
-      type(IceFloe_ParameterType), intent(in)      :: myIceParams
+      type(iceFloe_ParameterType), intent(in)      :: myIceParams
       type(iceFloe_LoggingType), intent(inout) :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)                  :: time
       real(ReKi)                              :: iceLoads(6,myIceParams%numLegs)

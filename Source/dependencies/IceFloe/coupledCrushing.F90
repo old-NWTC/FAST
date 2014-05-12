@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-13 12:30:17 -0800 (Thu, 13 Feb 2014) $
-! (File) Revision #: $Rev: 134 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/coupledCrushing.F90 $
+! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
+! (File) Revision #: $Rev: 692 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/coupledCrushing.F90 $
 !**********************************************************************************************************************************!
  
 !  Module for calculations of loads induced by ice crushing against vertical surfaces
@@ -36,24 +36,20 @@ module iceCpldCrushing
 
    public
 
-!  Some limits on strength curve
-!  local minimum of stress rate to strength curve at stress rate = 1.3287MPa/s
-!  failure mode is brittle so hold this constant for high stress rates
-   real(ReKi), parameter   :: stressRateAtMin = 1.3287
-!  this value does not have the area term in it, added later
-   real(ReKi), parameter   :: localMinStrength = 2.00 + stressRateAtMin*(7.80       &
-                            + stressRateAtMin*(-18.57 + stressRateAtMin*(13.00 - stressRateAtMin*2.91)))
+!  local maximum of stress rate to strength curve (fixed since curve is hard coded)
+   real(ReKi), parameter   :: stressRateAtMax = 0.2915
 
 contains
 
 !  calculate the time series of ice loads using the ISO method
    subroutine initCpldCrushing (iceInput, myIceParams, iceLog)
 
-      type(iceInputType), intent(in)            :: iceInput    ! Input parameters read from file
-      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
-      type(iceFloe_LoggingType), intent(inout)   :: iceLog      ! structure with message and error logging variables
-      type(inputParams)                         :: inParams    ! specific input parameter variable list
+      type(iceInputType), intent(in)               :: iceInput    ! Input parameters read from file
+      type(iceFloe_ParameterType), intent(inout)   :: myIceParams
+      type(iceFloe_LoggingType), intent(inout)     :: iceLog      ! structure with message and error logging variables
+      type(inputParams)                            :: inParams    ! specific input parameter variable list
 
+      real(ReKi)     :: defaultWidth
       integer(IntKi) :: err
 
 !  initialize the common parmeters
@@ -73,31 +69,29 @@ contains
                               TRIM(Num2LStr(inParams%minStrengthNegVel))//' Pascals')
 
 !  Assign some input parameters to saved parameters
-      myIceParams%iceVel      = inParams%iceVelocity
-      myIceParams%minStrength = inParams%minStrength
-      myIceParams%minStrengthNegVel = inParams%minStrengthNegVel/1.0E6
+      myIceParams%iceVel            = inParams%iceVelocity
+      myIceParams%minStrength       = inParams%minStrength
+      myIceParams%minStrengthNegVel = inParams%minStrengthNegVel
+
 !  Precalc some things.
+      defaultWidth = inParams%twr%diam
+      if (inParams%twr%diam > 2*inParams%iceThickness) then
+         call logMessage(iceLog, '*** Tower diameter > 2*ice thickness; width for cpld crushing strength '// &
+                                 'set to latter value. ***')
+         defaultWidth = 2*inParams%iceThickness
+      endif
+      myIceParams%defaultArea = sqrt(1.0/(defaultWidth*inParams%iceThickness))
+
+!  This is for force from strength, uses actual tower diameter
       myIceParams%crushArea   = inParams%twr%diam*inParams%iceThickness
 !  Scale to MPa
-      myIceParams%coeffStressRate = 8.0E-6*inParams%refIceStrength/PI/inParams%twr%diam
-!  Need a negative stress rate below which strength = minStrengthNegVel
-!  Also use this for a cubic transition between 0 stress rate and min stress rate      
-!  Since equation is a quartic it is too complex to find roots. Fit region of interest with a quadratic instead
-      myIceParams%minStressRate = (7.4998-sqrt(56.247+89.908*(1.9954-myIceParams%minStrengthNegVel    &
-                                *sqrt(myIceParams%crushArea))))/44.954
-!  Also need coefficients of cubic equation to transition strength from 0 to minStressRate                                
-      myIceParams%C(1) = 7.8*myIceParams%minStressRate - 2.0*sqrt(myIceParams%crushArea)*myIceParams%minStrengthNegVel
-      myIceParams%C(1) = (myIceParams%C(1) + 4.0)/sqrt(myIceParams%crushArea)/(myIceParams%minStressRate**3)
-      myIceParams%C(2) = 3.0*sqrt(myIceParams%crushArea)*myIceParams%minStrengthNegVel - 15.6*myIceParams%minStressRate
-      myIceParams%C(2) = (myIceParams%C(2) - 6.0)/sqrt(myIceParams%crushArea)/(myIceParams%minStressRate**2)
-      myIceParams%C(3) = 7.8/sqrt(myIceParams%crushArea)
-      myIceParams%C(4) = 2.0/sqrt(myIceParams%crushArea)
+      myIceParams%coeffStressRate = 8.0E-6*inParams%refIceStrength/PI/defaultWidth
 
    end subroutine initCpldCrushing
 
 !****************************************************************************
    function outputCpldCrushLoad (myIceParams, iceLog, inVels, time)  result(iceLoads)
-      type(IceFloe_ParameterType), intent(in)      :: myIceParams
+      type(iceFloe_ParameterType), intent(in)      :: myIceParams
       type(iceFloe_LoggingType), intent(inout) :: iceLog   ! structure with message and error logging variables
       real(ReKi), intent(in)                  :: inVels(2,myIceParams%numLegs)
       real(DbKi), intent(in)                  :: time
@@ -116,26 +110,18 @@ contains
          stressRate = (myIceParams%iceVel - velProjected)*myIceParams%coeffStressRate
 
    !  This polynomial is specific to the Maattanen method and is thus hard coded
-   !  Only applicable from a stress rate of zero to +1.3287MPa/sec
+   !  Only applicable from a stress rate of slightly below zero to +1.3287MPa/sec
    !  In this range the failure mode is ductile crushing
-   !  The ice load goes to a user specified minimum for negative stress rate (tower moving away from ice forming a gap)
-         if (stressRate <= myIceParams%minStressRate) then
-            strength = myIceParams%minStrengthNegVel
-   !  Apply a cubic step to avoid sharp changes in load at minStrengthnegVel
-         elseif (stressRate < 0.0) then  
-            strength = myIceParams%C(4)+stressRate*(myIceParams%C(3)+stressRate*(myIceParams%C(2)+stressRate*myIceParams%C(1)))
+         strength = 2.00 + stressRate*(7.80 + stressRate*(-18.57 + stressRate*(13.00 - stressRate*2.91)))
+         strength = 1.0E6*strength*myIceParams%defaultArea
+         if (stressRate <= stressRateAtMax) then
+   !  The ice strength is limited to a user specified minimum for negative stress rate (tower moving away from ice forming a gap)
+            strength = max(strength, myIceParams%minStrengthNegVel)
          else
-   !     The curve reaches a local minima at 1.3287MPa above which brittle failure dominates and strength is constant
-   !     However it can fall below the user specifid minimum before that
-            if (stressRate > stressRateAtMin) then
-               strength = localMinStrength/sqrt(myIceParams%crushArea)
-               strength = max(localMinStrength/sqrt(myIceParams%crushArea), 1.0E-6*myIceParams%minStrength)
-            else
-               strength = 2.00 + stressRate*(7.80 + stressRate*(-18.57 + stressRate*(13.00 - stressRate*2.91)))
-               strength = max(strength/sqrt(myIceParams%crushArea), 1.0E-6*myIceParams%minStrength)
-            endif
+   !  For high relative velocities (high stress rate) the ice failure mode is brittle and constant
+   !  The ice strength is limited to a user specified minimum for positive stress rate
+            strength = max(strength, myIceParams%minStrength)
          endif         
-         strength = 1.0E6*strength
 
    !  apply the load in the proper direction via x,y components
          iceLoads(:,nL) = myIceParams%ks(nL)*iceLoadDirection(strength*myIceParams%crushArea, myIceParams)

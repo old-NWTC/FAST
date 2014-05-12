@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-31 09:14:18 -0800 (Fri, 31 Jan 2014) $
-! (File) Revision #: $Rev: 130 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/IceFlexBase.F90 $
+! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
+! (File) Revision #: $Rev: 692 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFlexBase.F90 $
 !**********************************************************************************************************************************!
 
 !****************************************************************
@@ -44,7 +44,7 @@ contains
    subroutine initIceFlex (iceInput, inParams, myIceParams, iceLog)
 
       type(iceInputType), intent(in)            :: iceInput
-      type(IceFloe_ParameterType), intent(inout)    :: myIceParams
+      type(iceFloe_ParameterType), intent(inout)    :: myIceParams
       type(iceFloe_LoggingType), intent(inout)  :: iceLog   ! structure with message and error logging variables
       type(inputParams), intent(out)            :: inParams ! specific input parameter variable list
       real(ReKi)                                :: frictionLimit
@@ -85,7 +85,7 @@ contains
 
 !****************************************************************************
    function outputFlexLoad (myIceParams, iceLog, time)  result(iceLoads)
-      type(IceFloe_ParameterType), intent(in)      :: myIceParams
+      type(iceFloe_ParameterType), intent(in)      :: myIceParams
       type(iceFloe_LoggingType), intent(inout) :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)                  :: time
       real(ReKi)                              :: iceLoads(6,myIceParams%numLegs)

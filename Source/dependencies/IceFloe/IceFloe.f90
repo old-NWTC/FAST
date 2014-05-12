@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-13 12:30:17 -0800 (Thu, 13 Feb 2014) $
-! (File) Revision #: $Rev: 134 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/IceFloe.f90 $
+! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
+! (File) Revision #: $Rev: 692 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloe.f90 $
 !**********************************************************************************************************************************!
 
 !**********************************************************************************************************************************
@@ -41,9 +41,9 @@
 !    http://www.nrel.gov/docs/fy13osti/57298.pdf
 !
 !**********************************************************************************************************************************
-MODULE IceFloe
+MODULE IceFloe 
 
-   use IceFloe_Types, dum1=>errID_none, dum2=>aborterrlev, dum3=>errID_warn, dum4=>errID_fatal, dum5=>newline
+   use IceFloe_Types  
    use IceInputParams
    use IceCrushingISO
    use IceCrushingIEC
@@ -53,17 +53,13 @@ MODULE IceFloe
    use IceLockInCrushingISO
    use randomCrushing
    use IceCpldCrushing
-   use iso_c_binding
    use NWTC_IO, only : DispNVD
 
    IMPLICIT NONE
 
    PRIVATE
 
-   character(*), parameter    :: Progname_ice = 'IceFloe'
-   character(*), parameter    :: Progver_ice  = 'v1.00.00'
-   character(*), parameter    :: Progdate_ice = 'August-2013'
-   TYPE(ProgDesc), PARAMETER  :: IceFloe_Ver = ProgDesc( Progname_ice, Progver_ice, Progdate_ice )
+   TYPE(ProgDesc), PARAMETER  :: IceFloe_Ver = ProgDesc( 'IceFloe', 'v1.00.00', 'May-2014' )
 
 ! ..... Public Subroutines ...................................................................................................
 
@@ -92,14 +88,14 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       TYPE(IceFloe_InputType),           INTENT(  OUT)  :: u           ! An initial guess for the input
       TYPE(IceFloe_ParameterType),       INTENT(  OUT)  :: p           ! Parameters
       TYPE(IceFloe_OutputType),          INTENT(  OUT)  :: y           ! Initial system outputs (outputs are not calculated;
-                                                                      !    only the output mesh is initialized)
-      REAL(DbKi),                       INTENT(INOUT)  :: Interval    ! Coupling interval in seconds: the rate that
-                                                                      !   (1) IceFloe_UpdateStates() is called in loose coupling &
-                                                                      !   (2) IceFloe_UpdateDiscState() is called in tight coupling.
-                                                                      !   Input is the suggested time from the glue code;
-                                                                      !   Output is the actual coupling interval that will be used
-                                                                      !   by the glue code.
-      TYPE(IceFloe_InitOutputType),      INTENT(  OUT)  :: InitOut     ! Output for initialization routine
+                                                                       !    only the output mesh is initialized)
+      REAL(DbKi),                       INTENT(INOUT)   :: Interval    ! Coupling interval in seconds: the rate that
+                                                                       !   (1) IceFloe_UpdateStates() is called in loose coupling &
+                                                                       !   (2) IceFloe_UpdateDiscState() is called in tight coupling.
+                                                                       !   Input is the suggested time from the glue code;
+                                                                       !   Output is the actual coupling interval that will be used
+                                                                       !   by the glue code.
+      TYPE(IceFloe_InitOutputType),     INTENT(  OUT)  :: InitOut     ! Output for initialization routine
       INTEGER(IntKi),                   INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                     INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
@@ -119,7 +115,8 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       INTEGER(IntKi)             :: nSteps      ! number of steps in load time series
       INTEGER(IntKi)             :: numLdsOut   ! number of load output points, could be numlegs or 1 for single load only
       INTEGER(IntKi)             :: Err         ! for array allocation error
-      INTEGER(IntKi)             :: n
+      INTEGER(IntKi)             :: n, numOuts
+      character(1)               :: legNum      ! for labeling leg numbers in output headers
 
       InitOut%Ver = IceFloe_Ver
       p%initFlag = .false.
@@ -128,13 +125,12 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
 
       x%DummyContStateVar = 0.
 
-      ! Initialize the NWTC Subroutine Library
-!      CALL NWTC_Init( )
-
       ! Display the module information
       CALL DispNVD( IceFloe_Ver )
 
-      call NameOFile ( 1, 'log', logFile )   ! The filename comes from the command line
+!      call NameOFile ( 1, 'log', logFile )   ! The filename comes from the command line
+      call GetRoot( InitInp%RootName, logFile )
+      logFile = trim(logFile)//'_Ice.log'
 
 !   Set up error logging
       iceLog%warnFlag = .false.
@@ -147,8 +143,9 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
          ErrMsg = 'Fatal error in routine: IceFloe_Init => '//trim(iceLog%ErrMsg)
          return   
       endif
+      p%logUnitNum = iceLog%unitNum  ! save for later use by updata routines
 
-      call logMessage(iceLog, ' Running: '//ProgName_ice//', '//ProgVer_ice//', '//Progdate_ice)
+      call logMessage(iceLog, ' Running: '//trim(IceFloe_Ver%Name)//trim(IceFloe_Ver%Ver)//trim(IceFloe_Ver%Date))
       call logMessage(iceLog, ' This run started on: '//curdate()//' at '//curtime()//newLine)
 
    ! go through the inputs: first count them then read them into a structure
@@ -177,10 +174,15 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
          return   
       endif
 
-   !  Select the smallest time step between calling program suggestion and user input
-   !  Then store as a parameter
-      p%dt = min(p%dt, REAL(interval,ReKi) )                      ! bjj: if p%dt == interval, the type casting may be a problem.
-      interval = p%dt   ! for return back to the calling program     ! bjj: p%dt is single precision; interval is double; FAST may complain that the p%dt isn't an integer divisor of interval
+! TMCCOY  April 16, 2014 Small time steps can cause problems with 
+! generation of long time series for some ice types
+! but IceFloe doesn't need fine resolution as frequencies are low.  
+! Let FAST call as often as it likes, IceFloe will interpolate.
+! Use specific dt from user for IceFloe
+!   !  Select the smallest time step between calling program suggestion and user input
+!   !  Then store as a parameter
+!      interval = min(REAL(p%dt,DbKi), interval)   ! for return back to the calling program     ! bjj: p%dt is single precision; interval is double; FAST may complain that the p%dt isn't an integer divisor of interval
+!      p%dt = REAL(interval,ReKi)                       ! bjj: if p%dt == interval, the type casting may be a problem.
 
    ! get the duration of the simulation
    ! this should eventually come from FAST
@@ -204,7 +206,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
          ErrMsg  = trim(iceLog%ErrMsg)
          return
       endif   
-      
+
    ! allocate storage for the leg positions
       allocate (p%legX(p%numLegs), stat=err)
       allocate (p%legY(p%numLegs), stat=err)
@@ -294,6 +296,35 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       u%iceMesh%TranslationVel = 0.0
       y%iceMesh%Force          = 0.0
       y%iceMesh%Moment         = 0.0
+
+
+   ! set up outputs to write to FAST
+   ! need to know how many legs and whethter loads applied to all or just one set of effective loads
+      numOuts = 2*p%numLegs
+      if (p%singleLoad .and. p%numLegs > 1) numOuts = 3
+      CALL AllocAry( InitOut%WriteOutputHdr, numOuts, 'WriteOutputHdr', ErrStat, ErrMsg )
+         call iceErrorHndlr (iceLog, ErrStat, 'Error in allocation of output header memory', 1)
+         if (ErrStat >= AbortErrLev) return  
+      CALL AllocAry( InitOut%WriteOutputUnt, numOuts, 'WriteOutputUnt', ErrStat, ErrMsg )
+         call iceErrorHndlr (iceLog, ErrStat, 'Error in allocation of output units memory', 1)
+         if (ErrStat >= AbortErrLev) return  
+      CALL AllocAry( y%WriteOutput, numOuts, 'WriteOutput', ErrStat, ErrMsg )
+         call iceErrorHndlr (iceLog, ErrStat, 'Error in allocation of output memory', 1)
+         if (ErrStat >= AbortErrLev) return  
+
+      if (p%numLegs == 1) then
+         InitOut%WriteOutputHdr = (/"IceLoadFx", "IceLoadFy"/)
+         InitOut%WriteOutputUnt = (/"kN", "kN"/)
+      elseif (p%singleLoad) then
+         InitOut%WriteOutputHdr = (/"IceLoadFx", "IceLoadFy", "IceLoadMz"/)
+         InitOut%WriteOutputUnt = (/"kN ", "kN ", "kNm"/) !bjj: note that each string in the array must have the same number of characters so I added a space on the first two
+      else
+         do n = 1, p%numLegs
+            legNum = TRIM(Num2LStr(n))
+            InitOut%WriteOutputHdr(2*n-1:2*n) = (/"IceLoadFx_Leg"//legNum, "IceLoadFy_Leg"//legNum/)
+            InitOut%WriteOutputUnt(2*n-1:2*n) = (/"kN", "kN"/)
+         enddo
+      endif
       
    !  Let the user know if there have been warnings
       if (iceLog%WarnFlag) then
@@ -304,7 +335,10 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       ErrStat = iceLog%ErrID
       ErrMsg  = trim(iceLog%ErrMsg)
 
-      if (ErrStat <= ErrID_Warn) p%initFlag = .true.
+      if (ErrStat <= ErrID_Warn) then
+         p%initFlag = .true.
+         y%WriteOutput = 0.0
+      endif
 
 END SUBROUTINE IceFloe_Init
 
@@ -315,10 +349,10 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
 !..................................................................................................................................
 
       REAL(DbKi),                       INTENT(IN   )  :: t           ! Current simulation time in seconds
-      TYPE(IceFloe_InputType),           INTENT(IN   )  :: u           ! Inputs at t
-      TYPE(IceFloe_ParameterType),       INTENT(IN   )  :: p           ! Parameters
-      TYPE(IceFloe_OutputType),          INTENT(INOUT)  :: y           ! Outputs computed at t (Input only so that mesh con-
-                                                                    !   nectivity information does not have to be recalculated)
+      TYPE(IceFloe_InputType),          INTENT(IN   )  :: u           ! Inputs at t
+      TYPE(IceFloe_ParameterType),      INTENT(IN   )  :: p           ! Parameters
+      TYPE(IceFloe_OutputType),         INTENT(INOUT)  :: y           ! Outputs computed at t (Input only so that mesh con-
+                                                                      !   nectivity information does not have to be recalculated)
       INTEGER(IntKi),                   INTENT(  OUT)  :: ErrStat     ! Error status of the operation
       CHARACTER(*),                     INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
@@ -329,7 +363,7 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
       TYPE(IceFloe_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
 
 ! IceFloe specific types and other internal variables
-      type(iceFloe_LoggingType)   :: iceLog                  ! structure with message and error logging variables
+      type(iceFloe_LoggingType)  :: iceLog                  ! structure with message and error logging variables
       real(ReKi)                 :: loadVect(6,p%numLegs)
       real(ReKi)                 :: inVels(2,p%numLegs)
       integer(IntKi)             :: nL, nSteps
@@ -385,9 +419,16 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
       if (p%singleLoad) then
          y%iceMesh%Force(:,1)  = loadVect(1:3,1)
          y%iceMesh%Moment(:,1) = loadVect(4:6,1)
+         y%WriteOutput(1) = 0.001*loadVect(1,1)
+         y%WriteOutput(2) = 0.001*loadVect(2,1)
+         if (p%numLegs > 1) y%WriteOutput(1) = 0.001*loadVect(6,1)
       else         
          y%iceMesh%Force  = loadVect(1:3,:)
          y%iceMesh%Moment = loadVect(4:6,:)
+         do nL = 1, p%numLegs
+            y%WriteOutput(2*nL-1) = 0.001*loadVect(1,nL)
+            y%WriteOutput(2*nL)   = 0.001*loadVect(2,nL)
+         enddo
       endif
 
    !  Let the user know if there have been warnings
@@ -398,7 +439,6 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
    !  return message and error logging data
       ErrStat = iceLog%ErrID
       ErrMsg  = trim(iceLog%ErrMsg)
-
 
 END SUBROUTINE IceFloe_CalcOutput
 

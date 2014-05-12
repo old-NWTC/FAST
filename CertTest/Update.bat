@@ -13,5 +13,5 @@
 @move Test*.pmf               tstfiles
 
 @move Test*.sum               tstfiles
-@move Test*.out               tstfiles
 @move Test*.outb              tstfiles
+@move Test*.out               tstfiles

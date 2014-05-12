@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-31 09:14:18 -0800 (Fri, 31 Jan 2014) $
-! (File) Revision #: $Rev: 130 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/IceFlexISO.f90 $
+! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
+! (File) Revision #: $Rev: 692 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFlexISO.f90 $
 !**********************************************************************************************************************************
 
 !****************************************************************
@@ -35,13 +35,13 @@ module IceFlexISO
    implicit none
 
    public
-
+   
 contains
 
    subroutine initFlexISO (iceInput, myIceParams, iceLog)
 
       type(iceInputType), intent(in)            :: iceInput    ! Parameters from input file for initialization
-      type(IceFloe_ParameterType), intent(inout)     :: myIceParams ! saved parameters
+      type(iceFloe_ParameterType), intent(inout)     :: myIceParams ! saved parameters
       type(iceFloe_LoggingType), intent(inout)   :: iceLog      ! structure with message and error logging variables
       type(inputParams)                         :: inParams    ! specific input parameter variable list
 
@@ -253,7 +253,7 @@ contains
 !  Calculate a sawtooth loading time series with random periods and peaks
    subroutine randomFlexLoadTimeSeries (myIceParams, iceLog, maxLoad)
       real(ReKi), intent(in)                    :: maxLoad
-      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
+      type(iceFloe_ParameterType), intent(inout)     :: myIceParams
       type(iceFloe_LoggingType), intent(inout)   :: iceLog   ! structure with message and error logging variables
 
       integer(IntKi), parameter                 :: LuxLevel = 3
@@ -266,7 +266,7 @@ contains
       real(ReKi)     :: period      ! randomly distributed period for a single cycle
 
       real(ReKi)     :: tau(1)  ! for passing into random number routine
-
+      
 !  Initialize the random number generator
       CALL RLuxGo ( LuxLevel, abs(inParams%randomSeed), 0, 0 )
 
@@ -284,7 +284,7 @@ contains
    !  Number of whole periods required not known (since period lenght is random)
    !  So iterate until we have enough points in the time series
          n = 1
-         seriesLoop: do while (n < nSteps+1)
+         seriesLoop: do while (n < nSteps+1)      
    !  Period is time from no load up to peak, down, then dwell at minimum (normal distribution)
             CALL RndNorm( period, meanPeriod, inParams%periodCOV*meanPeriod )
    !  Period has to be limited to +/- 50% of the mean period
@@ -311,7 +311,7 @@ contains
                n = n + 1
                if (n > nSteps) exit seriesLoop
             enddo
-
+            
    !  begin to decrease the load from the peak down to the minimum
             nFallSteps = nint( inParams%fallTime * tau(1) * period / myIceParams%dt)
             if (nFallSteps == 0) then   ! if dt is too large compared to the fall time then get div by zero below
@@ -339,14 +339,14 @@ contains
 
       enddo ! leg loop
 
-   end subroutine randomFlexLoadTimeSeries
+   end subroutine randomFlexLoadTimeSeries 
 
    end subroutine initFlexISO  ! containing subroutine
 
 !--------------------------------------------------------------------
 !  get load for requested time
    function outputFlexLoadISO (myIceParams, iceLog, time) result(iceLoads)
-      type(IceFloe_ParameterType), intent(in)      :: myIceParams
+      type(iceFloe_ParameterType), intent(in)      :: myIceParams
       type(iceFloe_LoggingType), intent(inout) :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)                  :: time
       real(ReKi)                              :: iceLoads(6,myIceParams%numLegs)

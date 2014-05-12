@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-13 12:30:17 -0800 (Thu, 13 Feb 2014) $
-! (File) Revision #: $Rev: 134 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/IceFloeBase.F90 $
+! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
+! (File) Revision #: $Rev: 692 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloeBase.F90 $
 !**********************************************************************************************************************************
 
 !****************************************************************
@@ -33,12 +33,11 @@
 module IceFloeBase
 
    use precision
+   use IceFloe_Types
    use IceInputParams
    use Ran_Lux_Mod
    use NWTC_IO, only : Num2LStr
 
-   use IceFloe_Types, only: IceFloe_ParameterType
-   
    implicit none
 
    public
@@ -46,9 +45,6 @@ module IceFloeBase
 ! TODO:  get gravity from FAST in case the user has turned it off?  Potential div by zero problem though
 ! OR should the gravity used by FAST only pertain to the turbine structure, not ice loading?
    real(ReKi), parameter :: grav = 9.81
-   real(ReKi), parameter :: Pi  = 3.141592654_ReKi
-   real(ReKi), parameter :: D2R = Pi/180.0_ReKi
-   real(ReKi), parameter :: R2D = 180.0_ReKi/Pi
 
 !  ice type parameters
    integer(IntKi), parameter :: randomCrush    = 1
@@ -75,9 +71,9 @@ contains
 !  Generic initialization of the most common parameters
 !  Only function is to assign input parameters to convenient variables in module
    subroutine initIceFloe (iceInput, inParams, myIceParams, iceLog)
-      type(iceInputType), intent(in)            :: iceInput    ! Parameters from input file for initialization
-      type(IceFloe_ParameterType), intent(inout)     :: myIceParams ! saved parameters
-      type(iceFloe_LoggingType), intent(inout)   :: iceLog      ! structure with message and error logging variables
+      type(iceInputType), intent(in)               :: iceInput    ! Parameters from input file for initialization
+      type(iceFloe_ParameterType), intent(inout)   :: myIceParams ! saved parameters
+      type(iceFloe_LoggingType), intent(inout)     :: iceLog      ! structure with message and error logging variables
       type(inputParams), intent(out)            :: inParams    ! specific input parameter variable list
       integer(IntKi)                            :: err
       integer(IntKi)                            :: nL
@@ -225,7 +221,7 @@ contains
 ! Calculate a sinusoidal load time series per IEC 61400-3 Ed 1 Annex E section E.4.6
    subroutine IECLoadTimeSeries (myIceParams, inParams, iceLog, maxLoad, freq)
       real(ReKi), intent(in)                    :: maxLoad, freq
-      type(IceFloe_ParameterType), intent(inout)     :: myIceParams
+      type(iceFloe_ParameterType), intent(inout)     :: myIceParams
       type(inputParams), intent(in)             :: inParams ! specific input parameter variable list
       type(iceFloe_LoggingType), intent(inout)   :: iceLog   ! structure with message and error logging variables
       integer(IntKi) :: err
@@ -249,7 +245,7 @@ contains
 !  Generic update function - really just an interpolation
 !  routine for the precalculated load time series
    function outputIceLoads (myIceParams, iceLog, time)  result(iceLoads)
-      type(IceFloe_ParameterType), intent(in)        :: myIceParams
+      type(iceFloe_ParameterType), intent(in)        :: myIceParams
       type(iceFloe_LoggingType),  intent(inout)  :: iceLog   ! structure with message and error logging variables
       real(DbKi), intent(in)  :: time
       real(ReKi)              :: iceLoads(6,myIceParams%numLegs)
@@ -297,7 +293,7 @@ contains
 !  Function to handle ice forces from a specified direction relative to ground coordinates (in horizontal plane)
    function iceLoadDirection(iceForceMag, myIceParams)   result(loadVect)
       real(ReKi), intent(in)             :: iceForceMag
-      type(IceFloe_ParameterType), intent(in) :: myIceParams
+      type(iceFloe_ParameterType), intent(in) :: myIceParams
       real(ReKi)                         :: loadVect(6)
 
       loadVect(1) = iceForceMag * cos(myIceParams%iceDirection)
@@ -312,7 +308,7 @@ contains
 !===================================================================================================
 !  Function to calculate a single equivalent load vector from multiple leg locad vectors
    function iceLoadEquivalent(inLoads, myIceParams)   result(equiv)
-      type(IceFloe_ParameterType), intent(in) :: myIceParams
+      type(iceFloe_ParameterType), intent(in) :: myIceParams
       real(ReKi)                         :: inLoads(6,myIceParams%numLegs)
       real(ReKi)                         :: equiv(6)
       integer(IntKi)                     :: nL
