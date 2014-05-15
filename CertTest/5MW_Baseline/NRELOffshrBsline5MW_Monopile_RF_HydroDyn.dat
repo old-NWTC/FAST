@@ -1,6 +1,6 @@
 ------- HydroDyn v2.00.05      Input File --------------------------------------------
 NREL 5.0 MW offshore baseline floating platform input properties for the OC3 Monopile.
-TRUE             Echo           - Echo the input file data (flag)
+False            Echo           - Echo the input file data (flag)
 ---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
           1027   WtrDens        - Water density (kg/m^3)
             20   WtrDpth        - Water depth (meters)
@@ -116,7 +116,7 @@ MemberID   NOutLoc    NodeLocs [NOutLoc < 10; node locations are normalized dist
   (-)        (-)        (-)
 ---------------------- JOINT OUTPUT LIST ---------------------------------------
              0   NJOutputs      - Number of joint outputs [Must be < 10]
-   0           JOutLst        - List of JointIDs which are to be output (-)[unused if NJOutputs=0]
+   0             JOutLst        - List of JointIDs which are to be output (-)[unused if NJOutputs=0]
 ---------------------- OUTPUT --------------------------------------------------
 True             HDSum          - Output a summary file [flag]
 False            OutAll         - Output all user-specified member and joint loads (only at each member end, not interior locations) [flag]
@@ -126,3 +126,4 @@ False            OutAll         - Output all user-specified member and joint loa
 ---------------------- OUTPUT CHANNELS -----------------------------------------
 "Wave1Elev"               - Wave elevation at the WAMIT reference point (0,0)
 END of output channels and end of file. (the word "END" must appear in the first 3 columns of this line)
+---------------------------------------------------------------------------------------

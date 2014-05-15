@@ -24,7 +24,7 @@ False         CompUserTwrLd   - Compute additional tower loading {false: none; t
 "unused"      BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
 "unused"      BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
 "unused"      BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_AeroDyn.ipt"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_AeroDyn.dat"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_HydroDyn.dat"    HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_Monopile_RF_SubDyn.dat"    SubFile         - Name of file containing sub-structural input parameters (quoted string)
@@ -33,7 +33,7 @@ False         CompUserTwrLd   - Compute additional tower loading {false: none; t
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (sec)
-      0.003   DT_Out          - Time step for tabular output (sec)
+      0.018   DT_Out          - Time step for tabular output (sec)
           0   TStart          - Time to begin tabular output (s)
           3   OutFileFmt      - Format for tabular (time-marching) output file(s) (1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both) (switch)
 True          TabDelim        - Use tab delimiters in text tabular output file? (flag) {uses spaces if false}
