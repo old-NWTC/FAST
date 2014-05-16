@@ -1,6 +1,6 @@
 ------- HydroDyn v2.00.05      Input File --------------------------------------------
 Compatible with HydroDyn v2.00.00b-gjh
-TRUE             Echo           - Echo the input file data (flag)
+False            Echo           - Echo the input file data (flag)
 ---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
           1025   WtrDens        - Water density (kg/m^3)
             50   WtrDpth        - Water depth (meters)
@@ -72,7 +72,7 @@ True             PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
 ---------------------- AXIAL COEFFICIENTS --------------------------------------
              1   NAxCoef        - Number of axial coefficients (-)
 AxCoefID  AxCd     AxCa     AxCp
-   (-)    (-)      (-)      (-) 
+   (-)    (-)      (-)      (-)
     1     0.00     0.00     1.00
 ---------------------- MEMBER JOINTS -------------------------------------------
             64   NJoints        - Number of joints (-)   [must be exactly 0 or at least 2]
@@ -154,21 +154,21 @@ PropSetID    PropD         PropThck
     6        2.08200        0.06000
 ---------------------- SIMPLE HYDRODYNAMIC COEFFICIENTS (model 1) --------------
 SimplCd      SimplCdMG    SimplCa     SimplCaMG      SimplCp     SimplCpMG   SimplAxCa     SimplAxCaMG      SimplAxCp     SimplAxCpMG
-(-)           (-)           (-)         (-)            (-)         (-)          (-)           (-)              (-)            (-)    
+(-)           (-)           (-)         (-)            (-)         (-)          (-)           (-)              (-)            (-)
       1.00       1.05       0.60       1.00       1.00       1.00       1.00       1.00       1.00       1.00
 ---------------------- DEPTH-BASED HYDRODYNAMIC COEFFICIENTS (model 2) ---------
              2   NCoefDpth       - Number of depth-dependent coefficients (-)
 Dpth      DpthCd   DpthCdMG   DpthCa   DpthCaMG       DpthCp   DpthCpMG   DpthAxCa   DpthAxCaMG       DpthAxCp   DpthAxCpMG
-(m)       (-)      (-)        (-)      (-)            (-)      (-)          (-)        (-)              (-)         (-)     
+(m)       (-)      (-)        (-)      (-)            (-)      (-)          (-)        (-)              (-)         (-)
   -20.00     0.20     0.30     0.50     0.70     1.00     1.00     1.00     1.00     1.00     1.00
   -50.00     0.30     0.35     0.55     0.75     1.00     1.00     1.00     1.00     1.00     1.00
 ---------------------- MEMBER-BASED HYDRODYNAMIC COEFFICIENTS (model 3) --------
              1   NCoefMembers       - Number of member-based coefficients (-)
 MemberID   MemberCd1   MemberCd2   MemberCdMG1   MemberCdMG2   MemberCa1   MemberCa2   MemberCaMG1   MemberCaMG2    MemberCp1  MemberCp2   MemberCpMG1   MemberCpMG2  MemberAxCa1   MemberAxCa2   MemberAxCaMG1   MemberAxCaMG2    MemberAxCp1  MemberAxCp2   MemberAxCpMG1   MemberAxCpMG2
-(-)        (-)         (-)         (-)           (-)           (-)         (-)         (-)           (-)             (-)         (-)           (-)           (-)          (-)           (-)           (-)             (-)              (-)          (-)           (-)             (-)       
+(-)        (-)         (-)         (-)           (-)           (-)         (-)         (-)           (-)             (-)         (-)           (-)           (-)          (-)           (-)           (-)             (-)              (-)          (-)           (-)             (-)
     3        0.20       0.30        0.25         0.40        0.60       0.70        0.65         0.75        1.00       1.00        1.00         1.00        1.00       1.00        1.00         1.00        1.00       1.00        1.00         1.00
 ---------------------- MEMBERS -------------------------------------------------
-           112   NMembers       - Number of members (-) 
+           112   NMembers       - Number of members (-)
 MemberID   MJointID1   MJointID2   MPropSetID1  MPropSetID2   MDivSize  MCoefMod  PropWAMIT   [MCoefMod=1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table] [ PropWAMIT = TRUE if member is modeled in WAMIT]
 (-)        (-)         (-)         (-)          (-)           (m)       (switch)    (flag)
     1         1          2           2            2         1.0000     1        FALSE
@@ -289,7 +289,7 @@ FillNumM FillMList             FillFSLoc     FillDens
 (-)      (-)                   (m)           (kg/m^3)
    32   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  21  22  25  26  29  30 105 106 107 108 109 110 111 112     0.00           1025
 ---------------------- MARINE GROWTH -------------------------------------------
-             0   NMGDepths      - Number of marine-growth depths specified (-) 
+             0   NMGDepths      - Number of marine-growth depths specified (-)
 MGDpth     MGThck       MGDens
 (m)        (m)         (kg/m^3)
 ---------------------- MEMBER OUTPUT LIST --------------------------------------
@@ -307,64 +307,64 @@ False            OutAll         - Output all user-specified member and joint loa
 "ES11.4e2"       OutFmt         - Output format for numerical results (quoted string) [not checked for validity!]
 "A11"            OutSFmt        - Output format for header strings (quoted string) [not checked for validity!]
 ---------------------- OUTPUT CHANNELS -----------------------------------------
-"M1N1FVxi"                 
-"Wave1Elev"                
-"M1N1FVxi"                 
-"M1N1FVyi"                 
-"M1N1FVzi"                 
-"M1N1FAxi"                 
-"M1N1FAyi"                 
-"M1N1FAzi"                 
-"M1N1DynP"                 
-"M1N1FDPxi"                
-"M1N1FDPyi"                
-"M1N1FDPzi"                
-"M1N1FDxi"                 
-"M1N1FDyi"                 
-"M1N1FDzi"                 
-"M1N1FIxi"                 
-"M1N1FIyi"                 
-"M1N1FIzi"                 
-"M1N1FBxi"                 
-"M1N1FByi"                 
-"M1N1FBzi"                 
-"M1N1MBxi"                 
-"M1N1MByi"                 
-"M1N1MBzi"                 
-"M1N1FBFxi"                
-"M1N1FBFyi"                
-"M1N1FBFzi"                
-"M1N1MBFxi"                
-"M1N1MBFyi"                
-"M1N1MBFzi"                
-"J1FVxi"                   
-"J1FVyi"                   
-"J1FVzi"                   
-"J1FAxi"                   
-"J1FAyi"                   
-"J1FAyi"                   
-"J1FAzi"                   
-"J1DynP"                   
-"J1FDPxi"                  
-"J1FDPyi"                  
-"J1FDPzi"                  
-"J1FDxi"                   
-"J1FDyi"                   
-"J1FDzi"                   
-"J1FBxi"                   
-"J1FByi"                   
-"J1FBzi"                   
-"J1MBxi"                   
-"J1MByi"                   
-"J1MBzi"                   
-"J1FBFxi"                  
-"J1FBFyi"                  
-"J1FBFzi"                  
-"J1MBFxi"                  
-"J1MBFxi"                  
-"J1MBFyi"                  
-"J1MBFyi"                  
-"J1MBFzi"                  
+"M1N1FVxi"
+"Wave1Elev"
+"M1N1FVxi"
+"M1N1FVyi"
+"M1N1FVzi"
+"M1N1FAxi"
+"M1N1FAyi"
+"M1N1FAzi"
+"M1N1DynP"
+"M1N1FDPxi"
+"M1N1FDPyi"
+"M1N1FDPzi"
+"M1N1FDxi"
+"M1N1FDyi"
+"M1N1FDzi"
+"M1N1FIxi"
+"M1N1FIyi"
+"M1N1FIzi"
+"M1N1FBxi"
+"M1N1FByi"
+"M1N1FBzi"
+"M1N1MBxi"
+"M1N1MByi"
+"M1N1MBzi"
+"M1N1FBFxi"
+"M1N1FBFyi"
+"M1N1FBFzi"
+"M1N1MBFxi"
+"M1N1MBFyi"
+"M1N1MBFzi"
+"J1FVxi"
+"J1FVyi"
+"J1FVzi"
+"J1FAxi"
+"J1FAyi"
+"J1FAyi"
+"J1FAzi"
+"J1DynP"
+"J1FDPxi"
+"J1FDPyi"
+"J1FDPzi"
+"J1FDxi"
+"J1FDyi"
+"J1FDzi"
+"J1FBxi"
+"J1FByi"
+"J1FBzi"
+"J1MBxi"
+"J1MByi"
+"J1MBzi"
+"J1FBFxi"
+"J1FBFyi"
+"J1FBFzi"
+"J1MBFxi"
+"J1MBFxi"
+"J1MBFyi"
+"J1MBFyi"
+"J1MBFzi"
 END of output channels and end of file. (the word "END" must appear in the first 3 columns of this line)
 
 

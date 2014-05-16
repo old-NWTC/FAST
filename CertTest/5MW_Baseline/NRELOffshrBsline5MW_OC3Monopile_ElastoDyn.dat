@@ -38,7 +38,7 @@ True          PtfmYDOF    - Platform yaw rotation DOF (flag)
           0   TTDspSS     - Initial side-to-side tower-top displacement (meters)
           0   PtfmSurge   - Initial or fixed horizontal surge translational displacement of platform (meters)
           0   PtfmSway    - Initial or fixed horizontal sway translational displacement of platform (meters)
--0.0009   0   PtfmHeave   - Initial or fixed vertical heave translational displacement of platform (meters)
+    -0.0009   PtfmHeave   - Initial or fixed vertical heave translational displacement of platform (meters)
           0   PtfmRoll    - Initial or fixed roll tilt rotational displacement of platform (degrees)
           0   PtfmPitch   - Initial or fixed pitch tilt rotational displacement of platform (degrees)
           0   PtfmYaw     - Initial or fixed yaw rotational displacement of platform (degrees)
@@ -106,7 +106,7 @@ False         Furling     - Read in additional model properties for furling turb
 "unused"      FurlFile    - Name of file containing furling properties (quoted string) [unused when Furling=False]
 ---------------------- TOWER ---------------------------------------------------
          99   TwrNodes    - Number of tower nodes used for analysis (-)
-"NRELOffshrBsline5MW_Monopile_RF_ElastoDyn_Tower.dat"    TwrFile     - Name of file containing tower properties (quoted string)
+"NRELOffshrBsline5MW_OC3Monopile_ElastoDyn_Tower.dat"    TwrFile     - Name of file containing tower properties (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint    - Print summary data to "<RootName>.sum" (flag)
           1   OutFile     - Switch to determine where output will be placed: {1: in module output file only; 2: in glue code output file only; 3: both} (currently unused)
@@ -115,44 +115,32 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
           0   TStart      - Time to begin tabular output (s) (currently unused)
           1   DecFact     - Decimation factor for tabular output {1: output every time step} (-) (currently unused)
           1   NTwGages    - Number of tower nodes that have strain gages for output [0 to 9] (-)
-         99    TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
+         99   TwrGagNd    - List of tower nodes that have strain gages [1 to TwrNodes] (-) [unused if NTwGages=0]
           3   NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
           5,          9,         13    BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
               OutList     - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-"PtfmTAxi, PtfmTAyi, PtfmTAzi"
-"PtfmRAxi, PtfmRAyi, PtfmRAzi"
-"OoPDefl1"                - Blade 1 out-of-plane and in-plane deflections and tip twist
-"IPDefl1"                 - Blade 1 out-of-plane and in-plane deflections and tip twist
-"TwstDefl1"               - Blade 1 out-of-plane and in-plane deflections and tip twist
+"OoPDefl1, IPDefl1, TwstDefl1" - Blade 1 out-of-plane and in-plane deflections and tip twist
 "BldPitch1"               - Blade 1 pitch angle
 "Azimuth"                 - Blade 1 azimuth angle
-"RotSpeed"                - Low-speed shaft and high-speed shaft speeds
-"GenSpeed"                - Low-speed shaft and high-speed shaft speeds
-"TwHt1TPxi"                 - Tower fore-aft and side-to-side displacements and top twist
-"TwHt1TPyi"                 - Tower fore-aft and side-to-side displacements and top twist
-"TTDspTwst"               - Tower fore-aft and side-to-side displacements and top twist
+"RotSpeed, GenSpeed"                - Low-speed shaft and high-speed shaft speeds
+"TwHt1TPxi, TwHt1TPyi, TTDspTwst"               - Tower fore-aft and side-to-side displacements and top twist
+"Spn2MLxb1, Spn2MLyb1"               - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
+"RootFxc1, RootFyc1, RootFzc1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
+"RootMxc1, RootMyc1, RootMzc1"   - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
+"RotTorq, LSSGagMya, LSSGagMza"  - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
+"YawBrFxp, YawBrFyp, YawBrFzp"   - Fore-aft shear, side-to-side shear, and vertical forces at the top of the tower (not rotating with nacelle yaw)
+"YawBrMxp, YawBrMyp, YawBrMzp"   - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
+"PtfmTAxi, PtfmTAyi, PtfmTAzi"
+"PtfmRAxi, PtfmRAyi, PtfmRAzi"
 "PtfmTDxi"
 "PtfmTDyi"
 "PtfmTDzi"
+"PtfmTVxi"
+"PtfmTVyi"
+"PtfmTVzi"
 "PtfmRDxi"
 "PtfmRDyi"
 "PtfmRDzi"
-"Spn2MLxb1"               - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
-"Spn2MLyb1"               - Blade 1 local edgewise and flapwise bending moments at span station 2 (approx. 50% span)
-"RootFxc1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
-"RootFyc1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
-"RootFzc1"                - Out-of-plane shear, in-plane shear, and axial forces at the root of blade 1
-"RootMxc1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
-"RootMyc1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
-"RootMzc1"                - In-plane bending, out-of-plane bending, and pitching moments at the root of blade 1
-"RotTorq"                 - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
-"LSSGagMya"               - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
-"LSSGagMza"               - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
-"YawBrFxp"                - Fore-aft shear, side-to-side shear, and vertical forces at the top of the tower (not rotating with nacelle yaw)
-"YawBrFyp"                - Fore-aft shear, side-to-side shear, and vertical forces at the top of the tower (not rotating with nacelle yaw)
-"YawBrFzp"                - Fore-aft shear, side-to-side shear, and vertical forces at the top of the tower (not rotating with nacelle yaw)
-"YawBrMxp"                - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
-"YawBrMyp"                - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
-"YawBrMzp"                - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
+
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------
