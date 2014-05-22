@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-04-30 09:41:52 -0600 (Wed, 30 Apr 2014) $
-! (File) Revision #: $Rev: 384 $
+! File last committed: $Date: 2014-05-14 11:30:09 -0600 (Wed, 14 May 2014) $
+! (File) Revision #: $Rev: 390 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -1576,16 +1576,25 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
       ! NOTE: Both the horizontal velocities and the partial derivative of the
       !       horizontal velocities with respect to zi at zi = 0 are found here.
 
-      DO J = 1,NWaveKin0Prime ! Loop through all points where the incident wave kinematics will be computed without stretching
+!ADP -- Added the check on the allocation of CurrVxi.  It was getting used without allocation.
+!This section should be reviewed.  The question is if there is a flag someplace that should be dictating when these calculations are performed, or if it hsould be handled by checking if it is allocated.
+      IF(ALLOCATED(InitInp%CurrVxi)) THEN
 
-         WaveVel0Hxi (:,J) =  WaveVel0H   (:,J)*CWaveDir +  InitInp%CurrVxi(WaveKinPrimeMap(J))     ! xi-direction
-         WaveVel0Hyi (:,J) =  WaveVel0H   (:,J)*SWaveDir +  InitInp%CurrVyi(WaveKinPrimeMap(J))     ! yi-direction
+         DO J = 1,NWaveKin0Prime ! Loop through all points where the incident wave kinematics will be computed without stretching
 
-      END DO                   ! J - All points where the incident wave kinematics will be computed without stretching
+            WaveVel0Hxi (:,J) =  WaveVel0H   (:,J)*CWaveDir +  InitInp%CurrVxi(WaveKinPrimeMap(J))     ! xi-direction
+            WaveVel0Hyi (:,J) =  WaveVel0H   (:,J)*SWaveDir +  InitInp%CurrVyi(WaveKinPrimeMap(J))     ! yi-direction
 
+         END DO                   ! J - All points where the incident wave kinematics will be computed without stretching
 
-      PWaveVel0HxiPz0(:  ) = PWaveVel0HPz0(:  )*CWaveDir + InitInp%PCurrVxiPz0  ! xi-direction
-      PWaveVel0HyiPz0(:  ) = PWaveVel0HPz0(:  )*SWaveDir + InitInp%PCurrVyiPz0  ! yi-direction
+         PWaveVel0HxiPz0(:  ) = PWaveVel0HPz0(:  )*CWaveDir + InitInp%PCurrVxiPz0  ! xi-direction
+         PWaveVel0HyiPz0(:  ) = PWaveVel0HPz0(:  )*SWaveDir + InitInp%PCurrVyiPz0  ! yi-direction
+
+      ELSE
+
+         CALL WrScr('WARNING: In Waves module, InitInp%CurrVxi is not allocated.')
+
+      ENDIF
 
       ! Apply stretching to obtain the wave kinematics, WaveDynP0, WaveVel0, and
       !   WaveAcc0, at the desired locations from the wave kinematics at

@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-09 10:55:39 -0600 (Fri, 09 May 2014) $
-! (File) Revision #: $Rev: 385 $
+! File last committed: $Date: 2014-05-20 11:07:05 -0600 (Tue, 20 May 2014) $
+! (File) Revision #: $Rev: 394 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -41,7 +41,7 @@ MODULE HydroDyn
    PRIVATE
 
   
-   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.00.05c-gjh', '07-May-2014' )
+   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.00.05c-gjh', '15-May-2014' )
 
     
    
@@ -127,12 +127,15 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       TYPE(Current_ConstraintStateType)      :: Current_z                           ! Current module initial guess of the constraint states
       TYPE(Current_OtherStateType)           :: CurrentOtherState                   ! Current module other/optimization states 
       TYPE(Current_OutputType)               :: Current_y                           ! Wave module outputs   
-!bjj removed (see comments below):      TYPE(WAMIT_OutputType)                 :: WAMIT_y
+      
+!BJJ: TODO: I recommend you just put these in the main HydroDyn type(s) because otherwise you have to make local copies of these same variables in CalcOutput and/or UpdateStates anyway.
       TYPE(WAMIT_ConstraintStateType)        :: WAMIT_z                             ! Initial guess of the constraint states
       TYPE(Morison_ContinuousStateType)      :: Morison_x                           ! Morison continuous states
       TYPE(Morison_DiscreteStateType)        :: Morison_xd                          ! Morison module discrete states
       TYPE(Morison_ConstraintStateType)      :: Morison_z                           ! Morison  of the constraint states
          
+      INTEGER(IntKi)                         :: ErrStat2                            ! local error status
+      CHARACTER(1024)                        :: ErrMsg2                             ! local error message
       
          ! Initialize ErrStat
          
@@ -145,8 +148,12 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          ! copy routine, we needed to make it (INOUT), which means we actually don't need this local version!!  I'm leaving this with the idea that the
          ! copy routine will get modified so that InitInp can have INTENT (IN) again.  GJH 4-Apr-2013
          
-      CALL HydroDyn_CopyInitInput( InitInp, InitLocal, MESH_NEWCOPY, ErrStat, ErrMsg )   
-      IF ( ErrStat > ErrID_Warn ) RETURN
+      CALL HydroDyn_CopyInitInput( InitInp, InitLocal, MESH_NEWCOPY, ErrStat2, ErrMsg2 )   
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
       
       
          ! Initialize the NWTC Subroutine Library
@@ -166,10 +173,12 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
                   
          ! Parse all HydroDyn-related input files and populate the *_InitInputType derived types
          
-         CALL HydroDynInput_GetInput( InitLocal, ErrStat, ErrMsg )
-         IF ( ErrStat > ErrID_Warn ) THEN
-            RETURN
-         END IF
+         CALL HydroDynInput_GetInput( InitLocal, ErrStat2, ErrMsg2 )
+            CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+            IF ( ErrStat >= AbortErrLev ) THEN
+               CALL CleanUp()
+               RETURN
+            END IF
          
       END IF
            
@@ -183,10 +192,12 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          !   because the HydroDynInput module is also responsible for parsing all this 
          !   initialization data from a file
          
-      CALL HydroDynInput_ProcessInitData( InitLocal, ErrStat, ErrMsg )     
-      IF ( ErrStat > ErrID_Warn ) THEN      
-         RETURN
-      END IF
+      CALL HydroDynInput_ProcessInitData( InitLocal, ErrStat2, ErrMsg2 )     
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
       
       
         ! Since the Convolution Radiation module is currently the only module which requires knowledge of the time step size, 
@@ -203,8 +214,12 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       IF ( InitLocal%HDSum ) THEN 
          
          SummaryName = TRIM(InitLocal%OutRootName)//'.HD.sum'
-         CALL HDOut_OpenSum( InitLocal%UnSum, SummaryName, HydroDyn_ProgDesc, ErrStat, ErrMsg )    !this must be called before the Waves_Init() routine so that the appropriate wave data can be written to the summary file
-         IF ( ErrStat > ErrID_Warn ) RETURN
+         CALL HDOut_OpenSum( InitLocal%UnSum, SummaryName, HydroDyn_ProgDesc, ErrStat2, ErrMsg2 )    !this must be called before the Waves_Init() routine so that the appropriate wave data can be written to the summary file
+            CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+            IF ( ErrStat >= AbortErrLev ) THEN
+               CALL CleanUp()
+               RETURN
+            END IF
       
       ELSE
          
@@ -233,31 +248,31 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          ! Initialize Current module
          
       CALL Current_Init(InitLocal%Current, Current_u, Current_p, Current_x, Current_xd, Current_z, CurrentOtherState, &
-                                 Current_y, Interval, Current_InitOut, ErrStat, ErrMsg )   
-      IF ( ErrStat > ErrID_Warn ) THEN      
-         RETURN
-      END IF 
+                                 Current_y, Interval, Current_InitOut, ErrStat2, ErrMsg2 )   
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
       
       ! Verify that Current_Init() did not request a different Interval!
       
       IF ( p%DT /= Interval ) THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = 'Current Module attempted to change timestep interval, but this is not allowed.  Current Module must use the HydroDyn Interval.'
+         CALL SetErrStat(ErrID_Fatal,'Current Module attempted to change timestep interval, but this is not allowed.  Current Module must use the HydroDyn Interval.',ErrStat,ErrMsg,'HydroDyn_Init')
+         CALL CleanUp()
+         RETURN
       END IF
       
       
          ! Copy initialization output data from Current module into the initialization input data for the Waves module
          
-      ALLOCATE ( InitLocal%Waves%CurrVxi(InitLocal%Current%NMorisonNodes), STAT = ErrStat )
-      IF ( ErrStat /= 0 ) THEN 
-         ErrMsg = ' Error allocating memory for the CurrVxi array.'
-         RETURN
-      END IF
-      ALLOCATE ( InitLocal%Waves%CurrVyi(InitLocal%Current%NMorisonNodes), STAT = ErrStat )
-      IF ( ErrStat /= 0 ) THEN 
-         ErrMsg = ' Error allocating memory for the CurrVyi array.'
-         RETURN
-      END IF
+      CALL AllocAry( InitLocal%Waves%CurrVxi, InitLocal%Current%NMorisonNodes, 'CurrVxi', ErrStat2, ErrMsg2 ); CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+      CALL AllocAry( InitLocal%Waves%CurrVyi, InitLocal%Current%NMorisonNodes, 'CurrVyi', ErrStat2, ErrMsg2 ); CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
+      
       
       InitLocal%Waves%CurrVxi       = Current_InitOut%CurrVxi 
       InitLocal%Waves%CurrVyi       = Current_InitOut%CurrVyi 
@@ -270,39 +285,47 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          ! Initialize Waves module
           
       CALL Waves_Init(InitLocal%Waves, Waves_u, Waves_p, Waves_x, Waves_xd, Waves_z, WavesOtherState, &
-                                 Waves_y, Interval, Waves_InitOut, ErrStat, ErrMsg )
-      IF ( ErrStat > ErrID_Warn ) THEN      
-         RETURN
-      END IF
+                                 Waves_y, Interval, Waves_InitOut, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
       
       
       ! Verify that Waves_Init() did not request a different Interval!
       
       IF ( p%DT /= Interval ) THEN
-         ErrStat = ErrID_Fatal
-         ErrMsg  = 'Waves Module attempted to change timestep interval, but this is not allowed.  Waves Module must use the HydroDyn Interval.'
+         CALL SetErrStat(ErrID_Fatal,'Waves Module attempted to change timestep interval, but this is not allowed.  Waves Module must use the HydroDyn Interval.',ErrStat,ErrMsg,'HydroDyn_Init')
+         CALL CleanUp()
+         RETURN
       END IF
      
          ! Copy Waves initialization output into the initialization input type for the WAMIT module
-         
-      ALLOCATE ( p%WaveTime   (0:Waves_InitOut%NStepWave                    ) , STAT=ErrStat )
-      IF ( ErrStat /= 0 )  THEN
-         ErrMsg  = ' Error allocating memory for the WaveTime array.'
-         ErrStat = ErrID_Fatal
-         RETURN
+                  
+      ALLOCATE ( p%WaveTime   (0:Waves_InitOut%NStepWave                    ) , STAT=ErrStat2 )
+      IF ( ErrStat2 /= 0 )  THEN
+         CALL SetErrStat(ErrID_Fatal,'Error allocating memory for the WaveTime array.',ErrStat,ErrMsg,'HydroDyn_Init')
+         CALL CleanUp()
+         RETURN         
       END IF
-      ALLOCATE ( p%WaveElev   (0:Waves_InitOut%NStepWave,InitLocal%Waves%NWaveElev  ) , STAT=ErrStat )
-      IF ( ErrStat /= 0 )  THEN
-         ErrMsg  = ' Error allocating memory for the WaveElev array.'
-         ErrStat = ErrID_Fatal
-         RETURN
-      END IF
+
+      
       p%NWaveElev    = InitLocal%Waves%NWaveElev  
       p%NStepWave    = Waves_InitOut%NStepWave
       p%WaveTime     = Waves_InitOut%WaveTime
-      p%WaveElev     = Waves_InitOut%WaveElev
       
-      IF(ALLOCATED( Waves_InitOut%WaveElev   ))  DEALLOCATE( Waves_InitOut%WaveElev   )
+      !BJJ: this statement replaces the allocation, copy, and deallocation commented out afterwards. 
+      !     it does not actually copy the data (just moves the allocation to a different variable) so it should be much more efficient
+      CALL MOVE_ALLOC( Waves_InitOut%WaveElev, p%WaveElev ) ! allocate p%WaveElev, set p%WaveElev = Waves_InitOut%WaveElev, and deallocate Waves_InitOut%WaveElev
+      !ALLOCATE ( p%WaveElev   (0:Waves_InitOut%NStepWave,InitLocal%Waves%NWaveElev  ) , STAT=ErrStat2 )
+      !IF ( ErrStat2 /= 0 )  THEN
+      !   CALL SetErrStat(ErrID_Fatal,'Error allocating memory for the WaveElev array.',ErrStat,ErrMsg,'HydroDyn_Init')
+      !   CALL CleanUp()
+      !   RETURN         
+      !END IF
+      !p%WaveElev     = Waves_InitOut%WaveElev      
+      !IF(ALLOCATED( Waves_InitOut%WaveElev   ))  DEALLOCATE( Waves_InitOut%WaveElev   )
       
       OtherState%LastIndWave = 1
       
@@ -312,39 +335,41 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          
             ! Copy Waves initialization output into the initialization input type for the WAMIT module
          
-         ALLOCATE ( InitLocal%WAMIT%WaveTime   (0:Waves_InitOut%NStepWave                    ) , STAT=ErrStat )
-         IF ( ErrStat /= 0 )  THEN
-            ErrMsg  = ' Error allocating memory for the WaveTime array.'
-            ErrStat = ErrID_Fatal
-            RETURN
+         ALLOCATE ( InitLocal%WAMIT%WaveTime   (0:Waves_InitOut%NStepWave                    ) , STAT=ErrStat2 )
+         IF ( ErrStat2 /= 0 )  THEN
+            CALL SetErrStat(ErrID_Fatal,'Error allocating memory for the WaveTime array.',ErrStat,ErrMsg,'HydroDyn_Init')
+            CALL CleanUp()
+            RETURN         
          END IF
 
-         ALLOCATE ( InitLocal%WAMIT%WaveElevC0 (2, 0:Waves_InitOut%NStepWave2                  ) , STAT=ErrStat )
-         IF ( ErrStat /= 0 )  THEN
-            ErrMsg  = ' Error allocating memory for the WaveElevC0 array.'
-            ErrStat = ErrID_Fatal
-            RETURN
-         END IF
 
       
-
          InitLocal%WAMIT%RhoXg        = Waves_InitOut%RhoXg
          InitLocal%WAMIT%NStepWave    = Waves_InitOut%NStepWave
          InitLocal%WAMIT%NStepWave2   = Waves_InitOut%NStepWave2
          InitLocal%WAMIT%WaveDOmega   = Waves_InitOut%WaveDOmega
-         InitLocal%WAMIT%WaveElevC0   = Waves_InitOut%WaveElevC0
-         InitLocal%WAMIT%WaveTime     = Waves_InitOut%WaveTime
+         InitLocal%WAMIT%WaveTime     = Waves_InitOut%WaveTime    
+
          
-            ! Deallocate this because it is not needed for the Morison_Init work
-         IF(ALLOCATED( Waves_InitOut%WaveElevC0 ))  DEALLOCATE( Waves_InitOut%WaveElevC0 )
+         !....................................
+         ! allocate InitLocal%WAMIT%WaveElevC0, 
+         ! set InitLocal%WAMIT%WaveElevC0 = Waves_InitOut%WaveElevC0, and 
+         ! deallocate Waves_InitOut%WaveElevC0 :
+         
+         CALL MOVE_ALLOC( Waves_InitOut%WaveElevC0, InitLocal%WAMIT%WaveElevC0 ) 
+                  
+         !IF(ALLOCATED( Waves_InitOut%WaveElevC0 ))  DEALLOCATE( Waves_InitOut%WaveElevC0 )
+         !....................................
          
          
          
             ! Initialize the WAMIT Calculations 
            
          CALL WAMIT_Init(InitLocal%WAMIT, u%WAMIT, p%WAMIT, x%WAMIT, xd%WAMIT, WAMIT_z, OtherState%WAMIT, &
-                                 y%WAMIT, Interval, InitOut%WAMIT, ErrStat, ErrMsg )
-         IF ( ErrStat > ErrID_Warn ) THEN 
+                                 y%WAMIT, Interval, InitOut%WAMIT, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
             RETURN
          END IF
          
@@ -352,68 +377,71 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
             ! Verify that WAMIT_Init() did not request a different Interval!
       
          IF ( p%DT /= Interval ) THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = 'WAMIT Module attempted to change timestep interval, but this is not allowed.  WAMIT Module must use the HydroDyn Interval.'
+            CALL SetErrStat(ErrID_Fatal,'WAMIT Module attempted to change timestep interval, but this is not allowed.  WAMIT Module must use the HydroDyn Interval.',ErrStat,ErrMsg,'HydroDyn_Init')
+            CALL CleanUp()
+            RETURN
          END IF
       ELSE
             ! Deallocate this because it is not needed for the Morison_Init work
          IF(ALLOCATED( Waves_InitOut%WaveElevC0 ))  DEALLOCATE( Waves_InitOut%WaveElevC0 )
       END IF
       
-!      CALL WAMIT_CopyOutput( WAMIT_y, y%WAMIT, MESH_NEWCOPY, ErrStat, ErrMsg )
-!!bjj: added to avoid memory leak:      
-!bjj: but then, it had an issue with the sibling mesh, so I just replaced WAMIT_y with y%WAMIT in WAMIT_Init, above
-!call wamit_destroyoutput(wamit_y, ErrStat, ErrMsg, .TRUE.)
 
          ! Are there Morison elements?
        
       IF ( InitLocal%Morison%NMembers > 0 ) THEN
          
          
-                ! Copy Waves initialization output into the initialization input type for the Morison module
-         
-         ALLOCATE ( InitLocal%Morison%WaveTime   (0:Waves_InitOut%NStepWave                    ) , STAT=ErrStat )
-         IF ( ErrStat /= 0 )  THEN
-            ErrMsg  = ' Error allocating memory for the WaveTime array.'
-            ErrStat = ErrID_Fatal
-            RETURN
-         END IF
-      
-         ALLOCATE ( InitLocal%Morison%WaveVel0   (0:Waves_InitOut%NStepWave,InitLocal%Morison%NNodes,3) , STAT=ErrStat )
-         IF ( ErrStat /= 0 )  THEN
-            ErrMsg =' Error allocating memory for the WaveVel0 array.'
-            ErrStat = ErrID_Fatal
-            RETURN
-         END IF
-         
-         ALLOCATE ( InitLocal%Morison%WaveAcc0   (0:Waves_InitOut%NStepWave,InitLocal%Morison%NNodes,3) , STAT=ErrStat )
-         IF ( ErrStat /= 0 )  THEN
-            ErrMsg =' Error allocating memory for the WaveAcc0 array.'
-            ErrStat = ErrID_Fatal
-            RETURN
-         END IF
-      
-         ALLOCATE ( InitLocal%Morison%WaveDynP0   (0:Waves_InitOut%NStepWave,InitLocal%Morison%NNodes) , STAT=ErrStat )
-         IF ( ErrStat /= 0 )  THEN
-            ErrMsg =' Error allocating memory for the WaveDynP0 array.'
-            ErrStat = ErrID_Fatal
-            RETURN
-         END IF
-         
-         
+                ! Copy Waves initialization output into the initialization input type for the Morison module                              
          
          InitLocal%Morison%NStepWave    = Waves_InitOut%NStepWave
-         InitLocal%Morison%WaveAcc0     = Waves_InitOut%WaveAcc0
-         InitLocal%Morison%WaveDynP0    = Waves_InitOut%WaveDynP0
-         InitLocal%Morison%WaveTime     = Waves_InitOut%WaveTime
-         InitLocal%Morison%WaveVel0     = Waves_InitOut%WaveVel0
+         
+         !....................................
+         ! allocate InitLocal%Morison%WaveAcc0, 
+         ! set InitLocal%Morison%WaveAcc0 = Waves_InitOut%WaveAcc0, and 
+         ! deallocate Waves_InitOut%WaveAcc0 :
+         
+         CALL MOVE_ALLOC( Waves_InitOut%WaveAcc0, InitLocal%Morison%WaveAcc0 )   
+         
+         !IF(ALLOCATED( Waves_InitOut%WaveAcc0   ))  DEALLOCATE( Waves_InitOut%WaveAcc0   )         
+         !....................................
+         
+         
+         !....................................
+         ! allocate InitLocal%Morison%WaveDynP0, 
+         ! set InitLocal%Morison%WaveDynP0 = Waves_InitOut%WaveDynP0, and 
+         ! deallocate Waves_InitOut%WaveDynP0 :
+         
+         CALL MOVE_ALLOC( Waves_InitOut%WaveDynP0, InitLocal%Morison%WaveDynP0 ) 
+         
+         !IF(ALLOCATED( Waves_InitOut%WaveDynP0  ))  DEALLOCATE( Waves_InitOut%WaveDynP0  )
+         !....................................
+         
+         
+         
+         !....................................
+         ! allocate InitLocal%Morison%WaveTime, 
+         ! set InitLocal%Morison%WaveTime = Waves_InitOut%WaveTime, and 
+         ! deallocate Waves_InitOut%WaveTime :
+         
+         CALL MOVE_ALLOC( Waves_InitOut%WaveTime, InitLocal%Morison%WaveTime ) 
+         
+         !IF(ALLOCATED( Waves_InitOut%WaveTime   ))  DEALLOCATE( Waves_InitOut%WaveTime   )
+         !....................................
+         
+         
+         
+         !....................................
+         ! allocate InitLocal%Morison%WaveVel0, 
+         ! set InitLocal%Morison%WaveVel0 = Waves_InitOut%WaveVel0, and 
+         ! deallocate Waves_InitOut%WaveVel0 :
+         
+         CALL MOVE_ALLOC( Waves_InitOut%WaveVel0, InitLocal%Morison%WaveVel0 ) 
+
+         !....................................
          
          
             ! Clean up unneeded Waves_InitOut data
-         IF(ALLOCATED( Waves_InitOut%WaveAcc0   ))  DEALLOCATE( Waves_InitOut%WaveAcc0   )
-         IF(ALLOCATED( Waves_InitOut%WaveDynP0  ))  DEALLOCATE( Waves_InitOut%WaveDynP0  )
-         IF(ALLOCATED( Waves_InitOut%WaveTime   ))  DEALLOCATE( Waves_InitOut%WaveTime   )
-         IF(ALLOCATED( Waves_InitOut%WaveVel0   ))  DEALLOCATE( Waves_InitOut%WaveVel0   )
          
             
             ! Check the output switch to see if Morison is needing to send outputs back to HydroDyn via the WriteOutput array
@@ -426,10 +454,12 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
             ! Initialize the Morison Element Calculations 
       
          CALL Morison_Init(InitLocal%Morison, u%Morison, p%Morison, Morison_x, Morison_xd, Morison_z, OtherState%Morison, &
-                               y%Morison, Interval, InitOut%Morison, ErrStat, ErrMsg )
-         IF ( ErrStat > ErrID_Warn ) THEN 
+                               y%Morison, Interval, InitOut%Morison, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
             RETURN
-         END IF                   
+         END IF
          
          IF ( u%Morison%DistribMesh%Committed ) THEN
                   ! we need the translation displacement mesh for loads transfer:
@@ -438,33 +468,42 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
                     , CtrlCode = MESH_NEWCOPY        &
                     , IOS      = COMPONENT_INPUT     &
                     , TranslationDisp = .TRUE.       &
-                    , ErrStat  = ErrStat             &
-                    , ErrMess  = ErrMsg              )  ! automatically sets    DestMesh%RemapFlag = .TRUE.
+                    , ErrStat  = ErrStat2            &
+                    , ErrMess  = ErrMsg2              )  ! automatically sets    DestMesh%RemapFlag = .TRUE.
                     
-            IF ( ErrStat /= ErrID_None ) RETURN
+               CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+               IF ( ErrStat >= AbortErrLev ) THEN
+                  CALL CleanUp()
+                  RETURN
+               END IF
             OtherState%MrsnDistribMesh_position%TranslationDisp = 0.0  ! bjj: this is actually initialized in the ModMesh module, but I'll do it here anyway.
             
          END IF
          
          IF ( u%Morison%LumpedMesh%Committed ) THEN
                   ! we need the translation displacement mesh for loads transfer:
-            CALL MeshCopy ( SrcMesh  = u%Morison%LumpedMesh            &
+            CALL MeshCopy ( SrcMesh  = u%Morison%LumpedMesh           &
                     , DestMesh = OtherState%MrsnLumpedMesh_position   &
                     , CtrlCode = MESH_NEWCOPY        &
                     , IOS      = COMPONENT_INPUT     &
                     , TranslationDisp = .TRUE.       &
-                    , ErrStat  = ErrStat             &
-                    , ErrMess  = ErrMsg              )  ! automatically sets    DestMesh%RemapFlag = .TRUE.
+                    , ErrStat  = ErrStat2            &
+                    , ErrMess  = ErrMsg2             )  ! automatically sets    DestMesh%RemapFlag = .TRUE.
                     
-            IF ( ErrStat /= ErrID_None ) RETURN
+            CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+            IF ( ErrStat >= AbortErrLev ) THEN
+               CALL CleanUp()
+               RETURN
+            END IF
             OtherState%MrsnLumpedMesh_position%TranslationDisp = 0.0  ! bjj: this is actually initialized in the ModMesh module, but I'll do it here anyway.
             
          END IF
             ! Verify that Morison_Init() did not request a different Interval!
       
          IF ( p%DT /= Interval ) THEN
-            ErrStat = ErrID_Fatal
-            ErrMsg  = 'Morison Module attempted to change timestep interval, but this is not allowed.  Morison Module must use the HydroDyn Interval.'
+            CALL SetErrStat(ErrID_Fatal,'Morison Module attempted to change timestep interval, but this is not allowed.  Morison Module must use the HydroDyn Interval.',ErrStat,ErrMsg,'HydroDyn_Init')
+            CALL CleanUp()
+            RETURN
          END IF
          
       END IF  ! ( InitLocal%Morison%NMembers > 0 )
@@ -480,8 +519,12 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       
          ! Close the summary file
          
-      CALL HDOut_CloseSum( InitLocal%UnSum, ErrStat, ErrMsg )
-      IF ( ErrStat > ErrID_Warn ) RETURN  
+      CALL HDOut_CloseSum( InitLocal%UnSum, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
     
       
       ! Define system output initializations (set up mesh) here:
@@ -492,8 +535,8 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       CALL MeshCreate( BlankMesh        = u%Mesh            &
                      ,IOS               = COMPONENT_INPUT   &
                      ,Nnodes            = 1                 &
-                     ,ErrStat           = ErrStat           &
-                     ,ErrMess           = ErrMsg            &
+                     ,ErrStat           = ErrStat2          &
+                     ,ErrMess           = ErrMsg2           &
                      ,TranslationDisp   = .TRUE.            &
                      ,Orientation       = .TRUE.            &
                      ,TranslationVel    = .TRUE.            &
@@ -502,27 +545,48 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
                      ,RotationAcc       = .TRUE.)
          ! Create the node on the mesh
             
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
+         
       CALL MeshPositionNode (u%Mesh                                &
                               , 1                                  &
                               , (/0.0_ReKi, 0.0_ReKi, 0.0_ReKi/)   &  
-                              , ErrStat                            &
-                              , ErrMsg                             )
+                              , ErrStat2                           &
+                              , ErrMsg2                            )
       
-      IF ( ErrStat /= 0 ) RETURN
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
        
       
          ! Create the mesh element
       CALL MeshConstructElement (  u%Mesh              &
                                   , ELEMENT_POINT      &                         
-                                  , ErrStat            &
-                                  , ErrMsg             &
+                                  , ErrStat2           &
+                                  , ErrMsg2            &
                                   , 1                  &
                                               )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
+      
+      
       CALL MeshCommit ( u%Mesh   &
-                      , ErrStat            &
-                      , ErrMsg             )
+                      , ErrStat2            &
+                      , ErrMsg2             )
    
-      IF ( ErrStat /= 0 ) RETURN
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
       
 
          
@@ -530,12 +594,16 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
                      ,DestMesh     = y%Mesh                 &
                      ,CtrlCode     = MESH_SIBLING           &
                      ,IOS          = COMPONENT_OUTPUT       &
-                     ,ErrStat      = ErrStat                &
-                     ,ErrMess      = ErrMsg                 &
+                     ,ErrStat      = ErrStat2               &
+                     ,ErrMess      = ErrMsg2                &
                      ,Force        = .TRUE.                 &
                      ,Moment       = .TRUE.                 )
      
-      
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF      
       u%Mesh%RemapFlag  = .TRUE.
       y%Mesh%RemapFlag  = .TRUE.
      
@@ -543,12 +611,16 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
                      ,DestMesh     = y%AllHdroOrigin        &
                      ,CtrlCode     = MESH_NEWCOPY           &
                      ,IOS          = COMPONENT_OUTPUT       &
-                     ,ErrStat      = ErrStat                &
-                     ,ErrMess      = ErrMsg                 &
+                     ,ErrStat      = ErrStat2               &
+                     ,ErrMess      = ErrMsg2                &
                      ,Force        = .TRUE.                 &
                      ,Moment       = .TRUE.                 )
      
-      
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF      
       y%AllHdroOrigin%RemapFlag  = .TRUE.
       
          ! we need the translation displacement mesh for loads transfer:
@@ -557,10 +629,14 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
                     , CtrlCode = MESH_NEWCOPY        &
                     , IOS      = COMPONENT_INPUT     &
                     , TranslationDisp = .TRUE.       &
-                    , ErrStat  = ErrStat             &
-                    , ErrMess  = ErrMsg              )  ! automatically sets    DestMesh%RemapFlag = .TRUE.
+                    , ErrStat  = ErrStat2            &
+                    , ErrMess  = ErrMsg2             )  ! automatically sets    DestMesh%RemapFlag = .TRUE.
                     
-      IF ( ErrStat /= ErrID_None ) RETURN
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
       OtherState%AllHdroOrigin_position%TranslationDisp = 0.0  ! bjj: this is actually initialized in the ModMesh module, but I'll do it here anyway.
       
      
@@ -573,47 +649,90 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       p%OutFmt        = InitLocal%OutFmt
       p%OutSFmt       = InitLocal%OutSFmt
       p%NumOuts       = InitLocal%NumOuts
-      CALL HDOUT_Init( HydroDyn_ProgDesc, InitLocal, y,  p, InitOut, ErrStat, ErrMsg )
+      CALL HDOUT_Init( HydroDyn_ProgDesc, InitLocal, y,  p, InitOut, ErrStat2, ErrMsg2 )
       
-
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF
       
          ! Create some mesh mapping data
       CALL MeshCopy (   SrcMesh      = y%Mesh               &
                      ,DestMesh     = OtherState%y_mapped    &
                      ,CtrlCode     = MESH_NEWCOPY           &
                      ,IOS          = COMPONENT_OUTPUT       &
-                     ,ErrStat      = ErrStat                &
-                     ,ErrMess      = ErrMsg                 &
+                     ,ErrStat      = ErrStat2               &
+                     ,ErrMess      = ErrMsg2                &
                      ,Force        = .TRUE.                 &
                      ,Moment       = .TRUE.                 )
           
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
       OtherState%y_mapped%RemapFlag  = .TRUE.
  
-      CALL MeshMapCreate( y%Mesh,                OtherState%y_mapped, OtherState%HD_MeshMap%HD_P_2_WRP_P, ErrStat, ErrMsg  )
-      CALL MeshMapCreate( y%Morison%LumpedMesh,  OtherState%y_mapped, OtherState%HD_MeshMap%M_P_2_WRP_P,  ErrStat, ErrMsg  )
-      CALL MeshMapCreate( y%Morison%DistribMesh, OtherState%y_mapped, OtherState%HD_MeshMap%M_L_2_WRP_P,  ErrStat, ErrMsg  )
+      CALL MeshMapCreate( y%Mesh,                OtherState%y_mapped, OtherState%HD_MeshMap%HD_P_2_WRP_P, ErrStat2, ErrMsg2  );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+      CALL MeshMapCreate( y%Morison%LumpedMesh,  OtherState%y_mapped, OtherState%HD_MeshMap%M_P_2_WRP_P,  ErrStat2, ErrMsg2  );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+      CALL MeshMapCreate( y%Morison%DistribMesh, OtherState%y_mapped, OtherState%HD_MeshMap%M_L_2_WRP_P,  ErrStat2, ErrMsg2  );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
       
-         ! Define initial guess for the system inputs here:
-
-         ! Define system output initializations (set up mesh) here:
-         
-         InitOut%Ver = HydroDyn_ProgDesc
-         
-            ! These two come directly from processing the inputs, and so will exist even if not using Morison elements
-         InitOut%WtrDens = InitLocal%Morison%WtrDens
-         InitOut%WtrDpth = InitLocal%Morison%WtrDpth
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF         
          
          ! Define initialization-routine output here:
+         InitOut%Ver = HydroDyn_ProgDesc         
+            ! These three come directly from processing the inputs, and so will exist even if not using Morison elements:
+         InitOut%WtrDens = InitLocal%Morison%WtrDens
+         InitOut%WtrDpth = InitLocal%Morison%WtrDpth
+         InitOut%MSL2SWL = InitLocal%Morison%MSL2SWL
+                                                                   
+      IF ( InitInp%hasIce ) THEN
+         IF ((InitLocal%Waves%WaveMod /= 0) .OR. (InitLocal%Current%CurrMod /= 0) ) THEN
+            CALL SetErrStat(ErrID_Fatal,'Waves and Current must be turned off in HydroDyn when ice loading is computed. Set WaveMod=0 and CurrMod=0.',ErrStat,ErrMsg,'HydroDyn_Init')
+         END IF
+      END IF
+      
+      
+         ! Destroy the local initialization data
+      CALL CleanUp()
          
-         
-         ! Destroy the local initializatin data
-         ! TODO: Verify that this is being done by the glue code.  GJH 6/18/13
-!bjj: I uncommented this new source line because it was showing up as a memeory leak 7/26/2013
-!bjj:   You should make sure this gets destroyed even if the routine returns early, though.
-      CALL HydroDyn_DestroyInitInput( InitLocal,  ErrStat, ErrMsg )
-                                        
+CONTAINS
+!................................
+   SUBROUTINE CleanUp()
+      
+      CALL HydroDyn_DestroyInitInput( InitLocal,       ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+      CALL Waves_DestroyInitOutput(   Waves_InitOut,   ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init') 
+      CALL Current_DestroyInitOutput( Current_InitOut, ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init') 
+   
+      
+         ! These are dummy variables to satisfy the framework, but are not used again:
+      
+      CALL Waves_DestroyInput(       Waves_u,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Waves_DestroyParam(       Waves_p,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Waves_DestroyContState(   Waves_x,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Waves_DestroyDiscState(   Waves_xd,         ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Waves_DestroyConstrState( Waves_z,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Waves_DestroyOtherState(  WavesOtherState,  ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Waves_DestroyOutput(      Waves_y,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
 
+      
+      CALL Current_DestroyInput(       Current_u,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Current_DestroyParam(       Current_p,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Current_DestroyContState(   Current_x,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Current_DestroyDiscState(   Current_xd,         ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Current_DestroyConstrState( Current_z,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Current_DestroyOtherState(  CurrentOtherState,  ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Current_DestroyOutput(      Current_y,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      
 
+      CALL WAMIT_DestroyConstrState(   WAMIT_z,            ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      
+      CALL Morison_DestroyContState(   Morison_x,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Morison_DestroyDiscState(   Morison_xd,         ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')      
+      CALL Morison_DestroyConstrState( Morison_z,          ErrStat2, ErrMsg2 );CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')                            
+      
+   END SUBROUTINE CleanUp
+!................................
 END SUBROUTINE HydroDyn_Init
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE HydroDyn_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
@@ -627,8 +746,8 @@ SUBROUTINE HydroDyn_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       TYPE(HydroDyn_ConstraintStateType), INTENT(INOUT)  :: z           ! Constraint states
       TYPE(HydroDyn_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states            
       TYPE(HydroDyn_OutputType),          INTENT(INOUT)  :: y           ! System outputs
-      INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat      ! Error status of the operation
-      CHARACTER(*),                      INTENT(  OUT)  :: ErrMsg       ! Error message if ErrStat /= ErrID_None
+      INTEGER(IntKi),                     INTENT(  OUT)  :: ErrStat      ! Error status of the operation
+      CHARACTER(*),                       INTENT(  OUT)  :: ErrMsg       ! Error message if ErrStat /= ErrID_None
 
 
 

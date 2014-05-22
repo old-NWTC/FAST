@@ -1,15 +1,15 @@
 
 FAST Summary File
 
-Predictions were generated on 15-May-2014 at 21:08:30 using FAST (v8.07.00a-bjj, 9-May-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 21-May-2014 at 14:24:03 using FAST (v8.07.00b-bjj, 15-May-2014), compiled for 32-bit systems using single precision
   compiled with
     NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014)
     ElastoDyn (v1.01.06a-bjj, 2-May-2014)
     ServoDyn (v1.01.02a-bjj, 31-Jan-2014)
     AeroDyn (v14.02.01b-bjj, 29-Jan-2014)
     InflowWind (v2.00.01a-bjj, 22-Jan-2014)
-    HydroDyn (v2.00.05c-gjh, 07-May-2014)
-    SubDyn (v1.00.00b-rrd, 5-May-2014)
+    HydroDyn (v2.00.05c-gjh, 15-May-2014)
+    SubDyn (v1.00.00c-bjj, 20-May-2014)
     MAP (unknown version, unknown date) [not called]
     FEAMooring (unknown version, unknown date) [not called]
     IceFloe (unknown version, unknown date) [not called]
@@ -17,7 +17,7 @@ Predictions were generated on 15-May-2014 at 21:08:30 using FAST (v8.07.00a-bjj,
 
 Modeling a fixed-bottom offshore turbine
 Description from the FAST input file: 
-  FAST Certification Test #19: NREL 5.0 MW Baseline Wind Turbine with Monopile RF Configuration, for use in offshore analysis
+  FAST Certification Test #19: NREL 5.0 MW Baseline Wind Turbine with OC3 Monopile RF Configuration, for use in offshore analysis
 
 Interpolation order for input/output time histories: 2 (quadratic)
 Number of correction iterations:  0
@@ -94,9 +94,9 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and Hydro
       51  M2N1MKye    (N*m)       SubDyn
       52  M1N1MKxe    (N*m)       SubDyn
       53  M1N1MKye    (N*m)       SubDyn
-      54  ReactFXss   (N)         SubDyn
-      55  ReactFYss   (N)         SubDyn
-      56  ReactFZss   (N)         SubDyn
-      57  ReactMXss   (Nm)        SubDyn
-      58  ReactMYss   (Nm)        SubDyn
-      59  ReactMZss   (Nm)        SubDyn
+      54  -ReactFXss  (N)         SubDyn
+      55  -ReactFYss  (N)         SubDyn
+      56  -ReactFZss  (N)         SubDyn
+      57  -ReactMXss  (Nm)        SubDyn
+      58  -ReactMYss  (Nm)        SubDyn
+      59  -ReactMZss  (Nm)        SubDyn

@@ -48,6 +48,8 @@ IMPLICIT NONE
     REAL(ReKi)  :: DT      ! Supplied by Driver:  Simulation time step (sec) [-]
     REAL(ReKi)  :: Gravity      ! Supplied by Driver:  Gravitational acceleration (m/s^2) [-]
     REAL(DbKi)  :: TMax      ! Supplied by Driver:  The total simulation time (sec) [-]
+    LOGICAL  :: HasIce      ! Supplied by Driver:  Whether this simulation has ice loading (flag) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! Supplied by Driver:  X-Y locations for WaveElevation output (for visualization) [-]
     CHARACTER(80)  :: PtfmSgFChr      ! Platform horizontal surge translation force (flag) or DEFAULT [-]
     LOGICAL  :: PtfmSgF      ! Optionally Supplied by Driver:  Platform horizontal surge translation force (flag) [-]
     CHARACTER(80)  :: PtfmSwFChr      ! Platform horizontal sway translation force (flag) or DEFAULT [-]
@@ -89,8 +91,9 @@ IMPLICIT NONE
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! The is the list of all HD-related output channel header strings (includes all sub-module channels) [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! The is the list of all HD-related output channel unit strings (includes all sub-module channels) [-]
     TYPE(ProgDesc)  :: Ver      ! Version of HydroDyn [-]
-    REAL(ReKi)  :: WtrDens      ! Water density (kg/m^3) [-]
-    REAL(ReKi)  :: WtrDpth      ! Water depth (m) [-]
+    REAL(ReKi)  :: WtrDens      ! Water density [(kg/m^3)]
+    REAL(ReKi)  :: WtrDpth      ! Water depth [(m)]
+    REAL(ReKi)  :: MSL2SWL      ! Offset between still-water level and mean sea level [(m)]
   END TYPE HydroDyn_InitOutputType
 ! =======================
 ! =========  HD_ModuleMapType  =======
@@ -136,7 +139,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      ! Array of time samples, (sec) [-]
     INTEGER(IntKi)  :: NStepWave      ! Number of data points in the wave kinematics arrays [-]
     INTEGER(IntKi)  :: NWaveElev      ! Number of wave elevation outputs [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      ! wave elevations at requested output locations [-]
     REAL(ReKi) , DIMENSION(1:6)  :: AddF0      ! Additional pre-load forces and moments (N,N,N,N-m,N-m,N-m) [-]
     REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddCLin      ! Additional stiffness matrix [-]
     REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBLin      ! Additional linear damping matrix [-]
@@ -187,6 +190,22 @@ CONTAINS
    DstInitInputData%DT = SrcInitInputData%DT
    DstInitInputData%Gravity = SrcInitInputData%Gravity
    DstInitInputData%TMax = SrcInitInputData%TMax
+   DstInitInputData%HasIce = SrcInitInputData%HasIce
+IF (ALLOCATED(SrcInitInputData%WaveElevXY)) THEN
+   i1_l = LBOUND(SrcInitInputData%WaveElevXY,1)
+   i1_u = UBOUND(SrcInitInputData%WaveElevXY,1)
+   i2_l = LBOUND(SrcInitInputData%WaveElevXY,2)
+   i2_u = UBOUND(SrcInitInputData%WaveElevXY,2)
+   IF (.NOT. ALLOCATED(DstInitInputData%WaveElevXY)) THEN 
+      ALLOCATE(DstInitInputData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'HydroDyn_CopyInitInput: Error allocating DstInitInputData%WaveElevXY.'
+         RETURN
+      END IF
+   END IF
+   DstInitInputData%WaveElevXY = SrcInitInputData%WaveElevXY
+ENDIF
    DstInitInputData%PtfmSgFChr = SrcInitInputData%PtfmSgFChr
    DstInitInputData%PtfmSgF = SrcInitInputData%PtfmSgF
    DstInitInputData%PtfmSwFChr = SrcInitInputData%PtfmSwFChr
@@ -241,6 +260,9 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
+IF (ALLOCATED(InitInputData%WaveElevXY)) THEN
+   DEALLOCATE(InitInputData%WaveElevXY)
+ENDIF
   CALL Waves_DestroyInitInput( InitInputData%Waves, ErrStat, ErrMsg )
   CALL Current_DestroyInitInput( InitInputData%Current, ErrStat, ErrMsg )
   CALL WAMIT_DestroyInitInput( InitInputData%WAMIT, ErrStat, ErrMsg )
@@ -299,6 +321,7 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! DT
   Re_BufSz   = Re_BufSz   + 1  ! Gravity
   Db_BufSz   = Db_BufSz   + 1  ! TMax
+  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevXY )  ! WaveElevXY 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddF0 )  ! AddF0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddCLin )  ! AddCLin 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddBLin )  ! AddBLin 
@@ -344,6 +367,10 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TMax )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( ALLOCATED(InData%WaveElevXY) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevXY))-1 ) =  PACK(InData%WaveElevXY ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevXY)
+  ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddF0))-1 ) =  PACK(InData%AddF0 ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%AddF0)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddCLin))-1 ) =  PACK(InData%AddCLin ,.TRUE.)
@@ -477,6 +504,12 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%TMax = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( ALLOCATED(OutData%WaveElevXY) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%WaveElevXY,1),SIZE(OutData%WaveElevXY,2))); mask2 = .TRUE.
+    OutData%WaveElevXY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevXY))-1 ),mask2,OutData%WaveElevXY)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevXY)
+  ENDIF
   ALLOCATE(mask1(SIZE(OutData%AddF0,1))); mask1 = .TRUE.
   OutData%AddF0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddF0))-1 ),mask1,OutData%AddF0)
   DEALLOCATE(mask1)
@@ -610,6 +643,7 @@ ENDIF
       CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat, ErrMsg )
    DstInitOutputData%WtrDens = SrcInitOutputData%WtrDens
    DstInitOutputData%WtrDpth = SrcInitOutputData%WtrDpth
+   DstInitOutputData%MSL2SWL = SrcInitOutputData%MSL2SWL
  END SUBROUTINE HydroDyn_CopyInitOutput
 
  SUBROUTINE HydroDyn_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
@@ -697,6 +731,7 @@ ENDIF
   IF(ALLOCATED(Int_Ver_Buf)) DEALLOCATE(Int_Ver_Buf)
   Re_BufSz   = Re_BufSz   + 1  ! WtrDens
   Re_BufSz   = Re_BufSz   + 1  ! WtrDpth
+  Re_BufSz   = Re_BufSz   + 1  ! MSL2SWL
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -751,6 +786,8 @@ ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WtrDens )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WtrDpth )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MSL2SWL )
   Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE HydroDyn_PackInitOutput
 
@@ -844,6 +881,8 @@ ENDIF
   OutData%WtrDens = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%WtrDpth = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MSL2SWL = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1

@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
-! (File) Revision #: $Rev: 692 $
+! File last committed: $Date: 2014-05-15 20:34:11 -0600 (Thu, 15 May 2014) $
+! (File) Revision #: $Rev: 697 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/randomCrushing.F90 $
 !**********************************************************************************************************************************
 
@@ -131,11 +131,11 @@ contains
    !  calculate the amplitude for each frequency from the PSD
          a = inParams%coeffPSD_b/(inParams%iceVelocity**0.6)
          do nf = 1, nfSteps
-      	   frequency(nf) = float(nf)*inParams%freqStep
+            frequency(nf) = float(nf)*inParams%freqStep
    !  Note PSD is amplitude squared so take square root and mult by freq resolution to get discrete
    !  Also times 2 since we are using a single sided PSD
-      	   amplitude(nf) = sqrt( (2.0*a*(stdLoad**2)*inParams%freqStep)            &
-      	                 / (1.0+inParams%coeffPSD_Ks*(a**1.5)*frequency(nf)**2) )
+            amplitude(nf) = sqrt( (2.0*a*(stdLoad**2)*inParams%freqStep)            &
+                             / (1.0+inParams%coeffPSD_Ks*(a**1.5)*frequency(nf)**2) )
          enddo
 
    !  calculate time series as a sum of frequencies at each time step 

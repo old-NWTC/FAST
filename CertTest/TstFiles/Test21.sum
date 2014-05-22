@@ -1,15 +1,15 @@
 
 FAST Summary File
 
-Predictions were generated on 12-May-2014 at 12:35:37 using FAST (v8.07.00a-bjj, 9-May-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 21-May-2014 at 14:26:12 using FAST (v8.07.00b-bjj, 15-May-2014), compiled for 32-bit systems using single precision
   compiled with
     NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014)
     ElastoDyn (v1.01.06a-bjj, 2-May-2014)
     ServoDyn (v1.01.02a-bjj, 31-Jan-2014)
     AeroDyn (v14.02.01b-bjj, 29-Jan-2014)
     InflowWind (v2.00.01a-bjj, 22-Jan-2014)
-    HydroDyn (v2.00.05c-gjh, 07-May-2014)
-    SubDyn (v1.00.00b-rrd, 5-May-2014)
+    HydroDyn (v2.00.05c-gjh, 15-May-2014)
+    SubDyn (v1.00.00c-bjj, 20-May-2014)
     MAP (unknown version, unknown date) [not called]
     FEAMooring (unknown version, unknown date) [not called]
     IceFloe (unknown version, unknown date) [not called]
@@ -34,7 +34,7 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and Hydro
   ServoDyn            1.000E-02              1
   HydroDyn            1.000E-02              1
   SubDyn              1.000E-02              1
-  FAST output files   1.000E-02              1
+  FAST output files   5.000E-02              5^-1
 
 
    Requested Channels in FAST Output File(s)  
@@ -105,27 +105,21 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and Hydro
       62  J1MBFyi     (N-m)       HydroDyn
       63  J1MBFyi     (N-m)       HydroDyn
       64  J1MBFzi     (N-m)       HydroDyn
-      65  ReactFXss   (N)         SubDyn
-      66  ReactFYss   (N)         SubDyn
-      67  ReactFZss   (N)         SubDyn
-      68  ReactMXss   (Nm)        SubDyn
-      69  ReactMYss   (Nm)        SubDyn
-      70  ReactMZss   (Nm)        SubDyn
-      71  IntfFXss    (N)         SubDyn
-      72  IntfFYss    (N)         SubDyn
-      73  IntfFZss    (N)         SubDyn
-      74  IntfMXss    (Nm)        SubDyn
-      75  IntfMYss    (Nm)        SubDyn
-      76  IntfMZss    (Nm)        SubDyn
-      77  IntfTDXss   (m)         SubDyn
-      78  IntfTDYss   (m)         SubDyn
-      79  IntfTDZss   (m)         SubDyn
-      80  IntfRDXss   (rad)       SubDyn
-      81  IntfRDYss   (rad)       SubDyn
-      82  IntfRDZss   (rad)       SubDyn
-      83  IntfTAXss   (m/s^2)     SubDyn
-      84  IntfTAYss   (m/s^2)     SubDyn
-      85  IntfTAZss   (m/s^2)     SubDyn
-      86  IntfRAXss   (rad/s^2)   SubDyn
-      87  IntfRAYss   (rad/s^2)   SubDyn
-      88  IntfRAZss   (rad/s^2)   SubDyn
+      65  -ReactFXss  (N)         SubDyn
+      66  -ReactFYss  (N)         SubDyn
+      67  -ReactMXss  (Nm)        SubDyn
+      68  -ReactMYss  (Nm)        SubDyn
+      69  -ReactMZss  (Nm)        SubDyn
+      70  -ReactFZss  (N)         SubDyn
+      71  M1N1FKZe    (N)         SubDyn
+      72  M2N1FKZe    (N)         SubDyn
+      73  -M3N1TDXss  (m)         SubDyn
+      74  -M4N1TDYss  (m)         SubDyn
+      75  -M5N1TDXss  (m)         SubDyn
+      76  -M6N1TDYss  (m)         SubDyn
+      77  M7N1FKZe    (N)         SubDyn
+      78  -M7N1FKXe   (N)         SubDyn
+      79  M8N1FKZe    (N)         SubDyn
+      80  -M8N1FKYe   (N)         SubDyn
+      81  M9N1FKZe    (N)         SubDyn
+      82  M9N1FKZe    (N)         SubDyn

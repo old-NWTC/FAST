@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-04-30 09:41:52 -0600 (Wed, 30 Apr 2014) $
-! (File) Revision #: $Rev: 384 $
+! File last committed: $Date: 2014-05-20 11:07:05 -0600 (Tue, 20 May 2014) $
+! (File) Revision #: $Rev: 394 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -2202,6 +2202,7 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
       END IF
       CALL ReadAry ( UnIn, FileName, tmpArray, 1, 'JOutLst', 'Joint output list', ErrStat,  ErrMsg, UnEchoLocal )      
       DEALLOCATE(tmpArray)
+      !bjj: basically we just want to read a comment. Is the reason for this just for echo file purposes?
       
    END IF
    
@@ -2457,6 +2458,9 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
       ELSE                                               ! The user must have specified WaveMod incorrectly.
          ErrStat = ErrID_Fatal
+!ADP -- I'm not sure if this should be here is handled later.  I'm assuming that every time we have a ErrID_Fatal, we should have a return fairly close.
+         ErrMsg   = 'WaveMod incorrectly specified'
+         RETURN
       END IF
    
    ELSE
@@ -2978,6 +2982,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
          IF ( ErrStat /= ErrID_None ) THEN
             ErrMsg  = ' RdtnDT must be numerical if not set to DEFAULT.'
+            ErrStat = ErrID_Fatal
             RETURN
          ENDIF 
          
@@ -2998,7 +3003,8 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
    ! Data section for Floating platform force flags
    !-------------------------------------------------------------------------------------------------
-   
+
+!ADP -- The error handling in this section is not complete.  It looks like these flags are not implimented elsewhere in the code.   
    ! If DEFAULT was requested, then the required value has already been set by the calling program
    IF ( TRIM(InitInp%PtfmSgFChr) /= 'DEFAULT' )  THEN
       
@@ -3006,6 +3012,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       
       CALL CheckIOS ( ErrStat, "", 'PtfmSgF', NumType, .TRUE. )
 
+!ADP -- Shouldn't we be returning a message and more meaningful ErrStat?  The value for IOSTAT might be negative.
       IF ( ErrStat /= ErrID_None ) THEN
          RETURN
       END IF
@@ -3505,10 +3512,12 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          IF ( InitInp%Morison%InpMembers(I)%MJointID1Indx == -1 ) THEN
             ErrMsg  = ' JointID1 in the Members table does not appear in the Joints table.'
             ErrStat = ErrID_Fatal
+            RETURN
          END IF
          IF ( InitInp%Morison%InpMembers(I)%MJointID2Indx == -1 ) THEN
             ErrMsg  = ' JointID2 in the Members table does not appear in the Joints table.'
             ErrStat = ErrID_Fatal
+            RETURN
          END IF
          
             ! Make sure we do not have any zero length members
@@ -3537,10 +3546,12 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          IF ( InitInp%Morison%InpMembers(I)%MPropSetID1Indx == -1 ) THEN
             ErrMsg  = ' MPropSetID1 in the Members table does not appear in the Member cross-section properties table.'
             ErrStat = ErrID_Fatal
+            RETURN
          END IF
          IF ( InitInp%Morison%InpMembers(I)%MPropSetID2Indx == -1 ) THEN
             ErrMsg  = ' MPropSetID2 in the Members table does not appear in the Member cross-section properties table.'
             ErrStat = ErrID_Fatal
+            RETURN
          END IF 
      
          
@@ -3549,6 +3560,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          IF ( InitInp%Morison%InpMembers(I)%MDivSize <= 0 ) THEN
             ErrMsg  = ' MDivSize must be greater than zero.'
             ErrStat = ErrID_Fatal
+            RETURN
          END IF
          
             
@@ -3834,6 +3846,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%OutAll ) THEN    !TODO: Alter this check once OutAll is supported
          ErrMsg  = ' OutAll must be FALSE. Future versions of HydroDyn will once again support values of either TRUE or FALSE.'
          ErrStat = ErrID_Fatal
+         RETURN
    END IF
    
    

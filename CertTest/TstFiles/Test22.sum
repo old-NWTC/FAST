@@ -1,14 +1,14 @@
 
 FAST Summary File
 
-Predictions were generated on 12-May-2014 at 12:42:08 using FAST (v8.07.00a-bjj, 9-May-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 21-May-2014 at 14:32:14 using FAST (v8.07.00b-bjj, 15-May-2014), compiled for 32-bit systems using single precision
   compiled with
     NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014)
     ElastoDyn (v1.01.06a-bjj, 2-May-2014)
     ServoDyn (v1.01.02a-bjj, 31-Jan-2014)
     AeroDyn (v14.02.01b-bjj, 29-Jan-2014)
     InflowWind (v2.00.01a-bjj, 22-Jan-2014)
-    HydroDyn (v2.00.05c-gjh, 07-May-2014)
+    HydroDyn (v2.00.05c-gjh, 15-May-2014)
     SubDyn (unknown version, unknown date) [not called]
     MAP (0.97.01a-mdm, Mar-05-2014)
     FEAMooring (unknown version, unknown date) [not called]
@@ -28,13 +28,13 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn to HydroDyn:     1
   -------------------------------------------------
   Component          Time Step (s)    Subcycles (-)
   -----------------  ---------------  -------------
-  FAST (glue code)    5.000E-03
-  ElastoDyn           5.000E-03              1
-  AeroDyn             5.000E-03              1
-  ServoDyn            5.000E-03              1
-  HydroDyn            5.000E-03              1
-  MAP                 5.000E-03              1
-  FAST output files   5.000E-03              1
+  FAST (glue code)    1.250E-02
+  ElastoDyn           1.250E-02              1
+  AeroDyn             1.250E-02              1
+  ServoDyn            1.250E-02              1
+  HydroDyn            1.250E-02              1
+  MAP                 1.250E-02              1
+  FAST output files   1.250E-02              1
 
 
    Requested Channels in FAST Output File(s)  

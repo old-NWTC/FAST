@@ -1,4 +1,4 @@
-NREL 5.0 MW offshore baseline aerodynamic tower CD input properties.
+NREL 5.0 MW baseline land-based aerodynamic tower CD input properties.
 Used with AeroDyn 13.00.00 hidden tower influence feature.
   12        NTwrHt      - Number of tower input height stations listed (-)
   16        NTwrRe      - Number of tower Re values (-)

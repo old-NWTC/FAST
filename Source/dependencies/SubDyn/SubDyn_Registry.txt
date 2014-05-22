@@ -3,8 +3,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2014-05-06 13:31:57 -0600 (Tue, 06 May 2014) $
-# (File) Revision #: $Rev: 294 $
+# File last committed $Date: 2014-05-19 15:01:26 -0600 (Mon, 19 May 2014) $
+# (File) Revision #: $Rev: 296 $
 # URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Registry.txt $
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
@@ -132,10 +132,10 @@ typedef	^	^	ReKi	Y2	{:}	-	-	"Structure Deflections and velocities"
 # ============================== Parameters ============================================================================================================================================
 typedef	^	ParameterType	DbKi	SDDeltaT	-	-	-	"Time step (for integration of continuous states)"	seconds
 typedef	^	ParameterType	Logical	SttcSolve	-	-	-	"Solve dynamics about static equilibrium point (flag)"
-typedef	^	ParameterType	ReKi	A_21	{:}{:}	-	-	"Coefficient of x in X"
-typedef	^	ParameterType	ReKi	A_22	{:}{:}	-	-	"Coefficient of x in X"
+typedef	^	ParameterType	ReKi	NOmegaM2	{:}	-	-	"Coefficient of x in X (negative omegaM squared)"
+typedef	^	ParameterType	ReKi	N2OmegaMJDamp	{:}	-	-	"Coefficient of x in X (negative 2 omegaM * JDamping)"
 typedef	^	ParameterType	ReKi	B_23	{:}{:}	-	-	"Coefficient of u in X"
-typedef	^	ParameterType	ReKi	B_24	{:}{:}	-	-	"Coefficient of u in X"
+typedef	^	ParameterType	ReKi	PhiM_T	{:}{:}	-	-	"Coefficient of u in X (transpose of phiM)"
 typedef	^	ParameterType	ReKi	FX	{:}	-	-	"Load components in X"
 typedef	^	ParameterType	ReKi	C1_11	{:}{:}	-	-	"Coefficient of x in Y1"
 typedef	^	ParameterType	ReKi	C1_12	{:}{:}	-	-	"Coefficient of x in Y1"
@@ -143,15 +143,15 @@ typedef	^	ParameterType	ReKi	D1_11	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	D1_13	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	D1_14	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	FY	{:}	-	-	"Load Components in  Y1"
-typedef	^	ParameterType	ReKi	C2_21	{:}{:}	-	-	"Coefficient of x in Y2"
-typedef	^	ParameterType	ReKi	C2_42	{:}{:}	-	-	"Coefficient of x in Y2"
+typedef	^	ParameterType	ReKi	PhiM	{:}{:}	-	-	"Coefficient of x in Y2"
+#typedef	^	ParameterType	ReKi	C2_42	{:}{:}	-	-	"Coefficient of x in Y2"
 typedef	^	ParameterType	ReKi	C2_61	{:}{:}	-	-	"Coefficient of x in Y2 (URdotdot ULdotdot)"
 typedef	^	ParameterType	ReKi	C2_62	{:}{:}	-	-	"Coefficient of x in Y2 (URdotdot ULdotdot)"
-typedef	^	ParameterType	ReKi	D2_11	{:}{:}	-	-	"Coefficient of u in Y2"
-typedef	^	ParameterType	ReKi	D2_21	{:}{:}	-	-	"Coefficient of u in Y2"
-typedef	^	ParameterType	ReKi	D2_32	{:}{:}	-	-	"Coefficient of u in Y2"
-typedef	^	ParameterType	ReKi	D2_42	{:}{:}	-	-	"Coefficient of u in Y2"
-typedef	^	ParameterType	ReKi	D2_53	{:}{:}	-	-	"Coefficient of u in Y2 (URdotdot ULdotdot)"
+#typedef	^	ParameterType	ReKi	D2_11	{:}{:}	-	-	"Coefficient of u in Y2"
+typedef	^	ParameterType	ReKi	PhiRb_TI	{:}{:}	-	-	"Coefficient of u in Y2 (Phi_R bar * TI)"
+#typedef	^	ParameterType	ReKi	D2_32	{:}{:}	-	-	"Coefficient of u in Y2"
+#typedef	^	ParameterType	ReKi	D2_42	{:}{:}	-	-	"Coefficient of u in Y2"
+#typedef	^	ParameterType	ReKi	D2_53	{:}{:}	-	-	"Coefficient of u in Y2 (URdotdot ULdotdot)"
 typedef	^	ParameterType	ReKi	D2_63	{:}{:}	-	-	"Coefficient of u in Y2 (URdotdot ULdotdot)"
 typedef	^	ParameterType	ReKi	D2_64	{:}{:}	-	-	"Coefficient of u in Y2 (URdotdot ULdotdot)"
 typedef	^	ParameterType	ReKi	F2_61	{:}	-	-	"Load Component in Y2"
@@ -197,7 +197,7 @@ typedef	^	ParameterType	IntKi	UnJckF	-	-	-	"Unit of SD ouput file"
 typedef	^	ParameterType	CHARACTER(1)	Delim	-	-	-	"Column delimiter for output text files"
 typedef	^	ParameterType	CHARACTER(20)	OutFmt	-	-	-	"Format for Output"
 typedef	^	ParameterType	CHARACTER(20)	OutSFmt	-	-	-	"Format for Output Headers"
-typedef	^	ParameterType	CHARACTER(1024)	OutJckF	-	-	-	"Name of the SD ouput file"
+#typedef	^	ParameterType	CHARACTER(1024)	OutJckF	-	-	-	"Name of the SD ouput file"
 #typedef	^	^	CHARACTER(1024)	JEchoFile	-	-	-	"Name of the SD echo file"
 typedef	^	ParameterType	MeshAuxDataType	MoutLst	{:}	-	-	"List of user requested members and nodes"
 typedef	^	ParameterType	MeshAuxDataType	MoutLst2	{:}	-	-	"List of all member joint nodes and elements for output"

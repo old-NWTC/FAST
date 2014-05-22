@@ -1,7 +1,7 @@
 
 FAST Summary File
 
-Predictions were generated on 12-May-2014 at 12:30:18 using FAST (v8.07.00a-bjj, 9-May-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 21-May-2014 at 14:20:25 using FAST (v8.07.00b-bjj, 15-May-2014), compiled for 32-bit systems using single precision
   compiled with
     NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014)
     ElastoDyn (v1.01.06a-bjj, 2-May-2014)
@@ -19,7 +19,7 @@ Modeling a land-based turbine
 Description from the FAST input file: 
   FAST Certification Test #06: AOC 15/50 with many DOFs with gen start, loss of grid, and tip-brake shutdown. Many parameters are pure fiction.
 
-Interpolation order for input/output time histories: 0 (nearest neighbor)
+Interpolation order for input/output time histories: 1 (linear)
 Number of correction iterations:  0
 
 

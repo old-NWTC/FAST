@@ -35,8 +35,10 @@ USE NWTC_Library
 IMPLICIT NONE
 ! =========  IceFloe_InitInputType  =======
   TYPE, PUBLIC :: IceFloe_InitInputType
-    CHARACTER(1024)  :: InputFile      ! Name of the input file; remove if there is no file [-]
+    CHARACTER(1024)  :: InputFile      ! Name of the input file [-]
     REAL(ReKi)  :: simLength      ! Duration of simulation [sec]
+    REAL(ReKi)  :: MSL2SWL      ! Offset between still-water level and mean sea level [m]
+    REAL(ReKi)  :: gravity      ! Gravitational acceleration [m/s^2]
     character(1024)  :: RootName      ! Output file root name [-]
   END TYPE IceFloe_InitInputType
 ! =======================
@@ -116,6 +118,8 @@ CONTAINS
    ErrMsg  = ""
    DstInitInputData%InputFile = SrcInitInputData%InputFile
    DstInitInputData%simLength = SrcInitInputData%simLength
+   DstInitInputData%MSL2SWL = SrcInitInputData%MSL2SWL
+   DstInitInputData%gravity = SrcInitInputData%gravity
    DstInitInputData%RootName = SrcInitInputData%RootName
  END SUBROUTINE IceFloe_CopyInitInput
 
@@ -164,10 +168,16 @@ CONTAINS
   Db_BufSz  = 0
   Int_BufSz  = 0
   Re_BufSz   = Re_BufSz   + 1  ! simLength
+  Re_BufSz   = Re_BufSz   + 1  ! MSL2SWL
+  Re_BufSz   = Re_BufSz   + 1  ! gravity
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%simLength )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%MSL2SWL )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%gravity )
   Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE IceFloe_PackInitInput
 
@@ -205,6 +215,10 @@ CONTAINS
   Db_BufSz  = 0
   Int_BufSz  = 0
   OutData%simLength = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MSL2SWL = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%gravity = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1

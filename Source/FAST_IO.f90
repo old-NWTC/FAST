@@ -267,6 +267,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
 
 
    p%KMax = 1                 ! after more checking, we may put this in the input file...
+   !IF (p%CompIce == Module_IceF) p%KMax = 2
    p%SizeJac_ED_SD_HD = 0     ! initialize this vector to zero; after we figure out what size the ED/SD/HD meshes are, we'll fill this
    
 
@@ -327,17 +328,19 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
       END IF
    END IF
    
-   IF (p%CompIce == Module_IceF .AND. p%CompSub /= Module_SD) THEN
-      CALL SetErrors( ErrID_Fatal, 'SubDyn must be used when IceFloe is used. Set CompSub > 0 or CompIce = 0 in the FAST input file.' )
+   IF (p%CompIce == Module_IceF) THEN
+      IF (p%CompSub   /= Module_SD) CALL SetErrors( ErrID_Fatal, 'SubDyn must be used when IceFloe is used. Set CompSub > 0 or CompIce = 0 in the FAST input file.' )
+      IF (p%CompHydro /= Module_HD) CALL SetErrors( ErrID_Fatal, 'HydroDyn must be used when IceFloe is used. Set CompHydro > 0 or CompIce = 0 in the FAST input file.' )
    END IF
    
-   IF ( p%InterpOrder < 0 .OR. p%InterpOrder > 2 ) THEN
-      CALL SetErrors( ErrID_Fatal, 'InterpOrder must not be 0, 1, or 2.' )
-      p%InterpOrder = 0    ! Avoid problems in error handling by setting this to 0
+!   IF ( p%InterpOrder < 0 .OR. p%InterpOrder > 2 ) THEN
+   IF ( p%InterpOrder < 1 .OR. p%InterpOrder > 2 ) THEN
+      CALL SetErrors( ErrID_Fatal, 'InterpOrder must be 1 or 2.' ) ! 5/13/14 bjj: MAS and JMJ compromise for certain integrators is that InterpOrder cannot be 0
+      p%InterpOrder = 1    ! Avoid problems in error handling by setting this to 0
    END IF
 
    IF ( p%NumCrctn < 0_IntKi ) THEN
-      CALL SetErrors( ErrID_Fatal, 'NumCrctn must be 1 or greater.' )
+      CALL SetErrors( ErrID_Fatal, 'NumCrctn must be 0 or greater.' )
    END IF   
    
    
@@ -2303,6 +2306,9 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    REAL(ReKi)                                        :: AddedMassMatrix(6,6)
    INTEGER                                           :: UnAM
 #endif
+#ifdef OUTPUT_JACOBIAN
+   INTEGER                                           :: UnJac
+#endif
 
    ! Note: p_FAST%UJacSclFact is a scaling factor that gets us similar magnitudes between loads and accelerations...
  
@@ -2459,30 +2465,30 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    CLOSE( UnAM )
 #endif   
 #ifdef OUTPUT_JACOBIAN
-   UnAM = -1
-   CALL GetNewUnit( UnAM, ErrStat2, ErrMsg2 )
-   CALL OpenFOutFile( UnAM, TRIM(p_FAST%OutFileRoot)//'.'//TRIM(num2lstr(this_time))//'.Jacobian2', ErrStat2, ErrMsg2)
+   UnJac = -1
+   CALL GetNewUnit( UnJac, ErrStat2, ErrMsg2 )
+   CALL OpenFOutFile( UnJac, TRIM(p_FAST%OutFileRoot)//'.'//TRIM(num2lstr(this_time))//'.Jacobian2', ErrStat2, ErrMsg2)
       CALL CheckError( ErrStat2, ErrMsg2  )
       IF ( ErrStat >= AbortErrLev ) RETURN               
       
-   CALL WrFileNR(UnAM, '  ')
-      CALL WrFileNR(UnAM, ' ElastoDyn_Force_X') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Force_Y') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Force_Z') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Moment_X') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Moment_Y') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Moment_Z') 
+   CALL WrFileNR(UnJac, '  ')
+      CALL WrFileNR(UnJac, ' ElastoDyn_Force_X') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Force_Y') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Force_Z') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Moment_X') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Moment_Y') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Moment_Z') 
    
-      CALL WrFileNR(UnAM, ' y_ED_TranslationAcc_X') 
-      CALL WrFileNR(UnAM, ' y_ED_TranslationAcc_Y') 
-      CALL WrFileNR(UnAM, ' y_ED_TranslationAcc_Z') 
-      CALL WrFileNR(UnAM, ' y_ED_RotationAcc_X') 
-      CALL WrFileNR(UnAM, ' y_ED_RotationAcc_Y') 
-      CALL WrFileNR(UnAM, ' y_ED_RotationAcc_Z') 
-   WRITE(UnAM,'()')    
+      CALL WrFileNR(UnJac, ' y_ED_TranslationAcc_X') 
+      CALL WrFileNR(UnJac, ' y_ED_TranslationAcc_Y') 
+      CALL WrFileNR(UnJac, ' y_ED_TranslationAcc_Z') 
+      CALL WrFileNR(UnJac, ' y_ED_RotationAcc_X') 
+      CALL WrFileNR(UnJac, ' y_ED_RotationAcc_Y') 
+      CALL WrFileNR(UnJac, ' y_ED_RotationAcc_Z') 
+   WRITE(UnJac,'()')    
       
-   CALL WrMatrix(MeshMapData%Jacobian_ED_SD_HD,UnAM, p_FAST%OutFmt)
-   CLOSE( UnAM )      
+   CALL WrMatrix(MeshMapData%Jacobian_ED_SD_HD,UnJac, p_FAST%OutFmt)
+   CLOSE( UnJac )      
 #endif   
             
             
@@ -2783,6 +2789,10 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
 #ifdef OUTPUT_ADDEDMASS   
    REAL(ReKi)                                        :: AddedMassMatrix(6,6)
    INTEGER                                           :: UnAM
+   INTEGER                                           :: AMIndx   
+#endif
+#ifdef OUTPUT_JACOBIAN
+   INTEGER                                           :: UnJac
    INTEGER                                           :: TmpIndx   
 #endif
    
@@ -2995,88 +3005,88 @@ IF (p_FAST%CompHydro == Module_HD ) THEN
       CALL CheckError( ErrStat2, ErrMsg2  )
       IF ( ErrStat >= AbortErrLev ) RETURN               
    
-   TmpIndx = p_FAST%SizeJac_ED_SD_HD(4) - 5 !the start of the HydroDyn Mesh inputs in the Jacobian
-   AddedMassMatrix = MeshMapData%Jacobian_ED_SD_HD(1:6,TmpIndx:p_FAST%SizeJac_ED_SD_HD(4)) * p_FAST%UJacSclFact   
+   AMIndx = p_FAST%SizeJac_ED_SD_HD(4) - 5 !the start of the HydroDyn Mesh inputs in the Jacobian
+   AddedMassMatrix = MeshMapData%Jacobian_ED_SD_HD(1:6,AMIndx:p_FAST%SizeJac_ED_SD_HD(4)) * p_FAST%UJacSclFact   
    CALL WrMatrix(AddedMassMatrix,UnAM, p_FAST%OutFmt)
    CLOSE( UnAM )
 END IF
 #endif
 #ifdef OUTPUT_JACOBIAN
-   UnAM = -1
-   CALL GetNewUnit( UnAM, ErrStat2, ErrMsg2 )
-   CALL OpenFOutFile( UnAM, TRIM(p_FAST%OutFileRoot)//'.'//TRIM(num2lstr(this_time))//'.Jacobian', ErrStat2, ErrMsg2)
+   UnJac = -1
+   CALL GetNewUnit( UnJac, ErrStat2, ErrMsg2 )
+   CALL OpenFOutFile( UnJac, TRIM(p_FAST%OutFileRoot)//'.'//TRIM(num2lstr(this_time))//'.Jacobian', ErrStat2, ErrMsg2)
       CALL CheckError( ErrStat2, ErrMsg2  )
       IF ( ErrStat >= AbortErrLev ) RETURN               
       
-   CALL WrFileNR(UnAM, '  ')
-      CALL WrFileNR(UnAM, ' ElastoDyn_Force_X') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Force_Y') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Force_Z') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Moment_X') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Moment_Y') 
-      CALL WrFileNR(UnAM, ' ElastoDyn_Moment_Z') 
+   CALL WrFileNR(UnJac, '  ')
+      CALL WrFileNR(UnJac, ' ElastoDyn_Force_X') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Force_Y') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Force_Z') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Moment_X') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Moment_Y') 
+      CALL WrFileNR(UnJac, ' ElastoDyn_Moment_Z') 
    
    DO TmpIndx=1,u_SD%TPMesh%NNodes
-      CALL WrFileNR(UnAM, ' SD_TPMesh_TranslationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' SD_TPMesh_TranslationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' SD_TPMesh_TranslationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' SD_TPMesh_TranslationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' SD_TPMesh_TranslationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' SD_TPMesh_TranslationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
    END DO
 
    DO TmpIndx=1,u_SD%TPMesh%NNodes
-      CALL WrFileNR(UnAM, ' SD_TPMesh_RotationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' SD_TPMesh_RotationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' SD_TPMesh_RotationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' SD_TPMesh_RotationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' SD_TPMesh_RotationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' SD_TPMesh_RotationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
    END DO
             
    IF ( p_FAST%CompHydro == Module_HD ) THEN   ! this SD mesh linked only when HD is enabled
       DO TmpIndx=1,u_SD%LMesh%NNodes
-         CALL WrFileNR(UnAM, ' SD_LMesh_Force_X_'//TRIM(Num2LStr(TmpIndx))) 
-         CALL WrFileNR(UnAM, ' SD_LMesh_Force_Y_'//TRIM(Num2LStr(TmpIndx))) 
-         CALL WrFileNR(UnAM, ' SD_LMesh_Force_Z_'//TRIM(Num2LStr(TmpIndx))) 
+         CALL WrFileNR(UnJac, ' SD_LMesh_Force_X_'//TRIM(Num2LStr(TmpIndx))) 
+         CALL WrFileNR(UnJac, ' SD_LMesh_Force_Y_'//TRIM(Num2LStr(TmpIndx))) 
+         CALL WrFileNR(UnJac, ' SD_LMesh_Force_Z_'//TRIM(Num2LStr(TmpIndx))) 
       END DO      
       DO TmpIndx=1,u_SD%LMesh%NNodes
-         CALL WrFileNR(UnAM, ' SD_LMesh_Moment_X_'//TRIM(Num2LStr(TmpIndx))) 
-         CALL WrFileNR(UnAM, ' SD_LMesh_Moment_Y_'//TRIM(Num2LStr(TmpIndx))) 
-         CALL WrFileNR(UnAM, ' SD_LMesh_Moment_Z_'//TRIM(Num2LStr(TmpIndx))) 
+         CALL WrFileNR(UnJac, ' SD_LMesh_Moment_X_'//TRIM(Num2LStr(TmpIndx))) 
+         CALL WrFileNR(UnJac, ' SD_LMesh_Moment_Y_'//TRIM(Num2LStr(TmpIndx))) 
+         CALL WrFileNR(UnJac, ' SD_LMesh_Moment_Z_'//TRIM(Num2LStr(TmpIndx))) 
       END DO                  
    END IF
    
    DO TmpIndx=1,u_HD%Morison%LumpedMesh%NNodes
-      CALL WrFileNR(UnAM, ' HD_M_Lumped_TranslationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_M_Lumped_TranslationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_M_Lumped_TranslationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Lumped_TranslationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Lumped_TranslationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Lumped_TranslationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
    END DO   
    DO TmpIndx=1,u_HD%Morison%LumpedMesh%NNodes
-      CALL WrFileNR(UnAM, ' HD_M_Lumped_RotationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_M_Lumped_RotationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_M_Lumped_RotationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Lumped_RotationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Lumped_RotationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Lumped_RotationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
    END DO   
 
    DO TmpIndx=1,u_HD%Morison%DistribMesh%NNodes
-      CALL WrFileNR(UnAM, ' HD_M_Distrib_TranslationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_M_Distrib_TranslationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_M_Distrib_TranslationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Distrib_TranslationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Distrib_TranslationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Distrib_TranslationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
    END DO   
    DO TmpIndx=1,u_HD%Morison%DistribMesh%NNodes
-      CALL WrFileNR(UnAM, ' HD_M_Distrib_RotationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_M_Distrib_RotationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_M_Distrib_RotationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Distrib_RotationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Distrib_RotationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_M_Distrib_RotationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
    END DO     
        
    DO TmpIndx=1,u_HD%Mesh%NNodes
-      CALL WrFileNR(UnAM, ' HD_Mesh_TranslationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_Mesh_TranslationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_Mesh_TranslationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_Mesh_TranslationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_Mesh_TranslationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_Mesh_TranslationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
    END DO   
    DO TmpIndx=1,u_HD%Mesh%NNodes
-      CALL WrFileNR(UnAM, ' HD_Mesh_RotationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_Mesh_RotationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
-      CALL WrFileNR(UnAM, ' HD_Mesh_RotationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_Mesh_RotationAcc_X_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_Mesh_RotationAcc_Y_'//TRIM(Num2LStr(TmpIndx))) 
+      CALL WrFileNR(UnJac, ' HD_Mesh_RotationAcc_Z_'//TRIM(Num2LStr(TmpIndx))) 
    END DO 
-   WRITE(UnAM,'()')    
+   WRITE(UnJac,'()')    
       
-   CALL WrMatrix(MeshMapData%Jacobian_ED_SD_HD,UnAM, p_FAST%OutFmt)
-   CLOSE( UnAM )
+   CALL WrMatrix(MeshMapData%Jacobian_ED_SD_HD,UnJac, p_FAST%OutFmt)
+   CLOSE( UnJac )
 
 #endif               
             
@@ -3237,7 +3247,7 @@ CONTAINS
       
          IF ( p_FAST%CompHydro == Module_HD ) THEN
             
-         ! initialize these SD loads inputs here in case HD is used         
+         ! initialize these SD loads inputs here in case HD is used  (note from initialiazation that these meshes don't exist if HD isn't used)       
          MeshMapData%u_SD_LMesh%Force  = 0.0_ReKi
          MeshMapData%u_SD_LMesh%Moment = 0.0_ReKi
       
@@ -3276,7 +3286,25 @@ CONTAINS
                   IF (ErrStat >= AbortErrLev) RETURN
 
                MeshMapData%u_SD_LMesh%Force  = MeshMapData%u_SD_LMesh%Force  + MeshMapData%u_SD_LMesh_2%Force
-               MeshMapData%u_SD_LMesh%Moment = MeshMapData%u_SD_LMesh%Moment + MeshMapData%u_SD_LMesh_2%Moment     
+               MeshMapData%u_SD_LMesh%Moment = MeshMapData%u_SD_LMesh%Moment + MeshMapData%u_SD_LMesh_2%Moment    
+               
+               
+               
+!...          
+#ifdef DEBUG_MESH_TRANSFER_ICE
+   if (.not. calcJacobian) then
+         CALL WrScr('********************************************************')
+         CALL WrScr('****   IceF to SD point-to-point                   *****')
+         CALL WrScr('********************************************************')
+         CALL WriteMappingTransferToFile(MeshMapData%u_SD_LMesh_2, y_SD2%Y2Mesh, u_IceF%iceMesh, y_IceF%iceMesh,&
+               MeshMapData%SD_P_2_IceF_P, MeshMapData%IceF_P_2_SD_P, &
+               'SD_y2_IceF_Meshes_t'//TRIM(Num2LStr(this_time))//'.I.bin' )
+         !print *
+         !pause         
+   end IF         
+#endif                
+               
+               
             END IF
                
                
@@ -4274,8 +4302,15 @@ SUBROUTINE WriteMappingTransferToFile(Mesh1_I,Mesh1_O,Mesh2_I,Mesh2_O,Map_Mod1_M
    CHARACTER(256)                         :: PrintWarnF, PrintWarnM, TmpValues
 
    !------------------------------------------------------------------------
+   ! Make sure the meshes are committed before checking them:
+   !------------------------------------------------------------------------
+   
+   IF (.NOT. mesh1_I%Committed .OR. .NOT. mesh1_O%Committed ) RETURN
+   IF (.NOT. mesh2_I%Committed .OR. .NOT. mesh2_O%Committed ) RETURN
+      
+   !------------------------------------------------------------------------
    !lump the loads to one point and compare:
-   !------------------------------------------------------------------------        
+   !------------------------------------------------------------------------       
    
    ! create one loads mesh with one point:
    CALL MeshCreate( BlankMesh       = mesh1_I_1PT        &

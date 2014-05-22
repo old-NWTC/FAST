@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-06 14:55:45 -0600 (Tue, 06 May 2014) $
-! (File) Revision #: $Rev: 295 $
+! File last committed: $Date: 2014-05-20 11:30:49 -0600 (Tue, 20 May 2014) $
+! (File) Revision #: $Rev: 297 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -3768,7 +3768,6 @@ INTEGER, PARAMETER             :: MNRDe (3,9,9) = reshape((/M1N1RDxe,M1N1RDye,M1
    PUBLIC :: SDOut_WriteOutputUnits
    PUBLIC :: SDOut_WriteOutputs
    PUBLIC :: SDOut_Init
-   PUBLIC :: SDOut_DestroyParam
 
 CONTAINS
 
@@ -3795,7 +3794,6 @@ SUBROUTINE SDOut_Init( Init, y,  p, OtherState, InitOut, WtrDpth, ErrStat, ErrMs
  INTEGER(IntKi)                                   :: I,J,K,K2,L,NconEls   !Counters
  INTEGER(IntKi)                                   :: Junk  !Temporary Holders
  INTEGER(IntKi), Dimension(2)                     :: M   !counter for two nodes at a time
- CHARACTER(10)                                    :: cstr !string
 !-------------------------------------------------------------------------------------------------      
 ! Initialize local variables
 !-------------------------------------------------------------------------------------------------      
@@ -3809,7 +3807,7 @@ p%OutAllDims=12*p%Nmembers*2    !size of AllOut Member Joint forces
 !-------------------------------------------------------------------------------------------------      
 
 !   SDOut_Data%NumOuts = HDO_InitData%NumOuts   
-  CALL SDOut_ChkOutLst( Init%SSOutList(1:p%NumOuts), y, p,  ErrStat, ErrMsg )
+  CALL SDOut_ChkOutLst( Init%SSOutList, p,  ErrStat, ErrMsg )
   IF ( ErrStat /= 0 ) RETURN
 
 !-------------------------------------------------------------------------------------------------      
@@ -3844,7 +3842,7 @@ p%OutAllDims=12*p%Nmembers*2    !size of AllOut Member Joint forces
     
    !Allocate WriteOuput  
    ALLOCATE( y%WriteOutput( p%NumOuts +p%OutAllInt*p%OutAllDims),  STAT = ErrStat )
-   IF ( ErrStat /= ErrID_None ) THEN
+   IF ( ErrStat /= 0 ) THEN
     ErrMsg  = ' Error allocating space for WriteOutput array.'
     ErrStat = ErrID_Fatal
     RETURN
@@ -4014,17 +4012,15 @@ p%OutAllDims=12*p%Nmembers*2    !size of AllOut Member Joint forces
  ENDIF
  
  !_____________________________________REACTIONS_____________________________________________
- Junk=0
- DO I=1,p%NumOuts  !This should be vectorizable, in matlab i can do in 1 line
-      cstr=Init%SSOutList(I)
-      IF ( cstr(1:5) .EQ. "React" ) THEN 
-       Junk=1
-       EXIT
-      ENDIF
- ENDDO
+p%OutReact = .FALSE.
+DO I=1,p%NumOuts
+   if ( ANY( p%OutParam(I)%Indx == ReactSS) ) THEN ! bjj: removed check of first 5 characters being "React" because (1) cases matter and (2) we can also ask for "-React*" or "mREACT"
+      p%OutReact   =.TRUE.  
+      EXIT
+   ENDIF
+ENDDO
  
- IF (Junk .EQ. 1) THEN  !I need to store all constrained forces and moments; WE do not allow more than one member to be connected at a constrained joint for the time being
-    p%OutReact=.TRUE. !store for other routines
+ IF (p%OutReact) THEN  !I need to store all constrained forces and moments; WE do not allow more than one member to be connected at a constrained joint for the time being
     
     ALLOCATE ( p%MOutLst3(p%NReact), STAT = ErrStat )     !this list contains different arrays for each of its elements
     IF ( ErrStat /= ErrID_None ) THEN
@@ -4155,7 +4151,7 @@ SUBROUTINE ReactMatx(Init, p, WtrDpth, ErrStat, ErrMsg)
    TYPE(SD_ParameterType), INTENT(  INOUT)  :: p         ! Parameter data
    REAL(ReKi),                   INTENT(IN)     :: WtrDpth
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(1024),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
       ! local variables
    INTEGER                             :: I !counter
@@ -4240,16 +4236,16 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
    CHARACTER(*),                       INTENT(   OUT )  :: ErrMsg               ! Error message if ErrStat /= ErrID_None
 
    !locals
-   INTEGER(IntKi)                               ::I,J,K,K2,L,L2      ! Counters
-   INTEGER(IntKi), DIMENSION(2)                 ::K3    ! It stores Node IDs for element under consideration (may not be consecutive numbers)
-   INTEGER(IntKi)                               :: maxOutModes  ! maximum modes to output, the minimum of 99 or p%Nmodes
-   REAL(ReKi), DIMENSION (6)                 :: FM_elm, FK_elm, junk  !output static and dynamic forces and moments
-   REAL(ReKi), DIMENSION (6)                 :: FM_elm2, FK_elm2  !output static and dynamic forces and moments
+   INTEGER(IntKi)                           ::I,J,K,K2,L,L2      ! Counters
+   INTEGER(IntKi), DIMENSION(2)             ::K3    ! It stores Node IDs for element under consideration (may not be consecutive numbers)
+   INTEGER(IntKi)                           :: maxOutModes  ! maximum modes to output, the minimum of 99 or p%Nmodes
+   REAL(ReKi), DIMENSION (6)                :: FM_elm, FK_elm, junk  !output static and dynamic forces and moments
+   REAL(ReKi), DIMENSION (6)                :: FM_elm2, FK_elm2  !output static and dynamic forces and moments
    Real(ReKi), DIMENSION (3,3)              :: DIRCOS    !direction cosice matrix (global to local) (3x3)
    Real(ReKi), ALLOCATABLE                  :: ReactNs(:)    !6*Nreact reactions
    REAL(ReKi)                               :: Tmp_Udotdot(12), Tmp_y2(12) !temporary storage for calls to CALC_LOCAL
    
-   Real(reKi), DIMENSION(p%Y2L/2+6*p%Nreact)          :: yout            ! modifications to Y2 and Udotdot to include constrained node DOFs
+   Real(reKi), DIMENSION( p%UdotdotL+6*p%Nreact)      :: yout            ! modifications to Y2 and Udotdot to include constrained node DOFs
    Real(ReKi),  DIMENSION(p%UdotdotL+6*p%Nreact)      ::uddout           ! modifications to Y2 and Udotdot to include constrained node DOFs
    Integer(IntKi)                              ::sgn !+1/-1 for node force calculations
    REAL(ReKi)                                   :: rotations(3)
@@ -4430,7 +4426,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
                 
                 K3=p%Elems(K,2:3)  !first and second node ID associated with element K 
                 
-                L=p%IDY((K3(1)-1)*6+1)! starting index for node K3(1) within yout
+                L =p%IDY((K3(1)-1)*6+1)! starting index for node K3(1) within yout
                 L2=p%IDY((K3(2)-1)*6+1)! starting index for node K3(2) within yout
                 
                 DIRCOS=tranSpose(p%elemprops(K)%DirCos)! global to local
@@ -4459,7 +4455,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
        
           !NOW HERE I WOULD NEED TO PUT IT INTO AllOuts
                 
-               AllOuts( ReactSS(1:TPdofL) ) = matmul(p%TIreact,ReactNs)
+      AllOuts( ReactSS(1:TPdofL) ) = matmul(p%TIreact,ReactNs)
   ENDIF
 
    if (allocated(ReactNs)) deallocate(ReactNs)
@@ -4490,7 +4486,7 @@ END SUBROUTINE SDOut_MapOutputs
         Junk1=matmul(Ke,Y2) !GLOBAL REFERENCE 
         Junk1=Junk1- Fg     !GLOBAL REFERENCE  
         DO L=1,4  
-            Junk3((L-1)*3+1:L*3)=   matmul(DIRCOS, Junk( (L-1)*3+1:L*3 ) )
+            Junk3((L-1)*3+1:L*3)=  matmul(DIRCOS, Junk(  (L-1)*3+1:L*3 ) )
             Junk4((L-1)*3+1:L*3) = matmul(DIRCOS, Junk1( (L-1)*3+1:L*3 ) ) 
         ENDDO
         
@@ -4589,7 +4585,7 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
       ! Passed variables
 
    TYPE(ProgDesc),                INTENT( IN    ) :: ProgVer
-   CHARACTER(1024),               INTENT( IN    ) :: OutRootName          ! Root name for the output file
+   CHARACTER(*),                  INTENT( IN    ) :: OutRootName          ! Root name for the output file
    TYPE(SD_ParameterType),   INTENT( INOUT ) :: p   
    TYPE(SD_InitOutPutType ), INTENT( IN    ) :: InitOut              !
    INTEGER,                       INTENT(   OUT ) :: ErrStat              ! a non-zero value indicates an error occurred           
@@ -4799,7 +4795,7 @@ END SUBROUTINE SDOut_WriteOutputs
 
 
 !====================================================================================================
-SUBROUTINE SDOut_ChkOutLst( OutList, y, p, ErrStat, ErrMsg )
+SUBROUTINE SDOut_ChkOutLst( OutList, p, ErrStat, ErrMsg )
 ! This routine checks the names of inputted output channels, checks to see if any of them are ill-
 ! conditioned (returning an error if so), and assigns the OutputDataType settings (i.e, the index,  
 ! name, and units of the output channels). 
@@ -4810,7 +4806,6 @@ SUBROUTINE SDOut_ChkOutLst( OutList, y, p, ErrStat, ErrMsg )
    
       ! Passed variables
       
-   TYPE(SD_OutputType),      INTENT( INOUT ) :: y                    ! SubDyn module output data
    TYPE(SD_ParameterType),   INTENT( INOUT ) :: p                    ! SubDyn module parameter data
    CHARACTER(10),                 INTENT( IN    ) :: OutList (:)          ! An array holding the names of the requested output channels.         
    INTEGER,                       INTENT(   OUT ) :: ErrStat              ! a non-zero value indicates an error occurred           
@@ -4822,7 +4817,7 @@ SUBROUTINE SDOut_ChkOutLst( OutList, y, p, ErrStat, ErrMsg )
    INTEGER                                :: INDX                                      ! Index for valid arrays
    
    CHARACTER(10)                          :: OutListTmp                                ! A string to temporarily hold OutList(I).
-   CHARACTER(28), PARAMETER               :: OutPFmt    = "( I4, 3X,A 10,1 X, A10 )"   ! Output format parameter output list.
+   !CHARACTER(28), PARAMETER               :: OutPFmt    = "( I4, 3X,A 10,1 X, A10 )"   ! Output format parameter output list.
    CHARACTER(10), DIMENSION(24)           :: ToTUnits,ToTNames,ToTNames0
    
    LOGICAL                  :: InvalidOutput(0:MaxOutPts)                        ! This array determines if the output channel is valid for this configuration
@@ -4915,8 +4910,8 @@ SUBROUTINE SDOut_ChkOutLst( OutList, y, p, ErrStat, ErrMsg )
              TotNames(J+(K-1)*12)=TRIM("M"//Int2Lstr(I))//TRIM("J"//Int2Lstr(K))//TRIM(TotNames0(J))
             ENDDO  
            ENDDO
-           p%OutParam(p%NumOuts+(I-1)*12*2+1:p%NumOuts+I*12*2)%Name =   ToTNames
-           p%OutParam(p%NumOuts+(I-1)*12*2+1:p%NumOuts+I*12*2)%Units =  ToTUnits
+           p%OutParam(p%NumOuts+(I-1)*12*2+1:p%NumOuts+I*12*2)%Name  = ToTNames
+           p%OutParam(p%NumOuts+(I-1)*12*2+1:p%NumOuts+I*12*2)%Units = ToTUnits
        ENDDO
        p%OutParam(p%NumOuts+1:p%NumOuts+p%OutAllDims)%SignM = 1
        p%OutParam(p%NumOuts+1:p%NumOuts+p%OutAllDims)%Indx= MaxOutPts+(/(J, J=1, p%OutAllDims)/) 
@@ -4926,52 +4921,6 @@ SUBROUTINE SDOut_ChkOutLst( OutList, y, p, ErrStat, ErrMsg )
 END SUBROUTINE SDOut_ChkOutLst
 
 
-!====================================================================================================
-SUBROUTINE SDOut_DestroyParam ( p, ErrStat, ErrMsg )
-! This function cleans up after running the SubDyn output module. It closes the output file,
-! releases memory, and resets the number of outputs requested to 0.
-!----------------------------------------------------------------------------------------------------
-
-         ! Passed variables
-
-   TYPE(SD_ParameterType),   INTENT( INOUT ) :: p                    ! data for this instance of the floating platform module        
-   INTEGER,                       INTENT(   OUT ) :: ErrStat              ! a non-zero value indicates an error occurred           
-   CHARACTER(*),                  INTENT(   OUT ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
-
-!      ! Internal variables
-   LOGICAL                               :: Err
-
-
-   !-------------------------------------------------------------------------------------------------
-   ! Initialize error information
-   !-------------------------------------------------------------------------------------------------
-   ErrStat = 0
-   ErrMsg  = ""
-   
-   Err     = .FALSE.
-
-  
-
-   !-------------------------------------------------------------------------------------------------
-   ! Deallocate arrays
-   !-------------------------------------------------------------------------------------------------
-   IF ( ALLOCATED( p%OutParam ) ) DEALLOCATE ( p%OutParam, STAT=ErrStat )
-   IF ( ErrStat /= 0 ) Err = .TRUE.
-     
-   !-------------------------------------------------------------------------------------------------
-   ! Reset number of outputs
-   !-------------------------------------------------------------------------------------------------
-   p%NumOuts   =  0
-   
-   
-   !-------------------------------------------------------------------------------------------------
-   ! Make sure ErrStat is non-zero if an error occurred
-   !-------------------------------------------------------------------------------------------------
-   IF ( Err ) ErrStat = ErrID_Fatal
-   
-   RETURN
-
-END SUBROUTINE SDOut_DestroyParam
 !====================================================================================================
 
 

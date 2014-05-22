@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 13:52:25 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 328 $
+! File last committed: $Date: 2014-05-15 22:34:21 -0600 (Thu, 15 May 2014) $
+! (File) Revision #: $Rev: 392 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/SS_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE SS_Radiation
@@ -886,7 +886,6 @@ IMPLICIT                        NONE
         
 IF ( OtherState%Step < 3 )  THEN   ! Use Runge-Kutta integration at the the start of the simulation (first 3 steps).
 
-
    ! Allocate arrays that vary with the number of DOFs..
    Sttus = 0
 
@@ -913,6 +912,8 @@ IF ( OtherState%Step < 3 )  THEN   ! Use Runge-Kutta integration at the the star
       ErrStat = ErrID_Fatal
       ErrMsg  = ' Error allocating memory for the ZK4 array.'
    END IF
+   
+!bjj: TODO: THIS ALGORITHM IS WRONG. NOTICE THAT EACH DERIVATIVE IS THE SAME. REPLACE THIS ROUTINE WITH SOLVERS FROM ELASTODYN OR SUBDYN.
    
    ! First call to dynamics routine:
    CALL SS_Rad_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrStat, ErrMsg )

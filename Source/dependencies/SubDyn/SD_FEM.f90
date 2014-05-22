@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-06 13:31:57 -0600 (Tue, 06 May 2014) $
-! (File) Revision #: $Rev: 294 $
+! File last committed: $Date: 2014-05-19 15:01:26 -0600 (Mon, 19 May 2014) $
+! (File) Revision #: $Rev: 296 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM
@@ -39,7 +39,7 @@ SUBROUTINE NodeCon(Init,p, ErrStat, ErrMsg)
   TYPE(SD_InitType),              INTENT( INOUT )  ::Init   
   TYPE(SD_ParameterType),         INTENT( IN    )  ::p  
   INTEGER(IntKi),                 INTENT(   OUT )  :: ErrStat     ! Error status of the operation
-  CHARACTER(1024),                INTENT(   OUT )  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+  CHARACTER(*),                   INTENT(   OUT )  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
    
   !local variable
   INTEGER(IntKi) :: SortA(MaxMemJnt,1)  !To sort nodes and elements
@@ -96,7 +96,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
    TYPE(SD_InitType),            INTENT(INOUT)  ::Init
    TYPE(SD_ParameterType),       INTENT(INOUT)  ::p
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(1024),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
       ! local variable
    INTEGER                       :: I, J, n, Node, Node1, Node2, Prop, Prop1, Prop2   
    INTEGER                       :: OldJointIndex(Init%NJoints)
@@ -519,7 +519,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
    TYPE(SD_InitType),            INTENT(INOUT)  ::Init
    TYPE(SD_ParameterType),       INTENT(INOUT)  ::p
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(1024),              INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
       
    INTEGER                  :: I, J, K, Jn, Kn
    
@@ -831,7 +831,7 @@ SUBROUTINE GetDirCos(X1, Y1, Z1, X2, Y2, Z2, DirCos, L, ErrStat, ErrMsg)
    REAL(ReKi) ,      INTENT(  OUT)  :: L                       ! length of element
    
    INTEGER(IntKi),   INTENT(  OUT)  :: ErrStat                 ! Error status of the operation
-   CHARACTER(1024),  INTENT(  OUT)  :: ErrMsg                  ! Error message if ErrStat /= ErrID_None
+   CHARACTER(*),     INTENT(  OUT)  :: ErrMsg                  ! Error message if ErrStat /= ErrID_None
    
    REAL(ReKi)                       ::  Dx,Dy,Dz, Dxy          ! distances between nodes
 !real(reki) :: dxyz         

@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-09 10:55:39 -0600 (Fri, 09 May 2014) $
-! (File) Revision #: $Rev: 385 $
+! File last committed: $Date: 2014-05-20 11:07:05 -0600 (Tue, 20 May 2014) $
+! (File) Revision #: $Rev: 394 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -2752,7 +2752,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
       ErrStat = ErrID_Fatal
       RETURN
    END IF
-    L_F_DP = 0.0
+    L_F_I = 0.0
     
    ALLOCATE ( L_F_DP( 0:NStepWave, 6, numLumpedMarkers ), STAT = ErrStat )
    IF ( ErrStat /= ErrID_None ) THEN

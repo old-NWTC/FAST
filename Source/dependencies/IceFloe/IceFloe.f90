@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
-! (File) Revision #: $Rev: 692 $
+! File last committed: $Date: 2014-05-20 14:53:20 -0600 (Tue, 20 May 2014) $
+! (File) Revision #: $Rev: 700 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloe.f90 $
 !**********************************************************************************************************************************!
 
@@ -118,9 +118,12 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       INTEGER(IntKi)             :: n, numOuts
       character(1)               :: legNum      ! for labeling leg numbers in output headers
 
+      ErrStat = ErrID_None
+      ErrMsg = ''
+      
       InitOut%Ver = IceFloe_Ver
       p%initFlag = .false.
-
+      
     ! Define initial system states here:
 
       x%DummyContStateVar = 0.
@@ -129,8 +132,8 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       CALL DispNVD( IceFloe_Ver )
 
 !      call NameOFile ( 1, 'log', logFile )   ! The filename comes from the command line
-      call GetRoot( InitInp%RootName, logFile )
-      logFile = trim(logFile)//'_Ice.log'
+      call GetRoot( InitInp%RootName, logFile ) !BJJ: i don't think you need to do this. RootName is actually the output from GetRoot in the FAST glue code
+      logFile = trim(logFile)//'.IceF.log'  !BJJ: we decided output files should have two dots (and because there will be another ice module, I called this one IceF)
 
 !   Set up error logging
       iceLog%warnFlag = .false.
@@ -148,6 +151,16 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       call logMessage(iceLog, ' Running: '//trim(IceFloe_Ver%Name)//trim(IceFloe_Ver%Ver)//trim(IceFloe_Ver%Date))
       call logMessage(iceLog, ' This run started on: '//curdate()//' at '//curtime()//newLine)
 
+! bjj: check gravity (after log file initialized), and warn if it's different than the internal value:
+!BJJ: I'm also not sure this is the correct usage of the iceLog, so please check this, Tim!
+      IF ( .NOT. EqualRealNos(InitInp%Gravity, grav) ) THEN
+         call iceErrorHndlr (iceLog, ErrID_Warn, 'IceFloe_init: Gravity in FAST is different than gravity in iceFloe.', 0)
+         ErrStat = iceLog%ErrID
+         ErrMsg  = iceLog%ErrMsg
+         if (iceLog%ErrID >= AbortErrLev) return
+      END IF
+      
+      
    ! go through the inputs: first count them then read them into a structure
       call countIceInputs(InitInp%inputFile, iceLog, iceInput)
       call readIceInputs(iceLog, iceInput)
@@ -209,12 +222,13 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
 
    ! allocate storage for the leg positions
       allocate (p%legX(p%numLegs), stat=err)
-      allocate (p%legY(p%numLegs), stat=err)
+      allocate (p%legY(p%numLegs), stat=err)  
       allocate (p%ks(p%numLegs), stat=err)
       if (err /= 0) then
          call iceErrorHndlr (iceLog, ErrID_Fatal, 'Error in allocation of leg data in parameters', 1)
          return  !  error in array allocation
       endif   
+      p%legX = 0; p%legY = 0; !bjj: these weren't being set (a problem with reading the file, but I'll initialize them here for my own debugging)
 
       iceType: select case (p%iceType)
         case (randomCrush)
@@ -271,7 +285,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
 
          CALL MeshPositionNode ( Mesh = u%iceMesh                    &
                                , INode = n                           &
-                               , Pos = (/p%legX(n), p%legX(n), 0.0/) &  ! TODO get these from FAST, Z would be height at water line
+                               , Pos = (/p%legX(n), p%legX(n), InitInp%MSL2SWL /) &  ! Z is the height at water line
                                , ErrStat   = ErrStat                 &
                                , ErrMess   = ErrMsg                  )
          call iceErrorHndlr(iceLog, ErrStat, ErrMsg//' in IceFloe_init ', 1)
@@ -455,8 +469,8 @@ SUBROUTINE IceFloe_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       TYPE(IceFloe_ConstraintStateType), INTENT(INOUT)  :: z           ! Constraint states
       TYPE(IceFloe_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
       TYPE(IceFloe_OutputType),          INTENT(INOUT)  :: y           ! System outputs
-      INTEGER(IntKi),                   INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                     INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+      INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                      INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
       type(iceFloe_LoggingType)   :: iceLog   ! structure with message and error logging variables
 
