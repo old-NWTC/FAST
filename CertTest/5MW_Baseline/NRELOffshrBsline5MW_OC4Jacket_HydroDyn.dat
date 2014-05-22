@@ -9,20 +9,20 @@ False            Echo           - Echo the input file data (flag)
              2   WaveMod        - Incident wave kinematics model {0: none=still water, 1: plane progressive (regular), 1P#: plane progressive with user-specified phase, 2: JONSWAP/Pierson-Moskowitz spectrum (irregular), 3: White noise spectrum (irregular), 4: user-defined spectrum from routine UserWaveSpctrm (irregular), 5: GH Bladed wave data [option 5 is invalid for HasWAMIT = TRUE]} (switch)
              0   WaveStMod      - Model for stretching incident wave kinematics to instantaneous free surface {0: none=no stretching, 1: vertical stretching, 2: extrapolation stretching, 3: Wheeler stretching} (switch) [unused when WaveMod=0 or when HasWAMIT = TRUE]
           3630   WaveTMax       - Analysis time for incident wave calculations (sec) [unused when WaveMod=0] [determines WaveDOmega=2Pi/WaveTMax in the IFFT]
-          0.25   WaveDT         - Time step for incident wave calculations (sec) [unused when WaveMod=0] [0.1<=WaveDT<=1.0 recommended] [determines WaveOmegaMax=Pi/WaveDT in the IFFT]
-             6   WaveHs         - Significant wave height of incident waves (meters) [used only when WaveMod=1, 2, or 3]
-            10   WaveTp         - Peak-spectral period of incident waves (sec) [used only when WaveMod=1 or 2]
+0.25           0.1   WaveDT         - Time step for incident wave calculations (sec) [unused when WaveMod=0] [0.1<=WaveDT<=1.0 recommended] [determines WaveOmegaMax=Pi/WaveDT in the IFFT]
+           8.0   WaveHs         - Significant wave height of incident waves (meters) [used only when WaveMod=1, 2, or 3]
+          10.0   WaveTp         - Peak-spectral period of incident waves (sec) [used only when WaveMod=1 or 2]
 "DEFAULT"        WavePkShp      - Peak-shape parameter of incident wave spectrum (-) or DEFAULT (unquoted string) [used only when WaveMod=2] [use 1.0 for Pierson-Moskowitz]
-             0   WvLowCOff      - Low cut-off frequency or lower frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [used only when WaveMod=2, 3, or 4]
-           500   WvHiCOff       - High cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [used only when WaveMod=2, 3, or 4]
+           0.0   WvLowCOff      - Low cut-off frequency or lower frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [used only when WaveMod=2, 3, or 4]
+         500.0   WvHiCOff       - High cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [used only when WaveMod=2, 3, or 4]
              0   WaveDir        - Incident wave propagation heading direction (degrees) [unused when WaveMod=0 or 5]
-     123456789   WaveSeed(1)    - First  random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 5]
-    1011121314   WaveSeed(2)    - Second random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 5]
-TRUE             WaveNDAmp      - Flag for normally distributed amplitudes (flag)
+123456789        WaveSeed(1)    - First  random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 5]
+1011121314       WaveSeed(2)    - Second random seed of incident waves [-2147483648 to 2147483647] (-) [unused when WaveMod=0 or 5]
+False            WaveNDAmp      - Flag for normally distributed amplitudes (flag)
 ""               GHWvFile       - Root name of GH Bladed files containing wave data (quoted string) [used only when WaveMod=5]
-             9   NWaveElev      - Number of points where the incident wave elevations can be computed (-) [maximum of 9 output locations]
-             0,             0,             0,            10,            10,            10,           -10,           -10,           -10    WaveElevxi     - List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
-             0,            10,           -10,             0,            10,           -10,             0,            10,           -10    WaveElevyi     - List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
+             1   NWaveElev      - Number of points where the incident wave elevations can be computed (-) [maximum of 9 output locations]
+           0.0   WaveElevxi     - List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
+           0.0   WaveElevyi     - List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
 ---------------------- CURRENT -------------------------------------------------
              0   CurrMod        - Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)
              0   CurrSSV0       - Sub-surface current velocity at still water level (m/s) [used only when CurrMod=1]
@@ -36,12 +36,12 @@ TRUE             WaveNDAmp      - Flag for normally distributed amplitudes (flag
 FALSE            HasWAMIT       - Using WAMIT (flag)
 ""               WAMITFile      - Root name of WAMIT output files containing the linear, nondimensionalized, hydrostatic restoring matrix (.hst extension), frequency-dependent hydrodynamic added mass matrix and damping matrix (.1 extension), and frequency- and direction-dependent wave excitation force vector per unit wave amplitude (.3 extension) (quoted string) [MAKE SURE THE FREQUENCIES INHERENT IN THESE WAMIT FILES SPAN THE PHYSICALLY-SIGNIFICANT RANGE OF FREQUENCIES FOR THE GIVEN PLATFORM; THEY MUST CONTAIN THE ZERO- AND INFINITE-FREQUENCY LIMITS!]
              1   WAMITULEN      - Characteristic body length scale used to redimensionalize WAMIT output (meters)
-       8029.21   PtfmVol0       - Displaced volume of water when the platform is in its undisplaced position (m^3) [USE THE SAME VALUE COMPUTED BY WAMIT AS OUTPUT IN THE .OUT FILE!]
+             0   PtfmVol0       - Displaced volume of water when the platform is in its undisplaced position (m^3) [USE THE SAME VALUE COMPUTED BY WAMIT AS OUTPUT IN THE .OUT FILE!]
              0   PtfmCOBxt      - The xt offset of the center of buoyancy (COB) from the platform reference point (meters)
              0   PtfmCOByt      - The yt offset of the center of buoyancy (COB) from the platform reference point (meters)
-             1   RdtnMod        - Radiation memory-effect model {0: no memory-effect calculation, 1: convolution, 2: state-space} (switch) [STATE-SPACE REQUIRES *.ss INPUT FILE]
-            60   RdtnTMax       - Analysis time for wave radiation kernel calculations (sec) [determines RdtnDOmega=Pi/RdtnTMax in the cosine transform]  [MAKE SURE THIS IS LONG ENOUGH FOR THE RADIATION IMPULSE RESPONSE FUNCTIONS TO DECAY TO NEAR-ZERO FOR THE GIVEN PLATFORM!]
-         0.025   RdtnDT         - Time step for wave radiation kernel calculations (sec) [DT<=RdtnDT<=0.1 recommended] [determines RdtnOmegaMax=Pi/RdtnDT in the cosine transform]
+             0   RdtnMod        - Radiation memory-effect model {0: no memory-effect calculation, 1: convolution, 2: state-space} (switch) [STATE-SPACE REQUIRES *.ss INPUT FILE]
+             0   RdtnTMax       - Analysis time for wave radiation kernel calculations (sec) [determines RdtnDOmega=Pi/RdtnTMax in the cosine transform]  [MAKE SURE THIS IS LONG ENOUGH FOR THE RADIATION IMPULSE RESPONSE FUNCTIONS TO DECAY TO NEAR-ZERO FOR THE GIVEN PLATFORM!]
+             0   RdtnDT         - Time step for wave radiation kernel calculations (sec) [DT<=RdtnDT<=0.1 recommended] [determines RdtnOmegaMax=Pi/RdtnDT in the cosine transform]
 ---------------------- FLOATING PLATFORM FORCE FLAGS  --------------------------
 True             PtfmSgF        - Platform horizontal surge translation force (flag) or DEFAULT
 True             PtfmSwF        - Platform horizontal sway translation force (flag) or DEFAULT
@@ -72,8 +72,8 @@ True             PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
 ---------------------- AXIAL COEFFICIENTS --------------------------------------
              1   NAxCoef        - Number of axial coefficients (-)
 AxCoefID  AxCd     AxCa     AxCp
-   (-)    (-)      (-)      (-)
-    1     0.00     0.00     1.00
+   (-)    (-)      (-)      (-) 
+    1     0.00    1.00     1.00
 ---------------------- MEMBER JOINTS -------------------------------------------
             64   NJoints        - Number of joints (-)   [must be exactly 0 or at least 2]
 JointID   Jointxi     Jointyi     Jointzi  JointAxID   JointOvrlp   [JointOvrlp= 0: do nothing at joint, 1: eliminate overlaps by calculating super member]
@@ -154,23 +154,20 @@ PropSetID    PropD         PropThck
     6        2.08200        0.06000
 ---------------------- SIMPLE HYDRODYNAMIC COEFFICIENTS (model 1) --------------
 SimplCd      SimplCdMG    SimplCa     SimplCaMG      SimplCp     SimplCpMG   SimplAxCa     SimplAxCaMG      SimplAxCp     SimplAxCpMG
-(-)           (-)           (-)         (-)            (-)         (-)          (-)           (-)              (-)            (-)
-      1.00       1.05       0.60       1.00       1.00       1.00       1.00       1.00       1.00       1.00
+(-)          (-)          (-)         (-)            (-)         (-)         (-)           (-)              (-)           (-)    
+1.00          1.00        1.00        1.00           1.00        1.00        1.00          1.00             1.00          1.00
 ---------------------- DEPTH-BASED HYDRODYNAMIC COEFFICIENTS (model 2) ---------
-             2   NCoefDpth       - Number of depth-dependent coefficients (-)
+             0   NCoefDpth       - Number of depth-dependent coefficients (-)
 Dpth      DpthCd   DpthCdMG   DpthCa   DpthCaMG       DpthCp   DpthCpMG   DpthAxCa   DpthAxCaMG       DpthAxCp   DpthAxCpMG
-(m)       (-)      (-)        (-)      (-)            (-)      (-)          (-)        (-)              (-)         (-)
-  -20.00     0.20     0.30     0.50     0.70     1.00     1.00     1.00     1.00     1.00     1.00
-  -50.00     0.30     0.35     0.55     0.75     1.00     1.00     1.00     1.00     1.00     1.00
+(m)       (-)      (-)        (-)      (-)            (-)      (-)        (-)        (-)              (-)        (-)     
 ---------------------- MEMBER-BASED HYDRODYNAMIC COEFFICIENTS (model 3) --------
-             1   NCoefMembers       - Number of member-based coefficients (-)
+             0   NCoefMembers       - Number of member-based coefficients (-)
 MemberID   MemberCd1   MemberCd2   MemberCdMG1   MemberCdMG2   MemberCa1   MemberCa2   MemberCaMG1   MemberCaMG2    MemberCp1  MemberCp2   MemberCpMG1   MemberCpMG2  MemberAxCa1   MemberAxCa2   MemberAxCaMG1   MemberAxCaMG2    MemberAxCp1  MemberAxCp2   MemberAxCpMG1   MemberAxCpMG2
-(-)        (-)         (-)         (-)           (-)           (-)         (-)         (-)           (-)             (-)         (-)           (-)           (-)          (-)           (-)           (-)             (-)              (-)          (-)           (-)             (-)
-    3        0.20       0.30        0.25         0.40        0.60       0.70        0.65         0.75        1.00       1.00        1.00         1.00        1.00       1.00        1.00         1.00        1.00       1.00        1.00         1.00
+(-)        (-)         (-)         (-)           (-)           (-)         (-)         (-)           (-)            (-)        (-)         (-)           (-)          (-)           (-)           (-)             (-)              (-)          (-)           (-)             (-)       
 ---------------------- MEMBERS -------------------------------------------------
            112   NMembers       - Number of members (-)
-MemberID   MJointID1   MJointID2   MPropSetID1  MPropSetID2   MDivSize  MCoefMod  PropWAMIT   [MCoefMod=1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table] [ PropWAMIT = TRUE if member is modeled in WAMIT]
-(-)        (-)         (-)         (-)          (-)           (m)       (switch)    (flag)
+MemberID  MJointID1  MJointID2  MPropSetID1  MPropSetID2  MDivSize  MCoefMod  PropWAMIT   [MCoefMod=1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table] [ PropWAMIT = TRUE if member is modeled in WAMIT]
+   (-)       (-)        (-)         (-)          (-)         (m)    (switch)   (flag)
     1         1          2           2            2         1.0000     1        FALSE
     2         2          3           2            2         1.0000     1        FALSE
     3         3          4           2            2         1.0000     1        FALSE
@@ -285,21 +282,20 @@ MemberID   MJointID1   MJointID2   MPropSetID1  MPropSetID2   MDivSize  MCoefMod
   112        59         63           6            6         1.0000     1        FALSE
 ---------------------- FILLED MEMBERS ------------------------------------------
              1   NFillGroups     - Number of filled member groups (-) [If FillDens = DEFAULT, then FillDens = WtrDens; FillFSLoc is related to MSL2SWL]
-FillNumM FillMList             FillFSLoc     FillDens
-(-)      (-)                   (m)           (kg/m^3)
+FillNumM   FillMList                                     FillFSLoc     FillDens
+   (-)        (-)                                           (m)        (kg/m^3)
    32   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  21  22  25  26  29  30 105 106 107 108 109 110 111 112     0.00           1025
 ---------------------- MARINE GROWTH -------------------------------------------
              0   NMGDepths      - Number of marine-growth depths specified (-)
-MGDpth     MGThck       MGDens
-(m)        (m)         (kg/m^3)
+MGDpth    MGThck   MGDens     
+(m)       (m)      (kg/m^3)    
 ---------------------- MEMBER OUTPUT LIST --------------------------------------
-             1   NMOutputs      - Number of member outputs (-) [must be < 10]
+             0   NMOutputs      - Number of member outputs (-) [must be < 10]
 MemberID   NOutLoc    NodeLocs [NOutLoc < 10; node locations are normalized distance from the start of the member, and must be >=0 and <= 1] [unused if NMOutputs=0]
-  (-)        (-)        (-)
-    1          6        0.000  0.200  0.400  0.600  0.800  1.000
+   (-)        (-)        (-)
 ---------------------- JOINT OUTPUT LIST ---------------------------------------
-             2   NJOutputs      - Number of joint outputs [Must be < 10]
-   1   2         JOutLst        - List of JointIDs which are to be output (-)[unused if NJOutputs=0]
+             0   NJOutputs      - Number of joint outputs [Must be < 10]
+                 JOutLst        - List of JointIDs which are to be output (-)[unused if NJOutputs=0]
 ---------------------- OUTPUT --------------------------------------------------
 True             HDSum          - Output a summary file [flag]
 False            OutAll         - Output all user-specified member and joint loads (only at each member end, not interior locations) [flag]
@@ -307,120 +303,7 @@ False            OutAll         - Output all user-specified member and joint loa
 "ES11.4e2"       OutFmt         - Output format for numerical results (quoted string) [not checked for validity!]
 "A11"            OutSFmt        - Output format for header strings (quoted string) [not checked for validity!]
 ---------------------- OUTPUT CHANNELS -----------------------------------------
-"M1N1FVxi"
-"Wave1Elev"
-"M1N1FVxi"
-"M1N1FVyi"
-"M1N1FVzi"
-"M1N1FAxi"
-"M1N1FAyi"
-"M1N1FAzi"
-"M1N1DynP"
-"M1N1FDPxi"
-"M1N1FDPyi"
-"M1N1FDPzi"
-"M1N1FDxi"
-"M1N1FDyi"
-"M1N1FDzi"
-"M1N1FIxi"
-"M1N1FIyi"
-"M1N1FIzi"
-"M1N1FBxi"
-"M1N1FByi"
-"M1N1FBzi"
-"M1N1MBxi"
-"M1N1MByi"
-"M1N1MBzi"
-"M1N1FBFxi"
-"M1N1FBFyi"
-"M1N1FBFzi"
-"M1N1MBFxi"
-"M1N1MBFyi"
-"M1N1MBFzi"
-"J1FVxi"
-"J1FVyi"
-"J1FVzi"
-"J1FAxi"
-"J1FAyi"
-"J1FAyi"
-"J1FAzi"
-"J1DynP"
-"J1FDPxi"
-"J1FDPyi"
-"J1FDPzi"
-"J1FDxi"
-"J1FDyi"
-"J1FDzi"
-"J1FBxi"
-"J1FByi"
-"J1FBzi"
-"J1MBxi"
-"J1MByi"
-"J1MBzi"
-"J1FBFxi"
-"J1FBFyi"
-"J1FBFzi"
-"J1MBFxi"
-"J1MBFxi"
-"J1MBFyi"
-"J1MBFyi"
-"J1MBFzi"
+"Wave1Elev"                                                  
 END of output channels and end of file. (the word "END" must appear in the first 3 columns of this line)
 
 
-"M1N1FVxi, M1N2FVxi, M1N3FVxi, M1N4FVxi, M1N5FVxi, M1N6FVxi"
-"M1N1FVyi, M1N2FVyi, M1N3FVyi, M1N4FVyi, M1N5FVyi, M1N6FVyi"
-"M1N1FVzi, M1N2FVzi, M1N3FVzi, M1N4FVzi, M1N5FVzi, M1N6FVzi"
-"M1N1FAxi, M1N2FAxi, M1N3FAxi, M1N4FAxi, M1N5FAxi, M1N6FAxi"
-"M1N1FAyi, M1N2FAyi, M1N3FAyi, M1N4FAyi, M1N5FAyi, M1N6FAyi"
-"M1N1FAzi, M1N2FAzi, M1N3FAzi, M1N4FAzi, M1N5FAzi, M1N6FAzi"
-"M1N1DynP, M1N2DynP, M1N3DynP, M1N4DynP, M1N5DynP, M1N6DynP"
-"M1N1FDPxi, M1N2FDPxi, M1N3FDPxi, M1N4FDPxi, M1N5FDPxi, M1N6FDPxi"
-"M1N1FDPyi, M1N2FDPyi, M1N3FDPyi, M1N4FDPyi, M1N5FDPyi, M1N6FDPyi"
-"M1N1FDPzi, M1N2FDPzi, M1N3FDPzi, M1N4FDPzi, M1N5FDPzi, M1N6FDPzi"
-"M1N1FDxi, M1N2FDxi, M1N3FDxi, M1N4FDxi, M1N5FDxi, M1N6FDxi"
-"M1N1FDyi, M1N2FDyi, M1N3FDyi, M1N4FDyi, M1N5FDyi, M1N6FDyi"
-"M1N1FDzi, M1N2FDzi, M1N3FDzi, M1N4FDzi, M1N5FDzi, M1N6FDzi"
-"M1N1FIxi, M1N2FIxi, M1N3FIxi, M1N4FIxi, M1N5FIxi, M1N6FIxi"
-"M1N1FIyi, M1N2FIyi, M1N3FIyi, M1N4FIyi, M1N5FIyi, M1N6FIyi"
-"M1N1FIzi, M1N2FIzi, M1N3FIzi, M1N4FIzi, M1N5FIzi, M1N6FIzi"
-"M1N1FBxi, M1N2FBxi, M1N3FBxi, M1N4FBxi, M1N5FBxi, M1N6FBxi"
-"M1N1FByi, M1N2FByi, M1N3FByi, M1N4FByi, M1N5FByi, M1N6FByi"
-"M1N1FBzi, M1N2FBzi, M1N3FBzi, M1N4FBzi, M1N5FBzi, M1N6FBzi"
-"M1N1MBxi, M1N2MBxi, M1N3MBxi, M1N4MBxi, M1N5MBxi, M1N6MBxi"
-"M1N1MByi, M1N2MByi, M1N3MByi, M1N4MByi, M1N5MByi, M1N6MByi"
-"M1N1MBzi, M1N2MBzi, M1N3MBzi, M1N4MBzi, M1N5MBzi, M1N6MBzi"
-"M1N1FBFxi, M1N2FBFxi, M1N3FBFxi, M1N4FBFxi, M1N5FBFxi, M1N6FBFxi"
-"M1N1FBFyi, M1N2FBFyi, M1N3FBFyi, M1N4FBFyi, M1N5FBFyi, M1N6FBFyi"
-"M1N1FBFzi, M1N2FBFzi, M1N3FBFzi, M1N4FBFzi, M1N5FBFzi, M1N6FBFzi"
-"M1N1MBFxi, M1N2MBFxi, M1N3MBFxi, M1N4MBFxi, M1N5MBFxi, M1N6MBFxi"
-"M1N1MBFyi, M1N2MBFyi, M1N3MBFyi, M1N4MBFyi, M1N5MBFyi, M1N6MBFyi"
-"M1N1MBFzi, M1N2MBFzi, M1N3MBFzi, M1N4MBFzi, M1N5MBFzi, M1N6MBFzi"
-"J1FVxi, J2FVxi"
-"J1FVyi, J2FVyi"
-"J1FVzi, J2FVzi"
-"J1FAxi, J2FAxi"
-"J1FAyi, J2FAyi"
-"J1FAyi, J2FAyi"
-"J1FAzi, J2FAzi"
-"J1DynP, J2DynP"
-"J1FDPxi, J2FDPxi"
-"J1FDPyi, J2FDPyi"
-"J1FDPzi, J2FDPzi"
-"J1FDxi, J2FDxi"
-"J1FDyi, J2FDyi"
-"J1FDzi, J2FDzi"
-"J1FBxi, J2FBxi"
-"J1FByi, J2FByi"
-"J1FBzi, J2FBzi"
-"J1MBxi, J2MBxi"
-"J1MByi, J2MByi"
-"J1MBzi, J2MBzi"
-"J1FBFxi, J2FBFxi"
-"J1FBFyi, J2FBFyi"
-"J1FBFzi, J2FBFzi"
-"J1MBFxi, J2MBFxi"
-"J1MBFxi, J2MBFxi"
-"J1MBFyi, J2MBFyi"
-"J1MBFyi, J2MBFyi"
-"J1MBFzi, J2MBFzi"
