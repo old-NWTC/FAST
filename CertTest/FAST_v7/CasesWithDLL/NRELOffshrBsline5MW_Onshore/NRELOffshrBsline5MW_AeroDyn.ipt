@@ -14,7 +14,7 @@ PRANDtl     HLModel      - Hub-loss model (EQUIL only) [PRANdtl or NONE] (unquot
 9999.9      T_Shad_Refpt - Tower-shadow reference point (m)
    1.225    AirDens      - Air density (kg/m^3)
    1.464E-5 KinVisc      - Kinematic air viscosity [CURRENTLY IGNORED] (m^2/sec)
-   0.02479  DTAero       - Time interval for aerodynamic calculations (sec)
+0.005   0.02479  DTAero       - Time interval for aerodynamic calculations (sec)
    8        NumFoil      - Number of airfoil files (-)
 "AeroData\Cylinder1.dat"                         FoilNm      - Names of the airfoil files [NumFoil lines] (quoted strings)
 "AeroData\Cylinder2.dat"

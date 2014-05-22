@@ -78,7 +78,6 @@ echo -------------------------------------------------------------------
 
 IF ERRORLEVEL 1  GOTO ERROR
 
-
 EXIT /B
 
 rem ***********************************************************************************************************************
@@ -91,13 +90,21 @@ echo -------------------------------------------------------------------
 Echo Running Test %1: %CURRTEST%
 echo -------------------------------------------------------------------
 
+IF /I "%2"=="DEBUG"  (
+copy       "C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\IVF Projects\DISCON_dll\Release\DISCON_dll.dll" DISCON.DLL
+) ELSE (
 copy       %CURRDIR%\DISCON_win32.dll DISCON.DLL
+)
+
 %FAST_DLL% %CURRDIR%\%CURRTEST%.fst
 
 IF ERRORLEVEL 1  GOTO ERROR
 
 copy       %CURRDIR%\%CURRTEST%.out    %CURRTEST%.out
 copy       %CURRDIR%\%CURRTEST%.outb   %CURRTEST%.outb
+copy       %CURRDIR%\%CURRTEST%.fsm    %CURRTEST%.fsm
+copy       %CURRDIR%\%CURRTEST%.elm    %CURRTEST%.elm
+copy       %CURRDIR%\%CURRTEST%.opt    %CURRTEST%.opt
 
 
 EXIT /B
@@ -119,6 +126,9 @@ IF ERRORLEVEL 1  GOTO ERROR
 
 copy       %CURRDIR%\%CURRTEST%.out    %CURRTEST%.out
 copy       %CURRDIR%\%CURRTEST%.outb   %CURRTEST%.outb
+copy       %CURRDIR%\%CURRTEST%.fsm    %CURRTEST%.fsm
+copy       %CURRDIR%\%CURRTEST%.elm    %CURRTEST%.elm
+copy       %CURRDIR%\%CURRTEST%.opt    %CURRTEST%.opt
 
 
 EXIT /B
