@@ -1,7 +1,7 @@
 
 FAST Summary File
 
-Predictions were generated on 22-May-2014 at 09:48:15 using FAST (v8.07.00b-bjj, 15-May-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 27-May-2014 at 13:58:36 using FAST (v8.07.00b-bjj, 15-May-2014), compiled for 32-bit systems using single precision
   compiled with
     NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014)
     ElastoDyn (v1.01.06a-bjj, 2-May-2014)
@@ -20,8 +20,8 @@ Description from the FAST input file:
   FAST Certification Test #21: NREL 5.0 MW Baseline Offshore Turbine with OC4 Jacket Configuration
 
 Interpolation order for input/output time histories: 2 (quadratic)
-Number of correction iterations:  0
-Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and HydroDyn:   9090
+Number of correction iterations:  1
+Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and HydroDyn:   9618
 
 
    Requested Time Steps  

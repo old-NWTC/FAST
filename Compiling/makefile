@@ -60,7 +60,7 @@ FC      = gfortran
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
 FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -C -DNO_IEEE_ARITHMETIC
 
-LDFLAGS = -O2 -m$(BITS) -fbacktrace  $(LAPACK_LINK)
+LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
 # other useful gfortran options:
 #  -large-address-aware
@@ -446,7 +446,7 @@ $(INTER_DIR):
 
 $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT): $(ALL_OBJS) | $(INTER_DIR)
 	$(FC) $(LDFLAGS) -I $(INTER_DIR) -o $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT) \
-	$(foreach src, $(ALL_OBJS), $(addprefix $(INTER_DIR)/,$(src))) $(MAP_lib)
+	$(foreach src, $(ALL_OBJS), $(addprefix $(INTER_DIR)/,$(src))) $(MAP_lib) $(LAPACK_LINK)
 
    # Cleanup afterwards.
 

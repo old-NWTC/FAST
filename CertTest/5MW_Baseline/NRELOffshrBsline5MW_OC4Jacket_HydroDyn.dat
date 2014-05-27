@@ -72,7 +72,7 @@ True             PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
 ---------------------- AXIAL COEFFICIENTS --------------------------------------
              1   NAxCoef        - Number of axial coefficients (-)
 AxCoefID  AxCd     AxCa     AxCp
-   (-)    (-)      (-)      (-) 
+   (-)    (-)      (-)      (-)
     1     0.00    1.00     1.00
 ---------------------- MEMBER JOINTS -------------------------------------------
             64   NJoints        - Number of joints (-)   [must be exactly 0 or at least 2]
@@ -154,16 +154,16 @@ PropSetID    PropD         PropThck
     6        2.08200        0.06000
 ---------------------- SIMPLE HYDRODYNAMIC COEFFICIENTS (model 1) --------------
 SimplCd      SimplCdMG    SimplCa     SimplCaMG      SimplCp     SimplCpMG   SimplAxCa     SimplAxCaMG      SimplAxCp     SimplAxCpMG
-(-)          (-)          (-)         (-)            (-)         (-)         (-)           (-)              (-)           (-)    
+(-)          (-)          (-)         (-)            (-)         (-)         (-)           (-)              (-)           (-)
 1.00          1.00        1.00        1.00           1.00        1.00        1.00          1.00             1.00          1.00
 ---------------------- DEPTH-BASED HYDRODYNAMIC COEFFICIENTS (model 2) ---------
              0   NCoefDpth       - Number of depth-dependent coefficients (-)
 Dpth      DpthCd   DpthCdMG   DpthCa   DpthCaMG       DpthCp   DpthCpMG   DpthAxCa   DpthAxCaMG       DpthAxCp   DpthAxCpMG
-(m)       (-)      (-)        (-)      (-)            (-)      (-)        (-)        (-)              (-)        (-)     
+(m)       (-)      (-)        (-)      (-)            (-)      (-)        (-)        (-)              (-)        (-)
 ---------------------- MEMBER-BASED HYDRODYNAMIC COEFFICIENTS (model 3) --------
              0   NCoefMembers       - Number of member-based coefficients (-)
 MemberID   MemberCd1   MemberCd2   MemberCdMG1   MemberCdMG2   MemberCa1   MemberCa2   MemberCaMG1   MemberCaMG2    MemberCp1  MemberCp2   MemberCpMG1   MemberCpMG2  MemberAxCa1   MemberAxCa2   MemberAxCaMG1   MemberAxCaMG2    MemberAxCp1  MemberAxCp2   MemberAxCpMG1   MemberAxCpMG2
-(-)        (-)         (-)         (-)           (-)           (-)         (-)         (-)           (-)            (-)        (-)         (-)           (-)          (-)           (-)           (-)             (-)              (-)          (-)           (-)             (-)       
+(-)        (-)         (-)         (-)           (-)           (-)         (-)         (-)           (-)            (-)        (-)         (-)           (-)          (-)           (-)           (-)             (-)              (-)          (-)           (-)             (-)
 ---------------------- MEMBERS -------------------------------------------------
            112   NMembers       - Number of members (-)
 MemberID  MJointID1  MJointID2  MPropSetID1  MPropSetID2  MDivSize  MCoefMod  PropWAMIT   [MCoefMod=1: use simple coeff table, 2: use depth-based coeff table, 3: use member-based coeff table] [ PropWAMIT = TRUE if member is modeled in WAMIT]
@@ -286,9 +286,11 @@ FillNumM   FillMList                                     FillFSLoc     FillDens
    (-)        (-)                                           (m)        (kg/m^3)
    32   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  21  22  25  26  29  30 105 106 107 108 109 110 111 112     0.00           1025
 ---------------------- MARINE GROWTH -------------------------------------------
-             0   NMGDepths      - Number of marine-growth depths specified (-)
-MGDpth    MGThck   MGDens     
-(m)       (m)      (kg/m^3)    
+             2   NMGDepths      - Number of marine-growth depths specified (-)
+MGDpth    MGThck   MGDens
+(m)       (m)      (kg/m^3)
+-2.0      0.100    1100.0
+-40.0     0.100    1100.0
 ---------------------- MEMBER OUTPUT LIST --------------------------------------
              0   NMOutputs      - Number of member outputs (-) [must be < 10]
 MemberID   NOutLoc    NodeLocs [NOutLoc < 10; node locations are normalized distance from the start of the member, and must be >=0 and <= 1] [unused if NMOutputs=0]
@@ -303,7 +305,7 @@ False            OutAll         - Output all user-specified member and joint loa
 "ES11.4e2"       OutFmt         - Output format for numerical results (quoted string) [not checked for validity!]
 "A11"            OutSFmt        - Output format for header strings (quoted string) [not checked for validity!]
 ---------------------- OUTPUT CHANNELS -----------------------------------------
-"Wave1Elev"                                                  
+"Wave1Elev"
 END of output channels and end of file. (the word "END" must appear in the first 3 columns of this line)
 
 
