@@ -130,6 +130,8 @@ True          TabDelim    - Use tab delimiters in text tabular output file? (fla
 "RotTorq, LSSGagMya, LSSGagMza"  - Rotor torque and low-speed shaft 0- and 90-bending moments at the main bearing
 "YawBrFxp, YawBrFyp, YawBrFzp"   - Fore-aft shear, side-to-side shear, and vertical forces at the top of the tower (not rotating with nacelle yaw)
 "YawBrMxp, YawBrMyp, YawBrMzp"   - Side-to-side bending, fore-aft bending, and yaw moments at the top of the tower (not rotating with nacelle yaw)
+
+
 "PtfmTAxi, PtfmTAyi, PtfmTAzi"
 "PtfmRAxi, PtfmRAyi, PtfmRAzi"
 "PtfmTDxi"
