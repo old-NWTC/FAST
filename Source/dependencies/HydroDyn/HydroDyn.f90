@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-20 11:07:05 -0600 (Tue, 20 May 2014) $
-! (File) Revision #: $Rev: 394 $
+! File last committed: $Date: 2014-06-06 11:53:23 -0600 (Fri, 06 Jun 2014) $
+! (File) Revision #: $Rev: 409 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -41,7 +41,7 @@ MODULE HydroDyn
    PRIVATE
 
   
-   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.00.05c-gjh', '15-May-2014' )
+   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.01.01b-gjh', '04-Jun-2014' )
 
     
    
@@ -110,7 +110,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       LOGICAL                                :: hasMorisonOuts                      ! Are there any Morison-related outputs
       INTEGER                                :: numHydroOuts                        ! total number of WAMIT and Morison outputs
       INTEGER                                :: I, J                                ! Generic counters
-      
+      REAL(ReKi)                             :: WaveNmbr                            ! Wavenumber of the current frequency component (1/meter)
          ! These are dummy variables to satisfy the framework, but are not used 
          
       TYPE(Waves_InputType)                  :: Waves_u                             ! Waves module initial guess for the input; the input mesh is not defined because it is not used by the waves module
@@ -204,7 +204,16 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
         !  we will set Hydrodyn's time step to be that of the Convolution radiation module if it is being used.  Otherwise, we
         !  will set it to be equal to the glue-codes
       IF ((Initlocal%HasWAMIT) .AND. (Initlocal%WAMIT%RdtnMod == 1) ) THEN
+         IF ( Interval /= InitLocal%WAMIT%Conv_Rdtn%RdtnDT ) THEN
+            CALL SetErrStat(ErrID_Fatal,'Then value of Conv_Rdtn is not equal to the glue code timestep.  This is not allowed in the current version of HydroDyn.',ErrStat,ErrMsg,'HydroDyn_Init')
+            IF ( ErrStat >= AbortErrLev ) THEN
+               CALL CleanUp()
+               RETURN
+            END IF   
+         END IF
+         
          p%DT = InitLocal%WAMIT%Conv_Rdtn%RdtnDT
+         
       ELSE
          p%DT = Interval
       END IF  
@@ -373,6 +382,23 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
             RETURN
          END IF
          
+         ! Generate Summary file information for WAMIT module
+             ! Compute the load contribution from hydrostatics:
+         IF ( InitLocal%UnSum > 0 ) THEN
+            
+            WRITE( InitLocal%UnSum, '(A11)')          'WAMIT Model'
+            WRITE( InitLocal%UnSum, '(A11)')          '-----------'
+            WRITE( InitLocal%UnSum, '(A42,2X,ES15.6)') 'Displaced volume (m^3)                 :', p%WAMIT%PtfmVol0
+            WRITE( InitLocal%UnSum, '(A42,2X,ES15.6)') 'X-offset of the center of buoyancy (m) :', p%WAMIT%PtfmCOBxt
+            WRITE( InitLocal%UnSum, '(A42,2X,ES15.6)') 'Y-offset of the center of buoyancy (m) :', p%WAMIT%PtfmCOByt
+            WRITE( InitLocal%UnSum,  '(/)' ) 
+            WRITE( InitLocal%UnSum, '(A81)' ) 'Buoyancy loads from members modelled with WAMIT, summed about ( 0.0, 0.0, 0.0 )'
+            WRITE( InitLocal%UnSum, '(18x,6(2X,A20))' ) ' BuoyFxi ', ' BuoyFyi ', ' BuoyFzi ', ' BuoyMxi ', ' BuoyMyi ', ' BuoyMzi '
+            WRITE( InitLocal%UnSum, '(18x,6(2X,A20))' ) '   (N)   ', '   (N)   ', '   (N)   ', '  (N-m)  ', '  (N-m)  ', '  (N-m)  '
+            WRITE( InitLocal%UnSum, '(A18,6(2X,ES20.6))') '  External:       ',0.0,0.0,p%WAMIT%RhoXg*p%WAMIT%PtfmVol0,p%WAMIT%RhoXg*p%WAMIT%PtfmVol0*p%WAMIT%PtfmCOByt, -p%WAMIT%RhoXg*p%WAMIT%PtfmVol0*p%WAMIT%PtfmCOBxt, 0.0   ! and the moment about Y due to the COB being offset from the WAMIT reference point
+         
+         END IF
+         
          
             ! Verify that WAMIT_Init() did not request a different Interval!
       
@@ -383,7 +409,7 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          END IF
       ELSE
             ! Deallocate this because it is not needed for the Morison_Init work
-         IF(ALLOCATED( Waves_InitOut%WaveElevC0 ))  DEALLOCATE( Waves_InitOut%WaveElevC0 )
+         ! IF(ALLOCATED( Waves_InitOut%WaveElevC0 ))  DEALLOCATE( Waves_InitOut%WaveElevC0 )
       END IF
       
 
@@ -447,7 +473,9 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
             ! Check the output switch to see if Morison is needing to send outputs back to HydroDyn via the WriteOutput array
             
          IF ( InitLocal%OutSwtch > 0 ) THEN
-            InitLocal%Morison%OutSwtch     = 2  ! only HydroDyn or the Driver code will write outputs to the file
+            InitLocal%Morison%OutSwtch     = 2  ! only HydroDyn or the Driver code will write outputs to the file, that's why we are forcing this to 2.
+         ELSE
+            InitLocal%Morison%OutSwtch     = 0
          END IF
         
       
@@ -507,14 +535,58 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          END IF
          
       END IF  ! ( InitLocal%Morison%NMembers > 0 )
-     
+    
+!===============================================
+      IF ( InitLocal%UnSum > 0 ) THEN
+      
+         IF (InitLocal%Waves%WaveMod /= 0 .AND. InitLocal%Waves%WaveMod /= 5)  THEN
+               ! Write the header for this section
+            WRITE( InitLocal%UnSum,  '(//)' )         
+            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A22,2X,A22)' ) '    m   ', '    k    ', '   Omega[m]  ', 'REAL(DFT{WaveElev}[m])','IMAG(DFT{WaveElev}[m])'
+            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A22,2X,A22)' ) '   (-)  ', '  (1/m)  ', '   (rad/s)   ', '         (m)          ','         (m)          '
+
+            ! Write the data
+            DO I = -1*Waves_InitOut%NStepWave2+1,Waves_InitOut%NStepWave2
+               WaveNmbr   = WaveNumber ( I*Waves_InitOut%WaveDOmega, InitLocal%Gravity, InitLocal%Waves%WtrDpth )
+               IF ( InitLocal%HasWAMIT ) THEN
+                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
+                         InitLocal%WAMIT%WaveElevC0( 1,ABS(I ) ) ,   InitLocal%WAMIT%WaveElevC0( 2, ABS(I ) )*SIGN(1,I)
+               ELSE
+                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
+                         Waves_InitOut%WaveElevC0( 1,ABS(I ) ) ,   Waves_InitOut%WaveElevC0( 2, ABS(I ) )*SIGN(1,I)
+               END IF
+            END DO
+         END IF
+      
+         IF ( InitLocal%HasWAMIT .AND.  InitLocal%WAMIT%RdtnMod == 1) THEN
+            ! Write the header for this section
+            WRITE( InitLocal%UnSum,  '(//)' ) 
+            WRITE( InitLocal%UnSum,  '(A)' ) 'Radiation memory effect kernel'
+            WRITE( InitLocal%UnSum,  '(//)' ) 
+            WRITE( InitLocal%UnSum, '(1X,A10,2X,A10,21(2X,A16))' )    '    n    ' , '     t    ', '   K11    ', '   K12    ', '    K13   ', '    K14    ', '    K15    ', '    K16    ', '    K22   ', '    K23   ', '    K24    ', '    K25    ', '    K26    ', '    K33    ', '    K34    ', '    K35    ',     'K36    ', '    K44    ', '    K45    ', '    K46    ', '    K55    ', '    K56    ', '    K66    '
+            WRITE( InitLocal%UnSum, '(1X,A10,2X,A10,21(2X,A16))' )    '   (-)   ' , '    (s)   ', ' (kg/s^2) ', ' (kg/s^2) ', ' (kg/s^2) ', ' (kgm/s^2) ', ' (kgm/s^2) ', ' (kgm/s^2) ', ' (kg/s^2) ', ' (kg/s^2) ', ' (kgm/s^2) ', ' (kgm/s^2) ', ' (kgm/s^2) ', ' (kg/s^2)  ', ' (kgm/s^2) ', ' (kgm/s^2) ', ' (kgm/s^2) ', '(kgm^2/s^2)', '(kgm^2/s^2)', '(kgm^2/s^2)', '(kgm^2/s^2)', '(kgm^2/s^2)', '(kgm^2/s^2)'
+
+               ! Write the data
+            DO I = 0,p%WAMIT%Conv_Rdtn%NStepRdtn-1
+   
+               WRITE( InitLocal%UnSum, '(1X,I10,2X,E12.5,21(2X,ES16.5))' ) I, I*p%WAMIT%Conv_Rdtn%RdtnDT, p%WAMIT%Conv_Rdtn%RdtnKrnl(I,1,1), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,1,2), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,1,3), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,1,4), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,1,5), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,1,6), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,2,2), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,2,3), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,2,4), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,2,5), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,2,6), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,3,3), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,3,4), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,3,5), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,3,6), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,4,4), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,4,5), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,4,6), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,5,5), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,5,6), p%WAMIT%Conv_Rdtn%RdtnKrnl(I,6,6)
+      
+            END DO
+         END IF
+         
+      END IF
+
+!==========================================
       
          ! Deallocate any remaining Waves Output data
+      IF(ALLOCATED( Waves_InitOut%WaveElevC0 ))  DEALLOCATE( Waves_InitOut%WaveElevC0 )
       IF(ALLOCATED( Waves_InitOut%WaveAcc0   ))  DEALLOCATE( Waves_InitOut%WaveAcc0   )
       IF(ALLOCATED( Waves_InitOut%WaveDynP0  ))  DEALLOCATE( Waves_InitOut%WaveDynP0  )
       IF(ALLOCATED( Waves_InitOut%WaveTime   ))  DEALLOCATE( Waves_InitOut%WaveTime   )
       IF(ALLOCATED( Waves_InitOut%WaveVel0   ))  DEALLOCATE( Waves_InitOut%WaveVel0   )
       IF(ALLOCATED( Waves_InitOut%WaveElevC0 ))  DEALLOCATE( Waves_InitOut%WaveElevC0 )
+      !IF(ALLOCATED( InitLocal%WAMIT%WaveElevC0 ))  DEALLOCATE( InitLocal%WAMIT%WaveElevC0)
+      
          
       
          ! Close the summary file

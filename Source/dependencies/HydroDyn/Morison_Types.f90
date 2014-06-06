@@ -33,7 +33,7 @@ MODULE Morison_Types
 !---------------------------------------------------------------------------------------------------------------------------------
 USE NWTC_Library
 IMPLICIT NONE
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxMrsnOutputs = 4707      !  [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxMrsnOutputs = 4032      !  [-]
 ! =========  Morison_JointType  =======
   TYPE, PUBLIC :: Morison_JointType
     INTEGER(IntKi)  :: JointID      !  [-]
@@ -283,7 +283,7 @@ IMPLICIT NONE
     TYPE(Morison_MOutput) , DIMENSION(:), ALLOCATABLE  :: MOutLst      !  [-]
     INTEGER(IntKi)  :: NJOutputs      !  [-]
     TYPE(Morison_JOutput) , DIMENSION(:), ALLOCATABLE  :: JOutLst      !  [-]
-    CHARACTER(10) , DIMENSION(1:4707)  :: OutList      ! This list size needs to be the maximum   of possible outputs because of the use of ReadAry() [-]
+    CHARACTER(10) , DIMENSION(1:4032)  :: OutList      ! This list size needs to be the maximum   of possible outputs because of the use of ReadAry() [-]
     LOGICAL , DIMENSION(:), ALLOCATABLE  :: ValidOutList      !  [-]
     INTEGER(IntKi)  :: NumOuts      !  [-]
     INTEGER(IntKi)  :: OutSwtch      !  [-]

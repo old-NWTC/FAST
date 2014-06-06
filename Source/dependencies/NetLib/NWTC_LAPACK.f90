@@ -185,7 +185,7 @@ CONTAINS
 
       !     .. Array Arguments ..
       REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! On entry, the N-by-N coefficient matrix A.  On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
-      REAL(R8Ki)      ,intent(inout) :: B( LDA, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
       INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
@@ -228,7 +228,7 @@ CONTAINS
 
       !     .. Array Arguments ..
       REAL(SiKi)      ,intent(inout) :: A( LDA, * )       ! On entry, the N-by-N coefficient matrix A.  On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
-      REAL(SiKi)      ,intent(inout) :: B( LDA, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(SiKi)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
       INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
@@ -813,7 +813,7 @@ CONTAINS
                                                           ! leading N-by-N lower triangular part of A contains the lower triangular part of the matrix A, and the strictly upper
                                                           ! triangular part of A is not referenced.
                                                           ! On exit, if INFO = 0, the factor U or L from the Cholesky factorization A = U**T*U or A = L*L**T.
-      REAL(R8Ki)      ,intent(inout) :: B( LDA, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -861,7 +861,7 @@ CONTAINS
                                                           ! leading N-by-N lower triangular part of A contains the lower triangular part of the matrix A, and the strictly upper
                                                           ! triangular part of A is not referenced.
                                                           ! On exit, if INFO = 0, the factor U or L from the Cholesky factorization A = U**T*U or A = L*L**T.
-      REAL(SiKi)      ,intent(inout) :: B( LDA, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(SiKi)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error

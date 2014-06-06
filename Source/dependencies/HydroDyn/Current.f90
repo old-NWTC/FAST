@@ -159,7 +159,7 @@ SUBROUTINE Calc_Current( InitInp, z, h , DirRoot, CurrVxi, CurrVyi )
          CASE ( 1 )              ! Standard (using inputs from PtfmFile).
 
             CurrSSV =      InitInp%CurrSSV0*( ( z + h                      )/h                      )**(1.0/7.0)
-            CurrNSV = MAX( InitInp%CurrNSV0*( ( z + InitInp%CurrNSRef )/InitInp%CurrNSRef )           , 0.0 )
+            CurrNSV = MAX( InitInp%CurrNSV0*( ( z + InitInp%CurrNSRef )/InitInp%CurrNSRef )           , 0.0_ReKi )
 
             CurrVxi = InitInp%CurrDIV*COS( D2R*InitInp%CurrDIDir ) + CurrSSV*COS( D2R*InitInp%CurrSSDir ) + &
                                    CurrNSV*COS( D2R*InitInp%CurrNSDir )

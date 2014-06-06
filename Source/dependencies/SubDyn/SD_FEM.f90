@@ -1,12 +1,12 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-19 15:01:26 -0600 (Mon, 19 May 2014) $
-! (File) Revision #: $Rev: 296 $
+! File last committed: $Date: 2014-06-05 13:47:01 -0600 (Thu, 05 Jun 2014) $
+! (File) Revision #: $Rev: 301 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM
   USE NWTC_Library
   USE SubDyn_Types
-    
+  
   IMPLICIT NONE
   
    INTEGER,         PARAMETER  :: LAKi            = R8Ki                  ! Define the kind to be used for LAPACK routines for getting eigenvalues/vectors. Apparently there is a problem with SGGEV's eigenvectors
@@ -27,7 +27,7 @@ MODULE SD_FEM
   INTEGER(IntKi),   PARAMETER  :: CMassCol        = 5                     ! Number of columns in Concentrated Mass (CMJointID,JMass,JMXX,JMYY,JMZZ)
   
   INTEGER(IntKi),   PARAMETER  :: SDMaxInpCols    = MAX(JointsCol,ReactCol,InterfCol,MembersCol,PropSetsCol,XPropSetsCol,COSMsCol,CMassCol)
-CONTAINS
+    CONTAINS
     
 SUBROUTINE NodeCon(Init,p, ErrStat, ErrMsg)
   
@@ -100,7 +100,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
       ! local variable
    INTEGER                       :: I, J, n, Node, Node1, Node2, Prop, Prop1, Prop2   
    INTEGER                       :: OldJointIndex(Init%NJoints)
-   INTEGER                       :: NNE                     ! number of nodes per element
+   INTEGER                       :: NNE      ! number of nodes per element
    INTEGER                       :: MaxNProp
    REAL(ReKi), ALLOCATABLE       :: TempProps(:, :)
    INTEGER, ALLOCATABLE          :: TempMembers(:, :) ,TempReacts(:,:)         
@@ -146,17 +146,17 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
    CALL AllocAry(Init%MemberNodes,p%NMembers,    Init%NDiv+1,'Init%MemberNodes',ErrStat2, ErrMsg2); CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SD_Discrt')  ! for two-node element only, otherwise the number of nodes in one element is different
    CALL AllocAry(Init%BCs,        6*p%NReact,    2,          'Init%BCs',        ErrStat2, ErrMsg2); CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SD_Discrt') !!!! RRD: THIS MAY NEED TO CHANGE IF NOT ALL NODES ARE RESTRAINED
    CALL AllocAry(Init%IntFc,      6*Init%NInterf,2,          'Init%IntFc',      ErrStat2, ErrMsg2); CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SD_Discrt')
-
+   
    CALL AllocAry(TempMembers,     p%NMembers,    MembersCol, 'TempMembers',     ErrStat2, ErrMsg2); CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SD_Discrt') 
    CALL AllocAry(TempProps,       MaxNProp,      PropSetsCol,'TempProps',       ErrStat2, ErrMsg2); CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SD_Discrt') 
    CALL AllocAry(TempReacts,      p%NReact,      ReactCol,   'TempReacts',      ErrStat2, ErrMsg2); CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SD_Discrt')
    
-   
+
    IF ( ErrStat >= AbortErrLev ) THEN
       CALL CleanUp_Discrt()
       RETURN
-   END IF
-   
+   ENDIF
+
    ! Initialize Nodes
    Init%Nodes = 0   
    DO I = 1,Init%NJoints
@@ -169,7 +169,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
    
    ! Initialize Elems, starting with each member as an element (we'll take NDiv into account later)
    p%Elems = 0
-   DO I = 1, p%NMembers      
+   DO I = 1, p%NMembers
       p%Elems(I,     1) = I                     ! element/member number (not MemberID)
 !bjj: TODO: JMJ wants check that YoungE, ShearG, and MatDens are equal in the two properties because we aren't going to interpolate them. This should be less confusing for users.                                                
       
@@ -185,7 +185,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
             IF ( Node == NINT(Init%Joints(J, 1)) ) THEN
                p%Elems(I, n) = J                ! index of the joint/node n-1 (i.e., nodes 1 and 2)
                found = .TRUE.
-            END IF
+         ENDIF
             J = J + 1
          END DO 
          
@@ -219,17 +219,17 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
                found = .TRUE.
             END IF
             J = J + 1
-         END DO 
-         
+      ENDDO
+      
          IF ( .NOT. found) THEN
             CALL SetErrStat(ErrID_Fatal,' Member '//TRIM(Num2LStr(I))//' has PropSetID'//TRIM(Num2LStr(n-3))//' = '//& 
                                    TRIM(Num2LStr(Prop))//' which is not in the Member X-Section Property data!', ErrStat,ErrMsg,'SD_Discrt');
             CALL CleanUp_Discrt()
-            RETURN
-         ENDIF                                                  
-         
+         RETURN
+      ENDIF
+
       END DO ! loop through property ids         
-      
+   
    ENDDO ! loop through members
    
    ! Initialize TempMembers
@@ -242,7 +242,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
    
    ! Initialize boundary constraint vector
    ! Change the node number
-
+   
    
     !Allocate array that will be p%Reacts renumbered and ordered so that ID does not play a role, just ordinal position number will count -RRD
    Init%BCs = 0
@@ -264,7 +264,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
       IF (.not. found) THEN
          CALL SetErrStat(ErrID_Fatal,' React has node not in the node list !', ErrStat,ErrMsg,'SD_Discrt');
          CALL CleanUp_Discrt()
-         RETURN         
+         RETURN
       ENDIF
       
       
@@ -279,7 +279,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
    ! Initialize interface constraint vector
    ! Change the node number
 
-   Init%IntFc = 0      
+   Init%IntFc = 0
    DO I = 1, Init%NInterf
       Node1 = Init%Interf(I, 1);
       found = .false.
@@ -293,7 +293,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
       IF (.not. found) THEN
          CALL SetErrStat(ErrID_Fatal,' Interf has node not in the node list !', ErrStat,ErrMsg,'SD_Discrt');
          CALL CleanUp_Discrt()
-         RETURN         
+         RETURN
       ENDIF
       
       DO J = 1, 6
@@ -329,9 +329,9 @@ IF (Init%NDiv .GT. 1) THEN
       IF ( Node1==Node2 ) THEN
          CALL SetErrStat(ErrID_Fatal,' Same starting and ending node in the member.', ErrStat,ErrMsg,'SD_Discrt');
          CALL CleanUp_Discrt()
-         RETURN         
+         RETURN
       ENDIF
-                
+    
       
       
       Prop1 = TempMembers(I, 4)
@@ -346,7 +346,7 @@ IF (Init%NDiv .GT. 1) THEN
       
          CALL SetErrStat(ErrID_Fatal,' Material E,G and rho in a member must be the same', ErrStat,ErrMsg,'SD_Discrt');
          CALL CleanUp_Discrt()
-         RETURN         
+         RETURN
       ENDIF
 
       x1 = Init%Nodes(Node1, 2)
@@ -440,8 +440,8 @@ CALL AllocAry(Init%Props, Init%NProp, PropSetsCol,  'Init%Props', ErrStat2, ErrM
    IF (ErrStat >= AbortErrLev ) THEN
       CALL SetErrStat(ErrStat2,ErrMsg2, ErrStat,ErrMsg,'SD_Discrt');
       CALL CleanUp_Discrt()
-      RETURN         
-   ENDIF
+   RETURN
+ENDIF
 !Init%Props(1:kprop, 1:Init%PropSetsCol) = TempProps
 Init%Props = TempProps(1:Init%NProp, :)  !!RRD fixed it on 1/23/14 to account for NDIV=1
 
@@ -452,11 +452,11 @@ CONTAINS
 !................
    SUBROUTINE CleanUp_Discrt()
    
-      ! deallocate temp matrices
-      IF (ALLOCATED(TempProps)) DEALLOCATE(TempProps)
-      IF (ALLOCATED(TempMembers)) DEALLOCATE(TempMembers)
-      IF (ALLOCATED(TempReacts)) DEALLOCATE(TempReacts)
-      
+! deallocate temp matrices
+IF (ALLOCATED(TempProps)) DEALLOCATE(TempProps)
+IF (ALLOCATED(TempMembers)) DEALLOCATE(TempMembers)
+IF (ALLOCATED(TempReacts)) DEALLOCATE(TempReacts)
+
    END SUBROUTINE CleanUp_Discrt
 
 END SUBROUTINE SD_Discrt
@@ -487,7 +487,7 @@ SUBROUTINE GetNewElem(k, n1, n2, p1, p2, p)
    INTEGER,                INTENT(IN   )   :: p2
    TYPE(SD_ParameterType), INTENT(INOUT)   :: p
   
-      
+   
    p%Elems(k, 1) = k
    p%Elems(k, 2) = n1
    p%Elems(k, 3) = n2
@@ -520,7 +520,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
    TYPE(SD_ParameterType),       INTENT(INOUT)  ::p
    INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
    CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-      
+   
    INTEGER                  :: I, J, K, Jn, Kn
    
    INTEGER                  :: NNE        ! number of nodes in one element
@@ -537,10 +537,10 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
    INTEGER, ALLOCATABLE     :: nn(:)                     ! node number in element 
    INTEGER                  :: r
    
-      
+   
    INTEGER(IntKi)           :: ErrStat2
    CHARACTER(1024)          :: ErrMsg2
-   
+
    
       ! for current application
    IF ( (Init%FEMMod .LE. 3) .and. (Init%FEMMod .GE. 0)) THEN
@@ -555,19 +555,19 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
    Init%TDOF = 6*Init%NNode
    
          ! Assemble system stiffness and mass matrices with gravity force vector
-         
+   
    ALLOCATE( p%ElemProps(Init%NElem), STAT=ErrStat2)
       IF (ErrStat2 /= 0) THEN
          CALL SetErrStat ( ErrID_Fatal, 'Error allocating p%ElemProps', ErrStat, ErrMsg, 'AssembleKM' )
          CALL CleanUp_AssembleKM()
-         RETURN
-      END IF   
-   
+      RETURN
+   ENDIF
+
    CALL AllocAry( Ke,     NNE*6,         NNE*6 , 'Ke',      ErrStat2, ErrMsg2); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AssembleKM' )    ! element stiffness matrix
    CALL AllocAry( Me,     NNE*6,         NNE*6 , 'Me',      ErrStat2, ErrMsg2); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AssembleKM' )    ! element mass matrix 
    CALL AllocAry( FGe,    NNE*6,                 'FGe',     ErrStat2, ErrMsg2); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AssembleKM' )    ! element gravity force vector 
    CALL AllocAry( nn,     NNE,                   'nn',      ErrStat2, ErrMsg2); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AssembleKM' )    ! node number in element array 
-                                                            
+   
    CALL AllocAry( Init%K, Init%TDOF, Init%TDOF , 'Init%K',  ErrStat2, ErrMsg2); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AssembleKM' )    ! system stiffness matrix 
    CALL AllocAry( Init%m, Init%TDOF, Init%TDOF , 'Init%M',  ErrStat2, ErrMsg2); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AssembleKM' )    ! system mass matrix 
    CALL AllocAry( Init%FG,Init%TDOF,             'Init%FG', ErrStat2, ErrMsg2); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AssembleKM' )    ! system gravity force vector 
@@ -575,12 +575,12 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
    IF (ErrStat >= AbortErrLev) THEN
       CALL CleanUp_AssembleKM()
       RETURN
-   END IF
+   ENDIF
    
-   Init%K  = 0.0_ReKi
-   Init%M  = 0.0_ReKi
+   Init%K = 0.0_ReKi
+   Init%M = 0.0_ReKi
    Init%FG = 0.0_ReKi
-   
+
    
       ! loop over all elements
    DO I = 1, Init%NElem
@@ -663,7 +663,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
          CALL ElemM(A, L, Ixx, Iyy, Jzz, rho, DirCos, Me)
          CALL ElemG(A, L, rho, DirCos, FGe, Init%g)
          
-      ELSEIF  (Init%FEMMod == 2) THEN ! tapered Euler-Bernoulli     
+      ELSEIF  (Init%FEMMod == 2) THEN ! tapered Euler-Bernoulli
          CALL SetErrStat ( ErrID_Fatal, 'FEMMod = 2 is not implemented.', ErrStat, ErrMsg, 'AssembleKM' )
          CALL CleanUp_AssembleKM()
          RETURN
@@ -679,65 +679,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
          RETURN
          
       ENDIF  
-      
-!      !~~~~~~~~~~ assemble to system K and M in compressed row format                                                                                            
-!      !           for two node element                                                                                                                           
-!      DO J = 1, NNE ! NNE = 2, 2 nodes in one element                                                                                                           
-!                                                                                                                                                                
-!         DO ja = 1, 6                                                                                                                                           
-!            tgt_row_sys(ja) = ( nn(J) - 1 )*6 + ja                                                                                                              
-!            row_in_elem(ja) = ( J - 1 )*6 + ja                                                                                                                  
-!         ENDDO !ja                                                                                                                                              
-!                                                                                                                                                                
-!         DO K = 1, NNE                                                                                                                                          
-!                                                                                                                                                                
-!            DO ja = 1, 6                                                                                                                                        
-!               tgt_col_sys(ja) = ( nn(K) - 1 )*6 + ja                                                                                                           
-!               col_in_elem(ja) = ( K - 1 )*6 + ja                                                                                                               
-!            ENDDO !ja                                                                                                                                           
-!                                                                                                                                                                
-!            DO ii = 1, 6                                                                                                                                        
-!               ei = row_in_elem(ii)                                                                                                                             
-!               ti = tgt_row_sys(ii)                                                                                                                             
-!                                                                                                                                                                
-!               DO jj = 1, 6                                                                                                                                     
-!                  ej = col_in_elem(jj)                                                                                                                          
-!                  tj = tgt_col_sys(jj)                                                                                                                          
-!                                                                                                                                                                
-!                  IF(ti .LE. tj) THEN ! store the upper triangle and the diagonal                                                                               
-!                     beg_jA = Init%IA(ti)                                                                                                                       
-!                     end_jA = Init%IA(ti+1) - 1                                                                                                                 
-!                                                                                                                                                                
-!                     s = 0                                                                                                                                      
-!                     DO r = beg_jA, end_jA                                                                                                                      
-!                        IF ( Init%JA(r) == tj ) THEN                                                                                                            
-!                           s = r                                                                                                                                
-!                        ENDIF                                                                                                                                   
-!                     ENDDO ! r                                                                                                                                  
-!                                                                                                                                                                
-!                     IF ( s == 0) THEN                                                                                                                          
-!                        write(tempstr1, *)  ti                                                                                                                  
-!                        write(tempstr2, *)  tj                                                                                                                  
-!                        ErrMsg = ('A( '//trim(tempstr1)//','//trim(tempstr2)//') not found in AssembleKM')                                    
-!                        ErrStat = 1                                                                                                                             
-!                        RETURN                                                                                                                                  
-!                     ENDIF                                                                                                                                      
-!                                                                                                                                                                
-!                     Init%K(s) = Init%K(s) + Ke(ei, ej)                                                                                                         
-!                     Init%M(s) = Init%M(s) + Me(ei, ej)                                                                                                         
-!                                                                                                                                                                
-!                                                                                                                                                                
-!                  ENDIF                                                                                                                                         
-!                                                                                                                                                                
-!                                                                                                                                                                
-!               ENDDO ! jj                                                                                                                                       
-!            ENDDO !ii                                                                                                                                           
-!                                                                                                                                                                
-!         ENDDO ! K                                                                                                                                              
-!                                                                                                                                                                
-!      ENDDO ! J                                                                                                                                                 
-!                                                                                                                                                                
-!                                                                                                                                                                
+                                                                                                                                                               
 
       
       ! assemble element matrices to global matrices
@@ -765,21 +707,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
                      
    ENDDO ! I end loop over elements
                
-               
-!   ! add concentrated mass (compressed row format)
-!   DO I = 1, Init%NCMass
-!      DO J = 1, 3
-!          r = ( NINT( Init%CMass(I, 1) ) - 1 )*6 + J
-!          Init%M(Init%IA(r)) = Init%M(Init%IA(r)) + Init%CMass(I, 2)
-!      ENDDO
-!      DO J = 4, 6
-!          r = ( NINT( Init%CMass(I, 1) ) - 1 )*6 + J
-!          Init%M(Init%IA(r)) = Init%M(Init%IA(r)) + Init%CMass(I, J-1)
-!      ENDDO
-!
-!   ENDDO ! I concentrated mass
-         
-         
+                        
       
       ! add concentrated mass 
    DO I = 1, Init%NCMass
@@ -809,13 +737,13 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
 CONTAINS
 !..............
    SUBROUTINE CleanUp_AssembleKM()
-         ! deallocate temp matrices
-      IF (ALLOCATED(Ke )) DEALLOCATE(Ke)
-      IF (ALLOCATED(Me )) DEALLOCATE(Me)
+! deallocate temp matrices
+      IF (ALLOCATED(Ke)) DEALLOCATE(Ke)
+      IF (ALLOCATED(Me)) DEALLOCATE(Me)
       IF (ALLOCATED(FGe)) DEALLOCATE(FGe)
-      IF (ALLOCATED(nn )) DEALLOCATE(nn)         
+      IF (ALLOCATED(nn)) DEALLOCATE(nn)
    END SUBROUTINE CleanUp_AssembleKM
-
+   
 END SUBROUTINE AssembleKM
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
@@ -823,7 +751,8 @@ END SUBROUTINE AssembleKM
 SUBROUTINE GetDirCos(X1, Y1, Z1, X2, Y2, Z2, DirCos, L, ErrStat, ErrMsg)
    !This should be from local to global -RRD
    ! bjj: note that this is the transpose of what is normally considered the Direction Cosine Matrix  
-   !      in the FAST framework. It seems to be used consistantly in the code.
+   !      in the FAST framework. It seems to be used consistantly in the code (i.e., the transpose 
+   !      of this matrix is used later).
    
    
    REAL(ReKi) ,      INTENT(IN   )  :: x1, y1, z1, x2, y2, z2  ! (x,y,z) positions of two nodes making up an element
@@ -842,10 +771,7 @@ SUBROUTINE GetDirCos(X1, Y1, Z1, X2, Y2, Z2, DirCos, L, ErrStat, ErrMsg)
    Dx=x2-x1
    Dz=z2-z1
    Dxy = sqrt( Dx**2 + Dy**2 )
-   L   = sqrt( (x1-x2)**2 + (z1-z2)**2 + (y1-y2)**2 )
-!   Dxyz =  sqrt( Dx**2 + Dz**2 + Dy**2 )
-!if (.not. equalRealNos(L,Dxyz)) print *, L, Dxyz
-! bjj: this is bizarre. If I switch definitions of L and Dxyz, the OC4 Jacket ReactFZss channel produces an offset even though L and Dxyz are equivalent (i.e., EqualRealNos(L,Dxyz) is true)
+   L   = sqrt( Dx**2 + Dy**2 + Dz**2)
    
    IF ( EqualRealNos(L, 0.0_ReKi) ) THEN
       ErrMsg = ' Same starting and ending location in the element.'

@@ -48,7 +48,6 @@ IMPLICIT NONE
 ! =========  SS_Rad_ContinuousStateType  =======
   TYPE, PUBLIC :: SS_Rad_ContinuousStateType
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: x      ! Continuous States [-]
-    REAL(ReKi)  :: DummyContState      ! Dummy constant [-]
   END TYPE SS_Rad_ContinuousStateType
 ! =======================
 ! =========  SS_Rad_DiscreteStateType  =======
@@ -63,9 +62,8 @@ IMPLICIT NONE
 ! =======================
 ! =========  SS_Rad_OtherStateType  =======
   TYPE, PUBLIC :: SS_Rad_OtherStateType
-    INTEGER(IntKi)  :: Step      ! Current Time step [-]
-    REAL(DbKi)  :: LastTime      ! Last Time step [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: dxdt      ! Old Values of dxdt to used by the solver [-]
+    INTEGER(IntKi)  :: n      ! Current Time step [-]
+    TYPE(SS_Rad_ContinuousStateType) , DIMENSION(1:4)  :: xdot      ! Old Values of dxdt to used by the solver (multistep method) [-]
   END TYPE SS_Rad_OtherStateType
 ! =======================
 ! =========  SS_Rad_ParameterType  =======
@@ -80,7 +78,6 @@ IMPLICIT NONE
 ! =========  SS_Rad_InputType  =======
   TYPE, PUBLIC :: SS_Rad_InputType
     REAL(ReKi) , DIMENSION(1:6,1:1)  :: dq      ! Body velocities [-]
-    REAL(ReKi)  :: DummyInput      ! Dummy [-]
   END TYPE SS_Rad_InputType
 ! =======================
 ! =========  SS_Rad_OutputType  =======
@@ -333,7 +330,6 @@ IF (ALLOCATED(SrcContStateData%x)) THEN
    END IF
    DstContStateData%x = SrcContStateData%x
 ENDIF
-   DstContStateData%DummyContState = SrcContStateData%DummyContState
  END SUBROUTINE SS_Rad_CopyContState
 
  SUBROUTINE SS_Rad_DestroyContState( ContStateData, ErrStat, ErrMsg )
@@ -384,7 +380,6 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Re_BufSz    = Re_BufSz    + SIZE( InData%x )  ! x 
-  Re_BufSz   = Re_BufSz   + 1  ! DummyContState
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -392,8 +387,6 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%x))-1 ) =  PACK(InData%x ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%x)
   ENDIF
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DummyContState )
-  Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE SS_Rad_PackContState
 
  SUBROUTINE SS_Rad_UnPackContState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -435,8 +428,6 @@ ENDIF
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%x)
   ENDIF
-  OutData%DummyContState = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -671,23 +662,10 @@ ENDIF
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstOtherStateData%Step = SrcOtherStateData%Step
-   DstOtherStateData%LastTime = SrcOtherStateData%LastTime
-IF (ALLOCATED(SrcOtherStateData%dxdt)) THEN
-   i1_l = LBOUND(SrcOtherStateData%dxdt,1)
-   i1_u = UBOUND(SrcOtherStateData%dxdt,1)
-   i2_l = LBOUND(SrcOtherStateData%dxdt,2)
-   i2_u = UBOUND(SrcOtherStateData%dxdt,2)
-   IF (.NOT. ALLOCATED(DstOtherStateData%dxdt)) THEN 
-      ALLOCATE(DstOtherStateData%dxdt(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'SS_Rad_CopyOtherState: Error allocating DstOtherStateData%dxdt.'
-         RETURN
-      END IF
-   END IF
-   DstOtherStateData%dxdt = SrcOtherStateData%dxdt
-ENDIF
+   DstOtherStateData%n = SrcOtherStateData%n
+   DO i1 = LBOUND(SrcOtherStateData%xdot,1), UBOUND(SrcOtherStateData%xdot,1)
+      CALL SS_Rad_CopyContState( SrcOtherStateData%xdot(i1), DstOtherStateData%xdot(i1), CtrlCode, ErrStat, ErrMsg )
+   ENDDO
  END SUBROUTINE SS_Rad_CopyOtherState
 
  SUBROUTINE SS_Rad_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -698,9 +676,9 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(OtherStateData%dxdt)) THEN
-   DEALLOCATE(OtherStateData%dxdt)
-ENDIF
+DO i1 = LBOUND(OtherStateData%xdot,1), UBOUND(OtherStateData%xdot,1)
+  CALL SS_Rad_DestroyContState( OtherStateData%xdot(i1), ErrStat, ErrMsg )
+ENDDO
  END SUBROUTINE SS_Rad_DestroyOtherState
 
  SUBROUTINE SS_Rad_PackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -724,6 +702,9 @@ ENDIF
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
  ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_xdot_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_xdot_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_xdot_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -737,20 +718,39 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Int_BufSz  = Int_BufSz  + 1  ! Step
-  Db_BufSz   = Db_BufSz   + 1  ! LastTime
-  Re_BufSz    = Re_BufSz    + SIZE( InData%dxdt )  ! dxdt 
+  Int_BufSz  = Int_BufSz  + 1  ! n
+DO i1 = LBOUND(InData%xdot,1), UBOUND(InData%xdot,1)
+  CALL SS_Rad_PackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, InData%xdot(i1), ErrStat, ErrMsg, .TRUE. ) ! xdot 
+  IF(ALLOCATED(Re_xdot_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_xdot_Buf  ) ! xdot
+  IF(ALLOCATED(Db_xdot_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_xdot_Buf  ) ! xdot
+  IF(ALLOCATED(Int_xdot_Buf))Int_BufSz = Int_BufSz + SIZE( Int_xdot_Buf ) ! xdot
+  IF(ALLOCATED(Re_xdot_Buf))  DEALLOCATE(Re_xdot_Buf)
+  IF(ALLOCATED(Db_xdot_Buf))  DEALLOCATE(Db_xdot_Buf)
+  IF(ALLOCATED(Int_xdot_Buf)) DEALLOCATE(Int_xdot_Buf)
+ENDDO
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%Step )
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%n )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%LastTime )
-  Db_Xferred   = Db_Xferred   + 1
-  IF ( ALLOCATED(InData%dxdt) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%dxdt))-1 ) =  PACK(InData%dxdt ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%dxdt)
+DO i1 = LBOUND(InData%xdot,1), UBOUND(InData%xdot,1)
+  CALL SS_Rad_PackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, InData%xdot(i1), ErrStat, ErrMsg, OnlySize ) ! xdot 
+  IF(ALLOCATED(Re_xdot_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_xdot_Buf)-1 ) = Re_xdot_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_xdot_Buf)
   ENDIF
+  IF(ALLOCATED(Db_xdot_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_xdot_Buf)-1 ) = Db_xdot_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_xdot_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_xdot_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_xdot_Buf)-1 ) = Int_xdot_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_xdot_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_xdot_Buf) )  DEALLOCATE(Re_xdot_Buf)
+  IF( ALLOCATED(Db_xdot_Buf) )  DEALLOCATE(Db_xdot_Buf)
+  IF( ALLOCATED(Int_xdot_Buf) ) DEALLOCATE(Int_xdot_Buf)
+ENDDO
  END SUBROUTINE SS_Rad_PackOtherState
 
  SUBROUTINE SS_Rad_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -777,6 +777,9 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
  ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_xdot_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_xdot_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_xdot_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -786,16 +789,25 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  OutData%Step = IntKiBuf ( Int_Xferred )
+  OutData%n = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  OutData%LastTime = DbKiBuf ( Db_Xferred )
-  Db_Xferred   = Db_Xferred   + 1
-  IF ( ALLOCATED(OutData%dxdt) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%dxdt,1),SIZE(OutData%dxdt,2))); mask2 = .TRUE.
-    OutData%dxdt = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%dxdt))-1 ),mask2,OutData%dxdt)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%dxdt)
+DO i1 = LBOUND(OutData%xdot,1), UBOUND(OutData%xdot,1)
+ ! first call SS_Rad_PackContState to get correctly sized buffers for unpacking
+  CALL SS_Rad_PackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, OutData%xdot(i1), ErrStat, ErrMsg, .TRUE. ) ! xdot 
+  IF(ALLOCATED(Re_xdot_Buf)) THEN
+    Re_xdot_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_xdot_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_xdot_Buf)
   ENDIF
+  IF(ALLOCATED(Db_xdot_Buf)) THEN
+    Db_xdot_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_xdot_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_xdot_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_xdot_Buf)) THEN
+    Int_xdot_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_xdot_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_xdot_Buf)
+  ENDIF
+  CALL SS_Rad_UnPackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, OutData%xdot(i1), ErrStat, ErrMsg ) ! xdot 
+ENDDO
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -1016,7 +1028,6 @@ ENDIF
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstInputData%dq = SrcInputData%dq
-   DstInputData%DummyInput = SrcInputData%DummyInput
  END SUBROUTINE SS_Rad_CopyInput
 
  SUBROUTINE SS_Rad_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -1064,14 +1075,11 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Re_BufSz    = Re_BufSz    + SIZE( InData%dq )  ! dq 
-  Re_BufSz   = Re_BufSz   + 1  ! DummyInput
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%dq))-1 ) =  PACK(InData%dq ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%dq)
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DummyInput )
-  Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE SS_Rad_PackInput
 
  SUBROUTINE SS_Rad_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1111,8 +1119,6 @@ ENDIF
   OutData%dq = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%dq))-1 ),mask2,OutData%dq)
   DEALLOCATE(mask2)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%dq)
-  OutData%DummyInput = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -1346,7 +1352,6 @@ ENDIF
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
   u_out%dq = u(1)%dq
-  u_out%DummyInput = u(1)%DummyInput
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -1359,8 +1364,6 @@ ENDIF
   u_out%dq = u(1)%dq + b2 * t_out
   DEALLOCATE(b2)
   DEALLOCATE(c2)
-  b0 = -(u(1)%DummyInput - u(2)%DummyInput)/t(2)
-  u_out%DummyInput = u(1)%DummyInput + b0 * t_out
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -1384,9 +1387,6 @@ ENDIF
   u_out%dq = u(1)%dq + b2 * t_out + c2 * t_out**2
   DEALLOCATE(b2)
   DEALLOCATE(c2)
-  b0 = (t(3)**2*(u(1)%DummyInput - u(2)%DummyInput) + t(2)**2*(-u(1)%DummyInput + u(3)%DummyInput))/(t(2)*t(3)*(t(2) - t(3)))
-  c0 = ( (t(2)-t(3))*u(1)%DummyInput + t(3)*u(2)%DummyInput - t(2)*u(3)%DummyInput ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%DummyInput = u(1)%DummyInput + b0 * t_out + c0 * t_out**2
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in SS_Rad_Input_ExtrapInterp '

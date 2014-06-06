@@ -1976,7 +1976,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
    CALL Zero2TwoPi(y%LSSTipPxa)  ! Return value between 0 and 2pi (LSSTipPxa is used only in calculations of SIN and COS, so it's okay to take MOD/MODULO here; this wouldn't be oaky for linearization)
    OtherState%AllOuts(LSSTipPxa) = y%LSSTipPxa*R2D
    
-   OtherState%AllOuts(LSSGagPxa) = MODULO( (      x%QT (DOF_GeAz)                            + p%AzimB1Up)*R2D  + 90.0, 360.0 ) !bjj: this used IgnoreMod for linearization (Zero2TwoPi)
+   OtherState%AllOuts(LSSGagPxa) = MODULO( (      x%QT (DOF_GeAz)                            + p%AzimB1Up)*R2D  + 90.0, 360.0_ReKi ) !bjj: this used IgnoreMod for linearization (Zero2TwoPi)
    OtherState%AllOuts(   LSSTipVxa) =      (     x%QDT (DOF_GeAz) +          x%QDT (DOF_DrTr) )*RPS2RPM
    OtherState%AllOuts(   LSSTipAxa) = ( OtherState%QD2T(DOF_GeAz) + OtherState%QD2T(DOF_DrTr) )*R2D
    OtherState%AllOuts(   LSSGagVxa) =            x%QDT (DOF_GeAz)                              *RPS2RPM
@@ -10767,7 +10767,7 @@ SUBROUTINE Teeter( t, p, TeetDef, TeetRate, TeetMom )
    CASE ( 0_IntKi )              ! None!
 
 
-      TeetMom = 0.0
+      TeetMom = 0.0_ReKi
 
 
    CASE ( 1_IntKi )              ! Standard (using inputs from the primary FAST input file).
@@ -10785,7 +10785,7 @@ SUBROUTINE Teeter( t, p, TeetDef, TeetRate, TeetMom )
       IF ( SprgDef > 0.0_ReKi )  THEN
          TeetKMom = -SIGN( SprgDef*p%TeetSSSp, TeetDef )
       ELSE
-         TeetKMom = 0.0
+         TeetKMom = 0.0_ReKi
       ENDIF
 
 
@@ -10796,19 +10796,24 @@ SUBROUTINE Teeter( t, p, TeetDef, TeetRate, TeetMom )
       IF ( StopDef > 0.0_ReKi )  THEN
          TeetSMom = -p%TeetHSSp*SIGN( StopDef, TeetDef )
       ELSE
-         TeetSMom = 0.0
+         TeetSMom = 0.0_ReKi
       ENDIF
 
 
       ! Compute linear teeter-damper moment.
 
-      TeetDMom = -p%TeetDmp*TeetRate
-
+      IF ( ABS(TeetDef) > p%TeetDmpP ) THEN
+         TeetDMom = -p%TeetDmp*TeetRate
+      ELSE
+         TeetDMom = 0.0_ReKi
+      END IF
+      
+      
 
       ! Add coulomb friction to the teeter hinge.
 
       IF ( .NOT. EqualRealNos( TeetRate, 0.0_ReKi ) )  THEN
-         TeetFMom = 0.0
+         TeetFMom = 0.0_ReKi
       ELSE
          TeetFMom = -SIGN( p%TeetCDmp, TeetRate )
       ENDIF

@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-14 11:30:09 -0600 (Wed, 14 May 2014) $
-! (File) Revision #: $Rev: 390 $
+! File last committed: $Date: 2014-05-27 15:11:50 -0600 (Tue, 27 May 2014) $
+! (File) Revision #: $Rev: 399 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -71,7 +71,7 @@ MODULE Waves
    PRIVATE:: WheelerStretching                    ! This FUNCTION applies the principle of Wheeler stretching to (1-Forward) find the elevation where the wave kinematics are to be applied using Wheeler stretching or (2-Backword)   
    PRIVATE:: BoxMuller
    PRIVATE:: JONSWAP
-   PRIVATE:: WaveNumber
+   PUBLIC :: WaveNumber
    PRIVATE:: UserWaveSpctrm   
    PRIVATE:: StillWaterWaves_Init
    PRIVATE:: VariousWaves_Init
@@ -1487,22 +1487,22 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !CLOSE ( 66 )
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   IF ( InitInp%UnSum > 0 ) THEN
-      
-         ! Write the header for this section
-      WRITE( InitInp%UnSum,  '(//)' )         
-      WRITE( InitInp%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A22,2X,A22)' ) '    m   ', '    k    ', '   Omega[m]  ', 'REAL(DFT{WaveElev}[m])','IMAG(DFT{WaveElev}[m])'
-      WRITE( InitInp%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A22,2X,A22)' ) '   (-)  ', '  (1/m)  ', '   (rad/s)   ', '         (m)          ','         (m)          '
-
-         ! Write the data
-      DO I = -1*InitOut%NStepWave2+1,InitOut%NStepWave2
-         WaveNmbr   = WaveNumber ( I*InitOut%WaveDOmega, InitInp%Gravity, InitInp%WtrDpth )
-         WRITE( InitInp%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*InitOut%WaveDOmega, &
-                         InitOut%WaveElevC0( 1,ABS(I ) ) ,   InitOut%WaveElevC0( 2, ABS(I ) )*SIGN(1,I) 
-      END DO
-
-   END IF
-
+   !IF ( InitInp%UnSum > 0 ) THEN
+   !   
+   !      ! Write the header for this section
+   !   WRITE( InitInp%UnSum,  '(//)' )         
+   !   WRITE( InitInp%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A22,2X,A22)' ) '    m   ', '    k    ', '   Omega[m]  ', 'REAL(DFT{WaveElev}[m])','IMAG(DFT{WaveElev}[m])'
+   !   WRITE( InitInp%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A22,2X,A22)' ) '   (-)  ', '  (1/m)  ', '   (rad/s)   ', '         (m)          ','         (m)          '
+   !
+   !      ! Write the data
+   !   DO I = -1*InitOut%NStepWave2+1,InitOut%NStepWave2
+   !      WaveNmbr   = WaveNumber ( I*InitOut%WaveDOmega, InitInp%Gravity, InitInp%WtrDpth )
+   !      WRITE( InitInp%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*InitOut%WaveDOmega, &
+   !                      InitOut%WaveElevC0( 1,ABS(I ) ) ,   InitOut%WaveElevC0( 2, ABS(I ) )*SIGN(1,I) 
+   !   END DO
+   !
+   !END IF
+   !
 
 
       ! Calculate the array of simulation times at which the instantaneous

@@ -10,7 +10,7 @@ SUBROUTINE DISCON ( avrSWAP, aviFAIL, accINFILE, avcOUTNAME, avcMSG ) BIND (C, N
 
    ! Modified by B. Jonkman to conform to ISO C Bindings (standard Fortran 2003) and 
    ! compile with either gfortran or Intel Visual Fortran (IVF)
-   ! DO NOT REMOVE LINES starting with "!DEC$" or "!GCC$"
+   ! DO NOT REMOVE or MODIFY LINES starting with "!DEC$" or "!GCC$"
    ! !DEC$ specifies attributes for IVF and !GCC$ specifies attributes for gfortran
    
 USE, INTRINSIC :: ISO_C_Binding
@@ -47,7 +47,7 @@ REAL(4), SAVE                :: LastTimeVS                                      
 REAL(4), PARAMETER           :: OnePlusEps    = 1.0 + EPSILON(OnePlusEps)       ! The number slighty greater than unity in single precision.
 REAL(4), PARAMETER           :: PC_DT         = 0.00125  !JASON:THIS CHANGED FOR ITI BARGE:      0.0001                    ! Communication interval for pitch  controller, sec.
 REAL(4), PARAMETER           :: PC_KI         = 0.003586059 !JASON:REDUCED GAIN      0.008068634               ! Integral gain for pitch controller at rated pitch (zero), (-).   !JASON: -0.003134   !JASON:MODIFICATION FOR PITCH TO STALL
-REAL(4), PARAMETER           :: PC_KK         =       0.1099965                 ! Pitch angle were the the derivative of the aerodynamic power w.r.t. pitch has increased by a factor of two relative to the derivative at rated pitch (zero), rad.   !JASON: 9999.9     !JASON:MODIFICATION FOR PITCH TO STALL
+REAL(4), PARAMETER           :: PC_KK         =       0.1099965                 ! Pitch angle where the the derivative of the aerodynamic power w.r.t. pitch has increased by a factor of two relative to the derivative at rated pitch (zero), rad.   !JASON: 9999.9     !JASON:MODIFICATION FOR PITCH TO STALL
 REAL(4), PARAMETER           :: PC_KP         = 0.01255121  !JASON:REDUCED GAIN:      0.01882681                ! Proportional gain for pitch controller at rated pitch (zero), sec.  !JASON: -0.007312   !JASON:MODIFICATION FOR PITCH TO STALL
 REAL(4), PARAMETER           :: PC_MaxPit     =       1.570796                  ! Maximum pitch setting in pitch controller, rad.   !JASON: 0.0         !JASON:MODIFICATION FOR PITCH TO STALL
 REAL(4), PARAMETER           :: PC_MaxRat     =       0.1396263                 ! Maximum pitch  rate (in absolute value) in pitch  controller, rad/s.
@@ -111,7 +111,7 @@ NumBl        = NINT( avrSWAP(61) )
 
 BlPitch  (1) =       avrSWAP( 4)   
 BlPitch  (2) =       avrSWAP(33)
-BlPitch  (3) =       avrSWAP(34)   
+BlPitch  (3) =       avrSWAP(34)
 GenSpeed     =       avrSWAP(20)
 HorWindV     =       avrSWAP(27)
 Time         =       avrSWAP( 2)
@@ -138,7 +138,7 @@ aviFAIL      = 0
    ! Read any External Controller Parameters specified in the User Interface
    !   and initialize variables:
 
-IF ( iStatus == 0 )  THEN  ! .TRUE. if were on the first call to the DLL
+IF ( iStatus == 0 )  THEN  ! .TRUE. if we're on the first call to the DLL
 
    ! Inform users that we are using this user-defined routine:
 
@@ -164,17 +164,17 @@ IF ( iStatus == 0 )  THEN  ! .TRUE. if were on the first call to the DLL
    ! Check validity of input parameters:
 
    IF ( CornerFreq <= 0.0 )  THEN
-      aviFAIL  = -1
+      aviFAIL = -1
       ErrMsg  = 'CornerFreq must be greater than zero.'
    ENDIF
 
    IF ( VS_DT     <= 0.0 )  THEN
-      aviFAIL  = -1
+      aviFAIL = -1
       ErrMsg  = 'VS_DT must be greater than zero.'
    ENDIF
 
    IF ( VS_CtInSp <  0.0 )  THEN
-      aviFAIL  = -1
+      aviFAIL = -1
       ErrMsg  = 'VS_CtInSp must not be negative.'
    ENDIF
 
@@ -224,27 +224,27 @@ IF ( iStatus == 0 )  THEN  ! .TRUE. if were on the first call to the DLL
    ENDIF
 
 IF ( PC_KI     == 0.0 )  THEN !JASON:MODIFICATION FOR PITCH TO STALL   IF ( PC_KI     <= 0.0 )  THEN
-      aviFAIL  = -1
-ErrMsg = 'PC_KI must not be zero.'   !JASON:MODIFICATION FOR PITCH TO STALL      ErrMsg = 'PC_KI must be greater than zero.'
+      aviFAIL = -1
+      ErrMsg  = 'PC_KI must not be zero.'   !JASON:MODIFICATION FOR PITCH TO STALL      ErrMsg = 'PC_KI must be greater than zero.'
    ENDIF
 
    IF ( PC_KK     <= 0.0 )  THEN
-      aviFAIL  = -1
+      aviFAIL = -1
       ErrMsg  = 'PC_KK must be greater than zero.'
    ENDIF
 
    IF ( PC_RefSpd <= 0.0 )  THEN
-      aviFAIL  = -1
+      aviFAIL = -1
       ErrMsg  = 'PC_RefSpd must be greater than zero.'
    ENDIF
    
    IF ( PC_MaxRat <= 0.0 )  THEN
-      aviFAIL  = -1
+      aviFAIL = -1
       ErrMsg  = 'PC_MaxRat must be greater than zero.'
    ENDIF
 
    IF ( PC_MinPit >= PC_MaxPit )  THEN
-      aviFAIL  = -1
+      aviFAIL = -1
       ErrMsg  = 'PC_MinPit must be less than PC_MaxPit.'
    ENDIF
 
@@ -299,7 +299,7 @@ IF ( ( iStatus >= 0 ) .AND. ( aviFAIL >= 0 ) )  THEN  ! Only compute control cal
    !   of Bladed User's Guide):
 
    IF ( NINT(avrSWAP(10)) /= 0 )  THEN ! .TRUE. if a pitch angle actuator hasn't been requested
-      aviFAIL  = -1
+      aviFAIL = -1
       ErrMsg  = 'Pitch angle actuator not requested.'
    ENDIF 
 
@@ -464,6 +464,8 @@ PitComT = PitComP + PitComI + PitComD  !JASON:MODIFICATION FOR ADDITION OF DERIV
          PitRate(K) = MIN( MAX( PitRate(K), -PC_MaxRat ), PC_MaxRat )   ! Saturate the pitch rate of blade K using its maximum absolute value
          PitCom (K) = BlPitch(K) + PitRate(K)*ElapTime                  ! Saturate the overall command of blade K using the pitch rate limit
 
+         PitCom(K)  = MIN( MAX( PitCom(K), PC_MinPit ), PC_MaxPit )     ! Saturate the overall command using the pitch angle limits         
+         
       ENDDO          ! K - all blades
 
 

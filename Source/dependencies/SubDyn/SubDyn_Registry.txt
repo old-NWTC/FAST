@@ -3,9 +3,9 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2014-05-19 15:01:26 -0600 (Mon, 19 May 2014) $
-# (File) Revision #: $Rev: 296 $
-# URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Registry.txt $
+# File last committed $Date$
+# (File) Revision #: $Rev$
+# URL: $HeadURL$
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
 include	Registry_NWTC_Library.txt
@@ -124,34 +124,43 @@ typedef	^	DiscreteStateType	ReKi	DummyDiscState	-	-	-	"Remove this variable if y
 typedef	^	ConstraintStateType	ReKi	DummyConstrState	-	-	-	"Remove this variable if you have constraint states"
 # Define any data that are not considered actual states here:
 typedef	SubDyn/SD	OtherStateType	SD_ContinuousStateType	xdot	{:}	-	-	"previous state derivs for m-step time integrator"
-typedef	^	^	ReKi	qmdotdot	{:}	-	-	"2nd Derivative of states, used only for output-file purposes"
 typedef	^	^	IntKi	n	-	-	-	"tracks time step for which OtherState was updated last"
-typedef	^	^	ReKi	Udotdot	{:}	-	-	"Structure accelerations"
-typedef	^	^	ReKi	Y2	{:}	-	-	"Structure Deflections and velocities"
+typedef	^	^	ReKi	SDWrOutput	{:}	-	-	"Data from previous step to be written to a SubDyn output file"
+typedef	^	^	DbKi	LastOutTime	-	-	-	"The time of the most recent stored output data"	"s"
+typedef	^	^	IntKi	Decimat	-	-	-	"Current output decimation counter"	"-"
+
+# Miscellaneous variables (optimization/temp storage)
+typedef	^	^	ReKi	qmdotdot	{:}	-	-	"2nd Derivative of states, used only for output-file purposes"
+typedef	^	^	ReKi	u_TP	6	-	-
+typedef	^	^	ReKi	udot_TP	6	-	-
+typedef	^	^	ReKi	udotdot_TP	6	-	-
+typedef	^	^	ReKi	UFL	{:}	-	-
+typedef	^	^	ReKi	UR_bar	{:}	-	-
+typedef	^	^	ReKi	UR_bar_dot	{:}	-	-
+typedef	^	^	ReKi	UR_bar_dotdot	{:}	-	-
+typedef	^	^	ReKi	UL	{:}	-	-
+typedef	^	^	ReKi	UL_dot	{:}	-	-
+typedef	^	^	ReKi	UL_dotdot	{:}	-	-
+
+
 
 # ============================== Parameters ============================================================================================================================================
 typedef	^	ParameterType	DbKi	SDDeltaT	-	-	-	"Time step (for integration of continuous states)"	seconds
 typedef	^	ParameterType	Logical	SttcSolve	-	-	-	"Solve dynamics about static equilibrium point (flag)"
 typedef	^	ParameterType	ReKi	NOmegaM2	{:}	-	-	"Coefficient of x in X (negative omegaM squared)"
 typedef	^	ParameterType	ReKi	N2OmegaMJDamp	{:}	-	-	"Coefficient of x in X (negative 2 omegaM * JDamping)"
-typedef	^	ParameterType	ReKi	B_23	{:}{:}	-	-	"Coefficient of u in X"
+typedef	^	ParameterType	ReKi	MMB	{:}{:}	-	-	"Matrix after C-B reduction (transpose of MBM"
 typedef	^	ParameterType	ReKi	PhiM_T	{:}{:}	-	-	"Coefficient of u in X (transpose of phiM)"
 typedef	^	ParameterType	ReKi	FX	{:}	-	-	"Load components in X"
 typedef	^	ParameterType	ReKi	C1_11	{:}{:}	-	-	"Coefficient of x in Y1"
 typedef	^	ParameterType	ReKi	C1_12	{:}{:}	-	-	"Coefficient of x in Y1"
-typedef	^	ParameterType	ReKi	D1_11	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	D1_13	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	D1_14	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	FY	{:}	-	-	"Load Components in  Y1"
 typedef	^	ParameterType	ReKi	PhiM	{:}{:}	-	-	"Coefficient of x in Y2"
-#typedef	^	ParameterType	ReKi	C2_42	{:}{:}	-	-	"Coefficient of x in Y2"
 typedef	^	ParameterType	ReKi	C2_61	{:}{:}	-	-	"Coefficient of x in Y2 (URdotdot ULdotdot)"
 typedef	^	ParameterType	ReKi	C2_62	{:}{:}	-	-	"Coefficient of x in Y2 (URdotdot ULdotdot)"
-#typedef	^	ParameterType	ReKi	D2_11	{:}{:}	-	-	"Coefficient of u in Y2"
 typedef	^	ParameterType	ReKi	PhiRb_TI	{:}{:}	-	-	"Coefficient of u in Y2 (Phi_R bar * TI)"
-#typedef	^	ParameterType	ReKi	D2_32	{:}{:}	-	-	"Coefficient of u in Y2"
-#typedef	^	ParameterType	ReKi	D2_42	{:}{:}	-	-	"Coefficient of u in Y2"
-#typedef	^	ParameterType	ReKi	D2_53	{:}{:}	-	-	"Coefficient of u in Y2 (URdotdot ULdotdot)"
 typedef	^	ParameterType	ReKi	D2_63	{:}{:}	-	-	"Coefficient of u in Y2 (URdotdot ULdotdot)"
 typedef	^	ParameterType	ReKi	D2_64	{:}{:}	-	-	"Coefficient of u in Y2 (URdotdot ULdotdot)"
 typedef	^	ParameterType	ReKi	F2_61	{:}	-	-	"Load Component in Y2"
@@ -161,28 +170,24 @@ typedef	^	ParameterType	ReKi	MBM	{:}{:}	-	-	"Matrix after C-B reduction"
 typedef	^	ParameterType	ReKi	PhiL_T	{:}{:}	-	-	"Transpose of Matrix of C-B  modes"
 typedef	^	ParameterType	ReKi	PhiLInvOmgL2	{:}{:}	-	-	"Matrix of C-B  modes times the inverse of OmegaL**2 (Phi_L*(Omg**2)^-1)"
 typedef	^	ParameterType	ReKi	FGL	{:}	-	-	"Internal node DOFL, gravity loads"
-typedef	^	ParameterType	ReKi	AM2InvJac	{:}{:}	-	-	"Inverse Jacobian for Adams-Boulton 2nd order Integration"
+typedef	^	ParameterType	ReKi	AM2Jac	{:}{:}	-	-	"Jacobian (factored) for Adams-Boulton 2nd order Integration"
+typedef	^	ParameterType	IntKi	AM2JacPiv	{:}	-	-	"Pivot array for Jacobian factorization (for Adams-Boulton 2nd order Integration)"
 typedef	^	ParameterType	ReKi	TI	{:}{:}	-	-	"Matrix to calculate TP reference point reaction at top of structure"
 typedef	^	ParameterType	ReKi	TIreact	{:}{:}	-	-	"Matrix to calculate single point reaction at base of structure"
 typedef	^	ParameterType	IntKi	NModes	-	-	-	"Number of modes to retain in C-B method"
 typedef	^	ParameterType	IntKi	Elems	{:}{:}	-	-	"Element nodes connections"
 typedef	^	ParameterType	IntKi	qmL	-	-	-	"Length of state array"
-typedef	^	ParameterType	IntKi	uL	-	-	-	"Length of input array"
 typedef	^	ParameterType	IntKi	DofL	-	-	-	"Internal nodes # of DOFs"
 typedef	^	ParameterType	IntKi	NNodes_I	-	-	-	"Number of Interface nodes"
 typedef	^	ParameterType	IntKi	NNodes_L	-	-	-	"Number of Internal nodes"
 typedef	^	ParameterType	IntKi	NNodes_RbarL	-	-	-	"Number of Interface + Internal nodes"
 typedef	^	ParameterType	IntKi	DofI	-	-	-	"Interface nodes # of DOFs"
 typedef	^	ParameterType	IntKi	DofR	-	-	-	"Interface and restrained nodes # of DOFs"
-typedef	^	ParameterType	IntKi	DofRbarL	-	-	-	"Interface + internal nodes # of DOFs"
 typedef	^	ParameterType	IntKi	DofC	-	-	-	"Contrained nodes # of DOFs"
 typedef	^	ParameterType	IntKi	NReact	-	-	-	"Number of joints with reactions"
 typedef	^	ParameterType	IntKi	Reacts	{:}{:}	-	-	"React degree of freedoms"
 typedef	^	ParameterType	IntKi	Nmembers	-	-	-	"Number of members of the sub structure"
 typedef	^	ParameterType	IntKi	URbarL	-	-	-	"Length of URbar, subarray of y2 array (DOFRb)"
-typedef	^	ParameterType	IntKi	URdotdotL	-	-	-	"Length of Urdotdot"
-typedef	^	ParameterType	IntKi	UdotdotL	-	-	-	"Length of {URdotdot^bar ULdotdot^bar)"
-typedef	^	ParameterType	IntKi	Y2L	-	-	-	"Length of y2 array"
 typedef	^	ParameterType	IntKi	IntMethod	-	-	-	"INtegration Method (1/2/3)Length of y2 array"
 typedef	^	ParameterType	IntKi	NAvgEls	-	2	-	"Max number of elements that should be averaged when calculating outputs at nodes"
 typedef	^	ParameterType	IntKi	IDI	{:}	-	-	"Index array of the interface(nodes connect to TP) dofs"
@@ -197,8 +202,6 @@ typedef	^	ParameterType	IntKi	UnJckF	-	-	-	"Unit of SD ouput file"
 typedef	^	ParameterType	CHARACTER(1)	Delim	-	-	-	"Column delimiter for output text files"
 typedef	^	ParameterType	CHARACTER(20)	OutFmt	-	-	-	"Format for Output"
 typedef	^	ParameterType	CHARACTER(20)	OutSFmt	-	-	-	"Format for Output Headers"
-#typedef	^	ParameterType	CHARACTER(1024)	OutJckF	-	-	-	"Name of the SD ouput file"
-#typedef	^	^	CHARACTER(1024)	JEchoFile	-	-	-	"Name of the SD echo file"
 typedef	^	ParameterType	MeshAuxDataType	MoutLst	{:}	-	-	"List of user requested members and nodes"
 typedef	^	ParameterType	MeshAuxDataType	MoutLst2	{:}	-	-	"List of all member joint nodes and elements for output"
 typedef	^	ParameterType	MeshAuxDataType	MoutLst3	{:}	-	-	"List of all member joint nodes and elements for output"

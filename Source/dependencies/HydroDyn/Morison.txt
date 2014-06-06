@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2014-04-30 09:41:52 -0600 (Wed, 30 Apr 2014) $
-# (File) Revision #: $Rev: 384 $
+# File last committed: $Date: 2014-05-27 09:53:59 -0600 (Tue, 27 May 2014) $
+# (File) Revision #: $Rev: 395 $
 # URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/RegistryFiles/Morison.txt $
 ###################################################################################################################################
 
@@ -19,7 +19,7 @@
 include   Registry_NWTC_Library.txt
 #
 #
-param     Morison/Morison              unused                        INTEGER          MaxMrsnOutputs               -       4707    -         ""    -
+param     Morison/Morison              unused                        INTEGER          MaxMrsnOutputs               -       4032    -         ""    -
 typedef   Morison/Morison              Morison_JointType             INTEGER          JointID                  -          -        -         ""    -
 typedef   ^                            ^                             ReKi             JointPos                 {3}        -        -         ""    -
 typedef   ^                            ^                             INTEGER          JointAxID                -          -        -         ""    -
@@ -227,7 +227,7 @@ typedef   ^                            ^                             INTEGER    
 typedef   ^                            ^                             Morison_MOutput          MOutLst                          {:}        -        -         ""    -
 typedef   ^                            ^                             INTEGER                  NJOutputs                        -          -        -         ""    -
 typedef   ^                            ^                             Morison_JOutput          JOutLst                          {:}        -        -         ""    -
-typedef   ^                            ^                             CHARACTER(10)            OutList                          {4707}     -        -         "This list size needs to be the maximum # of possible outputs because of the use of ReadAry()"    -
+typedef   ^                            ^                             CHARACTER(10)            OutList                          {4032}     -        -         "This list size needs to be the maximum # of possible outputs because of the use of ReadAry()"    -
 typedef   ^                            ^                             LOGICAL                  ValidOutList                     {:}        -        -         ""    -
 typedef   ^                            ^                             INTEGER                  NumOuts                          -          -        -         ""    -
 typedef   ^                            ^                             INTEGER                  OutSwtch                         -          -        -         ""    -

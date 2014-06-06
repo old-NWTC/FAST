@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-20 11:07:05 -0600 (Tue, 20 May 2014) $
-! (File) Revision #: $Rev: 394 $
+! File last committed: $Date: 2014-05-27 09:55:46 -0600 (Tue, 27 May 2014) $
+! (File) Revision #: $Rev: 397 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -135,6 +135,34 @@ FUNCTION CheckMeshOutput( output, numMemberOut, MOutLst, numJointOut )
       CheckMeshOutput = .TRUE.
       
 END FUNCTION CheckMeshOutput
+
+!====================================================================================================
+SUBROUTINE PrintBadChannelWarning(NUserOutputs, UserOutputs , foundMask, ErrStat, ErrMsg )
+!     The routine prints out warning messages if the user has requested invalid output channel names
+!     The errstat is set to ErrID_Warning if any element in foundMask is .FALSE.
+!----------------------------------------------------------------------------------------------------  
+   INTEGER,                       INTENT( IN    ) :: NUserOutputs         ! Number of user-specified output channels
+   CHARACTER(10),                 INTENT( IN    ) :: UserOutputs (:)      ! An array holding the names of the requested output channels. 
+   LOGICAL,                       INTENT( IN    ) :: foundMask (:)        ! A mask indicating whether a user requested channel belongs to a module's output channels.
+   INTEGER,                       INTENT(   OUT ) :: ErrStat              ! returns a non-zero value when an error occurs  
+   CHARACTER(*),                  INTENT(   OUT ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
+   INTEGER                                        :: I
+   
+   ErrStat = ErrID_None
+   ErrMsg  = ''
+   
+   DO I = 1, NUserOutputs
+      IF (.NOT. foundMask(I)) THEN
+         ErrMsg  = ' A requested output channel is invalid'         
+         CALL ProgWarn( 'The requested output channel is invalid: ' // UserOutputs(I) )
+         ErrStat = ErrID_Warn
+      END IF
+   END DO
+   
+   
+   
+END SUBROUTINE PrintBadChannelWarning
+
 
 !====================================================================================================
 SUBROUTINE CleanupEchoFile( EchoFlag, UnEcho)
@@ -3890,7 +3918,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ! Attach remaining items to the HydroDyn list
       !foundMask = .FALSE.
    InitInp%NumOuts       = HDOut_GetChannels ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%OutList        , foundMask, ErrStat, ErrMsg )  
-   
+   CALL PrintBadChannelWarning(InitInp%NUserOutputs, InitInp%UserOutputs , foundMask, ErrStat, ErrMsg )
    DEALLOCATE(foundMask)
    END IF
       ! Now that we have the sub-lists organized, lets do some additional validation.

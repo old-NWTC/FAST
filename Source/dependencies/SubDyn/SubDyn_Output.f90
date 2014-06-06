@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-20 11:30:49 -0600 (Tue, 20 May 2014) $
-! (File) Revision #: $Rev: 297 $
+! File last committed: $Date: 2014-06-05 13:47:01 -0600 (Thu, 05 Jun 2014) $
+! (File) Revision #: $Rev: 301 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -3819,27 +3819,25 @@ p%OutAllDims=12*p%Nmembers*2    !size of AllOut Member Joint forces
   !    ErrMsg  = 'Error allocating output Y1 array in SDOut_Init'
   !    RETURN
   !END IF
-  ALLOCATE( OtherState%Y2(p%Y2L), STAT = ErrStat )
-  IF ( ErrStat/= 0 ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating output Y2 array in SDOut_Init'
-      RETURN
-  END IF
 
 !-------------------------------------------------------------------------------------------------      
 ! Open the output file, if necessary, and write the header
 !-------------------------------------------------------------------------------------------------      
 
- IF ( ALLOCATED( p%OutParam ) .AND. p%NumOuts > 0 ) THEN           ! Output has been requested           
+  IF ( ALLOCATED( p%OutParam ) .AND. p%NumOuts > 0 ) THEN           ! Output has been requested           
 
-  !Allocate array of accelrations though it is used only if forces are requested
-  ALLOCATE( OtherState%Udotdot(p%UdotdotL), STAT = ErrStat )
-  IF ( ErrStat/= 0 ) THEN
-      ErrStat = ErrID_Fatal
-      ErrMsg  = 'Error allocating output Udotdot array in SDOut_Init'
-      RETURN
-  END IF 
     
+   ! Allocate SDWrOuput which is used to store a time step's worth of output channels, prior to writing to a file.
+   ALLOCATE( OtherState%SDWrOutput( p%NumOuts +p%OutAllInt*p%OutAllDims),  STAT = ErrStat )
+   IF ( ErrStat /= ErrID_None ) THEN
+    ErrMsg  = ' Error allocating space for SDWrOutput array.'
+    ErrStat = ErrID_Fatal
+    RETURN
+   END IF
+   OtherState%SDWrOutput  = 0.0_ReKi
+   OtherState%LastOutTime = 0.0_DbKi
+   OtherState%Decimat     = 0
+   
    !Allocate WriteOuput  
    ALLOCATE( y%WriteOutput( p%NumOuts +p%OutAllInt*p%OutAllDims),  STAT = ErrStat )
    IF ( ErrStat /= 0 ) THEN
@@ -4138,8 +4136,7 @@ ENDDO
     InitOut%WriteOutputUnt(I) = TRIM( p%OutParam(I)%Units )      
    END DO  
    
-  
- 
+    
 RETURN
 
 END SUBROUTINE SDOut_Init
@@ -4224,6 +4221,8 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
 ! This subroutine writes the data stored in the y variable to the correct indexed postions in WriteOutput
 ! This is called by SD_CalcOutput() at each time step.
 ! This routine does fill Allouts
+! note that this routine assumes OtherState%u_TP and OtherState%udotdot_TP have been set before calling 
+!     this routine (which is done in SD_CalcOutput() and SD CalcContStateDeriv)
 !---------------------------------------------------------------------------------------------------- 
    REAL(DbKi),                    INTENT( IN    )  :: CurrentTime          ! Current simulation time in seconds
    TYPE(SD_InputType),            INTENT( IN )     :: u                    ! SubDyn module's input data
@@ -4245,22 +4244,21 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
    Real(ReKi), ALLOCATABLE                  :: ReactNs(:)    !6*Nreact reactions
    REAL(ReKi)                               :: Tmp_Udotdot(12), Tmp_y2(12) !temporary storage for calls to CALC_LOCAL
    
-   Real(reKi), DIMENSION( p%UdotdotL+6*p%Nreact)      :: yout            ! modifications to Y2 and Udotdot to include constrained node DOFs
-   Real(ReKi),  DIMENSION(p%UdotdotL+6*p%Nreact)      ::uddout           ! modifications to Y2 and Udotdot to include constrained node DOFs
+   Real(reKi), DIMENSION( p%URbarL+p%DOFL+6*p%Nreact)      :: yout            ! modifications to Y2 and Udotdot to include constrained node DOFs
+   Real(ReKi),  DIMENSION(p%URbarL+p%DOFL+6*p%Nreact)      ::uddout           ! modifications to Y2 and Udotdot to include constrained node DOFs
    Integer(IntKi)                              ::sgn !+1/-1 for node force calculations
-   REAL(ReKi)                                   :: rotations(3)
-   REAL(ReKi)                                   :: u_TP(6),  udotdot_TP(6)
    ErrStat = ErrID_None   
    ErrMsg  = ""
    
    !Create a variable that lists Y2 and adds removed constrained nodes' dofs; we will be using it to carry out other calculations with a special indexing array
-   yout =0 !Initialize and populate with Y2 data
-   yout(1 : p%UrbarL+p%DOFL) = OtherState%Y2(1 : p%UrbarL+p%DOFL)  
-   
+   yout =0 !Initialize and populate with Y2 data  
+   yout(1:         p%UrbarL       ) = OtherState%UR_bar
+   yout(p%URbarL+1:p%URbarL+p%DOFL) = OtherState%UL
   
    !Same for a variable that deals with Udotdot
    uddout =0 !Initialize and populate with Udotdot data
-   uddout(1 : p%UdotdotL) = OtherState%Udotdot
+   uddout(1          : p%URbarL         ) = OtherState%UR_bar_dotdot
+   uddout(p%URbarL+1 : p%URbarL+p%DOFL  ) = OtherState%UL_dotdot
          
       ! Only generate member-based outputs for the number of user-requested member outputs
       !Now store and identify needed output as requested by user
@@ -4381,12 +4379,13 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
    AllOuts(IntfSS(1:TPdofL))= - (/y%Y1Mesh%Force (:,1), y%Y1Mesh%Moment(:,1)/) !-y%Y1  !Note this is the force that the TP applies to the Jacket, opposite to what the GLue Code needs thus "-" sign
 
    !Assign interface translations and rotations at the TP ref point  
-   rotations  = GetSmllRotAngs(u%TPMesh%Orientation(:,:,1), ErrStat, Errmsg)
-   u_TP       = (/u%TPMesh%TranslationDisp(:,1), rotations/)
-   udotdot_TP = (/u%TPMesh%TranslationAcc(:,1), u%TPMesh%RotationAcc(:,1)/)
-  AllOuts(IntfTRss(1:TPdofL))=u_TP !u%UFL(1:TPdofL) !TODO need to add these back in!!! GJH 6/6/13
+   !rotations  = GetSmllRotAngs(u%TPMesh%Orientation(:,:,1), ErrStat, Errmsg)
+   !OtherState%u_TP       = (/u%TPMesh%TranslationDisp(:,1), rotations/)   
+   !OtherState%udotdot_TP = (/u%TPMesh%TranslationAcc(:,1), u%TPMesh%RotationAcc(:,1)/)
+   
+  AllOuts(IntfTRss(1:TPdofL))=OtherState%u_TP !u%UFL(1:TPdofL) !TODO need to add these back in!!! GJH 6/6/13
   !Assign interface translations and rotations accelerations
-  AllOuts(IntfTRAss(1:TPdofL))= udotdot_TP !u%UFL(2*TPdofL+1:3*TPdofL)  !TODO need to add these back in!!! GJH 6/6/13
+  AllOuts(IntfTRAss(1:TPdofL))= OtherState%udotdot_TP !u%UFL(2*TPdofL+1:3*TPdofL)  !TODO need to add these back in!!! GJH 6/6/13
   ! Assign all SSqm, SSqmdot, SSqmdotdot
    ! We only have space for the first 99 values
   maxOutModes = min(p%Nmodes,99)
@@ -4408,8 +4407,8 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
        
        DO I=1,p%NReact   !Do for each constrained node, they are ordered as given in the input file and so as in the order of y2mesh
           
-          FK_elm2=0 !Initialize
-          FM_elm2=0 !Initialize
+          FK_elm2=0. !Initialize
+          FM_elm2=0. !Initialize
        
           !Find the joint forces
              DO J=1,SIZE(p%MOutLst3(I)%ElmIDs(1,:))  !for all the elements connected (normally 1)
@@ -4747,16 +4746,16 @@ SUBROUTINE SDOut_WriteOutputUnits( UnJckF, p, ErrStat, ErrMsg )
 END SUBROUTINE SDOut_WriteOutputUnits
 
 !====================================================================================================
-SUBROUTINE SDOut_WriteOutputs( UnJckF, Time, y, p, ErrStat, ErrMsg )
+SUBROUTINE SDOut_WriteOutputs( UnJckF, Time, SDWrOutput, p, ErrStat, ErrMsg )
 ! This subroutine writes the data stored in WriteOutputs (and indexed in OutParam) to the file
 ! opened in SDOut_Init()
 !---------------------------------------------------------------------------------------------------- 
 
       ! Passed variables   
-   INTEGER,                      INTENT( IN    ) :: UnJckF            ! file unit for the output file
+   INTEGER,                      INTENT( IN    ) :: UnJckF               ! file unit for the output file
    REAL(DbKi),                   INTENT( IN    ) :: Time                 ! Time for this output
-   TYPE(SD_OutputType),      INTENT( IN    ) :: y                    ! SubDyn module's output data
-   TYPE(SD_ParameterType),   INTENT( IN    ) :: p                    ! SubDyn module's parameter data
+   REAL(ReKi),                   INTENT( IN    ) :: SDWrOutput(:)        ! SubDyn module's output data
+   TYPE(SD_ParameterType),       INTENT( IN    ) :: p                    ! SubDyn module's parameter data
    INTEGER,                      INTENT(   OUT ) :: ErrStat              ! returns a non-zero value when an error occurs  
    CHARACTER(*),                 INTENT(   OUT ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
    
@@ -4770,20 +4769,20 @@ SUBROUTINE SDOut_WriteOutputs( UnJckF, Time, y, p, ErrStat, ErrMsg )
       ! Initialize ErrStat and determine if it makes any sense to write output
       
    IF ( .NOT. ALLOCATED( p%OutParam ) .OR. UnJckF < 0 )  THEN
-      ErrStat = -1
+      ErrStat = ErrID_Fatal
       ErrMsg  = ' To write outputs for SubDyn there must be a valid file ID and OutParam must be allocated.'
       RETURN
    ELSE
-      ErrStat = 0
+      ErrStat = ErrID_None
    END IF
 
 
       ! Write the output parameters to the file
       
-   Frmt = '(F8.3,'//TRIM(Int2LStr(p%NumOuts+p%OutAllInt*p%OutAllDims))//'(:,A,'//TRIM( p%OutFmt )//'))'
-   !Frmt = '('//TRIM( p%OutFmt )//','//TRIM(Int2LStr(p%NumOuts))//'(:,A,'//TRIM( p%OutFmt )//'))'
+   Frmt = '(F10.4,'//TRIM(Int2LStr(p%NumOuts+p%OutAllInt*p%OutAllDims))//'(:,A,'//TRIM( p%OutFmt )//'))'
+   
 
-   WRITE(UnJckF,Frmt)  Time, ( p%Delim, y%WriteOutput(I), I=1,p%NumOuts+p%OutAllInt*p%OutAllDims )
+   WRITE(UnJckF,Frmt)  Time, ( p%Delim, SDWrOutput(I), I=1,p%NumOuts+p%OutAllInt*p%OutAllDims )
 
    
    RETURN
@@ -4807,18 +4806,18 @@ SUBROUTINE SDOut_ChkOutLst( OutList, p, ErrStat, ErrMsg )
       ! Passed variables
       
    TYPE(SD_ParameterType),   INTENT( INOUT ) :: p                    ! SubDyn module parameter data
-   CHARACTER(10),                 INTENT( IN    ) :: OutList (:)          ! An array holding the names of the requested output channels.         
-   INTEGER,                       INTENT(   OUT ) :: ErrStat              ! a non-zero value indicates an error occurred           
-   CHARACTER(*),                  INTENT(   OUT ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
+   CHARACTER(ChanLen),       INTENT( IN    ) :: OutList (:)          ! An array holding the names of the requested output channels.         
+   INTEGER,                  INTENT(   OUT ) :: ErrStat              ! a non-zero value indicates an error occurred           
+   CHARACTER(*),             INTENT(   OUT ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
    
       ! Local variables.
    
-   INTEGER                                :: I,J,K                                         ! Generic loop-counting index.
-   INTEGER                                :: INDX                                      ! Index for valid arrays
+   INTEGER                                   :: I,J,K                                         ! Generic loop-counting index.
+   INTEGER                                   :: INDX                                      ! Index for valid arrays
    
-   CHARACTER(10)                          :: OutListTmp                                ! A string to temporarily hold OutList(I).
+   CHARACTER(ChanLen)                        :: OutListTmp                                ! A string to temporarily hold OutList(I).
    !CHARACTER(28), PARAMETER               :: OutPFmt    = "( I4, 3X,A 10,1 X, A10 )"   ! Output format parameter output list.
-   CHARACTER(10), DIMENSION(24)           :: ToTUnits,ToTNames,ToTNames0
+   CHARACTER(ChanLen), DIMENSION(24)         :: ToTUnits,ToTNames,ToTNames0
    
    LOGICAL                  :: InvalidOutput(0:MaxOutPts)                        ! This array determines if the output channel is valid for this configuration
 

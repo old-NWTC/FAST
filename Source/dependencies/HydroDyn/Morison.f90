@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-20 11:07:05 -0600 (Tue, 20 May 2014) $
-! (File) Revision #: $Rev: 394 $
+! File last committed: $Date: 2014-06-06 11:55:40 -0600 (Fri, 06 Jun 2014) $
+! (File) Revision #: $Rev: 411 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -975,9 +975,10 @@ SUBROUTINE GetMaxSimQuantities( numMGDepths, MGTop, MGBottom, MSL2SWL, Zseabed, 
    
 END SUBROUTINE GetMaxSimQuantities
 
-SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, elements, NOutputs, OutParam, NMOutputs, MOutLst, distribToNodeIndx, NJOutputs, JOutLst, inLumpedMesh, outLumpedMesh, inDistribMesh, outDistribMesh, L_F_B, L_F_BF, D_F_B, D_F_BF, D_F_MG, g, ErrStat, ErrMsg )  !, numDistribMarkers, distribMarkers, numLumpedMarkers, lumpedMarkers
+SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, WtrDpth, numNodes, nodes, numElements, elements, NOutputs, OutParam, NMOutputs, MOutLst, distribToNodeIndx, NJOutputs, JOutLst, inLumpedMesh, outLumpedMesh, inDistribMesh, outDistribMesh, L_F_B, L_F_BF, D_F_B, D_F_BF, D_F_MG, g, ErrStat, ErrMsg )  !, numDistribMarkers, distribMarkers, numLumpedMarkers, lumpedMarkers
 
    REAL(ReKi),               INTENT ( IN    )  :: MSL2SWL
+   REAL(ReKi),               INTENT ( IN    )  :: WtrDpth
    INTEGER,                  INTENT ( IN    )  :: UnSum
    INTEGER,                  INTENT ( IN    )  :: numNodes
    TYPE(Morison_NodeType),   INTENT ( IN    )  :: nodes(:)  
@@ -1055,35 +1056,14 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
    
    IF ( UnSum > 0 ) THEN
       
-         ! Write the header for this section
-      WRITE( UnSum,  '(//)' ) 
-      WRITE( UnSum,  '(A5)' ) 'Nodes'
-      WRITE( UnSum,  '(/)' ) 
-      WRITE( UnSum, '(1X,A5,19(2X,A10),2X,A5,2X,A15)' ) '  i  ', 'JointIndx ', 'JointOvrlp', 'InpMbrIndx', '   Nxi    ', '   Nyi    ', '   Nzi    ', 'InpMbrDist', '   tMG    ', '  MGDens  ', 'PropWAMIT ', 'FilledFlag', ' FillDens ', 'FillFSLoc ', '    Cd    ', '    Ca    ', '     R    ', '   dRdZ   ', '    t     ', ' NodeType ','NConn ', 'Connection List'
-      WRITE( UnSum, '(1X,A5,19(2X,A10),2X,A5,2X,A15)' ) ' (-) ', '   (-)    ', '   (-)    ', '   (-)    ', '   (m)    ', '   (m)    ', '   (m)    ', '    (-)   ', '    (m)   ', ' (kg/m^3) ', '   (-)    ', '   (-)    ', ' (kg/m^3) ', '    (-)   ', '    (-)   ', '    (-)   ', '    (m)   ', '    (-)   ', '    (m)   ', '    (-)   ',' (-)  ', '               '
-
-         ! Write the data
-      DO I = 1,numNodes   
-         WRITE(strFmt,'(I2)') nodes(I)%NConnections
-         IF ( nodes(I)%NodeType == 1 ) THEN
-            strNodeType = 'End       '
-         ELSE IF ( nodes(I)%NodeType == 2 ) THEN
-            strNodeType = 'Interior  '
-         ELSE IF ( nodes(I)%NodeType == 3 ) THEN
-            strNodeType = 'Super     '
-         ELSE
-            strNodeType = 'ERROR     '
-         END IF
-         
-         WRITE( UnSum, '(1X,I5,3(2X,I10),5(2X,F10.4),2X,ES10.3,2(2X,L10),7(2X,ES10.3),2X,A10,2X,I5,' // strFmt // '(2X,I4))' ) I, nodes(I)%JointIndx, nodes(I)%JointOvrlp, nodes(I)%InpMbrIndx, nodes(I)%JointPos, nodes(I)%InpMbrDist, nodes(I)%tMG, nodes(I)%MGdensity, nodes(I)%PropWAMIT, nodes(I)%FillFlag, nodes(I)%FillDensity, nodes(I)%FillFSLoc, nodes(I)%Cd, nodes(I)%Ca, nodes(I)%R, nodes(I)%DRDZ, nodes(I)%t, strNodeType, nodes(I)%NConnections, nodes(I)%ConnectionList(1:nodes(I)%NConnections)
-      END DO
-
-      WRITE( UnSum,  '(//)' ) 
-      WRITE( UnSum,  '(A8)' ) 'Elements'
-      WRITE( UnSum,  '(/)' ) 
-      WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,5(2X,A12),2X,A12,17(2X,A12))' ) '  i  ', 'node1','node2','  Length  ', '  MGVolume  ', '  MGDensity ', 'PropWAMIT ', 'FilledFlag', 'FillDensity', '  FillFSLoc ', '  FillMass  ', '     Cd1    ', '   CdMG1  ', '     Ca1    ', '    CaMG1   ', '      R1    ', '     t1     ','     Cd2    ', '    CdMG2   ', '     Ca2    ', '    CaMG2   ', '      R2    ', '     t2     '
-      WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,5(2X,A12),2X,A12,17(2X,A12))' ) ' (-) ', ' (-) ',' (-) ','   (m)    ', '   (m^3)    ', '  (kg/m^3)  ', '   (-)    ', '   (-)    ', ' (kg/m^3)  ', '     (-)    ', '    (kg)    ', '     (-)    ', '    (-)   ', '     (-)    ', '     (-)    ', '     (m)    ', '     (m)    ','     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (m)    ', '     (m)    '
       
+
+      !WRITE( UnSum,  '(//)' ) 
+      !WRITE( UnSum,  '(A8)' ) 'Elements'
+      !WRITE( UnSum,  '(/)' ) 
+      !WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,5(2X,A12),2X,A12,17(2X,A12))' ) '  i  ', 'node1','node2','  Length  ', '  MGVolume  ', '  MGDensity ', 'PropWAMIT ', 'FilledFlag', 'FillDensity', '  FillFSLoc ', '  FillMass  ', '     Cd1    ', '   CdMG1  ', '     Ca1    ', '    CaMG1   ', '      R1    ', '     t1     ','     Cd2    ', '    CdMG2   ', '     Ca2    ', '    CaMG2   ', '      R2    ', '     t2     '
+      !WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,5(2X,A12),2X,A12,17(2X,A12))' ) ' (-) ', ' (-) ',' (-) ','   (m)    ', '   (m^3)    ', '  (kg/m^3)  ', '   (-)    ', '   (-)    ', ' (kg/m^3)  ', '     (-)    ', '    (kg)    ', '     (-)    ', '    (-)   ', '     (-)    ', '     (-)    ', '     (m)    ', '     (m)    ','     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (m)    ', '     (m)    '
+      !
       
       DO I = 1,numElements 
          
@@ -1096,11 +1076,13 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
          END IF
          CALL GetDistance( nodes(elements(I)%Node1Indx)%JointPos, nodes(elements(I)%Node2Indx)%JointPos, l )
          
-         elementVol  = ElementVolume(elements(I)%R1 + node1%tMG, elements(I)%R2 + node2%tMG, l)
+         
          IF (elements(I)%PropWAMIT) THEN
-            MGvolume = 0.0
+            MGvolume    = 0.0
+            elementVol  = 0.0
          ELSE
-            MGvolume = elementVol  - ElementVolume(elements(I)%R1, elements(I)%R2, l)
+            elementVol  = ElementVolume(elements(I)%R1 + node1%tMG, elements(I)%R2 + node2%tMG, l)
+            MGvolume    = elementVol  - ElementVolume(elements(I)%R1, elements(I)%R2, l)
          END IF
          totalMGVol  = totalMGVol  + MGvolume
          mass_MG     = MGvolume*elements(I)%FillDens
@@ -1111,7 +1093,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
          
          totalVol    = totalVol    + elementVol
          
-         IF ( node2%JointPos(3) <= MSL2SWL ) totalDisplVol = totalDisplVol + elementVol
+         IF ( node2%JointPos(3) <= MSL2SWL .AND. node1%JointPos(3) >= -WtrDpth) totalDisplVol = totalDisplVol + elementVol
          
          IF ( elements(I)%MmbrFilledIDIndx > 0 ) THEN          
             filledFlag = .TRUE.
@@ -1126,102 +1108,29 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
             filledFlag = .FALSE.
          END IF
          
-         WRITE( UnSum, '(1X,I5,2X,I5,2X,I5,3(2X,ES12.5),2(2X,L12),2X,ES12.5,17(2X,ES12.5))' ) I, elements(I)%Node1Indx, elements(I)%Node2Indx, l, MGvolume, node1%MGdensity, elements(I)%PropWAMIT, filledFlag, elements(I)%FillDens, elements(I)%FillFSLoc, mass_fill, elements(I)%Cd1, elements(I)%CdMG1, elements(I)%Ca1, elements(I)%CaMG1, elements(I)%R1, elements(I)%t1, elements(I)%Cd2, elements(I)%CdMG2, elements(I)%Ca2, elements(I)%CaMG2, elements(I)%R2, elements(I)%t2
+         !WRITE( UnSum, '(1X,I5,2X,I5,2X,I5,3(2X,ES12.5),2(2X,L12),2X,ES12.5,17(2X,ES12.5))' ) I, elements(I)%Node1Indx, elements(I)%Node2Indx, l, MGvolume, node1%MGdensity, elements(I)%PropWAMIT, filledFlag, elements(I)%FillDens, elements(I)%FillFSLoc, mass_fill, elements(I)%Cd1, elements(I)%CdMG1, elements(I)%Ca1, elements(I)%CaMG1, elements(I)%R1, elements(I)%t1, elements(I)%Cd2, elements(I)%CdMG2, elements(I)%Ca2, elements(I)%CaMG2, elements(I)%R2, elements(I)%t2
 
       END DO   ! I = 1,numElements 
                
       
+     
+      
       WRITE( UnSum,  '(//)' ) 
-      WRITE( UnSum,  '(A24)' ) 'Requested Member Outputs'
-      WRITE( UnSum,  '(/)' ) 
-      WRITE( UnSum, '(1X,A10,11(2X,A10))' ) '  Label   ', '    Xi    ',  '    Yi    ', '    Zi    ', 'InpMbrIndx', ' StartXi  ',  ' StartYi  ', ' StartZi  ', '  EndXi   ', '  EndYi   ', '  EndZi   ', '   Loc    '
-      WRITE( UnSum, '(1X,A10,11(2X,A10))' ) '   (-)    ', '    (m)   ',  '    (m)   ', '    (m)   ', '   (-)    ', '   (m)    ',  '   (m)    ', '   (m)    ', '   (m)    ', '   (m)    ', '   (m)    ', '   (-)    '
-      
-      
-      DO I = 1,NOutputs
-     ! DO J=1, NMOutputs     
-         !DO I=1, MOutLst(J)%NOutLoc   
-         
+      WRITE( UnSum, '(A24)' )        'Volume Calculations(m^3)'
+      WRITE( UnSum, '(A24)' )        '------------------------'
+      WRITE( UnSum, '(A27,ES12.5)' ) '  Structure Volume     :   ', totalVol
+      WRITE( UnSum, '(A27,ES12.5)' ) '  Submerged Volume     :   ', totalDisplVol
+      WRITE( UnSum, '(A27,ES12.5)' ) '  Marine Growth Volume :   ', totalMGVol   
+      WRITE( UnSum, '(A27,ES12.5)' ) '  Ballasted Volume     :   ', totalFillVol
+      WRITE( UnSum, '(A111)')	'              NOTE: Structure, Submerged and Marine Growth volumes are based on members not modelled with WAMIT'
+      WRITE( UnSum, '(A149)')	'                    Ballasted volume is computed from all members which are marked as filled in the HydroDyn input file, regardless of PropWAMIT flag'
            
-               ! Get the member index and node index for this output label.  If this is not a member output the indices will return 0 with no errcode.
-           ! CALL MrsnOut_GetMemberOutputInfo(WriteOutputHdr(I), NMOutputs, MOutLst, mbrIndx, nodeIndx, ErrStat, ErrMsg )
-          !  IF (ErrStat > ErrID_Warning ) RETURN
-           ! IF ( mbrIndx > 0 ) THEN
-         tmpName =  OutParam(I)%Name
-         IF (OutParam(I)%SignM == -1 ) tmpName = tmpName(2:10)
-               
-         IF ( ( INDEX( 'mM', tmpName(1:1) ) > 0 ) .AND. (OutParam(I)%Units /= 'INVALID' ) ) THEN
-               !Get Member index and Node index
-            read (tmpName(2:2),*) mbrIndx
-            read (tmpName(4:4),*) nodeIndx
-            
-            ! These indices are in the DistribMesh index system, not the overal nodes index system, so distribToNodeIndx() mapping needs to be performed if you want 
-            !   to index into the nodes array or wave kinematics arrays
-            
-            m1 = MOutLst(mbrIndx)%Marker1(nodeIndx)
-            m2 = MOutLst(mbrIndx)%Marker2(nodeIndx)
-            s  = MOutLst(mbrIndx)%s      (nodeIndx)
-         
-               ! The member output is computed as a linear interpolation of the nearest two markers
-            node1 = nodes(distribToNodeIndx((m1)))
-            node2 = nodes(distribToNodeIndx((m2)))
-            
-            outLoc    = node1%JointPos*(1-s) + node2%JointPos*s
-            WRITE( UnSum, '(1X,A10,3(2x,F10.4),2x,I10,7(2x,F10.4))' ) OutParam(I)%Name, outLoc, node1%InpMbrIndx, node1%JointPos, node2%JointPos, s
-         END IF
-         
-          !  END IF 
-           !WRITE( UnSum, '(1X,A10,11(2X,ES10.3))' ) WriteOutputHdr(I)
-        ! END DO      
-      END DO
-      
-      
-      WRITE( UnSum,  '(//)' ) 
-      WRITE( UnSum,  '(A24)' ) 'Requested Joint Outputs'
-      WRITE( UnSum,  '(/)' ) 
-      WRITE( UnSum, '(1X,A10,5(2X,A10))' ) '  Label   ', '    Xi    ',  '    Yi    ', '    Zi    ', 'InpJointID'
-      WRITE( UnSum, '(1X,A10,5(2X,A10))' ) '   (-)    ', '    (m)   ',  '    (m)   ', '    (m)   ', '   (-)    '
-      
-      
-      DO I = 1,NOutputs
-     ! DO J=1, NMOutputs     
-         !DO I=1, MOutLst(J)%NOutLoc   
-         
-           
-               ! Get the member index and node index for this output label.  If this is not a member output the indices will return 0 with no errcode.
-           ! CALL MrsnOut_GetMemberOutputInfo(WriteOutputHdr(I), NMOutputs, MOutLst, mbrIndx, nodeIndx, ErrStat, ErrMsg )
-          !  IF (ErrStat > ErrID_Warning ) RETURN
-           ! IF ( mbrIndx > 0 ) THEN
-         tmpName =  OutParam(I)%Name
-         IF (OutParam(I)%SignM == -1 ) tmpName = tmpName(2:10)
-               
-         IF ( ( INDEX( 'jJ', tmpName(1:1) ) > 0 ) .AND. (OutParam(I)%Units /= 'INVALID') ) THEN
-            
-               !Get Member index and Node index
-            read (tmpName(2:2),*) nodeIndx
-            m1 = JOutLst(nodeIndx)%Markers(1)     
-            WRITE( UnSum, '(1X,A10,3(2x,F10.4),2x,I10)' ) OutParam(I)%Name, nodes(m1)%JointPos, JOutLst(nodeIndx)%JointID
-            
-         END IF
-         
-          !  END IF 
-           !WRITE( UnSum, '(1X,A10,11(2X,ES10.3))' ) WriteOutputHdr(I)
-        ! END DO      
-      END DO
-      
-      WRITE( UnSum,  '(//)' ) 
-      WRITE( UnSum, '(A25)' )        'Volume Calculations (m^3)'
-      WRITE( UnSum, '(A25)' )        '-------------------------'
-      WRITE( UnSum, '(A26,ES12.5)' ) '  Structure Volume     :  ', totalVol
-      WRITE( UnSum, '(A26,ES12.5)' ) '  Submerged Volume     :  ', totalDisplVol
-      WRITE( UnSum, '(A26,ES12.5)' ) '  Marine Growth Volume :  ', totalMGVol
-      WRITE( UnSum, '(A26,ES12.5)' ) '  Flooded Volume       :  ', totalFillVol
       
       
          ! Sum all buoyancy loads to the COB
          ! Do this by creating a temporary mesh which is for (0,0,0)
          
-      COB = COB / totalVol   
+      !COB = COB / totalVol   
       
          ! Write out the Center of Buoyancy (geometric center of the displaced volume)
       !WRITE( UnSum,  '(//)' ) 
@@ -1339,15 +1248,16 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
       ExtBuoyancy(1:3) = ExtBuoyancy(1:3) + WRP_Mesh%Force (:,1)
       ExtBuoyancy(4:6) = ExtBuoyancy(4:6) + WRP_Mesh%Moment(:,1)
       
-      ExtBuoyancy = ExtBuoyancy / 1000.00  ! kN
+      
       
          ! Write the buoyancy table headers and the external results
 
       WRITE( UnSum,  '(//)' ) 
       WRITE( UnSum, '(A45)' ) 'Buoyancy loads summed about ( 0.0, 0.0, 0.0 )'
-      WRITE( UnSum, '(12x,6(2X,A20))' ) ' BuoyFxi ', ' BuoyFyi ', ' BuoyFzi ', ' BuoyMxi ', ' BuoyMyi ', ' BuoyMzi '
-      WRITE( UnSum, '(12x,6(2X,A20))' ) '  (kN)   ', '  (kN)   ', '  (kN)   ', ' (kN-m)  ', ' (kN-m)  ', ' (kN-m)  '
-      WRITE( UnSum, '(A12,6(2X,E20.6))') 'External:   ', ExtBuoyancy(1), ExtBuoyancy(2), ExtBuoyancy(3), ExtBuoyancy(4), ExtBuoyancy(5), ExtBuoyancy(6)
+      WRITE( UnSum, '(A45)' ) '---------------------------------------------'
+      WRITE( UnSum, '(18x,6(2X,A20))' ) ' BuoyFxi ', ' BuoyFyi ', ' BuoyFzi ', ' BuoyMxi ', ' BuoyMyi ', ' BuoyMzi '
+      WRITE( UnSum, '(18x,6(2X,A20))' ) '   (N)   ', '   (N)   ', '   (N)   ', '  (N-m)  ', '  (N-m)  ', '  (N-m)  '
+      WRITE( UnSum, '(A18,6(2X,ES20.6))') 'External:        ', ExtBuoyancy(1), ExtBuoyancy(2), ExtBuoyancy(3), ExtBuoyancy(4), ExtBuoyancy(5), ExtBuoyancy(6)
       
       
          ! Now compute internal Buoyancy
@@ -1398,17 +1308,18 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
       IntBuoyancy(1:3) = IntBuoyancy(1:3) + WRP_Mesh%Force(:,1)
       IntBuoyancy(4:6) = IntBuoyancy(4:6) + WRP_Mesh%Moment(:,1)
       
-      IntBuoyancy = IntBuoyancy / 1000.00  ! kN
+      
          ! clean up
       
       CALL MeshMapDestroy( M_P_2_P, ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
      
-      WRITE( UnSum, '(A12,6(2X,E20.6))') 'Internal:   ', IntBuoyancy(1), IntBuoyancy(2), IntBuoyancy(3), IntBuoyancy(4), IntBuoyancy(5), IntBuoyancy(6)
+      WRITE( UnSum, '(A18,6(2X,ES20.6))') 'Internal:        ', IntBuoyancy(1), IntBuoyancy(2), IntBuoyancy(3), IntBuoyancy(4), IntBuoyancy(5), IntBuoyancy(6)
       IntBuoyancy = IntBuoyancy + ExtBuoyancy
-      WRITE( UnSum, '(A12,6(2X,E20.6))') 'Total:      ', IntBuoyancy(1), IntBuoyancy(2), IntBuoyancy(3), IntBuoyancy(4), IntBuoyancy(5), IntBuoyancy(6)
-      WRITE( UnSum,  '(//)' ) 
-      
-      
+      WRITE( UnSum, '(A18,6(2X,ES20.6))') 'Total   :        ', IntBuoyancy(1), IntBuoyancy(2), IntBuoyancy(3), IntBuoyancy(4), IntBuoyancy(5), IntBuoyancy(6)
+      !WRITE( UnSum,  '(/)' ) 
+      WRITE( UnSum, '(A81)')	'              NOTE: External buoyancy is based on members not modelled with WAMIT'
+      WRITE( UnSum, '(A150)')	'                    Internal buoyancy is computed from all members which are marked as filled in the HydroDyn input file, regardless of PropWAMIT flag'
+      WRITE( UnSum, '(A88)')	'                    Total buoyancy does not include WAMIT-modelled buoyancy contribution'
       
       
       
@@ -1438,15 +1349,14 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
       MG_Wt(1:3) = WRP_Mesh%Force(:,1)
       MG_Wt(4:6) = WRP_Mesh%Moment(:,1)
       
-     MG_Wt = MG_Wt / 1000.0 ! kN
-     
-      
+           
       WRITE( UnSum,  '(//)' ) 
       WRITE( UnSum, '(A36)' ) 'Weight loads about ( 0.0, 0.0, 0.0 )'
-      WRITE( UnSum, '(16x,6(2X,A20))' ) '  MGFxi  ', '  MGFyi  ', '  MGFzi  ', '  MGMxi  ', '  MGMyi  ', '  MGMzi  '
-      WRITE( UnSum, '(16x,6(2X,A20))' ) '  (kN)   ', '  (kN)   ', '  (kN)   ', ' (kN-m)  ', ' (kN-m)  ', ' (kN-m)  '
+      WRITE( UnSum, '(A36)' ) '------------------------------------'
+      WRITE( UnSum, '(18x,6(2X,A20))' ) '  MGFxi  ', '  MGFyi  ', '  MGFzi  ', '  MGMxi  ', '  MGMyi  ', '  MGMzi  '
+      WRITE( UnSum, '(18x,6(2X,A20))' ) '   (N)   ', '   (N)   ', '   (N)   ', '  (N-m)  ', '  (N-m)  ', '  (N-m)  '
       !WRITE( UnSum, '(A16,6(2X,E20.6))') 'Structure    :  ',  M_Wt(1),  M_Wt(2),  M_Wt(3),  M_Wt(4),  M_Wt(5),  M_Wt(6)
-      WRITE( UnSum, '(A16,6(2X,E20.6))') 'Marine Growth:  ', MG_Wt(1), MG_Wt(2), MG_Wt(3), MG_Wt(4), MG_Wt(5), MG_Wt(6)
+      WRITE( UnSum, '(A18,6(2X,ES20.6))') 'Marine Growth:   ', MG_Wt(1), MG_Wt(2), MG_Wt(3), MG_Wt(4), MG_Wt(5), MG_Wt(6)
       !WRITE( UnSum, '(A16,6(2X,E20.6))') 'Filled Fluid :  ',  F_Wt(1),  F_Wt(2),  F_Wt(3),  F_Wt(4),  F_Wt(5),  F_Wt(6)
       !M_Wt = M_Wt + MG_Wt + F_Wt
       !WRITE( UnSum, '(A16,6(2X,E20.6))') 'Total        :  ',  M_Wt(1),  M_Wt(2),  M_Wt(3),  M_Wt(4),  M_Wt(5),  M_Wt(6)
@@ -1455,6 +1365,164 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, numNodes, nodes, numElements, eleme
       CALL MeshMapDestroy( M_L_2_P, ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
       CALL MeshDestroy(WRP_Mesh, ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
       CALL MeshDestroy(WRP_Mesh_position, ErrStat, ErrMsg ); IF ( ErrStat /= ErrID_None ) CALL WrScr(TRIM(ErrMsg))
+      
+         ! Write the header for this section
+      WRITE( UnSum,  '(//)' ) 
+      WRITE( UnSum,  '(A5)' ) 'Nodes'
+      WRITE( UnSum,  '(/)' ) 
+      WRITE( UnSum, '(1X,A5,19(2X,A10),2X,A5,2X,A15)' ) '  i  ', 'JointIndx ', 'JointOvrlp', 'InpMbrIndx', '   Nxi    ', '   Nyi    ', '   Nzi    ', 'InpMbrDist', '   tMG    ', '  MGDens  ', 'PropWAMIT ', 'FilledFlag', ' FillDens ', 'FillFSLoc ', '    Cd    ', '    Ca    ', '     R    ', '   dRdZ   ', '    t     ', ' NodeType ','NConn ', 'Connection List'
+      WRITE( UnSum, '(1X,A5,19(2X,A10),2X,A5,2X,A15)' ) ' (-) ', '   (-)    ', '   (-)    ', '   (-)    ', '   (m)    ', '   (m)    ', '   (m)    ', '    (-)   ', '    (m)   ', ' (kg/m^3) ', '   (-)    ', '   (-)    ', ' (kg/m^3) ', '    (-)   ', '    (-)   ', '    (-)   ', '    (m)   ', '    (-)   ', '    (m)   ', '    (-)   ',' (-)  ', '               '
+
+         ! Write the data
+      DO I = 1,numNodes   
+         WRITE(strFmt,'(I2)') nodes(I)%NConnections
+         IF ( nodes(I)%NodeType == 1 ) THEN
+            strNodeType = 'End       '
+         ELSE IF ( nodes(I)%NodeType == 2 ) THEN
+            strNodeType = 'Interior  '
+         ELSE IF ( nodes(I)%NodeType == 3 ) THEN
+            strNodeType = 'Super     '
+         ELSE
+            strNodeType = 'ERROR     '
+         END IF
+         
+         WRITE( UnSum, '(1X,I5,3(2X,I10),5(2X,F10.4),2X,ES10.3,2(2X,L10),7(2X,ES10.3),2X,A10,2X,I5,' // strFmt // '(2X,I4))' ) I, nodes(I)%JointIndx, nodes(I)%JointOvrlp, nodes(I)%InpMbrIndx, nodes(I)%JointPos, nodes(I)%InpMbrDist, nodes(I)%tMG, nodes(I)%MGdensity, nodes(I)%PropWAMIT, nodes(I)%FillFlag, nodes(I)%FillDensity, nodes(I)%FillFSLoc, nodes(I)%Cd, nodes(I)%Ca, nodes(I)%R, nodes(I)%DRDZ, nodes(I)%t, strNodeType, nodes(I)%NConnections, nodes(I)%ConnectionList(1:nodes(I)%NConnections)
+      END DO
+      
+       WRITE( UnSum,  '(//)' ) 
+      WRITE( UnSum,  '(A8)' ) 'Elements'
+      WRITE( UnSum,  '(/)' ) 
+      WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,5(2X,A12),2X,A12,17(2X,A12))' ) '  i  ', 'node1','node2','  Length  ', '  MGVolume  ', '  MGDensity ', 'PropWAMIT ', 'FilledFlag', 'FillDensity', '  FillFSLoc ', '  FillMass  ', '     Cd1    ', '   CdMG1  ', '     Ca1    ', '    CaMG1   ', '      R1    ', '     t1     ','     Cd2    ', '    CdMG2   ', '     Ca2    ', '    CaMG2   ', '      R2    ', '     t2     '
+      WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,5(2X,A12),2X,A12,17(2X,A12))' ) ' (-) ', ' (-) ',' (-) ','   (m)    ', '   (m^3)    ', '  (kg/m^3)  ', '   (-)    ', '   (-)    ', ' (kg/m^3)  ', '     (-)    ', '    (kg)    ', '     (-)    ', '    (-)   ', '     (-)    ', '     (-)    ', '     (m)    ', '     (m)    ','     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (m)    ', '     (m)    '
+      
+      
+   
+   
+      DO I = 1,numElements 
+         
+         node1   = nodes(elements(I)%Node1Indx)
+         node2   = nodes(elements(I)%Node2Indx)
+         IF ( ( (node1%tMG > 0 ) .AND. EqualRealNos(node2%tMG,0.0_ReKi) ) .OR. ( (node2%tMG > 0 ) .AND. EqualRealNos(node1%tMG,0.0_ReKi) ) ) THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = 'If one node of an element has MG, then both must.  This is an internal code problem within HydroDyn.'
+            RETURN
+         END IF
+         CALL GetDistance( nodes(elements(I)%Node1Indx)%JointPos, nodes(elements(I)%Node2Indx)%JointPos, l )
+         
+         
+         IF (elements(I)%PropWAMIT) THEN
+            MGvolume    = 0.0
+            elementVol  = 0.0
+         ELSE
+            elementVol  = ElementVolume(elements(I)%R1 + node1%tMG, elements(I)%R2 + node2%tMG, l)
+            MGvolume    = elementVol  - ElementVolume(elements(I)%R1, elements(I)%R2, l)
+         END IF
+        ! totalMGVol  = totalMGVol  + MGvolume
+         mass_MG     = MGvolume*elements(I)%FillDens
+        ! totalMGMass = totalMGMass + mass_MG
+         CALL ElementCentroid(elements(I)%R1 + node1%tMG, elements(I)%R2 + node2%tMG, node1%JointPos, l, elements(I)%R_LToG, elemCentroid)
+         
+        ! COB         = COB         + elementVol*elemCentroid
+         
+        ! totalVol    = totalVol    + elementVol
+         
+         !IF ( node2%JointPos(3) <= MSL2SWL .AND. node1%JointPos(3) >= ) totalDisplVol = totalDisplVol + elementVol
+         
+         IF ( elements(I)%MmbrFilledIDIndx > 0 ) THEN          
+            filledFlag = .TRUE.
+            !IF ( ( node2%JointPos(3) <= elements(I)%FillFSLoc ) .AND. ( node1%JointPos(3) <= elements(I)%FillFSLoc ) ) THEN
+               fillVol       = ElementVolume(elements(I)%R1 - elements(I)%t1, elements(I)%R2 - elements(I)%t2, l)
+              ! totalFillVol  = totalFillVol  + fillVol
+               mass_fill     = elements(I)%FillDens*fillVol
+              ! totalFillMass = totalFillMass + mass_fill
+            !END IF
+         ELSE
+            mass_fill  = 0.0
+            filledFlag = .FALSE.
+         END IF
+         
+         WRITE( UnSum, '(1X,I5,2X,I5,2X,I5,3(2X,ES12.5),2(2X,L12),2X,ES12.5,17(2X,ES12.5))' ) I, elements(I)%Node1Indx, elements(I)%Node2Indx, l, MGvolume, node1%MGdensity, elements(I)%PropWAMIT, filledFlag, elements(I)%FillDens, elements(I)%FillFSLoc, mass_fill, elements(I)%Cd1, elements(I)%CdMG1, elements(I)%Ca1, elements(I)%CaMG1, elements(I)%R1, elements(I)%t1, elements(I)%Cd2, elements(I)%CdMG2, elements(I)%Ca2, elements(I)%CaMG2, elements(I)%R2, elements(I)%t2
+
+      END DO   ! I = 1,numElements 
+               
+      
+      WRITE( UnSum,  '(//)' ) 
+      WRITE( UnSum,  '(A24)' ) 'Requested Member Outputs'
+      WRITE( UnSum,  '(/)' ) 
+      WRITE( UnSum, '(1X,A10,11(2X,A10))' ) '  Label   ', '    Xi    ',  '    Yi    ', '    Zi    ', 'InpMbrIndx', ' StartXi  ',  ' StartYi  ', ' StartZi  ', '  EndXi   ', '  EndYi   ', '  EndZi   ', '   Loc    '
+      WRITE( UnSum, '(1X,A10,11(2X,A10))' ) '   (-)    ', '    (m)   ',  '    (m)   ', '    (m)   ', '   (-)    ', '   (m)    ',  '   (m)    ', '   (m)    ', '   (m)    ', '   (m)    ', '   (m)    ', '   (-)    '
+      
+      
+      DO I = 1,NOutputs
+     ! DO J=1, NMOutputs     
+         !DO I=1, MOutLst(J)%NOutLoc   
+         
+           
+               ! Get the member index and node index for this output label.  If this is not a member output the indices will return 0 with no errcode.
+           ! CALL MrsnOut_GetMemberOutputInfo(WriteOutputHdr(I), NMOutputs, MOutLst, mbrIndx, nodeIndx, ErrStat, ErrMsg )
+          !  IF (ErrStat > ErrID_Warn ) RETURN
+           ! IF ( mbrIndx > 0 ) THEN
+         tmpName =  OutParam(I)%Name
+         IF (OutParam(I)%SignM == -1 ) tmpName = tmpName(2:10)
+               
+         IF ( ( INDEX( 'mM', tmpName(1:1) ) > 0 ) .AND. (OutParam(I)%Units /= 'INVALID' ) ) THEN
+               !Get Member index and Node index
+            read (tmpName(2:2),*) mbrIndx
+            read (tmpName(4:4),*) nodeIndx
+            
+            ! These indices are in the DistribMesh index system, not the overal nodes index system, so distribToNodeIndx() mapping needs to be performed if you want 
+            !   to index into the nodes array or wave kinematics arrays
+            
+            m1 = MOutLst(mbrIndx)%Marker1(nodeIndx)
+            m2 = MOutLst(mbrIndx)%Marker2(nodeIndx)
+            s  = MOutLst(mbrIndx)%s      (nodeIndx)
+         
+               ! The member output is computed as a linear interpolation of the nearest two markers
+            node1 = nodes(distribToNodeIndx((m1)))
+            node2 = nodes(distribToNodeIndx((m2)))
+            
+            outLoc    = node1%JointPos*(1-s) + node2%JointPos*s
+            WRITE( UnSum, '(1X,A10,3(2x,F10.4),2x,I10,7(2x,F10.4))' ) OutParam(I)%Name, outLoc, node1%InpMbrIndx, node1%JointPos, node2%JointPos, s
+         END IF
+         
+          !  END IF 
+           !WRITE( UnSum, '(1X,A10,11(2X,ES10.3))' ) WriteOutputHdr(I)
+        ! END DO      
+      END DO
+      
+      
+      WRITE( UnSum,  '(//)' ) 
+      WRITE( UnSum,  '(A24)' ) 'Requested Joint Outputs'
+      WRITE( UnSum,  '(/)' ) 
+      WRITE( UnSum, '(1X,A10,5(2X,A10))' ) '  Label   ', '    Xi    ',  '    Yi    ', '    Zi    ', 'InpJointID'
+      WRITE( UnSum, '(1X,A10,5(2X,A10))' ) '   (-)    ', '    (m)   ',  '    (m)   ', '    (m)   ', '   (-)    '
+      
+      
+      DO I = 1,NOutputs
+     ! DO J=1, NMOutputs     
+         !DO I=1, MOutLst(J)%NOutLoc   
+         
+           
+               ! Get the member index and node index for this output label.  If this is not a member output the indices will return 0 with no errcode.
+           ! CALL MrsnOut_GetMemberOutputInfo(WriteOutputHdr(I), NMOutputs, MOutLst, mbrIndx, nodeIndx, ErrStat, ErrMsg )
+          !  IF (ErrStat > ErrID_Warn ) RETURN
+           ! IF ( mbrIndx > 0 ) THEN
+         tmpName =  OutParam(I)%Name
+         IF (OutParam(I)%SignM == -1 ) tmpName = tmpName(2:10)
+               
+         IF ( ( INDEX( 'jJ', tmpName(1:1) ) > 0 ) .AND. (OutParam(I)%Units /= 'INVALID') ) THEN
+            
+               !Get Member index and Node index
+            read (tmpName(2:2),*) nodeIndx
+            m1 = JOutLst(nodeIndx)%Markers(1)     
+            WRITE( UnSum, '(1X,A10,3(2x,F10.4),2x,I10)' ) OutParam(I)%Name, nodes(m1)%JointPos, JOutLst(nodeIndx)%JointID
+            
+         END IF
+         
+          !  END IF 
+           !WRITE( UnSum, '(1X,A10,11(2X,ES10.3))' ) WriteOutputHdr(I)
+        ! END DO      
+      END DO
       
    END IF
 
@@ -2985,10 +3053,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                      
                            ! must match joint index but also cannot be modeled using WAMIT
                         IF  ( nodes(I)%JointIndx == nodes(J)%JointIndx ) THEN
-                           ! DEBUG.  TODO  Remove this
-                           IF ( ( nodes(I)%JointPos(1) /= nodes(J)%JointPos(1) ) .OR. ( nodes(I)%JointPos(2) /= nodes(J)%JointPos(2) ) .OR. ( nodes(I)%JointPos(3) /= nodes(J)%JointPos(3) ) ) THEN 
-                              CALL WrScr('Error with lumped joint forces')
-                           END IF 
+                           
                            nCommon = nCommon + 1
                            commonNodeLst(nCommon) = J
                         
@@ -3023,7 +3088,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                      
                      
                      AM_M = 0.0
-                     IF ( (Vmag > 0.0) .AND. (.NOT. node%PropWAMIT) ) THEN
+                     IF ( (Vmag > 0.0) .AND. (.NOT. nodes(I)%PropWAMIT) ) THEN
                         Vmat = RESHAPE(Vn,(/3,1/))
                         AM_M(1:3,1:3) = (nodes(I)%JAxCa*AMfactor/(REAL( nCommon, ReKi)*Vmag) )*MatMul(Vmat,TRANSPOSE(Vmat))
                      END IF
@@ -3041,7 +3106,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                               
                               
                               F_I      = 0.0
-                              IF ( (Vmag > 0.0) .AND. (.NOT. node%PropWAMIT) ) THEN
+                              IF ( (Vmag > 0.0) .AND. (.NOT. nodes(I)%PropWAMIT) ) THEN
                                  af =  WaveAcc0(M,commonNodeLst(J),:)
                                  VnDotAf = Dot_Product(Vn,af)
                                  F_I(1:3) = ( nodes(I)%JAxCa*AMfactor*VnDotAf / ( REAL( nCommon, ReKi ) * Vmag ) ) * Vn
@@ -4244,7 +4309,7 @@ IF (ALLOCATED(InitInp%JOutLst) ) &
    
       ! Write Summary information now that everything has been initialized.
       
-   CALL WriteSummaryFile( InitInp%UnSum, InitInp%MSL2SWL, InitInp%NNodes, InitInp%Nodes, InitInp%NElements, InitInp%Elements, p%NumOuts, p%OutParam, p%NMOutputs, p%MOutLst, p%distribToNodeIndx, p%NJOutputs, p%JOutLst, u%LumpedMesh, y%LumpedMesh,u%DistribMesh, y%DistribMesh, p%L_F_B, p%L_F_BF, p%D_F_B, p%D_F_BF, p%D_F_MG, InitInp%Gravity, ErrStat, ErrMsg ) !p%NDistribMarkers, distribMarkers, p%NLumpedMarkers, lumpedMarkers,
+   CALL WriteSummaryFile( InitInp%UnSum, InitInp%MSL2SWL, InitInp%WtrDpth, InitInp%NNodes, InitInp%Nodes, InitInp%NElements, InitInp%Elements, p%NumOuts, p%OutParam, p%NMOutputs, p%MOutLst, p%distribToNodeIndx, p%NJOutputs, p%JOutLst, u%LumpedMesh, y%LumpedMesh,u%DistribMesh, y%DistribMesh, p%L_F_B, p%L_F_BF, p%D_F_B, p%D_F_BF, p%D_F_MG, InitInp%Gravity, ErrStat, ErrMsg ) !p%NDistribMarkers, distribMarkers, p%NLumpedMarkers, lumpedMarkers,
    IF ( ErrStat > ErrID_None ) RETURN  
       
          ! If you want to choose your own rate instead of using what the glue code suggests, tell the glue code the rate at which
@@ -4576,7 +4641,9 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
             ! Lumped added mass loads
          qdotdot                 = reshape((/u%LumpedMesh%TranslationAcc(:,J),u%LumpedMesh%RotationAcc(:,J)/),(/6/))   
          accel_fluid             = reshape((/OtherState%L_FA(:,J),[0.0,0.0,0.0]/),(/6/))  ! Add rotational accelerations of fluid which are zero 
-         OtherState%L_F_AM(:,J)  = matmul( p%L_AM_M(:,:,J) , (accel_fluid - qdotdot) )
+         OtherState%L_F_AM(:,J)  = matmul( p%L_AM_M(:,:,J) , ( - qdotdot) )
+         !TODO: used to have the following, but document doesn't include accel_fluid!!!!
+         !OtherState%L_F_AM(:,J)  = matmul( p%L_AM_M(:,:,J) , (accel_fluid - qdotdot) )
          
             ! Time-varying Buoyancy loads
          !sgn = 1.0   
