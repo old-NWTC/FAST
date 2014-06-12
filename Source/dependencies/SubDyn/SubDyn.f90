@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-10 11:46:16 -0600 (Tue, 10 Jun 2014) $
-! (File) Revision #: $Rev: 304 $
+! File last committed: $Date: 2014-06-12 10:38:20 -0600 (Thu, 12 Jun 2014) $
+! (File) Revision #: $Rev: 305 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -38,7 +38,7 @@ Module SubDyn
    !       this will add additional matrices to the SubDyn summary file.
    !............................
 
-   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.00.00c-bjj', '20-May-2014' )
+   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.01.00a-rrd', '12-Jun-2014' )
       
    ! ..... Public Subroutines ...................................................................................................
 
@@ -1056,7 +1056,7 @@ CALL GetPath( SDInputFile, PriPath )    ! Input files will be relative to the pa
 
 !-------------------------- HEADER ---------------------------------------------
    ! Skip header lines
-DO I = 1, 3
+DO I = 1, 2
     CALL ReadCom( UnIn, SDInputFile, 'SubDyn input file header line '//TRIM(Int2LStr(I)), ErrStat, ErrMsg )!-RRD changed to shorten it
     IF ( ErrStat /= ErrID_None ) THEN
        ErrStat = ErrID_Fatal
@@ -1103,7 +1103,7 @@ IF ( Echo )  THEN
    END IF
    REWIND(UnIn)
    !bjj: note we don't need to do error checking here; it was already checked (this is just a repeat of above)
-   DO I = 1, 3 
+   DO I = 1, 2 
       CALL ReadCom( UnIn, SDInputFile, 'SubDyn input file header line '//TRIM(Int2LStr(I)), ErrStat, ErrMsg, UnEc )!-RRD changed to shorten it     
    ENDDO   
    CALL ReadCom( UnIn, SDInputFile, ' SIMULATION CONTROL PARAMETERS ', ErrStat, ErrMsg, UnEc  )
@@ -1408,15 +1408,16 @@ IF ( ErrSTat /= ErrID_None .OR. ( p%NReact < 1 ) .OR. (p%NReact > Init%NJoints) 
    RETURN
 ENDIF
    
-   ! Skip the comment line.
+   ! Skip the comment lines.
+DO I = 1, 2
+   CALL ReadCom( UnIn, SDInputFile, ' BASE REACTION JOINTS HEADERS ',ErrStat, ErrMsg, UnEc )
 
-CALL ReadCom( UnIn, SDInputFile, ' BASE REACTION JOINTS HEADERS ',ErrStat, ErrMsg, UnEc  )  !RRD - changed description
-
-IF ( ErrStat /= ErrID_None ) THEN
-   ErrStat = ErrID_Fatal
-   CALL CleanUp()
-   RETURN
-END IF
+   IF ( ErrStat /= ErrID_None ) THEN
+      ErrStat = ErrID_Fatal
+      CALL CleanUp()
+      RETURN
+   END IF
+END DO
 
 
    ! Joints with reaction forces, joint number and locked/free dof
@@ -1468,14 +1469,15 @@ IF ( ErrStat /= ErrID_None .OR. ( Init%NInterf < 0 ).OR. (Init%NInterf > Init%NJ
 ENDIF
 
    ! Skip the comment line.
+DO I = 1, 2
+   CALL ReadCom( UnIn, SDInputFile, ' INTERFACE JOINTS HEADERS ',ErrStat, ErrMsg, UnEc )
 
-CALL ReadCom( UnIn, SDInputFile, ' INTERFACE JOINTS HEADERS ',ErrStat, ErrMsg, UnEc  ) !RRD - changed description
-
-IF ( ErrStat /= ErrID_None ) THEN
-   ErrStat = ErrID_Fatal
-   CALL CleanUp()
-   RETURN
-END IF
+   IF ( ErrStat /= ErrID_None ) THEN
+      ErrStat = ErrID_Fatal
+      CALL CleanUp()
+      RETURN
+   END IF
+END DO
 
 
    ! Joints with reaction forces, joint number and locked/free dof
@@ -1525,14 +1527,17 @@ IF ( ErrStat /= ErrID_None .OR. p%NMembers < 1 )  THEN
    RETURN
 ENDIF
 
-   ! Skip one line
-CALL ReadCom( UnIn, SDInputFile, ' Members Headers ',ErrStat, ErrMsg, UnEc  )  !RRD-changed description
+   ! Skip two lines
+DO I = 1, 2
+   CALL ReadCom( UnIn, SDInputFile, ' Members Headers ',ErrStat, ErrMsg, UnEc )
 
-IF ( ErrStat /= ErrID_None ) THEN
-   ErrStat = ErrID_Fatal
-   CALL CleanUp()
-   RETURN
-END IF
+   IF ( ErrStat /= ErrID_None ) THEN
+      ErrStat = ErrID_Fatal
+      CALL CleanUp()
+      RETURN
+   END IF
+END DO
+
    
    ! Member connection  -RRD one day we will need to take care of COSMIDs for non-circular members
 ALLOCATE(Init%Members(p%NMembers, MembersCol), STAT=Sttus)
@@ -1591,17 +1596,7 @@ DO I = 1, 2
     END IF
     JunkStrg='Units'
 ENDDO
-!CALL ReadCom( UnIn, SDInputFile, ' Property Data Headers 1/2 ', ErrStat )  !-RRD changed description
-!IF ( ErrStat /= ErrID_None ) THEN
-!   CLOSE( UnIn )
-!   RETURN
-!END IF
-!
-!CALL ReadCom( UnIn, SDInputFile, ' Property Data 1/2 Units ', ErrStat )!-RRD changed description
-!IF ( ErrStat /= ErrID_None ) THEN
-!   CLOSE( UnIn )
-!   RETURN
-!END IF
+
    
    ! Property sets value
 ALLOCATE(Init%PropSets(Init%NPropSets, PropSetsCol), STAT=Sttus)
@@ -1650,10 +1645,10 @@ IF ( ErrStat /= ErrID_None .OR. Init%NXPropSets < 0 )  THEN                     
    RETURN
 ENDIF
 
-   ! Skip two lines - RRD changed to shorten
+   ! Skip two lines 
 JunkStrg='Headers'
 DO I = 1, 2
-    CALL ReadCom( UnIn, SDInputFile, ' Property Data 2/2 '//TRIM(JunkStrg),ErrStat, ErrMsg, UnEc  )!-RRD changed text
+    CALL ReadCom( UnIn, SDInputFile, ' Property Data 2/2 '//TRIM(JunkStrg),ErrStat, ErrMsg, UnEc  )
     IF ( ErrStat /= ErrID_None ) THEN
         ErrStat = ErrID_Fatal
         CALL CleanUp()
@@ -1662,23 +1657,12 @@ DO I = 1, 2
     JunkStrg='Units'
 ENDDO
 
-!CALL ReadCom( UnIn, SDInputFile, ' Property Data 2/2 Headers ', ErrStat )!-RRD changed text
-!IF ( ErrStat /= ErrID_None ) THEN
-!   CLOSE( UnIn )
-!   RETURN
-!END IF
-!
-!CALL ReadCom( UnIn, SDInputFile, ' Property Data 2/2 Units ', ErrStat )!-RRD changed text
-!IF ( ErrStat /= ErrID_None ) THEN
-!   CLOSE( UnIn )
-!   RETURN
-!END IF
    
    ! Property sets value
 ALLOCATE(Init%XPropSets(Init%NXPropSets, XPropSetsCol), STAT=Sttus)
    
 IF ( Sttus /= 0 )  THEN
-   ErrMsg = ' Error in file "'//TRIM(SDInputFile)//': Error allocating XPropSets arrays'!-RRD changed description
+   ErrMsg = ' Error in file "'//TRIM(SDInputFile)//': Error allocating XPropSets arrays'
    ErrStat = ErrID_Fatal
    CALL CleanUp()
    RETURN
@@ -1687,7 +1671,7 @@ ENDIF
 
 DO I = 1, Init%NXPropSets
 
-   CALL ReadAry( UnIn, SDInputFile, Init%XPropSets(I,:), XPropSetsCol, 'XPropSets', 'XPropSets ID and values ', ErrStat, ErrMsg, UnEc  ) !-RRD changed text
+   CALL ReadAry( UnIn, SDInputFile, Init%XPropSets(I,:), XPropSetsCol, 'XPropSets', 'XPropSets ID and values ', ErrStat, ErrMsg, UnEc  )
 
    IF ( ErrStat /= ErrID_None ) THEN
       ErrStat = ErrID_Fatal
@@ -1718,13 +1702,17 @@ IF ( ErrStat /= ErrID_None .OR. Init%NCOSMs < 0  )  THEN  !-RRD changed Propsets
    RETURN
 ENDIF
 
-   ! Skip one line
-CALL ReadCom( UnIn, SDInputFile, ' Cosine Matrices Headers',ErrStat, ErrMsg, UnEc )!-RRD changed text
-IF ( ErrStat /= ErrID_None ) THEN
-   ErrStat = ErrID_Fatal
-   CALL CleanUp()
-   RETURN
-END IF
+   ! Skip two lines
+DO I = 1, 2
+   CALL ReadCom( UnIn, SDInputFile, ' Cosine Matrices Headers',ErrStat, ErrMsg, UnEc )
+
+   IF ( ErrStat /= ErrID_None ) THEN
+      ErrStat = ErrID_Fatal
+      CALL CleanUp()
+      RETURN
+   END IF
+END DO
+
 
    ! Direction cosine matrices value
 ALLOCATE(Init%COSMs(Init%NCOSMs, COSMsCol), STAT=Sttus)
@@ -1867,8 +1855,50 @@ Swtch: SELECT CASE (p%OutSwtch)
       ErrStat = ErrID_Fatal
       CALL CleanUp()
       RETURN
-END SELECT Swtch
-    
+ END SELECT Swtch
+     
+
+! TabDelim - Output format for tabular data.
+
+CALL ReadLVar ( UnIn,  SDInputFile, Init%TabDelim, 'TabDelim', 'Use Tab Delimitation for numerical outputs',ErrStat, ErrMsg, UnEc )
+IF ( ErrStat /= ErrID_None ) THEN
+   ErrStat = ErrID_Fatal
+   CALL CleanUp()
+   RETURN
+END IF
+IF ( Init%TabDelim ) THEN
+         p%Delim = TAB
+ELSE
+         p%Delim = ' '
+END IF
+
+! OutDec - Output decimation for tabular data.
+CALL ReadIVar ( UnIn,  SDInputFile, p%OutDec, 'OutDec', 'Output Decimation',ErrStat, ErrMsg, UnEc )
+IF ( ErrStat /= ErrID_None ) THEN
+   ErrStat = ErrID_Fatal
+   CALL CleanUp()
+   RETURN
+END IF
+
+
+! OutFmt - Output format for tabular data.
+CALL ReadVar ( UnIn,  SDInputFile, p%OutFmt, 'OutFmt', 'Format for numerical outputs',ErrStat, ErrMsg, UnEc  )
+IF ( ErrStat /= ErrID_None ) THEN
+   ErrStat = ErrID_Fatal
+   CALL CleanUp()
+   RETURN
+END IF
+   
+! OutSFmt - Format for output column headers
+CALL ReadVar ( UnIn, SDInputFile, p%OutSFmt, 'OutSFmt', 'Format for output column headers',ErrStat, ErrMsg, UnEc  )
+
+IF ( ErrStat /= ErrID_None ) THEN
+   ErrStat = ErrID_Fatal
+   CALL CleanUp()
+   RETURN
+END IF
+ 
+ 
  ! Skip the comment line.
 CALL ReadCom( UnIn, SDInputFile, ' Member Output List SECTION ',ErrStat, ErrMsg, UnEc  )
 IF ( ErrStat /= ErrID_None ) THEN
@@ -1981,55 +2011,7 @@ ENDDO
    END IF 
 
 
-!---------------------------- OUTPUT: SUMMARY & ECHO FILE ------------------------------
-   
-! Skip the comment line.
-CALL ReadCom( UnIn, SDInputFile, ' OUTPUT: FAST/SUBDYN OUTPUT-FILE VARIABLES ',ErrStat, ErrMsg, UnEc )
-IF ( ErrStat /= ErrID_None ) THEN
-   ErrStat = ErrID_Fatal
-   CALL CleanUp()
-   RETURN
-END IF
 
-! TabDelim - Output format for tabular data.
-
-CALL ReadLVar ( UnIn,  SDInputFile, Init%TabDelim, 'TabDelim', 'Use Tab Delimitation for numerical outputs',ErrStat, ErrMsg, UnEc )
-IF ( ErrStat /= ErrID_None ) THEN
-   ErrStat = ErrID_Fatal
-   CALL CleanUp()
-   RETURN
-END IF
-IF ( Init%TabDelim ) THEN
-         p%Delim = TAB
-ELSE
-         p%Delim = ' '
-END IF
-
-! OutDec - Output decimation for tabular data.
-CALL ReadIVar ( UnIn,  SDInputFile, p%OutDec, 'OutDec', 'Output Decimation',ErrStat, ErrMsg, UnEc )
-IF ( ErrStat /= ErrID_None ) THEN
-   ErrStat = ErrID_Fatal
-   CALL CleanUp()
-   RETURN
-END IF
-
-
-! OutFmt - Output format for tabular data.
-CALL ReadVar ( UnIn,  SDInputFile, p%OutFmt, 'OutFmt', 'Format for numerical outputs',ErrStat, ErrMsg, UnEc  )
-IF ( ErrStat /= ErrID_None ) THEN
-   ErrStat = ErrID_Fatal
-   CALL CleanUp()
-   RETURN
-END IF
-   
-! OutSFmt - Format for output column headers
-CALL ReadVar ( UnIn, SDInputFile, p%OutSFmt, 'OutSFmt', 'Format for output column headers',ErrStat, ErrMsg, UnEc  )
-
-IF ( ErrStat /= ErrID_None ) THEN
-   ErrStat = ErrID_Fatal
-   CALL CleanUp()
-   RETURN
-END IF
    
      ! OutList - list of requested parameters to output to a file
 ! Skip the comment line.
