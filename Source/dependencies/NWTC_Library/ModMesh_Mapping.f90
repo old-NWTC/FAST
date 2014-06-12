@@ -17,14 +17,14 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-31 10:20:04 -0700 (Fri, 31 Jan 2014) $
-! (File) Revision #: $Rev: 217 $
+! File last committed: $Date: 2014-06-12 10:11:01 -0600 (Thu, 12 Jun 2014) $
+! (File) Revision #: $Rev: 236 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh_Mapping.f90 $
 !**********************************************************************************************************************************
 ! This code implements the spatial mapping algorithms described in 
 !    Sprague, Michael A.; Jonkman, Jason M.; and Jonkman, Bonnie J., "FAST Modular Wind Turbine CAE Tool: Nonmatching Spatial and  
-!    Temporal Meshes." Proceedings of the 52nd Aerospace Sciences Meeting, 2014, also published in tech, report NREL/CP-
-!    National Renewable Energy Laboratory, Golden, CO.
+!    Temporal Meshes." Proceedings of the 52nd Aerospace Sciences Meeting, 2014, also published in tech report NREL/CP-2C00-60742
+!    National Renewable Energy Laboratory, Golden, CO. http://www.nrel.gov/docs/fy14osti/60742.pdf
 !**********************************************************************************************************************************
 MODULE ModMesh_Mapping
 
@@ -2056,8 +2056,8 @@ SUBROUTINE Convert_Point_To_Line2_Loads(Dest, MeshMap, ErrStat, ErrMsg, DestDisp
       
       ! After following call, LoadLn2_F contains the distributed forces:
       
-      CALL LAPACK_getrs(TRANS='N',N=n,NRHS=1,A=MeshMap%LoadLn2_A_Mat,LDA=n,IPIV=MeshMap%LoadLn2_A_Mat_piv, &
-                        B=MeshMap%LoadLn2_F, LDB=n, ErrStat=ErrStat2, ErrMsg=ErrMsg2)
+      CALL LAPACK_getrs(TRANS='N',N=n,A=MeshMap%LoadLn2_A_Mat,IPIV=MeshMap%LoadLn2_A_Mat_piv, &
+                        B=MeshMap%LoadLn2_F, ErrStat=ErrStat2, ErrMsg=ErrMsg2)
       
       ! Transfer forces to the mesh fields
    
@@ -2103,8 +2103,8 @@ SUBROUTINE Convert_Point_To_Line2_Loads(Dest, MeshMap, ErrStat, ErrMsg, DestDisp
       
       ! After following call, LoadLn2_M contains the distributed moments:
       
-      CALL LAPACK_getrs(TRANS='N',N=n,NRHS=1,A=MeshMap%LoadLn2_A_Mat,LDA=n,IPIV=MeshMap%LoadLn2_A_Mat_piv, &
-                        B=MeshMap%LoadLn2_M, LDB=n, ErrStat=ErrStat2, ErrMsg=ErrMsg2)
+      CALL LAPACK_getrs(TRANS='N',N=n,A=MeshMap%LoadLn2_A_Mat,IPIV=MeshMap%LoadLn2_A_Mat_piv, &
+                        B=MeshMap%LoadLn2_M, ErrStat=ErrStat2, ErrMsg=ErrMsg2)
             
       ! Transfer moments to the mesh fields
    
@@ -2643,7 +2643,7 @@ SUBROUTINE Create_InverseLumping_Matrix( Dest, MeshMap, ErrStat, ErrMsg )
       enddo !icomp
    enddo !i
       
-   CALL LAPACK_getrf(n,n,MeshMap%LoadLn2_A_Mat,n, MeshMap%LoadLn2_A_Mat_piv, ErrStat, ErrMsg)      
+   CALL LAPACK_getrf(n,n,MeshMap%LoadLn2_A_Mat,MeshMap%LoadLn2_A_Mat_piv, ErrStat, ErrMsg)      
            
 !........................................................................................................   
 CONTAINS

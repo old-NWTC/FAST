@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-05 13:47:01 -0600 (Thu, 05 Jun 2014) $
-! (File) Revision #: $Rev: 301 $
+! File last committed: $Date: 2014-06-07 21:27:55 -0600 (Sat, 07 Jun 2014) $
+! (File) Revision #: $Rev: 303 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM
@@ -136,7 +136,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
    
    ! check the number of interior modes
    IF ( p%Nmodes .GT. 6*(Init%NNode - Init%NInterf - p%NReact) ) THEN
-      CALL SetErrStat(ErrID_Fatal, ' NModes must be less than or equal to'//TRIM(Num2LStr( 6*(Init%NNode - Init%NInterf - p%NReact) )),ErrStat,ErrMsg,'SD_Discrt')
+      CALL SetErrStat(ErrID_Fatal, ' NModes must be less than or equal to '//TRIM(Num2LStr( 6*(Init%NNode - Init%NInterf - p%NReact) )),ErrStat,ErrMsg,'SD_Discrt')
       RETURN
    ENDIF
    

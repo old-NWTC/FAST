@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-05 13:47:01 -0600 (Thu, 05 Jun 2014) $
-! (File) Revision #: $Rev: 301 $
+! File last committed: $Date: 2014-06-10 11:46:16 -0600 (Tue, 10 Jun 2014) $
+! (File) Revision #: $Rev: 304 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -32,6 +32,11 @@ Module SubDyn
    IMPLICIT NONE
 
    PRIVATE
+   
+   !............................
+   ! NOTE: for debugging, add preprocessor definition SD_SUMMARY_DEBUG
+   !       this will add additional matrices to the SubDyn summary file.
+   !............................
 
    TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.00.00c-bjj', '20-May-2014' )
       
@@ -146,13 +151,13 @@ SUBROUTINE CreateY2Meshes( NNode, Nodes, NNodes_I, IDI, NNodes_L, IDL, NNodes_C,
    INTEGER         :: I                 ! generic counter variable
    INTEGER         :: nodeIndx
    
-   CALL MeshCreate( BlankMesh        = inputMesh         &
-                  ,IOS               = COMPONENT_INPUT   &
+   CALL MeshCreate( BlankMesh        = inputMesh                           &
+                  ,IOS               = COMPONENT_INPUT                     &
                   ,Nnodes            = NNodes_I + NNodes_L + NNodes_C      &
-                  ,ErrStat           = ErrStat           &
-                  ,ErrMess           = ErrMsg            &
-                  ,Force             = .TRUE.            &
-                  ,Moment            = .TRUE.            &
+                  ,ErrStat           = ErrStat                             &
+                  ,ErrMess           = ErrMsg                              &
+                  ,Force             = .TRUE.                              &
+                  ,Moment            = .TRUE.                              &
                   )
       
    
@@ -276,6 +281,64 @@ SUBROUTINE CreateY2Meshes( NNode, Nodes, NNodes_I, IDI, NNodes_L, IDL, NNodes_C,
        
         
 END SUBROUTINE CreateY2Meshes
+!------------------------------------------------------------------------------------------------------
+SUBROUTINE SD_Y2Mesh_Mapping(p, SDtoMesh )
+! this routine sets the index array that maps SD internal nodes to the Y2Mesh nodes.
+! NOTE: SDtoMesh is not checked for size, nor are the index array values checked for validity, 
+!       so this routine could easily have segmentation faults if any errors exist.
+!.......................................................
+   
+   TYPE(SD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
+   INTEGER(IntKi),               INTENT(  OUT)  :: SDtoMesh(:) ! index/mapping of mesh nodes with SD mesh
+   
+   ! locals
+   INTEGER(IntKi)                               :: i
+   INTEGER(IntKi)                               :: SDnode
+   INTEGER(IntKi)                               :: y2Node
+   
+
+   y2Node = 0
+
+   !---------------------------------------------------------------------
+   !    Interface nodes
+   !---------------------------------------------------------------------
+   DO I = 1,SIZE(p%IDI,1)/6
+      y2Node = y2Node + 1      
+      SDnode = p%IDI(I*6) / 6     !integer division gives me the actual node index; it is not the nodeID
+      
+      SDtoMesh( SDnode ) = y2Node
+      !MeshtoSD( y2Node ) = SDnode     
+   END DO
+     
+   
+   !---------------------------------------------------------------------
+   !    Interior nodes
+   !---------------------------------------------------------------------
+   
+   DO I = 1,SIZE(p%IDL,1)/6 
+      y2Node = y2Node + 1      
+      SDnode = p%IDL(I*6) / 6     !integer division gives me the actual node index; it is not the nodeID
+      
+      SDtoMesh( SDnode ) = y2Node
+      !MeshtoSD( y2Node ) = SDnode                    
+   END DO
+   
+   
+   !---------------------------------------------------------------------
+   !    Base Reaction nodes
+   !---------------------------------------------------------------------
+   
+   DO I = 1,SIZE(p%IDC,1)/6 
+      y2Node = y2Node + 1      
+      SDnode = p%IDC(I*6) / 6     !integer division gives me the actual node index; it is not the nodeID
+      
+      SDtoMesh( SDnode ) = y2Node
+      !MeshtoSD( y2Node ) = SDnode                    
+                     
+   END DO
+     
+
+END SUBROUTINE SD_Y2Mesh_Mapping
 
 
 !---------------------------------------------------------------------------
@@ -307,7 +370,6 @@ SUBROUTINE SD_Init( InitInput, u, p, x, xd, z, OtherState, y, Interval, InitOut,
       
          ! local variables
          
-   CHARACTER(1024)                              :: SummaryName                         ! name of the SubDyn summary file          
    TYPE(SD_InitType)                            :: Init
    
    TYPE(CB_MatArrays)                           :: CBparams      ! CB parameters to be stored and written to summary file
@@ -319,7 +381,6 @@ SUBROUTINE SD_Init( InitInput, u, p, x, xd, z, OtherState, y, Interval, InitOut,
          ! Initialize variables
    ErrStat = ErrID_None
    ErrMsg  = ""
-   Init%UnSum = -1            ! we haven't opened the summary file, yet.   
    
          ! Initialize the NWTC Subroutine Library
 
@@ -426,17 +487,21 @@ SUBROUTINE SD_Init( InitInput, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    !.................................
    ! Define initial system states here:
    !.................................
+   IF ( p%qmL > 0 ) THEN
    
-   CALL AllocAry(x%qm,                p%qmL, 'x%qm',                ErrStat2, ErrMsg2 ); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' )
-   CALL AllocAry(x%qmdot,             p%qmL, 'x%qmdot',             ErrStat2, ErrMsg2 ); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' )
-   CALL AllocAry(OtherState%qmdotdot, p%qmL, 'OtherState%qmdotdot', ErrStat2, ErrMsg2 ); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' )
-      IF ( ErrStat >= AbortErrLev ) THEN
-         CALL CleanUp()
-         RETURN
-      END IF   
-   x%qm               = 0.0_ReKi   
-   x%qmdot            = 0.0_ReKi
-   OtherState%qmdotdot= 0.0_ReKi
+      CALL AllocAry(x%qm,                p%qmL, 'x%qm',                ErrStat2, ErrMsg2 ); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' )
+      CALL AllocAry(x%qmdot,             p%qmL, 'x%qmdot',             ErrStat2, ErrMsg2 ); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' )
+      CALL AllocAry(OtherState%qmdotdot, p%qmL, 'OtherState%qmdotdot', ErrStat2, ErrMsg2 ); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' )
+         IF ( ErrStat >= AbortErrLev ) THEN
+            CALL CleanUp()
+            RETURN
+         END IF   
+      x%qm               = 0.0_ReKi   
+      x%qmdot            = 0.0_ReKi
+      OtherState%qmdotdot= 0.0_ReKi
+      
+   END IF
+   
    
    xd%DummyDiscState  = 0.0_ReKi
    z%DummyConstrState = 0.0_ReKi
@@ -463,23 +528,10 @@ SUBROUTINE SD_Init( InitInput, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    
            
    IF ( Init%SSSum ) THEN 
-   !IF ( Init%UnSum /= -1 ) THEN  !note p%KBB/MBB are KBBt/MBBt
       !note p%KBB/MBB are KBBt/MBBt
                
-      ! Open a summary of the SubDyn Initialization. Note: RootName must be set by the caller because there may not be an input file to obtain this rootname from.
-         
-         
-      SummaryName = TRIM(Init%RootName)//'.sum'
-      CALL SDOut_OpenSum( Init%UnSum, SummaryName, SD_ProgDesc, ErrStat2, ErrMsg2 )   
-         CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' )
-         IF ( ErrStat >= AbortErrLev ) THEN
-            CALL CleanUp()
-            RETURN
-         END IF
-               
+            ! Write a summary of the SubDyn Initialization                     
       CALL OutSummary(Init,p,FEMparams,CBparams,  ErrStat2, ErrMsg2); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' )
-      ! close the summary file (whether or not there was an error)
-      CALL SDOut_CloseSum(Init%UnSum,             ErrStat2, ErrMsg2); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' ) ! Init%UnSum = -1 
 
       IF ( ErrStat >= AbortErrLev ) THEN
          CALL CleanUp()         
@@ -586,6 +638,8 @@ SUBROUTINE SD_UpdateStates( t, n, Inputs, InputTimes, p, x, xd, z, OtherState, E
       ErrStat   = ErrID_None           ! no error has occurred
       ErrMsg    = ""
             
+      IF ( p%qml == 0) RETURN ! no retained modes = no states
+      
         
       IF (p%IntMethod .eq. 1) THEN
  
@@ -657,37 +711,48 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       
          ! Inputs at the transition piece:
       OtherState%u_TP       = (/u%TPMesh%TranslationDisp(:,1), rotations/)
-      OtherState%udot_TP    = (/u%TPMesh%TranslationVel(:,1), u%TPMesh%RotationVel(:,1)/)
-      OtherState%udotdot_TP = (/u%TPMesh%TranslationAcc(:,1), u%TPMesh%RotationAcc(:,1)/)
+      OtherState%udot_TP    = (/u%TPMesh%TranslationVel( :,1), u%TPMesh%RotationVel(:,1)/)
+      OtherState%udotdot_TP = (/u%TPMesh%TranslationAcc( :,1), u%TPMesh%RotationAcc(:,1)/)
          ! Inputs on interior nodes:
       CALL ConstructUFL( u, p, OtherState%UFL )
-      
-                        
-         ! Y2 = C2*x + D2*u + F2 (Eq. 17)
 
-      OtherState%UR_bar        =                                            matmul( p%TI      , OtherState%u_TP       )  ! UR_bar         [ Y2(1) =       0*x(1) + D2(1,1)*u(1) ]      
-      OtherState%UL            = matmul( p%PhiM, x%qm    )                + matmul( p%PhiRb_TI, OtherState%u_TP       )  ! UL             [ Y2(2) = C2(2,1)*x(1) + D2(2,1)*u(1) ] : IT MAY BE MODIFIED LATER IF STATIC IMPROVEMENT
-      OtherState%UR_bar_dot    =                                            matmul( p%TI      , OtherState%udot_TP    )  ! UR_bar_dot     [ Y2(3) =       0*x(1) + D2(3,2)*u(2) ]
-      OtherState%UL_dot        = matmul( p%PhiM, x%qmdot )                + matmul( p%PhiRb_TI, OtherState%udot_TP    )  ! UL_dot         [ Y2(4) = C2(2,2)*x(2) + D2(4,2)*u(2) ]      
-      OtherState%UR_bar_dotdot =                                            matmul( p%TI      , OtherState%udotdot_TP )  ! U_R_bar_dotdot [ Y2(5) =       0*x(2) + D2(5,3)*u(3) ] 
-      OtherState%UL_dotdot     = matmul( p%C2_61, x%qm   )                + matmul( p%C2_62   , x%qmdot )             &  ! UL_dotdot      [ Y2(6) = C2(6,1)*x(1) + C2(6,2)*x(2) ...
-                               + matmul( p%D2_63, OtherState%udotdot_TP ) + matmul( p%D2_64, OtherState%UFL       ) + &  !                        + D2(6,3)*u(3) + D2(6,4)*u(4) ...
-                                 p%F2_61                                                                                 !                        + F2(6) ]
-          
-             !STATIC IMPROVEMENT METHOD  ( modify UL )
-      IF (p%SttcSolve) THEN
-          FLt  = MATMUL(p%PhiL_T,                  OtherState%UFL + p%FGL)
-          ULS  = MATMUL(p%PhiLInvOmgL2,            FLt                   )
-          UL0M = MATMUL(p%PhiLInvOmgL2(:,1:p%qmL), FLt(1:p%qmL)          )
-          OtherState%UL   = OtherState%UL   + ULS - UL0M  
-      ENDIF    
       
-                                                            
    !________________________________________
    ! Set motion outputs on y%Y2mesh
    !________________________________________
-     
+                        
+         ! Y2 = C2*x + D2*u + F2 (Eq. 17)
+
+      OtherState%UR_bar        =                                               matmul( p%TI      , OtherState%u_TP       )  ! UR_bar         [ Y2(1) =       0*x(1) + D2(1,1)*u(1) ]      
+      OtherState%UR_bar_dot    =                                               matmul( p%TI      , OtherState%udot_TP    )  ! UR_bar_dot     [ Y2(3) =       0*x(1) + D2(3,2)*u(2) ]
+      OtherState%UR_bar_dotdot =                                               matmul( p%TI      , OtherState%udotdot_TP )  ! U_R_bar_dotdot [ Y2(5) =       0*x(2) + D2(5,3)*u(3) ] 
+                     
+      IF ( p%qml > 0) THEN
+         OtherState%UL            = matmul( p%PhiM,  x%qm    )               + matmul( p%PhiRb_TI, OtherState%u_TP       )  ! UL             [ Y2(2) = C2(2,1)*x(1) + D2(2,1)*u(1) ] : IT MAY BE MODIFIED LATER IF STATIC IMPROVEMENT
+         OtherState%UL_dot        = matmul( p%PhiM,  x%qmdot )               + matmul( p%PhiRb_TI, OtherState%udot_TP    )  ! UL_dot         [ Y2(4) = C2(2,2)*x(2) + D2(4,2)*u(2) ]      
+         OtherState%UL_dotdot     = matmul( p%C2_61, x%qm    )               + matmul( p%C2_62   , x%qmdot )             &  ! UL_dotdot      [ Y2(6) = C2(6,1)*x(1) + C2(6,2)*x(2) ...
+                                  + matmul( p%D2_63, OtherState%udotdot_TP ) + matmul( p%D2_64,    OtherState%UFL      ) &  !                        + D2(6,3)*u(3) + D2(6,4)*u(4) ...
+                                  + p%F2_61                                                                                 !                        + F2(6) ]                  
+      ELSE ! There are no states when p%qml=0 (i.e., no retained modes: p%Nmodes=0), so we omit those portions of the equations
+         OtherState%UL            =                                            matmul( p%PhiRb_TI, OtherState%u_TP       )  ! UL             [ Y2(2) =       0*x(1) + D2(2,1)*u(1) ] : IT MAY BE MODIFIED LATER IF STATIC IMPROVEMENT
+         OtherState%UL_dot        =                                            matmul( p%PhiRb_TI, OtherState%udot_TP    )  ! UL_dot         [ Y2(4) =       0*x(2) + D2(4,2)*u(2) ]      
+         OtherState%UL_dotdot     =                                            matmul( p%PhiRb_TI, OtherState%udotdot_TP )  ! UL_dotdot      [ Y2(6) =       0*x(:) + D2(6,3)*u(3) + 0*u(4) + 0]
+      END IF
       
+                
+             !STATIC IMPROVEMENT METHOD  ( modify UL )
+      IF (p%SttcSolve) THEN
+         FLt  = MATMUL(p%PhiL_T,                  OtherState%UFL + p%FGL)
+         ULS  = MATMUL(p%PhiLInvOmgL2,            FLt                   )
+         OtherState%UL  = OtherState%UL + ULS 
+          
+         IF ( p%qml > 0) THEN
+            UL0M = MATMUL(p%PhiLInvOmgL2(:,1:p%qmL), FLt(1:p%qmL)       )
+            OtherState%UL   = OtherState%UL - UL0M 
+         END IF          
+      ENDIF    
+      
+                                                            
      ! --------------------------------------------------------------------------------- 
      ! Place the outputs onto interface node portion of Y2 output mesh        
      ! ---------------------------------------------------------------------------------
@@ -773,10 +838,19 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ! ---------------------------------------------------------------------------------
       
       ! Eq. 15: Y1 = -(C1*x + D1*u + FY)  [note the negative sign!!!!]
-      Y1 = -(   matmul(p%C1_11, x%qm) + matmul(p%C1_12,x%qmdot)                                                               &  ! -(   C1(1,1)*x(1) + C1(1,2)*x(2)
-              + matmul(p%KBB,   OtherState%u_TP) + matmul(p%D1_13, OtherState%udotdot_TP) + matmul(p%D1_14, OtherState%UFL)   &  !    + D1(1,1)*u(1) + 0*u(2) + D1(1,3)*u(3) + D1(1,4)*u(4)
-              + p%FY )                                                                                                           !    + Fy(1) )
+      
+      IF ( p%qml > 0) THEN
+      
+         Y1 = -(   matmul(p%C1_11, x%qm) + matmul(p%C1_12,x%qmdot)                                                               &  ! -(   C1(1,1)*x(1) + C1(1,2)*x(2)
+                 + matmul(p%KBB,   OtherState%u_TP) + matmul(p%D1_13, OtherState%udotdot_TP) + matmul(p%D1_14, OtherState%UFL)   &  !    + D1(1,1)*u(1) + 0*u(2) + D1(1,3)*u(3) + D1(1,4)*u(4)
+                 + p%FY )                                                                                                           !    + Fy(1) )
                   
+      ELSE ! No retained modes, so there are no states
+         Y1 = -( matmul(p%KBB,   OtherState%u_TP) + matmul(p%MBB, OtherState%udotdot_TP) + matmul(p%D1_14, OtherState%UFL)   &  ! -(  0*x + D1(1,1)*u(1) + 0*u(2) + D1(1,3)*u(3) + D1(1,4)*u(4)
+                 + p%FY )                                                                                                           !    + Fy(1) )
+
+      END IF
+      
       !NEED TO ADD HYDRODYNAMIC FORCES AT THE Interface NODES
         !Aggregate the forces and moments at the interface nodes to the reference point
         !TODO: BJJ: see RRD comment about sign on HydroTP (also where are these HydroTP, HydroForces documented?)
@@ -791,7 +865,6 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       ENDDO
                 
       HydroTP =  matmul(transpose(p%TI),HydroForces) 
-      
       
       ! values on the interface mesh tare Y1 (SubDyn forces) + Hydrodynamic forces
       y%Y1Mesh%Force (:,1) = Y1(1:3) + HydroTP(1:3)  
@@ -809,27 +882,29 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
          !    2 = the caller will handle the outputs, but SubDyn needs to provide them.
          !    3 = Both 1 and 2
 
-       IF ( p%OutSwtch > 0 ) THEN
+      IF ( p%OutSwtch > 0 ) THEN
                     
          !_________________________________________________!
          ! call CalcContStateDeriv one more time to store these qmdotdot for debugging purposes in the output file
          !find xdot at t
          
-         ! note that this re-sets OtherState%udotdot_TP and OtherState%UFL, but they are the same values as earlier in this routine so it doesn't change results in SDOut_MapOutputs()
-         CALL SD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat2, ErrMsg2 )
-            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_CalcOutput')
+         IF ( p%NModes > 0 ) THEN
+            ! note that this re-sets OtherState%udotdot_TP and OtherState%UFL, but they are the same values as earlier in this routine so it doesn't change results in SDOut_MapOutputs()
+            CALL SD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat2, ErrMsg2 )
+               CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_CalcOutput')
 
-            IF ( ErrStat >= AbortErrLev ) THEN
-               CALL Cleanup
-               RETURN
-            END IF
+               IF ( ErrStat >= AbortErrLev ) THEN
+                  CALL Cleanup
+                  RETURN
+               END IF
 
-         !Assign the acceleration to the x variable since it will be used for output file purposes for SSqmdd01-99, and dxdt will disappear
-         OtherState%qmdotdot=dxdt%qmdot
-         ! Destroy dxdt because it is not necessary for the rest of the subroutine
-         CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
-            CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_CalcOutput')
-            
+            !Assign the acceleration to the x variable since it will be used for output file purposes for SSqmdd01-99, and dxdt will disappear
+            OtherState%qmdotdot=dxdt%qmdot
+            ! Destroy dxdt because it is not necessary for the rest of the subroutine
+            CALL SD_DestroyContState( dxdt, ErrStat2, ErrMsg2)
+               CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_CalcOutput')
+               
+         END IF
          !_________________________________________________!
           
                              
@@ -912,6 +987,8 @@ SUBROUTINE SD_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
       CALL AllocAry(dxdt%qmdot, p%qmL, 'dxdt%qmdot', ErrStat2, ErrMsg2 ); CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_CalcContStateDeriv' )
          IF ( ErrStat >= AbortErrLev ) RETURN
          
+      IF ( p%qmL == 0 ) RETURN
+      
 ! form u(3) in Eq. 10:
       OtherState%udotdot_TP = (/u%TPMesh%TranslationAcc(:,1), u%TPMesh%RotationAcc(:,1)/)
       
@@ -1145,59 +1222,62 @@ IF (Init%CBMod) THEN
       ! Nmodes - Number of interal modes to retain.
    CALL ReadIVar ( UnIn, SDInputFile, p%Nmodes, 'Nmodes', 'Number of internal modes',ErrStat, ErrMsg, UnEc  )
 
-   IF ( ErrStat /= ErrID_None .or. ( p%Nmodes < 1 ) )  THEN
-      ErrMsg = ' Nmodes must be a positive integer.' 
+   IF ( ErrStat /= ErrID_None .or. ( p%Nmodes < 0 ) )  THEN
+      ErrMsg = ' Nmodes must be a non-negative integer.' 
       ErrStat = ErrID_Fatal
       CALL CleanUp()
       RETURN   
    ENDIF
    
-      ! Damping ratios for retained modes
-   ALLOCATE(Init%JDampings(p%Nmodes), STAT=Sttus)
-   Init%JDampings=WrongNo !Initialize
+   if ( p%Nmodes > 0 ) THEN
+         ! Damping ratios for retained modes
+      ALLOCATE(Init%JDampings(p%Nmodes), STAT=Sttus)
+      Init%JDampings=WrongNo !Initialize
    
-   IF ( Sttus /= 0 )  THEN
-      ErrMsg = ' Error allocating memory for the damping ratio array Init%JDampings in SD_Input.' 
-      ErrStat = ErrID_Fatal
-      CALL CleanUp()
-      RETURN   
-   ENDIF
-
-   CALL ReadAry( UnIn, SDInputFile, Init%JDampings, p%Nmodes, 'JDamping', 'Damping ratio of the internal modes', ErrStat, ErrMsg, UnEc  )
-   ! note that we don't check the ErrStat here; if the user entered fewer than Nmodes values, we will use the
-   ! last entry to fill in remaining values.
-   !Check 1st value, we need at least one good value from user or throw error
-   IF ((Init%JDampings(1) .LT. 0 ) .OR. (Init%JDampings(1) .GE. 100.0)) THEN
-         ErrMsg = 'Damping ratio should be larger than 0 and less than 100'
+      IF ( Sttus /= 0 )  THEN
+         ErrMsg = ' Error allocating memory for the damping ratio array Init%JDampings in SD_Input.' 
          ErrStat = ErrID_Fatal
          CALL CleanUp()
          RETURN   
-   ELSE
-      DO I = 2, p%Nmodes
-         IF ( Init%JDampings(I) .EQ. WrongNo ) THEN
-            Init%Jdampings(I:p%Nmodes)=Init%JDampings(I-1)
-            IF (i /= 2) THEN ! display an informational message if we're repeating the last value (unless we only entered one value)
-               ErrStat = ErrID_Info
-               ErrMsg  = 'Using damping ratio '//trim(num2lstr(Init%JDampings(I-1)))//' for modes '//trim(num2lstr(I))//' - '//trim(num2lstr(p%Nmodes))//'.'
-            END IF
-            EXIT
-         ELSEIF ( ( Init%JDampings(I) .LT. 0 ) .OR.( Init%JDampings(I) .GE. 100.0 ) ) THEN    
+      ENDIF
+
+      CALL ReadAry( UnIn, SDInputFile, Init%JDampings, p%Nmodes, 'JDamping', 'Damping ratio of the internal modes', ErrStat, ErrMsg, UnEc  )
+      ! note that we don't check the ErrStat here; if the user entered fewer than Nmodes values, we will use the
+      ! last entry to fill in remaining values.
+      !Check 1st value, we need at least one good value from user or throw error
+      IF ((Init%JDampings(1) .LT. 0 ) .OR. (Init%JDampings(1) .GE. 100.0)) THEN
             ErrMsg = 'Damping ratio should be larger than 0 and less than 100'
             ErrStat = ErrID_Fatal
             CALL CleanUp()
             RETURN   
-         ENDIF      
-     ENDDO
-   ENDIF   
-   IF (ErrStat /= ErrID_None .AND. Echo) THEN ! ReadAry had an error because it couldn't read the entire array so it didn't write this to the echo file; we assume the last-read values are used for remaining JDampings
-      WRITE( UnEc, Ec_ReAryFrmt ) 'JDamping', 'Damping ratio of the internal modes', Init%Jdampings(1:MIN(p%Nmodes,NWTC_MaxAryLen))              
+      ELSE
+         DO I = 2, p%Nmodes
+            IF ( Init%JDampings(I) .EQ. WrongNo ) THEN
+               Init%Jdampings(I:p%Nmodes)=Init%JDampings(I-1)
+               IF (i /= 2) THEN ! display an informational message if we're repeating the last value (unless we only entered one value)
+                  ErrStat = ErrID_Info
+                  ErrMsg  = 'Using damping ratio '//trim(num2lstr(Init%JDampings(I-1)))//' for modes '//trim(num2lstr(I))//' - '//trim(num2lstr(p%Nmodes))//'.'
+               END IF
+               EXIT
+            ELSEIF ( ( Init%JDampings(I) .LT. 0 ) .OR.( Init%JDampings(I) .GE. 100.0 ) ) THEN    
+               ErrMsg = 'Damping ratio should be larger than 0 and less than 100'
+               ErrStat = ErrID_Fatal
+               CALL CleanUp()
+               RETURN   
+            ENDIF      
+        ENDDO
+      ENDIF   
+      IF (ErrStat /= ErrID_None .AND. Echo) THEN ! ReadAry had an error because it couldn't read the entire array so it didn't write this to the echo file; we assume the last-read values are used for remaining JDampings
+         WRITE( UnEc, Ec_ReAryFrmt ) 'JDamping', 'Damping ratio of the internal modes', Init%Jdampings(1:MIN(p%Nmodes,NWTC_MaxAryLen))              
+      END IF
+   ELSE
+      CALL ReadCom( UnIn, SDInputFile, 'JDamping', ErrStat, ErrMsg, UnEc  )
    END IF
-   
 
 ELSE   !CBMOD=FALSE  -all modes are retained, not sure how many they are yet
     
    !Ignore next line
-   CALL ReadCom( UnIn, SDInputFile, ' Nmodes ', ErrStat, ErrMsg, UnEc  )
+   CALL ReadCom( UnIn, SDInputFile, 'Nmodes', ErrStat, ErrMsg, UnEc  )
    IF ( ErrStat /= ErrID_None ) THEN
       ErrStat = ErrID_Fatal
       CALL CleanUp()
@@ -1225,12 +1305,13 @@ ELSE   !CBMOD=FALSE  -all modes are retained, not sure how many they are yet
          RETURN
     ENDIF
 
-   !Now, Nmodes will be updated later for the FULL FEM CASE. Here set to 0, note at this stage I do not know DOFL yet, so set to 0 as a flag for later
-   p%Nmodes = 0  !bjj: we don't need this flag anymore; just check if Init%CBMod is FALSE
-   
+   !note at this stage I do not know DOFL yet; Nmodes will be updated later for the FULL FEM CASE. 
+   p%Nmodes = -1
 ENDIF
 
-Init%JDampings = Init%JDampings/100.0   !now the 20 is .20 as it should in all cases for 1 or Nmodes JDampings
+IF (p%Nmodes > 0) THEN
+   Init%JDampings = Init%JDampings/100.0_ReKi   !now the 20 is .20 as it should in all cases for 1 or Nmodes JDampings
+END IF
 
 !---- STRUCTURE JOINTS: joints connect structure members -----------------------------------
 
@@ -2735,7 +2816,7 @@ SUBROUTINE SD_AM2( t, n, u, utimes, p, x, xd, z, OtherState, ErrStat, ErrMsg )
       ! Solve for junk2: (equivalent to junk2= matmul(p%AM2InvJac,junk2)
       ! J*( x_n - x_n+1 ) = dt * ( A*x_n +  B *(u_n + u_n+1)/2 + Fx)
       !....................................................   
-      CALL LAPACK_getrs( TRANS='N',N=SIZE(p%AM2Jac,1),NRHS=1,A=p%AM2Jac,LDA=SIZE(p%AM2Jac,1),IPIV=p%AM2JacPiv, B=junk2, LDB=SIZE(junk2,1), ErrStat=ErrStat2, ErrMsg=ErrMsg2)
+      CALL LAPACK_getrs( TRANS='N',N=SIZE(p%AM2Jac,1),A=p%AM2Jac,IPIV=p%AM2JacPiv, B=junk2, ErrStat=ErrStat2, ErrMsg=ErrMsg2)
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SD_AM2')
          !IF ( ErrStat >= AbortErrLev ) RETURN
       !....................................................
@@ -2944,9 +3025,7 @@ SUBROUTINE Craig_Bampton(Init, p, CBparams, ErrStat, ErrMsg)
 !................................
 ! set values needed to calculate outputs and update states:
 !................................
-    
-   CALL SetParameters(Init, p, MBBb, MBmb, KBBb, FGRb, PhiRb, CBparams%OmegaL(1:CBparams%DOFM),  &
-                      FGL, CBparams%PhiL(:,1:CBparams%DOFM), CBparams%DOFM, ErrStat2, ErrMsg2)  
+   CALL SetParameters(Init, p, MBBb, MBmb, KBBb, FGRb, PhiRb, CBparams%OmegaL, FGL, CBparams%PhiL, ErrStat2, ErrMsg2)  
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'Craig_Bampton')
       
    CALL CleanUpCB()
@@ -3078,59 +3157,60 @@ SUBROUTINE CBMatrix( MRR, MLL, MRL, KRR, KLL, KRL, DOFM, Init, &
    
    
    CALL WrScr('   Calculating Internal Modal Eigenvectors')
-     
-
-   !STATIC TREATMENT   IMPROVEMENT
-   DOFvar=DOFM !Initialize for normal cases, dynamic only
-   IF (p%SttcSolve) THEN
-        DOFvar=p%DOFL
+        
+   IF (p%SttcSolve) THEN ! STATIC TREATMENT IMPROVEMENT
+      DOFvar=p%DOFL
+   ELSE
+      DOFvar=DOFM !Initialize for normal cases, dynamic only      
    ENDIF  
    
    !....................................................
    ! Set OmegaL and PhiL from Eq. 2
    !....................................................
-   
-   CALL EigenSolve(KLL, MLL, p%DOFL, DOFvar, .False.,Init,p, PhiL(:,1:DOFvar), OmegaL(1:DOFvar),  ErrStat2, ErrMsg2)
-      CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'CBMatrix')
-      IF ( ErrStat >= AbortErrLev ) RETURN
-   
-      
-   ! normalize PhiL
-   MU = MATMUL ( MATMUL( TRANSPOSE(PhiL), MLL ), PhiL )
+   IF ( DOFvar > 0 ) THEN ! Only time this wouldn't happen is if no modes retained and no static improvement...
+      CALL EigenSolve(KLL, MLL, p%DOFL, DOFvar, .False.,Init,p, PhiL(:,1:DOFvar), OmegaL(1:DOFvar),  ErrStat2, ErrMsg2)
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'CBMatrix')
+         IF ( ErrStat >= AbortErrLev ) RETURN
          
-   ! PhiL = MATMUL( PhiL, MU2 )  !this is the nondimensionalization (MU2 is diagonal)
+      ! normalize PhiL
+      MU = MATMUL ( MATMUL( TRANSPOSE(PhiL), MLL ), PhiL )
    
-   DO I = 1, DOFvar
-      PhiL(:,I) = PhiL(:,I) / SQRT( MU(I, I) )
-   ENDDO    
-   DO I=DOFvar+1, p%DOFL !loop done only if .not. p%SttcSolve .and. DOFM < p%DOFL
-      PhiL(:,I) = 0.0_ReKi
-      OmegaL(I) = 0.0_ReKi
-   END DO     
    
-   !....................................................
-   ! Set p%PhiL_T and p%PhiLInvOmgL2 for static improvement
-   !....................................................
+      ! PhiL = MATMUL( PhiL, MU2 )  !this is the nondimensionalization (MU2 is diagonal)   
+      DO I = 1, DOFvar
+         PhiL(:,I) = PhiL(:,I) / SQRT( MU(I, I) )
+      ENDDO    
+      DO I=DOFvar+1, p%DOFL !loop done only if .not. p%SttcSolve .and. DOFM < p%DOFL (and actually, in that case, these values aren't used anywhere anyway)
+         PhiL(:,I) = 0.0_ReKi
+         OmegaL(I) = 0.0_ReKi
+      END DO     
    
-   ! Values PhiL_T and PhiLInvOmgL2 for static improvement
-   p%PhiL_T=TRANSPOSE(PhiL) !transpose of PhiL for static improvement
-   p%PhiLInvOmgL2=0. !Initialize
+      !....................................................
+      ! Set p%PhiL_T and p%PhiLInvOmgL2 for static improvement
+      !....................................................
+      IF (p%SttcSolve) THEN   
+         p%PhiL_T=TRANSPOSE(PhiL) !transpose of PhiL for static improvement
       
-   DO I = 1, DOFvar
-      p%PhiLInvOmgL2(:,I) = PhiL(:,I)* (1./OmegaL(I)**2)
-   ENDDO 
-
+         DO I = 1, p%DOFL
+            p%PhiLInvOmgL2(:,I) = PhiL(:,I)* (1./OmegaL(I)**2)
+         ENDDO 
+      END IF
+      
+   ! ELSE .not. p%SttcSolve .and. DOFM < p%DOFL (in this case, PhiL, OmegaL aren't used)      
+   END IF
+      
+      
    !....................................................
    ! Set PhiR from Eq. 3:
    !....................................................   
    ! now factor KLL to compute PhiR: KLL*PhiR=-TRANSPOSE(KRL)
    ! ** note this must be done after EigenSolve() because it modifies KLL **
-   CALL LAPACK_getrf( p%DOFL, p%DOFL, KLL, p%DOFL, ipiv, ErrStat2, ErrMsg2)
+   CALL LAPACK_getrf( p%DOFL, p%DOFL, KLL, ipiv, ErrStat2, ErrMsg2)
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'CBMatrix')
       IF ( ErrStat >= AbortErrLev ) RETURN
    
    PhiR = -1.0_ReKi * TRANSPOSE(KRL) !set "b" in Ax=b  (solve KLL * PhiR = - TRANSPOSE( KRL ) for PhiR)
-   CALL LAPACK_getrs( TRANS='N',N=p%DOFL,NRHS=p%DOFR,A=KLL,LDA=p%DOFL,IPIV=ipiv, B=PhiR, LDB=p%DOFL, ErrStat=ErrStat2, ErrMsg=ErrMsg2)
+   CALL LAPACK_getrs( TRANS='N',N=p%DOFL,A=KLL,IPIV=ipiv, B=PhiR, ErrStat=ErrStat2, ErrMsg=ErrMsg2)
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'CBMatrix')
       IF ( ErrStat >= AbortErrLev ) RETURN
    
@@ -3354,8 +3434,7 @@ SUBROUTINE EigenSolve(K, M, nDOF, NOmega, Reduced, Init,p, Phi, Omega, ErrStat, 
       RETURN
    END IF
     
-!    CALL LAPACK_ggev('N','V',N ,Kred2 ,LDA, Mred2,LDB, ALPHAR, ALPHAI, BETA, VL, 1, VR,  LDVR, work, lwork, ErrStat, ErrMsg)
-    CALL  LAPACK_ggev('N','V',N ,Kred ,N, Mred,N, ALPHAR, ALPHAI, BETA, VL, N, VR,  N, work, lwork, ErrStat2, ErrMsg2)
+    CALL  LAPACK_ggev('N','V',N ,Kred, Mred, ALPHAR, ALPHAI, BETA, VL, VR, work, lwork, ErrStat2, ErrMsg2)
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'EigenSolve')
       IF ( ErrStat >= AbortErrLev ) THEN
          CALL CleanupEigen()
@@ -3448,6 +3527,7 @@ CONTAINS
   
 END SUBROUTINE EigenSolve
 !------------------------------------------------------------------------------------------------------
+#ifdef SD_OLD_CODE
 !------------------------------------------------------------------------------------------------------
 SUBROUTINE ReduceKMdofs_Old(Kred,K,TDOF, Init,p, ErrStat, ErrMsg )
 !This routine calculates Kred from K after removing constrained node DOFs from the full M and K matrices
@@ -3506,6 +3586,7 @@ DEALLOCATE(idx)
   
 END SUBROUTINE ReduceKMdofs_Old
 !------------------------------------------------------------------------------------------------------
+#endif
 !------------------------------------------------------------------------------------------------------
 SUBROUTINE ReduceKMdofs(Kred,K,TDOF, Init,p, ErrStat, ErrMsg )
 !This routine calculates Kred from K after removing consstrained node DOFs from the full M and K matrices
@@ -3672,167 +3753,165 @@ SUBROUTINE CBApplyConstr(DOFI, DOFR, DOFM,  DOFL,  &
       
    MBBb  = MBB(DOFR-DOFI+1:DOFR, DOFR-DOFI+1:DOFR) 
    KBBb  = KBB(DOFR-DOFI+1:DOFR, DOFR-DOFI+1:DOFR)    
+IF (DOFM > 0) THEN   
    MBMb  = MBM(DOFR-DOFI+1:DOFR, :               )
-   
+END IF
+
    FGRb  = FGR(DOFR-DOFI+1:DOFR )
    PhiRb = PhiR(              :, DOFR-DOFI+1:DOFR)
    
 END SUBROUTINE CBApplyConstr
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
-SUBROUTINE SetParameters(Init, p, MBBb, MBmb, KBBb, FGRb, PhiRb, OmegaM,  &
-                      FGL, PhiM, DOFM, ErrStat, ErrMsg)
+SUBROUTINE SetParameters(Init, p, MBBb, MBmb, KBBb, FGRb, PhiRb, OmegaL, FGL, PhiL, ErrStat, ErrMsg)
  
-
-   TYPE(SD_InitType),      INTENT(  IN)                :: Init         ! Input data for initialization routine
-   TYPE(SD_ParameterType), INTENT(INOUT)               :: p           ! Parameters
-
-!   INTEGER(IntKi), INTENT(  in)                       :: DOFR, DOFL, DOFI, DOFM, DOFC 
-   INTEGER(IntKi), INTENT(  in)                       :: DOFM 
+   TYPE(SD_InitType),        INTENT(IN   )   :: Init         ! Input data for initialization routine
+   TYPE(SD_ParameterType),   INTENT(INOUT)   :: p            ! Parameters
    
-   REAL(ReKi),  INTENT(  in)                          :: MBBb( p%DOFI, p%DOFI)
-   REAL(ReKi),  INTENT(  in)                          :: MBMb( p%DOFI, DOFM)
-   REAL(ReKi),  INTENT(  in)                          :: KBBb( p%DOFI, p%DOFI)
-   REAL(ReKi),  INTENT(  IN)                          :: PhiM (p%DOFL, DOFM)   
-   REAL(ReKi),  INTENT(  IN)                          :: PhiRb(p%DOFL, p%DOFI)   
-   REAL(ReKi),  INTENT(  IN)                          :: OmegaM(DOFM)   
- 
-   REAL(ReKi),  INTENT(  in)                          ::  FGRb(p%DOFI) 
-   REAL(ReKi),  INTENT(  IN)                          ::  FGL(p%DOFL)
-   
-   
-   
-   INTEGER(IntKi),                     INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),                       INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
+   REAL(ReKi),               INTENT(IN   )   :: MBBb(  p%DOFI, p%DOFI)
+   REAL(ReKi),               INTENT(IN   )   :: MBMb(  p%DOFI, p%Nmodes)
+   REAL(ReKi),               INTENT(IN   )   :: KBBb(  p%DOFI, p%DOFI)
+   REAL(ReKi),               INTENT(IN   )   :: PhiL ( p%DOFL, p%DOFL)   
+   REAL(ReKi),               INTENT(IN   )   :: PhiRb( p%DOFL, p%DOFI)   
+   REAL(ReKi),               INTENT(IN   )   :: OmegaL(p%DOFL)   
+                             
+   REAL(ReKi),               INTENT(IN   )   :: FGRb(p%DOFI) 
+   REAL(ReKi),               INTENT(IN   )   ::  FGL(p%DOFL)
+         
+   INTEGER(IntKi),           INTENT(  OUT)   :: ErrStat     ! Error status of the operation
+   CHARACTER(*),             INTENT(  OUT)   :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
    ! local variables
-   INTEGER(IntKi)                                     :: I
-   REAL(ReKi)                                         :: TI_transpose(TPdofL,p%DOFI) !bjj: added this so we don't have to take the transpose 5+ times
-   INTEGER(IntKi)                                     :: ErrStat2
-   CHARACTER(LEN(ErrMsg))                             :: ErrMsg2
-   integer(IntKi)                                     :: n        ! size of jacobian in AM2 calculation
+   REAL(ReKi)                                :: TI_transpose(TPdofL,p%DOFI) !bjj: added this so we don't have to take the transpose 5+ times
+   INTEGER(IntKi)                            :: I
+   integer(IntKi)                            :: n                          ! size of jacobian in AM2 calculation
+   INTEGER(IntKi)                            :: ErrStat2
+   CHARACTER(LEN(ErrMsg))                    :: ErrMsg2
 
    
    ErrStat = ErrID_None 
    ErrMsg  = ''
    
       
-   p%PhiM  = PhiM
-
-
    TI_transpose =  TRANSPOSE(p%TI) 
+   
+
+        ! Store FGL for later processes
+   IF (p%SttcSolve) THEN     
+       p%FGL = FGL  
+   ENDIF     
+      
+   ! block element of D2 matrix (D2_21, D2_42, & part of D2_62)
+   p%PhiRb_TI = MATMUL(PhiRb, p%TI)
+   
    
    !..............
    ! equation 9:
    !..............
    
    p%MBB = MATMUL( MATMUL( TI_transpose, MBBb ), p%TI) != MBBt
-   p%MBM = MATMUL( TI_transpose, MBmb )                != MBMt    
-   p%MMB = TRANSPOSE( p%MBM )                          != MMBt
    p%KBB = MATMUL( MATMUL( TI_transpose, KBBb ), p%TI) != KBBt
-   
-   !debug section
-   !CALL SymMatDebug(DOFI,REAL(MBBb,ReKi))!debug
-   !CALL SymMatDebug(DOFI,REAL(KBBb,ReKi))!debug
-   !CALL SymMatDebug(TPdofL,REAL(p%KBB,ReKi))!debug
-   !CALL SymMatDebug(TPdofL,REAL(p%MBB,ReKi))!debug
-                      
 
-        ! Allocate FGL and store FGL for later processes
-   IF (p%SttcSolve) THEN     
-       CALL AllocAry( p%FGL, p%DOFL, 'p%FGL', ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SetParameters')
-         IF ( ErrStat >= AbortErrLev ) RETURN
-       p%FGL = FGL  
-   ENDIF     
- 
-   ! set values for the parameter matrices
+   IF ( p%NModes > 0 ) THEN ! These values don't exist for DOFM=0; i.e., p%NModes == 0
+      
+      p%MBM = MATMUL( TI_transpose, MBmb )                != MBMt    
+      p%MMB = TRANSPOSE( p%MBM )                          != MMBt
    
-   ! A_21, A_22 (these are diagonal matrices. bjj: I am storing them as arrays instead of full matrices)
-   p%NOmegaM2      = -1.0_ReKi * OmegaM * OmegaM                  ! OmegaM is a one-dimensional array
-   p%N2OmegaMJDamp = -2.0_ReKi * OmegaM * Init%JDampings(1:DOFM)  ! Init%JDampings is also a one-dimensional array
+      p%PhiM  = PhiL(:,1:p%Nmodes)
+      
+      
+      ! A_21, A_22 (these are diagonal matrices. bjj: I am storing them as arrays instead of full matrices)
+      p%NOmegaM2      = -1.0_ReKi * OmegaL(1:p%Nmodes) * OmegaL(1:p%Nmodes)          ! OmegaM is a one-dimensional array
+      p%N2OmegaMJDamp = -2.0_ReKi * OmegaL(1:p%Nmodes) * Init%JDampings(1:p%Nmodes)  ! Init%JDampings is also a one-dimensional array
    
    
-   ! B_23, B_24
-   p%PhiM_T =  TRANSPOSE( p%PhiM  )
+      ! B_23, B_24
+      p%PhiM_T =  TRANSPOSE( p%PhiM  )
    
-   ! FX
-   p%FX = MATMUL( p%PhiM_T, FGL ) != MATMUL( TRANSPOSE(PhiM), FGL )
+      ! FX
+      p%FX = MATMUL( p%PhiM_T, FGL ) != MATMUL( TRANSPOSE(PhiM), FGL )
          
    
-   ! C1_11, C1_12  ( see eq 15 [multiply columns by diagonal matrix entries for diagonal multiply on the left])   
-   DO I = 1, DOFM
-      p%C1_11(:, I) = p%MBM(:, I)*p%NOmegaM2(I)              
-      p%C1_12(:, I) = p%MBM(:, I)*p%N2OmegaMJDamp(I)  
-   ENDDO   
+      ! C1_11, C1_12  ( see eq 15 [multiply columns by diagonal matrix entries for diagonal multiply on the left])   
+      DO I = 1, p%Nmodes ! if (p%NModes=p%qmL=DOFM == 0), this loop is skipped
+         p%C1_11(:, I) = p%MBM(:, I)*p%NOmegaM2(I)              
+         p%C1_12(:, I) = p%MBM(:, I)*p%N2OmegaMJDamp(I)  
+      ENDDO   
    
-   ! D1_11, D1_13, D1_14
-   !p%D1_11 = p%KBB
-   p%D1_13 = p%MBB - MATMUL( p%MBM, p%MMB )
-   p%D1_14 = MATMUL( p%MBM, p%PhiM_T ) - MATMUL( TI_transpose, TRANSPOSE(PHiRb))  
+      ! D1_13, D1_14 (with retained modes)
+      p%D1_13 = p%MBB - MATMUL( p%MBM, p%MMB )
+      p%D1_14 = MATMUL( p%MBM, p%PhiM_T ) - MATMUL( TI_transpose, TRANSPOSE(PHiRb))  
    
-   ! FY
+      ! FY (with retained modes)
    ! TODO: This appears to be in global coordinates.  If the gravity force is on, then the resulting FY should be negative, yes? GJH 5/7/13
-!bjj: didn't check these dimensions
-   p%FY =    MATMUL( p%MBM, p%FX ) &  
-           - MATMUL( TI_transpose, ( FGRb + MATMUL( TRANSPOSE(PhiRb), FGL) ) ) 
-         
-   ! C2_21, C2_42
-   ! C2_61, C2_62
-   DO I = 1, DOFM
-      p%C2_61(:, i) = p%PhiM(:, i)*p%NOmegaM2(i)
-      P%C2_62(:, i) = p%PhiM(:, i)*p%N2OmegaMJDamp(i)
-   ENDDO   
-       
-!bjj: didn't check these dimensions
-   
-   ! D2_11, D2_21, D2_32, D2_42
-   p%PhiRb_TI = MATMUL(PhiRb, p%TI)
-   
-   ! D2_53, D2_63, D2_64 
-   p%D2_63 = p%PhiRb_TI - MATMUL( p%PhiM, p%MMB )
-   p%D2_64 = MATMUL( p%PhiM, p%PhiM_T )
+      p%FY =    MATMUL( p%MBM, p%FX ) &  
+              - MATMUL( TI_transpose, ( FGRb + MATMUL( TRANSPOSE(PhiRb), FGL) ) ) 
       
-   ! F2_61
-   p%F2_61 = MATMUL( p%D2_64, FGL )                  
-   
-   
-  !Now calculate a Jacobian used when AM2 is called and store in parameters    
-   IF (p%IntMethod .EQ. 4) THEN       ! Allocate Jacobian if AM2 is requested
-      n=2*p%qmL
-      CALL AllocAry( p%AM2Jac, n, n, 'p%AM2InvJac', ErrStat2, ErrMsg2 ) ! This will be the Jacobian
-         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SetParameters')
-      CALL AllocAry( p%AM2JacPiv, n, 'p%AM2JacPiv', ErrStat2, ErrMsg2 )                         
-         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SetParameters')         
-         IF ( ErrStat >= AbortErrLev ) RETURN 
-         
-            ! First we calculate the Jacobian:
-            ! (note the Jacobian is first stored as p%AM2InvJac)
-      p%AM2Jac=0.
-      DO i=1,p%qmL
-         p%AM2Jac(i+p%qmL,i      )=p%SDdeltaT/2.*p%NOmegaM2(i)      !J21   
-         p%AM2Jac(i+p%qmL,i+p%qmL)=p%SDdeltaT/2.*p%N2OmegaMJDamp(i) !J22 -initialize
-      END DO
+
+      ! C2_21, C2_42
+      ! C2_61, C2_62
+      DO I = 1, p%Nmodes ! if (p%NModes=p%qmL=DOFM == 0), this loop is skipped
+         p%C2_61(:, i) = p%PhiM(:, i)*p%NOmegaM2(i)
+         p%C2_62(:, i) = p%PhiM(:, i)*p%N2OmegaMJDamp(i)
+      ENDDO   
+            
       
-      DO I=1,p%qmL
-         p%AM2Jac(I,I)=-1.  !J11
-         p%AM2Jac(I,p%qmL+I)=p%SDdeltaT/2.  !J12
-         p%AM2Jac(p%qmL+I,p%qmL+I)=p%AM2Jac(p%qmL+I,p%qmL+I)-1  !J22 complete
-      ENDDO
-            ! Now need to factor it:        
-      !I think it could be improved and made more efficient if we can say the matrix is positive definite
-      CALL LAPACK_getrf( n, n, p%AM2Jac, n, p%AM2JacPiv, ErrStat2, ErrMsg2)
-         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SetParameters')
-         IF ( ErrStat >= AbortErrLev ) RETURN
+      ! D2_53, D2_63, D2_64 
+      p%D2_63 = p%PhiRb_TI - MATMUL( p%PhiM, p%MMB )
+      p%D2_64 = MATMUL( p%PhiM, p%PhiM_T )
+      
+      ! F2_61
+      p%F2_61 = MATMUL( p%D2_64, FGL )       
+                              
+   
+     !Now calculate a Jacobian used when AM2 is called and store in parameters    
+      IF (p%IntMethod .EQ. 4) THEN       ! Allocate Jacobian if AM2 is requested & if there are states (p%qmL > 0)
+         n=2*p%qmL
+         CALL AllocAry( p%AM2Jac, n, n, 'p%AM2InvJac', ErrStat2, ErrMsg2 ) ! This will be the Jacobian
+            CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SetParameters')
+         CALL AllocAry( p%AM2JacPiv, n, 'p%AM2JacPiv', ErrStat2, ErrMsg2 )                         
+            CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SetParameters')         
+            IF ( ErrStat >= AbortErrLev ) RETURN 
+         
+               ! First we calculate the Jacobian:
+               ! (note the Jacobian is first stored as p%AM2InvJac)
+         p%AM2Jac=0.
+         DO i=1,p%qmL
+            p%AM2Jac(i+p%qmL,i      )=p%SDdeltaT/2.*p%NOmegaM2(i)      !J21   
+            p%AM2Jac(i+p%qmL,i+p%qmL)=p%SDdeltaT/2.*p%N2OmegaMJDamp(i) !J22 -initialize
+         END DO
+      
+         DO I=1,p%qmL
+            p%AM2Jac(I,I)=-1.  !J11
+            p%AM2Jac(I,p%qmL+I)=p%SDdeltaT/2.  !J12
+            p%AM2Jac(p%qmL+I,p%qmL+I)=p%AM2Jac(p%qmL+I,p%qmL+I)-1  !J22 complete
+         ENDDO
+               ! Now need to factor it:        
+         !I think it could be improved and made more efficient if we can say the matrix is positive definite
+         CALL LAPACK_getrf( n, n, p%AM2Jac, p%AM2JacPiv, ErrStat2, ErrMsg2)
+            CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'SetParameters')
+            IF ( ErrStat >= AbortErrLev ) RETURN
                 
-   END IF     
+      END IF     
       
       
-      ! TODO: Remove the following once testing of code is complete
-      !CALL Test_CB_Results(p%MBB, p%MBM, p%KBB, OmegaM, TPdofL, DOFM, ErrStat, ErrMsg)
+   ELSE ! no retained modes, so 
+      ! OmegaM, JDampings, PhiM, MBM, MMB, FX , x don't exist in this case
+      ! p%F2_61, p%D2_64 are zero in this case so we simplify the equations in the code, omitting these variables
+      ! p%D2_63 = p%PhiRb_TI in this case so we simplify the equations in the code, omitting storage of this variable
+      ! p%D1_13 = p%MBB in this case so we simplify the equations in the code, omitting storage of this variable
+      
+      ! D1_14 (with 0 retained modes)
+      p%D1_14 = - MATMUL( TI_transpose, TRANSPOSE(PHiRb))  
+
+      ! FY (with 0 retained modes)
+      p%FY    = - MATMUL( TI_transpose, ( FGRb + MATMUL( TRANSPOSE(PhiRb), FGL) ) ) 
+                  
+   END IF
+      
+      
    RETURN
    
-!...........................      
 END SUBROUTINE SetParameters
 !------------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------------
@@ -3860,27 +3939,33 @@ SUBROUTINE AllocParameters(p, DOFM, ErrStat, ErrMsg)
    
    CALL AllocAry( p%KBB,           TPdofL, TPdofL, 'p%KBB',           ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
    CALL AllocAry( p%MBB,           TPdofL, TPdofL, 'p%MBB',           ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
-   CALL AllocAry( p%MBM,           TPdofL, DOFM,   'p%MBM',           ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
-   CALL AllocAry( p%MMB,           DOFM,   TPdofL, 'p%MMB',           ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
                                                                        
    CALL AllocAry( p%TI,            p%DOFI,  6,     'p%TI',            ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
                                                                        
+   CALL AllocAry( p%D1_14,         TPdofL, p%DOFL, 'p%D1_14',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
+   CALL AllocAry( p%FY,            TPdofL,         'p%FY',            ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
+   CALL AllocAry( p%PhiRb_TI,      p%DOFL, TPdofL, 'p%PhiRb_TI',      ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
+   
+if (p%Nmodes > 0 ) THEN  
+   CALL AllocAry( p%MBM,           TPdofL, DOFM,   'p%MBM',           ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
+   CALL AllocAry( p%MMB,           DOFM,   TPdofL, 'p%MMB',           ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
+   
    CALL AllocAry( p%NOmegaM2,      DOFM,           'p%NOmegaM2',      ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
    CALL AllocAry( p%N2OmegaMJDamp, DOFM,           'p%N2OmegaMJDamp', ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
    CALL AllocAry( p%PhiM_T,        DOFM,   p%DOFL, 'p%PhiM_T',        ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
    CALL AllocAry( p%FX,            DOFM,           'p%FX',            ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
    CALL AllocAry( p%C1_11,         TPdofL, DOFM,   'p%C1_11',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
    CALL AllocAry( p%C1_12,         TPdofL, DOFM,   'p%C1_12',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-   CALL AllocAry( p%D1_13,         TPdofL, TPdofL, 'p%D1_13',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-   CALL AllocAry( p%D1_14,         TPdofL, p%DOFL, 'p%D1_14',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-   CALL AllocAry( p%FY,            TPdofL,         'p%FY',            ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
    CALL AllocAry( p%PhiM,          p%DOFL, DOFM,   'p%PhiM',          ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
    CALL AllocAry( p%C2_61,         p%DOFL, DOFM,   'p%C2_61',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
    CALL AllocAry( p%C2_62,         p%DOFL, DOFM,   'p%C2_62',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-   CALL AllocAry( p%PhiRb_TI,      p%DOFL, TPdofL, 'p%PhiRb_TI',      ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-   CALL AllocAry( p%D2_63,         p%DOFL, TPdofL, 'p%D2_63',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-   CALL AllocAry( p%D2_64,         p%DOFL, p%DOFL, 'p%D2_64',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-   CALL AllocAry( p%F2_61,         p%DOFL,         'p%F2_61',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
+   
+   
+   CALL AllocAry( p%D1_13,         TPdofL, TPdofL, 'p%D1_13',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters') ! is p%MBB when p%NModes == 0        
+   CALL AllocAry( p%D2_63,         p%DOFL, TPdofL, 'p%D2_63',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters') ! is p%PhiRb_TI when p%NModes == 0       
+   CALL AllocAry( p%D2_64,         p%DOFL, p%DOFL, 'p%D2_64',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters') ! is zero when p%NModes == 0       
+   CALL AllocAry( p%F2_61,         p%DOFL,         'p%F2_61',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters') ! is zero when p%NModes == 0
+end if
                                    
    CALL AllocAry( p%IDI,           p%DOFI,               'p%IDI',     ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
    CALL AllocAry( p%IDR,           p%DOFR,               'p%IDR',     ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
@@ -3888,17 +3973,11 @@ SUBROUTINE AllocParameters(p, DOFM, ErrStat, ErrMsg)
    CALL AllocAry( p%IDC,           p%DOFC,               'p%IDC',     ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
    CALL AllocAry( p%IDY,           p%DOFC+p%DOFI+p%DOFL, 'p%IDY',     ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
            
+if ( p%SttcSolve ) THEN  
    CALL AllocAry( p%PhiL_T,        p%DOFL, p%DOFL, 'p%PhiL_T',        ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
    CALL AllocAry( p%PhiLInvOmgL2,  p%DOFL, p%DOFL, 'p%PhiLInvOmgL2',  ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')
-         
-   
-  !CALL AllocAry( p%D1_11,         TPdofL, TPdofL, 'p%D1_11',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-  !CALL AllocAry( p%C2_42,         p%DOFL, DOFM,   'p%C2_42',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-  !CALL AllocAry( p%D2_11,         p%DOFI, TPdofL, 'p%D2_11',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-  !CALL AllocAry( p%D2_32,         p%DOFI, TPdofL, 'p%D2_32',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-  !CALL AllocAry( p%D2_42,         p%DOFL, TPdofL, 'p%D2_42',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-  !CALL AllocAry( p%D2_53,         p%DOFI, TPdofL, 'p%D2_53',         ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')        
-   
+   CALL AllocAry( p%FGL,           p%DOFL,         'p%FGL',           ErrStat2, ErrMsg2 ); CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'AllocParameters')   
+end if            
    
 END SUBROUTINE AllocParameters
 !------------------------------------------------------------------------------------------------------
@@ -4115,79 +4194,105 @@ END SUBROUTINE
 SUBROUTINE OutSummary(Init, p, FEMparams,CBparams, ErrStat,ErrMsg)
     !This sub takes care of outputting the summary file    
     
-    TYPE(SD_InitType),      INTENT(IN)                :: Init        ! Input data for initialization routine, this structure contains many variables needed for summary file
-    TYPE(SD_ParameterType), INTENT(IN)                :: p           ! Parameters,this structure contains many variables needed for summary file
+   TYPE(SD_InitType),      INTENT(IN)     :: Init           ! Input data for initialization routine, this structure contains many variables needed for summary file
+   TYPE(SD_ParameterType), INTENT(IN)     :: p              ! Parameters,this structure contains many variables needed for summary file
+   TYPE(CB_MatArrays),     INTENT(IN)     :: CBparams       ! CB parameters that will be passed in for summary file use
+   TYPE(FEM_MatArrays),    INTENT(IN)     :: FEMparams      ! FEM parameters that will be passed in for summary file use
+   
+   INTEGER(IntKi),         INTENT(OUT)    :: ErrStat        ! Error status of the operation
+   CHARACTER(*),           INTENT(OUT)    :: ErrMsg         ! Error message if ErrStat /= ErrID_None
+   
+   !LOCALS
+   INTEGER(IntKi)                         :: UnSum          ! unit number for this summary file   
+   INTEGER(IntKi)                         :: ErrStat2       ! Temporary storage for local errors
+   CHARACTER(LEN(ErrMsg))                 :: ErrMsg2       ! Temporary storage for local errors             
+   CHARACTER(1024)                        :: SummaryName    ! name of the SubDyn summary file          
+   
+   CHARACTER(*),PARAMETER                 :: SectionDivide = '____________________________________________________________________________________________________'
+   CHARACTER(*),PARAMETER                 :: SubSectionDivide = '__________'
+   
+   INTEGER(IntKi)                  ::  i, j, k, propids(2)  !counter and temporary holders 
+   
+   INTEGER(IntKi)                         :: SDtoMeshIndx(Init%NNode)
+   REAL(ReKi)                      :: MRB(6,6)    !REDUCED SYSTEM Kmatrix, equivalent mass matrix
+   REAL(ReKi)                      :: XYZ1(3),XYZ2(3), DirCos(3,3), mlength !temporary arrays, member i-th direction cosine matrix (global to local) and member length
+   CHARACTER(2),  DIMENSION(6), PARAMETER     :: MatHds= (/'X ', 'Y ', 'Z ', 'XX', 'YY', 'ZZ'/)  !Headers for the columns and rows of 6x6 matrices
+      
+   
+   
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+    
+   CALL SD_Y2Mesh_Mapping(p, SDtoMeshIndx )
+   
+   !-------------------------------------------------------------------------------------------------------------
+   ! open txt file
+   !-------------------------------------------------------------------------------------------------------------
+   SummaryName = TRIM(Init%RootName)//'.sum'
+   UnSum = -1            ! we haven't opened the summary file, yet.   
 
-    TYPE(CB_MatArrays), INTENT(IN)    :: CBparams      !CB parameters that will be passed in for summary file use
-    TYPE(FEM_MatArrays), INTENT(IN)   :: FEMparams     !FEM parameters that will be passed in for summary file use
-   
-    INTEGER(IntKi), INTENT(OUT)                 :: ErrStat     ! Error status of the operation
-    CHARACTER(*),   INTENT(OUT)                 :: ErrMsg      ! Error message if ErrStat /= ErrID_None
-    
-    !LOCALS
-    INTEGER(IntKi)                  ::  i, j, k, propids(2)  !counter and temporary holders 
-    REAL(ReKi)                      :: KMM(CBparams%DOFM ,CBparams%DOFM ), MRB(6,6)    !REDUCED SYSTEM Kmatrix, equivalent mass matrix
-    REAL(ReKi)                      :: XYZ1(3),XYZ2(3), DirCos(3,3), mlength !temporary arrays, member i-th direction cosine matrix (global to local) and member length
-    CHARACTER(2),  DIMENSION(6), PARAMETER     :: MatHds= (/'X ', 'Y ', 'Z ', 'XX', 'YY', 'ZZ'/)  !Headers for the columns and rows of 6x6 matrices
-    
-    CHARACTER(len=20) :: Ndivs1,Tdofs,NOmegas !string containing parameter value in character type , length should be variable, not sure how to set that
-    
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-    
-    !create needed strings
-    Ndivs1=Num2LStr(Init%NDiv + 1 )
-    Tdofs=Num2LStr(Init%TDOF)
-    NOmegas=Num2LStr(FEMparams%NOmega)
-    !Initialize KMM
-    KMM=0.
-    DO i=1,CBparams%DOFM
-        KMM(i,i)=CBparams%OmegaL(i)**2
-    ENDDO
-   
-   !--------------------------------------
+   CALL SDOut_OpenSum( UnSum, SummaryName, SD_ProgDesc, ErrStat2, ErrMsg2 )   
+      CALL SetErrStat ( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SD_Init' )
+      IF ( ErrStat >= AbortErrLev ) THEN
+         CLOSE(UnSum)
+         RETURN
+      END IF
+      
+      
+   !-------------------------------------------------------------------------------------------------------------
    ! write discretized data to a txt file
-   
+   !-------------------------------------------------------------------------------------------------------------
 !bjj: for debugging, i recommend using the p% versions of all these variables whenever possible in this summary file:
 ! (it helps in debugging)
-   WRITE(Init%UnSum, '(A)')  'Unless specified, units are consistent with Input units, [SI] system is advised.'
-   WRITE(Init%UnSum, '(A)') ''
-   WRITE(Init%UnSum, '(4(A10))')  'NNodes', 'Nelems', 'NProps', 'NCMass'
-   WRITE(Init%UnSum, '(4(I10))' ) Init%NNode, Init%NElem, Init%NProp, Init%NCMass
-   WRITE(Init%UnSum, *) ''
-   WRITE(Init%UnSum, '(A8,3(1x,A15))')  'Node No.',    'X (m)',       'Y (m)',      'Z (m)'
-!   WRITE(Init%UnSum, '(I8.0, E15.6,E15.6,E15.6)') (INT(Init%Nodes(i, 1)),(Init%Nodes(i, j), j = 2, JointsCol), i = 1, Init%NNode) !do not group the format or it won't work 3(E15.6) does not work !bjj???
-   WRITE(Init%UnSum, '('//Num2LStr(Init%NNode)//'(I8.0,'//Num2lstr(JointsCol-1)//'(1x,F15.4),:,/))') (INT(Init%Nodes(i, 1)),(Init%Nodes(i, j), j = 2, JointsCol), i = 1, Init%NNode) 
-   WRITE(Init%UnSum, *) ''
-   WRITE(Init%UnSum, '(A8,4(A10))')  'Elem No.',    'Node_I',     'Node_J',      'Prop_I',      'Prop_J'
-   WRITE(Init%UnSum, '(I8,I10,I10,I10,I10)') ((p%Elems(i, j), j = 1, MembersCol), i = 1, Init%NElem)
-   WRITE(Init%UnSum, *) ''
-   WRITE(Init%UnSum, '(A8,5(A15))')  'Prop No.',     'YoungE',       'ShearG',       'MatDens',     'XsecD',      'XsecT'
-   WRITE(Init%UnSum, '(F8.0, E15.6,E15.6,E15.6,E15.6,E15.6 ) ') ((Init%Props(i, j), j = 1, 6), i = 1, Init%NProp)
-   WRITE(Init%UnSum, *) ''
-   WRITE(Init%UnSum, '(A,I6)')  'No. of Reaction DOFs:',p%NReact*6
-   WRITE(Init%UnSum, '(A, A6)')  'Reaction DOF_ID',      'LOCK'
-   WRITE(Init%UnSum, '(I10, I10)') ((Init%BCs(i, j), j = 1, 2), i = 1, p%NReact*6)
-   WRITE(Init%UnSum, *) ''
-   WRITE(Init%UnSum, '(A,I6)')  'No. of Interface DOFs:',p%DOFI
-   WRITE(Init%UnSum, '(A,A6)')  'Interface DOF ID',      'LOCK'
-   WRITE(Init%UnSum, '(I10, I10)') ((Init%IntFc(i, j), j = 1, 2), i = 1, p%DOFI)
-   WRITE(Init%UnSum, *) ''
-   WRITE(Init%UnSum, '(A,I6)')  'Number of concentrated masses:',Init%NCMass
-   WRITE(Init%UnSum, '(A10,A15,A15,A15,A15)')  'JointCMass',     'Mass',         'JXX',             'JYY',             'JZZ'
-   WRITE(Init%UnSum, '(F10.0, E15.6,E15.6,E15.6,E15.6)') ((Init%Cmass(i, j), j = 1, 5), i = 1, Init%NCMass)
-   WRITE(Init%UnSum, *) ''
-   WRITE(Init%UnSum, '(A,I6)')  'Number of members',p%NMembers
-   WRITE(Init%UnSum, '(A,I6)')  'Number of nodes per member:', Init%Ndiv+1
-   WRITE(Init%UnSum, '(A9,A10,A10,A15,A16)')  'Member ID', 'Joint1_ID', 'Joint2_ID', 'Mass', 'Node IDs...'
-   !WRITE(Init%UnSum, '('//Ndivs1//'(I6))') ((Init%MemberNodes(i, j), j = 1, Init%NDiv+1), i = 1, p%NMembers)
+   WRITE(UnSum, '(A)')  'Unless specified, units are consistent with Input units, [SI] system is advised.'
+   WRITE(UnSum, '(A)') SectionDivide
+   
+      
+   WRITE(UnSum, '()')    
+   WRITE(UnSum, '(A,I6)')  'Number of nodes (NNodes):',Init%NNode
+   WRITE(UnSum, '(A8,1x,A11,3(1x,A15))')  'Node No.', 'Y2Mesh Node',          'X (m)',           'Y (m)',           'Z (m)'         
+   WRITE(UnSum, '(A8,1x,A11,3(1x,A15))')  '--------', '-----------', '---------------', '---------------', '---------------'
+!   WRITE(UnSum, '(I8.0, E15.6,E15.6,E15.6)') (INT(Init%Nodes(i, 1)),(Init%Nodes(i, j), j = 2, JointsCol), i = 1, Init%NNode) !do not group the format or it won't work 3(E15.6) does not work !bjj???
+   WRITE(UnSum, '('//Num2LStr(Init%NNode)//'(I8,3x,I9,'//Num2lstr(JointsCol-1)//'(1x,F15.4),:,/))') &
+                          (NINT(Init%Nodes(i, 1)), SDtoMeshIndx(i), (Init%Nodes(i, j), j = 2, JointsCol), i = 1, Init%NNode)
+
+   WRITE(UnSum, '()') 
+   WRITE(UnSum, '(A,I6)')  'Number of elements (NElems):',Init%NElem
+   WRITE(UnSum, '(A8,4(A10))')  'Elem No.',    'Node_I',     'Node_J',      'Prop_I',      'Prop_J'
+   WRITE(UnSum, '(I8,I10,I10,I10,I10)') ((p%Elems(i, j), j = 1, MembersCol), i = 1, Init%NElem)
+   
+   WRITE(UnSum, '()') 
+   WRITE(UnSum, '(A,I6)')  'Number of properties (NProps):',Init%NProp
+   WRITE(UnSum, '(A8,5(A15))')  'Prop No.',     'YoungE',       'ShearG',       'MatDens',     'XsecD',      'XsecT'
+   WRITE(UnSum, '(I8, E15.6,E15.6,E15.6,E15.6,E15.6 ) ') (NINT(Init%Props(i, 1)), (Init%Props(i, j), j = 2, 6), i = 1, Init%NProp)
+
+   WRITE(UnSum, '()') 
+   WRITE(UnSum, '(A,I6)')  'No. of Reaction DOFs:',p%NReact*6
+   WRITE(UnSum, '(A, A6)')  'Reaction DOF_ID',      'LOCK'
+   WRITE(UnSum, '(I10, I10)') ((Init%BCs(i, j), j = 1, 2), i = 1, p%NReact*6)
+
+   WRITE(UnSum, '()') 
+   WRITE(UnSum, '(A,I6)')  'No. of Interface DOFs:',p%DOFI
+   WRITE(UnSum, '(A,A6)')  'Interface DOF ID',      'LOCK'
+   WRITE(UnSum, '(I10, I10)') ((Init%IntFc(i, j), j = 1, 2), i = 1, p%DOFI)
+
+   WRITE(UnSum, '()') 
+   WRITE(UnSum, '(A,I6)')  'Number of concentrated masses (NCMass):',Init%NCMass
+   WRITE(UnSum, '(A10,A15,A15,A15,A15)')  'JointCMass',     'Mass',         'JXX',             'JYY',             'JZZ'
+   WRITE(UnSum, '(F10.0, E15.6,E15.6,E15.6,E15.6)') ((Init%Cmass(i, j), j = 1, 5), i = 1, Init%NCMass)
+
+   WRITE(UnSum, '()') 
+   WRITE(UnSum, '(A,I6)')  'Number of members',p%NMembers
+   WRITE(UnSum, '(A,I6)')  'Number of nodes per member:', Init%Ndiv+1
+   WRITE(UnSum, '(A9,A10,A10,A15,A16)')  'Member ID', 'Joint1_ID', 'Joint2_ID', 'Mass', 'Node IDs...'
+   !WRITE(UnSum, '('//Num2LStr(Init%NDiv + 1 )//'(I6))') ((Init%MemberNodes(i, j), j = 1, Init%NDiv+1), i = 1, p%NMembers)
    DO i=1,p%NMembers
        !Calculate member mass here; this should really be done somewhere else, yet it is not used anywhere else
        !IT WILL HAVE TO BE MODIFIED FOR OTHER THAN CIRCULAR PIPE ELEMENTS
        propids=Init%Members(i,4:5)
        mlength=MemberLength(Init%Members(i,1),Init,ErrStat,ErrMsg)
        IF (ErrStat .EQ. ErrID_None) THEN
-        WRITE(Init%UnSum, '(I9,I10,I10, E15.6, A3,'//Ndivs1//'(I6))')    Init%Members(i,1:3),                &
+        WRITE(UnSum, '(I9,I10,I10, E15.6, A3,'//Num2LStr(Init%NDiv + 1 )//'(I6))')    Init%Members(i,1:3),                &
         MemberMass(Init%PropSets(propids(1),4),Init%PropSets(propids(1),5),Init%PropSets(propids(1),6),   &
                     Init%PropSets(propids(2),4),Init%PropSets(propids(2),5),Init%PropSets(propids(2),6), mlength, .TRUE.),  &
                ' ',(Init%MemberNodes(i, j), j = 1, Init%NDiv+1)
@@ -4195,11 +4300,12 @@ SUBROUTINE OutSummary(Init, p, FEMparams,CBparams, ErrStat,ErrMsg)
            RETURN
        ENDIF
    ENDDO   
-   !--------------------------------------
+   !-------------------------------------------------------------------------------------------------------------
    ! write Cosine matrix for all members to a txt file
-   WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
-   WRITE(Init%UnSum, '(A, I6)') 'Direction Cosine Matrices for all Members: GLOBAL-2-LOCAL. No. of 3x3 matrices=', p%NMembers 
-   WRITE(Init%UnSum, '(A9,9(A15))')  'Member ID', 'DC(1,1)', 'DC(1,2)', 'DC(1,3)', 'DC(2,1)','DC(2,2)','DC(2,3)','DC(3,1)','DC(3,2)','DC(3,3)'
+   !-------------------------------------------------------------------------------------------------------------
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A, I6)') 'Direction Cosine Matrices for all Members: GLOBAL-2-LOCAL. No. of 3x3 matrices=', p%NMembers 
+   WRITE(UnSum, '(A9,9(A15))')  'Member ID', 'DC(1,1)', 'DC(1,2)', 'DC(1,3)', 'DC(2,1)','DC(2,2)','DC(2,3)','DC(3,1)','DC(3,2)','DC(3,3)'
    DO i=1,p%NMembers
        !Find the right index in the Nodes array for the selected JointID. This is horrible, but I do not know how to implement this search in a more efficient way
        !The alternative would be to get an element that belongs to the member and use it with dircos
@@ -4214,118 +4320,149 @@ SUBROUTINE OutSummary(Init, p, FEMparams,CBparams, ErrStat,ErrMsg)
        ENDDO    
        CALL GetDirCos(XYZ1(1), XYZ1(2), XYZ1(3), XYZ2(1), XYZ2(2), XYZ2(3), DirCos, mlength, ErrStat, ErrMsg)
        DirCos=TRANSPOSE(DirCos) !This is now global to local
-       WRITE(Init%UnSum, '(I9,9(E15.6))') Init%Members(i,1), ((DirCos(k,j),j=1,3),k=1,3)
+       WRITE(UnSum, '(I9,9(E15.6))') Init%Members(i,1), ((DirCos(k,j),j=1,3),k=1,3)
    ENDDO
-   !--------------------------------------
-   ! write assembed K M to a txt file
-   
-   WRITE(Init%UnSum, '(A)') ('____________________________________________________________________________________________________')
-   WRITE(Init%UnSum, '(A, I6)') 'FULL FEM K and M matrices. TOTAL FEM TDOFs', Init%TDOF 
-   WRITE(Init%UnSum, '(A)') ('Stiffness matrix K' )
-   WRITE(Init%UnSum, '(A15,'//Tdofs//'(I15))') ' ', (i, i = 1, Init%TDOF  )
-   DO i=1,Init%TDOF
-        WRITE(Init%UnSum, '(I15, '//Tdofs//'(e15.6))')   i, (Init%K(i, j), j = 1, Init%TDOF)
-   ENDDO   
- 
-   WRITE(Init%UnSum, '(A)') ('__________')
-   WRITE(Init%UnSum, '(A)') ('Mass matrix M' )
-   WRITE(Init%UnSum, '(A15,'//Tdofs//'(I15))') ' ', (i, i = 1, Init%TDOF  )
-   DO i=1,Init%TDOF
-        WRITE(Init%UnSum, '(I15, '//Tdofs//'(e15.6))')   i, (Init%M(i, j), j = 1, Init%TDOF)
-   ENDDO  
-   
-   !--------------------------------------
-   ! write assembed GRAVITY FORCE FG VECTOR.  gravity forces applied at each node of the full system
-   WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
-   WRITE(Init%UnSum, '(A)') 'Gravity force vector FG applied at each node of the full system' 
-   WRITE(Init%UnSum, '(I6, e15.6)') (i, Init%FG(i), i = 1, Init%TDOF)
 
-   !--------------------------------------
+   !-------------------------------------------------------------------------------------------------------------
    ! write Eigenvalues of full SYstem and CB reduced System
-   
-    WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
-    WRITE(Init%UnSum, '(A, I6)') 'FEM Eigenvalues [Hz]. Number of shown eigenvalues (total # of DOFs minus restrained nodes'' DOFs):', FEMparams%NOmega 
-    WRITE(Init%UnSum, '(I6, e15.6)') ( i, FEMparams%Omega(i)/2.0/pi, i = 1, FEMparams%NOmega )
+   !-------------------------------------------------------------------------------------------------------------
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A)') 'Eigenvalues'
+   WRITE(UnSum, '(A)') SubSectionDivide
+   WRITE(UnSum, '(A, I6)') "FEM Eigenvalues [Hz]. Number of shown eigenvalues (total # of DOFs minus restrained nodes' DOFs):", FEMparams%NOmega 
+   WRITE(UnSum, '(I6, e15.6)') ( i, FEMparams%Omega(i)/2.0/pi, i = 1, FEMparams%NOmega )
 
-    WRITE(Init%UnSum, '(A)') '__________'
-    WRITE(Init%UnSum, '(A, I6)') 'CB Reduced Eigenvalues [Hz].  Number of retained modes'' eigenvalues:', CBparams%DOFM 
-    WRITE(Init%UnSum, '(I6, e15.6)') ( i, CBparams%OmegaL(i)/2.0/pi, i = 1, CBparams%DOFM )  
+   WRITE(UnSum, '(A)') SubSectionDivide
+   WRITE(UnSum, '(A, I6)') "CB Reduced Eigenvalues [Hz].  Number of retained modes' eigenvalues:", CBparams%DOFM 
+   WRITE(UnSum, '(I6, e15.6)') ( i, CBparams%OmegaL(i)/2.0/pi, i = 1, CBparams%DOFM )  
     
-   !--------------------------------------
+   !-------------------------------------------------------------------------------------------------------------
    ! write Eigenvectors of full SYstem 
-   
-    WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
-    WRITE(Init%UnSum, '(A, I6)') ('FEM Eigenvectors ('//Tdofs//' x '//NOmegas//') [m or rad]. Number of shown eigenvectors (total # of DOFs minus restrained nodes'' DOFs):'), FEMparams%NOmega 
-    WRITE(Init%UnSum, '(A15,'//NOmegas//'(I15))') ' ', (i, i = 1, FEMparams%NOmega  )!HEADERS
-    WRITE(Init%UnSum, '(I6,'//NOmegas//'e15.6)') ( i, (FEMparams%Modes(i,j), j = 1, FEMparams%NOmega ),i = 1, Init%TDOF)
+   !-------------------------------------------------------------------------------------------------------------
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A, I6)') ('FEM Eigenvectors ('//TRIM(Num2LStr(Init%TDOF))//' x '//TRIM(Num2LStr(FEMparams%NOmega))//&
+                              ') [m or rad]. Number of shown eigenvectors (total # of DOFs minus restrained nodes'' DOFs):'), FEMparams%NOmega 
+   WRITE(UnSum, '(6x,'//Num2LStr(FEMparams%NOmega)//'(I15))') (i, i = 1, FEMparams%NOmega  )!HEADERS
+   WRITE(UnSum, '(I6,'//Num2LStr(FEMparams%NOmega)//'e15.6)') ( i, (FEMparams%Modes(i,j), j = 1, FEMparams%NOmega ),i = 1, Init%TDOF)
     
-   !--------------------------------------
+   !-------------------------------------------------------------------------------------------------------------
    ! write CB system matrices
+   !-------------------------------------------------------------------------------------------------------------
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A)') 'CB Matrices (PhiM,PhiR) (no constraint applied)'
    
-    WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
-    WRITE(Init%UnSum, '(A)') 'CB Matrices (PhiR,PhiM,MBB,MBM,KBB) (no constraint applied)'
-    WRITE(Init%UnSum, '(A)') '_____________'
-    WRITE(Init%UnSum, '(A, I4,A,I4)') 'PhiR', p%DOFL,' x ', p%DOFR
-    CALL WrMatrix( CBparams%PhiR, Init%UnSum, 'e15.6' ) ! WRITE(Init%UnSum, '('// DOFRs //'(e15.6))') ((CBparams%PhiR(i,j),j=1,p%DOFR),i=1,p%DOFL)
-    
-    WRITE(Init%UnSum, '(A)') '_____________'
-    WRITE(Init%UnSum, '(A, I4,A,I4)') 'PhiM', p%DOFL,' x ', CBparams%DOFM 
-    CALL WrMatrix( CBparams%PhiL(:,1:CBparams%DOFM ), Init%UnSum, 'e15.6' ) ! WRITE(Init%UnSum, '('// TRIM(Num2LStr(CBparams%DOFM)) //'(e15.6))') ((CBparams%PhiL(i,j),j=1,CBparams%DOFM),i=1,p%DOFL)  !This was phiM
-    
-    WRITE(Init%UnSum, '(A)') '_____________'
-    WRITE(Init%UnSum, '(A, I4,A,I4)') 'MBB', p%DOFR,' x ', p%DOFR 
-    CALL WrMatrix( CBparams%MBB, Init%UnSum, 'e15.6' ) ! WRITE(Init%UnSum, '('// DOFRs //'(e15.6))') ((CBparams%MBB(i,j),j=1,p%DOFR),i=1,p%DOFR)
-    
-    WRITE(Init%UnSum, '(A)') '_____________'
-    WRITE(Init%UnSum, '(A, I4,A,I4)') 'MBM', p%DOFR,' x ', CBparams%DOFM 
-    CALL WrMatrix( CBparams%MBM, Init%UnSum, 'e15.6' ) ! WRITE(Init%UnSum, '('// TRIM(Num2LStr(CBparams%DOFM)) //'(e15.6))') ((CBparams%MBM(i,j),j=1,CBparams%DOFM),i=1,p%DOFR)
-    
-    WRITE(Init%UnSum, '(A)') '_____________'
-    WRITE(Init%UnSum, '(A, I4,A,I4)') 'KBB', p%DOFR,' x ', p%DOFR 
-    CALL WrMatrix( CBparams%KBB, Init%UnSum, 'e15.6' ) ! WRITE(Init%UnSum, '('// DOFRs //'(e15.6))') ((CBparams%KBB(i,j),j=1,p%DOFR),i=1,p%DOFR)
-    
-    WRITE(Init%UnSum, '(A)') '_____________'
-    WRITE(Init%UnSum, '(A, I4,A,I4)') 'KMM', CBparams%DOFM,' x ', CBparams%DOFM 
-    CALL WrMatrix( KMM, Init%UnSum, 'e15.6' ) ! WRITE(Init%UnSum, '('// DOFMs //'(e15.6))') ((KMM(i,j),j=1,CBparams%DOFM),i=1,CBparams%DOFM)
-   !bjj: todo: let's only write the diagonals of the diagonal matrices
-   
-    !--------------------------------------
-    ! write TP TI matrix
-    
-    WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
-    WRITE(Init%UnSum, '(A)') 'TP refpoint Transformation Matrix TI '
-    WRITE(Init%UnSum, '(A, I4,A,I4)') 'TI', p%DOFI,' x ', 6
-    CALL WrMatrix( p%TI, Init%UnSum, 'e15.6' ) ! WRITE(Init%UnSum, '(6(e15.6))') ((p%TI(i,j),j=1,6),i=1,p%DOFI)
-    !--------------------------------------
-    ! write CB system KBBt and MBBt matrices, eq stiffness matrices of the entire substructure at the TP ref point
-   
-    WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________'
-    WRITE(Init%UnSum, '(A)') 'SubDyn''s Structure Equivalent Stiffness and Mass Matrices at the TP reference point (KBBt and MBBt)'
-    WRITE(Init%UnSum, '(A)') 'KBBt'  !Note p%KBB stores KBBt
-    WRITE(Init%UnSum, '(7(A15))') ' ', (MatHds(i), i = 1, 6   )
+   WRITE(UnSum, '(A)') SubSectionDivide
+   IF (CBparams%DOFM > 0) THEN
+      CALL WrMatrix( CBparams%PhiL(:,1:CBparams%DOFM ), UnSum, 'e15.6', 'PhiM' ) 
+   ELSE
+      WRITE( UnSum, '(A,": ",A," x ",A)', IOSTAT=ErrStat ) "PhiM", TRIM(Num2LStr(p%DOFL)), '0' 
+   END IF
+
+   WRITE(UnSum, '(A)') SubSectionDivide
+   CALL WrMatrix( CBparams%PhiR, UnSum, 'e15.6', 'PhiR' ) 
+           
+   !-------------------------------------------------------------------------------------------------------------
+   ! write CB system KBBt and MBBt matrices, eq stiffness matrices of the entire substructure at the TP ref point
+   !-------------------------------------------------------------------------------------------------------------
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A)') "SubDyn's Structure Equivalent Stiffness and Mass Matrices at the TP reference point (KBBt and MBBt)"
+   WRITE(UnSum, '(A)') SubSectionDivide
+   WRITE(UnSum, '(A)') 'KBBt'  !Note p%KBB stores KBBt
+   WRITE(UnSum, '(7(A15))') ' ', (MatHds(i), i = 1, 6   )
     !tried implicit loop unsuccessfully
     DO i=1,6
-        WRITE(Init%UnSum, '(A15, 6(e15.6))')   MatHds(i), (p%KBB(i,j), j = 1, 6)
+        WRITE(UnSum, '(A15, 6(e15.6))')   MatHds(i), (p%KBB(i,j), j = 1, 6)
     ENDDO    
-    WRITE(Init%UnSum, '(A)') ('MBBt')!Note p%MBB stores MBBt
-    WRITE(Init%UnSum, '(7(A15))') ' ', (MatHds(i), i = 1, 6   )
+   WRITE(UnSum, '(A)') SubSectionDivide
+   WRITE(UnSum, '(A)') ('MBBt')!Note p%MBB stores MBBt
+   WRITE(UnSum, '(7(A15))') ' ', (MatHds(i), i = 1, 6   )
     DO i=1,6
-        WRITE(Init%UnSum, '(A15, 6(e15.6))')   MatHds(i), (p%MBB(i,j), j = 1, 6)
+        WRITE(UnSum, '(A15, 6(e15.6))')   MatHds(i), (p%MBB(i,j), j = 1, 6)
     ENDDO  
-    !--------------------------------------
+   !-------------------------------------------------------------------------------------------------------------
     ! write TOTAL MASS AND CM(Note this includes structural and non-structural mass)
     !!!!!!     TO BE CORRECTED: I MUST USE ORIGINAL MBB not reduced MBBt for the latter and apply TI!!!!  RRD TO DO
+   !-------------------------------------------------------------------------------------------------------------
    MRB=matmul(TRANSPOSE(CBparams%TI2),matmul(CBparams%MBB,CBparams%TI2)) !Equivalent mass matrix of the rigid body
-   WRITE(Init%UnSum, '(A)') '____________________________________________________________________________________________________' 
-   WRITE(Init%UnSum, '(A)') 'MRB . Rigid Body Equivalent Mass Matrix w.r.t. (0,0,0).'
-   WRITE(Init%UnSum, '(7(A15))') ' ', (MatHds(i), i = 1, 6   )
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A)') 'Rigid Body Equivalent Mass Matrix w.r.t. (0,0,0).'
+   WRITE(UnSum, '(A)') SubSectionDivide
+   WRITE(UnSum, '(A)') 'MRB'
+   WRITE(UnSum, '(7(A15))') ' ', (MatHds(i), i = 1, 6   )
    DO i=1,6
-        WRITE(Init%UnSum, '(A15, 6(e15.6))')   MatHds(i), (MRB(i,j), j = 1, 6)
-    ENDDO 
-   WRITE(Init%UnSum, '(A,E15.6)') 'SubDyn''s Total Mass (structural and non-structural)=',MRB(1,1) 
-   WRITE(Init%UnSum, '(A,3(E15.6))') 'SubDyn''s Total Mass CM coordinates (Xcm,Ycm,Zcm)=', (/-MRB(3,5),-MRB(1,6), MRB(1,5)/) /MRB(1,1)        
+        WRITE(UnSum, '(A15, 6(e15.6))')   MatHds(i), (MRB(i,j), j = 1, 6)
+   ENDDO 
+   
+   WRITE(UnSum, '()') 
+   WRITE(UnSum, '(A,E15.6)')    "SubDyn's Total Mass (structural and non-structural)=", MRB(1,1) 
+   WRITE(UnSum, '(A,3(E15.6))') "SubDyn's Total Mass CM coordinates (Xcm,Ycm,Zcm)   =", (/-MRB(3,5),-MRB(1,6), MRB(1,5)/) /MRB(1,1)        
 
-   ! CALL SDOut_CloseSum( Init%UnSum, ErrStat, ErrMsg ) !bjj: For error handling, I'm going to close the file in the routine that called the routine to open it 
+   
+#ifdef SD_SUMMARY_DEBUG
+
+   WRITE(UnSum, '()') 
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A)') '**** Additional Debugging Information ****'
+
+
+   !-------------------------------------------------------------------------------------------------------------
+   ! write assembed K M to a txt file
+   !-------------------------------------------------------------------------------------------------------------
+   
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A, I6)') 'FULL FEM K and M matrices. TOTAL FEM TDOFs:', Init%TDOF 
+   WRITE(UnSum, '(A)') ('Stiffness matrix K' )
+   WRITE(UnSum, '(15x,'//TRIM(Num2LStr(Init%TDOF))//'(I15))')  (i, i = 1, Init%TDOF  )
+   DO i=1,Init%TDOF
+        WRITE(UnSum, '(I15, '//TRIM(Num2LStr(Init%TDOF))//'(e15.6))')   i, (Init%K(i, j), j = 1, Init%TDOF)
+   ENDDO   
+ 
+   WRITE(UnSum, '(A)') SubSectionDivide
+   WRITE(UnSum, '(A)') ('Mass matrix M' )
+   WRITE(UnSum, '(15x,'//TRIM(Num2LStr(Init%TDOF))//'(I15))')  (i, i = 1, Init%TDOF  )
+   DO i=1,Init%TDOF
+        WRITE(UnSum, '(I15, '//TRIM(Num2LStr(Init%TDOF))//'(e15.6))')   i, (Init%M(i, j), j = 1, Init%TDOF)
+   ENDDO  
+   
+   !-------------------------------------------------------------------------------------------------------------
+   ! write assembed GRAVITY FORCE FG VECTOR.  gravity forces applied at each node of the full system
+   !-------------------------------------------------------------------------------------------------------------
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A)') 'Gravity force vector FG applied at each node of the full system' 
+   WRITE(UnSum, '(I6, e15.6)') (i, Init%FG(i), i = 1, Init%TDOF)
+      
+   !-------------------------------------------------------------------------------------------------------------
+   ! write CB system matrices
+   !-------------------------------------------------------------------------------------------------------------   
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A)') 'Additional CB Matrices (MBB,MBM,KBB) (no constraint applied)'
+        
+   WRITE(UnSum, '(A)') SubSectionDivide
+   CALL WrMatrix( CBparams%MBB, UnSum, 'e15.6', 'MBB' ) 
+    
+   WRITE(UnSum, '(A)') SubSectionDivide
+   IF ( CBparams%DOFM > 0 ) THEN
+      CALL WrMatrix( CBparams%MBM, UnSum, 'e15.6', 'MBM' ) 
+   ELSE
+      WRITE( UnSum, '(A,": ",A," x ",A)', IOSTAT=ErrStat ) "MBM", '6', '0' 
+   END IF
+   
+   WRITE(UnSum, '(A)') SubSectionDivide
+   CALL WrMatrix( CBparams%KBB, UnSum, 'e15.6', 'KBB' ) 
+    
+   WRITE(UnSum, '(A)') SubSectionDivide
+   CALL WrMatrix( CBparams%OmegaL**2, UnSum, 'e15.6','KMM (diagonal)' ) 
+   
+   !-------------------------------------------------------------------------------------------------------------
+   ! write TP TI matrix
+   !-------------------------------------------------------------------------------------------------------------
+   WRITE(UnSum, '(A)') SectionDivide
+   WRITE(UnSum, '(A)') 'TP refpoint Transformation Matrix TI '
+   CALL WrMatrix( p%TI, UnSum, 'e15.6', 'TI' ) 
+      
+#endif   
+   
+   CALL SDOut_CloseSum( UnSum, ErrStat, ErrMsg )  
 
 END SUBROUTINE OutSummary
 !------------------------------------------------------------------------------------------------------

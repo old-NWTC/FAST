@@ -2495,7 +2495,7 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                ! Get the LU decomposition of this matrix using a LAPACK routine: 
                ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
 
-            CALL LAPACK_getrf( M=NumInputs, N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+            CALL LAPACK_getrf( M=NumInputs, N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, IPIV=MeshMapData%Jacobian_pivot, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
                CALL CheckError( ErrStat2, ErrMsg2  )
                IF ( ErrStat >= AbortErrLev ) RETURN
             
@@ -2507,7 +2507,7 @@ SUBROUTINE ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
          !-------------------------------------------------------------------------------------------------
          
          u_delta = -Fn_U_Resid
-         CALL LAPACK_getrs( TRANS='N', N=NumInputs, NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=NumInputs, IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=NumInputs, &
+         CALL LAPACK_getrs( TRANS='N', N=NumInputs, A=MeshMapData%Jacobian_ED_SD_HD, IPIV=MeshMapData%Jacobian_pivot, B=u_delta, &
                             ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
                CALL CheckError( ErrStat2, ErrMsg2  )
                IF ( ErrStat >= AbortErrLev ) RETURN 
@@ -3094,7 +3094,7 @@ END IF
                ! Get the LU decomposition of this matrix using a LAPACK routine: 
                ! The result is of the form MeshMapDat%Jacobian_ED_SD_HD = P * L * U 
 
-            CALL LAPACK_getrf( M=p_FAST%SizeJac_ED_SD_HD(4), N=p_FAST%SizeJac_ED_SD_HD(4), A=MeshMapData%Jacobian_ED_SD_HD, LDA=p_FAST%SizeJac_ED_SD_HD(4), IPIV=MeshMapData%Jacobian_pivot, &
+            CALL LAPACK_getrf( M=p_FAST%SizeJac_ED_SD_HD(4), N=p_FAST%SizeJac_ED_SD_HD(4), A=MeshMapData%Jacobian_ED_SD_HD, IPIV=MeshMapData%Jacobian_pivot, &
                               ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
                CALL CheckError( ErrStat2, ErrMsg2  )
                IF ( ErrStat >= AbortErrLev ) RETURN 
@@ -3107,8 +3107,8 @@ END IF
          !-------------------------------------------------------------------------------------------------
          
          u_delta = -Fn_U_Resid
-         CALL LAPACK_getrs( TRANS="N", N=p_FAST%SizeJac_ED_SD_HD(4), NRHS=1, A=MeshMapData%Jacobian_ED_SD_HD, LDA=p_FAST%SizeJac_ED_SD_HD(4), &
-                            IPIV=MeshMapData%Jacobian_pivot, B=u_delta, LDB=p_FAST%SizeJac_ED_SD_HD(4), ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+         CALL LAPACK_getrs( TRANS="N", N=p_FAST%SizeJac_ED_SD_HD(4), A=MeshMapData%Jacobian_ED_SD_HD, &
+                            IPIV=MeshMapData%Jacobian_pivot, B=u_delta, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
                CALL CheckError( ErrStat2, ErrMsg2  )
                IF ( ErrStat >= AbortErrLev ) RETURN 
 

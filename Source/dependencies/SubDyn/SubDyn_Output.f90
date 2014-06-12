@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-05 13:47:01 -0600 (Thu, 05 Jun 2014) $
-! (File) Revision #: $Rev: 301 $
+! File last committed: $Date: 2014-06-07 21:27:55 -0600 (Sat, 07 Jun 2014) $
+! (File) Revision #: $Rev: 303 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -4386,12 +4386,16 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
   AllOuts(IntfTRss(1:TPdofL))=OtherState%u_TP !u%UFL(1:TPdofL) !TODO need to add these back in!!! GJH 6/6/13
   !Assign interface translations and rotations accelerations
   AllOuts(IntfTRAss(1:TPdofL))= OtherState%udotdot_TP !u%UFL(2*TPdofL+1:3*TPdofL)  !TODO need to add these back in!!! GJH 6/6/13
+  
   ! Assign all SSqm, SSqmdot, SSqmdotdot
    ! We only have space for the first 99 values
   maxOutModes = min(p%Nmodes,99)
-  Allouts(SSqm01  :SSqm01  +maxOutModes-1) = x%qm      (1:maxOutModes)
-  Allouts(SSqmd01 :SSqmd01 +maxOutModes-1) = x%qmdot   (1:maxOutModes)
-  Allouts(SSqmdd01:SSqmdd01+maxOutModes-1) = OtherState%qmdotdot(1:maxOutModes)
+   IF ( maxOutModes > 0 ) THEN 
+      !BJJ: TODO: is there a check to see if we requested these channels but didn't request the modes? (i.e., retain 2 modes but asked for 75th mode?)
+      Allouts(SSqm01  :SSqm01  +maxOutModes-1) = x%qm      (1:maxOutModes)
+      Allouts(SSqmd01 :SSqmd01 +maxOutModes-1) = x%qmdot   (1:maxOutModes)
+      Allouts(SSqmdd01:SSqmdd01+maxOutModes-1) = OtherState%qmdotdot(1:maxOutModes)
+   END IF
    
   !Need to Calculate Reaction Forces Now, but only if requested
   IF (p%OutReact) THEN 

@@ -75,7 +75,7 @@ MODULE NWTC_LAPACK
 CONTAINS
 
 !=======================================================================
-   SUBROUTINE LAPACK_DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_DGBSV( N, KL, KU, NRHS, AB, IPIV, B, ErrStat, ErrMsg )
 
 
       ! passed parameters
@@ -84,16 +84,14 @@ CONTAINS
       INTEGER,         intent(in   ) :: KU                ! The number of superdiagonals within the band of A.  KU >= 0.
       INTEGER,         intent(in   ) :: N                 ! The number of linear equations, i.e., the order of the matrix A.  N >= 0.
       INTEGER,         intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,         intent(in   ) :: LDAB              ! The leading dimension of the array AB.  LDAB >= 2*KL+KU+1.
-      INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      REAL(R8Ki)      ,intent(inout) :: AB( LDAB, * )      ! On entry, the matrix A in band storage, in rows KL+1 to 2*KL+KU+1; rows 1 to KL of the array need not be set.
+      REAL(R8Ki)      ,intent(inout) :: AB( :, : )        ! On entry, the matrix A in band storage, in rows KL+1 to 2*KL+KU+1; rows 1 to KL of the array need not be set.
                                                           ! The j-th column of A is stored in the j-th column of the array AB as follows:
                                                           !    AB(KL+KU+1+i-j,j) = A(i,j) for max(1,j-KU)<=i<=min(N,j+KL)
                                                           ! On exit, details of the factorization: U is stored as an upper triangular band matrix with KL+KU superdiagonals in
                                                           ! rows 1 to KL+KU+1, and the multipliers used during the factorization are stored in rows KL+KU+2 to 2*KL+KU+1.
-      REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(R8Ki)      ,intent(inout) :: B( :, : )         ! On entry, the N-by-NRHS right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
       INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
@@ -102,6 +100,12 @@ CONTAINS
          ! local variables
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero.
                                                           ! > 0: if INFO = i, U(i,i) is exactly zero. The factorization has been completed, but the factor U is exactly singular, so the solution could not be computed.
+      INTEGER                        :: LDAB              ! The leading dimension of the array AB.  LDAB >= 2*KL+KU+1.
+      INTEGER                        :: LDB               ! The leading dimension of the array B.   LDB  >= max(1,N).
+
+
+      LDAB  = SIZE(AB,1)
+      LDB   = SIZE(B, 1)
 
 
 
@@ -124,7 +128,7 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_DGBSV
 !=======================================================================
-   SUBROUTINE LAPACK_SGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_SGBSV( N, KL, KU, NRHS, AB, IPIV, B, ErrStat, ErrMsg )
 
 
       ! passed parameters
@@ -133,16 +137,14 @@ CONTAINS
       INTEGER,         intent(in   ) :: KU                ! The number of superdiagonals within the band of A.  KU >= 0.
       INTEGER,         intent(in   ) :: N                 ! The number of linear equations, i.e., the order of the matrix A.  N >= 0.
       INTEGER,         intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,         intent(in   ) :: LDAB              ! The leading dimension of the array AB.  LDAB >= 2*KL+KU+1.
-      INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      REAL(SiKi)      ,intent(inout) :: AB( LDAB, * )      ! On entry, the matrix A in band storage, in rows KL+1 to 2*KL+KU+1; rows 1 to KL of the array need not be set.
+      REAL(SiKi)      ,intent(inout) :: AB( :, : )        ! On entry, the matrix A in band storage, in rows KL+1 to 2*KL+KU+1; rows 1 to KL of the array need not be set.
                                                           ! The j-th column of A is stored in the j-th column of the array AB as follows:
                                                           !    AB(KL+KU+1+i-j,j) = A(i,j) for max(1,j-KU)<=i<=min(N,j+KL)
                                                           ! On exit, details of the factorization: U is stored as an upper triangular band matrix with KL+KU superdiagonals in
                                                           ! rows 1 to KL+KU+1, and the multipliers used during the factorization are stored in rows KL+KU+2 to 2*KL+KU+1.
-      REAL(SiKi)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(SiKi)      ,intent(inout) :: B( :, : )         ! On entry, the N-by-NRHS right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
       INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
@@ -152,6 +154,12 @@ CONTAINS
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero.
                                                           ! > 0: if INFO = i, U(i,i) is exactly zero. The factorization has been completed, but the factor U is exactly singular, so the solution could not be computed.
 
+      INTEGER                        :: LDAB              ! The leading dimension of the array AB.  LDAB >= 2*KL+KU+1.
+      INTEGER                        :: LDB               ! The leading dimension of the array B.   LDB  >= max(1,N).
+
+
+      LDAB  = SIZE(AB,1)
+      LDB   = SIZE(B, 1)
 
 
       ErrStat = ErrID_None
@@ -173,19 +181,16 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_SGBSV
 !=======================================================================
-   SUBROUTINE LAPACK_DGESV ( N, NRHS, A, LDA, IPIV, B, LDB, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_DGESV ( N, A, IPIV, B, ErrStat, ErrMsg )
 
 
       ! passed parameters
 
       INTEGER,         intent(in   ) :: N                 ! The number of linear equations, i.e., the order of the matrix A.  N >= 0.
-      INTEGER,         intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,         intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
-      INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! On entry, the N-by-N coefficient matrix A.  On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
-      REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(R8Ki)      ,intent(inout) :: A( :, : )         ! On entry, the N-by-N coefficient matrix A.  On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
+      REAL(R8Ki)      ,intent(inout) :: B( :, : )         ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
       INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
@@ -194,8 +199,14 @@ CONTAINS
          ! local variables
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero.
                                                           ! > 0: if INFO = i, U(i,i) is exactly zero. The factorization has been completed, but the factor U is exactly singular, so the solution could not be computed.
+      INTEGER                        :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
-
+      
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
+      NRHS = SIZE(B,2)
 
       ErrStat = ErrID_None
       ErrMsg  = ""
@@ -216,19 +227,16 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_DGESV
 !=======================================================================
-   SUBROUTINE LAPACK_SGESV ( N, NRHS, A, LDA, IPIV, B, LDB, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_SGESV ( N, A, IPIV, B, ErrStat, ErrMsg )
 
 
       ! passed parameters
 
       INTEGER,         intent(in   ) :: N                 ! The number of linear equations, i.e., the order of the matrix A.  N >= 0.
-      INTEGER,         intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,         intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
-      INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      REAL(SiKi)      ,intent(inout) :: A( LDA, * )       ! On entry, the N-by-N coefficient matrix A.  On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
-      REAL(SiKi)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(SiKi)      ,intent(inout) :: A( :, : )       ! On entry, the N-by-N coefficient matrix A.  On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
+      REAL(SiKi)      ,intent(inout) :: B( :, : )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
       INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices that define the permutation matrix P; row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
@@ -237,7 +245,14 @@ CONTAINS
          ! local variables
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero.
                                                           ! > 0: if INFO = i, U(i,i) is exactly zero. The factorization has been completed, but the factor U is exactly singular, so the solution could not be computed.
-
+      INTEGER                        :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
+                        
+      
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
+      NRHS = SIZE(B,2)
 
 
       ErrStat = ErrID_None
@@ -259,17 +274,16 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_SGESV
 !=======================================================================
-   SUBROUTINE LAPACK_DGETRF( M, N, A, LDA, IPIV, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_DGETRF( M, N, A, IPIV, ErrStat, ErrMsg )
 
 
       ! passed parameters
 
       INTEGER,         intent(in   ) :: M                 ! The number of rows of the matrix A.  M >= 0.
       INTEGER,         intent(in   ) :: N                 ! The number of columns of the matrix A.  N >= 0.
-      INTEGER,         intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,M).
 
       !     .. Array Arguments ..
-      REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! On entry, the M-by-N matrix to be factored. On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
+      REAL(R8Ki)      ,intent(inout) :: A( :, : )         ! On entry, the M-by-N matrix to be factored. On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
       INTEGER,         intent(  out) :: IPIV( : )         ! The pivot indices; for 1 <= i <= min(M,N), row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
@@ -277,7 +291,9 @@ CONTAINS
 
          ! local variables
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero. The factor U is exactly singular.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,M).
 
+      LDA  = SIZE(A,1)
 
 
       ErrStat = ErrID_None
@@ -299,17 +315,16 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_DGETRF
 !=======================================================================
-   SUBROUTINE LAPACK_SGETRF( M, N, A, LDA, IPIV, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_SGETRF( M, N, A, IPIV, ErrStat, ErrMsg )
 
 
       ! passed parameters
 
       INTEGER,        intent(in   ) :: M                 ! The number of rows of the matrix A.  M >= 0.
       INTEGER,        intent(in   ) :: N                 ! The number of columns of the matrix A.  N >= 0.
-      INTEGER,        intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,M).
 
       !     .. Array Arguments ..
-      REAL(SiKi)     ,intent(inout) :: A( LDA, * )       ! On entry, the M-by-N matrix to be factored. On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
+      REAL(SiKi)     ,intent(inout) :: A( :, : )         ! On entry, the M-by-N matrix to be factored. On exit, the factors L and U from the factorization A = P*L*U; the unit diagonal elements of L are not stored.
       INTEGER,        intent(  out) :: IPIV( : )         ! The pivot indices; for 1 <= i <= min(M,N), row i of the matrix was interchanged with row IPIV(i).
 
       INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level
@@ -317,6 +332,9 @@ CONTAINS
 
          ! local variables
       INTEGER                       :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero. The factor U is exactly singular.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,M).
+
+      LDA  = SIZE(A,1)
 
 
 
@@ -339,7 +357,7 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_SGETRF
 !=======================================================================
-   SUBROUTINE LAPACK_DGETRS( TRANS, N, NRHS, A, LDA, IPIV, B, LDB, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_DGETRS( TRANS, N, A, IPIV, B, ErrStat, ErrMsg )
 
       ! passed parameters
 
@@ -347,20 +365,25 @@ CONTAINS
                                                           !                                                = 'T':  A**T* X = B  (Transpose)
                                                           !                                                = 'C':  A**T* X = B  (Conjugate transpose = Transpose)
       INTEGER,         intent(in   ) :: N                 ! The order of the matrix A.  N >= 0.
-      INTEGER,         intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,         intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
-      INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
       INTEGER,         intent(in   ) :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
-      REAL(R8Ki)      ,intent(in   ) :: A( LDA, * )       ! The factors L and U from the factorization A = P*L*U as computed by DGETRF.
-      REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
+      REAL(R8Ki)      ,intent(in   ) :: A( :, : )         ! The factors L and U from the factorization A = P*L*U as computed by DGETRF.
+      REAL(R8Ki)      ,intent(inout) :: B( :, : )         ! On entry, the right hand side matrix B. On exit, the solution matrix X.
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
 
          ! local variables
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value;
+      INTEGER                        :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
+                        
+      
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
+      NRHS = SIZE(B,2)
 
 
       ErrStat = ErrID_None
@@ -382,7 +405,7 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_DGETRS
 !=======================================================================
-   SUBROUTINE LAPACK_DGETRS1( TRANS, N, NRHS, A, LDA, IPIV, B, LDB, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_DGETRS1( TRANS, N, A, IPIV, B, ErrStat, ErrMsg )
 
       ! passed parameters
 
@@ -390,20 +413,25 @@ CONTAINS
                                                           !                                                = 'T':  A**T* X = B  (Transpose)
                                                           !                                                = 'C':  A**T* X = B  (Conjugate transpose = Transpose)
       INTEGER,         intent(in   ) :: N                 ! The order of the matrix A.  N >= 0.
-      INTEGER,         intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,         intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
-      INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
       INTEGER,         intent(in   ) :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
-      REAL(R8Ki)      ,intent(in   ) :: A( LDA, * )       ! The factors L and U from the factorization A = P*L*U as computed by DGETRF.
-      REAL(R8Ki)      ,intent(inout) :: B( :      )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
+      REAL(R8Ki)      ,intent(in   ) :: A( :, : )         ! The factors L and U from the factorization A = P*L*U as computed by DGETRF.
+      REAL(R8Ki)      ,intent(inout) :: B( :    )         ! On entry, the right hand side matrix B. On exit, the solution matrix X.
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
 
          ! local variables
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value;
+      INTEGER                        :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
+                        
+      
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
+      NRHS = 1
 
 
       ErrStat = ErrID_None
@@ -425,28 +453,33 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_DGETRS1
 !=======================================================================
-   SUBROUTINE LAPACK_SGETRS( TRANS, N, NRHS, A, LDA, IPIV, B, LDB, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_SGETRS( TRANS, N, A, IPIV, B, ErrStat, ErrMsg )
 
       ! passed parameters
 
-      CHARACTER(1),   intent(in   ) :: TRANS             ! Specifies the form of the system of equations: = 'N':  A * X = B  (No transpose)
-                                                         !                                                = 'T':  A**T* X = B  (Transpose)
-                                                         !                                                = 'C':  A**T* X = B  (Conjugate transpose = Transpose)
-      INTEGER,        intent(in   ) :: N                 ! The order of the matrix A.  N >= 0.
-      INTEGER,        intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,        intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
-      INTEGER,        intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
-
-      !     .. Array Arguments ..
-      INTEGER,        intent(in   ) :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
-      REAL(SiKi),     intent(in   ) :: A( LDA, * )       ! The factors L and U from the factorization A = P*L*U as computed by SGETRF.
-      REAL(SiKi),     intent(inout) :: B( LDB, * )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
-
-      INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level
-      CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
+      CHARACTER(1),   intent(in   )  :: TRANS             ! Specifies the form of the system of equations: = 'N':  A * X = B  (No transpose)
+                                                          !                                                = 'T':  A**T* X = B  (Transpose)
+                                                          !                                                = 'C':  A**T* X = B  (Conjugate transpose = Transpose)
+      INTEGER,        intent(in   )  :: N                 ! The order of the matrix A.  N >= 0.
+                                     
+      !     .. Array Arguments ..    
+      INTEGER,        intent(in   )  :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
+      REAL(SiKi),     intent(in   )  :: A( :, : )         ! The factors L and U from the factorization A = P*L*U as computed by SGETRF.
+      REAL(SiKi),     intent(inout)  :: B( :, : )         ! On entry, the right hand side matrix B. On exit, the solution matrix X.
+                                     
+      INTEGER(IntKi), intent(  out)  :: ErrStat           ! Error level
+      CHARACTER(*),   intent(  out)  :: ErrMsg            ! Message describing error
 
          ! local variables
-      INTEGER                       :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value;
+      INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value;
+      INTEGER                        :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
+                        
+      
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
+      NRHS = SIZE(B,2)
 
 
       ErrStat = ErrID_None
@@ -476,28 +509,33 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_SGETRS
 !=======================================================================
-   SUBROUTINE LAPACK_SGETRS1( TRANS, N, NRHS, A, LDA, IPIV, B, LDB, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_SGETRS1( TRANS, N, A, IPIV, B, ErrStat, ErrMsg )
 
       ! passed parameters
 
-      CHARACTER(1),   intent(in   ) :: TRANS             ! Specifies the form of the system of equations: = 'N':  A * X = B  (No transpose)
-                                                         !                                                = 'T':  A**T* X = B  (Transpose)
-                                                         !                                                = 'C':  A**T* X = B  (Conjugate transpose = Transpose)
-      INTEGER,        intent(in   ) :: N                 ! The order of the matrix A.  N >= 0.
-      INTEGER,        intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,        intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
-      INTEGER,        intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
-
-      !     .. Array Arguments ..
-      INTEGER,        intent(in   ) :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
-      REAL(SiKi),     intent(in   ) :: A( LDA, * )       ! The factors L and U from the factorization A = P*L*U as computed by SGETRF.
-      REAL(SiKi),     intent(inout) :: B( :      )       ! On entry, the right hand side matrix B. On exit, the solution matrix X.
-
-      INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level
-      CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
-
-         ! local variables
-      INTEGER                       :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value;
+      CHARACTER(1),   intent(in   )  :: TRANS             ! Specifies the form of the system of equations: = 'N':  A * X = B  (No transpose)
+                                                          !                                                = 'T':  A**T* X = B  (Transpose)
+                                                          !                                                = 'C':  A**T* X = B  (Conjugate transpose = Transpose)
+      INTEGER,        intent(in   )  :: N                 ! The order of the matrix A.  N >= 0.
+                                     
+      !     .. Array Arguments ..    
+      INTEGER,        intent(in   )  :: IPIV( : )         ! The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
+      REAL(SiKi),     intent(in   )  :: A( :, : )         ! The factors L and U from the factorization A = P*L*U as computed by SGETRF.
+      REAL(SiKi),     intent(inout)  :: B( :    )         ! On entry, the right hand side matrix B. On exit, the solution matrix X.
+                                     
+      INTEGER(IntKi), intent(  out)  :: ErrStat           ! Error level
+      CHARACTER(*),   intent(  out)  :: ErrMsg            ! Message describing error
+                                     
+         ! local variables           
+      INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value;
+      INTEGER                        :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
+                        
+      
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
+      NRHS = 1
 
 
       ErrStat = ErrID_None
@@ -527,19 +565,18 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_SGETRS1
 !=======================================================================
-   SUBROUTINE LAPACK_DGETRI( N, A, LDA, IPIV, WORK, LWORK, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_DGETRI( N, A, IPIV, WORK, LWORK, ErrStat, ErrMsg )
 
       ! passed parameters
 
       INTEGER,         intent(in   ) :: N                 ! The order of the matrix A.  N >= 0.
-      INTEGER,         intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
       INTEGER,         intent(in   ) :: LWORK             ! The dimension of the array WORK. LWORK >= max(1,N). For optimal performance LWORK >= N*NB, where NB is the optimal blocksize returned by ILAENV.
                                                           ! If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns this value as the first
                                                           ! entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
 
       !     .. Array Arguments ..
       INTEGER,         intent(in   ) :: IPIV( : )         ! dimension (N). The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
-      REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! On entry, the factors L and U from the factorization A = P*L*U as computed by DGETRF. On exit, if INFO = 0, the inverse of the original matrix A.
+      REAL(R8Ki)      ,intent(inout) :: A( :, : )         ! On entry, the factors L and U from the factorization A = P*L*U as computed by DGETRF. On exit, if INFO = 0, the inverse of the original matrix A.
       REAL(R8Ki)      ,intent(inout) :: WORK( : )         ! On exit, if INFO=0, then WORK(1) returns the optimal LWORK.
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
@@ -547,6 +584,9 @@ CONTAINS
 
          ! local variables
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero. The matrix is singular and its inverse could not be computed.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,M).
+
+      LDA  = SIZE(A,1)
 
       ErrStat = ErrID_None
       ErrMsg  = ""
@@ -575,26 +615,28 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_DGETRI
 !=======================================================================
-   SUBROUTINE LAPACK_SGETRI( N, A, LDA, IPIV, WORK, LWORK, ErrStat, ErrMsg )
+   SUBROUTINE LAPACK_SGETRI( N, A, IPIV, WORK, LWORK, ErrStat, ErrMsg )
 
       ! passed parameters
 
-      INTEGER,        intent(in   ) :: N                 ! The order of the matrix A.  N >= 0.
-      INTEGER,        intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
-      INTEGER,        intent(in   ) :: LWORK             ! The dimension of the array WORK. LWORK >= max(1,N). For optimal performance LWORK >= N*NB, where NB is the optimal blocksize returned by ILAENV.
-                                                         ! If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns this value as the first
-                                                         ! entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
+      INTEGER,        intent(in   )  :: N                 ! The order of the matrix A.  N >= 0.
+      INTEGER,        intent(in   )  :: LWORK             ! The dimension of the array WORK. LWORK >= max(1,N). For optimal performance LWORK >= N*NB, where NB is the optimal blocksize returned by ILAENV.
+                                                          ! If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns this value as the first
+                                                          ! entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
+                                     
+      !     .. Array Arguments ..    
+      INTEGER,        intent(in   )  :: IPIV( : )         ! dimension (N). The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
+      REAL(SiKi),     intent(inout)  :: A( :, : )         ! On entry, the factors L and U from the factorization A = P*L*U as computed by SGETRF. On exit, if INFO = 0, the inverse of the original matrix A.
+      REAL(SiKi),     intent(inout)  :: WORK( : )         ! On exit, if INFO=0, then WORK(1) returns the optimal LWORK.
+                                     
+      INTEGER(IntKi), intent(  out)  :: ErrStat           ! Error level
+      CHARACTER(*),   intent(  out)  :: ErrMsg            ! Message describing error
+                                     
+         ! local variables           
+      INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero. The matrix is singular and its inverse could not be computed.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,M).
 
-      !     .. Array Arguments ..
-      INTEGER,        intent(in   ) :: IPIV( : )         ! dimension (N). The pivot indices from DGETRF; for 1<=i<=N, row i of the matrix was interchanged with row IPIV(i).
-      REAL(SiKi),     intent(inout) :: A( LDA, * )       ! On entry, the factors L and U from the factorization A = P*L*U as computed by SGETRF. On exit, if INFO = 0, the inverse of the original matrix A.
-      REAL(SiKi),     intent(inout) :: WORK( : )         ! On exit, if INFO=0, then WORK(1) returns the optimal LWORK.
-
-      INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level
-      CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
-
-         ! local variables
-      INTEGER                       :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero. The matrix is singular and its inverse could not be computed.
+      LDA  = SIZE(A,1)
 
       ErrStat = ErrID_None
       ErrMsg  = ""
@@ -616,7 +658,7 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_SGETRI
 !=======================================================================
-   SUBROUTINE LAPACK_DGGEV(JOBVL, JOBVR, N, A, LDA, B, LDB, ALPHAR, ALPHAI, BETA, VL, LDVL, VR, LDVR, WORK, LWORK, ErrStat, ErrMsg)
+   SUBROUTINE LAPACK_DGGEV(JOBVL, JOBVR, N, A, B, ALPHAR, ALPHAI, BETA, VL, VR, WORK, LWORK, ErrStat, ErrMsg)
 
       ! passed variables/parameters:
 
@@ -625,17 +667,13 @@ CONTAINS
 
       INTEGER,         intent(in   ) :: N                 ! The order of the matrices A, B, VL, and VR.  N >= 0.
 
-      INTEGER,         intent(in   ) :: LDA               ! The leading dimension of A.  LDA >= max(1,N).
-      INTEGER,         intent(in   ) :: LDB               ! The leading dimension of B.  LDB >= max(1,N).
-      INTEGER,         intent(in   ) :: LDVL              ! The leading dimension of the matrix VL. LDVL >= 1, and if JOBVL = 'V', LDVL >= N
-      INTEGER,         intent(in   ) :: LDVR              ! The leading dimension of the matrix VR. LDVR >= 1, and if JOBVR = 'V', LDVR >= N.
       INTEGER,         intent(in   ) :: LWORK             ! The dimension of the array WORK.  LWORK >= max(1,8*N). For good performance, LWORK must generally be larger.
                                                           !   If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns
                                                           !   this value as the first entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
 
 
-      REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! dimension (LDA, N). On entry, the matrix A in the pair (A,B). On exit, A has been overwritten.
-      REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
+      REAL(R8Ki)      ,intent(inout) :: A( :, : )         ! dimension (LDA, N). On entry, the matrix A in the pair (A,B). On exit, A has been overwritten.
+      REAL(R8Ki)      ,intent(inout) :: B( :, : )         ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
 
       REAL(R8Ki)      ,intent(  out) :: ALPHAR( : )       ! dimension (N). See comments for variable "Beta"
       REAL(R8Ki)      ,intent(  out) :: ALPHAI( : )       ! dimension (N). See comments for variable "Beta".
@@ -648,11 +686,11 @@ CONTAINS
                                                           !   than and usually comparable with norm(A) in magnitude, and BETA always less than and usually comparable with norm(B).
 
 
-      REAL(R8Ki)      ,intent(  out) :: VL( LDVL, * )     ! dimension (LDVL,N). If JOBVL = 'V', the left eigenvectors u(j) are stored one after another in the columns of VL, in the same
+      REAL(R8Ki)      ,intent(  out) :: VL( :, : )        ! dimension (LDVL,N). If JOBVL = 'V', the left eigenvectors u(j) are stored one after another in the columns of VL, in the same
                                                           !   order as their eigenvalues. If the j-th eigenvalue is real, then u(j) = VL(:,j), the j-th column of VL. If the j-th and
                                                           !   (j+1)-th eigenvalues form a complex conjugate pair, then u(j) = VL(:,j)+i*VL(:,j+1) and u(j+1) = VL(:,j)-i*VL(:,j+1).
                                                           !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVL = 'N'.
-      REAL(R8Ki)      ,intent(  out) :: VR( LDVR, * )     ! dimension (LDVR,N). If JOBVR = 'V', the right eigenvectors v(j) are stored one after another in the columns of VR, in the same
+      REAL(R8Ki)      ,intent(  out) :: VR( :, : )        ! dimension (LDVR,N). If JOBVR = 'V', the right eigenvectors v(j) are stored one after another in the columns of VR, in the same
                                                           !   order as their eigenvalues. If the j-th eigenvalue is real, then v(j) = VR(:,j), the j-th column of VR. If the j-th and
                                                           !   (j+1)-th eigenvalues form a complex conjugate pair, then v(j) = VR(:,j)+i*VR(:,j+1) and v(j+1) = VR(:,j)-i*VR(:,j+1).
                                                           !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVR = 'N'.
@@ -673,8 +711,20 @@ CONTAINS
                                                           !   = 1,...,N: The QZ iteration failed.  No eigenvectors have been calculated, but ALPHAR(j), ALPHAI(j), and BETA(j) should be correct for j=INFO+1,...,N.
                                                           !   = N+1: other than QZ iteration failed in DHGEQZ.
                                                           !   = N+2: error return from DTGEVC.
-      CHARACTER(20)                  ::  n_str
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
+      INTEGER                        :: LDVL              ! The leading dimension of the matrix VL. LDVL >= 1, and if JOBVL = 'V', LDVL >= N
+      INTEGER                        :: LDVR              ! The leading dimension of the matrix VR. LDVR >= 1, and if JOBVR = 'V', LDVR >= N.
+      CHARACTER(20)                  :: n_str
+                        
+      
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
 
+      LDVL  = SIZE(VL,1)
+      LDVR  = SIZE(VR,1)
+      
+      
 
       ErrStat = ErrID_None
       ErrMsg  = ""
@@ -707,63 +757,70 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_DGGEV
 !=======================================================================
-   SUBROUTINE LAPACK_SGGEV(JOBVL, JOBVR, N, A, LDA, B, LDB, ALPHAR, ALPHAI, BETA, VL, LDVL, VR, LDVR, WORK, LWORK, ErrStat, ErrMsg)
+   SUBROUTINE LAPACK_SGGEV(JOBVL, JOBVR, N, A, B, ALPHAR, ALPHAI, BETA, VL, VR, WORK, LWORK, ErrStat, ErrMsg)
 
       ! subroutine arguments
 
-      CHARACTER(1),   intent(in   ) :: JOBVL             ! = 'N':  do not compute the left generalized eigenvectors; = 'V':  compute the left generalized eigenvectors.
-      CHARACTER(1),   intent(in   ) :: JOBVR             ! = 'N':  do not compute the right generalized eigenvectors; = 'V':  compute the right generalized eigenvectors.
-
-      INTEGER,        intent(in   ) :: N                 ! The order of the matrices A, B, VL, and VR.  N >= 0.
-      INTEGER,        intent(in   ) :: LDA               ! The leading dimension of A.  LDA >= max(1,N).
-      INTEGER,        intent(in   ) :: LDB               ! The leading dimension of B.  LDB >= max(1,N).
-      INTEGER,        intent(in   ) :: LDVL              ! The leading dimension of the matrix VL. LDVL >= 1, and if JOBVL = 'V', LDVL >= N
-      INTEGER,        intent(in   ) :: LDVR              ! The leading dimension of the matrix VR. LDVR >= 1, and if JOBVR = 'V', LDVR >= N.
-      INTEGER,        intent(in   ) :: LWORK             ! The dimension of the array WORK.  LWORK >= max(1,8*N). For good performance, LWORK must generally be larger.
-                                                         !   If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns
-                                                         !   this value as the first entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
-
-
-      REAL(SiKi),     intent(inout) :: A( LDA, * )       ! dimension (LDA, N). On entry, the matrix A in the pair (A,B). On exit, A has been overwritten.
-      REAL(SiKi),     intent(inout) :: B( LDB, * )       ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
-
-
-      REAL(SiKi),     intent(  out) :: ALPHAR( : )       ! dimension (N). See comments for variable "Beta"
-      REAL(SiKi),     intent(  out) :: ALPHAI( : )       ! dimension (N). See comments for variable "Beta".
-      REAL(SiKi),     intent(  out) :: BETA( : )         ! On exit, (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N, will be the generalized eigenvalues.  If ALPHAI(j) is zero, then
-                                                         !   the j-th eigenvalue is real; if positive, then the j-th and (j+1)-st eigenvalues are a complex conjugate pair, with
-                                                         !   ALPHAI(j+1) negative.
-                                                         !
-                                                         !   Note: the quotients ALPHAR(j)/BETA(j) and ALPHAI(j)/BETA(j) may easily over- or underflow, and BETA(j) may even be zero.
-                                                         !   Thus, the user should avoid naively computing the ratio alpha/beta.  However, ALPHAR and ALPHAI will be always less
-                                                         !   than and usually comparable with norm(A) in magnitude, and BETA always less than and usually comparable with norm(B).
+      CHARACTER(1),   intent(in   )  :: JOBVL             ! = 'N':  do not compute the left generalized eigenvectors; = 'V':  compute the left generalized eigenvectors.
+      CHARACTER(1),   intent(in   )  :: JOBVR             ! = 'N':  do not compute the right generalized eigenvectors; = 'V':  compute the right generalized eigenvectors.
+                                    
+      INTEGER,        intent(in   )  :: N                 ! The order of the matrices A, B, VL, and VR.  N >= 0.
+      INTEGER,        intent(in   )  :: LWORK             ! The dimension of the array WORK.  LWORK >= max(1,8*N). For good performance, LWORK must generally be larger.
+                                                          !   If LWORK = -1, then a workspace query is assumed; the routine only calculates the optimal size of the WORK array, returns
+                                                          !   this value as the first entry of the WORK array, and no error message related to LWORK is issued by XERBLA.
+                                    
+                                    
+      REAL(SiKi),     intent(inout)  :: A( :, : )         ! dimension (LDA, N). On entry, the matrix A in the pair (A,B). On exit, A has been overwritten.
+      REAL(SiKi),     intent(inout)  :: B( :, : )         ! dimension (LDB, N). On entry, the matrix B in the pair (A,B). On exit, B has been overwritten.
+                                    
+                                    
+      REAL(SiKi),     intent(  out)  :: ALPHAR( : )       ! dimension (N). See comments for variable "Beta"
+      REAL(SiKi),     intent(  out)  :: ALPHAI( : )       ! dimension (N). See comments for variable "Beta".
+      REAL(SiKi),     intent(  out)  :: BETA( : )         ! On exit, (ALPHAR(j) + ALPHAI(j)*i)/BETA(j), j=1,...,N, will be the generalized eigenvalues.  If ALPHAI(j) is zero, then
+                                                          !   the j-th eigenvalue is real; if positive, then the j-th and (j+1)-st eigenvalues are a complex conjugate pair, with
+                                                          !   ALPHAI(j+1) negative.
+                                                          !
+                                                          !   Note: the quotients ALPHAR(j)/BETA(j) and ALPHAI(j)/BETA(j) may easily over- or underflow, and BETA(j) may even be zero.
+                                                          !   Thus, the user should avoid naively computing the ratio alpha/beta.  However, ALPHAR and ALPHAI will be always less
+                                                          !   than and usually comparable with norm(A) in magnitude, and BETA always less than and usually comparable with norm(B).
 
 
-      REAL(SiKi),     intent(  out) :: VL( LDVL, * )     ! dimension (LDVL,N). If JOBVL = 'V', the left eigenvectors u(j) are stored one after another in the columns of VL, in the same
-                                                         !   order as their eigenvalues. If the j-th eigenvalue is real, then u(j) = VL(:,j), the j-th column of VL. If the j-th and
-                                                         !   (j+1)-th eigenvalues form a complex conjugate pair, then u(j) = VL(:,j)+i*VL(:,j+1) and u(j+1) = VL(:,j)-i*VL(:,j+1).
-                                                         !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVL = 'N'.
-      REAL(SiKi),     intent(  out) :: VR( LDVR, * )     ! dimension (LDVR,N). If JOBVR = 'V', the right eigenvectors v(j) are stored one after another in the columns of VR, in the same
-                                                         !   order as their eigenvalues. If the j-th eigenvalue is real, then v(j) = VR(:,j), the j-th column of VR. If the j-th and
-                                                         !   (j+1)-th eigenvalues form a complex conjugate pair, then v(j) = VR(:,j)+i*VR(:,j+1) and v(j+1) = VR(:,j)-i*VR(:,j+1).
-                                                         !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVR = 'N'.
+      REAL(SiKi),     intent(  out)  :: VL( :, : )        ! dimension (LDVL,N). If JOBVL = 'V', the left eigenvectors u(j) are stored one after another in the columns of VL, in the same
+                                                          !   order as their eigenvalues. If the j-th eigenvalue is real, then u(j) = VL(:,j), the j-th column of VL. If the j-th and
+                                                          !   (j+1)-th eigenvalues form a complex conjugate pair, then u(j) = VL(:,j)+i*VL(:,j+1) and u(j+1) = VL(:,j)-i*VL(:,j+1).
+                                                          !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVL = 'N'.
+      REAL(SiKi),     intent(  out)  :: VR( :, : )        ! dimension (LDVR,N). If JOBVR = 'V', the right eigenvectors v(j) are stored one after another in the columns of VR, in the same
+                                                          !   order as their eigenvalues. If the j-th eigenvalue is real, then v(j) = VR(:,j), the j-th column of VR. If the j-th and
+                                                          !   (j+1)-th eigenvalues form a complex conjugate pair, then v(j) = VR(:,j)+i*VR(:,j+1) and v(j+1) = VR(:,j)-i*VR(:,j+1).
+                                                          !   Each eigenvector is scaled so the largest component has abs(real part)+abs(imag. part)=1. Not referenced if JOBVR = 'N'.
+                                     
+      REAL(SiKi),     intent(inout)  :: WORK( : )         ! dimension (MAX(1,LWORK)). On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
+                                     
+                                     
+                                     
+      INTEGER(IntKi), intent(  out)  :: ErrStat           ! Error level
+      CHARACTER(*),   intent(  out)  :: ErrMsg            ! Message describing error
+                                     
+         ! local variables           
+      INTEGER                        :: INFO              ! = 0:  successful exit;
+                                                          ! < 0:
+                                                          !   = -i, the i-th argument had an illegal value;
+                                                          ! > 0:
+                                                          !   = 1,...,N: The QZ iteration failed.  No eigenvectors have been calculated, but ALPHAR(j), ALPHAI(j), and BETA(j) should be correct for j=INFO+1,...,N.
+                                                          !   = N+1: other than QZ iteration failed in SHGEQZ.
+                                                          !   = N+2: error return from STGEVC.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
+      INTEGER                        :: LDVL              ! The leading dimension of the matrix VL. LDVL >= 1, and if JOBVL = 'V', LDVL >= N
+      INTEGER                        :: LDVR              ! The leading dimension of the matrix VR. LDVR >= 1, and if JOBVR = 'V', LDVR >= N.
+      CHARACTER(20)                  :: n_str
+                        
+      
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
 
-      REAL(SiKi),     intent(inout) :: WORK( : )         ! dimension (MAX(1,LWORK)). On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
-
-
-
-      INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level
-      CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
-
-         ! local variables
-      INTEGER                       :: INFO              ! = 0:  successful exit;
-                                                         ! < 0:
-                                                         !   = -i, the i-th argument had an illegal value;
-                                                         ! > 0:
-                                                         !   = 1,...,N: The QZ iteration failed.  No eigenvectors have been calculated, but ALPHAR(j), ALPHAI(j), and BETA(j) should be correct for j=INFO+1,...,N.
-                                                         !   = N+1: other than QZ iteration failed in SHGEQZ.
-                                                         !   = N+2: error return from STGEVC.
-      CHARACTER(20)                 ::  n_str
+      LDVL  = SIZE(VL,1)
+      LDVR  = SIZE(VR,1)
 
 
       ErrStat = ErrID_None
@@ -797,23 +854,21 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_SGGEV
 !=======================================================================
-   SUBROUTINE LAPACK_DPOSV (UPLO, N, NRHS, A, LDA, B, LDB, ErrStat, ErrMsg)
+   SUBROUTINE LAPACK_DPOSV (UPLO, N, NRHS, A, B, ErrStat, ErrMsg)
 
 
       ! passed parameters
 
       INTEGER,         intent(in   ) :: N                 ! The number of linear equations, i.e., the order of the matrix A.  N >= 0.
       INTEGER,         intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,         intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
-      INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      REAL(R8Ki)      ,intent(inout) :: A( LDA, * )       ! On entry, the symmetric matrix A.  If UPLO = 'U', the leading N-by-N upper triangular part of A contains the upper
+      REAL(R8Ki)      ,intent(inout) :: A( :, : )       ! On entry, the symmetric matrix A.  If UPLO = 'U', the leading N-by-N upper triangular part of A contains the upper
                                                           ! triangular part of the matrix A, and the strictly lower triangular part of A is not referenced.  If UPLO = 'L', the
                                                           ! leading N-by-N lower triangular part of A contains the lower triangular part of the matrix A, and the strictly upper
                                                           ! triangular part of A is not referenced.
                                                           ! On exit, if INFO = 0, the factor U or L from the Cholesky factorization A = U**T*U or A = L*L**T.
-      REAL(R8Ki)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(R8Ki)      ,intent(inout) :: B( :, : )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -824,8 +879,14 @@ CONTAINS
                                                           ! > 0: if INFO = i, the leading minor of order i of A is not positive definite, so the factorization could not be
                                                           ! completed, and the solution has not been computed.
 
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
 
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
+                                                          
+                                                          
       ErrStat = ErrID_None
       ErrMsg  = ""
 
@@ -845,23 +906,21 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_DPOSV
 !=======================================================================
-   SUBROUTINE LAPACK_SPOSV (UPLO, N, NRHS, A, LDA, B, LDB, ErrStat, ErrMsg)
+   SUBROUTINE LAPACK_SPOSV (UPLO, N, NRHS, A, B, ErrStat, ErrMsg)
 
 
       ! passed parameters
 
       INTEGER,         intent(in   ) :: N                 ! The number of linear equations, i.e., the order of the matrix A.  N >= 0.
       INTEGER,         intent(in   ) :: NRHS              ! The number of right hand sides, i.e., the number of columns of the matrix B.  NRHS >= 0.
-      INTEGER,         intent(in   ) :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
-      INTEGER,         intent(in   ) :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
 
       !     .. Array Arguments ..
-      REAL(SiKi)      ,intent(inout) :: A( LDA, * )       ! On entry, the symmetric matrix A.  If UPLO = 'U', the leading N-by-N upper triangular part of A contains the upper
+      REAL(SiKi)      ,intent(inout) :: A( :, : )         ! On entry, the symmetric matrix A.  If UPLO = 'U', the leading N-by-N upper triangular part of A contains the upper
                                                           ! triangular part of the matrix A, and the strictly lower triangular part of A is not referenced.  If UPLO = 'L', the
                                                           ! leading N-by-N lower triangular part of A contains the lower triangular part of the matrix A, and the strictly upper
                                                           ! triangular part of A is not referenced.
                                                           ! On exit, if INFO = 0, the factor U or L from the Cholesky factorization A = U**T*U or A = L*L**T.
-      REAL(SiKi)      ,intent(inout) :: B( LDB, * )       ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
+      REAL(SiKi)      ,intent(inout) :: B( :, : )         ! On entry, the N-by-NRHS matrix of right hand side matrix B.  On exit, if INFO = 0, the N-by-NRHS solution matrix X.
 
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -871,6 +930,12 @@ CONTAINS
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; > 0: if INFO = i, U(i,i) is exactly zero.
                                                           ! > 0: if INFO = i, the leading minor of order i of A is not positive definite, so the factorization could not be
                                                           ! completed, and the solution has not been computed.
+      INTEGER                        :: LDA               ! The leading dimension of the array A.  LDA >= max(1,N).
+      INTEGER                        :: LDB               ! The leading dimension of the array B.  LDB >= max(1,N).
+
+
+      LDA  = SIZE(A,1)
+      LDB  = SIZE(B,1)
 
 
 

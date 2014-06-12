@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-09-21 22:37:32 -0600 (Sat, 21 Sep 2013) $
-! (File) Revision #: $Rev: 175 $
+! File last committed: $Date: 2014-06-12 10:11:01 -0600 (Thu, 12 Jun 2014) $
+! (File) Revision #: $Rev: 236 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/SysIVF_Labview.f90 $
 !**********************************************************************************************************************************
 MODULE SysSubs
@@ -45,6 +45,8 @@ MODULE SysSubs
    !     SUBROUTINE  WrNR ( Str )
    !     SUBROUTINE  WrOver ( Str )
    !     SUBROUTINE  WriteScr ( Str, Frm )
+   !     SUBROUTINE LoadDynamicLib( DLL, ErrStat, ErrMsg )
+   !     SUBROUTINE FreeDynamicLib( DLL, ErrStat, ErrMsg )
 
 
 
@@ -66,7 +68,7 @@ MODULE SysSubs
    CHARACTER(10), PARAMETER      :: Endian      = 'BIG_ENDIAN'                      ! The internal format of numbers.
    CHARACTER(*),  PARAMETER      :: NewLine     = ACHAR(10)                         ! The delimiter for New Lines [ Windows is CHAR(13)//CHAR(10); MAC is CHAR(13); Unix is CHAR(10) {CHAR(13)=\r is a line feed, CHAR(10)=\n is a new line}]
    CHARACTER(*),  PARAMETER      :: OS_Desc     = 'Intel Visual Fortran for Windows/LabVIEW' ! Description of the language/OS
-   CHARACTER( 1), PARAMETER      :: PathSep     = '\'                               ! The path separater.
+   CHARACTER( 1), PARAMETER      :: PathSep     = '\'                               ! The path separator.
    CHARACTER( 1), PARAMETER      :: SwChar      = '/'                               ! The switch character for command-line options.
    CHARACTER(11), PARAMETER      :: UnfForm     = 'UNFORMATTED'                     ! The string to specify unformatted I/O files.
 
@@ -269,7 +271,14 @@ CONTAINS
    END SUBROUTINE ProgExit ! ( StatCode )
 !=======================================================================
    SUBROUTINE Set_IEEE_Constants( NaN_D, Inf_D, NaN, Inf )   
-   
+         
+      ! routine that sets the values of NaN_D, Inf_D, NaN, Inf (IEEE 
+      ! values for not-a-number and infinity in sindle and double 
+      ! precision) F03 has standard intrinsic routines to do this,  
+      ! but older compilers have not implemented it. This code will  
+      ! fail if  the compiler checks for floating-point-error, hence  
+      ! the compiler directive FPE_TRAP_ENABLED.
+
       REAL(DbKi), INTENT(inout)           :: Inf_D          ! IEEE value for NaN (not-a-number) in double precision
       REAL(DbKi), INTENT(inout)           :: NaN_D          ! IEEE value for Inf (infinity) in double precision
 
@@ -281,20 +290,25 @@ CONTAINS
       REAL(ReKi)                          :: Neg            ! a negative real(ReKi) number
    
       
-         ! set variables to negative numbers to calculate NaNs (compilers may complain when taking sqrt of negative constants)
-      Neg   = -1.0_ReKi
-      Neg_D = -1.0_DbKi
-
          ! if compiling with floating-point-exception traps, this will not work, so we've added a compiler directive.
          !  note that anything that refers to NaN or Inf will be incorrect in that case.
+         
 #ifndef FPE_TRAP_ENABLED      
+         ! set variables to negative numbers to calculate NaNs (compilers may complain when taking sqrt of negative constants)
+      Neg_D = -1.0_DbKi
+      Neg   = -1.0_ReKi
+
       NaN_D = SQRT ( Neg_D )
-      Inf_D = Pi_D / 0.0_DbKi
-
       NaN   = SQRT ( Neg )
-      Inf   = Pi / 0.0_ReKi
-#endif 
 
+         ! set variables to zero to calculate Infs (using division by zero)
+      Neg_D = 0.0_DbKi
+      Neg   = 0.0_ReKi
+      
+      Inf_D = 1.0_DbKi / Neg_D
+      Inf   = 1.0_ReKi / Neg
+#endif 
+   
    END SUBROUTINE Set_IEEE_Constants  
 !=======================================================================
    SUBROUTINE UsrAlarm
@@ -376,7 +390,7 @@ CONTAINS
 !==================================================================================================================================
 SUBROUTINE LoadDynamicLib ( DLL, ErrStat, ErrMsg )
 
-      ! This SUBROUTINE is used to load a DLL.
+      ! This SUBROUTINE is used to dynamically load a DLL.
 
       ! Passed Variables:
 
@@ -396,7 +410,7 @@ END SUBROUTINE LoadDynamicLib
 !==================================================================================================================================
 SUBROUTINE FreeDynamicLib ( DLL, ErrStat, ErrMsg )
 
-      ! This SUBROUTINE is used to free a DLL.
+      ! This SUBROUTINE is used to free a dynamically loaded DLL (loaded in LoadDynamicLib).
 
       ! Passed Variables:
 

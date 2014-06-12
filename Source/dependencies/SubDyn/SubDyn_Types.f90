@@ -146,7 +146,6 @@ IMPLICIT NONE
     INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnN      ! Nodes that connect to a common node [-]
     INTEGER(IntKi) , DIMENSION(:,:), ALLOCATABLE  :: NodesConnE      ! Elements that connect to a common node [-]
     LOGICAL  :: SSSum      ! SubDyn Summary File Flag [-]
-    INTEGER(IntKi)  :: UnSum      ! File unit for the SubDyn summary file [-1 = no summary file] [-]
   END TYPE SD_InitType
 ! =======================
 ! =========  SD_ContinuousStateType  =======
@@ -2002,7 +2001,6 @@ IF (ALLOCATED(SrcinittypeData%NodesConnE)) THEN
    DstinittypeData%NodesConnE = SrcinittypeData%NodesConnE
 ENDIF
    DstinittypeData%SSSum = SrcinittypeData%SSSum
-   DstinittypeData%UnSum = SrcinittypeData%UnSum
  END SUBROUTINE SD_Copyinittype
 
  SUBROUTINE SD_Destroyinittype( inittypeData, ErrStat, ErrMsg )
@@ -2148,7 +2146,6 @@ ENDIF
   Int_BufSz   = Int_BufSz   + SIZE( InData%MemberNodes )  ! MemberNodes 
   Int_BufSz   = Int_BufSz   + SIZE( InData%NodesConnN )  ! NodesConnN 
   Int_BufSz   = Int_BufSz   + SIZE( InData%NodesConnE )  ! NodesConnE 
-  Int_BufSz  = Int_BufSz  + 1  ! UnSum
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -2264,8 +2261,6 @@ ENDIF
     IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%NodesConnE))-1 ) = PACK(InData%NodesConnE ,.TRUE.)
     Int_Xferred   = Int_Xferred   + SIZE(InData%NodesConnE)
   ENDIF
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnSum )
-  Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE SD_Packinittype
 
  SUBROUTINE SD_UnPackinittype( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -2455,8 +2450,6 @@ ENDIF
   DEALLOCATE(mask2)
     Int_Xferred   = Int_Xferred   + SIZE(OutData%NodesConnE)
   ENDIF
-  OutData%UnSum = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1

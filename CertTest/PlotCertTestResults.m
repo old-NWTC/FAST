@@ -32,9 +32,10 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= [1:19 21:24]  % [1:19 21:24] %1:25 
+    for i= [1:19 21:24]   %1:25 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
+% fileRoot = ['Test19_noHD'];
         
         oldRoot  = strcat( oldPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
         newRoot  = strcat( newPath, filesep, fileRoot, {'_SFunc', '_ADAMS', ''} );
@@ -50,8 +51,8 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
             
         else
             
-            SaveFiles = true;  %setting this to false will keep ALL of the plot windows open
-% SaveFiles = false;  %setting this to false will keep ALL of the plot windows open
+            SavePngFiles = true;  %setting this to false will keep ALL of the plot windows open
+% SavePngFiles = false;  %setting this to false will keep ALL of the plot windows open
             
                 % Compare time series
                 
@@ -73,7 +74,7 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
                            
             TitleLocDesc = cellstr(['new: ' newFiles{end} ' | old: ' oldFiles{end}]);
             
-            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' Output Time Series'], SaveFiles, [fileRoot '_ts'],TitleLocDesc );
+            CompareCertTestResults(1,newFiles(plotFiles), oldFiles(plotFiles), [8, 7, 8], descFiles(plotFiles), [fileRoot ' Output Time Series'], SavePngFiles, [fileRoot '_ts'],TitleLocDesc );
         end % time series
  
         if i == 10

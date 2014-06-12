@@ -3,9 +3,9 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date$
-# (File) Revision #: $Rev$
-# URL: $HeadURL$
+# File last committed $Date: 2014-06-07 00:23:33 -0600 (Sat, 07 Jun 2014) $
+# (File) Revision #: $Rev: 302 $
+# URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Registry.txt $
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
 include	Registry_NWTC_Library.txt
@@ -112,7 +112,6 @@ typedef	^	^	INTEGER	MemberNodes	{:}{:}	-	-	"Member number and nodes in the membe
 typedef	^	^	INTEGER	NodesConnN	{:}{:}	-	-	"Nodes that connect to a common node"
 typedef	^	^	INTEGER	NodesConnE	{:}{:}	-	-	"Elements that connect to a common node"
 typedef	^	^	LOGICAL	SSSum	-	-	-	"SubDyn Summary File Flag"
-typedef	^	^	INTEGER	UnSum	-	-	-	"File unit for the SubDyn summary file [-1 = no summary file]"	-
 
 # ============================== States ============================================================================================================================================
 # Define continuous (differentiable) states here:
