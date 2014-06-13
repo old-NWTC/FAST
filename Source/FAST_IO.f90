@@ -2,7 +2,7 @@
 ! The FAST_Prog.f90, FAST_IO.f90, and FAST_Mods.f90 make up the FAST glue code in the FAST Modularization Framework.
 !..................................................................................................................................
 ! LICENSING
-! Copyright (C) 2013  National Renewable Energy Laboratory
+! Copyright (C) 2013-2014  National Renewable Energy Laboratory
 !
 !    This file is part of FAST.
 !
@@ -34,6 +34,7 @@ MODULE FAST_IO_Subs
    USE ElastoDyn_Types
    USE FEAMooring_Types
    USE HydroDyn_Types
+   USE IceDyn_Types
    USE IceFloe_Types
    USE MAP_Types
    USE ServoDyn_Types

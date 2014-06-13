@@ -1,4 +1,4 @@
-------- FAST v8.07.* INPUT FILE ------------------------------------------------
+------- FAST v8.08.* INPUT FILE ------------------------------------------------
 FAST Certification Test #17: SWRT 3-bladed upwind turbine with many DOFs, variable speed control, free yaw, tail-furl, FF turbulence
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)

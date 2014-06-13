@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2014-01-22 10:00:53 -0700 (Wed, 22 Jan 2014) $
-# (File) Revision #: $Rev: 307 $
+# File last committed: $Date: 2014-06-11 11:16:45 -0600 (Wed, 11 Jun 2014) $
+# (File) Revision #: $Rev: 413 $
 # URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/RegistryFiles/WAMIT.txt $
 ###################################################################################################################################
 
@@ -41,6 +41,7 @@ typedef   ^                            ^                             INTEGER    
 typedef   ^                            ^                             ReKi                     WtrDens                         -          -        -         ""    -
 typedef   ^                            ^                             ReKi                     WaveDir                         -          -        -         ""    -
 typedef   ^                            ^                             CHARACTER(10)            OutList                         {18}       -        -         "This should really be dimensioned with MaxOutPts"    -
+typedef   ^                            ^                             ReKi                     WaveDirArr                      {:}        -        -         "Wave direction assigned to each frequency"    (degrees)
 typedef   ^                            ^                             LOGICAL                  OutAll                          -          -        -         ""    -
 typedef   ^                            ^                             INTEGER                  NumOuts                         -          -        -         ""    -
 #

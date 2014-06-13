@@ -1,4 +1,4 @@
-------- FAST v8.07.* INPUT FILE ------------------------------------------------
+------- FAST v8.08.* INPUT FILE ------------------------------------------------
 FAST Certification Test #13: WindPACT 1.5 MW Baseline with many DOFs with VS and VP and FF turbulence.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)

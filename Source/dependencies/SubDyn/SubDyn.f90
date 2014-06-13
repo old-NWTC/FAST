@@ -1,6 +1,6 @@
 !..................................................................................................................................
 ! LICENSING
-! Copyright (C) 2013  National Renewable Energy Laboratory
+! Copyright (C) 2013-2014  National Renewable Energy Laboratory
 !
 !    This file is part of SubDyn.   
 !
@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-12 10:38:20 -0600 (Thu, 12 Jun 2014) $
-! (File) Revision #: $Rev: 305 $
+! File last committed: $Date: 2014-06-13 11:16:16 -0600 (Fri, 13 Jun 2014) $
+! (File) Revision #: $Rev: 306 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -392,11 +392,16 @@ SUBROUTINE SD_Init( InitInput, u, p, x, xd, z, OtherState, y, Interval, InitOut,
    InitOut%Ver = SD_ProgDesc
    
       ! transfer glue-code information to data structure for SubDyn initialization:
-   Init%g           = InitInput%g
+   Init%g           = InitInput%g   
    Init%TP_RefPoint = InitInput%TP_RefPoint
    Init%SubRotateZ  = InitInput%SubRotateZ
    p%NAvgEls        = 2
 
+   !bjj added this ugly check (mostly for checking SubDyn driver). not sure if anyone would want to play with different values of gravity so I don't return an error.
+   IF (Init%g < 0.0_ReKi ) CALL ProgWarn( ' SubDyn calculations use gravity assuming it is input as a positive number; the input value is negative.' ) 
+   
+   
+   
       ! Establish the GLUECODE requested/suggested time step.  This may be overridden by SubDyn based on the SDdeltaT parameter of the SubDyn input file.
    Init%DT  = Interval
    IF ( LEN_TRIM(Init%RootName) == 0 ) THEN
@@ -439,9 +444,6 @@ SUBROUTINE SD_Init( InitInput, u, p, x, xd, z, OtherState, y, Interval, InitOut,
          RETURN
       END IF
     
-!bjj: todo check values of matrices here...
-!call WrMatrix( 
-
 
    !.................................
    ! Calculate values for FEMparams (for summary file output only
@@ -853,7 +855,7 @@ SUBROUTINE SD_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       
       !NEED TO ADD HYDRODYNAMIC FORCES AT THE Interface NODES
         !Aggregate the forces and moments at the interface nodes to the reference point
-        !TODO: BJJ: see RRD comment about sign on HydroTP (also where are these HydroTP, HydroForces documented?)
+        !TODO: where are these HydroTP, HydroForces documented?
         
       DO I = 1, p%NNodes_I 
      
@@ -1274,8 +1276,11 @@ IF (Init%CBMod) THEN
       CALL ReadCom( UnIn, SDInputFile, 'JDamping', ErrStat, ErrMsg, UnEc  )
    END IF
 
-ELSE   !CBMOD=FALSE  -all modes are retained, not sure how many they are yet
+ELSE   !CBMOD=FALSE  : all modes are retained, not sure how many they are yet
     
+   !note at this stage I do not know DOFL yet; Nmodes will be updated later for the FULL FEM CASE. 
+   p%Nmodes = -1
+   
    !Ignore next line
    CALL ReadCom( UnIn, SDInputFile, 'Nmodes', ErrStat, ErrMsg, UnEc  )
    IF ( ErrStat /= ErrID_None ) THEN
@@ -1305,8 +1310,6 @@ ELSE   !CBMOD=FALSE  -all modes are retained, not sure how many they are yet
          RETURN
     ENDIF
 
-   !note at this stage I do not know DOFL yet; Nmodes will be updated later for the FULL FEM CASE. 
-   p%Nmodes = -1
 ENDIF
 
 IF (p%Nmodes > 0) THEN
@@ -1819,7 +1822,7 @@ IF ( ErrStat /= ErrID_None ) THEN
 END IF
 !IF ( InitOut%SSSum ) p%JEchoFile = TRIM(Init%RootName)//'.sum'
 
-!bjj: TODO: OutCOSM isn't used anywhere else....
+!bjj: TODO: OutCOSM isn't used anywhere else.
 CALL ReadLVar(UnIn, SDInputFile, Init%OutCOSM, 'OutCOSM', 'Cosine Matrix Logic Variable',ErrStat, ErrMsg, UnEc  )
 IF ( ErrStat /= ErrID_None ) THEN
    ErrStat = ErrID_Fatal
@@ -3204,21 +3207,12 @@ SUBROUTINE CBMatrix( MRR, MLL, MRL, KRR, KLL, KRL, DOFM, Init, &
    MBB = MATMUL(MRL, PhiR)
    MBB = MRR + MBB + TRANSPOSE( MBB ) + MATMUL( PhiR_T_MLL, PhiR )
    
-   
-   ! TODO: Check MBB, because it is written differently than the paper, eqn 1.4.  GJH 5/7/13
-   ! Paper version:
-   !MBB = MRR + MATMUL(MRL, PhiR) + MATMUL( TRANSPOSE(PhiR), MLR ) &
-   !           + MATMUL( MATMUL(TRANSPOSE(PhiR), MLL), PhiR )
-   
+      
    IF ( DOFM .EQ. 0) THEN
       MBM = 0.0_ReKi
    ELSE
       MBM = MATMUL( PhiR_T_MLL, PhiL(:,1:DOFM))  ! last half of operation
       MBM = MATMUL( MRL, PhiL(:,1:DOFM) ) + MBM    !This had PhiM      
-      ! TODO: Check MBM, because it is written differently than the paper, eqn 1.4.  GJH 5/7/13
-      ! Paper version: 
-      !MMB = MATMUL( TRANSPOSE(PhiM), MLR ) + MATMUL( MATMUL(TRANSPOSE(PhiM), MLL), PhiR )
-      !MBM = TRANSPOSE(MMB) and MLL is symmetric
    ENDIF
    
    KBB = MATMUL(KRL, PhiR)   
@@ -3825,7 +3819,6 @@ SUBROUTINE SetParameters(Init, p, MBBb, MBmb, KBBb, FGRb, PhiRb, OmegaL, FGL, Ph
       p%D1_14 = MATMUL( p%MBM, p%PhiM_T ) - MATMUL( TI_transpose, TRANSPOSE(PHiRb))  
    
       ! FY (with retained modes)
-   ! TODO: This appears to be in global coordinates.  If the gravity force is on, then the resulting FY should be negative, yes? GJH 5/7/13
       p%FY =    MATMUL( p%MBM, p%FX ) &  
               - MATMUL( TI_transpose, ( FGRb + MATMUL( TRANSPOSE(PhiRb), FGL) ) ) 
       
@@ -4363,7 +4356,7 @@ SUBROUTINE OutSummary(Init, p, FEMparams,CBparams, ErrStat,ErrMsg)
     ENDDO  
    !-------------------------------------------------------------------------------------------------------------
     ! write TOTAL MASS AND CM(Note this includes structural and non-structural mass)
-    !!!!!!     TO BE CORRECTED: I MUST USE ORIGINAL MBB not reduced MBBt for the latter and apply TI!!!!  RRD TO DO
+    !!!!!!     TO BE CORRECTED: I MUST USE ORIGINAL MBB not reduced MBBt for the latter and apply TI!!!!  RRD TODO
    !-------------------------------------------------------------------------------------------------------------
    MRB=matmul(TRANSPOSE(CBparams%TI2),matmul(CBparams%MBB,CBparams%TI2)) !Equivalent mass matrix of the rigid body
    WRITE(UnSum, '(A)') SectionDivide

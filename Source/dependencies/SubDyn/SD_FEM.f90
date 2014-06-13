@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-07 21:27:55 -0600 (Sat, 07 Jun 2014) $
-! (File) Revision #: $Rev: 303 $
+! File last committed: $Date: 2014-06-13 11:16:16 -0600 (Fri, 13 Jun 2014) $
+! (File) Revision #: $Rev: 306 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM
@@ -185,7 +185,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
             IF ( Node == NINT(Init%Joints(J, 1)) ) THEN
                p%Elems(I, n) = J                ! index of the joint/node n-1 (i.e., nodes 1 and 2)
                found = .TRUE.
-         ENDIF
+            END IF
             J = J + 1
          END DO 
          
@@ -194,20 +194,20 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
                                    TRIM(Num2LStr(Node))//' which is not in the node list !', ErrStat,ErrMsg,'SD_Discrt');
             CALL CleanUp_Discrt()
             RETURN
-         ENDIF
+         END IF
          
       END DO ! loop through nodes/joints
       
       
          ! loop through the PropSetIDs for this member and find the corresponding indices into the Joints array
+      
+      ! we're setting these two values:   
+      !p%Elems(I, 4) = property set for node 1 (note this sets the YoungE, ShearG, and MatDens columns for the ENTIRE element)   
+      !p%Elems(I, 5) = property set for node 2 (note this should be used only for the XsecD and XsecT properties in the element [for a linear distribution from node 1 to node 2 of D and T])
+         
       DO n=4,5 ! Member column for MPropSetID1 and MPropSetID2
       
-         ! bjj: old method (which assumes PropSetID is sequential, starting at 1):
-         !p%Elems(I, NNE+2) = Init%Members(I, 4)    ! property set for node 1 (note this sets the YoungE, ShearG, and MatDens columns for the ENTIRE element)   ! BJJ TODO: check that this is the property index and not the property ID
-         !p%Elems(I, NNE+3) = Init%Members(I, 5)    ! property set for node 2 (note this should be used only for the XsecD and XsecT properties in the element  ! BJJ TODO: check that this is the property index and not the property ID
-         !                                          !                           [for a linear distribution from node 1 to node 2 of D and T])
-         
-                                                   
+                                                            
          Prop = Init%Members(I, n)  ! n=4 or 5
       
             ! ...... search for index of property set whose PropSetID matches Prop ......
@@ -215,22 +215,22 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
          found = .false.      
          DO WHILE ( .NOT. found .AND. J <= Init%NPropSets )
             IF ( Prop == NINT(Init%PropSets(J, 1)) ) THEN
-               p%Elems(I, n) = J                ! index of the property set n-3 (i.e., property sets 1 and 2)
+               p%Elems(I, n) = J                ! index of the property set n-3 (i.e., property sets 1 and 2)  ! note that previously, this used Prop instead of J, which assumed the list of MemberIDs was sequential, starting at 1.
                found = .TRUE.
             END IF
             J = J + 1
-      ENDDO
+         END DO
       
          IF ( .NOT. found) THEN
             CALL SetErrStat(ErrID_Fatal,' Member '//TRIM(Num2LStr(I))//' has PropSetID'//TRIM(Num2LStr(n-3))//' = '//& 
                                    TRIM(Num2LStr(Prop))//' which is not in the Member X-Section Property data!', ErrStat,ErrMsg,'SD_Discrt');
             CALL CleanUp_Discrt()
-         RETURN
-      ENDIF
+            RETURN
+         END IF
 
       END DO ! loop through property ids         
    
-   ENDDO ! loop through members
+   END DO ! loop through members
    
    ! Initialize TempMembers
    TempMembers = p%Elems(1:p%NMembers,:)
@@ -307,7 +307,7 @@ SUBROUTINE SD_Discrt(Init,p, ErrStat, ErrMsg)
       Node1 = NINT( Init%CMass(I, 1) )
       DO J = 1, Init%NJoints
          IF ( Node1 == NINT(Init%Joints(J, 1)) ) THEN
-            Init%CMass(I, 1) = J  !bjj: todo: check this. if there is no return after this, are we overwritting the value if Node1 == NINT(Init%Joints(J, 1)) is true for multiple Js?
+            Init%CMass(I, 1) = J  !bjj: todo: check this. if there is no return after this is found, are we overwritting the value if Node1 == NINT(Init%Joints(J, 1)) is true for multiple Js?
          ENDIF
       ENDDO
    ENDDO
@@ -727,7 +727,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
    DO I = 1, Init%NCMass
       
       r = ( NINT(Init%CMass(I, 1)) - 1 )*6 + 3
-      Init%FG(r) = Init%FG(r) - Init%CMass(I, 2)*Init%g !TODO Changed this sign for concentrated load because now g is positive. GJH 5/6/13
+      Init%FG(r) = Init%FG(r) - Init%CMass(I, 2)*Init%g 
 
    ENDDO ! I concentrated mass induced gravity
    
@@ -1017,11 +1017,10 @@ SUBROUTINE ElemG(A, L, rho, DirCos, F, g)
    w = rho*A*g       ! weight per unit length
    
       ! lumped forces on both nodes (z component only):
-   F(3) = -0.5*L*w ! TODO: Check this, I changed the sign because the force should be negative.  GJH May 5
+   F(3) = -0.5*L*w 
    F(9) = F(3)
           
       ! lumped moments on node 1 (x and y components only):
-   ! TODO:
    ! bjj: note that RRD wants factor of 1/12 because of boundary conditions. Our MeshMapping routines use factor of 1/6 (assuming generic/different boundary  
    !      conditions), so we may have some inconsistent behavior. JMJ suggests using line2 elements for SubDyn's input/output meshes to improve the situation.
    TempCoeff = L*L*w/12.0_ReKi ! let's not calculate this twice  

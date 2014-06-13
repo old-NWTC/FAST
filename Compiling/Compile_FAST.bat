@@ -158,6 +158,7 @@ SET HD_SOURCES=^
  "%HD_Loc%\FFTMod.f90" ^
  "%HD_Loc%\SS_Radiation_Types.f90" ^
  "%HD_Loc%\SS_Radiation.f90" ^
+ "%HD_Loc%\Waves2_Types.f90" ^
  "%HD_Loc%\Waves_Types.f90" ^
  "%HD_Loc%\Waves.f90" ^
  "%HD_Loc%\Morison_Types.f90" ^
@@ -167,6 +168,7 @@ SET HD_SOURCES=^
  "%HD_Loc%\Current.f90" ^
  "%HD_Loc%\Conv_Radiation_Types.f90" ^
  "%HD_Loc%\Conv_Radiation.f90" ^
+ "%HD_Loc%\WAMIT2_Types.f90" ^
  "%HD_Loc%\WAMIT_Types.f90" ^
  "%HD_Loc%\WAMIT_Output.f90" ^
  "%HD_Loc%\WAMIT.f90" ^

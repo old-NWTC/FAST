@@ -8,8 +8,8 @@
 !jm to avoid a circular USE association with NWTC_IO, which uses this module.
 !jm 2. Every routine after NWTC_Library_UnPackfileinfotype is commented out (or you can remove the lines)
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-01-31 10:20:04 -0700 (Fri, 31 Jan 2014) $
-! (File) Revision #: $Rev: 217 $
+! File last committed: $Date: 2014-06-13 10:04:28 -0600 (Fri, 13 Jun 2014) $
+! (File) Revision #: $Rev: 237 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Library_Types.f90 $
 !**********************************************************************************************************************************
 
@@ -23,7 +23,7 @@
 !.................................................................................................................................
 ! This file is part of NWTC_Library.
 !
-! Copyright (C) 2012, 2013 National Renewable Energy Laboratory
+! Copyright (C) 2012-14 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.

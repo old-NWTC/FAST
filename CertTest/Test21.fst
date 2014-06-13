@@ -1,4 +1,4 @@
-------- FAST v8.07.* INPUT FILE ------------------------------------------------
+------- FAST v8.08.* INPUT FILE ------------------------------------------------
 FAST Certification Test #21: NREL 5.0 MW Baseline Offshore Turbine with OC4 Jacket Configuration
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
@@ -20,16 +20,16 @@ False         Echo            - Echo input data to <RootName>.ech (flag)
 False         CompUserPtfmLd  - Compute additional platform loading {false: none; true: user-defined from routine UserPtfmLd} (flag)
 False         CompUserTwrLd   - Compute additional tower loading {false: none; true: user-defined from routine UserTwrLd} (flag)
 ---------------------- INPUT FILES ---------------------------------------------
-"5MW_Baseline/NRELOffshrBsline5MW_OC4Jacket_ElastoDyn.dat" EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
-"unused"                                                   BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
-"unused"                                                   BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
-"unused"                                                   BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_OC4Jacket_AeroDyn.dat"   AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_OC4Jacket_ServoDyn.dat"  ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
-"5MW_Baseline/NRELOffshrBsline5MW_OC4Jacket_HydroDyn.dat"  HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_OC4Jacket_ElastoDyn.dat"    EDFile          - Name of file containing ElastoDyn input parameters (quoted string)
+"unused"      BDBldFile(1)    - Name of file containing BeamDyn input parameters for blade 1 (quoted string)
+"unused"      BDBldFile(2)    - Name of file containing BeamDyn input parameters for blade 2 (quoted string)
+"unused"      BDBldFile(3)    - Name of file containing BeamDyn input parameters for blade 3 (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_OC4Jacket_AeroDyn.dat"    AeroFile        - Name of file containing aerodynamic input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_OC4Jacket_ServoDyn.dat"    ServoFile       - Name of file containing control and electrical-drive input parameters (quoted string)
+"5MW_Baseline/NRELOffshrBsline5MW_OC4Jacket_HydroDyn.dat"    HydroFile       - Name of file containing hydrodynamic input parameters (quoted string)
 "5MW_Baseline/NRELOffshrBsline5MW_OC4Jacket_SubDyn.dat"    SubFile         - Name of file containing sub-structural input parameters (quoted string)
-"unused"                                                   MooringFile     - Name of file containing mooring system input parameters (quoted string)
-"unused"                                                   IceFile         - Name of file containing ice input parameters (quoted string)
+"unused"      MooringFile     - Name of file containing mooring system input parameters (quoted string)
+"unused"      IceFile         - Name of file containing ice input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (sec)

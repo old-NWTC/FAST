@@ -1,5 +1,5 @@
 !**********************************************************************************************************************************
-! Copyright (C) 2013  National Renewable Energy Laboratory
+! Copyright (C) 2013-2014  National Renewable Energy Laboratory
 !
 ! This code provides a wrapper for the ScaLAPACK routines currently used at the NWTC (mainly codes in the FAST framework).
 !

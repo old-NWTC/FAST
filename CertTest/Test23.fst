@@ -1,4 +1,4 @@
-------- FAST v8.07.* INPUT FILE ------------------------------------------------
+------- FAST v8.08.* INPUT FILE ------------------------------------------------
 FAST Certification Test #23: NREL 5.0 MW Baseline Wind Turbine with Floating TLP Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)

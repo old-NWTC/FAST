@@ -854,7 +854,7 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
 
          ! Tell our nice users what is about to happen that may take a while:
 
-      CALL WrScr ( ' Generating incident wave kinematics and current time history.' )
+      CALL WrScr ( '   Generating incident wave kinematics and current time history.' )
 
 
 

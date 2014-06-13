@@ -150,6 +150,7 @@ HD_SOURCES =                 \
 	FFTMod.f90                \
 	SS_Radiation_Types.f90    \
 	SS_Radiation.f90          \
+	Waves2_Types.f90          \
 	Waves_Types.f90           \
 	Waves.f90                 \
 	Current_Types.f90         \
@@ -159,6 +160,7 @@ HD_SOURCES =                 \
 	Morison.f90               \
 	Conv_Radiation_Types.f90  \
 	Conv_Radiation.f90        \
+	WAMIT2_Types.f90          \
 	WAMIT_Types.f90           \
 	WAMIT_Output.f90          \
 	WAMIT.f90                 \
@@ -272,6 +274,9 @@ Current_Types.f90:
 Waves_Types.f90:
 	$(Registry) Waves.txt -I $(NWTC_Lib_DIR)
 
+Waves2_Types.f90:
+	$(Registry) Waves2.txt -I $(NWTC_Lib_DIR)
+
 SS_Radiation_Types.f90:
 	$(Registry) SS_Radiation.txt -I $(NWTC_Lib_DIR)
 
@@ -280,6 +285,9 @@ Conv_Radiation_Types.f90:
 
 WAMIT_Types.f90:
 	$(Registry) WAMIT.txt -I $(NWTC_Lib_DIR)
+
+WAMIT2_Types.f90:
+	$(Registry) WAMIT2.txt -I $(NWTC_Lib_DIR)
 
 Morison_Types.f90:
 	$(Registry) Morison.txt -I $(NWTC_Lib_DIR)

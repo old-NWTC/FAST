@@ -1,7 +1,7 @@
-%Conversion of FAST v 7.x files to FAST v8.0.0
+%Conversion of FAST v 7.x files to FAST v8.8.x
 % by Bonnie Jonkman
 %  based on "Demonstration of fast file manipuation" by Paul Fleming
-% (c) 2011, 2013 National Renewable Energy Laboratory
+% (c) 2011, 2013-2014 National Renewable Energy Laboratory
 %--------------------------------------------------------------------------
 clear all;
 
@@ -18,10 +18,10 @@ for i=[1:19 21:24]
     inputfile = [oldDir filesep baseFileName '.fst'];      
     
     
-    ConvertFAST8_3to7(inputfile,newDir);
+    ConvertFAST8_3to8(inputfile,newDir);
     
 end
-ConvertFAST8_3to7('Test19_noHD.fst',newDir);
+ConvertFAST8_3to8('Test19_noHD.fst',newDir);
 
 return;
 

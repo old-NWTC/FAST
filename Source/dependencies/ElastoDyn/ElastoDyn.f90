@@ -3,7 +3,7 @@
 ! FAST Modularization Framework. ElastoDyn_Types is auto-generated based on FAST_Registry.txt.
 !..................................................................................................................................
 ! LICENSING
-! Copyright (C) 2012  National Renewable Energy Laboratory
+! Copyright (C) 2012-2014  National Renewable Energy Laboratory
 !
 !    This file is part of ElastoDyn.
 !

@@ -1,6 +1,6 @@
 !..................................................................................................................................
 ! LICENSING
-! Copyright (C) 2013  National Renewable Energy Laboratory
+! Copyright (C) 2013-2014  National Renewable Energy Laboratory
 !
 !    This file is part of SubDyn.
 !
@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-07 21:27:55 -0600 (Sat, 07 Jun 2014) $
-! (File) Revision #: $Rev: 303 $
+! File last committed: $Date: 2014-06-13 11:16:16 -0600 (Fri, 13 Jun 2014) $
+! (File) Revision #: $Rev: 306 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE SubDyn_Output
@@ -4183,7 +4183,7 @@ SUBROUTINE ReactMatx(Init, p, WtrDpth, ErrStat, ErrMsg)
       
       x = Init%Nodes(n, 2)
       y = Init%Nodes(n, 3)
-      z = Init%Nodes(n, 4) + WtrDpth  !+ Wdepth here to be added- RRD TODO: 7/19/13
+      z = Init%Nodes(n, 4) + WtrDpth
       
       rmndr = MOD(I, 6)  !It gives me the column index among the 6 different kinds
       SELECT CASE (rmndr)
@@ -4377,15 +4377,12 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
   
   !Assign interface forces and moments 
    AllOuts(IntfSS(1:TPdofL))= - (/y%Y1Mesh%Force (:,1), y%Y1Mesh%Moment(:,1)/) !-y%Y1  !Note this is the force that the TP applies to the Jacket, opposite to what the GLue Code needs thus "-" sign
-
-   !Assign interface translations and rotations at the TP ref point  
-   !rotations  = GetSmllRotAngs(u%TPMesh%Orientation(:,:,1), ErrStat, Errmsg)
-   !OtherState%u_TP       = (/u%TPMesh%TranslationDisp(:,1), rotations/)   
-   !OtherState%udotdot_TP = (/u%TPMesh%TranslationAcc(:,1), u%TPMesh%RotationAcc(:,1)/)
    
-  AllOuts(IntfTRss(1:TPdofL))=OtherState%u_TP !u%UFL(1:TPdofL) !TODO need to add these back in!!! GJH 6/6/13
+  !Assign interface translations and rotations at the TP ref point  
+  AllOuts(IntfTRss(1:TPdofL))=OtherState%u_TP 
+  
   !Assign interface translations and rotations accelerations
-  AllOuts(IntfTRAss(1:TPdofL))= OtherState%udotdot_TP !u%UFL(2*TPdofL+1:3*TPdofL)  !TODO need to add these back in!!! GJH 6/6/13
+  AllOuts(IntfTRAss(1:TPdofL))= OtherState%udotdot_TP 
   
   ! Assign all SSqm, SSqmdot, SSqmdotdot
    ! We only have space for the first 99 values
@@ -4420,13 +4417,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
                 K=p%MOutLst3(I)%ElmIDs(1,J)  !element number
                 K2=p%MOutLst3(I)%ElmNds(1,J)  !first or second node of the element to be considered
                 
-                !Assign the sign depending on whether it is the 1st or second node
-                ! TODO: I do not believe we need to compute the sgn term because the local load is in the local coordinate system regardless of whether it is node 1 or 2, and then the direction cosine 
-                !       matrix transforms it into global which is what we need for the reaction load.  Also, I changed the sign of the reaction computation to simply sum not subtract the global force values.
-                !       Again, this seems to make sense.  GJH 5/6/13   --I believe this is correct, RRD 5/20/13
-                !sgn = 1
-                !IF (K2 .EQ. 2) sgn= -1
-                
+                !Assign the sign depending on whether it is the 1st or second node                
                 K3=p%Elems(K,2:3)  !first and second node ID associated with element K 
                 
                 L =p%IDY((K3(1)-1)*6+1)! starting index for node K3(1) within yout
@@ -4437,7 +4428,7 @@ SUBROUTINE SDOut_MapOutputs( CurrentTime, u,p,x, y, OtherState, AllOuts, ErrStat
                 CALL CALC_LOCAL( DIRCOS,p%MOutLst3(I)%Me(:,:,1,J),p%MOutLst3(I)%Ke(:,:,1,J),(/uddout( L : L+5  ),uddout( L2 : L2+5 )/), &
                                  (/yout( L : L+5 ),       yout( L2 : L2+5 )/),  p%MoutLst3(I)%Fg(:,1,J),   K2,FM_elm,FK_elm) 
                 
-                !transform back to global, need to do 3 at a time since cosince matrix is 3x3
+                !transform back to global, need to do 3 at a time since cosine matrix is 3x3
                 DO L=1,2  
                    FM_elm2((L-1)*3+1:L*3) = FM_elm2((L-1)*3+1:L*3) + matmul(p%elemprops(K)%DirCos,FM_elm((L-1)*3+1:L*3))  !sum forces at joint in GLOBAL REF
                    FK_elm2((L-1)*3+1:L*3) = FK_elm2((L-1)*3+1:L*3) + matmul(p%elemprops(K)%DirCos,FK_elm((L-1)*3+1:L*3))  !signs may be wrong, we will fix that later;  
@@ -4482,10 +4473,6 @@ END SUBROUTINE SDOut_MapOutputs
         REAL(DbKi), DIMENSION(12)                    ::Junk,Junk1,Junk3,Junk4      ! temporary storage for output stuff
            
         Junk=matmul(Me,Udotdot)     !GLOBAL REFERENCE
-        ! TODO: Need to look at whether the following gravity component should be +Fg or -Fg.  Since the calculation is in global coordinates, gravity
-        !       acts in negative Z, but if the user has code uses gravity as -9.8 then this would already be negative.  If the code uses gravity as positive
-        !       then you would need to apply -Fg.
-        !       As a note, HydroDyn expects the gravity variable to be >= 0.  So we would use -Fg in that case.
         Junk1=matmul(Ke,Y2) !GLOBAL REFERENCE 
         Junk1=Junk1- Fg     !GLOBAL REFERENCE  
         DO L=1,4  
@@ -4589,15 +4576,13 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
 
    TYPE(ProgDesc),                INTENT( IN    ) :: ProgVer
    CHARACTER(*),                  INTENT( IN    ) :: OutRootName          ! Root name for the output file
-   TYPE(SD_ParameterType),   INTENT( INOUT ) :: p   
-   TYPE(SD_InitOutPutType ), INTENT( IN    ) :: InitOut              !
+   TYPE(SD_ParameterType),        INTENT( INOUT ) :: p   
+   TYPE(SD_InitOutPutType ),      INTENT( IN    ) :: InitOut              !
    INTEGER,                       INTENT(   OUT ) :: ErrStat              ! a non-zero value indicates an error occurred           
    CHARACTER(*),                  INTENT(   OUT ) :: ErrMsg               ! Error message if ErrStat /= ErrID_None
    
       ! Local variables
    INTEGER                                        :: I                    ! Generic loop counter      
-!   INTEGER                                        :: J                    ! Generic loop counter      
-!   INTEGER                                        :: Indx                 ! Counts the current index into the WaveKinNd array
    CHARACTER(1024)                                :: OutFileName          ! The name of the output file  including the full path.
    CHARACTER(200)                                 :: Frmt                 ! a string to hold a format statement
    INTEGER                                        :: ErrStat2              
@@ -4605,10 +4590,9 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
    !-------------------------------------------------------------------------------------------------      
    ! Initialize local variables
    !-------------------------------------------------------------------------------------------------      
-   ErrStat = ErrID_None     
-      
-   !TODO Finish error handling
-   
+   ErrStat = ErrID_None  
+   ErrMsg  = ""
+         
    !-------------------------------------------------------------------------------------------------      
    ! Open the output file, if necessary, and write the header
    !-------------------------------------------------------------------------------------------------      
@@ -4630,30 +4614,19 @@ SUBROUTINE SDOut_OpenOutput( ProgVer, OutRootName,  p, InitOut, ErrStat, ErrMsg 
       
       WRITE (p%UnJckF,'(/,A/)', IOSTAT=ErrStat2)  'These predictions were generated by '//TRIM(GETNVD(ProgVer))//&
                       ' on '//CurDate()//' at '//CurTime()//'.'
-!bjj: let's make this file format consistant with FAST v8: making the title headers appear on line 7, and units on line 8.
-      WRITE(p%UnJckF, '(//)') ! add 3 lines
+      
+      WRITE(p%UnJckF, '(//)') ! add 3 lines to make file format consistant with FAST v8 (headers on line 7; units on line 8) [this allows easier post-processing]
       
          ! Write the names of the output parameters:
       
       Frmt = '(A8,'//TRIM(Int2LStr(p%NumOuts+p%OutAllInt*p%OutAllDims))//'(:,A,'//TRIM( p%OutSFmt )//'))'
    
-      WRITE(p%UnJckF,Frmt)  TRIM( 'Time' ), ( p%Delim, TRIM( InitOut%WriteOutputHdr(I) ), I=1,p%NumOuts+p%OutAllInt*p%OutAllDims )
+      WRITE(p%UnJckF,Frmt, IOSTAT=ErrStat2)  TRIM( 'Time' ), ( p%Delim, TRIM( InitOut%WriteOutputHdr(I) ), I=1,p%NumOuts+p%OutAllInt*p%OutAllDims )
+                        
       
-      
-      
-     ! WRITE (p%UnJckF,'()', IOSTAT=ErrStat2)          ! write the line return
-      
-      
-         ! Write the units of the output parameters:
-         
-     
-   
-      WRITE(p%UnJckF,Frmt)  TRIM( 's'), ( p%Delim, TRIM( InitOut%WriteOutputUnt(I) ), I=1,p%NumOuts+p%OutAllInt*p%OutAllDims )
-      
-      
-      !WRITE (p%UnJckF,'()', IOSTAT=ErrStat2)          ! write the blank line between header/units and results
-      
-      
+         ! Write the units of the output parameters:                 
+      WRITE(p%UnJckF,Frmt, IOSTAT=ErrStat2)  TRIM( 's'), ( p%Delim, TRIM( InitOut%WriteOutputUnt(I) ), I=1,p%NumOuts+p%OutAllInt*p%OutAllDims )
+                     
    
       
    END IF   ! there are any requested outputs   

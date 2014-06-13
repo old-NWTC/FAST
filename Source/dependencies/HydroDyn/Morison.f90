@@ -1122,8 +1122,8 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, WtrDpth, numNodes, nodes, numElemen
       WRITE( UnSum, '(A27,ES12.5)' ) '  Submerged Volume     :   ', totalDisplVol
       WRITE( UnSum, '(A27,ES12.5)' ) '  Marine Growth Volume :   ', totalMGVol   
       WRITE( UnSum, '(A27,ES12.5)' ) '  Ballasted Volume     :   ', totalFillVol
-      WRITE( UnSum, '(A111)')	'              NOTE: Structure, Submerged and Marine Growth volumes are based on members not modelled with WAMIT'
-      WRITE( UnSum, '(A149)')	'                    Ballasted volume is computed from all members which are marked as filled in the HydroDyn input file, regardless of PropWAMIT flag'
+      WRITE( UnSum, '(A111)') '              NOTE: Structure, Submerged and Marine Growth volumes are based on members not modelled with WAMIT'
+      WRITE( UnSum, '(A149)') '                    Ballasted volume is computed from all members which are marked as filled in the HydroDyn input file, regardless of PropWAMIT flag'
            
       
       
@@ -1317,9 +1317,9 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, WtrDpth, numNodes, nodes, numElemen
       IntBuoyancy = IntBuoyancy + ExtBuoyancy
       WRITE( UnSum, '(A18,6(2X,ES20.6))') 'Total   :        ', IntBuoyancy(1), IntBuoyancy(2), IntBuoyancy(3), IntBuoyancy(4), IntBuoyancy(5), IntBuoyancy(6)
       !WRITE( UnSum,  '(/)' ) 
-      WRITE( UnSum, '(A81)')	'              NOTE: External buoyancy is based on members not modelled with WAMIT'
-      WRITE( UnSum, '(A150)')	'                    Internal buoyancy is computed from all members which are marked as filled in the HydroDyn input file, regardless of PropWAMIT flag'
-      WRITE( UnSum, '(A88)')	'                    Total buoyancy does not include WAMIT-modelled buoyancy contribution'
+      WRITE( UnSum, '(A81)') '              NOTE: External buoyancy is based on members not modelled with WAMIT'
+      WRITE( UnSum, '(A150)') '                    Internal buoyancy is computed from all members which are marked as filled in the HydroDyn input file, regardless of PropWAMIT flag'
+      WRITE( UnSum, '(A88)') '                    Total buoyancy does not include WAMIT-modelled buoyancy contribution'
       
       
       
