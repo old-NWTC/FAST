@@ -58,15 +58,7 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
                 
             if i == 4  || i > 17 % use the new binary file format
                 oldFiles = strcat( oldRoot,  {'.outb', '.plt', '.outb'} );
-                newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                
-                
-% if  i==21 %|| i==19 ||
-%      newFiles = strrep(newFiles,'.outb','.out')
-% end
-% if i==24
-%     oldFiles = strcat( newRoot,  {'_MAP.outb', '.plt', '_MAP.outb'} ); 
-% end    
-
+                newFiles = strcat( newRoot,  {'.outb', '.plt', '.outb'} );                                                
             else  % use the text format
                 oldFiles = strcat( oldRoot,  {'.out', '.plt', '.out'} );
                 newFiles = strcat( newRoot,  {'.out', '.plt', '.out'} );

@@ -271,6 +271,7 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    !IF (p%CompIce == Module_IceF) p%KMax = 2
    p%SizeJac_ED_SD_HD = 0     ! initialize this vector to zero; after we figure out what size the ED/SD/HD meshes are, we'll fill this
    
+   p%numIceLegs = 0           ! initialize number of support-structure legs in contact with ice (IceDyn will set this later)
 
       ! determine what kind of turbine we're modeling:
    IF ( p%CompHydro == Module_HD ) THEN
@@ -332,7 +333,11 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    IF (p%CompIce == Module_IceF) THEN
       IF (p%CompSub   /= Module_SD) CALL SetErrors( ErrID_Fatal, 'SubDyn must be used when IceFloe is used. Set CompSub > 0 or CompIce = 0 in the FAST input file.' )
       IF (p%CompHydro /= Module_HD) CALL SetErrors( ErrID_Fatal, 'HydroDyn must be used when IceFloe is used. Set CompHydro > 0 or CompIce = 0 in the FAST input file.' )
+   ELSEIF (p%CompIce == Module_IceD) THEN
+      IF (p%CompSub   /= Module_SD) CALL SetErrors( ErrID_Fatal, 'SubDyn must be used when IceDyn is used. Set CompSub > 0 or CompIce = 0 in the FAST input file.' )
+      IF (p%CompHydro /= Module_HD) CALL SetErrors( ErrID_Fatal, 'HydroDyn must be used when IceDyn is used. Set CompHydro > 0 or CompIce = 0 in the FAST input file.' )
    END IF
+   
    
 !   IF ( p%InterpOrder < 0 .OR. p%InterpOrder > 2 ) THEN
    IF ( p%InterpOrder < 1 .OR. p%InterpOrder > 2 ) THEN
@@ -388,7 +393,7 @@ CONTAINS
 END SUBROUTINE FAST_Init
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, InitOutData_AD, InitOutData_HD, &
-                            InitOutData_SD, InitOutData_MAP, InitOutData_FEAM, InitOutData_IceF, ErrStat, ErrMsg )
+                            InitOutData_SD, InitOutData_MAP, InitOutData_FEAM, InitOutData_IceF, InitOutData_IceD, ErrStat, ErrMsg )
 ! This routine initializes the output for the glue code, including writing the header for the primary output file.
 ! was previously called WrOutHdr()
 !..................................................................................................................................
@@ -407,6 +412,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    TYPE(MAP_InitOutputType),       INTENT(IN)           :: InitOutData_MAP                       ! Initialization output for MAP
    TYPE(FEAM_InitOutputType),      INTENT(IN)           :: InitOutData_FEAM                      ! Initialization output for FEAMooring
    TYPE(IceFloe_InitOutputType),   INTENT(IN)           :: InitOutData_IceF                      ! Initialization output for IceFloe
+   TYPE(ID_InitOutputType),        INTENT(IN)           :: InitOutData_IceD                      ! Initialization output for IceDyn
 
    INTEGER(IntKi),                 INTENT(OUT)          :: ErrStat                               ! Error status
    CHARACTER(*),                   INTENT(OUT)          :: ErrMsg                                ! Error message corresponding to ErrStat
@@ -414,7 +420,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
 
       ! Local variables.
 
-   INTEGER(IntKi)                   :: I                                               ! A generic index for DO loops.
+   INTEGER(IntKi)                   :: I, J                                            ! Generic index for DO loops.
    INTEGER(IntKi)                   :: indxLast                                        ! The index of the last value to be written to an array
    INTEGER(IntKi)                   :: indxNext                                        ! The index of the next value to be written to an array
    INTEGER(IntKi)                   :: NumOuts                                         ! number of channels to be written to the output file(s)
@@ -470,6 +476,9 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    IF ( p_FAST%CompIce == Module_IceF ) THEN
       y_FAST%Module_Ver( Module_IceF )   = InitOutData_IceF%Ver
       y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_IceF )))
+   ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
+      y_FAST%Module_Ver( Module_IceD )   = InitOutData_IceD%Ver
+      y_FAST%FileDescLines(2)  = TRIM(y_FAST%FileDescLines(2) ) //'; '//TRIM(GetNVD(y_FAST%Module_Ver( Module_IceD )))   
    END IF      
    
    !......................................................
@@ -490,6 +499,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    IF ( ALLOCATED( InitOutData_MAP%WriteOutputHdr  ) ) y_FAST%numOuts(Module_MAP)  = SIZE(InitOutData_MAP%WriteOutputHdr)
    IF ( ALLOCATED( InitOutData_FEAM%WriteOutputHdr ) ) y_FAST%numOuts(Module_FEAM) = SIZE(InitOutData_FEAM%WriteOutputHdr)
    IF ( ALLOCATED( InitOutData_IceF%WriteOutputHdr ) ) y_FAST%numOuts(Module_IceF) = SIZE(InitOutData_IceF%WriteOutputHdr)
+   IF ( ALLOCATED( InitOutData_IceD%WriteOutputHdr ) ) y_FAST%numOuts(Module_IceD) = SIZE(InitOutData_IceD%WriteOutputHdr)*p_FAST%numIceLegs         
    
    !......................................................
    ! Initialize the output channel names and units
@@ -566,8 +576,16 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
       y_FAST%ChannelNames(indxNext:indxLast) = InitOutData_IceF%WriteOutputHdr
       y_FAST%ChannelUnits(indxNext:indxLast) = InitOutData_IceF%WriteOutputUnt
       indxNext = indxLast + 1
+   ELSEIF ( y_FAST%numOuts(Module_IceD) > 0_IntKi ) THEN !IceDyn
+      DO I=1,p_FAST%numIceLegs         
+         DO J=1,SIZE(InitOutData_IceD%WriteOutputHdr) 
+            y_FAST%ChannelNames(indxNext) =TRIM(InitOutData_IceD%WriteOutputHdr(J))//'L'//TRIM(Num2Lstr(I))  !bjj: do we want this "Lx" at the end?
+            y_FAST%ChannelUnits(indxNext) = InitOutData_IceD%WriteOutputUnt(J)
+            indxNext = indxNext + 1
+         END DO ! J
+      END DO ! I
    END IF   
-   
+      
    
    !......................................................
    ! Open the text output file and print the headers
@@ -664,7 +682,7 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
       ! local variables
    INTEGER(IntKi)                          :: I                                  ! temporary counter
    INTEGER(IntKi)                          :: J                                  ! temporary counter
-   INTEGER(IntKi)                          :: Module_ID                          ! loop counter through the modules
+   INTEGER(IntKi)                          :: Module_Number                      ! loop counter through the modules
    INTEGER(IntKi)                          :: JacSize                            ! variable describing size of jacobian matrix
    CHARACTER(200)                          :: Fmt                                ! temporary format string
    CHARACTER(200)                          :: DescStr                            ! temporary string to write text
@@ -721,6 +739,9 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    IF ( p_FAST%CompIce /= Module_IceF ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_IceD ) )
+   IF ( p_FAST%CompIce /= Module_IceD ) DescStr = TRIM(DescStr)//NotUsedTxt
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
    
    
    !.......................... Information from FAST input File ......................................
@@ -793,9 +814,9 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    WRITE (y_FAST%UnSum, Fmt ) "-----------------", "---------------", "-------------"
    Fmt = '(2X,A17,2X,'//TRIM(p_FAST%OutFmt)//',:,T37,2X,I8,:,A)'
    WRITE (y_FAST%UnSum, Fmt ) "FAST (glue code) ", p_FAST%DT
-   DO Module_ID=1,NumModules
-      IF (p_FAST%ModuleInitialized(Module_ID)) THEN
-         WRITE (y_FAST%UnSum, Fmt ) y_FAST%Module_Ver(Module_ID)%Name, p_FAST%DT_module(Module_ID), p_FAST%n_substeps(Module_ID)
+   DO Module_Number=1,NumModules
+      IF (p_FAST%ModuleInitialized(Module_Number)) THEN
+         WRITE (y_FAST%UnSum, Fmt ) y_FAST%Module_Ver(Module_Number)%Name, p_FAST%DT_module(Module_Number), p_FAST%n_substeps(Module_Number)
       END IF
    END DO
    IF ( NINT( p_FAST%DT_out / p_FAST%DT )  == 1_IntKi ) THEN
@@ -818,10 +839,10 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(FAST_Ver%Name)
 
    
-   DO Module_ID = 1,NumModules
-      DO J = 1,y_FAST%numOuts( Module_ID )
+   DO Module_Number = 1,NumModules
+      DO J = 1,y_FAST%numOuts( Module_Number )
          I = I + 1
-         WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%Module_Ver( Module_ID )%Name)
+         WRITE (y_FAST%UnSum, Fmt ) I, y_FAST%ChannelNames(I), y_FAST%ChannelUnits(I), TRIM(y_FAST%Module_Ver( Module_Number )%Name)
       END DO
    END DO
       
@@ -1087,6 +1108,8 @@ SUBROUTINE FAST_ReadPrimaryFile( InputFile, p, ErrStat, ErrMsg )
             p%CompIce = Module_NONE
          ELSEIF ( p%CompIce == 1 ) THEN
             p%CompIce = Module_IceF
+         ELSEIF ( p%CompIce == 2 ) THEN
+            p%CompIce = Module_IceD
          ELSE
             p%CompIce = Module_Unknown
          END IF
@@ -1502,7 +1525,7 @@ END FUNCTION TimeValues2Seconds
 
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDOutput, SDOutput, MAPOutput, FEAMOutput, &
-                        IceFOutput, ErrStat, ErrMsg)
+                        IceFOutput, y_IceD, ErrStat, ErrMsg)
 ! This routine writes the module output to the primary output file(s).
 !..................................................................................................................................
 
@@ -1523,12 +1546,14 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
    REAL(ReKi),               INTENT(IN)    :: MAPOutput (:)                      ! MAP WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: FEAMOutput (:)                     ! FEAMooring WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: IceFOutput (:)                     ! IceFloe WriteOutput values
+   TYPE(ID_OutputType),      INTENT(IN)    :: y_IceD (:)                         ! IceDyn outputs (WriteOutput values are subset)
 
    INTEGER(IntKi),           INTENT(OUT)   :: ErrStat
    CHARACTER(*),             INTENT(OUT)   :: ErrMsg
 
       ! Local variables.
 
+   INTEGER(IntKi)                   :: i                                         ! loop counter
    INTEGER(IntKi)                   :: indxLast                                  ! The index of the last row value to be written to AllOutData for this time step (column).
    INTEGER(IntKi)                   :: indxNext                                  ! The index of the next row value to be written to AllOutData for this time step (column).
 
@@ -1592,7 +1617,13 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
       IF ( y_FAST%numOuts(Module_IceF) > 0 ) THEN !IceFloe
          CALL WrReAryFileNR ( y_FAST%UnOu, IceFOutput,   Frmt, ErrStat, ErrMsg )
          IF ( ErrStat >= AbortErrLev ) RETURN
+      ELSEIF ( y_FAST%numOuts(Module_IceD) > 0 ) THEN !IceDyn
+         DO i=1,p_FAST%numIceLegs
+            CALL WrReAryFileNR ( y_FAST%UnOu, y_IceD(i)%WriteOutput,   Frmt, ErrStat, ErrMsg )
+            IF ( ErrStat >= AbortErrLev ) RETURN
+         END DO
       END IF      
+      
       
          ! write a new line (advance to the next line)
       WRITE (y_FAST%UnOu,'()')
@@ -1672,9 +1703,17 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
             indxLast = indxNext + SIZE(IceFOutput) - 1
             y_FAST%AllOutData(indxNext:indxLast, y_FAST%n_Out) = IceFOutput
             indxNext = IndxLast + 1
-         END IF         
-      END IF
+         ELSEIF ( y_FAST%numOuts(Module_IceD) > 0 ) THEN
+            DO i=1,p_FAST%numIceLegs
+               indxLast = indxNext + SIZE(y_IceD(i)%WriteOutput) - 1
+               y_FAST%AllOutData(indxNext:indxLast, y_FAST%n_Out) = y_IceD(i)%WriteOutput
+               indxNext = IndxLast + 1
+            END DO            
+         END IF     
+         
+      END IF      
 
+         
    END IF
 
    RETURN
@@ -2119,6 +2158,28 @@ SUBROUTINE IceFloe_InputSolve(  u_IceF, y_SD, MeshMapData, ErrStat, ErrMsg )
    CALL Transfer_Point_to_Point( y_SD%y2Mesh, u_IceF%IceMesh, MeshMapData%SD_P_2_IceF_P, ErrStat, ErrMsg )
 
 END SUBROUTINE IceFloe_InputSolve
+!----------------------------------------------------------------------------------------------------------------------------------
+SUBROUTINE ID_InputSolve(  u_IceD, y_SD, MeshMapData, legNum, ErrStat, ErrMsg )
+! This routine sets the inputs required for IceFloe.
+!..................................................................................................................................
+
+      ! Passed variables
+   TYPE(ID_InputType),          INTENT(INOUT) :: u_IceD                       ! IceDyn input
+   TYPE(SD_OutputType),         INTENT(IN   ) :: y_SD                         ! SubDyn outputs
+   TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
+   INTEGER(IntKi),              INTENT(IN   ) :: legNum
+
+   INTEGER(IntKi),              INTENT(  OUT) :: ErrStat                      ! Error status of the operation
+   CHARACTER(*)  ,              INTENT(  OUT) :: ErrMsg                       ! Error message if ErrStat /= ErrID_None
+
+
+      !----------------------------------------------------------------------------------------------------
+      ! Map SD outputs to IceFloe inputs
+      !----------------------------------------------------------------------------------------------------
+
+   CALL Transfer_Point_to_Point( y_SD%y2Mesh, u_IceD%PointMesh, MeshMapData%SD_P_2_IceD_P(legNum), ErrStat, ErrMsg )
+
+END SUBROUTINE ID_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_HD_M_LumpedMesh, u_HD_M_DistribMesh, MeshMapData, ErrStat, ErrMsg )
 ! This routine transfers the HD outputs into inputs required for ED. Note that this *adds* to the values already in 
@@ -2709,6 +2770,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                                      , u_MAP,  y_MAP  &
                                      , u_FEAM, y_FEAM & 
                                      , u_IceF, y_IceF & 
+                                     , u_IceD, y_IceD & 
                                      , MeshMapData , ErrStat, ErrMsg )
 ! This routine performs the Input-Output solve for ED, SD, and HD.
 ! Note that this has been customized for the physics in the problems and is not a general solution.
@@ -2751,13 +2813,15 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    TYPE(HydroDyn_InputType)          , INTENT(INOUT) :: u_HD                      ! System inputs
    TYPE(HydroDyn_OutputType)         , INTENT(INOUT) :: y_HD                      ! System outputs
    
-      ! MAP/FEAM/IceFloe:
+      ! MAP/FEAM/IceFloe/IceDyn:
    TYPE(MAP_OutputType),              INTENT(IN   )  :: y_MAP                     ! MAP outputs 
    TYPE(MAP_InputType),               INTENT(INOUT)  :: u_MAP                     ! MAP inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
    TYPE(FEAM_OutputType),             INTENT(IN   )  :: y_FEAM                    ! FEAM outputs  
    TYPE(FEAM_InputType),              INTENT(INOUT)  :: u_FEAM                    ! FEAM inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
    TYPE(IceFloe_OutputType),          INTENT(IN   )  :: y_IceF                    ! IceFloe outputs  
    TYPE(IceFloe_InputType),           INTENT(INOUT)  :: u_IceF                    ! IceFloe inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
+   TYPE(ID_OutputType),               INTENT(IN   )  :: y_IceD(:)                 ! IceDyn outputs  
+   TYPE(ID_InputType),                INTENT(INOUT)  :: u_IceD(:)                 ! IceDyn inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
       
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat                   ! Error status of the operation
@@ -3212,7 +3276,8 @@ CONTAINS
    REAL(ReKi)                        , INTENT(IN   ) :: u_in(:)
    REAL(ReKi)                        , INTENT(  OUT) :: U_Resid(:)
 
-              
+   INTEGER(IntKi)                                    :: i                      ! counter for ice leg loop
+   
    !..................
    ! Set mooring line and ice inputs (which don't have acceleration fields and aren't used elsewhere in this routine, thus we're using the actual inputs (not a copy) 
    ! Note that these values get overwritten at the completion of this routine.)
@@ -3241,6 +3306,16 @@ CONTAINS
             CALL CheckError(ErrStat2,ErrMsg2)
             IF (ErrStat >= AbortErrLev) RETURN       
                                  
+      ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
+         
+         DO i=1,p_FAST%numIceLegs
+            
+            CALL ID_InputSolve(  u_IceD(i), y_SD2, MeshMapData, i, ErrStat2, ErrMsg2 )
+               CALL CheckError(ErrStat2,ErrMsg2)
+               IF (ErrStat >= AbortErrLev) RETURN  
+               
+         END DO
+         
       END IF        
       
       
@@ -3279,18 +3354,18 @@ CONTAINS
                IF (ErrStat >= AbortErrLev) RETURN               
          
 
-            ! SD loads from IceFloe:
-            IF ( y_IceF%iceMesh%Committed ) THEN      
-               ! we're mapping loads, so we also need the sibling meshes' displacements:
-               CALL Transfer_Point_to_Point( y_IceF%iceMesh, MeshMapData%u_SD_LMesh_2, MeshMapData%IceF_P_2_SD_P, ErrStat2, ErrMsg2, u_IceF%iceMesh, y_SD2%Y2Mesh )   
-                  CALL CheckError( ErrStat2, ErrMsg2 )
-                  IF (ErrStat >= AbortErrLev) RETURN
+            IF ( p_FAST%CompIce == Module_IceF ) THEN
+               
+               ! SD loads from IceFloe:
+               IF ( y_IceF%iceMesh%Committed ) THEN      
+                  ! we're mapping loads, so we also need the sibling meshes' displacements:
+                  CALL Transfer_Point_to_Point( y_IceF%iceMesh, MeshMapData%u_SD_LMesh_2, MeshMapData%IceF_P_2_SD_P, ErrStat2, ErrMsg2, u_IceF%iceMesh, y_SD2%Y2Mesh )   
+                     CALL CheckError( ErrStat2, ErrMsg2 )
+                     IF (ErrStat >= AbortErrLev) RETURN
 
-               MeshMapData%u_SD_LMesh%Force  = MeshMapData%u_SD_LMesh%Force  + MeshMapData%u_SD_LMesh_2%Force
-               MeshMapData%u_SD_LMesh%Moment = MeshMapData%u_SD_LMesh%Moment + MeshMapData%u_SD_LMesh_2%Moment    
-               
-               
-               
+                  MeshMapData%u_SD_LMesh%Force  = MeshMapData%u_SD_LMesh%Force  + MeshMapData%u_SD_LMesh_2%Force
+                  MeshMapData%u_SD_LMesh%Moment = MeshMapData%u_SD_LMesh%Moment + MeshMapData%u_SD_LMesh_2%Moment    
+                  
 !...          
 #ifdef DEBUG_MESH_TRANSFER_ICE
    if (.not. calcJacobian) then
@@ -3304,12 +3379,30 @@ CONTAINS
          !pause         
    end IF         
 #endif                
+                                    
+               END IF
                
+            ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
                
-            END IF
+                ! SD loads from IceDyn:
+               DO i=1,p_FAST%numIceLegs
+                  
+                  IF ( y_IceD(i)%PointMesh%Committed ) THEN      
+                     ! we're mapping loads, so we also need the sibling meshes' displacements:
+                     CALL Transfer_Point_to_Point( y_IceD(i)%PointMesh, MeshMapData%u_SD_LMesh_2, MeshMapData%IceD_P_2_SD_P(i), ErrStat2, ErrMsg2, u_IceD(i)%PointMesh, y_SD2%Y2Mesh )   
+                        CALL CheckError( ErrStat2, ErrMsg2 )
+                        IF (ErrStat >= AbortErrLev) RETURN
+
+                     MeshMapData%u_SD_LMesh%Force  = MeshMapData%u_SD_LMesh%Force  + MeshMapData%u_SD_LMesh_2%Force
+                     MeshMapData%u_SD_LMesh%Moment = MeshMapData%u_SD_LMesh%Moment + MeshMapData%u_SD_LMesh_2%Moment    
+                     
+                  END IF
+                  
+               END DO
                
+            END IF   ! Ice loading
                
-         END IF ! HD is used (IceFloe can't be used unless HydroDyn is used)
+         END IF ! HD is used (IceFloe/IceDyn can't be used unless HydroDyn is used)
 
 
          

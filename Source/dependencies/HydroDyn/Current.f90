@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-04-02 12:11:01 -0600 (Wed, 02 Apr 2014) $
-! (File) Revision #: $Rev: 374 $
+! File last committed: $Date: 2014-06-13 13:52:57 -0600 (Fri, 13 Jun 2014) $
+! (File) Revision #: $Rev: 417 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Current.f90 $
 !**********************************************************************************************************************************
 MODULE Current

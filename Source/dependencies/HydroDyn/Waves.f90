@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-27 15:11:50 -0600 (Tue, 27 May 2014) $
-! (File) Revision #: $Rev: 399 $
+! File last committed: $Date: 2014-06-13 13:52:57 -0600 (Fri, 13 Jun 2014) $
+! (File) Revision #: $Rev: 417 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
