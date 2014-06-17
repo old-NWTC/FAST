@@ -76,9 +76,11 @@ GOTO checkError
 :HydroDyn
 :Current
 :Waves
+:Waves2
 :SS_Radiation
 :Conv_Radiation
 :WAMIT
+:WAMIT2
 :Morison
 SET CURR_LOC=%HD_Loc%
 %REGISTRY% "%HD_Reg_Loc%\%ModuleName%.txt" -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
@@ -144,6 +146,9 @@ SET IfW_Loc=
 SET HD_Loc=
 SET SD_Loc=
 SET MAP_Loc=
+SET FEAM_Loc=
+SET IceF_Loc=
+SET ID_Loc=
 SET FAST_Loc=
 SET MAP_Include_Lib=
 SET HD_Reg_Loc=

@@ -13,8 +13,8 @@
 				<Tool Name="VFPreBuildEventTool"/>
 				<Tool Name="VFPostBuildEventTool"/>
 				<Tool Name="VFManifestTool" SuppressStartupBanner="true"/></Configuration>
-		<Configuration Name="Release|Win32" OutputDirectory="..\..\bin">
-				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" InterproceduralOptimizations="ipoSingleFile" Preprocess="preprocessYes" PreprocessorDefinitions="FPE_TRAP_ENABLED" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" UseMkl="mklSequential"/>
+		<Configuration Name="Release|Win32" OutputDirectory="..\..\bin" WholeProgramOptimization="true">
+				<Tool Name="VFFortranCompilerTool" SuppressStartupBanner="true" Preprocess="preprocessYes" PreprocessorDefinitions="FPE_TRAP_ENABLED" StandardWarnings="standardWarningsF03" DisableSpecificDiagnostics="5268,5199" UseMkl="mklSequential"/>
 				<Tool Name="VFLinkerTool" OutputFile="$(OutDir)\FAST_dev_$(PlatformName).exe" LinkIncremental="linkIncrementalNo" SuppressStartupBanner="true" SubSystem="subSystemConsole" StackReserveSize="999999999" LargeAddressAware="addrAwareLarge" AdditionalDependencies="..\..\Source\dependencies\MAP\MAP_$(PlatformName).lib"/>
 				<Tool Name="VFResourceCompilerTool"/>
 				<Tool Name="VFMidlTool" SuppressStartupBanner="true"/>
@@ -94,12 +94,20 @@
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat WAMIT" Description="Running Registry for WAMIT" Outputs="..\..\Source\dependencies\HydroDyn\WAMIT_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat WAMIT" Description="Running Registry for WAMIT" Outputs="..\..\Source\dependencies\HydroDyn\WAMIT_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT2.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat WAMIT2" Description="Running Registry for WAMIT2" Outputs="..\..\Source\dependencies\HydroDyn\WAMIT2_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT2_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Waves.txt">
 			<FileConfiguration Name="Debug|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat Waves" Description="Running Registry for Waves" Outputs="..\..\Source\dependencies\HydroDyn\Waves_Types.f90"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat Waves" Description="Running Registry for Waves" Outputs="..\..\Source\dependencies\HydroDyn\Waves_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\HydroDyn\Waves2.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat Waves2" Description="Running Registry for Waves2" Outputs="..\..\Source\dependencies\HydroDyn\Waves2_Types.f90"/></FileConfiguration></File>
+		<File RelativePath="..\..\Source\dependencies\HydroDyn\Waves2_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Waves_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Conv_Radiation.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Current.f90"/>
@@ -114,7 +122,13 @@
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT_Output.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Waves.f90"/></Filter>
 		<Filter Name="Ice">
-		<Filter Name="IceDyn"/>
+		<Filter Name="IceDyn">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\IceDyn\IceDyn_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\IceDyn\Registry_IceDyn.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IceDyn" Description="Running Registry for IceDyn" Outputs="..\..\Source\dependencies\IceDyn\IceDyn_Types.f90"/></FileConfiguration></File></Filter>
+		<File RelativePath="..\..\Source\dependencies\IceDyn\IceDyn.f90"/></Filter>
 		<Filter Name="IceFloe">
 		<Filter Name="ExternalCode">
 		<File RelativePath="..\..\Source\dependencies\IceFloe\RANLUX.f90"/></Filter>

@@ -37,6 +37,7 @@ SD_DIR       = $(FAST_DIR)/dependencies/SubDyn
 MAP_DIR      = $(FAST_DIR)/dependencies/MAP
 FEAM_DIR     = $(FAST_DIR)/dependencies/FEAMooring
 IceF_DIR     = $(FAST_DIR)/dependencies/IceFloe
+IceD_DIR     = $(FAST_DIR)/dependencies/IceDyn
 
 HD_DIR_Reg   = $(HD_DIR)
 BIN_DIR      = ../bin
@@ -217,13 +218,17 @@ IceF_SOURCES =              \
 	RANLUX.f90               \
 	IceFloe.f90
 
+IceD_SOURCES =              \
+	IceDyn_Types.f90         \
+	IceDyn.f90
+
 
 FAST_SOURCES =          \
 	FAST_Mods.f90        \
 	FAST_IO.f90          \
 	FAST_Prog.f90
 
-vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(IceF_DIR)
+vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(IceF_DIR) $(IceD_DIR)
 vpath %.f   $(HD_DIR) $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
@@ -234,7 +239,7 @@ vpath %.inp $(IceF_DIR)
 vpath %     $(IceF_DIR)
 
 
-ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES)
+ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES)
 tmp_objs1   = $(ALL_SOURCES:.f90=.obj)
 tmp_objs2   = $(tmp_objs1:.F90=.obj)       #note the upper case here (from IceFloe)
 ALL_OBJS    = $(tmp_objs2:.f=.obj)
@@ -321,6 +326,10 @@ IceFloe_Types.f90:
 	$(Registry) IceFloe_FASTRegistry.inp -I $(NWTC_Lib_DIR)
 
 
+IceDyn_Types.f90:
+	$(Registry) Registry_IceDyn.txt -I $(NWTC_Lib_DIR)
+
+
    #  Dependency rules.
 #NWTC Library dependency rules:
 NWTC_Base.obj:           $(PREC).obj
@@ -380,7 +389,7 @@ WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Con
 WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj
 HydroDyn_Output.obj:        HydroDyn_Types.obj Waves.obj
 
-HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj Morison_Types.obj
+HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Waves2_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj  WAMIT2_Types.obj  Morison_Types.obj
 HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj  HydroDyn_Output.obj WAMIT_Output.obj
 HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj
 
@@ -435,9 +444,14 @@ IceFloe_Types.obj:         NWTC_Library.obj IceFloe_FASTRegistry.inp
 IceFloe.obj:               IceFloe_Types.obj iceLog.obj coupledCrushing.obj crushingIEC.obj crushingISO.obj IceFlexBase.obj IceFlexIEC.obj IceFlexISO.obj intermittentCrushing.obj lockInISO.obj randomCrushing.obj
 
 
+# IceDyn dependency rules:
+IceDyn_Types.obj:          NWTC_Library.obj Registry_IceDyn.txt
+IceDyn.obj:                NWTC_Library.obj IceDyn_Types.obj
+
+
 # FAST dependency rules:
 FAST_Mods.obj:              NWTC_Library.obj
-FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  NWTC_LAPACK.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj  ElastoDyn.obj  SubDyn.obj  HydroDyn.obj  MAP.obj  FEAM.obj  IceFloe.obj
+FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  NWTC_LAPACK.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj  ElastoDyn.obj  SubDyn.obj  HydroDyn.obj  MAP.obj  FEAM.obj  IceFloe.obj  IceDyn.obj
 FAST_Prog.obj:              NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj
 
 

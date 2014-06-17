@@ -72,6 +72,7 @@ SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
+SET ID_Loc=%FAST_Loc%\dependencies\IceDyn
 
 SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
 SET HD_Reg_Loc=%HD_Loc%
@@ -214,6 +215,10 @@ SET IceF_SOURCES=^
  "%IceF_Loc%\IceFlexISO.f90" ^
  "%IceF_Loc%\IceFloe.f90"
 
+SET IceD_SOURCES=^
+ "%ID_Loc%\IceDyn_Types.f90"^
+ "%ID_Loc%\IceDyn.f90"
+
 
 SET FAST_SOURCES=^
  "%FAST_LOC%\FAST_Mods.f90" ^
@@ -270,12 +275,21 @@ MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
 ECHO %Lines%
+SET CURR_LOC=%ID_Loc%
+SET ModuleName=IceDyn
+%REGISTRY% "%CURR_LOC%\Registry_IceDyn.txt" -I "%NWTC_Lib_Loc%"
+MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+
+
+ECHO %Lines%
 SET CURR_LOC=%HD_Loc%
 CALL ::RunRegistry_HD  Current
 CALL ::RunRegistry_HD  Waves
+CALL ::RunRegistry_HD  Waves2
 CALL ::RunRegistry_HD  SS_Radiation
 CALL ::RunRegistry_HD  Conv_Radiation
 CALL ::RunRegistry_HD  WAMIT
+CALL ::RunRegistry_HD  WAMIT2
 CALL ::RunRegistry_HD  Morison
 CALL ::RunRegistry_HD  HydroDyn
 
@@ -312,7 +326,7 @@ if exist %INTER_DIR%\*.obj DEL %INTER_DIR%\*.obj
 
 
 :: ECHO %Lines%
-:: ECHO Compiling FAST, AeroDyn, ElastoDyn, ServoDyn, HydroDyn, InflowWind, SubDyn, MAP, and NWTC_Library routines to create %ROOT_NAME%.exe:
+:: ECHO Compiling FAST, AeroDyn, ElastoDyn, ServoDyn, HydroDyn, InflowWind, SubDyn, MAP, FEAMooring, IceFloe, IceDyn, and NWTC_Library routines to create %ROOT_NAME%.exe:
 
 rem ifort %COMPOPTS% %NWTC_Files%  %LINKOPTS% /out:%ROOT_NAME%.exe
 rem NOTE that I'm compiling the modules separately then linking them later. I split it up because the list of source files was getting too long ("Input line too long" error)
@@ -372,6 +386,11 @@ IF %ERRORLEVEL% NEQ 0 GOTO checkError
 ECHO %Lines%
 ECHO Compiling IceFloe:
 ifort %COMPOPTS% %IceF_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
+ECHO %Lines%
+ECHO Compiling IceDyn:
+ifort %COMPOPTS% %IceD_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
 
@@ -456,6 +475,7 @@ SET SD_SOURCES=
 SET MAP_SOURCES=
 SET FEAM_SOURCES=
 SET IceF_SOURCES=
+SET IceD_SOURCES=
 SET FAST_SOURCES=
 
 SET COMPOPTS=
