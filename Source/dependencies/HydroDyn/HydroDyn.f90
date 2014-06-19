@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-06 11:53:23 -0600 (Fri, 06 Jun 2014) $
-! (File) Revision #: $Rev: 409 $
+! File last committed: $Date: 2014-06-17 10:14:47 -0600 (Tue, 17 Jun 2014) $
+! (File) Revision #: $Rev: 423 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -289,17 +289,23 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
       InitLocal%Waves%PCurrVyiPz0   = Current_InitOut%PCurrVyiPz0
          
       
-      
-      
+         ! Copy the WaveElevXY data in from the HydroDyn InitInp
+
+      IF (ALLOCATED(InitInp%WaveElevXY)) THEN
+         CALL AllocAry( InitLocal%Waves%WaveElevXY, SIZE(InitInp%WaveElevXY, DIM=1),SIZE(InitInp%WaveElevXY, DIM=2), 'WaveElevXY', ErrStat2, ErrMsg2 ); CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+         InitLocal%Waves%WaveElevXY =  InitInp%WaveElevXY
+      ENDIF
+   
+   
          ! Initialize Waves module
           
       CALL Waves_Init(InitLocal%Waves, Waves_u, Waves_p, Waves_x, Waves_xd, Waves_z, WavesOtherState, &
                                  Waves_y, Interval, Waves_InitOut, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
-         IF ( ErrStat >= AbortErrLev ) THEN
-            CALL CleanUp()
-            RETURN
-         END IF
+      CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDyn_Init')
+      IF ( ErrStat >= AbortErrLev ) THEN
+         CALL CleanUp()
+         RETURN
+      END IF
       
       
       ! Verify that Waves_Init() did not request a different Interval!
@@ -317,6 +323,13 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          CALL SetErrStat(ErrID_Fatal,'Error allocating memory for the WaveTime array.',ErrStat,ErrMsg,'HydroDyn_Init')
          CALL CleanUp()
          RETURN         
+      END IF
+
+  
+         ! Copy the wave elevation time series corresponding to WaveElevXY to the output.
+
+      IF (ALLOCATED(InitInp%WaveElevXY)) THEN
+         CALL MOVE_ALLOC( Waves_InitOut%WaveElevSeries, InitOut%WaveElevSeries )
       END IF
 
       
@@ -356,6 +369,8 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          InitLocal%WAMIT%RhoXg        = Waves_InitOut%RhoXg
          InitLocal%WAMIT%NStepWave    = Waves_InitOut%NStepWave
          InitLocal%WAMIT%NStepWave2   = Waves_InitOut%NStepWave2
+         InitLocal%WAMIT%WaveDirMin   = Waves_InitOut%WaveDirMin
+         InitLocal%WAMIT%WaveDirMax   = Waves_InitOut%WaveDirMax
          InitLocal%WAMIT%WaveDOmega   = Waves_InitOut%WaveDOmega
          InitLocal%WAMIT%WaveTime     = Waves_InitOut%WaveTime    
 
@@ -364,8 +379,10 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          ! allocate InitLocal%WAMIT%WaveElevC0, 
          ! set InitLocal%WAMIT%WaveElevC0 = Waves_InitOut%WaveElevC0, and 
          ! deallocate Waves_InitOut%WaveElevC0 :
-         
+
+!FIXME: this will be needed for the WAMIT2 module         
          CALL MOVE_ALLOC( Waves_InitOut%WaveElevC0, InitLocal%WAMIT%WaveElevC0 ) 
+         CALL MOVE_ALLOC( Waves_InitOut%WaveDirArr, InitLocal%WAMIT%WaveDirArr )
                   
          !IF(ALLOCATED( Waves_InitOut%WaveElevC0 ))  DEALLOCATE( Waves_InitOut%WaveElevC0 )
          !....................................
@@ -542,18 +559,22 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          IF (InitLocal%Waves%WaveMod /= 0 .AND. InitLocal%Waves%WaveMod /= 5)  THEN
                ! Write the header for this section
             WRITE( InitLocal%UnSum,  '(//)' )         
-            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A22,2X,A22)' ) '    m   ', '    k    ', '   Omega[m]  ', 'REAL(DFT{WaveElev}[m])','IMAG(DFT{WaveElev}[m])'
-            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A22,2X,A22)' ) '   (-)  ', '  (1/m)  ', '   (rad/s)   ', '         (m)          ','         (m)          '
+            WRITE( InitLocal%UnSum, '(1X,A15)' )   'Wave Kinematics'
+            WRITE( InitLocal%UnSum,  '(/)' )
+            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A14,2X,A22,2X,A22)' )  &
+                     '    m   ', '    k    ', '   Omega[m]  ', '   Direction  ', 'REAL(DFT{WaveElev}[m])','IMAG(DFT{WaveElev}[m])'
+            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A14,2X,A22,2X,A22)' )  &
+                     '   (-)  ', '  (1/m)  ', '   (rad/s)   ', '     (deg)    ', '         (m)          ','         (m)          '
 
             ! Write the data
             DO I = -1*Waves_InitOut%NStepWave2+1,Waves_InitOut%NStepWave2
                WaveNmbr   = WaveNumber ( I*Waves_InitOut%WaveDOmega, InitLocal%Gravity, InitLocal%Waves%WtrDpth )
                IF ( InitLocal%HasWAMIT ) THEN
-                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
-                         InitLocal%WAMIT%WaveElevC0( 1,ABS(I ) ) ,   InitLocal%WAMIT%WaveElevC0( 2, ABS(I ) )*SIGN(1,I)
+                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
+                         InitLocal%WAMIT%WaveDirArr(ABS(I)),  InitLocal%WAMIT%WaveElevC0( 1,ABS(I ) ) ,   InitLocal%WAMIT%WaveElevC0( 2, ABS(I ) )*SIGN(1,I)
                ELSE
-                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
-                         Waves_InitOut%WaveElevC0( 1,ABS(I ) ) ,   Waves_InitOut%WaveElevC0( 2, ABS(I ) )*SIGN(1,I)
+                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
+                         Waves_InitOut%WaveDirArr(ABS(I)),  Waves_InitOut%WaveElevC0( 1,ABS(I ) ) ,   Waves_InitOut%WaveElevC0( 2, ABS(I ) )*SIGN(1,I)
                END IF
             END DO
          END IF

@@ -18,17 +18,15 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
-! (File) Revision #: $Rev: 692 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloeBase.F90 $
+! File last committed: $Date: 2014-06-18 13:10:21 -0700 (Wed, 18 Jun 2014) $
+! (File) Revision #: $Rev: 147 $
+! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/IceFloeBase.F90 $
 !**********************************************************************************************************************************
 
 !****************************************************************
 ! base type for ice floes, contains generic
 ! initialization, update, and utility routines
 
-
-!TODO:  unique diameters for multile legs?
 
 module IceFloeBase
 
@@ -42,8 +40,7 @@ module IceFloeBase
 
    public
 
-! TODO:  get gravity from FAST in case the user has turned it off?  Potential div by zero problem though
-! OR should the gravity used by FAST only pertain to the turbine structure, not ice loading?
+! This is compared to gravity in FAST, warning if different
    real(ReKi), parameter :: grav = 9.81
 
 !  ice type parameters
@@ -189,6 +186,12 @@ contains
       real(ReKi)                 :: factor
       real(ReKi)                 :: angle, rotX, rotY, loAngle, hiAngle
 
+!  For large spacing legs are independent and factor = 1
+      if (spacing > 5.0) then
+         factor = 1.0
+         return
+      endif
+
 ! calculate the angle between the ice Floe direction vector and 
 ! the vector from the tower centroid to the specified leg
       rotX =  X*cos(iceDir) + Y*sin(iceDir)
@@ -200,20 +203,13 @@ contains
          loAngle = 60.0
          hiAngle = 300.0
       else
-         loAngle = 90.0
-         hiAngle = 270.0
+         loAngle = 67.5
+         hiAngle = 292.5
       endif
       
 ! assign the factors
       factor = 1.0
-      if (angle < loAngle .or. angle >= hiAngle) then
-         if (spacing <= 5.0) then
-            factor = 0.0
-            if (nLegs > 3) factor = 0.25
-         else
-            factor = 0.5
-         endif
-      endif
+      if (angle < loAngle .or. angle >= hiAngle) factor = 0.0
 
    end function shelterFactor   
    

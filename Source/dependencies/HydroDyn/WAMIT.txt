@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2014-06-11 11:16:45 -0600 (Wed, 11 Jun 2014) $
-# (File) Revision #: $Rev: 413 $
+# File last committed: $Date: 2014-06-17 10:14:47 -0600 (Tue, 17 Jun 2014) $
+# (File) Revision #: $Rev: 423 $
 # URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/RegistryFiles/WAMIT.txt $
 ###################################################################################################################################
 
@@ -39,9 +39,10 @@ typedef   ^                            ^                             ReKi       
 typedef   ^                            ^                             ReKi                     WaveTime                        {:}        -        -         ""    -
 typedef   ^                            ^                             INTEGER                  WaveMod                         -          -        -         ""    -
 typedef   ^                            ^                             ReKi                     WtrDens                         -          -        -         ""    -
-typedef   ^                            ^                             ReKi                     WaveDir                         -          -        -         ""    -
+typedef   ^                            ^                             ReKi                     WaveDirArr                      {:}        -        -         "Array of wave directions (one per frequency) from the Waves module"    -
+typedef   ^                            ^                             ReKi                     WaveDirMin                      -          -        -         "Minimum wave direction from Waves module"    -
+typedef   ^                            ^                             ReKi                     WaveDirMax                      -          -        -         "Maximum wave direction from Waves module"    -
 typedef   ^                            ^                             CHARACTER(10)            OutList                         {18}       -        -         "This should really be dimensioned with MaxOutPts"    -
-typedef   ^                            ^                             ReKi                     WaveDirArr                      {:}        -        -         "Wave direction assigned to each frequency"    (degrees)
 typedef   ^                            ^                             LOGICAL                  OutAll                          -          -        -         ""    -
 typedef   ^                            ^                             INTEGER                  NumOuts                         -          -        -         ""    -
 #

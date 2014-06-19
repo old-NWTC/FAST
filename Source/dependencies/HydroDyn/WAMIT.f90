@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 13:52:25 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 328 $
+! File last committed: $Date: 2014-06-18 12:55:01 -0600 (Wed, 18 Jun 2014) $
+! (File) Revision #: $Rev: 426 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/WAMIT.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT
@@ -917,9 +917,12 @@ SUBROUTINE WAMIT_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
             !   amplitude vector has been defined, else interpolate to find the complex
             !   wave excitation force per unit wave amplitude vector at the chosen wave
             !   heading direction:
+            ! NOTE: we may end up inadvertantly aborting if the wave direction crosses
+            !   the -Pi / Pi boundary (-180/180 degrees).
 
-         IF ( ( InitInp%WaveDir < HdroWvDir(1) ) .OR. ( InitInp%WaveDir > HdroWvDir(NInpWvDir) ) )  THEN
-            ErrMsg  = ' WaveDir must be within the wave heading angle range available in "' &
+
+         IF ( ( InitInp%WaveDirMin < HdroWvDir(1) ) .OR. ( InitInp%WaveDirMax > HdroWvDir(NInpWvDir) ) )  THEN
+            ErrMsg  = 'All Wave directions must be within the wave heading angle range available in "' &
                            //TRIM(InitInp%WAMITFile)//'.3" (inclusive).'
             ErrStat = ErrID_Fatal
             RETURN
@@ -933,7 +936,7 @@ SUBROUTINE WAMIT_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut
 
          DO J = 1,6           ! Loop through all wave excitation forces and moments
             DO I = 1,NInpFreq ! Loop through all input frequency components inherent in the complex wave excitation force per unit wave amplitude vector
-               X_Diffrctn(I,J) = InterpStp( InitInp%WaveDir, HdroWvDir(:), HdroExctn(I,:,J), LastInd, NInpWvDir )
+               X_Diffrctn(I,J) = InterpStp( InitInp%WaveDirArr(I), HdroWvDir(:), HdroExctn(I,:,J), LastInd, NInpWvDir )
             END DO             ! I - All input frequency components inherent in the complex wave excitation force per unit wave amplitude vector
          END DO                ! J - All wave excitation forces and moments
 

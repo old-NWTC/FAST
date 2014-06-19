@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.02.03, 7-Apr-2014)
+! FAST Registry (v2.03.01, 18-June-2014)
 !*********************************************************************************************************************************
 ! MAP_Types
 !.................................................................................................................................
@@ -1840,19 +1840,19 @@ ENDIF
   Int_BufSz  = 0
   IF ( ASSOCIATED(OutData%FX) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
-    OutData%FX = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,OutData%FX)
+    OutData%FX = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,REAL(OutData%FX,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FX)
   ENDIF
   IF ( ASSOCIATED(OutData%FY) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
-    OutData%FY = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,OutData%FY)
+    OutData%FY = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,REAL(OutData%FY,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FY)
   ENDIF
   IF ( ASSOCIATED(OutData%FZ) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FZ,1))); mask1 = .TRUE.
-    OutData%FZ = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,OutData%FZ)
+    OutData%FZ = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,REAL(OutData%FZ,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FZ)
   ENDIF
@@ -2240,31 +2240,31 @@ ENDIF
   Int_BufSz  = 0
   IF ( ASSOCIATED(OutData%X) ) THEN
   ALLOCATE(mask1(SIZE(OutData%X,1))); mask1 = .TRUE.
-    OutData%X = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,OutData%X)
+    OutData%X = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,REAL(OutData%X,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%X)
   ENDIF
   IF ( ASSOCIATED(OutData%Y) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Y,1))); mask1 = .TRUE.
-    OutData%Y = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,OutData%Y)
+    OutData%Y = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,REAL(OutData%Y,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Y)
   ENDIF
   IF ( ASSOCIATED(OutData%Z) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Z,1))); mask1 = .TRUE.
-    OutData%Z = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,OutData%Z)
+    OutData%Z = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,REAL(OutData%Z,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Z)
   ENDIF
   IF ( ASSOCIATED(OutData%H) ) THEN
   ALLOCATE(mask1(SIZE(OutData%H,1))); mask1 = .TRUE.
-    OutData%H = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%H))-1 ),mask1,OutData%H)
+    OutData%H = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%H))-1 ),mask1,REAL(OutData%H,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%H)
   ENDIF
   IF ( ASSOCIATED(OutData%V) ) THEN
   ALLOCATE(mask1(SIZE(OutData%V,1))); mask1 = .TRUE.
-    OutData%V = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%V))-1 ),mask1,OutData%V)
+    OutData%V = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%V))-1 ),mask1,REAL(OutData%V,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%V)
   ENDIF
@@ -2936,79 +2936,79 @@ ENDIF
   Int_BufSz  = 0
   IF ( ASSOCIATED(OutData%Diam) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Diam,1))); mask1 = .TRUE.
-    OutData%Diam = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Diam))-1 ),mask1,OutData%Diam)
+    OutData%Diam = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Diam))-1 ),mask1,REAL(OutData%Diam,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Diam)
   ENDIF
   IF ( ASSOCIATED(OutData%MassDenInAir) ) THEN
   ALLOCATE(mask1(SIZE(OutData%MassDenInAir,1))); mask1 = .TRUE.
-    OutData%MassDenInAir = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%MassDenInAir))-1 ),mask1,OutData%MassDenInAir)
+    OutData%MassDenInAir = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%MassDenInAir))-1 ),mask1,REAL(OutData%MassDenInAir,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%MassDenInAir)
   ENDIF
   IF ( ASSOCIATED(OutData%EA) ) THEN
   ALLOCATE(mask1(SIZE(OutData%EA,1))); mask1 = .TRUE.
-    OutData%EA = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%EA))-1 ),mask1,OutData%EA)
+    OutData%EA = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%EA))-1 ),mask1,REAL(OutData%EA,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%EA)
   ENDIF
   IF ( ASSOCIATED(OutData%CB) ) THEN
   ALLOCATE(mask1(SIZE(OutData%CB,1))); mask1 = .TRUE.
-    OutData%CB = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%CB))-1 ),mask1,OutData%CB)
+    OutData%CB = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%CB))-1 ),mask1,REAL(OutData%CB,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%CB)
   ENDIF
   IF ( ASSOCIATED(OutData%Lu) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Lu,1))); mask1 = .TRUE.
-    OutData%Lu = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Lu))-1 ),mask1,OutData%Lu)
+    OutData%Lu = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Lu))-1 ),mask1,REAL(OutData%Lu,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Lu)
   ENDIF
   IF ( ASSOCIATED(OutData%X) ) THEN
   ALLOCATE(mask1(SIZE(OutData%X,1))); mask1 = .TRUE.
-    OutData%X = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,OutData%X)
+    OutData%X = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,REAL(OutData%X,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%X)
   ENDIF
   IF ( ASSOCIATED(OutData%Y) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Y,1))); mask1 = .TRUE.
-    OutData%Y = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,OutData%Y)
+    OutData%Y = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,REAL(OutData%Y,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Y)
   ENDIF
   IF ( ASSOCIATED(OutData%Z) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Z,1))); mask1 = .TRUE.
-    OutData%Z = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,OutData%Z)
+    OutData%Z = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,REAL(OutData%Z,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Z)
   ENDIF
   IF ( ASSOCIATED(OutData%FX) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
-    OutData%FX = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,OutData%FX)
+    OutData%FX = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,REAL(OutData%FX,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FX)
   ENDIF
   IF ( ASSOCIATED(OutData%FY) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
-    OutData%FY = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,OutData%FY)
+    OutData%FY = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,REAL(OutData%FY,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FY)
   ENDIF
   IF ( ASSOCIATED(OutData%FZ) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FZ,1))); mask1 = .TRUE.
-    OutData%FZ = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,OutData%FZ)
+    OutData%FZ = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,REAL(OutData%FZ,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FZ)
   ENDIF
   IF ( ASSOCIATED(OutData%M) ) THEN
   ALLOCATE(mask1(SIZE(OutData%M,1))); mask1 = .TRUE.
-    OutData%M = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%M))-1 ),mask1,OutData%M)
+    OutData%M = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%M))-1 ),mask1,REAL(OutData%M,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%M)
   ENDIF
   IF ( ASSOCIATED(OutData%B) ) THEN
   ALLOCATE(mask1(SIZE(OutData%B,1))); mask1 = .TRUE.
-    OutData%B = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%B))-1 ),mask1,OutData%B)
+    OutData%B = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%B))-1 ),mask1,REAL(OutData%B,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%B)
   ENDIF
@@ -3309,19 +3309,19 @@ ENDIF
   Int_BufSz  = 0
   IF ( ASSOCIATED(OutData%X) ) THEN
   ALLOCATE(mask1(SIZE(OutData%X,1))); mask1 = .TRUE.
-    OutData%X = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,OutData%X)
+    OutData%X = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,REAL(OutData%X,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%X)
   ENDIF
   IF ( ASSOCIATED(OutData%Y) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Y,1))); mask1 = .TRUE.
-    OutData%Y = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,OutData%Y)
+    OutData%Y = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,REAL(OutData%Y,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Y)
   ENDIF
   IF ( ASSOCIATED(OutData%Z) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Z,1))); mask1 = .TRUE.
-    OutData%Z = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,OutData%Z)
+    OutData%Z = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,REAL(OutData%Z,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%Z)
   ENDIF
@@ -3677,19 +3677,19 @@ ENDIF
   Int_BufSz  = 0
   IF ( ASSOCIATED(OutData%FX) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
-    OutData%FX = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,OutData%FX)
+    OutData%FX = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,REAL(OutData%FX,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FX)
   ENDIF
   IF ( ASSOCIATED(OutData%FY) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
-    OutData%FY = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,OutData%FY)
+    OutData%FY = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,REAL(OutData%FY,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FY)
   ENDIF
   IF ( ASSOCIATED(OutData%FZ) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FZ,1))); mask1 = .TRUE.
-    OutData%FZ = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,OutData%FZ)
+    OutData%FZ = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,REAL(OutData%FZ,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%FZ)
   ENDIF

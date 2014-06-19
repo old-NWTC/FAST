@@ -51,7 +51,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: Gravity      ! Supplied by Driver:  Gravitational acceleration (m/s^2) [-]
     REAL(DbKi)  :: TMax      ! Supplied by Driver:  The total simulation time (sec) [-]
     LOGICAL  :: HasIce      ! Supplied by Driver:  Whether this simulation has ice loading (flag) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! Supplied by Driver:  X-Y locations for WaveElevation output (for visualization) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! Supplied by Driver:  X-Y locations for WaveElevation output (for visualization).  First index is to X or Y coordinate.  Second index is the point number. [-]
     CHARACTER(80)  :: PtfmSgFChr      ! Platform horizontal surge translation force (flag) or DEFAULT [-]
     LOGICAL  :: PtfmSgF      ! Optionally Supplied by Driver:  Platform horizontal surge translation force (flag) [-]
     CHARACTER(80)  :: PtfmSwFChr      ! Platform horizontal sway translation force (flag) or DEFAULT [-]
@@ -95,6 +95,7 @@ IMPLICIT NONE
     TYPE(Morison_InitOutputType)  :: Morison      ! Initialization output from the Morison module [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! The is the list of all HD-related output channel header strings (includes all sub-module channels) [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! The is the list of all HD-related output channel unit strings (includes all sub-module channels) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevSeries      ! Wave elevation time-series at each of the points given by WaveElevXY.  First index is the timestep. Second index is XY point number corresponding to second index of WaveElevXY. [(m)]
     TYPE(ProgDesc)  :: Ver      ! Version of HydroDyn [-]
     REAL(ReKi)  :: WtrDens      ! Water density [(kg/m^3)]
     REAL(ReKi)  :: WtrDpth      ! Water depth [(m)]
@@ -744,6 +745,21 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    END IF
    DstInitOutputData%WriteOutputUnt = SrcInitOutputData%WriteOutputUnt
 ENDIF
+IF (ALLOCATED(SrcInitOutputData%WaveElevSeries)) THEN
+   i1_l = LBOUND(SrcInitOutputData%WaveElevSeries,1)
+   i1_u = UBOUND(SrcInitOutputData%WaveElevSeries,1)
+   i2_l = LBOUND(SrcInitOutputData%WaveElevSeries,2)
+   i2_u = UBOUND(SrcInitOutputData%WaveElevSeries,2)
+   IF (.NOT. ALLOCATED(DstInitOutputData%WaveElevSeries)) THEN 
+      ALLOCATE(DstInitOutputData%WaveElevSeries(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'HydroDyn_CopyInitOutput: Error allocating DstInitOutputData%WaveElevSeries.'
+         RETURN
+      END IF
+   END IF
+   DstInitOutputData%WaveElevSeries = SrcInitOutputData%WaveElevSeries
+ENDIF
       CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat, ErrMsg )
    DstInitOutputData%WtrDens = SrcInitOutputData%WtrDens
    DstInitOutputData%WtrDpth = SrcInitOutputData%WtrDpth
@@ -766,6 +782,9 @@ IF (ALLOCATED(InitOutputData%WriteOutputHdr)) THEN
 ENDIF
 IF (ALLOCATED(InitOutputData%WriteOutputUnt)) THEN
    DEALLOCATE(InitOutputData%WriteOutputUnt)
+ENDIF
+IF (ALLOCATED(InitOutputData%WaveElevSeries)) THEN
+   DEALLOCATE(InitOutputData%WaveElevSeries)
 ENDIF
   CALL NWTC_Library_Destroyprogdesc( InitOutputData%Ver, ErrStat, ErrMsg )
  END SUBROUTINE HydroDyn_DestroyInitOutput
@@ -837,6 +856,7 @@ ENDIF
   IF(ALLOCATED(Re_Morison_Buf))  DEALLOCATE(Re_Morison_Buf)
   IF(ALLOCATED(Db_Morison_Buf))  DEALLOCATE(Db_Morison_Buf)
   IF(ALLOCATED(Int_Morison_Buf)) DEALLOCATE(Int_Morison_Buf)
+  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevSeries )  ! WaveElevSeries 
   CALL NWTC_Library_Packprogdesc( Re_Ver_Buf, Db_Ver_Buf, Int_Ver_Buf, InData%Ver, ErrStat, ErrMsg, .TRUE. ) ! Ver 
   IF(ALLOCATED(Re_Ver_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Ver_Buf  ) ! Ver
   IF(ALLOCATED(Db_Ver_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Ver_Buf  ) ! Ver
@@ -898,6 +918,10 @@ ENDIF
   IF( ALLOCATED(Re_Morison_Buf) )  DEALLOCATE(Re_Morison_Buf)
   IF( ALLOCATED(Db_Morison_Buf) )  DEALLOCATE(Db_Morison_Buf)
   IF( ALLOCATED(Int_Morison_Buf) ) DEALLOCATE(Int_Morison_Buf)
+  IF ( ALLOCATED(InData%WaveElevSeries) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevSeries))-1 ) =  PACK(InData%WaveElevSeries ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevSeries)
+  ENDIF
   CALL NWTC_Library_Packprogdesc( Re_Ver_Buf, Db_Ver_Buf, Int_Ver_Buf, InData%Ver, ErrStat, ErrMsg, OnlySize ) ! Ver 
   IF(ALLOCATED(Re_Ver_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Ver_Buf)-1 ) = Re_Ver_Buf
@@ -1012,6 +1036,12 @@ ENDIF
     Int_Xferred = Int_Xferred + SIZE(Int_Morison_Buf)
   ENDIF
   CALL Morison_UnPackInitOutput( Re_Morison_Buf, Db_Morison_Buf, Int_Morison_Buf, OutData%Morison, ErrStat, ErrMsg ) ! Morison 
+  IF ( ALLOCATED(OutData%WaveElevSeries) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%WaveElevSeries,1),SIZE(OutData%WaveElevSeries,2))); mask2 = .TRUE.
+    OutData%WaveElevSeries = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevSeries))-1 ),mask2,OutData%WaveElevSeries)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElevSeries)
+  ENDIF
  ! first call NWTC_Library_Packprogdesc to get correctly sized buffers for unpacking
   CALL NWTC_Library_Packprogdesc( Re_Ver_Buf, Db_Ver_Buf, Int_Ver_Buf, OutData%Ver, ErrStat, ErrMsg, .TRUE. ) ! Ver 
   IF(ALLOCATED(Re_Ver_Buf)) THEN

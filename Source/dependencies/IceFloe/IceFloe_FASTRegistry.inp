@@ -8,7 +8,7 @@
 ##################################################################################################################################
 
 # ...... Include files (definitions from NWTC Library) ............................................................................
-include	Registry_NWTC_Library.txt
+include Registry_NWTC_Library.txt
 
 
 # ..... Initialization data .......................................................................................................
@@ -54,6 +54,7 @@ typedef      ^        ^       ^   crushArea            - - -  "cross sectional a
 typedef      ^        ^       ^   coeffStressRate      - - -  "coefficient to calc stress rate from relative vellocity" Pa/m
 typedef      ^        ^       ^   C(4)                 - - -  "coefficient of cubic transition curve for negative stress rates" -
 typedef      ^        ^       ^   dt                   - - -  "time step" sec
+typedef      ^        ^       ^   rampTime             - - -  "load ramp up time" sec
 typedef      ^        ^       ^   legX {:}             - - -  "x position of each leg relative to structure center" m
 typedef      ^        ^       ^   legY {:}             - - -  "y position of each leg relative to structure center" m
 typedef      ^        ^       ^   ks   {:}             - - -  "shelter factor due to upstream leg" -

@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-13 13:52:57 -0600 (Fri, 13 Jun 2014) $
-! (File) Revision #: $Rev: 417 $
+! File last committed: $Date: 2014-06-18 12:55:01 -0600 (Wed, 18 Jun 2014) $
+! (File) Revision #: $Rev: 426 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Current.f90 $
 !**********************************************************************************************************************************
 MODULE Current
@@ -118,7 +118,7 @@ SUBROUTINE Calc_Current( InitInp, z, h , DirRoot, CurrVxi, CurrVyi )
       REAL(ReKi),              INTENT(OUT) :: CurrVxi         ! xi-component of the current velocity at elevation z (m/s)
       REAL(ReKi),              INTENT(OUT) :: CurrVyi         ! yi-component of the current velocity at elevation z (m/s)
 
-      REAL(ReKi),              INTENT(IN ) :: h               ! Water depth (meters)
+      REAL(ReKi),              INTENT(IN ) :: h               ! Water depth (meters)  This quantity must be positive-valued
       REAL(ReKi),              INTENT(IN ) :: z               ! Elevation relative to the mean sea level (meters)
       CHARACTER(1024),         INTENT(IN ) :: DirRoot         ! The name of the root file including the full path to the current working directory.  
                                                               ! This may be useful if you want this routine to write a permanent record of what it does 

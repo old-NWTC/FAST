@@ -66,7 +66,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: NWaveElev      ! Number of points where the incident wave elevations can be output [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveElevxi      ! xi-coordinates for points where the incident wave elevations can be output [(meters)]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveElevyi      ! yi-coordinates for points where the incident wave elevations can be output [(meters)]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! Supplied by Driver:  X-Y locations for WaveElevation output (for visualization) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! Supplied by Driver:  X-Y locations for WaveElevation output (for visualization).  Index 1 corresponds to X or Y coordinate.  Index 2 corresponds to point number. [-]
     INTEGER(IntKi)  :: NWaveKin0      ! Number of points where the incident wave kinematics will be computed [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveKinxi0      ! xi-coordinates for points where the incident wave kinematics will be computed; these are relative to the mean sea level [(meters)]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveKinyi0      ! yi-coordinates for points where the incident wave kinematics will be computed; these are relative to the mean sea level [(meters)]
@@ -81,14 +81,16 @@ IMPLICIT NONE
   TYPE, PUBLIC :: Waves_InitOutputType
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevC0      ! Discrete Fourier transform of the instantaneous elevation of incident waves at the platform reference point.  First column is real part, second column is imaginary part [(meters)]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveDirArr      ! Wave direction array.  Each frequency has a unique direction of WaveNDir > 1 [(degrees)]
+    REAL(ReKi)  :: WaveDirMin      ! Minimum wave direction. [(degrees)]
+    REAL(ReKi)  :: WaveDirMax      ! Maximum wave direction. [(degrees)]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveAcc0      ! Instantaneous acceleration of incident waves in the xi- (1), yi- (2), and zi- (3) directions, respectively, accounting for stretching, at each of the NWaveKin0 points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed [(m/s^2)]
     REAL(ReKi)  :: WaveDir      ! Incident wave propagation heading direction [(degrees)]
     INTEGER(IntKi)  :: WaveNDir      ! Number of wave directions [only used if WaveDirMod = 1] [Must be an odd number -- will be adjusted within the waves module] [(-)]
     LOGICAL  :: WaveMultiDir      ! Indicates the waves are multidirectional -- set by HydroDyn_Input [-]
     REAL(ReKi)  :: WaveDOmega      ! Frequency step for incident wave calculations [(rad/s)]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveDynP0      ! Instantaneous dynamic pressure of incident waves                                                          , accounting for stretching, at each of the NWaveKin0 points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed [(N/m^2)]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      ! Instantaneous elevation of incident waves at each of the NWaveElev points where the incident wave elevations can be output [(meters)]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevSeries      ! Instantaneous elevation at each of the points given by WaveElevXY.  Used for making movies of the waves. [(m)]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      ! Instantaneous elevation time-series of incident waves at each of the NWaveElev points where the incident wave elevations can be output [(meters)]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevSeries      ! Instantaneous elevation time-series at each of the points given by WaveElevXY.  Used for making movies of the waves. First index is the timestep. Second index is XY point number corresponding to second index of WaveElevXY. [(m)]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveVel0      ! Instantaneous velocity     of incident waves in the xi- (1), yi- (2), and zi- (3) directions, respectively, accounting for stretching, at each of the NWaveKin0 points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed (The values include both the velocity of incident waves and the velocity of current.) [(m/s)]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveKinzi0      ! zi-coordinates for points along a vertical line passing through the platform reference point where the incident wave kinematics will be computed; these are relative to the mean see level [(meters)]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      ! Simulation times at which the instantaneous elevation of, velocity of, acceleration of, and loads associated with the incident waves are determined [(sec)]
@@ -658,6 +660,8 @@ IF (ALLOCATED(SrcInitOutputData%WaveDirArr)) THEN
    END IF
    DstInitOutputData%WaveDirArr = SrcInitOutputData%WaveDirArr
 ENDIF
+   DstInitOutputData%WaveDirMin = SrcInitOutputData%WaveDirMin
+   DstInitOutputData%WaveDirMax = SrcInitOutputData%WaveDirMax
 IF (ALLOCATED(SrcInitOutputData%WaveAcc0)) THEN
    i1_l = LBOUND(SrcInitOutputData%WaveAcc0,1)
    i1_u = UBOUND(SrcInitOutputData%WaveAcc0,1)
@@ -846,6 +850,8 @@ ENDIF
   Int_BufSz  = 0
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevC0 )  ! WaveElevC0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDirArr )  ! WaveDirArr 
+  Re_BufSz   = Re_BufSz   + 1  ! WaveDirMin
+  Re_BufSz   = Re_BufSz   + 1  ! WaveDirMax
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc0 )  ! WaveAcc0 
   Re_BufSz   = Re_BufSz   + 1  ! WaveDir
   Int_BufSz  = Int_BufSz  + 1  ! WaveNDir
@@ -871,6 +877,10 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDirArr))-1 ) =  PACK(InData%WaveDirArr ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveDirArr)
   ENDIF
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDirMin )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDirMax )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(InData%WaveAcc0) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveAcc0))-1 ) =  PACK(InData%WaveAcc0 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveAcc0)
@@ -960,6 +970,10 @@ ENDIF
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDirArr)
   ENDIF
+  OutData%WaveDirMin = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%WaveDirMax = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%WaveAcc0) ) THEN
   ALLOCATE(mask3(SIZE(OutData%WaveAcc0,1),SIZE(OutData%WaveAcc0,2),SIZE(OutData%WaveAcc0,3))); mask3 = .TRUE.
     OutData%WaveAcc0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc0))-1 ),mask3,OutData%WaveAcc0)

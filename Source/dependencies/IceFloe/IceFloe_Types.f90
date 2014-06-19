@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.00, 2-May-2014)
+! FAST Registry (v2.03.01, 18-June-2014)
 !*********************************************************************************************************************************
 ! IceFloe_Types
 !.................................................................................................................................
@@ -81,6 +81,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: coeffStressRate      ! coefficient to calc stress rate from relative vellocity [Pa/m]
     REAL(ReKi)  :: C(4)      ! coefficient of cubic transition curve for negative stress rates [-]
     REAL(ReKi)  :: dt      ! time step [sec]
+    REAL(ReKi)  :: rampTime      ! load ramp up time [sec]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: legX      ! - [x position of each leg relative to structure center]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: legY      ! - [y position of each leg relative to structure center]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: ks      ! - [shelter factor due to upstream leg]
@@ -874,6 +875,7 @@ ENDIF
    DstParamData%coeffStressRate = SrcParamData%coeffStressRate
    DstParamData%C(4) = SrcParamData%C(4)
    DstParamData%dt = SrcParamData%dt
+   DstParamData%rampTime = SrcParamData%rampTime
 IF (ALLOCATED(SrcParamData%legX)) THEN
    i1_l = LBOUND(SrcParamData%legX,1)
    i1_u = UBOUND(SrcParamData%legX,1)
@@ -986,6 +988,7 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! coeffStressRate
   Re_BufSz   = Re_BufSz   + 1  ! C(4)
   Re_BufSz   = Re_BufSz   + 1  ! dt
+  Re_BufSz   = Re_BufSz   + 1  ! rampTime
   Re_BufSz    = Re_BufSz    + SIZE( InData%legX )  ! legX 
   Re_BufSz    = Re_BufSz    + SIZE( InData%legY )  ! legY 
   Re_BufSz    = Re_BufSz    + SIZE( InData%ks )  ! ks 
@@ -1016,6 +1019,8 @@ ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%C(4) )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%dt )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%rampTime )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(InData%legX) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%legX))-1 ) =  PACK(InData%legX ,.TRUE.)
@@ -1093,6 +1098,8 @@ ENDIF
   OutData%C(4) = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%dt = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%rampTime = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%legX) ) THEN
   ALLOCATE(mask1(SIZE(OutData%legX,1))); mask1 = .TRUE.

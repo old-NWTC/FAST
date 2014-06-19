@@ -18,7 +18,7 @@ BITS = 32
    # You will probably need to change these for your system.
 
 
-FAST_DIR     = ../../../
+FAST_DIR     = ../../
 DLL_DIR      = .
 
 

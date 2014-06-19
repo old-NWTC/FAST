@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.00, 2-May-2014)
+! FAST Registry (v2.03.01, 18-June-2014)
 !*********************************************************************************************************************************
 ! IceDyn_Types
 !.................................................................................................................................
@@ -33,19 +33,22 @@ MODULE IceDyn_Types
 !---------------------------------------------------------------------------------------------------------------------------------
 USE NWTC_Library
 IMPLICIT NONE
-! =========  ID_InputFile  =======
-  TYPE, PUBLIC :: ID_InputFile
+! =========  IceD_InputFile  =======
+  TYPE, PUBLIC :: IceD_InputFile
     INTEGER(IntKi)  :: IceModel      ! The current ice model number [-]
     INTEGER(IntKi)  :: IceSubModel      ! The current ice sub-model number [-]
-    REAL(ReKi)  :: StrWd      ! The width of the structure [m]
     REAL(ReKi)  :: h      ! Ice thickness [m]
     REAL(ReKi)  :: v      ! Ice velocity [m/s]
     REAL(ReKi)  :: InitLoc      ! Ice sheet initial location [m]
     REAL(ReKi)  :: t0      ! Ice load starting time [s]
     REAL(ReKi)  :: rhow      ! Water mass density [kg/m^3]
     REAL(ReKi)  :: rhoi      ! Ice mass density [kg/m^3]
-    REAL(ReKi)  :: Seed1      ! Random seed 1 [-]
-    REAL(ReKi)  :: Seed2      ! Random seed 2 [-]
+    INTEGER(IntKi)  :: Seed1      ! Random seed 1 [-]
+    INTEGER(IntKi)  :: Seed2      ! Random seed 2 [-]
+    INTEGER(IntKi)  :: NumLegs      ! Number of support structure legs in ice [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LegPosX      ! global X position of legs 1-NumLegs  [m]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LegPosY      ! global Y position of legs 1-NumLegs  [m]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: StrWd      ! The width of the leg (structure) [m]
     REAL(ReKi)  :: Ikm      ! Indentation factor [-]
     REAL(ReKi)  :: Ag      ! Ice crystal type factor [MPa^-3s^-1]
     REAL(ReKi)  :: Qg      ! Activation energy [kJ]
@@ -69,10 +72,10 @@ IMPLICIT NONE
     REAL(ReKi)  :: varDelm      ! Variance of random random maximum ice tooth tip displacement [MPa^2]
     REAL(ReKi)  :: miuP      ! Mean value of random distance between sequential ice teeth [m]
     REAL(ReKi)  :: varP      ! Variance of random distance between sequential ice teeth [m^2]
-  END TYPE ID_InputFile
+  END TYPE IceD_InputFile
 ! =======================
-! =========  ID_InitInputType  =======
-  TYPE, PUBLIC :: ID_InitInputType
+! =========  IceD_InitInputType  =======
+  TYPE, PUBLIC :: IceD_InitInputType
     CHARACTER(1024)  :: InputFile      ! Name of the input file; remove if there is no file [-]
     CHARACTER(1024)  :: RootName      ! Root name of the output file [-]
     REAL(ReKi)  :: MSL2SWL      ! Offset between still-water level and mean sea level [m]
@@ -80,43 +83,43 @@ IMPLICIT NONE
     REAL(ReKi)  :: gravity      ! Gravitational acceleration [m/s^2]
     INTEGER(IntKi)  :: LegNum      ! Which number of legs on the turbine this is being initialized for [m]
     REAL(DbKi)  :: TMax      ! Total simulation time [s]
-  END TYPE ID_InitInputType
+  END TYPE IceD_InitInputType
 ! =======================
-! =========  ID_InitOutputType  =======
-  TYPE, PUBLIC :: ID_InitOutputType
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
+! =========  IceD_InitOutputType  =======
+  TYPE, PUBLIC :: IceD_InitOutputType
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
     INTEGER(IntKi)  :: numLegs      ! Number of legs on the structure [-]
     TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
-  END TYPE ID_InitOutputType
+  END TYPE IceD_InitOutputType
 ! =======================
-! =========  ID_ContinuousStateType  =======
-  TYPE, PUBLIC :: ID_ContinuousStateType
+! =========  IceD_ContinuousStateType  =======
+  TYPE, PUBLIC :: IceD_ContinuousStateType
     REAL(ReKi)  :: q      ! q - displacement of ice mass [m]
     REAL(ReKi)  :: dqdt      ! dqdt - velocity of ice mass [m/s]
-  END TYPE ID_ContinuousStateType
+  END TYPE IceD_ContinuousStateType
 ! =======================
-! =========  ID_DiscreteStateType  =======
-  TYPE, PUBLIC :: ID_DiscreteStateType
+! =========  IceD_DiscreteStateType  =======
+  TYPE, PUBLIC :: IceD_DiscreteStateType
     REAL(ReKi)  :: DummyDiscState      ! A variable, Replace if you have discrete states [-]
-  END TYPE ID_DiscreteStateType
+  END TYPE IceD_DiscreteStateType
 ! =======================
-! =========  ID_ConstraintStateType  =======
-  TYPE, PUBLIC :: ID_ConstraintStateType
+! =========  IceD_ConstraintStateType  =======
+  TYPE, PUBLIC :: IceD_ConstraintStateType
     REAL(ReKi)  :: DummyConstrState      ! A variable, Replace if you have constraint states [-]
-  END TYPE ID_ConstraintStateType
+  END TYPE IceD_ConstraintStateType
 ! =======================
-! =========  ID_OtherStateType  =======
-  TYPE, PUBLIC :: ID_OtherStateType
-    TYPE(ID_ContinuousStateType) , DIMENSION(:), ALLOCATABLE  :: xdot      ! previous state deriv for multi-step [m]
+! =========  IceD_OtherStateType  =======
+  TYPE, PUBLIC :: IceD_OtherStateType
+    TYPE(IceD_ContinuousStateType) , DIMENSION(:), ALLOCATABLE  :: xdot      ! previous state deriv for multi-step [m]
     INTEGER(IntKi)  :: n      ! tracks time step for which OtherState was updated [-]
     INTEGER(IntKi)  :: IceTthNo2      ! Ice tooth number of the current ice tooth, for model 2 [-]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: Nc      ! Number of the current ice tooths number (time series) [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Psum      ! The sum of pitches of all broken ice teeth (time series) [m]
-  END TYPE ID_OtherStateType
+  END TYPE IceD_OtherStateType
 ! =======================
-! =========  ID_ParameterType  =======
-  TYPE, PUBLIC :: ID_ParameterType
+! =========  IceD_ParameterType  =======
+  TYPE, PUBLIC :: IceD_ParameterType
     REAL(ReKi)  :: h      ! Ice thickness [m]
     REAL(ReKi)  :: v      ! Ice velocity [m/s]
     REAL(ReKi)  :: t0      ! Ice load starting time [s]
@@ -152,23 +155,23 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: rdmDm      ! Random maximum ice tooth tip displacement time series [m]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: rdmP      ! Random distance between sequential ice teeth [m]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: rdmKi      ! Random ice teeth stiffness [N/m]
-  END TYPE ID_ParameterType
+  END TYPE IceD_ParameterType
 ! =======================
-! =========  ID_InputType  =======
-  TYPE, PUBLIC :: ID_InputType
+! =========  IceD_InputType  =======
+  TYPE, PUBLIC :: IceD_InputType
     TYPE(MeshType)  :: PointMesh      ! contains displacement and velocity of structure [-]
-  END TYPE ID_InputType
+  END TYPE IceD_InputType
 ! =======================
-! =========  ID_OutputType  =======
-  TYPE, PUBLIC :: ID_OutputType
+! =========  IceD_OutputType  =======
+  TYPE, PUBLIC :: IceD_OutputType
     TYPE(MeshType)  :: PointMesh      ! contains Ice force [N]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! Data to be written to an output file: see WriteOutputHdr for names of each variable [see WriteOutputUnt]
-  END TYPE ID_OutputType
+  END TYPE IceD_OutputType
 ! =======================
 CONTAINS
- SUBROUTINE ID_Copyinputfile( SrcinputfileData, DstinputfileData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(id_inputfile), INTENT(INOUT) :: SrcinputfileData
-   TYPE(id_inputfile), INTENT(INOUT) :: DstinputfileData
+ SUBROUTINE IceD_Copyinputfile( SrcinputfileData, DstinputfileData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(iced_inputfile), INTENT(INOUT) :: SrcinputfileData
+   TYPE(iced_inputfile), INTENT(INOUT) :: DstinputfileData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -181,7 +184,6 @@ CONTAINS
    ErrMsg  = ""
    DstinputfileData%IceModel = SrcinputfileData%IceModel
    DstinputfileData%IceSubModel = SrcinputfileData%IceSubModel
-   DstinputfileData%StrWd = SrcinputfileData%StrWd
    DstinputfileData%h = SrcinputfileData%h
    DstinputfileData%v = SrcinputfileData%v
    DstinputfileData%InitLoc = SrcinputfileData%InitLoc
@@ -190,6 +192,46 @@ CONTAINS
    DstinputfileData%rhoi = SrcinputfileData%rhoi
    DstinputfileData%Seed1 = SrcinputfileData%Seed1
    DstinputfileData%Seed2 = SrcinputfileData%Seed2
+   DstinputfileData%NumLegs = SrcinputfileData%NumLegs
+IF (ALLOCATED(SrcinputfileData%LegPosX)) THEN
+   i1_l = LBOUND(SrcinputfileData%LegPosX,1)
+   i1_u = UBOUND(SrcinputfileData%LegPosX,1)
+   IF (.NOT. ALLOCATED(DstinputfileData%LegPosX)) THEN 
+      ALLOCATE(DstinputfileData%LegPosX(i1_l:i1_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'IceD_Copyinputfile: Error allocating DstinputfileData%LegPosX.'
+         RETURN
+      END IF
+   END IF
+   DstinputfileData%LegPosX = SrcinputfileData%LegPosX
+ENDIF
+IF (ALLOCATED(SrcinputfileData%LegPosY)) THEN
+   i1_l = LBOUND(SrcinputfileData%LegPosY,1)
+   i1_u = UBOUND(SrcinputfileData%LegPosY,1)
+   IF (.NOT. ALLOCATED(DstinputfileData%LegPosY)) THEN 
+      ALLOCATE(DstinputfileData%LegPosY(i1_l:i1_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'IceD_Copyinputfile: Error allocating DstinputfileData%LegPosY.'
+         RETURN
+      END IF
+   END IF
+   DstinputfileData%LegPosY = SrcinputfileData%LegPosY
+ENDIF
+IF (ALLOCATED(SrcinputfileData%StrWd)) THEN
+   i1_l = LBOUND(SrcinputfileData%StrWd,1)
+   i1_u = UBOUND(SrcinputfileData%StrWd,1)
+   IF (.NOT. ALLOCATED(DstinputfileData%StrWd)) THEN 
+      ALLOCATE(DstinputfileData%StrWd(i1_l:i1_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'IceD_Copyinputfile: Error allocating DstinputfileData%StrWd.'
+         RETURN
+      END IF
+   END IF
+   DstinputfileData%StrWd = SrcinputfileData%StrWd
+ENDIF
    DstinputfileData%Ikm = SrcinputfileData%Ikm
    DstinputfileData%Ag = SrcinputfileData%Ag
    DstinputfileData%Qg = SrcinputfileData%Qg
@@ -213,23 +255,32 @@ CONTAINS
    DstinputfileData%varDelm = SrcinputfileData%varDelm
    DstinputfileData%miuP = SrcinputfileData%miuP
    DstinputfileData%varP = SrcinputfileData%varP
- END SUBROUTINE ID_Copyinputfile
+ END SUBROUTINE IceD_Copyinputfile
 
- SUBROUTINE ID_Destroyinputfile( inputfileData, ErrStat, ErrMsg )
-  TYPE(id_inputfile), INTENT(INOUT) :: inputfileData
+ SUBROUTINE IceD_Destroyinputfile( inputfileData, ErrStat, ErrMsg )
+  TYPE(iced_inputfile), INTENT(INOUT) :: inputfileData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE ID_Destroyinputfile
+IF (ALLOCATED(inputfileData%LegPosX)) THEN
+   DEALLOCATE(inputfileData%LegPosX)
+ENDIF
+IF (ALLOCATED(inputfileData%LegPosY)) THEN
+   DEALLOCATE(inputfileData%LegPosY)
+ENDIF
+IF (ALLOCATED(inputfileData%StrWd)) THEN
+   DEALLOCATE(inputfileData%StrWd)
+ENDIF
+ END SUBROUTINE IceD_Destroyinputfile
 
- SUBROUTINE ID_Packinputfile( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_Packinputfile( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(id_inputfile),  INTENT(INOUT) :: InData
+  TYPE(iced_inputfile),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -261,15 +312,18 @@ CONTAINS
   Int_BufSz  = 0
   Int_BufSz  = Int_BufSz  + 1  ! IceModel
   Int_BufSz  = Int_BufSz  + 1  ! IceSubModel
-  Re_BufSz   = Re_BufSz   + 1  ! StrWd
   Re_BufSz   = Re_BufSz   + 1  ! h
   Re_BufSz   = Re_BufSz   + 1  ! v
   Re_BufSz   = Re_BufSz   + 1  ! InitLoc
   Re_BufSz   = Re_BufSz   + 1  ! t0
   Re_BufSz   = Re_BufSz   + 1  ! rhow
   Re_BufSz   = Re_BufSz   + 1  ! rhoi
-  Re_BufSz   = Re_BufSz   + 1  ! Seed1
-  Re_BufSz   = Re_BufSz   + 1  ! Seed2
+  Int_BufSz  = Int_BufSz  + 1  ! Seed1
+  Int_BufSz  = Int_BufSz  + 1  ! Seed2
+  Int_BufSz  = Int_BufSz  + 1  ! NumLegs
+  Re_BufSz    = Re_BufSz    + SIZE( InData%LegPosX )  ! LegPosX 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%LegPosY )  ! LegPosY 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%StrWd )  ! StrWd 
   Re_BufSz   = Re_BufSz   + 1  ! Ikm
   Re_BufSz   = Re_BufSz   + 1  ! Ag
   Re_BufSz   = Re_BufSz   + 1  ! Qg
@@ -300,8 +354,6 @@ CONTAINS
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%IceSubModel )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%StrWd )
-  Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%h )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%v )
@@ -314,10 +366,24 @@ CONTAINS
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%rhoi )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Seed1 )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Seed2 )
-  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%Seed1 )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%Seed2 )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumLegs )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( ALLOCATED(InData%LegPosX) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LegPosX))-1 ) =  PACK(InData%LegPosX ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%LegPosX)
+  ENDIF
+  IF ( ALLOCATED(InData%LegPosY) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LegPosY))-1 ) =  PACK(InData%LegPosY ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%LegPosY)
+  ENDIF
+  IF ( ALLOCATED(InData%StrWd) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%StrWd))-1 ) =  PACK(InData%StrWd ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%StrWd)
+  ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Ikm )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Ag )
@@ -364,13 +430,13 @@ CONTAINS
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%varP )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE ID_Packinputfile
+ END SUBROUTINE IceD_Packinputfile
 
- SUBROUTINE ID_UnPackinputfile( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackinputfile( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(id_inputfile), INTENT(INOUT) :: OutData
+  TYPE(iced_inputfile), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -403,8 +469,6 @@ CONTAINS
   Int_Xferred   = Int_Xferred   + 1
   OutData%IceSubModel = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  OutData%StrWd = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
   OutData%h = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%v = ReKiBuf ( Re_Xferred )
@@ -417,10 +481,30 @@ CONTAINS
   Re_Xferred   = Re_Xferred   + 1
   OutData%rhoi = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%Seed1 = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%Seed2 = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
+  OutData%Seed1 = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%Seed2 = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%NumLegs = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( ALLOCATED(OutData%LegPosX) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%LegPosX,1))); mask1 = .TRUE.
+    OutData%LegPosX = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LegPosX))-1 ),mask1,OutData%LegPosX)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%LegPosX)
+  ENDIF
+  IF ( ALLOCATED(OutData%LegPosY) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%LegPosY,1))); mask1 = .TRUE.
+    OutData%LegPosY = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LegPosY))-1 ),mask1,OutData%LegPosY)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%LegPosY)
+  ENDIF
+  IF ( ALLOCATED(OutData%StrWd) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%StrWd,1))); mask1 = .TRUE.
+    OutData%StrWd = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%StrWd))-1 ),mask1,OutData%StrWd)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%StrWd)
+  ENDIF
   OutData%Ikm = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%Ag = ReKiBuf ( Re_Xferred )
@@ -470,11 +554,11 @@ CONTAINS
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackinputfile
+ END SUBROUTINE IceD_UnPackinputfile
 
- SUBROUTINE ID_CopyInitInput( SrcInitInputData, DstInitInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ID_initinputtype), INTENT(INOUT) :: SrcInitInputData
-   TYPE(ID_initinputtype), INTENT(INOUT) :: DstInitInputData
+ SUBROUTINE IceD_CopyInitInput( SrcInitInputData, DstInitInputData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IceD_initinputtype), INTENT(INOUT) :: SrcInitInputData
+   TYPE(IceD_initinputtype), INTENT(INOUT) :: DstInitInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -492,23 +576,23 @@ CONTAINS
    DstInitInputData%gravity = SrcInitInputData%gravity
    DstInitInputData%LegNum = SrcInitInputData%LegNum
    DstInitInputData%TMax = SrcInitInputData%TMax
- END SUBROUTINE ID_CopyInitInput
+ END SUBROUTINE IceD_CopyInitInput
 
- SUBROUTINE ID_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
-  TYPE(ID_initinputtype), INTENT(INOUT) :: InitInputData
+ SUBROUTINE IceD_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
+  TYPE(IceD_initinputtype), INTENT(INOUT) :: InitInputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE ID_DestroyInitInput
+ END SUBROUTINE IceD_DestroyInitInput
 
- SUBROUTINE ID_PackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_PackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ID_initinputtype),  INTENT(INOUT) :: InData
+  TYPE(IceD_initinputtype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -556,13 +640,13 @@ CONTAINS
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TMax )
   Db_Xferred   = Db_Xferred   + 1
- END SUBROUTINE ID_PackInitInput
+ END SUBROUTINE IceD_PackInitInput
 
- SUBROUTINE ID_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(ID_initinputtype), INTENT(INOUT) :: OutData
+  TYPE(IceD_initinputtype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -604,11 +688,11 @@ CONTAINS
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackInitInput
+ END SUBROUTINE IceD_UnPackInitInput
 
- SUBROUTINE ID_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ID_initoutputtype), INTENT(INOUT) :: SrcInitOutputData
-   TYPE(ID_initoutputtype), INTENT(INOUT) :: DstInitOutputData
+ SUBROUTINE IceD_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IceD_initoutputtype), INTENT(INOUT) :: SrcInitOutputData
+   TYPE(IceD_initoutputtype), INTENT(INOUT) :: DstInitOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -626,7 +710,7 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
       ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputHdr.'
+         ErrMsg = 'IceD_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputHdr.'
          RETURN
       END IF
    END IF
@@ -639,7 +723,7 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
       ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputUnt.'
+         ErrMsg = 'IceD_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputUnt.'
          RETURN
       END IF
    END IF
@@ -647,10 +731,10 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
 ENDIF
    DstInitOutputData%numLegs = SrcInitOutputData%numLegs
       CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat, ErrMsg )
- END SUBROUTINE ID_CopyInitOutput
+ END SUBROUTINE IceD_CopyInitOutput
 
- SUBROUTINE ID_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
-  TYPE(ID_initoutputtype), INTENT(INOUT) :: InitOutputData
+ SUBROUTINE IceD_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
+  TYPE(IceD_initoutputtype), INTENT(INOUT) :: InitOutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -664,13 +748,13 @@ IF (ALLOCATED(InitOutputData%WriteOutputUnt)) THEN
    DEALLOCATE(InitOutputData%WriteOutputUnt)
 ENDIF
   CALL NWTC_Library_Destroyprogdesc( InitOutputData%Ver, ErrStat, ErrMsg )
- END SUBROUTINE ID_DestroyInitOutput
+ END SUBROUTINE IceD_DestroyInitOutput
 
- SUBROUTINE ID_PackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_PackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ID_initoutputtype),  INTENT(INOUT) :: InData
+  TYPE(IceD_initoutputtype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -732,13 +816,13 @@ ENDIF
   IF( ALLOCATED(Re_Ver_Buf) )  DEALLOCATE(Re_Ver_Buf)
   IF( ALLOCATED(Db_Ver_Buf) )  DEALLOCATE(Db_Ver_Buf)
   IF( ALLOCATED(Int_Ver_Buf) ) DEALLOCATE(Int_Ver_Buf)
- END SUBROUTINE ID_PackInitOutput
+ END SUBROUTINE IceD_PackInitOutput
 
- SUBROUTINE ID_UnPackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackInitOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(ID_initoutputtype), INTENT(INOUT) :: OutData
+  TYPE(IceD_initoutputtype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -790,11 +874,11 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackInitOutput
+ END SUBROUTINE IceD_UnPackInitOutput
 
- SUBROUTINE ID_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ID_continuousstatetype), INTENT(INOUT) :: SrcContStateData
-   TYPE(ID_continuousstatetype), INTENT(INOUT) :: DstContStateData
+ SUBROUTINE IceD_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IceD_continuousstatetype), INTENT(INOUT) :: SrcContStateData
+   TYPE(IceD_continuousstatetype), INTENT(INOUT) :: DstContStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -807,23 +891,23 @@ ENDIF
    ErrMsg  = ""
    DstContStateData%q = SrcContStateData%q
    DstContStateData%dqdt = SrcContStateData%dqdt
- END SUBROUTINE ID_CopyContState
+ END SUBROUTINE IceD_CopyContState
 
- SUBROUTINE ID_DestroyContState( ContStateData, ErrStat, ErrMsg )
-  TYPE(ID_continuousstatetype), INTENT(INOUT) :: ContStateData
+ SUBROUTINE IceD_DestroyContState( ContStateData, ErrStat, ErrMsg )
+  TYPE(IceD_continuousstatetype), INTENT(INOUT) :: ContStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE ID_DestroyContState
+ END SUBROUTINE IceD_DestroyContState
 
- SUBROUTINE ID_PackContState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_PackContState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ID_continuousstatetype),  INTENT(INOUT) :: InData
+  TYPE(IceD_continuousstatetype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -862,13 +946,13 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%dqdt )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE ID_PackContState
+ END SUBROUTINE IceD_PackContState
 
- SUBROUTINE ID_UnPackContState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackContState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(ID_continuousstatetype), INTENT(INOUT) :: OutData
+  TYPE(IceD_continuousstatetype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -904,11 +988,11 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackContState
+ END SUBROUTINE IceD_UnPackContState
 
- SUBROUTINE ID_CopyDiscState( SrcDiscStateData, DstDiscStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ID_discretestatetype), INTENT(INOUT) :: SrcDiscStateData
-   TYPE(ID_discretestatetype), INTENT(INOUT) :: DstDiscStateData
+ SUBROUTINE IceD_CopyDiscState( SrcDiscStateData, DstDiscStateData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IceD_discretestatetype), INTENT(INOUT) :: SrcDiscStateData
+   TYPE(IceD_discretestatetype), INTENT(INOUT) :: DstDiscStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -920,23 +1004,23 @@ ENDIF
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstDiscStateData%DummyDiscState = SrcDiscStateData%DummyDiscState
- END SUBROUTINE ID_CopyDiscState
+ END SUBROUTINE IceD_CopyDiscState
 
- SUBROUTINE ID_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
-  TYPE(ID_discretestatetype), INTENT(INOUT) :: DiscStateData
+ SUBROUTINE IceD_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
+  TYPE(IceD_discretestatetype), INTENT(INOUT) :: DiscStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE ID_DestroyDiscState
+ END SUBROUTINE IceD_DestroyDiscState
 
- SUBROUTINE ID_PackDiscState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_PackDiscState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ID_discretestatetype),  INTENT(INOUT) :: InData
+  TYPE(IceD_discretestatetype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -972,13 +1056,13 @@ ENDIF
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DummyDiscState )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE ID_PackDiscState
+ END SUBROUTINE IceD_PackDiscState
 
- SUBROUTINE ID_UnPackDiscState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackDiscState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(ID_discretestatetype), INTENT(INOUT) :: OutData
+  TYPE(IceD_discretestatetype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1012,11 +1096,11 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackDiscState
+ END SUBROUTINE IceD_UnPackDiscState
 
- SUBROUTINE ID_CopyConstrState( SrcConstrStateData, DstConstrStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ID_constraintstatetype), INTENT(INOUT) :: SrcConstrStateData
-   TYPE(ID_constraintstatetype), INTENT(INOUT) :: DstConstrStateData
+ SUBROUTINE IceD_CopyConstrState( SrcConstrStateData, DstConstrStateData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IceD_constraintstatetype), INTENT(INOUT) :: SrcConstrStateData
+   TYPE(IceD_constraintstatetype), INTENT(INOUT) :: DstConstrStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -1028,23 +1112,23 @@ ENDIF
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstConstrStateData%DummyConstrState = SrcConstrStateData%DummyConstrState
- END SUBROUTINE ID_CopyConstrState
+ END SUBROUTINE IceD_CopyConstrState
 
- SUBROUTINE ID_DestroyConstrState( ConstrStateData, ErrStat, ErrMsg )
-  TYPE(ID_constraintstatetype), INTENT(INOUT) :: ConstrStateData
+ SUBROUTINE IceD_DestroyConstrState( ConstrStateData, ErrStat, ErrMsg )
+  TYPE(IceD_constraintstatetype), INTENT(INOUT) :: ConstrStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
- END SUBROUTINE ID_DestroyConstrState
+ END SUBROUTINE IceD_DestroyConstrState
 
- SUBROUTINE ID_PackConstrState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_PackConstrState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ID_constraintstatetype),  INTENT(INOUT) :: InData
+  TYPE(IceD_constraintstatetype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1080,13 +1164,13 @@ ENDIF
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DummyConstrState )
   Re_Xferred   = Re_Xferred   + 1
- END SUBROUTINE ID_PackConstrState
+ END SUBROUTINE IceD_PackConstrState
 
- SUBROUTINE ID_UnPackConstrState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackConstrState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(ID_constraintstatetype), INTENT(INOUT) :: OutData
+  TYPE(IceD_constraintstatetype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1120,11 +1204,11 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackConstrState
+ END SUBROUTINE IceD_UnPackConstrState
 
- SUBROUTINE ID_CopyOtherState( SrcOtherStateData, DstOtherStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ID_otherstatetype), INTENT(INOUT) :: SrcOtherStateData
-   TYPE(ID_otherstatetype), INTENT(INOUT) :: DstOtherStateData
+ SUBROUTINE IceD_CopyOtherState( SrcOtherStateData, DstOtherStateData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IceD_otherstatetype), INTENT(INOUT) :: SrcOtherStateData
+   TYPE(IceD_otherstatetype), INTENT(INOUT) :: DstOtherStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -1142,12 +1226,12 @@ IF (ALLOCATED(SrcOtherStateData%xdot)) THEN
       ALLOCATE(DstOtherStateData%xdot(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyOtherState: Error allocating DstOtherStateData%xdot.'
+         ErrMsg = 'IceD_CopyOtherState: Error allocating DstOtherStateData%xdot.'
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcOtherStateData%xdot,1), UBOUND(SrcOtherStateData%xdot,1)
-      CALL ID_CopyContState( SrcOtherStateData%xdot(i1), DstOtherStateData%xdot(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyContState( SrcOtherStateData%xdot(i1), DstOtherStateData%xdot(i1), CtrlCode, ErrStat, ErrMsg )
    ENDDO
 ENDIF
    DstOtherStateData%n = SrcOtherStateData%n
@@ -1159,7 +1243,7 @@ IF (ALLOCATED(SrcOtherStateData%Nc)) THEN
       ALLOCATE(DstOtherStateData%Nc(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyOtherState: Error allocating DstOtherStateData%Nc.'
+         ErrMsg = 'IceD_CopyOtherState: Error allocating DstOtherStateData%Nc.'
          RETURN
       END IF
    END IF
@@ -1172,16 +1256,16 @@ IF (ALLOCATED(SrcOtherStateData%Psum)) THEN
       ALLOCATE(DstOtherStateData%Psum(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyOtherState: Error allocating DstOtherStateData%Psum.'
+         ErrMsg = 'IceD_CopyOtherState: Error allocating DstOtherStateData%Psum.'
          RETURN
       END IF
    END IF
    DstOtherStateData%Psum = SrcOtherStateData%Psum
 ENDIF
- END SUBROUTINE ID_CopyOtherState
+ END SUBROUTINE IceD_CopyOtherState
 
- SUBROUTINE ID_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
-  TYPE(ID_otherstatetype), INTENT(INOUT) :: OtherStateData
+ SUBROUTINE IceD_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
+  TYPE(IceD_otherstatetype), INTENT(INOUT) :: OtherStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1190,7 +1274,7 @@ ENDIF
   ErrMsg  = ""
 IF (ALLOCATED(OtherStateData%xdot)) THEN
 DO i1 = LBOUND(OtherStateData%xdot,1), UBOUND(OtherStateData%xdot,1)
-  CALL ID_DestroyContState( OtherStateData%xdot(i1), ErrStat, ErrMsg )
+  CALL IceD_DestroyContState( OtherStateData%xdot(i1), ErrStat, ErrMsg )
 ENDDO
    DEALLOCATE(OtherStateData%xdot)
 ENDIF
@@ -1200,13 +1284,13 @@ ENDIF
 IF (ALLOCATED(OtherStateData%Psum)) THEN
    DEALLOCATE(OtherStateData%Psum)
 ENDIF
- END SUBROUTINE ID_DestroyOtherState
+ END SUBROUTINE IceD_DestroyOtherState
 
- SUBROUTINE ID_PackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_PackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ID_otherstatetype),  INTENT(INOUT) :: InData
+  TYPE(IceD_otherstatetype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1240,7 +1324,7 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
 DO i1 = LBOUND(InData%xdot,1), UBOUND(InData%xdot,1)
-  CALL ID_PackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, InData%xdot(i1), ErrStat, ErrMsg, .TRUE. ) ! xdot 
+  CALL IceD_PackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, InData%xdot(i1), ErrStat, ErrMsg, .TRUE. ) ! xdot 
   IF(ALLOCATED(Re_xdot_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_xdot_Buf  ) ! xdot
   IF(ALLOCATED(Db_xdot_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_xdot_Buf  ) ! xdot
   IF(ALLOCATED(Int_xdot_Buf))Int_BufSz = Int_BufSz + SIZE( Int_xdot_Buf ) ! xdot
@@ -1256,7 +1340,7 @@ ENDDO
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
 DO i1 = LBOUND(InData%xdot,1), UBOUND(InData%xdot,1)
-  CALL ID_PackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, InData%xdot(i1), ErrStat, ErrMsg, OnlySize ) ! xdot 
+  CALL IceD_PackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, InData%xdot(i1), ErrStat, ErrMsg, OnlySize ) ! xdot 
   IF(ALLOCATED(Re_xdot_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_xdot_Buf)-1 ) = Re_xdot_Buf
     Re_Xferred = Re_Xferred + SIZE(Re_xdot_Buf)
@@ -1285,13 +1369,13 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Psum))-1 ) =  PACK(InData%Psum ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%Psum)
   ENDIF
- END SUBROUTINE ID_PackOtherState
+ END SUBROUTINE IceD_PackOtherState
 
- SUBROUTINE ID_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(ID_otherstatetype), INTENT(INOUT) :: OutData
+  TYPE(IceD_otherstatetype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1324,8 +1408,8 @@ ENDDO
   Db_BufSz  = 0
   Int_BufSz  = 0
 DO i1 = LBOUND(OutData%xdot,1), UBOUND(OutData%xdot,1)
- ! first call ID_PackContState to get correctly sized buffers for unpacking
-  CALL ID_PackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, OutData%xdot(i1), ErrStat, ErrMsg, .TRUE. ) ! xdot 
+ ! first call IceD_PackContState to get correctly sized buffers for unpacking
+  CALL IceD_PackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, OutData%xdot(i1), ErrStat, ErrMsg, .TRUE. ) ! xdot 
   IF(ALLOCATED(Re_xdot_Buf)) THEN
     Re_xdot_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_xdot_Buf)-1 )
     Re_Xferred = Re_Xferred + SIZE(Re_xdot_Buf)
@@ -1338,7 +1422,7 @@ DO i1 = LBOUND(OutData%xdot,1), UBOUND(OutData%xdot,1)
     Int_xdot_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_xdot_Buf)-1 )
     Int_Xferred = Int_Xferred + SIZE(Int_xdot_Buf)
   ENDIF
-  CALL ID_UnPackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, OutData%xdot(i1), ErrStat, ErrMsg ) ! xdot 
+  CALL IceD_UnPackContState( Re_xdot_Buf, Db_xdot_Buf, Int_xdot_Buf, OutData%xdot(i1), ErrStat, ErrMsg ) ! xdot 
 ENDDO
   OutData%n = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
@@ -1359,11 +1443,11 @@ ENDDO
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackOtherState
+ END SUBROUTINE IceD_UnPackOtherState
 
- SUBROUTINE ID_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ID_parametertype), INTENT(INOUT) :: SrcParamData
-   TYPE(ID_parametertype), INTENT(INOUT) :: DstParamData
+ SUBROUTINE IceD_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IceD_parametertype), INTENT(INOUT) :: SrcParamData
+   TYPE(IceD_parametertype), INTENT(INOUT) :: DstParamData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -1395,7 +1479,7 @@ IF (ALLOCATED(SrcParamData%OutName)) THEN
       ALLOCATE(DstParamData%OutName(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyParam: Error allocating DstParamData%OutName.'
+         ErrMsg = 'IceD_CopyParam: Error allocating DstParamData%OutName.'
          RETURN
       END IF
    END IF
@@ -1408,7 +1492,7 @@ IF (ALLOCATED(SrcParamData%OutUnit)) THEN
       ALLOCATE(DstParamData%OutUnit(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyParam: Error allocating DstParamData%OutUnit.'
+         ErrMsg = 'IceD_CopyParam: Error allocating DstParamData%OutUnit.'
          RETURN
       END IF
    END IF
@@ -1434,7 +1518,7 @@ IF (ALLOCATED(SrcParamData%rdmFm)) THEN
       ALLOCATE(DstParamData%rdmFm(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyParam: Error allocating DstParamData%rdmFm.'
+         ErrMsg = 'IceD_CopyParam: Error allocating DstParamData%rdmFm.'
          RETURN
       END IF
    END IF
@@ -1447,7 +1531,7 @@ IF (ALLOCATED(SrcParamData%rdmt0)) THEN
       ALLOCATE(DstParamData%rdmt0(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyParam: Error allocating DstParamData%rdmt0.'
+         ErrMsg = 'IceD_CopyParam: Error allocating DstParamData%rdmt0.'
          RETURN
       END IF
    END IF
@@ -1460,7 +1544,7 @@ IF (ALLOCATED(SrcParamData%rdmtm)) THEN
       ALLOCATE(DstParamData%rdmtm(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyParam: Error allocating DstParamData%rdmtm.'
+         ErrMsg = 'IceD_CopyParam: Error allocating DstParamData%rdmtm.'
          RETURN
       END IF
    END IF
@@ -1473,7 +1557,7 @@ IF (ALLOCATED(SrcParamData%rdmDm)) THEN
       ALLOCATE(DstParamData%rdmDm(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyParam: Error allocating DstParamData%rdmDm.'
+         ErrMsg = 'IceD_CopyParam: Error allocating DstParamData%rdmDm.'
          RETURN
       END IF
    END IF
@@ -1486,7 +1570,7 @@ IF (ALLOCATED(SrcParamData%rdmP)) THEN
       ALLOCATE(DstParamData%rdmP(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyParam: Error allocating DstParamData%rdmP.'
+         ErrMsg = 'IceD_CopyParam: Error allocating DstParamData%rdmP.'
          RETURN
       END IF
    END IF
@@ -1499,16 +1583,16 @@ IF (ALLOCATED(SrcParamData%rdmKi)) THEN
       ALLOCATE(DstParamData%rdmKi(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyParam: Error allocating DstParamData%rdmKi.'
+         ErrMsg = 'IceD_CopyParam: Error allocating DstParamData%rdmKi.'
          RETURN
       END IF
    END IF
    DstParamData%rdmKi = SrcParamData%rdmKi
 ENDIF
- END SUBROUTINE ID_CopyParam
+ END SUBROUTINE IceD_CopyParam
 
- SUBROUTINE ID_DestroyParam( ParamData, ErrStat, ErrMsg )
-  TYPE(ID_parametertype), INTENT(INOUT) :: ParamData
+ SUBROUTINE IceD_DestroyParam( ParamData, ErrStat, ErrMsg )
+  TYPE(IceD_parametertype), INTENT(INOUT) :: ParamData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1539,13 +1623,13 @@ ENDIF
 IF (ALLOCATED(ParamData%rdmKi)) THEN
    DEALLOCATE(ParamData%rdmKi)
 ENDIF
- END SUBROUTINE ID_DestroyParam
+ END SUBROUTINE IceD_DestroyParam
 
- SUBROUTINE ID_PackParam( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_PackParam( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ID_parametertype),  INTENT(INOUT) :: InData
+  TYPE(IceD_parametertype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1686,13 +1770,13 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%rdmKi))-1 ) =  PACK(InData%rdmKi ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%rdmKi)
   ENDIF
- END SUBROUTINE ID_PackParam
+ END SUBROUTINE IceD_PackParam
 
- SUBROUTINE ID_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(ID_parametertype), INTENT(INOUT) :: OutData
+  TYPE(IceD_parametertype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1812,11 +1896,11 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackParam
+ END SUBROUTINE IceD_UnPackParam
 
- SUBROUTINE ID_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ID_inputtype), INTENT(INOUT) :: SrcInputData
-   TYPE(ID_inputtype), INTENT(INOUT) :: DstInputData
+ SUBROUTINE IceD_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IceD_inputtype), INTENT(INOUT) :: SrcInputData
+   TYPE(IceD_inputtype), INTENT(INOUT) :: DstInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -1828,10 +1912,10 @@ ENDIF
    ErrStat = ErrID_None
    ErrMsg  = ""
      CALL MeshCopy( SrcInputData%PointMesh, DstInputData%PointMesh, CtrlCode, ErrStat, ErrMsg )
- END SUBROUTINE ID_CopyInput
+ END SUBROUTINE IceD_CopyInput
 
- SUBROUTINE ID_DestroyInput( InputData, ErrStat, ErrMsg )
-  TYPE(ID_inputtype), INTENT(INOUT) :: InputData
+ SUBROUTINE IceD_DestroyInput( InputData, ErrStat, ErrMsg )
+  TYPE(IceD_inputtype), INTENT(INOUT) :: InputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1839,13 +1923,13 @@ ENDIF
   ErrStat = ErrID_None
   ErrMsg  = ""
   CALL MeshDestroy( InputData%PointMesh, ErrStat, ErrMsg )
- END SUBROUTINE ID_DestroyInput
+ END SUBROUTINE IceD_DestroyInput
 
- SUBROUTINE ID_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ID_inputtype),  INTENT(INOUT) :: InData
+  TYPE(IceD_inputtype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1905,13 +1989,13 @@ ENDIF
   IF( ALLOCATED(Re_PointMesh_Buf) )  DEALLOCATE(Re_PointMesh_Buf)
   IF( ALLOCATED(Db_PointMesh_Buf) )  DEALLOCATE(Db_PointMesh_Buf)
   IF( ALLOCATED(Int_PointMesh_Buf) ) DEALLOCATE(Int_PointMesh_Buf)
- END SUBROUTINE ID_PackInput
+ END SUBROUTINE IceD_PackInput
 
- SUBROUTINE ID_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(ID_inputtype), INTENT(INOUT) :: OutData
+  TYPE(IceD_inputtype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1964,11 +2048,11 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackInput
+ END SUBROUTINE IceD_UnPackInput
 
- SUBROUTINE ID_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(ID_outputtype), INTENT(INOUT) :: SrcOutputData
-   TYPE(ID_outputtype), INTENT(INOUT) :: DstOutputData
+ SUBROUTINE IceD_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(IceD_outputtype), INTENT(INOUT) :: SrcOutputData
+   TYPE(IceD_outputtype), INTENT(INOUT) :: DstOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -1987,16 +2071,16 @@ IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
       ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ID_CopyOutput: Error allocating DstOutputData%WriteOutput.'
+         ErrMsg = 'IceD_CopyOutput: Error allocating DstOutputData%WriteOutput.'
          RETURN
       END IF
    END IF
    DstOutputData%WriteOutput = SrcOutputData%WriteOutput
 ENDIF
- END SUBROUTINE ID_CopyOutput
+ END SUBROUTINE IceD_CopyOutput
 
- SUBROUTINE ID_DestroyOutput( OutputData, ErrStat, ErrMsg )
-  TYPE(ID_outputtype), INTENT(INOUT) :: OutputData
+ SUBROUTINE IceD_DestroyOutput( OutputData, ErrStat, ErrMsg )
+  TYPE(IceD_outputtype), INTENT(INOUT) :: OutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -2007,13 +2091,13 @@ ENDIF
 IF (ALLOCATED(OutputData%WriteOutput)) THEN
    DEALLOCATE(OutputData%WriteOutput)
 ENDIF
- END SUBROUTINE ID_DestroyOutput
+ END SUBROUTINE IceD_DestroyOutput
 
- SUBROUTINE ID_PackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+ SUBROUTINE IceD_PackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(ID_outputtype),  INTENT(INOUT) :: InData
+  TYPE(IceD_outputtype),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2078,13 +2162,13 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) =  PACK(InData%WriteOutput ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
   ENDIF
- END SUBROUTINE ID_PackOutput
+ END SUBROUTINE IceD_PackOutput
 
- SUBROUTINE ID_UnPackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+ SUBROUTINE IceD_UnPackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(ID_outputtype), INTENT(INOUT) :: OutData
+  TYPE(IceD_outputtype), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2143,10 +2227,10 @@ ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
- END SUBROUTINE ID_UnPackOutput
+ END SUBROUTINE IceD_UnPackOutput
 
 
- SUBROUTINE ID_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE IceD_Input_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) input u_out at time t_out, from previous/future time
 ! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
@@ -2162,9 +2246,9 @@ ENDIF
 !
 !..................................................................................................................................
 
- TYPE(ID_inputtype), INTENT(INOUT)  :: u(:)      ! Inputs at t1 > t2 > t3
+ TYPE(IceD_inputtype), INTENT(INOUT)  :: u(:)      ! Inputs at t1 > t2 > t3
  REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the inputs
- TYPE(ID_inputtype), INTENT(INOUT)  :: u_out     ! Inputs at tin_out
+ TYPE(IceD_inputtype), INTENT(INOUT)  :: u_out     ! Inputs at tin_out
  REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
  INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
  CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
@@ -2244,12 +2328,12 @@ ENDIF
 
  if ( size(t) .ne. size(u)) then
     ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in ID_Input_ExtrapInterp: size(t) must equal size(u) '
+    ErrMsg = ' Error in IceD_Input_ExtrapInterp: size(t) must equal size(u) '
     RETURN
  endif
  if (size(u) .gt. 3) then
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Input_ExtrapInterp: size(u) must be less than 4 '
+    ErrMsg  = ' Error in IceD_Input_ExtrapInterp: size(u) must be less than 4 '
     RETURN
  endif
  order = SIZE(u) - 1
@@ -2258,36 +2342,36 @@ ENDIF
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
+    ErrMsg  = ' Error in IceD_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
   CALL MeshExtrapInterp1(u(1)%PointMesh, u(2)%PointMesh, tin, u_out%PointMesh, tin_out, ErrStat, ErrMsg )
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
+    ErrMsg  = ' Error in IceD_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
   IF ( EqualRealNos( t(2), t(3) ) ) THEN
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Input_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
+    ErrMsg  = ' Error in IceD_Input_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
   IF ( EqualRealNos( t(1), t(3) ) ) THEN
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
+    ErrMsg  = ' Error in IceD_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
   CALL MeshExtrapInterp2(u(1)%PointMesh, u(2)%PointMesh, u(3)%PointMesh, tin, u_out%PointMesh, tin_out, ErrStat, ErrMsg )
  ELSE 
    ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in ID_Input_ExtrapInterp '
+   ErrMsg = ' order must be less than 3 in IceD_Input_ExtrapInterp '
    RETURN
  ENDIF 
- END SUBROUTINE ID_Input_ExtrapInterp
+ END SUBROUTINE IceD_Input_ExtrapInterp
 
 
- SUBROUTINE ID_Output_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
+ SUBROUTINE IceD_Output_ExtrapInterp(u, tin, u_out, tin_out, ErrStat, ErrMsg )
 !
 ! This subroutine calculates a extrapolated (or interpolated) input u_out at time t_out, from previous/future time
 ! values of u (which has values associated with times in t).  Order of the interpolation is given by the size of u
@@ -2303,9 +2387,9 @@ ENDIF
 !
 !..................................................................................................................................
 
- TYPE(ID_outputtype), INTENT(INOUT)  :: u(:)      ! Inputs at t1 > t2 > t3
+ TYPE(IceD_outputtype), INTENT(INOUT)  :: u(:)      ! Inputs at t1 > t2 > t3
  REAL(DbKi),         INTENT(IN   )  :: tin(:)      ! Times associated with the inputs
- TYPE(ID_outputtype), INTENT(INOUT)  :: u_out     ! Inputs at tin_out
+ TYPE(IceD_outputtype), INTENT(INOUT)  :: u_out     ! Inputs at tin_out
  REAL(DbKi),         INTENT(IN   )  :: tin_out     ! time to be extrap/interp'd to
  INTEGER(IntKi),     INTENT(  OUT)  :: ErrStat   ! Error status of the operation
  CHARACTER(*),       INTENT(  OUT)  :: ErrMsg    ! Error message if ErrStat /= ErrID_None
@@ -2385,12 +2469,12 @@ ENDIF
 
  if ( size(t) .ne. size(u)) then
     ErrStat = ErrID_Fatal
-    ErrMsg = ' Error in ID_Output_ExtrapInterp: size(t) must equal size(u) '
+    ErrMsg = ' Error in IceD_Output_ExtrapInterp: size(t) must equal size(u) '
     RETURN
  endif
  if (size(u) .gt. 3) then
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Output_ExtrapInterp: size(u) must be less than 4 '
+    ErrMsg  = ' Error in IceD_Output_ExtrapInterp: size(u) must be less than 4 '
     RETURN
  endif
  order = SIZE(u) - 1
@@ -2402,7 +2486,7 @@ END IF ! check if allocated
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
+    ErrMsg  = ' Error in IceD_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
   CALL MeshExtrapInterp1(u(1)%PointMesh, u(2)%PointMesh, tin, u_out%PointMesh, tin_out, ErrStat, ErrMsg )
@@ -2417,17 +2501,17 @@ END IF ! check if allocated
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
+    ErrMsg  = ' Error in IceD_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
   IF ( EqualRealNos( t(2), t(3) ) ) THEN
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Output_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
+    ErrMsg  = ' Error in IceD_Output_ExtrapInterp: t(2) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
   IF ( EqualRealNos( t(1), t(3) ) ) THEN
     ErrStat = ErrID_Fatal
-    ErrMsg  = ' Error in ID_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
+    ErrMsg  = ' Error in IceD_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
   CALL MeshExtrapInterp2(u(1)%PointMesh, u(2)%PointMesh, u(3)%PointMesh, tin, u_out%PointMesh, tin_out, ErrStat, ErrMsg )
@@ -2442,10 +2526,10 @@ IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
 END IF ! check if allocated
  ELSE 
    ErrStat = ErrID_Fatal
-   ErrMsg = ' order must be less than 3 in ID_Output_ExtrapInterp '
+   ErrMsg = ' order must be less than 3 in IceD_Output_ExtrapInterp '
    RETURN
  ENDIF 
- END SUBROUTINE ID_Output_ExtrapInterp
+ END SUBROUTINE IceD_Output_ExtrapInterp
 
 END MODULE IceDyn_Types
 !ENDOFREGISTRYGENERATEDFILE

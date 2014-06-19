@@ -57,9 +57,10 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      !  [-]
     INTEGER(IntKi)  :: WaveMod      !  [-]
     REAL(ReKi)  :: WtrDens      !  [-]
-    REAL(ReKi)  :: WaveDir      !  [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveDirArr      ! Array of wave directions (one per frequency) from the Waves module [-]
+    REAL(ReKi)  :: WaveDirMin      ! Minimum wave direction from Waves module [-]
+    REAL(ReKi)  :: WaveDirMax      ! Maximum wave direction from Waves module [-]
     CHARACTER(10) , DIMENSION(1:18)  :: OutList      ! This should really be dimensioned with MaxOutPts [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveDirArr      ! Wave direction assigned to each frequency [(degrees)]
     LOGICAL  :: OutAll      !  [-]
     INTEGER(IntKi)  :: NumOuts      !  [-]
   END TYPE WAMIT_InitInputType
@@ -196,8 +197,6 @@ IF (ALLOCATED(SrcInitInputData%WaveTime)) THEN
 ENDIF
    DstInitInputData%WaveMod = SrcInitInputData%WaveMod
    DstInitInputData%WtrDens = SrcInitInputData%WtrDens
-   DstInitInputData%WaveDir = SrcInitInputData%WaveDir
-   DstInitInputData%OutList = SrcInitInputData%OutList
 IF (ALLOCATED(SrcInitInputData%WaveDirArr)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveDirArr,1)
    i1_u = UBOUND(SrcInitInputData%WaveDirArr,1)
@@ -211,6 +210,9 @@ IF (ALLOCATED(SrcInitInputData%WaveDirArr)) THEN
    END IF
    DstInitInputData%WaveDirArr = SrcInitInputData%WaveDirArr
 ENDIF
+   DstInitInputData%WaveDirMin = SrcInitInputData%WaveDirMin
+   DstInitInputData%WaveDirMax = SrcInitInputData%WaveDirMax
+   DstInitInputData%OutList = SrcInitInputData%OutList
    DstInitInputData%OutAll = SrcInitInputData%OutAll
    DstInitInputData%NumOuts = SrcInitInputData%NumOuts
  END SUBROUTINE WAMIT_CopyInitInput
@@ -304,8 +306,9 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
   Int_BufSz  = Int_BufSz  + 1  ! WaveMod
   Re_BufSz   = Re_BufSz   + 1  ! WtrDens
-  Re_BufSz   = Re_BufSz   + 1  ! WaveDir
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDirArr )  ! WaveDirArr 
+  Re_BufSz   = Re_BufSz   + 1  ! WaveDirMin
+  Re_BufSz   = Re_BufSz   + 1  ! WaveDirMax
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
@@ -374,12 +377,14 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WtrDens )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDir )
-  Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(InData%WaveDirArr) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDirArr))-1 ) =  PACK(InData%WaveDirArr ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveDirArr)
   ENDIF
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDirMin )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDirMax )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
   Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE WAMIT_PackInitInput
@@ -489,14 +494,16 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%WtrDens = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%WaveDir = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%WaveDirArr) ) THEN
   ALLOCATE(mask1(SIZE(OutData%WaveDirArr,1))); mask1 = .TRUE.
     OutData%WaveDirArr = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveDirArr))-1 ),mask1,OutData%WaveDirArr)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDirArr)
   ENDIF
+  OutData%WaveDirMin = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%WaveDirMax = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
   OutData%NumOuts = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   Re_Xferred   = Re_Xferred-1

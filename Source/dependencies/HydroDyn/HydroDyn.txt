@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2014-06-11 11:16:45 -0600 (Wed, 11 Jun 2014) $
-# (File) Revision #: $Rev: 413 $
+# File last committed: $Date: 2014-06-17 10:14:47 -0600 (Tue, 17 Jun 2014) $
+# (File) Revision #: $Rev: 423 $
 # URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/RegistryFiles/HydroDyn.txt $
 ###################################################################################################################################
 
@@ -33,7 +33,7 @@ typedef   ^                            ^                             ReKi       
 typedef   ^                            ^                             ReKi                     Gravity                         -          -          -         "Supplied by Driver:  Gravitational acceleration (m/s^2)"    -
 typedef   ^                            ^                             DbKi                     TMax                            -          -          -         "Supplied by Driver:  The total simulation time (sec)"    -
 typedef   ^                            ^                             LOGICAL                  HasIce                          -          -          -         "Supplied by Driver:  Whether this simulation has ice loading (flag)"    -
-typedef   ^                            ^                             ReKi                     WaveElevXY                      {:}{:}     -          -         "Supplied by Driver:  X-Y locations for WaveElevation output (for visualization)"    -
+typedef   ^                            ^                             ReKi                     WaveElevXY                      {:}{:}     -          -         "Supplied by Driver:  X-Y locations for WaveElevation output (for visualization).  First index is to X or Y coordinate.  Second index is the point number."    -
 typedef   ^                            ^                             CHARACTER(80)            PtfmSgFChr                      -          -          -         "Platform horizontal surge translation force (flag) or DEFAULT"    -
 typedef   ^                            ^                             LOGICAL                  PtfmSgF                         -          -          -         "Optionally Supplied by Driver:  Platform horizontal surge translation force (flag)"    -
 typedef   ^                            ^                             CHARACTER(80)            PtfmSwFChr                      -          -          -         "Platform horizontal sway translation force (flag) or DEFAULT"    -
@@ -77,6 +77,7 @@ typedef   ^                            InitOutputType                WAMIT2_Init
 typedef   ^                            ^                             Morison_InitOutputType   Morison                         -          -        -         "Initialization output from the Morison module"    -
 typedef   ^                            InitOutputType                CHARACTER(10)            WriteOutputHdr                  {:}        -        -         "The is the list of all HD-related output channel header strings (includes all sub-module channels)"    -
 typedef   ^                            ^                             CHARACTER(10)            WriteOutputUnt                  {:}        -        -         "The is the list of all HD-related output channel unit strings (includes all sub-module channels)"    -
+typedef   ^                            ^                             ReKi                     WaveElevSeries                  {:}{:}     -        -         "Wave elevation time-series at each of the points given by WaveElevXY.  First index is the timestep. Second index is XY point number corresponding to second index of WaveElevXY." (m)
 typedef   ^                            ^                             ProgDesc                 Ver                             -          -        -         "Version of HydroDyn"
 typedef   ^                            ^                             ReKi                     WtrDens                         -          -        -         "Water density"    (kg/m^3)
 typedef   ^                            ^                             ReKi                     WtrDpth                         -          -        -         "Water depth"    (m)

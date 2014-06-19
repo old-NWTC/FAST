@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
-! (File) Revision #: $Rev: 692 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/coupledCrushing.F90 $
+! File last committed: $Date: 2014-06-18 13:10:21 -0700 (Wed, 18 Jun 2014) $
+! (File) Revision #: $Rev: 147 $
+! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/coupledCrushing.F90 $
 !**********************************************************************************************************************************!
  
 !  Module for calculations of loads induced by ice crushing against vertical surfaces
@@ -36,8 +36,11 @@ module iceCpldCrushing
 
    public
 
-!  local maximum of stress rate to strength curve (fixed since curve is hard coded)
-   real(ReKi), parameter   :: stressRateAtMax = 0.2915
+!  local maximum and minima of stress rate to strength curve (fixed since curve is hard coded)
+   real(ReKi), parameter   :: stressRateAtMax = 0.2914592
+   real(ReKi), parameter   :: stressRateAtMin = 1.3287178
+   real(ReKi), parameter   :: strengthAtMin = 2.00 + stressRateAtMin*(7.80 + &
+                              stressRateAtMin*(-18.57 + stressRateAtMin*(13.00 - stressRateAtMin*2.91)))
 
 contains
 
@@ -61,7 +64,7 @@ contains
       call logMessage(iceLog, ' Reference ice strength = '//TRIM(Num2LStr(inParams%refIceStrength))//' Pascals')
 
       call getIceInput(iceInput, 'minStrength', inParams%minStrength, iceLog, 0.0, 1.0E9)
-      call logMessage(iceLog, ' Minimum ice strength from sress rate polynomial = '//        &
+      call logMessage(iceLog, ' Minimum ice strength from stress rate polynomial = '//        &
                               TRIM(Num2LStr(inParams%minStrength))//' Pascals')
 
       call getIceInput(iceInput, 'minStrengthNegVel', inParams%minStrengthNegVel, iceLog, 0.0, 1.0E9)
@@ -118,8 +121,12 @@ contains
    !  The ice strength is limited to a user specified minimum for negative stress rate (tower moving away from ice forming a gap)
             strength = max(strength, myIceParams%minStrengthNegVel)
          else
-   !  For high relative velocities (high stress rate) the ice failure mode is brittle and constant
-   !  The ice strength is limited to a user specified minimum for positive stress rate
+   !  For high positive relative velocities (high stress rate) the ice failure mode is brittle and constant
+   !  The ice strength is limited to the minimum point of the strength vs stress rate curve
+            if (stressRate > stressRateAtMin) then
+               strength = 1.0E6*strengthAtMin*myIceParams%defaultArea
+            endif
+   !  Unless the user has specified something even higher for the minimum strength
             strength = max(strength, myIceParams%minStrength)
          endif         
 

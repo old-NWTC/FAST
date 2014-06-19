@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-20 14:53:20 -0600 (Tue, 20 May 2014) $
-! (File) Revision #: $Rev: 700 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloe.f90 $
+! File last committed: $Date: 2014-06-18 13:10:21 -0700 (Wed, 18 Jun 2014) $
+! (File) Revision #: $Rev: 147 $
+! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/IceFloe.f90 $
 !**********************************************************************************************************************************!
 
 !**********************************************************************************************************************************
@@ -59,7 +59,7 @@ MODULE IceFloe
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER  :: IceFloe_Ver = ProgDesc( 'IceFloe', 'v1.00.00', 'May-2014' )
+   TYPE(ProgDesc), PARAMETER  :: IceFloe_Ver = ProgDesc( 'IceFloe', 'v1.00.00', '19-Jun-2014' )
 
 ! ..... Public Subroutines ...................................................................................................
 
@@ -111,7 +111,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       character(132)             :: logFile  ! File name for message logging
 
 ! Other local variables
-      real(ReKi)                 :: duration
+      REAL(ReKi)                 :: duration    ! length of simulation in seconds
       INTEGER(IntKi)             :: nSteps      ! number of steps in load time series
       INTEGER(IntKi)             :: numLdsOut   ! number of load output points, could be numlegs or 1 for single load only
       INTEGER(IntKi)             :: Err         ! for array allocation error
@@ -131,9 +131,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       ! Display the module information
       CALL DispNVD( IceFloe_Ver )
 
-!      call NameOFile ( 1, 'log', logFile )   ! The filename comes from the command line
-      call GetRoot( InitInp%RootName, logFile ) !BJJ: i don't think you need to do this. RootName is actually the output from GetRoot in the FAST glue code
-      logFile = trim(logFile)//'.IceF.log'  !BJJ: we decided output files should have two dots (and because there will be another ice module, I called this one IceF)
+      logFile = trim(InitInp%RootName)//'.IceF.log'  !BJJ: we decided output files should have two dots (and because there will be another ice module, I called this one IceF)
 
 !   Set up error logging
       iceLog%warnFlag = .false.
@@ -152,11 +150,11 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       call logMessage(iceLog, ' This run started on: '//curdate()//' at '//curtime()//newLine)
 
 ! bjj: check gravity (after log file initialized), and warn if it's different than the internal value:
-!BJJ: I'm also not sure this is the correct usage of the iceLog, so please check this, Tim!
       IF ( .NOT. EqualRealNos(InitInp%Gravity, grav) ) THEN
-         call iceErrorHndlr (iceLog, ErrID_Warn, 'IceFloe_init: Gravity in FAST is different than gravity in iceFloe.', 0)
+         call iceErrorHndlr (iceLog, ErrID_Warn, 'IceFloe_init: Gravity in FAST is different than gravity in iceFloe by '//  &
+                                                  TRIM(Num2LStr(InitInp%Gravity-grav))//' m/s^2.', 1)
          ErrStat = iceLog%ErrID
-         ErrMsg  = iceLog%ErrMsg
+         ErrMsg  = trim(iceLog%ErrMsg)
          if (iceLog%ErrID >= AbortErrLev) return
       END IF
       
@@ -179,7 +177,10 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
          return   
       endif
 
-   !  Set the time step as the minimum of the suggested interval and the time step from the ice input file
+   !  Get the time step from the ice input file
+   !  Do not use the interval from FAST as it may be too small resulting in large time series generation
+   !  IceFloe doesn't need fine resolution as frequencies are low.  
+   !  Let FAST call as often as it likes, IceFloe will interpolate.
       call getIceInput(iceInput, 'timeStep',p%dt, iceLog, 0.0)
       if (iceLog%ErrID >= AbortErrLev) then
          ErrStat = iceLog%ErrID
@@ -187,26 +188,31 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
          return   
       endif
 
-! TMCCOY  April 16, 2014 Small time steps can cause problems with 
-! generation of long time series for some ice types
-! but IceFloe doesn't need fine resolution as frequencies are low.  
-! Let FAST call as often as it likes, IceFloe will interpolate.
-! Use specific dt from user for IceFloe
-!   !  Select the smallest time step between calling program suggestion and user input
-!   !  Then store as a parameter
-!      interval = min(REAL(p%dt,DbKi), interval)   ! for return back to the calling program     ! bjj: p%dt is single precision; interval is double; FAST may complain that the p%dt isn't an integer divisor of interval
-!      p%dt = REAL(interval,ReKi)                       ! bjj: if p%dt == interval, the type casting may be a problem.
+   ! get the simulation length from FAST
+   ! if the the length from FAST is zero read from iceFloe input file
+      if (InitInp%simLength <= 0) then
+         duration = InitInp%simLength
+      else
+         call getIceInput(iceInput, 'duration', duration, iceLog, 0.0)
+      endif
+      call logMessage(iceLog, ' Load time series length = '//TRIM(Num2LStr(duration))//' sec')
 
-   ! get the duration of the simulation
-   ! this should eventually come from FAST
-      call getIceInput(iceInput, 'duration', duration, iceLog, 0.0)
-      call logMessage(iceLog, ' Load time series duration = '//TRIM(Num2LStr(duration))//' sec')
-
+   ! get the load ramp up time
+      call getIceInput(iceInput, 'rampTime', p%rampTime, iceLog, 0.1)
+      call logMessage(iceLog, ' Load ramp up time = '//TRIM(Num2LStr(p%rampTime))//' sec')
+      if (iceLog%ErrID >= AbortErrLev) then
+         ErrStat = iceLog%ErrID
+         ErrMsg = 'Error retrieving ramp up time from inputs in IceFloe_Init, set to 10 sec. '  &
+                  //newLine//trim(iceLog%ErrMsg)
+         p%rampTime = 10.0         
+      endif
+      p%rampTime = max(p%rampTime, 0.1)
+      
    ! get the number of legs on the support structure
       call getIceInput(iceInput, 'numLegs', p%numLegs, iceLog, 1, 4)
       if (iceLog%ErrID >= AbortErrLev) then
          ErrStat = iceLog%ErrID
-         ErrMsg = 'Error retrieving duration or number of legs from ice input file '//newLine//trim(iceLog%ErrMsg)
+         ErrMsg = 'Error retrieving simulation length or number of legs from ice input file '//newLine//trim(iceLog%ErrMsg)
          return   
       endif
 
@@ -228,7 +234,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
          call iceErrorHndlr (iceLog, ErrID_Fatal, 'Error in allocation of leg data in parameters', 1)
          return  !  error in array allocation
       endif   
-      p%legX = 0; p%legY = 0; !bjj: these weren't being set (a problem with reading the file, but I'll initialize them here for my own debugging)
+      p%legX = 0; p%legY = 0; ! these will be overwritten for a multi-leg model, otherwise remain zero
 
       iceType: select case (p%iceType)
         case (randomCrush)
@@ -314,8 +320,8 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
 
    ! set up outputs to write to FAST
    ! need to know how many legs and whethter loads applied to all or just one set of effective loads
-      numOuts = 2*p%numLegs
-      if (p%singleLoad .and. p%numLegs > 1) numOuts = 3
+      numOuts = 4*p%numLegs  ! 2 velocities and 2 forces
+      if (p%singleLoad .and. p%numLegs > 1) numOuts = 5
       CALL AllocAry( InitOut%WriteOutputHdr, numOuts, 'WriteOutputHdr', ErrStat, ErrMsg )
          call iceErrorHndlr (iceLog, ErrStat, 'Error in allocation of output header memory', 1)
          if (ErrStat >= AbortErrLev) return  
@@ -327,16 +333,17 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
          if (ErrStat >= AbortErrLev) return  
 
       if (p%numLegs == 1) then
-         InitOut%WriteOutputHdr = (/"IceLoadFx", "IceLoadFy"/)
-         InitOut%WriteOutputUnt = (/"kN", "kN"/)
+         InitOut%WriteOutputHdr = (/"VxTwrIce ", "VyTwrIce ", "IceLoadFx", "IceLoadFy"/)
+         InitOut%WriteOutputUnt = (/"m/s", "m/s", "kN ", "kN "/)
       elseif (p%singleLoad) then
-         InitOut%WriteOutputHdr = (/"IceLoadFx", "IceLoadFy", "IceLoadMz"/)
-         InitOut%WriteOutputUnt = (/"kN ", "kN ", "kNm"/) !bjj: note that each string in the array must have the same number of characters so I added a space on the first two
+         InitOut%WriteOutputHdr = (/"VxTwrIce ", "VyTwrIce ", "IceLoadFx", "IceLoadFy", "IceLoadMz"/)
+         InitOut%WriteOutputUnt = (/"m/s", "m/s", "kN ", "kN ", "kNm"/) !bjj: note that each string in the array must have the same number of characters so I added a space on the first two
       else
          do n = 1, p%numLegs
             legNum = TRIM(Num2LStr(n))
-            InitOut%WriteOutputHdr(2*n-1:2*n) = (/"IceLoadFx_Leg"//legNum, "IceLoadFy_Leg"//legNum/)
-            InitOut%WriteOutputUnt(2*n-1:2*n) = (/"kN", "kN"/)
+            InitOut%WriteOutputHdr(4*n-3:4*n) = (/"VxIceLeg"//legNum, "VyIceLeg"//legNum, &
+                                                  "FxIceLeg"//legNum, "FyIceLeg"//legNum/)
+            InitOut%WriteOutputUnt(4*n-3:4*n) = (/"m/s", "m/s", "kN ", "kN "/)
          enddo
       endif
       
@@ -429,19 +436,26 @@ SUBROUTINE IceFloe_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg
                                                     ' is not a valid selection', 1)
       end select iceType
 
+   !  Apply a time ramp to the loads
+      loadVect = loadVect*min(1.0_DbKi, t/p%rampTime)
+
    !  Map the ice load vectors from IceFloe onto the output mesh
       if (p%singleLoad) then
          y%iceMesh%Force(:,1)  = loadVect(1:3,1)
          y%iceMesh%Moment(:,1) = loadVect(4:6,1)
-         y%WriteOutput(1) = 0.001*loadVect(1,1)
-         y%WriteOutput(2) = 0.001*loadVect(2,1)
-         if (p%numLegs > 1) y%WriteOutput(1) = 0.001*loadVect(6,1)
+         y%WriteOutput(1) = inVels(1,1)
+         y%WriteOutput(2) = inVels(2,1)
+         y%WriteOutput(3) = 0.001*loadVect(1,1)
+         y%WriteOutput(4) = 0.001*loadVect(2,1)
+         if (p%numLegs > 1) y%WriteOutput(5) = 0.001*loadVect(6,1)
       else         
          y%iceMesh%Force  = loadVect(1:3,:)
          y%iceMesh%Moment = loadVect(4:6,:)
          do nL = 1, p%numLegs
-            y%WriteOutput(2*nL-1) = 0.001*loadVect(1,nL)
-            y%WriteOutput(2*nL)   = 0.001*loadVect(2,nL)
+            y%WriteOutput(4*nL-3) = inVels(1,nL)
+            y%WriteOutput(4*nL-2) = inVels(2,nL)
+            y%WriteOutput(4*nL-1) = 0.001*loadVect(1,nL)
+            y%WriteOutput(4*nL)   = 0.001*loadVect(2,nL)
          enddo
       endif
 

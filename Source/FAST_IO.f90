@@ -412,7 +412,7 @@ SUBROUTINE FAST_InitOutput( p_FAST, y_FAST, InitOutData_ED, InitOutData_SrvD, In
    TYPE(MAP_InitOutputType),       INTENT(IN)           :: InitOutData_MAP                       ! Initialization output for MAP
    TYPE(FEAM_InitOutputType),      INTENT(IN)           :: InitOutData_FEAM                      ! Initialization output for FEAMooring
    TYPE(IceFloe_InitOutputType),   INTENT(IN)           :: InitOutData_IceF                      ! Initialization output for IceFloe
-   TYPE(ID_InitOutputType),        INTENT(IN)           :: InitOutData_IceD                      ! Initialization output for IceDyn
+   TYPE(IceD_InitOutputType),      INTENT(IN)           :: InitOutData_IceD                      ! Initialization output for IceDyn
 
    INTEGER(IntKi),                 INTENT(OUT)          :: ErrStat                               ! Error status
    CHARACTER(*),                   INTENT(OUT)          :: ErrMsg                                ! Error message corresponding to ErrStat
@@ -1546,7 +1546,7 @@ SUBROUTINE WrOutputLine( t, p_FAST, y_FAST, IfWOutput, EDOutput, SrvDOutput, HDO
    REAL(ReKi),               INTENT(IN)    :: MAPOutput (:)                      ! MAP WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: FEAMOutput (:)                     ! FEAMooring WriteOutput values
    REAL(ReKi),               INTENT(IN)    :: IceFOutput (:)                     ! IceFloe WriteOutput values
-   TYPE(ID_OutputType),      INTENT(IN)    :: y_IceD (:)                         ! IceDyn outputs (WriteOutput values are subset)
+   TYPE(IceD_OutputType),    INTENT(IN)    :: y_IceD (:)                         ! IceDyn outputs (WriteOutput values are subset)
 
    INTEGER(IntKi),           INTENT(OUT)   :: ErrStat
    CHARACTER(*),             INTENT(OUT)   :: ErrMsg
@@ -2159,12 +2159,12 @@ SUBROUTINE IceFloe_InputSolve(  u_IceF, y_SD, MeshMapData, ErrStat, ErrMsg )
 
 END SUBROUTINE IceFloe_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
-SUBROUTINE ID_InputSolve(  u_IceD, y_SD, MeshMapData, legNum, ErrStat, ErrMsg )
+SUBROUTINE IceD_InputSolve(  u_IceD, y_SD, MeshMapData, legNum, ErrStat, ErrMsg )
 ! This routine sets the inputs required for IceFloe.
 !..................................................................................................................................
 
       ! Passed variables
-   TYPE(ID_InputType),          INTENT(INOUT) :: u_IceD                       ! IceDyn input
+   TYPE(IceD_InputType),        INTENT(INOUT) :: u_IceD                       ! IceDyn input
    TYPE(SD_OutputType),         INTENT(IN   ) :: y_SD                         ! SubDyn outputs
    TYPE(FAST_ModuleMapType),    INTENT(INOUT) :: MeshMapData
    INTEGER(IntKi),              INTENT(IN   ) :: legNum
@@ -2179,7 +2179,7 @@ SUBROUTINE ID_InputSolve(  u_IceD, y_SD, MeshMapData, legNum, ErrStat, ErrMsg )
 
    CALL Transfer_Point_to_Point( y_SD%y2Mesh, u_IceD%PointMesh, MeshMapData%SD_P_2_IceD_P(legNum), ErrStat, ErrMsg )
 
-END SUBROUTINE ID_InputSolve
+END SUBROUTINE IceD_InputSolve
 !----------------------------------------------------------------------------------------------------------------------------------
 SUBROUTINE Transfer_HD_to_SD( u_mapped, u_SD_LMesh, u_mapped_positions, y_HD, u_HD_M_LumpedMesh, u_HD_M_DistribMesh, MeshMapData, ErrStat, ErrMsg )
 ! This routine transfers the HD outputs into inputs required for ED. Note that this *adds* to the values already in 
@@ -2820,8 +2820,8 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
    TYPE(FEAM_InputType),              INTENT(INOUT)  :: u_FEAM                    ! FEAM inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
    TYPE(IceFloe_OutputType),          INTENT(IN   )  :: y_IceF                    ! IceFloe outputs  
    TYPE(IceFloe_InputType),           INTENT(INOUT)  :: u_IceF                    ! IceFloe inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
-   TYPE(ID_OutputType),               INTENT(IN   )  :: y_IceD(:)                 ! IceDyn outputs  
-   TYPE(ID_InputType),                INTENT(INOUT)  :: u_IceD(:)                 ! IceDyn inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
+   TYPE(IceD_OutputType),             INTENT(IN   )  :: y_IceD(:)                 ! IceDyn outputs  
+   TYPE(IceD_InputType),              INTENT(INOUT)  :: u_IceD(:)                 ! IceDyn inputs (INOUT just because I don't want to use another tempoarary mesh and we'll overwrite this later)
       
    TYPE(FAST_ModuleMapType)          , INTENT(INOUT) :: MeshMapData
    INTEGER(IntKi)                    , INTENT(  OUT) :: ErrStat                   ! Error status of the operation
@@ -3310,7 +3310,7 @@ CONTAINS
          
          DO i=1,p_FAST%numIceLegs
             
-            CALL ID_InputSolve(  u_IceD(i), y_SD2, MeshMapData, i, ErrStat2, ErrMsg2 )
+            CALL IceD_InputSolve(  u_IceD(i), y_SD2, MeshMapData, i, ErrStat2, ErrMsg2 )
                CALL CheckError(ErrStat2,ErrMsg2)
                IF (ErrStat >= AbortErrLev) RETURN  
                

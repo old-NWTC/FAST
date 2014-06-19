@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-15 20:34:11 -0600 (Thu, 15 May 2014) $
-! (File) Revision #: $Rev: 697 $
-! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/randomCrushing.F90 $
+! File last committed: $Date: 2014-06-18 13:10:21 -0700 (Wed, 18 Jun 2014) $
+! (File) Revision #: $Rev: 147 $
+! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/randomCrushing.F90 $
 !**********************************************************************************************************************************
 
 !  Module to calculate a time series of random loads due to continuous ice crushing
@@ -149,11 +149,12 @@ contains
                myIceParams%loadSeries(ns,nL) = myIceParams%loadSeries(ns,nL) +         &
                        amplitude(nf)*cos(2.0*pi*frequency(nf)*timeStep+randPhase(nf))
             enddo
-            stdSum = stdSum + myIceParams%loadSeries(ns,nL)**2
+!            stdSum = stdSum + myIceParams%loadSeries(ns,nL)**2
          enddo
    !  scale the variations to get the desired standard deviation
-         stdSum = sqrt(stdSum/real(nSteps,ReKi))
-         myIceParams%loadSeries(:,nL) = (stdLoad/stdSum)*myIceParams%loadSeries(:,nL)
+   !  Testing suggests that this doesn't give the desired PSD, so remove
+!         stdSum = sqrt(stdSum/real(nSteps,ReKi))
+!         myIceParams%loadSeries(:,nL) = (stdLoad/stdSum)*myIceParams%loadSeries(:,nL)
    !  add in the mean
          myIceParams%loadSeries(:,nL) = myIceParams%ks(nL)*(meanLoad + myIceParams%loadSeries(:,nL))
 

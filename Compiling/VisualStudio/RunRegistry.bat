@@ -32,7 +32,7 @@ SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
-SET ID_Loc=%FAST_Loc%\dependencies\IceDyn
+SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 
 SET MAP_Include_Lib=%MAP_Loc%\map.lib
 SET HD_Reg_Loc=%HD_Loc%
@@ -111,7 +111,7 @@ GOTO checkError
 
 
 :IceDyn
-SET CURR_LOC=%ID_Loc%
+SET CURR_LOC=%IceD_Loc%
 %REGISTRY% "%CURR_LOC%\Registry_%ModuleName%.txt" -I %NWTC_Lib_Loc%
 GOTO checkError
 

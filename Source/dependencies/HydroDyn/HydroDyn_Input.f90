@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-14 20:13:33 -0600 (Sat, 14 Jun 2014) $
-! (File) Revision #: $Rev: 420 $
+! File last committed: $Date: 2014-06-19 09:42:20 -0600 (Thu, 19 Jun 2014) $
+! (File) Revision #: $Rev: 430 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -1527,7 +1527,9 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
          READ(UnIn,'(A)',IOSTAT=ErrStat2) Line      !read into a line
 
          IF (ErrStat2 == 0) THEN
-            READ(Line,*,IOSTAT=ErrStat2) InitInp%Morison%CoefDpths(I)%Dpth, InitInp%Morison%CoefDpths(I)%DpthCd, InitInp%Morison%CoefDpths(I)%DpthCdMG, InitInp%Morison%CoefDpths(I)%DpthCa, InitInp%Morison%CoefDpths(I)%DpthCaMG, InitInp%Morison%CoefDpths(I)%DpthCp, InitInp%Morison%CoefDpths(I)%DpthCpMG
+            READ(Line,*,IOSTAT=ErrStat2) InitInp%Morison%CoefDpths(I)%Dpth, InitInp%Morison%CoefDpths(I)%DpthCd, InitInp%Morison%CoefDpths(I)%DpthCdMG, &
+                                         InitInp%Morison%CoefDpths(I)%DpthCa, InitInp%Morison%CoefDpths(I)%DpthCaMG, InitInp%Morison%CoefDpths(I)%DpthCp, InitInp%Morison%CoefDpths(I)%DpthCpMG, &
+                                         InitInp%Morison%CoefDpths(I)%DpthAxCa, InitInp%Morison%CoefDpths(I)%DpthAxCaMG, InitInp%Morison%CoefDpths(I)%DpthAxCp, InitInp%Morison%CoefDpths(I)%DpthAxCpMG
          END IF
 
          IF (ErrStat2 /= 0) THEN
@@ -2326,8 +2328,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ! WtrDens - Water density.
 
    IF ( InitInp%Waves%WtrDens < 0.0 )  THEN
-      ErrMsg  = ' WtrDens must not be negative.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'WtrDens must not be negative.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -2335,8 +2336,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ! WtrDpth - Water depth
 
    IF ( InitInp%Morison%WtrDpth <= 0.0 )  THEN
-      ErrMsg  = ' WtrDpth must be greater than zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'WtrDpth must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -2344,13 +2344,12 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ! MSL2SWL - Mean sea level to still water level
 
    IF ( InitInp%HasWAMIT .AND. .NOT. EqualRealNos(InitInp%Morison%MSL2SWL, 0.0_ReKi) ) THEN
-      ErrMsg  = ' MSL2SWL must be 0 when HasWAMIT is True.'
-      ErrStat = ErrID_Fatal         
+      CALL SetErrStat( ErrID_Fatal,'MSL2SWL must be 0 when HasWAMIT is True.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')        
       RETURN
    END IF
    
    !IF ( .NOT. EqualRealNos(InitInp%Morison%MSL2SWL, 0.0_ReKi) ) THEN  !TODO  Alter this check when we support MSL2SWL
-   !   ErrMsg  = ' MSL2SWL must be 0. Future versions of HydroDyn will once again support any value of MSL2SWL.'
+   !   CALL SetErrStat( ErrID_Fatal,'MSL2SWL must be 0. Future versions of HydroDyn will once again support any value of MSL2SWL.'
    !   ErrStat = ErrID_Fatal         
    !   RETURN
    !END IF
@@ -2372,8 +2371,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          InitInp%Waves%WavePhase = InitInp%Waves%WavePhase*D2R       ! Convert the phase from degrees to radians
 
       ELSE                                               ! The user must have specified WaveMod incorrectly.
-         ErrStat = ErrID_Fatal
-         ErrMsg   = 'WaveMod incorrectly specified'
+         CALL SetErrStat( ErrID_Fatal,'WaveMod incorrectly specified',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2390,29 +2388,18 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
 
    IF ( WaveModIn == 5 ) THEN
-      ErrMsg  = 'GH Bladed wave model is currently disabled in this release.  Future versions will support GH Bladed wave models.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'GH Bladed wave model is currently disabled in this release.  Future versions will support GH Bladed wave models.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
    IF ( WaveModIn < 0 .OR. WaveModIn > 4 ) THEN
-
       IF ( InitInp%HasWAMIT  ) THEN
-
-         ErrMsg  = ' WaveMod must be 0, 1, 1P#, 2, 3, or 4.'
-         ErrStat = ErrID_Fatal
-
+         CALL SetErrStat( ErrID_Fatal,'WaveMod must be 0, 1, 1P#, 2, 3, or 4.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
-
       ELSE IF ( ErrStat /= ErrID_None .OR. WaveModIn /= 5)  THEN
-
-         ErrMsg  = ' WaveMod must be 0, 1, 1P#, 2, 3, 4, or 5.'
-         ErrStat = ErrID_Fatal
-
+         CALL SetErrStat( ErrID_Fatal,'WaveMod must be 0, 1, 1P#, 2, 3, 4, or 5.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
-
       END IF
-
    END IF
 
 
@@ -2421,8 +2408,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          ! TODO: We are only implementing WaveStMod = 0 (No stretching) at this point in time. 1 Mar 2013 GJH
 
    IF ( InitInp%Waves%WaveStMod /= 0 ) THEN
-      ErrMsg  = ' WaveStMod must be 0. Future versions of HydroDyn will once again support other wave stretching models.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'WaveStMod must be 0. Future versions of HydroDyn will once again support other wave stretching models.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -2479,8 +2465,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Waves%WaveMod > 0 )  THEN   ! .TRUE if we have incident waves.
 
       IF ( InitInp%Waves%WaveDT <= 0.0 )  THEN
-         ErrMsg  = ' WaveDT must be greater than zero.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'WaveDT must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2496,8 +2481,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( ( InitInp%Waves%WaveMod /= 0 ) .AND. ( InitInp%Waves%WaveMod /= 4 ) .AND. ( InitInp%Waves%WaveMod /= 5 ) ) THEN   ! .TRUE. (when WaveMod = 1, 2, 3, or 10) if we have plane progressive (regular), JONSWAP/Pierson-Moskowitz spectrum (irregular) waves, or white-noise waves, but not user-defined or GH Bladed wave data.
 
       IF ( InitInp%Waves%WaveHs <= 0.0 )  THEN
-         ErrMsg  = ' WaveHs must be greater than zero.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'WaveHs must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2513,9 +2497,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( ( InitInp%Waves%WaveMod == 1 ) .OR. ( InitInp%Waves%WaveMod == 2 ) .OR. ( InitInp%Waves%WaveMod == 10 ) ) THEN   ! .TRUE. (when WaveMod = 1, 2, or 10) if we have plane progressive (regular), JONSWAP/Pierson-Moskowitz spectrum (irregular) waves.
 
       IF ( InitInp%Waves%WaveTp <= 0.0 )  THEN
-         ErrMsg  = ' WaveTp must be greater than zero.'
-         ErrStat = ErrID_Fatal
-
+         CALL SetErrStat( ErrID_Fatal,'WaveTp must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2542,13 +2524,11 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
          IF ( ErrStat /= ErrID_None ) THEN
             CALL CheckIOS ( ErrStat, "", 'WavePkShp', NumType, .TRUE. )
-
             RETURN
          END IF
 
          IF ( ( InitInp%Waves%WavePkShp < 1.0 ) .OR. ( InitInp%Waves%WavePkShp > 7.0 ) )  THEN
             CALL SetErrStat( ErrID_Fatal,'WavePkShp must be greater than or equal to 1 and less than or equal to 7.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
-
             RETURN
          END IF
 
@@ -2613,7 +2593,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Waves%WaveMod >= 2 .AND. InitInp%Waves%WaveMod <= 4 .AND. InitInp%Waves%WaveDirMod == 1 ) THEN
       InitInp%Waves%WaveMultiDir = .TRUE.
    ELSEIF ( (InitInp%Waves%WaveMod < 2 .OR. InitInp%Waves%WaveMod >4) .AND. InitInp%Waves%WaveDirMod == 1 ) THEN
-      CALL SetErrStat( ErrID_Warn,'WaveMod unused unless WaveMod == 2, 3, or 4.  Ignoring WaveDirMod.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+      CALL SetErrStat( ErrID_Warn,'WaveDirMod unused unless WaveMod == 2, 3, or 4.  Ignoring WaveDirMod.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       InitInp%Waves%WaveMod   = 0
    ENDIF
 
@@ -2763,14 +2743,12 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ! CurrMod - Current profile model switch
 
    IF ( ( InitInp%Current%CurrMod /= 0 ) .AND. ( InitInp%Current%CurrMod /= 1 ) .AND. ( InitInp%Current%CurrMod /= 2 ) )  THEN
-      ErrMsg  = ' CurrMod must be 0, 1, or 2.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'CurrMod must be 0, 1, or 2.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
    IF ( ( InitInp%Current%CurrMod /= 0 ) .AND. ( InitInp%Waves%WaveMod == 5 ) )  THEN
-      ErrMsg  = ' CurrMod must be set to 0 when WaveMod is set to 5: GH Bladed wave data.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'CurrMod must be set to 0 when WaveMod is set to 5: GH Bladed wave data.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -2780,8 +2758,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Current%CurrMod == 1 )  THEN  ! .TRUE if we have standard current.
 
       IF ( InitInp%Current%CurrSSV0 < 0.0 )  THEN
-         ErrMsg  = ' CurrSSV0 must not be less than zero.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'CurrSSV0 must not be less than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2800,8 +2777,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       IF ( TRIM(InitInp%Current%CurrSSDirChr) == 'DEFAULT' )  THEN   ! .TRUE. when one wants to use the default value of codirectionality between sub-surface current and incident wave propogation heading directions.
 
          IF ( InitInp%Waves%WaveMod == 0 ) THEN
-            ErrMsg  = ' CurrSSDir must not be set to ''DEFAULT'' when WaveMod is set to 0.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'CurrSSDir must not be set to ''DEFAULT'' when WaveMod is set to 0.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
@@ -2817,8 +2793,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          END IF
 
          IF ( ( InitInp%Current%CurrSSDir <= -180.0 ) .OR. ( InitInp%Current%CurrSSDir > 180.0 ) )  THEN
-            ErrMsg  = ' CurrSSDir must be greater than -180 and less than or equal to 180.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'CurrSSDir must be greater than -180 and less than or equal to 180.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
@@ -2837,8 +2812,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Current%CurrMod == 1 )  THEN  ! .TRUE if we have standard current.
 
       IF ( InitInp%Current%CurrNSRef <= 0.0 ) THEN
-         ErrMsg  = ' CurrNSRef must be greater than zero.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'CurrNSRef must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2855,8 +2829,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Current%CurrMod == 1 )  THEN  ! .TRUE if we have standard current.
 
       IF ( InitInp%Current%CurrNSV0 < 0.0 ) THEN
-         ErrMsg  = ' CurrNSV0 must not be less than zero.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'CurrNSV0 must not be less than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2872,8 +2845,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Current%CurrMod == 1 )  THEN  ! .TRUE if we have standard current.
 
       IF ( ( InitInp%Current%CurrNSDir <= -180.0 ) .OR. ( InitInp%Current%CurrNSDir > 180.0 ) )  THEN
-         ErrMsg  = ' CurrNSDir must be greater than -180 and less than or equal to 180.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'CurrNSDir must be greater than -180 and less than or equal to 180.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2889,8 +2861,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Current%CurrMod == 1 )  THEN  ! .TRUE if we have standard current.
 
       IF ( InitInp%Current%CurrDIV < 0.0 ) THEN
-         ErrMsg  = ' CurrDIV must not be less than zero.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'CurrDIV must not be less than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2906,8 +2877,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%Current%CurrMod == 1 )  THEN  ! .TRUE if we have standard current.
 
       IF ( ( InitInp%Current%CurrDIDir <= -180.0 ) .OR. ( InitInp%Current%CurrDIDir > 180.0 ) ) THEN
-         ErrMsg  = ' CurrDIDir must be greater than -180 and less than or equal to 180.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'CurrDIDir must be greater than -180 and less than or equal to 180.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2921,11 +2891,9 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
    IF ( InitInp%HasWAMIT ) THEN
        IF ( LEN_TRIM( InitInp%WAMIT%WAMITFile ) == 0 ) THEN
-         ErrMsg  = ' WAMITFile must not be an empty string.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'WAMITFile must not be an empty string.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
-
 
          ! if this is a relative path, let's make it relative to the location of the main input file
          ! tell the WAMIT and WAMIT2 modules what the filename is
@@ -2935,14 +2903,10 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          InitInp%WAMIT%WAMITFile    = TRIM(TmpPath)//TRIM(InitInp%WAMIT%WAMITFile)
          InitInp%WAMIT2%WAMITFile   = InitInp%WAMIT%WAMITFile
       END IF
-
-
-   ELSE
-
-      InitInp%WAMIT%WAMITFile    = ""
-      InitInp%WAMIT2%WAMITFile   = ""
-
       
+   ELSE
+      InitInp%WAMIT%WAMITFile    = ""
+      InitInp%WAMIT2%WAMITFile   = ""     
    END IF
 
       ! Set the WAMIT file name on the Convolution module
@@ -2953,8 +2917,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%HasWAMIT ) THEN
 
       IF ( InitInp%WAMIT%WAMITULEN < 0.0 ) THEN
-         ErrMsg  = ' WAMITULEN must be positive.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'WAMITULEN must be positive.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
    ELSE
@@ -2969,8 +2932,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%HasWAMIT ) THEN
 
       IF ( InitInp%WAMIT%PtfmVol0 < 0.0 ) THEN
-         ErrMsg  = ' PtfmVol0 must not be negative.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'PtfmVol0 must not be negative.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -2987,8 +2949,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF ( InitInp%HasWAMIT ) THEN
 
       IF ( InitInp%WAMIT%RdtnTMax < 0.0 ) THEN
-         ErrMsg  = ' RdtnTMax must not be negative.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'RdtnTMax must not be negative.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -3014,16 +2975,14 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          CALL CheckIOS ( ErrStat, "", 'RdtnDT', NumType, .TRUE. )
 
          IF ( ErrStat /= ErrID_None ) THEN
-            ErrMsg  = ' RdtnDT must be numerical if not set to DEFAULT.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'RdtnDT must be numerical if not set to DEFAULT.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          ENDIF 
          
       END IF
       
       IF ( InitInp%WAMIT%Conv_Rdtn%RdtnDT <= 0.0 ) THEN
-         ErrMsg  = ' RdtnDT must be greater than zero.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'RdtnDT must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -3114,8 +3073,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ! Add checks that all platform DOF flags are true.  TODO:  Allow true or false once these have been implemented
 
    IF ( ( .NOT. InitInp%PtfmSgF ) .OR.  ( .NOT. InitInp%PtfmSwF ) .OR. ( .NOT. InitInp%PtfmHvF ) .OR. ( .NOT. InitInp%PtfmRF ) .OR. ( .NOT. InitInp%PtfmPF ) .OR. ( .NOT. InitInp%PtfmYF ) )THEN
-      ErrMsg  = ' All platform DOF parameters must be set to TRUE.  Future versions of HydroDyn will support values of TRUE,  FALSE, or DEFAULT.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'All platform DOF parameters must be set to TRUE.  Future versions of HydroDyn will support values of TRUE,  FALSE, or DEFAULT.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3156,6 +3114,14 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    ! Second order Forces due to Waves section (WAMIT2 Module)
    !-------------------------------------------------------------------------------------------------
 
+     !FIXME: For this release, we are not allowing 2nd order WAMIT (WAMIT2) usage.
+   IF ( InitInp%WAMIT2%MnDrift /= 0 .OR. InitInp%WAMIT2%NewmanApp /= 0 .OR. InitInp%WAMIT2%DiffQTF /= 0 .OR. InitInp%WAMIT2%SumQTF /= 0 ) THEN
+      CALL SetErrStat(ErrID_Fatal, 'All platform 2nd-order Floating Platform Forces must be turned off. '// & 
+                  'Future versions of HydroDyn will support their use.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+      RETURN
+   END IF
+   
+   
       ! Check that we only specified one of MnDrift, NewmanApp, or DiffQTF
       !        (compared pairwise -- if any two are both true, we have a problem)
    IF ( ( InitInp%WAMIT2%MnDrift /= 0 .AND. InitInp%WAMIT2%NewmanApp /= 0 ) .OR. &
@@ -3300,12 +3266,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    END IF
 
 
-      !FIXME: For this release, we are not allowing 2nd order WAMIT (WAMIT2) usage.
-   IF ( InitInp%WAMIT2%MnDrift /= 0 .OR. InitInp%WAMIT2%NewmanApp /= 0 .OR. InitInp%WAMIT2%DiffQTF /= 0 .OR. InitInp%WAMIT2%SumQTF /= 0 ) THEN
-      CALL SetErrStat(ErrID_Fatal, 'All platform 2nd-order Floating Platform Forces must be turned off. '// & 
-                  'Future versions of HydroDyn will support their use.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
-      RETURN
-   END IF
+    
 
 
 
@@ -3315,14 +3276,12 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    IF ( InitInp%Morison%NJoints < 0 ) THEN
-      ErrMsg  = ' NJoints parameter cannot be negative.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'NJoints parameter cannot be negative.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
    IF ( InitInp%Morison%NJoints == 1 ) THEN
-      ErrMsg  = ' NJoints parameter cannot be set to 1.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'NJoints parameter cannot be set to 1.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3346,21 +3305,18 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          
          ! TODO: Once Axial Coefs are working remove the above checks and uncomment the checks below.  GJH 9/29/2013
          IF (  InitInp%Morison%AxialCoefs(I)%AxCd < 0 ) THEN
-            ErrMsg  = ' AxCd must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'AxCd must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF   
          IF (  InitInp%Morison%AxialCoefs(I)%AxCa < 0 ) THEN
-            ErrMsg  = ' AxCa must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'AxCa must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF   
          
             ! Make sure that the current AxCoefID is not used elsewhere in the table.
          DO J = I+1,InitInp%Morison%NAxCoefs
             IF ( InitInp%Morison%AxialCoefs(I)%AxCoefID == InitInp%Morison%AxialCoefs(J)%AxCoefID ) THEN
-               ErrMsg = ' Duplicate AxCoefIDs were found in the Axial Coefficients table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'Duplicate AxCoefIDs were found in the Axial Coefficients table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          END DO
@@ -3388,8 +3344,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             ! Make sure that the current JointID is not used elsewhere in the table.
          DO J = I+1,InitInp%Morison%NJoints
             IF ( InitInp%Morison%InpJoints(I)%JointID == InitInp%Morison%InpJoints(J)%JointID ) THEN
-               ErrMsg = ' Duplicate JointIDs were found in the Member Joints table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'Duplicate JointIDs were found in the Member Joints table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          END DO
@@ -3414,15 +3369,13 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          END DO
          
          IF ( .NOT. JointUsed ) THEN
-            ErrMsg  = ' Every JointID in the Joints table must appear once in the Members table.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'Every JointID in the Joints table must appear once in the Members table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF  
    ! TODO : Implement Super member elements. GJH 7/24/13
    
          IF ( InitInp%Morison%InpJoints(I)%JointOvrlp /= 0  ) THEN
-            ErrMsg  = ' JointOvrlp parameter must be set to 0.  Future versions of HydroDyn will support vales of 0 or 1.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'JointOvrlp parameter must be set to 0.  Future versions of HydroDyn will support vales of 0 or 1.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          !IF ( ( InitInp%Morison%InpJoints(I)%JointOvrlp < 0 ) .OR. ( InitInp%Morison%InpJoints(I)%JointOvrlp > 1 ) ) THEN
@@ -3439,8 +3392,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
                   InitInp%Morison%InpJoints(I)%JointAxIDIndx = J   
             END DO
             IF ( InitInp%Morison%InpJoints(I)%JointAxIDIndx == -1 ) THEN
-               ErrMsg  = ' The specified JointAxID in the Joints Table does not appear in the Axial Coefficients table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'The specified JointAxID in the Joints Table does not appear in the Axial Coefficients table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          ELSE
@@ -3456,8 +3408,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    IF ( InitInp%Morison%NPropSets < 0 ) THEN
-      ErrMsg  = ' Number of member cross-section property sets must be greater than zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'Number of member cross-section property sets must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3468,15 +3419,13 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             ! Make sure that the current JointID is not used elsewhere in the table.
          DO J = I+1,InitInp%Morison%NPropSets
             IF ( InitInp%Morison%MPropSets(I)%PropSetID == InitInp%Morison%MPropSets(J)%PropSetID ) THEN
-               ErrMsg = ' Duplicate PropSetIDs were found in the Member Cross-section Properties table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'Duplicate PropSetIDs were found in the Member Cross-section Properties table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          END DO
 
          IF ( ( InitInp%Morison%MPropSets(I)%PropD < 0 ) .OR.  ( InitInp%Morison%MPropSets(I)%PropThck < 0 ) .OR. ( ( InitInp%Morison%MPropSets(I)%PropD - InitInp%Morison%MPropSets(I)%PropThck / 2.0 ) < 0) ) THEN
-            ErrMsg  = ' PropD and PropThck must be greater than zero and (PropD - propThck/2 ) must be greater than zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'PropD and PropThck must be greater than zero and (PropD - propThck/2 ) must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
       END DO
@@ -3489,33 +3438,27 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    IF ( InitInp%Morison%SimplCd < 0 ) THEN
-      ErrMsg  = ' SimplCd must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'SimplCd must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
    IF ( InitInp%Morison%SimplCdMG < 0 ) THEN
-      ErrMsg  = ' SimplCdMG must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'SimplCdMG must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
    IF ( InitInp%Morison%SimplCa < 0 ) THEN
-      ErrMsg  = ' SimplCa must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'SimplCa must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
    IF ( InitInp%Morison%SimplCaMG < 0 ) THEN
-      ErrMsg  = ' SimplCaMG must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'SimplCaMG must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
    IF ( InitInp%Morison%SimplAxCa < 0 ) THEN
-      ErrMsg  = ' SimplCa must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'SimplCa must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
    IF ( InitInp%Morison%SimplAxCaMG < 0 ) THEN
-      ErrMsg  = ' SimplCaMG must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'SimplCaMG must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3525,8 +3468,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    IF ( InitInp%Morison%NCoefDpth < 0 ) THEN
-      ErrMsg  = ' NCoefDpth must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'NCoefDpth must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3540,6 +3482,9 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             ! in the members table, below.
          IF (  InitInp%Morison%CoefDpths(I)%Dpth < MinDepth ) THEN
             MinDepth = InitInp%Morison%CoefDpths(I)%Dpth
+         ELSE
+            CALL SetErrStat( ErrID_Fatal,'The rows of the Depth-based Hydrodynamic Coefficients table must be ordered with increasing depth (decreasing Z).',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+            RETURN
          END IF
          IF ( InitInp%Morison%CoefDpths(I)%Dpth > MaxDepth ) THEN
             MaxDepth = InitInp%Morison%CoefDpths(I)%Dpth
@@ -3548,40 +3493,41 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             ! Make sure that the current Dpth is not used elsewhere in the table.
          DO J = I+1,InitInp%Morison%NCoefDpth
             IF ( EqualRealNos( InitInp%Morison%CoefDpths(I)%Dpth, InitInp%Morison%CoefDpths(J)%Dpth ) ) THEN
-               ErrMsg = ' Duplicate Dpths were found in the Depth-based Hydrodynamic Coefficients table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'Duplicate Dpths were found in the Depth-based Hydrodynamic Coefficients table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          END DO
 
          IF ( InitInp%Morison%CoefDpths(I)%DpthCd < 0 ) THEN
-            ErrMsg  = ' In the Depth-based hydrodynamic coefficients table, DpthCd must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the Depth-based hydrodynamic coefficients table, DpthCd must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefDpths(I)%DpthCdMG < 0 ) THEN
-            ErrMsg  = ' In the Depth-based hydrodynamic coefficients table, DpthCdMG must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the Depth-based hydrodynamic coefficients table, DpthCdMG must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefDpths(I)%DpthCa < 0 ) THEN
-            ErrMsg  = ' In the Depth-based hydrodynamic coefficients table, DpthCa must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the Depth-based hydrodynamic coefficients table, DpthCa must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefDpths(I)%DpthCaMG < 0 ) THEN
-            ErrMsg  = ' In the Depth-based hydrodynamic coefficients table, DpthCaMG must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the Depth-based hydrodynamic coefficients table, DpthCaMG must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefDpths(I)%DpthAxCa < 0 ) THEN 
-            ErrMsg  = ' In the Depth-based hydrodynamic coefficients table, DpthCa must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the Depth-based hydrodynamic coefficients table, DpthAxCa must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefDpths(I)%DpthAxCaMG < 0 ) THEN
-            ErrMsg  = ' In the Depth-based hydrodynamic coefficients table, DpthCaMG must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the Depth-based hydrodynamic coefficients table, DpthAxCaMG must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+            RETURN
+         END IF
+         IF ( InitInp%Morison%CoefDpths(I)%DpthAxCp < 0 ) THEN 
+            CALL SetErrStat( ErrID_Fatal,'In the Depth-based hydrodynamic coefficients table, DpthAxCp must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+            RETURN
+         END IF
+         IF ( InitInp%Morison%CoefDpths(I)%DpthAxCpMG < 0 ) THEN
+            CALL SetErrStat( ErrID_Fatal,'In the Depth-based hydrodynamic coefficients table, DpthAxCpMG must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
       END DO
@@ -3596,8 +3542,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    IF ( InitInp%Morison%NCoefMembers < 0 ) THEN
-      ErrMsg  = ' NCoefMembers must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'NCoefMembers must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3608,8 +3553,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             ! Make sure that the current MemberID is not used elsewhere in the table.
          DO J = I+1,InitInp%Morison%NCoefMembers
             IF ( InitInp%Morison%CoefMembers(I)%MemberID == InitInp%Morison%CoefMembers(J)%MemberID ) THEN
-               ErrMsg = ' Duplicate MemberIDs were found in the Member-based Hydrodynamic coefficients table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'Duplicate MemberIDs were found in the Member-based Hydrodynamic coefficients table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          END DO
@@ -3617,63 +3561,51 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
 
          IF ( InitInp%Morison%CoefMembers(I)%MemberCd1 < 0 ) THEN
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCd1 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCd1 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberCd2 < 0 ) THEN
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCd2 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCd2 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberCdMG1 < 0 ) THEN
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCdMG1 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCdMG1 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberCdMG2 < 0 ) THEN
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCdMG2 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCdMG2 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberCa1 < 0 ) THEN
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCa1 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCa1 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberCa2 < 0 ) THEN
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCa2 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCa2 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberCaMG1 < 0 ) THEN
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCaMG1 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCaMG1 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberCaMG2 < 0 ) THEN
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCaMG2 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCaMG2 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberAxCa1 < 0 ) THEN 
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCa1 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCa1 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberAxCa2 < 0 ) THEN 
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCa2 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCa2 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberAxCaMG1 < 0 ) THEN 
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCaMG1 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCaMG1 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%CoefMembers(I)%MemberAxCaMG2 < 0 ) THEN 
-            ErrMsg  = ' In the member-based hydrodynamic coefficients table, MemberCaMG2 must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'In the member-based hydrodynamic coefficients table, MemberCaMG2 must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
       END DO
@@ -3686,8 +3618,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    IF ( InitInp%Morison%NMembers < 0 ) THEN
-      ErrMsg  = ' NMembers in the Members table must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'NMembers in the Members table must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3709,8 +3640,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             ! Make sure that the current MemberID is not used elsewhere in the table.
          DO J = I+1,InitInp%Morison%NMembers
             IF ( InitInp%Morison%InpMembers(I)%MemberID == InitInp%Morison%InpMembers(J)%MemberID ) THEN
-               ErrMsg = ' Duplicate MemberIDs were found in the Members table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'Duplicate MemberIDs were found in the Members table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          END DO
@@ -3731,13 +3661,11 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          
             ! Make sure that a JointID entry in the Joints table was found
          IF ( InitInp%Morison%InpMembers(I)%MJointID1Indx == -1 ) THEN
-            ErrMsg  = ' JointID1 in the Members table does not appear in the Joints table.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'JointID1 in the Members table does not appear in the Joints table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%InpMembers(I)%MJointID2Indx == -1 ) THEN
-            ErrMsg  = ' JointID2 in the Members table does not appear in the Joints table.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'JointID2 in the Members table does not appear in the Joints table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
@@ -3745,8 +3673,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          lvec = InitInp%Morison%InpJoints(InitInp%Morison%InpMembers(I)%MJointID1Indx)%JointPos - InitInp%Morison%InpJoints(InitInp%Morison%InpMembers(I)%MJointID2Indx)%JointPos
          l = sqrt( lvec(1)*lvec(1) + lvec(2)*lvec(2) + lvec(3)*lvec(3) )
          IF ( EqualRealNos(0.0_ReKi, l) ) THEN
-            ErrMsg  = ' A member cannot have zero length.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'A member cannot have zero length.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
@@ -3765,13 +3692,11 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
             ! Make sure that a PropSetID entry in the Member cross-section properties table was found
          IF ( InitInp%Morison%InpMembers(I)%MPropSetID1Indx == -1 ) THEN
-            ErrMsg  = ' MPropSetID1 in the Members table does not appear in the Member cross-section properties table.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'MPropSetID1 in the Members table does not appear in the Member cross-section properties table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%InpMembers(I)%MPropSetID2Indx == -1 ) THEN
-            ErrMsg  = ' MPropSetID2 in the Members table does not appear in the Member cross-section properties table.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'MPropSetID2 in the Members table does not appear in the Member cross-section properties table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
@@ -3779,22 +3704,19 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          ! NOTE: We cannot test that MDivSize > MemberLength yet because there may be a joint overlap which is going to alter the final length of this member
 
          IF ( InitInp%Morison%InpMembers(I)%MDivSize <= 0 ) THEN
-            ErrMsg  = ' MDivSize must be greater than zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'MDivSize must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
 
          IF ( ( InitInp%Morison%InpMembers(I)%MCoefMod /= 1 ) .AND. ( InitInp%Morison%InpMembers(I)%MCoefMod /= 2 ) .AND. ( InitInp%Morison%InpMembers(I)%MCoefMod /= 3 ) )  THEN
-            ErrMsg  = ' MCoefMod must be 1, 2, or 3.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'MCoefMod must be 1, 2, or 3.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
          IF ( InitInp%Morison%InpMembers(I)%MCoefMod == 2 ) THEN
             IF ( InitInp%Morison%NCoefDpth == 0 ) THEN
-               ErrMsg  = ' NCoefDpth must be greater than zero when a member is using a depth-based coefficient model.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'NCoefDpth must be greater than zero when a member is using a depth-based coefficient model.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
                ! We will not extrapolate depth-based coefficient values, so make sure that the depth-based table has values that are outside the depth range of this member
@@ -3804,8 +3726,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             MinMembrDpth = min( z1, z2 )
             MaxMembrDpth = max( z1, z2 )
             IF ( ( MinMembrDpth < MinDepth ) .OR. ( MaxMembrDpth > MaxDepth ) ) THEN
-               ErrMsg  = ' This member uses a depth-based coefficient model, but the member depth is outside the range of values provided in the depth-based hydrodynamic coefficients table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'This member uses a depth-based coefficient model, but the member depth is outside the range of values provided in the depth-based hydrodynamic coefficients table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
 
@@ -3814,8 +3735,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
          IF ( InitInp%Morison%InpMembers(I)%MCoefMod == 3 ) THEN
             IF ( InitInp%Morison%NCoefMembers == 0 ) THEN
-               ErrMsg  = ' NCoefMembers must be greater than zero when a member is using a member-based coefficient model.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'NCoefMembers must be greater than zero when a member is using a member-based coefficient model.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
                ! Make sure this id appears in the Members table and mark it's location for future use
@@ -3828,15 +3748,13 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
             END DO
 
             IF ( .NOT. FoundID ) THEN
-               ErrMsg = ' Could not locate the MemberID referenced in the Members table in the associated Member-based Hydrodynamic coefficients table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'Could not locate the MemberID referenced in the Members table in the associated Member-based Hydrodynamic coefficients table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          END IF
 
          IF ( InitInp%Morison%InpMembers(I)%PropWAMIT .AND. .NOT. InitInp%HasWAMIT ) THEN
-            ErrMsg = ' A member cannot have PropWAMIT set to TRUE if HasWAMIT is set to FALSE in the FLOATING PLATFORM section.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'A member cannot have PropWAMIT set to TRUE if HasWAMIT is set to FALSE in the FLOATING PLATFORM section.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
@@ -3852,8 +3770,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    IF ( InitInp%Morison%NFillGroups < 0 ) THEN
-      ErrMsg  = ' NFillGroups in the Filled-members table must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'NFillGroups in the Filled-members table must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3862,8 +3779,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       DO I = 1,InitInp%Morison%NFillGroups
 
          IF ( InitInp%Morison%FilledGroups(I)%FillNumM < 1 ) THEN
-            ErrMsg  = ' FillNumM in the Filled-members table must be greater than zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'FillNumM in the Filled-members table must be greater than zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
@@ -3874,8 +3790,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
                   FoundID = .TRUE.
                      ! Check to make sure this member is not already part of another fill group!
                   IF ( InitInp%Morison%InpMembers(K)%MmbrFilledIDIndx /= -1 ) THEN
-                     ErrMsg  = ' A member cannot be a part of more than one fill group!'
-                     ErrStat = ErrStat
+                     CALL SetErrStat( ErrID_Fatal,'A member cannot be a part of more than one fill group!',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                   END IF
 
                   InitInp%Morison%InpMembers(k)%MmbrFilledIDIndx = I
@@ -3921,8 +3836,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    IF ( InitInp%Morison%NMGDepths < 0 ) THEN
-      ErrMsg  = ' NMGDepths in the Marine growth table must be greater or equal to zero.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'NMGDepths in the Marine growth table must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3940,25 +3854,25 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          END IF
          IF ( InitInp%Morison%MGDepths(I)%MGDpth < InitInp%Morison%MGBottom ) THEN
             InitInp%Morison%MGBottom = InitInp%Morison%MGDepths(I)%MGDpth
+         ELSE
+            CALL SetErrStat( ErrID_Fatal,'The rows of the marine growth table must be ordered with increasing depth (decreasing Z).',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+            RETURN
          END IF
 
             ! Make sure that the current MGDpth is not used elsewhere in the table.
          DO J = I+1,InitInp%Morison%NMGDepths
             IF ( EqualRealNos( InitInp%Morison%MGDepths(I)%MGDpth, InitInp%Morison%MGDepths(J)%MGDpth ) ) THEN
-               ErrMsg = ' Duplicate MGDpth were found in the Marine Growth table.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'Duplicate MGDpth were found in the Marine Growth table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          END DO
 
          IF ( InitInp%Morison%MGDepths(I)%MGThck < 0 ) THEN
-            ErrMsg  = ' MGThck in the Marine growth table must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'MGThck in the Marine growth table must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
          IF ( InitInp%Morison%MGDepths(I)%MGDens < 0 ) THEN
-            ErrMsg  = ' MGDens in the Marine growth table must be greater or equal to zero.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'MGDens in the Marine growth table must be greater or equal to zero.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
@@ -3972,8 +3886,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    IF ( ( InitInp%Morison%NMOutputs < 0 ) .OR. ( InitInp%Morison%NMOutputs > 9 ) ) THEN
-      ErrMsg  = ' NMOutputs in the Member output list must be greater or equal to zero and less than 10.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'NMOutputs in the Member output list must be greater or equal to zero and less than 10.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -3993,21 +3906,18 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
             ! Make sure that a PropSetID entry in the Member cross-section properties table was found
          IF ( InitInp%Morison%MOutLst(I)%MemberIDIndx == -1 ) THEN
-            ErrMsg  = ' MemberID in the Member output list table does not appear in the Members table.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'MemberID in the Member output list table does not appear in the Members table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
          IF ( ( InitInp%Morison%MOutLst(I)%NOutLoc < 1 ) .OR. ( InitInp%Morison%MOutLst(I)%NOutLoc > 9) ) THEN
-            ErrMsg  = ' NOutLoc in the Member output list must be greater than zero and less than 10.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'NOutLoc in the Member output list must be greater than zero and less than 10.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
 
          DO J = 1,InitInp%Morison%MOutLst(I)%NOutLoc
             IF ( ( InitInp%Morison%MOutLst(I)%NodeLocs(J) < 0.0 ) .OR. ( InitInp%Morison%MOutLst(I)%NodeLocs(J) > 1.0 ) ) THEN
-               ErrMsg  = ' NodeLocs in the Member output list must be greater or equal to 0.0 and less than or equal to 1.0.'
-               ErrStat = ErrID_Fatal
+               CALL SetErrStat( ErrID_Fatal,'NodeLocs in the Member output list must be greater or equal to 0.0 and less than or equal to 1.0.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
                RETURN
             END IF
          END DO
@@ -4022,15 +3932,14 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    !-------------------------------------------------------------------------------------------------
 
    !IF ( InitInp%Morison%NJOutputs /= 0 ) THEN  ! TODO Remove this check and add back the other checks once Joint Outputs are supported
-   !ErrMsg  = ' NJOutputs in the Joint output list must be equal to zero.  Future versions of HydroDyn will support values greater or equal to zero and less than 10.'
+   !CALL SetErrStat( ErrID_Fatal,'NJOutputs in the Joint output list must be equal to zero.  Future versions of HydroDyn will support values greater or equal to zero and less than 10.'
    !   ErrStat = ErrID_Fatal
    !   RETURN
    !END IF   
    
    
    IF ( ( InitInp%Morison%NJOutputs < 0 ) .OR. ( InitInp%Morison%NMOutputs > 9 ) ) THEN
-      ErrMsg  = ' NJOutputs in the Joint output list must be greater or equal to zero and less than 10.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'NJOutputs in the Joint output list must be greater or equal to zero and less than 10.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -4050,8 +3959,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          
             ! Make sure that a PropSetID entry in the Member cross-section properties table was found
          IF ( InitInp%Morison%JOutLst(I)%JointIDIndx == -1 ) THEN
-            ErrMsg  = ' JointID in the Joint output list table does not appear in the Joints table.'
-            ErrStat = ErrID_Fatal
+            CALL SetErrStat( ErrID_Fatal,'JointID in the Joint output list table does not appear in the Joints table.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
             RETURN
          END IF
       END DO
@@ -4065,8 +3973,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ! OutAll - output all member and joint data
 
    IF ( InitInp%OutAll ) THEN    !TODO: Alter this check once OutAll is supported
-         ErrMsg  = ' OutAll must be FALSE. Future versions of HydroDyn will once again support values of either TRUE or FALSE.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'OutAll must be FALSE. Future versions of HydroDyn will once again support values of either TRUE or FALSE.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
    END IF
 
@@ -4074,8 +3981,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ! OutSwtch - output file switch
 
    IF ( InitInp%OutSwtch /= 1 .AND. InitInp%OutSwtch /= 2 .AND. InitInp%OutSwtch /= 3 ) THEN
-      ErrMsg  = ' OutSwitch must be set to 1, 2, or 3.'
-      ErrStat = ErrID_Fatal
+      CALL SetErrStat( ErrID_Fatal,'OutSwitch must be set to 1, 2, or 3.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       RETURN
    END IF
 
@@ -4095,8 +4001,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
    IF (  InitInp%NUserOutputs > 0 ) THEN
       ALLOCATE ( foundMask(InitInp%NUserOutputs) , STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg  = ' Error allocating space for temporary array: foundMask in the HydroDynInput_GetInput subroutine.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'Error allocating space for temporary array: foundMask in the HydroDynInput_GetInput subroutine.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          
          RETURN
       END IF
@@ -4128,8 +4033,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          ! Create an  output list for validated outputs
       ALLOCATE ( InitInp%Morison%ValidOutList(InitInp%Morison%NumOuts), STAT = ErrStat )
       IF ( ErrStat /= 0 ) THEN
-         ErrMsg  = ' Error allocating valid output list array.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'Error allocating valid output list array.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -4159,13 +4063,11 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       
       ! WAMIT
       InitInp%WAMIT%WtrDens      = InitInp%Waves%WtrDens
-      InitInp%WAMIT%WaveDir      = InitInp%Waves%WaveDir
       InitInp%WAMIT%WaveMod      = InitInp%Waves%WaveMod
       InitInp%WAMIT%OutAll       = InitInp%OutAll
       InitInp%WAMIT%HasWAMIT     = InitInp%HasWAMIT
       ! WAMIT2
       InitInp%WAMIT2%WtrDens     = InitInp%Waves%WtrDens
-      InitInp%WAMIT2%WaveDir     = InitInp%Waves%WaveDir
       InitInp%WAMIT2%WaveMod     = InitInp%Waves%WaveMod
       InitInp%WAMIT2%OutAll      = InitInp%OutAll
       InitInp%WAMIT2%HasWAMIT    = InitInp%HasWAMIT
@@ -4186,8 +4088,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
 
       ALLOCATE ( InitInp%Current%MorisonNodezi(InitInp%Morison%NNodes), STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg  = ' Error allocating space for MorisonNodezi array.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'Error allocating space for MorisonNodezi array.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
 
@@ -4197,23 +4098,18 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       InitInp%Waves%NWaveKin0   = InitInp%Morison%NNodes                          ! Number of points where the incident wave kinematics will be computed (-)
       ALLOCATE ( InitInp%Waves%WaveKinxi0(InitInp%Waves%NWaveKin0), STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg  = ' Error allocating space for WaveKinxi0 array.'
-         ErrStat = ErrID_Fatal
+         CALL SetErrStat( ErrID_Fatal,'Error allocating space for WaveKinxi0 array.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
 
          RETURN
       END IF
       ALLOCATE ( InitInp%Waves%WaveKinyi0(InitInp%Waves%NWaveKin0), STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg  = ' Error allocating space for WaveKinyi0 array.'
-         ErrStat = ErrID_Fatal
-
+         CALL SetErrStat( ErrID_Fatal,'Error allocating space for WaveKinyi0 array.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
       ALLOCATE ( InitInp%Waves%WaveKinzi0(InitInp%Waves%NWaveKin0), STAT = ErrStat )
       IF ( ErrStat /= ErrID_None ) THEN
-         ErrMsg  = ' Error allocating space for WaveKinzi0 array.'
-         ErrStat = ErrID_Fatal
-
+         CALL SetErrStat( ErrID_Fatal,'Error allocating space for WaveKinzi0 array.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
          RETURN
       END IF
       DO I=1,InitInp%Morison%NNodes

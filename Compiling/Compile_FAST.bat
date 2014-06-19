@@ -72,7 +72,7 @@ SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
 SET MAP_Loc=%FAST_Loc%\dependencies\MAP
 SET FEAM_Loc=%FAST_Loc%\dependencies\FEAMooring
 SET IceF_Loc=%FAST_Loc%\dependencies\IceFloe
-SET ID_Loc=%FAST_Loc%\dependencies\IceDyn
+SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 
 SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
 SET HD_Reg_Loc=%HD_Loc%
@@ -275,7 +275,7 @@ MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
 ECHO %Lines%
-SET CURR_LOC=%ID_Loc%
+SET CURR_LOC=%IceD_Loc%
 SET ModuleName=IceDyn
 %REGISTRY% "%CURR_LOC%\Registry_IceDyn.txt" -I "%NWTC_Lib_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
