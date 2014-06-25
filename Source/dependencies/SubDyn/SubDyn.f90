@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-13 11:16:16 -0600 (Fri, 13 Jun 2014) $
-! (File) Revision #: $Rev: 306 $
+! File last committed: $Date: 2014-06-24 19:09:19 -0600 (Tue, 24 Jun 2014) $
+! (File) Revision #: $Rev: 310 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -38,7 +38,7 @@ Module SubDyn
    !       this will add additional matrices to the SubDyn summary file.
    !............................
 
-   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.01.00a-rrd', '12-Jun-2014' )
+   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.01.00a-rrd', '24-Jun-2014' )
       
    ! ..... Public Subroutines ...................................................................................................
 
@@ -1910,9 +1910,9 @@ IF ( ErrStat /= ErrID_None ) THEN
    RETURN
 END IF
 
-CALL ReadIVar ( UnIn, SDInputFile, p%NMOutputs, 'NMOutputs', 'Number of Members whose output must go into OutJckF and/or Fast .out',ErrStat, ErrMsg, UnEc  )
-IF ( ( p%NMOutputs < 0 ) .OR. ( p%NMOutputs > p%NMembers ) )  THEN
-   ErrMsg = ' Error in file "'//TRIM(SDInputFile)//'": NMOutputs must be >=0 and < Nmembers' 
+CALL ReadIVar ( UnIn, SDInputFile, p%NMOutputs, 'NMOutputs', 'Number of Members whose output must go into OutJckF and/or FAST .out',ErrStat, ErrMsg, UnEc  )
+IF ( ( p%NMOutputs < 0 ) .OR. ( p%NMOutputs > p%NMembers )  .OR. ( p%NMOutputs > 9 ))  THEN
+   ErrMsg = ' Error in file "'//TRIM(SDInputFile)//'": NMOutputs must be >=0 and <= minimim(NMembers,9)' 
    ErrStat = ErrID_Fatal
    CALL CleanUp()
    RETURN
@@ -1948,6 +1948,15 @@ ENDDO
          IF (ErrStat == 0) THEN
             
             READ(Line,*,IOSTAT=ErrStat) p%MOutLst(I)%MemberID, p%MOutLst(I)%NOutCnt
+            
+            
+            IF ( p%MOutLst(I)%NOutCnt < 1 .OR. p%MOutLst(I)%NOutCnt > 9 .OR. p%MOutLst(I)%NOutCnt > Init%Ndiv+1) THEN
+               ErrMsg = ' Error in file "'//TRIM(SDInputFile)//'": NOutCnt must be >= 1 and <= minimim(Ndiv+1,9)'
+               ErrStat = ErrID_Fatal
+               CALL CleanUp()
+               RETURN
+            END IF            
+            
             
             ALLOCATE ( p%MOutLst(I)%NodeCnt( p%MOutLst(I)%NOutCnt ), STAT = ErrStat )
             
@@ -4354,10 +4363,7 @@ SUBROUTINE OutSummary(Init, p, FEMparams,CBparams, ErrStat,ErrMsg)
     DO i=1,6
         WRITE(UnSum, '(A15, 6(e15.6))')   MatHds(i), (p%MBB(i,j), j = 1, 6)
     ENDDO  
-   !-------------------------------------------------------------------------------------------------------------
-    ! write TOTAL MASS AND CM(Note this includes structural and non-structural mass)
-    !!!!!!     TO BE CORRECTED: I MUST USE ORIGINAL MBB not reduced MBBt for the latter and apply TI!!!!  RRD TODO
-   !-------------------------------------------------------------------------------------------------------------
+ 
    MRB=matmul(TRANSPOSE(CBparams%TI2),matmul(CBparams%MBB,CBparams%TI2)) !Equivalent mass matrix of the rigid body
    WRITE(UnSum, '(A)') SectionDivide
    WRITE(UnSum, '(A)') 'Rigid Body Equivalent Mass Matrix w.r.t. (0,0,0).'

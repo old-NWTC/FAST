@@ -1,6 +1,23 @@
+!..................................................................................................................................
+! LICENSING
+! Copyright (C) 2013-2014  National Renewable Energy Laboratory
+!
+!    This file is part of SubDyn.
+!
+! Licensed under the Apache License, Version 2.0 (the "License");
+! you may not use this file except in compliance with the License.
+! You may obtain a copy of the License at
+!
+!     http://www.apache.org/licenses/LICENSE-2.0
+!
+! Unless required by applicable law or agreed to in writing, software
+! distributed under the License is distributed on an "AS IS" BASIS,
+! WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+! See the License for the specific language governing permissions and
+! limitations under the License.
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-13 11:16:16 -0600 (Fri, 13 Jun 2014) $
-! (File) Revision #: $Rev: 306 $
+! File last committed: $Date: 2014-06-13 12:04:03 -0600 (Fri, 13 Jun 2014) $
+! (File) Revision #: $Rev: 308 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM

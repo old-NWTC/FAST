@@ -59,11 +59,12 @@ FC      = gfortran
 
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -C -DNO_IEEE_ARITHMETIC
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -C
 
 LDFLAGS = -O2 -m$(BITS) -fbacktrace
 
 # other useful gfortran options:
+#  -DFPE_TRAP_ENABLED
 #  -large-address-aware
 #  -Wconversion-extra -Wconversion
 #  -fdefault-real-8 -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
@@ -232,7 +233,7 @@ vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DI
 vpath %.f   $(HD_DIR) $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
-vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR)
+vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR)
 vpath %.inp $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90     $(IceF_DIR)

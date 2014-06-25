@@ -79,13 +79,14 @@ REM  FAST test sequence definition:
 @SET  TEST15=Test #15: SWRT with many DOFs with free yaw tail-furl and VS and EOG wind.  Time plots.
 @SET  TEST16=Test #16: SWRT with many DOFs with free yaw tail-furl and VS and EDC wind.  Time plots.
 @SET  TEST17=Test #17: SWRT with many DOFs with free yaw tail-furl and VS and FF turbulence.  PMF plots.
-@SET  TEST18=Test #18: NREL 5 MW Baseline Onshore Turbine
-@SET  TEST19=Test #19: NREL 5 MW Baseline Offshore Turbine with Monopile RF
-@SET  TEST20=Test #20: Placeholder for another test
-@SET  TEST21=Test #21: NREL 5 MW Baseline Offshore Turbine with OC4 Jacket Configuration
+@SET  TEST18=Test #18: NREL 5 MW Baseline Land-based Turbine
+@SET  TEST19=Test #19: NREL 5 MW Baseline Offshore Turbine with OC3 Monopile
+@SET  TEST20=Test #20: NREL 5 MW Baseline Offshore Turbine with OC3 Tripod
+@SET  TEST21=Test #21: NREL 5 MW Baseline Offshore Turbine with OC4 Jacket
 @SET  TEST22=Test #22: NREL 5 MW Baseline Offshore Turbine with ITI Barge
 @SET  TEST23=Test #23: NREL 5 MW Baseline Offshore Turbine with Floating TLP
-@SET  TEST24=Test #24: NREL 5 MW Baseline Offshore Turbine with OC3 Hywind modifications
+@SET  TEST24=Test #24: NREL 5 MW Baseline Offshore Turbine with OC3 Hywind
+@SET  TEST25=Test #25: NREL 5 MW Baseline Offshore Turbine with ???
 
 @SET  DASHES=---------------------------------------------------------------------------------------------
 @SET  POUNDS=#############################################################################################
@@ -354,6 +355,11 @@ rem *******************************************************
 
 rem *******************************************************
 :Test20
+@CALL :GenTestHeader %Test20%
+@CALL :RunFASTandCrunch 20 outb
+@CALL :CompareOutput 20
+@CALL :CompareFiles 19 HD.sum
+@CALL :CompareFiles 19 SD.sum
 
 rem *******************************************************
 :Test21
@@ -495,6 +501,7 @@ EXIT /B
 @SET TEST22=
 @SET TEST23=
 @SET TEST24=
+@SET TEST25=
 
 SET EXE_VER=
 

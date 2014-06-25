@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.02.02, 27-Mar-2014)
+! FAST Registry (v2.03.01, 18-June-2014)
 !*********************************************************************************************************************************
 ! SubDyn_Types
 !.................................................................................................................................
@@ -495,7 +495,7 @@ CONTAINS
 IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -508,7 +508,7 @@ ENDIF
 IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
-   IF (.NOT.ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
+   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
       ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -677,7 +677,7 @@ ENDIF
 IF (ALLOCATED(SrcmeshauxdatatypeData%NodeCnt)) THEN
    i1_l = LBOUND(SrcmeshauxdatatypeData%NodeCnt,1)
    i1_u = UBOUND(SrcmeshauxdatatypeData%NodeCnt,1)
-   IF (.NOT.ALLOCATED(DstmeshauxdatatypeData%NodeCnt)) THEN 
+   IF (.NOT. ALLOCATED(DstmeshauxdatatypeData%NodeCnt)) THEN 
       ALLOCATE(DstmeshauxdatatypeData%NodeCnt(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -690,7 +690,7 @@ ENDIF
 IF (ALLOCATED(SrcmeshauxdatatypeData%NodeIDs)) THEN
    i1_l = LBOUND(SrcmeshauxdatatypeData%NodeIDs,1)
    i1_u = UBOUND(SrcmeshauxdatatypeData%NodeIDs,1)
-   IF (.NOT.ALLOCATED(DstmeshauxdatatypeData%NodeIDs)) THEN 
+   IF (.NOT. ALLOCATED(DstmeshauxdatatypeData%NodeIDs)) THEN 
       ALLOCATE(DstmeshauxdatatypeData%NodeIDs(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -705,7 +705,7 @@ IF (ALLOCATED(SrcmeshauxdatatypeData%ElmIDs)) THEN
    i1_u = UBOUND(SrcmeshauxdatatypeData%ElmIDs,1)
    i2_l = LBOUND(SrcmeshauxdatatypeData%ElmIDs,2)
    i2_u = UBOUND(SrcmeshauxdatatypeData%ElmIDs,2)
-   IF (.NOT.ALLOCATED(DstmeshauxdatatypeData%ElmIDs)) THEN 
+   IF (.NOT. ALLOCATED(DstmeshauxdatatypeData%ElmIDs)) THEN 
       ALLOCATE(DstmeshauxdatatypeData%ElmIDs(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -720,7 +720,7 @@ IF (ALLOCATED(SrcmeshauxdatatypeData%ElmNds)) THEN
    i1_u = UBOUND(SrcmeshauxdatatypeData%ElmNds,1)
    i2_l = LBOUND(SrcmeshauxdatatypeData%ElmNds,2)
    i2_u = UBOUND(SrcmeshauxdatatypeData%ElmNds,2)
-   IF (.NOT.ALLOCATED(DstmeshauxdatatypeData%ElmNds)) THEN 
+   IF (.NOT. ALLOCATED(DstmeshauxdatatypeData%ElmNds)) THEN 
       ALLOCATE(DstmeshauxdatatypeData%ElmNds(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -741,7 +741,7 @@ IF (ALLOCATED(SrcmeshauxdatatypeData%Me)) THEN
    i3_u = UBOUND(SrcmeshauxdatatypeData%Me,3)
    i4_l = LBOUND(SrcmeshauxdatatypeData%Me,4)
    i4_u = UBOUND(SrcmeshauxdatatypeData%Me,4)
-   IF (.NOT.ALLOCATED(DstmeshauxdatatypeData%Me)) THEN 
+   IF (.NOT. ALLOCATED(DstmeshauxdatatypeData%Me)) THEN 
       ALLOCATE(DstmeshauxdatatypeData%Me(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u,i4_l:i4_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -760,7 +760,7 @@ IF (ALLOCATED(SrcmeshauxdatatypeData%Ke)) THEN
    i3_u = UBOUND(SrcmeshauxdatatypeData%Ke,3)
    i4_l = LBOUND(SrcmeshauxdatatypeData%Ke,4)
    i4_u = UBOUND(SrcmeshauxdatatypeData%Ke,4)
-   IF (.NOT.ALLOCATED(DstmeshauxdatatypeData%Ke)) THEN 
+   IF (.NOT. ALLOCATED(DstmeshauxdatatypeData%Ke)) THEN 
       ALLOCATE(DstmeshauxdatatypeData%Ke(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u,i4_l:i4_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -777,7 +777,7 @@ IF (ALLOCATED(SrcmeshauxdatatypeData%Fg)) THEN
    i2_u = UBOUND(SrcmeshauxdatatypeData%Fg,2)
    i3_l = LBOUND(SrcmeshauxdatatypeData%Fg,3)
    i3_u = UBOUND(SrcmeshauxdatatypeData%Fg,3)
-   IF (.NOT.ALLOCATED(DstmeshauxdatatypeData%Fg)) THEN 
+   IF (.NOT. ALLOCATED(DstmeshauxdatatypeData%Fg)) THEN 
       ALLOCATE(DstmeshauxdatatypeData%Fg(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1041,7 +1041,7 @@ IF (ALLOCATED(Srccb_matarraysData%TI2)) THEN
    i1_u = UBOUND(Srccb_matarraysData%TI2,1)
    i2_l = LBOUND(Srccb_matarraysData%TI2,2)
    i2_u = UBOUND(Srccb_matarraysData%TI2,2)
-   IF (.NOT.ALLOCATED(Dstcb_matarraysData%TI2)) THEN 
+   IF (.NOT. ALLOCATED(Dstcb_matarraysData%TI2)) THEN 
       ALLOCATE(Dstcb_matarraysData%TI2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1056,7 +1056,7 @@ IF (ALLOCATED(Srccb_matarraysData%MBB)) THEN
    i1_u = UBOUND(Srccb_matarraysData%MBB,1)
    i2_l = LBOUND(Srccb_matarraysData%MBB,2)
    i2_u = UBOUND(Srccb_matarraysData%MBB,2)
-   IF (.NOT.ALLOCATED(Dstcb_matarraysData%MBB)) THEN 
+   IF (.NOT. ALLOCATED(Dstcb_matarraysData%MBB)) THEN 
       ALLOCATE(Dstcb_matarraysData%MBB(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1071,7 +1071,7 @@ IF (ALLOCATED(Srccb_matarraysData%MBM)) THEN
    i1_u = UBOUND(Srccb_matarraysData%MBM,1)
    i2_l = LBOUND(Srccb_matarraysData%MBM,2)
    i2_u = UBOUND(Srccb_matarraysData%MBM,2)
-   IF (.NOT.ALLOCATED(Dstcb_matarraysData%MBM)) THEN 
+   IF (.NOT. ALLOCATED(Dstcb_matarraysData%MBM)) THEN 
       ALLOCATE(Dstcb_matarraysData%MBM(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1086,7 +1086,7 @@ IF (ALLOCATED(Srccb_matarraysData%KBB)) THEN
    i1_u = UBOUND(Srccb_matarraysData%KBB,1)
    i2_l = LBOUND(Srccb_matarraysData%KBB,2)
    i2_u = UBOUND(Srccb_matarraysData%KBB,2)
-   IF (.NOT.ALLOCATED(Dstcb_matarraysData%KBB)) THEN 
+   IF (.NOT. ALLOCATED(Dstcb_matarraysData%KBB)) THEN 
       ALLOCATE(Dstcb_matarraysData%KBB(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1101,7 +1101,7 @@ IF (ALLOCATED(Srccb_matarraysData%PhiL)) THEN
    i1_u = UBOUND(Srccb_matarraysData%PhiL,1)
    i2_l = LBOUND(Srccb_matarraysData%PhiL,2)
    i2_u = UBOUND(Srccb_matarraysData%PhiL,2)
-   IF (.NOT.ALLOCATED(Dstcb_matarraysData%PhiL)) THEN 
+   IF (.NOT. ALLOCATED(Dstcb_matarraysData%PhiL)) THEN 
       ALLOCATE(Dstcb_matarraysData%PhiL(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1116,7 +1116,7 @@ IF (ALLOCATED(Srccb_matarraysData%PhiR)) THEN
    i1_u = UBOUND(Srccb_matarraysData%PhiR,1)
    i2_l = LBOUND(Srccb_matarraysData%PhiR,2)
    i2_u = UBOUND(Srccb_matarraysData%PhiR,2)
-   IF (.NOT.ALLOCATED(Dstcb_matarraysData%PhiR)) THEN 
+   IF (.NOT. ALLOCATED(Dstcb_matarraysData%PhiR)) THEN 
       ALLOCATE(Dstcb_matarraysData%PhiR(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1129,7 +1129,7 @@ ENDIF
 IF (ALLOCATED(Srccb_matarraysData%OmegaL)) THEN
    i1_l = LBOUND(Srccb_matarraysData%OmegaL,1)
    i1_u = UBOUND(Srccb_matarraysData%OmegaL,1)
-   IF (.NOT.ALLOCATED(Dstcb_matarraysData%OmegaL)) THEN 
+   IF (.NOT. ALLOCATED(Dstcb_matarraysData%OmegaL)) THEN 
       ALLOCATE(Dstcb_matarraysData%OmegaL(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1347,7 +1347,7 @@ ENDIF
 IF (ALLOCATED(Srcfem_matarraysData%Omega)) THEN
    i1_l = LBOUND(Srcfem_matarraysData%Omega,1)
    i1_u = UBOUND(Srcfem_matarraysData%Omega,1)
-   IF (.NOT.ALLOCATED(Dstfem_matarraysData%Omega)) THEN 
+   IF (.NOT. ALLOCATED(Dstfem_matarraysData%Omega)) THEN 
       ALLOCATE(Dstfem_matarraysData%Omega(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1363,7 +1363,7 @@ IF (ALLOCATED(Srcfem_matarraysData%Modes)) THEN
    i1_u = UBOUND(Srcfem_matarraysData%Modes,1)
    i2_l = LBOUND(Srcfem_matarraysData%Modes,2)
    i2_u = UBOUND(Srcfem_matarraysData%Modes,2)
-   IF (.NOT.ALLOCATED(Dstfem_matarraysData%Modes)) THEN 
+   IF (.NOT. ALLOCATED(Dstfem_matarraysData%Modes)) THEN 
       ALLOCATE(Dstfem_matarraysData%Modes(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1692,7 +1692,7 @@ IF (ALLOCATED(SrcinittypeData%Joints)) THEN
    i1_u = UBOUND(SrcinittypeData%Joints,1)
    i2_l = LBOUND(SrcinittypeData%Joints,2)
    i2_u = UBOUND(SrcinittypeData%Joints,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%Joints)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%Joints)) THEN 
       ALLOCATE(DstinittypeData%Joints(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1707,7 +1707,7 @@ IF (ALLOCATED(SrcinittypeData%PropSets)) THEN
    i1_u = UBOUND(SrcinittypeData%PropSets,1)
    i2_l = LBOUND(SrcinittypeData%PropSets,2)
    i2_u = UBOUND(SrcinittypeData%PropSets,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%PropSets)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%PropSets)) THEN 
       ALLOCATE(DstinittypeData%PropSets(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1722,7 +1722,7 @@ IF (ALLOCATED(SrcinittypeData%XPropSets)) THEN
    i1_u = UBOUND(SrcinittypeData%XPropSets,1)
    i2_l = LBOUND(SrcinittypeData%XPropSets,2)
    i2_u = UBOUND(SrcinittypeData%XPropSets,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%XPropSets)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%XPropSets)) THEN 
       ALLOCATE(DstinittypeData%XPropSets(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1737,7 +1737,7 @@ IF (ALLOCATED(SrcinittypeData%COSMs)) THEN
    i1_u = UBOUND(SrcinittypeData%COSMs,1)
    i2_l = LBOUND(SrcinittypeData%COSMs,2)
    i2_u = UBOUND(SrcinittypeData%COSMs,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%COSMs)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%COSMs)) THEN 
       ALLOCATE(DstinittypeData%COSMs(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1752,7 +1752,7 @@ IF (ALLOCATED(SrcinittypeData%CMass)) THEN
    i1_u = UBOUND(SrcinittypeData%CMass,1)
    i2_l = LBOUND(SrcinittypeData%CMass,2)
    i2_u = UBOUND(SrcinittypeData%CMass,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%CMass)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%CMass)) THEN 
       ALLOCATE(DstinittypeData%CMass(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1765,7 +1765,7 @@ ENDIF
 IF (ALLOCATED(SrcinittypeData%JDampings)) THEN
    i1_l = LBOUND(SrcinittypeData%JDampings,1)
    i1_u = UBOUND(SrcinittypeData%JDampings,1)
-   IF (.NOT.ALLOCATED(DstinittypeData%JDampings)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%JDampings)) THEN 
       ALLOCATE(DstinittypeData%JDampings(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1780,7 +1780,7 @@ IF (ALLOCATED(SrcinittypeData%Members)) THEN
    i1_u = UBOUND(SrcinittypeData%Members,1)
    i2_l = LBOUND(SrcinittypeData%Members,2)
    i2_u = UBOUND(SrcinittypeData%Members,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%Members)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%Members)) THEN 
       ALLOCATE(DstinittypeData%Members(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1795,7 +1795,7 @@ IF (ALLOCATED(SrcinittypeData%Interf)) THEN
    i1_u = UBOUND(SrcinittypeData%Interf,1)
    i2_l = LBOUND(SrcinittypeData%Interf,2)
    i2_u = UBOUND(SrcinittypeData%Interf,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%Interf)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%Interf)) THEN 
       ALLOCATE(DstinittypeData%Interf(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1808,7 +1808,7 @@ ENDIF
 IF (ALLOCATED(SrcinittypeData%SSOutList)) THEN
    i1_l = LBOUND(SrcinittypeData%SSOutList,1)
    i1_u = UBOUND(SrcinittypeData%SSOutList,1)
-   IF (.NOT.ALLOCATED(DstinittypeData%SSOutList)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%SSOutList)) THEN 
       ALLOCATE(DstinittypeData%SSOutList(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1829,7 +1829,7 @@ IF (ALLOCATED(SrcinittypeData%Nodes)) THEN
    i1_u = UBOUND(SrcinittypeData%Nodes,1)
    i2_l = LBOUND(SrcinittypeData%Nodes,2)
    i2_u = UBOUND(SrcinittypeData%Nodes,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%Nodes)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%Nodes)) THEN 
       ALLOCATE(DstinittypeData%Nodes(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1844,7 +1844,7 @@ IF (ALLOCATED(SrcinittypeData%Props)) THEN
    i1_u = UBOUND(SrcinittypeData%Props,1)
    i2_l = LBOUND(SrcinittypeData%Props,2)
    i2_u = UBOUND(SrcinittypeData%Props,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%Props)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%Props)) THEN 
       ALLOCATE(DstinittypeData%Props(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1859,7 +1859,7 @@ IF (ALLOCATED(SrcinittypeData%K)) THEN
    i1_u = UBOUND(SrcinittypeData%K,1)
    i2_l = LBOUND(SrcinittypeData%K,2)
    i2_u = UBOUND(SrcinittypeData%K,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%K)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%K)) THEN 
       ALLOCATE(DstinittypeData%K(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1874,7 +1874,7 @@ IF (ALLOCATED(SrcinittypeData%M)) THEN
    i1_u = UBOUND(SrcinittypeData%M,1)
    i2_l = LBOUND(SrcinittypeData%M,2)
    i2_u = UBOUND(SrcinittypeData%M,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%M)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%M)) THEN 
       ALLOCATE(DstinittypeData%M(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1887,7 +1887,7 @@ ENDIF
 IF (ALLOCATED(SrcinittypeData%F)) THEN
    i1_l = LBOUND(SrcinittypeData%F,1)
    i1_u = UBOUND(SrcinittypeData%F,1)
-   IF (.NOT.ALLOCATED(DstinittypeData%F)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%F)) THEN 
       ALLOCATE(DstinittypeData%F(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1900,7 +1900,7 @@ ENDIF
 IF (ALLOCATED(SrcinittypeData%FG)) THEN
    i1_l = LBOUND(SrcinittypeData%FG,1)
    i1_u = UBOUND(SrcinittypeData%FG,1)
-   IF (.NOT.ALLOCATED(DstinittypeData%FG)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%FG)) THEN 
       ALLOCATE(DstinittypeData%FG(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1915,7 +1915,7 @@ IF (ALLOCATED(SrcinittypeData%ElemProps)) THEN
    i1_u = UBOUND(SrcinittypeData%ElemProps,1)
    i2_l = LBOUND(SrcinittypeData%ElemProps,2)
    i2_u = UBOUND(SrcinittypeData%ElemProps,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%ElemProps)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%ElemProps)) THEN 
       ALLOCATE(DstinittypeData%ElemProps(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1930,7 +1930,7 @@ IF (ALLOCATED(SrcinittypeData%BCs)) THEN
    i1_u = UBOUND(SrcinittypeData%BCs,1)
    i2_l = LBOUND(SrcinittypeData%BCs,2)
    i2_u = UBOUND(SrcinittypeData%BCs,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%BCs)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%BCs)) THEN 
       ALLOCATE(DstinittypeData%BCs(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1945,7 +1945,7 @@ IF (ALLOCATED(SrcinittypeData%IntFc)) THEN
    i1_u = UBOUND(SrcinittypeData%IntFc,1)
    i2_l = LBOUND(SrcinittypeData%IntFc,2)
    i2_u = UBOUND(SrcinittypeData%IntFc,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%IntFc)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%IntFc)) THEN 
       ALLOCATE(DstinittypeData%IntFc(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1960,7 +1960,7 @@ IF (ALLOCATED(SrcinittypeData%MemberNodes)) THEN
    i1_u = UBOUND(SrcinittypeData%MemberNodes,1)
    i2_l = LBOUND(SrcinittypeData%MemberNodes,2)
    i2_u = UBOUND(SrcinittypeData%MemberNodes,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%MemberNodes)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%MemberNodes)) THEN 
       ALLOCATE(DstinittypeData%MemberNodes(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1975,7 +1975,7 @@ IF (ALLOCATED(SrcinittypeData%NodesConnN)) THEN
    i1_u = UBOUND(SrcinittypeData%NodesConnN,1)
    i2_l = LBOUND(SrcinittypeData%NodesConnN,2)
    i2_u = UBOUND(SrcinittypeData%NodesConnN,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%NodesConnN)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%NodesConnN)) THEN 
       ALLOCATE(DstinittypeData%NodesConnN(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -1990,7 +1990,7 @@ IF (ALLOCATED(SrcinittypeData%NodesConnE)) THEN
    i1_u = UBOUND(SrcinittypeData%NodesConnE,1)
    i2_l = LBOUND(SrcinittypeData%NodesConnE,2)
    i2_u = UBOUND(SrcinittypeData%NodesConnE,2)
-   IF (.NOT.ALLOCATED(DstinittypeData%NodesConnE)) THEN 
+   IF (.NOT. ALLOCATED(DstinittypeData%NodesConnE)) THEN 
       ALLOCATE(DstinittypeData%NodesConnE(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2471,7 +2471,7 @@ ENDIF
 IF (ALLOCATED(SrcContStateData%qm)) THEN
    i1_l = LBOUND(SrcContStateData%qm,1)
    i1_u = UBOUND(SrcContStateData%qm,1)
-   IF (.NOT.ALLOCATED(DstContStateData%qm)) THEN 
+   IF (.NOT. ALLOCATED(DstContStateData%qm)) THEN 
       ALLOCATE(DstContStateData%qm(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2484,7 +2484,7 @@ ENDIF
 IF (ALLOCATED(SrcContStateData%qmdot)) THEN
    i1_l = LBOUND(SrcContStateData%qmdot,1)
    i1_u = UBOUND(SrcContStateData%qmdot,1)
-   IF (.NOT.ALLOCATED(DstContStateData%qmdot)) THEN 
+   IF (.NOT. ALLOCATED(DstContStateData%qmdot)) THEN 
       ALLOCATE(DstContStateData%qmdot(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2843,7 +2843,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%xdot)) THEN
    i1_l = LBOUND(SrcOtherStateData%xdot,1)
    i1_u = UBOUND(SrcOtherStateData%xdot,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%xdot)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%xdot)) THEN 
       ALLOCATE(DstOtherStateData%xdot(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2859,7 +2859,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%SDWrOutput)) THEN
    i1_l = LBOUND(SrcOtherStateData%SDWrOutput,1)
    i1_u = UBOUND(SrcOtherStateData%SDWrOutput,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%SDWrOutput)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%SDWrOutput)) THEN 
       ALLOCATE(DstOtherStateData%SDWrOutput(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2874,7 +2874,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%qmdotdot)) THEN
    i1_l = LBOUND(SrcOtherStateData%qmdotdot,1)
    i1_u = UBOUND(SrcOtherStateData%qmdotdot,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%qmdotdot)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%qmdotdot)) THEN 
       ALLOCATE(DstOtherStateData%qmdotdot(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2890,7 +2890,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%UFL)) THEN
    i1_l = LBOUND(SrcOtherStateData%UFL,1)
    i1_u = UBOUND(SrcOtherStateData%UFL,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%UFL)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%UFL)) THEN 
       ALLOCATE(DstOtherStateData%UFL(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2903,7 +2903,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%UR_bar)) THEN
    i1_l = LBOUND(SrcOtherStateData%UR_bar,1)
    i1_u = UBOUND(SrcOtherStateData%UR_bar,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%UR_bar)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%UR_bar)) THEN 
       ALLOCATE(DstOtherStateData%UR_bar(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2916,7 +2916,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%UR_bar_dot)) THEN
    i1_l = LBOUND(SrcOtherStateData%UR_bar_dot,1)
    i1_u = UBOUND(SrcOtherStateData%UR_bar_dot,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%UR_bar_dot)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%UR_bar_dot)) THEN 
       ALLOCATE(DstOtherStateData%UR_bar_dot(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2929,7 +2929,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%UR_bar_dotdot)) THEN
    i1_l = LBOUND(SrcOtherStateData%UR_bar_dotdot,1)
    i1_u = UBOUND(SrcOtherStateData%UR_bar_dotdot,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%UR_bar_dotdot)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%UR_bar_dotdot)) THEN 
       ALLOCATE(DstOtherStateData%UR_bar_dotdot(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2942,7 +2942,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%UL)) THEN
    i1_l = LBOUND(SrcOtherStateData%UL,1)
    i1_u = UBOUND(SrcOtherStateData%UL,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%UL)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%UL)) THEN 
       ALLOCATE(DstOtherStateData%UL(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2955,7 +2955,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%UL_dot)) THEN
    i1_l = LBOUND(SrcOtherStateData%UL_dot,1)
    i1_u = UBOUND(SrcOtherStateData%UL_dot,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%UL_dot)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%UL_dot)) THEN 
       ALLOCATE(DstOtherStateData%UL_dot(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -2968,7 +2968,7 @@ ENDIF
 IF (ALLOCATED(SrcOtherStateData%UL_dotdot)) THEN
    i1_l = LBOUND(SrcOtherStateData%UL_dotdot,1)
    i1_u = UBOUND(SrcOtherStateData%UL_dotdot,1)
-   IF (.NOT.ALLOCATED(DstOtherStateData%UL_dotdot)) THEN 
+   IF (.NOT. ALLOCATED(DstOtherStateData%UL_dotdot)) THEN 
       ALLOCATE(DstOtherStateData%UL_dotdot(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3303,7 +3303,7 @@ ENDDO
 IF (ALLOCATED(SrcParamData%NOmegaM2)) THEN
    i1_l = LBOUND(SrcParamData%NOmegaM2,1)
    i1_u = UBOUND(SrcParamData%NOmegaM2,1)
-   IF (.NOT.ALLOCATED(DstParamData%NOmegaM2)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%NOmegaM2)) THEN 
       ALLOCATE(DstParamData%NOmegaM2(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3316,7 +3316,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%N2OmegaMJDamp)) THEN
    i1_l = LBOUND(SrcParamData%N2OmegaMJDamp,1)
    i1_u = UBOUND(SrcParamData%N2OmegaMJDamp,1)
-   IF (.NOT.ALLOCATED(DstParamData%N2OmegaMJDamp)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%N2OmegaMJDamp)) THEN 
       ALLOCATE(DstParamData%N2OmegaMJDamp(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3331,7 +3331,7 @@ IF (ALLOCATED(SrcParamData%MMB)) THEN
    i1_u = UBOUND(SrcParamData%MMB,1)
    i2_l = LBOUND(SrcParamData%MMB,2)
    i2_u = UBOUND(SrcParamData%MMB,2)
-   IF (.NOT.ALLOCATED(DstParamData%MMB)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%MMB)) THEN 
       ALLOCATE(DstParamData%MMB(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3346,7 +3346,7 @@ IF (ALLOCATED(SrcParamData%PhiM_T)) THEN
    i1_u = UBOUND(SrcParamData%PhiM_T,1)
    i2_l = LBOUND(SrcParamData%PhiM_T,2)
    i2_u = UBOUND(SrcParamData%PhiM_T,2)
-   IF (.NOT.ALLOCATED(DstParamData%PhiM_T)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%PhiM_T)) THEN 
       ALLOCATE(DstParamData%PhiM_T(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3359,7 +3359,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%FX)) THEN
    i1_l = LBOUND(SrcParamData%FX,1)
    i1_u = UBOUND(SrcParamData%FX,1)
-   IF (.NOT.ALLOCATED(DstParamData%FX)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%FX)) THEN 
       ALLOCATE(DstParamData%FX(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3374,7 +3374,7 @@ IF (ALLOCATED(SrcParamData%C1_11)) THEN
    i1_u = UBOUND(SrcParamData%C1_11,1)
    i2_l = LBOUND(SrcParamData%C1_11,2)
    i2_u = UBOUND(SrcParamData%C1_11,2)
-   IF (.NOT.ALLOCATED(DstParamData%C1_11)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%C1_11)) THEN 
       ALLOCATE(DstParamData%C1_11(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3389,7 +3389,7 @@ IF (ALLOCATED(SrcParamData%C1_12)) THEN
    i1_u = UBOUND(SrcParamData%C1_12,1)
    i2_l = LBOUND(SrcParamData%C1_12,2)
    i2_u = UBOUND(SrcParamData%C1_12,2)
-   IF (.NOT.ALLOCATED(DstParamData%C1_12)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%C1_12)) THEN 
       ALLOCATE(DstParamData%C1_12(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3404,7 +3404,7 @@ IF (ALLOCATED(SrcParamData%D1_13)) THEN
    i1_u = UBOUND(SrcParamData%D1_13,1)
    i2_l = LBOUND(SrcParamData%D1_13,2)
    i2_u = UBOUND(SrcParamData%D1_13,2)
-   IF (.NOT.ALLOCATED(DstParamData%D1_13)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%D1_13)) THEN 
       ALLOCATE(DstParamData%D1_13(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3419,7 +3419,7 @@ IF (ALLOCATED(SrcParamData%D1_14)) THEN
    i1_u = UBOUND(SrcParamData%D1_14,1)
    i2_l = LBOUND(SrcParamData%D1_14,2)
    i2_u = UBOUND(SrcParamData%D1_14,2)
-   IF (.NOT.ALLOCATED(DstParamData%D1_14)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%D1_14)) THEN 
       ALLOCATE(DstParamData%D1_14(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3432,7 +3432,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%FY)) THEN
    i1_l = LBOUND(SrcParamData%FY,1)
    i1_u = UBOUND(SrcParamData%FY,1)
-   IF (.NOT.ALLOCATED(DstParamData%FY)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%FY)) THEN 
       ALLOCATE(DstParamData%FY(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3447,7 +3447,7 @@ IF (ALLOCATED(SrcParamData%PhiM)) THEN
    i1_u = UBOUND(SrcParamData%PhiM,1)
    i2_l = LBOUND(SrcParamData%PhiM,2)
    i2_u = UBOUND(SrcParamData%PhiM,2)
-   IF (.NOT.ALLOCATED(DstParamData%PhiM)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%PhiM)) THEN 
       ALLOCATE(DstParamData%PhiM(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3462,7 +3462,7 @@ IF (ALLOCATED(SrcParamData%C2_61)) THEN
    i1_u = UBOUND(SrcParamData%C2_61,1)
    i2_l = LBOUND(SrcParamData%C2_61,2)
    i2_u = UBOUND(SrcParamData%C2_61,2)
-   IF (.NOT.ALLOCATED(DstParamData%C2_61)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%C2_61)) THEN 
       ALLOCATE(DstParamData%C2_61(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3477,7 +3477,7 @@ IF (ALLOCATED(SrcParamData%C2_62)) THEN
    i1_u = UBOUND(SrcParamData%C2_62,1)
    i2_l = LBOUND(SrcParamData%C2_62,2)
    i2_u = UBOUND(SrcParamData%C2_62,2)
-   IF (.NOT.ALLOCATED(DstParamData%C2_62)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%C2_62)) THEN 
       ALLOCATE(DstParamData%C2_62(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3492,7 +3492,7 @@ IF (ALLOCATED(SrcParamData%PhiRb_TI)) THEN
    i1_u = UBOUND(SrcParamData%PhiRb_TI,1)
    i2_l = LBOUND(SrcParamData%PhiRb_TI,2)
    i2_u = UBOUND(SrcParamData%PhiRb_TI,2)
-   IF (.NOT.ALLOCATED(DstParamData%PhiRb_TI)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%PhiRb_TI)) THEN 
       ALLOCATE(DstParamData%PhiRb_TI(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3507,7 +3507,7 @@ IF (ALLOCATED(SrcParamData%D2_63)) THEN
    i1_u = UBOUND(SrcParamData%D2_63,1)
    i2_l = LBOUND(SrcParamData%D2_63,2)
    i2_u = UBOUND(SrcParamData%D2_63,2)
-   IF (.NOT.ALLOCATED(DstParamData%D2_63)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%D2_63)) THEN 
       ALLOCATE(DstParamData%D2_63(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3522,7 +3522,7 @@ IF (ALLOCATED(SrcParamData%D2_64)) THEN
    i1_u = UBOUND(SrcParamData%D2_64,1)
    i2_l = LBOUND(SrcParamData%D2_64,2)
    i2_u = UBOUND(SrcParamData%D2_64,2)
-   IF (.NOT.ALLOCATED(DstParamData%D2_64)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%D2_64)) THEN 
       ALLOCATE(DstParamData%D2_64(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3535,7 +3535,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%F2_61)) THEN
    i1_l = LBOUND(SrcParamData%F2_61,1)
    i1_u = UBOUND(SrcParamData%F2_61,1)
-   IF (.NOT.ALLOCATED(DstParamData%F2_61)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%F2_61)) THEN 
       ALLOCATE(DstParamData%F2_61(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3550,7 +3550,7 @@ IF (ALLOCATED(SrcParamData%MBB)) THEN
    i1_u = UBOUND(SrcParamData%MBB,1)
    i2_l = LBOUND(SrcParamData%MBB,2)
    i2_u = UBOUND(SrcParamData%MBB,2)
-   IF (.NOT.ALLOCATED(DstParamData%MBB)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%MBB)) THEN 
       ALLOCATE(DstParamData%MBB(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3565,7 +3565,7 @@ IF (ALLOCATED(SrcParamData%KBB)) THEN
    i1_u = UBOUND(SrcParamData%KBB,1)
    i2_l = LBOUND(SrcParamData%KBB,2)
    i2_u = UBOUND(SrcParamData%KBB,2)
-   IF (.NOT.ALLOCATED(DstParamData%KBB)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%KBB)) THEN 
       ALLOCATE(DstParamData%KBB(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3580,7 +3580,7 @@ IF (ALLOCATED(SrcParamData%MBM)) THEN
    i1_u = UBOUND(SrcParamData%MBM,1)
    i2_l = LBOUND(SrcParamData%MBM,2)
    i2_u = UBOUND(SrcParamData%MBM,2)
-   IF (.NOT.ALLOCATED(DstParamData%MBM)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%MBM)) THEN 
       ALLOCATE(DstParamData%MBM(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3595,7 +3595,7 @@ IF (ALLOCATED(SrcParamData%PhiL_T)) THEN
    i1_u = UBOUND(SrcParamData%PhiL_T,1)
    i2_l = LBOUND(SrcParamData%PhiL_T,2)
    i2_u = UBOUND(SrcParamData%PhiL_T,2)
-   IF (.NOT.ALLOCATED(DstParamData%PhiL_T)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%PhiL_T)) THEN 
       ALLOCATE(DstParamData%PhiL_T(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3610,7 +3610,7 @@ IF (ALLOCATED(SrcParamData%PhiLInvOmgL2)) THEN
    i1_u = UBOUND(SrcParamData%PhiLInvOmgL2,1)
    i2_l = LBOUND(SrcParamData%PhiLInvOmgL2,2)
    i2_u = UBOUND(SrcParamData%PhiLInvOmgL2,2)
-   IF (.NOT.ALLOCATED(DstParamData%PhiLInvOmgL2)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%PhiLInvOmgL2)) THEN 
       ALLOCATE(DstParamData%PhiLInvOmgL2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3623,7 +3623,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%FGL)) THEN
    i1_l = LBOUND(SrcParamData%FGL,1)
    i1_u = UBOUND(SrcParamData%FGL,1)
-   IF (.NOT.ALLOCATED(DstParamData%FGL)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%FGL)) THEN 
       ALLOCATE(DstParamData%FGL(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3638,7 +3638,7 @@ IF (ALLOCATED(SrcParamData%AM2Jac)) THEN
    i1_u = UBOUND(SrcParamData%AM2Jac,1)
    i2_l = LBOUND(SrcParamData%AM2Jac,2)
    i2_u = UBOUND(SrcParamData%AM2Jac,2)
-   IF (.NOT.ALLOCATED(DstParamData%AM2Jac)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%AM2Jac)) THEN 
       ALLOCATE(DstParamData%AM2Jac(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3651,7 +3651,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%AM2JacPiv)) THEN
    i1_l = LBOUND(SrcParamData%AM2JacPiv,1)
    i1_u = UBOUND(SrcParamData%AM2JacPiv,1)
-   IF (.NOT.ALLOCATED(DstParamData%AM2JacPiv)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%AM2JacPiv)) THEN 
       ALLOCATE(DstParamData%AM2JacPiv(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3666,7 +3666,7 @@ IF (ALLOCATED(SrcParamData%TI)) THEN
    i1_u = UBOUND(SrcParamData%TI,1)
    i2_l = LBOUND(SrcParamData%TI,2)
    i2_u = UBOUND(SrcParamData%TI,2)
-   IF (.NOT.ALLOCATED(DstParamData%TI)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%TI)) THEN 
       ALLOCATE(DstParamData%TI(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3681,7 +3681,7 @@ IF (ALLOCATED(SrcParamData%TIreact)) THEN
    i1_u = UBOUND(SrcParamData%TIreact,1)
    i2_l = LBOUND(SrcParamData%TIreact,2)
    i2_u = UBOUND(SrcParamData%TIreact,2)
-   IF (.NOT.ALLOCATED(DstParamData%TIreact)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%TIreact)) THEN 
       ALLOCATE(DstParamData%TIreact(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3697,7 +3697,7 @@ IF (ALLOCATED(SrcParamData%Elems)) THEN
    i1_u = UBOUND(SrcParamData%Elems,1)
    i2_l = LBOUND(SrcParamData%Elems,2)
    i2_u = UBOUND(SrcParamData%Elems,2)
-   IF (.NOT.ALLOCATED(DstParamData%Elems)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%Elems)) THEN 
       ALLOCATE(DstParamData%Elems(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3721,7 +3721,7 @@ IF (ALLOCATED(SrcParamData%Reacts)) THEN
    i1_u = UBOUND(SrcParamData%Reacts,1)
    i2_l = LBOUND(SrcParamData%Reacts,2)
    i2_u = UBOUND(SrcParamData%Reacts,2)
-   IF (.NOT.ALLOCATED(DstParamData%Reacts)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%Reacts)) THEN 
       ALLOCATE(DstParamData%Reacts(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3738,7 +3738,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%IDI)) THEN
    i1_l = LBOUND(SrcParamData%IDI,1)
    i1_u = UBOUND(SrcParamData%IDI,1)
-   IF (.NOT.ALLOCATED(DstParamData%IDI)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%IDI)) THEN 
       ALLOCATE(DstParamData%IDI(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3751,7 +3751,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%IDR)) THEN
    i1_l = LBOUND(SrcParamData%IDR,1)
    i1_u = UBOUND(SrcParamData%IDR,1)
-   IF (.NOT.ALLOCATED(DstParamData%IDR)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%IDR)) THEN 
       ALLOCATE(DstParamData%IDR(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3764,7 +3764,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%IDL)) THEN
    i1_l = LBOUND(SrcParamData%IDL,1)
    i1_u = UBOUND(SrcParamData%IDL,1)
-   IF (.NOT.ALLOCATED(DstParamData%IDL)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%IDL)) THEN 
       ALLOCATE(DstParamData%IDL(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3777,7 +3777,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%IDC)) THEN
    i1_l = LBOUND(SrcParamData%IDC,1)
    i1_u = UBOUND(SrcParamData%IDC,1)
-   IF (.NOT.ALLOCATED(DstParamData%IDC)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%IDC)) THEN 
       ALLOCATE(DstParamData%IDC(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3790,7 +3790,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%IDY)) THEN
    i1_l = LBOUND(SrcParamData%IDY,1)
    i1_u = UBOUND(SrcParamData%IDY,1)
-   IF (.NOT.ALLOCATED(DstParamData%IDY)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%IDY)) THEN 
       ALLOCATE(DstParamData%IDY(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3810,7 +3810,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%MoutLst)) THEN
    i1_l = LBOUND(SrcParamData%MoutLst,1)
    i1_u = UBOUND(SrcParamData%MoutLst,1)
-   IF (.NOT.ALLOCATED(DstParamData%MoutLst)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%MoutLst)) THEN 
       ALLOCATE(DstParamData%MoutLst(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3825,7 +3825,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%MoutLst2)) THEN
    i1_l = LBOUND(SrcParamData%MoutLst2,1)
    i1_u = UBOUND(SrcParamData%MoutLst2,1)
-   IF (.NOT.ALLOCATED(DstParamData%MoutLst2)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%MoutLst2)) THEN 
       ALLOCATE(DstParamData%MoutLst2(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3840,7 +3840,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%MoutLst3)) THEN
    i1_l = LBOUND(SrcParamData%MoutLst3,1)
    i1_u = UBOUND(SrcParamData%MoutLst3,1)
-   IF (.NOT.ALLOCATED(DstParamData%MoutLst3)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%MoutLst3)) THEN 
       ALLOCATE(DstParamData%MoutLst3(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3855,7 +3855,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%ElemProps)) THEN
    i1_l = LBOUND(SrcParamData%ElemProps,1)
    i1_u = UBOUND(SrcParamData%ElemProps,1)
-   IF (.NOT.ALLOCATED(DstParamData%ElemProps)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%ElemProps)) THEN 
       ALLOCATE(DstParamData%ElemProps(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -3870,7 +3870,7 @@ ENDIF
 IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
-   IF (.NOT.ALLOCATED(DstParamData%OutParam)) THEN 
+   IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
       ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -5060,7 +5060,7 @@ ENDDO
 IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
-   IF (.NOT.ALLOCATED(DstOutputData%WriteOutput)) THEN 
+   IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
       ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 

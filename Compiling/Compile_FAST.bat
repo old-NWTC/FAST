@@ -216,8 +216,8 @@ SET IceF_SOURCES=^
  "%IceF_Loc%\IceFloe.f90"
 
 SET IceD_SOURCES=^
- "%ID_Loc%\IceDyn_Types.f90"^
- "%ID_Loc%\IceDyn.f90"
+ "%IceD_Loc%\IceDyn_Types.f90"^
+ "%IceD_Loc%\IceDyn.f90"
 
 
 SET FAST_SOURCES=^
