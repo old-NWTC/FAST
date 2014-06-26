@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.00, 2-May-2014)
+! FAST Registry (v2.03.01, 18-June-2014)
 !*********************************************************************************************************************************
 ! ElastoDyn_Types
 !.................................................................................................................................
@@ -522,7 +522,6 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Current blade pitch angles [radians]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMat      ! The augmented matrix used for the solution of the QD2T()s [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMatOut      ! Copy of AugMat (when calculating cont state deriv) for routine that fixes the HSSBrTrq [-]
-    TYPE(ED_ContinuousStateType)  :: k1      ! Constant for ED_RK4 routine [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AllOuts      ! An array holding the value of all of the calculated (not only selected) output channels [see OutListParameters.xlsx spreadsheet]
   END TYPE ED_OtherStateType
 ! =======================
@@ -767,6 +766,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: method      ! Identifier for integration method (1 [RK4], 2 [AB4], or 3 [ABM4]) [-]
     REAL(ReKi)  :: PtfmCMxt      ! Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM [meters]
     REAL(ReKi)  :: PtfmCMyt      ! Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM [meters]
+    LOGICAL  :: BD4Blades      ! flag to determine if BeamDyn is computing blade loads (true) or ElastoDyn is (false) [-]
   END TYPE ED_ParameterType
 ! =======================
 ! =========  ED_InputType  =======
@@ -8199,7 +8199,6 @@ IF (ALLOCATED(SrcOtherStateData%AugMatOut)) THEN
    END IF
    DstOtherStateData%AugMatOut = SrcOtherStateData%AugMatOut
 ENDIF
-      CALL ED_CopyContState( SrcOtherStateData%k1, DstOtherStateData%k1, CtrlCode, ErrStat, ErrMsg )
 IF (ALLOCATED(SrcOtherStateData%AllOuts)) THEN
    i1_l = LBOUND(SrcOtherStateData%AllOuts,1)
    i1_u = UBOUND(SrcOtherStateData%AllOuts,1)
@@ -8243,7 +8242,6 @@ ENDIF
 IF (ALLOCATED(OtherStateData%AugMatOut)) THEN
    DEALLOCATE(OtherStateData%AugMatOut)
 ENDIF
-  CALL ED_DestroyContState( OtherStateData%k1, ErrStat, ErrMsg )
 IF (ALLOCATED(OtherStateData%AllOuts)) THEN
    DEALLOCATE(OtherStateData%AllOuts)
 ENDIF
@@ -8279,9 +8277,6 @@ ENDIF
   REAL(ReKi),     ALLOCATABLE :: Re_xdot_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_xdot_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_xdot_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_k1_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_k1_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_k1_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -8324,13 +8319,6 @@ ENDDO
   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitch )  ! BlPitch 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AugMat )  ! AugMat 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AugMatOut )  ! AugMatOut 
-  CALL ED_PackContState( Re_k1_Buf, Db_k1_Buf, Int_k1_Buf, InData%k1, ErrStat, ErrMsg, .TRUE. ) ! k1 
-  IF(ALLOCATED(Re_k1_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_k1_Buf  ) ! k1
-  IF(ALLOCATED(Db_k1_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_k1_Buf  ) ! k1
-  IF(ALLOCATED(Int_k1_Buf))Int_BufSz = Int_BufSz + SIZE( Int_k1_Buf ) ! k1
-  IF(ALLOCATED(Re_k1_Buf))  DEALLOCATE(Re_k1_Buf)
-  IF(ALLOCATED(Db_k1_Buf))  DEALLOCATE(Db_k1_Buf)
-  IF(ALLOCATED(Int_k1_Buf)) DEALLOCATE(Int_k1_Buf)
   Re_BufSz    = Re_BufSz    + SIZE( InData%AllOuts )  ! AllOuts 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
@@ -8407,22 +8395,6 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AugMatOut))-1 ) =  PACK(InData%AugMatOut ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%AugMatOut)
   ENDIF
-  CALL ED_PackContState( Re_k1_Buf, Db_k1_Buf, Int_k1_Buf, InData%k1, ErrStat, ErrMsg, OnlySize ) ! k1 
-  IF(ALLOCATED(Re_k1_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_k1_Buf)-1 ) = Re_k1_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_k1_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_k1_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_k1_Buf)-1 ) = Db_k1_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_k1_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_k1_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_k1_Buf)-1 ) = Int_k1_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_k1_Buf)
-  ENDIF
-  IF( ALLOCATED(Re_k1_Buf) )  DEALLOCATE(Re_k1_Buf)
-  IF( ALLOCATED(Db_k1_Buf) )  DEALLOCATE(Db_k1_Buf)
-  IF( ALLOCATED(Int_k1_Buf) ) DEALLOCATE(Int_k1_Buf)
   IF ( ALLOCATED(InData%AllOuts) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AllOuts))-1 ) =  PACK(InData%AllOuts ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%AllOuts)
@@ -8462,9 +8434,6 @@ ENDDO
   REAL(ReKi),    ALLOCATABLE :: Re_xdot_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_xdot_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_xdot_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_k1_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_k1_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_k1_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -8553,21 +8522,6 @@ ENDDO
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AugMatOut)
   ENDIF
- ! first call ED_PackContState to get correctly sized buffers for unpacking
-  CALL ED_PackContState( Re_k1_Buf, Db_k1_Buf, Int_k1_Buf, OutData%k1, ErrStat, ErrMsg, .TRUE. ) ! k1 
-  IF(ALLOCATED(Re_k1_Buf)) THEN
-    Re_k1_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_k1_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_k1_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_k1_Buf)) THEN
-    Db_k1_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_k1_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_k1_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_k1_Buf)) THEN
-    Int_k1_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_k1_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_k1_Buf)
-  ENDIF
-  CALL ED_UnPackContState( Re_k1_Buf, Db_k1_Buf, Int_k1_Buf, OutData%k1, ErrStat, ErrMsg ) ! k1 
   IF ( ALLOCATED(OutData%AllOuts) ) THEN
   ALLOCATE(mask1(SIZE(OutData%AllOuts,1))); mask1 = .TRUE.
     OutData%AllOuts = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AllOuts))-1 ),mask1,OutData%AllOuts)
@@ -9795,6 +9749,7 @@ ENDIF
    DstParamData%method = SrcParamData%method
    DstParamData%PtfmCMxt = SrcParamData%PtfmCMxt
    DstParamData%PtfmCMyt = SrcParamData%PtfmCMyt
+   DstParamData%BD4Blades = SrcParamData%BD4Blades
  END SUBROUTINE ED_CopyParam
 
  SUBROUTINE ED_DestroyParam( ParamData, ErrStat, ErrMsg )
