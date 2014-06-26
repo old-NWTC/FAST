@@ -84,7 +84,7 @@ REM  FAST test sequence definition:
 @SET  TEST20=Test #20: NREL 5 MW Baseline Offshore Turbine with OC3 Tripod Configuration
 @SET  TEST21=Test #21: NREL 5 MW Baseline Offshore Turbine with OC4 Jacket Configuration
 @SET  TEST22=Test #22: NREL 5 MW Baseline Offshore Turbine with ITI Barge Configuration
-@SET  TEST23=Test #23: NREL 5 MW Baseline Offshore Turbine with Floating TLP Configuration
+@SET  TEST23=Test #23: NREL 5 MW Baseline Offshore Turbine with MIT-NREL TLP Configuration
 @SET  TEST24=Test #24: NREL 5 MW Baseline Offshore Turbine with OC3 Hywind Configuration
 @SET  TEST25=Test #25: NREL 5 MW Baseline Offshore Turbine with OC4 DeepCwind Semi Configuration
 
