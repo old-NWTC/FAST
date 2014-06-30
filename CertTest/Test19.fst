@@ -33,7 +33,7 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
           1   SttsTime        - Amount of time between screen status messages (s)
-      0.015   DT_Out          - Time step for tabular output (s)
+       0.05   DT_Out          - Time step for tabular output (s)
           0   TStart          - Time to begin tabular output (s)
           2   OutFileFmt      - Format for tabular (time-marching) output file (switch) {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}
 True          TabDelim        - Use tab delimiters in text tabular output file? (flag) {uses spaces if false}
