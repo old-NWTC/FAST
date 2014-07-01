@@ -174,7 +174,7 @@ SET HD_SOURCES=^
  "%HD_Loc%\Conv_Radiation.f90" ^
  "%HD_Loc%\WAMIT2_Types.f90" ^
  "%HD_Loc%\WAMIT_Types.f90" ^
- "%HD_Loc%\WAMIT_Input.f90" ^
+ "%HD_Loc%\WAMIT_Interp.f90" ^
  "%HD_Loc%\WAMIT_Output.f90" ^
  "%HD_Loc%\WAMIT.f90" ^
  "%HD_Loc%\HydroDyn_Types.f90" ^

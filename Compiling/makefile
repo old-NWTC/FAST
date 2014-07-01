@@ -57,19 +57,22 @@ endif
    # Name of compiler to use and flags to use.
 FC      = gfortran
 
-#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
-#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -C
+FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
+#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -C
+#FFLAGS = -g -O0 -v -da -Q -fbacktrace -ffree-line-length-none -x f95-cpp-input
 
 LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
 
-# other useful gfortran options:
+# some useful gfortran options:
 #  -DFPE_TRAP_ENABLED
-#  -Wl,--large-address-aware
+#  -Wl,--large-address-aware   # not necessary when $(BITS) is 64 (64-bit target)
+#  -Wl,--stack=999999999       # not necessary when $(BITS) is 64
 #  -Wconversion-extra -Wconversion
 #  -fdefault-real-8 -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
-# --warn-undefined-variables
 # http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
+#
+# makefile:
+# --warn-undefined-variables
 
 
    # Precision.
@@ -250,7 +253,9 @@ ALL_OBJS    = $(tmp_objs2:.f=.obj)
    # Rule to do everything.
 
 all:     default
+# use this for "all" for debugging: print variables:
 #all:     ; $(info $$IceF_SOURCES is [${IceF_SOURCES}]) echo debugging
+#
 default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 
 
