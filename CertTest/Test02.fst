@@ -32,7 +32,7 @@ False         CompUserTwrLd   - Compute additional tower loading (flag) {false: 
 "unused"      IceFile         - Name of file containing ice input parameters (quoted string)
 ---------------------- OUTPUT --------------------------------------------------
 True          SumPrint        - Print summary data to "<RootName>.sum" (flag)
-          5   SttsTime        - Amount of time between screen status messages (s)
+          2   SttsTime        - Amount of time between screen status messages (s)
        0.04   DT_Out          - Time step for tabular output (s)
           5   TStart          - Time to begin tabular output (s)
           3   OutFileFmt      - Format for tabular (time-marching) output file (switch) {1: text file [<RootName>.out], 2: binary file [<RootName>.outb], 3: both}

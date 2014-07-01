@@ -2071,7 +2071,6 @@ SUBROUTINE Transfer_ED_to_HD_SD_Mooring( p_FAST, y_ED, u_HD, u_SD, u_MAP, u_FEAM
          
                   
    ELSEIF ( p_FAST%CompHydro == Module_HD ) THEN
-      
          ! Map ED outputs to HD inputs:
       CALL Transfer_ED_to_HD( y_ED, u_HD, MeshMapData, ErrStat2, ErrMsg2 )                        
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring' )
@@ -2929,7 +2928,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                IF ( ErrStat >= AbortErrLev ) RETURN
          END IF
             
-         IF ( p_FAST%CompHydro == Module_HD ) THEN
+         IF ( p_FAST%CompHydro == Module_HD ) THEN            
             CALL HydroDyn_CopyInput(  u_HD, u_HD_perturb, MESH_NEWCOPY, ErrStat2, ErrMsg2 )           
                CALL CheckError( ErrStat2, 'u_HD_perturb:'//ErrMsg2  )
                IF ( ErrStat >= AbortErrLev ) RETURN
@@ -2964,7 +2963,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                IF ( ErrStat >= AbortErrLev ) RETURN      
          END IF
             
-         IF ( p_FAST%CompHydro == Module_HD ) THEN            
+         IF ( p_FAST%CompHydro == Module_HD ) THEN 
             CALL HydroDyn_CalcOutput( this_time, u_HD, p_HD, x_HD, xd_HD, z_HD, OtherSt_HD, y_HD, ErrStat2, ErrMsg2 )
                CALL CheckError( ErrStat2, ErrMsg2  )
                IF ( ErrStat >= AbortErrLev ) RETURN      
@@ -3038,7 +3037,7 @@ SUBROUTINE ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
                   
             !...............................
             ! Get HydroDyn's contribution: (note if p_FAST%CompHydro /= Module_HD, SizeJac_ED_SD_HD(3) = 0)
-            !...............................               
+            !...............................             
             DO j=1,p_FAST%SizeJac_ED_SD_HD(3) !call HydroDyn_CalcOutput            
                i = i + 1 ! i = j + p_FAST%SizeJac_ED_SD_HD(1) + p_FAST%SizeJac_ED_SD_HD(2) 
 
@@ -4112,7 +4111,11 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
       
    END IF
       
+   !-------------------------------------------------------------------------------------------------
+   ! If using MulTabLoc feature, set it here:
+   !-------------------------------------------------------------------------------------------------      
    
+   ! u_AD%MulTabLoc = ???
    
 END SUBROUTINE AD_InputSolve
 !====================================================================================================
@@ -4151,7 +4154,8 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
 
    InitInData_AD%TurbineComponents%Hub%Position(:)      = y_ED%HubPtMotion%Position(:,1) - y_ED%HubPtMotion%Position(:,1)  ! bjj: was 0; mesh was changed by adding p_ED%HubHt to 3rd component
    InitInData_AD%TurbineComponents%Hub%Orientation(:,:) = y_ED%HubPtMotion%RefOrientation(:,:,1)
-
+   InitInData_AD%TurbineComponents%Hub%TranslationVel   = 0.0_ReKi ! bjj: we don't need this field
+   InitInData_AD%TurbineComponents%Hub%RotationVel      = 0.0_ReKi ! bjj: we don't need this field
 
       ! Blade root position and orientation (relative here, but does not need to be)
 
@@ -4167,8 +4171,10 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
    END IF
 
    DO K=1, InitInData_AD%NumBl
-      InitInData_AD%TurbineComponents%Blade(K)%Position    = y_ED%BladeRootMotions%Position(:,K)
-      InitInData_AD%TurbineComponents%Blade(K)%Orientation = y_ED%BladeRootMotions%RefOrientation(:,:,K)
+      InitInData_AD%TurbineComponents%Blade(K)%Position        = y_ED%BladeRootMotions%Position(:,K)
+      InitInData_AD%TurbineComponents%Blade(K)%Orientation     = y_ED%BladeRootMotions%RefOrientation(:,:,K)
+      InitInData_AD%TurbineComponents%Blade(K)%TranslationVel  = 0.0_ReKi ! bjj: we don't need this field
+      InitInData_AD%TurbineComponents%Blade(K)%RotationVel     = 0.0_ReKi ! bjj: we don't need this field      
    END DO
   
 
@@ -4198,36 +4204,6 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
    
       ! Initialize AeroDyn
 
-!CALL GetNewUnit(UnEc) ! I/O unit number for the echo file.
-!   u_AD%InputMarkers = AD_Init(ADOptions, ADInterfaceComponents, ErrStat)    ! relative markers are returned
-!CLOSE(UnEc)   
-!UnEc = -1
-
-
-   !   ! get the number of blade nodes from the returned data structure'
-   !IF (.NOT. ALLOCATED( u_AD%InputMarkers%Blade ) ) THEN
-   !   CALL ProgAbort( 'AeroDyn blade nodes are required to calculate aerodynamic loads.' )
-   !   NumADBldNodes = 0
-   !ELSE
-   !   NumADBldNodes = SIZE( u_AD%InputMarkers%Blade, 1 )
-   !END IF
-   !
-   !   ! allocate variables for aerodyn forces
-   !
-   !IF (.NOT. ALLOCATED(u_AD%SetMulTabLoc)) THEN
-   !   ALLOCATE( u_AD%SetMulTabLoc(NumADBldNodes, InitOutData_ED%NumBl), STAT = ErrStat )
-   !   IF ( ErrStat /= 0 ) CALL ProgAbort ( ' Error allocating memory for ADIntrfaceOptions%SetMulTabLoc array.' )
-   !END IF
-   !
-   !ADIntrfaceOptions%SetMulTabLoc(:,:) = .FALSE.
-   !ADIntrfaceOptions%LinearizeFlag     = .FALSE.
-
-!   bjj: we don't use this, so don't allocate it
-!
-!   IF (.NOT. ALLOCATED(ADIntrfaceOptions%MulTabLoc)) THEN
-!      ALLOCATE(ADIntrfaceOptions%MulTabLoc(NumADBldNodes, NumBl), STAT = Sttus )
-!      IF ( Sttus /= 0 ) CALL ProgAbort ( ' Error allocating memory for ADIntrfaceOptions%MulTabLoc array.' )
-!   END IF
 
    !
    !   ! Check that the hub-heights are Set up other parameters only if we need them

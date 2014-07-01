@@ -17,7 +17,7 @@ addpath( genpath( FASTSimulationToolbox ) );
 oldDir = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\CertTest';
 newDir = '.';
 
-for i=1:25 %[1:19 21:24]
+for i=1:25
    
     baseFileName  = ['Test' num2str(i,'%02.0f')  ]; %'_noHD'
     inputfile = [oldDir filesep baseFileName '.fst'];      

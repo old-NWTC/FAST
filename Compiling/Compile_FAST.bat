@@ -22,6 +22,9 @@ REM    prompt, you must call the compiler's script to set internal variables.
 REM    TIP: Right click on the IVF Compiler's Command Prompt shortcut, click
 REM    properties, and copy the target (without cmd.exe and/or its switches) here:
 
+rem call "C:\Program Files (x86)\Intel\Composer XE 2011 SP1\bin\ipsxe-comp-vars.bat" ia32 vs2010
+
+
 SET Lines=-----
 
 IF "%INCLUDE%"=="" (
@@ -171,6 +174,7 @@ SET HD_SOURCES=^
  "%HD_Loc%\Conv_Radiation.f90" ^
  "%HD_Loc%\WAMIT2_Types.f90" ^
  "%HD_Loc%\WAMIT_Types.f90" ^
+ "%HD_Loc%\WAMIT_Input.f90" ^
  "%HD_Loc%\WAMIT_Output.f90" ^
  "%HD_Loc%\WAMIT.f90" ^
  "%HD_Loc%\HydroDyn_Types.f90" ^

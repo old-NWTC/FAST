@@ -61,11 +61,11 @@ FC      = gfortran
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -fcheck=bounds -finit-local-zero -fno-automatic -C -Wconversion-extra -Wconversion
 FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -C
 
-LDFLAGS = -O2 -m$(BITS) -fbacktrace
+LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
 
 # other useful gfortran options:
 #  -DFPE_TRAP_ENABLED
-#  -large-address-aware
+#  -Wl,--large-address-aware
 #  -Wconversion-extra -Wconversion
 #  -fdefault-real-8 -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
 # --warn-undefined-variables
@@ -164,6 +164,7 @@ HD_SOURCES =                 \
 	Conv_Radiation.f90        \
 	WAMIT2_Types.f90          \
 	WAMIT_Types.f90           \
+	WAMIT_Interp.f90          \
 	WAMIT_Output.f90          \
 	WAMIT.f90                 \
 	HydroDyn_Output.f90       \
@@ -385,8 +386,9 @@ Conv_Radiation_Types.obj:   NWTC_Library.obj
 Conv_Radiation.obj:         Conv_Radiation_Types.obj
 
 WAMIT_Types.obj:            NWTC_Library.obj Conv_Radiation_Types.obj SS_Radiation_Types.obj Waves_Types.obj
-WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj FFTMod.obj
+WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj FFTMod.obj WAMIT_Interp.obj
 
+WAMIT_Interp.obj:           NWTC_Library.obj
 WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj
 HydroDyn_Output.obj:        HydroDyn_Types.obj Waves.obj
 

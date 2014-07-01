@@ -119,6 +119,7 @@
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Morison_Output.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\SS_Radiation.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT.f90"/>
+		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT_Interp.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\WAMIT_Output.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Waves.f90"/></Filter>
 		<Filter Name="Ice">
