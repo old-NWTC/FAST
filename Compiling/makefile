@@ -1,16 +1,13 @@
 #================================================================================#
 # This makefile created by B. Jonkman on 2-Apr-2013,                             #
 # adapted from Crunch (M. Buhl on 25-Jan-2013).                                  #
-# (c) 2013 National Renewable Energy Laboratory                                  #
+# (c) 2013-2014 National Renewable Energy Laboratory                             #
 #                                                                                #
 # This makefile has been tested on Windows 7 with gfortran.                      #
 # This makefile works with mingw32-make.exe.                                     #
 #                                                                                #
 # It was designed to be used with:                                               #
-#     FAST                    (v8.01.00a-bjj, 20-Feb-2013)                       #
-#     AeroDyn                 (v13.00.02a-bjj, 20-Feb-2013)                      #
-#     InflowWind              (v1.01.00b-bjj, 10-Aug-2012)                       #
-#     NWTC Subroutine Library (v1.07.00b-mlb, 10-Jan-2013)                       #
+#     FAST                    (v8.08.00c-bjj, 30-Jun-2014)                       #
 #                                                                                #
 # Older versions of the source code may not work with this makefile.             #
 #================================================================================#

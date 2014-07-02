@@ -34,17 +34,6 @@ return;
 
 
 
-% FstFileDir  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\trunk\CertTest\TstFiles';
-% RootName    = 'Test11';
-% inputfile  = [FstFileDir '\'          RootName '.fst'];
-% outputfile = [FstFileDir '\TstFiles\' RootName '.out'];
-% [YawManRat, PitManRat] = CalculateYawAndPitchRates(inputFile, outputFile);
-
-
-
-
-
-
 %% ------------------------------------------------------------------------
 % Convert FAST v7.* files to FAST v8.08.*
 % -------------------------------------------------------------------------
@@ -57,7 +46,7 @@ outFileDir  = 'C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNd
 %test 9:  YawManRat    = 3.729000
 %test 11: PitManRat(1) = 16.600000
 
-for i= 8:17 %1:(17+5) %17+(1:5) %1:17 %
+for i= 1:17 
 
         % Primary input file:
         
