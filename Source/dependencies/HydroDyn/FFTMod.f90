@@ -10,8 +10,8 @@
    !                  Also updated to check that transform has been initialized for the
    !                    correct type (to avoid having wSave too small)
 !=======================================================================
-! File last committed: $Date: 2013-12-12 09:55:15 -0700 (Thu, 12 Dec 2013) $
-! (File) Revision #: $Rev: 293 $
+! File last committed: $Date: 2014-06-25 13:38:20 -0600 (Wed, 25 Jun 2014) $
+! (File) Revision #: $Rev: 451 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/FFTMod.f90 $
 !=======================================================================
 MODULE FFT_Module
@@ -126,7 +126,7 @@ CONTAINS
          
       IF ( PRESENT(ErrStat) ) THEN
          TrapErrors = .TRUE.
-         ErrStat = 0
+         ErrStat = ErrID_None
       ELSE
          TrapErrors = .FALSE.         
       END IF
@@ -136,13 +136,13 @@ CONTAINS
 
       IF ( SIZE(TRH) < FFT_Data%N )  THEN
           CALL ProgAbort( 'Error in call to cosine transform.  Array size is not large enough.', TrapErrors )
-          ErrStat = 1         ! The code can't get here unless PRESENT(ErrStat)
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
           RETURN
       END IF
       
       IF ( FFT_Data%TransformType /= COS_trans ) THEN
           CALL ProgAbort( 'Error in call to cosine transform. FFT_Data not initialized for cosine transform.', TrapErrors )
-          ErrStat = 1
+          ErrStat = ErrID_Fatal
           RETURN
       END IF      
       
@@ -173,7 +173,7 @@ CONTAINS
          
       IF ( PRESENT(ErrStat) ) THEN
          TrapErrors = .TRUE.
-         ErrStat = 0
+         ErrStat = ErrID_None
       ELSE
          TrapErrors = .FALSE.         
       END IF
@@ -184,13 +184,13 @@ CONTAINS
 
       IF ( SIZE(TRH) < FFT_Data%N )  THEN
           CALL ProgAbort( 'Error in call to FFT.  Array size is not large enough.', TrapErrors )
-          ErrStat = 1         ! The code can't get here unless PRESENT(ErrStat)
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
           RETURN
       END IF
       
       IF ( FFT_Data%TransformType /= Fourier_trans ) THEN
           CALL ProgAbort( 'Error in call to FFT. FFT_Data not initialized for Fourier transform.', TrapErrors )
-          ErrStat = 1
+          ErrStat = ErrID_Fatal
           RETURN
       END IF            
 
@@ -223,7 +223,7 @@ CONTAINS
          
       IF ( PRESENT(ErrStat) ) THEN
          TrapErrors = .TRUE.
-         ErrStat = 0
+         ErrStat = ErrID_None
       ELSE
          TrapErrors = .FALSE.         
       END IF
@@ -234,13 +234,13 @@ CONTAINS
 
       IF ( ( SIZE(TRH) < FFT_Data%N ) .OR. ( SIZE(TRH_complex) < ( FFT_Data%N/2 + 1 ) ) )  THEN
           CALL ProgAbort( 'Error in call to FFT.  Array size is not large enough.', TrapErrors )
-          ErrStat = 1         ! The code can't get here unless PRESENT(ErrStat)
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
           RETURN
       END IF
       
       IF ( FFT_Data%TransformType /= Fourier_trans ) THEN
           CALL ProgAbort( 'Error in call to FFT. FFT_Data not initialized for Fourier transform.', TrapErrors )
-          ErrStat = 1
+          ErrStat = ErrID_Fatal
           RETURN
       END IF      
 
@@ -249,12 +249,12 @@ CONTAINS
 
       IF ( .NOT. EqualRealNos( 0.0_ReKi, AIMAG( TRH_complex(1    ) ) ) ) THEN
           CALL ProgAbort( 'Error in call to FFT.  The imaginary component at the zeroeth frequency must be zero.', TrapErrors )
-          ErrStat = 1         ! The code can't get here unless PRESENT(ErrStat)
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
           RETURN      
       ELSE IF ( .NOT. EqualRealNos( 0.0_ReKi, AIMAG( TRH_complex(FFT_Data%N/2+1) ) ) )  THEN
           CALL ProgAbort( 'Error in call to FFT. '// &
                           'The imaginary component at the largest positive frequency must be zero.', TrapErrors )
-          ErrStat = 1         ! The code can't get here unless PRESENT(ErrStat)
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
           RETURN
       END IF
 
@@ -298,7 +298,7 @@ CONTAINS
          
       IF ( PRESENT(ErrStat) ) THEN
          TrapErrors = .TRUE.
-         ErrStat = 0
+         ErrStat = ErrID_None
       ELSE
          TrapErrors = .FALSE.         
       END IF
@@ -308,13 +308,13 @@ CONTAINS
 
       IF ( SIZE(TRH) < FFT_Data%N )  THEN
           CALL ProgAbort( 'Error in call to sine transform.  Array size is not large enough.', TrapErrors )
-          ErrStat = 1
+          ErrStat = ErrID_Fatal
           RETURN
       END IF
       
       IF ( FFT_Data%TransformType /= SIN_trans ) THEN
           CALL ProgAbort( 'Error in call to sine transform. FFT_Data not initialized for sine transform.', TrapErrors )
-          ErrStat = 1
+          ErrStat = ErrID_Fatal
           RETURN
       END IF
 
@@ -323,11 +323,11 @@ CONTAINS
 
       IF ( TRH(1) /= 0.0 )  THEN
           CALL ProgAbort( 'Error in call to FFT.  The value at the zeroeth frequency must be zero.', TrapErrors )
-          ErrStat = 1
+          ErrStat = ErrID_Fatal
           RETURN
       ELSE IF ( TRH(FFT_Data%N) /= 0.0 ) THEN
           CALL ProgAbort( 'Error in call to FFT.  The value at the largest positive frequency must be zero.', TrapErrors )
-          ErrStat = 1
+          ErrStat = ErrID_Fatal
           RETURN
       END IF
 
@@ -411,7 +411,7 @@ CONTAINS
 
 
 
-      IF ( PRESENT(ErrStat) ) ErrStat = 0
+      IF ( PRESENT(ErrStat) ) ErrStat = ErrID_None
 
         ! Number of timesteps in the time series returned from the cosine transform
         ! N should be odd:
@@ -420,7 +420,7 @@ CONTAINS
 
       IF ( MOD(FFT_Data%N,2) /= 1 ) THEN
          CALL ProgAbort ( 'The number of steps in the cosine transform must be odd', PRESENT(ErrStat) )
-         ErrStat = 1
+         ErrStat = ErrID_Fatal
          RETURN
       ENDIF
 
@@ -468,7 +468,7 @@ CONTAINS
       INTEGER, INTENT(OUT),OPTIONAL :: ErrStat        ! returns non-zero if an error occurred
 
 
-      IF ( PRESENT(ErrStat) ) ErrStat = 0
+      IF ( PRESENT(ErrStat) ) ErrStat = ErrID_None
 
         ! Number of timesteps in the time series returned from the backward FFT
         ! N should be even:
@@ -477,7 +477,7 @@ CONTAINS
 
       IF ( MOD(FFT_Data%N,2) /= 0 ) THEN
          CALL ProgAbort ( 'The number of steps in the FFT must be even', PRESENT(ErrStat) ) ! For this Real FFT
-         ErrStat = 1
+         ErrStat = ErrID_Fatal
          RETURN
       ENDIF
 
@@ -497,7 +497,7 @@ CONTAINS
 
       IF ( Sttus /= 0 )  THEN
          CALL ProgAbort ( 'Error allocating memory for the FFT working array.', PRESENT(ErrStat) )
-         ErrStat = Sttus
+         ErrStat = ErrID_Fatal
          RETURN
       ENDIF
 
@@ -524,7 +524,7 @@ CONTAINS
       INTEGER, INTENT(OUT),OPTIONAL :: ErrStat        ! returns non-zero if an error occurred
 
 
-      IF ( PRESENT(ErrStat) ) ErrStat = 0
+      IF ( PRESENT(ErrStat) ) ErrStat = ErrID_None
 
         ! Number of timesteps in the time series returned from the sine transform
         ! N should be odd:
@@ -533,7 +533,7 @@ CONTAINS
 
       IF ( MOD(FFT_Data%N,2) /= 1 ) THEN
          CALL ProgAbort ( 'The number of steps in the sine transform must be odd.', PRESENT(ErrStat) )
-         ErrStat = 1
+         ErrStat = ErrID_Fatal
          RETURN
       ENDIF
 
@@ -553,7 +553,7 @@ CONTAINS
 
       IF ( Sttus /= 0 )  THEN
          CALL ProgAbort ( 'Error allocating memory for the sine transform working array.', PRESENT(ErrStat) )
-         ErrStat = Sttus
+         ErrStat = ErrID_Fatal
          RETURN
       ENDIF
 
@@ -596,11 +596,11 @@ CONTAINS
     LOGICAL               :: DividesN1(NFact)       ! Does this factor divide NTR-1?
 
 
-    IF ( PRESENT( ErrStat ) ) ErrStat = 0
+    IF ( PRESENT( ErrStat ) ) ErrStat = ErrID_None
 
     IF ( NumPrimes > NFact )  THEN
         CALL ProgAbort ( 'In the call to PSF, NumPrimes must be less than '//TRIM( Int2LStr( NFact ) )//'.', PRESENT(ErrStat) )
-        ErrStat = 1
+        ErrStat = ErrID_Fatal
         RETURN
     ENDIF
 

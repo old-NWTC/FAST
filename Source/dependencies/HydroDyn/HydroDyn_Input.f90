@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-19 09:42:20 -0600 (Thu, 19 Jun 2014) $
-! (File) Revision #: $Rev: 430 $
+! File last committed: $Date: 2014-06-27 09:46:36 -0600 (Fri, 27 Jun 2014) $
+! (File) Revision #: $Rev: 463 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -3633,6 +3633,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          InitInp%Morison%InpMembers(I)%MmbrFilledIDIndx = -1
          InitInp%Morison%InpMembers(I)%MmbrCoefIDIndx   = -1
          InitInp%Morison%InpMembers(I)%NumSplits        = 0
+         InitInp%Morison%InpMembers(I)%Splits           = 0.0_ReKi
       END DO
 
       DO I = 1,InitInp%Morison%NMembers

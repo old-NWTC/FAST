@@ -1,18 +1,19 @@
 
 FAST Summary File
 
-Predictions were generated on 27-May-2014 at 13:58:36 using FAST (v8.07.00b-bjj, 15-May-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 01-Jul-2014 at 22:39:42 using FAST (v8.08.00c-bjj, 30-June-2014), compiled for 32-bit systems using single precision
   compiled with
-    NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014)
-    ElastoDyn (v1.01.06a-bjj, 2-May-2014)
-    ServoDyn (v1.01.02a-bjj, 31-Jan-2014)
-    AeroDyn (v14.02.01b-bjj, 29-Jan-2014)
-    InflowWind (v2.00.01a-bjj, 22-Jan-2014)
-    HydroDyn (v2.00.05c-gjh, 15-May-2014)
-    SubDyn (v1.00.00c-bjj, 20-May-2014)
+    NWTC Subroutine Library (v2.03.03b-bjj, 30-June-2014)
+    ElastoDyn (v1.01.06b-bjj, 30-June-2014)
+    AeroDyn (v14.02.01c-bjj, 30-June-2014)
+    InflowWind (v2.00.01b-bjj, 30-June-2014)
+    ServoDyn (v1.01.02a-bjj, 30-June-2014)
+    HydroDyn (v2.01.01c-gjh, 30-Jun-2014)
+    SubDyn (v1.01.00a-rrd, 30-Jun-2014)
     MAP (unknown version, unknown date) [not called]
     FEAMooring (unknown version, unknown date) [not called]
     IceFloe (unknown version, unknown date) [not called]
+    IceDyn (unknown version, unknown date) [not called]
 
 
 Modeling a fixed-bottom offshore turbine
@@ -84,21 +85,31 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and Hydro
       41  GenPwr      (kW)        ServoDyn
       42  GenTq       (kN·m)      ServoDyn
       43  Wave1Elev   (m)         HydroDyn
-      44  -ReactFXss  (N)         SubDyn
-      45  -ReactFYss  (N)         SubDyn
-      46  -ReactMXss  (Nm)        SubDyn
-      47  -ReactMYss  (Nm)        SubDyn
-      48  -ReactMZss  (Nm)        SubDyn
-      49  -ReactFZss  (N)         SubDyn
-      50  M1N1FKZe    (N)         SubDyn
-      51  M2N1FKZe    (N)         SubDyn
-      52  -M3N1TDXss  (m)         SubDyn
-      53  -M4N1TDYss  (m)         SubDyn
-      54  -M5N1TDXss  (m)         SubDyn
-      55  -M6N1TDYss  (m)         SubDyn
-      56  M7N1FKZe    (N)         SubDyn
-      57  -M7N1FKXe   (N)         SubDyn
-      58  M8N1FKZe    (N)         SubDyn
-      59  -M8N1FKYe   (N)         SubDyn
-      60  M9N1FKZe    (N)         SubDyn
-      61  M9N1FKZe    (N)         SubDyn
+      44  M1N1FKZe    (N)         SubDyn
+      45  M2N1FKZe    (N)         SubDyn
+      46  M3N1TDXss   (m)         SubDyn
+      47  M3N1TDYss   (m)         SubDyn
+      48  M3N1TDZss   (m)         SubDyn
+      49  M4N1TDXss   (m)         SubDyn
+      50  M4N1TDYss   (m)         SubDyn
+      51  M4N1TDZss   (m)         SubDyn
+      52  M5N2TDXss   (m)         SubDyn
+      53  M5N2TDYss   (m)         SubDyn
+      54  M5N2TDZss   (m)         SubDyn
+      55  M6N2TDXss   (m)         SubDyn
+      56  M6N2TDYss   (m)         SubDyn
+      57  M6N2TDZss   (m)         SubDyn
+      58  M5N1FKXe    (N)         SubDyn
+      59  M5N1FKYe    (N)         SubDyn
+      60  M5N1FKZe    (N)         SubDyn
+      61  M6N1FKXe    (N)         SubDyn
+      62  M6N1FKYe    (N)         SubDyn
+      63  M6N1FKZe    (N)         SubDyn
+      64  M7N1FKZe    (N)         SubDyn
+      65  M8N1FKZe    (N)         SubDyn
+      66  -ReactFXss  (N)         SubDyn
+      67  -ReactFYss  (N)         SubDyn
+      68  -ReactMXss  (Nm)        SubDyn
+      69  -ReactMYss  (Nm)        SubDyn
+      70  -ReactMZss  (Nm)        SubDyn
+      71  -ReactFZss  (N)         SubDyn

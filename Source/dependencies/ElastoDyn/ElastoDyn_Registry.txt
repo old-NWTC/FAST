@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2014-05-08 09:36:49 -0600 (Thu, 08 May 2014) $
-# (File) Revision #: $Rev: 688 $
+# File last committed $Date: 2014-06-26 10:02:33 -0600 (Thu, 26 Jun 2014) $
+# (File) Revision #: $Rev: 733 $
 # URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ElastoDyn_Registry.txt $
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
@@ -522,7 +522,7 @@ typedef	^	OtherStateType	ReKi	QD2T	{:}	-	-	"Solution (acceleration) vector; the 
 typedef	^	OtherStateType	ReKi	BlPitch	{:}	-	-	"Current blade pitch angles"	radians
 typedef	^	OtherStateType	ReKi	AugMat	{:}{:}	-	-	"The augmented matrix used for the solution of the QD2T()s"
 typedef	^	OtherStateType	ReKi	AugMatOut	{:}{:}	-	-	"Copy of AugMat (when calculating cont state deriv) for routine that fixes the HSSBrTrq"	-
-typedef	^	OtherStateType	ED_ContinuousStateType	k1	-	-	-	"Constant for ED_RK4 routine"	-
+#typedef	^	OtherStateType	ED_ContinuousStateType	k1	-	-	-	"Constant for ED_RK4 routine"	-
 typedef	^	OtherStateType	ReKi	AllOuts	{:}	-	-	"An array holding the value of all of the calculated (not only selected) output channels"	"see OutListParameters.xlsx spreadsheet"
 
 # ..... Parameters ................................................................................................................
@@ -769,6 +769,7 @@ typedef	^	ParameterType	ReKi	TElmntMass	{:}	-	-	"Mass of the tower elements"
 typedef	^	ParameterType	IntKi	method	-	-	-	"Identifier for integration method (1 [RK4], 2 [AB4], or 3 [ABM4])"	-
 typedef	^	ParameterType	ReKi	PtfmCMxt	-	-	-	"Downwind distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
 typedef	^	ParameterType	ReKi	PtfmCMyt	-	-	-	"Lateral distance from the ground [onshore] or MSL [offshore] to the platform CM"	meters
+typedef	^	ParameterType	LOGICAL	BD4Blades	-	-	-	"flag to determine if BeamDyn is computing blade loads (true) or ElastoDyn is (false)"	-
 
 # ..... Inputs ....................................................................................................................
 # Define inputs that are contained on the mesh here:

@@ -1,18 +1,19 @@
 
 FAST Summary File
 
-Predictions were generated on 21-May-2014 at 21:29:01 using FAST (v8.07.00b-bjj, 15-May-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 01-Jul-2014 at 22:49:05 using FAST (v8.08.00c-bjj, 30-June-2014), compiled for 32-bit systems using single precision
   compiled with
-    NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014)
-    ElastoDyn (v1.01.06a-bjj, 2-May-2014)
-    ServoDyn (v1.01.02a-bjj, 31-Jan-2014)
-    AeroDyn (v14.02.01b-bjj, 29-Jan-2014)
-    InflowWind (v2.00.01a-bjj, 22-Jan-2014)
-    HydroDyn (v2.00.05c-gjh, 15-May-2014)
+    NWTC Subroutine Library (v2.03.03b-bjj, 30-June-2014)
+    ElastoDyn (v1.01.06b-bjj, 30-June-2014)
+    AeroDyn (v14.02.01c-bjj, 30-June-2014)
+    InflowWind (v2.00.01b-bjj, 30-June-2014)
+    ServoDyn (v1.01.02a-bjj, 30-June-2014)
+    HydroDyn (v2.01.01c-gjh, 30-Jun-2014)
     SubDyn (unknown version, unknown date) [not called]
     MAP (0.97.01a-mdm, Mar-05-2014)
     FEAMooring (unknown version, unknown date) [not called]
     IceFloe (unknown version, unknown date) [not called]
+    IceDyn (unknown version, unknown date) [not called]
 
 
 Modeling a floating offshore turbine
@@ -131,91 +132,11 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn to HydroDyn:     1
       88  GenTq       (kN·m)      ServoDyn
       89  HSSBrTq     (kN·m)      ServoDyn
       90  Wave1Elev   (m)         HydroDyn
-      91  T[1](0.0)   [kN]        MAP
-      92  T[1](52.6)  [kN]        MAP
-      93  T[1](105.2  [kN]        MAP
-      94  T[1](157.8  [kN]        MAP
-      95  T[1](210.4  [kN]        MAP
-      96  T[1](263.0  [kN]        MAP
-      97  T[1](315.5  [kN]        MAP
-      98  T[1](368.1  [kN]        MAP
-      99  T[1](420.7  [kN]        MAP
-     100  T[1](473.3  [kN]        MAP
-     101  TFair[1]    [kN]        MAP
-     102  T[2](0.0)   [kN]        MAP
-     103  T[2](52.6)  [kN]        MAP
-     104  T[2](105.2  [kN]        MAP
-     105  T[2](157.8  [kN]        MAP
-     106  T[2](210.4  [kN]        MAP
-     107  T[2](263.0  [kN]        MAP
-     108  T[2](315.5  [kN]        MAP
-     109  T[2](368.1  [kN]        MAP
-     110  T[2](420.7  [kN]        MAP
-     111  T[2](473.3  [kN]        MAP
-     112  TFair[2]    [kN]        MAP
-     113  T[3](0.0)   [kN]        MAP
-     114  T[3](52.6)  [kN]        MAP
-     115  T[3](105.2  [kN]        MAP
-     116  T[3](157.8  [kN]        MAP
-     117  T[3](210.4  [kN]        MAP
-     118  T[3](263.0  [kN]        MAP
-     119  T[3](315.5  [kN]        MAP
-     120  T[3](368.1  [kN]        MAP
-     121  T[3](420.7  [kN]        MAP
-     122  T[3](473.3  [kN]        MAP
-     123  TFair[3]    [kN]        MAP
-     124  T[4](0.0)   [kN]        MAP
-     125  T[4](52.6)  [kN]        MAP
-     126  T[4](105.2  [kN]        MAP
-     127  T[4](157.8  [kN]        MAP
-     128  T[4](210.4  [kN]        MAP
-     129  T[4](263.0  [kN]        MAP
-     130  T[4](315.5  [kN]        MAP
-     131  T[4](368.1  [kN]        MAP
-     132  T[4](420.7  [kN]        MAP
-     133  T[4](473.3  [kN]        MAP
-     134  TFair[4]    [kN]        MAP
-     135  T[5](0.0)   [kN]        MAP
-     136  T[5](52.6)  [kN]        MAP
-     137  T[5](105.2  [kN]        MAP
-     138  T[5](157.8  [kN]        MAP
-     139  T[5](210.4  [kN]        MAP
-     140  T[5](263.0  [kN]        MAP
-     141  T[5](315.5  [kN]        MAP
-     142  T[5](368.1  [kN]        MAP
-     143  T[5](420.7  [kN]        MAP
-     144  T[5](473.3  [kN]        MAP
-     145  TFair[5]    [kN]        MAP
-     146  T[6](0.0)   [kN]        MAP
-     147  T[6](52.6)  [kN]        MAP
-     148  T[6](105.2  [kN]        MAP
-     149  T[6](157.8  [kN]        MAP
-     150  T[6](210.4  [kN]        MAP
-     151  T[6](263.0  [kN]        MAP
-     152  T[6](315.5  [kN]        MAP
-     153  T[6](368.1  [kN]        MAP
-     154  T[6](420.7  [kN]        MAP
-     155  T[6](473.3  [kN]        MAP
-     156  TFair[6]    [kN]        MAP
-     157  T[7](0.0)   [kN]        MAP
-     158  T[7](52.6)  [kN]        MAP
-     159  T[7](105.2  [kN]        MAP
-     160  T[7](157.8  [kN]        MAP
-     161  T[7](210.4  [kN]        MAP
-     162  T[7](263.0  [kN]        MAP
-     163  T[7](315.5  [kN]        MAP
-     164  T[7](368.1  [kN]        MAP
-     165  T[7](420.7  [kN]        MAP
-     166  T[7](473.3  [kN]        MAP
-     167  TFair[7]    [kN]        MAP
-     168  T[8](0.0)   [kN]        MAP
-     169  T[8](52.6)  [kN]        MAP
-     170  T[8](105.2  [kN]        MAP
-     171  T[8](157.8  [kN]        MAP
-     172  T[8](210.4  [kN]        MAP
-     173  T[8](263.0  [kN]        MAP
-     174  T[8](315.5  [kN]        MAP
-     175  T[8](368.1  [kN]        MAP
-     176  T[8](420.7  [kN]        MAP
-     177  T[8](473.3  [kN]        MAP
-     178  TFair[8]    [kN]        MAP
+      91  TFair[1]    [kN]        MAP
+      92  TFair[2]    [kN]        MAP
+      93  TFair[3]    [kN]        MAP
+      94  TFair[4]    [kN]        MAP
+      95  TFair[5]    [kN]        MAP
+      96  TFair[6]    [kN]        MAP
+      97  TFair[7]    [kN]        MAP
+      98  TFair[8]    [kN]        MAP

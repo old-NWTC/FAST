@@ -26,8 +26,8 @@ MODULE IfW_HHWind
 !     -- Note:  Jacobians are not included in this version.
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2014-01-10 13:34:54 -0700 (Fri, 10 Jan 2014) $
-! (File) Revision #: $Rev: 107 $
+! File last committed: $Date: 2014-06-25 11:50:52 -0600 (Wed, 25 Jun 2014) $
+! (File) Revision #: $Rev: 110 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/IfW_HHWind.f90 $
 !----------------------------------------------------------------------------------------------------
 ! LICENSING
@@ -934,7 +934,7 @@ SUBROUTINE IfW_HHWind_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt
 
          ! Compute the first time derivatives of the continuous states here:
 
-      dxdt%DummyContState = 0.0
+      dxdt%DummyContState = 0.0_ReKi
 
 
 END SUBROUTINE IfW_HHWind_CalcContStateDeriv
@@ -992,7 +992,7 @@ SUBROUTINE IfW_HHWind_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState,
 
          ! Solve for the constraint states here:
 
-      z_residual%DummyConstrState = 0
+      z_residual%DummyConstrState = 0.0_ReKi
 
 END SUBROUTINE IfW_HHWind_CalcConstrStateResidual
 !----------------------------------------------------------------------------------------------------------------------------------

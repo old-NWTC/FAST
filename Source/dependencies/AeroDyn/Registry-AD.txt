@@ -4,8 +4,8 @@
 # It also contains copy, destroy, pack, and unpack routines associated with each defined data types.
 # See the NWTC Programmer's Handbook for further information on the format/contents of this file.
 ###################################################################################################################################
-# File last committed: $Date: 2014-02-01 17:28:55 -0700 (Sat, 01 Feb 2014) $
-# (File) Revision #: $Rev: 104 $
+# File last committed: $Date: 2014-07-01 13:36:55 -0600 (Tue, 01 Jul 2014) $
+# (File) Revision #: $Rev: 111 $
 # URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/Registry-AD.txt $
 ###################################################################################################################################
 #
@@ -409,7 +409,6 @@ typedef	^	ParameterType	IfW_ParameterType	IfW_Params	-	-	-		-
 typedef	^	InputType	MeshType	InputMarkers	{:}	-	-	"Input Forces and positions for the blades (mesh) for each blade"	-
 typedef	^	InputType	MeshType	Twr_InputMarkers	-	-	-	"Input Forces and positions for the tower (mesh)"	-
 typedef	^	InputType	AeroConfig	TurbineComponents	-	-	-	"Current locations of components"
-#typedef	^	InputType	LOGICAL	SetMulTabLoc	{:}{:}
 typedef	^	InputType	ReKi	MulTabLoc	{:}{:}
 
 # ..... Outputs ...................................................................................................................

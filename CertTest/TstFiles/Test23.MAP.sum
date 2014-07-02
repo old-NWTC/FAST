@@ -1,7 +1,7 @@
 
 
 MAP Summary File.
-Outputs were generated using MAP version 0.97.01a-mdm on <2014-05-21.21:29:23>
+Outputs were generated using MAP version 0.97.01a-mdm on <2014-07-01.22:49:24>
 
 
     Sea Density [kg/m^3]: 1025.000
@@ -182,14 +182,14 @@ Material     0.127    116.027         1.5E6     1.0
 14 Vessel -26.999999999999996 3.669244341456237e-007 -47.89 0 0 # # # 
 15 fix -5.5038664522323119e-007 -26.999999999999993 depth 0 0 # # # 
 16 Vessel -5.5038664522323119e-007 -26.999999999999993 -47.89 0 0 # # # 
-1       Material   151.73       1         2         plot line_tension x_pos anch_tension fair_tension                                                                                                                                                          
-2 Material 151.73 3 4 plot line_tension x_pos anch_tension fair_tension  
-3 Material 151.73 5 6 plot line_tension x_pos anch_tension fair_tension  
-4 Material 151.73 7 8 plot line_tension x_pos anch_tension fair_tension  
-5 Material 151.73 9 10 plot line_tension x_pos anch_tension fair_tension  
-6 Material 151.73 11 12 plot line_tension x_pos anch_tension fair_tension  
-7 Material 151.73 13 14 plot line_tension x_pos anch_tension fair_tension  
-8 Material 151.73 15 16 plot line_tension x_pos anch_tension fair_tension  
+1       Material   151.73       1         2         plot anch_tension fair_tension                                                                                                                                                                             
+2 Material 151.73 3 4 plot anch_tension fair_tension  
+3 Material 151.73 5 6 plot anch_tension fair_tension  
+4 Material 151.73 7 8 plot anch_tension fair_tension  
+5 Material 151.73 9 10 plot anch_tension fair_tension  
+6 Material 151.73 11 12 plot anch_tension fair_tension  
+7 Material 151.73 13 14 plot anch_tension fair_tension  
+8 Material 151.73 15 16 plot anch_tension fair_tension  
 -snes_type newtonls                                                                                                                                                                                                                                            
 -ksp_type preonly                                                                                                                                                                                                                                              
 -pc_type lu                                                                                                                                                                                                                                                    

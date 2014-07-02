@@ -1,5 +1,5 @@
 !**********************************************************************************************************************************
-! $Id: InflowWind.f90 109 2014-01-23 17:47:34Z bjonkman $
+! $Id: InflowWind.f90 112 2014-07-02 03:33:55Z bjonkman $
 !
 ! This module is used to read and process the (undisturbed) inflow winds.  It must be initialized
 ! using InflowWind_Init() with the name of the file, the file type, and possibly reference height and
@@ -16,8 +16,8 @@
 !    Feb 2013    v2.00.00a-adp   conversion to Framework       A. Platt
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2014-01-23 10:47:34 -0700 (Thu, 23 Jan 2014) $
-! (File) Revision #: $Rev: 109 $
+! File last committed: $Date: 2014-07-01 21:33:55 -0600 (Tue, 01 Jul 2014) $
+! (File) Revision #: $Rev: 112 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/InflowWind.f90 $
 !..................................................................................................................................
 ! Files with this module:
@@ -74,7 +74,7 @@ MODULE InflowWind
    IMPLICIT NONE
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: IfW_Ver = ProgDesc( 'InflowWind', 'v2.00.01a-bjj', '22-Jan-2014' )
+   TYPE(ProgDesc), PARAMETER            :: IfW_Ver = ProgDesc( 'InflowWind', 'v2.00.01b-bjj', '30-June-2014' )
 
 
 
@@ -816,7 +816,7 @@ SUBROUTINE IfW_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSt
 
          ! Compute the first time derivatives of the continuous states here:
 
-      dxdt%DummyContState = 0.0
+      dxdt%DummyContState = 0.0_ReKi
 
 
 END SUBROUTINE IfW_CalcContStateDeriv

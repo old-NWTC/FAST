@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-17 10:14:47 -0600 (Tue, 17 Jun 2014) $
-! (File) Revision #: $Rev: 423 $
+! File last committed: $Date: 2014-06-30 13:54:09 -0600 (Mon, 30 Jun 2014) $
+! (File) Revision #: $Rev: 473 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -41,7 +41,7 @@ MODULE HydroDyn
    PRIVATE
 
   
-   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.01.01b-gjh', '04-Jun-2014' )
+   TYPE(ProgDesc), PARAMETER            :: HydroDyn_ProgDesc = ProgDesc( 'HydroDyn', 'v2.01.01c-gjh', '30-Jun-2014' )
 
     
    
@@ -204,8 +204,8 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
         !  we will set Hydrodyn's time step to be that of the Convolution radiation module if it is being used.  Otherwise, we
         !  will set it to be equal to the glue-codes
       IF ((Initlocal%HasWAMIT) .AND. (Initlocal%WAMIT%RdtnMod == 1) ) THEN
-         IF ( Interval /= InitLocal%WAMIT%Conv_Rdtn%RdtnDT ) THEN
-            CALL SetErrStat(ErrID_Fatal,'Then value of Conv_Rdtn is not equal to the glue code timestep.  This is not allowed in the current version of HydroDyn.',ErrStat,ErrMsg,'HydroDyn_Init')
+         IF ( .NOT. EqualRealNos(Interval,InitLocal%WAMIT%Conv_Rdtn%RdtnDT) ) THEN
+            CALL SetErrStat(ErrID_Fatal,'The value of Conv_Rdtn is not equal to the glue code timestep.  This is not allowed in the current version of HydroDyn.',ErrStat,ErrMsg,'HydroDyn_Init')
             IF ( ErrStat >= AbortErrLev ) THEN
                CALL CleanUp()
                RETURN
@@ -561,19 +561,19 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
             WRITE( InitLocal%UnSum,  '(//)' )         
             WRITE( InitLocal%UnSum, '(1X,A15)' )   'Wave Kinematics'
             WRITE( InitLocal%UnSum,  '(/)' )
-            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A14,2X,A22,2X,A22)' )  &
-                     '    m   ', '    k    ', '   Omega[m]  ', '   Direction  ', 'REAL(DFT{WaveElev}[m])','IMAG(DFT{WaveElev}[m])'
-            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A14,2X,A22,2X,A22)' )  &
-                     '   (-)  ', '  (1/m)  ', '   (rad/s)   ', '     (deg)    ', '         (m)          ','         (m)          '
+            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A14,2X,A19,2X,A19)' )  &
+                     '    m   ', '    k    ', '   Omega[m]  ', '   Direction  ', 'REAL(DFT{WaveElev})','IMAG(DFT{WaveElev})'
+            WRITE( InitLocal%UnSum, '(1X,A10,2X,A14,2X,A14,2X,A14,2X,A19,2X,A19)' )  &
+                     '   (-)  ', '  (1/m)  ', '   (rad/s)   ', '     (deg)    ', '       (m)         ','       (m)         '
 
             ! Write the data
             DO I = -1*Waves_InitOut%NStepWave2+1,Waves_InitOut%NStepWave2
                WaveNmbr   = WaveNumber ( I*Waves_InitOut%WaveDOmega, InitLocal%Gravity, InitLocal%Waves%WtrDpth )
                IF ( InitLocal%HasWAMIT ) THEN
-                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
+                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,2X,ES14.5,2X,ES14.5,7X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
                          InitLocal%WAMIT%WaveDirArr(ABS(I)),  InitLocal%WAMIT%WaveElevC0( 1,ABS(I ) ) ,   InitLocal%WAMIT%WaveElevC0( 2, ABS(I ) )*SIGN(1,I)
                ELSE
-                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,2X,ES14.5,4X,ES14.5,10X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
+                  WRITE( InitLocal%UnSum, '(1X,I10,2X,ES14.5,2X,ES14.5,2X,ES14.5,2X,ES14.5,7X,ES14.5)' ) I, WaveNmbr, I*Waves_InitOut%WaveDOmega, &
                          Waves_InitOut%WaveDirArr(ABS(I)),  Waves_InitOut%WaveElevC0( 1,ABS(I ) ) ,   Waves_InitOut%WaveElevC0( 2, ABS(I ) )*SIGN(1,I)
                END IF
             END DO
@@ -785,6 +785,9 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          END IF
       END IF
       
+      
+         ! set unused variables so compiler doesn't complain:
+      z%DummyConstrState = 0.0_ReKi
       
          ! Destroy the local initialization data
       CALL CleanUp()
@@ -1082,7 +1085,7 @@ SUBROUTINE HydroDyn_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Er
       
          ! Map calculated results into the AllOuts Array
          
-      CALL HDOut_MapOutputs( Time, y, p%NWaveElev, WaveElev, OtherState%F_PtfmAdd, OtherState%F_Hydro, AllOuts, ErrStat, ErrMsg )
+      CALL HDOut_MapOutputs( Time, y, p%NWaveElev, WaveElev, OtherState%F_PtfmAdd, OtherState%F_Hydro, q, qdot, qdotdot, AllOuts, ErrStat, ErrMsg )
       
       DO I = 1,p%NumOuts
             y%WriteOutput(I) = p%OutParam(I)%SignM * AllOuts( p%OutParam(I)%Indx )
@@ -1220,7 +1223,7 @@ SUBROUTINE HydroDyn_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z
       
          ! Solve for the constraint states here:
       
-      
+      z_residual%DummyConstrState = 0.0_ReKi
 
 END SUBROUTINE HydroDyn_CalcConstrStateResidual
 

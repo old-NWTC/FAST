@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-02-03 14:41:52 -0700 (Mon, 03 Feb 2014) $
-! (File) Revision #: $Rev: 332 $
+! File last committed: $Date: 2014-06-30 13:53:07 -0600 (Mon, 30 Jun 2014) $
+! (File) Revision #: $Rev: 472 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/WAMIT_Output.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT_Output
@@ -107,7 +107,7 @@ CONTAINS
 
 
 !====================================================================================================
-SUBROUTINE WMTOUT_MapOutputs( CurrentTime, y, F_Waves, F_HS, F_Rdtn, AllOuts, ErrStat, ErrMsg )
+SUBROUTINE WMTOUT_MapOutputs( CurrentTime, y, F_Waves, F_HS, F_Rdtn, F_PtfmAM, AllOuts, ErrStat, ErrMsg )
 ! This subroutine writes the data stored in the y variable to the correct indexed postions in WriteOutput
 ! This is called by WAMIT_CalcOutput() at each time step.
 !---------------------------------------------------------------------------------------------------- 
@@ -116,6 +116,7 @@ SUBROUTINE WMTOUT_MapOutputs( CurrentTime, y, F_Waves, F_HS, F_Rdtn, AllOuts, Er
    REAL(ReKi),                         INTENT( IN    )  :: F_Waves(6)
    REAL(ReKi),                         INTENT( IN    )  :: F_HS(6)
    REAL(ReKi),                         INTENT( IN    )  :: F_Rdtn(6)
+   REAL(ReKi),                         INTENT( IN    )  :: F_PtfmAM(6)
    REAL(ReKi),                         INTENT(   OUT )  :: AllOuts(MaxWAMITOutputs)
    INTEGER(IntKi),                     INTENT(   OUT )  :: ErrStat        ! Error status of the operation
    CHARACTER(*),                       INTENT(   OUT )  :: ErrMsg         ! Error message if ErrStat /= ErrID_None
@@ -131,7 +132,7 @@ SUBROUTINE WMTOUT_MapOutputs( CurrentTime, y, F_Waves, F_HS, F_Rdtn, AllOuts, Er
    !AllOuts(Time)      = REAL(CurrentTime,ReKi)
    AllOuts(FWaves)   = F_Waves
    AllOuts(FHdrSttc) = F_HS
-   AllOuts(FRdtn)    = F_Rdtn
+   AllOuts(FRdtn)    = F_Rdtn + F_PtfmAM
    
    
    

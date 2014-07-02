@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-24 19:09:19 -0600 (Tue, 24 Jun 2014) $
-! (File) Revision #: $Rev: 310 $
+! File last committed: $Date: 2014-07-01 21:52:30 -0600 (Tue, 01 Jul 2014) $
+! (File) Revision #: $Rev: 316 $
 ! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn.f90 $
 !**********************************************************************************************************************************
 Module SubDyn
@@ -38,7 +38,7 @@ Module SubDyn
    !       this will add additional matrices to the SubDyn summary file.
    !............................
 
-   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.01.00a-rrd', '24-Jun-2014' )
+   TYPE(ProgDesc), PARAMETER  :: SD_ProgDesc = ProgDesc( 'SubDyn', 'v1.01.00a-rrd', '30-Jun-2014' )
       
    ! ..... Public Subroutines ...................................................................................................
 
@@ -1950,7 +1950,7 @@ ENDDO
             READ(Line,*,IOSTAT=ErrStat) p%MOutLst(I)%MemberID, p%MOutLst(I)%NOutCnt
             
             
-            IF ( p%MOutLst(I)%NOutCnt < 1 .OR. p%MOutLst(I)%NOutCnt > 9 .OR. p%MOutLst(I)%NOutCnt > Init%Ndiv+1) THEN
+            IF ( ErrStat /= 0 .OR. p%MOutLst(I)%NOutCnt < 1 .OR. p%MOutLst(I)%NOutCnt > 9 .OR. p%MOutLst(I)%NOutCnt > Init%Ndiv+1) THEN
                ErrMsg = ' Error in file "'//TRIM(SDInputFile)//'": NOutCnt must be >= 1 and <= minimim(Ndiv+1,9)'
                ErrStat = ErrID_Fatal
                CALL CleanUp()
@@ -1960,7 +1960,7 @@ ENDDO
             
             ALLOCATE ( p%MOutLst(I)%NodeCnt( p%MOutLst(I)%NOutCnt ), STAT = ErrStat )
             
-            IF ( ErrStat /= ErrID_None ) THEN
+            IF ( ErrStat /= 0 ) THEN
               ErrMsg = ' Error in file "'//TRIM(SDInputFile)//': Error allocating NodeCnt arrays'
                ErrStat = ErrID_Fatal
                CALL CleanUp()
@@ -1970,7 +1970,7 @@ ENDDO
             READ(Line,*,IOSTAT=ErrStat) p%MOutLst(I)%MemberID,  p%MOutLst(I)%NOutCnt,  &
                                         p%MOutLst(I)%NodeCnt
              
-            IF ( ErrStat /= ErrID_None ) THEN
+            IF ( ErrStat /= 0 ) THEN
                ErrMsg = ' Error in file "'//TRIM(SDInputFile)//': Error  Failed to read member output list properties.'
                ErrStat = ErrID_Fatal
                CALL CleanUp()

@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-19 09:43:14 -0600 (Thu, 19 Jun 2014) $
-! (File) Revision #: $Rev: 431 $
+! File last committed: $Date: 2014-06-30 16:21:28 -0600 (Mon, 30 Jun 2014) $
+! (File) Revision #: $Rev: 474 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
@@ -327,8 +327,8 @@ SUBROUTINE DistrInertialLoads( nodeIndx, densWater, Ca, Cp, AxCa, AxCp, R, tMG, 
    CHARACTER(*),       INTENT (   OUT )  :: ErrMsg               ! Error message if ErrStat /= ErrID_None
 
    INTEGER                               :: I
-   REAL(ReKi)                            :: f, f1, f2, f3, v_len, adotk, kdotk
-   REAL(ReKi)                            :: p0(3), m(3), v(3), af(3), v2(3)
+   REAL(ReKi)                            :: f, f1, f2, f3, v_len, adotk
+   REAL(ReKi)                            :: p0(3), m(3), v(3), af(3)
    
       ! Initialize ErrStat
          
@@ -349,16 +349,10 @@ SUBROUTINE DistrInertialLoads( nodeIndx, densWater, Ca, Cp, AxCa, AxCp, R, tMG, 
    
    DO I=0,NStepWave
       
-      af =  WaveAcc0(I,nodeIndx,:)
-      m  =  Cross_Product( k, af )
-      v2  =  Cross_Product( m, k )
-      
-      adotk = af(1)*k(1) + af(2)*k(2) + af(3)*k(3)
-      kdotk = k(1)**2 + k(2)**2 + k(3)**2
-      v  =  af - adotk*k
-      IF ( (.NOT. EqualRealNos(v(1),v2(1)) ) .OR. (.NOT. EqualRealNos(v(2),v2(2)) ) .OR. (.NOT. EqualRealNos(v(3),v2(3)) ) ) THEN
-         CALL WrScr('DistrInertialLoads:  Transverse WaveAcc0 calcs are not equal!')
-      END IF 
+      af    =  WaveAcc0(I,nodeIndx,:)       
+      adotk = af(1)*k(1) + af(2)*k(2) + af(3)*k(3)   
+      v     =  af - adotk*k
+    
       ! NOTE: (k cross l) x k = l - (l dot k)k
       
       f3 = f1*WaveDynP0(I,nodeIndx)
@@ -948,8 +942,8 @@ SUBROUTINE GetMaxSimQuantities( numMGDepths, MGTop, MGBottom, MSL2SWL, Zseabed, 
       
       j1 = members(I)%MJointID1Indx
       j2 = members(I)%MJointID2Indx
-      joint1 = joints(j1)
-      joint2 = joints(j2)
+      joint1 = joints(j1)   ! note Inspector complains of uninitialized variables; this is due to copying types here (and some fields haven't been initialized)
+      joint2 = joints(j2)   ! note Inspector complains of uninitialized variables; this is due to copying types here (and some fields haven't been initialized)
       CALL GetDistance(joint1%JointPos, joint2%JointPos, memLen)
       maxSubMembers = maxSubMembers + CEILING( memLen / members(I)%MDivSize  ) - 1
       
@@ -1037,7 +1031,7 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, WtrDpth, numNodes, nodes, numElemen
    REAL(ReKi)                                  :: totalFillMass, mass_fill, fillVol
    REAL(ReKi)                                  :: totalMGMass, mass_MG
    TYPE(Morison_NodeType)                      ::  node1, node2
-   
+   REAL(ReKi)                                  :: Cd1, Cd2, Ca1, Ca2, Cp1, Cp2, AxCa1, AxCa2, AxCp1, AxCp2, JAxCd1, JAxCd2, JAxCa1, JAxCa2, JAxCp1, JAxCp2 ! tmp coefs
    
       ! Initialize data
    ErrStat       = ErrID_None
@@ -1370,8 +1364,8 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, WtrDpth, numNodes, nodes, numElemen
       WRITE( UnSum,  '(//)' ) 
       WRITE( UnSum,  '(A5)' ) 'Nodes'
       WRITE( UnSum,  '(/)' ) 
-      WRITE( UnSum, '(1X,A5,19(2X,A10),2X,A5,2X,A15)' ) '  i  ', 'JointIndx ', 'JointOvrlp', 'InpMbrIndx', '   Nxi    ', '   Nyi    ', '   Nzi    ', 'InpMbrDist', '   tMG    ', '  MGDens  ', 'PropWAMIT ', 'FilledFlag', ' FillDens ', 'FillFSLoc ', '    Cd    ', '    Ca    ', '     R    ', '   dRdZ   ', '    t     ', ' NodeType ','NConn ', 'Connection List'
-      WRITE( UnSum, '(1X,A5,19(2X,A10),2X,A5,2X,A15)' ) ' (-) ', '   (-)    ', '   (-)    ', '   (-)    ', '   (m)    ', '   (m)    ', '   (m)    ', '    (-)   ', '    (m)   ', ' (kg/m^3) ', '   (-)    ', '   (-)    ', ' (kg/m^3) ', '    (-)   ', '    (-)   ', '    (-)   ', '    (m)   ', '    (-)   ', '    (m)   ', '    (-)   ',' (-)  ', '               '
+      WRITE( UnSum, '(1X,A5,24(2X,A10),2X,A5,2X,A15)' ) '  i  ', 'JointIndx ', 'JointOvrlp', 'InpMbrIndx', '   Nxi    ', '   Nyi    ', '   Nzi    ', 'InpMbrDist', '     R    ', '   dRdZ   ', '    t     ', '   tMG    ', '  MGDens  ', 'PropWAMIT ', 'FilledFlag', ' FillDens ', 'FillFSLoc ', '    Cd    ', '    Ca    ', '    Cp    ', '   AxCa   ', '   AxCp   ', '   JAxCd  ', '   JAxCa  ', '   JAxCp  ', 'NConn ', 'Connection List'
+      WRITE( UnSum, '(1X,A5,24(2X,A10),2X,A5,2X,A15)' ) ' (-) ', '   (-)    ', '   (-)    ', '   (-)    ', '   (m)    ', '   (m)    ', '   (m)    ', '    (-)   ', '    (m)   ', '    (-)   ', '   (m)    ', '   (m)    ', ' (kg/m^3) ', '   (-)    ', '   (-)    ', ' (kg/m^3) ', '    (-)   ', '    (-)   ', '    (-)   ', '    (-)   ', '    (-)   ', '    (-)   ', '    (-)   ', '    (-)   ', '    (-)   ', ' (-)  ', '               '
 
          ! Write the data
       DO I = 1,numNodes   
@@ -1386,14 +1380,14 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, WtrDpth, numNodes, nodes, numElemen
             strNodeType = 'ERROR     '
          END IF
          
-         WRITE( UnSum, '(1X,I5,3(2X,I10),5(2X,F10.4),2X,ES10.3,2(2X,L10),7(2X,ES10.3),2X,A10,2X,I5,' // strFmt // '(2X,I4))' ) I, nodes(I)%JointIndx, nodes(I)%JointOvrlp, nodes(I)%InpMbrIndx, nodes(I)%JointPos, nodes(I)%InpMbrDist, nodes(I)%tMG, nodes(I)%MGdensity, nodes(I)%PropWAMIT, nodes(I)%FillFlag, nodes(I)%FillDensity, nodes(I)%FillFSLoc, nodes(I)%Cd, nodes(I)%Ca, nodes(I)%R, nodes(I)%DRDZ, nodes(I)%t, strNodeType, nodes(I)%NConnections, nodes(I)%ConnectionList(1:nodes(I)%NConnections)
+         WRITE( UnSum, '(1X,I5,3(2X,I10),4(2X,F10.4),5(2X,ES10.3),2(2X,L10),10(2X,ES10.3),2X,I5,' // strFmt // '(2X,I4))' ) I, nodes(I)%JointIndx, nodes(I)%JointOvrlp, nodes(I)%InpMbrIndx, nodes(I)%JointPos, nodes(I)%InpMbrDist, nodes(I)%R, nodes(I)%DRDZ, nodes(I)%t, nodes(I)%tMG, nodes(I)%MGdensity, nodes(I)%PropWAMIT, nodes(I)%FillFlag, nodes(I)%FillDensity, nodes(I)%FillFSLoc, nodes(I)%Cd, nodes(I)%Ca, nodes(I)%Cp, nodes(I)%AxCa, nodes(I)%AxCp, nodes(I)%JAxCd, nodes(I)%JAxCa, nodes(I)%JAxCp, nodes(I)%NConnections, nodes(I)%ConnectionList(1:nodes(I)%NConnections)
       END DO
       
        WRITE( UnSum,  '(//)' ) 
       WRITE( UnSum,  '(A8)' ) 'Elements'
       WRITE( UnSum,  '(/)' ) 
-      WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,5(2X,A12),2X,A12,17(2X,A12))' ) '  i  ', 'node1','node2','  Length  ', '  MGVolume  ', '  MGDensity ', 'PropWAMIT ', 'FilledFlag', 'FillDensity', '  FillFSLoc ', '  FillMass  ', '     Cd1    ', '   CdMG1  ', '     Ca1    ', '    CaMG1   ', '      R1    ', '     t1     ','     Cd2    ', '    CdMG2   ', '     Ca2    ', '    CaMG2   ', '      R2    ', '     t2     '
-      WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,5(2X,A12),2X,A12,17(2X,A12))' ) ' (-) ', ' (-) ',' (-) ','   (m)    ', '   (m^3)    ', '  (kg/m^3)  ', '   (-)    ', '   (-)    ', ' (kg/m^3)  ', '     (-)    ', '    (kg)    ', '     (-)    ', '    (-)   ', '     (-)    ', '     (-)    ', '     (m)    ', '     (m)    ','     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (m)    ', '     (m)    '
+      WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,13(2X,A12),2X,A12,21(2X,A12))' ) '  i  ', 'node1','node2','  Length  ', '   Volume   ', '  MGVolume  ', '      R1    ', '    tMG1    ', '     t1     ', '      R2    ', '    tMG2    ', '     t2     ', '   MGDens1  ', '   MGDens2  ', 'PropWAMIT ', 'FilledFlag', 'FillDensity', '  FillFSLoc ', '  FillMass  ', '     Cd1    ', '    Ca1   ', '     Cp1    ', '    AxCa1   ', '    AxCp1   ', '   JAxCd1   ', '   JAxCa1   ', '  JAxCp1   ', '     Cd2    ', '     Ca2    ', '     Cp2    ', '    AxCa2   ', '    AxCp2   ', '   JAxCd2   ', '   JAxCa2   ', '   JAxCp2   '
+      WRITE( UnSum, '(1X,A5,2X,A5,2X,A5,13(2X,A12),2X,A12,21(2X,A12))' ) ' (-) ', ' (-) ',' (-) ','   (m)    ', '   (m^3)    ', '   (m^3)    ', '     (m)    ', '     (m)    ', '     (m)    ', '     (m)    ', '     (m)    ', '     (m)    ', '  (kg/m^3)  ', '  (kg/m^3)  ', '   (-)    ', '   (-)    ', ' (kg/m^3)  ', '     (-)    ', '    (kg)    ', '     (-)    ', '    (-)   ', '     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (-)   ', '     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (-)    ', '     (-)    '
       
       
    
@@ -1441,7 +1435,43 @@ SUBROUTINE WriteSummaryFile( UnSum, MSL2SWL, WtrDpth, numNodes, nodes, numElemen
             filledFlag = .FALSE.
          END IF
          
-         WRITE( UnSum, '(1X,I5,2X,I5,2X,I5,3(2X,ES12.5),2(2X,L12),2X,ES12.5,17(2X,ES12.5))' ) I, elements(I)%Node1Indx, elements(I)%Node2Indx, l, MGvolume, node1%MGdensity, elements(I)%PropWAMIT, filledFlag, elements(I)%FillDens, elements(I)%FillFSLoc, mass_fill, elements(I)%Cd1, elements(I)%CdMG1, elements(I)%Ca1, elements(I)%CaMG1, elements(I)%R1, elements(I)%t1, elements(I)%Cd2, elements(I)%CdMG2, elements(I)%Ca2, elements(I)%CaMG2, elements(I)%R2, elements(I)%t2
+         IF (EqualRealNos(node1%tMG,0.0_ReKi)) THEN
+            Cd1   = elements(I)%Cd1
+            Cd2   = elements(I)%Cd2
+            Ca1   = elements(I)%Ca1
+            Ca2   = elements(I)%Ca2
+            Cp1   = elements(I)%Cp1
+            Cp2   = elements(I)%Cp2
+            AxCa1 = elements(I)%AxCa1
+            AxCa2 = elements(I)%AxCa2
+            AxCp1 = elements(I)%AxCp1
+            AxCp2 = elements(I)%AxCp2
+         ELSE
+            Cd1   = elements(I)%CdMG1
+            Cd2   = elements(I)%CdMG2
+            Ca1   = elements(I)%CaMG1
+            Ca2   = elements(I)%CaMG2
+            Cp1   = elements(I)%CpMG1
+            Cp2   = elements(I)%CpMG2
+            AxCa1 = elements(I)%AxCaMG1
+            AxCa2 = elements(I)%AxCaMG2
+            AxCp1 = elements(I)%AxCpMG1
+            AxCp2 = elements(I)%AxCpMG2
+         END IF
+         
+         JAxCd1 = node1%JAxCd
+         JAxCa1 = node1%JAxCa
+         JAxCp1 = node1%JAxCp
+         JAxCd2 = node2%JAxCd
+         JAxCa2 = node2%JAxCa
+         JAxCp2 = node2%JAxCp
+         
+         WRITE( UnSum, '(1X,I5,2X,I5,2X,I5,11(2X,ES12.5),2(2X,L12),2X,ES12.5,21(2X,ES12.5))' ) I, &
+                       elements(I)%Node1Indx, elements(I)%Node2Indx, l, elementVol, MGvolume, elements(I)%R1, &
+                       node1%tMG, elements(I)%t1, elements(I)%R2, node2%tMG, elements(I)%t2, node1%MGdensity, node2%MGdensity, &
+                       elements(I)%PropWAMIT, filledFlag, elements(I)%FillDens, elements(I)%FillFSLoc, &
+                       mass_fill, Cd1, Ca1, Cp1, AxCa1, AxCp1, JAxCd1, JAxCa1, JAxCp1, &
+                       Cd2, Ca2, Cp2, AxCa2, AxCp2, JAxCd2, JAxCa2, JAxCp2
 
       END DO   ! I = 1,numElements 
                
@@ -1584,12 +1614,12 @@ SUBROUTINE SplitElementOnZBoundary( axis, boundary, iCurrentElement, numNodes, n
       ! Create the new element properties by first copying all the properties from the existing element
    newElement = originalElement
       ! Linearly interpolate the coef values based on depth
-   originalElement%R2 = originalElement%R1 * (1-s) + originalElement%R2*s 
-   newElement%R1 = originalElement%R2 
-   originalElement%t2 = originalElement%t1 * (1-s) + originalElement%t2*s 
+   originalElement%R2          = originalElement%R1 * (1-s) + originalElement%R2*s 
+   newElement%R1               = originalElement%R2 
+   originalElement%t2          = originalElement%t1 * (1-s) + originalElement%t2*s 
    originalElement%InpMbrDist2 = originalElement%InpMbrDist1 * (1-s) + originalElement%InpMbrDist2*s 
-   newElement%t1 = originalElement%t2 
-   newElement%InpMbrDist1 = originalElement%InpMbrDist2 
+   newElement%t1               = originalElement%t2 
+   newElement%InpMbrDist1      = originalElement%InpMbrDist2 
    
       ! The end point of the new element is set to the original end point of the existing element, then
       ! the starting point of the new element and the ending point of the existing element are set to the 
@@ -1861,13 +1891,18 @@ SUBROUTINE SubdivideMembers( numNodes, nodes, numElements, elements, ErrStat, Er
    
    DO I=1,origNumElements
       
-      element = elements(I)
+      CALL Morison_CopyMemberType( elements(I), element, MESH_NEWCOPY, ErrStat, ErrMsg )    !   element = elements(I); bjj: I'm replacing the "equals" here with the copy routine, 
+                                                                                            !   though at this point there are no allocatable/pointer fields in this type so no harm done.
+                                                                                            !   mostly for me to remember that when Inspector complains about uninitialized values, it's 
+                                                                                            !   because not all *fields* have been initialized.
       node1Indx  = element%Node1Indx
-      node1       = nodes(node1Indx)     
+      CALL Morison_CopyNodeType( nodes(node1Indx), node1, MESH_NEWCOPY, ErrStat, ErrMsg )   !   node1 = nodes(node1Indx); bjj: note that not all fields have been initialized, but maybe that's okay.
+
       node2Indx   = element%Node2Indx          ! We need this index for the last sub-element
-      node2       = nodes(node2Indx)
-      elementIndx = I
+      CALL Morison_CopyNodeType( nodes(node2Indx), node2, MESH_NEWCOPY, ErrStat, ErrMsg )   !   node2 = nodes(node2Indx); bjj: note that not all fields have been initialized, but maybe that's okay.
       
+      elementIndx = I
+            
       
       CALL GetDistance(node1%JointPos, node2%JointPos, memLen)
       
@@ -1899,16 +1934,16 @@ SUBROUTINE SubdivideMembers( numNodes, nodes, numElements, elements, ErrStat, Er
             newNode%NodeType = 2 ! interior node
             newNode%JointIndx = -1
                ! Copy updated node and element information to the nodes and elements arrays
-            nodes(node1Indx)       = node1
-            nodes(node2Indx)       = node2
+            nodes(node1Indx)       = node1                  ! this is copying all the fields in the type; type contains no allocatable arrays or pointers
+            nodes(node2Indx)       = node2                  ! this is copying all the fields in the type; type contains no allocatable arrays or pointers
             numNodes               = numNodes + 1
             numElements            = numElements + 1
-            nodes(numNodes)        = newNode
-            elements(elementIndx)  = element
-            elements(numElements)  = newElement
+            nodes(numNodes)        = newNode               ! this is copying all the fields in the type; type contains no allocatable arrays or pointers
+            elements(elementIndx)  = element               ! this is copying all the fields in the type; type contains no allocatable arrays or pointers
+            elements(numElements)  = newElement            ! this is copying all the fields in the type; type contains no allocatable arrays or pointers
             
-            node1                  = newNode
-            element                = newElement
+            node1                  = newNode               ! this is copying all the fields in the type; type contains no allocatable arrays or pointers
+            element                = newElement            ! this is copying all the fields in the type; type contains no allocatable arrays or pointers
             node1Indx              = numNodes
             elementIndx            = numElements 
             
@@ -2122,8 +2157,7 @@ SUBROUTINE SetSplitNodeProperties( numNodes, nodes, numElements, elements, ErrSt
             nodes(I)%t    = element%t2
             nodes(I)%InpMbrDist = element%InpMbrDist2
          END IF
-         ! TODO: VERIFY THE Direction of the dz and dR calculations, 3/13/13 GJH the matlab code uses End - Start, so this should be ok.
-         ! TODO: VERIFY that if dz = 0 then dRdz = 0
+         
          CALL GetDistance( nodes(element%Node1Indx)%JointPos, nodes(element%Node2Indx)%JointPos, dz )
          dR = ( element%R2 + nodes(element%Node2Indx)%tMG ) - ( element%R1 + nodes(element%Node1Indx)%tMG )
          IF ( EqualRealNos(dR, 0.0_ReKi) ) dR = 0.0
@@ -4578,13 +4612,15 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
             OtherState%D_F_DP(I,J)   = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%D_F_DP(:,I,J), &
                                     OtherState%LastIndWave, p%NStepWave + 1       )
             IF (I < 4 ) THEN
+                  ! We are now combining the dynamic pressure term into the inertia term
                OtherState%D_F_I(I,J) = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%D_F_I(:,I,J), &
-                                    OtherState%LastIndWave, p%NStepWave + 1       )
+                                    OtherState%LastIndWave, p%NStepWave + 1       ) + OtherState%D_F_DP(I,J)
+               
                ! TODO: Verify the following 9/29/13 GJH
                OtherState%D_F_D(I,J) = vmag*v(I) * p%D_dragConst(J)
                
                !y%DistribMesh%Force(I,J) = OtherState%D_F_D(I,J)  + OtherState%D_F_I(I,J) + p%D_F_B(I,J) + OtherState%D_F_DP(I,J) + p%D_F_MG(I,J) + p%D_F_BF(I,J)
-               y%DistribMesh%Force(I,J) = OtherState%D_F_AM(I,J) + OtherState%D_F_D(I,J)  + OtherState%D_F_I(I,J) + p%D_F_B(I,J) + OtherState%D_F_DP(I,J) + p%D_F_MG(I,J) + p%D_F_BF(I,J)
+               y%DistribMesh%Force(I,J) = OtherState%D_F_AM(I,J) + OtherState%D_F_D(I,J)  + OtherState%D_F_I(I,J) + p%D_F_B(I,J) +  p%D_F_MG(I,J) + p%D_F_BF(I,J)
                !y%DistribMesh%Force(I,J) =  OtherState%D_F_D(I,J)  + OtherState%D_F_I(I,J) +  OtherState%D_F_DP(I,J) + p%D_F_MG(I,J) 
             ELSE
                
@@ -4641,8 +4677,7 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
          qdotdot                 = reshape((/u%LumpedMesh%TranslationAcc(:,J),u%LumpedMesh%RotationAcc(:,J)/),(/6/))   
          accel_fluid             = reshape((/OtherState%L_FA(:,J),[0.0,0.0,0.0]/),(/6/))  ! Add rotational accelerations of fluid which are zero 
          OtherState%L_F_AM(:,J)  = matmul( p%L_AM_M(:,:,J) , ( - qdotdot) )
-         !TODO: used to have the following, but document doesn't include accel_fluid!!!!
-         !OtherState%L_F_AM(:,J)  = matmul( p%L_AM_M(:,:,J) , (accel_fluid - qdotdot) )
+         
          
             ! Time-varying Buoyancy loads
          !sgn = 1.0   
@@ -4655,15 +4690,16 @@ SUBROUTINE Morison_CalcOutput( Time, u, p, x, xd, z, OtherState, y, ErrStat, Err
             OtherState%L_F_DP(I,J) = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%L_F_DP(:,I,J), &
                                     OtherState%LastIndWave, p%NStepWave + 1       )
             
+            ! We are now combining the dynamic pressure term into the inertia term
             OtherState%L_F_I(I,J) = InterpWrappedStpReal ( REAL(Time, ReKi), p%WaveTime(:), p%L_F_I(:,I,J), &
-                                    OtherState%LastIndWave, p%NStepWave + 1       )
+                                    OtherState%LastIndWave, p%NStepWave + 1       ) + OtherState%L_F_DP(I,J)
             
             IF (I < 4 ) THEN
    
                OtherState%L_F_D(I,J) =  p%L_An(I,J)*dragFactor !vmag*v(I) * p%L_dragConst(J)   ! TODO: Verify newly added axial drag GJH 11/07/13
                
                !y%LumpedMesh%Force(I,J) = OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_DP(I,J) +  p%L_F_BF(I,J)
-               y%LumpedMesh%Force(I,J) = OtherState%L_F_AM(I,J) + OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_I(I,J) + OtherState%L_F_DP(I,J) +  p%L_F_BF(I,J)
+               y%LumpedMesh%Force(I,J) = OtherState%L_F_AM(I,J) + OtherState%L_F_D(I,J) +  p%L_F_B(I,J) + OtherState%L_F_I(I,J)  +  p%L_F_BF(I,J)
                !y%LumpedMesh%Force(I,J) =  OtherState%L_F_DP(I,J) 
             ELSE
                !y%LumpedMesh%Moment(I-3,J) =  p%L_F_B(I,J) +   p%L_F_BF(I,J)

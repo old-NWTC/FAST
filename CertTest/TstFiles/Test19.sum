@@ -1,18 +1,19 @@
 
 FAST Summary File
 
-Predictions were generated on 31-May-2014 at 15:42:49 using FAST (v8.07.00b-bjj, 15-May-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 01-Jul-2014 at 22:34:45 using FAST (v8.08.00c-bjj, 30-June-2014), compiled for 32-bit systems using single precision
   compiled with
-    NWTC Subroutine Library (v2.03.00d-bjj, 22-Jan-2014)
-    ElastoDyn (v1.01.06a-bjj, 2-May-2014)
-    ServoDyn (v1.01.02a-bjj, 31-Jan-2014)
-    AeroDyn (v14.02.01b-bjj, 29-Jan-2014)
-    InflowWind (v2.00.01a-bjj, 22-Jan-2014)
-    HydroDyn (v2.01.00a-gjh, 23-May-2014)
-    SubDyn (v1.00.00c-bjj, 20-May-2014)
+    NWTC Subroutine Library (v2.03.03b-bjj, 30-June-2014)
+    ElastoDyn (v1.01.06b-bjj, 30-June-2014)
+    AeroDyn (v14.02.01c-bjj, 30-June-2014)
+    InflowWind (v2.00.01b-bjj, 30-June-2014)
+    ServoDyn (v1.01.02a-bjj, 30-June-2014)
+    HydroDyn (v2.01.01c-gjh, 30-Jun-2014)
+    SubDyn (v1.01.00a-rrd, 30-Jun-2014)
     MAP (unknown version, unknown date) [not called]
     FEAMooring (unknown version, unknown date) [not called]
     IceFloe (unknown version, unknown date) [not called]
+    IceDyn (unknown version, unknown date) [not called]
 
 
 Modeling a fixed-bottom offshore turbine
@@ -28,13 +29,13 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and Hydro
   -------------------------------------------------
   Component          Time Step (s)    Subcycles (-)
   -----------------  ---------------  -------------
-  FAST (glue code)    2.500E-03
-  ElastoDyn           2.500E-03              1
-  AeroDyn             2.500E-03              1
-  ServoDyn            2.500E-03              1
-  HydroDyn            2.500E-03              1
-  SubDyn              2.500E-03              1
-  FAST output files   1.250E-02              5^-1
+  FAST (glue code)    5.000E-03
+  ElastoDyn           5.000E-03              1
+  AeroDyn             5.000E-03              1
+  ServoDyn            5.000E-03              1
+  HydroDyn            5.000E-03              1
+  SubDyn              5.000E-03              1
+  FAST output files   5.000E-02             10^-1
 
 
    Requested Channels in FAST Output File(s)  
@@ -55,48 +56,37 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and Hydro
       12  TwHt1TPxi   (m)         ElastoDyn
       13  TwHt1TPyi   (m)         ElastoDyn
       14  TTDspTwst   (deg)       ElastoDyn
-      15  Spn2MLxb1   (kN·m)      ElastoDyn
-      16  Spn2MLyb1   (kN·m)      ElastoDyn
-      17  RootFxc1    (kN)        ElastoDyn
-      18  RootFyc1    (kN)        ElastoDyn
-      19  RootFzc1    (kN)        ElastoDyn
-      20  RootMxc1    (kN·m)      ElastoDyn
-      21  RootMyc1    (kN·m)      ElastoDyn
-      22  RootMzc1    (kN·m)      ElastoDyn
-      23  RotTorq     (kN·m)      ElastoDyn
-      24  LSSGagMya   (kN·m)      ElastoDyn
-      25  LSSGagMza   (kN·m)      ElastoDyn
-      26  YawBrFxp    (kN)        ElastoDyn
-      27  YawBrFyp    (kN)        ElastoDyn
-      28  YawBrFzp    (kN)        ElastoDyn
-      29  YawBrMxp    (kN·m)      ElastoDyn
-      30  YawBrMyp    (kN·m)      ElastoDyn
-      31  YawBrMzp    (kN·m)      ElastoDyn
-      32  PtfmTAxi    (m/s^2)     ElastoDyn
-      33  PtfmTAyi    (m/s^2)     ElastoDyn
-      34  PtfmTAzi    (m/s^2)     ElastoDyn
-      35  PtfmRAxi    (deg/s^2)   ElastoDyn
-      36  PtfmRAyi    (deg/s^2)   ElastoDyn
-      37  PtfmRAzi    (deg/s^2)   ElastoDyn
-      38  PtfmTDxi    (m)         ElastoDyn
-      39  PtfmTDyi    (m)         ElastoDyn
-      40  PtfmTDzi    (m)         ElastoDyn
-      41  PtfmTVxi    (m/s)       ElastoDyn
-      42  PtfmTVyi    (m/s)       ElastoDyn
-      43  PtfmTVzi    (m/s)       ElastoDyn
-      44  PtfmRDxi    (deg)       ElastoDyn
-      45  PtfmRDyi    (deg)       ElastoDyn
-      46  PtfmRDzi    (deg)       ElastoDyn
-      47  GenPwr      (kW)        ServoDyn
-      48  GenTq       (kN·m)      ServoDyn
-      49  Wave1Elev   (m)         HydroDyn
-      50  M2N1MKxe    (N*m)       SubDyn
-      51  M2N1MKye    (N*m)       SubDyn
-      52  M1N1MKxe    (N*m)       SubDyn
-      53  M1N1MKye    (N*m)       SubDyn
-      54  -ReactFXss  (N)         SubDyn
-      55  -ReactFYss  (N)         SubDyn
-      56  -ReactFZss  (N)         SubDyn
-      57  -ReactMXss  (Nm)        SubDyn
-      58  -ReactMYss  (Nm)        SubDyn
-      59  -ReactMZss  (Nm)        SubDyn
+      15  PtfmSurge   (m)         ElastoDyn
+      16  PtfmSway    (m)         ElastoDyn
+      17  PtfmRoll    (deg)       ElastoDyn
+      18  PtfmPitch   (deg)       ElastoDyn
+      19  Spn2MLxb1   (kN·m)      ElastoDyn
+      20  Spn2MLyb1   (kN·m)      ElastoDyn
+      21  RootFxc1    (kN)        ElastoDyn
+      22  RootFyc1    (kN)        ElastoDyn
+      23  RootFzc1    (kN)        ElastoDyn
+      24  RootMxc1    (kN·m)      ElastoDyn
+      25  RootMyc1    (kN·m)      ElastoDyn
+      26  RootMzc1    (kN·m)      ElastoDyn
+      27  RotTorq     (kN·m)      ElastoDyn
+      28  LSSGagMya   (kN·m)      ElastoDyn
+      29  LSSGagMza   (kN·m)      ElastoDyn
+      30  YawBrFxp    (kN)        ElastoDyn
+      31  YawBrFyp    (kN)        ElastoDyn
+      32  YawBrFzp    (kN)        ElastoDyn
+      33  YawBrMxp    (kN·m)      ElastoDyn
+      34  YawBrMyp    (kN·m)      ElastoDyn
+      35  YawBrMzp    (kN·m)      ElastoDyn
+      36  GenPwr      (kW)        ServoDyn
+      37  GenTq       (kN·m)      ServoDyn
+      38  Wave1Elev   (m)         HydroDyn
+      39  M2N1MKxe    (N*m)       SubDyn
+      40  M2N1MKye    (N*m)       SubDyn
+      41  M1N1MKxe    (N*m)       SubDyn
+      42  M1N1MKye    (N*m)       SubDyn
+      43  -ReactFXss  (N)         SubDyn
+      44  -ReactFYss  (N)         SubDyn
+      45  -ReactFZss  (N)         SubDyn
+      46  -ReactMXss  (Nm)        SubDyn
+      47  -ReactMYss  (Nm)        SubDyn
+      48  -ReactMZss  (Nm)        SubDyn

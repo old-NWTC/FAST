@@ -699,6 +699,8 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
          ! Add some file information:
 
    !.......................... Module Versions .....................................................
+   !bjj: modules in this list are ordered by the order they are specified in the FAST input file
+
    WRITE (y_FAST%UnSum,'(/A)') 'FAST Summary File'
    WRITE (y_FAST%UnSum,'(/A)')  TRIM( y_FAST%FileDescLines(1) )
 
@@ -706,11 +708,7 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    Fmt = '(4x,A)'
    WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD(        NWTC_Ver ) )
    WRITE (y_FAST%UnSum,Fmt)  TRIM( GetNVD( y_FAST%Module_Ver( Module_ED )   ) )
-   
-   DescStr = GetNVD( y_FAST%Module_Ver( Module_SrvD ) )
-   IF ( p_FAST%CompServo /= Module_SrvD ) DescStr = TRIM(DescStr)//NotUsedTxt
-   WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
-   
+
    DescStr = GetNVD( y_FAST%Module_Ver( Module_AD ) )
    IF ( p_FAST%CompAero /= Module_AD ) DescStr = TRIM(DescStr)//NotUsedTxt
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
@@ -718,6 +716,10 @@ SUBROUTINE FAST_WrSum( p_FAST, y_FAST, MeshMapData, ErrStat, ErrMsg )
    DescStr = GetNVD( y_FAST%Module_Ver( Module_IfW ) )
    IF ( p_FAST%CompAero /= Module_AD ) DescStr = TRIM(DescStr)//NotUsedTxt !IfW is a submodule of AD right now
    WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )
+   
+   DescStr = GetNVD( y_FAST%Module_Ver( Module_SrvD ) )
+   IF ( p_FAST%CompServo /= Module_SrvD ) DescStr = TRIM(DescStr)//NotUsedTxt
+   WRITE (y_FAST%UnSum,Fmt)  TRIM( DescStr )  
    
    DescStr = GetNVD( y_FAST%Module_Ver( Module_HD ) )
    IF ( p_FAST%CompHydro /= Module_HD  ) DescStr = TRIM(DescStr)//NotUsedTxt

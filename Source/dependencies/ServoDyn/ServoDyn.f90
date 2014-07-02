@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-13 14:05:28 -0600 (Fri, 13 Jun 2014) $
-! (File) Revision #: $Rev: 715 $
+! File last committed: $Date: 2014-06-30 21:30:15 -0600 (Mon, 30 Jun 2014) $
+! (File) Revision #: $Rev: 745 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -31,7 +31,7 @@ MODULE ServoDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.02a-bjj', '31-Jan-2014' )
+   TYPE(ProgDesc), PARAMETER            :: SrvD_Ver = ProgDesc( 'ServoDyn', 'v1.01.02a-bjj', '30-June-2014' )
    CHARACTER(*),   PARAMETER            :: SrvD_Nickname = 'SrvD'
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4SFun  = .FALSE.                            ! Is the module being compiled as an S-Function for Simulink?
    LOGICAL, PARAMETER, PUBLIC           :: Cmpl4LV    = .FALSE.                            ! Is the module being compiled for Labview?
@@ -795,7 +795,7 @@ SUBROUTINE SrvD_CalcConstrStateResidual( t, u, p, x, xd, z, OtherState, z_residu
 
          ! Solve for the constraint states here:
 
-      z_residual%DummyConstrState = 0
+      z_residual%DummyConstrState = 0.0_ReKi
 
 END SUBROUTINE SrvD_CalcConstrStateResidual
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

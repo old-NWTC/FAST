@@ -41,17 +41,17 @@ USE WAMIT2_Types
 USE Morison_Types
 USE NWTC_Library
 IMPLICIT NONE
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxHDOutputs = 21      ! The maximum number of output channels supported by this module [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxHDOutputs = 39      ! The maximum number of output channels supported by this module [-]
 ! =========  HydroDyn_InitInputType  =======
   TYPE, PUBLIC :: HydroDyn_InitInputType
     CHARACTER(1024)  :: InputFile      ! Supplied by Driver:  full path and filename for the HydroDyn module [-]
     LOGICAL  :: UseInputFile      ! Supplied by Driver:  .TRUE. if using a input file, .FALSE. if all inputs are being passed in by the caller [-]
     CHARACTER(1024)  :: OutRootName      ! Supplied by Driver:  The name of the root file (without extension) including the full path [-]
-    REAL(ReKi)  :: DT      ! Supplied by Driver:  Simulation time step (sec) [-]
+    REAL(DbKi)  :: DT      ! Supplied by Driver:  Simulation time step (sec) [-]
     REAL(ReKi)  :: Gravity      ! Supplied by Driver:  Gravitational acceleration (m/s^2) [-]
     REAL(DbKi)  :: TMax      ! Supplied by Driver:  The total simulation time (sec) [-]
     LOGICAL  :: HasIce      ! Supplied by Driver:  Whether this simulation has ice loading (flag) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! Supplied by Driver:  X-Y locations for WaveElevation output (for visualization).  First index is to X or Y coordinate.  Second index is the point number. [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevXY      ! Supplied by Driver:  X-Y locations for WaveElevation output (for visualization).  First dimension is the X (1) and Y (2) coordinate.  Second dimension is the point number. [-]
     CHARACTER(80)  :: PtfmSgFChr      ! Platform horizontal surge translation force (flag) or DEFAULT [-]
     LOGICAL  :: PtfmSgF      ! Optionally Supplied by Driver:  Platform horizontal surge translation force (flag) [-]
     CHARACTER(80)  :: PtfmSwFChr      ! Platform horizontal sway translation force (flag) or DEFAULT [-]
@@ -95,7 +95,7 @@ IMPLICIT NONE
     TYPE(Morison_InitOutputType)  :: Morison      ! Initialization output from the Morison module [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! The is the list of all HD-related output channel header strings (includes all sub-module channels) [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! The is the list of all HD-related output channel unit strings (includes all sub-module channels) [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevSeries      ! Wave elevation time-series at each of the points given by WaveElevXY.  First index is the timestep. Second index is XY point number corresponding to second index of WaveElevXY. [(m)]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevSeries      ! Wave elevation time-series at each of the points given by WaveElevXY.  First dimension is the timestep. Second dimension is XY point number corresponding to second dimension of WaveElevXY. [(m)]
     TYPE(ProgDesc)  :: Ver      ! Version of HydroDyn [-]
     REAL(ReKi)  :: WtrDens      ! Water density [(kg/m^3)]
     REAL(ReKi)  :: WtrDpth      ! Water depth [(m)]
@@ -340,7 +340,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz   = Re_BufSz   + 1  ! DT
+  Db_BufSz   = Db_BufSz   + 1  ! DT
   Re_BufSz   = Re_BufSz   + 1  ! Gravity
   Db_BufSz   = Db_BufSz   + 1  ! TMax
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevXY )  ! WaveElevXY 
@@ -397,8 +397,8 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%DT )
-  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT )
+  Db_Xferred   = Db_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Gravity )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TMax )
@@ -572,8 +572,8 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  OutData%DT = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
+  OutData%DT = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
   OutData%Gravity = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%TMax = DbKiBuf ( Db_Xferred )

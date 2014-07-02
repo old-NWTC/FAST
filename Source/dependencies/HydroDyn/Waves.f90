@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-18 12:56:17 -0600 (Wed, 18 Jun 2014) $
-! (File) Revision #: $Rev: 427 $
+! File last committed: $Date: 2014-06-25 13:38:20 -0600 (Wed, 25 Jun 2014) $
+! (File) Revision #: $Rev: 451 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -38,7 +38,7 @@ MODULE Waves
    PRIVATE
 
 !   INTEGER(IntKi), PARAMETER            :: DataFormatID = 1   ! Update this value if the data types change (used in Waves_Pack)
-   TYPE(ProgDesc), PARAMETER            :: Waves_ProgDesc = ProgDesc( 'Waves', 'v1.00.01', '05-Mar-2013' )
+   TYPE(ProgDesc), PARAMETER            :: Waves_ProgDesc = ProgDesc( 'Waves', 'v1.00.02', '22-Jun-2014' )
 
    
       ! ..... Public Subroutines ...................................................................................................
@@ -1091,6 +1091,8 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
       END IF            
                   
 
+         ! Set new value for NStepWave so that the FFT algorithms are efficient.  Note that if this method is changed, the method
+         ! used to calculate the number of multidirectional wave directions (WaveNDir) may need to be updated.
 
       InitOut%NStepWave  = CEILING ( InitInp%WaveTMax/InitInp%WaveDT )                       ! Set NStepWave to an even integer
       IF ( MOD(InitOut%NStepWave,2) == 1 )  InitOut%NStepWave = InitOut%NStepWave + 1        !   larger or equal to WaveTMax/WaveDT.
@@ -1272,7 +1274,7 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
       !! If multi-directional waves will be used, the value of WaveNDir may need to be adjusted.  The reason is that
       !! for the equal energy approach used here, the following condition must be met:
       !!
-      !!       CONDITION:  (NStepWave2 -1) / WaveNDir    must be an integer
+      !!       CONDITION:  (NStepWave2) / WaveNDir    must be an integer
       !!
       !! If this is true, then an equal number of frequencies is assigned to each of the WaveNDir directions which
       !! gives the proper wave direction distribution function.  Otherwise, the energy distribution by direction
@@ -1281,6 +1283,11 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
       !! _WaveNDir_ could not be adjusted before _NStepWave2_ was finalized above.
       !!
       !! @note    Use the value of WaveNDir stored in InitOut since InitInp cannot be changed.
+      !!
+      !! @note    Originally, the criteria had been that (NStepWave2 - 1) / WaveNDir is an integer.  This criteria
+      !!          was relaxed by setting the direction for Omega = 0 (which has no amplitude) since it was found that
+      !!          (NStepWave2 - 1) is often a prime number due to how NStepWave is calculated above to be a product
+      !!          of smallish numbers.
       
       IF ( InitInp%WaveMultiDir ) THEN    ! Multi-directional waves in use
 
@@ -1298,36 +1305,37 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
 
          IF ( MODULO( InitOut%WaveNDir, 2_IntKi) == 0_IntKi ) THEN
             InitOut%WaveNDir  = InitOut%WaveNDir + 1
-            CALL SetErrStat(ErrID_Warn,'WaveNDir must be odd.  Changing the value to '//TRIM(Num2LStr(InitOut%WaveNDir)),ErrStat,ErrMsg,'VariousWaves_Init')
+            ErrMsgTmp = 'WaveNDir must be odd.  Changing the value to '//TRIM(Num2LStr(InitOut%WaveNDir))
+            CALL SetErrStat(ErrID_Warn,ErrMsgTmp,ErrStat,ErrMsg,'VariousWaves_Init')
          END IF
 
-            ! Now adjust WaveNDir as necessary so that (NStepWave2 - 1) / WaveNDir is integer
-         IF ( .NOT. EqualRealNos(REAL((     InitOut%NStepWave2 -1)/     InitOut%WaveNDir), &
-                                     ((REAL(InitOut%NStepWave2)-1)/REAL(InitOut%WaveNDir)) )) THEN
+            ! Now adjust WaveNDir as necessary so that (NStepWave2) / WaveNDir is integer
+         IF ( .NOT. EqualRealNos(REAL((     InitOut%NStepWave2 )/     InitOut%WaveNDir), &
+                                     ((REAL(InitOut%NStepWave2))/REAL(InitOut%WaveNDir)) )) THEN
             DO WHILE ( InitOut%WaveNDir <= WaveNDirMax )
-               IF ( EqualRealNos(REAL((     InitOut%NStepWave2 -1)/     InitOut%WaveNDir), &
-                                     ((REAL(InitOut%NStepWave2)-1)/REAL(InitOut%WaveNDir)) )) THEN
+
+               InitOut%WaveNDir = InitOut%WaveNDir + 2.0_ReKi
+               IF ( EqualRealNos(REAL((     InitOut%NStepWave2 )/     InitOut%WaveNDir), &
+                                     ((REAL(InitOut%NStepWave2))/REAL(InitOut%WaveNDir)) )) THEN
                   ErrMsgTmp   =  'Changed WaveNDir from '//TRIM(Num2LStr(InitInp%WaveNDir))//' to '//  &
                                  TRIM(Num2LStr(InitOut%WaveNDir))//' so that an equal number of frequencies are assigned to '// &
                                  'each direction.'
                   CALL SetErrStat(ErrID_Warn,ErrMsgTmp,ErrStat,ErrMsg,'VariousWaves_Init')
                   EXIT
                END IF
-
-               InitOut%WaveNDir = InitOut%WaveNDir + 2.0_ReKi
-
             END DO
          END IF
 
             ! If we exited because we hit a limit (in which case the condition is not satisfied), then we cannot continue.
             ! We warn the user that a value for WaveNDir was not found, and that they should try a different value, or try
-            ! a different value for WaveTMax.  The reason for suggesting the latter is that NStepWave2 is derived from
-            ! WaveTMax and adjusted until it is a product of smallish numbers.  There is a very small possibility then that
-            ! (NStepWave2 - 1) is a prime number, in which case we won't find a value for WaveNDir, so we suggest that the
-            ! user change WaveTMax.  To make this a little easier for the user, we will report the first 5 possible values
-            ! for WaveNDir between their requested value and 1/4 of NStepWave2, if there are any.
-         IF ( .NOT.  EqualRealNos(REAL((     InitOut%NStepWave2 -1)/     InitOut%WaveNDir), &
-                                      ((REAL(InitOut%NStepWave2)-1)/REAL(InitOut%WaveNDir)) )) THEN
+            ! a different value for WaveTMax.  The reason for suggesting the latter is that NStepWave is derived from
+            ! WaveTMax and adjusted until it is a product of smallish numbers (most likely even, but not necessarily so).
+            ! So, there is a very small possibility then that NStepWave2 is a prime number, in which case we won't find a
+            ! value for WaveNDir, so we suggest that the user change WaveTMax.  To make this a little easier for the user,
+            ! we will report the first 5 possible values for WaveNDir between their requested value and 1/4 of NStepWave2,
+            ! if there are any.
+         IF ( .NOT.  EqualRealNos(REAL((     InitOut%NStepWave2 )/     InitOut%WaveNDir), &
+                                      ((REAL(InitOut%NStepWave2))/REAL(InitOut%WaveNDir)) )) THEN
             ErrMsgTmp   = 'Could not find value for WaveNDir between '//TRIM(Num2LStr(InitInp%WaveNDir))//' and '// &
                            TRIM(Num2LStr(WaveNDirMax))//' such that an equal number of frequencies are assigned to each '// &
                            'direction.'
@@ -1338,8 +1346,8 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
             I = 0
             ErrMsgTmp2 = 'The next values of WaveNDir that work with the selected values for WaveTMax and WaveDT:'
             DO WHILE ( InitOut%WaveNDir <= INT(InitOut%NStepWave2/4.0) )
-               IF ( EqualRealNos(REAL((     InitOut%NStepWave2 -1)/     InitOut%WaveNDir), &
-                                     ((REAL(InitOut%NStepWave2)-1)/REAL(InitOut%WaveNDir)) )) THEN
+               IF ( EqualRealNos(REAL((     InitOut%NStepWave2 )/     InitOut%WaveNDir), &
+                                     ((REAL(InitOut%NStepWave2))/REAL(InitOut%WaveNDir)) )) THEN
                   ErrMsgTmp2  = TRIM(ErrMsgTmp2)//"  "//TRIM(Num2LStr(InitOut%WaveNDir))
                   I = I + 1
                END IF
@@ -1370,8 +1378,7 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
          END IF
 
             ! Save the number of frequencies per direction so that we can use it later in assigning the directios.
-         WvSpreadFreqPerDir   =  (InitOut%NStepWave2 - 1)/InitOut%WaveNDir
-
+         WvSpreadFreqPerDir   =  (InitOut%NStepWave2)/InitOut%WaveNDir
 
 
          !> ## Calculate the wave directions based on an equal energy approach.
@@ -1431,8 +1438,8 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
          WvSpreadDTheta = InitInp%WaveDirRange/REAL(WvSpreadNDir,ReKi)
 
             ! Calculate the normalization constant for the wave spreading.
-         WvSpreadCos2SConst   = sqrt(Pi)* (GAMMA(InitInp%WaveDirSpread + 1.0_ReKi))/               &
-                                (InitInp%WaveDirRange * GAMMA(InitInp%WaveDirSpread + 0.5_ReKi))
+         WvSpreadCos2SConst   = sqrt(Pi)* (NWTC_GAMMA(InitInp%WaveDirSpread + 1.0_ReKi))/               &
+                                (InitInp%WaveDirRange * NWTC_GAMMA(InitInp%WaveDirSpread + 0.5_ReKi))
 
             ! Allocate arrays to use for storing the intermediate values
          ALLOCATE( WvSpreadCos2SArr(0:WvSpreadNDir),  STAT=ErrStatTmp )
@@ -1658,11 +1665,9 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
          END IF
 
 
-            ! The zeroeth frequency has no amplitude.  Set direction to center wave direction.
-         InitOut%WaveDirArr(0)   =  InitInp%WaveDir   
-
             ! Reset the K so that we can use it to count the frequency index.
-            ! It should be exactly NStepWave2-1 when done assigning directions.
+            ! It should be exactly NStepWave2 when done assigning directions. The the Omega = 0 has
+            ! no amplitude, but gets a direction anyhow (to simplify the calculation of WaveNDir).
          K  = 0
 
 
@@ -1673,7 +1678,6 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
             CALL RANDOM_NUMBER(WvSpreadThetaIdx)
 
             DO J = 1, InitOut%WaveNDir
-               K  = K + 1     ! Increment the frequency index
 
                   ! Find the index lowest value in the WvSpreadThetaIdx array.  This is the index to
                   ! use for this wave direction.
@@ -1685,12 +1689,15 @@ SUBROUTINE VariousWaves_Init ( InitInp, InitOut, ErrStat, ErrMsg )
                   ! Now make that element in the WvSpreadThetaIdx really big so we don't pick it again
                WvSpreadThetaIdx( LastInd )   = HUGE(1.0)
 
+               K  = K + 1     ! Increment the frequency index
+
             ENDDO
          ENDDO
 
 
-            ! Perform a quick sanity check.  We should have assigned all wave frequencies a direction.
-         IF ( K /= (InitOut%NStepWave2 - 1) )    CALL SetErrStat(ErrID_Fatal,  &
+            ! Perform a quick sanity check.  We should have assigned all wave frequencies a direction, so K should be
+            ! K = NStepWave2 (K is incrimented afterwards).
+         IF ( K /= (InitOut%NStepWave2 ) )    CALL SetErrStat(ErrID_Fatal,  &
                      'Something went wrong while assigning wave directions.',ErrStat,ErrMsg,'VariousWaves_Init')
          IF ( ErrStat >= AbortErrLev ) THEN
             CALL CleanUp()

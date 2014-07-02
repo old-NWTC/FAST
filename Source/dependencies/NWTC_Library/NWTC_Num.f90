@@ -1456,7 +1456,6 @@ CONTAINS
    RETURN
 
    END FUNCTION IndexCharAry
-    
 !=======================================================================
    FUNCTION InterpBinComp( XVal, XAry, YAry, ILo, AryLen )
 

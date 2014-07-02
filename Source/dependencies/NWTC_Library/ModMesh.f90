@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-17 09:36:15 -0600 (Tue, 17 Jun 2014) $
-! (File) Revision #: $Rev: 239 $
+! File last committed: $Date: 2014-07-01 13:32:35 -0600 (Tue, 01 Jul 2014) $
+! (File) Revision #: $Rev: 242 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/ModMesh.f90 $
 !**********************************************************************************************************************************
 MODULE ModMesh
@@ -26,13 +26,13 @@ MODULE ModMesh
  ! The modules ModMesh and ModMesh_Types provide data structures and subroutines for representing and manipulating meshes
  ! and meshed data in the FAST modular framework. 
  !
- ! A mesh is comprised of a set of “nodes” (simple points in space) together with information specifying how they are connected 
- ! to form “elements”  representing spatial boundaries between components. ModMesh and ModMesh_Types define point, line, surface, 
+ ! A mesh is comprised of a set of "nodes" (simple points in space) together with information specifying how they are connected 
+ ! to form "elements"  representing spatial boundaries between components. ModMesh and ModMesh_Types define point, line, surface, 
  ! and volume elements in a standard isoparametric mapping from finite element analysis. Currently only points and straight line 
  ! (line2) elements are implemented.
- ! Associated with a mesh are one or more “fields” that represent the values of variables or “degrees of freedom” at each node. 
- ! A mesh always has a named “Position” that specifies the location in three-dimensional space as an Xi,Yi,Zi triplet of each node 
- ! and a field named “RefOrientation” that specifies the orientation (as a direction cosine matrix) of the node. 
+ ! Associated with a mesh are one or more "fields" that represent the values of variables or "degrees of freedom" at each node. 
+ ! A mesh always has a named "Position" that specifies the location in three-dimensional space as an Xi,Yi,Zi triplet of each node 
+ ! and a field named "RefOrientation" that specifies the orientation (as a direction cosine matrix) of the node. 
  ! The ModMesh_Types module predefines a number of other fields of triples representing velocities, forces, and moments as well as
  ! a field of nine values representing a direction cosine matrix. 
  ! The operations on meshes defined in the ModMesh module are creation, spatio-location of nodes, construction, committing the 
@@ -795,7 +795,7 @@ CONTAINS
       ! Given a mesh and allocatable buffers of type INTEGER(IntKi), REAL(ReKi), and REAL(DbKi), 
       ! return the mesh information compacted into consecutive elements of the corresponding buffers. 
       ! This would be done to allow subsequent writing of the buffers to a file for restarting later. 
-      ! The sense of the name is “pack the data from the mesh into buffers”. IMPORTANT: MeshPack 
+      ! The sense of the name is "pack the data from the mesh into buffers". IMPORTANT: MeshPack 
       ! allocates the three buffers. It is incumbent upon the calling program to deallocate the 
       ! buffers when they are no longer needed. For sibling meshes, MeshPack should be called 
       ! separately for each sibling, because the fields allocated with the siblings are separate 
@@ -997,7 +997,7 @@ CONTAINS
       ! Given a blank, uncreated mesh and buffers of type INTEGER(IntKi), REAL(ReKi), and 
       ! REAL(DbKi), unpack the mesh information from the buffers. This would be done to 
       ! recreate a mesh after reading in the buffers on a restart of the program. The sense 
-      ! of the name is “unpack the mesh from buffers.” The resulting mesh will be returned 
+      ! of the name is "unpack the mesh from buffers." The resulting mesh will be returned 
       ! in the exact state as when the data in the buffers was packed using MeshPack. 
       
       ! bjj: not implemented yet:  
@@ -1212,7 +1212,7 @@ CONTAINS
    ! 
    ! If CtrlCode is MESH_NEWCOPY, an entirely new copy of the mesh is created, including all fields, 
    !   with the same data values as the original, but as an entirely separate copy in memory. The new 
-   !   copy is in the same state as the original—if the original has not been committed, neither is 
+   !   copy is in the same state as the original--if the original has not been committed, neither is 
    !   the copy; in this case, an all-new copy of the mesh must be committed separately.
    !
    ! If CtrlCode is MESH_SIBLING, the destination mesh is created with the same mesh and position/reference 
@@ -1674,8 +1674,6 @@ CONTAINS
      INTEGER(IntKi),              INTENT(OUT)   :: ErrStat   ! Error code
      CHARACTER(*),                INTENT(OUT)   :: ErrMess   ! Error message
      INTEGER,                     INTENT(IN   ) :: P1
-    ! Local
-     TYPE(ElemRecType), POINTER :: tmp(:)
 
      IF ( mesh_debug ) print*,'Called MeshConstructElement_1PT'
      ErrStat = ErrID_None
@@ -1700,22 +1698,8 @@ CONTAINS
        Mesh%ElemTable(ELEMENT_POINT)%nelem = Mesh%ElemTable(ELEMENT_POINT)%nelem + 1
        Mesh%ElemTable(ELEMENT_POINT)%XElement = ELEMENT_POINT
 
-       IF ( Mesh%ElemTable(ELEMENT_POINT)%nelem .GE. Mesh%ElemTable(ELEMENT_POINT)%maxelem ) THEN
-!write(0,*)'>>>>>>>>>> bumping maxpoint',Mesh%ElemTable(ELEMENT_POINT)%maxelem
-         ALLOCATE(tmp(Mesh%ElemTable(ELEMENT_POINT)%maxelem+BUMPUP),sTAT=ErrStat)
-         IF (ErrStat /= 0) THEN
-            ErrStat = ErrID_Fatal
-            ErrMess = "MeshConstructElement_1PT: Couldn't allocate space for element table."
-            RETURN
-         END IF
-         
-         IF ( Mesh%ElemTable(ELEMENT_POINT)%nelem .GT. 1 ) &
-           tmp(1:Mesh%ElemTable(ELEMENT_POINT)%maxelem) = Mesh%ElemTable(ELEMENT_POINT)%Elements(1:Mesh%ElemTable(ELEMENT_POINT)%maxelem)
-         IF ( ASSOCIATED(Mesh%ElemTable(ELEMENT_POINT)%Elements) ) DEALLOCATE(Mesh%ElemTable(ELEMENT_POINT)%Elements)
-         Mesh%ElemTable(ELEMENT_POINT)%Elements => tmp
-         Mesh%ElemTable(ELEMENT_POINT)%maxelem = Mesh%ElemTable(ELEMENT_POINT)%maxelem + BUMPUP
-!write(0,*)'>>>>>>>>>> bumped maxpoint',Mesh%ElemTable(ELEMENT_POINT)%maxelem
-       ENDIF
+       CALL BumpupElementTable( Mesh, Xelement, ErrStat, ErrMess )
+       IF (ErrStat >= AbortErrLev ) RETURN
 
        ALLOCATE(Mesh%ElemTable(ELEMENT_POINT)%Elements(Mesh%ElemTable(ELEMENT_POINT)%nelem)%ElemNodes(1),sTAT=ErrStat)
          IF (ErrStat /= 0) THEN
@@ -1734,6 +1718,114 @@ CONTAINS
 
    END SUBROUTINE MeshConstructElement_1PT
 
+   SUBROUTINE BumpupElementTable_New( Mesh, Xelement, ErrStat, ErrMess )
+   ! bjj: I am getting weird errors with some models using gfortran (ivf is fine),
+   ! so I am implementing this method which does not just set a pointer, pointing to
+   ! a local variable. It actually copies the data twice, but allocates the pointer 
+   ! in the dataype.
+   
+      TYPE(MeshType),              INTENT(INOUT) :: Mesh      ! Mesh being constructed
+      INTEGER(IntKi),              INTENT(IN)    :: Xelement  ! See Element Names
+      INTEGER(IntKi),              INTENT(OUT)   :: ErrStat   ! Error code
+      CHARACTER(*),                INTENT(OUT)   :: ErrMess   ! Error message
+   
+         ! Local
+      TYPE(ElemRecType),             ALLOCATABLE :: tmp(:)
+      INTEGER                                    :: i 
+
+      ErrStat = ErrID_None
+      ErrMess = ""
+      
+   
+       IF ( Mesh%ElemTable(Xelement)%nelem .GE. Mesh%ElemTable(Xelement)%maxelem ) THEN
+!write(0,*)'>>>>>>>>>> bumping maxpoint',Mesh%ElemTable(Xelement)%maxelem
+         
+         IF (Mesh%ElemTable(Xelement)%maxelem .GT. 0 ) THEN 
+            
+               ! copy data in pointer to temp copy:
+            ALLOCATE ( tmp(Mesh%ElemTable(Xelement)%maxelem), STAT=ErrStat )
+            IF (ErrStat /= 0) THEN
+               ErrStat = ErrID_Fatal
+               ErrMess = "BumpupElementTable: Couldn't allocate space for element table copy."
+               RETURN
+            END IF
+            
+            DO i=1,Mesh%ElemTable(Xelement)%maxelem
+               CALL Mesh_MoveAlloc_ElemRecType( Mesh%ElemTable(Xelement)%Elements(i), tmp(i) )
+            END DO
+            
+         END IF
+         
+            ! deallocate the pointer, then reallocate to a larger size:
+         IF ( ASSOCIATED(Mesh%ElemTable(Xelement)%Elements) ) DEALLOCATE(Mesh%ElemTable(Xelement)%Elements)
+         
+         ALLOCATE( Mesh%ElemTable(Xelement)%Elements( Mesh%ElemTable(Xelement)%maxelem + BUMPUP ),STAT=ErrStat )   
+         IF (ErrStat /= 0) THEN
+            ErrStat = ErrID_Fatal
+            ErrMess = "BumpupElementTable: Couldn't allocate space for element table."
+            IF ( ALLOCATED(tmp) ) DEALLOCATE(tmp)
+            RETURN
+         END IF
+         
+            ! copy old data to the table pointer:         
+         DO i=1,Mesh%ElemTable(Xelement)%maxelem
+            CALL Mesh_MoveAlloc_ElemRecType( tmp(i), Mesh%ElemTable(Xelement)%Elements(i) )
+         END DO
+               
+         IF ( ALLOCATED(tmp) ) DEALLOCATE(tmp)
+         
+            ! set the new size of the element table:
+         Mesh%ElemTable(Xelement)%maxelem = Mesh%ElemTable(Xelement)%maxelem + BUMPUP  
+!write(0,*)'>>>>>>>>>> bumped maxpoint',Mesh%ElemTable(Xelement)%maxelem                  
+      END IF
+     
+   END SUBROUTINE BumpupElementTable_New
+   
+   SUBROUTINE BumpupElementTable( Mesh, Xelement, ErrStat, ErrMess )
+   ! This subroutine increases the allocated space for Mesh%ElemTable(Xelement)%Elements
+   ! if adding a new element will exceed the pre-allocated space.
+
+   ! bjj: this is the old method of increasing the element table size.
+   ! it was duplicated in MeshConstructElement_1PT and MeshConstructElement_2PT
+   ! I have made it a subroutine so we don't have to duplicate it anymore.
+   
+      TYPE(MeshType),              INTENT(INOUT) :: Mesh      ! Mesh being constructed
+      INTEGER(IntKi),              INTENT(IN)    :: Xelement  ! See Element Names
+      INTEGER(IntKi),              INTENT(OUT)   :: ErrStat   ! Error code
+      CHARACTER(*),                INTENT(OUT)   :: ErrMess   ! Error message
+   
+    ! Local
+     TYPE(ElemRecType),             POINTER      :: tmp(:)
+     INTEGER                                     :: i
+
+      ErrStat = ErrID_None
+      ErrMess = ""
+                     
+       IF ( Mesh%ElemTable(Xelement)%nelem .GE. Mesh%ElemTable(Xelement)%maxelem ) THEN
+!write(0,*)'>>>>>>>>>> bumping maxline2',Mesh%ElemTable(Xelement)%maxelem
+         ALLOCATE(tmp(Mesh%ElemTable(Xelement)%maxelem+BUMPUP),Stat=ErrStat)
+         IF (ErrStat /= 0) THEN
+            ErrStat = ErrID_Fatal
+            ErrMess = "BumpupElementTableOld: Couldn't allocate space for element table"
+            RETURN
+         END IF
+                     
+         !IF (Mesh%ElemTable(Xelement)%maxelem .GT. 0 ) &
+               ! tmp(1:Mesh%ElemTable(Xelement)%maxelem) = Mesh%ElemTable(Xelement)%Elements(1:Mesh%ElemTable(Xelement)%maxelem)
+         DO i=1,Mesh%ElemTable(Xelement)%maxelem
+            CALL Mesh_MoveAlloc_ElemRecType( Mesh%ElemTable(Xelement)%Elements(i), tmp(i) )
+         END DO
+                        
+         IF ( ASSOCIATED(Mesh%ElemTable(Xelement)%Elements) ) DEALLOCATE(Mesh%ElemTable(Xelement)%Elements)
+         Mesh%ElemTable(Xelement)%Elements => tmp
+         Mesh%ElemTable(Xelement)%maxelem = Mesh%ElemTable(Xelement)%maxelem + BUMPUP
+!write(0,*)'>>>>>>>>>> bumped maxline2',Mesh%ElemTable(Xelement)%maxelem
+       ENDIF       
+       
+       
+   END SUBROUTINE BumpupElementTable
+   
+   
    SUBROUTINE MeshConstructElement_2PT( Mesh, Xelement, ErrStat, ErrMess, P1, P2 )
      
       ! Given a mesh and an element name, construct 2-point line (line2) element whose 
@@ -1746,9 +1838,7 @@ CONTAINS
      INTEGER(IntKi),              INTENT(OUT)   :: ErrStat   ! Error code
      CHARACTER(*),                INTENT(OUT)   :: ErrMess   ! Error message
      INTEGER,                     INTENT(IN   ) :: P1,  P2
-    ! Local
-     TYPE(ElemRecType), POINTER :: tmp(:)
-
+     
      IF ( mesh_debug ) print*,'Called MeshConstructElement_2PT'
      ErrStat = ErrID_None
      ErrMess = ""
@@ -1776,22 +1866,9 @@ CONTAINS
        Mesh%ElemTable(ELEMENT_LINE2)%nelem = Mesh%ElemTable(ELEMENT_LINE2)%nelem + 1
        Mesh%ElemTable(ELEMENT_LINE2)%XElement = ELEMENT_LINE2
 
-       IF ( Mesh%ElemTable(ELEMENT_LINE2)%nelem .GE. Mesh%ElemTable(ELEMENT_LINE2)%maxelem ) THEN
-!write(0,*)'>>>>>>>>>> bumping maxline2',Mesh%ElemTable(ELEMENT_LINE2)%maxelem
-         ALLOCATE(tmp(Mesh%ElemTable(ELEMENT_LINE2)%maxelem+BUMPUP),Stat=ErrStat)
-         IF (ErrStat /= 0) THEN
-            ErrStat = ErrID_Fatal
-            ErrMess = "MeshConstructElement_2PT: Couldn't allocate space for element table"
-            RETURN
-         END IF
-            
-         IF ( Mesh%ElemTable(ELEMENT_LINE2)%nelem .GT. 1 ) &
-           tmp(1:Mesh%ElemTable(ELEMENT_LINE2)%maxelem) = Mesh%ElemTable(ELEMENT_LINE2)%Elements(1:Mesh%ElemTable(ELEMENT_LINE2)%maxelem)
-         IF ( ASSOCIATED(Mesh%ElemTable(ELEMENT_LINE2)%Elements) ) DEALLOCATE(Mesh%ElemTable(ELEMENT_LINE2)%Elements)
-         Mesh%ElemTable(ELEMENT_LINE2)%Elements => tmp
-         Mesh%ElemTable(ELEMENT_LINE2)%maxelem = Mesh%ElemTable(ELEMENT_LINE2)%maxelem + BUMPUP
-!write(0,*)'>>>>>>>>>> bumped maxline2',Mesh%ElemTable(ELEMENT_LINE2)%maxelem
-       ENDIF
+      CALL BumpupElementTable( Mesh, Xelement, ErrStat, ErrMess )
+      IF (ErrStat >= AbortErrLev) RETURN
+
        ALLOCATE(Mesh%ElemTable(ELEMENT_LINE2)%Elements(Mesh%ElemTable(ELEMENT_LINE2)%nelem)%ElemNodes(2),Stat=ErrStat)
          IF (ErrStat /= 0) THEN
             ErrStat = ErrID_Fatal
@@ -1986,7 +2063,7 @@ CONTAINS
       !   zero indicates start from the beginning, an integer between 1 and Mesh%Nelemlist returns that element,
       !   and MESH_NEXT means return the next element in traversal. On exit, CtrlCode contains the status of the 
       !   traversal in (zero or MESH_NOMOREELEMS). The routine optionally outputs the index of the element in the
-      !   mesh’s element list, the name of the element (see “Element Names”), and a pointer to the element.    
+      !   mesh's element list, the name of the element (see "Element Names"), and a pointer to the element.    
    
      TYPE(MeshType),              INTENT(INOUT) :: Mesh      ! Mesh being constructed
      INTEGER(IntKi),              INTENT(INOUT) :: CtrlCode  ! CtrlCode

@@ -22,8 +22,8 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-27 21:42:13 -0600 (Tue, 27 May 2014) $
-! (File) Revision #: $Rev: 400 $
+! File last committed: $Date: 2014-06-27 09:46:36 -0600 (Fri, 27 Jun 2014) $
+! (File) Revision #: $Rev: 463 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/SS_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE SS_Radiation
@@ -116,7 +116,7 @@ SUBROUTINE SS_Rad_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
       ErrMsg  = ""               
       
     UnSS  = -1
-    
+    N     =  0
       
     ! Open the .ss input file!
     CALL GetNewUnit( UnSS )
