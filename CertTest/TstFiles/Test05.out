@@ -1,5 +1,5 @@
 
-Predictions were generated on 02-Jul-2014 at 13:23:46 using FAST (v8.08.00c-bjj, 30-June-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 02-Jul-2014 at 20:59:58 using FAST (v8.08.00c-bjj, 30-June-2014), compiled for 32-bit systems using single precision
  linked with  NWTC Subroutine Library (v2.03.03b-bjj, 30-June-2014); ElastoDyn (v1.01.06b-bjj, 30-June-2014); InflowWind (v2.00.01b-bjj, 30-June-2014); AeroDyn (v14.02.01c-bjj, 30-June-2014); ServoDyn (v1.01.02a-bjj, 30-June-2014)
 
 Description from the FAST input file: FAST Certification Test #05: AWT-27CR2 with many DOFs with startup and shutdown and FF turbulence.

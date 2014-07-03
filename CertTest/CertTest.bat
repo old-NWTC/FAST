@@ -80,13 +80,13 @@ REM  FAST test sequence definition:
 @SET  TEST16=Test #16: SWRT with many DOFs with free yaw tail-furl and VS and EDC wind.  Time plots.
 @SET  TEST17=Test #17: SWRT with many DOFs with free yaw tail-furl and VS and FF turbulence.  PMF plots.
 @SET  TEST18=Test #18: NREL 5 MW Baseline Land-based Turbine
-@SET  TEST19=Test #19: NREL 5 MW Baseline Offshore Turbine with OC3 Monopile Configuration
-@SET  TEST20=Test #20: NREL 5 MW Baseline Offshore Turbine with OC3 Tripod Configuration
-@SET  TEST21=Test #21: NREL 5 MW Baseline Offshore Turbine with OC4 Jacket Configuration
-@SET  TEST22=Test #22: NREL 5 MW Baseline Offshore Turbine with ITI Barge Configuration
+@SET  TEST19=Test #19: NREL 5 MW Baseline Offshore Turbine with OC3-Monopile Configuration
+@SET  TEST20=Test #20: NREL 5 MW Baseline Offshore Turbine with OC3-Tripod Configuration
+@SET  TEST21=Test #21: NREL 5 MW Baseline Offshore Turbine with OC4-Jacket Configuration
+@SET  TEST22=Test #22: NREL 5 MW Baseline Offshore Turbine with ITI-Barge Configuration
 @SET  TEST23=Test #23: NREL 5 MW Baseline Offshore Turbine with MIT-NREL TLP Configuration
-@SET  TEST24=Test #24: NREL 5 MW Baseline Offshore Turbine with OC3 Hywind Configuration
-@SET  TEST25=Test #25: NREL 5 MW Baseline Offshore Turbine with OC4 DeepCwind Semi Configuration
+@SET  TEST24=Test #24: NREL 5 MW Baseline Offshore Turbine with OC3-Hywind Configuration
+@SET  TEST25=Test #25: NREL 5 MW Baseline Offshore Turbine with OC4-DeepCwind Semi-submersible Configuration
 
 @SET  DASHES=---------------------------------------------------------------------------------------------
 @SET  POUNDS=#############################################################################################
