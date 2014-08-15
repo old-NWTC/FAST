@@ -985,7 +985,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       REWIND( UnIn, IOSTAT=ErrStat2 )  
          IF (ErrStat2 /= 0_IntKi ) THEN
             CALL CheckError( ErrID_Fatal, 'Error rewinding file "'//TRIM(InputFile)//'".' )      
-            IF ( ErrStat >= AbortErrLev ) RETURN
+            RETURN
          END IF         
       
    END DO    

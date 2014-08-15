@@ -4041,6 +4041,7 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
          u_AD%InputMarkers(K)%Position(:,J)       = y_ED%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) + y_ED%BladeLn2Mesh(K)%Position(:,NodeNum) 
          u_AD%InputMarkers(K)%Orientation(:,:,J)  = y_ED%BladeLn2Mesh(K)%Orientation(:,:,NodeNum)
          u_AD%InputMarkers(K)%TranslationVel(:,J) = y_ED%BladeLn2Mesh(K)%TranslationVel(:,NodeNum)
+         u_AD%InputMarkers(K)%TranslationAcc(:,J) = y_ED%BladeLn2Mesh(K)%TranslationAcc(:,NodeNum)
                   
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
    END DO !K = 1,p%NumBl
@@ -4239,7 +4240,7 @@ SUBROUTINE WriteInputMeshesToFile(u_ED, u_SD, u_HD, u_MAP, u_AD, FileName, ErrSt
    CHARACTER(*)                           :: ErrMsg           ! Error message if ErrStat /= ErrID_None
    
    
-      !FileName = TRIM(p_FAST%OutFileRoot)//'_InputMeshes.bin'
+      !FileName = TRIM(p_FAST%OutFileRoot)//'.InputMeshes.bin'
    
       
    INTEGER(IntKi)           :: unOut
@@ -4299,7 +4300,7 @@ SUBROUTINE WriteMotionMeshesToFile(time, y_ED, u_SD, y_SD, u_HD, u_MAP, UnOut, E
    CHARACTER(*)                              :: ErrMsg           ! Error message if ErrStat /= ErrID_None
    
    
-      !FileName = TRIM(p_FAST%OutFileRoot)//'_InputMeshes.bin'
+      !FileName = TRIM(p_FAST%OutFileRoot)//'.InputMeshes.bin'
    REAL(R8Ki)               :: t
       
    INTEGER(IntKi)           :: K_local

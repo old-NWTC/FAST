@@ -1,6 +1,6 @@
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-07-01 13:36:55 -0600 (Tue, 01 Jul 2014) $
-! (File) Revision #: $Rev: 111 $
+! File last committed: $Date: 2014-08-06 15:02:05 -0600 (Wed, 06 Aug 2014) $
+! (File) Revision #: $Rev: 120 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroSubs.f90 $
 !**********************************************************************************************************************************
 MODULE AeroSubs
@@ -369,8 +369,9 @@ SUBROUTINE AD_GetInput(InitInp, P, x, xd, z, O, y, ErrStat, ErrMess )
       !----------------------------------------------------------------------------------------------
       P%TwrProps%PJM_Version = .FALSE.
 
-      P%TwrProps%TwrPotent = .FALSE.     ! We don't want to read the tower file!
-      P%TwrProps%TwrShadow = .FALSE.     ! We don't want to read the tower file!
+      P%TwrProps%TwrPotent   = .FALSE.     ! We don't want to read the tower file!
+      P%TwrProps%TwrShadow   = .FALSE.     ! We don't want to read the tower file!
+      P%TwrProps%CalcTwrAero = .FALSE.     ! We don't want to read the tower file!
 
          ! Read in the tower shadow deficit
       IF ( INDEX( 'FTft', Line(:1) ) > 0 )  THEN

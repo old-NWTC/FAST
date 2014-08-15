@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-07-01 13:36:55 -0600 (Tue, 01 Jul 2014) $
-! (File) Revision #: $Rev: 111 $
+! File last committed: $Date: 2014-08-15 11:34:51 -0600 (Fri, 15 Aug 2014) $
+! (File) Revision #: $Rev: 122 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE AeroDyn
@@ -31,7 +31,7 @@ MODULE AeroDyn
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: AD_Ver = ProgDesc( 'AeroDyn', 'v14.02.01c-bjj', '30-June-2014' )
+   TYPE(ProgDesc), PARAMETER            :: AD_Ver = ProgDesc( 'AeroDyn', 'v14.02.03a-bjj', '15-Aug-2014' )
 
       ! ..... Public Subroutines ............
 
@@ -39,7 +39,7 @@ MODULE AeroDyn
    PUBLIC :: AD_End                            ! Ending routine (includes clean up)
 
    PUBLIC :: AD_UpdateStates                   ! Loose coupling routine for solving for constraint states, integrating
-                                                    !   continuous states, and updating discrete states
+                                               !   continuous states, and updating discrete states
    PUBLIC :: AD_CalcOutput                     ! Routine for computing outputs
 
    PUBLIC :: AD_CalcConstrStateResidual        ! Tight coupling routine for returning the constraint state residual
@@ -483,6 +483,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                      ,NNodes         = p%Element%NELM         &
                      ,Orientation    = .TRUE.                 &
                      ,TranslationVel = .TRUE.                 &
+                     ,TranslationAcc = .TRUE.                 &  !bjj: added for MHK turbines
                      ,RotationVel    = .TRUE.                 &
                      ,nScalars       = 2                      &  ! scalar 1 is W, scalar 2 is Alpha
                      ,ErrStat        = ErrStatLcl             &

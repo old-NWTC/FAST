@@ -33,7 +33,7 @@ MODULE ElastoDyn_Parameters
 
    USE NWTC_Library
 
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.06b-bjj', '30-June-2014' )
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.07a-bjj', '15-Aug-2014' )
    CHARACTER(*),   PARAMETER  :: ED_Nickname = 'ED'
    
    REAL(ReKi), PARAMETER            :: SmallAngleLimit_Deg  =  15.0                     ! Largest input angle considered "small" (used as a check on input data), degrees
@@ -2495,7 +2495,14 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
                ! Translational Velocity
             y%BladeLn2Mesh(K)%TranslationVel(1,NodeNum) =     OtherState%RtHS%LinVelES(1,J,K)
             y%BladeLn2Mesh(K)%TranslationVel(2,NodeNum) = -1.*OtherState%RtHS%LinVelES(3,J,K)
-            y%BladeLn2Mesh(K)%TranslationVel(3,NodeNum) =     OtherState%RtHS%LinVelES(2,J,K)                                             
+            y%BladeLn2Mesh(K)%TranslationVel(3,NodeNum) =     OtherState%RtHS%LinVelES(2,J,K)  
+            
+            
+               ! Translational Acceleration
+            y%BladeLn2Mesh(K)%TranslationAcc(1,NodeNum) =     LinAccES(1,J,K)
+            y%BladeLn2Mesh(K)%TranslationAcc(2,NodeNum) = -1.*LinAccES(3,J,K)
+            y%BladeLn2Mesh(K)%TranslationAcc(3,NodeNum) =     LinAccES(2,J,K)  
+            
             
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
       
@@ -2504,6 +2511,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) =  y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum-1) 
       y%BladeLn2Mesh(K)%Orientation(  :,:,NodeNum) =  y%BladeLn2Mesh(K)%Orientation(  :,:,NodeNum-1) 
       y%BladeLn2Mesh(K)%TranslationVel( :,NodeNum) =  y%BladeLn2Mesh(K)%TranslationVel( :,NodeNum-1)
+      y%BladeLn2Mesh(K)%TranslationAcc( :,NodeNum) =  y%BladeLn2Mesh(K)%TranslationAcc( :,NodeNum-1) !TipNode?
       
       
          ! hub: (for now, I'm setting it to the value of the first node)
@@ -2511,6 +2519,7 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
       y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum) =  y%BladeLn2Mesh(K)%TranslationDisp(:,NodeNum-p%TipNode) 
       y%BladeLn2Mesh(K)%Orientation(  :,:,NodeNum) =  y%BladeLn2Mesh(K)%Orientation(  :,:,NodeNum-p%TipNode) 
       y%BladeLn2Mesh(K)%TranslationVel( :,NodeNum) =  y%BladeLn2Mesh(K)%TranslationVel( :,NodeNum-p%TipNode)
+      y%BladeLn2Mesh(K)%TranslationAcc( :,NodeNum) =  y%BladeLn2Mesh(K)%TranslationAcc( :,NodeNum-p%TipNode)
       
       
    END DO !K = 1,p%NumBl
@@ -12997,6 +13006,7 @@ SUBROUTINE ED_AllocOutput( u, y, p, ErrStat, ErrMsg )
                     , TranslationDisp = .TRUE.    &
                     , Orientation     = .TRUE.    &
                     , TranslationVel  = .TRUE.    &
+                    , TranslationAcc  = .TRUE.    &  
                     , ErrStat  = ErrStat2         &
                     , ErrMess  = ErrMsg2          )  ! automatically sets    y%BladeLn2Mesh(K)%RemapFlag = .TRUE.
    
