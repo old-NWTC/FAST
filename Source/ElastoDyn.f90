@@ -2499,9 +2499,9 @@ SUBROUTINE ED_CalcOutput( t, u, p, x, xd, z, OtherState, y, ErrStat, ErrMsg )
             
             
                ! Translational Acceleration
-            y%BladeLn2Mesh(K)%TranslationAcc(1,NodeNum) =     LinAccES(1,J,K)
-            y%BladeLn2Mesh(K)%TranslationAcc(2,NodeNum) = -1.*LinAccES(3,J,K)
-            y%BladeLn2Mesh(K)%TranslationAcc(3,NodeNum) =     LinAccES(2,J,K)  
+            y%BladeLn2Mesh(K)%TranslationAcc(1,NodeNum) =     LinAccES(1,K,J)
+            y%BladeLn2Mesh(K)%TranslationAcc(2,NodeNum) = -1.*LinAccES(3,K,J)
+            y%BladeLn2Mesh(K)%TranslationAcc(3,NodeNum) =     LinAccES(2,K,J)  
             
             
       END DO !J = 1,p%BldNodes ! Loop through the blade nodes / elements
