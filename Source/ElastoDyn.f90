@@ -33,7 +33,7 @@ MODULE ElastoDyn_Parameters
 
    USE NWTC_Library
 
-   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.07a-bjj', '15-Aug-2014' )
+   TYPE(ProgDesc), PARAMETER  :: ED_Ver = ProgDesc( 'ElastoDyn', 'v1.01.07a-bjj', '18-Sept-2014' )
    CHARACTER(*),   PARAMETER  :: ED_Nickname = 'ED'
    
    REAL(ReKi), PARAMETER            :: SmallAngleLimit_Deg  =  15.0                     ! Largest input angle considered "small" (used as a check on input data), degrees
@@ -7549,7 +7549,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
    CALL ReadVar( UnIn, InputFile, InputFileData%GBoxEff, "GBoxEff", "Gearbox efficiency (%)", ErrStat2, ErrMsg2, UnEc)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF ( ErrStat >= AbortErrLev ) RETURN
-   InputFileData%GBoxEff = InputFileData%GBoxEff*0.01
+   InputFileData%GBoxEff = InputFileData%GBoxEff*0.01_ReKi
 
       ! GBRatio - Gearbox ratio (-):
    CALL ReadVar( UnIn, InputFile, InputFileData%GBRatio, "GBRatio", "Gearbox ratio (-)", ErrStat2, ErrMsg2, UnEc)
