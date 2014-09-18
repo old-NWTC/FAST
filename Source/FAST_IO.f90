@@ -4152,6 +4152,7 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
    InitInData_AD%OutRootName  = p_FAST%OutFileRoot
    InitInData_AD%WrSumFile    = p_FAST%SumPrint      
    InitInData_AD%NumBl        = InitOutData_ED%NumBl
+   InitInData_AD%UseDWM       = .FALSE.
    
       ! Hub position and orientation (relative here, but does not need to be)
 

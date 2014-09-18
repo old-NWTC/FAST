@@ -3952,7 +3952,7 @@ SUBROUTINE ValidateModeShapeCoeffs( Coeffs, ShpDesc, ErrStat, ErrMsg )
    Displ = SUM( Coeffs )
 ! bjj this new check seems to be a bit too restrictive for the input data:
 !   IF ( .NOT. EqualRealNos( Displ, 1.0_ReKi ) ) THEN
-   IF ( ABS( Displ - 1.0_ReKi ) > 0.001_ReKi ) THEN
+   IF ( ABS( Displ - 1.0_ReKi ) > 0.0015_ReKi ) THEN
       ErrStat = ErrID_Fatal
       ErrMsg  = '  Mode shape coefficients for '//TRIM(ShpDesc)//' must add to 1.0.'
    ELSE
