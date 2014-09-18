@@ -69,6 +69,7 @@ SET NETLIB_Loc=%FAST_Loc%\dependencies\NetLib
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
 SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
+SET DWM_Loc=%AD_Loc%
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
 SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
@@ -79,13 +80,14 @@ SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 
 SET MAP_Include_Lib=%MAP_Loc%\map_win32.lib
 SET HD_Reg_Loc=%HD_Loc%
+SET IfW_Reg_Loc=%IfW_Loc%
 SET IceF_RanLux_Loc=%IceF_Loc%
 
 REM ----------------------------------------------------------------------------
 REM The following script changes the above paths for Bonnie Jonkman; other users
-REM    can ignore these lines
-IF /I "%2"=="bjonkman" CALL Set_FAST_paths.bat
-IF /I "%3"=="bjonkman" CALL Set_FAST_paths.bat
+REM    can ignore these lines or create their own Set_FAST_paths.bat file
+IF /I "%2"=="dev" CALL Set_FAST_paths.bat
+IF /I "%3"=="dev" CALL Set_FAST_paths.bat
 REM ----------------------------------------------------------------------------
 
 
@@ -141,6 +143,11 @@ SET AD_SOURCES=^
  "%AD_Loc%\GenSubs.f90"^
  "%AD_Loc%\AeroSubs.f90"^
  "%AD_Loc%\AeroDyn.f90"
+
+SET DWM_SOURCES=^
+ "%DWM_Loc%\DWM_Types.f90"^
+ "%DWM_Loc%\DWM_Wake_Sub_ver2.f90"^
+ "%DWM_Loc%\DWM.f90"
 
 
 SET ED_SOURCES=^
@@ -260,7 +267,13 @@ CALL :RunRegistry_IfW InflowWind
 ECHO %Lines%
 SET CURR_LOC=%AD_Loc%
 SET ModuleName=AeroDyn
-%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Loc%"
+%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%DWM_Loc%"
+MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
+
+ECHO %Lines%
+SET CURR_LOC=%DWM_Loc%
+SET ModuleName=DWM
+%REGISTRY% "%CURR_LOC%\Registry-DWM.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 
 
@@ -340,10 +353,18 @@ ECHO Compiling NWTC Library:
 ifort %COMPOPTS% %NWTC_SOURCES%  /Qmkl:sequential  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
 
+
 ECHO %Lines%
 ECHO Compiling InflowWind:
 ifort %COMPOPTS% %IfW_SOURCES%  /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
 IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
+
+ECHO %Lines%
+ECHO Compiling DWM:
+ifort %COMPOPTS% %DWM_SOURCES%   /c /object:%INTER_DIR%\ /module:%INTER_DIR%\
+IF %ERRORLEVEL% NEQ 0 GOTO checkError
+
 
 ECHO %Lines%
 ECHO Compiling AeroDyn:
@@ -425,19 +446,19 @@ REM ----------------------------------------------------------------------------
 
 :RunRegistry_HD
 SET ModuleName=%1
-%REGISTRY% %HD_Reg_Loc%\%ModuleName%.txt -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+%REGISTRY% %HD_Reg_Loc%\%ModuleName%.txt -I "%NWTC_Lib_Loc%" -I "%HD_Reg_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 EXIT /B
 
 :RunRegistry_fmt1
 SET ModuleName=%1
-%REGISTRY% %CURR_LOC%\%ModuleName%_Registry.txt -I %NWTC_Lib_Loc%
+%REGISTRY% %CURR_LOC%\%ModuleName%_Registry.txt -I "%NWTC_Lib_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 EXIT /B
 
 :RunRegistry_IfW
 SET ModuleName=%1
-%REGISTRY% "%CURR_LOC%\Reg-%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Loc%"
+%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"
 MOVE /Y "%ModuleName%_Types.f90" "%CURR_LOC%"
 EXIT /B
 
@@ -458,13 +479,15 @@ SET NETLIB_Loc=
 SET ED_Loc=
 SET SrvD_Loc=
 SET AD_Loc=
+SET DWM_Loc=
 SET IfW_Loc=
+SET IfW_Reg_Loc=
 SET HD_Loc=
+SET HD_Reg_Loc=
 SET SD_Loc=
 SET MAP_Loc=
 SET FAST_Loc=
 SET MAP_Include_Lib=
-SET HD_Reg_Loc=
 SET FEAM_Loc=
 SET IceF_Loc=
 SET IceF_RanLux_Loc=
@@ -472,6 +495,7 @@ SET IceF_RanLux_Loc=
 SET NWTC_SOURCES=
 SET IfW_SOURCES=
 SET AD_SOURCES=
+SET DWM_SOURCES=
 SET ED_SOURCES=
 SET HD_SOURCES=
 SET SrvD_SOURCES=

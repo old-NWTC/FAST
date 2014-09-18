@@ -26,6 +26,7 @@ SET NWTC_Lib_Loc=%FAST_Loc%\dependencies\NWTC_Library
 SET ED_Loc=%FAST_Loc%\dependencies\ElastoDyn
 SET SrvD_Loc=%FAST_Loc%\dependencies\ServoDyn
 SET AD_Loc=%FAST_Loc%\dependencies\AeroDyn
+SET DWM_Loc=%AD_Loc%\DWM
 SET IfW_Loc=%FAST_Loc%\dependencies\InflowWind
 SET HD_Loc=%FAST_Loc%\dependencies\HydroDyn
 SET SD_Loc=%FAST_Loc%\dependencies\SubDyn
@@ -36,8 +37,9 @@ SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 
 SET MAP_Include_Lib=%MAP_Loc%\map.lib
 SET HD_Reg_Loc=%HD_Loc%
+SET IfW_Reg_Loc=%IfW_Loc%
 
-IF /I "%2"=="bjonkman" CALL ..\Set_FAST_paths.bat
+IF /I "%2"=="dev" CALL ..\Set_FAST_paths.bat
 
 SET ModuleName=%1
 
@@ -63,15 +65,19 @@ GOTO checkError
 :IfW_FFWind
 :IfW_HHWind
 SET CURR_LOC=%IfW_Loc%
-%REGISTRY% %CURR_LOC%\Reg-%ModuleName%.txt -I %NWTC_Lib_Loc% -I %IfW_Loc%
+%REGISTRY% %IfW_Reg_Loc%\%ModuleName%.txt -I %NWTC_Lib_Loc% -I %IfW_Reg_Loc%
 GOTO checkError
 
 
 :AeroDyn
 SET CURR_LOC=%AD_Loc%
-%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I %NWTC_Lib_Loc% -I %IfW_Loc% -I %AD_Loc%
+%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I %NWTC_Lib_Loc% -I %IfW_Reg_Loc% -I %AD_Loc% -I %DWM_Loc%
 GOTO checkError
 
+:DWM
+SET CURR_LOC=%DWM_Loc%
+%REGISTRY% "%CURR_LOC%\Registry-DWM.txt" -I %NWTC_Lib_Loc% -I %IfW_Reg_Loc%
+GOTO checkError
 
 :HydroDyn
 :Current
@@ -142,6 +148,7 @@ SET NWTC_Lib_Loc=
 SET ED_Loc=
 SET SrvD_Loc=
 SET AD_Loc=
+SET DWM_Loc=
 SET IfW_Loc=
 SET HD_Loc=
 SET SD_Loc=
@@ -152,6 +159,7 @@ SET ID_Loc=
 SET FAST_Loc=
 SET MAP_Include_Lib=
 SET HD_Reg_Loc=
+SET IfW_Reg_Loc=
 
 SET ModuleName=
 SET CURR_LOC=

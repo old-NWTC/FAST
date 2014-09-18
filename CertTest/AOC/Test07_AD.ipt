@@ -16,11 +16,11 @@ PRANDtl                                HLModel  - Hub-loss model (EQUIL only) [P
    1.4639e-5                           KinVisc  - Kinematic air viscosity (m^2/sec)
    0.005                               DTAero   - Time interval for aerodynamic calculations (sec)
    5                                   NumFoil  - Number of airfoil files (-)
-"AeroData/S814_1.DAT"                  FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
-"AeroData/S814_15.DAT"
-"AeroData/S812_15.DAT"
-"AeroData/S812_2.DAT"
-"AeroData/S813_15.DAT"
+"AeroData/S814_1.dat"                  FoilNm   - Names of the airfoil files [NumFoil lines] (quoted strings)
+"AeroData/S814_15.dat"
+"AeroData/S812_15.dat"
+"AeroData/S812_2.dat"
+"AeroData/S813_15.dat"
   10                                   BldNodes - Number of blade nodes used for analysis (-)
 RNodes   AeroTwst DRNodes Chord NFoil PrnElm
 0.5150   7.690  0.4700  0.494   1   NOPRINT

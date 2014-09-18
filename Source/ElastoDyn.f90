@@ -1401,7 +1401,7 @@ SUBROUTINE ED_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOut, E
    
    
       ! Initialize other states:
-   CALL Init_OtherStates( OtherState, p, x, InputFileData, ErrStat2, ErrMsg2 )    ! initialize the other states
+   CALL Init_OtherStates( OtherState, p, x, InputFileData, ErrStat2, ErrMsg2 )    ! initialize the other states (must do this after ED_SetParameters)
       CALL CheckError( ErrStat2, ErrMsg2 )
       IF (ErrStat >= AbortErrLev) RETURN
       
@@ -2817,6 +2817,8 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
 ! Tight coupling routine for computing derivatives of continuous states
 !..................................................................................................................................
 
+   USE NWTC_LAPACK
+
    REAL(DbKi),                   INTENT(IN   )  :: t           ! Current simulation time in seconds
    TYPE(ED_InputType),           INTENT(IN   )  :: u           ! Inputs at t
    TYPE(ED_ParameterType),       INTENT(IN   )  :: p           ! Parameters
@@ -2829,7 +2831,7 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
    CHARACTER(*),                 INTENT(  OUT)  :: ErrMsg      ! Error message if ErrStat /= ErrID_None
 
       !LOCAL variables
-   REAL(ReKi)                   :: SolnVec    (p%NDOF)                             ! Solution vector found by solving the equations of motion
+!   REAL(ReKi)                   :: SolnVec    (p%NDOF)         ! Solution vector found by solving the equations of motion
    INTEGER(IntKi), PARAMETER    :: SgnPrvLSTQ = 1              ! The sign of the low-speed shaft torque from the previous call to RtHS().  This is calculated at the end of RtHS().  NOTE: The low-speed shaft torque is assumed to be positive at the beginning of the run!
    LOGICAL, PARAMETER           :: UpdateValues  = .TRUE.      ! determines if the OtherState values need to be updated
       
@@ -2878,8 +2880,8 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
    
    CALL FillAugMat( p, x, OtherState%CoordSys, u, OtherState%RtHS, OtherState%AugMat )
    
-      ! make a copy for the routine that fixes the HSSBrTrq
-   OtherState%AugMatOut  = OtherState%AugMat
+!      ! make a copy for the routine that fixes the HSSBrTrq
+!   OtherState%AugMatOut  = OtherState%AugMat
 
 
    ! Invert the matrix to solve for the accelerations. The accelerations are returned by Gauss() in the first NActvDOF elements
@@ -2888,12 +2890,23 @@ SUBROUTINE ED_CalcContStateDeriv( t, u, p, x, xd, z, OtherState, dxdt, ErrStat, 
    ! NOTE: QD2T( SrtPS(1:NActvDOF) ) cannot be sent directly because arrays sections with vector subscripts must not be used 
    !   in INTENT(OUT) arguments.
 
-
-   CALL GaussElim( OtherState%AugMat( p%DOFs%SrtPS(    1: p%DOFs%NActvDOF   ),     &
-                                      p%DOFs%SrtPSNAUG(1:(p%DOFs%NActvDOF+1)) ),   &
-                                      p%DOFs%NActvDOF,  SolnVec, ErrStat2, ErrMsg2 )
-      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ED_CalcContStateDeriv')
-      IF ( ErrStat >= AbortErrLev ) RETURN
+   IF ( p%DOFs%NActvDOF > 0 ) THEN
+      OtherState%AugMat_factor = OtherState%AugMat( p%DOFs%SrtPS( 1:p%DOFs%NActvDOF ), p%DOFs%SrtPSNAUG(1:p%DOFs%NActvDOF) )
+      OtherState%SolnVec       = OtherState%AugMat( p%DOFs%SrtPS( 1:p%DOFs%NActvDOF ), p%DOFs%SrtPSNAUG(1+p%DOFs%NActvDOF) )
+   
+      CALL LAPACK_getrf( M=p%DOFs%NActvDOF, N=p%DOFs%NActvDOF, A=OtherState%AugMat_factor, IPIV=OtherState%AugMat_pivot, ErrStat=ErrStat2, ErrMsg=ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ED_CalcContStateDeriv')   
+         IF ( ErrStat >= AbortErrLev ) RETURN
+      
+      CALL LAPACK_getrs( TRANS='N',N=p%DOFs%NActvDOF, A=OtherState%AugMat_factor,IPIV=OtherState%AugMat_pivot, B=OtherState%SolnVec, ErrStat=ErrStat2, ErrMsg=ErrMsg2)
+   
+      !CALL GaussElim( OtherState%AugMat( p%DOFs%SrtPS(    1: p%DOFs%NActvDOF   ),     &
+      !                                   p%DOFs%SrtPSNAUG(1:(p%DOFs%NActvDOF+1)) ),   &
+      !                                   p%DOFs%NActvDOF,  SolnVec, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'ED_CalcContStateDeriv')
+         IF ( ErrStat >= AbortErrLev ) RETURN
+   END IF
+   
 
    !bjj: because the deriv is INTENT(OUT), this is reallocated each time:
 IF (.NOT. ALLOCATED(dxdt%qt) ) THEN
@@ -2912,7 +2925,7 @@ END IF
    
    dxdt%QDT = 0.0
    DO I = 1,p%DOFs%NActvDOF ! Loop through all active (enabled) DOFs
-      dxdt%QDT(p%DOFs%SrtPS(I)) = SolnVec(I)    ! dxdt%QDT = OtherState%QD2T
+      dxdt%QDT(p%DOFs%SrtPS(I)) = OtherState%SolnVec(I)    ! dxdt%QDT = OtherState%QD2T
    ENDDO             ! I - All active (enabled) DOFs
 
    OtherState%QD2T = dxdt%QDT
@@ -8226,10 +8239,16 @@ SUBROUTINE Init_OtherStates( OtherState, p, x, InputFileData, ErrStat, ErrMsg  )
       IF (ErrStat /= ErrID_None) RETURN
    OtherState%BlPitch = InputFileData%BlPitch(1:p%NumBl)
 
-   CALL AllocAry( OtherState%AugMat,    p%NDOF,          p%NAug, 'AugMat',    ErrStat, ErrMsg )
+   CALL AllocAry( OtherState%AugMat,       p%NDOF,          p%NAug,          'AugMat',       ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN                                    
+!   CALL AllocAry( OtherState%AugMatOut,    p%NDOF,          p%NAug,          'AugMatOut',    ErrStat, ErrMsg )
+!      IF ( ErrStat /= ErrID_None ) RETURN 
+   CALL AllocAry( OtherState%SolnVec,      p%DOFs%NActvDOF,                  'SolnVec',      ErrStat, ErrMsg )
       IF ( ErrStat /= ErrID_None ) RETURN
-   CALL AllocAry( OtherState%AugMatOut,    p%NDOF,       p%NAug, 'AugMatOut',    ErrStat, ErrMsg )
-      IF ( ErrStat /= ErrID_None ) RETURN 
+   CALL AllocAry( OtherState%AugMat_pivot, p%DOFs%NActvDOF,                  'AugMat_pivot', ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
+   CALL AllocAry( OtherState%AugMat_factor,p%DOFs%NActvDOF, p%DOFs%NActvDOF, 'AugMat_factor',ErrStat, ErrMsg )
+      IF ( ErrStat /= ErrID_None ) RETURN
 
    
       ! Now initialize the IC array = (/NMX, NMX-1, ... , 1 /)

@@ -7,7 +7,7 @@
 # This makefile works with mingw32-make.exe.                                     #
 #                                                                                #
 # It was designed to be used with:                                               #
-#     FAST                    (v8.08.00c-bjj, 30-Jun-2014)                       #
+#     FAST                    (v8.09.00a-bjj, 30-Sept-2014)                      #
 #                                                                                #
 # Older versions of the source code may not work with this makefile.             #
 #================================================================================#
@@ -17,9 +17,7 @@ BITS = 32
 #BITS = 64
 
 
-   # Location of source files for FAST, AeroDyn, InflowWind, and the NWTC Library.
-   # You will probably need to change these for your system.
-
+   # Location of source files for FAST, and its modules.
 
 FAST_DIR     = ../Source
 
@@ -36,9 +34,13 @@ FEAM_DIR     = $(FAST_DIR)/dependencies/FEAMooring
 IceF_DIR     = $(FAST_DIR)/dependencies/IceFloe
 IceD_DIR     = $(FAST_DIR)/dependencies/IceDyn
 
+DWM_DIR      = $(AD_DIR)
 HD_DIR_Reg   = $(HD_DIR)
+IfW_DIR_Reg  = $(IfW_DIR)
 BIN_DIR      = ../bin
 
+   # Names and locations of the Registry, MAP libraries, and instructions for linking with LAPACK.
+   # You will probably need to change these for your system.
 
 ifeq ($(OS),Windows_NT)
    Registry     = $(BIN_DIR)/Registry_win32.exe
@@ -141,11 +143,17 @@ IfW_SOURCES =            \
 	InflowWind_Types.f90  \
 	InflowWind.f90
 
-AD_SOURCES =            \
-	AeroDyn_Types.f90    \
-	GenSubs.f90          \
-	AeroSubs.f90         \
+AD_SOURCES =             \
+	AeroDyn_Types.f90     \
+	GenSubs.f90           \
+	AeroSubs.f90          \
 	AeroDyn.f90
+
+DWM_SOURCES =            \
+	DWM_Types.f90         \
+	DWM.f90               \
+	DWM_Wake_Sub_ver2.f90
+
 
 HD_SOURCES =                 \
 	fftpack.f                 \
@@ -230,18 +238,18 @@ FAST_SOURCES =          \
 	FAST_IO.f90          \
 	FAST_Prog.f90
 
-vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(IceF_DIR) $(IceD_DIR)
+vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR)
 vpath %.f   $(HD_DIR) $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
-vpath %.txt $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR)
+vpath %.txt $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR)
 vpath %.inp $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90     $(IceF_DIR)
 vpath %     $(IceF_DIR)
 
 
-ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES)
+ALL_SOURCES = $(FAST_SOURCES) $(LIB_SOURCES) $(NETLIB_SOURCES) $(IfW_SOURCES) $(AD_SOURCES) $(SrvD_SOURCES) $(ED_SOURCES) $(HD_SOURCES) $(SD_SOURCES) $(MAP_SOURCES) $(FEAM_SOURCES) $(IceF_SOURCES) $(IceD_SOURCES) $(DWM_SOURCES)
 tmp_objs1   = $(ALL_SOURCES:.f90=.obj)
 tmp_objs2   = $(tmp_objs1:.F90=.obj)       #note the upper case here (from IceFloe)
 ALL_OBJS    = $(tmp_objs2:.f=.obj)
@@ -274,8 +282,10 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 ServoDyn_Types.f90:
 	$(Registry) ServoDyn_Registry.txt -I $(NWTC_Lib_DIR)
 
+
 ElastoDyn_Types.f90:
 	$(Registry) ElastoDyn_Registry.txt -I $(NWTC_Lib_DIR)
+
 
 Current_Types.f90:
 	$(Registry) Current.txt -I $(NWTC_Lib_DIR)
@@ -302,21 +312,25 @@ Morison_Types.f90:
 	$(Registry) Morison.txt -I $(NWTC_Lib_DIR)
 
 HydroDyn_Types.f90:
-	$(Registry) HydroDyn.txt -I $(NWTC_Lib_DIR) -I $(HD_DIR)
+	$(Registry) HydroDyn.txt -I $(NWTC_Lib_DIR) -I $(HD_DIR_Reg)
 
 
 AeroDyn_Types.f90:
-	$(Registry) Registry-AD.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
+	$(Registry) Registry-AD.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I(DWM_DIR)
+
+DWM_Types.f90:
+	$(Registry) Registry-DWM.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
 
 
 IfW_HHWind_Types.f90:
-	$(Registry) Reg-IfW_HHWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
+	$(Registry) IfW_HHWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
 
 IfW_FFWind_Types.f90:
-	$(Registry) Reg-IfW_FFWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
+	$(Registry) IfW_FFWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
 
 InflowWind_Types.f90:
-	$(Registry) Reg-InflowWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR)
+	$(Registry) InflowWind.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
+
 
 SubDyn_Types.f90:
 	$(Registry) SubDyn_Registry.txt -I $(NWTC_Lib_DIR)
@@ -336,122 +350,129 @@ IceDyn_Types.f90:
 
    #  Dependency rules.
 #NWTC Library dependency rules:
-NWTC_Base.obj:           $(PREC).obj
-$(SYS_FILE).obj:         NWTC_Base.obj
-NWTC_Library_Types.obj:  $(SYS_FILE).obj
-NWTC_IO.obj:             NWTC_Library_Types.obj
-NWTC_Num.obj:            NWTC_IO.obj
-ModMesh_Types.obj:       NWTC_Num.obj
-ModMesh.obj:             ModMesh_Types.obj
-ModMesh_Mapping.obj:     ModMesh.obj NWTC_LAPACK.obj
-NWTC_Library.obj:        ModMesh.obj  ModMesh_Mapping.obj
+NWTC_Base.obj:              $(PREC).obj
+$(SYS_FILE).obj:            NWTC_Base.obj
+NWTC_Library_Types.obj:     $(SYS_FILE).obj
+NWTC_IO.obj:                NWTC_Library_Types.obj
+NWTC_Num.obj:               NWTC_IO.obj
+ModMesh_Types.obj:          NWTC_Num.obj
+ModMesh.obj:                ModMesh_Types.obj
+ModMesh_Mapping.obj:        ModMesh.obj NWTC_LAPACK.obj
+NWTC_Library.obj:           ModMesh.obj  ModMesh_Mapping.obj
 
-NWTC_LAPACK.obj:         NWTC_Base.obj
-NWTC_ScaLAPACK.obj:      NWTC_Base.obj dlasrt2.obj slasrt2.obj
+NWTC_LAPACK.obj:            NWTC_Base.obj
+NWTC_ScaLAPACK.obj:         NWTC_Base.obj dlasrt2.obj slasrt2.obj
 
 
 #InflowWind dependency rules:
-IfW_HHWind_Types.obj:    NWTC_Library.obj
-IfW_HHWind.obj:          IfW_HHWind_Types.obj
-IfW_FFWind_Types.obj:    NWTC_Library.obj
-IfW_FFWind.obj:          IfW_FFWind_Types.obj
-InflowWind_Types.obj:    NWTC_Library.obj  IfW_FFWind_Types.obj  IfW_HHWind_Types.obj
-InflowWind_Subs.obj:     InflowWind_Types.obj IfW_FFWind.obj  IfW_HHWind.obj
-InflowWind.obj:          InflowWind_Subs.obj
+IfW_HHWind_Types.obj:       NWTC_Library.obj  IfW_HHWind.txt
+IfW_HHWind.obj:             IfW_HHWind_Types.obj
+IfW_FFWind_Types.obj:       NWTC_Library.obj  IfW_FFWind.txt
+IfW_FFWind.obj:             IfW_FFWind_Types.obj
+InflowWind_Types.obj:       NWTC_Library.obj  IfW_FFWind_Types.obj  IfW_HHWind_Types.obj  InflowWind.txt
+InflowWind_Subs.obj:        InflowWind_Types.obj IfW_FFWind.obj  IfW_HHWind.obj
+InflowWind.obj:             InflowWind_Subs.obj
 
 
 #AeroDyn dependency rules:
-AeroDyn_Types.obj:       NWTC_Library.obj  InflowWind_Types.obj
-GenSubs.obj:             NWTC_Library.obj  AeroDyn_Types.obj
-AeroSubs.obj:            NWTC_Library.obj  AeroDyn_Types.obj InflowWind.obj GenSubs.obj
-AeroDyn.obj:             AeroDyn_Types.obj AeroSubs.obj  GenSubs.obj  InflowWind.obj
+AeroDyn_Types.obj:          NWTC_Library.obj  InflowWind_Types.obj  DWM_Types.obj  Registry-AD.txt
+GenSubs.obj:                NWTC_Library.obj  AeroDyn_Types.obj
+AeroSubs.obj:               NWTC_Library.obj  AeroDyn_Types.obj InflowWind.obj GenSubs.obj
+AeroDyn.obj:                AeroDyn_Types.obj AeroSubs.obj  GenSubs.obj  InflowWind.obj DWM.obj DWM_Types.obj
+
+#DWM dependency rules:
+DWM_Types.obj:              NWTC_Library.obj  Registry-DWM.txt
+DWM_Wake_Sub_ver2.obj:      NWTC_Library.obj DWM_Types.obj
+DWM.obj:                    NWTC_Library.obj DWM_Types.obj DWM_Wake_Sub_ver2.obj
 
 
 #HydroDyn dependency rules:
 fftpack.obj:                NWTC_Library.obj
 FFTMod.obj:                 NWTC_Library.obj  fftpack.obj
 
-SS_Radiation_Types.obj:     NWTC_Library.obj
+SS_Radiation_Types.obj:     NWTC_Library.obj  SS_Radiation.txt
 SS_Radiation.obj:           SS_Radiation_Types.obj
 
-Waves_Types.obj:            NWTC_Library.obj
+Waves2_Types.obj:           NWTC_Library.obj  Waves2.txt
+Waves_Types.obj:            NWTC_Library.obj  Waves.txt
 Waves.obj:                  Waves_Types.obj  FFTMod.obj
 
-Current_Types.obj:          NWTC_Library.obj
+Current_Types.obj:          NWTC_Library.obj  Current.txt
 Current.obj:                Current_Types.obj
 
-Morison_Types.obj:          NWTC_Library.obj
+Morison_Types.obj:          NWTC_Library.obj  Morison.txt
 Morison_Output.obj:         Morison_Types.obj Waves.obj
 Morison.obj:                Morison_Types.obj Morison_Output.obj
 
-Conv_Radiation_Types.obj:   NWTC_Library.obj
+Conv_Radiation_Types.obj:   NWTC_Library.obj  Conv_Radiation.txt
 Conv_Radiation.obj:         Conv_Radiation_Types.obj
 
-WAMIT_Types.obj:            NWTC_Library.obj Conv_Radiation_Types.obj SS_Radiation_Types.obj Waves_Types.obj
+WAMIT2_Types.obj:           NWTC_Library.obj WAMIT2.txt
+WAMIT_Types.obj:            NWTC_Library.obj Conv_Radiation_Types.obj SS_Radiation_Types.obj Waves_Types.obj  WAMIT.txt
 WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj FFTMod.obj WAMIT_Interp.obj
 
 WAMIT_Interp.obj:           NWTC_Library.obj
 WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj
 HydroDyn_Output.obj:        HydroDyn_Types.obj Waves.obj
 
-HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Waves2_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj  WAMIT2_Types.obj  Morison_Types.obj
+HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Waves2_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj  WAMIT2_Types.obj  Morison_Types.obj  HydroDyn.txt
 HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj  HydroDyn_Output.obj WAMIT_Output.obj
 HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj
 
 
 # SubDyn dependency rules:
-SubDyn_Types.obj:          NWTC_Library.obj
-SD_FEM.obj:                NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
-SubDyn_Output.obj:         SD_FEM.obj
-SubDyn.obj:                SubDyn_Output.obj  SD_FEM.obj  qsort_c_module.obj NWTC_ScaLAPACK.obj NWTC_LAPACK.obj
+SubDyn_Types.obj:           NWTC_Library.obj    SubDyn_Registry.txt
+SD_FEM.obj:                 NWTC_Library.obj SubDyn_Types.obj qsort_c_module.obj
+SubDyn_Output.obj:          SD_FEM.obj
+SubDyn.obj:                 SubDyn_Output.obj  SD_FEM.obj  qsort_c_module.obj NWTC_ScaLAPACK.obj NWTC_LAPACK.obj
 
 
 # MAP dependency rules:
-MAP_C_Types.obj:           NWTC_Library.obj
-MAP_Types.obj:             NWTC_Library.obj MAP_C_Types.obj
-MAP.obj:                   MAP_Types.obj MAP_C_Types.obj
+MAP_C_Types.obj:            NWTC_Library.obj
+MAP_Types.obj:              NWTC_Library.obj MAP_C_Types.obj
+MAP.obj:                    MAP_Types.obj MAP_C_Types.obj
 
 
 # FEAMooring dependency rules:
-FEAMooring_Types.obj:      NWTC_Library.obj  FEAM_Registry.txt
-FEAM.obj:                  NWTC_Library.obj  FEAMooring_Types.obj
+FEAMooring_Types.obj:       NWTC_Library.obj  FEAM_Registry.txt
+FEAM.obj:                   NWTC_Library.obj  FEAMooring_Types.obj
 
 
 # ElastoDyn dependency rules:
-ElastoDyn_Types.obj:       NWTC_Library.obj  ElastoDyn_Registry.txt
-ElastoDyn.obj:             NWTC_Library.obj  ElastoDyn_Types.obj
+ElastoDyn_Types.obj:        NWTC_Library.obj  ElastoDyn_Registry.txt
+ElastoDyn.obj:              NWTC_Library.obj  ElastoDyn_Types.obj  NWTC_LAPACK.obj
 
 
 # ServoDyn dependency rules:
-ServoDyn_Types.obj:        NWTC_Library.obj  ServoDyn_Registry.txt
-BladedInterface.obj:       NWTC_Library.obj  ServoDyn_Types.obj
-ServoDyn.obj:              NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj
-PitchCntrl_ACH.obj:        NWTC_Library.obj
-UserSubs.obj:              NWTC_Library.obj
-UserVSCont_KP.obj:         NWTC_Library.obj
+ServoDyn_Types.obj:         NWTC_Library.obj  ServoDyn_Registry.txt
+BladedInterface.obj:        NWTC_Library.obj  ServoDyn_Types.obj
+ServoDyn.obj:               NWTC_Library.obj  ServoDyn_Types.obj  PitchCntrl_ACH.obj  UserSubs.obj   UserVSCont_KP.obj  BladedInterface.obj
+PitchCntrl_ACH.obj:         NWTC_Library.obj
+UserSubs.obj:               NWTC_Library.obj
+UserVSCont_KP.obj:          NWTC_Library.obj
 
 
 # IceFloe dependency rules:
 #RANLUX.obj:
-iceLog.obj:                NWTC_Library.obj
-iceInput.obj:              iceLog.F90 NWTC_Library.obj
-IceFloeBase.obj:           NWTC_Library.obj  iceInput.obj  RANLUX.obj IceFloe_Types.obj
-coupledCrushing.obj:       IceFloeBase.obj
-crushingIEC.obj:           IceFloeBase.obj
-crushingISO.obj:           IceFloeBase.obj
-intermittentCrushing.obj:  crushingISO.obj
-lockInISO.obj:             crushingISO.obj
-randomCrushing.obj:        crushingISO.obj
-IceFlexBase.obj:           IceFloeBase.obj
-IceFlexIEC.obj:            IceFlexBase.obj
-IceFlexISO.obj:            IceFlexBase.obj
-IceFloe_Types.obj:         NWTC_Library.obj IceFloe_FASTRegistry.inp
-IceFloe.obj:               IceFloe_Types.obj iceLog.obj coupledCrushing.obj crushingIEC.obj crushingISO.obj IceFlexBase.obj IceFlexIEC.obj IceFlexISO.obj intermittentCrushing.obj lockInISO.obj randomCrushing.obj
+iceLog.obj:                 NWTC_Library.obj
+iceInput.obj:               iceLog.F90 NWTC_Library.obj
+IceFloeBase.obj:            NWTC_Library.obj  iceInput.obj  RANLUX.obj IceFloe_Types.obj
+coupledCrushing.obj:        IceFloeBase.obj
+crushingIEC.obj:            IceFloeBase.obj
+crushingISO.obj:            IceFloeBase.obj
+intermittentCrushing.obj:   crushingISO.obj
+lockInISO.obj:              crushingISO.obj
+randomCrushing.obj:         crushingISO.obj
+IceFlexBase.obj:            IceFloeBase.obj
+IceFlexIEC.obj:             IceFlexBase.obj
+IceFlexISO.obj:             IceFlexBase.obj
+IceFloe_Types.obj:          NWTC_Library.obj IceFloe_FASTRegistry.inp
+IceFloe.obj:                IceFloe_Types.obj iceLog.obj coupledCrushing.obj crushingIEC.obj crushingISO.obj IceFlexBase.obj IceFlexIEC.obj IceFlexISO.obj intermittentCrushing.obj lockInISO.obj randomCrushing.obj
 
 
 # IceDyn dependency rules:
-IceDyn_Types.obj:          NWTC_Library.obj Registry_IceDyn.txt
-IceDyn.obj:                NWTC_Library.obj IceDyn_Types.obj
+IceDyn_Types.obj:           NWTC_Library.obj Registry_IceDyn.txt
+IceDyn.obj:                 NWTC_Library.obj IceDyn_Types.obj
 
 
 # FAST dependency rules:
