@@ -37,6 +37,8 @@ goto CertTest
 @SET EXE_VER=Using FAST compiled with makefile (gfortran)
 @SET FAST=..\compiling\FAST_gwin32.exe
 SET PATH=%PATH%;C:\LAPACK\win32;
+:: next line is for MAP dll -->
+SET PATH=%PATH%;%C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\FAST\SVNdirectory\branches\BJonkman\bin%
 goto CertTest
 
 :ifort

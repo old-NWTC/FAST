@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-08-15 11:34:51 -0600 (Fri, 15 Aug 2014) $
-! (File) Revision #: $Rev: 122 $
+! File last committed: $Date: 2014-09-22 13:51:24 -0600 (Mon, 22 Sep 2014) $
+! (File) Revision #: $Rev: 147 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE AeroDyn
@@ -27,11 +27,12 @@ MODULE AeroDyn
    USE AeroSubs
    USE NWTC_Library
 
+
    IMPLICIT NONE
 
    PRIVATE
 
-   TYPE(ProgDesc), PARAMETER            :: AD_Ver = ProgDesc( 'AeroDyn', 'v14.02.03a-bjj', '15-Aug-2014' )
+   TYPE(ProgDesc), PARAMETER            :: AD_Ver = ProgDesc( 'AeroDyn', 'v14.03.00a-bjj', '18-Sept-2014' )
 
       ! ..... Public Subroutines ............
 
@@ -56,6 +57,7 @@ CONTAINS
 SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, ErrMess )
 !..................................................................................................................................
    USE               AeroGenSubs,   ONLY: ElemOpen
+   USE DWM
    IMPLICIT NONE
 
    TYPE(AD_InitInputType),       INTENT(INOUT)  :: InitInp     ! Input data for initialization routine
@@ -74,8 +76,8 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
                                                                !   Output is the actual coupling interval that will be used
                                                                !   by the glue code.
    TYPE(AD_InitOutputType),      INTENT(  OUT)  :: InitOut     ! Output for initialization routine
-   INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-   CHARACTER(*),                      INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
+   INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+   CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
       ! Internal variables
@@ -99,8 +101,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    INTEGER                                   :: ErrStatLcL        ! Error status returned by called routines.
 
    CHARACTER(LEN(ErrMess))                   :: ErrMessLcl          ! Error message returned by called routines.
-
-      ! Function definition
+   
 
          ! Initialize ErrStat
 
@@ -123,17 +124,17 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
          ! Display the module information
 
    CALL DispNVD( AD_Ver )
-
+   
    InitOut%Ver = AD_Ver
    O%FirstWarn = .TRUE.
    !-------------------------------------------------------------------------------------------------
    ! Set up AD variables
    !-------------------------------------------------------------------------------------------------
 
-   p%LinearizeFlag     = .FALSE. !InitInp%LinearizeFlag
+   p%LinearizeFlag     = .FALSE.             ! InitInp%LinearizeFlag
    p%Blade%BladeLength = InitInp%TurbineComponents%BladeLength
-   p%DtAero            = Interval ! set the default DT here; may be overwritten later, when we read the input file in AD_GetInput()
-
+   p%DtAero            = Interval            ! set the default DT here; may be overwritten later, when we read the input file in AD_GetInput()
+   p%UseDWM            = InitInp%UseDWM
 
          ! Define parameters here:
 
@@ -434,7 +435,39 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
          CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_Init' )
          IF (ErrStat >= AbortErrLev) RETURN
    END IF     
+   
+   
+   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   ! Calling the DWM
+   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   IF ( p%UseDWM ) THEN   
+      InitInp%DWM_InitInputs%IfW_InitInputs%WindFileName    = p%WindFileName
+      InitInp%DWM_InitInputs%IfW_InitInputs%ReferenceHeight = p%Rotor%HH
+      InitInp%DWM_InitInputs%IfW_InitInputs%Width           = 2 * p%Blade%R
+      InitInp%DWM_InitInputs%IfW_InitInputs%WindFileType    = DEFAULT_WindNumber !bjj: I also set this in DWM for future when we don't use InflowWind in AeroDyn
+   
+         ! bjj: all this stuff should be put in DWM_Init.....>
+      p%DWM_Params%RR              = p%Blade%R
+      p%DWM_Params%BNum            = p%NumBl
+      p%DWM_Params%ElementNum      = O%ElOut%NumElOut  !bjj: NumElOut is the number of elements to be printed in an output file. I really think you want the number of blade elements. I guess we should check that NumElOut is the same as p%Element%NElm
+      p%DWM_Params%air_density     = p%Wind%Rho
+   
+      IF (.NOT. ALLOCATED(o%DWM_otherstates%Nforce  )) ALLOCATE ( o%DWM_otherstates%Nforce(  p%Element%NElm,p%NumBl),STAT=ErrStatLcl);CALL SetErrStat(ErrStatLcl, 'Error allocating DWM Nforce array', ErrStat,ErrMess,' AD_Init' )
+      IF (.NOT. ALLOCATED(o%DWM_otherstates%blade_dr)) ALLOCATE ( o%DWM_otherstates%blade_dr(p%Element%NElm),        STAT=ErrStatLcl);CALL SetErrStat(ErrStatLcl, 'Error allocating DWM blade_dr array', ErrStat,ErrMess,' AD_Init' )
+      IF (.NOT. ALLOCATED(p%DWM_Params%ElementRad   )) ALLOCATE ( p%DWM_Params%ElementRad(   p%Element%NElm),        STAT=ErrStatLcl);CALL SetErrStat(ErrStatLcl, 'Error allocating DWM ElementRad array', ErrStat,ErrMess,' AD_Init' )
 
+      o%DWM_otherstates%blade_dr(:) = p%Blade%DR(:)
+      p%DWM_Params%ElementRad(:)    = p%Element%RELM(:)   
+   
+      CALL DWM_Init( InitInp%DWM_InitInputs, O%DWM_Inputs, p%DWM_Params, x%DWM_ContStates, xd%DWM_DiscStates, z%DWM_ConstrStates, & 
+                     O%DWM_OtherStates, y%DWM_Outputs, Interval, InitOut%DWM_InitOutput, ErrStatLcl, ErrMessLcl )
+   
+
+      CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,'AD_Init' )
+      IF (ErrStat >= AbortErrLev) RETURN
+      
+   END IF !UseDWM
+   
    !-------------------------------------------------------------------------------------------------
    ! Turn off dynamic inflow for wind less than 8 m/s (per DJL: 8 m/s is really just an empirical guess)
    ! DJL: Comment out this code when using new proposed GDW check in ELEMFRC
@@ -472,7 +505,7 @@ SUBROUTINE AD_Init( InitInp, u, p, x, xd, z, O, y, Interval, InitOut, ErrStat, E
    
    ALLOCATE( u%InputMarkers(p%NumBl), STAT=ErrStatLcl )
    IF (ErrStatLcl /= 0 ) THEN
-      CALL SetErrStat ( ErrID_Fatal, 'Could not allocate u%InputMarkers (meshes)', ErrStat,ErrMess,' AD_Init' )
+      CALL SetErrStat ( ErrID_Fatal, 'Could not allocate u%InputMarkers (meshes)', ErrStat,ErrMess,'AD_Init' )
       RETURN
    END IF
 
@@ -625,6 +658,8 @@ END SUBROUTINE AD_Init
 SUBROUTINE AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
 ! This routine is called at the end of the simulation.
 !..................................................................................................................................
+      USE DWM_Types
+      USE DWM
 
       TYPE(AD_InputType),           INTENT(INOUT)  :: u           ! System inputs
       TYPE(AD_ParameterType),       INTENT(INOUT)  :: p           ! Parameters
@@ -645,6 +680,15 @@ SUBROUTINE AD_End( u, p, x, xd, z, OtherState, y, ErrStat, ErrMess )
 
 
          ! Place any last minute operations or calculations here:
+         
+      IF (p%UseDWM ) THEN
+         !----- Call the DWM ------- 
+      
+         CALL DWM_End( OtherState%DWM_Inputs, p%DWM_Params, x%DWM_ContStates, xd%DWM_DiscStates, z%DWM_ConstrStates, &
+                                           OtherState%DWM_OtherStates, y%DWM_Outputs, ErrStat, ErrMess )
+      END IF ! UseDWM
+      
+      !--------------------------
 
       CALL IfW_End(  OtherState%IfW_Inputs, p%IfW_Params, x%IfW_ContStates, xd%IfW_DiscStates, z%IfW_ConstrStates, &
                      OtherState%IfW_OtherStates, y%IfW_Outputs, ErrStat, ErrMess )
@@ -728,6 +772,8 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
 !..................................................................................................................................
    
       USE               AeroGenSubs,   ONLY: ElemOut
+      USE               DWM_Types
+      USE               DWM
 
       REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
       TYPE(AD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
@@ -770,9 +816,10 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
    INTEGER                    :: ErrStatLcL        ! Error status returned by called routines.
    INTEGER                    :: IBlade
    INTEGER                    :: IElement
-   INTEGER                    :: Node                          ! Node index for computing tower aerodynamics.
+   INTEGER                    :: Node              ! Node index for computing tower aerodynamics.
 
-   CHARACTER(LEN(ErrMess))                   :: ErrMessLcl          ! Error message returned by called routines.
+   INTEGER                    :: I
+   CHARACTER(LEN(ErrMess))    :: ErrMessLcl          ! Error message returned by called routines.
 
 
 
@@ -962,6 +1009,75 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
                CALL CleanUp()
                RETURN
             END IF
+         
+         !-------------------------------------------------------------------------------------------
+         ! DWM wind input update phase 1
+         !-------------------------------------------------------------------------------------------
+         IF (p%UseDWM) THEN
+            !bjj: FIX THIS!!!!         
+            !bjj: where do p%DWM_Params%RTPD%SimulationOrder_index and p%DWM_Params%RTPD%upwindturbine_number get set?
+         
+            IF ( p%DWM_Params%RTPD%SimulationOrder_index > 1) THEN
+               IF(  p%DWM_Params%RTPD%upwindturbine_number /= 0 ) THEN
+                       
+                  o%DWM_otherstates%position_y = u%InputMarkers(IBlade)%Position(2,IElement)
+                                         
+                  o%DWM_otherstates%position_z = u%InputMarkers(IBlade)%Position(3,IElement)
+              
+                  o%DWM_otherstates%velocity_wake_mean = 1
+              
+                  DO I = 1,p%DWM_Params%RTPD%upwindturbine_number
+                     o%DWM_otherstates%DWM_tb%Aerodyn_turbine_num = I
+                 
+                     CALL   DWM_phase1( Time, O%DWM_Inputs, p%DWM_Params, x%DWM_contstates, xd%DWM_discstates, z%DWM_constrstates, &
+                                           o%DWM_otherstates, y%DWM_outputs, ErrStatLcl, ErrMessLcl )
+                 
+                     CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput/DWM_phase1' )
+                     IF (ErrStat >= AbortErrLev) THEN
+                        CALL CleanUp()
+                        RETURN
+                     END IF   
+                                                           
+                     o%DWM_otherstates%velocity_wake_mean = (1-((1-o%DWM_otherstates%velocity_wake_mean)**2 + (1-o%DWM_otherstates%shifted_velocity_aerodyn)**2)**0.5)
+                  END DO
+              
+                  o%DWM_otherstates%velocity_wake_mean    = o%DWM_otherstates%velocity_wake_mean * p%DWM_Params%Wind_file_Mean_u
+              
+                  VelocityVec(1) = (VelocityVec(1) - p%DWM_Params%Wind_file_Mean_u)*(O%DWM_Inputs%Upwind_result%upwind_small_TI(I)/p%DWM_Params%TI_amb) &
+                                  + o%DWM_otherstates%velocity_wake_mean
+              
+               END IF
+            END IF
+                                     
+           !------------------------DWM PHASE 2-----------------------------------------------
+            IF (Time > 50.00 ) THEN
+               o%DWM_otherstates%U_velocity           = VelocityVec(1)
+               o%DWM_otherstates%V_velocity           = VelocityVec(2)
+               o%DWM_otherstates%NacYaw               = o%Rotor%YawAng 
+               o%DWM_otherstates%DWM_tb%Blade_index   = IBlade
+               o%DWM_otherstates%DWM_tb%Element_index = IElement    
+
+               CALL   DWM_phase2( Time, O%DWM_Inputs, p%DWM_Params, x%DWM_contstates, xd%DWM_discstates, z%DWM_constrstates, &
+                                           o%DWM_otherstates, y%DWM_outputs, ErrStatLcl, ErrMessLcl )
+            
+                     CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput/DWM_phase1' )
+                     IF (ErrStat >= AbortErrLev) THEN
+                        CALL CleanUp()
+                        RETURN
+                     END IF   
+            
+         
+               !CALL CalVelScale(VelocityVec(1),VelocityVec(2),O%o%DWM_otherstatesutputType,DWM_ConstraintStateType)
+         
+               !CALL turbine_average_velocity( VelocityVec(1), IBlade, IElement, O%o%DWM_otherstatesutputType,AD_ParameterType,DWM_ConstraintStateType)
+            END IF
+         END IF ! UseDWM
+            
+         !-----------------------------------------------------------------------------------------------------------------------
+         
+         
+         
+         
          VelNormalToRotor2 = ( VelocityVec(3) * o%Rotor%STilt + (VelocityVec(1) * o%Rotor%CYaw               &
                              - VelocityVec(2) * o%Rotor%SYaw) * o%Rotor%CTilt )**2
 
@@ -1047,6 +1163,28 @@ SUBROUTINE AD_CalcOutput( Time, u, p, x, xd, z, O, y, ErrStat, ErrMess )
        y%OutputLoads(IBlade)%Moment(:,IElement) = o%StoredMoments(:,IElement,IBlade)
      ENDDO
    ENDDO
+   
+   
+   !------------------------DWM PHASE 3-----------------------------------------------
+   IF (p%UseDWM) THEN
+   
+      IF (Time > 50.00 ) THEN !BJJ: why is 50 hard-coded here and above???
+            
+         o%DWM_otherstates%Nforce(:,:)    = o%StoredForces(1,:,:) 
+         CALL   DWM_phase3( Time, O%DWM_Inputs, p%DWM_Params, x%DWM_contstates, xd%DWM_discstates, z%DWM_constrstates, &
+                                o%DWM_otherstates, y%DWM_outputs, ErrStatLcl, ErrMessLcl )
+    
+            CALL SetErrStat ( ErrStatLcl, ErrMessLcl, ErrStat,ErrMess,' AD_CalcOutput/DWM_phase3' )
+            IF (ErrStat >= AbortErrLev) THEN
+               CALL CleanUp()
+               RETURN
+            END IF   
+      
+         !CALL filter_average_induction_factor( AD_ParameterType, DWM_ConstraintStateType, O%o%DWM_otherstatesutputType )
+      END IF
+   END IF !UseDWM
+   
+   !-----------------------------------------------------------------------------------
 
        
 

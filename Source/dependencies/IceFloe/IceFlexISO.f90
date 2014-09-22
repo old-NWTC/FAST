@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-12 12:27:05 -0600 (Mon, 12 May 2014) $
-! (File) Revision #: $Rev: 693 $
+! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 775 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFlexISO.f90 $
 !**********************************************************************************************************************************
 
@@ -54,41 +54,41 @@ contains
       call logMessage(iceLog, newLine//' Setting up flexural failure by ISO/Croasdale method ')
       call logMessage(iceLog, ' Based on the ISO 19906 standard equations for max static loads')
 
-      call getIceInput(iceInput, 'peakLoadCOV', inParams%peakLoadCOV, iceLog, 0.1, 0.5)
+      call getIceInput(iceInput, 'peakLoadCOV', inParams%peakLoadCOV, iceLog, 0.1_ReKi, 0.5_ReKi)
       call logMessage(iceLog, ' peakLoadCOV = '//TRIM(Num2LStr(inParams%peakLoadCOV))//' (-)')
 
-      call getIceInput(iceInput, 'coeffLoadPeaks', inParams%coeffLoadPeaks, iceLog, 0.1, 1.0)
+      call getIceInput(iceInput, 'coeffLoadPeaks', inParams%coeffLoadPeaks, iceLog, 0.1_ReKi, 1.0_ReKi)
       call logMessage(iceLog, ' coeffLoadPeaks = '//TRIM(Num2LStr(inParams%coeffLoadPeaks)))
 
-      call getIceInput(iceInput, 'coeffLoadMin', inParams%coeffLoadMin, iceLog, 0.0, 1.0)
+      call getIceInput(iceInput, 'coeffLoadMin', inParams%coeffLoadMin, iceLog, 0.0_ReKi, 1.0_ReKi)
       call logMessage(iceLog, ' coeffLoadMin = '//TRIM(Num2LStr(inParams%coeffLoadMin)))
 
-      call getIceInput(iceInput, 'periodCOV', inParams%periodCOV, iceLog, 0.1, 0.9)
+      call getIceInput(iceInput, 'periodCOV', inParams%periodCOV, iceLog, 0.1_ReKi, 0.9_ReKi)
       call logMessage(iceLog, ' periodCOV = '//TRIM(Num2LStr(inParams%periodCOV)))
 
-      call getIceInput(iceInput, 'tauMin', inParams%tauMin, iceLog, 0.1, 0.8)
+      call getIceInput(iceInput, 'tauMin', inParams%tauMin, iceLog, 0.1_ReKi, 0.8_ReKi)
       call logMessage(iceLog, ' tauMin = '//TRIM(Num2LStr(inParams%tauMin)))
 
-      call getIceInput(iceInput, 'tauMax', inParams%tauMax, iceLog, inParams%tauMin, 1.0)
+      call getIceInput(iceInput, 'tauMax', inParams%tauMax, iceLog, inParams%tauMin, 1.0_ReKi)
       call logMessage(iceLog, ' tauMax = '//TRIM(Num2LStr(inParams%tauMax)))
 
-      call getIceInput(iceInput, 'riseTime', inParams%riseTime, iceLog, 0.1, 0.9)
+      call getIceInput(iceInput, 'riseTime', inParams%riseTime, iceLog, 0.1_ReKi, 0.9_ReKi)
       call logMessage(iceLog, ' riseTime = '//TRIM(Num2LStr(inParams%riseTime)))
       inParams%fallTime = 1.0 - inParams%riseTime
 
-      call getIceInput(iceInput, 'coeffBreakLength', inParams%coeffBreakLength, iceLog, 3.0, 10.0)
+      call getIceInput(iceInput, 'coeffBreakLength', inParams%coeffBreakLength, iceLog, 3.0_ReKi, 10.0_ReKi)
       call logMessage(iceLog, ' coeffBreakLength = '//TRIM(Num2LStr(inParams%coeffBreakLength)))
 
-      call getIceInput(iceInput, 'rubbleHeight', inParams%rubbleHeight, iceLog, 0.0)
+      call getIceInput(iceInput, 'rubbleHeight', inParams%rubbleHeight, iceLog, 0.0_ReKi)
       call logMessage(iceLog, ' rubbleHeight = '//TRIM(Num2LStr(inParams%rubbleHeight))//' meters')
 
-      call getIceInput(iceInput, 'rubblePorosity', inParams%rubblePorosity, iceLog, 0.0, 1.0)
+      call getIceInput(iceInput, 'rubblePorosity', inParams%rubblePorosity, iceLog, 0.0_ReKi, 1.0_ReKi)
       call logMessage(iceLog, ' rubblePorosity = '//TRIM(Num2LStr(inParams%rubblePorosity)))
 
-      call getIceInput(iceInput, 'rubbleCohesion', inParams%rubbleCohesion, iceLog, 0.0)
+      call getIceInput(iceInput, 'rubbleCohesion', inParams%rubbleCohesion, iceLog, 0.0_ReKi)
       call logMessage(iceLog, ' rubbleCohesion strength = '//TRIM(Num2LStr(inParams%rubbleCohesion))//' Pascals')
 
-      call getIceInput(iceInput, 'rubbleAngle', inParams%rubbleAngle, iceLog, 0.0, inParams%twr%coneAngle/D2R)
+      call getIceInput(iceInput, 'rubbleAngle', inParams%rubbleAngle, iceLog, 0.0_ReKi, inParams%twr%coneAngle/D2R)
       call logMessage(iceLog, ' rubbleAngle = '//TRIM(Num2LStr(inParams%rubbleAngle))//' degrees')
       inParams%rubbleAngle = D2R*inParams%rubbleAngle   ! Convert to radians
 
@@ -97,16 +97,16 @@ contains
       call logMessage(iceLog, ' frictionAngle = '//TRIM(Num2LStr(inParams%frictionAngle))//' degrees')
       inParams%frictionAngle = D2R*inParams%frictionAngle   ! Convert to radians
 
-      call getIceInput(iceInput, 'ice2iceFriction', inParams%ice2iceFriction, iceLog, 0.0, 1.0)
+      call getIceInput(iceInput, 'ice2iceFriction', inParams%ice2iceFriction, iceLog, 0.0_ReKi, 1.0_ReKi)
       call logMessage(iceLog, ' ice2iceFriction = '//TRIM(Num2LStr(inParams%ice2iceFriction)))
 
-      call getIceInput(iceInput, 'waterDensity', inParams%waterDensity, iceLog, 0.0)
+      call getIceInput(iceInput, 'waterDensity', inParams%waterDensity, iceLog, 0.0_ReKi)
       call logMessage(iceLog, ' waterDensity = '//TRIM(Num2LStr(inParams%waterDensity))//' kg/m^3')
 
-      call getIceInput(iceInput, 'iceModulus', inParams%iceModulus, iceLog, 0.0)
+      call getIceInput(iceInput, 'iceModulus', inParams%iceModulus, iceLog, 0.0_ReKi)
       call logMessage(iceLog, ' iceModulus = '//TRIM(Num2LStr(inParams%iceModulus))//' Pascals')
 
-      call getIceInput(iceInput, 'poissonRatio', inParams%poissonRatio, iceLog, 0.0, 0.5)
+      call getIceInput(iceInput, 'poissonRatio', inParams%poissonRatio, iceLog, 0.0_ReKi, 0.5_ReKi)
       call logMessage(iceLog, ' poissonRatio = '//TRIM(Num2LStr(inParams%poissonRatio)))
 
       call getIceInput(iceInput, 'includeHp', inParams%includeHp, iceLog)

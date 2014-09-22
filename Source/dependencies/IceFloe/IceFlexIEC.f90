@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
-! (File) Revision #: $Rev: 692 $
+! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 775 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFlexIEC.f90 $
 !**********************************************************************************************************************************!
 
@@ -58,19 +58,19 @@ contains
       call logMessage(iceLog, newLine//' Setting up flexural failure by Ralston method ')
       call logMessage(iceLog, ' Use the IEC 61400-3 suggested equations for max static loads')
 
-      call getIceInput(iceInput, 'rideUpThickness', inParams%rideUpThickness, iceLog, 0.0)
+      call getIceInput(iceInput, 'rideUpThickness', inParams%rideUpThickness, iceLog, 0.0_ReKi)
       call logMessage(iceLog, ' Ride up thickness = '//TRIM(Num2LStr(inParams%rideUpThickness))//' meters')
 
-      call getIceInput(iceInput, 'twrConeTopDiam', inParams%twr%coneTopDiam, iceLog, 0.0)
+      call getIceInput(iceInput, 'twrConeTopDiam', inParams%twr%coneTopDiam, iceLog, 0.0_ReKi)
       call logMessage(iceLog, ' Tower cone top diameter = '//TRIM(Num2LStr(inParams%twr%coneTopDiam))//' meters')
 
-      call getIceInput(iceInput, 'freqParamK', inParams%freqParamK, iceLog, 4.0, 7.0)
+      call getIceInput(iceInput, 'freqParamK', inParams%freqParamK, iceLog, 4.0_ReKi, 7.0_ReKi)
       call logMessage(iceLog, ' Frequency parameter K = '//TRIM(Num2LStr(inParams%freqParamK))//' ')
 
    !  get leg load phase
       if (myIceParams%numLegs>1) then
          do nL = 1, myIceParams%numLegs
-            call getIceInput(iceInput, 'loadPhase'//TRIM(Num2LStr(nL)), inParams%twr%leg(nL)%phase, iceLog, 0.0, 360.0)
+            call getIceInput(iceInput, 'loadPhase'//TRIM(Num2LStr(nL)), inParams%twr%leg(nL)%phase, iceLog, 0.0_ReKi, 360.0_ReKi)
             call logMessage(iceLog, ' Load phase for leg '//TRIM(Num2LStr(nL))//' is '                             &
                                     //TRIM(Num2LStr(inParams%twr%leg(nL)%phase))//' degrees')
             inParams%twr%leg(nL)%phase = D2R*inParams%twr%leg(nL)%phase

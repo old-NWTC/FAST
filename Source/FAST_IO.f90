@@ -179,9 +179,9 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    INTEGER                      :: i                                    ! loop counter
    INTEGER                      :: Stat                                 ! The status of the call to GET_CWD
    CHARACTER(1024)              :: DirName                              ! A CHARACTER string containing the path of the current working directory
+   CHARACTER(1024)              :: LastArg                              ! A second command-line argument that will allow DWM module to be used in AeroDyn
    CHARACTER(1024)              :: InputFile                            ! A CHARACTER string containing the name of the primary FAST input file
    CHARACTER(1024)              :: CompiledVer                          ! A string describing the FAST version as well as some of the compile options we're using
-
 
       ! Initialize some variables
    ErrStat = ErrID_None
@@ -199,19 +199,30 @@ SUBROUTINE FAST_Init( p, y_FAST, ErrStat, ErrMsg, InFile  )
    ! and set the root name of the output files based on the input file name
    !...............................................................................................................................
 
+   p%UseDWM = .FALSE.  ! by default, we're not going to use the DWM module
+   
    IF ( PRESENT(InFile) ) THEN
       InputFile = InFile
+      
    ELSE ! get it from the command line
       InputFile = ""  ! initialize to empty string to make sure it's input from the command line
-      CALL CheckArgs( InputFile, Stat )  ! if Stat /= ErrID_None, we'll ignore and deal with the problem when we try to read the input file
+      CALL CheckArgs( InputFile, Stat, LastArg )  ! if Stat /= ErrID_None, we'll ignore and deal with the problem when we try to read the input file
       
       IF (LEN_TRIM(InputFile) == 0) THEN ! no input file was specified
          CALL SetErrors( ErrID_Fatal, 'The required input file was not specified on the command line.') 
          CALL NWTC_DisplaySyntax( InputFile, 'FAST_Win32.exe' )
-                  !bjj: FAST_Win32.exe isn't correct for x64 or other versions of the executable, but it IS the only version we
+                  !bjj: FAST_Win32.exe isn't correct for x64 or other versions of the executable, but it IS the only full version we
                   ! distribute, and if people have compiled for other architectures, they should be able to figure that out, right?
          RETURN
       END IF            
+      
+      IF (LEN_TRIM(LastArg) > 0) THEN ! see if DWM was specified as the second option
+         CALL Conv2UC( LastArg )
+         IF ( TRIM(LastArg) == "DWM" ) THEN
+            p%UseDWM    = .TRUE.
+         END IF
+      END IF
+            
    END IF
    
 
@@ -4152,7 +4163,7 @@ SUBROUTINE AD_SetInitInput(InitInData_AD, InitOutData_ED, y_ED, p_FAST, ErrStat,
    InitInData_AD%OutRootName  = p_FAST%OutFileRoot
    InitInData_AD%WrSumFile    = p_FAST%SumPrint      
    InitInData_AD%NumBl        = InitOutData_ED%NumBl
-   InitInData_AD%UseDWM       = .FALSE.
+   InitInData_AD%UseDWM       = p_FAST%UseDWM
    
       ! Hub position and orientation (relative here, but does not need to be)
 

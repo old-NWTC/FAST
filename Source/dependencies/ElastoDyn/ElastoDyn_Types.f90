@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.01, 18-June-2014)
+! FAST Registry (v2.03.02, 17-Sept-2014)
 !*********************************************************************************************************************************
 ! ElastoDyn_Types
 !.................................................................................................................................
@@ -521,7 +521,9 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: QD2T      ! Solution (acceleration) vector; the first time derivative of QDT [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BlPitch      ! Current blade pitch angles [radians]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMat      ! The augmented matrix used for the solution of the QD2T()s [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMatOut      ! Copy of AugMat (when calculating cont state deriv) for routine that fixes the HSSBrTrq [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AugMat_factor      ! factored version of AugMat matrix [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SolnVec      ! b in the equation Ax=b (last column of AugMat) [-]
+    INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: AugMat_pivot      ! Pivot column for AugMat in LAPACK factorization [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: AllOuts      ! An array holding the value of all of the calculated (not only selected) output channels [see OutListParameters.xlsx spreadsheet]
   END TYPE ED_OtherStateType
 ! =======================
@@ -8184,20 +8186,46 @@ IF (ALLOCATED(SrcOtherStateData%AugMat)) THEN
    END IF
    DstOtherStateData%AugMat = SrcOtherStateData%AugMat
 ENDIF
-IF (ALLOCATED(SrcOtherStateData%AugMatOut)) THEN
-   i1_l = LBOUND(SrcOtherStateData%AugMatOut,1)
-   i1_u = UBOUND(SrcOtherStateData%AugMatOut,1)
-   i2_l = LBOUND(SrcOtherStateData%AugMatOut,2)
-   i2_u = UBOUND(SrcOtherStateData%AugMatOut,2)
-   IF (.NOT. ALLOCATED(DstOtherStateData%AugMatOut)) THEN 
-      ALLOCATE(DstOtherStateData%AugMatOut(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+IF (ALLOCATED(SrcOtherStateData%AugMat_factor)) THEN
+   i1_l = LBOUND(SrcOtherStateData%AugMat_factor,1)
+   i1_u = UBOUND(SrcOtherStateData%AugMat_factor,1)
+   i2_l = LBOUND(SrcOtherStateData%AugMat_factor,2)
+   i2_u = UBOUND(SrcOtherStateData%AugMat_factor,2)
+   IF (.NOT. ALLOCATED(DstOtherStateData%AugMat_factor)) THEN 
+      ALLOCATE(DstOtherStateData%AugMat_factor(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
-         ErrMsg = 'ED_CopyOtherState: Error allocating DstOtherStateData%AugMatOut.'
+         ErrMsg = 'ED_CopyOtherState: Error allocating DstOtherStateData%AugMat_factor.'
          RETURN
       END IF
    END IF
-   DstOtherStateData%AugMatOut = SrcOtherStateData%AugMatOut
+   DstOtherStateData%AugMat_factor = SrcOtherStateData%AugMat_factor
+ENDIF
+IF (ALLOCATED(SrcOtherStateData%SolnVec)) THEN
+   i1_l = LBOUND(SrcOtherStateData%SolnVec,1)
+   i1_u = UBOUND(SrcOtherStateData%SolnVec,1)
+   IF (.NOT. ALLOCATED(DstOtherStateData%SolnVec)) THEN 
+      ALLOCATE(DstOtherStateData%SolnVec(i1_l:i1_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'ED_CopyOtherState: Error allocating DstOtherStateData%SolnVec.'
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%SolnVec = SrcOtherStateData%SolnVec
+ENDIF
+IF (ALLOCATED(SrcOtherStateData%AugMat_pivot)) THEN
+   i1_l = LBOUND(SrcOtherStateData%AugMat_pivot,1)
+   i1_u = UBOUND(SrcOtherStateData%AugMat_pivot,1)
+   IF (.NOT. ALLOCATED(DstOtherStateData%AugMat_pivot)) THEN 
+      ALLOCATE(DstOtherStateData%AugMat_pivot(i1_l:i1_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'ED_CopyOtherState: Error allocating DstOtherStateData%AugMat_pivot.'
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%AugMat_pivot = SrcOtherStateData%AugMat_pivot
 ENDIF
 IF (ALLOCATED(SrcOtherStateData%AllOuts)) THEN
    i1_l = LBOUND(SrcOtherStateData%AllOuts,1)
@@ -8239,8 +8267,14 @@ ENDIF
 IF (ALLOCATED(OtherStateData%AugMat)) THEN
    DEALLOCATE(OtherStateData%AugMat)
 ENDIF
-IF (ALLOCATED(OtherStateData%AugMatOut)) THEN
-   DEALLOCATE(OtherStateData%AugMatOut)
+IF (ALLOCATED(OtherStateData%AugMat_factor)) THEN
+   DEALLOCATE(OtherStateData%AugMat_factor)
+ENDIF
+IF (ALLOCATED(OtherStateData%SolnVec)) THEN
+   DEALLOCATE(OtherStateData%SolnVec)
+ENDIF
+IF (ALLOCATED(OtherStateData%AugMat_pivot)) THEN
+   DEALLOCATE(OtherStateData%AugMat_pivot)
 ENDIF
 IF (ALLOCATED(OtherStateData%AllOuts)) THEN
    DEALLOCATE(OtherStateData%AllOuts)
@@ -8318,7 +8352,9 @@ ENDDO
   Re_BufSz    = Re_BufSz    + SIZE( InData%QD2T )  ! QD2T 
   Re_BufSz    = Re_BufSz    + SIZE( InData%BlPitch )  ! BlPitch 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AugMat )  ! AugMat 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%AugMatOut )  ! AugMatOut 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%AugMat_factor )  ! AugMat_factor 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%SolnVec )  ! SolnVec 
+  Int_BufSz   = Int_BufSz   + SIZE( InData%AugMat_pivot )  ! AugMat_pivot 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AllOuts )  ! AllOuts 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
@@ -8391,9 +8427,17 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AugMat))-1 ) =  PACK(InData%AugMat ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%AugMat)
   ENDIF
-  IF ( ALLOCATED(InData%AugMatOut) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AugMatOut))-1 ) =  PACK(InData%AugMatOut ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%AugMatOut)
+  IF ( ALLOCATED(InData%AugMat_factor) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AugMat_factor))-1 ) =  PACK(InData%AugMat_factor ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%AugMat_factor)
+  ENDIF
+  IF ( ALLOCATED(InData%SolnVec) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%SolnVec))-1 ) =  PACK(InData%SolnVec ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%SolnVec)
+  ENDIF
+  IF ( ALLOCATED(InData%AugMat_pivot) ) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%AugMat_pivot))-1 ) = PACK(InData%AugMat_pivot ,.TRUE.)
+    Int_Xferred   = Int_Xferred   + SIZE(InData%AugMat_pivot)
   ENDIF
   IF ( ALLOCATED(InData%AllOuts) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AllOuts))-1 ) =  PACK(InData%AllOuts ,.TRUE.)
@@ -8516,11 +8560,23 @@ ENDDO
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%AugMat)
   ENDIF
-  IF ( ALLOCATED(OutData%AugMatOut) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%AugMatOut,1),SIZE(OutData%AugMatOut,2))); mask2 = .TRUE.
-    OutData%AugMatOut = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AugMatOut))-1 ),mask2,OutData%AugMatOut)
+  IF ( ALLOCATED(OutData%AugMat_factor) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%AugMat_factor,1),SIZE(OutData%AugMat_factor,2))); mask2 = .TRUE.
+    OutData%AugMat_factor = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AugMat_factor))-1 ),mask2,OutData%AugMat_factor)
   DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%AugMatOut)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%AugMat_factor)
+  ENDIF
+  IF ( ALLOCATED(OutData%SolnVec) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%SolnVec,1))); mask1 = .TRUE.
+    OutData%SolnVec = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SolnVec))-1 ),mask1,OutData%SolnVec)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%SolnVec)
+  ENDIF
+  IF ( ALLOCATED(OutData%AugMat_pivot) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%AugMat_pivot,1))); mask1 = .TRUE.
+    OutData%AugMat_pivot = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%AugMat_pivot))-1 ),mask1,OutData%AugMat_pivot)
+  DEALLOCATE(mask1)
+    Int_Xferred   = Int_Xferred   + SIZE(OutData%AugMat_pivot)
   ENDIF
   IF ( ALLOCATED(OutData%AllOuts) ) THEN
   ALLOCATE(mask1(SIZE(OutData%AllOuts,1))); mask1 = .TRUE.

@@ -4,9 +4,9 @@
 ! This code provides a wrapper for the ScaLAPACK routines currently used at the NWTC (mainly codes in the FAST framework).
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-09-21 22:37:32 -0600 (Sat, 21 Sep 2013) $
-! (File) Revision #: $Rev: 175 $
-! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Library.f90 $
+! File last committed: $Date: 2014-09-18 15:01:50 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 257 $
+! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_ScaLAPACK.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_ScaLAPACK
 
@@ -45,8 +45,8 @@ CONTAINS
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
 
       !     .. Array Arguments ..
-      INTEGER,         intent(inout) :: KEY( * )
-      DOUBLE PRECISION,intent(inout) :: D( * )            ! On entry, the array to be sorted. On exit, D has been sorted into increasing/decreasing order, depending on ID
+      INTEGER,         intent(inout) :: KEY( : )
+      DOUBLE PRECISION,intent(inout) :: D( : )            ! On entry, the array to be sorted. On exit, D has been sorted into increasing/decreasing order, depending on ID
 
          ! Local variable
       INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value 
@@ -81,8 +81,8 @@ CONTAINS
       CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
 
       !     .. Array Arguments ..
-      INTEGER,        intent(inout) :: KEY( * )
-      REAL,           intent(inout) :: D( * )            ! On entry, the array to be sorted. On exit, D has been sorted into increasing/decreasing order, depending on ID
+      INTEGER,        intent(inout) :: KEY( : )
+      REAL,           intent(inout) :: D( : )            ! On entry, the array to be sorted. On exit, D has been sorted into increasing/decreasing order, depending on ID
 
          ! Local variable
       INTEGER                       :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value 

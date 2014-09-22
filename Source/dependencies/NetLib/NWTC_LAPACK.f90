@@ -4,9 +4,9 @@
 ! This code provides a wrapper for the LAPACK routines currently used at the NWTC (mainly codes in the FAST framework).
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2013-09-21 22:37:32 -0600 (Sat, 21 Sep 2013) $
-! (File) Revision #: $Rev: 175 $
-! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Library.f90 $
+! File last committed: $Date: 2014-09-18 15:01:50 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 257 $
+! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_LAPACK.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_LAPACK
 
@@ -71,7 +71,12 @@ MODULE NWTC_LAPACK
       MODULE PROCEDURE LAPACK_sposv
    END INTERFACE
 
+   INTERFACE LAPACK_pptrf ! Compute the Cholesky factorization of a real symmetric positive definite matrix A stored in packed format.
+      MODULE PROCEDURE LAPACK_dpptrf
+      MODULE PROCEDURE LAPACK_spptrf
+   END INTERFACE
 
+      
 CONTAINS
 
 !=======================================================================
@@ -393,11 +398,11 @@ CONTAINS
 
       IF (INFO /= 0) THEN
          ErrStat = ErrID_FATAL
-         WRITE( ErrMsg, * ) INFO
+         WRITE( ErrMsg, * ) -INFO
          IF (INFO < 0) THEN
             ErrMsg  = "LAPACK_DGETRS: illegal value in argument "//TRIM(ErrMsg)//"."
          ELSE
-            ErrMsg = 'LAPACK_DGETRS: unknown error '//TRIM(ErrMsg)//'.'
+            ErrMsg = 'LAPACK_DGETRS: unknown error -'//TRIM(ErrMsg)//'.'
          END IF
       END IF
 
@@ -441,11 +446,11 @@ CONTAINS
 
       IF (INFO /= 0) THEN
          ErrStat = ErrID_FATAL
-         WRITE( ErrMsg, * ) INFO
+         WRITE( ErrMsg, * ) -INFO
          IF (INFO < 0) THEN
             ErrMsg  = "LAPACK_DGETRS1: illegal value in argument "//TRIM(ErrMsg)//"."
          ELSE
-            ErrMsg = 'LAPACK_DGETRS1: unknown error '//TRIM(ErrMsg)//'.'
+            ErrMsg = 'LAPACK_DGETRS1: unknown error -'//TRIM(ErrMsg)//'.'
          END IF
       END IF
 
@@ -497,11 +502,11 @@ CONTAINS
 
       IF (INFO /= 0) THEN
          ErrStat = ErrID_FATAL
-         WRITE( ErrMsg, * ) INFO
+         WRITE( ErrMsg, * ) -INFO
          IF (INFO < 0) THEN
             ErrMsg  = "LAPACK_SGETRS: illegal value in argument "//TRIM(ErrMsg)//"."
          ELSE
-            ErrMsg = 'LAPACK_SGETRS: unknown error '//TRIM(ErrMsg)//'.'
+            ErrMsg = 'LAPACK_SGETRS: unknown error -'//TRIM(ErrMsg)//'.'
          END IF
       END IF
 
@@ -541,6 +546,7 @@ CONTAINS
       ErrStat = ErrID_None
       ErrMsg  = ""
 
+      
       !IF (ReKi == C_FLOAT) THEN
          CALL SGETRS( TRANS, N, NRHS, A, LDA, IPIV, B, LDB, INFO )
       !ELSEIF (ReKi == C_DOUBLE) THEN
@@ -553,11 +559,11 @@ CONTAINS
 
       IF (INFO /= 0) THEN
          ErrStat = ErrID_FATAL
-         WRITE( ErrMsg, * ) INFO
+         WRITE( ErrMsg, * ) -INFO
          IF (INFO < 0) THEN
             ErrMsg  = "LAPACK_SGETRS1: illegal value in argument "//TRIM(ErrMsg)//"."
          ELSE
-            ErrMsg = 'LAPACK_SGETRS1: unknown error '//TRIM(ErrMsg)//'.'
+            ErrMsg = 'LAPACK_SGETRS1: unknown error -'//TRIM(ErrMsg)//'.'
          END IF
       END IF
 
@@ -958,4 +964,126 @@ CONTAINS
    RETURN
    END SUBROUTINE LAPACK_SPOSV
 !=======================================================================
+   SUBROUTINE LAPACK_DPPTRF (UPLO, N, AP, ErrStat, ErrMsg)
+
+   ! DPPTRF computes the Cholesky factorization of a real symmetric
+   ! positive definite matrix A stored in packed format.
+   !
+   ! The factorization has the form
+   !      A = U**T * U,  if UPLO = 'U', or
+   !      A = L  * L**T,  if UPLO = 'L',
+   ! where U is an upper triangular matrix and L is lower triangular.
+   
+
+      ! passed parameters
+
+      INTEGER,         intent(in   ) :: N                 ! The order of the matrix A.  N >= 0.
+
+      !     .. Array Arguments ..
+      REAL(R8Ki)      ,intent(inout) :: AP( : )           ! AP is REAL array, dimension (N*(N+1)/2)
+                                                          ! On entry, the upper or lower triangle of the symmetric matrix A, packed columnwise in a linear array.  The j-th column of A
+                                                          ! is stored in the array AP as follows:
+                                                          !    if UPLO = 'U', AP(i + (j-1)*j/2) = A(i,j) for 1<=i<=j;
+                                                          !    if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = A(i,j) for j<=i<=n.
+                                                          ! See below for further details.
+                                                          ! On exit, if INFO = 0, the triangular factor U or L from the Cholesky factorization A = U**T*U or A = L*L**T, in the same storage format as A.
+
+                                                          ! Further details:      
+                                                          !   The packed storage scheme is illustrated by the following example
+                                                          !   when N = 4, UPLO = 'U':
+                                                          ! 
+                                                          !   Two-dimensional storage of the symmetric matrix A:
+                                                          ! 
+                                                          !      a11 a12 a13 a14
+                                                          !          a22 a23 a24
+                                                          !              a33 a34     (aij = aji)
+                                                          !                  a44
+                                                          ! 
+                                                          !   Packed storage of the upper triangle of A:
+                                                          ! 
+                                                          !   AP = [ a11, a12, a22, a13, a23, a33, a14, a24, a34, a44 ]
+                                                                                                                    
+                                                          
+      INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
+      CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
+      CHARACTER(1),    intent(in   ) :: UPLO              ! 'U':  Upper triangle of A is stored; 'L':  Lower triangle of A is stored.
+      
+      
+
+         ! local variables
+      INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; 
+                                                          ! > 0:  if INFO = i, the leading minor of order i is not positive definite, and the factorization could not be completed.
+
+                                                          
+      ErrStat = ErrID_None
+      ErrMsg  = ""
+
+      CALL DPPTRF (UPLO, N, AP, INFO)
+
+      IF (INFO /= 0) THEN
+         ErrStat = ErrID_FATAL
+         WRITE( ErrMsg, * ) INFO
+         IF (INFO < 0) THEN
+            ErrMsg  = "LAPACK_DPPTRF: illegal value in argument "//TRIM(ErrMsg)//"."
+         ELSE
+            ErrMsg = 'LAPACK_DPPTRF: Leading minor order '//TRIM(ErrMsg)//' of A is not positive definite, so Cholesky factorization could not be completed.'
+         END IF
+      END IF
+
+
+   RETURN
+   END SUBROUTINE LAPACK_DPPTRF   
+!=======================================================================
+   SUBROUTINE LAPACK_SPPTRF (UPLO, N, AP, ErrStat, ErrMsg)
+
+   ! SPPTRF computes the Cholesky factorization of a real symmetric
+   ! positive definite matrix A stored in packed format.
+   !
+   ! The factorization has the form
+   !      A = U**T * U,  if UPLO = 'U', or
+   !      A = L  * L**T,  if UPLO = 'L',
+   ! where U is an upper triangular matrix and L is lower triangular.
+   
+
+      ! passed parameters
+
+      INTEGER,         intent(in   ) :: N                 ! The order of the matrix A.  N >= 0.
+
+      !     .. Array Arguments ..
+      REAL(SiKi)      ,intent(inout) :: AP( : )           ! AP is REAL array, dimension (N*(N+1)/2)
+                                                          ! On entry, the upper or lower triangle of the symmetric matrix A, packed columnwise in a linear array.  The j-th column of A
+                                                          ! is stored in the array AP as follows:
+                                                          !    if UPLO = 'U', AP(i + (j-1)*j/2) = A(i,j) for 1<=i<=j;
+                                                          !    if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = A(i,j) for j<=i<=n.
+                                                          ! See LAPACK_DPPTRF for further details.
+                                                          ! On exit, if INFO = 0, the triangular factor U or L from the Cholesky factorization A = U**T*U or A = L*L**T, in the same storage format as A.
+
+      INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level
+      CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
+      CHARACTER(1),    intent(in   ) :: UPLO              ! 'U':  Upper triangle of A is stored; 'L':  Lower triangle of A is stored.
+
+         ! local variables
+      INTEGER                        :: INFO              ! = 0:  successful exit; < 0:  if INFO = -i, the i-th argument had an illegal value; 
+                                                          ! > 0:  if INFO = i, the leading minor of order i is not positive definite, and the factorization could not be completed
+
+
+      ErrStat = ErrID_None
+      ErrMsg  = ""
+
+      CALL SPPTRF (UPLO, N, AP, INFO)
+
+      IF (INFO /= 0) THEN
+         ErrStat = ErrID_FATAL
+         WRITE( ErrMsg, * ) INFO
+         IF (INFO < 0) THEN
+            ErrMsg  = "LAPACK_SPPTRF: illegal value in argument "//TRIM(ErrMsg)//"."
+         ELSE
+            ErrMsg = 'LAPACK_SPPTRF: Leading minor order '//TRIM(ErrMsg)//' of A is not positive definite, so Cholesky factorization could not be completed.'
+         END IF
+      END IF
+
+
+   RETURN
+   END SUBROUTINE LAPACK_SPPTRF   
+   !=======================================================================
 END MODULE NWTC_LAPACK

@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-18 13:10:21 -0700 (Wed, 18 Jun 2014) $
-! (File) Revision #: $Rev: 147 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/IceFloeBase.F90 $
+! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 775 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloeBase.F90 $
 !**********************************************************************************************************************************
 
 !****************************************************************
@@ -81,21 +81,21 @@ contains
       call getIceInput(iceInput, 'iceType', inParams%iceType, iceLog, lowTypeLimit, hiTypeLimit)
       call logMessage(iceLog, ' Ice type = '//TRIM(Num2LStr(inParams%iceType)))
 
-      call getIceInput(iceInput, 'iceThickness', inParams%iceThickness, iceLog, 0.001, 100.0)
+      call getIceInput(iceInput, 'iceThickness', inParams%iceThickness, iceLog, 0.001_ReKi, 100.0_ReKi)
       call logMessage(iceLog, ' Ice thickness = '//TRIM(Num2LStr(inParams%iceThickness))//' meters')
 
-      call getIceInput(iceInput, 'iceVelocity', inParams%iceVelocity, iceLog, 0.001, 10.0)
+      call getIceInput(iceInput, 'iceVelocity', inParams%iceVelocity, iceLog, 0.001_ReKi, 10.0_ReKi)
       call logMessage(iceLog, ' Ice velocity = '//TRIM(Num2LStr(inParams%iceVelocity))//' m/s')
 
-      call getIceInput(iceInput, 'iceDirection', inParams%iceDirection, iceLog, -360.0, 360.0)
+      call getIceInput(iceInput, 'iceDirection', inParams%iceDirection, iceLog, -360.0_ReKi, 360.0_ReKi)
       call logMessage(iceLog, ' Ice direction = '//TRIM(Num2LStr(inParams%iceDirection))//' degrees')
       inParams%iceDirection = D2R*inParams%iceDirection
       myIceParams%iceDirection = inParams%iceDirection  ! must save this parameter for later output calcs
       
-      call getIceInput(iceInput, 'timeStep', inParams%timeStep, iceLog, 0.0)
+      call getIceInput(iceInput, 'timeStep', inParams%timeStep, iceLog, 0.0_ReKi)
       call logMessage(iceLog, ' Time step = '//TRIM(Num2LStr(inParams%timeStep))//' sec')
 
-      call getIceInput(iceInput, 'towerDiameter', inParams%twr%diam, iceLog, 0.1, 100.0)
+      call getIceInput(iceInput, 'towerDiameter', inParams%twr%diam, iceLog, 0.1_ReKi, 100.0_ReKi)
       call logMessage(iceLog, ' Tower diameter = '//TRIM(Num2LStr(inParams%twr%diam))//' meters')
 
       call getIceInput(iceInput, 'randomSeed', inParams%randomSeed, iceLog, 0)
@@ -155,7 +155,7 @@ contains
             call logMessage(iceLog, ' Auto calculated shelter factor for leg #'//TRIM(Num2LStr(nL))// &
                                     ' = '//TRIM(Num2LStr(myIceParams%ks(nL))))
             if (.not. inParams%legAutoFactor) then
-               call getIceInput(iceInput, 'shelterFactor_ks'//TRIM(Num2LStr(nL)), inParams%twr%leg(nL)%ks, iceLog, 0.0, 1.0)
+               call getIceInput(iceInput, 'shelterFactor_ks'//TRIM(Num2LStr(nL)), inParams%twr%leg(nL)%ks, iceLog, 0.0_ReKi, 1.0_ReKi)
                call logMessage(iceLog, ' User specified shelter factor for leg #'//TRIM(Num2LStr(nL))//  &
                                        ' = '//TRIM(Num2LStr(inParams%twr%leg(nL)%ks)))
 !     Compare auto generated to user assigned factors, warn if big difference
@@ -182,7 +182,7 @@ contains
    function shelterFactor (nLegs, spacing, X, Y, iceDir) result(factor) 
       
       integer(IntKi), intent(in) :: nLegs
-      real, intent(in)           :: X, Y, spacing, iceDir   ! ice floe direction in radians
+      real(ReKi), intent(in)     :: X, Y, spacing, iceDir   ! ice floe direction in radians
       real(ReKi)                 :: factor
       real(ReKi)                 :: angle, rotX, rotY, loAngle, hiAngle
 

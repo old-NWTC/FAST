@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-30 21:30:15 -0600 (Mon, 30 Jun 2014) $
-! (File) Revision #: $Rev: 745 $
+! File last committed: $Date: 2014-08-15 12:00:08 -0600 (Fri, 15 Aug 2014) $
+! (File) Revision #: $Rev: 766 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/BJonkman/Source/ServoDyn.f90 $
 !**********************************************************************************************************************************
 MODULE ServoDyn
@@ -985,7 +985,7 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       REWIND( UnIn, IOSTAT=ErrStat2 )  
          IF (ErrStat2 /= 0_IntKi ) THEN
             CALL CheckError( ErrID_Fatal, 'Error rewinding file "'//TRIM(InputFile)//'".' )      
-            IF ( ErrStat >= AbortErrLev ) RETURN
+            RETURN
          END IF         
       
    END DO    

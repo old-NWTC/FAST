@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-13 10:04:28 -0600 (Fri, 13 Jun 2014) $
-! (File) Revision #: $Rev: 237 $
+! File last committed: $Date: 2014-08-12 13:41:57 -0600 (Tue, 12 Aug 2014) $
+! (File) Revision #: $Rev: 253 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Num.f90 $
 !**********************************************************************************************************************************
 MODULE NWTC_Num
@@ -54,7 +54,7 @@ MODULE NWTC_Num
    !  SUBROUTINE LocateStp             ( XVal, XAry, Ind, AryLen )
    !  FUNCTION   Mean                  ( Ary, AryLen )                                                ! Function to calculate the mean value of a vector array.
    !  SUBROUTINE MPi2Pi                ( Angle )
-   !  SUBROUTINE Zero2TwoPi            ( Angle )   
+   !  FUNCTION   PSF                   ( N, NumPrimes )                                               ! This routine factors the number N into its primes.  
    !  SUBROUTINE RegCubicSplineInit    ( AryLen, XAry, YAry, DelX, Coef )                             ! Calculate coefficients for regularly spaced array to use cubic splines.
    !  SUBROUTINE RegCubicSplineInitM   ( XAry, YAry, DelX, Coef, ErrStat, ErrMsg )                    ! Interpolate using cubic splines for multiple tables of regularly space data.
    !  FUNCTION   RegCubicSplineInterp  ( X, AryLen, XAry, YAry, DelX, Coef )                          ! Interpolate a regularly spaced array using cubic splines.
@@ -1957,7 +1957,99 @@ CONTAINS
 
    RETURN
    END SUBROUTINE MPi2Pi
+   
 !=======================================================================
+   FUNCTION PSF ( Npsf, NumPrimes, subtract )
+
+    ! This routine factors the number N into its primes.  If any of those
+    ! prime factors is greater than the NumPrimes'th prime, a value of 1
+    ! is added to N and the new number is factored.  This process is 
+    ! repeated until no prime factors are greater than the NumPrimes'th 
+    ! prime.
+    !
+    ! If subract is .true., we will subtract 1 from the value of N instead
+    ! of adding it.
+
+    IMPLICIT                 NONE
+
+    !Passed variables
+    INTEGER,         INTENT(IN) :: Npsf                   !< Initial number we're trying to factor.
+    INTEGER,         INTENT(IN) :: NumPrimes              !< Number of unique primes.
+    INTEGER                     :: PSF                    !< The smallest number at least as large as Npsf, that is the product of small factors when we return.
+                                                          !! IF subtract is present and .TRUE., PSF is the largest number not greater than Npsf that is a  product of small factors.
+    LOGICAL,OPTIONAL,INTENT(IN) :: subtract               !< if PRESENT and .TRUE., we will subtract instead of add 1 to the number when looking for the value of PSF to return.
+    
+    !Other variables
+    INTEGER                     :: sign                   ! +1 or -1 
+    INTEGER                     :: IPR                    ! A counter for the NPrime array
+    INTEGER, PARAMETER          :: NFact = 9              ! The number of prime numbers (the first NFact primes)
+    INTEGER                     :: NP                     ! A temp variable to determine if NPr divides NTR
+    INTEGER                     :: NPr                    ! A small prime number
+    INTEGER                     :: NT                     ! A temp variable to determine if NPr divides NTR: INT( NTR / NPr )
+    INTEGER                     :: NTR                    ! The number we're trying to factor in each iteration
+    INTEGER, PARAMETER          :: NPrime(NFact) = (/ 2, 3, 5, 7, 11, 13, 17, 19, 23 /) ! The first 9 prime numbers
+                              
+    LOGICAL                     :: DividesN1(NFact)       ! Does this factor divide NTR-1?
+
+
+
+    DividesN1(:) = .FALSE.                              ! We need to check all of the primes the first time through
+    
+    sign = 1
+    IF ( PRESENT( subtract ) ) THEN
+       IF (subtract) THEN
+          sign = -1
+       END IF
+    END IF
+    
+    PSF = Npsf
+
+    DO
+           ! First:  Factor NTR into its primes.
+
+       NTR = PSF
+
+       DO IPR=1,MIN( NumPrimes, NFact ) 
+
+           IF ( DividesN1(IPR) ) THEN
+
+                   ! If P divides N-1, then P cannot divide N.
+
+               DividesN1(IPR) = .FALSE.               ! This prime number does not divide psf; We'll check it next time.
+
+           ELSE
+
+               NPr = NPrime(IPR)                      ! The small prime number we will try to find the the factorization of NTR
+
+               DO
+                   NT = NTR/NPr                       ! Doing some modular arithmetic to see if
+                   NP = NT*NPr                        ! MOD( NTR, NPr ) == 0, i.e. if NPr divides NTR
+
+                   IF ( NP /= NTR )  EXIT             ! There aren't any more of this prime number in the factorization
+
+                   NTR = NT                           ! This is the new number we need to get factors for
+                   DividesN1(IPR) = .TRUE.            ! This prime number divides psf, so we won't check it next time (on Npsf+1).
+
+               ENDDO
+
+               IF ( NTR .EQ. 1 )  RETURN              ! We've found all the prime factors, so we're finished
+
+           ENDIF !  DividesN1
+
+       ENDDO ! IPR
+
+           ! Second:  There is at least one prime larger than NPrime(NumPrimes).  Add or subtract
+           !          a point to NTR and factor again.
+
+       PSF = PSF + sign*1
+
+    ENDDO
+
+
+    RETURN
+    END FUNCTION PSF   
+   
+!=======================================================================         
    SUBROUTINE RegCubicSplineInit ( AryLen, XAry, YAry, DelX, Coef, ErrStat, ErrMsg )
 
 
@@ -2858,4 +2950,38 @@ CONTAINS
    END SUBROUTINE Zero2TwoPi   
 !=======================================================================
 
+!=======================================================================
+!> This subroutine calculates the iosparametric coordinates, isopc, which is a value between -1 and 1 
+!! (for each dimension of a dataset), indicating where InCoord falls between posLo and posHi.
+!!
+SUBROUTINE IsoparametricCoords( InCoord, posLo, posHi, isopc )
+
+
+   REAL(ReKi),     INTENT(IN   )          :: InCoord(:)                             !< Coordinate values we're interpolating to; (size = number of interpolation dimensions)
+   REAL(ReKi),     INTENT(IN   )          :: posLo(:)                               !< coordinate values associated with Indx_Lo; (size = number of interpolation dimensions)
+   REAL(ReKi),     INTENT(IN   )          :: posHi(:)                               !< coordinate values associated with Indx_Hi; (size = number of interpolation dimensions)
+   REAL(ReKi),     INTENT(  OUT)          :: isopc(:)                               !< isoparametric coordinates; (position within the box)
+
+   ! local variables
+   REAL(ReKi)                             :: dx                                     ! difference between high and low coordinates in the bounding "box"
+   INTEGER(IntKi)                         :: i                                      ! loop counter
+   
+   
+   do i=1,size(isopc)
+      
+      dx = posHi(i) - posLo(i) 
+      if (EqualRealNos(dx, 0.0_ReKi)) then
+         isopc(i) = 1.0_ReKi
+      else
+         isopc(i) = ( 2.0_ReKi*InCoord(i) - posLo(i) - posHi(i) ) / dx
+            ! to verify that we don't extrapolate, make sure this is bound between -1 and 1 (effectively nearest neighbor)
+         isopc(i) = min( 1.0_ReKi, isopc(i) )
+         isopc(i) = max(-1.0_ReKi, isopc(i) )
+      end if
+      
+   end do
+            
+END SUBROUTINE IsoparametricCoords   
+!=======================================================================
+   
 END MODULE NWTC_Num

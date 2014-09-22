@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-18 13:10:21 -0700 (Wed, 18 Jun 2014) $
-! (File) Revision #: $Rev: 147 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/randomCrushing.F90 $
+! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 775 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/randomCrushing.F90 $
 !**********************************************************************************************************************************
 
 !  Module to calculate a time series of random loads due to continuous ice crushing
@@ -56,19 +56,19 @@ contains
 
       call logMessage(iceLog, newLine//' Setting parameters for random crushing loads time series')
 
-      call getIceInput(iceInput, 'coeffPSD_b', inParams%coeffPSD_b, iceLog, 0.1, 3.0)
+      call getIceInput(iceInput, 'coeffPSD_b', inParams%coeffPSD_b, iceLog, 0.1_ReKi, 3.0_ReKi)
       call logMessage(iceLog, ' coeffPSD_b = '//TRIM(Num2LStr(inParams%coeffPSD_b)))
 
-      call getIceInput(iceInput, 'coeffPSD_Ks', inParams%coeffPSD_Ks, iceLog, 1.0, 5.0)
+      call getIceInput(iceInput, 'coeffPSD_Ks', inParams%coeffPSD_Ks, iceLog, 1.0_ReKi, 5.0_ReKi)
       call logMessage(iceLog, ' coeffPSD_Ks = '//TRIM(Num2LStr(inParams%coeffPSD_Ks)))
 
-      call getIceInput(iceInput, 'crushLoadCOV', inParams%crushLoadCOV, iceLog, 0.1, 1.0)
+      call getIceInput(iceInput, 'crushLoadCOV', inParams%crushLoadCOV, iceLog, 0.1_ReKi, 1.0_ReKi)
       call logMessage(iceLog, ' crushLoadCOV = '//TRIM(Num2LStr(inParams%crushLoadCOV)))
 
-      call getIceInput(iceInput, 'stdLoadMult', inParams%stdLoadMult, iceLog, 1.0, 6.0)
+      call getIceInput(iceInput, 'stdLoadMult', inParams%stdLoadMult, iceLog, 1.0_ReKi, 6.0_ReKi)
       call logMessage(iceLog, ' stdLoadMult (number of std devs) = '//TRIM(Num2LStr(inParams%stdLoadMult)))
 
-      call getIceInput(iceInput, 'freqStep', inParams%freqStep, iceLog, .001, 0.1)
+      call getIceInput(iceInput, 'freqStep', inParams%freqStep, iceLog, .001_ReKi, 0.1_ReKi)
       call logMessage(iceLog, ' Frequency step = '//TRIM(Num2LStr(inParams%freqStep))//' Hz')
 
 !  Precalculates a time series of loads

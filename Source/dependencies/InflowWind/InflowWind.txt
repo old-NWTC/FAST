@@ -3,16 +3,16 @@
 # Module InflowWind_Types contains all of the user-defined types needed in InflowWind. It also contains copy, destroy, pack, and
 # unpack routines associated with each defined data types.
 ###################################################################################################################################
-# File last committed: $Date: 2013-09-21 22:29:52 -0600 (Sat, 21 Sep 2013) $
-# (File) Revision #: $Rev: 96 $
-# URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/Reg-InflowWind.txt $
+# File last committed: $Date: 2014-09-17 11:53:11 -0600 (Wed, 17 Sep 2014) $
+# (File) Revision #: $Rev: 118 $
+# URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/Registry/InflowWind.txt $
 ###################################################################################################################################
 # Entries are of the form
 # keyword <InflowWind[/ModuleAbvr]> <TypeName>   <FieldType>    <FieldName>  <Dims>  <Ctrl> <DNAME> <DESCRIP> <UNITS>
 ###################################################################################################################################
 
-usefrom Reg-IfW_FFWind.txt
-usefrom Reg-IfW_HHWind.txt
+usefrom IfW_FFWind.txt
+usefrom IfW_HHWind.txt
 include Registry_NWTC_Library.txt
 
 #########################

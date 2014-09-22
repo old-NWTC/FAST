@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-07-01 22:13:05 -0600 (Tue, 01 Jul 2014) $
-! (File) Revision #: $Rev: 749 $
+! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 775 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/IceFloe.f90 $
 !**********************************************************************************************************************************!
 
@@ -181,7 +181,7 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
    !  Do not use the interval from FAST as it may be too small resulting in large time series generation
    !  IceFloe doesn't need fine resolution as frequencies are low.  
    !  Let FAST call as often as it likes, IceFloe will interpolate.
-      call getIceInput(iceInput, 'timeStep',p%dt, iceLog, 0.0)
+      call getIceInput(iceInput, 'timeStep',p%dt, iceLog, 0.0_ReKi)
       if (iceLog%ErrID >= AbortErrLev) then
          ErrStat = iceLog%ErrID
          ErrMsg = 'Error retrieving time step from inputs in IceFloe_Init '//newLine//trim(iceLog%ErrMsg)
@@ -193,12 +193,12 @@ SUBROUTINE IceFloe_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitO
       if (InitInp%simLength <= 0) then
          duration = InitInp%simLength
       else
-         call getIceInput(iceInput, 'duration', duration, iceLog, 0.0)
+         call getIceInput(iceInput, 'duration', duration, iceLog, 0.0_ReKi)
       endif
       call logMessage(iceLog, ' Load time series length = '//TRIM(Num2LStr(duration))//' sec')
 
    ! get the load ramp up time
-      call getIceInput(iceInput, 'rampTime', p%rampTime, iceLog, 0.1)
+      call getIceInput(iceInput, 'rampTime', p%rampTime, iceLog, 0.1_ReKi)
       call logMessage(iceLog, ' Load ramp up time = '//TRIM(Num2LStr(p%rampTime))//' sec')
       if (iceLog%ErrID >= AbortErrLev) then
          ErrStat = iceLog%ErrID

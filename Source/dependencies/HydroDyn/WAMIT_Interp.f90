@@ -421,7 +421,7 @@ SUBROUTINE WAMIT_Interp4D_Cplx( InCoord, DataSet4D, WvFreq1, WvFreq2, WvDir1, Wv
 END SUBROUTINE WAMIT_Interp4D_Cplx
 
 !----------------------------------------------------------------------------------------------------------------------------------
-!> This subroutine takes a complex valued 3D dataset (InData3D) with the positions and indices of the bounding box and
+!> This subroutine takes a complex valued 2D dataset (InData2D) with the positions and indices of the bounding box and
 !! performs 3-D linear interpolation to estimate the value of the dataset at InCoord.
 !! It does not check that indices are valid or that the bounding box is non-degenerate (i.e., that posHi /= posLo) 
 !!

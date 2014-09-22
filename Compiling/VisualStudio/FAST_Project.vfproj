@@ -28,6 +28,16 @@
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<Filter Name="AeroDyn">
+		<Filter Name="DWM">
+		<Filter Name="RegistryFiles">
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\DWM_Types.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\Registry-DWM.txt">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat DWM" Description="Running Registry for DWM" Outputs="..\..\Source\dependencies\AeroDyn\DWM_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat DWM" Description="Running Registry for DWM" Outputs="..\..\Source\dependencies\AeroDyn\DWM_Types.f90"/></FileConfiguration></File></Filter>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\DWM.f90"/>
+		<File RelativePath="..\..\Source\dependencies\AeroDyn\DWM_Wake_Sub_ver2.f90"/></Filter>
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\AeroDyn_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\AeroDyn\Registry-AD.txt">
@@ -52,12 +62,6 @@
 		<File RelativePath="..\..\Source\FAST_Mods.f90"/>
 		<File RelativePath="..\..\Source\FAST_Prog.f90"/></Filter>
 		<Filter Name="HydroDyn">
-		<Filter Name="ExternalCode">
-		<File RelativePath="..\..\Source\dependencies\HydroDyn\fftpack.f">
-			<FileConfiguration Name="Debug|Win32">
-				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
-			<FileConfiguration Name="Release|Win32">
-				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Conv_Radiation.txt">
 			<FileConfiguration Name="Debug|Win32">
@@ -115,7 +119,6 @@
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Waves_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Conv_Radiation.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\Current.f90"/>
-		<File RelativePath="..\..\Source\dependencies\HydroDyn\FFTMod.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\HydroDyn.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\HydroDyn_Input.f90"/>
 		<File RelativePath="..\..\Source\dependencies\HydroDyn\HydroDyn_Output.f90"/>
@@ -132,6 +135,8 @@
 		<File RelativePath="..\..\Source\dependencies\IceDyn\IceDyn_Types.f90"/>
 		<File RelativePath="..\..\Source\dependencies\IceDyn\Registry_IceDyn.txt">
 			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IceDyn" Description="Running Registry for IceDyn" Outputs="..\..\Source\dependencies\IceDyn\IceDyn_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IceDyn" Description="Running Registry for IceDyn" Outputs="..\..\Source\dependencies\IceDyn\IceDyn_Types.f90"/></FileConfiguration></File></Filter>
 		<File RelativePath="..\..\Source\dependencies\IceDyn\IceDyn.f90"/></Filter>
 		<Filter Name="IceFloe">
@@ -140,6 +145,8 @@
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\IceFloe\IceFloe_FASTRegistry.inp">
 			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IceFloe" Description="Running Registry for IceFloe" Outputs="..\..\Source\dependencies\IceFloe\IceFloe_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat IceFloe" Description="Running Registry for IceFloe" Outputs="..\..\Source\dependencies\IceFloe\IceFloe_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\IceFloe\IceFloe_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\IceFloe\coupledCrushing.F90"/>
@@ -184,6 +191,8 @@
 		<Filter Name="RegistryFiles">
 		<File RelativePath="..\..\Source\dependencies\FEAMooring\FEAM_Registry.txt">
 			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat FEAMooring" Description="Running Registry for FEAMooring" Outputs="..\..\Source\dependencies\FEAMooring\FEAMooring_Types.f90"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFCustomBuildTool" CommandLine="CALL RunRegistry.bat FEAMooring" Description="Running Registry for FEAMooring" Outputs="..\..\Source\dependencies\FEAMooring\FEAMooring_Types.f90"/></FileConfiguration></File>
 		<File RelativePath="..\..\Source\dependencies\FEAMooring\FEAMooring_Types.f90"/></Filter>
 		<File RelativePath="..\..\Source\dependencies\FEAMooring\FEAM.f90"/></Filter>
@@ -193,6 +202,12 @@
 		<File RelativePath="..\..\Source\dependencies\MAP\MAP_Types.f90"/></Filter></Filter>
 		<Filter Name="NWTC_Library">
 		<Filter Name="NetLib">
+		<Filter Name="FFTPACK">
+		<File RelativePath="..\..\Source\dependencies\NetLib\fftpack4.1.f">
+			<FileConfiguration Name="Debug|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
+			<FileConfiguration Name="Release|Win32">
+				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
 		<Filter Name="ScaLAPACK">
 		<File RelativePath="..\..\Source\dependencies\NetLib\dlasrt2.f">
 			<FileConfiguration Name="Debug|Win32">
@@ -204,6 +219,7 @@
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration>
 			<FileConfiguration Name="Release|Win32">
 				<Tool Name="VFFortranCompilerTool" StandardWarnings="standardWarningsNone"/></FileConfiguration></File></Filter>
+		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_FFTPACK.f90"/>
 		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_LAPACK.f90"/>
 		<File RelativePath="..\..\Source\dependencies\NetLib\NWTC_ScaLAPACK.f90"/></Filter>
 		<Filter Name="RegistryFiles">

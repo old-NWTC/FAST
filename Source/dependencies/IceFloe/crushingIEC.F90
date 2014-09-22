@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
-! (File) Revision #: $Rev: 692 $
+! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 775 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/crushingIEC.F90 $
 !**********************************************************************************************************************************!
  
@@ -57,27 +57,27 @@ contains
 !  initialize the parmeters for flexural ice failure via IEC
       call logMessage(iceLog, newLine//' Setting parameters for crushing on vertical surfaces by IEC/Korzhavin method')
 
-      call getIceInput(iceInput, 'refIceStrength', inParams%refIceStrength, iceLog, 0.5E6, 5.0E6)
+      call getIceInput(iceInput, 'refIceStrength', inParams%refIceStrength, iceLog, 0.5E6_ReKi, 5.0E6_ReKi)
       call logMessage(iceLog, ' Reference ice strength = '//TRIM(Num2LStr(inParams%refIceStrength))//' Pascals')
 
-      call getIceInput(iceInput, 'shapeFactor_k1', inParams%shapeFactor_k1, iceLog, 0.1, 1.0)
+      call getIceInput(iceInput, 'shapeFactor_k1', inParams%shapeFactor_k1, iceLog, 0.1_ReKi, 1.0_ReKi)
       call logMessage(iceLog, ' Static load shape factor = '//TRIM(Num2LStr(inParams%shapeFactor_k1)))
 
-      call getIceInput(iceInput, 'contactFactor_k2', inParams%contactFactor_k2, iceLog, 0.1, 1.0)
+      call getIceInput(iceInput, 'contactFactor_k2', inParams%contactFactor_k2, iceLog, 0.1_ReKi, 1.0_ReKi)
       call logMessage(iceLog, ' Static load contact factor = '//TRIM(Num2LStr(inParams%contactFactor_k2)))
 
-      call getIceInput(iceInput, 'towerFrequency', inParams%twr%freq, iceLog, 0.01, 10.0)
+      call getIceInput(iceInput, 'towerFrequency', inParams%twr%freq, iceLog, 0.01_ReKi, 10.0_ReKi)
       call logMessage(iceLog, ' Tower fundamental frequency = '//TRIM(Num2LStr(inParams%twr%freq))//' Hz')
 
    !  get leg load phase
       if (myIceParams%numLegs>1) then
          do nL = 1, myIceParams%numLegs
-            call getIceInput(iceInput, 'loadPhase'//TRIM(Num2LStr(nL)), inParams%twr%leg(nL)%phase, iceLog, 0.0, 360.0)
+            call getIceInput(iceInput, 'loadPhase'//TRIM(Num2LStr(nL)), inParams%twr%leg(nL)%phase, iceLog, 0.0_ReKi, 360.0_ReKi)
             call logMessage(iceLog, ' Load phase for leg '//TRIM(Num2LStr(nL))//' is '                             &
                                     //TRIM(Num2LStr(inParams%twr%leg(nL)%phase))//' degrees')
             inParams%twr%leg(nL)%phase = D2R*inParams%twr%leg(nL)%phase
          enddo
-         call getIceInput(iceInput, 'multiLegFactor_kn', inParams%multiLegFactor_kn, iceLog, 0.0, 1.0)
+         call getIceInput(iceInput, 'multiLegFactor_kn', inParams%multiLegFactor_kn, iceLog, 0.0_ReKi, 1.0_ReKi)
          call logMessage(iceLog, ' Multi leg factor = '//TRIM(Num2LStr(inParams%multiLegFactor_kn)))
       else
          inParams%twr%leg(1)%phase  = 0.0

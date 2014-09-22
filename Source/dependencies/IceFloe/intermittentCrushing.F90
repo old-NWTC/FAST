@@ -18,8 +18,8 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-05-12 09:46:43 -0600 (Mon, 12 May 2014) $
-! (File) Revision #: $Rev: 692 $
+! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 775 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/intermittentCrushing.F90 $
 !**********************************************************************************************************************************
 
@@ -53,19 +53,19 @@ contains
 
       call logMessage(iceLog, newLine//' Setting parameters for intermittent crushing loads' )
 
-      call getIceInput(iceInput, 'interPeriod', inParams%interPeriod, iceLog, 1.0)
+      call getIceInput(iceInput, 'interPeriod', inParams%interPeriod, iceLog, 1.0_ReKi)
       call logMessage(iceLog, ' Intermittent period = '//TRIM(Num2LStr(inParams%interPeriod))//' seconds')
 
-      call getIceInput(iceInput, 'riseTime', inParams%riseTime, iceLog, 0.1, 0.9)
+      call getIceInput(iceInput, 'riseTime', inParams%riseTime, iceLog, 0.1_ReKi, 0.9_ReKi)
       call logMessage(iceLog, ' Saw tooth rise time fraction = '//TRIM(Num2LStr(inParams%riseTime)))
 
-      call getIceInput(iceInput, 'fallTime', inParams%fallTime, iceLog, 0.1, 1.0-inParams%riseTime)
+      call getIceInput(iceInput, 'fallTime', inParams%fallTime, iceLog, 0.1_ReKi, 1.0-inParams%riseTime)
       call logMessage(iceLog, ' Saw tooth fall time fraction = '//TRIM(Num2LStr(inParams%fallTime)))
 
    !  get leg load phase
       if (myIceParams%numLegs>1) then
          do nL = 1, myIceParams%numLegs
-            call getIceInput(iceInput, 'loadPhase'//TRIM(Num2LStr(nL)), inParams%twr%leg(nL)%phase, iceLog, 0.0, 360.0)
+            call getIceInput(iceInput, 'loadPhase'//TRIM(Num2LStr(nL)), inParams%twr%leg(nL)%phase, iceLog, 0.0_ReKi, 360.0_ReKi)
             call logMessage(iceLog, ' Load phase for leg '//TRIM(Num2LStr(nL))//' is '                             &
                                     //TRIM(Num2LStr(inParams%twr%leg(nL)%phase))//' degrees')
             inParams%twr%leg(nL)%phase = D2R*inParams%twr%leg(nL)%phase
@@ -80,7 +80,7 @@ contains
       maxLoad = globalCrushLoadISO(inParams)
       call logMessage(iceLog, '** Global crushing load is: '//TRIM(Num2LStr(maxLoad))//' Newtons.' )
 
-      call crushLoadTimeSeriesISO(myIceParams, inParams, iceLog, maxLoad, 0.0, inParams%interPeriod,  &
+      call crushLoadTimeSeriesISO(myIceParams, inParams, iceLog, maxLoad, 0.0_ReKi, inParams%interPeriod,  &
                                   inParams%riseTime, inParams%fallTime)
 
    end subroutine initInterCrushing

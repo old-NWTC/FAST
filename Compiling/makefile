@@ -129,7 +129,9 @@ LIB_SOURCES =           \
 
 NETLIB_SOURCES=            \
 	NWTC_ScaLAPACK.f90      \
+	NWTC_FFTPACK.f90        \
 	NWTC_LAPACK.f90         \
+	fftpack4.1.f            \
 	dlasrt2.f               \
 	slasrt2.f
 
@@ -156,8 +158,6 @@ DWM_SOURCES =            \
 
 
 HD_SOURCES =                 \
-	fftpack.f                 \
-	FFTMod.f90                \
 	SS_Radiation_Types.f90    \
 	SS_Radiation.f90          \
 	Waves2_Types.f90          \
@@ -239,7 +239,7 @@ FAST_SOURCES =          \
 	FAST_Prog.f90
 
 vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DIR) $(SrvD_DIR) $(SD_DIR) $(MAP_DIR) $(FAST_DIR) $(NETLIB_DIR) $(FEAM_DIR) $(IceF_DIR) $(IceD_DIR) $(DWM_DIR)
-vpath %.f   $(HD_DIR) $(NETLIB_DIR)
+vpath %.f   $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
 vpath %.txt $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR)
@@ -362,6 +362,7 @@ NWTC_Library.obj:           ModMesh.obj  ModMesh_Mapping.obj
 
 NWTC_LAPACK.obj:            NWTC_Base.obj
 NWTC_ScaLAPACK.obj:         NWTC_Base.obj dlasrt2.obj slasrt2.obj
+NWTC_FFTPACK.obj:           NWTC_Base.obj fftpack4.1.obj
 
 
 #InflowWind dependency rules:
@@ -387,15 +388,12 @@ DWM.obj:                    NWTC_Library.obj DWM_Types.obj DWM_Wake_Sub_ver2.obj
 
 
 #HydroDyn dependency rules:
-fftpack.obj:                NWTC_Library.obj
-FFTMod.obj:                 NWTC_Library.obj  fftpack.obj
-
 SS_Radiation_Types.obj:     NWTC_Library.obj  SS_Radiation.txt
 SS_Radiation.obj:           SS_Radiation_Types.obj
 
 Waves2_Types.obj:           NWTC_Library.obj  Waves2.txt
 Waves_Types.obj:            NWTC_Library.obj  Waves.txt
-Waves.obj:                  Waves_Types.obj  FFTMod.obj
+Waves.obj:                  Waves_Types.obj   NWTC_FFTPACK.obj
 
 Current_Types.obj:          NWTC_Library.obj  Current.txt
 Current.obj:                Current_Types.obj
@@ -409,7 +407,7 @@ Conv_Radiation.obj:         Conv_Radiation_Types.obj
 
 WAMIT2_Types.obj:           NWTC_Library.obj WAMIT2.txt
 WAMIT_Types.obj:            NWTC_Library.obj Conv_Radiation_Types.obj SS_Radiation_Types.obj Waves_Types.obj  WAMIT.txt
-WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj FFTMod.obj WAMIT_Interp.obj
+WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj NWTC_FFTPACK.obj WAMIT_Interp.obj
 
 WAMIT_Interp.obj:           NWTC_Library.obj
 WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj

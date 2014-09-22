@@ -1,7 +1,4 @@
-   ! NOTE: This MODULE is virtually a copy of MODULE FFT_Module() from TurbSim.
-   !       A few unused things have been eliminated (indicated by "!remove")
-   !       and a little bit of code has been added where noted (indicated by
-   !       "NEW").
+   ! NOTE: This MODULE isused in HydroDyn and TurbSim.
    ! BJJ: 02/22/2008: Updated to work with NWTC_Library v1.01.09
    !      all Abort() functions changed to ProgAbort()
    ! BJJ: 12/03/2010: Updated to add optional ErrStat return values
@@ -9,12 +6,13 @@
    ! BJJ: 12/20/2010: Updated to add defined type and remove global data variables
    !                  Also updated to check that transform has been initialized for the
    !                    correct type (to avoid having wSave too small)
+   ! ADP: 07/28/2014: Added in the complex FFT routines from fftpack v. 4.1
 !=======================================================================
-! File last committed: $Date: 2014-06-25 13:38:20 -0600 (Wed, 25 Jun 2014) $
-! (File) Revision #: $Rev: 451 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/FFTMod.f90 $
+! File last committed: $Date: 2014-09-22 11:33:20 -0600 (Mon, 22 Sep 2014) $
+! (File) Revision #: $Rev: 259 $
+! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_FFTPACK.f90 $
 !=======================================================================
-MODULE FFT_Module
+MODULE NWTC_FFTPACK
 !-----------------------------------------------------------------------
 ! DESCRIPTION OF THE INVERSE FOURIER TRANSFORM ROUTINE:
 !
@@ -156,6 +154,165 @@ CONTAINS
       ENDIF
 
    END SUBROUTINE ApplyCOST
+!------------------------------------------------------------------------
+   SUBROUTINE ApplyCFFT( TRH_complex_return, TRH_complex, FFT_Data, ErrStat )
+         ! Perform Backward complex FFT: given TRH_complex, an array of complex numbers,
+         ! return an array TRH_complex_return, of complex numbers
+
+         ! TRH_complex is of size FFT_Data%N/2 and represents the complex amplitude in frequency
+         !  space of only the positive frequencies.  This is padded with zeros for the upper half
+         !  the frequency domain.
+
+         ! TRH_complex_return is of size FFT_Data%N and represents the complex amplitude in the
+         !  time domain.
+
+      IMPLICIT                         NONE
+
+      COMPLEX(ReKi), INTENT(OUT)    :: TRH_complex_return(:)
+      COMPLEX(ReKi), INTENT(IN)     :: TRH_complex(:)
+      TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
+      INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
+
+      REAL(ReKi), ALLOCATABLE       :: TRH(:)   ! real array to help process the complex-array that fftpack defines as IMPLICIT (real)
+
+      INTEGER                       :: I
+     
+      INTEGER(IntKi)                :: ErrStatTmp 
+      LOGICAL                       :: TrapErrors
+      character(1024)               :: ErrMsg
+
+      ErrStatTmp  = ErrID_None
+         
+      IF ( PRESENT(ErrStat) ) THEN
+         TrapErrors = .TRUE.
+         ErrStat = ErrID_None
+      ELSE
+         TrapErrors = .FALSE.         
+      END IF
+
+
+        ! Make sure the arrays aren't too small
+      IF ( ( SIZE(TRH_complex_return) < FFT_Data%N ) .OR. ( SIZE(TRH_complex) < ( FFT_Data%N/2 + 1 ) ) )  THEN
+          CALL ProgAbort( 'Error in call to FFT.  Array size is not large enough.', TrapErrors )
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
+          RETURN
+      END IF
+      
+      IF ( FFT_Data%TransformType /= Fourier_trans ) THEN
+          CALL ProgAbort( 'Error in call to FFT. FFT_Data not initialized for Fourier transform.', TrapErrors )
+          ErrStat = ErrID_Fatal
+          RETURN
+      END IF      
+
+
+        ! Make sure that the imaginary components at the zeroeth and largest
+        ! positive frequency are zero, else abort.
+
+      IF ( .NOT. EqualRealNos( 0.0_ReKi, AIMAG( TRH_complex(1    ) ) ) ) THEN
+          CALL ProgAbort( 'Error in call to FFT.  The imaginary component at the zeroeth frequency must be zero.', TrapErrors )
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
+          RETURN      
+      ELSE IF ( .NOT. EqualRealNos( 0.0_ReKi, AIMAG( TRH_complex(FFT_Data%N/2+1) ) ) )  THEN
+          CALL ProgAbort( 'Error in call to FFT. '// &
+                          'The imaginary component at the largest positive frequency must be zero.', TrapErrors )
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
+          RETURN
+      END IF
+
+
+         ! Populate the array for the frequency information.  Only the first half is populated (note that
+         ! this algorithm does not make any assumptions about double sided conjugate pairing)
+      TRH_complex_return = CMPLX(0.0_ReKi,0.0_ReKi)
+      DO I=1,FFT_Data%N/2
+         TRH_complex_return(I) = TRH_complex(I)
+      ENDDO
+
+
+      CALL AllocAry( TRH, 2*size(TRH_complex_return,1), 'ApplyCFFT:TRH', ErrStat, ErrMsg  )
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL WrScr( TRIM(ErrMsg) )
+            RETURN
+         END IF
+      TRH = TRANSFER(TRH_complex_return, TRH)
+
+      CALL CFFTB(FFT_Data%N, TRH, FFT_Data%wSave)
+
+      ! put real values back into complex array
+      TRH_complex_return = TRANSFER(TRH, TRH_complex)      
+      DEALLOCATE(TRH)
+
+
+         ! Apply normalization, if any
+
+      IF (FFT_Data%Normalize) THEN
+          TRH_complex_return(1:FFT_Data%N) = FFT_Data%InvN * TRH_complex_return(1:FFT_Data%N)
+      ENDIF
+
+   END SUBROUTINE ApplyCFFT
+  !------------------------------------------------------------------------
+   SUBROUTINE ApplyCFFT_f( TRH_complex, FFT_Data, ErrStat )
+!FIXME: THIS ROUTINE HAS NOT BEEN TESTED!!!!!
+         ! Perform Forward complex FFT: 
+         ! give an array TRH, of complex amplitudes in the time domain,
+         ! return TRH, a complex array in the frequency domain
+
+      IMPLICIT                         NONE
+
+      COMPLEX(ReKi), INTENT(INOUT)  :: TRH_complex(:)
+      TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
+      INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
+      
+      
+      REAL(ReKi), ALLOCATABLE       :: TRH(:)
+      
+      LOGICAL                       :: TrapErrors
+      character(1024)               :: ErrMsg   
+      
+      
+      IF ( PRESENT(ErrStat) ) THEN
+         TrapErrors = .TRUE.
+         ErrStat = ErrID_None
+      ELSE
+         TrapErrors = .FALSE.         
+      END IF
+
+
+        ! Make sure the array isn't too small
+
+      IF ( SIZE(TRH_complex) < FFT_Data%N )  THEN
+          CALL ProgAbort( 'Error in call to FFT.  Array size is not large enough.', TrapErrors )
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
+          RETURN
+      END IF
+      
+      IF ( FFT_Data%TransformType /= Fourier_trans ) THEN
+          CALL ProgAbort( 'Error in call to FFT. FFT_Data not initialized for Fourier transform.', TrapErrors )
+          ErrStat = ErrID_Fatal
+          RETURN
+      END IF            
+
+        ! Perform the FFT with a FFTpack routine
+
+      CALL AllocAry( TRH, 2*size(TRH,1), 'ApplyCFFT_f:TRH', ErrStat, ErrMsg )
+         IF (ErrStat >= AbortErrLev) THEN
+            CALL WrScr( TRIM(ErrMsg) )
+            RETURN
+         END IF
+         
+      TRH = TRANSFER(TRH_complex, TRH)
+        
+      CALL CFFTF(FFT_Data%N, TRH, FFT_Data%wSave) ! FFTpack routine
+   
+      ! put real values back into complex array
+      TRH_complex = TRANSFER(TRH, TRH_complex)
+      DEALLOCATE(TRH)
+      
+      
+      IF (FFT_Data%Normalize) THEN
+          TRH(1:FFT_Data%N) = FFT_Data%InvN * TRH(1:FFT_Data%N)
+      ENDIF
+
+   END SUBROUTINE ApplyCFFT_f
   !------------------------------------------------------------------------
    SUBROUTINE ApplyFFT( TRH, FFT_Data, ErrStat )
          ! Perform Backward FFT: given TRH, a REAL array representing complex numbers,
@@ -204,6 +361,52 @@ CONTAINS
 
    END SUBROUTINE ApplyFFT
   !------------------------------------------------------------------------
+   SUBROUTINE ApplyFFT_f( TRH, FFT_Data, ErrStat )
+         ! Perform Forward FFT: 
+         ! give an array TRH, of real numbers,
+         ! return TRH, a REAL array representing complex numbers (magnitude and phase).
+
+      IMPLICIT                         NONE
+
+      REAL(ReKi), INTENT(INOUT)     :: TRH(:)
+      TYPE(FFT_DataType), INTENT(IN):: FFT_Data             ! the handle to this instance of the FFT Module
+      INTEGER, INTENT(OUT), OPTIONAL:: ErrStat
+      
+      LOGICAL                       :: TrapErrors
+      
+         
+      IF ( PRESENT(ErrStat) ) THEN
+         TrapErrors = .TRUE.
+         ErrStat = ErrID_None
+      ELSE
+         TrapErrors = .FALSE.         
+      END IF
+
+
+        ! Make sure the array isn't too small
+
+      IF ( SIZE(TRH) < FFT_Data%N )  THEN
+          CALL ProgAbort( 'Error in call to FFT.  Array size is not large enough.', TrapErrors )
+          ErrStat = ErrID_Fatal         ! The code can't get here unless PRESENT(ErrStat)
+          RETURN
+      END IF
+      
+      IF ( FFT_Data%TransformType /= Fourier_trans ) THEN
+          CALL ProgAbort( 'Error in call to FFT. FFT_Data not initialized for Fourier transform.', TrapErrors )
+          ErrStat = ErrID_Fatal
+          RETURN
+      END IF            
+
+        ! Perform the FFT with a FFTpack routine
+
+      CALL RFFTF(FFT_Data%N, TRH, FFT_Data%wSave) ! FFTpack routine
+   
+      IF (FFT_Data%Normalize) THEN
+          TRH(1:FFT_Data%N) = FFT_Data%InvN * TRH(1:FFT_Data%N)
+      ENDIF
+
+   END SUBROUTINE ApplyFFT_f
+!------------------------------------------------------------------------
    SUBROUTINE ApplyFFT_cx( TRH, TRH_complex, FFT_Data, ErrStat )
          ! Perform Backward FFT: given TRH, a REAL array representing complex numbers,
          ! return an array TRH, of real numbers.
@@ -341,6 +544,24 @@ CONTAINS
 
    END SUBROUTINE ApplySINT
   !------------------------------------------------------------------------
+   SUBROUTINE ExitCFFT(FFT_Data, ErrStat)
+   
+      TYPE(FFT_DataType), INTENT(INOUT) :: FFT_Data             ! the handle to this instance of the FFT Module
+      INTEGER, INTENT(OUT), OPTIONAL    :: ErrStat
+      INTEGER                           :: Alloc_Stat 
+
+        ! This subroutine cleans up the backward FFT working space
+
+      FFT_Data%N = -1
+      FFT_Data%TransformType = Undef_trans
+      
+      Alloc_Stat = 0
+      IF ( ALLOCATED (FFT_Data%wSave)    ) DEALLOCATE( FFT_Data%wSave, STAT=Alloc_Stat )
+
+      IF ( PRESENT( ErrStat ) ) ErrStat = Alloc_Stat
+
+   END SUBROUTINE ExitCFFT
+  !------------------------------------------------------------------------
    SUBROUTINE ExitCOST(FFT_Data, ErrStat)
    
       TYPE(FFT_DataType), INTENT(INOUT) :: FFT_Data             ! the handle to this instance of the FFT Module
@@ -453,6 +674,63 @@ CONTAINS
 
 
    END SUBROUTINE InitCOST
+  !------------------------------------------------------------------------
+   SUBROUTINE InitCFFT( NumSteps, FFT_Data, NormalizeIn, ErrStat )
+
+        ! This subroutine initializes the backward FFT working space
+
+      IMPLICIT                         NONE
+
+      INTEGER, INTENT(IN)           :: NumSteps       ! Number of steps in the array
+      INTEGER                       :: Sttus          ! Array allocation status
+
+      TYPE(FFT_DataType),INTENT(OUT):: FFT_Data       ! the handle to this instance of the FFT Module
+      LOGICAL, INTENT(IN), OPTIONAL :: NormalizeIn    ! Whether or not to normalize the FFT
+      INTEGER, INTENT(OUT),OPTIONAL :: ErrStat        ! returns non-zero if an error occurred
+
+
+      IF ( PRESENT(ErrStat) ) ErrStat = ErrID_None
+
+        ! Number of timesteps in the time series returned from the backward FFT
+        ! N should be even:
+
+      FFT_Data%N  = NumSteps
+
+      IF ( MOD(FFT_Data%N,2) /= 0 ) THEN
+         CALL ProgAbort ( 'The number of steps in the FFT must be even', PRESENT(ErrStat) ) ! For this Real FFT
+         ErrStat = ErrID_Fatal
+         RETURN
+      ENDIF
+
+        ! Determine if we should normalize the FFT
+
+      IF ( PRESENT( NormalizeIn ) ) THEN
+          FFT_Data%Normalize = NormalizeIn
+          FFT_Data%InvN      = 1. / FFT_Data%N
+      ELSE
+          FFT_Data%Normalize = .FALSE.
+      ENDIF
+
+        ! According to FFTPACK documentation, the working array must be at
+        ! least size 4N+15
+
+      ALLOCATE ( FFT_Data%wSave(4*FFT_Data%N + 15) , STAT=Sttus )
+
+      IF ( Sttus /= 0 )  THEN
+         CALL ProgAbort ( 'Error allocating memory for the complex FFT working array.', PRESENT(ErrStat) )
+         ErrStat = ErrID_Fatal
+         RETURN
+      ENDIF
+
+
+        ! Initialize the FFTPACK working space
+
+      CALL CFFTI(FFT_Data%N, FFT_Data%wSave)
+
+
+      FFT_Data%TransformType = Fourier_trans
+ 
+   END SUBROUTINE InitCFFT
   !------------------------------------------------------------------------
    SUBROUTINE InitFFT( NumSteps, FFT_Data, NormalizeIn, ErrStat )
 
@@ -568,91 +846,7 @@ CONTAINS
 
    END SUBROUTINE InitSINT
   !------------------------------------------------------------------------
-    FUNCTION PSF ( Npsf , NumPrimes, ErrStat )
 
 
-    ! This routine factors the number N into its primes.  If any of those
-    ! prime factors is greater than the NumPrimes'th prime, a point is added to N
-    ! and the new number is factored.  This process is repeated until no
-    ! prime factors are greater than the NumPrimes'th prime.
-
-    IMPLICIT                 NONE
-
-    !Passed variables
-    INTEGER, INTENT(IN)   :: Npsf                   ! Initial number we're trying to factor.
-    INTEGER, INTENT(IN)   :: NumPrimes              ! Number of unique primes.
-    INTEGER, INTENT(OUT),OPTIONAL :: ErrStat        ! returns non-zero if an error occurred
-    INTEGER               :: PSF                    ! The smallest number at least as large as Npsf, that is the product of small factors when we return.
-
-    !Other variables
-    INTEGER               :: IPR                    ! A counter for the NPrime array
-    INTEGER, PARAMETER    :: NFact = 9              ! The number of prime numbers (the first NFact primes)
-    INTEGER               :: NP                     ! A temp variable to determine if NPr divides NTR
-    INTEGER               :: NPr                    ! A small prime number
-    INTEGER               :: NT                     ! A temp variable to determine if NPr divides NTR: INT( NTR / NPr )
-    INTEGER               :: NTR                    ! The number we're trying to factor in each iteration
-    INTEGER, PARAMETER    :: NPrime(NFact) = (/ 2, 3, 5, 7, 11, 13, 17, 19, 23 /) ! The first 9 prime numbers
-
-    LOGICAL               :: DividesN1(NFact)       ! Does this factor divide NTR-1?
-
-
-    IF ( PRESENT( ErrStat ) ) ErrStat = ErrID_None
-
-    IF ( NumPrimes > NFact )  THEN
-        CALL ProgAbort ( 'In the call to PSF, NumPrimes must be less than '//TRIM( Int2LStr( NFact ) )//'.', PRESENT(ErrStat) )
-        ErrStat = ErrID_Fatal
-        RETURN
-    ENDIF
-
-    DividesN1(:) = .FALSE.                          ! We need to check all of the primes the first time through
-
-    PSF = Npsf
-
-    DO
-        ! 1.0  Factor NTR into its primes.
-
-    NTR = PSF
-
-    DO IPR=1,NumPrimes
-
-        IF ( DividesN1(IPR) ) THEN
-
-                ! If P divides N-1, then P cannot divide N.
-
-            DividesN1(IPR) = .FALSE.               ! We'll check it next time.
-
-        ELSE
-
-            NPr = NPrime(IPR)                      ! The small prime number we will try to find the the factorization of NTR
-
-            DO
-                NT = NTR/NPr                       ! Doing some modular arithmetic to see if
-                NP = NT*NPr                        ! MOD( NTR, NPr ) == 0, i.e. if NPr divides NTR
-
-                IF ( NP /= NTR )  EXIT             ! There aren't any more of this prime number in the factorization
-
-                NTR = NT                           ! This is the new number we need to get factors for
-                DividesN1(IPR) = .TRUE.            ! This prime number divides Npsf, so we won't check it next time (on Npsf+1).
-
-            ENDDO
-
-            IF ( NTR .EQ. 1 )  RETURN              ! We've found all the prime factors, so we're finished
-
-        ENDIF !  DividesN1
-
-    ENDDO ! IPR
-
-        ! 2.0  There is at least one prime larger than NPrime(NumPrimes).  Add
-        !      a point to NTR and factor again.
-
-    PSF = PSF + 1
-
-    ENDDO
-
-
-    RETURN
-    END FUNCTION PSF
-
-
-END MODULE FFT_Module
+END MODULE NWTC_FFTPACK
 !=======================================================================

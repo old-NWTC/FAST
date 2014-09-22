@@ -2928,8 +2928,7 @@ SUBROUTINE CreateLumpedMesh( densWater, gravity, MSL2SWL, wtrDpth, NStepWave, Wa
                ! Create the mesh element
          
             CALL MeshConstructElement (  lumpedMeshIn   &
-                                  , ELEMENT_POINT      &
-                                  
+                                  , ELEMENT_POINT      &                                  
                                   , ErrStat            &
                                   , ErrMsg  &
                                   , count                  &

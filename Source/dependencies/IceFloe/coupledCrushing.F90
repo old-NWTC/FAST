@@ -18,9 +18,9 @@
 !************************************************************************
 
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-18 13:10:21 -0700 (Wed, 18 Jun 2014) $
-! (File) Revision #: $Rev: 147 $
-! URL: $HeadURL: http://sel1004.verit.dnv.com:8080/svn/LoadSimCtl_SurfaceIce/trunk/IceDyn_IntelFortran/IceDyn/source/IceFloe/coupledCrushing.F90 $
+! File last committed: $Date: 2014-09-18 10:40:05 -0600 (Thu, 18 Sep 2014) $
+! (File) Revision #: $Rev: 775 $
+! URL: $HeadURL: https://windsvn.nrel.gov/FAST/branches/FOA_modules/IceFloe/source/coupledCrushing.F90 $
 !**********************************************************************************************************************************!
  
 !  Module for calculations of loads induced by ice crushing against vertical surfaces
@@ -60,14 +60,14 @@ contains
 
       call logMessage(iceLog, newLine//' Setting coupled ice crushing input parameters ')
 
-      call getIceInput(iceInput, 'refIceStrength', inParams%refIceStrength, iceLog, 0.5E6, 5.0E6)
+      call getIceInput(iceInput, 'refIceStrength', inParams%refIceStrength, iceLog, 0.5E6_ReKi, 5.0E6_ReKi)
       call logMessage(iceLog, ' Reference ice strength = '//TRIM(Num2LStr(inParams%refIceStrength))//' Pascals')
 
-      call getIceInput(iceInput, 'minStrength', inParams%minStrength, iceLog, 0.0, 1.0E9)
+      call getIceInput(iceInput, 'minStrength', inParams%minStrength, iceLog, 0.0_ReKi, 1.0E9_ReKi)
       call logMessage(iceLog, ' Minimum ice strength from stress rate polynomial = '//        &
                               TRIM(Num2LStr(inParams%minStrength))//' Pascals')
 
-      call getIceInput(iceInput, 'minStrengthNegVel', inParams%minStrengthNegVel, iceLog, 0.0, 1.0E9)
+      call getIceInput(iceInput, 'minStrengthNegVel', inParams%minStrengthNegVel, iceLog, 0.0_ReKi, 1.0E9_ReKi)
       call logMessage(iceLog, ' Minimum negative velocity ice strength = '//        &
                               TRIM(Num2LStr(inParams%minStrengthNegVel))//' Pascals')
 
