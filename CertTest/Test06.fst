@@ -1,4 +1,4 @@
-------- FAST v8.08.* INPUT FILE ------------------------------------------------
+------- FAST v8.09.* INPUT FILE ------------------------------------------------
 FAST Certification Test #06: AOC 15/50 with many DOFs with gen start, loss of grid, and tip-brake shutdown. Many parameters are pure fiction.
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)

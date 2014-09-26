@@ -1,4 +1,4 @@
-------- HydroDyn v2.01.* Input File --------------------------------------------
+------- HydroDyn v2.02.* Input File --------------------------------------------
 HydroDyn inputs for OC4 Jacket, with ice modules enabled (no waves or current)
 False            Echo           - Echo the input file data (flag)
 ---------------------- ENVIRONMENTAL CONDITIONS --------------------------------
@@ -28,7 +28,6 @@ False            WaveNDAmp      - Flag for normally distributed amplitudes (flag
              0   WaveElevxi     - List of xi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
              0   WaveElevyi     - List of yi-coordinates for points where the incident wave elevations can be output (meters) [NWaveElev points, separated by commas or white space; usused if NWaveElev = 0]
 ---------------------- 2ND-ORDER WAVES -----------------------------------------
-False            WvMnDrift      - Mean-drift                2nd-order wave kinematics (flag) [only one of WvMnDrift or WvDiffQTF can be TRUE]
 False            WvDiffQTF      - Full difference-frequency 2nd-order wave kinematics (flag) [only one of WvMnDrift or WvDiffQTF can be TRUE]
 False            WvSumQTF       - Full summation-frequency  2nd-order wave kinematics (flag)
              0   WvLowCOffD     - Low  frequency cutoff used in the difference-frequencies (rad/s) [Only used with a difference-frequency method]
@@ -55,10 +54,10 @@ FALSE            HasWAMIT       - Using WAMIT (flag)
              0   RdtnTMax       - Analysis time for wave radiation kernel calculations (sec) [determines RdtnDOmega=Pi/RdtnTMax in the cosine transform]  [MAKE SURE THIS IS LONG ENOUGH FOR THE RADIATION IMPULSE RESPONSE FUNCTIONS TO DECAY TO NEAR-ZERO FOR THE GIVEN PLATFORM!]
              0   RdtnDT         - Time step for wave radiation kernel calculations (sec) [DT<=RdtnDT<=0.1 recommended] [determines RdtnOmegaMax=Pi/RdtnDT in the cosine transform]
 ---------------------- 2ND-ORDER FLOATING PLATFORM FORCES ----------------------
-             0   MnDrift        - Mean-drift 2nd-order forces computed                              {0: None; [7, 8, 9, 10, 11, or 12]: WAMIT file to use} [Only one of MnDrift, NewmanApp, or DiffQTF can be non-zero]
-             0   NewmanApp      - Slow-drift 2nd-order forces computed with Newman's approximation  {0: None; [7, 8, 9, 10, 11, or 12]: WAMIT file to use} [Only one of MnDrift, NewmanApp, or DiffQTF can be non-zero. Used only when WaveDirMod=0]
-             0   DiffQTF        - Full difference-frequency 2nd-order forces computed with full QTF {0: None; [10, 11, or 12]: WAMIT file to use}          [Only one of MnDrift, NewmanApp, or DiffQTF can be non-zero]
-             0   SumQTF         - Full summation -frequency 2nd-order forces computed with full QTF {0: None; [10, 11, or 12]: WAMIT file to use}
+             0   MnDrift        - Mean-drift 2nd-order forces computed                                       {0: None; [7, 8, 9, 10, 11, or 12]: WAMIT file to use} [Only one of MnDrift, NewmanApp, or DiffQTF can be non-zero]
+             0   NewmanApp      - Mean- and slow-drift 2nd-order forces computed with Newman's approximation {0: None; [7, 8, 9, 10, 11, or 12]: WAMIT file to use} [Only one of MnDrift, NewmanApp, or DiffQTF can be non-zero. Used only when WaveDirMod=0]
+             0   DiffQTF        - Full difference-frequency 2nd-order forces computed with full QTF          {0: None; [10, 11, or 12]: WAMIT file to use}          [Only one of MnDrift, NewmanApp, or DiffQTF can be non-zero]
+             0   SumQTF         - Full summation -frequency 2nd-order forces computed with full QTF          {0: None; [10, 11, or 12]: WAMIT file to use}
 ---------------------- FLOATING PLATFORM FORCE FLAGS  --------------------------
 True             PtfmSgF        - Platform horizontal surge translation force (flag) or DEFAULT
 True             PtfmSwF        - Platform horizontal sway translation force (flag) or DEFAULT

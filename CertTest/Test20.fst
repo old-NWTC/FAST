@@ -1,4 +1,4 @@
-------- FAST v8.08.* INPUT FILE ------------------------------------------------
+------- FAST v8.09.* INPUT FILE ------------------------------------------------
 FAST Certification Test #20: NREL 5.0 MW Baseline Wind Turbine with OC3 Tripod Configuration, for use in offshore analysis
 ---------------------- SIMULATION CONTROL --------------------------------------
 False         Echo            - Echo input data to <RootName>.ech (flag)
