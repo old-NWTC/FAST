@@ -17,9 +17,9 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-30 13:53:07 -0600 (Mon, 30 Jun 2014) $
-! (File) Revision #: $Rev: 472 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/WAMIT_Output.f90 $
+! File last committed: $Date: 2014-09-26 13:38:42 -0600 (Fri, 26 Sep 2014) $
+! (File) Revision #: $Rev: 525 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/WAMIT_Output.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT_Output
 
@@ -390,7 +390,8 @@ FUNCTION   GetWAMITChannels    ( NUserOutputs, UserOutputs, OutList, foundMask, 
       END IF
     END IF  
 END DO
-   
+
+ 
 IF ( GetWAMITChannels > 0 ) THEN
    
    count = 1

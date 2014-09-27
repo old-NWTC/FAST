@@ -16,9 +16,9 @@
 ! See the License for the specific language governing permissions and
 ! limitations under the License.
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-13 12:04:03 -0600 (Fri, 13 Jun 2014) $
-! (File) Revision #: $Rev: 308 $
-! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SD_FEM.f90 $
+! File last committed: $Date: 2014-09-25 22:38:51 -0600 (Thu, 25 Sep 2014) $
+! (File) Revision #: $Rev: 322 $
+! URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/trunk/Source/SD_FEM.f90 $
 !**********************************************************************************************************************************
 MODULE SD_FEM
   USE NWTC_Library
@@ -548,7 +548,7 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
    REAL(ReKi)               :: x1, y1, z1, x2, y2, z2    ! coordinates of the nodes
    REAL(ReKi)               :: DirCos(3, 3)              ! direction cosine matrices
    REAL(ReKi)               :: L                         ! length of the element
-   REAL(ReKi)               :: r1, r2, t, Iyy, Jzz, Ixx, A, kappa
+   REAL(ReKi)               :: r1, r2, t, Iyy, Jzz, Ixx, A, kappa, nu, ratioSq, D_inner, D_outer
    LOGICAL                  :: shear
    REAL(ReKi), ALLOCATABLE  :: Ke(:,:), Me(:, :), FGe(:) ! element stiffness and mass matrices gravity force vector
    INTEGER, ALLOCATABLE     :: nn(:)                     ! node number in element 
@@ -660,7 +660,16 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
             kappa = 0
          ELSEIF( Init%FEMMod == 3 ) THEN ! uniform Timoshenko
             Shear = .true.
-            kappa = 0.53
+          ! kappa = 0.53            
+            
+               ! equation 13 (Steinboeck et al) in SubDyn Theory Manual 
+            nu = E / (2.0_ReKi*G) - 1.0_ReKi
+            D_outer = 2.0_ReKi * r1  ! average (outer) diameter
+            D_inner = D_outer - 2*t  ! remove 2x thickness to get inner diameter
+            ratioSq = ( D_inner / D_outer)**2
+            kappa =   ( 6.0 * (1.0 + nu) **2 * (1.0 + ratioSq)**2 ) &
+                    / ( ( 1.0 + ratioSq )**2 * ( 7.0 + 14.0*nu + 8.0*nu**2 ) + 4.0 * ratioSq * ( 5.0 + 10.0*nu + 4.0 *nu**2 ) )
+                        
          ENDIF
          
          p%ElemProps(i)%Area = A
@@ -724,7 +733,6 @@ SUBROUTINE AssembleKM(Init,p, ErrStat, ErrMsg)
                      
    ENDDO ! I end loop over elements
                
-                        
       
       ! add concentrated mass 
    DO I = 1, Init%NCMass

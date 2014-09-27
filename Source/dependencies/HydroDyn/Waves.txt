@@ -9,9 +9,9 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2014-06-17 10:14:47 -0600 (Tue, 17 Jun 2014) $
-# (File) Revision #: $Rev: 423 $
-# URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/RegistryFiles/Waves.txt $
+# File last committed: $Date: 2014-09-24 11:10:30 -0600 (Wed, 24 Sep 2014) $
+# (File) Revision #: $Rev: 508 $
+# URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/RegistryFiles/Waves.txt $
 ###################################################################################################################################
 
 # ...... Include files (definitions from NWTC Library) ............................................................................

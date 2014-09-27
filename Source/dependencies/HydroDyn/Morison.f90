@@ -22,9 +22,9 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-30 16:21:28 -0600 (Mon, 30 Jun 2014) $
-! (File) Revision #: $Rev: 474 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/Morison.f90 $
+! File last committed: $Date: 2014-09-24 11:42:58 -0600 (Wed, 24 Sep 2014) $
+! (File) Revision #: $Rev: 509 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Morison.f90 $
 !**********************************************************************************************************************************
 MODULE Morison
    USE Waves

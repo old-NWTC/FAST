@@ -22,9 +22,9 @@
 ! See the License for the specific language governing permissions and
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-30 13:53:07 -0600 (Mon, 30 Jun 2014) $
-! (File) Revision #: $Rev: 472 $
-! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/branches/HydroDyn_Modularization/Source/WAMIT.f90 $
+! File last committed: $Date: 2014-09-24 11:42:58 -0600 (Wed, 24 Sep 2014) $
+! (File) Revision #: $Rev: 509 $
+! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/WAMIT.f90 $
 !**********************************************************************************************************************************
 MODULE WAMIT
 

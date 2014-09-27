@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.01, 18-June-2014)
+! FAST Registry (v2.03.02, 17-Sep-2014)
 !*********************************************************************************************************************************
 ! IceFloe_Types
 !.................................................................................................................................

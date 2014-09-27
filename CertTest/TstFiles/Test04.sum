@@ -1,12 +1,12 @@
 
 FAST Summary File
 
-Predictions were generated on 02-Jul-2014 at 20:59:40 using FAST (v8.08.00c-bjj, 30-June-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 26-Sep-2014 at 19:47:57 using FAST (v8.08.01a-bjj, 15-Aug-2014), compiled for 32-bit systems using single precision
   compiled with
-    NWTC Subroutine Library (v2.03.03b-bjj, 30-June-2014)
-    ElastoDyn (v1.01.06b-bjj, 30-June-2014)
-    AeroDyn (v14.02.01c-bjj, 30-June-2014)
-    InflowWind (v2.00.01b-bjj, 30-June-2014)
+    NWTC Subroutine Library (v2.04.00a-bjj, 30-Sep-2014)
+    ElastoDyn (v1.01.07a-bjj, 30-Sep-2014)
+    AeroDyn (v14.03.00a-bjj, 30-Sep-2014)
+    InflowWind (v2.00.01c-bjj, 30-Sep-2014)
     ServoDyn (v1.01.02a-bjj, 30-June-2014)
     HydroDyn (unknown version, unknown date) [not called]
     SubDyn (unknown version, unknown date) [not called]

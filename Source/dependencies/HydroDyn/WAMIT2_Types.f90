@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.01, 18-June-2014)
+! FAST Registry (v2.03.02, 17-Sep-2014)
 !*********************************************************************************************************************************
 ! WAMIT2_Types
 !.................................................................................................................................
@@ -33,23 +33,29 @@ MODULE WAMIT2_Types
 !---------------------------------------------------------------------------------------------------------------------------------
 USE NWTC_Library
 IMPLICIT NONE
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxOutputs = 33      !  [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxWAMIT2Outputs = 6      !  [-]
 ! =========  WAMIT2_InitInputType  =======
   TYPE, PUBLIC :: WAMIT2_InitInputType
     LOGICAL  :: HasWAMIT      ! .TRUE. if using WAMIT model, .FALSE. otherwise [-]
     CHARACTER(1024)  :: WAMITFile      ! Root of the filename for WAMIT2 outputs [-]
     INTEGER(IntKi)  :: UnSum      ! The unit number for the HydroDyn summary file [-]
+    REAL(ReKi)  :: WAMITULEN      ! WAMIT unit length scale [-]
+    REAL(ReKi)  :: RhoXg      ! Density * Gravity -- from the Waves module. [-]
     INTEGER(IntKi)  :: NStepWave      ! Total number of frequency components = total number of time steps in the incident wave [-]
     INTEGER(IntKi)  :: NStepWave2      ! NStepWave / 2 [-]
     REAL(ReKi)  :: WaveDOmega      ! Frequency step for incident wave calculations [(rad/s)]
     REAL(ReKi)  :: WtrDens      ! Water density [(kg/m^3)]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevC0      ! Discrete Fourier transform of the instantaneous elevation of incident waves at the platform reference point.  First column is real part, second column is imaginary part [(meters)]
     REAL(ReKi)  :: WaveDir      ! Mean incident wave propagation heading direction [(degrees)]
+    LOGICAL  :: WaveMultiDir      ! Indicates the waves are multidirectional -- set by HydroDyn_Input [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveDirArr      ! Wave direction assigned to each frequency [(degrees)]
+    REAL(ReKi)  :: WaveDirMin      ! Minimum wave direction from Waves module [-]
+    REAL(ReKi)  :: WaveDirMax      ! Maximum wave direction from Waves module [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      ! Simulation times at which the instantaneous second order loads associated with the incident waves are determined [sec]
     CHARACTER(10) , DIMENSION(1:27)  :: OutList      ! This should really be dimensioned with MaxOutPts [-]
     LOGICAL  :: OutAll      !  [-]
     INTEGER(IntKi)  :: NumOuts      !  [-]
+    INTEGER(IntKi)  :: NumOutAll      !  [-]
     INTEGER(IntKi)  :: WaveMod      ! The wave model to use.  This is for error checking -- ideally this would be done in the main calling routine, not here. [-]
     LOGICAL  :: PtfmSgF2      ! Supplied by Driver:  Platform horizontal surge translation force (flag) [-]
     LOGICAL  :: PtfmSwF2      ! Supplied by Driver:  Platform horizontal sway  translation force (flag) [-]
@@ -65,6 +71,8 @@ IMPLICIT NONE
     LOGICAL  :: NewmanAppF      ! Flag indicating Newman approximation should be calculated [-]
     LOGICAL  :: DiffQTFF      ! Flag indicating the full difference QTF should be calculated [-]
     LOGICAL  :: SumQTFF      ! Flag indicating the full    sum     QTF should be calculated [-]
+    REAL(ReKi)  :: WvLowCOff      ! Low cut-off frequency or lower frequency limit of the wave spectrum beyond which the wave spectrum is zeroed.  [used only when WaveMod=2,3,4] [(rad/s)]
+    REAL(ReKi)  :: WvHiCOff      ! High cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed.  [used only when WaveMod=2,3,4] [(rad/s)]
     REAL(ReKi)  :: WvLowCOffD      ! Minimum frequency used in the difference methods [Ignored if all difference methods = 0] [(rad/s)]
     REAL(ReKi)  :: WvHiCOffD      ! Maximum frequency used in the difference methods [Ignored if all difference methods = 0] [(rad/s)]
     REAL(ReKi)  :: WvLowCOffS      ! Minimum frequency used in the sum-QTF method     [Ignored if SumQTF = 0] [(rad/s)]
@@ -94,42 +102,31 @@ IMPLICIT NONE
 ! =======================
 ! =========  WAMIT2_OtherStateType  =======
   TYPE, PUBLIC :: WAMIT2_OtherStateType
-    INTEGER(IntKi)  :: LastIndWave      !  [-]
-    REAL(ReKi) , DIMENSION(1:6)  :: F_Waves      ! Forces and moments time array [-]
+    INTEGER(IntKi)  :: LastIndWave      ! Index for last interpolation step of 2nd order forces [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: F_Waves2      ! 2nd order force from this timestep [-]
   END TYPE WAMIT2_OtherStateType
 ! =======================
 ! =========  WAMIT2_ParameterType  =======
   TYPE, PUBLIC :: WAMIT2_ParameterType
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      ! Simulation times at which the instantaneous second order loads associated with the incident waves are determined [sec]
+    INTEGER(IntKi)  :: NStepWave      ! Number of wave time steps [-]
     REAL(DbKi)  :: DT      !  [-]
-    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      !  [-]
-    INTEGER(IntKi)  :: NumOuts      !  [-]
-    INTEGER(IntKi)  :: NumOutAll      !  [-]
-    INTEGER(IntKi)  :: UnOutFile      !  [-]
-    LOGICAL  :: WaveMultiDir      ! Indicates multidirectional waves [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveExctn2      ! Time series of the resulting 2nd order force (first index is timestep, second index is load component) [(N)]
     LOGICAL , DIMENSION(1:6)  :: MnDriftDims      ! Flags for which dimensions to calculate in MnDrift   calculations [-]
     LOGICAL , DIMENSION(1:6)  :: NewmanAppDims      ! Flags for which dimensions to calculate in NewmanApp calculations [-]
     LOGICAL , DIMENSION(1:6)  :: DiffQTFDims      ! Flags for which dimensions to calculate in DiffQTF   calculations [-]
     LOGICAL , DIMENSION(1:6)  :: SumQTFDims      ! Flags for which dimensions to calculate in SumQTF    calculations [-]
-    INTEGER(IntKi)  :: MnDrift      ! Calculate the mean drift force {0: no mean drift; [7,8,9,10,11, or 12]: WAMIT file to use} [-]
-    INTEGER(IntKi)  :: NewmanApp      ! Slow drift forces computed with Newman approximation from WAMIT file:{0: No slow drift; [7,8,9,10,11, or 12]: WAMIT file to use} [-]
-    INTEGER(IntKi)  :: DiffQTF      ! Full Difference-Frequency forces computed with full QTF's from WAMIT file: {0: No diff-QTF; [10,11, or 12]: WAMIT file to use} [-]
-    INTEGER(IntKi)  :: SumQTF      ! Full Sum-Frequency forces computed with full QTF's from WAMIT file: {0: No sum-QTF; [10,11, or 12]: WAMIT file to use} [-]
     LOGICAL  :: MnDriftF      ! Flag indicating mean drift force should be calculated [-]
     LOGICAL  :: NewmanAppF      ! Flag indicating Newman approximation should be calculated [-]
     LOGICAL  :: DiffQTFF      ! Flag indicating the full difference QTF should be calculated [-]
     LOGICAL  :: SumQTFF      ! Flag indicating the full    sum     QTF should be calculated [-]
-    REAL(ReKi)  :: WvLowCOffD      ! Minimum frequency used in the difference methods [Ignored if all difference methods = 0] [(rad/s)]
-    REAL(ReKi)  :: WvHiCOffD      ! Maximum frequency used in the difference methods [Ignored if all difference methods = 0] [(rad/s)]
-    REAL(ReKi)  :: WvLowCOffS      ! Minimum frequency used in the sum-QTF method     [Ignored if SumQTF = 0] [(rad/s)]
-    REAL(ReKi)  :: WvHiCOffS      ! Maximum frequency used in the sum-QTF method     [Ignored if SumQTF = 0] [(rad/s)]
-    INTEGER(IntKi)  :: NStepWave      ! Total number of frequency components = total number of time steps in the incident wave [-]
-    INTEGER(IntKi)  :: NStepWave2      ! NStepWave / 2 [-]
-    REAL(ReKi)  :: WaveDOmega      ! Frequency step for incident wave calculations [rad/s]
-    CHARACTER(1028)  :: MnDrift_Filename      ! Full path and filename for MnDrift   file (including extension) [-]
-    CHARACTER(1028)  :: NewmanApp_Filename      ! Full path and filename for NewmanApp file (including extension) [-]
-    CHARACTER(1028)  :: DiffQTF_Filename      ! Full path and filename for DiffQTF   file (including extension) [-]
-    CHARACTER(1028)  :: SumQTF_Filename      ! Full path and filename for SumQTF    file (including extension) [-]
+    TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      !  [-]
+    INTEGER(IntKi)  :: NumOuts      !  [-]
+    INTEGER(IntKi)  :: NumOutAll      !  [-]
+    CHARACTER(20)  :: OutFmt      !  [-]
+    CHARACTER(20)  :: OutSFmt      !  [-]
+    CHARACTER(10)  :: Delim      !  [-]
+    INTEGER(IntKi)  :: UnOutFile      !  [-]
   END TYPE WAMIT2_ParameterType
 ! =======================
 ! =========  WAMIT2_InputType  =======
@@ -160,6 +157,8 @@ CONTAINS
    DstInitInputData%HasWAMIT = SrcInitInputData%HasWAMIT
    DstInitInputData%WAMITFile = SrcInitInputData%WAMITFile
    DstInitInputData%UnSum = SrcInitInputData%UnSum
+   DstInitInputData%WAMITULEN = SrcInitInputData%WAMITULEN
+   DstInitInputData%RhoXg = SrcInitInputData%RhoXg
    DstInitInputData%NStepWave = SrcInitInputData%NStepWave
    DstInitInputData%NStepWave2 = SrcInitInputData%NStepWave2
    DstInitInputData%WaveDOmega = SrcInitInputData%WaveDOmega
@@ -180,6 +179,7 @@ IF (ALLOCATED(SrcInitInputData%WaveElevC0)) THEN
    DstInitInputData%WaveElevC0 = SrcInitInputData%WaveElevC0
 ENDIF
    DstInitInputData%WaveDir = SrcInitInputData%WaveDir
+   DstInitInputData%WaveMultiDir = SrcInitInputData%WaveMultiDir
 IF (ALLOCATED(SrcInitInputData%WaveDirArr)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveDirArr,1)
    i1_u = UBOUND(SrcInitInputData%WaveDirArr,1)
@@ -193,6 +193,8 @@ IF (ALLOCATED(SrcInitInputData%WaveDirArr)) THEN
    END IF
    DstInitInputData%WaveDirArr = SrcInitInputData%WaveDirArr
 ENDIF
+   DstInitInputData%WaveDirMin = SrcInitInputData%WaveDirMin
+   DstInitInputData%WaveDirMax = SrcInitInputData%WaveDirMax
 IF (ALLOCATED(SrcInitInputData%WaveTime)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveTime,1)
    i1_u = UBOUND(SrcInitInputData%WaveTime,1)
@@ -209,6 +211,7 @@ ENDIF
    DstInitInputData%OutList = SrcInitInputData%OutList
    DstInitInputData%OutAll = SrcInitInputData%OutAll
    DstInitInputData%NumOuts = SrcInitInputData%NumOuts
+   DstInitInputData%NumOutAll = SrcInitInputData%NumOutAll
    DstInitInputData%WaveMod = SrcInitInputData%WaveMod
    DstInitInputData%PtfmSgF2 = SrcInitInputData%PtfmSgF2
    DstInitInputData%PtfmSwF2 = SrcInitInputData%PtfmSwF2
@@ -224,6 +227,8 @@ ENDIF
    DstInitInputData%NewmanAppF = SrcInitInputData%NewmanAppF
    DstInitInputData%DiffQTFF = SrcInitInputData%DiffQTFF
    DstInitInputData%SumQTFF = SrcInitInputData%SumQTFF
+   DstInitInputData%WvLowCOff = SrcInitInputData%WvLowCOff
+   DstInitInputData%WvHiCOff = SrcInitInputData%WvHiCOff
    DstInitInputData%WvLowCOffD = SrcInitInputData%WvLowCOffD
    DstInitInputData%WvHiCOffD = SrcInitInputData%WvHiCOffD
    DstInitInputData%WvLowCOffS = SrcInitInputData%WvLowCOffS
@@ -284,6 +289,8 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Int_BufSz  = Int_BufSz  + 1  ! UnSum
+  Re_BufSz   = Re_BufSz   + 1  ! WAMITULEN
+  Re_BufSz   = Re_BufSz   + 1  ! RhoXg
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
   Re_BufSz   = Re_BufSz   + 1  ! WaveDOmega
@@ -291,13 +298,18 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevC0 )  ! WaveElevC0 
   Re_BufSz   = Re_BufSz   + 1  ! WaveDir
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDirArr )  ! WaveDirArr 
+  Re_BufSz   = Re_BufSz   + 1  ! WaveDirMin
+  Re_BufSz   = Re_BufSz   + 1  ! WaveDirMax
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
+  Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
   Int_BufSz  = Int_BufSz  + 1  ! WaveMod
   Int_BufSz  = Int_BufSz  + 1  ! MnDrift
   Int_BufSz  = Int_BufSz  + 1  ! NewmanApp
   Int_BufSz  = Int_BufSz  + 1  ! DiffQTF
   Int_BufSz  = Int_BufSz  + 1  ! SumQTF
+  Re_BufSz   = Re_BufSz   + 1  ! WvLowCOff
+  Re_BufSz   = Re_BufSz   + 1  ! WvHiCOff
   Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffD
   Re_BufSz   = Re_BufSz   + 1  ! WvHiCOffD
   Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffS
@@ -307,6 +319,10 @@ ENDIF
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnSum )
   Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WAMITULEN )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%RhoXg )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave2 )
@@ -325,11 +341,17 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDirArr))-1 ) =  PACK(InData%WaveDirArr ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveDirArr)
   ENDIF
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDirMin )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDirMax )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(InData%WaveTime) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) =  PACK(InData%WaveTime ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
   ENDIF
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOutAll )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%WaveMod )
   Int_Xferred   = Int_Xferred   + 1
@@ -341,6 +363,10 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%SumQTF )
   Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvLowCOff )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvHiCOff )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvLowCOffD )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvHiCOffD )
@@ -386,6 +412,10 @@ ENDIF
   Int_BufSz  = 0
   OutData%UnSum = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
+  OutData%WAMITULEN = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%RhoXg = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
   OutData%NStepWave = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   OutData%NStepWave2 = IntKiBuf ( Int_Xferred )
@@ -408,6 +438,10 @@ ENDIF
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveDirArr)
   ENDIF
+  OutData%WaveDirMin = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%WaveDirMax = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
   IF ( ALLOCATED(OutData%WaveTime) ) THEN
   ALLOCATE(mask1(SIZE(OutData%WaveTime,1))); mask1 = .TRUE.
     OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
@@ -415,6 +449,8 @@ ENDIF
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
   ENDIF
   OutData%NumOuts = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%NumOutAll = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   OutData%WaveMod = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
@@ -426,6 +462,10 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%SumQTF = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
+  OutData%WvLowCOff = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%WvHiCOff = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
   OutData%WvLowCOffD = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%WvHiCOffD = ReKiBuf ( Re_Xferred )
@@ -911,7 +951,7 @@ ENDIF
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstOtherStateData%LastIndWave = SrcOtherStateData%LastIndWave
-   DstOtherStateData%F_Waves = SrcOtherStateData%F_Waves
+   DstOtherStateData%F_Waves2 = SrcOtherStateData%F_Waves2
  END SUBROUTINE WAMIT2_CopyOtherState
 
  SUBROUTINE WAMIT2_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -959,14 +999,14 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Int_BufSz  = Int_BufSz  + 1  ! LastIndWave
-  Re_BufSz    = Re_BufSz    + SIZE( InData%F_Waves )  ! F_Waves 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%F_Waves2 )  ! F_Waves2 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%LastIndWave )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F_Waves))-1 ) =  PACK(InData%F_Waves ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%F_Waves)
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F_Waves2))-1 ) =  PACK(InData%F_Waves2 ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%F_Waves2)
  END SUBROUTINE WAMIT2_PackOtherState
 
  SUBROUTINE WAMIT2_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1004,10 +1044,10 @@ ENDIF
   Int_BufSz  = 0
   OutData%LastIndWave = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%F_Waves,1))); mask1 = .TRUE.
-  OutData%F_Waves = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Waves))-1 ),mask1,OutData%F_Waves)
+  ALLOCATE(mask1(SIZE(OutData%F_Waves2,1))); mask1 = .TRUE.
+  OutData%F_Waves2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Waves2))-1 ),mask1,OutData%F_Waves2)
   DEALLOCATE(mask1)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%F_Waves)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%F_Waves2)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -1039,7 +1079,31 @@ IF (ALLOCATED(SrcParamData%WaveTime)) THEN
    END IF
    DstParamData%WaveTime = SrcParamData%WaveTime
 ENDIF
+   DstParamData%NStepWave = SrcParamData%NStepWave
    DstParamData%DT = SrcParamData%DT
+IF (ALLOCATED(SrcParamData%WaveExctn2)) THEN
+   i1_l = LBOUND(SrcParamData%WaveExctn2,1)
+   i1_u = UBOUND(SrcParamData%WaveExctn2,1)
+   i2_l = LBOUND(SrcParamData%WaveExctn2,2)
+   i2_u = UBOUND(SrcParamData%WaveExctn2,2)
+   IF (.NOT. ALLOCATED(DstParamData%WaveExctn2)) THEN 
+      ALLOCATE(DstParamData%WaveExctn2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'WAMIT2_CopyParam: Error allocating DstParamData%WaveExctn2.'
+         RETURN
+      END IF
+   END IF
+   DstParamData%WaveExctn2 = SrcParamData%WaveExctn2
+ENDIF
+   DstParamData%MnDriftDims = SrcParamData%MnDriftDims
+   DstParamData%NewmanAppDims = SrcParamData%NewmanAppDims
+   DstParamData%DiffQTFDims = SrcParamData%DiffQTFDims
+   DstParamData%SumQTFDims = SrcParamData%SumQTFDims
+   DstParamData%MnDriftF = SrcParamData%MnDriftF
+   DstParamData%NewmanAppF = SrcParamData%NewmanAppF
+   DstParamData%DiffQTFF = SrcParamData%DiffQTFF
+   DstParamData%SumQTFF = SrcParamData%SumQTFF
 IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
@@ -1057,31 +1121,10 @@ IF (ALLOCATED(SrcParamData%OutParam)) THEN
 ENDIF
    DstParamData%NumOuts = SrcParamData%NumOuts
    DstParamData%NumOutAll = SrcParamData%NumOutAll
+   DstParamData%OutFmt = SrcParamData%OutFmt
+   DstParamData%OutSFmt = SrcParamData%OutSFmt
+   DstParamData%Delim = SrcParamData%Delim
    DstParamData%UnOutFile = SrcParamData%UnOutFile
-   DstParamData%WaveMultiDir = SrcParamData%WaveMultiDir
-   DstParamData%MnDriftDims = SrcParamData%MnDriftDims
-   DstParamData%NewmanAppDims = SrcParamData%NewmanAppDims
-   DstParamData%DiffQTFDims = SrcParamData%DiffQTFDims
-   DstParamData%SumQTFDims = SrcParamData%SumQTFDims
-   DstParamData%MnDrift = SrcParamData%MnDrift
-   DstParamData%NewmanApp = SrcParamData%NewmanApp
-   DstParamData%DiffQTF = SrcParamData%DiffQTF
-   DstParamData%SumQTF = SrcParamData%SumQTF
-   DstParamData%MnDriftF = SrcParamData%MnDriftF
-   DstParamData%NewmanAppF = SrcParamData%NewmanAppF
-   DstParamData%DiffQTFF = SrcParamData%DiffQTFF
-   DstParamData%SumQTFF = SrcParamData%SumQTFF
-   DstParamData%WvLowCOffD = SrcParamData%WvLowCOffD
-   DstParamData%WvHiCOffD = SrcParamData%WvHiCOffD
-   DstParamData%WvLowCOffS = SrcParamData%WvLowCOffS
-   DstParamData%WvHiCOffS = SrcParamData%WvHiCOffS
-   DstParamData%NStepWave = SrcParamData%NStepWave
-   DstParamData%NStepWave2 = SrcParamData%NStepWave2
-   DstParamData%WaveDOmega = SrcParamData%WaveDOmega
-   DstParamData%MnDrift_Filename = SrcParamData%MnDrift_Filename
-   DstParamData%NewmanApp_Filename = SrcParamData%NewmanApp_Filename
-   DstParamData%DiffQTF_Filename = SrcParamData%DiffQTF_Filename
-   DstParamData%SumQTF_Filename = SrcParamData%SumQTF_Filename
  END SUBROUTINE WAMIT2_CopyParam
 
  SUBROUTINE WAMIT2_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -1094,6 +1137,9 @@ ENDIF
   ErrMsg  = ""
 IF (ALLOCATED(ParamData%WaveTime)) THEN
    DEALLOCATE(ParamData%WaveTime)
+ENDIF
+IF (ALLOCATED(ParamData%WaveExctn2)) THEN
+   DEALLOCATE(ParamData%WaveExctn2)
 ENDIF
 IF (ALLOCATED(ParamData%OutParam)) THEN
 DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
@@ -1141,7 +1187,9 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
+  Int_BufSz  = Int_BufSz  + 1  ! NStepWave
   Db_BufSz   = Db_BufSz   + 1  ! DT
+  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveExctn2 )  ! WaveExctn2 
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, .TRUE. ) ! OutParam 
   IF(ALLOCATED(Re_OutParam_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_OutParam_Buf  ) ! OutParam
@@ -1154,17 +1202,6 @@ ENDDO
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
   Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
   Int_BufSz  = Int_BufSz  + 1  ! UnOutFile
-  Int_BufSz  = Int_BufSz  + 1  ! MnDrift
-  Int_BufSz  = Int_BufSz  + 1  ! NewmanApp
-  Int_BufSz  = Int_BufSz  + 1  ! DiffQTF
-  Int_BufSz  = Int_BufSz  + 1  ! SumQTF
-  Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffD
-  Re_BufSz   = Re_BufSz   + 1  ! WvHiCOffD
-  Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffS
-  Re_BufSz   = Re_BufSz   + 1  ! WvHiCOffS
-  Int_BufSz  = Int_BufSz  + 1  ! NStepWave
-  Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
-  Re_BufSz   = Re_BufSz   + 1  ! WaveDOmega
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1172,8 +1209,14 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) =  PACK(InData%WaveTime ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
   ENDIF
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( ALLOCATED(InData%WaveExctn2) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveExctn2))-1 ) =  PACK(InData%WaveExctn2 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveExctn2)
+  ENDIF
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, OnlySize ) ! OutParam 
   IF(ALLOCATED(Re_OutParam_Buf)) THEN
@@ -1198,28 +1241,6 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnOutFile )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%MnDrift )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NewmanApp )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%DiffQTF )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%SumQTF )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvLowCOffD )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvHiCOffD )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvLowCOffS )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvHiCOffS )
-  Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave2 )
-  Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDOmega )
-  Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE WAMIT2_PackParam
 
  SUBROUTINE WAMIT2_UnPackParam( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -1264,8 +1285,16 @@ ENDDO
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
   ENDIF
+  OutData%NStepWave = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
   OutData%DT = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( ALLOCATED(OutData%WaveExctn2) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%WaveExctn2,1),SIZE(OutData%WaveExctn2,2))); mask2 = .TRUE.
+    OutData%WaveExctn2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveExctn2))-1 ),mask2,OutData%WaveExctn2)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveExctn2)
+  ENDIF
 DO i1 = LBOUND(OutData%OutParam,1), UBOUND(OutData%OutParam,1)
  ! first call NWTC_Library_Packoutparmtype to get correctly sized buffers for unpacking
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, OutData%OutParam(i1), ErrStat, ErrMsg, .TRUE. ) ! OutParam 
@@ -1289,28 +1318,6 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   OutData%UnOutFile = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  OutData%MnDrift = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%NewmanApp = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%DiffQTF = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%SumQTF = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%WvLowCOffD = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%WvHiCOffD = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%WvLowCOffS = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%WvHiCOffS = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
-  OutData%NStepWave = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%NStepWave2 = IntKiBuf ( Int_Xferred )
-  Int_Xferred   = Int_Xferred   + 1
-  OutData%WaveDOmega = ReKiBuf ( Re_Xferred )
-  Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1

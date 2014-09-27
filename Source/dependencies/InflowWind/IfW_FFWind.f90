@@ -6,7 +6,7 @@ MODULE IfW_FFWind
 !  Data is shifted by half the grid width to account for turbine yaw (so that data in the X
 !  direction actually starts at -1*OtherStates%FFYHWid meters).
 !
-!  Created 25-Sept-2009 by B. Jonkman, National Renewable Energy Laboratory
+!  Created 25-Sep-2009 by B. Jonkman, National Renewable Energy Laboratory
 !     using subroutines and modules from AeroDyn v12.58
 !
 !----------------------------------------------------------------------------------------------------
@@ -16,8 +16,8 @@ MODULE IfW_FFWind
 !     -- Note:  Jacobians are not included in this version.
 !
 !----------------------------------------------------------------------------------------------------
-! File last committed: $Date: 2014-06-25 11:50:52 -0600 (Wed, 25 Jun 2014) $
-! (File) Revision #: $Rev: 110 $
+! File last committed: $Date: 2014-09-24 14:24:25 -0600 (Wed, 24 Sep 2014) $
+! (File) Revision #: $Rev: 122 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/InflowWind/branches/modularization/Source/IfW_FFWind.f90 $
 !----------------------------------------------------------------------------------------------------
 ! LICENSING
