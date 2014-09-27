@@ -120,12 +120,14 @@ SET NWTC_SOURCES=^
  "%NWTC_Lib_Loc%\NWTC_Num.f90" ^
  "%NWTC_Lib_Loc%\ModMesh_Types.f90" ^
  "%NWTC_Lib_Loc%\ModMesh.f90" ^
- "%NETLIB_Loc%\DLASRT2.f" ^
- "%NETLIB_Loc%\SLASRT2.f" ^
+ "%NETLIB_Loc%\dlasrt2.f" ^
+ "%NETLIB_Loc%\slasrt2.f" ^
  "%NETLIB_Loc%\NWTC_ScaLAPACK.f90" ^
  "%NETLIB_Loc%\NWTC_LAPACK.f90" ^
  "%NWTC_Lib_Loc%\ModMesh_Mapping.f90" ^
- "%NWTC_Lib_Loc%\NWTC_Library.f90"
+ "%NWTC_Lib_Loc%\NWTC_Library.f90" ^
+ "%NETLIB_Loc%\fftpack4.1.f" ^
+ "%NETLIB_Loc%\NWTC_FFTPACK.f90"
 
 
 SET IfW_SOURCES=^
@@ -165,13 +167,13 @@ SET SrvD_SOURCES=^
 
 
 SET HD_SOURCES=^
- "%HD_Loc%\fftpack.f" ^
- "%HD_Loc%\FFTMod.f90" ^
  "%HD_Loc%\SS_Radiation_Types.f90" ^
  "%HD_Loc%\SS_Radiation.f90" ^
- "%HD_Loc%\Waves2_Types.f90" ^
  "%HD_Loc%\Waves_Types.f90" ^
  "%HD_Loc%\Waves.f90" ^
+ "%HD_Loc%\Waves2_Types.f90" ^
+ "%HD_Loc%\Waves2_Output.f90" ^
+ "%HD_Loc%\Waves2.f90" ^
  "%HD_Loc%\Morison_Types.f90" ^
  "%HD_Loc%\Morison_Output.f90" ^
  "%HD_Loc%\Morison.f90" ^
@@ -179,11 +181,13 @@ SET HD_SOURCES=^
  "%HD_Loc%\Current.f90" ^
  "%HD_Loc%\Conv_Radiation_Types.f90" ^
  "%HD_Loc%\Conv_Radiation.f90" ^
- "%HD_Loc%\WAMIT2_Types.f90" ^
  "%HD_Loc%\WAMIT_Types.f90" ^
  "%HD_Loc%\WAMIT_Interp.f90" ^
  "%HD_Loc%\WAMIT_Output.f90" ^
  "%HD_Loc%\WAMIT.f90" ^
+ "%HD_Loc%\WAMIT2_Types.f90" ^
+ "%HD_Loc%\WAMIT2_Output.f90" ^
+ "%HD_Loc%\WAMIT2.f90" ^
  "%HD_Loc%\HydroDyn_Types.f90" ^
  "%HD_Loc%\HydroDyn_Output.f90" ^
  "%HD_Loc%\HydroDyn_Input.f90" ^

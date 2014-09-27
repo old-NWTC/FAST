@@ -161,6 +161,8 @@ HD_SOURCES =                 \
 	SS_Radiation_Types.f90    \
 	SS_Radiation.f90          \
 	Waves2_Types.f90          \
+	Waves2_Output.f90         \
+	Waves2.f90                \
 	Waves_Types.f90           \
 	Waves.f90                 \
 	Current_Types.f90         \
@@ -171,6 +173,8 @@ HD_SOURCES =                 \
 	Conv_Radiation_Types.f90  \
 	Conv_Radiation.f90        \
 	WAMIT2_Types.f90          \
+	WAMIT2_Output.f90         \
+	WAMIT2.f90                \
 	WAMIT_Types.f90           \
 	WAMIT_Interp.f90          \
 	WAMIT_Output.f90          \
@@ -277,6 +281,7 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 	$(F77) -I $(INTER_DIR) $(FFLAGS) -c $< -o $(INTER_DIR)/$@ -J $(INTER_DIR) -B $(INTER_DIR)
 
 
+
    # General rules for creating _Types.f90 files from Registry files.
 
 ServoDyn_Types.f90:
@@ -362,7 +367,8 @@ NWTC_Library.obj:           ModMesh.obj  ModMesh_Mapping.obj
 
 NWTC_LAPACK.obj:            NWTC_Base.obj
 NWTC_ScaLAPACK.obj:         NWTC_Base.obj dlasrt2.obj slasrt2.obj
-NWTC_FFTPACK.obj:           NWTC_Base.obj fftpack4.1.obj
+NWTC_FFTPACK.obj:           NWTC_Library.obj fftpack4.1.obj
+fftpack4.1.obj:             $(PREC).obj
 
 
 #InflowWind dependency rules:
@@ -392,6 +398,9 @@ SS_Radiation_Types.obj:     NWTC_Library.obj  SS_Radiation.txt
 SS_Radiation.obj:           SS_Radiation_Types.obj
 
 Waves2_Types.obj:           NWTC_Library.obj  Waves2.txt
+Waves2_Output.obj:          Waves2_Types.obj
+Waves2.obj:                 NWTC_Library.obj  Waves2_Types.obj  NWTC_FFTPACK.obj  Waves2_Output.obj  Waves.obj
+
 Waves_Types.obj:            NWTC_Library.obj  Waves.txt
 Waves.obj:                  Waves_Types.obj   NWTC_FFTPACK.obj
 
@@ -406,6 +415,9 @@ Conv_Radiation_Types.obj:   NWTC_Library.obj  Conv_Radiation.txt
 Conv_Radiation.obj:         Conv_Radiation_Types.obj
 
 WAMIT2_Types.obj:           NWTC_Library.obj WAMIT2.txt
+WAMIT2_Output.obj:          NWTC_Library.obj  WAMIT2_Types.obj
+WAMIT2.obj:                 NWTC_Library.obj  WAMIT_Interp.obj  WAMIT2_Output.obj  NWTC_FFTPACK.obj  Waves.obj
+
 WAMIT_Types.obj:            NWTC_Library.obj Conv_Radiation_Types.obj SS_Radiation_Types.obj Waves_Types.obj  WAMIT.txt
 WAMIT.obj:                  WAMIT_Types.obj WAMIT_Output.obj Waves_Types.obj Conv_Radiation.obj SS_Radiation.obj NWTC_FFTPACK.obj WAMIT_Interp.obj
 
@@ -414,8 +426,8 @@ WAMIT_Output.obj:           WAMIT_Types.obj Waves.obj
 HydroDyn_Output.obj:        HydroDyn_Types.obj Waves.obj
 
 HydroDyn_Types.obj:         NWTC_Library.obj  Current_Types.obj  Waves_Types.obj  Waves2_Types.obj  Conv_Radiation_Types.obj SS_Radiation_Types.obj WAMIT_Types.obj  WAMIT2_Types.obj  Morison_Types.obj  HydroDyn.txt
-HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj  HydroDyn_Output.obj WAMIT_Output.obj
-HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj
+HydroDyn_Input.obj:         HydroDyn_Types.obj  Waves.obj Morison.obj  HydroDyn_Output.obj  WAMIT_Output.obj  Waves2_Output.obj  WAMIT2_Output.obj
+HydroDyn.obj:               HydroDyn_Types.obj  HydroDyn_Input.obj  HydroDyn_Output.obj  WAMIT.obj  Current.obj  Morison.obj  Waves2.obj  WAMIT2.obj
 
 
 # SubDyn dependency rules:
