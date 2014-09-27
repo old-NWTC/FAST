@@ -1,7 +1,7 @@
 
 FAST Summary File
 
-Predictions were generated on 26-Sep-2014 at 19:52:25 using FAST (v8.08.01a-bjj, 15-Aug-2014), compiled for 32-bit systems using single precision
+Predictions were generated on 26-Sep-2014 at 20:45:11 using FAST (v8.08.01a-bjj, 15-Aug-2014), compiled for 32-bit systems using single precision
   compiled with
     NWTC Subroutine Library (v2.04.00a-bjj, 30-Sep-2014)
     ElastoDyn (v1.01.07a-bjj, 30-Sep-2014)
@@ -29,13 +29,13 @@ Number of rows in Jacobian matrix used for coupling ElastoDyn, SubDyn, and Hydro
   -------------------------------------------------
   Component          Time Step (s)    Subcycles (-)
   -----------------  ---------------  -------------
-  FAST (glue code)    1.000E-02
-  ElastoDyn           1.000E-02              1
-  AeroDyn             1.000E-02              1
-  ServoDyn            1.000E-02              1
-  HydroDyn            1.000E-02              1
-  SubDyn              1.000E-02              1
-  FAST output files   5.000E-02              5^-1
+  FAST (glue code)    8.000E-03
+  ElastoDyn           8.000E-03              1
+  AeroDyn             8.000E-03              1
+  ServoDyn            8.000E-03              1
+  HydroDyn            8.000E-03              1
+  SubDyn              8.000E-03              1
+  FAST output files   4.000E-02              5^-1
 
 
    Requested Channels in FAST Output File(s)  

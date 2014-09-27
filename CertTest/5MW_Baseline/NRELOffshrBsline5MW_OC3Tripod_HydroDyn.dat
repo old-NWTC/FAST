@@ -75,7 +75,7 @@ True             PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
              0             0             0             0             0             0
              0             0             0             0             0             0   AddBLin  - Additional linear damping(N/(m/s), N/(rad/s), N-m/(m/s), N-m/(rad/s))
              0             0             0             0             0             0
-             0             0        847480             0             0             0
+             0             0        882607             0             0             0
              0             0             0             0             0             0
              0             0             0             0             0             0
              0             0             0             0             0             0

@@ -32,7 +32,7 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= 1:25 
+    for i= 20 %1:25 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
 % fileRoot = ['Test19_noHD'];
@@ -52,7 +52,7 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
         else
             
             SavePngFiles = true;  %setting this to false will keep ALL of the plot windows open
-% SavePngFiles = false;  %setting this to false will keep ALL of the plot windows open
+ SavePngFiles = false;  %setting this to false will keep ALL of the plot windows open
             
                 % Compare time series
                 
