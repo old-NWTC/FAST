@@ -72,7 +72,7 @@ True             PtfmYF         - Platform yaw rotation force (flag) or DEFAULT
              0             0             0             0             0             0
              0             0             0             0             0             0
              0             0             0             0             0             0
-             0             0             0             0             0             0
+             0             0             0             0             0      98340000
         100000             0             0             0             0             0   AddBLin  - Additional linear damping(N/(m/s), N/(rad/s), N-m/(m/s), N-m/(rad/s))
              0        100000             0             0             0             0
              0             0        130000             0             0             0
@@ -107,7 +107,7 @@ PropSetID    PropD         PropThck
 ---------------------- SIMPLE HYDRODYNAMIC COEFFICIENTS (model 1) --------------
      SimplCd    SimplCdMG    SimplCa    SimplCaMG    SimplCp    SimplCpMG   SimplAxCa  SimplAxCaMG  SimplAxCp   SimplAxCpMG
        (-)         (-)         (-)         (-)         (-)         (-)         (-)         (-)         (-)         (-)
-       0.60        0.00        0.00        0.00        1.00        1.00        1.00        1.00        1.00        1.00 
+       0.60        0.00        0.00        0.00        1.00        1.00        1.00        1.00        1.00        1.00
 ---------------------- DEPTH-BASED HYDRODYNAMIC COEFFICIENTS (model 2) ---------
              0   NCoefDpth       - Number of depth-dependent coefficients (-)
 Dpth      DpthCd   DpthCdMG   DpthCa   DpthCaMG       DpthCp   DpthCpMG   DpthAxCa   DpthAxCaMG       DpthAxCp   DpthAxCpMG
