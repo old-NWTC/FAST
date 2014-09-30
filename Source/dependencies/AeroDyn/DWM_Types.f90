@@ -223,7 +223,7 @@ IMPLICIT NONE
     REAL(ReKi)  :: TI_wake      !  [-]
     REAL(ReKi)  :: hub_height      !  [-]
     REAL(ReKi)  :: length_velocityU      !  [-]
-    REAL(ReKi)  :: TurbRefHt      ! The Turbsim wind file reference height [-]
+    REAL(ReKi)  :: WFLowerBd      ! The lower bound height of the wind file [-]
     REAL(ReKi)  :: Wind_file_Mean_u      ! The mean velocity of the first turbine [-]
     REAL(ReKi)  :: Winddir      !  [-]
     REAL(ReKi)  :: air_density      ! air density [-]
@@ -3361,7 +3361,7 @@ ENDIF
    DstParamData%TI_wake = SrcParamData%TI_wake
    DstParamData%hub_height = SrcParamData%hub_height
    DstParamData%length_velocityU = SrcParamData%length_velocityU
-   DstParamData%TurbRefHt = SrcParamData%TurbRefHt
+   DstParamData%WFLowerBd = SrcParamData%WFLowerBd
    DstParamData%Wind_file_Mean_u = SrcParamData%Wind_file_Mean_u
    DstParamData%Winddir = SrcParamData%Winddir
    DstParamData%air_density = SrcParamData%air_density
@@ -3466,7 +3466,7 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! TI_wake
   Re_BufSz   = Re_BufSz   + 1  ! hub_height
   Re_BufSz   = Re_BufSz   + 1  ! length_velocityU
-  Re_BufSz   = Re_BufSz   + 1  ! TurbRefHt
+  Re_BufSz   = Re_BufSz   + 1  ! WFLowerBd
   Re_BufSz   = Re_BufSz   + 1  ! Wind_file_Mean_u
   Re_BufSz   = Re_BufSz   + 1  ! Winddir
   Re_BufSz   = Re_BufSz   + 1  ! air_density
@@ -3531,7 +3531,7 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%length_velocityU )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%TurbRefHt )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WFLowerBd )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Wind_file_Mean_u )
   Re_Xferred   = Re_Xferred   + 1
@@ -3668,7 +3668,7 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   OutData%length_velocityU = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%TurbRefHt = ReKiBuf ( Re_Xferred )
+  OutData%WFLowerBd = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%Wind_file_Mean_u = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1

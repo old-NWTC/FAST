@@ -17,8 +17,8 @@
 ! limitations under the License.
 !
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-26 22:57:56 -0600 (Fri, 26 Sep 2014) $
-! (File) Revision #: $Rev: 152 $
+! File last committed: $Date: 2014-09-29 14:58:30 -0600 (Mon, 29 Sep 2014) $
+! (File) Revision #: $Rev: 161 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/AeroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE AeroDyn
@@ -1285,7 +1285,7 @@ SUBROUTINE AD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSta
 ! Tight coupling routine for computing derivatives of continuous states
 !..................................................................................................................................
 
-      REAL(DbKi),                        INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
       TYPE(AD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
       TYPE(AD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
       TYPE(AD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
@@ -1294,7 +1294,7 @@ SUBROUTINE AD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSta
       TYPE(AD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
       TYPE(AD_ContinuousStateType), INTENT(  OUT)  :: dxdt        ! Continuous state derivatives at Time
       INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess      ! Error message if ErrStat /= ErrID_None
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1305,7 +1305,7 @@ SUBROUTINE AD_CalcContStateDeriv( Time, u, p, x, xd, z, OtherState, dxdt, ErrSta
 
          ! Compute the first time derivatives of the continuous states here:
 
-     dxdt%DummyDiscState = 0.
+!     dxdt%DummyDiscState = 0.
 
 
 END SUBROUTINE AD_CalcContStateDeriv
@@ -1314,16 +1314,16 @@ SUBROUTINE AD_UpdateDiscState( Time, u, p, x, xd, z, OtherState, ErrStat, ErrMes
 ! Tight coupling routine for updating discrete states
 !..................................................................................................................................
 
-      REAL(DbKi),                        INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
       TYPE(AD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
       TYPE(AD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
       TYPE(AD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
       TYPE(AD_DiscreteStateType),   INTENT(INOUT)  :: xd          ! Input: Discrete states at Time;
-                                                                       !   Output: Discrete states at Time + Interval
+                                                                  !   Output: Discrete states at Time + Interval
       TYPE(AD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time
       TYPE(AD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
-      INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                      INTENT(  OUT)  :: ErrMess      ! Error message if ErrStat /= ErrID_None
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1342,7 +1342,7 @@ SUBROUTINE AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
 ! Tight coupling routine for solving for the residual of the constraint state equations
 !..................................................................................................................................
 
-      REAL(DbKi),                        INTENT(IN   )  :: Time        ! Current simulation time in seconds
+      REAL(DbKi),                   INTENT(IN   )  :: Time        ! Current simulation time in seconds
       TYPE(AD_InputType),           INTENT(IN   )  :: u           ! Inputs at Time
       TYPE(AD_ParameterType),       INTENT(IN   )  :: p           ! Parameters
       TYPE(AD_ContinuousStateType), INTENT(IN   )  :: x           ! Continuous states at Time
@@ -1350,9 +1350,9 @@ SUBROUTINE AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
       TYPE(AD_ConstraintStateType), INTENT(IN   )  :: z           ! Constraint states at Time (possibly a guess)
       TYPE(AD_OtherStateType),      INTENT(INOUT)  :: OtherState  ! Other/optimization states
       TYPE(AD_ConstraintStateType), INTENT(  OUT)  :: z_residual  ! Residual of the constraint state equations using
-                                                                       !     the input values described above
-      INTEGER(IntKi),                    INTENT(  OUT)  :: ErrStat     ! Error status of the operation
-      CHARACTER(*),                      INTENT(  OUT)  :: ErrMess      ! Error message if ErrStat /= ErrID_None
+                                                                  !     the input values described above
+      INTEGER(IntKi),               INTENT(  OUT)  :: ErrStat     ! Error status of the operation
+      CHARACTER(*),                 INTENT(  OUT)  :: ErrMess     ! Error message if ErrStat /= ErrID_None
 
 
          ! Initialize ErrStat
@@ -1363,7 +1363,7 @@ SUBROUTINE AD_CalcConstrStateResidual( Time, u, p, x, xd, z, OtherState, z_resid
 
          ! Solve for the constraint states here:
 
-      z_residual%DummyConstrState = 0.
+!      z_residual%DummyConstrState = 0.
 
 END SUBROUTINE AD_CalcConstrStateResidual
 

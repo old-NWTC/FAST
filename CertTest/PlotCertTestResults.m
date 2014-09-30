@@ -1,6 +1,5 @@
-% FAST-ADAMS-Simulink CertTest comparisons:
-
 function PlotCertTestResults( newPath, oldPath, PlotFAST, PlotAdams, PlotSimulink )
+% FAST-ADAMS-Simulink CertTest comparisons:
 %function PlotCertTestResults( newPath, oldPath, PlotFAST, PlotAdams, PlotSimulink )
 % This function plots the FAST, ADAMS, and/or FAST_SFunc CertTest results, 
 % comparing .out/.plt, .elm, .asi, .pmf, and .eig files from the newPath 
@@ -32,7 +31,7 @@ end
     plotFiles = [PlotSimulink, PlotAdams, PlotFAST];
              
 
-    for i= 20 %1:25 
+    for i= 1:25 
         
         fileRoot = ['Test' num2str(i,'%02.0f')];
 % fileRoot = ['Test19_noHD'];
@@ -52,7 +51,7 @@ continue; %bjj: linearization not yet available in FAST 8.0.0
         else
             
             SavePngFiles = true;  %setting this to false will keep ALL of the plot windows open
- SavePngFiles = false;  %setting this to false will keep ALL of the plot windows open
+%  SavePngFiles = false;  %setting this to false will keep ALL of the plot windows open
             
                 % Compare time series
                 

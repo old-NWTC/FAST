@@ -4,8 +4,8 @@
 # It also contains copy, destroy, pack, and unpack routines associated with each defined data types.
 # See the NWTC Programmer's Handbook for further information on the format/contents of this file.
 ###################################################################################################################################
-# File last committed: $Date: 2014-09-22 14:31:57 -0600 (Mon, 22 Sep 2014) $
-# (File) Revision #: $Rev: 149 $
+# File last committed: $Date: 2014-09-29 13:30:48 -0600 (Mon, 29 Sep 2014) $
+# (File) Revision #: $Rev: 157 $
 # URL: $HeadURL: https://windsvn.nrel.gov/AeroDyn/trunk/Source/Registry-AD.txt $
 ###################################################################################################################################
 #
@@ -308,23 +308,23 @@ typedef	^	InitOutputType	DWM_InitOutputType	DWM_InitOutput	-	-	-		-
 
 # ..... States ....................................................................................................................
 # Define continuous (differentiable) states here:
-typedef	^	ContinuousStateType	ReKi	DummyDiscState	-	-	-		-
+#typedef	^	ContinuousStateType	ReKi	DummyDiscState	-	-	-		-
 typedef	^	ContinuousStateType	IfW_ContinuousStateType	IfW_ContStates	-	-	-		-
 typedef	^	ContinuousStateType	DWM_ContinuousStateType	DWM_ContStates	-	-	-		-
 
 # Define discrete (nondifferentiable) states here:
-typedef	^	DiscreteStateType	ReKi	DummyDiscState	-	-	-		-
+#typedef	^	DiscreteStateType	ReKi	DummyDiscState	-	-	-		-
 typedef	^	DiscreteStateType	IfW_DiscreteStateType	IfW_DiscStates	-	-	-		-
 typedef	^	DiscreteStateType	DWM_DiscreteStateType	DWM_DiscStates	-	-	-		-
 
 # Define constraint states here:
-typedef	^	ConstraintStateType	ReKi	DummyConstrState	-	-	-		-
+#typedef	^	ConstraintStateType	ReKi	DummyConstrState	-	-	-		-
 typedef	^	ConstraintStateType	IfW_ConstraintStateType	IfW_ConstrStates	-	-	-		-
 typedef	^	ConstraintStateType	DWM_ConstraintStateType	DWM_ConstrStates	-	-	-		-
 
 # JM: At this point, I don't know which of these are actually discrete, continuous, or constraint, so they're all other states for now
 # Define "other" states (any data that are not considered actual states) here:
-typedef	^	OtherStateType	IntKi	DummyOtherState	-	-	-		-
+#typedef	^	OtherStateType	IntKi	DummyOtherState	-	-	-		-
 typedef	^	OtherStateType	DbKi	DT	-	-	-	"Time step"	seconds
 typedef	^	OtherStateType	IntKi	ElPrNum	{:}	-	-		-
 typedef	^	OtherStateType	DbKi	OldTime	-	-	-

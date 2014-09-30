@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-26 13:38:42 -0600 (Fri, 26 Sep 2014) $
-! (File) Revision #: $Rev: 525 $
+! File last committed: $Date: 2014-09-30 12:23:52 -0600 (Tue, 30 Sep 2014) $
+! (File) Revision #: $Rev: 534 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Output
@@ -703,7 +703,6 @@ FUNCTION   HDOut_GetChannels    ( NUserOutputs, UserOutputs, OutList, foundMask,
    
    CHARACTER(10)                          :: OutListTmp                                ! A string to temporarily hold OutList(I).
    CHARACTER(28), PARAMETER               :: OutPFmt   = "( I4, 3X,A 10,1 X, A10 )"    ! Output format parameter output list.
-   LOGICAL                                :: InvalidOutput(MaxMrsnOutputs)                        ! This array determines if the output channel is valid for this configuration
    LOGICAL                                :: CheckOutListAgain
    LOGICAL                                :: newFoundMask (NUserOutputs)        ! A mask indicating whether a user requested channel belongs to a module's output channels.
        ! Initialize ErrStat
@@ -822,8 +821,10 @@ SUBROUTINE HDOut_ChkOutLst( OutList, y, p, ErrStat, ErrMsg )
       RETURN
    ELSE
       ErrStat = ErrID_None
+      ErrMsg  = ""
    ENDIF
 
+   InvalidOutput = .FALSE.
    
 
       ! Set index, name, and units for all of the output channels.
