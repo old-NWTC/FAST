@@ -3,9 +3,9 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed $Date: 2014-06-07 00:23:33 -0600 (Sat, 07 Jun 2014) $
-# (File) Revision #: $Rev: 302 $
-# URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/branches/v1.00.00-rrd/Source/SubDyn_Registry.txt $
+# File last committed $Date: 2014-10-02 11:56:43 -0600 (Thu, 02 Oct 2014) $
+# (File) Revision #: $Rev: 328 $
+# URL: $HeadURL: https://wind-dev.nrel.gov/svn/SubDyn/trunk/Source/SubDyn_Registry.txt $
 ###################################################################################################################################
 # ...... Include files (definitions from NWTC Library) ............................................................................
 include	Registry_NWTC_Library.txt
@@ -155,6 +155,7 @@ typedef	^	ParameterType	ReKi	C1_11	{:}{:}	-	-	"Coefficient of x in Y1"
 typedef	^	ParameterType	ReKi	C1_12	{:}{:}	-	-	"Coefficient of x in Y1"
 typedef	^	ParameterType	ReKi	D1_13	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	D1_14	{:}{:}	-	-	"Coefficient of u in Y1"
+typedef	^	ParameterType	ReKi	D1_15	{:}{:}	-	-	"Coefficient of u in Y1"
 typedef	^	ParameterType	ReKi	FY	{:}	-	-	"Load Components in  Y1"
 typedef	^	ParameterType	ReKi	PhiM	{:}{:}	-	-	"Coefficient of x in Y2"
 typedef	^	ParameterType	ReKi	C2_61	{:}{:}	-	-	"Coefficient of x in Y2 (URdotdot ULdotdot)"

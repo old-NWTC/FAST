@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.03.01, 18-June-2014)
 !*********************************************************************************************************************************
 ! SubDyn_Types
 !.................................................................................................................................
@@ -197,6 +197,7 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C1_12      ! Coefficient of x in Y1 [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_13      ! Coefficient of u in Y1 [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_14      ! Coefficient of u in Y1 [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: D1_15      ! Coefficient of u in Y1 [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: FY      ! Load Components in  Y1 [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: PhiM      ! Coefficient of x in Y2 [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: C2_61      ! Coefficient of x in Y2 (URdotdot ULdotdot) [-]
@@ -3429,6 +3430,21 @@ IF (ALLOCATED(SrcParamData%D1_14)) THEN
    END IF
    DstParamData%D1_14 = SrcParamData%D1_14
 ENDIF
+IF (ALLOCATED(SrcParamData%D1_15)) THEN
+   i1_l = LBOUND(SrcParamData%D1_15,1)
+   i1_u = UBOUND(SrcParamData%D1_15,1)
+   i2_l = LBOUND(SrcParamData%D1_15,2)
+   i2_u = UBOUND(SrcParamData%D1_15,2)
+   IF (.NOT. ALLOCATED(DstParamData%D1_15)) THEN 
+      ALLOCATE(DstParamData%D1_15(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'SD_CopyParam: Error allocating DstParamData%D1_15.'
+         RETURN
+      END IF
+   END IF
+   DstParamData%D1_15 = SrcParamData%D1_15
+ENDIF
 IF (ALLOCATED(SrcParamData%FY)) THEN
    i1_l = LBOUND(SrcParamData%FY,1)
    i1_u = UBOUND(SrcParamData%FY,1)
@@ -3924,6 +3940,9 @@ ENDIF
 IF (ALLOCATED(ParamData%D1_14)) THEN
    DEALLOCATE(ParamData%D1_14)
 ENDIF
+IF (ALLOCATED(ParamData%D1_15)) THEN
+   DEALLOCATE(ParamData%D1_15)
+ENDIF
 IF (ALLOCATED(ParamData%FY)) THEN
    DEALLOCATE(ParamData%FY)
 ENDIF
@@ -4090,6 +4109,7 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%C1_12 )  ! C1_12 
   Re_BufSz    = Re_BufSz    + SIZE( InData%D1_13 )  ! D1_13 
   Re_BufSz    = Re_BufSz    + SIZE( InData%D1_14 )  ! D1_14 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%D1_15 )  ! D1_15 
   Re_BufSz    = Re_BufSz    + SIZE( InData%FY )  ! FY 
   Re_BufSz    = Re_BufSz    + SIZE( InData%PhiM )  ! PhiM 
   Re_BufSz    = Re_BufSz    + SIZE( InData%C2_61 )  ! C2_61 
@@ -4221,6 +4241,10 @@ ENDDO
   IF ( ALLOCATED(InData%D1_14) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%D1_14))-1 ) =  PACK(InData%D1_14 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%D1_14)
+  ENDIF
+  IF ( ALLOCATED(InData%D1_15) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%D1_15))-1 ) =  PACK(InData%D1_15 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%D1_15)
   ENDIF
   IF ( ALLOCATED(InData%FY) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%FY))-1 ) =  PACK(InData%FY ,.TRUE.)
@@ -4559,6 +4583,12 @@ ENDDO
     OutData%D1_14 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_14))-1 ),mask2,OutData%D1_14)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%D1_14)
+  ENDIF
+  IF ( ALLOCATED(OutData%D1_15) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%D1_15,1),SIZE(OutData%D1_15,2))); mask2 = .TRUE.
+    OutData%D1_15 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%D1_15))-1 ),mask2,OutData%D1_15)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%D1_15)
   ENDIF
   IF ( ALLOCATED(OutData%FY) ) THEN
   ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.

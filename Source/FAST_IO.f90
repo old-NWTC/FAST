@@ -4129,7 +4129,7 @@ SUBROUTINE AD_InputSolve( u_AD, y_ED, MeshMapData, ErrStat, ErrMsg )
    ! If using MulTabLoc feature, set it here:
    !-------------------------------------------------------------------------------------------------      
    
-   ! u_AD%MulTabLoc = ???
+   !  u_AD%MulTabLoc(IElements,IBlades) = ???
    
 END SUBROUTINE AD_InputSolve
 !====================================================================================================
