@@ -72,7 +72,6 @@ IMPLICIT NONE
   TYPE, PUBLIC :: Waves2_InitOutputType
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      !  [-]
     CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      !  [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev2      ! Instantaneous elevation time-series of incident waves at each of the NWaveElev points where the incident wave elevations can be output [(meters)]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElevSeries2      !  [(m)]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveAcc2D      !  [(m/s^2)]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveDynP2D      !  [(N/m^2)]
@@ -100,9 +99,6 @@ IMPLICIT NONE
 ! =========  Waves2_OtherStateType  =======
   TYPE, PUBLIC :: Waves2_OtherStateType
     INTEGER(IntKi)  :: DummyOtherState      ! Remove this variable if you have other states [-]
-    REAL(ReKi) , DIMENSION(1:9)  :: E_Waves2      ! 2nd order wave elevation corrections for each of NWaveElev points [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev2D      !  [(m)]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev2S      !  [(m)]
     INTEGER(IntKi)  :: LastIndWave      ! Index for last interpolation step of 2nd order forces [-]
   END TYPE Waves2_OtherStateType
 ! =======================
@@ -115,6 +111,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: NStepWave      ! Total number of frequency components = total number of time steps in the incident wave [-]
     INTEGER(IntKi)  :: NStepWave2      ! NStepWave / 2 [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      ! Simulation times at which the instantaneous second order loads associated with the incident waves are determined [sec]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev2      ! Instantaneous elevation time-series of incident waves at each of the NWaveElev points where the incident wave elevations can be output [(meters)]
     TYPE(OutParmType) , DIMENSION(:), ALLOCATABLE  :: OutParam      !  [-]
     INTEGER(IntKi)  :: NumOuts      !  [-]
     INTEGER(IntKi)  :: NumOutAll      !  [-]
@@ -624,21 +621,6 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    END IF
    DstInitOutputData%WriteOutputUnt = SrcInitOutputData%WriteOutputUnt
 ENDIF
-IF (ALLOCATED(SrcInitOutputData%WaveElev2)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WaveElev2,1)
-   i1_u = UBOUND(SrcInitOutputData%WaveElev2,1)
-   i2_l = LBOUND(SrcInitOutputData%WaveElev2,2)
-   i2_u = UBOUND(SrcInitOutputData%WaveElev2,2)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WaveElev2)) THEN 
-      ALLOCATE(DstInitOutputData%WaveElev2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WaveElev2.'
-         RETURN
-      END IF
-   END IF
-   DstInitOutputData%WaveElev2 = SrcInitOutputData%WaveElev2
-ENDIF
 IF (ALLOCATED(SrcInitOutputData%WaveElevSeries2)) THEN
    i1_l = LBOUND(SrcInitOutputData%WaveElevSeries2,1)
    i1_u = UBOUND(SrcInitOutputData%WaveElevSeries2,1)
@@ -768,9 +750,6 @@ ENDIF
 IF (ALLOCATED(InitOutputData%WriteOutputUnt)) THEN
    DEALLOCATE(InitOutputData%WriteOutputUnt)
 ENDIF
-IF (ALLOCATED(InitOutputData%WaveElev2)) THEN
-   DEALLOCATE(InitOutputData%WaveElev2)
-ENDIF
 IF (ALLOCATED(InitOutputData%WaveElevSeries2)) THEN
    DEALLOCATE(InitOutputData%WaveElevSeries2)
 ENDIF
@@ -828,7 +807,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev2 )  ! WaveElev2 
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevSeries2 )  ! WaveElevSeries2 
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc2D )  ! WaveAcc2D 
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDynP2D )  ! WaveDynP2D 
@@ -839,10 +817,6 @@ ENDIF
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ALLOCATED(InData%WaveElev2) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev2))-1 ) =  PACK(InData%WaveElev2 ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev2)
-  ENDIF
   IF ( ALLOCATED(InData%WaveElevSeries2) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevSeries2))-1 ) =  PACK(InData%WaveElevSeries2 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevSeries2)
@@ -906,12 +880,6 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ALLOCATED(OutData%WaveElev2) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev2,1),SIZE(OutData%WaveElev2,2))); mask2 = .TRUE.
-    OutData%WaveElev2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev2))-1 ),mask2,OutData%WaveElev2)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev2)
-  ENDIF
   IF ( ALLOCATED(OutData%WaveElevSeries2) ) THEN
   ALLOCATE(mask2(SIZE(OutData%WaveElevSeries2,1),SIZE(OutData%WaveElevSeries2,2))); mask2 = .TRUE.
     OutData%WaveElevSeries2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElevSeries2))-1 ),mask2,OutData%WaveElevSeries2)
@@ -1297,37 +1265,6 @@ ENDIF
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstOtherStateData%DummyOtherState = SrcOtherStateData%DummyOtherState
-   DstOtherStateData%E_Waves2 = SrcOtherStateData%E_Waves2
-IF (ALLOCATED(SrcOtherStateData%WaveElev2D)) THEN
-   i1_l = LBOUND(SrcOtherStateData%WaveElev2D,1)
-   i1_u = UBOUND(SrcOtherStateData%WaveElev2D,1)
-   i2_l = LBOUND(SrcOtherStateData%WaveElev2D,2)
-   i2_u = UBOUND(SrcOtherStateData%WaveElev2D,2)
-   IF (.NOT. ALLOCATED(DstOtherStateData%WaveElev2D)) THEN 
-      ALLOCATE(DstOtherStateData%WaveElev2D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyOtherState: Error allocating DstOtherStateData%WaveElev2D.'
-         RETURN
-      END IF
-   END IF
-   DstOtherStateData%WaveElev2D = SrcOtherStateData%WaveElev2D
-ENDIF
-IF (ALLOCATED(SrcOtherStateData%WaveElev2S)) THEN
-   i1_l = LBOUND(SrcOtherStateData%WaveElev2S,1)
-   i1_u = UBOUND(SrcOtherStateData%WaveElev2S,1)
-   i2_l = LBOUND(SrcOtherStateData%WaveElev2S,2)
-   i2_u = UBOUND(SrcOtherStateData%WaveElev2S,2)
-   IF (.NOT. ALLOCATED(DstOtherStateData%WaveElev2S)) THEN 
-      ALLOCATE(DstOtherStateData%WaveElev2S(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyOtherState: Error allocating DstOtherStateData%WaveElev2S.'
-         RETURN
-      END IF
-   END IF
-   DstOtherStateData%WaveElev2S = SrcOtherStateData%WaveElev2S
-ENDIF
    DstOtherStateData%LastIndWave = SrcOtherStateData%LastIndWave
  END SUBROUTINE Waves2_CopyOtherState
 
@@ -1339,12 +1276,6 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(OtherStateData%WaveElev2D)) THEN
-   DEALLOCATE(OtherStateData%WaveElev2D)
-ENDIF
-IF (ALLOCATED(OtherStateData%WaveElev2S)) THEN
-   DEALLOCATE(OtherStateData%WaveElev2S)
-ENDIF
  END SUBROUTINE Waves2_DestroyOtherState
 
  SUBROUTINE Waves2_PackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -1382,25 +1313,12 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Int_BufSz  = Int_BufSz  + 1  ! DummyOtherState
-  Re_BufSz    = Re_BufSz    + SIZE( InData%E_Waves2 )  ! E_Waves2 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev2D )  ! WaveElev2D 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev2S )  ! WaveElev2S 
   Int_BufSz  = Int_BufSz  + 1  ! LastIndWave
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%DummyOtherState )
   Int_Xferred   = Int_Xferred   + 1
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%E_Waves2))-1 ) =  PACK(InData%E_Waves2 ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%E_Waves2)
-  IF ( ALLOCATED(InData%WaveElev2D) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev2D))-1 ) =  PACK(InData%WaveElev2D ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev2D)
-  ENDIF
-  IF ( ALLOCATED(InData%WaveElev2S) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev2S))-1 ) =  PACK(InData%WaveElev2S ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev2S)
-  ENDIF
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%LastIndWave )
   Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE Waves2_PackOtherState
@@ -1440,22 +1358,6 @@ ENDIF
   Int_BufSz  = 0
   OutData%DummyOtherState = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
-  ALLOCATE(mask1(SIZE(OutData%E_Waves2,1))); mask1 = .TRUE.
-  OutData%E_Waves2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%E_Waves2))-1 ),mask1,OutData%E_Waves2)
-  DEALLOCATE(mask1)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%E_Waves2)
-  IF ( ALLOCATED(OutData%WaveElev2D) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev2D,1),SIZE(OutData%WaveElev2D,2))); mask2 = .TRUE.
-    OutData%WaveElev2D = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev2D))-1 ),mask2,OutData%WaveElev2D)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev2D)
-  ENDIF
-  IF ( ALLOCATED(OutData%WaveElev2S) ) THEN
-  ALLOCATE(mask2(SIZE(OutData%WaveElev2S,1),SIZE(OutData%WaveElev2S,2))); mask2 = .TRUE.
-    OutData%WaveElev2S = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev2S))-1 ),mask2,OutData%WaveElev2S)
-  DEALLOCATE(mask2)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev2S)
-  ENDIF
   OutData%LastIndWave = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
@@ -1495,6 +1397,21 @@ IF (ALLOCATED(SrcParamData%WaveTime)) THEN
    END IF
    DstParamData%WaveTime = SrcParamData%WaveTime
 ENDIF
+IF (ALLOCATED(SrcParamData%WaveElev2)) THEN
+   i1_l = LBOUND(SrcParamData%WaveElev2,1)
+   i1_u = UBOUND(SrcParamData%WaveElev2,1)
+   i2_l = LBOUND(SrcParamData%WaveElev2,2)
+   i2_u = UBOUND(SrcParamData%WaveElev2,2)
+   IF (.NOT. ALLOCATED(DstParamData%WaveElev2)) THEN 
+      ALLOCATE(DstParamData%WaveElev2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'Waves2_CopyParam: Error allocating DstParamData%WaveElev2.'
+         RETURN
+      END IF
+   END IF
+   DstParamData%WaveElev2 = SrcParamData%WaveElev2
+ENDIF
 IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
@@ -1528,6 +1445,9 @@ ENDIF
   ErrMsg  = ""
 IF (ALLOCATED(ParamData%WaveTime)) THEN
    DEALLOCATE(ParamData%WaveTime)
+ENDIF
+IF (ALLOCATED(ParamData%WaveElev2)) THEN
+   DEALLOCATE(ParamData%WaveElev2)
 ENDIF
 IF (ALLOCATED(ParamData%OutParam)) THEN
 DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
@@ -1579,6 +1499,7 @@ ENDIF
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev2 )  ! WaveElev2 
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, .TRUE. ) ! OutParam 
   IF(ALLOCATED(Re_OutParam_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_OutParam_Buf  ) ! OutParam
@@ -1605,6 +1526,10 @@ ENDDO
   IF ( ALLOCATED(InData%WaveTime) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) =  PACK(InData%WaveTime ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
+  ENDIF
+  IF ( ALLOCATED(InData%WaveElev2) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev2))-1 ) =  PACK(InData%WaveElev2 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev2)
   ENDIF
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, OnlySize ) ! OutParam 
@@ -1681,6 +1606,12 @@ ENDDO
     OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
+  ENDIF
+  IF ( ALLOCATED(OutData%WaveElev2) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%WaveElev2,1),SIZE(OutData%WaveElev2,2))); mask2 = .TRUE.
+    OutData%WaveElev2 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev2))-1 ),mask2,OutData%WaveElev2)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev2)
   ENDIF
 DO i1 = LBOUND(OutData%OutParam,1), UBOUND(OutData%OutParam,1)
  ! first call NWTC_Library_Packoutparmtype to get correctly sized buffers for unpacking

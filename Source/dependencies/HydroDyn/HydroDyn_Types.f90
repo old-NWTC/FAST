@@ -41,7 +41,7 @@ USE WAMIT2_Types
 USE Morison_Types
 USE NWTC_Library
 IMPLICIT NONE
-    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxHDOutputs = 39      ! The maximum number of output channels supported by this module [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: MaxHDOutputs = 54      ! The maximum number of output channels supported by this module [-]
 ! =========  HydroDyn_InitInputType  =======
   TYPE, PUBLIC :: HydroDyn_InitInputType
     CHARACTER(1024)  :: InputFile      ! Supplied by Driver:  full path and filename for the HydroDyn module [-]
@@ -83,7 +83,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: OutSwtch      ! Output requested channels to: [1=Hydrodyn.out 2=GlueCode.out  3=both files] [-]
     LOGICAL  :: OutAll      ! Output all user-specified member and joint loads (only at each member end, not interior locations) [T/F] [-]
     INTEGER(IntKi)  :: NumOuts      ! The number of outputs for this module as requested in the input file [-]
-    CHARACTER(10) , DIMENSION(1:21)  :: OutList      ! The user-requested output channel labels for this modules. This should really be dimensioned with MaxOutPts [-]
+    CHARACTER(10) , DIMENSION(1:54)  :: OutList      ! The user-requested output channel labels for this modules. This should really be dimensioned with MaxOutPts [-]
     LOGICAL  :: HDSum      ! Generate a HydroDyn summary file [T/F] [-]
     INTEGER(IntKi)  :: UnSum      ! File unit for the HydroDyn summary file [-1 = no summary file] [-]
     CHARACTER(20)  :: OutFmt      ! Output format for numerical results [-]
@@ -140,6 +140,7 @@ IMPLICIT NONE
     INTEGER(IntKi)  :: LastIndWave      ! The last index used in the wave kinematics arrays, used to optimize interpolation [-]
     REAL(ReKi) , DIMENSION(1:6)  :: F_PtfmAdd      ! The total forces and moments due to additional pre-load, stiffness, and damping [-]
     REAL(ReKi) , DIMENSION(1:6)  :: F_Hydro      ! The total hydrodynamic forces and moments integrated about the WAMIT reference point [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: F_Waves      ! The total waves forces on a WAMIT body calculated by first and second order methods (WAMIT and WAMIT2 modules) [-]
     TYPE(MeshType)  :: y_mapped      ! An intermediate mesh used to transfer hydrodynamic loads from the various HD-related meshes to the AllHdroOrigin mesh [-]
     TYPE(MeshType)  :: AllHdroOrigin_position      ! A motions mesh which has all translational displacements set to zero.  Used in the transfer of hydrodynamic loads from the various HD-related meshes to the AllHdroOrigin mesh [-]
     TYPE(MeshType)  :: MrsnLumpedMesh_position      ! A motions mesh which has all translational displacements set to zero.  Used in the transfer of hydrodynamic loads from the various HD-related meshes to the AllHdroOrigin mesh [-]
@@ -158,7 +159,8 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      ! Array of time samples, (sec) [-]
     INTEGER(IntKi)  :: NStepWave      ! Number of data points in the wave kinematics arrays [-]
     INTEGER(IntKi)  :: NWaveElev      ! Number of wave elevation outputs [-]
-    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      !  [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev      ! Total wave elevation [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: WaveElev1      ! First order wave elevation [-]
     REAL(ReKi) , DIMENSION(1:6)  :: AddF0      ! Additional pre-load forces and moments (N,N,N,N-m,N-m,N-m) [-]
     REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddCLin      ! Additional stiffness matrix [-]
     REAL(ReKi) , DIMENSION(1:6,1:6)  :: AddBLin      ! Additional linear damping matrix [-]
@@ -1987,6 +1989,7 @@ ENDIF
    DstOtherStateData%LastIndWave = SrcOtherStateData%LastIndWave
    DstOtherStateData%F_PtfmAdd = SrcOtherStateData%F_PtfmAdd
    DstOtherStateData%F_Hydro = SrcOtherStateData%F_Hydro
+   DstOtherStateData%F_Waves = SrcOtherStateData%F_Waves
      CALL MeshCopy( SrcOtherStateData%y_mapped, DstOtherStateData%y_mapped, CtrlCode, ErrStat, ErrMsg )
      CALL MeshCopy( SrcOtherStateData%AllHdroOrigin_position, DstOtherStateData%AllHdroOrigin_position, CtrlCode, ErrStat, ErrMsg )
      CALL MeshCopy( SrcOtherStateData%MrsnLumpedMesh_position, DstOtherStateData%MrsnLumpedMesh_position, CtrlCode, ErrStat, ErrMsg )
@@ -2107,6 +2110,7 @@ ENDIF
   Int_BufSz  = Int_BufSz  + 1  ! LastIndWave
   Re_BufSz    = Re_BufSz    + SIZE( InData%F_PtfmAdd )  ! F_PtfmAdd 
   Re_BufSz    = Re_BufSz    + SIZE( InData%F_Hydro )  ! F_Hydro 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%F_Waves )  ! F_Waves 
  ! Allocate mesh buffers, if any (we'll also get sizes from these) 
   CALL MeshPack( InData%y_mapped, Re_y_mapped_Buf, Db_y_mapped_Buf, Int_y_mapped_Buf, ErrStat, ErrMsg, .TRUE. ) ! y_mapped 
   IF(ALLOCATED(Re_y_mapped_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_y_mapped_Buf  ) ! y_mapped
@@ -2218,6 +2222,8 @@ ENDIF
   Re_Xferred   = Re_Xferred   + SIZE(InData%F_PtfmAdd)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F_Hydro))-1 ) =  PACK(InData%F_Hydro ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%F_Hydro)
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F_Waves))-1 ) =  PACK(InData%F_Waves ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%F_Waves)
   CALL MeshPack( InData%y_mapped, Re_y_mapped_Buf, Db_y_mapped_Buf, Int_y_mapped_Buf, ErrStat, ErrMsg, OnlySize ) ! y_mapped 
   IF(ALLOCATED(Re_y_mapped_Buf)) THEN
     IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_y_mapped_Buf)-1 ) = Re_y_mapped_Buf
@@ -2434,6 +2440,10 @@ ENDIF
   OutData%F_Hydro = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Hydro))-1 ),mask1,OutData%F_Hydro)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%F_Hydro)
+  ALLOCATE(mask1(SIZE(OutData%F_Waves,1))); mask1 = .TRUE.
+  OutData%F_Waves = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Waves))-1 ),mask1,OutData%F_Waves)
+  DEALLOCATE(mask1)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%F_Waves)
  ! first call MeshPack to get correctly sized buffers for unpacking
   CALL MeshPack( OutData%y_mapped, Re_y_mapped_Buf, Db_y_mapped_Buf, Int_y_mapped_Buf, ErrStat, ErrMsg , .TRUE. ) ! y_mapped 
   IF(ALLOCATED(Re_y_mapped_Buf)) THEN
@@ -2574,6 +2584,21 @@ IF (ALLOCATED(SrcParamData%WaveElev)) THEN
    END IF
    DstParamData%WaveElev = SrcParamData%WaveElev
 ENDIF
+IF (ALLOCATED(SrcParamData%WaveElev1)) THEN
+   i1_l = LBOUND(SrcParamData%WaveElev1,1)
+   i1_u = UBOUND(SrcParamData%WaveElev1,1)
+   i2_l = LBOUND(SrcParamData%WaveElev1,2)
+   i2_u = UBOUND(SrcParamData%WaveElev1,2)
+   IF (.NOT. ALLOCATED(DstParamData%WaveElev1)) THEN 
+      ALLOCATE(DstParamData%WaveElev1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
+      IF (ErrStat /= 0) THEN 
+         ErrStat = ErrID_Fatal 
+         ErrMsg = 'HydroDyn_CopyParam: Error allocating DstParamData%WaveElev1.'
+         RETURN
+      END IF
+   END IF
+   DstParamData%WaveElev1 = SrcParamData%WaveElev1
+ENDIF
    DstParamData%AddF0 = SrcParamData%AddF0
    DstParamData%AddCLin = SrcParamData%AddCLin
    DstParamData%AddBLin = SrcParamData%AddBLin
@@ -2621,6 +2646,9 @@ IF (ALLOCATED(ParamData%WaveTime)) THEN
 ENDIF
 IF (ALLOCATED(ParamData%WaveElev)) THEN
    DEALLOCATE(ParamData%WaveElev)
+ENDIF
+IF (ALLOCATED(ParamData%WaveElev1)) THEN
+   DEALLOCATE(ParamData%WaveElev1)
 ENDIF
 IF (ALLOCATED(ParamData%OutParam)) THEN
 DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
@@ -2711,6 +2739,7 @@ ENDIF
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
   Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev )  ! WaveElev 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev1 )  ! WaveElev1 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddF0 )  ! AddF0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddCLin )  ! AddCLin 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddBLin )  ! AddBLin 
@@ -2808,6 +2837,10 @@ ENDDO
   IF ( ALLOCATED(InData%WaveElev) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev))-1 ) =  PACK(InData%WaveElev ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev)
+  ENDIF
+  IF ( ALLOCATED(InData%WaveElev1) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElev1))-1 ) =  PACK(InData%WaveElev1 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElev1)
   ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddF0))-1 ) =  PACK(InData%AddF0 ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%AddF0)
@@ -2972,6 +3005,12 @@ ENDDO
     OutData%WaveElev = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev))-1 ),mask2,OutData%WaveElev)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev)
+  ENDIF
+  IF ( ALLOCATED(OutData%WaveElev1) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%WaveElev1,1),SIZE(OutData%WaveElev1,2))); mask2 = .TRUE.
+    OutData%WaveElev1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveElev1))-1 ),mask2,OutData%WaveElev1)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveElev1)
   ENDIF
   ALLOCATE(mask1(SIZE(OutData%AddF0,1))); mask1 = .TRUE.
   OutData%AddF0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AddF0))-1 ),mask1,OutData%AddF0)

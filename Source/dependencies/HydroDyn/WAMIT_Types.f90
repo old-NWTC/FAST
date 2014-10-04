@@ -92,7 +92,7 @@ IMPLICIT NONE
     TYPE(SS_Rad_OtherStateType)  :: SS_Rdtn      !  [-]
     TYPE(Conv_Rdtn_OtherStateType)  :: Conv_Rdtn      !  [-]
     REAL(ReKi) , DIMENSION(1:6)  :: F_HS      !  [-]
-    REAL(ReKi) , DIMENSION(1:6)  :: F_Waves      !  [-]
+    REAL(ReKi) , DIMENSION(1:6)  :: F_Waves1      !  [-]
     REAL(ReKi) , DIMENSION(1:6)  :: F_Rdtn      !  [-]
     REAL(ReKi) , DIMENSION(1:6)  :: F_PtfmAdd      !  [-]
     REAL(ReKi) , DIMENSION(1:6)  :: F_PtfmAM      !  [-]
@@ -1066,7 +1066,7 @@ ENDIF
       CALL SS_Rad_CopyOtherState( SrcOtherStateData%SS_Rdtn, DstOtherStateData%SS_Rdtn, CtrlCode, ErrStat, ErrMsg )
       CALL Conv_Rdtn_CopyOtherState( SrcOtherStateData%Conv_Rdtn, DstOtherStateData%Conv_Rdtn, CtrlCode, ErrStat, ErrMsg )
    DstOtherStateData%F_HS = SrcOtherStateData%F_HS
-   DstOtherStateData%F_Waves = SrcOtherStateData%F_Waves
+   DstOtherStateData%F_Waves1 = SrcOtherStateData%F_Waves1
    DstOtherStateData%F_Rdtn = SrcOtherStateData%F_Rdtn
    DstOtherStateData%F_PtfmAdd = SrcOtherStateData%F_PtfmAdd
    DstOtherStateData%F_PtfmAM = SrcOtherStateData%F_PtfmAM
@@ -1140,7 +1140,7 @@ ENDIF
   IF(ALLOCATED(Db_Conv_Rdtn_Buf))  DEALLOCATE(Db_Conv_Rdtn_Buf)
   IF(ALLOCATED(Int_Conv_Rdtn_Buf)) DEALLOCATE(Int_Conv_Rdtn_Buf)
   Re_BufSz    = Re_BufSz    + SIZE( InData%F_HS )  ! F_HS 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%F_Waves )  ! F_Waves 
+  Re_BufSz    = Re_BufSz    + SIZE( InData%F_Waves1 )  ! F_Waves1 
   Re_BufSz    = Re_BufSz    + SIZE( InData%F_Rdtn )  ! F_Rdtn 
   Re_BufSz    = Re_BufSz    + SIZE( InData%F_PtfmAdd )  ! F_PtfmAdd 
   Re_BufSz    = Re_BufSz    + SIZE( InData%F_PtfmAM )  ! F_PtfmAM 
@@ -1183,8 +1183,8 @@ ENDIF
   IF( ALLOCATED(Int_Conv_Rdtn_Buf) ) DEALLOCATE(Int_Conv_Rdtn_Buf)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F_HS))-1 ) =  PACK(InData%F_HS ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%F_HS)
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F_Waves))-1 ) =  PACK(InData%F_Waves ,.TRUE.)
-  Re_Xferred   = Re_Xferred   + SIZE(InData%F_Waves)
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F_Waves1))-1 ) =  PACK(InData%F_Waves1 ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%F_Waves1)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F_Rdtn))-1 ) =  PACK(InData%F_Rdtn ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%F_Rdtn)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%F_PtfmAdd))-1 ) =  PACK(InData%F_PtfmAdd ,.TRUE.)
@@ -1268,10 +1268,10 @@ ENDIF
   OutData%F_HS = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_HS))-1 ),mask1,OutData%F_HS)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%F_HS)
-  ALLOCATE(mask1(SIZE(OutData%F_Waves,1))); mask1 = .TRUE.
-  OutData%F_Waves = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Waves))-1 ),mask1,OutData%F_Waves)
+  ALLOCATE(mask1(SIZE(OutData%F_Waves1,1))); mask1 = .TRUE.
+  OutData%F_Waves1 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Waves1))-1 ),mask1,OutData%F_Waves1)
   DEALLOCATE(mask1)
-  Re_Xferred   = Re_Xferred   + SIZE(OutData%F_Waves)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%F_Waves1)
   ALLOCATE(mask1(SIZE(OutData%F_Rdtn,1))); mask1 = .TRUE.
   OutData%F_Rdtn = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%F_Rdtn))-1 ),mask1,OutData%F_Rdtn)
   DEALLOCATE(mask1)

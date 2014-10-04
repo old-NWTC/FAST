@@ -9,8 +9,8 @@
 #
 # Use ^ as a shortcut for the value in the same column from the previous line.
 ###################################################################################################################################
-# File last committed: $Date: 2014-09-24 11:10:30 -0600 (Wed, 24 Sep 2014) $
-# (File) Revision #: $Rev: 508 $
+# File last committed: $Date: 2014-10-02 12:22:40 -0600 (Thu, 02 Oct 2014) $
+# (File) Revision #: $Rev: 539 $
 # URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/RegistryFiles/WAMIT.txt $
 ###################################################################################################################################
 
@@ -77,7 +77,7 @@ typedef   ^                            OtherStateType                INTEGER    
 typedef   ^                            ^                             SS_Rad_OtherStateType    SS_Rdtn                         -              -         -         ""   -
 typedef   ^                            ^                             Conv_Rdtn_OtherStateType Conv_Rdtn                       -              -         -         ""   -
 typedef   ^                            ^                             ReKi                     F_HS                            {6}            -         -         ""   -
-typedef   ^                            ^                             ReKi                     F_Waves                         {6}            -         -         ""   -
+typedef   ^                            ^                             ReKi                     F_Waves1                        {6}            -         -         ""   -
 typedef   ^                            ^                             ReKi                     F_Rdtn                          {6}            -         -         ""   -
 typedef   ^                            ^                             ReKi                     F_PtfmAdd                       {6}            -         -         ""   -
 typedef   ^                            ^                             ReKi                     F_PtfmAM                        {6}            -         -         ""   -

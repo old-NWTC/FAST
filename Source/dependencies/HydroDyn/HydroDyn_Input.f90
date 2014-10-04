@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-29 16:36:10 -0600 (Mon, 29 Sep 2014) $
-! (File) Revision #: $Rev: 530 $
+! File last committed: $Date: 2014-10-02 14:17:21 -0600 (Thu, 02 Oct 2014) $
+! (File) Revision #: $Rev: 541 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -3991,7 +3991,11 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          RETURN
       END IF
       foundMask = .FALSE.
-      ! Extract WAMIT list
+         ! Extract Waves2 list
+      InitInp%Waves2%NumOuts  = GetWaves2Channels   ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%Waves2%OutList, foundMask, ErrStat2, ErrMsg2 )
+      CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+   
+         ! Extract WAMIT list
       InitInp%WAMIT%NumOuts   = GetWAMITChannels    ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%WAMIT%OutList,  foundMask, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
 
@@ -3999,24 +4003,20 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       InitInp%WAMIT2%NumOuts  = GetWAMIT2Channels   ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%WAMIT2%OutList, foundMask, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
 
-         ! Extract Waves2 list
-      InitInp%Waves2%NumOuts  = GetWaves2Channels   ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%Waves2%OutList, foundMask, ErrStat2, ErrMsg2 )
-      CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
-   
-      ! Extract Morison list
-      !foundMask = .FALSE.
+         ! Extract Morison list
+         !foundMask = .FALSE.
       InitInp%Morison%NumOuts = GetMorisonChannels  ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%Morison%OutList, foundMask, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
    
-      ! Attach remaining items to the HydroDyn list
-      !foundMask = .FALSE.
+         ! Attach remaining items to the HydroDyn list
+         !foundMask = .FALSE.
       InitInp%NumOuts       = HDOut_GetChannels ( InitInp%NUserOutputs, InitInp%UserOutputs, InitInp%OutList        , foundMask, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       CALL PrintBadChannelWarning(InitInp%NUserOutputs, InitInp%UserOutputs , foundMask, ErrStat2, ErrMsg2 )
       CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       IF (ErrStat >= AbortErrLev ) RETURN
 
-   DEALLOCATE(foundMask)
+      DEALLOCATE(foundMask)
    END IF
       ! Now that we have the sub-lists organized, lets do some additional validation.
    
@@ -4067,7 +4067,7 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
          InitInp%Waves2%UnSum       = InitInp%UnSum
          InitInp%Waves2%WtrDpth     = InitInp%Waves%WtrDpth
          InitInp%Waves2%WaveStMod   = InitInp%Waves%WaveStMod
-         InitInp%Waves%NWaveElev    = InitInp%Waves%NWaveElev
+         InitInp%Waves2%NWaveElev   = InitInp%Waves%NWaveElev
          CALL AllocAry( InitInp%Waves2%WaveElevxi, InitInp%Waves2%NWaveElev, 'WaveElevxi' , ErrStat2, ErrMsg2)
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'HydroDynInput_GetInput' )
          CALL AllocAry( InitInp%Waves2%WaveElevyi, InitInp%Waves2%NWaveElev, 'WaveElevyi' , ErrStat2, ErrMsg2)

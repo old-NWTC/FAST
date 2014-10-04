@@ -292,7 +292,7 @@ SUBROUTINE WAMIT2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
          !> Initialize the NWTC Subroutine Library and display the information about this module.
 
       CALL NWTC_Init() ! WAMIT2_ProgDesc%Name, '('//WAMIT2_ProgDesc%Ver//','//WAMIT2_ProgDesc%Date//')', EchoLibVer = .FALSE. )
-      CALL DispNVD( WAMIT2_ProgDesc )
+      !CALL DispNVD( WAMIT2_ProgDesc )
 
 
 
@@ -2557,15 +2557,16 @@ SUBROUTINE WAMIT2_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, InitOu
                !      1.0          Pi          10
                ! so, we don't need a really small WaveDT
 
-            IF ( InitInp%WvHiCOffS > InitInp%NStepWave2*InitInp%WaveDOmega ) THEN
-               CALL SetErrStat( ErrID_Warn,' The high frequency cutoff for second order wave forces, WvHiCOffS, '// &
-                        'is larger than the Nyquist frequency for the given time step of WaveDT. The Nyquist frequency '// &
-                        '(highest frequency) that can be computed is OmegaMax = PI/WaveDT = '// &
-                        TRIM(Num2LStr(InitInp%NStepWave2*InitInp%WaveDOmega))// &
-                        ' radians/second.  If you need those frequencies, decrease WaveDT.  For reference, 2*PI '// &
-                        'radians/second corresponds to a wavelength of ~1 meter.',&
-                        ErrStat,ErrMsg,'SumQTF_InitCalc')
-            ENDIF
+      !This section has been removed since it is kind of annoying.
+      !      IF ( InitInp%WvHiCOffS > InitInp%NStepWave2*InitInp%WaveDOmega ) THEN
+      !         CALL SetErrStat( ErrID_Warn,' The high frequency cutoff for second order wave forces, WvHiCOffS, '// &
+      !                  'is larger than the Nyquist frequency for the given time step of WaveDT. The Nyquist frequency '// &
+      !                  '(highest frequency) that can be computed is OmegaMax = PI/WaveDT = '// &
+      !                  TRIM(Num2LStr(InitInp%NStepWave2*InitInp%WaveDOmega))// &
+      !                  ' radians/second.  If you need those frequencies, decrease WaveDT.  For reference, 2*PI '// &
+      !                  'radians/second corresponds to a wavelength of ~1 meter.',&
+      !                  ErrStat,ErrMsg,'SumQTF_InitCalc')
+      !      ENDIF
 
 
 
