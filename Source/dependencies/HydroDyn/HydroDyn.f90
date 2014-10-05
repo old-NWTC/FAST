@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-10-02 19:12:13 -0600 (Thu, 02 Oct 2014) $
-! (File) Revision #: $Rev: 543 $
+! File last committed: $Date: 2014-10-04 22:56:14 -0600 (Sat, 04 Oct 2014) $
+! (File) Revision #: $Rev: 551 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn
@@ -375,8 +375,21 @@ SUBROUTINE HydroDyn_Init( InitInp, u, p, x, xd, z, OtherState, y, Interval, Init
          InitLocal%Waves2%NStepWave   = Waves_InitOut%NStepWave
          InitLocal%Waves2%NStepWave2  = Waves_InitOut%NStepWave2
          InitLocal%Waves2%WaveDOmega  = Waves_InitOut%WaveDOmega
-         InitLocal%Waves2%WaveTime    = Waves_InitOut%WaveTime
-
+         
+         
+        !bjj: this is an allocatable array: InitLocal%Waves2%WaveTime    = Waves_InitOut%WaveTime
+         IF (ALLOCATED(Waves_InitOut%WaveTime)) THEN
+            
+            ALLOCATE( InitLocal%Waves2%WaveTime( LBOUND( Waves_InitOut%WaveTime, DIM=1):UBOUND( Waves_InitOut%WaveTime, DIM=1)), STAT=ErrStat2 )
+            IF (ErrStat2 /= 0 ) THEN
+               CALL SetErrStat(ErrID_Fatal,'Error allocating InitLocal%Waves2%WaveTime.',ErrStat,ErrMsg,'HydroDyn_Init')
+               CALL CleanUp()
+               RETURN
+            END IF
+            InitLocal%Waves2%WaveTime    = Waves_InitOut%WaveTime
+         ENDIF
+         
+         
             ! Copy the WaveElevXY data in from the HydroDyn InitInp
 
          IF (ALLOCATED(InitInp%WaveElevXY)) THEN
