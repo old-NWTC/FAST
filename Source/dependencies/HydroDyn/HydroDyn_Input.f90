@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-10-02 14:17:21 -0600 (Thu, 02 Oct 2014) $
-! (File) Revision #: $Rev: 541 $
+! File last committed: $Date: 2014-10-04 23:26:05 -0600 (Sat, 04 Oct 2014) $
+! (File) Revision #: $Rev: 553 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
