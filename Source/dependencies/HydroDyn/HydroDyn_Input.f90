@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-10-04 23:26:05 -0600 (Sat, 04 Oct 2014) $
-! (File) Revision #: $Rev: 553 $
+! File last committed: $Date: 2014-10-06 11:51:39 -0600 (Mon, 06 Oct 2014) $
+! (File) Revision #: $Rev: 560 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -519,6 +519,9 @@ SUBROUTINE HydroDynInput_GetInput( InitInp, ErrStat, ErrMsg )
          CALL CleanUp()
          RETURN
       END IF
+
+      ! Negative values should be treated as positive.
+   InitInp%Waves%WaveDirRange =  ABS( InitInp%Waves%WaveDirRange )
 
 
       ! WaveSeed(1), !WaveSeed(2)
@@ -2598,6 +2601,15 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       CALL SetErrStat( ErrID_Warn,'WaveDirMod unused unless WaveMod == 2, 3, or 4.  Ignoring WaveDirMod.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
       InitInp%Waves%WaveMod   = 0
    ENDIF
+
+
+      !  Check to see if the for some reason the wave direction spreading range is set to zero.  If it is, 
+      !  we don't have any spreading, so we will turn off the multidirectional waves.
+   IF ( InitInp%Waves%WaveMultiDir .AND. EqualRealNos( InitInp%Waves%WaveDirRange, 0.0_ReKi ) ) THEN
+      CALL SetErrStat( ErrID_Warn,' WaveDirRange set to zero, so multidirectional waves are turned off.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+      InitInp%Waves%WaveMultiDir = .FALSE.
+   ENDIF
+
 
 
       ! We check the following only if we set WaveMultiDir to true, otherwise ignore them and set them to zero
