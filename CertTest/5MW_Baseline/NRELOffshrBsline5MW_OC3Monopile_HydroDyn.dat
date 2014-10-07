@@ -14,7 +14,7 @@ False            Echo           - Echo the input file data (flag)
             10   WaveTp         - Peak-spectral period of incident waves       (sec) [used only when WaveMod=1 or 2]
 "DEFAULT"        WavePkShp      - Peak-shape parameter of incident wave spectrum (-) or DEFAULT (string) [used only when WaveMod=2] [use 1.0 for Pierson-Moskowitz]
       0.157080   WvLowCOff      - Low  cut-off frequency or lower frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [used only when WaveMod=2, 3, or 4]
-           2.5   WvHiCOff       - High cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [used only when WaveMod=2, 3, or 4]
+           3.2   WvHiCOff       - High cut-off frequency or upper frequency limit of the wave spectrum beyond which the wave spectrum is zeroed (rad/s) [used only when WaveMod=2, 3, or 4]
              0   WaveDir        - Incident wave propagation heading direction                         (degrees) [unused when WaveMod=0 or 5]
              0   WaveDirMod     - Directional spreading function {0: none, 1: COS2S}                  (-)       [only used when WaveMod=2,3,4]
              1   WaveDirSpread  - Wave direction spreading coefficient ( > 0 )                        (-)       [only used when WaveMod=2,3,4 and WaveDirMod=1]
@@ -31,9 +31,9 @@ TRUE             WaveNDAmp      - Flag for normally distributed amplitudes (flag
 True             WvDiffQTF      - Full difference-frequency 2nd-order wave kinematics (flag)
 True             WvSumQTF       - Full summation-frequency  2nd-order wave kinematics (flag)
              0   WvLowCOffD     - Low  frequency cutoff used in the difference-frequencies (rad/s) [Only used with a difference-frequency method]
-           2.5   WvHiCOffD      - High frequency cutoff used in the difference-frequencies (rad/s) [Only used with a difference-frequency method]
+      3.042920   WvHiCOffD      - High frequency cutoff used in the difference-frequencies (rad/s) [Only used with a difference-frequency method]
       0.314159   WvLowCOffS     - Low  frequency cutoff used in the summation-frequencies  (rad/s) [Only used with a summation-frequency  method]
-           2.5   WvHiCOffS      - High frequency cutoff used in the summation-frequencies  (rad/s) [Only used with a summation-frequency  method]
+           3.2   WvHiCOffS      - High frequency cutoff used in the summation-frequencies  (rad/s) [Only used with a summation-frequency  method]
 ---------------------- CURRENT -------------------------------------------------
              0   CurrMod        - Current profile model {0: none=no current, 1: standard, 2: user-defined from routine UserCurrent} (switch)
              0   CurrSSV0       - Sub-surface current velocity at still water level  (m/s) [used only when CurrMod=1]
