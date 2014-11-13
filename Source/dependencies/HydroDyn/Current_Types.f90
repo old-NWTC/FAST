@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.04.00, 7-Nov-2014)
 !*********************************************************************************************************************************
 ! Current_Types
 !.................................................................................................................................
@@ -104,6 +104,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -121,10 +123,9 @@ IF (ALLOCATED(SrcInitInputData%MorisonNodezi)) THEN
    i1_l = LBOUND(SrcInitInputData%MorisonNodezi,1)
    i1_u = UBOUND(SrcInitInputData%MorisonNodezi,1)
    IF (.NOT. ALLOCATED(DstInitInputData%MorisonNodezi)) THEN 
-      ALLOCATE(DstInitInputData%MorisonNodezi(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Current_CopyInitInput: Error allocating DstInitInputData%MorisonNodezi.'
+      ALLOCATE(DstInitInputData%MorisonNodezi(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%MorisonNodezi.', ErrStat, ErrMsg,'Current_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -295,6 +296,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -302,10 +305,9 @@ IF (ALLOCATED(SrcInitOutputData%CurrVxi)) THEN
    i1_l = LBOUND(SrcInitOutputData%CurrVxi,1)
    i1_u = UBOUND(SrcInitOutputData%CurrVxi,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%CurrVxi)) THEN 
-      ALLOCATE(DstInitOutputData%CurrVxi(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Current_CopyInitOutput: Error allocating DstInitOutputData%CurrVxi.'
+      ALLOCATE(DstInitOutputData%CurrVxi(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%CurrVxi.', ErrStat, ErrMsg,'Current_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -315,10 +317,9 @@ IF (ALLOCATED(SrcInitOutputData%CurrVyi)) THEN
    i1_l = LBOUND(SrcInitOutputData%CurrVyi,1)
    i1_u = UBOUND(SrcInitOutputData%CurrVyi,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%CurrVyi)) THEN 
-      ALLOCATE(DstInitOutputData%CurrVyi(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Current_CopyInitOutput: Error allocating DstInitOutputData%CurrVyi.'
+      ALLOCATE(DstInitOutputData%CurrVyi(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%CurrVyi.', ErrStat, ErrMsg,'Current_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -463,6 +464,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -571,6 +574,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -679,6 +684,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -787,6 +794,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -895,6 +904,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1003,6 +1014,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1111,6 +1124,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1248,6 +1263,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -1392,6 +1409,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts

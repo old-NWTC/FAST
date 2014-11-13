@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.04.00, 7-Nov-2014)
 !*********************************************************************************************************************************
 ! Conv_Radiation_Types
 !.................................................................................................................................
@@ -105,6 +105,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -118,10 +120,9 @@ IF (ALLOCATED(SrcInitInputData%HdroAddMs)) THEN
    i2_l = LBOUND(SrcInitInputData%HdroAddMs,2)
    i2_u = UBOUND(SrcInitInputData%HdroAddMs,2)
    IF (.NOT. ALLOCATED(DstInitInputData%HdroAddMs)) THEN 
-      ALLOCATE(DstInitInputData%HdroAddMs(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Conv_Rdtn_CopyInitInput: Error allocating DstInitInputData%HdroAddMs.'
+      ALLOCATE(DstInitInputData%HdroAddMs(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%HdroAddMs.', ErrStat, ErrMsg,'Conv_Rdtn_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -131,10 +132,9 @@ IF (ALLOCATED(SrcInitInputData%HdroFreq)) THEN
    i1_l = LBOUND(SrcInitInputData%HdroFreq,1)
    i1_u = UBOUND(SrcInitInputData%HdroFreq,1)
    IF (.NOT. ALLOCATED(DstInitInputData%HdroFreq)) THEN 
-      ALLOCATE(DstInitInputData%HdroFreq(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Conv_Rdtn_CopyInitInput: Error allocating DstInitInputData%HdroFreq.'
+      ALLOCATE(DstInitInputData%HdroFreq(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%HdroFreq.', ErrStat, ErrMsg,'Conv_Rdtn_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -146,10 +146,9 @@ IF (ALLOCATED(SrcInitInputData%HdroDmpng)) THEN
    i2_l = LBOUND(SrcInitInputData%HdroDmpng,2)
    i2_u = UBOUND(SrcInitInputData%HdroDmpng,2)
    IF (.NOT. ALLOCATED(DstInitInputData%HdroDmpng)) THEN 
-      ALLOCATE(DstInitInputData%HdroDmpng(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Conv_Rdtn_CopyInitInput: Error allocating DstInitInputData%HdroDmpng.'
+      ALLOCATE(DstInitInputData%HdroDmpng(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%HdroDmpng.', ErrStat, ErrMsg,'Conv_Rdtn_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -324,6 +323,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -432,6 +433,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -540,6 +543,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -549,10 +554,9 @@ IF (ALLOCATED(SrcDiscStateData%XDHistory)) THEN
    i2_l = LBOUND(SrcDiscStateData%XDHistory,2)
    i2_u = UBOUND(SrcDiscStateData%XDHistory,2)
    IF (.NOT. ALLOCATED(DstDiscStateData%XDHistory)) THEN 
-      ALLOCATE(DstDiscStateData%XDHistory(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Conv_Rdtn_CopyDiscState: Error allocating DstDiscStateData%XDHistory.'
+      ALLOCATE(DstDiscStateData%XDHistory(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstDiscStateData%XDHistory.', ErrStat, ErrMsg,'Conv_Rdtn_CopyDiscState')
          RETURN
       END IF
    END IF
@@ -677,6 +681,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -785,6 +791,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -905,6 +913,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -918,10 +928,9 @@ IF (ALLOCATED(SrcParamData%RdtnKrnl)) THEN
    i3_l = LBOUND(SrcParamData%RdtnKrnl,3)
    i3_u = UBOUND(SrcParamData%RdtnKrnl,3)
    IF (.NOT. ALLOCATED(DstParamData%RdtnKrnl)) THEN 
-      ALLOCATE(DstParamData%RdtnKrnl(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Conv_Rdtn_CopyParam: Error allocating DstParamData%RdtnKrnl.'
+      ALLOCATE(DstParamData%RdtnKrnl(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%RdtnKrnl.', ErrStat, ErrMsg,'Conv_Rdtn_CopyParam')
          RETURN
       END IF
    END IF
@@ -1062,6 +1071,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1172,6 +1183,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1311,6 +1324,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -1463,6 +1478,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts

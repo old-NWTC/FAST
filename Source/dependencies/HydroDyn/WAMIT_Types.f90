@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.04.00, 7-Nov-2014)
 !*********************************************************************************************************************************
 ! WAMIT_Types
 !.................................................................................................................................
@@ -150,6 +150,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -161,8 +163,12 @@ CONTAINS
    DstInitInputData%RdtnMod = SrcInitInputData%RdtnMod
    DstInitInputData%RdtnTMax = SrcInitInputData%RdtnTMax
    DstInitInputData%WAMITFile = SrcInitInputData%WAMITFile
-      CALL Conv_Rdtn_CopyInitInput( SrcInitInputData%Conv_Rdtn, DstInitInputData%Conv_Rdtn, CtrlCode, ErrStat, ErrMsg )
-      CALL SS_Rad_CopyInitInput( SrcInitInputData%SS_Rdtn, DstInitInputData%SS_Rdtn, CtrlCode, ErrStat, ErrMsg )
+      CALL Conv_Rdtn_CopyInitInput( SrcInitInputData%Conv_Rdtn, DstInitInputData%Conv_Rdtn, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyInitInput:Conv_Rdtn')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SS_Rad_CopyInitInput( SrcInitInputData%SS_Rdtn, DstInitInputData%SS_Rdtn, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyInitInput:SS_Rdtn')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstInitInputData%Rhoxg = SrcInitInputData%Rhoxg
    DstInitInputData%NStepWave = SrcInitInputData%NStepWave
    DstInitInputData%NStepWave2 = SrcInitInputData%NStepWave2
@@ -173,10 +179,9 @@ IF (ALLOCATED(SrcInitInputData%WaveElevC0)) THEN
    i2_l = LBOUND(SrcInitInputData%WaveElevC0,2)
    i2_u = UBOUND(SrcInitInputData%WaveElevC0,2)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveElevC0)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevC0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyInitInput: Error allocating DstInitInputData%WaveElevC0.'
+      ALLOCATE(DstInitInputData%WaveElevC0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevC0.', ErrStat, ErrMsg,'WAMIT_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -186,10 +191,9 @@ IF (ALLOCATED(SrcInitInputData%WaveTime)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveTime,1)
    i1_u = UBOUND(SrcInitInputData%WaveTime,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveTime)) THEN 
-      ALLOCATE(DstInitInputData%WaveTime(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyInitInput: Error allocating DstInitInputData%WaveTime.'
+      ALLOCATE(DstInitInputData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveTime.', ErrStat, ErrMsg,'WAMIT_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -201,10 +205,9 @@ IF (ALLOCATED(SrcInitInputData%WaveDirArr)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveDirArr,1)
    i1_u = UBOUND(SrcInitInputData%WaveDirArr,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveDirArr)) THEN 
-      ALLOCATE(DstInitInputData%WaveDirArr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyInitInput: Error allocating DstInitInputData%WaveDirArr.'
+      ALLOCATE(DstInitInputData%WaveDirArr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveDirArr.', ErrStat, ErrMsg,'WAMIT_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -521,6 +524,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -528,10 +533,9 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputHdr.'
+      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputHdr.', ErrStat, ErrMsg,'WAMIT_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -541,10 +545,9 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputUnt.'
+      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputUnt.', ErrStat, ErrMsg,'WAMIT_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -655,10 +658,14 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL SS_Rad_CopyContState( SrcContStateData%SS_Rdtn, DstContStateData%SS_Rdtn, CtrlCode, ErrStat, ErrMsg )
+      CALL SS_Rad_CopyContState( SrcContStateData%SS_Rdtn, DstContStateData%SS_Rdtn, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyContState:SS_Rdtn')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE WAMIT_CopyContState
 
  SUBROUTINE WAMIT_DestroyContState( ContStateData, ErrStat, ErrMsg )
@@ -803,10 +810,14 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL Conv_Rdtn_CopyDiscState( SrcDiscStateData%Conv_Rdtn, DstDiscStateData%Conv_Rdtn, CtrlCode, ErrStat, ErrMsg )
+      CALL Conv_Rdtn_CopyDiscState( SrcDiscStateData%Conv_Rdtn, DstDiscStateData%Conv_Rdtn, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyDiscState:Conv_Rdtn')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE WAMIT_CopyDiscState
 
  SUBROUTINE WAMIT_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
@@ -951,6 +962,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1059,12 +1072,18 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstOtherStateData%LastIndWave = SrcOtherStateData%LastIndWave
-      CALL SS_Rad_CopyOtherState( SrcOtherStateData%SS_Rdtn, DstOtherStateData%SS_Rdtn, CtrlCode, ErrStat, ErrMsg )
-      CALL Conv_Rdtn_CopyOtherState( SrcOtherStateData%Conv_Rdtn, DstOtherStateData%Conv_Rdtn, CtrlCode, ErrStat, ErrMsg )
+      CALL SS_Rad_CopyOtherState( SrcOtherStateData%SS_Rdtn, DstOtherStateData%SS_Rdtn, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyOtherState:SS_Rdtn')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Conv_Rdtn_CopyOtherState( SrcOtherStateData%Conv_Rdtn, DstOtherStateData%Conv_Rdtn, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyOtherState:Conv_Rdtn')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstOtherStateData%F_HS = SrcOtherStateData%F_HS
    DstOtherStateData%F_Waves1 = SrcOtherStateData%F_Waves1
    DstOtherStateData%F_Rdtn = SrcOtherStateData%F_Rdtn
@@ -1299,6 +1318,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1314,10 +1335,9 @@ IF (ALLOCATED(SrcParamData%WaveExctn)) THEN
    i2_l = LBOUND(SrcParamData%WaveExctn,2)
    i2_u = UBOUND(SrcParamData%WaveExctn,2)
    IF (.NOT. ALLOCATED(DstParamData%WaveExctn)) THEN 
-      ALLOCATE(DstParamData%WaveExctn(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyParam: Error allocating DstParamData%WaveExctn.'
+      ALLOCATE(DstParamData%WaveExctn(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveExctn.', ErrStat, ErrMsg,'WAMIT_CopyParam')
          RETURN
       END IF
    END IF
@@ -1328,18 +1348,21 @@ IF (ALLOCATED(SrcParamData%WaveTime)) THEN
    i1_l = LBOUND(SrcParamData%WaveTime,1)
    i1_u = UBOUND(SrcParamData%WaveTime,1)
    IF (.NOT. ALLOCATED(DstParamData%WaveTime)) THEN 
-      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyParam: Error allocating DstParamData%WaveTime.'
+      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveTime.', ErrStat, ErrMsg,'WAMIT_CopyParam')
          RETURN
       END IF
    END IF
    DstParamData%WaveTime = SrcParamData%WaveTime
 ENDIF
    DstParamData%NStepWave = SrcParamData%NStepWave
-      CALL Conv_Rdtn_CopyParam( SrcParamData%Conv_Rdtn, DstParamData%Conv_Rdtn, CtrlCode, ErrStat, ErrMsg )
-      CALL SS_Rad_CopyParam( SrcParamData%SS_Rdtn, DstParamData%SS_Rdtn, CtrlCode, ErrStat, ErrMsg )
+      CALL Conv_Rdtn_CopyParam( SrcParamData%Conv_Rdtn, DstParamData%Conv_Rdtn, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyParam:Conv_Rdtn')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SS_Rad_CopyParam( SrcParamData%SS_Rdtn, DstParamData%SS_Rdtn, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyParam:SS_Rdtn')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstParamData%DT = SrcParamData%DT
    DstParamData%PtfmSgF = SrcParamData%PtfmSgF
    DstParamData%PtfmSwF = SrcParamData%PtfmSwF
@@ -1351,15 +1374,16 @@ IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
    IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
-      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyParam: Error allocating DstParamData%OutParam.'
+      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%OutParam.', ErrStat, ErrMsg,'WAMIT_CopyParam')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcParamData%OutParam,1), UBOUND(SrcParamData%OutParam,1)
-      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyParam:OutParam(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstParamData%NumOuts = SrcParamData%NumOuts
@@ -1705,10 +1729,14 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-     CALL MeshCopy( SrcInputData%Mesh, DstInputData%Mesh, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcInputData%Mesh, DstInputData%Mesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyInput:Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE WAMIT_CopyInput
 
  SUBROUTINE WAMIT_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -1857,18 +1885,21 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-     CALL MeshCopy( SrcOutputData%Mesh, DstOutputData%Mesh, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcOutputData%Mesh, DstOutputData%Mesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_CopyOutput:Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
    IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
-      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'WAMIT_CopyOutput: Error allocating DstOutputData%WriteOutput.'
+      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%WriteOutput.', ErrStat, ErrMsg,'WAMIT_CopyOutput')
          RETURN
       END IF
    END IF
@@ -2065,6 +2096,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -2135,14 +2168,18 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-  CALL MeshCopy(u(1)%Mesh, u_out%Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
+  CALL MeshCopy(u(1)%Mesh, u_out%Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_Input_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
     ErrMsg  = ' Error in WAMIT_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp1(u(1)%Mesh, u(2)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp1(u(1)%Mesh, u(2)%Mesh, tin, u_out%Mesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_Input_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -2159,7 +2196,9 @@ ENDIF
     ErrMsg  = ' Error in WAMIT_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp2(u(1)%Mesh, u(2)%Mesh, u(3)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp2(u(1)%Mesh, u(2)%Mesh, u(3)%Mesh, tin, u_out%Mesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_Input_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in WAMIT_Input_ExtrapInterp '
@@ -2206,6 +2245,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -2276,7 +2317,9 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-  CALL MeshCopy(u(1)%Mesh, u_out%Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
+  CALL MeshCopy(u(1)%Mesh, u_out%Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_Output_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   u_out%WriteOutput = u(1)%WriteOutput
 END IF ! check if allocated
@@ -2286,7 +2329,9 @@ END IF ! check if allocated
     ErrMsg  = ' Error in WAMIT_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp1(u(1)%Mesh, u(2)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp1(u(1)%Mesh, u(2)%Mesh, tin, u_out%Mesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_Output_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))
@@ -2311,7 +2356,9 @@ END IF ! check if allocated
     ErrMsg  = ' Error in WAMIT_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp2(u(1)%Mesh, u(2)%Mesh, u(3)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp2(u(1)%Mesh, u(2)%Mesh, u(3)%Mesh, tin, u_out%Mesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'WAMIT_Output_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))

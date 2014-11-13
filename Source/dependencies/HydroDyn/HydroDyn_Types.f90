@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.04.00, 7-Nov-2014)
 !*********************************************************************************************************************************
 ! HydroDyn_Types
 !.................................................................................................................................
@@ -208,6 +208,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -224,10 +226,9 @@ IF (ALLOCATED(SrcInitInputData%WaveElevXY)) THEN
    i2_l = LBOUND(SrcInitInputData%WaveElevXY,2)
    i2_u = UBOUND(SrcInitInputData%WaveElevXY,2)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveElevXY)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyInitInput: Error allocating DstInitInputData%WaveElevXY.'
+      ALLOCATE(DstInitInputData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevXY.', ErrStat, ErrMsg,'HydroDyn_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -251,12 +252,24 @@ ENDIF
    DstInitInputData%AddCLin = SrcInitInputData%AddCLin
    DstInitInputData%AddBLin = SrcInitInputData%AddBLin
    DstInitInputData%AddBQuad = SrcInitInputData%AddBQuad
-      CALL Waves_CopyInitInput( SrcInitInputData%Waves, DstInitInputData%Waves, CtrlCode, ErrStat, ErrMsg )
-      CALL Waves2_CopyInitInput( SrcInitInputData%Waves2, DstInitInputData%Waves2, CtrlCode, ErrStat, ErrMsg )
-      CALL Current_CopyInitInput( SrcInitInputData%Current, DstInitInputData%Current, CtrlCode, ErrStat, ErrMsg )
-      CALL WAMIT_CopyInitInput( SrcInitInputData%WAMIT, DstInitInputData%WAMIT, CtrlCode, ErrStat, ErrMsg )
-      CALL WAMIT2_CopyInitInput( SrcInitInputData%WAMIT2, DstInitInputData%WAMIT2, CtrlCode, ErrStat, ErrMsg )
-      CALL Morison_CopyInitInput( SrcInitInputData%Morison, DstInitInputData%Morison, CtrlCode, ErrStat, ErrMsg )
+      CALL Waves_CopyInitInput( SrcInitInputData%Waves, DstInitInputData%Waves, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitInput:Waves')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_CopyInitInput( SrcInitInputData%Waves2, DstInitInputData%Waves2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitInput:Waves2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Current_CopyInitInput( SrcInitInputData%Current, DstInitInputData%Current, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitInput:Current')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT_CopyInitInput( SrcInitInputData%WAMIT, DstInitInputData%WAMIT, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitInput:WAMIT')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_CopyInitInput( SrcInitInputData%WAMIT2, DstInitInputData%WAMIT2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitInput:WAMIT2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_CopyInitInput( SrcInitInputData%Morison, DstInitInputData%Morison, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitInput:Morison')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstInitInputData%Echo = SrcInitInputData%Echo
    DstInitInputData%HasWAMIT = SrcInitInputData%HasWAMIT
    DstInitInputData%NUserOutputs = SrcInitInputData%NUserOutputs
@@ -264,10 +277,9 @@ IF (ALLOCATED(SrcInitInputData%UserOutputs)) THEN
    i1_l = LBOUND(SrcInitInputData%UserOutputs,1)
    i1_u = UBOUND(SrcInitInputData%UserOutputs,1)
    IF (.NOT. ALLOCATED(DstInitInputData%UserOutputs)) THEN 
-      ALLOCATE(DstInitInputData%UserOutputs(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyInitInput: Error allocating DstInitInputData%UserOutputs.'
+      ALLOCATE(DstInitInputData%UserOutputs(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%UserOutputs.', ErrStat, ErrMsg,'HydroDyn_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -740,21 +752,30 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL WAMIT_CopyInitOutput( SrcInitOutputData%WAMIT, DstInitOutputData%WAMIT, CtrlCode, ErrStat, ErrMsg )
-      CALL WAMIT2_CopyInitOutput( SrcInitOutputData%WAMIT2, DstInitOutputData%WAMIT2, CtrlCode, ErrStat, ErrMsg )
-      CALL Waves2_CopyInitOutput( SrcInitOutputData%Waves2, DstInitOutputData%Waves2, CtrlCode, ErrStat, ErrMsg )
-      CALL Morison_CopyInitOutput( SrcInitOutputData%Morison, DstInitOutputData%Morison, CtrlCode, ErrStat, ErrMsg )
+      CALL WAMIT_CopyInitOutput( SrcInitOutputData%WAMIT, DstInitOutputData%WAMIT, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitOutput:WAMIT')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_CopyInitOutput( SrcInitOutputData%WAMIT2, DstInitOutputData%WAMIT2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitOutput:WAMIT2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_CopyInitOutput( SrcInitOutputData%Waves2, DstInitOutputData%Waves2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitOutput:Waves2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_CopyInitOutput( SrcInitOutputData%Morison, DstInitOutputData%Morison, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitOutput:Morison')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputHdr.'
+      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputHdr.', ErrStat, ErrMsg,'HydroDyn_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -764,10 +785,9 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputUnt.'
+      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputUnt.', ErrStat, ErrMsg,'HydroDyn_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -779,16 +799,17 @@ IF (ALLOCATED(SrcInitOutputData%WaveElevSeries)) THEN
    i2_l = LBOUND(SrcInitOutputData%WaveElevSeries,2)
    i2_u = UBOUND(SrcInitOutputData%WaveElevSeries,2)
    IF (.NOT. ALLOCATED(DstInitOutputData%WaveElevSeries)) THEN 
-      ALLOCATE(DstInitOutputData%WaveElevSeries(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyInitOutput: Error allocating DstInitOutputData%WaveElevSeries.'
+      ALLOCATE(DstInitOutputData%WaveElevSeries(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveElevSeries.', ErrStat, ErrMsg,'HydroDyn_CopyInitOutput')
          RETURN
       END IF
    END IF
    DstInitOutputData%WaveElevSeries = SrcInitOutputData%WaveElevSeries
 ENDIF
-      CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInitOutput:Ver')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstInitOutputData%WtrDens = SrcInitOutputData%WtrDens
    DstInitOutputData%WtrDpth = SrcInitOutputData%WtrDpth
    DstInitOutputData%MSL2SWL = SrcInitOutputData%MSL2SWL
@@ -1151,12 +1172,20 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%HD_P_2_WRP_P, Dsthd_modulemaptypeData%HD_P_2_WRP_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%M_P_2_WRP_P, Dsthd_modulemaptypeData%M_P_2_WRP_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%M_L_2_WRP_P, Dsthd_modulemaptypeData%M_L_2_WRP_P, CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%HD_P_2_WRP_P, Dsthd_modulemaptypeData%HD_P_2_WRP_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Copyhd_modulemaptype:HD_P_2_WRP_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%M_P_2_WRP_P, Dsthd_modulemaptypeData%M_P_2_WRP_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Copyhd_modulemaptype:M_P_2_WRP_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( Srchd_modulemaptypeData%M_L_2_WRP_P, Dsthd_modulemaptypeData%M_L_2_WRP_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Copyhd_modulemaptype:M_L_2_WRP_P')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE HydroDyn_Copyhd_modulemaptype
 
  SUBROUTINE HydroDyn_Destroyhd_modulemaptype( hd_modulemaptypeData, ErrStat, ErrMsg )
@@ -1391,12 +1420,20 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL WAMIT_CopyContState( SrcContStateData%WAMIT, DstContStateData%WAMIT, CtrlCode, ErrStat, ErrMsg )
-      CALL WAMIT2_CopyContState( SrcContStateData%WAMIT2, DstContStateData%WAMIT2, CtrlCode, ErrStat, ErrMsg )
-      CALL Waves2_CopyContState( SrcContStateData%Waves2, DstContStateData%Waves2, CtrlCode, ErrStat, ErrMsg )
+      CALL WAMIT_CopyContState( SrcContStateData%WAMIT, DstContStateData%WAMIT, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyContState:WAMIT')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_CopyContState( SrcContStateData%WAMIT2, DstContStateData%WAMIT2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyContState:WAMIT2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_CopyContState( SrcContStateData%Waves2, DstContStateData%Waves2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyContState:Waves2')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE HydroDyn_CopyContState
 
  SUBROUTINE HydroDyn_DestroyContState( ContStateData, ErrStat, ErrMsg )
@@ -1631,12 +1668,20 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL WAMIT_CopyDiscState( SrcDiscStateData%WAMIT, DstDiscStateData%WAMIT, CtrlCode, ErrStat, ErrMsg )
-      CALL WAMIT2_CopyDiscState( SrcDiscStateData%WAMIT2, DstDiscStateData%WAMIT2, CtrlCode, ErrStat, ErrMsg )
-      CALL Waves2_CopyDiscState( SrcDiscStateData%Waves2, DstDiscStateData%Waves2, CtrlCode, ErrStat, ErrMsg )
+      CALL WAMIT_CopyDiscState( SrcDiscStateData%WAMIT, DstDiscStateData%WAMIT, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyDiscState:WAMIT')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_CopyDiscState( SrcDiscStateData%WAMIT2, DstDiscStateData%WAMIT2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyDiscState:WAMIT2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_CopyDiscState( SrcDiscStateData%Waves2, DstDiscStateData%Waves2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyDiscState:Waves2')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE HydroDyn_CopyDiscState
 
  SUBROUTINE HydroDyn_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
@@ -1871,6 +1916,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1979,22 +2026,42 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL WAMIT_CopyOtherState( SrcOtherStateData%WAMIT, DstOtherStateData%WAMIT, CtrlCode, ErrStat, ErrMsg )
-      CALL WAMIT2_CopyOtherState( SrcOtherStateData%WAMIT2, DstOtherStateData%WAMIT2, CtrlCode, ErrStat, ErrMsg )
-      CALL Waves2_CopyOtherState( SrcOtherStateData%Waves2, DstOtherStateData%Waves2, CtrlCode, ErrStat, ErrMsg )
-      CALL Morison_CopyOtherState( SrcOtherStateData%Morison, DstOtherStateData%Morison, CtrlCode, ErrStat, ErrMsg )
+      CALL WAMIT_CopyOtherState( SrcOtherStateData%WAMIT, DstOtherStateData%WAMIT, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOtherState:WAMIT')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_CopyOtherState( SrcOtherStateData%WAMIT2, DstOtherStateData%WAMIT2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOtherState:WAMIT2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_CopyOtherState( SrcOtherStateData%Waves2, DstOtherStateData%Waves2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOtherState:Waves2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_CopyOtherState( SrcOtherStateData%Morison, DstOtherStateData%Morison, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOtherState:Morison')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstOtherStateData%LastIndWave = SrcOtherStateData%LastIndWave
    DstOtherStateData%F_PtfmAdd = SrcOtherStateData%F_PtfmAdd
    DstOtherStateData%F_Hydro = SrcOtherStateData%F_Hydro
    DstOtherStateData%F_Waves = SrcOtherStateData%F_Waves
-     CALL MeshCopy( SrcOtherStateData%y_mapped, DstOtherStateData%y_mapped, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcOtherStateData%AllHdroOrigin_position, DstOtherStateData%AllHdroOrigin_position, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcOtherStateData%MrsnLumpedMesh_position, DstOtherStateData%MrsnLumpedMesh_position, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcOtherStateData%MrsnDistribMesh_position, DstOtherStateData%MrsnDistribMesh_position, CtrlCode, ErrStat, ErrMsg )
-      CALL HydroDyn_Copyhd_modulemaptype( SrcOtherStateData%HD_MeshMap, DstOtherStateData%HD_MeshMap, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcOtherStateData%y_mapped, DstOtherStateData%y_mapped, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOtherState:y_mapped')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcOtherStateData%AllHdroOrigin_position, DstOtherStateData%AllHdroOrigin_position, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOtherState:AllHdroOrigin_position')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcOtherStateData%MrsnLumpedMesh_position, DstOtherStateData%MrsnLumpedMesh_position, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOtherState:MrsnLumpedMesh_position')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcOtherStateData%MrsnDistribMesh_position, DstOtherStateData%MrsnDistribMesh_position, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOtherState:MrsnDistribMesh_position')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL HydroDyn_Copyhd_modulemaptype( SrcOtherStateData%HD_MeshMap, DstOtherStateData%HD_MeshMap, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOtherState:HD_MeshMap')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstOtherStateData%Decimate = SrcOtherStateData%Decimate
    DstOtherStateData%LastOutTime = SrcOtherStateData%LastOutTime
  END SUBROUTINE HydroDyn_CopyOtherState
@@ -2547,21 +2614,30 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL WAMIT_CopyParam( SrcParamData%WAMIT, DstParamData%WAMIT, CtrlCode, ErrStat, ErrMsg )
-      CALL WAMIT2_CopyParam( SrcParamData%WAMIT2, DstParamData%WAMIT2, CtrlCode, ErrStat, ErrMsg )
-      CALL Waves2_CopyParam( SrcParamData%Waves2, DstParamData%Waves2, CtrlCode, ErrStat, ErrMsg )
-      CALL Morison_CopyParam( SrcParamData%Morison, DstParamData%Morison, CtrlCode, ErrStat, ErrMsg )
+      CALL WAMIT_CopyParam( SrcParamData%WAMIT, DstParamData%WAMIT, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyParam:WAMIT')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_CopyParam( SrcParamData%WAMIT2, DstParamData%WAMIT2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyParam:WAMIT2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_CopyParam( SrcParamData%Waves2, DstParamData%Waves2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyParam:Waves2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_CopyParam( SrcParamData%Morison, DstParamData%Morison, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyParam:Morison')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcParamData%WaveTime)) THEN
    i1_l = LBOUND(SrcParamData%WaveTime,1)
    i1_u = UBOUND(SrcParamData%WaveTime,1)
    IF (.NOT. ALLOCATED(DstParamData%WaveTime)) THEN 
-      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyParam: Error allocating DstParamData%WaveTime.'
+      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveTime.', ErrStat, ErrMsg,'HydroDyn_CopyParam')
          RETURN
       END IF
    END IF
@@ -2575,10 +2651,9 @@ IF (ALLOCATED(SrcParamData%WaveElev)) THEN
    i2_l = LBOUND(SrcParamData%WaveElev,2)
    i2_u = UBOUND(SrcParamData%WaveElev,2)
    IF (.NOT. ALLOCATED(DstParamData%WaveElev)) THEN 
-      ALLOCATE(DstParamData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyParam: Error allocating DstParamData%WaveElev.'
+      ALLOCATE(DstParamData%WaveElev(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveElev.', ErrStat, ErrMsg,'HydroDyn_CopyParam')
          RETURN
       END IF
    END IF
@@ -2590,10 +2665,9 @@ IF (ALLOCATED(SrcParamData%WaveElev1)) THEN
    i2_l = LBOUND(SrcParamData%WaveElev1,2)
    i2_u = UBOUND(SrcParamData%WaveElev1,2)
    IF (.NOT. ALLOCATED(DstParamData%WaveElev1)) THEN 
-      ALLOCATE(DstParamData%WaveElev1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyParam: Error allocating DstParamData%WaveElev1.'
+      ALLOCATE(DstParamData%WaveElev1(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveElev1.', ErrStat, ErrMsg,'HydroDyn_CopyParam')
          RETURN
       END IF
    END IF
@@ -2608,15 +2682,16 @@ IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
    IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
-      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyParam: Error allocating DstParamData%OutParam.'
+      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%OutParam.', ErrStat, ErrMsg,'HydroDyn_CopyParam')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcParamData%OutParam,1), UBOUND(SrcParamData%OutParam,1)
-      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyParam:OutParam(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstParamData%NumOuts = SrcParamData%NumOuts
@@ -3072,14 +3147,26 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL WAMIT_CopyInput( SrcInputData%WAMIT, DstInputData%WAMIT, CtrlCode, ErrStat, ErrMsg )
-      CALL WAMIT2_CopyInput( SrcInputData%WAMIT2, DstInputData%WAMIT2, CtrlCode, ErrStat, ErrMsg )
-      CALL Waves2_CopyInput( SrcInputData%Waves2, DstInputData%Waves2, CtrlCode, ErrStat, ErrMsg )
-      CALL Morison_CopyInput( SrcInputData%Morison, DstInputData%Morison, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcInputData%Mesh, DstInputData%Mesh, CtrlCode, ErrStat, ErrMsg )
+      CALL WAMIT_CopyInput( SrcInputData%WAMIT, DstInputData%WAMIT, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInput:WAMIT')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_CopyInput( SrcInputData%WAMIT2, DstInputData%WAMIT2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInput:WAMIT2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_CopyInput( SrcInputData%Waves2, DstInputData%Waves2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInput:Waves2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_CopyInput( SrcInputData%Morison, DstInputData%Morison, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInput:Morison')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcInputData%Mesh, DstInputData%Mesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyInput:Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE HydroDyn_CopyInput
 
  SUBROUTINE HydroDyn_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -3408,23 +3495,36 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL WAMIT_CopyOutput( SrcOutputData%WAMIT, DstOutputData%WAMIT, CtrlCode, ErrStat, ErrMsg )
-      CALL WAMIT2_CopyOutput( SrcOutputData%WAMIT2, DstOutputData%WAMIT2, CtrlCode, ErrStat, ErrMsg )
-      CALL Waves2_CopyOutput( SrcOutputData%Waves2, DstOutputData%Waves2, CtrlCode, ErrStat, ErrMsg )
-      CALL Morison_CopyOutput( SrcOutputData%Morison, DstOutputData%Morison, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcOutputData%Mesh, DstOutputData%Mesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcOutputData%AllHdroOrigin, DstOutputData%AllHdroOrigin, CtrlCode, ErrStat, ErrMsg )
+      CALL WAMIT_CopyOutput( SrcOutputData%WAMIT, DstOutputData%WAMIT, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOutput:WAMIT')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_CopyOutput( SrcOutputData%WAMIT2, DstOutputData%WAMIT2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOutput:WAMIT2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_CopyOutput( SrcOutputData%Waves2, DstOutputData%Waves2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOutput:Waves2')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_CopyOutput( SrcOutputData%Morison, DstOutputData%Morison, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOutput:Morison')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcOutputData%Mesh, DstOutputData%Mesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOutput:Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcOutputData%AllHdroOrigin, DstOutputData%AllHdroOrigin, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_CopyOutput:AllHdroOrigin')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
    IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
-      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'HydroDyn_CopyOutput: Error allocating DstOutputData%WriteOutput.'
+      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%WriteOutput.', ErrStat, ErrMsg,'HydroDyn_CopyOutput')
          RETURN
       END IF
    END IF
@@ -3848,6 +3948,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -3918,22 +4020,42 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-      CALL WAMIT_Input_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat, ErrMsg )
-      CALL WAMIT2_Input_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat, ErrMsg )
-      CALL Waves2_Input_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat, ErrMsg )
-      CALL Morison_Input_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat, ErrMsg )
-  CALL MeshCopy(u(1)%Mesh, u_out%Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
+      CALL WAMIT_Input_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_Input_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_Input_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_Input_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshCopy(u(1)%Mesh, u_out%Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
     ErrMsg  = ' Error in HydroDyn_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-      CALL WAMIT_Input_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat, ErrMsg )
-      CALL WAMIT2_Input_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat, ErrMsg )
-      CALL Waves2_Input_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat, ErrMsg )
-      CALL Morison_Input_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp1(u(1)%Mesh, u(2)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
+      CALL WAMIT_Input_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_Input_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_Input_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_Input_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp1(u(1)%Mesh, u(2)%Mesh, tin, u_out%Mesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -3950,11 +4072,21 @@ ENDIF
     ErrMsg  = ' Error in HydroDyn_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-      CALL WAMIT_Input_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat, ErrMsg )
-      CALL WAMIT2_Input_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat, ErrMsg )
-      CALL Waves2_Input_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat, ErrMsg )
-      CALL Morison_Input_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp2(u(1)%Mesh, u(2)%Mesh, u(3)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
+      CALL WAMIT_Input_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_Input_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_Input_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_Input_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp2(u(1)%Mesh, u(2)%Mesh, u(3)%Mesh, tin, u_out%Mesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Input_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in HydroDyn_Input_ExtrapInterp '
@@ -4001,6 +4133,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -4071,12 +4205,24 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-      CALL WAMIT_Output_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat, ErrMsg )
-      CALL WAMIT2_Output_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat, ErrMsg )
-      CALL Waves2_Output_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat, ErrMsg )
-      CALL Morison_Output_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat, ErrMsg )
-  CALL MeshCopy(u(1)%Mesh, u_out%Mesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
-  CALL MeshCopy(u(1)%AllHdroOrigin, u_out%AllHdroOrigin, MESH_UPDATECOPY, ErrStat, ErrMsg )
+      CALL WAMIT_Output_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_Output_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_Output_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_Output_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshCopy(u(1)%Mesh, u_out%Mesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshCopy(u(1)%AllHdroOrigin, u_out%AllHdroOrigin, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp:%AllHdroOrigin')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   u_out%WriteOutput = u(1)%WriteOutput
 END IF ! check if allocated
@@ -4086,12 +4232,24 @@ END IF ! check if allocated
     ErrMsg  = ' Error in HydroDyn_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-      CALL WAMIT_Output_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat, ErrMsg )
-      CALL WAMIT2_Output_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat, ErrMsg )
-      CALL Waves2_Output_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat, ErrMsg )
-      CALL Morison_Output_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp1(u(1)%Mesh, u(2)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp1(u(1)%AllHdroOrigin, u(2)%AllHdroOrigin, tin, u_out%AllHdroOrigin, tin_out, ErrStat, ErrMsg )
+      CALL WAMIT_Output_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_Output_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_Output_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_Output_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp1(u(1)%Mesh, u(2)%Mesh, tin, u_out%Mesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp1(u(1)%AllHdroOrigin, u(2)%AllHdroOrigin, tin, u_out%AllHdroOrigin, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp:%AllHdroOrigin')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))
@@ -4116,12 +4274,24 @@ END IF ! check if allocated
     ErrMsg  = ' Error in HydroDyn_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-      CALL WAMIT_Output_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat, ErrMsg )
-      CALL WAMIT2_Output_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat, ErrMsg )
-      CALL Waves2_Output_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat, ErrMsg )
-      CALL Morison_Output_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp2(u(1)%Mesh, u(2)%Mesh, u(3)%Mesh, tin, u_out%Mesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp2(u(1)%AllHdroOrigin, u(2)%AllHdroOrigin, u(3)%AllHdroOrigin, tin, u_out%AllHdroOrigin, tin_out, ErrStat, ErrMsg )
+      CALL WAMIT_Output_ExtrapInterp( u%WAMIT, tin, u_out%WAMIT, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL WAMIT2_Output_ExtrapInterp( u%WAMIT2, tin, u_out%WAMIT2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Waves2_Output_ExtrapInterp( u%Waves2, tin, u_out%Waves2, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL Morison_Output_ExtrapInterp( u%Morison, tin, u_out%Morison, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp2(u(1)%Mesh, u(2)%Mesh, u(3)%Mesh, tin, u_out%Mesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp:%Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp2(u(1)%AllHdroOrigin, u(2)%AllHdroOrigin, u(3)%AllHdroOrigin, tin, u_out%AllHdroOrigin, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'HydroDyn_Output_ExtrapInterp:%AllHdroOrigin')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))

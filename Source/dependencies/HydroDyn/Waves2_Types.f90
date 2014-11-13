@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.04.00, 7-Nov-2014)
 !*********************************************************************************************************************************
 ! Waves2_Types
 !.................................................................................................................................
@@ -142,6 +142,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -158,10 +160,9 @@ IF (ALLOCATED(SrcInitInputData%WaveDirArr)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveDirArr,1)
    i1_u = UBOUND(SrcInitInputData%WaveDirArr,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveDirArr)) THEN 
-      ALLOCATE(DstInitInputData%WaveDirArr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitInput: Error allocating DstInitInputData%WaveDirArr.'
+      ALLOCATE(DstInitInputData%WaveDirArr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveDirArr.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -173,10 +174,9 @@ IF (ALLOCATED(SrcInitInputData%WaveElevC0)) THEN
    i2_l = LBOUND(SrcInitInputData%WaveElevC0,2)
    i2_u = UBOUND(SrcInitInputData%WaveElevC0,2)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveElevC0)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevC0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitInput: Error allocating DstInitInputData%WaveElevC0.'
+      ALLOCATE(DstInitInputData%WaveElevC0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevC0.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -186,10 +186,9 @@ IF (ALLOCATED(SrcInitInputData%WaveTime)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveTime,1)
    i1_u = UBOUND(SrcInitInputData%WaveTime,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveTime)) THEN 
-      ALLOCATE(DstInitInputData%WaveTime(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitInput: Error allocating DstInitInputData%WaveTime.'
+      ALLOCATE(DstInitInputData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveTime.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -200,10 +199,9 @@ IF (ALLOCATED(SrcInitInputData%WaveElevxi)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveElevxi,1)
    i1_u = UBOUND(SrcInitInputData%WaveElevxi,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveElevxi)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevxi(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitInput: Error allocating DstInitInputData%WaveElevxi.'
+      ALLOCATE(DstInitInputData%WaveElevxi(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevxi.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -213,10 +211,9 @@ IF (ALLOCATED(SrcInitInputData%WaveElevyi)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveElevyi,1)
    i1_u = UBOUND(SrcInitInputData%WaveElevyi,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveElevyi)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevyi(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitInput: Error allocating DstInitInputData%WaveElevyi.'
+      ALLOCATE(DstInitInputData%WaveElevyi(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevyi.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -228,10 +225,9 @@ IF (ALLOCATED(SrcInitInputData%WaveElevXY)) THEN
    i2_l = LBOUND(SrcInitInputData%WaveElevXY,2)
    i2_u = UBOUND(SrcInitInputData%WaveElevXY,2)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveElevXY)) THEN 
-      ALLOCATE(DstInitInputData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitInput: Error allocating DstInitInputData%WaveElevXY.'
+      ALLOCATE(DstInitInputData%WaveElevXY(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveElevXY.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -242,10 +238,9 @@ IF (ALLOCATED(SrcInitInputData%WaveKinxi0)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveKinxi0,1)
    i1_u = UBOUND(SrcInitInputData%WaveKinxi0,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveKinxi0)) THEN 
-      ALLOCATE(DstInitInputData%WaveKinxi0(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitInput: Error allocating DstInitInputData%WaveKinxi0.'
+      ALLOCATE(DstInitInputData%WaveKinxi0(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveKinxi0.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -255,10 +250,9 @@ IF (ALLOCATED(SrcInitInputData%WaveKinyi0)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveKinyi0,1)
    i1_u = UBOUND(SrcInitInputData%WaveKinyi0,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveKinyi0)) THEN 
-      ALLOCATE(DstInitInputData%WaveKinyi0(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitInput: Error allocating DstInitInputData%WaveKinyi0.'
+      ALLOCATE(DstInitInputData%WaveKinyi0(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveKinyi0.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -268,10 +262,9 @@ IF (ALLOCATED(SrcInitInputData%WaveKinzi0)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveKinzi0,1)
    i1_u = UBOUND(SrcInitInputData%WaveKinzi0,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveKinzi0)) THEN 
-      ALLOCATE(DstInitInputData%WaveKinzi0(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitInput: Error allocating DstInitInputData%WaveKinzi0.'
+      ALLOCATE(DstInitInputData%WaveKinzi0(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveKinzi0.', ErrStat, ErrMsg,'Waves2_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -592,6 +585,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -599,10 +594,9 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputHdr.'
+      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputHdr.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -612,10 +606,9 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputUnt.'
+      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputUnt.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -627,10 +620,9 @@ IF (ALLOCATED(SrcInitOutputData%WaveElevSeries2)) THEN
    i2_l = LBOUND(SrcInitOutputData%WaveElevSeries2,2)
    i2_u = UBOUND(SrcInitOutputData%WaveElevSeries2,2)
    IF (.NOT. ALLOCATED(DstInitOutputData%WaveElevSeries2)) THEN 
-      ALLOCATE(DstInitOutputData%WaveElevSeries2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WaveElevSeries2.'
+      ALLOCATE(DstInitOutputData%WaveElevSeries2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveElevSeries2.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -644,10 +636,9 @@ IF (ALLOCATED(SrcInitOutputData%WaveAcc2D)) THEN
    i3_l = LBOUND(SrcInitOutputData%WaveAcc2D,3)
    i3_u = UBOUND(SrcInitOutputData%WaveAcc2D,3)
    IF (.NOT. ALLOCATED(DstInitOutputData%WaveAcc2D)) THEN 
-      ALLOCATE(DstInitOutputData%WaveAcc2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WaveAcc2D.'
+      ALLOCATE(DstInitOutputData%WaveAcc2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveAcc2D.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -659,10 +650,9 @@ IF (ALLOCATED(SrcInitOutputData%WaveDynP2D)) THEN
    i2_l = LBOUND(SrcInitOutputData%WaveDynP2D,2)
    i2_u = UBOUND(SrcInitOutputData%WaveDynP2D,2)
    IF (.NOT. ALLOCATED(DstInitOutputData%WaveDynP2D)) THEN 
-      ALLOCATE(DstInitOutputData%WaveDynP2D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WaveDynP2D.'
+      ALLOCATE(DstInitOutputData%WaveDynP2D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveDynP2D.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -676,10 +666,9 @@ IF (ALLOCATED(SrcInitOutputData%WaveAcc2S)) THEN
    i3_l = LBOUND(SrcInitOutputData%WaveAcc2S,3)
    i3_u = UBOUND(SrcInitOutputData%WaveAcc2S,3)
    IF (.NOT. ALLOCATED(DstInitOutputData%WaveAcc2S)) THEN 
-      ALLOCATE(DstInitOutputData%WaveAcc2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WaveAcc2S.'
+      ALLOCATE(DstInitOutputData%WaveAcc2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveAcc2S.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -691,10 +680,9 @@ IF (ALLOCATED(SrcInitOutputData%WaveDynP2S)) THEN
    i2_l = LBOUND(SrcInitOutputData%WaveDynP2S,2)
    i2_u = UBOUND(SrcInitOutputData%WaveDynP2S,2)
    IF (.NOT. ALLOCATED(DstInitOutputData%WaveDynP2S)) THEN 
-      ALLOCATE(DstInitOutputData%WaveDynP2S(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WaveDynP2S.'
+      ALLOCATE(DstInitOutputData%WaveDynP2S(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveDynP2S.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -708,10 +696,9 @@ IF (ALLOCATED(SrcInitOutputData%WaveVel2D)) THEN
    i3_l = LBOUND(SrcInitOutputData%WaveVel2D,3)
    i3_u = UBOUND(SrcInitOutputData%WaveVel2D,3)
    IF (.NOT. ALLOCATED(DstInitOutputData%WaveVel2D)) THEN 
-      ALLOCATE(DstInitOutputData%WaveVel2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WaveVel2D.'
+      ALLOCATE(DstInitOutputData%WaveVel2D(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveVel2D.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -725,10 +712,9 @@ IF (ALLOCATED(SrcInitOutputData%WaveVel2S)) THEN
    i3_l = LBOUND(SrcInitOutputData%WaveVel2S,3)
    i3_u = UBOUND(SrcInitOutputData%WaveVel2S,3)
    IF (.NOT. ALLOCATED(DstInitOutputData%WaveVel2S)) THEN 
-      ALLOCATE(DstInitOutputData%WaveVel2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyInitOutput: Error allocating DstInitOutputData%WaveVel2S.'
+      ALLOCATE(DstInitOutputData%WaveVel2S(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WaveVel2S.', ErrStat, ErrMsg,'Waves2_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -937,6 +923,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1045,6 +1033,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1153,6 +1143,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1261,6 +1253,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1375,6 +1369,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1388,10 +1384,9 @@ IF (ALLOCATED(SrcParamData%WaveTime)) THEN
    i1_l = LBOUND(SrcParamData%WaveTime,1)
    i1_u = UBOUND(SrcParamData%WaveTime,1)
    IF (.NOT. ALLOCATED(DstParamData%WaveTime)) THEN 
-      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyParam: Error allocating DstParamData%WaveTime.'
+      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveTime.', ErrStat, ErrMsg,'Waves2_CopyParam')
          RETURN
       END IF
    END IF
@@ -1403,10 +1398,9 @@ IF (ALLOCATED(SrcParamData%WaveElev2)) THEN
    i2_l = LBOUND(SrcParamData%WaveElev2,2)
    i2_u = UBOUND(SrcParamData%WaveElev2,2)
    IF (.NOT. ALLOCATED(DstParamData%WaveElev2)) THEN 
-      ALLOCATE(DstParamData%WaveElev2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyParam: Error allocating DstParamData%WaveElev2.'
+      ALLOCATE(DstParamData%WaveElev2(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveElev2.', ErrStat, ErrMsg,'Waves2_CopyParam')
          RETURN
       END IF
    END IF
@@ -1416,15 +1410,16 @@ IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
    IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
-      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyParam: Error allocating DstParamData%OutParam.'
+      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%OutParam.', ErrStat, ErrMsg,'Waves2_CopyParam')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcParamData%OutParam,1), UBOUND(SrcParamData%OutParam,1)
-      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Waves2_CopyParam:OutParam(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstParamData%NumOuts = SrcParamData%NumOuts
@@ -1651,6 +1646,8 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1759,6 +1756,8 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1766,10 +1765,9 @@ IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
    IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
-      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Waves2_CopyOutput: Error allocating DstOutputData%WriteOutput.'
+      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%WriteOutput.', ErrStat, ErrMsg,'Waves2_CopyOutput')
          RETURN
       END IF
    END IF
@@ -1917,6 +1915,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -2061,6 +2061,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts

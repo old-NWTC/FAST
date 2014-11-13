@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.04.00, 7-Nov-2014)
 !*********************************************************************************************************************************
 ! Morison_Types
 !.................................................................................................................................
@@ -412,6 +412,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -560,6 +562,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -680,6 +684,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -688,10 +694,9 @@ IF (ALLOCATED(SrcfilledgrouptypeData%FillMList)) THEN
    i1_l = LBOUND(SrcfilledgrouptypeData%FillMList,1)
    i1_u = UBOUND(SrcfilledgrouptypeData%FillMList,1)
    IF (.NOT. ALLOCATED(DstfilledgrouptypeData%FillMList)) THEN 
-      ALLOCATE(DstfilledgrouptypeData%FillMList(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_Copyfilledgrouptype: Error allocating DstfilledgrouptypeData%FillMList.'
+      ALLOCATE(DstfilledgrouptypeData%FillMList(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstfilledgrouptypeData%FillMList.', ErrStat, ErrMsg,'Morison_Copyfilledgrouptype')
          RETURN
       END IF
    END IF
@@ -828,6 +833,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -996,6 +1003,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1122,6 +1131,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1325,6 +1336,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1621,6 +1634,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1984,6 +1999,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2212,6 +2229,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2332,6 +2351,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2341,10 +2362,9 @@ IF (ALLOCATED(SrcmoutputData%NodeLocs)) THEN
    i1_l = LBOUND(SrcmoutputData%NodeLocs,1)
    i1_u = UBOUND(SrcmoutputData%NodeLocs,1)
    IF (.NOT. ALLOCATED(DstmoutputData%NodeLocs)) THEN 
-      ALLOCATE(DstmoutputData%NodeLocs(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_Copymoutput: Error allocating DstmoutputData%NodeLocs.'
+      ALLOCATE(DstmoutputData%NodeLocs(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstmoutputData%NodeLocs.', ErrStat, ErrMsg,'Morison_Copymoutput')
          RETURN
       END IF
    END IF
@@ -2355,10 +2375,9 @@ IF (ALLOCATED(SrcmoutputData%Marker1)) THEN
    i1_l = LBOUND(SrcmoutputData%Marker1,1)
    i1_u = UBOUND(SrcmoutputData%Marker1,1)
    IF (.NOT. ALLOCATED(DstmoutputData%Marker1)) THEN 
-      ALLOCATE(DstmoutputData%Marker1(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_Copymoutput: Error allocating DstmoutputData%Marker1.'
+      ALLOCATE(DstmoutputData%Marker1(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstmoutputData%Marker1.', ErrStat, ErrMsg,'Morison_Copymoutput')
          RETURN
       END IF
    END IF
@@ -2368,10 +2387,9 @@ IF (ALLOCATED(SrcmoutputData%Marker2)) THEN
    i1_l = LBOUND(SrcmoutputData%Marker2,1)
    i1_u = UBOUND(SrcmoutputData%Marker2,1)
    IF (.NOT. ALLOCATED(DstmoutputData%Marker2)) THEN 
-      ALLOCATE(DstmoutputData%Marker2(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_Copymoutput: Error allocating DstmoutputData%Marker2.'
+      ALLOCATE(DstmoutputData%Marker2(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstmoutputData%Marker2.', ErrStat, ErrMsg,'Morison_Copymoutput')
          RETURN
       END IF
    END IF
@@ -2381,10 +2399,9 @@ IF (ALLOCATED(SrcmoutputData%s)) THEN
    i1_l = LBOUND(SrcmoutputData%s,1)
    i1_u = UBOUND(SrcmoutputData%s,1)
    IF (.NOT. ALLOCATED(DstmoutputData%s)) THEN 
-      ALLOCATE(DstmoutputData%s(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_Copymoutput: Error allocating DstmoutputData%s.'
+      ALLOCATE(DstmoutputData%s(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstmoutputData%s.', ErrStat, ErrMsg,'Morison_Copymoutput')
          RETURN
       END IF
    END IF
@@ -2560,6 +2577,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2688,6 +2707,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2702,30 +2723,32 @@ IF (ALLOCATED(SrcInitInputData%InpJoints)) THEN
    i1_l = LBOUND(SrcInitInputData%InpJoints,1)
    i1_u = UBOUND(SrcInitInputData%InpJoints,1)
    IF (.NOT. ALLOCATED(DstInitInputData%InpJoints)) THEN 
-      ALLOCATE(DstInitInputData%InpJoints(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%InpJoints.'
+      ALLOCATE(DstInitInputData%InpJoints(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%InpJoints.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%InpJoints,1), UBOUND(SrcInitInputData%InpJoints,1)
-      CALL Morison_Copyjointtype( SrcInitInputData%InpJoints(i1), DstInitInputData%InpJoints(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copyjointtype( SrcInitInputData%InpJoints(i1), DstInitInputData%InpJoints(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:InpJoints(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcInitInputData%Nodes)) THEN
    i1_l = LBOUND(SrcInitInputData%Nodes,1)
    i1_u = UBOUND(SrcInitInputData%Nodes,1)
    IF (.NOT. ALLOCATED(DstInitInputData%Nodes)) THEN 
-      ALLOCATE(DstInitInputData%Nodes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%Nodes.'
+      ALLOCATE(DstInitInputData%Nodes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%Nodes.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%Nodes,1), UBOUND(SrcInitInputData%Nodes,1)
-      CALL Morison_Copynodetype( SrcInitInputData%Nodes(i1), DstInitInputData%Nodes(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copynodetype( SrcInitInputData%Nodes(i1), DstInitInputData%Nodes(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:Nodes(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%NElements = SrcInitInputData%NElements
@@ -2733,15 +2756,16 @@ IF (ALLOCATED(SrcInitInputData%Elements)) THEN
    i1_l = LBOUND(SrcInitInputData%Elements,1)
    i1_u = UBOUND(SrcInitInputData%Elements,1)
    IF (.NOT. ALLOCATED(DstInitInputData%Elements)) THEN 
-      ALLOCATE(DstInitInputData%Elements(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%Elements.'
+      ALLOCATE(DstInitInputData%Elements(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%Elements.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%Elements,1), UBOUND(SrcInitInputData%Elements,1)
-      CALL Morison_Copymembertype( SrcInitInputData%Elements(i1), DstInitInputData%Elements(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copymembertype( SrcInitInputData%Elements(i1), DstInitInputData%Elements(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:Elements(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%NAxCoefs = SrcInitInputData%NAxCoefs
@@ -2749,15 +2773,16 @@ IF (ALLOCATED(SrcInitInputData%AxialCoefs)) THEN
    i1_l = LBOUND(SrcInitInputData%AxialCoefs,1)
    i1_u = UBOUND(SrcInitInputData%AxialCoefs,1)
    IF (.NOT. ALLOCATED(DstInitInputData%AxialCoefs)) THEN 
-      ALLOCATE(DstInitInputData%AxialCoefs(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%AxialCoefs.'
+      ALLOCATE(DstInitInputData%AxialCoefs(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%AxialCoefs.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%AxialCoefs,1), UBOUND(SrcInitInputData%AxialCoefs,1)
-      CALL Morison_Copyaxialcoeftype( SrcInitInputData%AxialCoefs(i1), DstInitInputData%AxialCoefs(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copyaxialcoeftype( SrcInitInputData%AxialCoefs(i1), DstInitInputData%AxialCoefs(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:AxialCoefs(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%NPropSets = SrcInitInputData%NPropSets
@@ -2765,15 +2790,16 @@ IF (ALLOCATED(SrcInitInputData%MPropSets)) THEN
    i1_l = LBOUND(SrcInitInputData%MPropSets,1)
    i1_u = UBOUND(SrcInitInputData%MPropSets,1)
    IF (.NOT. ALLOCATED(DstInitInputData%MPropSets)) THEN 
-      ALLOCATE(DstInitInputData%MPropSets(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%MPropSets.'
+      ALLOCATE(DstInitInputData%MPropSets(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%MPropSets.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%MPropSets,1), UBOUND(SrcInitInputData%MPropSets,1)
-      CALL Morison_Copymemberproptype( SrcInitInputData%MPropSets(i1), DstInitInputData%MPropSets(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copymemberproptype( SrcInitInputData%MPropSets(i1), DstInitInputData%MPropSets(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:MPropSets(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%SimplCd = SrcInitInputData%SimplCd
@@ -2791,15 +2817,16 @@ IF (ALLOCATED(SrcInitInputData%CoefDpths)) THEN
    i1_l = LBOUND(SrcInitInputData%CoefDpths,1)
    i1_u = UBOUND(SrcInitInputData%CoefDpths,1)
    IF (.NOT. ALLOCATED(DstInitInputData%CoefDpths)) THEN 
-      ALLOCATE(DstInitInputData%CoefDpths(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%CoefDpths.'
+      ALLOCATE(DstInitInputData%CoefDpths(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%CoefDpths.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%CoefDpths,1), UBOUND(SrcInitInputData%CoefDpths,1)
-      CALL Morison_Copycoefdpths( SrcInitInputData%CoefDpths(i1), DstInitInputData%CoefDpths(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copycoefdpths( SrcInitInputData%CoefDpths(i1), DstInitInputData%CoefDpths(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:CoefDpths(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%NCoefMembers = SrcInitInputData%NCoefMembers
@@ -2807,15 +2834,16 @@ IF (ALLOCATED(SrcInitInputData%CoefMembers)) THEN
    i1_l = LBOUND(SrcInitInputData%CoefMembers,1)
    i1_u = UBOUND(SrcInitInputData%CoefMembers,1)
    IF (.NOT. ALLOCATED(DstInitInputData%CoefMembers)) THEN 
-      ALLOCATE(DstInitInputData%CoefMembers(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%CoefMembers.'
+      ALLOCATE(DstInitInputData%CoefMembers(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%CoefMembers.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%CoefMembers,1), UBOUND(SrcInitInputData%CoefMembers,1)
-      CALL Morison_Copycoefmembers( SrcInitInputData%CoefMembers(i1), DstInitInputData%CoefMembers(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copycoefmembers( SrcInitInputData%CoefMembers(i1), DstInitInputData%CoefMembers(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:CoefMembers(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%NMembers = SrcInitInputData%NMembers
@@ -2823,15 +2851,16 @@ IF (ALLOCATED(SrcInitInputData%InpMembers)) THEN
    i1_l = LBOUND(SrcInitInputData%InpMembers,1)
    i1_u = UBOUND(SrcInitInputData%InpMembers,1)
    IF (.NOT. ALLOCATED(DstInitInputData%InpMembers)) THEN 
-      ALLOCATE(DstInitInputData%InpMembers(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%InpMembers.'
+      ALLOCATE(DstInitInputData%InpMembers(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%InpMembers.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%InpMembers,1), UBOUND(SrcInitInputData%InpMembers,1)
-      CALL Morison_Copymemberinputtype( SrcInitInputData%InpMembers(i1), DstInitInputData%InpMembers(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copymemberinputtype( SrcInitInputData%InpMembers(i1), DstInitInputData%InpMembers(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:InpMembers(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%NFillGroups = SrcInitInputData%NFillGroups
@@ -2839,15 +2868,16 @@ IF (ALLOCATED(SrcInitInputData%FilledGroups)) THEN
    i1_l = LBOUND(SrcInitInputData%FilledGroups,1)
    i1_u = UBOUND(SrcInitInputData%FilledGroups,1)
    IF (.NOT. ALLOCATED(DstInitInputData%FilledGroups)) THEN 
-      ALLOCATE(DstInitInputData%FilledGroups(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%FilledGroups.'
+      ALLOCATE(DstInitInputData%FilledGroups(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%FilledGroups.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%FilledGroups,1), UBOUND(SrcInitInputData%FilledGroups,1)
-      CALL Morison_Copyfilledgrouptype( SrcInitInputData%FilledGroups(i1), DstInitInputData%FilledGroups(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copyfilledgrouptype( SrcInitInputData%FilledGroups(i1), DstInitInputData%FilledGroups(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:FilledGroups(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%NMGDepths = SrcInitInputData%NMGDepths
@@ -2855,15 +2885,16 @@ IF (ALLOCATED(SrcInitInputData%MGDepths)) THEN
    i1_l = LBOUND(SrcInitInputData%MGDepths,1)
    i1_u = UBOUND(SrcInitInputData%MGDepths,1)
    IF (.NOT. ALLOCATED(DstInitInputData%MGDepths)) THEN 
-      ALLOCATE(DstInitInputData%MGDepths(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%MGDepths.'
+      ALLOCATE(DstInitInputData%MGDepths(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%MGDepths.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%MGDepths,1), UBOUND(SrcInitInputData%MGDepths,1)
-      CALL Morison_Copymgdepthstype( SrcInitInputData%MGDepths(i1), DstInitInputData%MGDepths(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copymgdepthstype( SrcInitInputData%MGDepths(i1), DstInitInputData%MGDepths(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:MGDepths(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%MGTop = SrcInitInputData%MGTop
@@ -2873,15 +2904,16 @@ IF (ALLOCATED(SrcInitInputData%MOutLst)) THEN
    i1_l = LBOUND(SrcInitInputData%MOutLst,1)
    i1_u = UBOUND(SrcInitInputData%MOutLst,1)
    IF (.NOT. ALLOCATED(DstInitInputData%MOutLst)) THEN 
-      ALLOCATE(DstInitInputData%MOutLst(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%MOutLst.'
+      ALLOCATE(DstInitInputData%MOutLst(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%MOutLst.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%MOutLst,1), UBOUND(SrcInitInputData%MOutLst,1)
-      CALL Morison_Copymoutput( SrcInitInputData%MOutLst(i1), DstInitInputData%MOutLst(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copymoutput( SrcInitInputData%MOutLst(i1), DstInitInputData%MOutLst(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:MOutLst(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%NJOutputs = SrcInitInputData%NJOutputs
@@ -2889,15 +2921,16 @@ IF (ALLOCATED(SrcInitInputData%JOutLst)) THEN
    i1_l = LBOUND(SrcInitInputData%JOutLst,1)
    i1_u = UBOUND(SrcInitInputData%JOutLst,1)
    IF (.NOT. ALLOCATED(DstInitInputData%JOutLst)) THEN 
-      ALLOCATE(DstInitInputData%JOutLst(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%JOutLst.'
+      ALLOCATE(DstInitInputData%JOutLst(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%JOutLst.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcInitInputData%JOutLst,1), UBOUND(SrcInitInputData%JOutLst,1)
-      CALL Morison_Copyjoutput( SrcInitInputData%JOutLst(i1), DstInitInputData%JOutLst(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copyjoutput( SrcInitInputData%JOutLst(i1), DstInitInputData%JOutLst(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitInput:JOutLst(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstInitInputData%OutList = SrcInitInputData%OutList
@@ -2905,10 +2938,9 @@ IF (ALLOCATED(SrcInitInputData%ValidOutList)) THEN
    i1_l = LBOUND(SrcInitInputData%ValidOutList,1)
    i1_u = UBOUND(SrcInitInputData%ValidOutList,1)
    IF (.NOT. ALLOCATED(DstInitInputData%ValidOutList)) THEN 
-      ALLOCATE(DstInitInputData%ValidOutList(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%ValidOutList.'
+      ALLOCATE(DstInitInputData%ValidOutList(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%ValidOutList.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -2929,10 +2961,9 @@ IF (ALLOCATED(SrcInitInputData%WaveAcc0)) THEN
    i3_l = LBOUND(SrcInitInputData%WaveAcc0,3)
    i3_u = UBOUND(SrcInitInputData%WaveAcc0,3)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveAcc0)) THEN 
-      ALLOCATE(DstInitInputData%WaveAcc0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%WaveAcc0.'
+      ALLOCATE(DstInitInputData%WaveAcc0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveAcc0.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -2942,10 +2973,9 @@ IF (ALLOCATED(SrcInitInputData%WaveTime)) THEN
    i1_l = LBOUND(SrcInitInputData%WaveTime,1)
    i1_u = UBOUND(SrcInitInputData%WaveTime,1)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveTime)) THEN 
-      ALLOCATE(DstInitInputData%WaveTime(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%WaveTime.'
+      ALLOCATE(DstInitInputData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveTime.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -2957,10 +2987,9 @@ IF (ALLOCATED(SrcInitInputData%WaveDynP0)) THEN
    i2_l = LBOUND(SrcInitInputData%WaveDynP0,2)
    i2_u = UBOUND(SrcInitInputData%WaveDynP0,2)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveDynP0)) THEN 
-      ALLOCATE(DstInitInputData%WaveDynP0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%WaveDynP0.'
+      ALLOCATE(DstInitInputData%WaveDynP0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveDynP0.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -2974,10 +3003,9 @@ IF (ALLOCATED(SrcInitInputData%WaveVel0)) THEN
    i3_l = LBOUND(SrcInitInputData%WaveVel0,3)
    i3_u = UBOUND(SrcInitInputData%WaveVel0,3)
    IF (.NOT. ALLOCATED(DstInitInputData%WaveVel0)) THEN 
-      ALLOCATE(DstInitInputData%WaveVel0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitInput: Error allocating DstInitInputData%WaveVel0.'
+      ALLOCATE(DstInitInputData%WaveVel0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveVel0.', ErrStat, ErrMsg,'Morison_CopyInitInput')
          RETURN
       END IF
    END IF
@@ -3983,19 +4011,24 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-     CALL MeshCopy( SrcInitOutputData%DistribMesh, DstInitOutputData%DistribMesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcInitOutputData%LumpedMesh, DstInitOutputData%LumpedMesh, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcInitOutputData%DistribMesh, DstInitOutputData%DistribMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitOutput:DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcInitOutputData%LumpedMesh, DstInitOutputData%LumpedMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInitOutput:LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputHdr.'
+      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputHdr.', ErrStat, ErrMsg,'Morison_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -4005,10 +4038,9 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputUnt.'
+      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputUnt.', ErrStat, ErrMsg,'Morison_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -4215,6 +4247,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -4323,6 +4357,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -4431,6 +4467,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -4539,6 +4577,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -4548,10 +4588,9 @@ IF (ALLOCATED(SrcOtherStateData%D_F_D)) THEN
    i2_l = LBOUND(SrcOtherStateData%D_F_D,2)
    i2_u = UBOUND(SrcOtherStateData%D_F_D,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_F_D)) THEN 
-      ALLOCATE(DstOtherStateData%D_F_D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_F_D.'
+      ALLOCATE(DstOtherStateData%D_F_D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_F_D.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4563,10 +4602,9 @@ IF (ALLOCATED(SrcOtherStateData%D_F_I)) THEN
    i2_l = LBOUND(SrcOtherStateData%D_F_I,2)
    i2_u = UBOUND(SrcOtherStateData%D_F_I,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_F_I)) THEN 
-      ALLOCATE(DstOtherStateData%D_F_I(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_F_I.'
+      ALLOCATE(DstOtherStateData%D_F_I(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_F_I.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4578,10 +4616,9 @@ IF (ALLOCATED(SrcOtherStateData%D_F_DP)) THEN
    i2_l = LBOUND(SrcOtherStateData%D_F_DP,2)
    i2_u = UBOUND(SrcOtherStateData%D_F_DP,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_F_DP)) THEN 
-      ALLOCATE(DstOtherStateData%D_F_DP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_F_DP.'
+      ALLOCATE(DstOtherStateData%D_F_DP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_F_DP.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4593,10 +4630,9 @@ IF (ALLOCATED(SrcOtherStateData%D_F_AM)) THEN
    i2_l = LBOUND(SrcOtherStateData%D_F_AM,2)
    i2_u = UBOUND(SrcOtherStateData%D_F_AM,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_F_AM)) THEN 
-      ALLOCATE(DstOtherStateData%D_F_AM(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_F_AM.'
+      ALLOCATE(DstOtherStateData%D_F_AM(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_F_AM.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4608,10 +4644,9 @@ IF (ALLOCATED(SrcOtherStateData%D_F_AM_M)) THEN
    i2_l = LBOUND(SrcOtherStateData%D_F_AM_M,2)
    i2_u = UBOUND(SrcOtherStateData%D_F_AM_M,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_F_AM_M)) THEN 
-      ALLOCATE(DstOtherStateData%D_F_AM_M(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_F_AM_M.'
+      ALLOCATE(DstOtherStateData%D_F_AM_M(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_F_AM_M.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4623,10 +4658,9 @@ IF (ALLOCATED(SrcOtherStateData%D_F_AM_MG)) THEN
    i2_l = LBOUND(SrcOtherStateData%D_F_AM_MG,2)
    i2_u = UBOUND(SrcOtherStateData%D_F_AM_MG,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_F_AM_MG)) THEN 
-      ALLOCATE(DstOtherStateData%D_F_AM_MG(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_F_AM_MG.'
+      ALLOCATE(DstOtherStateData%D_F_AM_MG(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_F_AM_MG.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4638,10 +4672,9 @@ IF (ALLOCATED(SrcOtherStateData%D_F_AM_F)) THEN
    i2_l = LBOUND(SrcOtherStateData%D_F_AM_F,2)
    i2_u = UBOUND(SrcOtherStateData%D_F_AM_F,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_F_AM_F)) THEN 
-      ALLOCATE(DstOtherStateData%D_F_AM_F(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_F_AM_F.'
+      ALLOCATE(DstOtherStateData%D_F_AM_F(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_F_AM_F.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4653,10 +4686,9 @@ IF (ALLOCATED(SrcOtherStateData%D_FV)) THEN
    i2_l = LBOUND(SrcOtherStateData%D_FV,2)
    i2_u = UBOUND(SrcOtherStateData%D_FV,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_FV)) THEN 
-      ALLOCATE(DstOtherStateData%D_FV(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_FV.'
+      ALLOCATE(DstOtherStateData%D_FV(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_FV.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4668,10 +4700,9 @@ IF (ALLOCATED(SrcOtherStateData%D_FA)) THEN
    i2_l = LBOUND(SrcOtherStateData%D_FA,2)
    i2_u = UBOUND(SrcOtherStateData%D_FA,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_FA)) THEN 
-      ALLOCATE(DstOtherStateData%D_FA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_FA.'
+      ALLOCATE(DstOtherStateData%D_FA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_FA.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4681,10 +4712,9 @@ IF (ALLOCATED(SrcOtherStateData%D_FDynP)) THEN
    i1_l = LBOUND(SrcOtherStateData%D_FDynP,1)
    i1_u = UBOUND(SrcOtherStateData%D_FDynP,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%D_FDynP)) THEN 
-      ALLOCATE(DstOtherStateData%D_FDynP(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%D_FDynP.'
+      ALLOCATE(DstOtherStateData%D_FDynP(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%D_FDynP.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4696,10 +4726,9 @@ IF (ALLOCATED(SrcOtherStateData%L_F_D)) THEN
    i2_l = LBOUND(SrcOtherStateData%L_F_D,2)
    i2_u = UBOUND(SrcOtherStateData%L_F_D,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%L_F_D)) THEN 
-      ALLOCATE(DstOtherStateData%L_F_D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%L_F_D.'
+      ALLOCATE(DstOtherStateData%L_F_D(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%L_F_D.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4711,10 +4740,9 @@ IF (ALLOCATED(SrcOtherStateData%L_F_I)) THEN
    i2_l = LBOUND(SrcOtherStateData%L_F_I,2)
    i2_u = UBOUND(SrcOtherStateData%L_F_I,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%L_F_I)) THEN 
-      ALLOCATE(DstOtherStateData%L_F_I(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%L_F_I.'
+      ALLOCATE(DstOtherStateData%L_F_I(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%L_F_I.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4726,10 +4754,9 @@ IF (ALLOCATED(SrcOtherStateData%L_F_DP)) THEN
    i2_l = LBOUND(SrcOtherStateData%L_F_DP,2)
    i2_u = UBOUND(SrcOtherStateData%L_F_DP,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%L_F_DP)) THEN 
-      ALLOCATE(DstOtherStateData%L_F_DP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%L_F_DP.'
+      ALLOCATE(DstOtherStateData%L_F_DP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%L_F_DP.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4741,10 +4768,9 @@ IF (ALLOCATED(SrcOtherStateData%L_F_AM)) THEN
    i2_l = LBOUND(SrcOtherStateData%L_F_AM,2)
    i2_u = UBOUND(SrcOtherStateData%L_F_AM,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%L_F_AM)) THEN 
-      ALLOCATE(DstOtherStateData%L_F_AM(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%L_F_AM.'
+      ALLOCATE(DstOtherStateData%L_F_AM(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%L_F_AM.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4756,10 +4782,9 @@ IF (ALLOCATED(SrcOtherStateData%L_FV)) THEN
    i2_l = LBOUND(SrcOtherStateData%L_FV,2)
    i2_u = UBOUND(SrcOtherStateData%L_FV,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%L_FV)) THEN 
-      ALLOCATE(DstOtherStateData%L_FV(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%L_FV.'
+      ALLOCATE(DstOtherStateData%L_FV(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%L_FV.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4771,10 +4796,9 @@ IF (ALLOCATED(SrcOtherStateData%L_FA)) THEN
    i2_l = LBOUND(SrcOtherStateData%L_FA,2)
    i2_u = UBOUND(SrcOtherStateData%L_FA,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%L_FA)) THEN 
-      ALLOCATE(DstOtherStateData%L_FA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%L_FA.'
+      ALLOCATE(DstOtherStateData%L_FA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%L_FA.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -4784,10 +4808,9 @@ IF (ALLOCATED(SrcOtherStateData%L_FDynP)) THEN
    i1_l = LBOUND(SrcOtherStateData%L_FDynP,1)
    i1_u = UBOUND(SrcOtherStateData%L_FDynP,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%L_FDynP)) THEN 
-      ALLOCATE(DstOtherStateData%L_FDynP(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOtherState: Error allocating DstOtherStateData%L_FDynP.'
+      ALLOCATE(DstOtherStateData%L_FDynP(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%L_FDynP.', ErrStat, ErrMsg,'Morison_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -5136,6 +5159,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -5146,15 +5171,16 @@ IF (ALLOCATED(SrcParamData%Nodes)) THEN
    i1_l = LBOUND(SrcParamData%Nodes,1)
    i1_u = UBOUND(SrcParamData%Nodes,1)
    IF (.NOT. ALLOCATED(DstParamData%Nodes)) THEN 
-      ALLOCATE(DstParamData%Nodes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%Nodes.'
+      ALLOCATE(DstParamData%Nodes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%Nodes.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcParamData%Nodes,1), UBOUND(SrcParamData%Nodes,1)
-      CALL Morison_Copynodetype( SrcParamData%Nodes(i1), DstParamData%Nodes(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copynodetype( SrcParamData%Nodes(i1), DstParamData%Nodes(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyParam:Nodes(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcParamData%D_F_I)) THEN
@@ -5165,10 +5191,9 @@ IF (ALLOCATED(SrcParamData%D_F_I)) THEN
    i3_l = LBOUND(SrcParamData%D_F_I,3)
    i3_u = UBOUND(SrcParamData%D_F_I,3)
    IF (.NOT. ALLOCATED(DstParamData%D_F_I)) THEN 
-      ALLOCATE(DstParamData%D_F_I(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%D_F_I.'
+      ALLOCATE(DstParamData%D_F_I(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D_F_I.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5180,10 +5205,9 @@ IF (ALLOCATED(SrcParamData%D_F_B)) THEN
    i2_l = LBOUND(SrcParamData%D_F_B,2)
    i2_u = UBOUND(SrcParamData%D_F_B,2)
    IF (.NOT. ALLOCATED(DstParamData%D_F_B)) THEN 
-      ALLOCATE(DstParamData%D_F_B(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%D_F_B.'
+      ALLOCATE(DstParamData%D_F_B(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D_F_B.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5197,10 +5221,9 @@ IF (ALLOCATED(SrcParamData%D_F_DP)) THEN
    i3_l = LBOUND(SrcParamData%D_F_DP,3)
    i3_u = UBOUND(SrcParamData%D_F_DP,3)
    IF (.NOT. ALLOCATED(DstParamData%D_F_DP)) THEN 
-      ALLOCATE(DstParamData%D_F_DP(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%D_F_DP.'
+      ALLOCATE(DstParamData%D_F_DP(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D_F_DP.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5212,10 +5235,9 @@ IF (ALLOCATED(SrcParamData%D_F_MG)) THEN
    i2_l = LBOUND(SrcParamData%D_F_MG,2)
    i2_u = UBOUND(SrcParamData%D_F_MG,2)
    IF (.NOT. ALLOCATED(DstParamData%D_F_MG)) THEN 
-      ALLOCATE(DstParamData%D_F_MG(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%D_F_MG.'
+      ALLOCATE(DstParamData%D_F_MG(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D_F_MG.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5227,10 +5249,9 @@ IF (ALLOCATED(SrcParamData%D_F_BF)) THEN
    i2_l = LBOUND(SrcParamData%D_F_BF,2)
    i2_u = UBOUND(SrcParamData%D_F_BF,2)
    IF (.NOT. ALLOCATED(DstParamData%D_F_BF)) THEN 
-      ALLOCATE(DstParamData%D_F_BF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%D_F_BF.'
+      ALLOCATE(DstParamData%D_F_BF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D_F_BF.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5244,10 +5265,9 @@ IF (ALLOCATED(SrcParamData%D_AM_M)) THEN
    i3_l = LBOUND(SrcParamData%D_AM_M,3)
    i3_u = UBOUND(SrcParamData%D_AM_M,3)
    IF (.NOT. ALLOCATED(DstParamData%D_AM_M)) THEN 
-      ALLOCATE(DstParamData%D_AM_M(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%D_AM_M.'
+      ALLOCATE(DstParamData%D_AM_M(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D_AM_M.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5261,10 +5281,9 @@ IF (ALLOCATED(SrcParamData%D_AM_MG)) THEN
    i3_l = LBOUND(SrcParamData%D_AM_MG,3)
    i3_u = UBOUND(SrcParamData%D_AM_MG,3)
    IF (.NOT. ALLOCATED(DstParamData%D_AM_MG)) THEN 
-      ALLOCATE(DstParamData%D_AM_MG(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%D_AM_MG.'
+      ALLOCATE(DstParamData%D_AM_MG(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D_AM_MG.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5278,10 +5297,9 @@ IF (ALLOCATED(SrcParamData%D_AM_F)) THEN
    i3_l = LBOUND(SrcParamData%D_AM_F,3)
    i3_u = UBOUND(SrcParamData%D_AM_F,3)
    IF (.NOT. ALLOCATED(DstParamData%D_AM_F)) THEN 
-      ALLOCATE(DstParamData%D_AM_F(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%D_AM_F.'
+      ALLOCATE(DstParamData%D_AM_F(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D_AM_F.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5291,10 +5309,9 @@ IF (ALLOCATED(SrcParamData%D_dragConst)) THEN
    i1_l = LBOUND(SrcParamData%D_dragConst,1)
    i1_u = UBOUND(SrcParamData%D_dragConst,1)
    IF (.NOT. ALLOCATED(DstParamData%D_dragConst)) THEN 
-      ALLOCATE(DstParamData%D_dragConst(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%D_dragConst.'
+      ALLOCATE(DstParamData%D_dragConst(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%D_dragConst.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5306,10 +5323,9 @@ IF (ALLOCATED(SrcParamData%L_An)) THEN
    i2_l = LBOUND(SrcParamData%L_An,2)
    i2_u = UBOUND(SrcParamData%L_An,2)
    IF (.NOT. ALLOCATED(DstParamData%L_An)) THEN 
-      ALLOCATE(DstParamData%L_An(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%L_An.'
+      ALLOCATE(DstParamData%L_An(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%L_An.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5321,10 +5337,9 @@ IF (ALLOCATED(SrcParamData%L_F_B)) THEN
    i2_l = LBOUND(SrcParamData%L_F_B,2)
    i2_u = UBOUND(SrcParamData%L_F_B,2)
    IF (.NOT. ALLOCATED(DstParamData%L_F_B)) THEN 
-      ALLOCATE(DstParamData%L_F_B(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%L_F_B.'
+      ALLOCATE(DstParamData%L_F_B(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%L_F_B.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5338,10 +5353,9 @@ IF (ALLOCATED(SrcParamData%L_F_I)) THEN
    i3_l = LBOUND(SrcParamData%L_F_I,3)
    i3_u = UBOUND(SrcParamData%L_F_I,3)
    IF (.NOT. ALLOCATED(DstParamData%L_F_I)) THEN 
-      ALLOCATE(DstParamData%L_F_I(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%L_F_I.'
+      ALLOCATE(DstParamData%L_F_I(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%L_F_I.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5355,10 +5369,9 @@ IF (ALLOCATED(SrcParamData%L_F_DP)) THEN
    i3_l = LBOUND(SrcParamData%L_F_DP,3)
    i3_u = UBOUND(SrcParamData%L_F_DP,3)
    IF (.NOT. ALLOCATED(DstParamData%L_F_DP)) THEN 
-      ALLOCATE(DstParamData%L_F_DP(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%L_F_DP.'
+      ALLOCATE(DstParamData%L_F_DP(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%L_F_DP.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5370,10 +5383,9 @@ IF (ALLOCATED(SrcParamData%L_F_BF)) THEN
    i2_l = LBOUND(SrcParamData%L_F_BF,2)
    i2_u = UBOUND(SrcParamData%L_F_BF,2)
    IF (.NOT. ALLOCATED(DstParamData%L_F_BF)) THEN 
-      ALLOCATE(DstParamData%L_F_BF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%L_F_BF.'
+      ALLOCATE(DstParamData%L_F_BF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%L_F_BF.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5387,10 +5399,9 @@ IF (ALLOCATED(SrcParamData%L_AM_M)) THEN
    i3_l = LBOUND(SrcParamData%L_AM_M,3)
    i3_u = UBOUND(SrcParamData%L_AM_M,3)
    IF (.NOT. ALLOCATED(DstParamData%L_AM_M)) THEN 
-      ALLOCATE(DstParamData%L_AM_M(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%L_AM_M.'
+      ALLOCATE(DstParamData%L_AM_M(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%L_AM_M.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5400,10 +5411,9 @@ IF (ALLOCATED(SrcParamData%L_dragConst)) THEN
    i1_l = LBOUND(SrcParamData%L_dragConst,1)
    i1_u = UBOUND(SrcParamData%L_dragConst,1)
    IF (.NOT. ALLOCATED(DstParamData%L_dragConst)) THEN 
-      ALLOCATE(DstParamData%L_dragConst(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%L_dragConst.'
+      ALLOCATE(DstParamData%L_dragConst(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%L_dragConst.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5414,10 +5424,9 @@ IF (ALLOCATED(SrcParamData%distribToNodeIndx)) THEN
    i1_l = LBOUND(SrcParamData%distribToNodeIndx,1)
    i1_u = UBOUND(SrcParamData%distribToNodeIndx,1)
    IF (.NOT. ALLOCATED(DstParamData%distribToNodeIndx)) THEN 
-      ALLOCATE(DstParamData%distribToNodeIndx(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%distribToNodeIndx.'
+      ALLOCATE(DstParamData%distribToNodeIndx(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%distribToNodeIndx.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5428,10 +5437,9 @@ IF (ALLOCATED(SrcParamData%lumpedToNodeIndx)) THEN
    i1_l = LBOUND(SrcParamData%lumpedToNodeIndx,1)
    i1_u = UBOUND(SrcParamData%lumpedToNodeIndx,1)
    IF (.NOT. ALLOCATED(DstParamData%lumpedToNodeIndx)) THEN 
-      ALLOCATE(DstParamData%lumpedToNodeIndx(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%lumpedToNodeIndx.'
+      ALLOCATE(DstParamData%lumpedToNodeIndx(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%lumpedToNodeIndx.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5445,10 +5453,9 @@ IF (ALLOCATED(SrcParamData%WaveVel0)) THEN
    i3_l = LBOUND(SrcParamData%WaveVel0,3)
    i3_u = UBOUND(SrcParamData%WaveVel0,3)
    IF (.NOT. ALLOCATED(DstParamData%WaveVel0)) THEN 
-      ALLOCATE(DstParamData%WaveVel0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%WaveVel0.'
+      ALLOCATE(DstParamData%WaveVel0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveVel0.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5462,10 +5469,9 @@ IF (ALLOCATED(SrcParamData%WaveAcc0)) THEN
    i3_l = LBOUND(SrcParamData%WaveAcc0,3)
    i3_u = UBOUND(SrcParamData%WaveAcc0,3)
    IF (.NOT. ALLOCATED(DstParamData%WaveAcc0)) THEN 
-      ALLOCATE(DstParamData%WaveAcc0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%WaveAcc0.'
+      ALLOCATE(DstParamData%WaveAcc0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveAcc0.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5477,10 +5483,9 @@ IF (ALLOCATED(SrcParamData%WaveDynP0)) THEN
    i2_l = LBOUND(SrcParamData%WaveDynP0,2)
    i2_u = UBOUND(SrcParamData%WaveDynP0,2)
    IF (.NOT. ALLOCATED(DstParamData%WaveDynP0)) THEN 
-      ALLOCATE(DstParamData%WaveDynP0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%WaveDynP0.'
+      ALLOCATE(DstParamData%WaveDynP0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveDynP0.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5490,10 +5495,9 @@ IF (ALLOCATED(SrcParamData%WaveTime)) THEN
    i1_l = LBOUND(SrcParamData%WaveTime,1)
    i1_u = UBOUND(SrcParamData%WaveTime,1)
    IF (.NOT. ALLOCATED(DstParamData%WaveTime)) THEN 
-      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%WaveTime.'
+      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveTime.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
@@ -5505,15 +5509,16 @@ IF (ALLOCATED(SrcParamData%MOutLst)) THEN
    i1_l = LBOUND(SrcParamData%MOutLst,1)
    i1_u = UBOUND(SrcParamData%MOutLst,1)
    IF (.NOT. ALLOCATED(DstParamData%MOutLst)) THEN 
-      ALLOCATE(DstParamData%MOutLst(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%MOutLst.'
+      ALLOCATE(DstParamData%MOutLst(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%MOutLst.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcParamData%MOutLst,1), UBOUND(SrcParamData%MOutLst,1)
-      CALL Morison_Copymoutput( SrcParamData%MOutLst(i1), DstParamData%MOutLst(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copymoutput( SrcParamData%MOutLst(i1), DstParamData%MOutLst(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyParam:MOutLst(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstParamData%NJOutputs = SrcParamData%NJOutputs
@@ -5521,30 +5526,32 @@ IF (ALLOCATED(SrcParamData%JOutLst)) THEN
    i1_l = LBOUND(SrcParamData%JOutLst,1)
    i1_u = UBOUND(SrcParamData%JOutLst,1)
    IF (.NOT. ALLOCATED(DstParamData%JOutLst)) THEN 
-      ALLOCATE(DstParamData%JOutLst(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%JOutLst.'
+      ALLOCATE(DstParamData%JOutLst(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%JOutLst.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcParamData%JOutLst,1), UBOUND(SrcParamData%JOutLst,1)
-      CALL Morison_Copyjoutput( SrcParamData%JOutLst(i1), DstParamData%JOutLst(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL Morison_Copyjoutput( SrcParamData%JOutLst(i1), DstParamData%JOutLst(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyParam:JOutLst(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
    IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
-      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyParam: Error allocating DstParamData%OutParam.'
+      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%OutParam.', ErrStat, ErrMsg,'Morison_CopyParam')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcParamData%OutParam,1), UBOUND(SrcParamData%OutParam,1)
-      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyParam:OutParam(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstParamData%NumOuts = SrcParamData%NumOuts
@@ -6245,11 +6252,17 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-     CALL MeshCopy( SrcInputData%DistribMesh, DstInputData%DistribMesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcInputData%LumpedMesh, DstInputData%LumpedMesh, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcInputData%DistribMesh, DstInputData%DistribMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInput:DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcInputData%LumpedMesh, DstInputData%LumpedMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyInput:LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE Morison_CopyInput
 
  SUBROUTINE Morison_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -6445,19 +6458,24 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-     CALL MeshCopy( SrcOutputData%DistribMesh, DstOutputData%DistribMesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcOutputData%LumpedMesh, DstOutputData%LumpedMesh, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcOutputData%DistribMesh, DstOutputData%DistribMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyOutput:DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcOutputData%LumpedMesh, DstOutputData%LumpedMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_CopyOutput:LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
    IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
-      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'Morison_CopyOutput: Error allocating DstOutputData%WriteOutput.'
+      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%WriteOutput.', ErrStat, ErrMsg,'Morison_CopyOutput')
          RETURN
       END IF
    END IF
@@ -6701,6 +6719,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -6771,16 +6791,24 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-  CALL MeshCopy(u(1)%DistribMesh, u_out%DistribMesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
-  CALL MeshCopy(u(1)%LumpedMesh, u_out%LumpedMesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
+  CALL MeshCopy(u(1)%DistribMesh, u_out%DistribMesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Input_ExtrapInterp:%DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshCopy(u(1)%LumpedMesh, u_out%LumpedMesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Input_ExtrapInterp:%LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
     ErrMsg  = ' Error in Morison_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp1(u(1)%DistribMesh, u(2)%DistribMesh, tin, u_out%DistribMesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp1(u(1)%LumpedMesh, u(2)%LumpedMesh, tin, u_out%LumpedMesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp1(u(1)%DistribMesh, u(2)%DistribMesh, tin, u_out%DistribMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Input_ExtrapInterp:%DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp1(u(1)%LumpedMesh, u(2)%LumpedMesh, tin, u_out%LumpedMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Input_ExtrapInterp:%LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -6797,8 +6825,12 @@ ENDIF
     ErrMsg  = ' Error in Morison_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp2(u(1)%DistribMesh, u(2)%DistribMesh, u(3)%DistribMesh, tin, u_out%DistribMesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp2(u(1)%LumpedMesh, u(2)%LumpedMesh, u(3)%LumpedMesh, tin, u_out%LumpedMesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp2(u(1)%DistribMesh, u(2)%DistribMesh, u(3)%DistribMesh, tin, u_out%DistribMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Input_ExtrapInterp:%DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp2(u(1)%LumpedMesh, u(2)%LumpedMesh, u(3)%LumpedMesh, tin, u_out%LumpedMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Input_ExtrapInterp:%LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in Morison_Input_ExtrapInterp '
@@ -6845,6 +6877,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -6915,8 +6949,12 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-  CALL MeshCopy(u(1)%DistribMesh, u_out%DistribMesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
-  CALL MeshCopy(u(1)%LumpedMesh, u_out%LumpedMesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
+  CALL MeshCopy(u(1)%DistribMesh, u_out%DistribMesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Output_ExtrapInterp:%DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshCopy(u(1)%LumpedMesh, u_out%LumpedMesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Output_ExtrapInterp:%LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   u_out%WriteOutput = u(1)%WriteOutput
 END IF ! check if allocated
@@ -6926,8 +6964,12 @@ END IF ! check if allocated
     ErrMsg  = ' Error in Morison_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp1(u(1)%DistribMesh, u(2)%DistribMesh, tin, u_out%DistribMesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp1(u(1)%LumpedMesh, u(2)%LumpedMesh, tin, u_out%LumpedMesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp1(u(1)%DistribMesh, u(2)%DistribMesh, tin, u_out%DistribMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Output_ExtrapInterp:%DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp1(u(1)%LumpedMesh, u(2)%LumpedMesh, tin, u_out%LumpedMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Output_ExtrapInterp:%LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))
@@ -6952,8 +6994,12 @@ END IF ! check if allocated
     ErrMsg  = ' Error in Morison_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp2(u(1)%DistribMesh, u(2)%DistribMesh, u(3)%DistribMesh, tin, u_out%DistribMesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp2(u(1)%LumpedMesh, u(2)%LumpedMesh, u(3)%LumpedMesh, tin, u_out%LumpedMesh, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp2(u(1)%DistribMesh, u(2)%DistribMesh, u(3)%DistribMesh, tin, u_out%DistribMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Output_ExtrapInterp:%DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp2(u(1)%LumpedMesh, u(2)%LumpedMesh, u(3)%LumpedMesh, tin, u_out%LumpedMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'Morison_Output_ExtrapInterp:%LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
   ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))
