@@ -8,8 +8,8 @@
 !jm to avoid a circular USE association with NWTC_IO, which uses this module.
 !jm 2. Every routine after NWTC_Library_UnPackfileinfotype is commented out (or you can remove the lines)
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-06-13 10:04:28 -0600 (Fri, 13 Jun 2014) $
-! (File) Revision #: $Rev: 237 $
+! File last committed: $Date: 2014-10-15 12:09:15 -0600 (Wed, 15 Oct 2014) $
+! (File) Revision #: $Rev: 263 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/NWTC_Library_Types.f90 $
 !**********************************************************************************************************************************
 
@@ -17,13 +17,13 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.01.03, 20-Jan-2014)
+! FAST Registry (v2.03.02, 17-Sep-2014)
 !*********************************************************************************************************************************
 ! NWTC_Library_Types
 !.................................................................................................................................
 ! This file is part of NWTC_Library.
 !
-! Copyright (C) 2012-14 National Renewable Energy Laboratory
+! Copyright (C) 2012-2014 National Renewable Energy Laboratory
 !
 ! Licensed under the Apache License, Version 2.0 (the "License");
 ! you may not use this file except in compliance with the License.
@@ -83,6 +83,12 @@ IMPLICIT NONE
     CHARACTER(1024) , DIMENSION(:), ALLOCATABLE  :: FileList 
     CHARACTER(512) , DIMENSION(:), ALLOCATABLE  :: Lines 
   END TYPE FileInfoType
+! =======================
+! =========  Quaternion  =======
+  TYPE, PUBLIC :: Quaternion
+    REAL(ReKi)  :: q0 
+    REAL(ReKi) , DIMENSION(1:3)  :: v 
+  END TYPE Quaternion
 ! =======================
 CONTAINS
  SUBROUTINE NWTC_Library_Copyprogdesc( SrcprogdescData, DstprogdescData, CtrlCode, ErrStat, ErrMsg )
@@ -211,7 +217,7 @@ CONTAINS
 IF (ALLOCATED(SrcfastdatatypeData%ChanNames)) THEN
    i1_l = LBOUND(SrcfastdatatypeData%ChanNames,1)
    i1_u = UBOUND(SrcfastdatatypeData%ChanNames,1)
-   IF (.NOT.ALLOCATED(DstfastdatatypeData%ChanNames)) THEN 
+   IF (.NOT. ALLOCATED(DstfastdatatypeData%ChanNames)) THEN 
       ALLOCATE(DstfastdatatypeData%ChanNames(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -224,7 +230,7 @@ ENDIF
 IF (ALLOCATED(SrcfastdatatypeData%ChanUnits)) THEN
    i1_l = LBOUND(SrcfastdatatypeData%ChanUnits,1)
    i1_u = UBOUND(SrcfastdatatypeData%ChanUnits,1)
-   IF (.NOT.ALLOCATED(DstfastdatatypeData%ChanUnits)) THEN 
+   IF (.NOT. ALLOCATED(DstfastdatatypeData%ChanUnits)) THEN 
       ALLOCATE(DstfastdatatypeData%ChanUnits(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -239,7 +245,7 @@ IF (ALLOCATED(SrcfastdatatypeData%Data)) THEN
    i1_u = UBOUND(SrcfastdatatypeData%Data,1)
    i2_l = LBOUND(SrcfastdatatypeData%Data,2)
    i2_u = UBOUND(SrcfastdatatypeData%Data,2)
-   IF (.NOT.ALLOCATED(DstfastdatatypeData%Data)) THEN 
+   IF (.NOT. ALLOCATED(DstfastdatatypeData%Data)) THEN 
       ALLOCATE(DstfastdatatypeData%Data(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -507,7 +513,7 @@ ENDIF
 IF (ALLOCATED(SrcfileinfotypeData%FileLine)) THEN
    i1_l = LBOUND(SrcfileinfotypeData%FileLine,1)
    i1_u = UBOUND(SrcfileinfotypeData%FileLine,1)
-   IF (.NOT.ALLOCATED(DstfileinfotypeData%FileLine)) THEN 
+   IF (.NOT. ALLOCATED(DstfileinfotypeData%FileLine)) THEN 
       ALLOCATE(DstfileinfotypeData%FileLine(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -520,7 +526,7 @@ ENDIF
 IF (ALLOCATED(SrcfileinfotypeData%FileIndx)) THEN
    i1_l = LBOUND(SrcfileinfotypeData%FileIndx,1)
    i1_u = UBOUND(SrcfileinfotypeData%FileIndx,1)
-   IF (.NOT.ALLOCATED(DstfileinfotypeData%FileIndx)) THEN 
+   IF (.NOT. ALLOCATED(DstfileinfotypeData%FileIndx)) THEN 
       ALLOCATE(DstfileinfotypeData%FileIndx(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -533,7 +539,7 @@ ENDIF
 IF (ALLOCATED(SrcfileinfotypeData%FileList)) THEN
    i1_l = LBOUND(SrcfileinfotypeData%FileList,1)
    i1_u = UBOUND(SrcfileinfotypeData%FileList,1)
-   IF (.NOT.ALLOCATED(DstfileinfotypeData%FileList)) THEN 
+   IF (.NOT. ALLOCATED(DstfileinfotypeData%FileList)) THEN 
       ALLOCATE(DstfileinfotypeData%FileList(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -546,7 +552,7 @@ ENDIF
 IF (ALLOCATED(SrcfileinfotypeData%Lines)) THEN
    i1_l = LBOUND(SrcfileinfotypeData%Lines,1)
    i1_u = UBOUND(SrcfileinfotypeData%Lines,1)
-   IF (.NOT.ALLOCATED(DstfileinfotypeData%Lines)) THEN 
+   IF (.NOT. ALLOCATED(DstfileinfotypeData%Lines)) THEN 
       ALLOCATE(DstfileinfotypeData%Lines(i1_l:i1_u),STAT=ErrStat)
       IF (ErrStat /= 0) THEN 
          ErrStat = ErrID_Fatal 
@@ -688,6 +694,123 @@ ENDIF
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE NWTC_Library_UnPackfileinfotype
+
+ SUBROUTINE NWTC_Library_Copyquaternion( SrcquaternionData, DstquaternionData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(quaternion), INTENT(INOUT) :: SrcquaternionData
+   TYPE(quaternion), INTENT(INOUT) :: DstquaternionData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
+   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
+   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   DstquaternionData%q0 = SrcquaternionData%q0
+   DstquaternionData%v = SrcquaternionData%v
+ END SUBROUTINE NWTC_Library_Copyquaternion
+
+ SUBROUTINE NWTC_Library_Destroyquaternion( quaternionData, ErrStat, ErrMsg )
+  TYPE(quaternion), INTENT(INOUT) :: quaternionData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+ END SUBROUTINE NWTC_Library_Destroyquaternion
+
+ SUBROUTINE NWTC_Library_Packquaternion( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(quaternion),  INTENT(INOUT) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+ ! buffers to store meshes, if any
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  Re_BufSz   = Re_BufSz   + 1  ! q0
+  Re_BufSz    = Re_BufSz    + SIZE( InData%v )  ! v 
+  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
+  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
+  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%q0 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%v))-1 ) =  PACK(InData%v ,.TRUE.)
+  Re_Xferred   = Re_Xferred   + SIZE(InData%v)
+ END SUBROUTINE NWTC_Library_Packquaternion
+
+ SUBROUTINE NWTC_Library_UnPackquaternion( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(quaternion), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+ ! buffers to store meshes, if any
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  OutData%q0 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%v,1))); mask1 = .TRUE.
+  OutData%v = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%v))-1 ),mask1,OutData%v)
+  DEALLOCATE(mask1)
+  Re_Xferred   = Re_Xferred   + SIZE(OutData%v)
+  Re_Xferred   = Re_Xferred-1
+  Db_Xferred   = Db_Xferred-1
+  Int_Xferred  = Int_Xferred-1
+ END SUBROUTINE NWTC_Library_UnPackquaternion
+
 
 !bjj: deleted remaining (unnecessary) subroutines...
 

@@ -4,8 +4,8 @@
 # a NWTC_Library_Types.f90 file
 #
 #.............................................................
-# File last committed: $Date: 2014-01-31 10:37:54 -0700 (Fri, 31 Jan 2014) $
-# (File) Revision #: $Rev: 218 $
+# File last committed: $Date: 2014-10-15 12:09:15 -0600 (Wed, 15 Oct 2014) $
+# (File) Revision #: $Rev: 263 $
 # URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/trunk/source/Registry_NWTC_Library.txt $
 #.............................................................
 
@@ -34,6 +34,9 @@ usefrom     ^               ^            IntKi                 FileLine  {:}
 usefrom     ^               ^            IntKi                 FileIndx  {:}
 usefrom     ^               ^            CHARACTER(1024)       FileList  {:}
 usefrom     ^               ^            CHARACTER(512)        Lines     {:}
+
+usefrom   NWTC_Library    Quaternion     ReKi                  q0
+usefrom     ^               ^            ReKi                  v  {3}
 
 #BJJ: the following two types will actually be placed in the ModMesh_Mapping.f90 file instead of NWTC_Library_Types.f90
 usefrom   NWTC_Library    MapType        IntKi                 OtherMesh_Element
