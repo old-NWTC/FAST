@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.00, 7-Nov-2014)
+! FAST Registry (v2.04.01, 20-Nov-2014)
 !*********************************************************************************************************************************
 ! WAMIT_Types
 !.................................................................................................................................
@@ -282,11 +282,13 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Re_BufSz   = Re_BufSz   + 1  ! PtfmVol0
+  Int_BufSz  = Int_BufSz  + 1  ! HasWAMIT
   Re_BufSz   = Re_BufSz   + 1  ! WAMITULEN
   Re_BufSz   = Re_BufSz   + 1  ! PtfmCOBxt
   Re_BufSz   = Re_BufSz   + 1  ! PtfmCOByt
   Int_BufSz  = Int_BufSz  + 1  ! RdtnMod
   Db_BufSz   = Db_BufSz   + 1  ! RdtnTMax
+!  missing buffer for WAMITFile
   CALL Conv_Rdtn_PackInitInput( Re_Conv_Rdtn_Buf, Db_Conv_Rdtn_Buf, Int_Conv_Rdtn_Buf, InData%Conv_Rdtn, ErrStat, ErrMsg, .TRUE. ) ! Conv_Rdtn 
   IF(ALLOCATED(Re_Conv_Rdtn_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Conv_Rdtn_Buf  ) ! Conv_Rdtn
   IF(ALLOCATED(Db_Conv_Rdtn_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Conv_Rdtn_Buf  ) ! Conv_Rdtn
@@ -305,19 +307,23 @@ ENDIF
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
   Re_BufSz   = Re_BufSz   + 1  ! WaveDOmega
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevC0 )  ! WaveElevC0 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
+  IF ( ALLOCATED(InData%WaveElevC0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevC0 )  ! WaveElevC0 
+  IF ( ALLOCATED(InData%WaveTime) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
   Int_BufSz  = Int_BufSz  + 1  ! WaveMod
   Re_BufSz   = Re_BufSz   + 1  ! WtrDens
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDirArr )  ! WaveDirArr 
+  IF ( ALLOCATED(InData%WaveDirArr) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDirArr )  ! WaveDirArr 
   Re_BufSz   = Re_BufSz   + 1  ! WaveDirMin
   Re_BufSz   = Re_BufSz   + 1  ! WaveDirMax
+!  missing buffer for OutList
+  Int_BufSz  = Int_BufSz  + 1  ! OutAll
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%PtfmVol0 )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%HasWAMIT ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WAMITULEN )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%PtfmCOBxt )
@@ -388,6 +394,8 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDirMax )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%OutAll ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
   Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE WAMIT_PackInitInput
@@ -605,6 +613,8 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+!  missing buffer for WriteOutputHdr
+!  missing buffer for WriteOutputUnt
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1467,9 +1477,9 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! PtfmCOBxt
   Re_BufSz   = Re_BufSz   + 1  ! PtfmCOByt
   Int_BufSz  = Int_BufSz  + 1  ! RdtnMod
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveExctn )  ! WaveExctn 
+  IF ( ALLOCATED(InData%WaveExctn) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveExctn )  ! WaveExctn 
   Re_BufSz   = Re_BufSz   + 1  ! RhoXg
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
+  IF ( ALLOCATED(InData%WaveTime) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
   CALL Conv_Rdtn_PackParam( Re_Conv_Rdtn_Buf, Db_Conv_Rdtn_Buf, Int_Conv_Rdtn_Buf, InData%Conv_Rdtn, ErrStat, ErrMsg, .TRUE. ) ! Conv_Rdtn 
   IF(ALLOCATED(Re_Conv_Rdtn_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Conv_Rdtn_Buf  ) ! Conv_Rdtn
@@ -1486,6 +1496,12 @@ ENDIF
   IF(ALLOCATED(Db_SS_Rdtn_Buf))  DEALLOCATE(Db_SS_Rdtn_Buf)
   IF(ALLOCATED(Int_SS_Rdtn_Buf)) DEALLOCATE(Int_SS_Rdtn_Buf)
   Db_BufSz   = Db_BufSz   + 1  ! DT
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmSgF
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmSwF
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmHvF
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmRF
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmPF
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmYF
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, .TRUE. ) ! OutParam 
   IF(ALLOCATED(Re_OutParam_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_OutParam_Buf  ) ! OutParam
@@ -1497,6 +1513,9 @@ DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
 ENDDO
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
   Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
+!  missing buffer for OutFmt
+!  missing buffer for OutSFmt
+!  missing buffer for Delim
   Int_BufSz  = Int_BufSz  + 1  ! UnOutFile
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
@@ -1559,6 +1578,18 @@ ENDDO
   IF( ALLOCATED(Int_SS_Rdtn_Buf) ) DEALLOCATE(Int_SS_Rdtn_Buf)
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmSgF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmSwF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmHvF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmRF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmPF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmYF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, OnlySize ) ! OutParam 
   IF(ALLOCATED(Re_OutParam_Buf)) THEN
@@ -1966,7 +1997,7 @@ ENDIF
   IF(ALLOCATED(Re_Mesh_Buf))  DEALLOCATE(Re_Mesh_Buf)
   IF(ALLOCATED(Db_Mesh_Buf))  DEALLOCATE(Db_Mesh_Buf)
   IF(ALLOCATED(Int_Mesh_Buf)) DEALLOCATE(Int_Mesh_Buf)
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
+  IF ( ALLOCATED(InData%WriteOutput) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )

@@ -53,12 +53,12 @@ main( int argc, char *argv[], char *env[] )
   setrlimit ( RLIMIT_STACK , &rlim ) ;
 #endif
 
-   thisprog_ver = "FAST Registry (v2.03.02, 17-Sep-2014)";
+   thisprog_ver = "FAST Registry (v2.04.01, 20-Nov-2014)";
 
   fprintf(stderr,"\n") ;
   fprintf(stderr,"----- %s --------------\n", thisprog_ver) ;
-//  fprintf(stderr,"Revision $Rev: 779 $\n") ;
-//  fprintf(stderr,"Date $LastChangedDate: 2014-09-24 14:15:17 -0600 (Wed, 24 Sep 2014) $ \n" ) ;
+//  fprintf(stderr,"Revision $Rev: 683 $\n") ;
+//  fprintf(stderr,"Date $LastChangedDate: 2014-05-02 10:22:17 -0600 (Fri, 02 May 2014) $ \n" ) ;
   fprintf(stderr,"URL  $URL: https://windsvn.nrel.gov/FAST/branches/FAST_Registry/source/registry.c $\n" ) ;
   fprintf(stderr,"----------------------------------------------------------\n") ;
 

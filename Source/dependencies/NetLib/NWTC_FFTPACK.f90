@@ -8,8 +8,8 @@
    !                    correct type (to avoid having wSave too small)
    ! ADP: 07/28/2014: Added in the complex FFT routines from fftpack v. 4.1
 !=======================================================================
-! File last committed: $Date: 2014-09-22 11:33:20 -0600 (Mon, 22 Sep 2014) $
-! (File) Revision #: $Rev: 259 $
+! File last committed: $Date: 2014-11-07 20:34:16 -0700 (Fri, 07 Nov 2014) $
+! (File) Revision #: $Rev: 266 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/NWTC_Library/branches/NetLib/NWTC_source/NWTC_FFTPACK.f90 $
 !=======================================================================
 MODULE NWTC_FFTPACK
@@ -766,6 +766,7 @@ CONTAINS
           FFT_Data%InvN      = 1. / FFT_Data%N
       ELSE
           FFT_Data%Normalize = .FALSE.
+          FFT_Data%InvN      = 1.
       ENDIF
 
         ! According to FFTPACK documentation, the working array must be at

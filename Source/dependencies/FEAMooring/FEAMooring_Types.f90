@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.04.00, 7-Nov-2014)
 !*********************************************************************************************************************************
 ! FEAMooring_Types
 !.................................................................................................................................
@@ -219,6 +219,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -227,10 +229,9 @@ IF (ALLOCATED(SrcinputfileData%LEAStiff)) THEN
    i1_l = LBOUND(SrcinputfileData%LEAStiff,1)
    i1_u = UBOUND(SrcinputfileData%LEAStiff,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LEAStiff)) THEN 
-      ALLOCATE(DstinputfileData%LEAStiff(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LEAStiff.'
+      ALLOCATE(DstinputfileData%LEAStiff(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LEAStiff.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -240,10 +241,9 @@ IF (ALLOCATED(SrcinputfileData%LMassDen)) THEN
    i1_l = LBOUND(SrcinputfileData%LMassDen,1)
    i1_u = UBOUND(SrcinputfileData%LMassDen,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LMassDen)) THEN 
-      ALLOCATE(DstinputfileData%LMassDen(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LMassDen.'
+      ALLOCATE(DstinputfileData%LMassDen(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LMassDen.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -253,10 +253,9 @@ IF (ALLOCATED(SrcinputfileData%LDMassDen)) THEN
    i1_l = LBOUND(SrcinputfileData%LDMassDen,1)
    i1_u = UBOUND(SrcinputfileData%LDMassDen,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LDMassDen)) THEN 
-      ALLOCATE(DstinputfileData%LDMassDen(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LDMassDen.'
+      ALLOCATE(DstinputfileData%LDMassDen(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LDMassDen.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -266,10 +265,9 @@ IF (ALLOCATED(SrcinputfileData%LineCI)) THEN
    i1_l = LBOUND(SrcinputfileData%LineCI,1)
    i1_u = UBOUND(SrcinputfileData%LineCI,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LineCI)) THEN 
-      ALLOCATE(DstinputfileData%LineCI(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LineCI.'
+      ALLOCATE(DstinputfileData%LineCI(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LineCI.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -279,10 +277,9 @@ IF (ALLOCATED(SrcinputfileData%LineCD)) THEN
    i1_l = LBOUND(SrcinputfileData%LineCD,1)
    i1_u = UBOUND(SrcinputfileData%LineCD,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LineCD)) THEN 
-      ALLOCATE(DstinputfileData%LineCD(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LineCD.'
+      ALLOCATE(DstinputfileData%LineCD(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LineCD.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -292,10 +289,9 @@ IF (ALLOCATED(SrcinputfileData%BottmElev)) THEN
    i1_l = LBOUND(SrcinputfileData%BottmElev,1)
    i1_u = UBOUND(SrcinputfileData%BottmElev,1)
    IF (.NOT. ALLOCATED(DstinputfileData%BottmElev)) THEN 
-      ALLOCATE(DstinputfileData%BottmElev(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%BottmElev.'
+      ALLOCATE(DstinputfileData%BottmElev(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%BottmElev.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -305,10 +301,9 @@ IF (ALLOCATED(SrcinputfileData%BottmStiff)) THEN
    i1_l = LBOUND(SrcinputfileData%BottmStiff,1)
    i1_u = UBOUND(SrcinputfileData%BottmStiff,1)
    IF (.NOT. ALLOCATED(DstinputfileData%BottmStiff)) THEN 
-      ALLOCATE(DstinputfileData%BottmStiff(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%BottmStiff.'
+      ALLOCATE(DstinputfileData%BottmStiff(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%BottmStiff.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -318,10 +313,9 @@ IF (ALLOCATED(SrcinputfileData%LRadAnch)) THEN
    i1_l = LBOUND(SrcinputfileData%LRadAnch,1)
    i1_u = UBOUND(SrcinputfileData%LRadAnch,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LRadAnch)) THEN 
-      ALLOCATE(DstinputfileData%LRadAnch(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LRadAnch.'
+      ALLOCATE(DstinputfileData%LRadAnch(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LRadAnch.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -331,10 +325,9 @@ IF (ALLOCATED(SrcinputfileData%LAngAnch)) THEN
    i1_l = LBOUND(SrcinputfileData%LAngAnch,1)
    i1_u = UBOUND(SrcinputfileData%LAngAnch,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LAngAnch)) THEN 
-      ALLOCATE(DstinputfileData%LAngAnch(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LAngAnch.'
+      ALLOCATE(DstinputfileData%LAngAnch(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LAngAnch.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -344,10 +337,9 @@ IF (ALLOCATED(SrcinputfileData%LDpthAnch)) THEN
    i1_l = LBOUND(SrcinputfileData%LDpthAnch,1)
    i1_u = UBOUND(SrcinputfileData%LDpthAnch,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LDpthAnch)) THEN 
-      ALLOCATE(DstinputfileData%LDpthAnch(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LDpthAnch.'
+      ALLOCATE(DstinputfileData%LDpthAnch(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LDpthAnch.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -357,10 +349,9 @@ IF (ALLOCATED(SrcinputfileData%LRadFair)) THEN
    i1_l = LBOUND(SrcinputfileData%LRadFair,1)
    i1_u = UBOUND(SrcinputfileData%LRadFair,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LRadFair)) THEN 
-      ALLOCATE(DstinputfileData%LRadFair(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LRadFair.'
+      ALLOCATE(DstinputfileData%LRadFair(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LRadFair.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -370,10 +361,9 @@ IF (ALLOCATED(SrcinputfileData%LAngFair)) THEN
    i1_l = LBOUND(SrcinputfileData%LAngFair,1)
    i1_u = UBOUND(SrcinputfileData%LAngFair,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LAngFair)) THEN 
-      ALLOCATE(DstinputfileData%LAngFair(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LAngFair.'
+      ALLOCATE(DstinputfileData%LAngFair(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LAngFair.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -383,10 +373,9 @@ IF (ALLOCATED(SrcinputfileData%LDrftFair)) THEN
    i1_l = LBOUND(SrcinputfileData%LDrftFair,1)
    i1_u = UBOUND(SrcinputfileData%LDrftFair,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LDrftFair)) THEN 
-      ALLOCATE(DstinputfileData%LDrftFair(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LDrftFair.'
+      ALLOCATE(DstinputfileData%LDrftFair(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LDrftFair.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -396,10 +385,9 @@ IF (ALLOCATED(SrcinputfileData%LDiam)) THEN
    i1_l = LBOUND(SrcinputfileData%LDiam,1)
    i1_u = UBOUND(SrcinputfileData%LDiam,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LDiam)) THEN 
-      ALLOCATE(DstinputfileData%LDiam(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LDiam.'
+      ALLOCATE(DstinputfileData%LDiam(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LDiam.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -409,10 +397,9 @@ IF (ALLOCATED(SrcinputfileData%LUnstrLen)) THEN
    i1_l = LBOUND(SrcinputfileData%LUnstrLen,1)
    i1_u = UBOUND(SrcinputfileData%LUnstrLen,1)
    IF (.NOT. ALLOCATED(DstinputfileData%LUnstrLen)) THEN 
-      ALLOCATE(DstinputfileData%LUnstrLen(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%LUnstrLen.'
+      ALLOCATE(DstinputfileData%LUnstrLen(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LUnstrLen.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -422,10 +409,9 @@ IF (ALLOCATED(SrcinputfileData%Tension)) THEN
    i1_l = LBOUND(SrcinputfileData%Tension,1)
    i1_u = UBOUND(SrcinputfileData%Tension,1)
    IF (.NOT. ALLOCATED(DstinputfileData%Tension)) THEN 
-      ALLOCATE(DstinputfileData%Tension(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%Tension.'
+      ALLOCATE(DstinputfileData%Tension(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%Tension.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -439,10 +425,9 @@ IF (ALLOCATED(SrcinputfileData%GSL)) THEN
    i3_l = LBOUND(SrcinputfileData%GSL,3)
    i3_u = UBOUND(SrcinputfileData%GSL,3)
    IF (.NOT. ALLOCATED(DstinputfileData%GSL)) THEN 
-      ALLOCATE(DstinputfileData%GSL(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%GSL.'
+      ALLOCATE(DstinputfileData%GSL(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%GSL.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -454,10 +439,9 @@ IF (ALLOCATED(SrcinputfileData%GSR)) THEN
    i2_l = LBOUND(SrcinputfileData%GSR,2)
    i2_u = UBOUND(SrcinputfileData%GSR,2)
    IF (.NOT. ALLOCATED(DstinputfileData%GSR)) THEN 
-      ALLOCATE(DstinputfileData%GSR(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%GSR.'
+      ALLOCATE(DstinputfileData%GSR(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%GSR.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -471,10 +455,9 @@ IF (ALLOCATED(SrcinputfileData%GE)) THEN
    i3_l = LBOUND(SrcinputfileData%GE,3)
    i3_u = UBOUND(SrcinputfileData%GE,3)
    IF (.NOT. ALLOCATED(DstinputfileData%GE)) THEN 
-      ALLOCATE(DstinputfileData%GE(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%GE.'
+      ALLOCATE(DstinputfileData%GE(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%GE.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -492,10 +475,9 @@ IF (ALLOCATED(SrcinputfileData%OutList)) THEN
    i1_l = LBOUND(SrcinputfileData%OutList,1)
    i1_u = UBOUND(SrcinputfileData%OutList,1)
    IF (.NOT. ALLOCATED(DstinputfileData%OutList)) THEN 
-      ALLOCATE(DstinputfileData%OutList(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_Copyinputfile: Error allocating DstinputfileData%OutList.'
+      ALLOCATE(DstinputfileData%OutList(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%OutList.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
          RETURN
       END IF
    END IF
@@ -899,6 +881,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1011,6 +995,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1018,10 +1004,9 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputHdr.'
+      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputHdr.', ErrStat, ErrMsg,'FEAM_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -1031,24 +1016,24 @@ IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
    i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
    i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputUnt.'
+      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%WriteOutputUnt.', ErrStat, ErrMsg,'FEAM_CopyInitOutput')
          RETURN
       END IF
    END IF
    DstInitOutputData%WriteOutputUnt = SrcInitOutputData%WriteOutputUnt
 ENDIF
-      CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_CopyInitOutput:Ver')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcInitOutputData%LAnchxi)) THEN
    i1_l = LBOUND(SrcInitOutputData%LAnchxi,1)
    i1_u = UBOUND(SrcInitOutputData%LAnchxi,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%LAnchxi)) THEN 
-      ALLOCATE(DstInitOutputData%LAnchxi(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyInitOutput: Error allocating DstInitOutputData%LAnchxi.'
+      ALLOCATE(DstInitOutputData%LAnchxi(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%LAnchxi.', ErrStat, ErrMsg,'FEAM_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -1058,10 +1043,9 @@ IF (ALLOCATED(SrcInitOutputData%LAnchyi)) THEN
    i1_l = LBOUND(SrcInitOutputData%LAnchyi,1)
    i1_u = UBOUND(SrcInitOutputData%LAnchyi,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%LAnchyi)) THEN 
-      ALLOCATE(DstInitOutputData%LAnchyi(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyInitOutput: Error allocating DstInitOutputData%LAnchyi.'
+      ALLOCATE(DstInitOutputData%LAnchyi(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%LAnchyi.', ErrStat, ErrMsg,'FEAM_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -1071,10 +1055,9 @@ IF (ALLOCATED(SrcInitOutputData%LAnchzi)) THEN
    i1_l = LBOUND(SrcInitOutputData%LAnchzi,1)
    i1_u = UBOUND(SrcInitOutputData%LAnchzi,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%LAnchzi)) THEN 
-      ALLOCATE(DstInitOutputData%LAnchzi(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyInitOutput: Error allocating DstInitOutputData%LAnchzi.'
+      ALLOCATE(DstInitOutputData%LAnchzi(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%LAnchzi.', ErrStat, ErrMsg,'FEAM_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -1084,10 +1067,9 @@ IF (ALLOCATED(SrcInitOutputData%LFairxt)) THEN
    i1_l = LBOUND(SrcInitOutputData%LFairxt,1)
    i1_u = UBOUND(SrcInitOutputData%LFairxt,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%LFairxt)) THEN 
-      ALLOCATE(DstInitOutputData%LFairxt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyInitOutput: Error allocating DstInitOutputData%LFairxt.'
+      ALLOCATE(DstInitOutputData%LFairxt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%LFairxt.', ErrStat, ErrMsg,'FEAM_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -1097,10 +1079,9 @@ IF (ALLOCATED(SrcInitOutputData%LFairyt)) THEN
    i1_l = LBOUND(SrcInitOutputData%LFairyt,1)
    i1_u = UBOUND(SrcInitOutputData%LFairyt,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%LFairyt)) THEN 
-      ALLOCATE(DstInitOutputData%LFairyt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyInitOutput: Error allocating DstInitOutputData%LFairyt.'
+      ALLOCATE(DstInitOutputData%LFairyt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%LFairyt.', ErrStat, ErrMsg,'FEAM_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -1110,10 +1091,9 @@ IF (ALLOCATED(SrcInitOutputData%LFairzt)) THEN
    i1_l = LBOUND(SrcInitOutputData%LFairzt,1)
    i1_u = UBOUND(SrcInitOutputData%LFairzt,1)
    IF (.NOT. ALLOCATED(DstInitOutputData%LFairzt)) THEN 
-      ALLOCATE(DstInitOutputData%LFairzt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyInitOutput: Error allocating DstInitOutputData%LFairzt.'
+      ALLOCATE(DstInitOutputData%LFairzt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%LFairzt.', ErrStat, ErrMsg,'FEAM_CopyInitOutput')
          RETURN
       END IF
    END IF
@@ -1353,6 +1333,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1362,10 +1344,9 @@ IF (ALLOCATED(SrcContStateData%GLU)) THEN
    i2_l = LBOUND(SrcContStateData%GLU,2)
    i2_u = UBOUND(SrcContStateData%GLU,2)
    IF (.NOT. ALLOCATED(DstContStateData%GLU)) THEN 
-      ALLOCATE(DstContStateData%GLU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyContState: Error allocating DstContStateData%GLU.'
+      ALLOCATE(DstContStateData%GLU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstContStateData%GLU.', ErrStat, ErrMsg,'FEAM_CopyContState')
          RETURN
       END IF
    END IF
@@ -1377,10 +1358,9 @@ IF (ALLOCATED(SrcContStateData%GLDU)) THEN
    i2_l = LBOUND(SrcContStateData%GLDU,2)
    i2_u = UBOUND(SrcContStateData%GLDU,2)
    IF (.NOT. ALLOCATED(DstContStateData%GLDU)) THEN 
-      ALLOCATE(DstContStateData%GLDU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyContState: Error allocating DstContStateData%GLDU.'
+      ALLOCATE(DstContStateData%GLDU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstContStateData%GLDU.', ErrStat, ErrMsg,'FEAM_CopyContState')
          RETURN
       END IF
    END IF
@@ -1513,6 +1493,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1621,6 +1603,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1739,6 +1723,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1748,10 +1734,9 @@ IF (ALLOCATED(SrcOtherStateData%GLU0)) THEN
    i2_l = LBOUND(SrcOtherStateData%GLU0,2)
    i2_u = UBOUND(SrcOtherStateData%GLU0,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%GLU0)) THEN 
-      ALLOCATE(DstOtherStateData%GLU0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%GLU0.'
+      ALLOCATE(DstOtherStateData%GLU0(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%GLU0.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1763,10 +1748,9 @@ IF (ALLOCATED(SrcOtherStateData%GLDDU)) THEN
    i2_l = LBOUND(SrcOtherStateData%GLDDU,2)
    i2_u = UBOUND(SrcOtherStateData%GLDDU,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%GLDDU)) THEN 
-      ALLOCATE(DstOtherStateData%GLDDU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%GLDDU.'
+      ALLOCATE(DstOtherStateData%GLDDU(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%GLDDU.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1778,10 +1762,9 @@ IF (ALLOCATED(SrcOtherStateData%GLF)) THEN
    i2_l = LBOUND(SrcOtherStateData%GLF,2)
    i2_u = UBOUND(SrcOtherStateData%GLF,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%GLF)) THEN 
-      ALLOCATE(DstOtherStateData%GLF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%GLF.'
+      ALLOCATE(DstOtherStateData%GLF(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%GLF.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1795,10 +1778,9 @@ IF (ALLOCATED(SrcOtherStateData%GLK)) THEN
    i3_l = LBOUND(SrcOtherStateData%GLK,3)
    i3_u = UBOUND(SrcOtherStateData%GLK,3)
    IF (.NOT. ALLOCATED(DstOtherStateData%GLK)) THEN 
-      ALLOCATE(DstOtherStateData%GLK(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%GLK.'
+      ALLOCATE(DstOtherStateData%GLK(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%GLK.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1812,10 +1794,9 @@ IF (ALLOCATED(SrcOtherStateData%GLUZR)) THEN
    i3_l = LBOUND(SrcOtherStateData%GLUZR,3)
    i3_u = UBOUND(SrcOtherStateData%GLUZR,3)
    IF (.NOT. ALLOCATED(DstOtherStateData%GLUZR)) THEN 
-      ALLOCATE(DstOtherStateData%GLUZR(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%GLUZR.'
+      ALLOCATE(DstOtherStateData%GLUZR(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%GLUZR.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1827,10 +1808,9 @@ IF (ALLOCATED(SrcOtherStateData%GTZER)) THEN
    i2_l = LBOUND(SrcOtherStateData%GTZER,2)
    i2_u = UBOUND(SrcOtherStateData%GTZER,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%GTZER)) THEN 
-      ALLOCATE(DstOtherStateData%GTZER(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%GTZER.'
+      ALLOCATE(DstOtherStateData%GTZER(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%GTZER.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1844,10 +1824,9 @@ IF (ALLOCATED(SrcOtherStateData%GFORC0)) THEN
    i3_l = LBOUND(SrcOtherStateData%GFORC0,3)
    i3_u = UBOUND(SrcOtherStateData%GFORC0,3)
    IF (.NOT. ALLOCATED(DstOtherStateData%GFORC0)) THEN 
-      ALLOCATE(DstOtherStateData%GFORC0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%GFORC0.'
+      ALLOCATE(DstOtherStateData%GFORC0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%GFORC0.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1863,10 +1842,9 @@ IF (ALLOCATED(SrcOtherStateData%GMASS0)) THEN
    i4_l = LBOUND(SrcOtherStateData%GMASS0,4)
    i4_u = UBOUND(SrcOtherStateData%GMASS0,4)
    IF (.NOT. ALLOCATED(DstOtherStateData%GMASS0)) THEN 
-      ALLOCATE(DstOtherStateData%GMASS0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u,i4_l:i4_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%GMASS0.'
+      ALLOCATE(DstOtherStateData%GMASS0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u,i4_l:i4_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%GMASS0.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1878,10 +1856,9 @@ IF (ALLOCATED(SrcOtherStateData%FAST_FP)) THEN
    i2_l = LBOUND(SrcOtherStateData%FAST_FP,2)
    i2_u = UBOUND(SrcOtherStateData%FAST_FP,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%FAST_FP)) THEN 
-      ALLOCATE(DstOtherStateData%FAST_FP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%FAST_FP.'
+      ALLOCATE(DstOtherStateData%FAST_FP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%FAST_FP.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1893,10 +1870,9 @@ IF (ALLOCATED(SrcOtherStateData%FAST_FPA)) THEN
    i2_l = LBOUND(SrcOtherStateData%FAST_FPA,2)
    i2_u = UBOUND(SrcOtherStateData%FAST_FPA,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%FAST_FPA)) THEN 
-      ALLOCATE(DstOtherStateData%FAST_FPA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%FAST_FPA.'
+      ALLOCATE(DstOtherStateData%FAST_FPA(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%FAST_FPA.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1906,10 +1882,9 @@ IF (ALLOCATED(SrcOtherStateData%FAIR_T)) THEN
    i1_l = LBOUND(SrcOtherStateData%FAIR_T,1)
    i1_u = UBOUND(SrcOtherStateData%FAIR_T,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%FAIR_T)) THEN 
-      ALLOCATE(DstOtherStateData%FAIR_T(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%FAIR_T.'
+      ALLOCATE(DstOtherStateData%FAIR_T(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%FAIR_T.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1921,10 +1896,9 @@ IF (ALLOCATED(SrcOtherStateData%FAST_RP)) THEN
    i2_l = LBOUND(SrcOtherStateData%FAST_RP,2)
    i2_u = UBOUND(SrcOtherStateData%FAST_RP,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%FAST_RP)) THEN 
-      ALLOCATE(DstOtherStateData%FAST_RP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%FAST_RP.'
+      ALLOCATE(DstOtherStateData%FAST_RP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%FAST_RP.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1934,10 +1908,9 @@ IF (ALLOCATED(SrcOtherStateData%ANCH_T)) THEN
    i1_l = LBOUND(SrcOtherStateData%ANCH_T,1)
    i1_u = UBOUND(SrcOtherStateData%ANCH_T,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%ANCH_T)) THEN 
-      ALLOCATE(DstOtherStateData%ANCH_T(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%ANCH_T.'
+      ALLOCATE(DstOtherStateData%ANCH_T(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%ANCH_T.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1949,10 +1922,9 @@ IF (ALLOCATED(SrcOtherStateData%FAIR_ANG)) THEN
    i2_l = LBOUND(SrcOtherStateData%FAIR_ANG,2)
    i2_u = UBOUND(SrcOtherStateData%FAIR_ANG,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%FAIR_ANG)) THEN 
-      ALLOCATE(DstOtherStateData%FAIR_ANG(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%FAIR_ANG.'
+      ALLOCATE(DstOtherStateData%FAIR_ANG(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%FAIR_ANG.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1964,10 +1936,9 @@ IF (ALLOCATED(SrcOtherStateData%ANCH_ANG)) THEN
    i2_l = LBOUND(SrcOtherStateData%ANCH_ANG,2)
    i2_u = UBOUND(SrcOtherStateData%ANCH_ANG,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%ANCH_ANG)) THEN 
-      ALLOCATE(DstOtherStateData%ANCH_ANG(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%ANCH_ANG.'
+      ALLOCATE(DstOtherStateData%ANCH_ANG(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%ANCH_ANG.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -1983,10 +1954,9 @@ IF (ALLOCATED(SrcOtherStateData%F_Lines)) THEN
    i2_l = LBOUND(SrcOtherStateData%F_Lines,2)
    i2_u = UBOUND(SrcOtherStateData%F_Lines,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%F_Lines)) THEN 
-      ALLOCATE(DstOtherStateData%F_Lines(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%F_Lines.'
+      ALLOCATE(DstOtherStateData%F_Lines(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%F_Lines.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -2016,10 +1986,9 @@ IF (ALLOCATED(SrcOtherStateData%Line_Coordinate)) THEN
    i3_l = LBOUND(SrcOtherStateData%Line_Coordinate,3)
    i3_u = UBOUND(SrcOtherStateData%Line_Coordinate,3)
    IF (.NOT. ALLOCATED(DstOtherStateData%Line_Coordinate)) THEN 
-      ALLOCATE(DstOtherStateData%Line_Coordinate(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOtherState: Error allocating DstOtherStateData%Line_Coordinate.'
+      ALLOCATE(DstOtherStateData%Line_Coordinate(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Line_Coordinate.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -2479,6 +2448,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2494,10 +2465,9 @@ IF (ALLOCATED(SrcParamData%NEQ)) THEN
    i1_l = LBOUND(SrcParamData%NEQ,1)
    i1_u = UBOUND(SrcParamData%NEQ,1)
    IF (.NOT. ALLOCATED(DstParamData%NEQ)) THEN 
-      ALLOCATE(DstParamData%NEQ(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%NEQ.'
+      ALLOCATE(DstParamData%NEQ(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%NEQ.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2515,10 +2485,9 @@ IF (ALLOCATED(SrcParamData%GSL)) THEN
    i3_l = LBOUND(SrcParamData%GSL,3)
    i3_u = UBOUND(SrcParamData%GSL,3)
    IF (.NOT. ALLOCATED(DstParamData%GSL)) THEN 
-      ALLOCATE(DstParamData%GSL(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%GSL.'
+      ALLOCATE(DstParamData%GSL(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%GSL.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2530,10 +2499,9 @@ IF (ALLOCATED(SrcParamData%GP)) THEN
    i2_l = LBOUND(SrcParamData%GP,2)
    i2_u = UBOUND(SrcParamData%GP,2)
    IF (.NOT. ALLOCATED(DstParamData%GP)) THEN 
-      ALLOCATE(DstParamData%GP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%GP.'
+      ALLOCATE(DstParamData%GP(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%GP.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2543,10 +2511,9 @@ IF (ALLOCATED(SrcParamData%LineCI)) THEN
    i1_l = LBOUND(SrcParamData%LineCI,1)
    i1_u = UBOUND(SrcParamData%LineCI,1)
    IF (.NOT. ALLOCATED(DstParamData%LineCI)) THEN 
-      ALLOCATE(DstParamData%LineCI(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%LineCI.'
+      ALLOCATE(DstParamData%LineCI(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%LineCI.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2556,10 +2523,9 @@ IF (ALLOCATED(SrcParamData%LineCD)) THEN
    i1_l = LBOUND(SrcParamData%LineCD,1)
    i1_u = UBOUND(SrcParamData%LineCD,1)
    IF (.NOT. ALLOCATED(DstParamData%LineCD)) THEN 
-      ALLOCATE(DstParamData%LineCD(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%LineCD.'
+      ALLOCATE(DstParamData%LineCD(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%LineCD.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2569,10 +2535,9 @@ IF (ALLOCATED(SrcParamData%SectionA)) THEN
    i1_l = LBOUND(SrcParamData%SectionA,1)
    i1_u = UBOUND(SrcParamData%SectionA,1)
    IF (.NOT. ALLOCATED(DstParamData%SectionA)) THEN 
-      ALLOCATE(DstParamData%SectionA(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%SectionA.'
+      ALLOCATE(DstParamData%SectionA(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%SectionA.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2582,10 +2547,9 @@ IF (ALLOCATED(SrcParamData%Elength)) THEN
    i1_l = LBOUND(SrcParamData%Elength,1)
    i1_u = UBOUND(SrcParamData%Elength,1)
    IF (.NOT. ALLOCATED(DstParamData%Elength)) THEN 
-      ALLOCATE(DstParamData%Elength(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%Elength.'
+      ALLOCATE(DstParamData%Elength(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%Elength.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2595,10 +2559,9 @@ IF (ALLOCATED(SrcParamData%BottmElev)) THEN
    i1_l = LBOUND(SrcParamData%BottmElev,1)
    i1_u = UBOUND(SrcParamData%BottmElev,1)
    IF (.NOT. ALLOCATED(DstParamData%BottmElev)) THEN 
-      ALLOCATE(DstParamData%BottmElev(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%BottmElev.'
+      ALLOCATE(DstParamData%BottmElev(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%BottmElev.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2608,10 +2571,9 @@ IF (ALLOCATED(SrcParamData%BottmStiff)) THEN
    i1_l = LBOUND(SrcParamData%BottmStiff,1)
    i1_u = UBOUND(SrcParamData%BottmStiff,1)
    IF (.NOT. ALLOCATED(DstParamData%BottmStiff)) THEN 
-      ALLOCATE(DstParamData%BottmStiff(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%BottmStiff.'
+      ALLOCATE(DstParamData%BottmStiff(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%BottmStiff.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2621,10 +2583,9 @@ IF (ALLOCATED(SrcParamData%LMassDen)) THEN
    i1_l = LBOUND(SrcParamData%LMassDen,1)
    i1_u = UBOUND(SrcParamData%LMassDen,1)
    IF (.NOT. ALLOCATED(DstParamData%LMassDen)) THEN 
-      ALLOCATE(DstParamData%LMassDen(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%LMassDen.'
+      ALLOCATE(DstParamData%LMassDen(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%LMassDen.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2634,10 +2595,9 @@ IF (ALLOCATED(SrcParamData%LDMassDen)) THEN
    i1_l = LBOUND(SrcParamData%LDMassDen,1)
    i1_u = UBOUND(SrcParamData%LDMassDen,1)
    IF (.NOT. ALLOCATED(DstParamData%LDMassDen)) THEN 
-      ALLOCATE(DstParamData%LDMassDen(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%LDMassDen.'
+      ALLOCATE(DstParamData%LDMassDen(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%LDMassDen.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2647,10 +2607,9 @@ IF (ALLOCATED(SrcParamData%LEAStiff)) THEN
    i1_l = LBOUND(SrcParamData%LEAStiff,1)
    i1_u = UBOUND(SrcParamData%LEAStiff,1)
    IF (.NOT. ALLOCATED(DstParamData%LEAStiff)) THEN 
-      ALLOCATE(DstParamData%LEAStiff(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%LEAStiff.'
+      ALLOCATE(DstParamData%LEAStiff(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%LEAStiff.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2662,10 +2621,9 @@ IF (ALLOCATED(SrcParamData%Bvp)) THEN
    i2_l = LBOUND(SrcParamData%Bvp,2)
    i2_u = UBOUND(SrcParamData%Bvp,2)
    IF (.NOT. ALLOCATED(DstParamData%Bvp)) THEN 
-      ALLOCATE(DstParamData%Bvp(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%Bvp.'
+      ALLOCATE(DstParamData%Bvp(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%Bvp.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
@@ -2695,15 +2653,16 @@ IF (ALLOCATED(SrcParamData%OutParam)) THEN
    i1_l = LBOUND(SrcParamData%OutParam,1)
    i1_u = UBOUND(SrcParamData%OutParam,1)
    IF (.NOT. ALLOCATED(DstParamData%OutParam)) THEN 
-      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyParam: Error allocating DstParamData%OutParam.'
+      ALLOCATE(DstParamData%OutParam(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%OutParam.', ErrStat, ErrMsg,'FEAM_CopyParam')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcParamData%OutParam,1), UBOUND(SrcParamData%OutParam,1)
-      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyoutparmtype( SrcParamData%OutParam(i1), DstParamData%OutParam(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_CopyParam:OutParam(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
    DstParamData%Delim = SrcParamData%Delim
@@ -3226,11 +3185,17 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-     CALL MeshCopy( SrcInputData%HydroForceLineMesh, DstInputData%HydroForceLineMesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcInputData%PtFairleadDisplacement, DstInputData%PtFairleadDisplacement, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcInputData%HydroForceLineMesh, DstInputData%HydroForceLineMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_CopyInput:HydroForceLineMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcInputData%PtFairleadDisplacement, DstInputData%PtFairleadDisplacement, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_CopyInput:PtFairleadDisplacement')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE FEAM_CopyInput
 
  SUBROUTINE FEAM_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -3426,6 +3391,8 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -3433,17 +3400,20 @@ IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
    i1_l = LBOUND(SrcOutputData%WriteOutput,1)
    i1_u = UBOUND(SrcOutputData%WriteOutput,1)
    IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
-      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FEAM_CopyOutput: Error allocating DstOutputData%WriteOutput.'
+      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%WriteOutput.', ErrStat, ErrMsg,'FEAM_CopyOutput')
          RETURN
       END IF
    END IF
    DstOutputData%WriteOutput = SrcOutputData%WriteOutput
 ENDIF
-     CALL MeshCopy( SrcOutputData%PtFairleadLoad, DstOutputData%PtFairleadLoad, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcOutputData%LineMeshPosition, DstOutputData%LineMeshPosition, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcOutputData%PtFairleadLoad, DstOutputData%PtFairleadLoad, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_CopyOutput:PtFairleadLoad')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcOutputData%LineMeshPosition, DstOutputData%LineMeshPosition, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_CopyOutput:LineMeshPosition')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE FEAM_CopyOutput
 
  SUBROUTINE FEAM_DestroyOutput( OutputData, ErrStat, ErrMsg )
@@ -3682,6 +3652,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -3752,16 +3724,24 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-  CALL MeshCopy(u(1)%HydroForceLineMesh, u_out%HydroForceLineMesh, MESH_UPDATECOPY, ErrStat, ErrMsg )
-  CALL MeshCopy(u(1)%PtFairleadDisplacement, u_out%PtFairleadDisplacement, MESH_UPDATECOPY, ErrStat, ErrMsg )
+  CALL MeshCopy(u(1)%HydroForceLineMesh, u_out%HydroForceLineMesh, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Input_ExtrapInterp:%HydroForceLineMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshCopy(u(1)%PtFairleadDisplacement, u_out%PtFairleadDisplacement, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Input_ExtrapInterp:%PtFairleadDisplacement')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
     ErrMsg  = ' Error in FEAM_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp1(u(1)%HydroForceLineMesh, u(2)%HydroForceLineMesh, tin, u_out%HydroForceLineMesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp1(u(1)%PtFairleadDisplacement, u(2)%PtFairleadDisplacement, tin, u_out%PtFairleadDisplacement, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp1(u(1)%HydroForceLineMesh, u(2)%HydroForceLineMesh, tin, u_out%HydroForceLineMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Input_ExtrapInterp:%HydroForceLineMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp1(u(1)%PtFairleadDisplacement, u(2)%PtFairleadDisplacement, tin, u_out%PtFairleadDisplacement, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Input_ExtrapInterp:%PtFairleadDisplacement')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -3778,8 +3758,12 @@ ENDIF
     ErrMsg  = ' Error in FEAM_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-  CALL MeshExtrapInterp2(u(1)%HydroForceLineMesh, u(2)%HydroForceLineMesh, u(3)%HydroForceLineMesh, tin, u_out%HydroForceLineMesh, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp2(u(1)%PtFairleadDisplacement, u(2)%PtFairleadDisplacement, u(3)%PtFairleadDisplacement, tin, u_out%PtFairleadDisplacement, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp2(u(1)%HydroForceLineMesh, u(2)%HydroForceLineMesh, u(3)%HydroForceLineMesh, tin, u_out%HydroForceLineMesh, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Input_ExtrapInterp:%HydroForceLineMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp2(u(1)%PtFairleadDisplacement, u(2)%PtFairleadDisplacement, u(3)%PtFairleadDisplacement, tin, u_out%PtFairleadDisplacement, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Input_ExtrapInterp:%PtFairleadDisplacement')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in FEAM_Input_ExtrapInterp '
@@ -3826,6 +3810,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -3899,8 +3885,12 @@ ENDIF
 IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   u_out%WriteOutput = u(1)%WriteOutput
 END IF ! check if allocated
-  CALL MeshCopy(u(1)%PtFairleadLoad, u_out%PtFairleadLoad, MESH_UPDATECOPY, ErrStat, ErrMsg )
-  CALL MeshCopy(u(1)%LineMeshPosition, u_out%LineMeshPosition, MESH_UPDATECOPY, ErrStat, ErrMsg )
+  CALL MeshCopy(u(1)%PtFairleadLoad, u_out%PtFairleadLoad, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Output_ExtrapInterp:%PtFairleadLoad')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshCopy(u(1)%LineMeshPosition, u_out%LineMeshPosition, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Output_ExtrapInterp:%LineMeshPosition')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -3915,8 +3905,12 @@ IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  CALL MeshExtrapInterp1(u(1)%PtFairleadLoad, u(2)%PtFairleadLoad, tin, u_out%PtFairleadLoad, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp1(u(1)%LineMeshPosition, u(2)%LineMeshPosition, tin, u_out%LineMeshPosition, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp1(u(1)%PtFairleadLoad, u(2)%PtFairleadLoad, tin, u_out%PtFairleadLoad, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Output_ExtrapInterp:%PtFairleadLoad')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp1(u(1)%LineMeshPosition, u(2)%LineMeshPosition, tin, u_out%LineMeshPosition, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Output_ExtrapInterp:%LineMeshPosition')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -3942,8 +3936,12 @@ IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  CALL MeshExtrapInterp2(u(1)%PtFairleadLoad, u(2)%PtFairleadLoad, u(3)%PtFairleadLoad, tin, u_out%PtFairleadLoad, tin_out, ErrStat, ErrMsg )
-  CALL MeshExtrapInterp2(u(1)%LineMeshPosition, u(2)%LineMeshPosition, u(3)%LineMeshPosition, tin, u_out%LineMeshPosition, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp2(u(1)%PtFairleadLoad, u(2)%PtFairleadLoad, u(3)%PtFairleadLoad, tin, u_out%PtFairleadLoad, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Output_ExtrapInterp:%PtFairleadLoad')
+         IF (ErrStat>=AbortErrLev) RETURN
+  CALL MeshExtrapInterp2(u(1)%LineMeshPosition, u(2)%LineMeshPosition, u(3)%LineMeshPosition, tin, u_out%LineMeshPosition, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FEAM_Output_ExtrapInterp:%LineMeshPosition')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in FEAM_Output_ExtrapInterp '

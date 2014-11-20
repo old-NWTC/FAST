@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.00, 7-Nov-2014)
+! FAST Registry (v2.04.01, 20-Nov-2014)
 !*********************************************************************************************************************************
 ! SS_Radiation_Types
 !.................................................................................................................................
@@ -150,6 +150,7 @@ CONTAINS
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+!  missing buffer for InputFile
   Re_BufSz    = Re_BufSz    + SIZE( InData%DOFs )  ! DOFs 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
@@ -263,6 +264,8 @@ CONTAINS
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+!  missing buffer for WriteOutputHdr
+!  missing buffer for WriteOutputUnt
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -384,7 +387,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%x )  ! x 
+  IF ( ALLOCATED(InData%x) )   Re_BufSz    = Re_BufSz    + SIZE( InData%x )  ! x 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -941,9 +944,9 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Db_BufSz   = Db_BufSz   + 1  ! DT
-  Re_BufSz    = Re_BufSz    + SIZE( InData%A )  ! A 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%B )  ! B 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%C )  ! C 
+  IF ( ALLOCATED(InData%A) )   Re_BufSz    = Re_BufSz    + SIZE( InData%A )  ! A 
+  IF ( ALLOCATED(InData%B) )   Re_BufSz    = Re_BufSz    + SIZE( InData%B )  ! B 
+  IF ( ALLOCATED(InData%C) )   Re_BufSz    = Re_BufSz    + SIZE( InData%C )  ! C 
   Int_BufSz  = Int_BufSz  + 1  ! N
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )

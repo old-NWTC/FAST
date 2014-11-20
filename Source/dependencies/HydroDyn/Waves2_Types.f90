@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.00, 7-Nov-2014)
+! FAST Registry (v2.04.01, 20-Nov-2014)
 !*********************************************************************************************************************************
 ! Waves2_Types
 !.................................................................................................................................
@@ -361,21 +361,26 @@ ENDIF
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
   Re_BufSz   = Re_BufSz   + 1  ! WaveDOmega
   Int_BufSz  = Int_BufSz  + 1  ! WaveStMod
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDirArr )  ! WaveDirArr 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevC0 )  ! WaveElevC0 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
+  Int_BufSz  = Int_BufSz  + 1  ! WaveMultiDir
+  IF ( ALLOCATED(InData%WaveDirArr) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDirArr )  ! WaveDirArr 
+  IF ( ALLOCATED(InData%WaveElevC0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevC0 )  ! WaveElevC0 
+  IF ( ALLOCATED(InData%WaveTime) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
   Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevxi )  ! WaveElevxi 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevyi )  ! WaveElevyi 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevXY )  ! WaveElevXY 
+  IF ( ALLOCATED(InData%WaveElevxi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevxi )  ! WaveElevxi 
+  IF ( ALLOCATED(InData%WaveElevyi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevyi )  ! WaveElevyi 
+  IF ( ALLOCATED(InData%WaveElevXY) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevXY )  ! WaveElevXY 
   Int_BufSz  = Int_BufSz  + 1  ! NWaveKin0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveKinxi0 )  ! WaveKinxi0 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveKinyi0 )  ! WaveKinyi0 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveKinzi0 )  ! WaveKinzi0 
+  IF ( ALLOCATED(InData%WaveKinxi0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveKinxi0 )  ! WaveKinxi0 
+  IF ( ALLOCATED(InData%WaveKinyi0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveKinyi0 )  ! WaveKinyi0 
+  IF ( ALLOCATED(InData%WaveKinzi0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveKinzi0 )  ! WaveKinzi0 
+  Int_BufSz  = Int_BufSz  + 1  ! WvDiffQTFF
+  Int_BufSz  = Int_BufSz  + 1  ! WvSumQTFF
   Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffD
   Re_BufSz   = Re_BufSz   + 1  ! WvHiCOffD
   Re_BufSz   = Re_BufSz   + 1  ! WvLowCOffS
   Re_BufSz   = Re_BufSz   + 1  ! WvHiCOffS
+!  missing buffer for OutList
+  Int_BufSz  = Int_BufSz  + 1  ! OutAll
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
   Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
@@ -396,6 +401,8 @@ ENDIF
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WaveDOmega )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%WaveStMod )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WaveMultiDir ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(InData%WaveDirArr) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveDirArr))-1 ) =  PACK(InData%WaveDirArr ,.TRUE.)
@@ -437,6 +444,10 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveKinzi0))-1 ) =  PACK(InData%WaveKinzi0 ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveKinzi0)
   ENDIF
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WvDiffQTFF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WvSumQTFF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvLowCOffD )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvHiCOffD )
@@ -445,6 +456,8 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WvHiCOffS )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%OutAll ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOutAll )
@@ -793,13 +806,15 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevSeries2 )  ! WaveElevSeries2 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc2D )  ! WaveAcc2D 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDynP2D )  ! WaveDynP2D 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc2S )  ! WaveAcc2S 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDynP2S )  ! WaveDynP2S 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveVel2D )  ! WaveVel2D 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveVel2S )  ! WaveVel2S 
+!  missing buffer for WriteOutputHdr
+!  missing buffer for WriteOutputUnt
+  IF ( ALLOCATED(InData%WaveElevSeries2) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevSeries2 )  ! WaveElevSeries2 
+  IF ( ALLOCATED(InData%WaveAcc2D) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc2D )  ! WaveAcc2D 
+  IF ( ALLOCATED(InData%WaveDynP2D) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDynP2D )  ! WaveDynP2D 
+  IF ( ALLOCATED(InData%WaveAcc2S) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc2S )  ! WaveAcc2S 
+  IF ( ALLOCATED(InData%WaveDynP2S) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveDynP2S )  ! WaveDynP2S 
+  IF ( ALLOCATED(InData%WaveVel2D) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveVel2D )  ! WaveVel2D 
+  IF ( ALLOCATED(InData%WaveVel2S) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveVel2S )  ! WaveVel2S 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1490,11 +1505,13 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Db_BufSz   = Db_BufSz   + 1  ! DT
+  Int_BufSz  = Int_BufSz  + 1  ! WvDiffQTFF
+  Int_BufSz  = Int_BufSz  + 1  ! WvSumQTFF
   Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave2
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev2 )  ! WaveElev2 
+  IF ( ALLOCATED(InData%WaveTime) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
+  IF ( ALLOCATED(InData%WaveElev2) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev2 )  ! WaveElev2 
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, .TRUE. ) ! OutParam 
   IF(ALLOCATED(Re_OutParam_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_OutParam_Buf  ) ! OutParam
@@ -1506,12 +1523,19 @@ DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
 ENDDO
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
   Int_BufSz  = Int_BufSz  + 1  ! NumOutAll
+!  missing buffer for OutFmt
+!  missing buffer for OutSFmt
+!  missing buffer for Delim
   Int_BufSz  = Int_BufSz  + 1  ! UnOutFile
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WvDiffQTFF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%WvSumQTFF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NWaveElev )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
@@ -1822,7 +1846,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
+  IF ( ALLOCATED(InData%WriteOutput) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )

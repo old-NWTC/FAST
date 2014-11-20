@@ -130,7 +130,7 @@ fprintf(fp,"                 double * DbKiBuf, \n") ;
 fprintf(fp,"                 int * IntKiBuf,   \n") ;
 fprintf(fp,"                 %s_t *OutData, char * ErrMsg )\n", addnick) ;
 fprintf(fp,"{\n") ;
-fprintf(fp,"  int ErrStat ;\n") ;
+fprintf(fp,"  int ErrStat = 0;\n") ;
 fprintf(fp,"  int Re_BufSz2 = 0 ;\n") ;
 fprintf(fp,"  int Db_BufSz2 = 0 ;\n") ;
 fprintf(fp,"  int Int_BufSz2 = 0 ;\n") ;
@@ -278,7 +278,7 @@ fprintf(fp,"                 double * DbKiBuf, int * Db_BufSz ,\n") ;
 fprintf(fp,"                 int * IntKiBuf,   int * Int_BufSz ,\n") ;
 fprintf(fp,"                 %s_t *InData, char * ErrMsg, int *SizeOnly )\n", addnick) ;
 fprintf(fp,"{\n") ;
-fprintf(fp,"  int ErrStat ;\n") ;
+fprintf(fp,"  int ErrStat = 0;\n") ;
 fprintf(fp,"  int OnlySize ;\n") ;
 fprintf(fp,"  int Re_BufSz2 ;\n") ;
 fprintf(fp,"  int Db_BufSz2 ;\n") ;
@@ -583,6 +583,7 @@ gen_c_module( FILE * fpc , FILE * fph, node_t * ModName, FILE * fpIntf )
           ddtnamelong = ddtname ;
         }
 //        fprintf(fpc,"extern \"C\" %s_%s_t* CALL %s_%s_Create() { return new %s_%s_t() ; } ;\n",
+        if(!strcmp("InitInputType",ddtnamelong) || !strcmp("OtherStateType",ddtnamelong)) {
         fprintf(fpc,"//%s_%s_t* CALL %s_%s_Create() { return ((%s_%s_t*) malloc( sizeof(%s_%s_t()))) ; } ;\n",
                         ModName->nickname,
                         ddtnamelong,
@@ -592,12 +593,21 @@ gen_c_module( FILE * fpc , FILE * fph, node_t * ModName, FILE * fpIntf )
                         ddtnamelong,
                         ModName->nickname,
                         ddtnamelong ) ;
+        
         fprintf(fpc,"//void CALL %s_%s_Delete(%s_%s_t *This) { free(This) ; } ;\n",
                         ModName->nickname,
                         ddtname,
                         ModName->nickname,
                         ddtnamelong ) ;
-
+        } else {
+        fprintf(fpc,"void CALL %s_%s_Create() { } ;\n",
+                        ModName->nickname,
+                        ddtname ) ;
+        
+        fprintf(fpc,"void CALL %s_%s_Delete(void* none) { } ;\n",
+                        ModName->nickname,
+                        ddtname ) ;
+        }
       }
     }
 

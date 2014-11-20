@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.00, 7-Nov-2014)
+! FAST Registry (v2.04.01, 20-Nov-2014)
 !*********************************************************************************************************************************
 ! HydroDyn_Types
 !.................................................................................................................................
@@ -369,12 +369,28 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+!  missing buffer for InputFile
+  Int_BufSz  = Int_BufSz  + 1  ! UseInputFile
+!  missing buffer for OutRootName
   Db_BufSz   = Db_BufSz   + 1  ! DT
   Re_BufSz   = Re_BufSz   + 1  ! Gravity
   Db_BufSz   = Db_BufSz   + 1  ! TMax
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevXY )  ! WaveElevXY 
+  Int_BufSz  = Int_BufSz  + 1  ! HasIce
+  IF ( ALLOCATED(InData%WaveElevXY) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevXY )  ! WaveElevXY 
   Re_BufSz   = Re_BufSz   + 1  ! PtfmLocationX
   Re_BufSz   = Re_BufSz   + 1  ! PtfmLocationY
+!  missing buffer for PtfmSgFChr
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmSgF
+!  missing buffer for PtfmSwFChr
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmSwF
+!  missing buffer for PtfmHvFChr
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmHvF
+!  missing buffer for PtfmRFChr
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmRF
+!  missing buffer for PtfmPFChr
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmPF
+!  missing buffer for PtfmYFChr
+  Int_BufSz  = Int_BufSz  + 1  ! PtfmYF
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddF0 )  ! AddF0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddCLin )  ! AddCLin 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddBLin )  ! AddBLin 
@@ -421,19 +437,31 @@ ENDIF
   IF(ALLOCATED(Re_Morison_Buf))  DEALLOCATE(Re_Morison_Buf)
   IF(ALLOCATED(Db_Morison_Buf))  DEALLOCATE(Db_Morison_Buf)
   IF(ALLOCATED(Int_Morison_Buf)) DEALLOCATE(Int_Morison_Buf)
+  Int_BufSz  = Int_BufSz  + 1  ! Echo
+  Int_BufSz  = Int_BufSz  + 1  ! HasWAMIT
   Int_BufSz  = Int_BufSz  + 1  ! NUserOutputs
+!  missing buffer for UserOutputs
   Int_BufSz  = Int_BufSz  + 1  ! OutSwtch
+  Int_BufSz  = Int_BufSz  + 1  ! OutAll
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
+!  missing buffer for OutList
+  Int_BufSz  = Int_BufSz  + 1  ! HDSum
   Int_BufSz  = Int_BufSz  + 1  ! UnSum
+!  missing buffer for OutFmt
+!  missing buffer for OutSFmt
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%UseInputFile ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT )
   Db_Xferred   = Db_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Gravity )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TMax )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%HasIce ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(InData%WaveElevXY) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveElevXY))-1 ) =  PACK(InData%WaveElevXY ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%WaveElevXY)
@@ -442,6 +470,18 @@ ENDIF
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%PtfmLocationY )
   Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmSgF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmSwF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmHvF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmRF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmPF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%PtfmYF ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddF0))-1 ) =  PACK(InData%AddF0 ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%AddF0)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AddCLin))-1 ) =  PACK(InData%AddCLin ,.TRUE.)
@@ -546,11 +586,19 @@ ENDIF
   IF( ALLOCATED(Re_Morison_Buf) )  DEALLOCATE(Re_Morison_Buf)
   IF( ALLOCATED(Db_Morison_Buf) )  DEALLOCATE(Db_Morison_Buf)
   IF( ALLOCATED(Int_Morison_Buf) ) DEALLOCATE(Int_Morison_Buf)
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%Echo ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%HasWAMIT ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NUserOutputs )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%OutSwtch )
   Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%OutAll ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumOuts )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%HDSum ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnSum )
   Int_Xferred   = Int_Xferred   + 1
@@ -916,7 +964,9 @@ ENDIF
   IF(ALLOCATED(Re_Morison_Buf))  DEALLOCATE(Re_Morison_Buf)
   IF(ALLOCATED(Db_Morison_Buf))  DEALLOCATE(Db_Morison_Buf)
   IF(ALLOCATED(Int_Morison_Buf)) DEALLOCATE(Int_Morison_Buf)
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevSeries )  ! WaveElevSeries 
+!  missing buffer for WriteOutputHdr
+!  missing buffer for WriteOutputUnt
+  IF ( ALLOCATED(InData%WaveElevSeries) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElevSeries )  ! WaveElevSeries 
   CALL NWTC_Library_Packprogdesc( Re_Ver_Buf, Db_Ver_Buf, Int_Ver_Buf, InData%Ver, ErrStat, ErrMsg, .TRUE. ) ! Ver 
   IF(ALLOCATED(Re_Ver_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Ver_Buf  ) ! Ver
   IF(ALLOCATED(Db_Ver_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Ver_Buf  ) ! Ver
@@ -2810,11 +2860,11 @@ ENDIF
   IF(ALLOCATED(Re_Morison_Buf))  DEALLOCATE(Re_Morison_Buf)
   IF(ALLOCATED(Db_Morison_Buf))  DEALLOCATE(Db_Morison_Buf)
   IF(ALLOCATED(Int_Morison_Buf)) DEALLOCATE(Int_Morison_Buf)
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
+  IF ( ALLOCATED(InData%WaveTime) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
   Int_BufSz  = Int_BufSz  + 1  ! NStepWave
   Int_BufSz  = Int_BufSz  + 1  ! NWaveElev
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev )  ! WaveElev 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev1 )  ! WaveElev1 
+  IF ( ALLOCATED(InData%WaveElev) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev )  ! WaveElev 
+  IF ( ALLOCATED(InData%WaveElev1) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveElev1 )  ! WaveElev1 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddF0 )  ! AddF0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddCLin )  ! AddCLin 
   Re_BufSz    = Re_BufSz    + SIZE( InData%AddBLin )  ! AddBLin 
@@ -2832,6 +2882,9 @@ ENDDO
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
   Int_BufSz  = Int_BufSz  + 1  ! NumTotalOuts
   Int_BufSz  = Int_BufSz  + 1  ! OutSwtch
+!  missing buffer for OutFmt
+!  missing buffer for OutSFmt
+!  missing buffer for Delim
   Int_BufSz  = Int_BufSz  + 1  ! UnOutFile
   Int_BufSz  = Int_BufSz  + 1  ! OutDec
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
@@ -3646,7 +3699,7 @@ ENDIF
   IF(ALLOCATED(Re_AllHdroOrigin_Buf))  DEALLOCATE(Re_AllHdroOrigin_Buf)
   IF(ALLOCATED(Db_AllHdroOrigin_Buf))  DEALLOCATE(Db_AllHdroOrigin_Buf)
   IF(ALLOCATED(Int_AllHdroOrigin_Buf)) DEALLOCATE(Int_AllHdroOrigin_Buf)
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
+  IF ( ALLOCATED(InData%WriteOutput) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )

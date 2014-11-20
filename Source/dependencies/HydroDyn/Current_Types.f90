@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.00, 7-Nov-2014)
+! FAST Registry (v2.04.01, 20-Nov-2014)
 !*********************************************************************************************************************************
 ! Current_Types
 !.................................................................................................................................
@@ -183,6 +183,7 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Re_BufSz   = Re_BufSz   + 1  ! CurrSSV0
+!  missing buffer for CurrSSDirChr
   Re_BufSz   = Re_BufSz   + 1  ! CurrSSDir
   Re_BufSz   = Re_BufSz   + 1  ! CurrNSRef
   Re_BufSz   = Re_BufSz   + 1  ! CurrNSV0
@@ -191,8 +192,9 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! CurrDIDir
   Int_BufSz  = Int_BufSz  + 1  ! CurrMod
   Re_BufSz   = Re_BufSz   + 1  ! WtrDpth
-  Re_BufSz    = Re_BufSz    + SIZE( InData%MorisonNodezi )  ! MorisonNodezi 
+  IF ( ALLOCATED(InData%MorisonNodezi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%MorisonNodezi )  ! MorisonNodezi 
   Int_BufSz  = Int_BufSz  + 1  ! NMorisonNodes
+!  missing buffer for DirRoot
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -379,8 +381,8 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%CurrVxi )  ! CurrVxi 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%CurrVyi )  ! CurrVyi 
+  IF ( ALLOCATED(InData%CurrVxi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%CurrVxi )  ! CurrVxi 
+  IF ( ALLOCATED(InData%CurrVyi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%CurrVyi )  ! CurrVyi 
   Re_BufSz   = Re_BufSz   + 1  ! PCurrVxiPz0
   Re_BufSz   = Re_BufSz   + 1  ! PCurrVyiPz0
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )

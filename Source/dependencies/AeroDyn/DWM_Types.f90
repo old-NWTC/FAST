@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.02, 17-Sep-2014)
+! FAST Registry (v2.04.01, 20-Nov-2014)
 !*********************************************************************************************************************************
 ! DWM_Types
 !.................................................................................................................................
@@ -337,6 +337,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -457,6 +459,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -464,10 +468,9 @@ IF (ALLOCATED(Srcturbine_average_velocity_dataData%average_velocity_array_temp))
    i1_l = LBOUND(Srcturbine_average_velocity_dataData%average_velocity_array_temp,1)
    i1_u = UBOUND(Srcturbine_average_velocity_dataData%average_velocity_array_temp,1)
    IF (.NOT. ALLOCATED(Dstturbine_average_velocity_dataData%average_velocity_array_temp)) THEN 
-      ALLOCATE(Dstturbine_average_velocity_dataData%average_velocity_array_temp(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyturbine_average_velocity_data: Error allocating Dstturbine_average_velocity_dataData%average_velocity_array_temp.'
+      ALLOCATE(Dstturbine_average_velocity_dataData%average_velocity_array_temp(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstturbine_average_velocity_dataData%average_velocity_array_temp.', ErrStat, ErrMsg,'DWM_Copyturbine_average_velocity_data')
          RETURN
       END IF
    END IF
@@ -477,10 +480,9 @@ IF (ALLOCATED(Srcturbine_average_velocity_dataData%average_velocity_array)) THEN
    i1_l = LBOUND(Srcturbine_average_velocity_dataData%average_velocity_array,1)
    i1_u = UBOUND(Srcturbine_average_velocity_dataData%average_velocity_array,1)
    IF (.NOT. ALLOCATED(Dstturbine_average_velocity_dataData%average_velocity_array)) THEN 
-      ALLOCATE(Dstturbine_average_velocity_dataData%average_velocity_array(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyturbine_average_velocity_data: Error allocating Dstturbine_average_velocity_dataData%average_velocity_array.'
+      ALLOCATE(Dstturbine_average_velocity_dataData%average_velocity_array(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstturbine_average_velocity_dataData%average_velocity_array.', ErrStat, ErrMsg,'DWM_Copyturbine_average_velocity_data')
          RETURN
       END IF
    END IF
@@ -490,10 +492,9 @@ IF (ALLOCATED(Srcturbine_average_velocity_dataData%swept_area)) THEN
    i1_l = LBOUND(Srcturbine_average_velocity_dataData%swept_area,1)
    i1_u = UBOUND(Srcturbine_average_velocity_dataData%swept_area,1)
    IF (.NOT. ALLOCATED(Dstturbine_average_velocity_dataData%swept_area)) THEN 
-      ALLOCATE(Dstturbine_average_velocity_dataData%swept_area(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyturbine_average_velocity_data: Error allocating Dstturbine_average_velocity_dataData%swept_area.'
+      ALLOCATE(Dstturbine_average_velocity_dataData%swept_area(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstturbine_average_velocity_dataData%swept_area.', ErrStat, ErrMsg,'DWM_Copyturbine_average_velocity_data')
          RETURN
       END IF
    END IF
@@ -504,10 +505,9 @@ IF (ALLOCATED(Srcturbine_average_velocity_dataData%time_step_velocity_array)) TH
    i1_l = LBOUND(Srcturbine_average_velocity_dataData%time_step_velocity_array,1)
    i1_u = UBOUND(Srcturbine_average_velocity_dataData%time_step_velocity_array,1)
    IF (.NOT. ALLOCATED(Dstturbine_average_velocity_dataData%time_step_velocity_array)) THEN 
-      ALLOCATE(Dstturbine_average_velocity_dataData%time_step_velocity_array(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyturbine_average_velocity_data: Error allocating Dstturbine_average_velocity_dataData%time_step_velocity_array.'
+      ALLOCATE(Dstturbine_average_velocity_dataData%time_step_velocity_array(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstturbine_average_velocity_dataData%time_step_velocity_array.', ErrStat, ErrMsg,'DWM_Copyturbine_average_velocity_data')
          RETURN
       END IF
    END IF
@@ -573,11 +573,11 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%average_velocity_array_temp )  ! average_velocity_array_temp 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%average_velocity_array )  ! average_velocity_array 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%swept_area )  ! swept_area 
+  IF ( ALLOCATED(InData%average_velocity_array_temp) )   Re_BufSz    = Re_BufSz    + SIZE( InData%average_velocity_array_temp )  ! average_velocity_array_temp 
+  IF ( ALLOCATED(InData%average_velocity_array) )   Re_BufSz    = Re_BufSz    + SIZE( InData%average_velocity_array )  ! average_velocity_array 
+  IF ( ALLOCATED(InData%swept_area) )   Re_BufSz    = Re_BufSz    + SIZE( InData%swept_area )  ! swept_area 
   Int_BufSz  = Int_BufSz  + 1  ! time_step_velocity
-  Int_BufSz   = Int_BufSz   + SIZE( InData%time_step_velocity_array )  ! time_step_velocity_array 
+  IF ( ALLOCATED(InData%time_step_velocity_array) )   Int_BufSz   = Int_BufSz   + SIZE( InData%time_step_velocity_array )  ! time_step_velocity_array 
   Int_BufSz  = Int_BufSz  + 1  ! time_step_pass_velocity
   Int_BufSz  = Int_BufSz  + 1  ! time_step_force
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
@@ -685,6 +685,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -696,10 +698,9 @@ IF (ALLOCATED(Srcwake_deficit_dataData%Turb_Stress_DWM)) THEN
    i2_l = LBOUND(Srcwake_deficit_dataData%Turb_Stress_DWM,2)
    i2_u = UBOUND(Srcwake_deficit_dataData%Turb_Stress_DWM,2)
    IF (.NOT. ALLOCATED(Dstwake_deficit_dataData%Turb_Stress_DWM)) THEN 
-      ALLOCATE(Dstwake_deficit_dataData%Turb_Stress_DWM(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copywake_deficit_data: Error allocating Dstwake_deficit_dataData%Turb_Stress_DWM.'
+      ALLOCATE(Dstwake_deficit_dataData%Turb_Stress_DWM(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstwake_deficit_dataData%Turb_Stress_DWM.', ErrStat, ErrMsg,'DWM_Copywake_deficit_data')
          RETURN
       END IF
    END IF
@@ -759,7 +760,7 @@ ENDIF
   Int_BufSz  = 0
   Int_BufSz  = Int_BufSz  + 1  ! np_x
   Re_BufSz   = Re_BufSz   + 1  ! X_length
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Turb_Stress_DWM )  ! Turb_Stress_DWM 
+  IF ( ALLOCATED(InData%Turb_Stress_DWM) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Turb_Stress_DWM )  ! Turb_Stress_DWM 
   Int_BufSz  = Int_BufSz  + 1  ! n_x_vector
   Int_BufSz  = Int_BufSz  + 1  ! n_r_vector
   Re_BufSz   = Re_BufSz   + 1  ! ppR
@@ -846,6 +847,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -960,6 +963,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -968,10 +973,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%Turbine_sort_order)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%Turbine_sort_order,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%Turbine_sort_order,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%Turbine_sort_order)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%Turbine_sort_order(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%Turbine_sort_order.'
+      ALLOCATE(Dstread_turbine_position_dataData%Turbine_sort_order(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%Turbine_sort_order.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -984,10 +988,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%TurbineInfluenceData)) THEN
    i2_l = LBOUND(Srcread_turbine_position_dataData%TurbineInfluenceData,2)
    i2_u = UBOUND(Srcread_turbine_position_dataData%TurbineInfluenceData,2)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%TurbineInfluenceData)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%TurbineInfluenceData(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%TurbineInfluenceData.'
+      ALLOCATE(Dstread_turbine_position_dataData%TurbineInfluenceData(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%TurbineInfluenceData.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -997,10 +1000,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%upwind_turbine_index)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%upwind_turbine_index,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%upwind_turbine_index,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%upwind_turbine_index)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%upwind_turbine_index(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%upwind_turbine_index.'
+      ALLOCATE(Dstread_turbine_position_dataData%upwind_turbine_index(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%upwind_turbine_index.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1010,10 +1012,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%downwind_turbine_index)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%downwind_turbine_index,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%downwind_turbine_index,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%downwind_turbine_index)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%downwind_turbine_index(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%downwind_turbine_index.'
+      ALLOCATE(Dstread_turbine_position_dataData%downwind_turbine_index(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%downwind_turbine_index.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1025,10 +1026,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%turbine_windorigin_length)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%turbine_windorigin_length,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%turbine_windorigin_length,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%turbine_windorigin_length)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%turbine_windorigin_length(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%turbine_windorigin_length.'
+      ALLOCATE(Dstread_turbine_position_dataData%turbine_windorigin_length(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%turbine_windorigin_length.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1038,10 +1038,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%upwind_turbine_projected_distanc
    i1_l = LBOUND(Srcread_turbine_position_dataData%upwind_turbine_projected_distance,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%upwind_turbine_projected_distance,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%upwind_turbine_projected_distance)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%upwind_turbine_projected_distance(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%upwind_turbine_projected_distance.'
+      ALLOCATE(Dstread_turbine_position_dataData%upwind_turbine_projected_distance(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%upwind_turbine_projected_distance.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1051,10 +1050,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%downwind_turbine_projected_dista
    i1_l = LBOUND(Srcread_turbine_position_dataData%downwind_turbine_projected_distance,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%downwind_turbine_projected_distance,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%downwind_turbine_projected_distance)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%downwind_turbine_projected_distance(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%downwind_turbine_projected_distance.'
+      ALLOCATE(Dstread_turbine_position_dataData%downwind_turbine_projected_distance(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%downwind_turbine_projected_distance.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1066,10 +1064,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%turbine_angle)) THEN
    i2_l = LBOUND(Srcread_turbine_position_dataData%turbine_angle,2)
    i2_u = UBOUND(Srcread_turbine_position_dataData%turbine_angle,2)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%turbine_angle)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%turbine_angle(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%turbine_angle.'
+      ALLOCATE(Dstread_turbine_position_dataData%turbine_angle(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%turbine_angle.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1079,10 +1076,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%upwind_align_angle)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%upwind_align_angle,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%upwind_align_angle,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%upwind_align_angle)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%upwind_align_angle(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%upwind_align_angle.'
+      ALLOCATE(Dstread_turbine_position_dataData%upwind_align_angle(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%upwind_align_angle.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1092,10 +1088,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%downwind_align_angle)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%downwind_align_angle,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%downwind_align_angle,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%downwind_align_angle)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%downwind_align_angle(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%downwind_align_angle.'
+      ALLOCATE(Dstread_turbine_position_dataData%downwind_align_angle(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%downwind_align_angle.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1105,10 +1100,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%upwind_turbine_Xcoor)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%upwind_turbine_Xcoor,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%upwind_turbine_Xcoor,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%upwind_turbine_Xcoor)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%upwind_turbine_Xcoor(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%upwind_turbine_Xcoor.'
+      ALLOCATE(Dstread_turbine_position_dataData%upwind_turbine_Xcoor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%upwind_turbine_Xcoor.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1118,10 +1112,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%upwind_turbine_Ycoor)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%upwind_turbine_Ycoor,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%upwind_turbine_Ycoor,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%upwind_turbine_Ycoor)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%upwind_turbine_Ycoor(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%upwind_turbine_Ycoor.'
+      ALLOCATE(Dstread_turbine_position_dataData%upwind_turbine_Ycoor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%upwind_turbine_Ycoor.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1131,10 +1124,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%wind_farm_Xcoor)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%wind_farm_Xcoor,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%wind_farm_Xcoor,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%wind_farm_Xcoor)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%wind_farm_Xcoor(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%wind_farm_Xcoor.'
+      ALLOCATE(Dstread_turbine_position_dataData%wind_farm_Xcoor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%wind_farm_Xcoor.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1144,10 +1136,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%wind_farm_Ycoor)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%wind_farm_Ycoor,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%wind_farm_Ycoor,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%wind_farm_Ycoor)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%wind_farm_Ycoor(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%wind_farm_Ycoor.'
+      ALLOCATE(Dstread_turbine_position_dataData%wind_farm_Ycoor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%wind_farm_Ycoor.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1157,10 +1148,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%downwind_turbine_Xcoor)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%downwind_turbine_Xcoor,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%downwind_turbine_Xcoor,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%downwind_turbine_Xcoor)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%downwind_turbine_Xcoor(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%downwind_turbine_Xcoor.'
+      ALLOCATE(Dstread_turbine_position_dataData%downwind_turbine_Xcoor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%downwind_turbine_Xcoor.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1170,10 +1160,9 @@ IF (ALLOCATED(Srcread_turbine_position_dataData%downwind_turbine_Ycoor)) THEN
    i1_l = LBOUND(Srcread_turbine_position_dataData%downwind_turbine_Ycoor,1)
    i1_u = UBOUND(Srcread_turbine_position_dataData%downwind_turbine_Ycoor,1)
    IF (.NOT. ALLOCATED(Dstread_turbine_position_dataData%downwind_turbine_Ycoor)) THEN 
-      ALLOCATE(Dstread_turbine_position_dataData%downwind_turbine_Ycoor(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_turbine_position_data: Error allocating Dstread_turbine_position_dataData%downwind_turbine_Ycoor.'
+      ALLOCATE(Dstread_turbine_position_dataData%downwind_turbine_Ycoor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_turbine_position_dataData%downwind_turbine_Ycoor.', ErrStat, ErrMsg,'DWM_Copyread_turbine_position_data')
          RETURN
       END IF
    END IF
@@ -1274,25 +1263,25 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Int_BufSz  = Int_BufSz  + 1  ! SimulationOrder_index
-  Int_BufSz   = Int_BufSz   + SIZE( InData%Turbine_sort_order )  ! Turbine_sort_order 
+  IF ( ALLOCATED(InData%Turbine_sort_order) )   Int_BufSz   = Int_BufSz   + SIZE( InData%Turbine_sort_order )  ! Turbine_sort_order 
   Int_BufSz  = Int_BufSz  + 1  ! WT_index
-  Int_BufSz   = Int_BufSz   + SIZE( InData%TurbineInfluenceData )  ! TurbineInfluenceData 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%upwind_turbine_index )  ! upwind_turbine_index 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%downwind_turbine_index )  ! downwind_turbine_index 
+  IF ( ALLOCATED(InData%TurbineInfluenceData) )   Int_BufSz   = Int_BufSz   + SIZE( InData%TurbineInfluenceData )  ! TurbineInfluenceData 
+  IF ( ALLOCATED(InData%upwind_turbine_index) )   Int_BufSz   = Int_BufSz   + SIZE( InData%upwind_turbine_index )  ! upwind_turbine_index 
+  IF ( ALLOCATED(InData%downwind_turbine_index) )   Int_BufSz   = Int_BufSz   + SIZE( InData%downwind_turbine_index )  ! downwind_turbine_index 
   Int_BufSz  = Int_BufSz  + 1  ! upwindturbine_number
   Int_BufSz  = Int_BufSz  + 1  ! downwindturbine_number
-  Re_BufSz    = Re_BufSz    + SIZE( InData%turbine_windorigin_length )  ! turbine_windorigin_length 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_turbine_projected_distance )  ! upwind_turbine_projected_distance 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%downwind_turbine_projected_distance )  ! downwind_turbine_projected_distance 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%turbine_angle )  ! turbine_angle 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_align_angle )  ! upwind_align_angle 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%downwind_align_angle )  ! downwind_align_angle 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_turbine_Xcoor )  ! upwind_turbine_Xcoor 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_turbine_Ycoor )  ! upwind_turbine_Ycoor 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%wind_farm_Xcoor )  ! wind_farm_Xcoor 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%wind_farm_Ycoor )  ! wind_farm_Ycoor 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%downwind_turbine_Xcoor )  ! downwind_turbine_Xcoor 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%downwind_turbine_Ycoor )  ! downwind_turbine_Ycoor 
+  IF ( ALLOCATED(InData%turbine_windorigin_length) )   Re_BufSz    = Re_BufSz    + SIZE( InData%turbine_windorigin_length )  ! turbine_windorigin_length 
+  IF ( ALLOCATED(InData%upwind_turbine_projected_distance) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_turbine_projected_distance )  ! upwind_turbine_projected_distance 
+  IF ( ALLOCATED(InData%downwind_turbine_projected_distance) )   Re_BufSz    = Re_BufSz    + SIZE( InData%downwind_turbine_projected_distance )  ! downwind_turbine_projected_distance 
+  IF ( ALLOCATED(InData%turbine_angle) )   Re_BufSz    = Re_BufSz    + SIZE( InData%turbine_angle )  ! turbine_angle 
+  IF ( ALLOCATED(InData%upwind_align_angle) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_align_angle )  ! upwind_align_angle 
+  IF ( ALLOCATED(InData%downwind_align_angle) )   Re_BufSz    = Re_BufSz    + SIZE( InData%downwind_align_angle )  ! downwind_align_angle 
+  IF ( ALLOCATED(InData%upwind_turbine_Xcoor) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_turbine_Xcoor )  ! upwind_turbine_Xcoor 
+  IF ( ALLOCATED(InData%upwind_turbine_Ycoor) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_turbine_Ycoor )  ! upwind_turbine_Ycoor 
+  IF ( ALLOCATED(InData%wind_farm_Xcoor) )   Re_BufSz    = Re_BufSz    + SIZE( InData%wind_farm_Xcoor )  ! wind_farm_Xcoor 
+  IF ( ALLOCATED(InData%wind_farm_Ycoor) )   Re_BufSz    = Re_BufSz    + SIZE( InData%wind_farm_Ycoor )  ! wind_farm_Ycoor 
+  IF ( ALLOCATED(InData%downwind_turbine_Xcoor) )   Re_BufSz    = Re_BufSz    + SIZE( InData%downwind_turbine_Xcoor )  ! downwind_turbine_Xcoor 
+  IF ( ALLOCATED(InData%downwind_turbine_Ycoor) )   Re_BufSz    = Re_BufSz    + SIZE( InData%downwind_turbine_Ycoor )  ! downwind_turbine_Ycoor 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1522,6 +1511,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1529,10 +1520,9 @@ IF (ALLOCATED(SrcweimethodData%sweptarea)) THEN
    i1_l = LBOUND(SrcweimethodData%sweptarea,1)
    i1_u = UBOUND(SrcweimethodData%sweptarea,1)
    IF (.NOT. ALLOCATED(DstweimethodData%sweptarea)) THEN 
-      ALLOCATE(DstweimethodData%sweptarea(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyweimethod: Error allocating DstweimethodData%sweptarea.'
+      ALLOCATE(DstweimethodData%sweptarea(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstweimethodData%sweptarea.', ErrStat, ErrMsg,'DWM_Copyweimethod')
          RETURN
       END IF
    END IF
@@ -1588,7 +1578,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%sweptarea )  ! sweptarea 
+  IF ( ALLOCATED(InData%sweptarea) )   Re_BufSz    = Re_BufSz    + SIZE( InData%sweptarea )  ! sweptarea 
   Re_BufSz   = Re_BufSz   + 1  ! weighting_denominator
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
@@ -1657,6 +1647,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1666,10 +1658,9 @@ IF (ALLOCATED(SrctidownstreamData%TI_downstream_matrix)) THEN
    i2_l = LBOUND(SrctidownstreamData%TI_downstream_matrix,2)
    i2_u = UBOUND(SrctidownstreamData%TI_downstream_matrix,2)
    IF (.NOT. ALLOCATED(DsttidownstreamData%TI_downstream_matrix)) THEN 
-      ALLOCATE(DsttidownstreamData%TI_downstream_matrix(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copytidownstream: Error allocating DsttidownstreamData%TI_downstream_matrix.'
+      ALLOCATE(DsttidownstreamData%TI_downstream_matrix(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DsttidownstreamData%TI_downstream_matrix.', ErrStat, ErrMsg,'DWM_Copytidownstream')
          RETURN
       END IF
    END IF
@@ -1753,7 +1744,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%TI_downstream_matrix )  ! TI_downstream_matrix 
+  IF ( ALLOCATED(InData%TI_downstream_matrix) )   Re_BufSz    = Re_BufSz    + SIZE( InData%TI_downstream_matrix )  ! TI_downstream_matrix 
   Int_BufSz  = Int_BufSz  + 1  ! i
   Int_BufSz  = Int_BufSz  + 1  ! j
   Int_BufSz  = Int_BufSz  + 1  ! k
@@ -1962,6 +1953,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2106,6 +2099,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2113,10 +2108,9 @@ IF (ALLOCATED(SrcshinozukaData%f_syn)) THEN
    i1_l = LBOUND(SrcshinozukaData%f_syn,1)
    i1_u = UBOUND(SrcshinozukaData%f_syn,1)
    IF (.NOT. ALLOCATED(DstshinozukaData%f_syn)) THEN 
-      ALLOCATE(DstshinozukaData%f_syn(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyshinozuka: Error allocating DstshinozukaData%f_syn.'
+      ALLOCATE(DstshinozukaData%f_syn(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstshinozukaData%f_syn.', ErrStat, ErrMsg,'DWM_Copyshinozuka')
          RETURN
       END IF
    END IF
@@ -2126,10 +2120,9 @@ IF (ALLOCATED(SrcshinozukaData%t_syn)) THEN
    i1_l = LBOUND(SrcshinozukaData%t_syn,1)
    i1_u = UBOUND(SrcshinozukaData%t_syn,1)
    IF (.NOT. ALLOCATED(DstshinozukaData%t_syn)) THEN 
-      ALLOCATE(DstshinozukaData%t_syn(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyshinozuka: Error allocating DstshinozukaData%t_syn.'
+      ALLOCATE(DstshinozukaData%t_syn(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstshinozukaData%t_syn.', ErrStat, ErrMsg,'DWM_Copyshinozuka')
          RETURN
       END IF
    END IF
@@ -2139,10 +2132,9 @@ IF (ALLOCATED(SrcshinozukaData%phi)) THEN
    i1_l = LBOUND(SrcshinozukaData%phi,1)
    i1_u = UBOUND(SrcshinozukaData%phi,1)
    IF (.NOT. ALLOCATED(DstshinozukaData%phi)) THEN 
-      ALLOCATE(DstshinozukaData%phi(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyshinozuka: Error allocating DstshinozukaData%phi.'
+      ALLOCATE(DstshinozukaData%phi(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstshinozukaData%phi.', ErrStat, ErrMsg,'DWM_Copyshinozuka')
          RETURN
       END IF
    END IF
@@ -2152,10 +2144,9 @@ IF (ALLOCATED(SrcshinozukaData%p_k)) THEN
    i1_l = LBOUND(SrcshinozukaData%p_k,1)
    i1_u = UBOUND(SrcshinozukaData%p_k,1)
    IF (.NOT. ALLOCATED(DstshinozukaData%p_k)) THEN 
-      ALLOCATE(DstshinozukaData%p_k(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyshinozuka: Error allocating DstshinozukaData%p_k.'
+      ALLOCATE(DstshinozukaData%p_k(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstshinozukaData%p_k.', ErrStat, ErrMsg,'DWM_Copyshinozuka')
          RETURN
       END IF
    END IF
@@ -2165,10 +2156,9 @@ IF (ALLOCATED(SrcshinozukaData%a_k)) THEN
    i1_l = LBOUND(SrcshinozukaData%a_k,1)
    i1_u = UBOUND(SrcshinozukaData%a_k,1)
    IF (.NOT. ALLOCATED(DstshinozukaData%a_k)) THEN 
-      ALLOCATE(DstshinozukaData%a_k(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyshinozuka: Error allocating DstshinozukaData%a_k.'
+      ALLOCATE(DstshinozukaData%a_k(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstshinozukaData%a_k.', ErrStat, ErrMsg,'DWM_Copyshinozuka')
          RETURN
       END IF
    END IF
@@ -2243,11 +2233,11 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%f_syn )  ! f_syn 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%t_syn )  ! t_syn 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%phi )  ! phi 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%p_k )  ! p_k 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%a_k )  ! a_k 
+  IF ( ALLOCATED(InData%f_syn) )   Re_BufSz    = Re_BufSz    + SIZE( InData%f_syn )  ! f_syn 
+  IF ( ALLOCATED(InData%t_syn) )   Re_BufSz    = Re_BufSz    + SIZE( InData%t_syn )  ! t_syn 
+  IF ( ALLOCATED(InData%phi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%phi )  ! phi 
+  IF ( ALLOCATED(InData%p_k) )   Re_BufSz    = Re_BufSz    + SIZE( InData%p_k )  ! p_k 
+  IF ( ALLOCATED(InData%a_k) )   Re_BufSz    = Re_BufSz    + SIZE( InData%a_k )  ! a_k 
   Int_BufSz  = Int_BufSz  + 1  ! num_points
   Int_BufSz  = Int_BufSz  + 1  ! ILo
   Int_BufSz  = Int_BufSz  + 1  ! i
@@ -2391,6 +2381,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2499,6 +2491,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2637,6 +2631,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -2646,10 +2642,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%upwind_U)) THEN
    i2_l = LBOUND(Srcread_upwind_resultData%upwind_U,2)
    i2_u = UBOUND(Srcread_upwind_resultData%upwind_U,2)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%upwind_U)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%upwind_U(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%upwind_U.'
+      ALLOCATE(Dstread_upwind_resultData%upwind_U(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%upwind_U.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2665,10 +2660,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%upwind_wakecenter)) THEN
    i4_l = LBOUND(Srcread_upwind_resultData%upwind_wakecenter,4)
    i4_u = UBOUND(Srcread_upwind_resultData%upwind_wakecenter,4)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%upwind_wakecenter)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%upwind_wakecenter(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u,i4_l:i4_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%upwind_wakecenter.'
+      ALLOCATE(Dstread_upwind_resultData%upwind_wakecenter(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u,i4_l:i4_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%upwind_wakecenter.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2678,10 +2672,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%upwind_meanU)) THEN
    i1_l = LBOUND(Srcread_upwind_resultData%upwind_meanU,1)
    i1_u = UBOUND(Srcread_upwind_resultData%upwind_meanU,1)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%upwind_meanU)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%upwind_meanU(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%upwind_meanU.'
+      ALLOCATE(Dstread_upwind_resultData%upwind_meanU(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%upwind_meanU.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2691,10 +2684,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%upwind_TI)) THEN
    i1_l = LBOUND(Srcread_upwind_resultData%upwind_TI,1)
    i1_u = UBOUND(Srcread_upwind_resultData%upwind_TI,1)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%upwind_TI)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%upwind_TI(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%upwind_TI.'
+      ALLOCATE(Dstread_upwind_resultData%upwind_TI(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%upwind_TI.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2704,10 +2696,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%upwind_small_TI)) THEN
    i1_l = LBOUND(Srcread_upwind_resultData%upwind_small_TI,1)
    i1_u = UBOUND(Srcread_upwind_resultData%upwind_small_TI,1)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%upwind_small_TI)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%upwind_small_TI(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%upwind_small_TI.'
+      ALLOCATE(Dstread_upwind_resultData%upwind_small_TI(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%upwind_small_TI.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2719,10 +2710,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%upwind_smoothWake)) THEN
    i2_l = LBOUND(Srcread_upwind_resultData%upwind_smoothWake,2)
    i2_u = UBOUND(Srcread_upwind_resultData%upwind_smoothWake,2)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%upwind_smoothWake)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%upwind_smoothWake(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%upwind_smoothWake.'
+      ALLOCATE(Dstread_upwind_resultData%upwind_smoothWake(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%upwind_smoothWake.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2732,10 +2722,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%velocity_aerodyn)) THEN
    i1_l = LBOUND(Srcread_upwind_resultData%velocity_aerodyn,1)
    i1_u = UBOUND(Srcread_upwind_resultData%velocity_aerodyn,1)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%velocity_aerodyn)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%velocity_aerodyn(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%velocity_aerodyn.'
+      ALLOCATE(Dstread_upwind_resultData%velocity_aerodyn(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%velocity_aerodyn.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2745,10 +2734,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%TI_downstream)) THEN
    i1_l = LBOUND(Srcread_upwind_resultData%TI_downstream,1)
    i1_u = UBOUND(Srcread_upwind_resultData%TI_downstream,1)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%TI_downstream)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%TI_downstream(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%TI_downstream.'
+      ALLOCATE(Dstread_upwind_resultData%TI_downstream(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%TI_downstream.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2758,10 +2746,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%small_scale_TI_downstream)) THEN
    i1_l = LBOUND(Srcread_upwind_resultData%small_scale_TI_downstream,1)
    i1_u = UBOUND(Srcread_upwind_resultData%small_scale_TI_downstream,1)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%small_scale_TI_downstream)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%small_scale_TI_downstream(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%small_scale_TI_downstream.'
+      ALLOCATE(Dstread_upwind_resultData%small_scale_TI_downstream(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%small_scale_TI_downstream.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2773,10 +2760,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%smoothed_velocity_array)) THEN
    i2_l = LBOUND(Srcread_upwind_resultData%smoothed_velocity_array,2)
    i2_u = UBOUND(Srcread_upwind_resultData%smoothed_velocity_array,2)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%smoothed_velocity_array)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%smoothed_velocity_array(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%smoothed_velocity_array.'
+      ALLOCATE(Dstread_upwind_resultData%smoothed_velocity_array(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%smoothed_velocity_array.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2790,10 +2776,9 @@ IF (ALLOCATED(Srcread_upwind_resultData%vel_matrix)) THEN
    i3_l = LBOUND(Srcread_upwind_resultData%vel_matrix,3)
    i3_u = UBOUND(Srcread_upwind_resultData%vel_matrix,3)
    IF (.NOT. ALLOCATED(Dstread_upwind_resultData%vel_matrix)) THEN 
-      ALLOCATE(Dstread_upwind_resultData%vel_matrix(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copyread_upwind_result: Error allocating Dstread_upwind_resultData%vel_matrix.'
+      ALLOCATE(Dstread_upwind_resultData%vel_matrix(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstread_upwind_resultData%vel_matrix.', ErrStat, ErrMsg,'DWM_Copyread_upwind_result')
          RETURN
       END IF
    END IF
@@ -2878,17 +2863,17 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_U )  ! upwind_U 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_wakecenter )  ! upwind_wakecenter 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_meanU )  ! upwind_meanU 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_TI )  ! upwind_TI 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_small_TI )  ! upwind_small_TI 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_smoothWake )  ! upwind_smoothWake 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%velocity_aerodyn )  ! velocity_aerodyn 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%TI_downstream )  ! TI_downstream 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%small_scale_TI_downstream )  ! small_scale_TI_downstream 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%smoothed_velocity_array )  ! smoothed_velocity_array 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%vel_matrix )  ! vel_matrix 
+  IF ( ALLOCATED(InData%upwind_U) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_U )  ! upwind_U 
+  IF ( ALLOCATED(InData%upwind_wakecenter) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_wakecenter )  ! upwind_wakecenter 
+  IF ( ALLOCATED(InData%upwind_meanU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_meanU )  ! upwind_meanU 
+  IF ( ALLOCATED(InData%upwind_TI) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_TI )  ! upwind_TI 
+  IF ( ALLOCATED(InData%upwind_small_TI) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_small_TI )  ! upwind_small_TI 
+  IF ( ALLOCATED(InData%upwind_smoothWake) )   Re_BufSz    = Re_BufSz    + SIZE( InData%upwind_smoothWake )  ! upwind_smoothWake 
+  IF ( ALLOCATED(InData%velocity_aerodyn) )   Re_BufSz    = Re_BufSz    + SIZE( InData%velocity_aerodyn )  ! velocity_aerodyn 
+  IF ( ALLOCATED(InData%TI_downstream) )   Re_BufSz    = Re_BufSz    + SIZE( InData%TI_downstream )  ! TI_downstream 
+  IF ( ALLOCATED(InData%small_scale_TI_downstream) )   Re_BufSz    = Re_BufSz    + SIZE( InData%small_scale_TI_downstream )  ! small_scale_TI_downstream 
+  IF ( ALLOCATED(InData%smoothed_velocity_array) )   Re_BufSz    = Re_BufSz    + SIZE( InData%smoothed_velocity_array )  ! smoothed_velocity_array 
+  IF ( ALLOCATED(InData%vel_matrix) )   Re_BufSz    = Re_BufSz    + SIZE( InData%vel_matrix )  ! vel_matrix 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -3052,6 +3037,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -3059,10 +3046,9 @@ IF (ALLOCATED(Srcwake_meandered_centerData%wake_width)) THEN
    i1_l = LBOUND(Srcwake_meandered_centerData%wake_width,1)
    i1_u = UBOUND(Srcwake_meandered_centerData%wake_width,1)
    IF (.NOT. ALLOCATED(Dstwake_meandered_centerData%wake_width)) THEN 
-      ALLOCATE(Dstwake_meandered_centerData%wake_width(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_Copywake_meandered_center: Error allocating Dstwake_meandered_centerData%wake_width.'
+      ALLOCATE(Dstwake_meandered_centerData%wake_width(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating Dstwake_meandered_centerData%wake_width.', ErrStat, ErrMsg,'DWM_Copywake_meandered_center')
          RETURN
       END IF
    END IF
@@ -3117,7 +3103,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Int_BufSz   = Int_BufSz   + SIZE( InData%wake_width )  ! wake_width 
+  IF ( ALLOCATED(InData%wake_width) )   Int_BufSz   = Int_BufSz   + SIZE( InData%wake_width )  ! wake_width 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -3181,6 +3167,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -3301,6 +3289,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -3308,10 +3298,9 @@ IF (ALLOCATED(SrcParamData%velocityU)) THEN
    i1_l = LBOUND(SrcParamData%velocityU,1)
    i1_u = UBOUND(SrcParamData%velocityU,1)
    IF (.NOT. ALLOCATED(DstParamData%velocityU)) THEN 
-      ALLOCATE(DstParamData%velocityU(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyParam: Error allocating DstParamData%velocityU.'
+      ALLOCATE(DstParamData%velocityU(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%velocityU.', ErrStat, ErrMsg,'DWM_CopyParam')
          RETURN
       END IF
    END IF
@@ -3321,10 +3310,9 @@ IF (ALLOCATED(SrcParamData%smoothed_wake)) THEN
    i1_l = LBOUND(SrcParamData%smoothed_wake,1)
    i1_u = UBOUND(SrcParamData%smoothed_wake,1)
    IF (.NOT. ALLOCATED(DstParamData%smoothed_wake)) THEN 
-      ALLOCATE(DstParamData%smoothed_wake(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyParam: Error allocating DstParamData%smoothed_wake.'
+      ALLOCATE(DstParamData%smoothed_wake(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%smoothed_wake.', ErrStat, ErrMsg,'DWM_CopyParam')
          RETURN
       END IF
    END IF
@@ -3338,10 +3326,9 @@ IF (ALLOCATED(SrcParamData%WakePosition)) THEN
    i3_l = LBOUND(SrcParamData%WakePosition,3)
    i3_u = UBOUND(SrcParamData%WakePosition,3)
    IF (.NOT. ALLOCATED(DstParamData%WakePosition)) THEN 
-      ALLOCATE(DstParamData%WakePosition(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyParam: Error allocating DstParamData%WakePosition.'
+      ALLOCATE(DstParamData%WakePosition(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WakePosition.', ErrStat, ErrMsg,'DWM_CopyParam')
          RETURN
       END IF
    END IF
@@ -3370,10 +3357,9 @@ IF (ALLOCATED(SrcParamData%ElementRad)) THEN
    i1_l = LBOUND(SrcParamData%ElementRad,1)
    i1_u = UBOUND(SrcParamData%ElementRad,1)
    IF (.NOT. ALLOCATED(DstParamData%ElementRad)) THEN 
-      ALLOCATE(DstParamData%ElementRad(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyParam: Error allocating DstParamData%ElementRad.'
+      ALLOCATE(DstParamData%ElementRad(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%ElementRad.', ErrStat, ErrMsg,'DWM_CopyParam')
          RETURN
       END IF
    END IF
@@ -3381,8 +3367,12 @@ IF (ALLOCATED(SrcParamData%ElementRad)) THEN
 ENDIF
    DstParamData%Bnum = SrcParamData%Bnum
    DstParamData%ElementNum = SrcParamData%ElementNum
-      CALL DWM_Copyread_turbine_position_data( SrcParamData%RTPD, DstParamData%RTPD, CtrlCode, ErrStat, ErrMsg )
-      CALL IfW_CopyParam( SrcParamData%IfW_Params, DstParamData%IfW_Params, CtrlCode, ErrStat, ErrMsg )
+      CALL DWM_Copyread_turbine_position_data( SrcParamData%RTPD, DstParamData%RTPD, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyParam:RTPD')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL IfW_CopyParam( SrcParamData%IfW_Params, DstParamData%IfW_Params, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyParam:IfW_Params')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE DWM_CopyParam
 
  SUBROUTINE DWM_DestroyParam( ParamData, ErrStat, ErrMsg )
@@ -3449,9 +3439,9 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%velocityU )  ! velocityU 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%smoothed_wake )  ! smoothed_wake 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WakePosition )  ! WakePosition 
+  IF ( ALLOCATED(InData%velocityU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%velocityU )  ! velocityU 
+  IF ( ALLOCATED(InData%smoothed_wake) )   Re_BufSz    = Re_BufSz    + SIZE( InData%smoothed_wake )  ! smoothed_wake 
+  IF ( ALLOCATED(InData%WakePosition) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WakePosition )  ! WakePosition 
   Int_BufSz  = Int_BufSz  + 1  ! WakePosition_1
   Int_BufSz  = Int_BufSz  + 1  ! WakePosition_2
   Int_BufSz  = Int_BufSz  + 1  ! smooth_flag
@@ -3471,7 +3461,7 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! Winddir
   Re_BufSz   = Re_BufSz   + 1  ! air_density
   Re_BufSz   = Re_BufSz   + 1  ! RR
-  Re_BufSz    = Re_BufSz    + SIZE( InData%ElementRad )  ! ElementRad 
+  IF ( ALLOCATED(InData%ElementRad) )   Re_BufSz    = Re_BufSz    + SIZE( InData%ElementRad )  ! ElementRad 
   Int_BufSz  = Int_BufSz  + 1  ! Bnum
   Int_BufSz  = Int_BufSz  + 1  ! ElementNum
   CALL DWM_Packread_turbine_position_data( Re_RTPD_Buf, Db_RTPD_Buf, Int_RTPD_Buf, InData%RTPD, ErrStat, ErrMsg, .TRUE. ) ! RTPD 
@@ -3733,6 +3723,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -3748,10 +3740,9 @@ IF (ALLOCATED(SrcOtherStateData%Nforce)) THEN
    i2_l = LBOUND(SrcOtherStateData%Nforce,2)
    i2_u = UBOUND(SrcOtherStateData%Nforce,2)
    IF (.NOT. ALLOCATED(DstOtherStateData%Nforce)) THEN 
-      ALLOCATE(DstOtherStateData%Nforce(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOtherState: Error allocating DstOtherStateData%Nforce.'
+      ALLOCATE(DstOtherStateData%Nforce(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Nforce.', ErrStat, ErrMsg,'DWM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -3761,10 +3752,9 @@ IF (ALLOCATED(SrcOtherStateData%blade_dr)) THEN
    i1_l = LBOUND(SrcOtherStateData%blade_dr,1)
    i1_u = UBOUND(SrcOtherStateData%blade_dr,1)
    IF (.NOT. ALLOCATED(DstOtherStateData%blade_dr)) THEN 
-      ALLOCATE(DstOtherStateData%blade_dr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOtherState: Error allocating DstOtherStateData%blade_dr.'
+      ALLOCATE(DstOtherStateData%blade_dr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%blade_dr.', ErrStat, ErrMsg,'DWM_CopyOtherState')
          RETURN
       END IF
    END IF
@@ -3772,22 +3762,48 @@ IF (ALLOCATED(SrcOtherStateData%blade_dr)) THEN
 ENDIF
    DstOtherStateData%NacYaw = SrcOtherStateData%NacYaw
    DstOtherStateData%TI_original = SrcOtherStateData%TI_original
-      CALL DWM_Copyturbine_average_velocity_data( SrcOtherStateData%TAVD, DstOtherStateData%TAVD, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copycvsd( SrcOtherStateData%CalVelScale_data, DstOtherStateData%CalVelScale_data, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copymeanderdata( SrcOtherStateData%meandering_data, DstOtherStateData%meandering_data, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copyweimethod( SrcOtherStateData%weighting_method, DstOtherStateData%weighting_method, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copytidownstream( SrcOtherStateData%TI_downstream_data, DstOtherStateData%TI_downstream_data, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copyturbkaimal( SrcOtherStateData%Turbulence_KS, DstOtherStateData%Turbulence_KS, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copyshinozuka( SrcOtherStateData%shinozuka_data, DstOtherStateData%shinozuka_data, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copysmooth_out_wake_data( SrcOtherStateData%SmoothOut, DstOtherStateData%SmoothOut, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copyswsv( SrcOtherStateData%smooth_wake_shifted_velocity_data, DstOtherStateData%smooth_wake_shifted_velocity_data, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copywake_deficit_data( SrcOtherStateData%DWDD, DstOtherStateData%DWDD, CtrlCode, ErrStat, ErrMsg )
+      CALL DWM_Copyturbine_average_velocity_data( SrcOtherStateData%TAVD, DstOtherStateData%TAVD, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:TAVD')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copycvsd( SrcOtherStateData%CalVelScale_data, DstOtherStateData%CalVelScale_data, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:CalVelScale_data')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copymeanderdata( SrcOtherStateData%meandering_data, DstOtherStateData%meandering_data, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:meandering_data')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copyweimethod( SrcOtherStateData%weighting_method, DstOtherStateData%weighting_method, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:weighting_method')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copytidownstream( SrcOtherStateData%TI_downstream_data, DstOtherStateData%TI_downstream_data, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:TI_downstream_data')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copyturbkaimal( SrcOtherStateData%Turbulence_KS, DstOtherStateData%Turbulence_KS, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:Turbulence_KS')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copyshinozuka( SrcOtherStateData%shinozuka_data, DstOtherStateData%shinozuka_data, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:shinozuka_data')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copysmooth_out_wake_data( SrcOtherStateData%SmoothOut, DstOtherStateData%SmoothOut, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:SmoothOut')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copyswsv( SrcOtherStateData%smooth_wake_shifted_velocity_data, DstOtherStateData%smooth_wake_shifted_velocity_data, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:smooth_wake_shifted_velocity_data')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copywake_deficit_data( SrcOtherStateData%DWDD, DstOtherStateData%DWDD, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:DWDD')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstOtherStateData%ct_tilde = SrcOtherStateData%ct_tilde
    DstOtherStateData%FAST_Time = SrcOtherStateData%FAST_Time
    DstOtherStateData%SDtimestep = SrcOtherStateData%SDtimestep
-      CALL DWM_Copyturbine_blade( SrcOtherStateData%DWM_tb, DstOtherStateData%DWM_tb, CtrlCode, ErrStat, ErrMsg )
-      CALL DWM_Copywake_meandered_center( SrcOtherStateData%WMC, DstOtherStateData%WMC, CtrlCode, ErrStat, ErrMsg )
-      CALL IfW_CopyOtherState( SrcOtherStateData%IfW_OtherStates, DstOtherStateData%IfW_OtherStates, CtrlCode, ErrStat, ErrMsg )
+      CALL DWM_Copyturbine_blade( SrcOtherStateData%DWM_tb, DstOtherStateData%DWM_tb, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:DWM_tb')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL DWM_Copywake_meandered_center( SrcOtherStateData%WMC, DstOtherStateData%WMC, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:WMC')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL IfW_CopyOtherState( SrcOtherStateData%IfW_OtherStates, DstOtherStateData%IfW_OtherStates, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOtherState:IfW_OtherStates')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE DWM_CopyOtherState
 
  SUBROUTINE DWM_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -3898,8 +3914,8 @@ ENDIF
   Re_BufSz   = Re_BufSz   + 1  ! shifted_velocity_Aerodyn
   Re_BufSz   = Re_BufSz   + 1  ! U_velocity
   Re_BufSz   = Re_BufSz   + 1  ! V_velocity
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Nforce )  ! Nforce 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%blade_dr )  ! blade_dr 
+  IF ( ALLOCATED(InData%Nforce) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Nforce )  ! Nforce 
+  IF ( ALLOCATED(InData%blade_dr) )   Re_BufSz    = Re_BufSz    + SIZE( InData%blade_dr )  ! blade_dr 
   Re_BufSz   = Re_BufSz   + 1  ! NacYaw
   Re_BufSz   = Re_BufSz   + 1  ! TI_original
   CALL DWM_Packturbine_average_velocity_data( Re_TAVD_Buf, Db_TAVD_Buf, Int_TAVD_Buf, InData%TAVD, ErrStat, ErrMsg, .TRUE. ) ! TAVD 
@@ -4555,11 +4571,17 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL DWM_Copyread_upwind_result( SrcInputData%Upwind_result, DstInputData%Upwind_result, CtrlCode, ErrStat, ErrMsg )
-      CALL IfW_CopyInput( SrcInputData%IfW_Inputs, DstInputData%IfW_Inputs, CtrlCode, ErrStat, ErrMsg )
+      CALL DWM_Copyread_upwind_result( SrcInputData%Upwind_result, DstInputData%Upwind_result, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyInput:Upwind_result')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL IfW_CopyInput( SrcInputData%IfW_Inputs, DstInputData%IfW_Inputs, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyInput:IfW_Inputs')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE DWM_CopyInput
 
  SUBROUTINE DWM_DestroyInput( InputData, ErrStat, ErrMsg )
@@ -4749,6 +4771,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -4756,10 +4780,9 @@ IF (ALLOCATED(SrcOutputData%turbine_thrust_force)) THEN
    i1_l = LBOUND(SrcOutputData%turbine_thrust_force,1)
    i1_u = UBOUND(SrcOutputData%turbine_thrust_force,1)
    IF (.NOT. ALLOCATED(DstOutputData%turbine_thrust_force)) THEN 
-      ALLOCATE(DstOutputData%turbine_thrust_force(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOutput: Error allocating DstOutputData%turbine_thrust_force.'
+      ALLOCATE(DstOutputData%turbine_thrust_force(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%turbine_thrust_force.', ErrStat, ErrMsg,'DWM_CopyOutput')
          RETURN
       END IF
    END IF
@@ -4769,10 +4792,9 @@ IF (ALLOCATED(SrcOutputData%induction_factor)) THEN
    i1_l = LBOUND(SrcOutputData%induction_factor,1)
    i1_u = UBOUND(SrcOutputData%induction_factor,1)
    IF (.NOT. ALLOCATED(DstOutputData%induction_factor)) THEN 
-      ALLOCATE(DstOutputData%induction_factor(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOutput: Error allocating DstOutputData%induction_factor.'
+      ALLOCATE(DstOutputData%induction_factor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%induction_factor.', ErrStat, ErrMsg,'DWM_CopyOutput')
          RETURN
       END IF
    END IF
@@ -4782,10 +4804,9 @@ IF (ALLOCATED(SrcOutputData%r_initial)) THEN
    i1_l = LBOUND(SrcOutputData%r_initial,1)
    i1_u = UBOUND(SrcOutputData%r_initial,1)
    IF (.NOT. ALLOCATED(DstOutputData%r_initial)) THEN 
-      ALLOCATE(DstOutputData%r_initial(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOutput: Error allocating DstOutputData%r_initial.'
+      ALLOCATE(DstOutputData%r_initial(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%r_initial.', ErrStat, ErrMsg,'DWM_CopyOutput')
          RETURN
       END IF
    END IF
@@ -4795,10 +4816,9 @@ IF (ALLOCATED(SrcOutputData%U_initial)) THEN
    i1_l = LBOUND(SrcOutputData%U_initial,1)
    i1_u = UBOUND(SrcOutputData%U_initial,1)
    IF (.NOT. ALLOCATED(DstOutputData%U_initial)) THEN 
-      ALLOCATE(DstOutputData%U_initial(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOutput: Error allocating DstOutputData%U_initial.'
+      ALLOCATE(DstOutputData%U_initial(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%U_initial.', ErrStat, ErrMsg,'DWM_CopyOutput')
          RETURN
       END IF
    END IF
@@ -4808,10 +4828,9 @@ IF (ALLOCATED(SrcOutputData%Mean_FFWS_array)) THEN
    i1_l = LBOUND(SrcOutputData%Mean_FFWS_array,1)
    i1_u = UBOUND(SrcOutputData%Mean_FFWS_array,1)
    IF (.NOT. ALLOCATED(DstOutputData%Mean_FFWS_array)) THEN 
-      ALLOCATE(DstOutputData%Mean_FFWS_array(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOutput: Error allocating DstOutputData%Mean_FFWS_array.'
+      ALLOCATE(DstOutputData%Mean_FFWS_array(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%Mean_FFWS_array.', ErrStat, ErrMsg,'DWM_CopyOutput')
          RETURN
       END IF
    END IF
@@ -4826,10 +4845,9 @@ IF (ALLOCATED(SrcOutputData%wake_u)) THEN
    i2_l = LBOUND(SrcOutputData%wake_u,2)
    i2_u = UBOUND(SrcOutputData%wake_u,2)
    IF (.NOT. ALLOCATED(DstOutputData%wake_u)) THEN 
-      ALLOCATE(DstOutputData%wake_u(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOutput: Error allocating DstOutputData%wake_u.'
+      ALLOCATE(DstOutputData%wake_u(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%wake_u.', ErrStat, ErrMsg,'DWM_CopyOutput')
          RETURN
       END IF
    END IF
@@ -4843,10 +4861,9 @@ IF (ALLOCATED(SrcOutputData%wake_position)) THEN
    i3_l = LBOUND(SrcOutputData%wake_position,3)
    i3_u = UBOUND(SrcOutputData%wake_position,3)
    IF (.NOT. ALLOCATED(DstOutputData%wake_position)) THEN 
-      ALLOCATE(DstOutputData%wake_position(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOutput: Error allocating DstOutputData%wake_position.'
+      ALLOCATE(DstOutputData%wake_position(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%wake_position.', ErrStat, ErrMsg,'DWM_CopyOutput')
          RETURN
       END IF
    END IF
@@ -4858,10 +4875,9 @@ IF (ALLOCATED(SrcOutputData%smoothed_velocity_array)) THEN
    i2_l = LBOUND(SrcOutputData%smoothed_velocity_array,2)
    i2_u = UBOUND(SrcOutputData%smoothed_velocity_array,2)
    IF (.NOT. ALLOCATED(DstOutputData%smoothed_velocity_array)) THEN 
-      ALLOCATE(DstOutputData%smoothed_velocity_array(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'DWM_CopyOutput: Error allocating DstOutputData%smoothed_velocity_array.'
+      ALLOCATE(DstOutputData%smoothed_velocity_array(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%smoothed_velocity_array.', ErrStat, ErrMsg,'DWM_CopyOutput')
          RETURN
       END IF
    END IF
@@ -4872,7 +4888,9 @@ ENDIF
    DstOutputData%total_SDgenpwr = SrcOutputData%total_SDgenpwr
    DstOutputData%mean_SDgenpwr = SrcOutputData%mean_SDgenpwr
    DstOutputData%avg_ct = SrcOutputData%avg_ct
-      CALL IfW_CopyOutput( SrcOutputData%IfW_Outputs, DstOutputData%IfW_Outputs, CtrlCode, ErrStat, ErrMsg )
+      CALL IfW_CopyOutput( SrcOutputData%IfW_Outputs, DstOutputData%IfW_Outputs, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyOutput:IfW_Outputs')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE DWM_CopyOutput
 
  SUBROUTINE DWM_DestroyOutput( OutputData, ErrStat, ErrMsg )
@@ -4947,17 +4965,17 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%turbine_thrust_force )  ! turbine_thrust_force 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%induction_factor )  ! induction_factor 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%r_initial )  ! r_initial 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%U_initial )  ! U_initial 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Mean_FFWS_array )  ! Mean_FFWS_array 
+  IF ( ALLOCATED(InData%turbine_thrust_force) )   Re_BufSz    = Re_BufSz    + SIZE( InData%turbine_thrust_force )  ! turbine_thrust_force 
+  IF ( ALLOCATED(InData%induction_factor) )   Re_BufSz    = Re_BufSz    + SIZE( InData%induction_factor )  ! induction_factor 
+  IF ( ALLOCATED(InData%r_initial) )   Re_BufSz    = Re_BufSz    + SIZE( InData%r_initial )  ! r_initial 
+  IF ( ALLOCATED(InData%U_initial) )   Re_BufSz    = Re_BufSz    + SIZE( InData%U_initial )  ! U_initial 
+  IF ( ALLOCATED(InData%Mean_FFWS_array) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Mean_FFWS_array )  ! Mean_FFWS_array 
   Re_BufSz   = Re_BufSz   + 1  ! Mean_FFWS
   Re_BufSz   = Re_BufSz   + 1  ! TI
   Re_BufSz   = Re_BufSz   + 1  ! TI_downstream
-  Re_BufSz    = Re_BufSz    + SIZE( InData%wake_u )  ! wake_u 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%wake_position )  ! wake_position 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%smoothed_velocity_array )  ! smoothed_velocity_array 
+  IF ( ALLOCATED(InData%wake_u) )   Re_BufSz    = Re_BufSz    + SIZE( InData%wake_u )  ! wake_u 
+  IF ( ALLOCATED(InData%wake_position) )   Re_BufSz    = Re_BufSz    + SIZE( InData%wake_position )  ! wake_position 
+  IF ( ALLOCATED(InData%smoothed_velocity_array) )   Re_BufSz    = Re_BufSz    + SIZE( InData%smoothed_velocity_array )  ! smoothed_velocity_array 
   Re_BufSz   = Re_BufSz   + 1  ! AtmUscale
   Re_BufSz   = Re_BufSz   + 1  ! du_dz_ABL
   Re_BufSz   = Re_BufSz   + 1  ! total_SDgenpwr
@@ -5169,11 +5187,15 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstContStateData%dummy = SrcContStateData%dummy
-      CALL IfW_CopyContState( SrcContStateData%IfW_ContStates, DstContStateData%IfW_ContStates, CtrlCode, ErrStat, ErrMsg )
+      CALL IfW_CopyContState( SrcContStateData%IfW_ContStates, DstContStateData%IfW_ContStates, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyContState:IfW_ContStates')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE DWM_CopyContState
 
  SUBROUTINE DWM_DestroyContState( ContStateData, ErrStat, ErrMsg )
@@ -5323,11 +5345,15 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstDiscStateData%dummy = SrcDiscStateData%dummy
-      CALL IfW_CopyDiscState( SrcDiscStateData%IfW_DiscStates, DstDiscStateData%IfW_DiscStates, CtrlCode, ErrStat, ErrMsg )
+      CALL IfW_CopyDiscState( SrcDiscStateData%IfW_DiscStates, DstDiscStateData%IfW_DiscStates, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyDiscState:IfW_DiscStates')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE DWM_CopyDiscState
 
  SUBROUTINE DWM_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
@@ -5477,11 +5503,15 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstConstrStateData%dummy = SrcConstrStateData%dummy
-      CALL IfW_CopyConstrState( SrcConstrStateData%IfW_ConstrStates, DstConstrStateData%IfW_ConstrStates, CtrlCode, ErrStat, ErrMsg )
+      CALL IfW_CopyConstrState( SrcConstrStateData%IfW_ConstrStates, DstConstrStateData%IfW_ConstrStates, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyConstrState:IfW_ConstrStates')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE DWM_CopyConstrState
 
  SUBROUTINE DWM_DestroyConstrState( ConstrStateData, ErrStat, ErrMsg )
@@ -5631,11 +5661,15 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstInitInputData%dummy = SrcInitInputData%dummy
-      CALL IfW_CopyInitInput( SrcInitInputData%IfW_InitInputs, DstInitInputData%IfW_InitInputs, CtrlCode, ErrStat, ErrMsg )
+      CALL IfW_CopyInitInput( SrcInitInputData%IfW_InitInputs, DstInitInputData%IfW_InitInputs, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyInitInput:IfW_InitInputs')
+         IF (ErrStat>=AbortErrLev) RETURN
    DstInitInputData%WindFileName = SrcInitInputData%WindFileName
    DstInitInputData%ReferenceHeight = SrcInitInputData%ReferenceHeight
    DstInitInputData%Width = SrcInitInputData%Width
@@ -5698,6 +5732,7 @@ ENDIF
   IF(ALLOCATED(Re_IfW_InitInputs_Buf))  DEALLOCATE(Re_IfW_InitInputs_Buf)
   IF(ALLOCATED(Db_IfW_InitInputs_Buf))  DEALLOCATE(Db_IfW_InitInputs_Buf)
   IF(ALLOCATED(Int_IfW_InitInputs_Buf)) DEALLOCATE(Int_IfW_InitInputs_Buf)
+!  missing buffer for WindFileName
   Re_BufSz   = Re_BufSz   + 1  ! ReferenceHeight
   Re_BufSz   = Re_BufSz   + 1  ! Width
   Int_BufSz  = Int_BufSz  + 1  ! WindFileType
@@ -5804,11 +5839,15 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstInitOutputData%dummy = SrcInitOutputData%dummy
-      CALL IfW_CopyInitOutput( SrcInitOutputData%IfW_InitOutput, DstInitOutputData%IfW_InitOutput, CtrlCode, ErrStat, ErrMsg )
+      CALL IfW_CopyInitOutput( SrcInitOutputData%IfW_InitOutput, DstInitOutputData%IfW_InitOutput, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_CopyInitOutput:IfW_InitOutput')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE DWM_CopyInitOutput
 
  SUBROUTINE DWM_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
@@ -5987,6 +6026,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -6090,7 +6131,9 @@ END IF ! check if allocated
 IF (ALLOCATED(u_out%Upwind_result%vel_matrix) .AND. ALLOCATED(u(1)%Upwind_result%vel_matrix)) THEN
   u_out%Upwind_result%vel_matrix = u(1)%Upwind_result%vel_matrix
 END IF ! check if allocated
-      CALL IfW_Input_ExtrapInterp( u%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat, ErrMsg )
+      CALL IfW_Input_ExtrapInterp( u%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -6189,7 +6232,9 @@ IF (ALLOCATED(u_out%Upwind_result%vel_matrix) .AND. ALLOCATED(u(1)%Upwind_result
   DEALLOCATE(b3)
   DEALLOCATE(c3)
 END IF ! check if allocated
-      CALL IfW_Input_ExtrapInterp( u%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat, ErrMsg )
+      CALL IfW_Input_ExtrapInterp( u%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -6309,7 +6354,9 @@ IF (ALLOCATED(u_out%Upwind_result%vel_matrix) .AND. ALLOCATED(u(1)%Upwind_result
   DEALLOCATE(b3)
   DEALLOCATE(c3)
 END IF ! check if allocated
-      CALL IfW_Input_ExtrapInterp( u%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat, ErrMsg )
+      CALL IfW_Input_ExtrapInterp( u%IfW_Inputs, tin, u_out%IfW_Inputs, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_Input_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in DWM_Input_ExtrapInterp '
@@ -6356,6 +6403,8 @@ END IF ! check if allocated
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -6458,7 +6507,9 @@ END IF ! check if allocated
   u_out%total_SDgenpwr = u(1)%total_SDgenpwr
   u_out%mean_SDgenpwr = u(1)%mean_SDgenpwr
   u_out%avg_ct = u(1)%avg_ct
-      CALL IfW_Output_ExtrapInterp( u%IfW_Outputs, tin, u_out%IfW_Outputs, tin_out, ErrStat, ErrMsg )
+      CALL IfW_Output_ExtrapInterp( u%IfW_Outputs, tin, u_out%IfW_Outputs, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -6547,7 +6598,9 @@ END IF ! check if allocated
   u_out%mean_SDgenpwr = u(1)%mean_SDgenpwr + b0 * t_out
   b0 = -(u(1)%avg_ct - u(2)%avg_ct)/t(2)
   u_out%avg_ct = u(1)%avg_ct + b0 * t_out
-      CALL IfW_Output_ExtrapInterp( u%IfW_Outputs, tin, u_out%IfW_Outputs, tin_out, ErrStat, ErrMsg )
+      CALL IfW_Output_ExtrapInterp( u%IfW_Outputs, tin, u_out%IfW_Outputs, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -6662,7 +6715,9 @@ END IF ! check if allocated
   b0 = (t(3)**2*(u(1)%avg_ct - u(2)%avg_ct) + t(2)**2*(-u(1)%avg_ct + u(3)%avg_ct))/(t(2)*t(3)*(t(2) - t(3)))
   c0 = ( (t(2)-t(3))*u(1)%avg_ct + t(3)*u(2)%avg_ct - t(2)*u(3)%avg_ct ) / (t(2)*t(3)*(t(2) - t(3)))
   u_out%avg_ct = u(1)%avg_ct + b0 * t_out + c0 * t_out**2
-      CALL IfW_Output_ExtrapInterp( u%IfW_Outputs, tin, u_out%IfW_Outputs, tin_out, ErrStat, ErrMsg )
+      CALL IfW_Output_ExtrapInterp( u%IfW_Outputs, tin, u_out%IfW_Outputs, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'DWM_Output_ExtrapInterp')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in DWM_Output_ExtrapInterp '

@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.00, 7-Nov-2014)
+! FAST Registry (v2.04.01, 20-Nov-2014)
 !*********************************************************************************************************************************
 ! Conv_Radiation_Types
 !.................................................................................................................................
@@ -213,10 +213,12 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Db_BufSz   = Db_BufSz   + 1  ! RdtnDT
+!  missing buffer for RdtnDTChr
   Re_BufSz   = Re_BufSz   + 1  ! HighFreq
-  Re_BufSz    = Re_BufSz    + SIZE( InData%HdroAddMs )  ! HdroAddMs 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%HdroFreq )  ! HdroFreq 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%HdroDmpng )  ! HdroDmpng 
+!  missing buffer for WAMITFile
+  IF ( ALLOCATED(InData%HdroAddMs) )   Re_BufSz    = Re_BufSz    + SIZE( InData%HdroAddMs )  ! HdroAddMs 
+  IF ( ALLOCATED(InData%HdroFreq) )   Re_BufSz    = Re_BufSz    + SIZE( InData%HdroFreq )  ! HdroFreq 
+  IF ( ALLOCATED(InData%HdroDmpng) )   Re_BufSz    = Re_BufSz    + SIZE( InData%HdroDmpng )  ! HdroDmpng 
   Int_BufSz  = Int_BufSz  + 1  ! NInpFreq
   Db_BufSz   = Db_BufSz   + 1  ! RdtnTMax
   Int_BufSz  = Int_BufSz  + 1  ! UnSum
@@ -612,7 +614,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%XDHistory )  ! XDHistory 
+  IF ( ALLOCATED(InData%XDHistory) )   Re_BufSz    = Re_BufSz    + SIZE( InData%XDHistory )  ! XDHistory 
   Db_BufSz   = Db_BufSz   + 1  ! LastTime
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
@@ -989,7 +991,7 @@ ENDIF
   Int_BufSz  = 0
   Db_BufSz   = Db_BufSz   + 1  ! DT
   Db_BufSz   = Db_BufSz   + 1  ! RdtnDT
-  Re_BufSz    = Re_BufSz    + SIZE( InData%RdtnKrnl )  ! RdtnKrnl 
+  IF ( ALLOCATED(InData%RdtnKrnl) )   Re_BufSz    = Re_BufSz    + SIZE( InData%RdtnKrnl )  ! RdtnKrnl 
   Int_BufSz  = Int_BufSz  + 1  ! NStepRdtn
   Int_BufSz  = Int_BufSz  + 1  ! NStepRdtn1
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
