@@ -309,7 +309,7 @@ CONTAINS
       
       
       IF (FFT_Data%Normalize) THEN
-          TRH(1:FFT_Data%N) = FFT_Data%InvN * TRH(1:FFT_Data%N)
+          TRH_complex(1:FFT_Data%N) = FFT_Data%InvN * TRH_complex(1:FFT_Data%N)
       ENDIF
 
    END SUBROUTINE ApplyCFFT_f

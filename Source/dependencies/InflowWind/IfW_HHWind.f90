@@ -586,16 +586,15 @@ CONTAINS
       REAL(ReKi)                                            :: V1                ! temporary storage for horizontal velocity
 
 
+      ErrStat = ErrID_None
       !-------------------------------------------------------------------------------------------------
       ! verify the module was initialized first
       !-------------------------------------------------------------------------------------------------
 
       IF ( OtherStates%TimeIndex == 0 ) THEN
          ErrMsg   = ' Error: Call HH_Init() before getting wind speed.'
-         ErrStat  = MAX(ErrStat, ErrID_Fatal)         ! Fatal since no data returned
+         ErrStat  = ErrID_Fatal         ! Fatal since no data returned
          RETURN
-      ELSE
-         ErrStat = ErrID_None
       END IF
 
       !-------------------------------------------------------------------------------------------------

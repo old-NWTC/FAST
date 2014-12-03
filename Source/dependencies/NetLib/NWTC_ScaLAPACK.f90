@@ -39,7 +39,7 @@ CONTAINS
           
       ! passed parameters
  
-      CHARACTER(1),    intent(in   ) :: ID                ! = 'I': sort D in increasing order; = 'D': sort D in decreasing order.
+      CHARACTER,       intent(in   ) :: ID                ! = 'I': sort D in increasing order; = 'D': sort D in decreasing order.
       INTEGER,         intent(in   ) :: N                 ! The length of the array D.
       INTEGER(IntKi),  intent(  out) :: ErrStat           ! Error level 
       CHARACTER(*),    intent(  out) :: ErrMsg            ! Message describing error
@@ -75,7 +75,7 @@ CONTAINS
           
       ! passed parameters
  
-      CHARACTER(1),   intent(in   ) :: ID                ! = 'I': sort D in increasing order; = 'D': sort D in decreasing order.
+      CHARACTER,      intent(in   ) :: ID                ! = 'I': sort D in increasing order; = 'D': sort D in decreasing order.
       INTEGER,        intent(in   ) :: N                 ! The length of the array D.
       INTEGER(IntKi), intent(  out) :: ErrStat           ! Error level 
       CHARACTER(*),   intent(  out) :: ErrMsg            ! Message describing error
