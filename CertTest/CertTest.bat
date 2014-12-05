@@ -21,6 +21,7 @@ IF /I "%1"=="-DEBUG" GOTO debugVer
 IF /I "%1"=="-GFORTRAN" GOTO gfortran
 IF /I "%1"=="-IFORT" GOTO ifort
 IF /I "%1"=="-DEVBUILD" GOTO devBuild
+IF /I "%1"=="-DEV" GOTO devBuild
 IF /I "%1"=="-DEVDEBUG" GOTO devDebugBuild
 
 :releaseVer
