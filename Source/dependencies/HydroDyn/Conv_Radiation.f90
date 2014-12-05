@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-09-24 11:42:58 -0600 (Wed, 24 Sep 2014) $
-! (File) Revision #: $Rev: 509 $
+! File last committed: $Date: 2014-12-03 11:19:46 -0700 (Wed, 03 Dec 2014) $
+! (File) Revision #: $Rev: 585 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Conv_Radiation.f90 $
 !**********************************************************************************************************************************
 MODULE Conv_Radiation

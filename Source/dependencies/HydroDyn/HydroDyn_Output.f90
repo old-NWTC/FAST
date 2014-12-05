@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-10-04 22:56:14 -0600 (Sat, 04 Oct 2014) $
-! (File) Revision #: $Rev: 551 $
+! File last committed: $Date: 2014-12-05 10:42:44 -0700 (Fri, 05 Dec 2014) $
+! (File) Revision #: $Rev: 588 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Output.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Output
@@ -596,7 +596,7 @@ SUBROUTINE HDOUT_Init( HydroDyn_ProgDesc, InitInp, y,  p, OtherState, InitOut, E
       
       IF ( p%OutSwtch == 1 .OR. p%OutSwtch == 3 ) THEN
          CALL HDOut_OpenOutput( HydroDyn_ProgDesc, InitInp%OutRootName, p, InitOut, ErrStat, ErrMsg )
-         IF (ErrStat > ErrID_Warn ) RETURN
+         IF (ErrStat >= AbortErrLev ) RETURN
       END IF
       
       IF ( p%OutSwtch == 1 ) THEN ! Only HD-level output writing
