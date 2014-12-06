@@ -301,7 +301,7 @@ CONTAINS
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(*),    INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -441,7 +441,7 @@ CONTAINS
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(*),    INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -608,7 +608,7 @@ CONTAINS
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(*),   INTENT(OUT)  :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -699,7 +699,7 @@ CONTAINS
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(*),   INTENT(OUT)  :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -1280,7 +1280,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
    INTEGER(IntKi), INTENT(OUT)  :: Ind                                        ! The index of the point in Ary just below Val.
 
-   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(*),   INTENT(OUT)  :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -2533,7 +2533,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(*),   INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -2672,7 +2672,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(*),    INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -2843,7 +2843,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(*),    INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.
@@ -2934,7 +2934,7 @@ END SUBROUTINE DCM_SetLogMapForInterp
 
    INTEGER(IntKi), INTENT(OUT)  :: ErrStat                                    ! Error status.
 
-   CHARACTER(4096), INTENT(OUT) :: ErrMsg                                     ! Error message.
+   CHARACTER(*),   INTENT(OUT) :: ErrMsg                                     ! Error message.
 
 
       ! Local declarations.

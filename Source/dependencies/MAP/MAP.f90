@@ -468,7 +468,7 @@ CONTAINS
        strHdrPtrs(i)  = C_LOC( strHdrArray(i) )                     !          | 
        strUntPtrs(i)  = C_LOC( strUntArray(i) )                     !          | 
     END DO                                                          !          | 
-                                                                    !          | 
+!bjj: how does this work with C_CHAR, which is supposed to be an array of characters of length 1, not a string of length 255 (or whatever)                                                                    !          | 
     CALL MAP_ModifyHdrString   ( numHeaderStr, strHdrPtrs, O%C_obj )!          | 
     CALL MAP_ModifyHdrUntString( numHeaderStr, strUntPtrs, O%C_obj )!          | 
                                                                     !          | 

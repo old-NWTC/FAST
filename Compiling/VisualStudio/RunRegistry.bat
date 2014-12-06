@@ -48,16 +48,25 @@ GOTO %ModuleName%
 REM ----------------------------------------------------------------------------
 REM ---------------- RUN THE REGISTRY TO AUTO-GENERATE FILES -------------------
 REM ----------------------------------------------------------------------------
+:FAST
+ECHO on
+SET CURR_LOC=%FAST_Loc%
+%REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
+ "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc%" -I "%FEAM_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -noextrap
+	    
+echo off		
+GOTO checkError
+
 
 :ElastoDyn
 SET CURR_LOC=%ED_Loc%
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I %NWTC_Lib_Loc%
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"
 GOTO checkError
 
 
 :ServoDyn
 SET CURR_LOC=%SrvD_Loc%
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I %NWTC_Lib_Loc%
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"
 GOTO checkError
 
 
@@ -65,18 +74,18 @@ GOTO checkError
 :IfW_FFWind
 :IfW_HHWind
 SET CURR_LOC=%IfW_Loc%
-%REGISTRY% %IfW_Reg_Loc%\%ModuleName%.txt -I %NWTC_Lib_Loc% -I %IfW_Reg_Loc%
+%REGISTRY% "%IfW_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"
 GOTO checkError
 
 
 :AeroDyn
 SET CURR_LOC=%AD_Loc%
-%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I %NWTC_Lib_Loc% -I %IfW_Reg_Loc% -I %AD_Loc% -I %DWM_Loc%
+%REGISTRY% "%CURR_LOC%\Registry-AD.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%" -I "%AD_Loc%" -I "%DWM_Loc%"
 GOTO checkError
 
 :DWM
 SET CURR_LOC=%DWM_Loc%
-%REGISTRY% "%CURR_LOC%\Registry-DWM.txt" -I %NWTC_Lib_Loc% -I %IfW_Reg_Loc%
+%REGISTRY% "%CURR_LOC%\Registry-DWM.txt" -I "%NWTC_Lib_Loc%" -I "%IfW_Reg_Loc%"
 GOTO checkError
 
 :HydroDyn
@@ -89,36 +98,36 @@ GOTO checkError
 :WAMIT2
 :Morison
 SET CURR_LOC=%HD_Loc%
-%REGISTRY% "%HD_Reg_Loc%\%ModuleName%.txt" -I %NWTC_Lib_Loc% -I %HD_Reg_Loc%
+%REGISTRY% "%HD_Reg_Loc%\%ModuleName%.txt" -I "%NWTC_Lib_Loc%" -I "%HD_Reg_Loc%"
 GOTO checkError
 
 
 :SubDyn
 SET CURR_LOC=%SD_Loc%
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I %NWTC_Lib_Loc%
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -I "%NWTC_Lib_Loc%"
 GOTO checkError
 
 :MAP
 SET CURR_LOC=%MAP_Loc%
 IF /I "%2"=="bjonkman" (
-%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -ccode -I %NWTC_Lib_Loc%
+%REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -ccode -I "%NWTC_Lib_Loc%"
 )
 GOTO checkError
 
 :FEAMooring
 SET CURR_LOC=%FEAM_Loc%
-%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I %NWTC_Lib_Loc%
+%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"
 GOTO checkError
 
 :IceFloe
 SET CURR_LOC=%IceF_Loc%
-%REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I %NWTC_Lib_Loc%
+%REGISTRY% "%CURR_LOC%\IceFloe_FASTRegistry.inp" -I "%NWTC_Lib_Loc%"
 GOTO checkError
 
 
 :IceDyn
 SET CURR_LOC=%IceD_Loc%
-%REGISTRY% "%CURR_LOC%\Registry_%ModuleName%.txt" -I %NWTC_Lib_Loc%
+%REGISTRY% "%CURR_LOC%\Registry_%ModuleName%.txt" -I "%NWTC_Lib_Loc%"
 GOTO checkError
 
 

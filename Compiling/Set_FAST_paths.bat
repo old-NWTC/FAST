@@ -1,9 +1,10 @@
 
 IF "%COMPUTERNAME%"=="BJONKMAN-23080S" GOTO BJONKMAN-23080S
+IF "%COMPUTERNAME%"=="BJONKMAN-20916S" GOTO BJONKMAN-20916S
 :: IF "%COMPUTERNAME%"=="MBUHL-20665S" GOTO MBUHL-20665S
 
 REM --------------------------------------------------------------------------------------------------------------------------------
-REM These paths are for Bonnie Jonkman and Marshall Buhl; other users should modify their own paths as necessary.
+REM These paths are for Bonnie Jonkman; other users should modify their own paths as necessary.
 
 :BJONKMAN-23080S
 ECHO Setting paths for Bonnie Jonkman.
@@ -47,6 +48,21 @@ SET IceD_Loc=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\IceDyn\SVND
 
 GOTO End
 REM --------------------------------------------------------------------------------------------------------------------------------
+:BJONKMAN-20916S
+
+SET REG_Loc=C:\Users\bjonkman\Documents\CAETools\FAST_Registry
+SET Registry=%REG_Loc%\registry.exe
+
+SET FAST_Loc=C:\Users\bjonkman\Documents\CAETools\FASTv8\Source
+
+
+SET ED_Loc=%FAST_Loc%
+SET SrvD_Loc=%FAST_Loc%
+
+SET HD_Loc=C:\Users\bjonkman\Documents\CAETools\HydroDyn\Source
+SET HD_Reg_Loc=%HD_Loc%\RegistryFiles
+
+:: SET MAP_DLL=C:\Users\bjonkman\Documents\DATA\DesignCodes\simulators\MAP\SVNdirectory\trunk\executable\MAP_win32.dll
 
 
 REM --------------------------------------------------------------------------------------------------------------------------------

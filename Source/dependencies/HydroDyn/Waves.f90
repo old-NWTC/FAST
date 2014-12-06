@@ -23,8 +23,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-12-05 10:42:44 -0700 (Fri, 05 Dec 2014) $
-! (File) Revision #: $Rev: 588 $
+! File last committed: $Date: 2014-12-06 14:47:28 -0700 (Sat, 06 Dec 2014) $
+! (File) Revision #: $Rev: 592 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/Waves.f90 $
 !**********************************************************************************************************************************
 MODULE Waves
@@ -1977,7 +1977,7 @@ CONTAINS
       REAL(ReKi),       INTENT(  OUT)                 :: WaveElevSeriesAtXY(0:InitOut%NStepWave)
       INTEGER(IntKi),   INTENT(  OUT)                 :: ErrStatLcl
       INTEGER(IntKi)                                  :: ErrStatLcl2
-      CHARACTER(1024),  INTENT(  OUT)                 :: ErrMsgLcl
+      CHARACTER(*),     INTENT(  OUT)                 :: ErrMsgLcl
 
       ! This is probably poor programming practice, but we will use I, Omega, WaveNmbr, and tmpComplexArr from the calling routine here.
 

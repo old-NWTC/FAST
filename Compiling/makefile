@@ -56,11 +56,11 @@ endif
    # Name of compiler to use and flags to use.
 FC      = gfortran
 
-FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
+FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
 #FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -C
 #FFLAGS = -g -O0 -v -da -Q -fbacktrace -ffree-line-length-none -x f95-cpp-input
 
-LDFLAGS = -O2 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware
+LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
 
 # some useful gfortran options:
 #  -DFPE_TRAP_ENABLED
@@ -84,7 +84,7 @@ PREC = SingPrec
    # Destination and RootName for executable
 
 OUTPUT_NAME = FAST
-DEST_DIR    = .
+DEST_DIR    = ..\bin
 
    #==========================================================#
    # You should not need to change anything beyond this point #
@@ -237,7 +237,8 @@ IceD_SOURCES =              \
 	IceDyn.f90
 
 
-FAST_SOURCES =          \
+FAST_SOURCES =           \
+	FAST_Types.f90       \
 	FAST_Mods.f90        \
 	FAST_IO.f90          \
 	FAST_Prog.f90
@@ -246,7 +247,7 @@ vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DI
 vpath %.f   $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
-vpath %.txt $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR)
+vpath %.txt $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR) $(FAST_DIR)
 vpath %.inp $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90     $(IceF_DIR)
@@ -284,6 +285,11 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
 
    # General rules for creating _Types.f90 files from Registry files.
 
+FAST_Types.f90:
+	$(Registry) ServoDyn_Registry.txt -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(AD_DIR) \
+	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -noextrap
+   
+   
 ServoDyn_Types.f90:
 	$(Registry) ServoDyn_Registry.txt -I $(NWTC_Lib_DIR)
 
@@ -321,7 +327,7 @@ HydroDyn_Types.f90:
 
 
 AeroDyn_Types.f90:
-	$(Registry) Registry-AD.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I(DWM_DIR)
+	$(Registry) Registry-AD.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR)
 
 DWM_Types.f90:
 	$(Registry) Registry-DWM.txt -I $(NWTC_Lib_DIR) -I $(IfW_DIR_Reg)
@@ -486,7 +492,8 @@ IceDyn.obj:                 NWTC_Library.obj IceDyn_Types.obj
 
 
 # FAST dependency rules:
-FAST_Mods.obj:              NWTC_Library.obj
+FAST_Types.obj:             NWTC_Library.obj  ElastoDyn_Types.obj  ServoDyn_Types.obj  AeroDyn_Types.obj  SubDyn_Types.obj  HydroDyn_Types.obj  MAP_Types.obj  FEAM_Types.obj  IceFloe_Types.obj  IceDyn_Types.obj
+FAST_Mods.obj:              NWTC_Library.obj  FAST_Types.obj
 FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  NWTC_LAPACK.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj  ElastoDyn.obj  SubDyn.obj  HydroDyn.obj  MAP.obj  FEAM.obj  IceFloe.obj  IceDyn.obj
 FAST_Prog.obj:              NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj
 

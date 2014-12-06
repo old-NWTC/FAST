@@ -28,17 +28,13 @@ MODULE FAST_IO_Subs
    USE NWTC_Library
    USE NWTC_LAPACK
 
-   USE FAST_Types
+   USE FAST_ModTypes
 
    USE AeroDyn_Types
-   USE ElastoDyn_Types
    USE FEAMooring_Types
    USE HydroDyn_Types
-   USE IceDyn_Types
    USE IceFloe_Types
    USE MAP_Types
-   USE ServoDyn_Types
-   USE SubDyn_Types
    
    USE ServoDyn, ONLY: Cmpl4SFun, Cmpl4LV
     

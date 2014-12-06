@@ -17,8 +17,8 @@
 ! limitations under the License.
 !    
 !**********************************************************************************************************************************
-! File last committed: $Date: 2014-11-24 15:08:10 -0700 (Mon, 24 Nov 2014) $
-! (File) Revision #: $Rev: 581 $
+! File last committed: $Date: 2014-12-05 23:39:06 -0700 (Fri, 05 Dec 2014) $
+! (File) Revision #: $Rev: 590 $
 ! URL: $HeadURL: https://windsvn.nrel.gov/HydroDyn/trunk/Source/HydroDyn_Input.f90 $
 !**********************************************************************************************************************************
 MODULE HydroDyn_Input
@@ -3089,8 +3089,8 @@ SUBROUTINE HydroDynInput_ProcessInitData( InitInp, ErrStat, ErrMsg )
       ! Add checks that all platform DOF flags are true.  TODO:  Allow true or false once these have been implemented
 
    IF ( ( .NOT. InitInp%PtfmSgF ) .OR.  ( .NOT. InitInp%PtfmSwF ) .OR. ( .NOT. InitInp%PtfmHvF ) .OR. ( .NOT. InitInp%PtfmRF ) .OR. ( .NOT. InitInp%PtfmPF ) .OR. ( .NOT. InitInp%PtfmYF ) )THEN
-      CALL SetErrStat( ErrID_Fatal,'All platform DOF parameters must be set to TRUE.  Future versions of HydroDyn will support values of TRUE,  FALSE, or DEFAULT.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
-      RETURN
+!      CALL SetErrStat( ErrID_Fatal,'All platform DOF parameters must be set to TRUE.  Future versions of HydroDyn will support values of TRUE,  FALSE, or DEFAULT.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
+      CALL SetErrStat( ErrID_Warn,' Only the second-order floating platform force calculations (WAMIT2 sub-module) allow for selectively dissabling force DOF parameters, the first order (WAMIT sub-module) does not and will calculate all dimensions.  Future versions of HydroDyn will support values of TRUE,  FALSE, or DEFAULT for both modules.',ErrStat,ErrMsg,'HydroDynInput_ProcessInitData')
    END IF
 
 
