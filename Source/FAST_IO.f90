@@ -4496,5 +4496,459 @@ SUBROUTINE WriteMappingTransferToFile(Mesh1_I,Mesh1_O,Mesh2_I,Mesh2_O,Map_Mod1_M
    
 
 END SUBROUTINE WriteMappingTransferToFile 
+!...............................................................................................................................
+SUBROUTINE ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD )
+! This routine resets the remap flags on all of the meshes
+!...............................................................................................................................
 
-END MODULE FAST_IO_Subs
+   TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
+
+   TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
+   TYPE(ServoDyn_Data),      INTENT(INOUT) :: SrvD                ! ServoDyn data
+   TYPE(AeroDyn_Data),       INTENT(INOUT) :: AD                  ! AeroDyn data
+   TYPE(HydroDyn_Data),      INTENT(INOUT) :: HD                  ! HydroDyn data
+   TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
+   TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
+   TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
+   TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
+
+   !local variable(s)
+
+   INTEGER(IntKi) :: i  ! counter for ice legs
+   INTEGER(IntKi) :: k  ! counter for blades
+         
+   !.....................................................................
+   ! Reset each mesh's RemapFlag (after calling all InputSolve routines):
+   !.....................................................................     
+   
+   ! ElastoDyn meshes
+   ED%Input( 1)%PlatformPtMesh%RemapFlag     = .FALSE.
+   ED%Output(1)%PlatformPtMesh%RemapFlag     = .FALSE.
+   ED%Input( 1)%TowerLn2Mesh%RemapFlag       = .FALSE.
+   ED%Output(1)%TowerLn2Mesh%RemapFlag       = .FALSE.
+   DO K=1,SIZE(ED%Input(1)%BladeLn2Mesh)
+      ED%Input( 1)%BladeLn2Mesh(K)%RemapFlag = .FALSE.
+      ED%Output(1)%BladeLn2Mesh(K)%RemapFlag = .FALSE.
+   END DO
+             
+   ! AeroDyn meshes
+   IF ( p_FAST%CompAero == Module_AD ) THEN
+         
+      DO k=1,SIZE(AD%Input(1)%InputMarkers)
+         AD%Input(1)%InputMarkers(k)%RemapFlag = .FALSE.
+               AD%y%OutputLoads(  k)%RemapFlag = .FALSE.
+      END DO
+                  
+      IF (AD%Input(1)%Twr_InputMarkers%Committed) THEN
+         AD%Input(1)%Twr_InputMarkers%RemapFlag = .FALSE.
+                  AD%y%Twr_OutputLoads%RemapFlag  = .FALSE.
+      END IF
+   END IF
+             
+   ! HydroDyn
+   IF ( p_FAST%CompHydro == Module_HD ) THEN
+      IF (HD%Input(1)%Mesh%Committed) THEN
+            HD%Input(1)%Mesh%RemapFlag               = .FALSE.
+                  HD%y%Mesh%RemapFlag               = .FALSE.  
+                  HD%y%AllHdroOrigin%RemapFlag      = .FALSE.
+      END IF
+      IF (HD%Input(1)%Morison%LumpedMesh%Committed) THEN
+         HD%Input(1)%Morison%LumpedMesh%RemapFlag  = .FALSE.
+                  HD%y%Morison%LumpedMesh%RemapFlag  = .FALSE.
+      END IF
+      IF (HD%Input(1)%Morison%DistribMesh%Committed) THEN
+         HD%Input(1)%Morison%DistribMesh%RemapFlag = .FALSE.
+                  HD%y%Morison%DistribMesh%RemapFlag = .FALSE.
+      END IF
+   END IF
+
+   ! SubDyn
+   IF ( p_FAST%CompSub == Module_SD ) THEN
+      IF (SD%Input(1)%TPMesh%Committed) THEN
+         SD%Input(1)%TPMesh%RemapFlag = .FALSE.
+                  SD%y%Y1Mesh%RemapFlag = .FALSE.
+      END IF    
+         
+      IF (SD%Input(1)%LMesh%Committed) THEN
+         SD%Input(1)%LMesh%RemapFlag  = .FALSE.
+                  SD%y%Y2Mesh%RemapFlag = .FALSE.
+      END IF    
+   END IF
+      
+      
+   ! MAP , FEAM
+   IF ( p_FAST%CompMooring == Module_MAP ) THEN
+      MAPp%Input(1)%PtFairleadDisplacement%RemapFlag  = .FALSE.
+               MAPp%y%PtFairleadLoad%RemapFlag          = .FALSE.
+   ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
+      FEAM%Input(1)%PtFairleadDisplacement%RemapFlag  = .FALSE.
+               FEAM%y%PtFairleadLoad%RemapFlag          = .FALSE.         
+   END IF
+         
+   ! IceFloe, IceDyn
+   IF ( p_FAST%CompIce == Module_IceF ) THEN
+      IF (IceF%Input(1)%iceMesh%Committed) THEN
+         IceF%Input(1)%iceMesh%RemapFlag = .FALSE.
+                  IceF%y%iceMesh%RemapFlag = .FALSE.
+      END IF    
+   ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
+      DO i=1,p_FAST%numIceLegs
+         IF (IceD%Input(1,i)%PointMesh%Committed) THEN
+               IceD%Input(1,i)%PointMesh%RemapFlag = .FALSE.
+                     IceD%y(i)%PointMesh%RemapFlag = .FALSE.
+         END IF    
+      END DO         
+   END IF
+      
+END SUBROUTINE ResetRemapFlags  
+!...............................................................................................................................
+SUBROUTINE SetModuleSubstepTime(ModuleID, p_FAST, y_FAST, ErrStat, ErrMsg)
+! This module sets the number of subcycles (substeps) for modules, checking to make sure that their requested time step is valid 
+!...............................................................................................................................
+   INTEGER(IntKi),           INTENT(IN   ) :: ModuleID            ! ID of the module to check time step and set
+   TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
+   TYPE(FAST_OutputType),    INTENT(IN   ) :: y_FAST              ! Output variables for the glue code
+   INTEGER(IntKi),           INTENT(  OUT) :: ErrStat             ! Error status of the operation
+   CHARACTER(*),             INTENT(  OUT) :: ErrMsg              ! Error message if ErrStat /= ErrID_None
+
+   ! Local variable
+   REAL(DbKi)                              :: ModuleTimeStep      ! Used to determine if output should be generated at this simulation time
+      
+   ErrStat = ErrID_None
+   ErrMsg  = "" 
+   
+   IF ( EqualRealNos( p_FAST%dt_module( ModuleID ), p_FAST%dt ) ) THEN
+      p_FAST%n_substeps(ModuleID) = 1
+   ELSE
+      IF ( p_FAST%dt_module( ModuleID ) > p_FAST%dt ) THEN
+         ErrStat = ErrID_Fatal
+         ErrMsg = "The "//TRIM(y_FAST%Module_Ver(ModuleID)%Name)//" module time step ("//&
+                          TRIM(Num2LStr(p_FAST%dt_module( ModuleID )))// &
+                    " s) cannot be larger than FAST time step ("//TRIM(Num2LStr(p_FAST%dt))//" s)."
+      ELSE
+            ! calculate the number of subcycles:
+         p_FAST%n_substeps(ModuleID) = NINT( p_FAST%dt / p_FAST%dt_module( ModuleID ) )
+            
+            ! let's make sure THE module DT is an exact integer divisor of the global (FAST) time step:
+         IF ( .NOT. EqualRealNos( p_FAST%dt, p_FAST%dt_module( ModuleID ) * p_FAST%n_substeps(ModuleID) )  ) THEN
+            ErrStat = ErrID_Fatal
+            ErrMsg  = "The "//TRIM(y_FAST%Module_Ver(ModuleID)%Name)//" module time step ("//&
+                              TRIM(Num2LStr(p_FAST%dt_module( ModuleID )))// &
+                              " s) must be an integer divisor of the FAST time step ("//TRIM(Num2LStr(p_FAST%dt))//" s)."
+         END IF
+            
+      END IF
+   END IF      
+                 
+   RETURN
+      
+END SUBROUTINE SetModuleSubstepTime   
+!...............................................................................................................................
+SUBROUTINE InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg)
+! This routine initializes all of the mapping data structures needed between the various modules.
+!...............................................................................................................................
+   
+   TYPE(FAST_ParameterType), INTENT(INOUT) :: p_FAST              ! Parameters for the glue code
+
+   TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
+   TYPE(ServoDyn_Data),      INTENT(INOUT) :: SrvD                ! ServoDyn data
+   TYPE(AeroDyn_Data),       INTENT(INOUT) :: AD                  ! AeroDyn data
+   TYPE(HydroDyn_Data),      INTENT(INOUT) :: HD                  ! HydroDyn data
+   TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
+   TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
+   TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
+   TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
+
+   TYPE(FAST_ModuleMapType), INTENT(INOUT) :: MeshMapData         ! Data for mapping between modules
+   
+   
+   INTEGER(IntKi),           INTENT(  OUT) :: ErrStat             ! Error status of the operation
+   CHARACTER(*),             INTENT(  OUT) :: ErrMsg              ! Error message if ErrStat /= ErrID_None
+   
+
+   INTEGER                                 :: K, i    ! loop counters
+   INTEGER                                 :: NumBl   ! number of blades
+   INTEGER(IntKi)                          :: ErrStat2
+   CHARACTER(LEN(ErrMSg))                  :: ErrMSg2
+   !............................................................................................................................
+   
+   ErrStat = ErrID_None
+   ErrMsg = ""
+   
+   !............................................................................................................................
+   ! Create the data structures and mappings in MeshMapType 
+   !............................................................................................................................
+   
+!-------------------------
+!  ElastoDyn <-> AeroDyn
+!-------------------------
+   
+   IF ( p_FAST%CompAero == Module_AD ) THEN ! ED-AD
+         
+      ! Blade meshes: (allocate two mapping data structures to number of blades, then allocate data inside the structures)
+      NumBl = SIZE(ED%Input(1)%BladeLn2Mesh,1)            
+      ALLOCATE( MeshMapData%ED_L_2_AD_L_B(NumBl), MeshMapData%AD_L_2_ED_L_B(NumBl), STAT=ErrStat2 )
+         IF ( ErrStat2 /= 0 ) THEN
+            CALL SetErrStat( ErrID_Fatal, 'Error allocating MeshMapData%ED_L_2_AD_L_B and MeshMapData%AD_L_2_ED_L_B.', &
+                            ErrStat, ErrMsg, 'InitModuleMappings' )
+            RETURN
+         END IF
+         
+      DO K=1,NumBl         
+         CALL MeshMapCreate( ED%Output(1)%BladeLn2Mesh(K), AD%Input(1)%InputMarkers(K), MeshMapData%ED_L_2_AD_L_B(K), ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_L_2_AD_L_('//TRIM(Num2LStr(K))//')' )
+         CALL MeshMapCreate( AD%y%OutputLoads(K), ED%Input(1)%BladeLn2Mesh(K),  MeshMapData%AD_L_2_ED_L_B(K), ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:AD_L_2_ED_L_('//TRIM(Num2LStr(K))//')' )
+      END DO
+         
+      ! Tower mesh:
+      IF ( AD%Input(1)%Twr_InputMarkers%Committed ) THEN
+         CALL MeshMapCreate( ED%Output(1)%TowerLn2Mesh, AD%Input(1)%Twr_InputMarkers, MeshMapData%ED_L_2_AD_L_T, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_L_2_AD_L_T' )
+         CALL MeshMapCreate( AD%y%Twr_OutputLoads, ED%Input(1)%TowerLn2Mesh,  MeshMapData%AD_L_2_ED_L_T, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:AD_L_2_ED_L_T' )
+      END IF
+               
+      IF (ErrStat >= AbortErrLev ) RETURN
+      
+   END IF
+   
+      
+      
+   IF ( p_FAST%CompHydro == Module_HD ) THEN ! HydroDyn-{ElastoDyn or SubDyn}
+         
+         
+!-------------------------
+!  HydroDyn <-> ElastoDyn
+!-------------------------            
+      IF ( p_FAST%CompSub /= Module_SD ) THEN ! all of these get mapped to ElastoDyn
+            
+            ! we're just going to assume ED%Input(1)%PlatformPtMesh is committed
+               
+         IF ( HD%y%AllHdroOrigin%Committed  ) THEN ! meshes for floating
+               ! HydroDyn WAMIT point mesh to/from ElastoDyn point mesh
+            CALL MeshMapCreate( HD%y%AllHdroOrigin, ED%Input(1)%PlatformPtMesh, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:HD_W_P_2_ED_P' )
+            CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, HD%Input(1)%Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_HD_W_P' )
+         END IF            
+            
+            ! ElastoDyn point mesh HydroDyn Morison point mesh (ED sets inputs, but gets outputs from HD%y%AllHdroOrigin in floating case)
+         IF ( HD%Input(1)%Morison%LumpedMesh%Committed  ) THEN            
+            CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh,  HD%Input(1)%Morison%LumpedMesh, MeshMapData%ED_P_2_HD_M_P, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_HD_M_P' )                  
+         END IF
+            
+            ! ElastoDyn point mesh to HydroDyn Morison line mesh (ED sets inputs, but gets outputs from  HD%y%AllHdroOriginin floating case)
+         IF ( HD%Input(1)%Morison%DistribMesh%Committed ) THEN
+            CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh,  HD%Input(1)%Morison%DistribMesh, MeshMapData%ED_P_2_HD_M_L, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_HD_M_L' )                  
+         END IF
+
+                        
+      ELSE ! these get mapped to ElastoDyn AND SubDyn (in ED_SD_HD coupling)  ! offshore fixed
+            
+            ! HydroDyn WAMIT mesh to ElastoDyn point mesh               
+         IF ( HD%y%Mesh%Committed  ) THEN
+
+               ! HydroDyn WAMIT point mesh to ElastoDyn point mesh ! meshes for fixed-bottom
+            CALL MeshMapCreate( HD%y%Mesh, ED%Input(1)%PlatformPtMesh, MeshMapData%HD_W_P_2_ED_P, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:HD_W_P_2_ED_P' )                  
+            CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, HD%Input(1)%Mesh, MeshMapData%ED_P_2_HD_W_P, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_HD_W_P' )                  
+         END IF             
+            
+!-------------------------
+!  HydroDyn <-> SubDyn
+!-------------------------                     
+                     
+            ! HydroDyn Morison point mesh to SubDyn point mesh
+         IF ( HD%y%Morison%LumpedMesh%Committed ) THEN
+            
+            CALL MeshMapCreate( HD%y%Morison%LumpedMesh, SD%Input(1)%LMesh,  MeshMapData%HD_M_P_2_SD_P, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:HD_M_P_2_SD_P' )                  
+            CALL MeshMapCreate( SD%y%y2Mesh,  HD%Input(1)%Morison%LumpedMesh, MeshMapData%SD_P_2_HD_M_P, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:SD_P_2_HD_M_P' )                  
+                              
+         END IF
+            
+            ! HydroDyn Morison line mesh to SubDyn point mesh
+         IF ( HD%y%Morison%DistribMesh%Committed ) THEN
+               
+            CALL MeshMapCreate( HD%y%Morison%DistribMesh, SD%Input(1)%LMesh,  MeshMapData%HD_M_L_2_SD_P, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:HD_M_L_2_SD_P' )                  
+            CALL MeshMapCreate( SD%y%y2Mesh,  HD%Input(1)%Morison%DistribMesh, MeshMapData%SD_P_2_HD_M_L, ErrStat2, ErrMsg2 )
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:SD_P_2_HD_M_L' )                  
+                  
+         END IF
+
+         
+      END IF ! HydroDyn-SubDyn
+      
+      IF (ErrStat >= AbortErrLev ) RETURN
+    
+   END IF !HydroDyn-{ElastoDyn or SubDyn}
+
+      
+!-------------------------
+!  ElastoDyn <-> SubDyn
+!-------------------------
+   IF ( p_FAST%CompSub == Module_SD ) THEN
+                           
+      ! NOTE: the MeshMapCreate routine returns fatal errors if either mesh is not committed
+      
+         ! SubDyn transition piece point mesh to/from ElastoDyn point mesh
+      CALL MeshMapCreate( SD%y%Y1mesh, ED%Input(1)%PlatformPtMesh,  MeshMapData%SD_TP_2_ED_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:SD_TP_2_ED_P' )                  
+      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, SD%Input(1)%TPMesh,  MeshMapData%ED_P_2_SD_TP, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_SD_TP' )                  
+   
+   END IF ! SubDyn-ElastoDyn      
+      
+      
+   IF ( p_FAST%CompMooring == Module_MAP ) THEN
+!-------------------------
+!  ElastoDyn <-> MAP
+!-------------------------      
+      
+         ! MAP point mesh to/from ElastoDyn point mesh
+      CALL MeshMapCreate( MAPp%y%PtFairleadLoad, ED%Input(1)%PlatformPtMesh,  MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:MAP_P_2_ED_P' )                  
+      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, MAPp%Input(1)%PtFairleadDisplacement,  MeshMapData%ED_P_2_MAP_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_MAP_P' )                  
+
+   ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
+!-------------------------
+!  ElastoDyn <-> FEAMooring
+!-------------------------      
+      
+         ! MAP point mesh to/from ElastoDyn point mesh
+      CALL MeshMapCreate( FEAM%y%PtFairleadLoad, ED%Input(1)%PlatformPtMesh,  MeshMapData%FEAM_P_2_ED_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:FEAM_P_2_ED_P' )                  
+      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, FEAM%Input(1)%PtFairleadDisplacement,  MeshMapData%ED_P_2_FEAM_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_FEAM_P' )                  
+                        
+   END IF   ! MAP-ElastoDyn ; FEAM-ElastoDyn
+            
+         
+!-------------------------
+!  SubDyn <-> IceFloe
+!-------------------------      
+      
+   IF ( p_FAST%CompIce == Module_IceF ) THEN
+   
+         ! IceFloe iceMesh point mesh to SubDyn LMesh point mesh              
+      CALL MeshMapCreate( IceF%y%iceMesh, SD%Input(1)%LMesh,  MeshMapData%IceF_P_2_SD_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:IceF_P_2_SD_P' )                  
+         ! SubDyn y2Mesh point mesh to IceFloe iceMesh point mesh 
+      CALL MeshMapCreate( SD%y%y2Mesh, IceF%Input(1)%iceMesh,  MeshMapData%SD_P_2_IceF_P, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:SD_P_2_IceF_P' )                  
+                              
+!-------------------------
+!  SubDyn <-> IceDyn
+!-------------------------      
+      
+   ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
+   
+      ALLOCATE( MeshMapData%IceD_P_2_SD_P( p_FAST%numIceLegs )  , & 
+                MeshMapData%SD_P_2_IceD_P( p_FAST%numIceLegs )  , Stat=ErrStat2 )
+      IF (ErrStat2 /= 0 ) THEN
+         CALL SetErrStat( ErrID_Fatal, 'Unable to allocate IceD_P_2_SD_P and SD_P_2_IceD_P', ErrStat, ErrMsg, 'InitModuleMappings' )                  
+         RETURN
+      END IF
+         
+      DO i = 1,p_FAST%numIceLegs
+            
+            ! IceDyn PointMesh point mesh to SubDyn LMesh point mesh              
+         CALL MeshMapCreate( IceD%y(i)%PointMesh, SD%Input(1)%LMesh,  MeshMapData%IceD_P_2_SD_P(i), ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:IceD_P_2_SD_P('//TRIM(num2LStr(i))//')' )                  
+            ! SubDyn y2Mesh point mesh to IceDyn PointMesh point mesh 
+         CALL MeshMapCreate( SD%y%y2Mesh, IceD%Input(1,i)%PointMesh,  MeshMapData%SD_P_2_IceD_P(i), ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:SD_P_2_IceD_P('//TRIM(num2LStr(i))//')' )                  
+               
+      END DO
+                        
+   END IF   ! SubDyn-IceFloe
+      
+   IF (ErrStat >= AbortErrLev ) RETURN   
+      
+   !............................................................................................................................
+   ! Initialize the Jacobian structures:
+   !............................................................................................................................
+   !IF ( p_FAST%TurbineType == Type_Offshore_Fixed ) THEN ! p_FAST%CompSub == Module_SD .AND. p_FAST%CompHydro == Module_HD 
+   IF ( p_FAST%CompSub == Module_SD ) THEN  !.OR. p_FAST%CompHydro == Module_HD ) THEN         
+      CALL Init_ED_SD_HD_Jacobian( p_FAST, MeshMapData, ED%Input(1)%PlatformPtMesh, SD%Input(1)%TPMesh, SD%Input(1)%LMesh, &
+                                    HD%Input(1)%Morison%LumpedMesh, HD%Input(1)%Morison%DistribMesh, HD%Input(1)%Mesh, ErrStat2, ErrMsg2)
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings' )                 
+   ELSEIF ( p_FAST%CompHydro == Module_HD ) THEN
+         CALL AllocAry( MeshMapData%Jacobian_ED_SD_HD, SizeJac_ED_HD, SizeJac_ED_HD, 'Jacobian for ED-HD coupling', ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings' )                 
+   END IF
+   
+   IF ( ALLOCATED( MeshMapData%Jacobian_ED_SD_HD ) ) THEN   
+      CALL AllocAry( MeshMapData%Jacobian_pivot, SIZE(MeshMapData%Jacobian_ED_SD_HD), 'Pivot array for Jacobian LU decomposition', ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings' )                 
+   END IF
+   
+   IF (ErrStat >= AbortErrLev ) RETURN   
+   
+   !............................................................................................................................
+   ! reset the remap flags (do this before making the copies else the copies will always have remap = true)
+   !............................................................................................................................
+   CALL ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD )      
+            
+   !............................................................................................................................
+   ! initialize the temporary input meshes (for input-output solves):
+   ! (note that we do this after ResetRemapFlags() so that the copies have remap=false)
+   !............................................................................................................................
+   IF ( p_FAST%CompHydro == Module_HD .OR. p_FAST%CompSub == Module_SD ) THEN
+                  
+         ! Temporary meshes for transfering inputs to ED, HD, and SD
+      CALL MeshCopy ( ED%Input(1)%PlatformPtMesh, MeshMapData%u_ED_PlatformPtMesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:u_ED_PlatformPtMesh' )                 
+
+      CALL MeshCopy ( ED%Input(1)%PlatformPtMesh, MeshMapData%u_ED_PlatformPtMesh_2, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:u_ED_PlatformPtMesh_2' )                 
+                        
+      IF ( p_FAST%CompSub == Module_SD ) THEN
+         
+         CALL MeshCopy ( SD%Input(1)%TPMesh, MeshMapData%u_SD_TPMesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:u_SD_TPMesh' )                 
+               
+         IF ( p_FAST%CompHydro == Module_HD ) THEN
+               
+            CALL MeshCopy ( SD%Input(1)%LMesh, MeshMapData%u_SD_LMesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:u_SD_LMesh' )                 
+                  
+            CALL MeshCopy ( SD%Input(1)%LMesh, MeshMapData%u_SD_LMesh_2, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+               CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:u_SD_LMesh_2' )                 
+                              
+         END IF
+               
+      END IF
+         
+      IF ( p_FAST%CompHydro == Module_HD ) THEN
+            
+         CALL MeshCopy ( HD%Input(1)%Mesh, MeshMapData%u_HD_Mesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:u_HD_Mesh' )                 
+                  
+         CALL MeshCopy ( HD%Input(1)%Morison%LumpedMesh, MeshMapData%u_HD_M_LumpedMesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:u_HD_M_LumpedMesh' )                 
+
+         CALL MeshCopy ( HD%Input(1)%Morison%DistribMesh, MeshMapData%u_HD_M_DistribMesh, MESH_NEWCOPY, ErrStat2, ErrMsg2 )      
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:u_HD_M_DistribMesh' )                 
+                                    
+      END IF
+                              
+   END IF
+
+   !............................................................................................................................
+
+      
+END SUBROUTINE InitModuleMappings
+!...............................................................................................................................
+   
+   
+   END MODULE FAST_IO_Subs
