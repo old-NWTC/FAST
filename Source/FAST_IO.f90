@@ -29,15 +29,19 @@ MODULE FAST_IO_Subs
    USE NWTC_LAPACK
 
    USE FAST_ModTypes
-
-   USE AeroDyn_Types
-   USE FEAMooring_Types
-   USE HydroDyn_Types
-   USE IceFloe_Types
-   USE MAP_Types
-   
-   USE ServoDyn, ONLY: Cmpl4SFun, Cmpl4LV
+  
+   !USE ServoDyn  , ONLY: Cmpl4SFun, Cmpl4LV
     
+   USE AeroDyn
+   USE ElastoDyn
+   USE FEAMooring
+   USE HydroDyn
+   USE IceDyn
+   USE IceFloe
+   USE MAP
+   USE ServoDyn
+   USE SubDyn
+   
 
    IMPLICIT NONE
 
@@ -4948,6 +4952,428 @@ SUBROUTINE InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, Ic
 
       
 END SUBROUTINE InitModuleMappings
+!...............................................................................................................................
+SUBROUTINE WriteOutputToFile(t_global, p_FAST, y_FAST, ED, AD, IfW, HD, SD, SrvD, MAPp, FEAM, IceF, IceD, ErrStat, ErrMsg)
+! This routine determines if it's time to write to the output files, and calls the routine to write to the files
+! with the output data. It should be called after all the output solves for a given time have been completed.
+!...............................................................................................................................
+   REAL(DbKi),               INTENT(IN   ) :: t_global            ! Current global (glue) time step
+   TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
+   TYPE(FAST_OutputType),    INTENT(INOUT) :: y_FAST              ! Output variables for the glue code
+
+   TYPE(ElastoDyn_Data),     INTENT(IN   ) :: ED                  ! ElastoDyn data
+   TYPE(ServoDyn_Data),      INTENT(IN   ) :: SrvD                ! ServoDyn data
+   TYPE(AeroDyn_Data),       INTENT(IN   ) :: AD                  ! AeroDyn data
+   TYPE(InflowWind_Data),    INTENT(IN   ) :: IfW                 ! InflowWind data
+   TYPE(HydroDyn_Data),      INTENT(IN   ) :: HD                  ! HydroDyn data
+   TYPE(SubDyn_Data),        INTENT(IN   ) :: SD                  ! SubDyn data
+   TYPE(MAP_Data),           INTENT(IN   ) :: MAPp                ! MAP data
+   TYPE(FEAMooring_Data),    INTENT(IN   ) :: FEAM                ! FEAMooring data
+   TYPE(IceFloe_Data),       INTENT(IN   ) :: IceF                ! IceFloe data
+   TYPE(IceDyn_Data),        INTENT(IN   ) :: IceD                ! All the IceDyn data used in time-step loop
+
+   INTEGER(IntKi),           INTENT(  OUT) :: ErrStat             ! Error status of the operation
+   CHARACTER(*),             INTENT(  OUT) :: ErrMsg              ! Error message if ErrStat /= ErrID_None
+
+
+   REAL(DbKi)                              :: OutTime             ! Used to determine if output should be generated at this simulation time
+   INTEGER(IntKi)                          :: ErrStat2
+   CHARACTER(LEN(ErrMSg))                  :: ErrMSg2
+      
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   IF ( t_global >= p_FAST%TStart )  THEN
+
+         !bjj FIX THIS algorithm!!! this assumes dt_out is an integer multiple of dt; we will probably have to do some interpolation to get these outputs at the times we want them....
+         !bjj: perhaps we should do this with integer math on n_t_global now...
+      OutTime = NINT( t_global / p_FAST%DT_out ) * p_FAST%DT_out
+      IF ( EqualRealNos( t_global, OutTime ) )  THEN
+
+            ! Generate glue-code output file
+
+            CALL WrOutputLine( t_global, p_FAST, y_FAST, IfW%WriteOutput, ED%Output(1)%WriteOutput, SrvD%y%WriteOutput, HD%y%WriteOutput, &
+                           SD%y%WriteOutput, MAPp%y%WriteOutput, FEAM%y%WriteOutput, IceF%y%WriteOutput, IceD%y, ErrStat, ErrMsg )
+                              
+      END IF
+
+   ENDIF
+      
+   IF (p_FAST%WrGraphics) THEN
+      CALL WriteMotionMeshesToFile(t_global, ED%Output(1), SD%Input(1), SD%y, HD%Input(1), MAPp%Input(1), y_FAST%UnGra, ErrStat2, ErrMsg2, TRIM(p_FAST%OutFileRoot)//'.gra') 
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg, "WriteOutputToFile" )
+   END IF
+            
+END SUBROUTINE WriteOutputToFile     
+!...............................................................................................................................
+SUBROUTINE CalcOutputs_And_SolveForInputs( n_t_global, this_time, this_state, calcJacobian, NextJacCalcTime, &
+                        p_FAST, ED, SrvD, AD, IfW, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
+! This subroutine solves the input-output relations for all of the modules. It is a subroutine because it gets done twice--
+! once at the start of the n_t_global loop and once in the j_pc loop, using different states.
+! *** Note that modules that do not have direct feedthrough should be called first. ***
+! also note that this routine uses variables from the main routine (not declared as arguments)
+!...............................................................................................................................
+   REAL(DbKi)              , intent(in   ) :: this_time           ! The current simulation time (actual or time of prediction)
+   INTEGER(IntKi)          , intent(in   ) :: this_state          ! Index into the state array (current or predicted states)
+   INTEGER(IntKi)          , intent(in   ) :: n_t_global          ! current time step (used only for SrvD hack)
+   LOGICAL                 , intent(inout) :: calcJacobian        ! Should we calculate Jacobians in Option 1?
+   REAL(DbKi)              , intent(in   ) :: NextJacCalcTime     ! Time between calculating Jacobians in the HD-ED and SD-ED simulations
+      
+   TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
+
+   TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
+   TYPE(ServoDyn_Data),      INTENT(INOUT) :: SrvD                ! ServoDyn data
+   TYPE(AeroDyn_Data),       INTENT(INOUT) :: AD                  ! AeroDyn data
+   TYPE(InflowWind_Data),    INTENT(INOUT) :: IfW                 ! InflowWind data
+   TYPE(HydroDyn_Data),      INTENT(INOUT) :: HD                  ! HydroDyn data
+   TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
+   TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
+   TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
+   TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
+
+   TYPE(FAST_ModuleMapType), INTENT(INOUT) :: MeshMapData         ! Data for mapping between modules
+   
+   
+   INTEGER(IntKi),           INTENT(  OUT) :: ErrStat             ! Error status of the operation
+   CHARACTER(*),             INTENT(  OUT) :: ErrMsg              ! Error message if ErrStat /= ErrID_None
+   
+   INTEGER(IntKi)                          :: ErrStat2
+   CHARACTER(LEN(ErrMSg))                  :: ErrMSg2
+   
+   
+   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   ! Option 1: solve for consistent inputs and outputs, which is required when Y has direct feedthrough in 
+   !           modules coupled together
+   ! If you are doing this option at the beginning as well as the end (after option 2), you must initialize the values of
+   ! MAPp%y,
+   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   IF ( EqualRealNos( this_time, NextJacCalcTime ) .OR. NextJacCalcTime < this_time )  THEN
+      calcJacobian = .TRUE.
+   ELSE         
+      calcJacobian = .FALSE.
+   END IF
+      
+#ifdef SOLVE_OPTION_1_BEFORE_2      
+
+   ! This is OPTION 1 before OPTION 2
+      
+   ! For cases with HydroDyn and/or SubDyn, it calls ED_CalcOuts (a time-sink) 2 times per step/correction (plus the 6 calls when calculating the Jacobian).
+   ! For cases without HydroDyn or SubDyn, it calls ED_CalcOuts 1 time per step/correction.
+      
+   CALL SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CalcOutputs_And_SolveForInputs' )  
+   CALL SolveOption2(this_time, this_state, p_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat2, ErrMsg2, n_t_global < 0)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CalcOutputs_And_SolveForInputs' )  
+                  
+#else
+
+   ! This is OPTION 2 before OPTION 1
+      
+   ! For cases with HydroDyn and/or SubDyn, it calls ED_CalcOuts (a time-sink) 3 times per step/correction (plus the 6 calls when calculating the Jacobian).
+   ! In cases without HydroDyn or SubDyn, it is the same as Option 1 before 2 (with 1 call to ED_CalcOuts either way).
+      
+   ! Option 1 before 2 usually requires a correction step, whereas Option 2 before Option 1 often does not. Thus we are using this option, calling ED_CalcOuts 
+   ! 3 times (option 2 before 1 with no correction step) instead of 4 times (option1 before 2 with one correction step). 
+   ! Note that this analyisis may change if/when AeroDyn (and ServoDyn?) generate different outputs on correction steps. (Currently, AeroDyn returns old
+   ! values until time advances.)
+
+   CALL ED_CalcOutput( this_time, ED%Input(1), ED%p, ED%x(this_state), ED%xd(this_state), ED%z(this_state), ED%OtherSt, ED%Output(1), ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CalcOutputs_And_SolveForInputs' )  
+         
+   CALL SolveOption2(this_time, this_state, p_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat2, ErrMsg2, n_t_global < 0)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CalcOutputs_And_SolveForInputs' )  
+         
+      ! transfer ED outputs to other modules used in option 1:
+   CALL Transfer_ED_to_HD_SD_Mooring( p_FAST, ED%Output(1), HD%Input(1), SD%Input(1), MAPp%Input(1), FEAM%Input(1), MeshMapData, ErrStat2, ErrMsg2 )         
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CalcOutputs_And_SolveForInputs' )  
+                    
+!call wrscr1( 'FAST/init/Morison/LumpedMesh:')      
+!call meshprintinfo( CU, HD%Input(1)%morison%LumpedMesh )          
+              
+   CALL SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat2, ErrMsg2)
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CalcOutputs_And_SolveForInputs' )  
+
+   !   ! use the ElastoDyn outputs from option1 to update the inputs for AeroDyn and ServoDyn
+   ! bjj: if they ever have states to update, we should do these tramsfers!!!!
+   !IF ( p_FAST%CompAero == Module_AD ) THEN
+   !   CALL AD_InputSolve( AD%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
+   !            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'CalcOutputs_And_SolveForInputs' )  
+   !END IF      
+   !
+   !IF ( p_FAST%CompServo == Module_SrvD  ) THEN         
+   !   CALL SrvD_InputSolve( p_FAST, SrvD%Input(1), ED%Output(1), IfW%WriteOutput )    ! At initialization, we don't have a previous value, so we'll use the guess inputs instead. note that this violates the framework.... (done for the Bladed DLL)
+   !END IF         
+                     
+#endif
+                                                                                                      
+   !.....................................................................
+   ! Reset each mesh's RemapFlag (after calling all InputSolve routines):
+   !.....................................................................              
+         
+   CALL ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD)         
+         
+                        
+END SUBROUTINE CalcOutputs_And_SolveForInputs  
+!...............................................................................................................................
+SUBROUTINE SolveOption1(this_time, this_state, calcJacobian, p_FAST, ED, HD, SD, MAPp, FEAM, IceF, IceD, MeshMapData, ErrStat, ErrMsg )
+! This routine implements the "option 1" solve for all inputs with direct links to HD, SD, MAP, and the ED platform reference 
+! point
+!...............................................................................................................................
+   REAL(DbKi)              , intent(in   ) :: this_time           ! The current simulation time (actual or time of prediction)
+   INTEGER(IntKi)          , intent(in   ) :: this_state          ! Index into the state array (current or predicted states)
+   LOGICAL                 , intent(in   ) :: calcJacobian        ! Should we calculate Jacobians in Option 1?
+
+   TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
+
+   TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
+   !TYPE(ServoDyn_Data),      INTENT(INOUT) :: SrvD                ! ServoDyn data
+   !TYPE(AeroDyn_Data),       INTENT(INOUT) :: AD                  ! AeroDyn data
+   TYPE(HydroDyn_Data),      INTENT(INOUT) :: HD                  ! HydroDyn data
+   TYPE(SubDyn_Data),        INTENT(INOUT) :: SD                  ! SubDyn data
+   TYPE(MAP_Data),           INTENT(INOUT) :: MAPp                ! MAP data
+   TYPE(FEAMooring_Data),    INTENT(INOUT) :: FEAM                ! FEAMooring data
+   TYPE(IceFloe_Data),       INTENT(INOUT) :: IceF                ! IceFloe data
+   TYPE(IceDyn_Data),        INTENT(INOUT) :: IceD                ! All the IceDyn data used in time-step loop
+
+   TYPE(FAST_ModuleMapType), INTENT(INOUT) :: MeshMapData         ! Data for mapping between modules
+   
+   
+   INTEGER(IntKi),           INTENT(  OUT) :: ErrStat             ! Error status of the operation
+   CHARACTER(*),             INTENT(  OUT) :: ErrMsg              ! Error message if ErrStat /= ErrID_None
+   
+
+   INTEGER                                 :: i                   ! loop counter
+   INTEGER(IntKi)                          :: ErrStat2
+   CHARACTER(LEN(ErrMSg))                  :: ErrMSg2
+   !............................................................................................................................   
+   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   ! Option 1: solve for consistent inputs and outputs, which is required when Y has direct feedthrough in 
+   !           modules coupled together
+   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+               
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   ! Because MAP, FEAM, and IceFloe do not contain acceleration inputs, we do this outside the DO loop in the ED{_SD}_HD_InputOutput solves.       
+   IF ( p_FAST%CompMooring == Module_MAP ) THEN
+                  
+      CALL MAP_CalcOutput( this_time, MAPp%Input(1), MAPp%p, MAPp%x(this_state), MAPp%xd(this_state), MAPp%z(this_state), &
+                            MAPp%OtherSt, MAPp%y, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+                        
+   ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
+         
+      CALL FEAM_CalcOutput( this_time, FEAM%Input(1), FEAM%p, FEAM%x(this_state), FEAM%xd(this_state), FEAM%z(this_state), &
+                            FEAM%OtherSt, FEAM%y, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+                        
+   END IF
+      
+   IF ( p_FAST%CompIce == Module_IceF ) THEN
+                  
+      CALL IceFloe_CalcOutput( this_time, IceF%Input(1), IceF%p, IceF%x(this_state), IceF%xd(this_state), IceF%z(this_state), &
+                                 IceF%OtherSt, IceF%y, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+      
+   ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
+         
+      DO i=1,p_FAST%numIceLegs                  
+         CALL IceD_CalcOutput( this_time, IceD%Input(1,i), IceD%p(i), IceD%x(i,this_state), IceD%xd(i,this_state), &
+                                 IceD%z(i,this_state), IceD%OtherSt(i), IceD%y(i), ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+      END DO
+         
+   END IF
+      
+   !
+   !   ! User Platform Loading
+   !IF ( p_FAST%CompUserPtfmLd ) THEN !bjj: array below won't work... routine needs to be converted to UsrPtfm_CalcOutput()
+   !!
+   !!   CALL UserPtfmLd ( ED%x(STATE_CURR)%QT(1:6), ED%x(STATE_CURR)%QDT(1:6), t, p_FAST%DirRoot, y_UsrPtfm%AddedMass, (/ y_UsrPtfm%Force,y_UsrPtfm%Moment /) )
+   !!   CALL UserPtfmLd ( ED%Output(1)%PlatformPtMesh, t, p_FAST%DirRoot, y_UsrPtfm%AddedMass, ED%u%PlatformPtMesh )
+   !!
+   !!      ! Ensure that the platform added mass matrix returned by UserPtfmLd, PtfmAM, is symmetric; Abort if necessary:
+   !!   IF ( .NOT. IsSymmetric( y_UsrPtfm%AddedMass ) ) THEN
+   !!      CALL CheckError ( ErrID_Fatal, ' The user-defined platform added mass matrix is unsymmetric.'// &
+   !!                        '  Make sure AddedMass returned by UserPtfmLd() is symmetric.'        )
+   !!   END IF
+   !!
+   !END IF
+      
+   IF (ErrStat >= AbortErrLev) RETURN      
+   
+   IF ( p_FAST%CompSub == Module_SD ) THEN !.OR. p_FAST%CompHydro == Module_HD ) THEN
+                                 
+      CALL ED_SD_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
+                                    , ED%Input(1), ED%p, ED%x(this_state), ED%xd(this_state), ED%z(this_state), ED%OtherSt, ED%Output(1) &
+                                    , SD%Input(1), SD%p, SD%x(this_state), SD%xd(this_state), SD%z(this_state), SD%OtherSt, SD%y & 
+                                    , HD%Input(1), HD%p, HD%x(this_state), HD%xd(this_state), HD%z(this_state), HD%OtherSt, HD%y & 
+                                    , MAPp%Input(1),   MAPp%y &
+                                    , FEAM%Input(1),   FEAM%y &   
+                                    , IceF%Input(1),   IceF%y &
+                                    , IceD%Input(1,:), IceD%y &    ! bjj: I don't really want to make temp copies of input types. perhaps we should pass the whole Input() structure?...
+                                    , MeshMapData , ErrStat2, ErrMsg2 )         
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+                        
+               
+   ELSEIF ( p_FAST%CompHydro == Module_HD ) THEN
+                                                    
+      CALL ED_HD_InputOutputSolve(  this_time, p_FAST, calcJacobian &
+                                    , ED%Input(1), ED%p, ED%x(this_state), ED%xd(this_state), ED%z(this_state), ED%OtherSt, ED%Output(1) &
+                                    , HD%Input(1), HD%p, HD%x(this_state), HD%xd(this_state), HD%z(this_state), HD%OtherSt, HD%y & 
+                                    , MAPp%Input(1), MAPp%y, FEAM%Input(1), FEAM%y &          
+                                    , MeshMapData , ErrStat2, ErrMsg2 )         
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+                                                                  
+#ifdef SOLVE_OPTION_1_BEFORE_2      
+   ELSE 
+         
+      CALL ED_CalcOutput( this_time, ED%Input(1), ED%p, ED%x(this_state), ED%xd(this_state), ED%z(this_state), &
+                           ED%OtherSt, ED%Output(1), ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+#endif         
+   END IF ! HD and/or SD coupled to ElastoDyn
+                         
+!..................
+! Set mooring line and ice inputs (which don't have acceleration fields)
+!..................
+   
+   IF ( p_FAST%CompMooring == Module_MAP ) THEN
+         
+      ! note: MAP_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
+      CALL MAP_InputSolve( MAPp%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+                                 
+   ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
+         
+      ! note: FEAM_InputSolve must be called before setting ED loads inputs (so that motions are known for loads [moment] mapping)      
+      CALL FEAM_InputSolve( FEAM%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+                        
+   END IF        
+      
+   IF ( p_FAST%CompIce == Module_IceF ) THEN
+         
+      CALL IceFloe_InputSolve(  IceF%Input(1), SD%y, MeshMapData, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1' )
+                                 
+   ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
+         
+      DO i=1,p_FAST%numIceLegs
+            
+         CALL IceD_InputSolve(  IceD%Input(1,i), SD%y, MeshMapData, i, ErrStat2, ErrMsg2 )
+            CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption1:IceD_InputSolve' )
+               
+      END DO
+         
+   END IF        
+      
+#ifdef DEBUG_MESH_TRANSFER_ICE
+      CALL WrScr('********************************************************')
+      CALL WrScr('****   IceF to SD point-to-point                   *****')
+      CALL WrScr('********************************************************')
+      CALL WriteMappingTransferToFile(SD%Input(1)%LMesh, SD%y%Y2Mesh, IceF%Input(1)%iceMesh, IceF%y%iceMesh,&
+            MeshMapData%SD_P_2_IceF_P, MeshMapData%IceF_P_2_SD_P, &
+            'SD_y2_IceF_Meshes_t'//TRIM(Num2LStr(0))//'.PI.bin' )
+
+         
+      CALL WriteMappingTransferToFile(SD%Input(1)%LMesh, SD%y%Y2Mesh, HD%Input(1)%Morison%LumpedMesh, HD%y%Morison%LumpedMesh,&
+            MeshMapData%SD_P_2_HD_M_P, MeshMapData%HD_M_P_2_SD_P, &
+            'SD_y2_HD_M_L_Meshes_t'//TRIM(Num2LStr(0))//'.PHL.bin' )
+         
+      CALL WriteMappingTransferToFile(SD%Input(1)%LMesh, SD%y%Y2Mesh, HD%Input(1)%Morison%DistribMesh, HD%y%Morison%DistribMesh,&
+            MeshMapData%SD_P_2_HD_M_L, MeshMapData%HD_M_L_2_SD_P, &
+            'SD_y2_HD_M_D_Meshes_t'//TRIM(Num2LStr(0))//'.PHD.bin' )
+         
+         
+      !print *
+      !pause         
+#endif         
+                  
+END SUBROUTINE SolveOption1
+!...............................................................................................................................
+SUBROUTINE SolveOption2(this_time, this_state, p_FAST, ED, AD, SrvD, IfW, MeshMapData, ErrStat, ErrMsg, firstCall)
+! This routine implements the "option 2" solve for all inputs without direct links to HD, SD, MAP, or the ED platform reference 
+! point
+!...............................................................................................................................
+   LOGICAL                 , intent(in   ) :: firstCall           ! flag to determine how to call ServoDyn (a hack)
+   REAL(DbKi)              , intent(in   ) :: this_time           ! The current simulation time (actual or time of prediction)
+   INTEGER(IntKi)          , intent(in   ) :: this_state          ! Index into the state array (current or predicted states)
+
+   TYPE(FAST_ParameterType), INTENT(IN   ) :: p_FAST              ! Parameters for the glue code
+
+   TYPE(ElastoDyn_Data),     INTENT(INOUT) :: ED                  ! ElastoDyn data
+   TYPE(ServoDyn_Data),      INTENT(INOUT) :: SrvD                ! ServoDyn data
+   TYPE(AeroDyn_Data),       INTENT(INOUT) :: AD                  ! AeroDyn data
+   TYPE(InflowWind_Data),    INTENT(INOUT) :: IfW                 ! InflowWind data
+
+   TYPE(FAST_ModuleMapType), INTENT(INOUT) :: MeshMapData         ! Data for mapping between modules
+   
+   
+   INTEGER(IntKi),           INTENT(  OUT) :: ErrStat             ! Error status of the operation
+   CHARACTER(*),             INTENT(  OUT) :: ErrMsg              ! Error message if ErrStat /= ErrID_None
+   
+
+   INTEGER(IntKi)                          :: ErrStat2
+   CHARACTER(LEN(ErrMSg))                  :: ErrMSg2
+   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   ! Option 2: Solve for inputs based only on the current outputs. This is much faster than option 1 when the coupled modules
+   !           do not have direct feedthrough.
+   !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   
+   
+   IF ( p_FAST%CompAero == Module_AD ) THEN !bjj: do this before calling SrvD so that SrvD can get the correct wind speed...
+      CALL AD_InputSolve( AD%Input(1), ED%Output(1), MeshMapData, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption2' )
+         
+      CALL AD_CalcOutput( this_time, AD%Input(1), AD%p, AD%x(this_state), AD%xd(this_state), AD%z(this_state), AD%OtherSt, AD%y, ErrStat2, ErrMsg2 )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption2' )
+ 
+!bjj FIX THIS>>>>>         
+         !InflowWind outputs
+      IF ( allocated(AD%y%IfW_Outputs%WriteOutput) ) &
+      IfW%WriteOutput = AD%y%IfW_Outputs%WriteOutput
+!<<<         
+
+   END IF
+      
+                       
+   IF ( p_FAST%CompServo == Module_SrvD  ) THEN
+         
+         ! note that the inputs at step(n) for ServoDyn include the outputs from step(n-1)
+      IF ( firstCall ) THEN
+         CALL SrvD_InputSolve( p_FAST, SrvD%Input(1), ED%Output(1), IfW%WriteOutput )    ! At initialization, we don't have a previous value, so we'll use the guess inputs instead. note that this violates the framework.... (done for the Bladed DLL)
+      ELSE
+         CALL SrvD_InputSolve( p_FAST, SrvD%Input(1), ED%Output(1), IfW%WriteOutput, SrvD%y_prev   ) 
+      END IF
+
+      CALL SrvD_CalcOutput( this_time, SrvD%Input(1), SrvD%p, SrvD%x(this_state), SrvD%xd(this_state), SrvD%z(this_state), SrvD%OtherSt, SrvD%y, ErrStat, ErrMsg )
+         CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption2' )
+
+   END IF
+      
+      
+      ! User Tower Loading
+   IF ( p_FAST%CompUserTwrLd ) THEN !bjj: array below won't work... routine needs to be converted to UsrTwr_CalcOutput()
+   !   CALL UserTwrLd ( JNode, X, XD, t, p_FAST%DirRoot, y_UsrTwr%AddedMass(1:6,1:6,J), (/ y_UsrTwr%Force(:,J),y_UsrTwr%Moment(:,J) /) )
+   END IF
+
+        
+      
+   !bjj: note ED%Input(1) may be a sibling mesh of output, but ED%u is not (routine may update something that needs to be shared between siblings)      
+   CALL ED_InputSolve( p_FAST, ED%Input(1), ED%Output(1), AD%y, SrvD%y, MeshMapData, ErrStat2, ErrMsg2 )
+      CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'SolveOption2' )
+   
+   
+END SUBROUTINE SolveOption2
 !...............................................................................................................................
    
    

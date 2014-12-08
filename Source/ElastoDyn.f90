@@ -7091,10 +7091,10 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, BldFile, FurlFile, TwrFile
 
    END DO
 
-!   IF (NWTC_VerboseComments) THEN
+   IF (NWTC_VerboseLevel == NWTC_Verbose) THEN
       CALL WrScr( ' Heading of the '//TRIM(ED_Ver%Name)//' input file: ' )
       CALL WrScr( '   '//TRIM( FTitle ) )
-!   END IF
+   END IF
 
       ! Method - Integration method for loose coupling
    CALL ReadVar( UnIn, InputFile, InputFileData%method, "Method", "Requested integration method for ElastoDyn {1: RK4, 2: AB4, or 3: ABM4}", ErrStat2, ErrMsg2, UnEc)

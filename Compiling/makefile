@@ -247,7 +247,7 @@ vpath %.f90 $(NWTC_Lib_DIR) $(AD_DIR) $(IfW_DIR) $(HD_DIR_Reg) $(HD_DIR) $(ED_DI
 vpath %.f   $(NETLIB_DIR)
 vpath %.mod $(INTER_DIR)
 vpath %.obj $(INTER_DIR)
-vpath %.txt $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR) $(FAST_DIR)
+vpath %.txt $(FAST_DIR) $(AD_DIR) $(IfW_DIR_Reg) $(HD_DIR_Reg) $(SD_DIR) $(ED_DIR) $(SrvD_DIR) $(FEAM_DIR) $(IceD_DIR) $(DWM_DIR) 
 vpath %.inp $(IceF_DIR)
 #apparently vpath doesn't work as expected if I use %.F90 (is it not case sensitive???)
 #vpath %.F90     $(IceF_DIR)
@@ -286,7 +286,7 @@ default:  $(INTER_DIR) $(DEST_DIR)/$(OUTPUT_NAME)$(EXE_EXT)
    # General rules for creating _Types.f90 files from Registry files.
 
 FAST_Types.f90:
-	$(Registry) ServoDyn_Registry.txt -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(AD_DIR) \
+	$(Registry) FAST_Registry.txt -I $(NWTC_Lib_DIR) -I $(ED_DIR) -I $(SrvD_DIR) -I $(SD_DIR) -I $(AD_DIR) \
 	-I $(HD_DIR_Reg) -I $(IceF_DIR) -I $(IceD_DIR) -I $(MAP_DIR) -I $(FEAM_DIR) -I $(IfW_DIR_Reg) -I $(DWM_DIR) -noextrap
    
    
@@ -492,7 +492,7 @@ IceDyn.obj:                 NWTC_Library.obj IceDyn_Types.obj
 
 
 # FAST dependency rules:
-FAST_Types.obj:             NWTC_Library.obj  ElastoDyn_Types.obj  ServoDyn_Types.obj  AeroDyn_Types.obj  SubDyn_Types.obj  HydroDyn_Types.obj  MAP_Types.obj  FEAM_Types.obj  IceFloe_Types.obj  IceDyn_Types.obj
+FAST_Types.obj:             NWTC_Library.obj  ElastoDyn_Types.obj  ServoDyn_Types.obj  AeroDyn_Types.obj  SubDyn_Types.obj  HydroDyn_Types.obj  MAP_Types.obj  FEAMooring_Types.obj  IceFloe_Types.obj  IceDyn_Types.obj FAST_Registry.txt
 FAST_Mods.obj:              NWTC_Library.obj  FAST_Types.obj
 FAST_IO.obj:                NWTC_Library.obj  FAST_Mods.obj  NWTC_LAPACK.obj  AeroDyn.obj  InflowWind.obj  ServoDyn.obj  ElastoDyn.obj  SubDyn.obj  HydroDyn.obj  MAP.obj  FEAM.obj  IceFloe.obj  IceDyn.obj
 FAST_Prog.obj:              NWTC_Library.obj  FAST_Mods.obj  FAST_IO.obj

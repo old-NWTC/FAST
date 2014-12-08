@@ -990,10 +990,10 @@ SUBROUTINE ReadPrimaryFile( InputFile, InputFileData, OutFileRoot, UnEc, ErrStat
       
    END DO    
 
-!   IF (NWTC_VerboseComments) THEN
+   IF (NWTC_VerboseLevel == NWTC_Verbose) THEN
       CALL WrScr( ' Heading of the '//TRIM(SrvD_Ver%Name)//' input file: ' )      
       CALL WrScr( '   '//TRIM( FTitle ) )
-!   END IF
+   END IF
    
    
       ! DT - Communication interval for controllers (s):
