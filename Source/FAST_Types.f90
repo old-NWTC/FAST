@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.03, 5-Dec-2014)
+! FAST Registry (v2.04.01, 8-Dec-2014)
 !*********************************************************************************************************************************
 ! FAST_Types
 !.................................................................................................................................
@@ -229,6 +229,20 @@ IMPLICIT NONE
     TYPE(MeshType)  :: u_HD_Mesh      ! copy of HD input mesh [-]
   END TYPE FAST_ModuleMapType
 ! =======================
+! =========  FAST_MiscVarType  =======
+  TYPE, PUBLIC :: FAST_MiscVarType
+    REAL(DbKi)  :: TiLstPrn      ! The simulation time of the last print (to file) [(s)]
+    REAL(DbKi)  :: t_global      ! Current simulation time (for global/FAST simulation) [(s)]
+    REAL(DbKi)  :: NextJacCalcTime      ! Time between calculating Jacobians in the HD-ED and SD-ED simulations [(s)]
+    REAL(ReKi)  :: PrevClockTime      ! Clock time at start of simulation in seconds [(s)]
+    REAL(ReKi)  :: UsrTime1      ! User CPU time for simulation initialization [(s)]
+    REAL(ReKi)  :: UsrTime2      ! User CPU time for simulation (without intialization) [(s)]
+    INTEGER(IntKi) , DIMENSION(1:8)  :: StrtTime      ! Start time of simulation (including intialization) [-]
+    INTEGER(IntKi) , DIMENSION(1:8)  :: SimStrtTime      ! Start time of simulation (after initialization) [-]
+    INTEGER(IntKi)  :: n_TMax_m1      ! The time step of TMax - dt (the end time of the simulation) [(-)]
+    LOGICAL  :: calcJacobian      ! Should we calculate Jacobians in Option 1? [(flag)]
+  END TYPE FAST_MiscVarType
+! =======================
 CONTAINS
  SUBROUTINE FAST_CopyIceDyn_Data( SrcIceDyn_DataData, DstIceDyn_DataData, CtrlCode, ErrStat, ErrMsg )
    TYPE(IceDyn_Data), INTENT(INOUT) :: SrcIceDyn_DataData
@@ -240,6 +254,8 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -249,16 +265,17 @@ IF (ALLOCATED(SrcIceDyn_DataData%x)) THEN
    i2_l = LBOUND(SrcIceDyn_DataData%x,2)
    i2_u = UBOUND(SrcIceDyn_DataData%x,2)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%x)) THEN 
-      ALLOCATE(DstIceDyn_DataData%x(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%x.'
+      ALLOCATE(DstIceDyn_DataData%x(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%x.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i2 = LBOUND(SrcIceDyn_DataData%x,2), UBOUND(SrcIceDyn_DataData%x,2)
    DO i1 = LBOUND(SrcIceDyn_DataData%x,1), UBOUND(SrcIceDyn_DataData%x,1)
-      CALL IceD_CopyContState( SrcIceDyn_DataData%x(i1,i2), DstIceDyn_DataData%x(i1,i2), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyContState( SrcIceDyn_DataData%x(i1,i2), DstIceDyn_DataData%x(i1,i2), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:x(i1,i2)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    ENDDO
 ENDIF
@@ -268,16 +285,17 @@ IF (ALLOCATED(SrcIceDyn_DataData%xd)) THEN
    i2_l = LBOUND(SrcIceDyn_DataData%xd,2)
    i2_u = UBOUND(SrcIceDyn_DataData%xd,2)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%xd)) THEN 
-      ALLOCATE(DstIceDyn_DataData%xd(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%xd.'
+      ALLOCATE(DstIceDyn_DataData%xd(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%xd.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i2 = LBOUND(SrcIceDyn_DataData%xd,2), UBOUND(SrcIceDyn_DataData%xd,2)
    DO i1 = LBOUND(SrcIceDyn_DataData%xd,1), UBOUND(SrcIceDyn_DataData%xd,1)
-      CALL IceD_CopyDiscState( SrcIceDyn_DataData%xd(i1,i2), DstIceDyn_DataData%xd(i1,i2), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyDiscState( SrcIceDyn_DataData%xd(i1,i2), DstIceDyn_DataData%xd(i1,i2), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:xd(i1,i2)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    ENDDO
 ENDIF
@@ -287,16 +305,17 @@ IF (ALLOCATED(SrcIceDyn_DataData%z)) THEN
    i2_l = LBOUND(SrcIceDyn_DataData%z,2)
    i2_u = UBOUND(SrcIceDyn_DataData%z,2)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%z)) THEN 
-      ALLOCATE(DstIceDyn_DataData%z(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%z.'
+      ALLOCATE(DstIceDyn_DataData%z(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%z.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i2 = LBOUND(SrcIceDyn_DataData%z,2), UBOUND(SrcIceDyn_DataData%z,2)
    DO i1 = LBOUND(SrcIceDyn_DataData%z,1), UBOUND(SrcIceDyn_DataData%z,1)
-      CALL IceD_CopyConstrState( SrcIceDyn_DataData%z(i1,i2), DstIceDyn_DataData%z(i1,i2), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyConstrState( SrcIceDyn_DataData%z(i1,i2), DstIceDyn_DataData%z(i1,i2), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:z(i1,i2)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    ENDDO
 ENDIF
@@ -304,120 +323,128 @@ IF (ALLOCATED(SrcIceDyn_DataData%OtherSt)) THEN
    i1_l = LBOUND(SrcIceDyn_DataData%OtherSt,1)
    i1_u = UBOUND(SrcIceDyn_DataData%OtherSt,1)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%OtherSt)) THEN 
-      ALLOCATE(DstIceDyn_DataData%OtherSt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%OtherSt.'
+      ALLOCATE(DstIceDyn_DataData%OtherSt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%OtherSt.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcIceDyn_DataData%OtherSt,1), UBOUND(SrcIceDyn_DataData%OtherSt,1)
-      CALL IceD_CopyOtherState( SrcIceDyn_DataData%OtherSt(i1), DstIceDyn_DataData%OtherSt(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyOtherState( SrcIceDyn_DataData%OtherSt(i1), DstIceDyn_DataData%OtherSt(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:OtherSt(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%p)) THEN
    i1_l = LBOUND(SrcIceDyn_DataData%p,1)
    i1_u = UBOUND(SrcIceDyn_DataData%p,1)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%p)) THEN 
-      ALLOCATE(DstIceDyn_DataData%p(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%p.'
+      ALLOCATE(DstIceDyn_DataData%p(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%p.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcIceDyn_DataData%p,1), UBOUND(SrcIceDyn_DataData%p,1)
-      CALL IceD_CopyParam( SrcIceDyn_DataData%p(i1), DstIceDyn_DataData%p(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyParam( SrcIceDyn_DataData%p(i1), DstIceDyn_DataData%p(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:p(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%u)) THEN
    i1_l = LBOUND(SrcIceDyn_DataData%u,1)
    i1_u = UBOUND(SrcIceDyn_DataData%u,1)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%u)) THEN 
-      ALLOCATE(DstIceDyn_DataData%u(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%u.'
+      ALLOCATE(DstIceDyn_DataData%u(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%u.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcIceDyn_DataData%u,1), UBOUND(SrcIceDyn_DataData%u,1)
-      CALL IceD_CopyInput( SrcIceDyn_DataData%u(i1), DstIceDyn_DataData%u(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyInput( SrcIceDyn_DataData%u(i1), DstIceDyn_DataData%u(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:u(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%y)) THEN
    i1_l = LBOUND(SrcIceDyn_DataData%y,1)
    i1_u = UBOUND(SrcIceDyn_DataData%y,1)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%y)) THEN 
-      ALLOCATE(DstIceDyn_DataData%y(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%y.'
+      ALLOCATE(DstIceDyn_DataData%y(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%y.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcIceDyn_DataData%y,1), UBOUND(SrcIceDyn_DataData%y,1)
-      CALL IceD_CopyOutput( SrcIceDyn_DataData%y(i1), DstIceDyn_DataData%y(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyOutput( SrcIceDyn_DataData%y(i1), DstIceDyn_DataData%y(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:y(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%x_pred)) THEN
    i1_l = LBOUND(SrcIceDyn_DataData%x_pred,1)
    i1_u = UBOUND(SrcIceDyn_DataData%x_pred,1)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%x_pred)) THEN 
-      ALLOCATE(DstIceDyn_DataData%x_pred(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%x_pred.'
+      ALLOCATE(DstIceDyn_DataData%x_pred(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%x_pred.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcIceDyn_DataData%x_pred,1), UBOUND(SrcIceDyn_DataData%x_pred,1)
-      CALL IceD_CopyContState( SrcIceDyn_DataData%x_pred(i1), DstIceDyn_DataData%x_pred(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyContState( SrcIceDyn_DataData%x_pred(i1), DstIceDyn_DataData%x_pred(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:x_pred(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%xd_pred)) THEN
    i1_l = LBOUND(SrcIceDyn_DataData%xd_pred,1)
    i1_u = UBOUND(SrcIceDyn_DataData%xd_pred,1)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%xd_pred)) THEN 
-      ALLOCATE(DstIceDyn_DataData%xd_pred(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%xd_pred.'
+      ALLOCATE(DstIceDyn_DataData%xd_pred(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%xd_pred.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcIceDyn_DataData%xd_pred,1), UBOUND(SrcIceDyn_DataData%xd_pred,1)
-      CALL IceD_CopyDiscState( SrcIceDyn_DataData%xd_pred(i1), DstIceDyn_DataData%xd_pred(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyDiscState( SrcIceDyn_DataData%xd_pred(i1), DstIceDyn_DataData%xd_pred(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:xd_pred(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%z_pred)) THEN
    i1_l = LBOUND(SrcIceDyn_DataData%z_pred,1)
    i1_u = UBOUND(SrcIceDyn_DataData%z_pred,1)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%z_pred)) THEN 
-      ALLOCATE(DstIceDyn_DataData%z_pred(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%z_pred.'
+      ALLOCATE(DstIceDyn_DataData%z_pred(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%z_pred.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcIceDyn_DataData%z_pred,1), UBOUND(SrcIceDyn_DataData%z_pred,1)
-      CALL IceD_CopyConstrState( SrcIceDyn_DataData%z_pred(i1), DstIceDyn_DataData%z_pred(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyConstrState( SrcIceDyn_DataData%z_pred(i1), DstIceDyn_DataData%z_pred(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:z_pred(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%OtherSt_old)) THEN
    i1_l = LBOUND(SrcIceDyn_DataData%OtherSt_old,1)
    i1_u = UBOUND(SrcIceDyn_DataData%OtherSt_old,1)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%OtherSt_old)) THEN 
-      ALLOCATE(DstIceDyn_DataData%OtherSt_old(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%OtherSt_old.'
+      ALLOCATE(DstIceDyn_DataData%OtherSt_old(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%OtherSt_old.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcIceDyn_DataData%OtherSt_old,1), UBOUND(SrcIceDyn_DataData%OtherSt_old,1)
-      CALL IceD_CopyOtherState( SrcIceDyn_DataData%OtherSt_old(i1), DstIceDyn_DataData%OtherSt_old(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyOtherState( SrcIceDyn_DataData%OtherSt_old(i1), DstIceDyn_DataData%OtherSt_old(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:OtherSt_old(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%Input)) THEN
@@ -426,16 +453,17 @@ IF (ALLOCATED(SrcIceDyn_DataData%Input)) THEN
    i2_l = LBOUND(SrcIceDyn_DataData%Input,2)
    i2_u = UBOUND(SrcIceDyn_DataData%Input,2)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%Input)) THEN 
-      ALLOCATE(DstIceDyn_DataData%Input(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%Input.'
+      ALLOCATE(DstIceDyn_DataData%Input(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%Input.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
    DO i2 = LBOUND(SrcIceDyn_DataData%Input,2), UBOUND(SrcIceDyn_DataData%Input,2)
    DO i1 = LBOUND(SrcIceDyn_DataData%Input,1), UBOUND(SrcIceDyn_DataData%Input,1)
-      CALL IceD_CopyInput( SrcIceDyn_DataData%Input(i1,i2), DstIceDyn_DataData%Input(i1,i2), CtrlCode, ErrStat, ErrMsg )
+      CALL IceD_CopyInput( SrcIceDyn_DataData%Input(i1,i2), DstIceDyn_DataData%Input(i1,i2), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:Input(i1,i2)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    ENDDO
 ENDIF
@@ -445,10 +473,9 @@ IF (ALLOCATED(SrcIceDyn_DataData%InputTimes)) THEN
    i2_l = LBOUND(SrcIceDyn_DataData%InputTimes,2)
    i2_u = UBOUND(SrcIceDyn_DataData%InputTimes,2)
    IF (.NOT. ALLOCATED(DstIceDyn_DataData%InputTimes)) THEN 
-      ALLOCATE(DstIceDyn_DataData%InputTimes(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceDyn_Data: Error allocating DstIceDyn_DataData%InputTimes.'
+      ALLOCATE(DstIceDyn_DataData%InputTimes(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
          RETURN
       END IF
    END IF
@@ -735,7 +762,7 @@ DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
   IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
 ENDDO
 ENDDO
-  Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1272,61 +1299,80 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DO i1 = LBOUND(SrcElastoDyn_DataData%x,1), UBOUND(SrcElastoDyn_DataData%x,1)
-      CALL ED_CopyContState( SrcElastoDyn_DataData%x(i1), DstElastoDyn_DataData%x(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL ED_CopyContState( SrcElastoDyn_DataData%x(i1), DstElastoDyn_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:x(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcElastoDyn_DataData%xd,1), UBOUND(SrcElastoDyn_DataData%xd,1)
-      CALL ED_CopyDiscState( SrcElastoDyn_DataData%xd(i1), DstElastoDyn_DataData%xd(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL ED_CopyDiscState( SrcElastoDyn_DataData%xd(i1), DstElastoDyn_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:xd(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcElastoDyn_DataData%z,1), UBOUND(SrcElastoDyn_DataData%z,1)
-      CALL ED_CopyConstrState( SrcElastoDyn_DataData%z(i1), DstElastoDyn_DataData%z(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL ED_CopyConstrState( SrcElastoDyn_DataData%z(i1), DstElastoDyn_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:z(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
-      CALL ED_CopyOtherState( SrcElastoDyn_DataData%OtherSt, DstElastoDyn_DataData%OtherSt, CtrlCode, ErrStat, ErrMsg )
-      CALL ED_CopyParam( SrcElastoDyn_DataData%p, DstElastoDyn_DataData%p, CtrlCode, ErrStat, ErrMsg )
-      CALL ED_CopyInput( SrcElastoDyn_DataData%u, DstElastoDyn_DataData%u, CtrlCode, ErrStat, ErrMsg )
-      CALL ED_CopyOutput( SrcElastoDyn_DataData%y, DstElastoDyn_DataData%y, CtrlCode, ErrStat, ErrMsg )
-      CALL ED_CopyOtherState( SrcElastoDyn_DataData%OtherSt_old, DstElastoDyn_DataData%OtherSt_old, CtrlCode, ErrStat, ErrMsg )
+      CALL ED_CopyOtherState( SrcElastoDyn_DataData%OtherSt, DstElastoDyn_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:OtherSt')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL ED_CopyParam( SrcElastoDyn_DataData%p, DstElastoDyn_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:p')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL ED_CopyInput( SrcElastoDyn_DataData%u, DstElastoDyn_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:u')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL ED_CopyOutput( SrcElastoDyn_DataData%y, DstElastoDyn_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:y')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL ED_CopyOtherState( SrcElastoDyn_DataData%OtherSt_old, DstElastoDyn_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:OtherSt_old')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcElastoDyn_DataData%Output)) THEN
    i1_l = LBOUND(SrcElastoDyn_DataData%Output,1)
    i1_u = UBOUND(SrcElastoDyn_DataData%Output,1)
    IF (.NOT. ALLOCATED(DstElastoDyn_DataData%Output)) THEN 
-      ALLOCATE(DstElastoDyn_DataData%Output(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyElastoDyn_Data: Error allocating DstElastoDyn_DataData%Output.'
+      ALLOCATE(DstElastoDyn_DataData%Output(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElastoDyn_DataData%Output.', ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcElastoDyn_DataData%Output,1), UBOUND(SrcElastoDyn_DataData%Output,1)
-      CALL ED_CopyOutput( SrcElastoDyn_DataData%Output(i1), DstElastoDyn_DataData%Output(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL ED_CopyOutput( SrcElastoDyn_DataData%Output(i1), DstElastoDyn_DataData%Output(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:Output(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcElastoDyn_DataData%Input)) THEN
    i1_l = LBOUND(SrcElastoDyn_DataData%Input,1)
    i1_u = UBOUND(SrcElastoDyn_DataData%Input,1)
    IF (.NOT. ALLOCATED(DstElastoDyn_DataData%Input)) THEN 
-      ALLOCATE(DstElastoDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyElastoDyn_Data: Error allocating DstElastoDyn_DataData%Input.'
+      ALLOCATE(DstElastoDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElastoDyn_DataData%Input.', ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcElastoDyn_DataData%Input,1), UBOUND(SrcElastoDyn_DataData%Input,1)
-      CALL ED_CopyInput( SrcElastoDyn_DataData%Input(i1), DstElastoDyn_DataData%Input(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL ED_CopyInput( SrcElastoDyn_DataData%Input(i1), DstElastoDyn_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data:Input(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcElastoDyn_DataData%InputTimes)) THEN
    i1_l = LBOUND(SrcElastoDyn_DataData%InputTimes,1)
    i1_u = UBOUND(SrcElastoDyn_DataData%InputTimes,1)
    IF (.NOT. ALLOCATED(DstElastoDyn_DataData%InputTimes)) THEN 
-      ALLOCATE(DstElastoDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyElastoDyn_Data: Error allocating DstElastoDyn_DataData%InputTimes.'
+      ALLOCATE(DstElastoDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstElastoDyn_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopyElastoDyn_Data')
          RETURN
       END IF
    END IF
@@ -1517,7 +1563,7 @@ DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
   IF(ALLOCATED(Db_Input_Buf))  DEALLOCATE(Db_Input_Buf)
   IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
 ENDDO
-  Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1942,52 +1988,72 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DO i1 = LBOUND(SrcServoDyn_DataData%x,1), UBOUND(SrcServoDyn_DataData%x,1)
-      CALL SrvD_CopyContState( SrcServoDyn_DataData%x(i1), DstServoDyn_DataData%x(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL SrvD_CopyContState( SrcServoDyn_DataData%x(i1), DstServoDyn_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:x(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcServoDyn_DataData%xd,1), UBOUND(SrcServoDyn_DataData%xd,1)
-      CALL SrvD_CopyDiscState( SrcServoDyn_DataData%xd(i1), DstServoDyn_DataData%xd(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL SrvD_CopyDiscState( SrcServoDyn_DataData%xd(i1), DstServoDyn_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:xd(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcServoDyn_DataData%z,1), UBOUND(SrcServoDyn_DataData%z,1)
-      CALL SrvD_CopyConstrState( SrcServoDyn_DataData%z(i1), DstServoDyn_DataData%z(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL SrvD_CopyConstrState( SrcServoDyn_DataData%z(i1), DstServoDyn_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:z(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
-      CALL SrvD_CopyOtherState( SrcServoDyn_DataData%OtherSt, DstServoDyn_DataData%OtherSt, CtrlCode, ErrStat, ErrMsg )
-      CALL SrvD_CopyParam( SrcServoDyn_DataData%p, DstServoDyn_DataData%p, CtrlCode, ErrStat, ErrMsg )
-      CALL SrvD_CopyInput( SrcServoDyn_DataData%u, DstServoDyn_DataData%u, CtrlCode, ErrStat, ErrMsg )
-      CALL SrvD_CopyOutput( SrcServoDyn_DataData%y, DstServoDyn_DataData%y, CtrlCode, ErrStat, ErrMsg )
-      CALL SrvD_CopyOtherState( SrcServoDyn_DataData%OtherSt_old, DstServoDyn_DataData%OtherSt_old, CtrlCode, ErrStat, ErrMsg )
+      CALL SrvD_CopyOtherState( SrcServoDyn_DataData%OtherSt, DstServoDyn_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:OtherSt')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SrvD_CopyParam( SrcServoDyn_DataData%p, DstServoDyn_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:p')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SrvD_CopyInput( SrcServoDyn_DataData%u, DstServoDyn_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:u')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SrvD_CopyOutput( SrcServoDyn_DataData%y, DstServoDyn_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:y')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SrvD_CopyOtherState( SrcServoDyn_DataData%OtherSt_old, DstServoDyn_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:OtherSt_old')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcServoDyn_DataData%Input)) THEN
    i1_l = LBOUND(SrcServoDyn_DataData%Input,1)
    i1_u = UBOUND(SrcServoDyn_DataData%Input,1)
    IF (.NOT. ALLOCATED(DstServoDyn_DataData%Input)) THEN 
-      ALLOCATE(DstServoDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyServoDyn_Data: Error allocating DstServoDyn_DataData%Input.'
+      ALLOCATE(DstServoDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstServoDyn_DataData%Input.', ErrStat, ErrMsg,'FAST_CopyServoDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcServoDyn_DataData%Input,1), UBOUND(SrcServoDyn_DataData%Input,1)
-      CALL SrvD_CopyInput( SrcServoDyn_DataData%Input(i1), DstServoDyn_DataData%Input(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL SrvD_CopyInput( SrcServoDyn_DataData%Input(i1), DstServoDyn_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:Input(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcServoDyn_DataData%InputTimes)) THEN
    i1_l = LBOUND(SrcServoDyn_DataData%InputTimes,1)
    i1_u = UBOUND(SrcServoDyn_DataData%InputTimes,1)
    IF (.NOT. ALLOCATED(DstServoDyn_DataData%InputTimes)) THEN 
-      ALLOCATE(DstServoDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyServoDyn_Data: Error allocating DstServoDyn_DataData%InputTimes.'
+      ALLOCATE(DstServoDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstServoDyn_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopyServoDyn_Data')
          RETURN
       END IF
    END IF
    DstServoDyn_DataData%InputTimes = SrcServoDyn_DataData%InputTimes
 ENDIF
-      CALL SrvD_CopyOutput( SrcServoDyn_DataData%y_prev, DstServoDyn_DataData%y_prev, CtrlCode, ErrStat, ErrMsg )
+      CALL SrvD_CopyOutput( SrcServoDyn_DataData%y_prev, DstServoDyn_DataData%y_prev, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyServoDyn_Data:y_prev')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE FAST_CopyServoDyn_Data
 
  SUBROUTINE FAST_DestroyServoDyn_Data( ServoDyn_DataData, ErrStat, ErrMsg )
@@ -2159,7 +2225,7 @@ DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
   IF(ALLOCATED(Db_Input_Buf))  DEALLOCATE(Db_Input_Buf)
   IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
 ENDDO
-  Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
   CALL SrvD_PackOutput( Re_y_prev_Buf, Db_y_prev_Buf, Int_y_prev_Buf, InData%y_prev, ErrStat, ErrMsg, .TRUE. ) ! y_prev 
   IF(ALLOCATED(Re_y_prev_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_y_prev_Buf  ) ! y_prev
   IF(ALLOCATED(Db_y_prev_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_y_prev_Buf  ) ! y_prev
@@ -2587,46 +2653,64 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DO i1 = LBOUND(SrcAeroDyn_DataData%x,1), UBOUND(SrcAeroDyn_DataData%x,1)
-      CALL AD_CopyContState( SrcAeroDyn_DataData%x(i1), DstAeroDyn_DataData%x(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL AD_CopyContState( SrcAeroDyn_DataData%x(i1), DstAeroDyn_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data:x(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcAeroDyn_DataData%xd,1), UBOUND(SrcAeroDyn_DataData%xd,1)
-      CALL AD_CopyDiscState( SrcAeroDyn_DataData%xd(i1), DstAeroDyn_DataData%xd(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL AD_CopyDiscState( SrcAeroDyn_DataData%xd(i1), DstAeroDyn_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data:xd(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcAeroDyn_DataData%z,1), UBOUND(SrcAeroDyn_DataData%z,1)
-      CALL AD_CopyConstrState( SrcAeroDyn_DataData%z(i1), DstAeroDyn_DataData%z(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL AD_CopyConstrState( SrcAeroDyn_DataData%z(i1), DstAeroDyn_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data:z(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
-      CALL AD_CopyOtherState( SrcAeroDyn_DataData%OtherSt, DstAeroDyn_DataData%OtherSt, CtrlCode, ErrStat, ErrMsg )
-      CALL AD_CopyParam( SrcAeroDyn_DataData%p, DstAeroDyn_DataData%p, CtrlCode, ErrStat, ErrMsg )
-      CALL AD_CopyInput( SrcAeroDyn_DataData%u, DstAeroDyn_DataData%u, CtrlCode, ErrStat, ErrMsg )
-      CALL AD_CopyOutput( SrcAeroDyn_DataData%y, DstAeroDyn_DataData%y, CtrlCode, ErrStat, ErrMsg )
-      CALL AD_CopyOtherState( SrcAeroDyn_DataData%OtherSt_old, DstAeroDyn_DataData%OtherSt_old, CtrlCode, ErrStat, ErrMsg )
+      CALL AD_CopyOtherState( SrcAeroDyn_DataData%OtherSt, DstAeroDyn_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data:OtherSt')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL AD_CopyParam( SrcAeroDyn_DataData%p, DstAeroDyn_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data:p')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL AD_CopyInput( SrcAeroDyn_DataData%u, DstAeroDyn_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data:u')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL AD_CopyOutput( SrcAeroDyn_DataData%y, DstAeroDyn_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data:y')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL AD_CopyOtherState( SrcAeroDyn_DataData%OtherSt_old, DstAeroDyn_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data:OtherSt_old')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcAeroDyn_DataData%Input)) THEN
    i1_l = LBOUND(SrcAeroDyn_DataData%Input,1)
    i1_u = UBOUND(SrcAeroDyn_DataData%Input,1)
    IF (.NOT. ALLOCATED(DstAeroDyn_DataData%Input)) THEN 
-      ALLOCATE(DstAeroDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyAeroDyn_Data: Error allocating DstAeroDyn_DataData%Input.'
+      ALLOCATE(DstAeroDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAeroDyn_DataData%Input.', ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcAeroDyn_DataData%Input,1), UBOUND(SrcAeroDyn_DataData%Input,1)
-      CALL AD_CopyInput( SrcAeroDyn_DataData%Input(i1), DstAeroDyn_DataData%Input(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL AD_CopyInput( SrcAeroDyn_DataData%Input(i1), DstAeroDyn_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data:Input(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcAeroDyn_DataData%InputTimes)) THEN
    i1_l = LBOUND(SrcAeroDyn_DataData%InputTimes,1)
    i1_u = UBOUND(SrcAeroDyn_DataData%InputTimes,1)
    IF (.NOT. ALLOCATED(DstAeroDyn_DataData%InputTimes)) THEN 
-      ALLOCATE(DstAeroDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyAeroDyn_Data: Error allocating DstAeroDyn_DataData%InputTimes.'
+      ALLOCATE(DstAeroDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstAeroDyn_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopyAeroDyn_Data')
          RETURN
       END IF
    END IF
@@ -2799,7 +2883,7 @@ DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
   IF(ALLOCATED(Db_Input_Buf))  DEALLOCATE(Db_Input_Buf)
   IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
 ENDDO
-  Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -3186,6 +3270,8 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -3297,46 +3383,64 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DO i1 = LBOUND(SrcSubDyn_DataData%x,1), UBOUND(SrcSubDyn_DataData%x,1)
-      CALL SD_CopyContState( SrcSubDyn_DataData%x(i1), DstSubDyn_DataData%x(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL SD_CopyContState( SrcSubDyn_DataData%x(i1), DstSubDyn_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopySubDyn_Data:x(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcSubDyn_DataData%xd,1), UBOUND(SrcSubDyn_DataData%xd,1)
-      CALL SD_CopyDiscState( SrcSubDyn_DataData%xd(i1), DstSubDyn_DataData%xd(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL SD_CopyDiscState( SrcSubDyn_DataData%xd(i1), DstSubDyn_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopySubDyn_Data:xd(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcSubDyn_DataData%z,1), UBOUND(SrcSubDyn_DataData%z,1)
-      CALL SD_CopyConstrState( SrcSubDyn_DataData%z(i1), DstSubDyn_DataData%z(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL SD_CopyConstrState( SrcSubDyn_DataData%z(i1), DstSubDyn_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopySubDyn_Data:z(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
-      CALL SD_CopyOtherState( SrcSubDyn_DataData%OtherSt, DstSubDyn_DataData%OtherSt, CtrlCode, ErrStat, ErrMsg )
-      CALL SD_CopyParam( SrcSubDyn_DataData%p, DstSubDyn_DataData%p, CtrlCode, ErrStat, ErrMsg )
-      CALL SD_CopyInput( SrcSubDyn_DataData%u, DstSubDyn_DataData%u, CtrlCode, ErrStat, ErrMsg )
-      CALL SD_CopyOutput( SrcSubDyn_DataData%y, DstSubDyn_DataData%y, CtrlCode, ErrStat, ErrMsg )
-      CALL SD_CopyOtherState( SrcSubDyn_DataData%OtherSt_old, DstSubDyn_DataData%OtherSt_old, CtrlCode, ErrStat, ErrMsg )
+      CALL SD_CopyOtherState( SrcSubDyn_DataData%OtherSt, DstSubDyn_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopySubDyn_Data:OtherSt')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SD_CopyParam( SrcSubDyn_DataData%p, DstSubDyn_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopySubDyn_Data:p')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SD_CopyInput( SrcSubDyn_DataData%u, DstSubDyn_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopySubDyn_Data:u')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SD_CopyOutput( SrcSubDyn_DataData%y, DstSubDyn_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopySubDyn_Data:y')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL SD_CopyOtherState( SrcSubDyn_DataData%OtherSt_old, DstSubDyn_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopySubDyn_Data:OtherSt_old')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcSubDyn_DataData%Input)) THEN
    i1_l = LBOUND(SrcSubDyn_DataData%Input,1)
    i1_u = UBOUND(SrcSubDyn_DataData%Input,1)
    IF (.NOT. ALLOCATED(DstSubDyn_DataData%Input)) THEN 
-      ALLOCATE(DstSubDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopySubDyn_Data: Error allocating DstSubDyn_DataData%Input.'
+      ALLOCATE(DstSubDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstSubDyn_DataData%Input.', ErrStat, ErrMsg,'FAST_CopySubDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcSubDyn_DataData%Input,1), UBOUND(SrcSubDyn_DataData%Input,1)
-      CALL SD_CopyInput( SrcSubDyn_DataData%Input(i1), DstSubDyn_DataData%Input(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL SD_CopyInput( SrcSubDyn_DataData%Input(i1), DstSubDyn_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopySubDyn_Data:Input(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcSubDyn_DataData%InputTimes)) THEN
    i1_l = LBOUND(SrcSubDyn_DataData%InputTimes,1)
    i1_u = UBOUND(SrcSubDyn_DataData%InputTimes,1)
    IF (.NOT. ALLOCATED(DstSubDyn_DataData%InputTimes)) THEN 
-      ALLOCATE(DstSubDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopySubDyn_Data: Error allocating DstSubDyn_DataData%InputTimes.'
+      ALLOCATE(DstSubDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstSubDyn_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopySubDyn_Data')
          RETURN
       END IF
    END IF
@@ -3509,7 +3613,7 @@ DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
   IF(ALLOCATED(Db_Input_Buf))  DEALLOCATE(Db_Input_Buf)
   IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
 ENDDO
-  Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -3896,46 +4000,64 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DO i1 = LBOUND(SrcHydroDyn_DataData%x,1), UBOUND(SrcHydroDyn_DataData%x,1)
-      CALL HydroDyn_CopyContState( SrcHydroDyn_DataData%x(i1), DstHydroDyn_DataData%x(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL HydroDyn_CopyContState( SrcHydroDyn_DataData%x(i1), DstHydroDyn_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data:x(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcHydroDyn_DataData%xd,1), UBOUND(SrcHydroDyn_DataData%xd,1)
-      CALL HydroDyn_CopyDiscState( SrcHydroDyn_DataData%xd(i1), DstHydroDyn_DataData%xd(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL HydroDyn_CopyDiscState( SrcHydroDyn_DataData%xd(i1), DstHydroDyn_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data:xd(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcHydroDyn_DataData%z,1), UBOUND(SrcHydroDyn_DataData%z,1)
-      CALL HydroDyn_CopyConstrState( SrcHydroDyn_DataData%z(i1), DstHydroDyn_DataData%z(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL HydroDyn_CopyConstrState( SrcHydroDyn_DataData%z(i1), DstHydroDyn_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data:z(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
-      CALL HydroDyn_CopyOtherState( SrcHydroDyn_DataData%OtherSt, DstHydroDyn_DataData%OtherSt, CtrlCode, ErrStat, ErrMsg )
-      CALL HydroDyn_CopyParam( SrcHydroDyn_DataData%p, DstHydroDyn_DataData%p, CtrlCode, ErrStat, ErrMsg )
-      CALL HydroDyn_CopyInput( SrcHydroDyn_DataData%u, DstHydroDyn_DataData%u, CtrlCode, ErrStat, ErrMsg )
-      CALL HydroDyn_CopyOutput( SrcHydroDyn_DataData%y, DstHydroDyn_DataData%y, CtrlCode, ErrStat, ErrMsg )
-      CALL HydroDyn_CopyOtherState( SrcHydroDyn_DataData%OtherSt_old, DstHydroDyn_DataData%OtherSt_old, CtrlCode, ErrStat, ErrMsg )
+      CALL HydroDyn_CopyOtherState( SrcHydroDyn_DataData%OtherSt, DstHydroDyn_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data:OtherSt')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL HydroDyn_CopyParam( SrcHydroDyn_DataData%p, DstHydroDyn_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data:p')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL HydroDyn_CopyInput( SrcHydroDyn_DataData%u, DstHydroDyn_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data:u')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL HydroDyn_CopyOutput( SrcHydroDyn_DataData%y, DstHydroDyn_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data:y')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL HydroDyn_CopyOtherState( SrcHydroDyn_DataData%OtherSt_old, DstHydroDyn_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data:OtherSt_old')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcHydroDyn_DataData%Input)) THEN
    i1_l = LBOUND(SrcHydroDyn_DataData%Input,1)
    i1_u = UBOUND(SrcHydroDyn_DataData%Input,1)
    IF (.NOT. ALLOCATED(DstHydroDyn_DataData%Input)) THEN 
-      ALLOCATE(DstHydroDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyHydroDyn_Data: Error allocating DstHydroDyn_DataData%Input.'
+      ALLOCATE(DstHydroDyn_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstHydroDyn_DataData%Input.', ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcHydroDyn_DataData%Input,1), UBOUND(SrcHydroDyn_DataData%Input,1)
-      CALL HydroDyn_CopyInput( SrcHydroDyn_DataData%Input(i1), DstHydroDyn_DataData%Input(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL HydroDyn_CopyInput( SrcHydroDyn_DataData%Input(i1), DstHydroDyn_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data:Input(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcHydroDyn_DataData%InputTimes)) THEN
    i1_l = LBOUND(SrcHydroDyn_DataData%InputTimes,1)
    i1_u = UBOUND(SrcHydroDyn_DataData%InputTimes,1)
    IF (.NOT. ALLOCATED(DstHydroDyn_DataData%InputTimes)) THEN 
-      ALLOCATE(DstHydroDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyHydroDyn_Data: Error allocating DstHydroDyn_DataData%InputTimes.'
+      ALLOCATE(DstHydroDyn_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstHydroDyn_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopyHydroDyn_Data')
          RETURN
       END IF
    END IF
@@ -4108,7 +4230,7 @@ DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
   IF(ALLOCATED(Db_Input_Buf))  DEALLOCATE(Db_Input_Buf)
   IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
 ENDDO
-  Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -4495,46 +4617,64 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DO i1 = LBOUND(SrcIceFloe_DataData%x,1), UBOUND(SrcIceFloe_DataData%x,1)
-      CALL IceFloe_CopyContState( SrcIceFloe_DataData%x(i1), DstIceFloe_DataData%x(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceFloe_CopyContState( SrcIceFloe_DataData%x(i1), DstIceFloe_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceFloe_Data:x(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcIceFloe_DataData%xd,1), UBOUND(SrcIceFloe_DataData%xd,1)
-      CALL IceFloe_CopyDiscState( SrcIceFloe_DataData%xd(i1), DstIceFloe_DataData%xd(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceFloe_CopyDiscState( SrcIceFloe_DataData%xd(i1), DstIceFloe_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceFloe_Data:xd(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcIceFloe_DataData%z,1), UBOUND(SrcIceFloe_DataData%z,1)
-      CALL IceFloe_CopyConstrState( SrcIceFloe_DataData%z(i1), DstIceFloe_DataData%z(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceFloe_CopyConstrState( SrcIceFloe_DataData%z(i1), DstIceFloe_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceFloe_Data:z(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
-      CALL IceFloe_CopyOtherState( SrcIceFloe_DataData%OtherSt, DstIceFloe_DataData%OtherSt, CtrlCode, ErrStat, ErrMsg )
-      CALL IceFloe_CopyParam( SrcIceFloe_DataData%p, DstIceFloe_DataData%p, CtrlCode, ErrStat, ErrMsg )
-      CALL IceFloe_CopyInput( SrcIceFloe_DataData%u, DstIceFloe_DataData%u, CtrlCode, ErrStat, ErrMsg )
-      CALL IceFloe_CopyOutput( SrcIceFloe_DataData%y, DstIceFloe_DataData%y, CtrlCode, ErrStat, ErrMsg )
-      CALL IceFloe_CopyOtherState( SrcIceFloe_DataData%OtherSt_old, DstIceFloe_DataData%OtherSt_old, CtrlCode, ErrStat, ErrMsg )
+      CALL IceFloe_CopyOtherState( SrcIceFloe_DataData%OtherSt, DstIceFloe_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceFloe_Data:OtherSt')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL IceFloe_CopyParam( SrcIceFloe_DataData%p, DstIceFloe_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceFloe_Data:p')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL IceFloe_CopyInput( SrcIceFloe_DataData%u, DstIceFloe_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceFloe_Data:u')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL IceFloe_CopyOutput( SrcIceFloe_DataData%y, DstIceFloe_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceFloe_Data:y')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL IceFloe_CopyOtherState( SrcIceFloe_DataData%OtherSt_old, DstIceFloe_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceFloe_Data:OtherSt_old')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcIceFloe_DataData%Input)) THEN
    i1_l = LBOUND(SrcIceFloe_DataData%Input,1)
    i1_u = UBOUND(SrcIceFloe_DataData%Input,1)
    IF (.NOT. ALLOCATED(DstIceFloe_DataData%Input)) THEN 
-      ALLOCATE(DstIceFloe_DataData%Input(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceFloe_Data: Error allocating DstIceFloe_DataData%Input.'
+      ALLOCATE(DstIceFloe_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceFloe_DataData%Input.', ErrStat, ErrMsg,'FAST_CopyIceFloe_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcIceFloe_DataData%Input,1), UBOUND(SrcIceFloe_DataData%Input,1)
-      CALL IceFloe_CopyInput( SrcIceFloe_DataData%Input(i1), DstIceFloe_DataData%Input(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL IceFloe_CopyInput( SrcIceFloe_DataData%Input(i1), DstIceFloe_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceFloe_Data:Input(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcIceFloe_DataData%InputTimes)) THEN
    i1_l = LBOUND(SrcIceFloe_DataData%InputTimes,1)
    i1_u = UBOUND(SrcIceFloe_DataData%InputTimes,1)
    IF (.NOT. ALLOCATED(DstIceFloe_DataData%InputTimes)) THEN 
-      ALLOCATE(DstIceFloe_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyIceFloe_Data: Error allocating DstIceFloe_DataData%InputTimes.'
+      ALLOCATE(DstIceFloe_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceFloe_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopyIceFloe_Data')
          RETURN
       END IF
    END IF
@@ -4707,7 +4847,7 @@ DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
   IF(ALLOCATED(Db_Input_Buf))  DEALLOCATE(Db_Input_Buf)
   IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
 ENDDO
-  Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -5094,46 +5234,64 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DO i1 = LBOUND(SrcMAP_DataData%x,1), UBOUND(SrcMAP_DataData%x,1)
-      CALL MAP_CopyContState( SrcMAP_DataData%x(i1), DstMAP_DataData%x(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL MAP_CopyContState( SrcMAP_DataData%x(i1), DstMAP_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMAP_Data:x(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcMAP_DataData%xd,1), UBOUND(SrcMAP_DataData%xd,1)
-      CALL MAP_CopyDiscState( SrcMAP_DataData%xd(i1), DstMAP_DataData%xd(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL MAP_CopyDiscState( SrcMAP_DataData%xd(i1), DstMAP_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMAP_Data:xd(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcMAP_DataData%z,1), UBOUND(SrcMAP_DataData%z,1)
-      CALL MAP_CopyConstrState( SrcMAP_DataData%z(i1), DstMAP_DataData%z(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL MAP_CopyConstrState( SrcMAP_DataData%z(i1), DstMAP_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMAP_Data:z(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
-      CALL MAP_CopyOtherState( SrcMAP_DataData%OtherSt, DstMAP_DataData%OtherSt, CtrlCode, ErrStat, ErrMsg )
-      CALL MAP_CopyParam( SrcMAP_DataData%p, DstMAP_DataData%p, CtrlCode, ErrStat, ErrMsg )
-      CALL MAP_CopyInput( SrcMAP_DataData%u, DstMAP_DataData%u, CtrlCode, ErrStat, ErrMsg )
-      CALL MAP_CopyOutput( SrcMAP_DataData%y, DstMAP_DataData%y, CtrlCode, ErrStat, ErrMsg )
-      CALL MAP_CopyOtherState( SrcMAP_DataData%OtherSt_old, DstMAP_DataData%OtherSt_old, CtrlCode, ErrStat, ErrMsg )
+      CALL MAP_CopyOtherState( SrcMAP_DataData%OtherSt, DstMAP_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMAP_Data:OtherSt')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL MAP_CopyParam( SrcMAP_DataData%p, DstMAP_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMAP_Data:p')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL MAP_CopyInput( SrcMAP_DataData%u, DstMAP_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMAP_Data:u')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL MAP_CopyOutput( SrcMAP_DataData%y, DstMAP_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMAP_Data:y')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL MAP_CopyOtherState( SrcMAP_DataData%OtherSt_old, DstMAP_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMAP_Data:OtherSt_old')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcMAP_DataData%Input)) THEN
    i1_l = LBOUND(SrcMAP_DataData%Input,1)
    i1_u = UBOUND(SrcMAP_DataData%Input,1)
    IF (.NOT. ALLOCATED(DstMAP_DataData%Input)) THEN 
-      ALLOCATE(DstMAP_DataData%Input(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyMAP_Data: Error allocating DstMAP_DataData%Input.'
+      ALLOCATE(DstMAP_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMAP_DataData%Input.', ErrStat, ErrMsg,'FAST_CopyMAP_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcMAP_DataData%Input,1), UBOUND(SrcMAP_DataData%Input,1)
-      CALL MAP_CopyInput( SrcMAP_DataData%Input(i1), DstMAP_DataData%Input(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL MAP_CopyInput( SrcMAP_DataData%Input(i1), DstMAP_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyMAP_Data:Input(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcMAP_DataData%InputTimes)) THEN
    i1_l = LBOUND(SrcMAP_DataData%InputTimes,1)
    i1_u = UBOUND(SrcMAP_DataData%InputTimes,1)
    IF (.NOT. ALLOCATED(DstMAP_DataData%InputTimes)) THEN 
-      ALLOCATE(DstMAP_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyMAP_Data: Error allocating DstMAP_DataData%InputTimes.'
+      ALLOCATE(DstMAP_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstMAP_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopyMAP_Data')
          RETURN
       END IF
    END IF
@@ -5306,7 +5464,7 @@ DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
   IF(ALLOCATED(Db_Input_Buf))  DEALLOCATE(Db_Input_Buf)
   IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
 ENDDO
-  Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -5693,46 +5851,64 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DO i1 = LBOUND(SrcFEAMooring_DataData%x,1), UBOUND(SrcFEAMooring_DataData%x,1)
-      CALL FEAM_CopyContState( SrcFEAMooring_DataData%x(i1), DstFEAMooring_DataData%x(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL FEAM_CopyContState( SrcFEAMooring_DataData%x(i1), DstFEAMooring_DataData%x(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data:x(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcFEAMooring_DataData%xd,1), UBOUND(SrcFEAMooring_DataData%xd,1)
-      CALL FEAM_CopyDiscState( SrcFEAMooring_DataData%xd(i1), DstFEAMooring_DataData%xd(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL FEAM_CopyDiscState( SrcFEAMooring_DataData%xd(i1), DstFEAMooring_DataData%xd(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data:xd(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
    DO i1 = LBOUND(SrcFEAMooring_DataData%z,1), UBOUND(SrcFEAMooring_DataData%z,1)
-      CALL FEAM_CopyConstrState( SrcFEAMooring_DataData%z(i1), DstFEAMooring_DataData%z(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL FEAM_CopyConstrState( SrcFEAMooring_DataData%z(i1), DstFEAMooring_DataData%z(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data:z(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
-      CALL FEAM_CopyOtherState( SrcFEAMooring_DataData%OtherSt, DstFEAMooring_DataData%OtherSt, CtrlCode, ErrStat, ErrMsg )
-      CALL FEAM_CopyParam( SrcFEAMooring_DataData%p, DstFEAMooring_DataData%p, CtrlCode, ErrStat, ErrMsg )
-      CALL FEAM_CopyInput( SrcFEAMooring_DataData%u, DstFEAMooring_DataData%u, CtrlCode, ErrStat, ErrMsg )
-      CALL FEAM_CopyOutput( SrcFEAMooring_DataData%y, DstFEAMooring_DataData%y, CtrlCode, ErrStat, ErrMsg )
-      CALL FEAM_CopyOtherState( SrcFEAMooring_DataData%OtherSt_old, DstFEAMooring_DataData%OtherSt_old, CtrlCode, ErrStat, ErrMsg )
+      CALL FEAM_CopyOtherState( SrcFEAMooring_DataData%OtherSt, DstFEAMooring_DataData%OtherSt, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data:OtherSt')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FEAM_CopyParam( SrcFEAMooring_DataData%p, DstFEAMooring_DataData%p, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data:p')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FEAM_CopyInput( SrcFEAMooring_DataData%u, DstFEAMooring_DataData%u, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data:u')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FEAM_CopyOutput( SrcFEAMooring_DataData%y, DstFEAMooring_DataData%y, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data:y')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL FEAM_CopyOtherState( SrcFEAMooring_DataData%OtherSt_old, DstFEAMooring_DataData%OtherSt_old, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data:OtherSt_old')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcFEAMooring_DataData%Input)) THEN
    i1_l = LBOUND(SrcFEAMooring_DataData%Input,1)
    i1_u = UBOUND(SrcFEAMooring_DataData%Input,1)
    IF (.NOT. ALLOCATED(DstFEAMooring_DataData%Input)) THEN 
-      ALLOCATE(DstFEAMooring_DataData%Input(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyFEAMooring_Data: Error allocating DstFEAMooring_DataData%Input.'
+      ALLOCATE(DstFEAMooring_DataData%Input(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFEAMooring_DataData%Input.', ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcFEAMooring_DataData%Input,1), UBOUND(SrcFEAMooring_DataData%Input,1)
-      CALL FEAM_CopyInput( SrcFEAMooring_DataData%Input(i1), DstFEAMooring_DataData%Input(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL FEAM_CopyInput( SrcFEAMooring_DataData%Input(i1), DstFEAMooring_DataData%Input(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data:Input(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcFEAMooring_DataData%InputTimes)) THEN
    i1_l = LBOUND(SrcFEAMooring_DataData%InputTimes,1)
    i1_u = UBOUND(SrcFEAMooring_DataData%InputTimes,1)
    IF (.NOT. ALLOCATED(DstFEAMooring_DataData%InputTimes)) THEN 
-      ALLOCATE(DstFEAMooring_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyFEAMooring_Data: Error allocating DstFEAMooring_DataData%InputTimes.'
+      ALLOCATE(DstFEAMooring_DataData%InputTimes(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstFEAMooring_DataData%InputTimes.', ErrStat, ErrMsg,'FAST_CopyFEAMooring_Data')
          RETURN
       END IF
    END IF
@@ -5905,7 +6081,7 @@ DO i1 = LBOUND(InData%Input,1), UBOUND(InData%Input,1)
   IF(ALLOCATED(Db_Input_Buf))  DEALLOCATE(Db_Input_Buf)
   IF(ALLOCATED(Int_Input_Buf)) DEALLOCATE(Int_Input_Buf)
 ENDDO
-  Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
+  IF ( ALLOCATED(InData%InputTimes) )   Db_BufSz    = Db_BufSz    + SIZE( InData%InputTimes )  ! InputTimes 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -6292,87 +6468,133 @@ ENDDO
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_HD_W_P, DstModuleMapTypeData%ED_P_2_HD_W_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_W_P_2_ED_P, DstModuleMapTypeData%HD_W_P_2_ED_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_HD_M_P, DstModuleMapTypeData%ED_P_2_HD_M_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_M_P_2_ED_P, DstModuleMapTypeData%HD_M_P_2_ED_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_HD_M_L, DstModuleMapTypeData%ED_P_2_HD_M_L, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_M_L_2_ED_P, DstModuleMapTypeData%HD_M_L_2_ED_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_MAP_P, DstModuleMapTypeData%ED_P_2_MAP_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%MAP_P_2_ED_P, DstModuleMapTypeData%MAP_P_2_ED_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_FEAM_P, DstModuleMapTypeData%ED_P_2_FEAM_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%FEAM_P_2_ED_P, DstModuleMapTypeData%FEAM_P_2_ED_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_SD_TP, DstModuleMapTypeData%ED_P_2_SD_TP, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_TP_2_ED_P, DstModuleMapTypeData%SD_TP_2_ED_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_P_2_HD_M_P, DstModuleMapTypeData%SD_P_2_HD_M_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_M_P_2_SD_P, DstModuleMapTypeData%HD_M_P_2_SD_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_P_2_HD_M_L, DstModuleMapTypeData%SD_P_2_HD_M_L, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_M_L_2_SD_P, DstModuleMapTypeData%HD_M_L_2_SD_P, CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_HD_W_P, DstModuleMapTypeData%ED_P_2_HD_W_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_HD_W_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_W_P_2_ED_P, DstModuleMapTypeData%HD_W_P_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:HD_W_P_2_ED_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_HD_M_P, DstModuleMapTypeData%ED_P_2_HD_M_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_HD_M_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_M_P_2_ED_P, DstModuleMapTypeData%HD_M_P_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:HD_M_P_2_ED_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_HD_M_L, DstModuleMapTypeData%ED_P_2_HD_M_L, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_HD_M_L')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_M_L_2_ED_P, DstModuleMapTypeData%HD_M_L_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:HD_M_L_2_ED_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_MAP_P, DstModuleMapTypeData%ED_P_2_MAP_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_MAP_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%MAP_P_2_ED_P, DstModuleMapTypeData%MAP_P_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:MAP_P_2_ED_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_FEAM_P, DstModuleMapTypeData%ED_P_2_FEAM_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_FEAM_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%FEAM_P_2_ED_P, DstModuleMapTypeData%FEAM_P_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:FEAM_P_2_ED_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_P_2_SD_TP, DstModuleMapTypeData%ED_P_2_SD_TP, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_P_2_SD_TP')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_TP_2_ED_P, DstModuleMapTypeData%SD_TP_2_ED_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:SD_TP_2_ED_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_P_2_HD_M_P, DstModuleMapTypeData%SD_P_2_HD_M_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:SD_P_2_HD_M_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_M_P_2_SD_P, DstModuleMapTypeData%HD_M_P_2_SD_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:HD_M_P_2_SD_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_P_2_HD_M_L, DstModuleMapTypeData%SD_P_2_HD_M_L, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:SD_P_2_HD_M_L')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%HD_M_L_2_SD_P, DstModuleMapTypeData%HD_M_L_2_SD_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:HD_M_L_2_SD_P')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcModuleMapTypeData%ED_L_2_AD_L_B)) THEN
    i1_l = LBOUND(SrcModuleMapTypeData%ED_L_2_AD_L_B,1)
    i1_u = UBOUND(SrcModuleMapTypeData%ED_L_2_AD_L_B,1)
    IF (.NOT. ALLOCATED(DstModuleMapTypeData%ED_L_2_AD_L_B)) THEN 
-      ALLOCATE(DstModuleMapTypeData%ED_L_2_AD_L_B(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyModuleMapType: Error allocating DstModuleMapTypeData%ED_L_2_AD_L_B.'
+      ALLOCATE(DstModuleMapTypeData%ED_L_2_AD_L_B(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstModuleMapTypeData%ED_L_2_AD_L_B.', ErrStat, ErrMsg,'FAST_CopyModuleMapType')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcModuleMapTypeData%ED_L_2_AD_L_B,1), UBOUND(SrcModuleMapTypeData%ED_L_2_AD_L_B,1)
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_L_2_AD_L_B(i1), DstModuleMapTypeData%ED_L_2_AD_L_B(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_L_2_AD_L_B(i1), DstModuleMapTypeData%ED_L_2_AD_L_B(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_L_2_AD_L_B(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcModuleMapTypeData%AD_L_2_ED_L_B)) THEN
    i1_l = LBOUND(SrcModuleMapTypeData%AD_L_2_ED_L_B,1)
    i1_u = UBOUND(SrcModuleMapTypeData%AD_L_2_ED_L_B,1)
    IF (.NOT. ALLOCATED(DstModuleMapTypeData%AD_L_2_ED_L_B)) THEN 
-      ALLOCATE(DstModuleMapTypeData%AD_L_2_ED_L_B(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyModuleMapType: Error allocating DstModuleMapTypeData%AD_L_2_ED_L_B.'
+      ALLOCATE(DstModuleMapTypeData%AD_L_2_ED_L_B(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstModuleMapTypeData%AD_L_2_ED_L_B.', ErrStat, ErrMsg,'FAST_CopyModuleMapType')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcModuleMapTypeData%AD_L_2_ED_L_B,1), UBOUND(SrcModuleMapTypeData%AD_L_2_ED_L_B,1)
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%AD_L_2_ED_L_B(i1), DstModuleMapTypeData%AD_L_2_ED_L_B(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%AD_L_2_ED_L_B(i1), DstModuleMapTypeData%AD_L_2_ED_L_B(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:AD_L_2_ED_L_B(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_L_2_AD_L_T, DstModuleMapTypeData%ED_L_2_AD_L_T, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%AD_L_2_ED_L_T, DstModuleMapTypeData%AD_L_2_ED_L_T, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%IceF_P_2_SD_P, DstModuleMapTypeData%IceF_P_2_SD_P, CtrlCode, ErrStat, ErrMsg )
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_P_2_IceF_P, DstModuleMapTypeData%SD_P_2_IceF_P, CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%ED_L_2_AD_L_T, DstModuleMapTypeData%ED_L_2_AD_L_T, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:ED_L_2_AD_L_T')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%AD_L_2_ED_L_T, DstModuleMapTypeData%AD_L_2_ED_L_T, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:AD_L_2_ED_L_T')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%IceF_P_2_SD_P, DstModuleMapTypeData%IceF_P_2_SD_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:IceF_P_2_SD_P')
+         IF (ErrStat>=AbortErrLev) RETURN
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_P_2_IceF_P, DstModuleMapTypeData%SD_P_2_IceF_P, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:SD_P_2_IceF_P')
+         IF (ErrStat>=AbortErrLev) RETURN
 IF (ALLOCATED(SrcModuleMapTypeData%IceD_P_2_SD_P)) THEN
    i1_l = LBOUND(SrcModuleMapTypeData%IceD_P_2_SD_P,1)
    i1_u = UBOUND(SrcModuleMapTypeData%IceD_P_2_SD_P,1)
    IF (.NOT. ALLOCATED(DstModuleMapTypeData%IceD_P_2_SD_P)) THEN 
-      ALLOCATE(DstModuleMapTypeData%IceD_P_2_SD_P(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyModuleMapType: Error allocating DstModuleMapTypeData%IceD_P_2_SD_P.'
+      ALLOCATE(DstModuleMapTypeData%IceD_P_2_SD_P(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstModuleMapTypeData%IceD_P_2_SD_P.', ErrStat, ErrMsg,'FAST_CopyModuleMapType')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcModuleMapTypeData%IceD_P_2_SD_P,1), UBOUND(SrcModuleMapTypeData%IceD_P_2_SD_P,1)
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%IceD_P_2_SD_P(i1), DstModuleMapTypeData%IceD_P_2_SD_P(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%IceD_P_2_SD_P(i1), DstModuleMapTypeData%IceD_P_2_SD_P(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:IceD_P_2_SD_P(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcModuleMapTypeData%SD_P_2_IceD_P)) THEN
    i1_l = LBOUND(SrcModuleMapTypeData%SD_P_2_IceD_P,1)
    i1_u = UBOUND(SrcModuleMapTypeData%SD_P_2_IceD_P,1)
    IF (.NOT. ALLOCATED(DstModuleMapTypeData%SD_P_2_IceD_P)) THEN 
-      ALLOCATE(DstModuleMapTypeData%SD_P_2_IceD_P(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyModuleMapType: Error allocating DstModuleMapTypeData%SD_P_2_IceD_P.'
+      ALLOCATE(DstModuleMapTypeData%SD_P_2_IceD_P(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstModuleMapTypeData%SD_P_2_IceD_P.', ErrStat, ErrMsg,'FAST_CopyModuleMapType')
          RETURN
       END IF
    END IF
    DO i1 = LBOUND(SrcModuleMapTypeData%SD_P_2_IceD_P,1), UBOUND(SrcModuleMapTypeData%SD_P_2_IceD_P,1)
-      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_P_2_IceD_P(i1), DstModuleMapTypeData%SD_P_2_IceD_P(i1), CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copymeshmaptype( SrcModuleMapTypeData%SD_P_2_IceD_P(i1), DstModuleMapTypeData%SD_P_2_IceD_P(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:SD_P_2_IceD_P(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
 IF (ALLOCATED(SrcModuleMapTypeData%Jacobian_ED_SD_HD)) THEN
@@ -6381,10 +6603,9 @@ IF (ALLOCATED(SrcModuleMapTypeData%Jacobian_ED_SD_HD)) THEN
    i2_l = LBOUND(SrcModuleMapTypeData%Jacobian_ED_SD_HD,2)
    i2_u = UBOUND(SrcModuleMapTypeData%Jacobian_ED_SD_HD,2)
    IF (.NOT. ALLOCATED(DstModuleMapTypeData%Jacobian_ED_SD_HD)) THEN 
-      ALLOCATE(DstModuleMapTypeData%Jacobian_ED_SD_HD(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyModuleMapType: Error allocating DstModuleMapTypeData%Jacobian_ED_SD_HD.'
+      ALLOCATE(DstModuleMapTypeData%Jacobian_ED_SD_HD(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstModuleMapTypeData%Jacobian_ED_SD_HD.', ErrStat, ErrMsg,'FAST_CopyModuleMapType')
          RETURN
       END IF
    END IF
@@ -6394,10 +6615,9 @@ IF (ALLOCATED(SrcModuleMapTypeData%Jacobian_pivot)) THEN
    i1_l = LBOUND(SrcModuleMapTypeData%Jacobian_pivot,1)
    i1_u = UBOUND(SrcModuleMapTypeData%Jacobian_pivot,1)
    IF (.NOT. ALLOCATED(DstModuleMapTypeData%Jacobian_pivot)) THEN 
-      ALLOCATE(DstModuleMapTypeData%Jacobian_pivot(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyModuleMapType: Error allocating DstModuleMapTypeData%Jacobian_pivot.'
+      ALLOCATE(DstModuleMapTypeData%Jacobian_pivot(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstModuleMapTypeData%Jacobian_pivot.', ErrStat, ErrMsg,'FAST_CopyModuleMapType')
          RETURN
       END IF
    END IF
@@ -6409,23 +6629,38 @@ IF (ALLOCATED(SrcModuleMapTypeData%Jac_u_indx)) THEN
    i2_l = LBOUND(SrcModuleMapTypeData%Jac_u_indx,2)
    i2_u = UBOUND(SrcModuleMapTypeData%Jac_u_indx,2)
    IF (.NOT. ALLOCATED(DstModuleMapTypeData%Jac_u_indx)) THEN 
-      ALLOCATE(DstModuleMapTypeData%Jac_u_indx(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'FAST_CopyModuleMapType: Error allocating DstModuleMapTypeData%Jac_u_indx.'
+      ALLOCATE(DstModuleMapTypeData%Jac_u_indx(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstModuleMapTypeData%Jac_u_indx.', ErrStat, ErrMsg,'FAST_CopyModuleMapType')
          RETURN
       END IF
    END IF
    DstModuleMapTypeData%Jac_u_indx = SrcModuleMapTypeData%Jac_u_indx
 ENDIF
-     CALL MeshCopy( SrcModuleMapTypeData%u_ED_PlatformPtMesh, DstModuleMapTypeData%u_ED_PlatformPtMesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcModuleMapTypeData%u_ED_PlatformPtMesh_2, DstModuleMapTypeData%u_ED_PlatformPtMesh_2, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcModuleMapTypeData%u_SD_TPMesh, DstModuleMapTypeData%u_SD_TPMesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcModuleMapTypeData%u_SD_LMesh, DstModuleMapTypeData%u_SD_LMesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcModuleMapTypeData%u_SD_LMesh_2, DstModuleMapTypeData%u_SD_LMesh_2, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcModuleMapTypeData%u_HD_M_LumpedMesh, DstModuleMapTypeData%u_HD_M_LumpedMesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcModuleMapTypeData%u_HD_M_DistribMesh, DstModuleMapTypeData%u_HD_M_DistribMesh, CtrlCode, ErrStat, ErrMsg )
-     CALL MeshCopy( SrcModuleMapTypeData%u_HD_Mesh, DstModuleMapTypeData%u_HD_Mesh, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcModuleMapTypeData%u_ED_PlatformPtMesh, DstModuleMapTypeData%u_ED_PlatformPtMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:u_ED_PlatformPtMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcModuleMapTypeData%u_ED_PlatformPtMesh_2, DstModuleMapTypeData%u_ED_PlatformPtMesh_2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:u_ED_PlatformPtMesh_2')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcModuleMapTypeData%u_SD_TPMesh, DstModuleMapTypeData%u_SD_TPMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:u_SD_TPMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcModuleMapTypeData%u_SD_LMesh, DstModuleMapTypeData%u_SD_LMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:u_SD_LMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcModuleMapTypeData%u_SD_LMesh_2, DstModuleMapTypeData%u_SD_LMesh_2, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:u_SD_LMesh_2')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcModuleMapTypeData%u_HD_M_LumpedMesh, DstModuleMapTypeData%u_HD_M_LumpedMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:u_HD_M_LumpedMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcModuleMapTypeData%u_HD_M_DistribMesh, DstModuleMapTypeData%u_HD_M_DistribMesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:u_HD_M_DistribMesh')
+         IF (ErrStat>=AbortErrLev) RETURN
+     CALL MeshCopy( SrcModuleMapTypeData%u_HD_Mesh, DstModuleMapTypeData%u_HD_Mesh, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyModuleMapType:u_HD_Mesh')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE FAST_CopyModuleMapType
 
  SUBROUTINE FAST_DestroyModuleMapType( ModuleMapTypeData, ErrStat, ErrMsg )
@@ -6805,9 +7040,9 @@ DO i1 = LBOUND(InData%SD_P_2_IceD_P,1), UBOUND(InData%SD_P_2_IceD_P,1)
   IF(ALLOCATED(Db_SD_P_2_IceD_P_Buf))  DEALLOCATE(Db_SD_P_2_IceD_P_Buf)
   IF(ALLOCATED(Int_SD_P_2_IceD_P_Buf)) DEALLOCATE(Int_SD_P_2_IceD_P_Buf)
 ENDDO
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Jacobian_ED_SD_HD )  ! Jacobian_ED_SD_HD 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%Jacobian_pivot )  ! Jacobian_pivot 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%Jac_u_indx )  ! Jac_u_indx 
+  IF ( ALLOCATED(InData%Jacobian_ED_SD_HD) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Jacobian_ED_SD_HD )  ! Jacobian_ED_SD_HD 
+  IF ( ALLOCATED(InData%Jacobian_pivot) )   Int_BufSz   = Int_BufSz   + SIZE( InData%Jacobian_pivot )  ! Jacobian_pivot 
+  IF ( ALLOCATED(InData%Jac_u_indx) )   Int_BufSz   = Int_BufSz   + SIZE( InData%Jac_u_indx )  ! Jac_u_indx 
  ! Allocate mesh buffers, if any (we'll also get sizes from these) 
   CALL MeshPack( InData%u_ED_PlatformPtMesh, Re_u_ED_PlatformPtMesh_Buf, Db_u_ED_PlatformPtMesh_Buf, Int_u_ED_PlatformPtMesh_Buf, ErrStat, ErrMsg, .TRUE. ) ! u_ED_PlatformPtMesh 
   IF(ALLOCATED(Re_u_ED_PlatformPtMesh_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_u_ED_PlatformPtMesh_Buf  ) ! u_ED_PlatformPtMesh
@@ -8061,6 +8296,174 @@ ENDDO
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE FAST_UnPackModuleMapType
+
+ SUBROUTINE FAST_CopyMiscVarType( SrcMiscVarTypeData, DstMiscVarTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(FAST_MiscVarType), INTENT(INOUT) :: SrcMiscVarTypeData
+   TYPE(FAST_MiscVarType), INTENT(INOUT) :: DstMiscVarTypeData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
+   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
+   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+   DstMiscVarTypeData%TiLstPrn = SrcMiscVarTypeData%TiLstPrn
+   DstMiscVarTypeData%t_global = SrcMiscVarTypeData%t_global
+   DstMiscVarTypeData%NextJacCalcTime = SrcMiscVarTypeData%NextJacCalcTime
+   DstMiscVarTypeData%PrevClockTime = SrcMiscVarTypeData%PrevClockTime
+   DstMiscVarTypeData%UsrTime1 = SrcMiscVarTypeData%UsrTime1
+   DstMiscVarTypeData%UsrTime2 = SrcMiscVarTypeData%UsrTime2
+   DstMiscVarTypeData%StrtTime = SrcMiscVarTypeData%StrtTime
+   DstMiscVarTypeData%SimStrtTime = SrcMiscVarTypeData%SimStrtTime
+   DstMiscVarTypeData%n_TMax_m1 = SrcMiscVarTypeData%n_TMax_m1
+   DstMiscVarTypeData%calcJacobian = SrcMiscVarTypeData%calcJacobian
+ END SUBROUTINE FAST_CopyMiscVarType
+
+ SUBROUTINE FAST_DestroyMiscVarType( MiscVarTypeData, ErrStat, ErrMsg )
+  TYPE(FAST_MiscVarType), INTENT(INOUT) :: MiscVarTypeData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+ END SUBROUTINE FAST_DestroyMiscVarType
+
+ SUBROUTINE FAST_PackMiscVarType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(FAST_MiscVarType),  INTENT(INOUT) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+ ! buffers to store meshes, if any
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  Db_BufSz   = Db_BufSz   + 1  ! TiLstPrn
+  Db_BufSz   = Db_BufSz   + 1  ! t_global
+  Db_BufSz   = Db_BufSz   + 1  ! NextJacCalcTime
+  Re_BufSz   = Re_BufSz   + 1  ! PrevClockTime
+  Re_BufSz   = Re_BufSz   + 1  ! UsrTime1
+  Re_BufSz   = Re_BufSz   + 1  ! UsrTime2
+  Int_BufSz   = Int_BufSz   + SIZE( InData%StrtTime )  ! StrtTime 
+  Int_BufSz   = Int_BufSz   + SIZE( InData%SimStrtTime )  ! SimStrtTime 
+  Int_BufSz  = Int_BufSz  + 1  ! n_TMax_m1
+  Int_BufSz  = Int_BufSz  + 1  ! calcJacobian
+  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
+  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
+  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%TiLstPrn )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%t_global )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%NextJacCalcTime )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%PrevClockTime )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%UsrTime1 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%UsrTime2 )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%StrtTime))-1 ) = PACK(InData%StrtTime ,.TRUE.)
+  Int_Xferred   = Int_Xferred   + SIZE(InData%StrtTime)
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%SimStrtTime))-1 ) = PACK(InData%SimStrtTime ,.TRUE.)
+  Int_Xferred   = Int_Xferred   + SIZE(InData%SimStrtTime)
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%n_TMax_m1 )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%calcJacobian ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+ END SUBROUTINE FAST_PackMiscVarType
+
+ SUBROUTINE FAST_UnPackMiscVarType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(FAST_MiscVarType), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+ ! buffers to store meshes, if any
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  OutData%TiLstPrn = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%t_global = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%NextJacCalcTime = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%PrevClockTime = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%UsrTime1 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%UsrTime2 = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%StrtTime,1)))
+  mask1 = .TRUE.
+  OutData%StrtTime = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%StrtTime))-1 ),mask1,OutData%StrtTime)
+  DEALLOCATE(mask1)
+  Int_Xferred   = Int_Xferred   + SIZE(OutData%StrtTime)
+  ALLOCATE(mask1(SIZE(OutData%SimStrtTime,1)))
+  mask1 = .TRUE.
+  OutData%SimStrtTime = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%SimStrtTime))-1 ),mask1,OutData%SimStrtTime)
+  DEALLOCATE(mask1)
+  Int_Xferred   = Int_Xferred   + SIZE(OutData%SimStrtTime)
+  OutData%n_TMax_m1 = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  Re_Xferred   = Re_Xferred-1
+  Db_Xferred   = Db_Xferred-1
+  Int_Xferred  = Int_Xferred-1
+ END SUBROUTINE FAST_UnPackMiscVarType
 
 END MODULE FAST_Types
 !ENDOFREGISTRYGENERATEDFILE
