@@ -4309,8 +4309,8 @@ SUBROUTINE WriteMotionMeshesToFile(time, y_ED, u_SD, y_SD, u_HD, u_MAP, UnOut, E
    INTEGER(IntKi) ,            INTENT(INOUT) :: unOut
    CHARACTER(*),   OPTIONAL,   INTENT(IN)    :: FileName
    
-   INTEGER(IntKi)                            :: ErrStat          ! Error status of the operation
-   CHARACTER(*)                              :: ErrMsg           ! Error message if ErrStat /= ErrID_None
+   INTEGER(IntKi), INTENT(OUT)               :: ErrStat          ! Error status of the operation
+   CHARACTER(*)  , INTENT(OUT)               :: ErrMsg           ! Error message if ErrStat /= ErrID_None
    
    
       !FileName = TRIM(p_FAST%OutFileRoot)//'.InputMeshes.bin'
@@ -4546,24 +4546,24 @@ SUBROUTINE ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD 
                   
       IF (AD%Input(1)%Twr_InputMarkers%Committed) THEN
          AD%Input(1)%Twr_InputMarkers%RemapFlag = .FALSE.
-                  AD%y%Twr_OutputLoads%RemapFlag  = .FALSE.
+                AD%y%Twr_OutputLoads%RemapFlag  = .FALSE.
       END IF
    END IF
              
    ! HydroDyn
    IF ( p_FAST%CompHydro == Module_HD ) THEN
       IF (HD%Input(1)%Mesh%Committed) THEN
-            HD%Input(1)%Mesh%RemapFlag               = .FALSE.
-                  HD%y%Mesh%RemapFlag               = .FALSE.  
-                  HD%y%AllHdroOrigin%RemapFlag      = .FALSE.
+         HD%Input(1)%Mesh%RemapFlag               = .FALSE.
+                HD%y%Mesh%RemapFlag               = .FALSE.  
+                HD%y%AllHdroOrigin%RemapFlag      = .FALSE.
       END IF
       IF (HD%Input(1)%Morison%LumpedMesh%Committed) THEN
          HD%Input(1)%Morison%LumpedMesh%RemapFlag  = .FALSE.
-                  HD%y%Morison%LumpedMesh%RemapFlag  = .FALSE.
+                HD%y%Morison%LumpedMesh%RemapFlag  = .FALSE.
       END IF
       IF (HD%Input(1)%Morison%DistribMesh%Committed) THEN
          HD%Input(1)%Morison%DistribMesh%RemapFlag = .FALSE.
-                  HD%y%Morison%DistribMesh%RemapFlag = .FALSE.
+                HD%y%Morison%DistribMesh%RemapFlag = .FALSE.
       END IF
    END IF
 
@@ -4571,12 +4571,12 @@ SUBROUTINE ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD 
    IF ( p_FAST%CompSub == Module_SD ) THEN
       IF (SD%Input(1)%TPMesh%Committed) THEN
          SD%Input(1)%TPMesh%RemapFlag = .FALSE.
-                  SD%y%Y1Mesh%RemapFlag = .FALSE.
+                SD%y%Y1Mesh%RemapFlag = .FALSE.
       END IF    
          
       IF (SD%Input(1)%LMesh%Committed) THEN
          SD%Input(1)%LMesh%RemapFlag  = .FALSE.
-                  SD%y%Y2Mesh%RemapFlag = .FALSE.
+                SD%y%Y2Mesh%RemapFlag = .FALSE.
       END IF    
    END IF
       
@@ -4584,23 +4584,23 @@ SUBROUTINE ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD 
    ! MAP , FEAM
    IF ( p_FAST%CompMooring == Module_MAP ) THEN
       MAPp%Input(1)%PtFairleadDisplacement%RemapFlag  = .FALSE.
-               MAPp%y%PtFairleadLoad%RemapFlag          = .FALSE.
+             MAPp%y%PtFairleadLoad%RemapFlag          = .FALSE.
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
       FEAM%Input(1)%PtFairleadDisplacement%RemapFlag  = .FALSE.
-               FEAM%y%PtFairleadLoad%RemapFlag          = .FALSE.         
+             FEAM%y%PtFairleadLoad%RemapFlag          = .FALSE.         
    END IF
          
    ! IceFloe, IceDyn
    IF ( p_FAST%CompIce == Module_IceF ) THEN
       IF (IceF%Input(1)%iceMesh%Committed) THEN
          IceF%Input(1)%iceMesh%RemapFlag = .FALSE.
-                  IceF%y%iceMesh%RemapFlag = .FALSE.
+                IceF%y%iceMesh%RemapFlag = .FALSE.
       END IF    
    ELSEIF ( p_FAST%CompIce == Module_IceD ) THEN
       DO i=1,p_FAST%numIceLegs
          IF (IceD%Input(1,i)%PointMesh%Committed) THEN
-               IceD%Input(1,i)%PointMesh%RemapFlag = .FALSE.
-                     IceD%y(i)%PointMesh%RemapFlag = .FALSE.
+            IceD%Input(1,i)%PointMesh%RemapFlag = .FALSE.
+                  IceD%y(i)%PointMesh%RemapFlag = .FALSE.
          END IF    
       END DO         
    END IF
@@ -5700,9 +5700,9 @@ SUBROUTINE FAST_InitializeAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD
       InitInData_MAP%gravity           =  InitOutData_ED%Gravity    ! This need to be according to g used in ElastoDyn
       InitInData_MAP%sea_density       =  InitOutData_HD%WtrDens    ! This needs to be set according to seawater density in HydroDyn
       InitInData_MAP%depth             =  InitOutData_HD%WtrDpth    ! This need to be set according to the water depth in HydroDyn
-      
+                  
       InitInData_MAP%coupled_to_FAST   = .TRUE.      
-      
+            
       CALL MAP_Init( InitInData_MAP, MAPp%Input(1), MAPp%p,  MAPp%x(STATE_CURR), MAPp%xd(STATE_CURR), MAPp%z(STATE_CURR), MAPp%OtherSt, &
                       MAPp%y, p_FAST%dt_module( MODULE_MAP ), InitOutData_MAP, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,'FAST_InitializeAll')
@@ -5724,11 +5724,10 @@ SUBROUTINE FAST_InitializeAll( p_FAST, y_FAST, m_FAST, ED, SrvD, AD, IfW, HD, SD
       InitInData_FEAM%RootName    = p_FAST%OutFileRoot
       
 !BJJ: FIX THIS!!!!      
-      InitInData_FEAM%PtfmInit    = 0  ! initial position of the platform... hmmmm
-      
-! bjj: (Why isn't this using gravity? IT'S hardcoded in FEAM.f90)      
-!      InitInData_FEAM%gravity     =  InitOutData_ED%Gravity    ! This need to be according to g used in ElastoDyn 
-!      InitInData_FEAM%sea_density =  InitOutData_HD%WtrDens    ! This needs to be set according to seawater density in HydroDyn
+      InitInData_FEAM%PtfmInit    = x_ED%QT(1:6)               ! initial position of the platform !bjj: this should come from InitOutData_ED, not x_ED
+      InitInData_FEAM%NStepWave   = 1                          ! an arbitrary number > 0 (to set the size of the wave data, which currently contains all zero values)     
+      InitInData_FEAM%gravity     = InitOutData_ED%Gravity     ! This need to be according to g used in ElastoDyn 
+      InitInData_FEAM%WtrDens     = InitOutData_HD%WtrDens     ! This needs to be set according to seawater density in HydroDyn      
 !      InitInData_FEAM%depth       =  InitOutData_HD%WtrDpth    ! This need to be set according to the water depth in HydroDyn
             
       CALL FEAM_Init( InitInData_FEAM, FEAM%Input(1), FEAM%p,  FEAM%x(STATE_CURR), FEAM%xd(STATE_CURR), FEAM%z(STATE_CURR), FEAM%OtherSt, &

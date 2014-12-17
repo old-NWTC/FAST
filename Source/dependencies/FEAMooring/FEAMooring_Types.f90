@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.04.00, 7-Nov-2014)
+! FAST Registry (v2.04.01, 20-Nov-2014)
 !*********************************************************************************************************************************
 ! FEAMooring_Types
 !.................................................................................................................................
@@ -36,12 +36,11 @@ IMPLICIT NONE
 ! =========  FEAM_InputFile  =======
   TYPE, PUBLIC :: FEAM_InputFile
     REAL(DbKi)  :: DT      ! Communication interval for mooring dynamics [s]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LEAStiff      ! Mooring line inertia coefficient [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LMassDen      ! Mooring line mass per unit length [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDMassDen      ! Mooring line displaced mass per unit length [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCI      ! Mooring line inertia coefficient [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCD      ! Mooring line drag coefficient [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmElev      ! Anchor vertical position [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LEAStiff      ! Mooring line axial stiffness [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LMassDen      ! Mooring line mass per unit length [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDMassDen      ! Mooring line displaced mass per unit length [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmStiff      ! Seabed spring stiffness [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LRadAnch      ! Anchor Radius [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAngAnch      ! Anchor Angle [-]
@@ -49,7 +48,6 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LRadFair      ! Fairlead Radius [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAngFair      ! Fairlead Radius [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDrftFair      ! Fairlead Draft [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDiam      ! Line Diameter [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LUnstrLen      ! Line unstretched length [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Tension      ! Line Top Tension [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GSL      ! Linear spring stiffness at fairlead [-]
@@ -57,6 +55,10 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GE      ! Reference tangent vector at fairlead [-]
     INTEGER(IntKi)  :: NumLines      ! Number of lines [-]
     INTEGER(IntKi)  :: NumElems      ! Number of elements [-]
+    REAL(ReKi)  :: Eps      ! Tolerance for static iteration [-]
+    REAL(ReKi)  :: Gravity      ! Gravity [-]
+    REAL(ReKi)  :: WtrDens      ! Water density [-]
+    INTEGER(IntKi)  :: MaxIter      ! Maximum number of iteration step for static analysis [-]
     LOGICAL  :: SumPrint      ! Print summary data to <RootName>.fsm? [-]
     INTEGER(IntKi)  :: OutFile      ! Switch to determine where output will be placed: (1: in module output file only; 2: in glue code output file only; 3: both) [-]
     LOGICAL  :: TabDelim      ! Use tab delimiters in text tabular output file? [-]
@@ -71,12 +73,18 @@ IMPLICIT NONE
     CHARACTER(1024)  :: InputFile      ! Name of the input file [-]
     CHARACTER(1024)  :: RootName      ! RootName for writing output files [-]
     REAL(ReKi) , DIMENSION(1:6)  :: PtfmInit      ! Platform Initial Position [-]
+    INTEGER(IntKi)  :: NStepWave      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveAcc0      !  [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveVel0      !  [-]
+    REAL(ReKi)  :: Gravity      ! Gravity [-]
+    REAL(ReKi)  :: WtrDens      ! Water density [-]
   END TYPE FEAM_InitInputType
 ! =======================
 ! =========  FEAM_InitOutputType  =======
   TYPE, PUBLIC :: FEAM_InitOutputType
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Names of the output-to-file channels [-]
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Units of the output-to-file channels [-]
     TYPE(ProgDesc)  :: Ver      ! This module's name, version, and date [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAnchxi      ! Anchor coordinate [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LAnchyi      ! Anchor coordinate [-]
@@ -142,35 +150,40 @@ IMPLICIT NONE
     REAL(ReKi) , DIMENSION(1:6,1:6)  :: STIFR      ! STIFFNESS COEFFICIENTS FOR 6 DEGREES OF FREEDOM OF ROD NODE (X,DX/DS,Y,DY/DS,Z,DZ/DS) [-]
     REAL(ReKi) , DIMENSION(1:6)  :: RHSR      ! RIGHT HAND SIDE CONTRIBUTION TO 6 DEGREES OF FREEDOM OF ROD NODE [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Line_Coordinate      ! Mooring line coordinate [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: Line_Tangent      ! Mooring line tangent vector [-]
+    INTEGER(IntKi)  :: LastIndWave      ! FEAM step [-]
   END TYPE FEAM_OtherStateType
 ! =======================
 ! =========  FEAM_ParameterType  =======
   TYPE, PUBLIC :: FEAM_ParameterType
     REAL(DbKi)  :: DT      ! Time step for continuous state integration & discrete state update [seconds]
     REAL(ReKi) , DIMENSION(1:3)  :: GRAV      ! Gravity [-]
-    REAL(ReKi)  :: EPS      ! Tolerance for static iteration [-]
+    REAL(ReKi)  :: Eps      ! Tolerance for static iteration [-]
     REAL(ReKi)  :: Gravity      ! Gravity [-]
     REAL(ReKi)  :: WtrDens      ! Water density [-]
-    INTEGER(IntKi)  :: MITER      ! Maximum number of iteration step for static analysis [-]
+    INTEGER(IntKi)  :: MaxIter      ! Maximum number of iteration step for static analysis [-]
     INTEGER(IntKi)  :: NHBD      ! Bandwidth = (NBAND+1)/2 [-]
     INTEGER(IntKi)  :: NDIM      ! Dimension = 3 [-]
     INTEGER(IntKi) , DIMENSION(:), ALLOCATABLE  :: NEQ      ! Number of equation [-]
     INTEGER(IntKi)  :: NBAND      ! Bandwidth [-]
-    LOGICAL  :: DYN      ! Flag - dynamic analysis [-]
     INTEGER(IntKi)  :: NumLines      ! Number of lines [-]
     INTEGER(IntKi)  :: NumElems      ! Number of elements [-]
+    INTEGER(IntKi)  :: NumNodes      ! Number of nodes [-]
     REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: GSL      ! Linear spring stiffness at fairlead [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: GP      ! Fairlead position [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCI      ! Line CI [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCD      ! Line CD [-]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: SectionA      ! Cross section area [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: Elength      ! Element length [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmElev      ! Bottom elevation [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: BottmStiff      ! Bottom stiffness [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LMassDen      ! Line mass per unit length [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LDMassDen      ! Line displaced mass per unit length [-]
     REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LEAStiff      ! Line axial stiffness [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCI      ! Line inertia coefficient [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: LineCD      ! Line drag coefficient [-]
     REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: Bvp      ! Boundary condtion [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveAcc0      !  [-]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WaveTime      !  [-]
+    REAL(ReKi) , DIMENSION(:,:,:), ALLOCATABLE  :: WaveVel0      !  [-]
+    INTEGER(IntKi)  :: NStepWave      ! Number of wave steps [-]
     REAL(ReKi) , DIMENSION(1:6,1:4)  :: SHAP      ! Shape function [-]
     REAL(ReKi) , DIMENSION(1:6,1:4)  :: SHAPS      ! Shape function [-]
     REAL(ReKi) , DIMENSION(1:6)  :: GAUSSW      ! Shape function [-]
@@ -225,6 +238,30 @@ CONTAINS
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstinputfileData%DT = SrcinputfileData%DT
+IF (ALLOCATED(SrcinputfileData%LineCI)) THEN
+   i1_l = LBOUND(SrcinputfileData%LineCI,1)
+   i1_u = UBOUND(SrcinputfileData%LineCI,1)
+   IF (.NOT. ALLOCATED(DstinputfileData%LineCI)) THEN 
+      ALLOCATE(DstinputfileData%LineCI(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LineCI.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
+         RETURN
+      END IF
+   END IF
+   DstinputfileData%LineCI = SrcinputfileData%LineCI
+ENDIF
+IF (ALLOCATED(SrcinputfileData%LineCD)) THEN
+   i1_l = LBOUND(SrcinputfileData%LineCD,1)
+   i1_u = UBOUND(SrcinputfileData%LineCD,1)
+   IF (.NOT. ALLOCATED(DstinputfileData%LineCD)) THEN 
+      ALLOCATE(DstinputfileData%LineCD(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LineCD.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
+         RETURN
+      END IF
+   END IF
+   DstinputfileData%LineCD = SrcinputfileData%LineCD
+ENDIF
 IF (ALLOCATED(SrcinputfileData%LEAStiff)) THEN
    i1_l = LBOUND(SrcinputfileData%LEAStiff,1)
    i1_u = UBOUND(SrcinputfileData%LEAStiff,1)
@@ -260,42 +297,6 @@ IF (ALLOCATED(SrcinputfileData%LDMassDen)) THEN
       END IF
    END IF
    DstinputfileData%LDMassDen = SrcinputfileData%LDMassDen
-ENDIF
-IF (ALLOCATED(SrcinputfileData%LineCI)) THEN
-   i1_l = LBOUND(SrcinputfileData%LineCI,1)
-   i1_u = UBOUND(SrcinputfileData%LineCI,1)
-   IF (.NOT. ALLOCATED(DstinputfileData%LineCI)) THEN 
-      ALLOCATE(DstinputfileData%LineCI(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LineCI.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
-         RETURN
-      END IF
-   END IF
-   DstinputfileData%LineCI = SrcinputfileData%LineCI
-ENDIF
-IF (ALLOCATED(SrcinputfileData%LineCD)) THEN
-   i1_l = LBOUND(SrcinputfileData%LineCD,1)
-   i1_u = UBOUND(SrcinputfileData%LineCD,1)
-   IF (.NOT. ALLOCATED(DstinputfileData%LineCD)) THEN 
-      ALLOCATE(DstinputfileData%LineCD(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LineCD.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
-         RETURN
-      END IF
-   END IF
-   DstinputfileData%LineCD = SrcinputfileData%LineCD
-ENDIF
-IF (ALLOCATED(SrcinputfileData%BottmElev)) THEN
-   i1_l = LBOUND(SrcinputfileData%BottmElev,1)
-   i1_u = UBOUND(SrcinputfileData%BottmElev,1)
-   IF (.NOT. ALLOCATED(DstinputfileData%BottmElev)) THEN 
-      ALLOCATE(DstinputfileData%BottmElev(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%BottmElev.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
-         RETURN
-      END IF
-   END IF
-   DstinputfileData%BottmElev = SrcinputfileData%BottmElev
 ENDIF
 IF (ALLOCATED(SrcinputfileData%BottmStiff)) THEN
    i1_l = LBOUND(SrcinputfileData%BottmStiff,1)
@@ -381,18 +382,6 @@ IF (ALLOCATED(SrcinputfileData%LDrftFair)) THEN
    END IF
    DstinputfileData%LDrftFair = SrcinputfileData%LDrftFair
 ENDIF
-IF (ALLOCATED(SrcinputfileData%LDiam)) THEN
-   i1_l = LBOUND(SrcinputfileData%LDiam,1)
-   i1_u = UBOUND(SrcinputfileData%LDiam,1)
-   IF (.NOT. ALLOCATED(DstinputfileData%LDiam)) THEN 
-      ALLOCATE(DstinputfileData%LDiam(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstinputfileData%LDiam.', ErrStat, ErrMsg,'FEAM_Copyinputfile')
-         RETURN
-      END IF
-   END IF
-   DstinputfileData%LDiam = SrcinputfileData%LDiam
-ENDIF
 IF (ALLOCATED(SrcinputfileData%LUnstrLen)) THEN
    i1_l = LBOUND(SrcinputfileData%LUnstrLen,1)
    i1_u = UBOUND(SrcinputfileData%LUnstrLen,1)
@@ -465,6 +454,10 @@ IF (ALLOCATED(SrcinputfileData%GE)) THEN
 ENDIF
    DstinputfileData%NumLines = SrcinputfileData%NumLines
    DstinputfileData%NumElems = SrcinputfileData%NumElems
+   DstinputfileData%Eps = SrcinputfileData%Eps
+   DstinputfileData%Gravity = SrcinputfileData%Gravity
+   DstinputfileData%WtrDens = SrcinputfileData%WtrDens
+   DstinputfileData%MaxIter = SrcinputfileData%MaxIter
    DstinputfileData%SumPrint = SrcinputfileData%SumPrint
    DstinputfileData%OutFile = SrcinputfileData%OutFile
    DstinputfileData%TabDelim = SrcinputfileData%TabDelim
@@ -493,6 +486,12 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
+IF (ALLOCATED(inputfileData%LineCI)) THEN
+   DEALLOCATE(inputfileData%LineCI)
+ENDIF
+IF (ALLOCATED(inputfileData%LineCD)) THEN
+   DEALLOCATE(inputfileData%LineCD)
+ENDIF
 IF (ALLOCATED(inputfileData%LEAStiff)) THEN
    DEALLOCATE(inputfileData%LEAStiff)
 ENDIF
@@ -501,15 +500,6 @@ IF (ALLOCATED(inputfileData%LMassDen)) THEN
 ENDIF
 IF (ALLOCATED(inputfileData%LDMassDen)) THEN
    DEALLOCATE(inputfileData%LDMassDen)
-ENDIF
-IF (ALLOCATED(inputfileData%LineCI)) THEN
-   DEALLOCATE(inputfileData%LineCI)
-ENDIF
-IF (ALLOCATED(inputfileData%LineCD)) THEN
-   DEALLOCATE(inputfileData%LineCD)
-ENDIF
-IF (ALLOCATED(inputfileData%BottmElev)) THEN
-   DEALLOCATE(inputfileData%BottmElev)
 ENDIF
 IF (ALLOCATED(inputfileData%BottmStiff)) THEN
    DEALLOCATE(inputfileData%BottmStiff)
@@ -531,9 +521,6 @@ IF (ALLOCATED(inputfileData%LAngFair)) THEN
 ENDIF
 IF (ALLOCATED(inputfileData%LDrftFair)) THEN
    DEALLOCATE(inputfileData%LDrftFair)
-ENDIF
-IF (ALLOCATED(inputfileData%LDiam)) THEN
-   DEALLOCATE(inputfileData%LDiam)
 ENDIF
 IF (ALLOCATED(inputfileData%LUnstrLen)) THEN
    DEALLOCATE(inputfileData%LUnstrLen)
@@ -590,35 +577,49 @@ ENDIF
   Db_BufSz  = 0
   Int_BufSz  = 0
   Db_BufSz   = Db_BufSz   + 1  ! DT
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LEAStiff )  ! LEAStiff 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LMassDen )  ! LMassDen 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LDMassDen )  ! LDMassDen 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LineCI )  ! LineCI 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LineCD )  ! LineCD 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BottmElev )  ! BottmElev 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BottmStiff )  ! BottmStiff 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LRadAnch )  ! LRadAnch 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LAngAnch )  ! LAngAnch 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LDpthAnch )  ! LDpthAnch 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LRadFair )  ! LRadFair 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LAngFair )  ! LAngFair 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LDrftFair )  ! LDrftFair 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LDiam )  ! LDiam 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LUnstrLen )  ! LUnstrLen 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Tension )  ! Tension 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GSL )  ! GSL 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GSR )  ! GSR 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GE )  ! GE 
+  IF ( ALLOCATED(InData%LineCI) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LineCI )  ! LineCI 
+  IF ( ALLOCATED(InData%LineCD) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LineCD )  ! LineCD 
+  IF ( ALLOCATED(InData%LEAStiff) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LEAStiff )  ! LEAStiff 
+  IF ( ALLOCATED(InData%LMassDen) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LMassDen )  ! LMassDen 
+  IF ( ALLOCATED(InData%LDMassDen) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LDMassDen )  ! LDMassDen 
+  IF ( ALLOCATED(InData%BottmStiff) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BottmStiff )  ! BottmStiff 
+  IF ( ALLOCATED(InData%LRadAnch) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LRadAnch )  ! LRadAnch 
+  IF ( ALLOCATED(InData%LAngAnch) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LAngAnch )  ! LAngAnch 
+  IF ( ALLOCATED(InData%LDpthAnch) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LDpthAnch )  ! LDpthAnch 
+  IF ( ALLOCATED(InData%LRadFair) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LRadFair )  ! LRadFair 
+  IF ( ALLOCATED(InData%LAngFair) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LAngFair )  ! LAngFair 
+  IF ( ALLOCATED(InData%LDrftFair) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LDrftFair )  ! LDrftFair 
+  IF ( ALLOCATED(InData%LUnstrLen) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LUnstrLen )  ! LUnstrLen 
+  IF ( ALLOCATED(InData%Tension) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Tension )  ! Tension 
+  IF ( ALLOCATED(InData%GSL) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GSL )  ! GSL 
+  IF ( ALLOCATED(InData%GSR) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GSR )  ! GSR 
+  IF ( ALLOCATED(InData%GE) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GE )  ! GE 
   Int_BufSz  = Int_BufSz  + 1  ! NumLines
   Int_BufSz  = Int_BufSz  + 1  ! NumElems
+  Re_BufSz   = Re_BufSz   + 1  ! Eps
+  Re_BufSz   = Re_BufSz   + 1  ! Gravity
+  Re_BufSz   = Re_BufSz   + 1  ! WtrDens
+  Int_BufSz  = Int_BufSz  + 1  ! MaxIter
+  Int_BufSz  = Int_BufSz  + 1  ! SumPrint
   Int_BufSz  = Int_BufSz  + 1  ! OutFile
+  Int_BufSz  = Int_BufSz  + 1  ! TabDelim
+!  missing buffer for OutFmt
   Db_BufSz   = Db_BufSz   + 1  ! Tstart
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
+!  missing buffer for OutList
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%DT )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( ALLOCATED(InData%LineCI) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LineCI))-1 ) =  PACK(InData%LineCI ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%LineCI)
+  ENDIF
+  IF ( ALLOCATED(InData%LineCD) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LineCD))-1 ) =  PACK(InData%LineCD ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%LineCD)
+  ENDIF
   IF ( ALLOCATED(InData%LEAStiff) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LEAStiff))-1 ) =  PACK(InData%LEAStiff ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%LEAStiff)
@@ -630,18 +631,6 @@ ENDIF
   IF ( ALLOCATED(InData%LDMassDen) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LDMassDen))-1 ) =  PACK(InData%LDMassDen ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%LDMassDen)
-  ENDIF
-  IF ( ALLOCATED(InData%LineCI) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LineCI))-1 ) =  PACK(InData%LineCI ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%LineCI)
-  ENDIF
-  IF ( ALLOCATED(InData%LineCD) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LineCD))-1 ) =  PACK(InData%LineCD ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%LineCD)
-  ENDIF
-  IF ( ALLOCATED(InData%BottmElev) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BottmElev))-1 ) =  PACK(InData%BottmElev ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%BottmElev)
   ENDIF
   IF ( ALLOCATED(InData%BottmStiff) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%BottmStiff))-1 ) =  PACK(InData%BottmStiff ,.TRUE.)
@@ -671,10 +660,6 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LDrftFair))-1 ) =  PACK(InData%LDrftFair ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%LDrftFair)
   ENDIF
-  IF ( ALLOCATED(InData%LDiam) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LDiam))-1 ) =  PACK(InData%LDiam ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%LDiam)
-  ENDIF
   IF ( ALLOCATED(InData%LUnstrLen) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LUnstrLen))-1 ) =  PACK(InData%LUnstrLen ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%LUnstrLen)
@@ -699,7 +684,19 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumElems )
   Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Eps )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Gravity )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WtrDens )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%MaxIter )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%SumPrint ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%OutFile )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%TabDelim ), IntKiBuf(1), 1)
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%Tstart )
   Db_Xferred   = Db_Xferred   + 1
@@ -742,6 +739,18 @@ ENDIF
   Int_BufSz  = 0
   OutData%DT = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
+  IF ( ALLOCATED(OutData%LineCI) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%LineCI,1))); mask1 = .TRUE.
+    OutData%LineCI = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LineCI))-1 ),mask1,OutData%LineCI)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%LineCI)
+  ENDIF
+  IF ( ALLOCATED(OutData%LineCD) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%LineCD,1))); mask1 = .TRUE.
+    OutData%LineCD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LineCD))-1 ),mask1,OutData%LineCD)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%LineCD)
+  ENDIF
   IF ( ALLOCATED(OutData%LEAStiff) ) THEN
   ALLOCATE(mask1(SIZE(OutData%LEAStiff,1))); mask1 = .TRUE.
     OutData%LEAStiff = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LEAStiff))-1 ),mask1,OutData%LEAStiff)
@@ -759,24 +768,6 @@ ENDIF
     OutData%LDMassDen = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LDMassDen))-1 ),mask1,OutData%LDMassDen)
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%LDMassDen)
-  ENDIF
-  IF ( ALLOCATED(OutData%LineCI) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%LineCI,1))); mask1 = .TRUE.
-    OutData%LineCI = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LineCI))-1 ),mask1,OutData%LineCI)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%LineCI)
-  ENDIF
-  IF ( ALLOCATED(OutData%LineCD) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%LineCD,1))); mask1 = .TRUE.
-    OutData%LineCD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LineCD))-1 ),mask1,OutData%LineCD)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%LineCD)
-  ENDIF
-  IF ( ALLOCATED(OutData%BottmElev) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%BottmElev,1))); mask1 = .TRUE.
-    OutData%BottmElev = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%BottmElev))-1 ),mask1,OutData%BottmElev)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%BottmElev)
   ENDIF
   IF ( ALLOCATED(OutData%BottmStiff) ) THEN
   ALLOCATE(mask1(SIZE(OutData%BottmStiff,1))); mask1 = .TRUE.
@@ -820,12 +811,6 @@ ENDIF
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%LDrftFair)
   ENDIF
-  IF ( ALLOCATED(OutData%LDiam) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%LDiam,1))); mask1 = .TRUE.
-    OutData%LDiam = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LDiam))-1 ),mask1,OutData%LDiam)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%LDiam)
-  ENDIF
   IF ( ALLOCATED(OutData%LUnstrLen) ) THEN
   ALLOCATE(mask1(SIZE(OutData%LUnstrLen,1))); mask1 = .TRUE.
     OutData%LUnstrLen = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LUnstrLen))-1 ),mask1,OutData%LUnstrLen)
@@ -860,6 +845,14 @@ ENDIF
   Int_Xferred   = Int_Xferred   + 1
   OutData%NumElems = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
+  OutData%Eps = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%Gravity = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%WtrDens = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%MaxIter = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
   OutData%OutFile = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   OutData%Tstart = DbKiBuf ( Db_Xferred )
@@ -889,6 +882,53 @@ ENDIF
    DstInitInputData%InputFile = SrcInitInputData%InputFile
    DstInitInputData%RootName = SrcInitInputData%RootName
    DstInitInputData%PtfmInit = SrcInitInputData%PtfmInit
+   DstInitInputData%NStepWave = SrcInitInputData%NStepWave
+IF (ALLOCATED(SrcInitInputData%WaveAcc0)) THEN
+   i1_l = LBOUND(SrcInitInputData%WaveAcc0,1)
+   i1_u = UBOUND(SrcInitInputData%WaveAcc0,1)
+   i2_l = LBOUND(SrcInitInputData%WaveAcc0,2)
+   i2_u = UBOUND(SrcInitInputData%WaveAcc0,2)
+   i3_l = LBOUND(SrcInitInputData%WaveAcc0,3)
+   i3_u = UBOUND(SrcInitInputData%WaveAcc0,3)
+   IF (.NOT. ALLOCATED(DstInitInputData%WaveAcc0)) THEN 
+      ALLOCATE(DstInitInputData%WaveAcc0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveAcc0.', ErrStat, ErrMsg,'FEAM_CopyInitInput')
+         RETURN
+      END IF
+   END IF
+   DstInitInputData%WaveAcc0 = SrcInitInputData%WaveAcc0
+ENDIF
+IF (ALLOCATED(SrcInitInputData%WaveTime)) THEN
+   i1_l = LBOUND(SrcInitInputData%WaveTime,1)
+   i1_u = UBOUND(SrcInitInputData%WaveTime,1)
+   IF (.NOT. ALLOCATED(DstInitInputData%WaveTime)) THEN 
+      ALLOCATE(DstInitInputData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveTime.', ErrStat, ErrMsg,'FEAM_CopyInitInput')
+         RETURN
+      END IF
+   END IF
+   DstInitInputData%WaveTime = SrcInitInputData%WaveTime
+ENDIF
+IF (ALLOCATED(SrcInitInputData%WaveVel0)) THEN
+   i1_l = LBOUND(SrcInitInputData%WaveVel0,1)
+   i1_u = UBOUND(SrcInitInputData%WaveVel0,1)
+   i2_l = LBOUND(SrcInitInputData%WaveVel0,2)
+   i2_u = UBOUND(SrcInitInputData%WaveVel0,2)
+   i3_l = LBOUND(SrcInitInputData%WaveVel0,3)
+   i3_u = UBOUND(SrcInitInputData%WaveVel0,3)
+   IF (.NOT. ALLOCATED(DstInitInputData%WaveVel0)) THEN 
+      ALLOCATE(DstInitInputData%WaveVel0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitInputData%WaveVel0.', ErrStat, ErrMsg,'FEAM_CopyInitInput')
+         RETURN
+      END IF
+   END IF
+   DstInitInputData%WaveVel0 = SrcInitInputData%WaveVel0
+ENDIF
+   DstInitInputData%Gravity = SrcInitInputData%Gravity
+   DstInitInputData%WtrDens = SrcInitInputData%WtrDens
  END SUBROUTINE FEAM_CopyInitInput
 
  SUBROUTINE FEAM_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
@@ -899,6 +939,15 @@ ENDIF
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
+IF (ALLOCATED(InitInputData%WaveAcc0)) THEN
+   DEALLOCATE(InitInputData%WaveAcc0)
+ENDIF
+IF (ALLOCATED(InitInputData%WaveTime)) THEN
+   DEALLOCATE(InitInputData%WaveTime)
+ENDIF
+IF (ALLOCATED(InitInputData%WaveVel0)) THEN
+   DEALLOCATE(InitInputData%WaveVel0)
+ENDIF
  END SUBROUTINE FEAM_DestroyInitInput
 
  SUBROUTINE FEAM_PackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -935,12 +984,38 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+!  missing buffer for InputFile
+!  missing buffer for RootName
   Re_BufSz    = Re_BufSz    + SIZE( InData%PtfmInit )  ! PtfmInit 
+  Int_BufSz  = Int_BufSz  + 1  ! NStepWave
+  IF ( ALLOCATED(InData%WaveAcc0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc0 )  ! WaveAcc0 
+  IF ( ALLOCATED(InData%WaveTime) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
+  IF ( ALLOCATED(InData%WaveVel0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveVel0 )  ! WaveVel0 
+  Re_BufSz   = Re_BufSz   + 1  ! Gravity
+  Re_BufSz   = Re_BufSz   + 1  ! WtrDens
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%PtfmInit))-1 ) =  PACK(InData%PtfmInit ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%PtfmInit)
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( ALLOCATED(InData%WaveAcc0) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveAcc0))-1 ) =  PACK(InData%WaveAcc0 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveAcc0)
+  ENDIF
+  IF ( ALLOCATED(InData%WaveTime) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) =  PACK(InData%WaveTime ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
+  ENDIF
+  IF ( ALLOCATED(InData%WaveVel0) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveVel0))-1 ) =  PACK(InData%WaveVel0 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveVel0)
+  ENDIF
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Gravity )
+  Re_Xferred   = Re_Xferred   + 1
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WtrDens )
+  Re_Xferred   = Re_Xferred   + 1
  END SUBROUTINE FEAM_PackInitInput
 
  SUBROUTINE FEAM_UnPackInitInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -980,6 +1055,30 @@ ENDIF
   OutData%PtfmInit = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%PtfmInit))-1 ),mask1,OutData%PtfmInit)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%PtfmInit)
+  OutData%NStepWave = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( ALLOCATED(OutData%WaveAcc0) ) THEN
+  ALLOCATE(mask3(SIZE(OutData%WaveAcc0,1),SIZE(OutData%WaveAcc0,2),SIZE(OutData%WaveAcc0,3))); mask3 = .TRUE.
+    OutData%WaveAcc0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc0))-1 ),mask3,OutData%WaveAcc0)
+  DEALLOCATE(mask3)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveAcc0)
+  ENDIF
+  IF ( ALLOCATED(OutData%WaveTime) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%WaveTime,1))); mask1 = .TRUE.
+    OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
+  ENDIF
+  IF ( ALLOCATED(OutData%WaveVel0) ) THEN
+  ALLOCATE(mask3(SIZE(OutData%WaveVel0,1),SIZE(OutData%WaveVel0,2),SIZE(OutData%WaveVel0,3))); mask3 = .TRUE.
+    OutData%WaveVel0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveVel0))-1 ),mask3,OutData%WaveVel0)
+  DEALLOCATE(mask3)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveVel0)
+  ENDIF
+  OutData%Gravity = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
+  OutData%WtrDens = ReKiBuf ( Re_Xferred )
+  Re_Xferred   = Re_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -1173,6 +1272,8 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+!  missing buffer for WriteOutputHdr
+!  missing buffer for WriteOutputUnt
   CALL NWTC_Library_Packprogdesc( Re_Ver_Buf, Db_Ver_Buf, Int_Ver_Buf, InData%Ver, ErrStat, ErrMsg, .TRUE. ) ! Ver 
   IF(ALLOCATED(Re_Ver_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Ver_Buf  ) ! Ver
   IF(ALLOCATED(Db_Ver_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Ver_Buf  ) ! Ver
@@ -1180,12 +1281,12 @@ ENDIF
   IF(ALLOCATED(Re_Ver_Buf))  DEALLOCATE(Re_Ver_Buf)
   IF(ALLOCATED(Db_Ver_Buf))  DEALLOCATE(Db_Ver_Buf)
   IF(ALLOCATED(Int_Ver_Buf)) DEALLOCATE(Int_Ver_Buf)
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LAnchxi )  ! LAnchxi 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LAnchyi )  ! LAnchyi 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LAnchzi )  ! LAnchzi 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LFairxt )  ! LFairxt 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LFairyt )  ! LFairyt 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LFairzt )  ! LFairzt 
+  IF ( ALLOCATED(InData%LAnchxi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LAnchxi )  ! LAnchxi 
+  IF ( ALLOCATED(InData%LAnchyi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LAnchyi )  ! LAnchyi 
+  IF ( ALLOCATED(InData%LAnchzi) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LAnchzi )  ! LAnchzi 
+  IF ( ALLOCATED(InData%LFairxt) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LFairxt )  ! LFairxt 
+  IF ( ALLOCATED(InData%LFairyt) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LFairyt )  ! LFairyt 
+  IF ( ALLOCATED(InData%LFairzt) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LFairzt )  ! LFairzt 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1418,8 +1519,8 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GLU )  ! GLU 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GLDU )  ! GLDU 
+  IF ( ALLOCATED(InData%GLU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GLU )  ! GLU 
+  IF ( ALLOCATED(InData%GLDU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GLDU )  ! GLDU 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -1994,6 +2095,23 @@ IF (ALLOCATED(SrcOtherStateData%Line_Coordinate)) THEN
    END IF
    DstOtherStateData%Line_Coordinate = SrcOtherStateData%Line_Coordinate
 ENDIF
+IF (ALLOCATED(SrcOtherStateData%Line_Tangent)) THEN
+   i1_l = LBOUND(SrcOtherStateData%Line_Tangent,1)
+   i1_u = UBOUND(SrcOtherStateData%Line_Tangent,1)
+   i2_l = LBOUND(SrcOtherStateData%Line_Tangent,2)
+   i2_u = UBOUND(SrcOtherStateData%Line_Tangent,2)
+   i3_l = LBOUND(SrcOtherStateData%Line_Tangent,3)
+   i3_u = UBOUND(SrcOtherStateData%Line_Tangent,3)
+   IF (.NOT. ALLOCATED(DstOtherStateData%Line_Tangent)) THEN 
+      ALLOCATE(DstOtherStateData%Line_Tangent(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Line_Tangent.', ErrStat, ErrMsg,'FEAM_CopyOtherState')
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%Line_Tangent = SrcOtherStateData%Line_Tangent
+ENDIF
+   DstOtherStateData%LastIndWave = SrcOtherStateData%LastIndWave
  END SUBROUTINE FEAM_CopyOtherState
 
  SUBROUTINE FEAM_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
@@ -2055,6 +2173,9 @@ ENDIF
 IF (ALLOCATED(OtherStateData%Line_Coordinate)) THEN
    DEALLOCATE(OtherStateData%Line_Coordinate)
 ENDIF
+IF (ALLOCATED(OtherStateData%Line_Tangent)) THEN
+   DEALLOCATE(OtherStateData%Line_Tangent)
+ENDIF
  END SUBROUTINE FEAM_DestroyOtherState
 
  SUBROUTINE FEAM_PackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
@@ -2091,26 +2212,26 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GLU0 )  ! GLU0 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GLDDU )  ! GLDDU 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GLF )  ! GLF 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GLK )  ! GLK 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GLUZR )  ! GLUZR 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GTZER )  ! GTZER 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GFORC0 )  ! GFORC0 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GMASS0 )  ! GMASS0 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%FAST_FP )  ! FAST_FP 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%FAST_FPA )  ! FAST_FPA 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%FAIR_T )  ! FAIR_T 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%FAST_RP )  ! FAST_RP 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%ANCH_T )  ! ANCH_T 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%FAIR_ANG )  ! FAIR_ANG 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%ANCH_ANG )  ! ANCH_ANG 
+  IF ( ALLOCATED(InData%GLU0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GLU0 )  ! GLU0 
+  IF ( ALLOCATED(InData%GLDDU) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GLDDU )  ! GLDDU 
+  IF ( ALLOCATED(InData%GLF) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GLF )  ! GLF 
+  IF ( ALLOCATED(InData%GLK) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GLK )  ! GLK 
+  IF ( ALLOCATED(InData%GLUZR) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GLUZR )  ! GLUZR 
+  IF ( ALLOCATED(InData%GTZER) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GTZER )  ! GTZER 
+  IF ( ALLOCATED(InData%GFORC0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GFORC0 )  ! GFORC0 
+  IF ( ALLOCATED(InData%GMASS0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GMASS0 )  ! GMASS0 
+  IF ( ALLOCATED(InData%FAST_FP) )   Re_BufSz    = Re_BufSz    + SIZE( InData%FAST_FP )  ! FAST_FP 
+  IF ( ALLOCATED(InData%FAST_FPA) )   Re_BufSz    = Re_BufSz    + SIZE( InData%FAST_FPA )  ! FAST_FPA 
+  IF ( ALLOCATED(InData%FAIR_T) )   Re_BufSz    = Re_BufSz    + SIZE( InData%FAIR_T )  ! FAIR_T 
+  IF ( ALLOCATED(InData%FAST_RP) )   Re_BufSz    = Re_BufSz    + SIZE( InData%FAST_RP )  ! FAST_RP 
+  IF ( ALLOCATED(InData%ANCH_T) )   Re_BufSz    = Re_BufSz    + SIZE( InData%ANCH_T )  ! ANCH_T 
+  IF ( ALLOCATED(InData%FAIR_ANG) )   Re_BufSz    = Re_BufSz    + SIZE( InData%FAIR_ANG )  ! FAIR_ANG 
+  IF ( ALLOCATED(InData%ANCH_ANG) )   Re_BufSz    = Re_BufSz    + SIZE( InData%ANCH_ANG )  ! ANCH_ANG 
   Re_BufSz    = Re_BufSz    + SIZE( InData%ESTIF )  ! ESTIF 
   Re_BufSz    = Re_BufSz    + SIZE( InData%EMASS )  ! EMASS 
   Re_BufSz    = Re_BufSz    + SIZE( InData%FORCE )  ! FORCE 
   Re_BufSz    = Re_BufSz    + SIZE( InData%RSDF )  ! RSDF 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%F_Lines )  ! F_Lines 
+  IF ( ALLOCATED(InData%F_Lines) )   Re_BufSz    = Re_BufSz    + SIZE( InData%F_Lines )  ! F_Lines 
   Re_BufSz    = Re_BufSz    + SIZE( InData%U )  ! U 
   Re_BufSz    = Re_BufSz    + SIZE( InData%U0 )  ! U0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%DU )  ! DU 
@@ -2118,13 +2239,18 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%FORC0 )  ! FORC0 
   Re_BufSz    = Re_BufSz    + SIZE( InData%EMAS0 )  ! EMAS0 
   Int_BufSz  = Int_BufSz  + 1  ! INCR
+  Int_BufSz  = Int_BufSz  + 1  ! BottomTouch
+  Int_BufSz  = Int_BufSz  + 1  ! Iteration1
+  Int_BufSz  = Int_BufSz  + 1  ! Iteration2
   Re_BufSz    = Re_BufSz    + SIZE( InData%R )  ! R 
   Re_BufSz    = Re_BufSz    + SIZE( InData%RP )  ! RP 
   Re_BufSz    = Re_BufSz    + SIZE( InData%FP )  ! FP 
   Re_BufSz    = Re_BufSz    + SIZE( InData%SLIN )  ! SLIN 
   Re_BufSz    = Re_BufSz    + SIZE( InData%STIFR )  ! STIFR 
   Re_BufSz    = Re_BufSz    + SIZE( InData%RHSR )  ! RHSR 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Line_Coordinate )  ! Line_Coordinate 
+  IF ( ALLOCATED(InData%Line_Coordinate) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Line_Coordinate )  ! Line_Coordinate 
+  IF ( ALLOCATED(InData%Line_Tangent) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Line_Tangent )  ! Line_Tangent 
+  Int_BufSz  = Int_BufSz  + 1  ! LastIndWave
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -2214,6 +2340,12 @@ ENDIF
   Re_Xferred   = Re_Xferred   + SIZE(InData%EMAS0)
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%INCR )
   Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%BottomTouch ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%Iteration1 ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = TRANSFER( (InData%Iteration2 ), IntKiBuf(1), 1)
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%R))-1 ) =  PACK(InData%R ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%R)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%RP))-1 ) =  PACK(InData%RP ,.TRUE.)
@@ -2230,6 +2362,12 @@ ENDIF
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Line_Coordinate))-1 ) =  PACK(InData%Line_Coordinate ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%Line_Coordinate)
   ENDIF
+  IF ( ALLOCATED(InData%Line_Tangent) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Line_Tangent))-1 ) =  PACK(InData%Line_Tangent ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%Line_Tangent)
+  ENDIF
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%LastIndWave )
+  Int_Xferred   = Int_Xferred   + 1
  END SUBROUTINE FEAM_PackOtherState
 
  SUBROUTINE FEAM_UnPackOtherState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
@@ -2433,6 +2571,14 @@ ENDIF
   DEALLOCATE(mask3)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Line_Coordinate)
   ENDIF
+  IF ( ALLOCATED(OutData%Line_Tangent) ) THEN
+  ALLOCATE(mask3(SIZE(OutData%Line_Tangent,1),SIZE(OutData%Line_Tangent,2),SIZE(OutData%Line_Tangent,3))); mask3 = .TRUE.
+    OutData%Line_Tangent = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Line_Tangent))-1 ),mask3,OutData%Line_Tangent)
+  DEALLOCATE(mask3)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%Line_Tangent)
+  ENDIF
+  OutData%LastIndWave = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -2455,10 +2601,10 @@ ENDIF
    ErrMsg  = ""
    DstParamData%DT = SrcParamData%DT
    DstParamData%GRAV = SrcParamData%GRAV
-   DstParamData%EPS = SrcParamData%EPS
+   DstParamData%Eps = SrcParamData%Eps
    DstParamData%Gravity = SrcParamData%Gravity
    DstParamData%WtrDens = SrcParamData%WtrDens
-   DstParamData%MITER = SrcParamData%MITER
+   DstParamData%MaxIter = SrcParamData%MaxIter
    DstParamData%NHBD = SrcParamData%NHBD
    DstParamData%NDIM = SrcParamData%NDIM
 IF (ALLOCATED(SrcParamData%NEQ)) THEN
@@ -2474,9 +2620,9 @@ IF (ALLOCATED(SrcParamData%NEQ)) THEN
    DstParamData%NEQ = SrcParamData%NEQ
 ENDIF
    DstParamData%NBAND = SrcParamData%NBAND
-   DstParamData%DYN = SrcParamData%DYN
    DstParamData%NumLines = SrcParamData%NumLines
    DstParamData%NumElems = SrcParamData%NumElems
+   DstParamData%NumNodes = SrcParamData%NumNodes
 IF (ALLOCATED(SrcParamData%GSL)) THEN
    i1_l = LBOUND(SrcParamData%GSL,1)
    i1_u = UBOUND(SrcParamData%GSL,1)
@@ -2506,42 +2652,6 @@ IF (ALLOCATED(SrcParamData%GP)) THEN
       END IF
    END IF
    DstParamData%GP = SrcParamData%GP
-ENDIF
-IF (ALLOCATED(SrcParamData%LineCI)) THEN
-   i1_l = LBOUND(SrcParamData%LineCI,1)
-   i1_u = UBOUND(SrcParamData%LineCI,1)
-   IF (.NOT. ALLOCATED(DstParamData%LineCI)) THEN 
-      ALLOCATE(DstParamData%LineCI(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%LineCI.', ErrStat, ErrMsg,'FEAM_CopyParam')
-         RETURN
-      END IF
-   END IF
-   DstParamData%LineCI = SrcParamData%LineCI
-ENDIF
-IF (ALLOCATED(SrcParamData%LineCD)) THEN
-   i1_l = LBOUND(SrcParamData%LineCD,1)
-   i1_u = UBOUND(SrcParamData%LineCD,1)
-   IF (.NOT. ALLOCATED(DstParamData%LineCD)) THEN 
-      ALLOCATE(DstParamData%LineCD(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%LineCD.', ErrStat, ErrMsg,'FEAM_CopyParam')
-         RETURN
-      END IF
-   END IF
-   DstParamData%LineCD = SrcParamData%LineCD
-ENDIF
-IF (ALLOCATED(SrcParamData%SectionA)) THEN
-   i1_l = LBOUND(SrcParamData%SectionA,1)
-   i1_u = UBOUND(SrcParamData%SectionA,1)
-   IF (.NOT. ALLOCATED(DstParamData%SectionA)) THEN 
-      ALLOCATE(DstParamData%SectionA(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%SectionA.', ErrStat, ErrMsg,'FEAM_CopyParam')
-         RETURN
-      END IF
-   END IF
-   DstParamData%SectionA = SrcParamData%SectionA
 ENDIF
 IF (ALLOCATED(SrcParamData%Elength)) THEN
    i1_l = LBOUND(SrcParamData%Elength,1)
@@ -2615,6 +2725,30 @@ IF (ALLOCATED(SrcParamData%LEAStiff)) THEN
    END IF
    DstParamData%LEAStiff = SrcParamData%LEAStiff
 ENDIF
+IF (ALLOCATED(SrcParamData%LineCI)) THEN
+   i1_l = LBOUND(SrcParamData%LineCI,1)
+   i1_u = UBOUND(SrcParamData%LineCI,1)
+   IF (.NOT. ALLOCATED(DstParamData%LineCI)) THEN 
+      ALLOCATE(DstParamData%LineCI(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%LineCI.', ErrStat, ErrMsg,'FEAM_CopyParam')
+         RETURN
+      END IF
+   END IF
+   DstParamData%LineCI = SrcParamData%LineCI
+ENDIF
+IF (ALLOCATED(SrcParamData%LineCD)) THEN
+   i1_l = LBOUND(SrcParamData%LineCD,1)
+   i1_u = UBOUND(SrcParamData%LineCD,1)
+   IF (.NOT. ALLOCATED(DstParamData%LineCD)) THEN 
+      ALLOCATE(DstParamData%LineCD(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%LineCD.', ErrStat, ErrMsg,'FEAM_CopyParam')
+         RETURN
+      END IF
+   END IF
+   DstParamData%LineCD = SrcParamData%LineCD
+ENDIF
 IF (ALLOCATED(SrcParamData%Bvp)) THEN
    i1_l = LBOUND(SrcParamData%Bvp,1)
    i1_u = UBOUND(SrcParamData%Bvp,1)
@@ -2629,6 +2763,51 @@ IF (ALLOCATED(SrcParamData%Bvp)) THEN
    END IF
    DstParamData%Bvp = SrcParamData%Bvp
 ENDIF
+IF (ALLOCATED(SrcParamData%WaveAcc0)) THEN
+   i1_l = LBOUND(SrcParamData%WaveAcc0,1)
+   i1_u = UBOUND(SrcParamData%WaveAcc0,1)
+   i2_l = LBOUND(SrcParamData%WaveAcc0,2)
+   i2_u = UBOUND(SrcParamData%WaveAcc0,2)
+   i3_l = LBOUND(SrcParamData%WaveAcc0,3)
+   i3_u = UBOUND(SrcParamData%WaveAcc0,3)
+   IF (.NOT. ALLOCATED(DstParamData%WaveAcc0)) THEN 
+      ALLOCATE(DstParamData%WaveAcc0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveAcc0.', ErrStat, ErrMsg,'FEAM_CopyParam')
+         RETURN
+      END IF
+   END IF
+   DstParamData%WaveAcc0 = SrcParamData%WaveAcc0
+ENDIF
+IF (ALLOCATED(SrcParamData%WaveTime)) THEN
+   i1_l = LBOUND(SrcParamData%WaveTime,1)
+   i1_u = UBOUND(SrcParamData%WaveTime,1)
+   IF (.NOT. ALLOCATED(DstParamData%WaveTime)) THEN 
+      ALLOCATE(DstParamData%WaveTime(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveTime.', ErrStat, ErrMsg,'FEAM_CopyParam')
+         RETURN
+      END IF
+   END IF
+   DstParamData%WaveTime = SrcParamData%WaveTime
+ENDIF
+IF (ALLOCATED(SrcParamData%WaveVel0)) THEN
+   i1_l = LBOUND(SrcParamData%WaveVel0,1)
+   i1_u = UBOUND(SrcParamData%WaveVel0,1)
+   i2_l = LBOUND(SrcParamData%WaveVel0,2)
+   i2_u = UBOUND(SrcParamData%WaveVel0,2)
+   i3_l = LBOUND(SrcParamData%WaveVel0,3)
+   i3_u = UBOUND(SrcParamData%WaveVel0,3)
+   IF (.NOT. ALLOCATED(DstParamData%WaveVel0)) THEN 
+      ALLOCATE(DstParamData%WaveVel0(i1_l:i1_u,i2_l:i2_u,i3_l:i3_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstParamData%WaveVel0.', ErrStat, ErrMsg,'FEAM_CopyParam')
+         RETURN
+      END IF
+   END IF
+   DstParamData%WaveVel0 = SrcParamData%WaveVel0
+ENDIF
+   DstParamData%NStepWave = SrcParamData%NStepWave
    DstParamData%SHAP = SrcParamData%SHAP
    DstParamData%SHAPS = SrcParamData%SHAPS
    DstParamData%GAUSSW = SrcParamData%GAUSSW
@@ -2685,15 +2864,6 @@ ENDIF
 IF (ALLOCATED(ParamData%GP)) THEN
    DEALLOCATE(ParamData%GP)
 ENDIF
-IF (ALLOCATED(ParamData%LineCI)) THEN
-   DEALLOCATE(ParamData%LineCI)
-ENDIF
-IF (ALLOCATED(ParamData%LineCD)) THEN
-   DEALLOCATE(ParamData%LineCD)
-ENDIF
-IF (ALLOCATED(ParamData%SectionA)) THEN
-   DEALLOCATE(ParamData%SectionA)
-ENDIF
 IF (ALLOCATED(ParamData%Elength)) THEN
    DEALLOCATE(ParamData%Elength)
 ENDIF
@@ -2712,8 +2882,23 @@ ENDIF
 IF (ALLOCATED(ParamData%LEAStiff)) THEN
    DEALLOCATE(ParamData%LEAStiff)
 ENDIF
+IF (ALLOCATED(ParamData%LineCI)) THEN
+   DEALLOCATE(ParamData%LineCI)
+ENDIF
+IF (ALLOCATED(ParamData%LineCD)) THEN
+   DEALLOCATE(ParamData%LineCD)
+ENDIF
 IF (ALLOCATED(ParamData%Bvp)) THEN
    DEALLOCATE(ParamData%Bvp)
+ENDIF
+IF (ALLOCATED(ParamData%WaveAcc0)) THEN
+   DEALLOCATE(ParamData%WaveAcc0)
+ENDIF
+IF (ALLOCATED(ParamData%WaveTime)) THEN
+   DEALLOCATE(ParamData%WaveTime)
+ENDIF
+IF (ALLOCATED(ParamData%WaveVel0)) THEN
+   DEALLOCATE(ParamData%WaveVel0)
 ENDIF
 IF (ALLOCATED(ParamData%OutParam)) THEN
 DO i1 = LBOUND(ParamData%OutParam,1), UBOUND(ParamData%OutParam,1)
@@ -2762,28 +2947,32 @@ ENDIF
   Int_BufSz  = 0
   Db_BufSz   = Db_BufSz   + 1  ! DT
   Re_BufSz    = Re_BufSz    + SIZE( InData%GRAV )  ! GRAV 
-  Re_BufSz   = Re_BufSz   + 1  ! EPS
+  Re_BufSz   = Re_BufSz   + 1  ! Eps
   Re_BufSz   = Re_BufSz   + 1  ! Gravity
   Re_BufSz   = Re_BufSz   + 1  ! WtrDens
-  Int_BufSz  = Int_BufSz  + 1  ! MITER
+  Int_BufSz  = Int_BufSz  + 1  ! MaxIter
   Int_BufSz  = Int_BufSz  + 1  ! NHBD
   Int_BufSz  = Int_BufSz  + 1  ! NDIM
-  Int_BufSz   = Int_BufSz   + SIZE( InData%NEQ )  ! NEQ 
+  IF ( ALLOCATED(InData%NEQ) )   Int_BufSz   = Int_BufSz   + SIZE( InData%NEQ )  ! NEQ 
   Int_BufSz  = Int_BufSz  + 1  ! NBAND
   Int_BufSz  = Int_BufSz  + 1  ! NumLines
   Int_BufSz  = Int_BufSz  + 1  ! NumElems
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GSL )  ! GSL 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%GP )  ! GP 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LineCI )  ! LineCI 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LineCD )  ! LineCD 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%SectionA )  ! SectionA 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Elength )  ! Elength 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BottmElev )  ! BottmElev 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%BottmStiff )  ! BottmStiff 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LMassDen )  ! LMassDen 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LDMassDen )  ! LDMassDen 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%LEAStiff )  ! LEAStiff 
-  Re_BufSz    = Re_BufSz    + SIZE( InData%Bvp )  ! Bvp 
+  Int_BufSz  = Int_BufSz  + 1  ! NumNodes
+  IF ( ALLOCATED(InData%GSL) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GSL )  ! GSL 
+  IF ( ALLOCATED(InData%GP) )   Re_BufSz    = Re_BufSz    + SIZE( InData%GP )  ! GP 
+  IF ( ALLOCATED(InData%Elength) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Elength )  ! Elength 
+  IF ( ALLOCATED(InData%BottmElev) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BottmElev )  ! BottmElev 
+  IF ( ALLOCATED(InData%BottmStiff) )   Re_BufSz    = Re_BufSz    + SIZE( InData%BottmStiff )  ! BottmStiff 
+  IF ( ALLOCATED(InData%LMassDen) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LMassDen )  ! LMassDen 
+  IF ( ALLOCATED(InData%LDMassDen) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LDMassDen )  ! LDMassDen 
+  IF ( ALLOCATED(InData%LEAStiff) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LEAStiff )  ! LEAStiff 
+  IF ( ALLOCATED(InData%LineCI) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LineCI )  ! LineCI 
+  IF ( ALLOCATED(InData%LineCD) )   Re_BufSz    = Re_BufSz    + SIZE( InData%LineCD )  ! LineCD 
+  IF ( ALLOCATED(InData%Bvp) )   Re_BufSz    = Re_BufSz    + SIZE( InData%Bvp )  ! Bvp 
+  IF ( ALLOCATED(InData%WaveAcc0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveAcc0 )  ! WaveAcc0 
+  IF ( ALLOCATED(InData%WaveTime) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveTime )  ! WaveTime 
+  IF ( ALLOCATED(InData%WaveVel0) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WaveVel0 )  ! WaveVel0 
+  Int_BufSz  = Int_BufSz  + 1  ! NStepWave
   Re_BufSz    = Re_BufSz    + SIZE( InData%SHAP )  ! SHAP 
   Re_BufSz    = Re_BufSz    + SIZE( InData%SHAPS )  ! SHAPS 
   Re_BufSz    = Re_BufSz    + SIZE( InData%GAUSSW )  ! GAUSSW 
@@ -2803,6 +2992,7 @@ ENDIF
   Re_BufSz    = Re_BufSz    + SIZE( InData%PPA )  ! PPA 
   Re_BufSz   = Re_BufSz   + 1  ! PtfmRefzt
   Int_BufSz  = Int_BufSz  + 1  ! NumOuts
+!  missing buffer for RootName
 DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   CALL NWTC_Library_Packoutparmtype( Re_OutParam_Buf, Db_OutParam_Buf, Int_OutParam_Buf, InData%OutParam(i1), ErrStat, ErrMsg, .TRUE. ) ! OutParam 
   IF(ALLOCATED(Re_OutParam_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_OutParam_Buf  ) ! OutParam
@@ -2812,6 +3002,7 @@ DO i1 = LBOUND(InData%OutParam,1), UBOUND(InData%OutParam,1)
   IF(ALLOCATED(Db_OutParam_Buf))  DEALLOCATE(Db_OutParam_Buf)
   IF(ALLOCATED(Int_OutParam_Buf)) DEALLOCATE(Int_OutParam_Buf)
 ENDDO
+!  missing buffer for Delim
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -2819,13 +3010,13 @@ ENDDO
   Db_Xferred   = Db_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%GRAV))-1 ) =  PACK(InData%GRAV ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%GRAV)
-  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%EPS )
+  IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Eps )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%Gravity )
   Re_Xferred   = Re_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(1)-1 ) =  (InData%WtrDens )
   Re_Xferred   = Re_Xferred   + 1
-  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%MITER )
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%MaxIter )
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NHBD )
   Int_Xferred   = Int_Xferred   + 1
@@ -2841,6 +3032,8 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumElems )
   Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NumNodes )
+  Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(InData%GSL) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%GSL))-1 ) =  PACK(InData%GSL ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%GSL)
@@ -2848,18 +3041,6 @@ ENDDO
   IF ( ALLOCATED(InData%GP) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%GP))-1 ) =  PACK(InData%GP ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%GP)
-  ENDIF
-  IF ( ALLOCATED(InData%LineCI) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LineCI))-1 ) =  PACK(InData%LineCI ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%LineCI)
-  ENDIF
-  IF ( ALLOCATED(InData%LineCD) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LineCD))-1 ) =  PACK(InData%LineCD ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%LineCD)
-  ENDIF
-  IF ( ALLOCATED(InData%SectionA) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%SectionA))-1 ) =  PACK(InData%SectionA ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%SectionA)
   ENDIF
   IF ( ALLOCATED(InData%Elength) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Elength))-1 ) =  PACK(InData%Elength ,.TRUE.)
@@ -2885,10 +3066,32 @@ ENDDO
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LEAStiff))-1 ) =  PACK(InData%LEAStiff ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%LEAStiff)
   ENDIF
+  IF ( ALLOCATED(InData%LineCI) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LineCI))-1 ) =  PACK(InData%LineCI ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%LineCI)
+  ENDIF
+  IF ( ALLOCATED(InData%LineCD) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%LineCD))-1 ) =  PACK(InData%LineCD ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%LineCD)
+  ENDIF
   IF ( ALLOCATED(InData%Bvp) ) THEN
     IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%Bvp))-1 ) =  PACK(InData%Bvp ,.TRUE.)
     Re_Xferred   = Re_Xferred   + SIZE(InData%Bvp)
   ENDIF
+  IF ( ALLOCATED(InData%WaveAcc0) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveAcc0))-1 ) =  PACK(InData%WaveAcc0 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveAcc0)
+  ENDIF
+  IF ( ALLOCATED(InData%WaveTime) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveTime))-1 ) =  PACK(InData%WaveTime ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveTime)
+  ENDIF
+  IF ( ALLOCATED(InData%WaveVel0) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WaveVel0))-1 ) =  PACK(InData%WaveVel0 ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WaveVel0)
+  ENDIF
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NStepWave )
+  Int_Xferred   = Int_Xferred   + 1
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%SHAP))-1 ) =  PACK(InData%SHAP ,.TRUE.)
   Re_Xferred   = Re_Xferred   + SIZE(InData%SHAP)
   IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%SHAPS))-1 ) =  PACK(InData%SHAPS ,.TRUE.)
@@ -2989,13 +3192,13 @@ ENDDO
   OutData%GRAV = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GRAV))-1 ),mask1,OutData%GRAV)
   DEALLOCATE(mask1)
   Re_Xferred   = Re_Xferred   + SIZE(OutData%GRAV)
-  OutData%EPS = ReKiBuf ( Re_Xferred )
+  OutData%Eps = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%Gravity = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
   OutData%WtrDens = ReKiBuf ( Re_Xferred )
   Re_Xferred   = Re_Xferred   + 1
-  OutData%MITER = IntKiBuf ( Int_Xferred )
+  OutData%MaxIter = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
   OutData%NHBD = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
@@ -3013,6 +3216,8 @@ ENDDO
   Int_Xferred   = Int_Xferred   + 1
   OutData%NumElems = IntKiBuf ( Int_Xferred )
   Int_Xferred   = Int_Xferred   + 1
+  OutData%NumNodes = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
   IF ( ALLOCATED(OutData%GSL) ) THEN
   ALLOCATE(mask3(SIZE(OutData%GSL,1),SIZE(OutData%GSL,2),SIZE(OutData%GSL,3))); mask3 = .TRUE.
     OutData%GSL = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GSL))-1 ),mask3,OutData%GSL)
@@ -3024,24 +3229,6 @@ ENDDO
     OutData%GP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%GP))-1 ),mask2,OutData%GP)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%GP)
-  ENDIF
-  IF ( ALLOCATED(OutData%LineCI) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%LineCI,1))); mask1 = .TRUE.
-    OutData%LineCI = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LineCI))-1 ),mask1,OutData%LineCI)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%LineCI)
-  ENDIF
-  IF ( ALLOCATED(OutData%LineCD) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%LineCD,1))); mask1 = .TRUE.
-    OutData%LineCD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LineCD))-1 ),mask1,OutData%LineCD)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%LineCD)
-  ENDIF
-  IF ( ALLOCATED(OutData%SectionA) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%SectionA,1))); mask1 = .TRUE.
-    OutData%SectionA = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SectionA))-1 ),mask1,OutData%SectionA)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%SectionA)
   ENDIF
   IF ( ALLOCATED(OutData%Elength) ) THEN
   ALLOCATE(mask1(SIZE(OutData%Elength,1))); mask1 = .TRUE.
@@ -3079,12 +3266,44 @@ ENDDO
   DEALLOCATE(mask1)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%LEAStiff)
   ENDIF
+  IF ( ALLOCATED(OutData%LineCI) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%LineCI,1))); mask1 = .TRUE.
+    OutData%LineCI = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LineCI))-1 ),mask1,OutData%LineCI)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%LineCI)
+  ENDIF
+  IF ( ALLOCATED(OutData%LineCD) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%LineCD,1))); mask1 = .TRUE.
+    OutData%LineCD = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%LineCD))-1 ),mask1,OutData%LineCD)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%LineCD)
+  ENDIF
   IF ( ALLOCATED(OutData%Bvp) ) THEN
   ALLOCATE(mask2(SIZE(OutData%Bvp,1),SIZE(OutData%Bvp,2))); mask2 = .TRUE.
     OutData%Bvp = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%Bvp))-1 ),mask2,OutData%Bvp)
   DEALLOCATE(mask2)
     Re_Xferred   = Re_Xferred   + SIZE(OutData%Bvp)
   ENDIF
+  IF ( ALLOCATED(OutData%WaveAcc0) ) THEN
+  ALLOCATE(mask3(SIZE(OutData%WaveAcc0,1),SIZE(OutData%WaveAcc0,2),SIZE(OutData%WaveAcc0,3))); mask3 = .TRUE.
+    OutData%WaveAcc0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveAcc0))-1 ),mask3,OutData%WaveAcc0)
+  DEALLOCATE(mask3)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveAcc0)
+  ENDIF
+  IF ( ALLOCATED(OutData%WaveTime) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%WaveTime,1))); mask1 = .TRUE.
+    OutData%WaveTime = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveTime))-1 ),mask1,OutData%WaveTime)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveTime)
+  ENDIF
+  IF ( ALLOCATED(OutData%WaveVel0) ) THEN
+  ALLOCATE(mask3(SIZE(OutData%WaveVel0,1),SIZE(OutData%WaveVel0,2),SIZE(OutData%WaveVel0,3))); mask3 = .TRUE.
+    OutData%WaveVel0 = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WaveVel0))-1 ),mask3,OutData%WaveVel0)
+  DEALLOCATE(mask3)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WaveVel0)
+  ENDIF
+  OutData%NStepWave = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
   ALLOCATE(mask2(SIZE(OutData%SHAP,1),SIZE(OutData%SHAP,2))); mask2 = .TRUE.
   OutData%SHAP = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%SHAP))-1 ),mask2,OutData%SHAP)
   DEALLOCATE(mask2)
@@ -3471,7 +3690,7 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
+  IF ( ALLOCATED(InData%WriteOutput) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
  ! Allocate mesh buffers, if any (we'll also get sizes from these) 
   CALL MeshPack( InData%PtFairleadLoad, Re_PtFairleadLoad_Buf, Db_PtFairleadLoad_Buf, Int_PtFairleadLoad_Buf, ErrStat, ErrMsg, .TRUE. ) ! PtFairleadLoad 
   IF(ALLOCATED(Re_PtFairleadLoad_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_PtFairleadLoad_Buf  ) ! PtFairleadLoad
