@@ -5,8 +5,8 @@ Material     0.0766    113.35      7.536E5      1.0
 ---------------------- NODE PROPERTIES ---------------------------------------
 Node Type       X        Y        Z     M     B     FX    FY    FZ
 (-)  (-)       (m)      (m)      (m)   (kg)  (mˆ3) (kN)  (kN)  (kN)
-1    fix     -837.6      0      depth   0     0     #     #     #
-2    Vessel  -40.868     0      -14.0   0     0     #     #     #
+1    fix     418.8    725.383    depth   0     0     #     #     #
+2    Vessel   20.434   35.393    -14.0   0     0     #     #     #
 ---------------------- LINE PROPERTIES ---------------------------------------
 Line   LineType  UnstrLen    NodeAnch  NodeFair  Flags
 (-)      (-)       (m)         (-)       (-)       (-)
