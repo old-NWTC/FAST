@@ -697,7 +697,7 @@ CONTAINS
       IF ( ErrID /= ErrID_None ) THEN
 
          IF (ErrStat /= ErrID_None) ErrMsg = TRIM(ErrMsg)//NewLine
-         ErrMsg = TRIM(ErrMsg)//' SrvD_CalcOutput:'//TRIM(Msg)
+         ErrMsg = TRIM(ErrMsg)//'SrvD_CalcOutput:'//TRIM(Msg)
          ErrStat = MAX(ErrStat, ErrID)
 
          !.........................................................................................................................

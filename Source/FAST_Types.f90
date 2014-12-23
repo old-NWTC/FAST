@@ -54,6 +54,36 @@ USE FEAMooring_Types
 USE MAP_Types
 USE NWTC_Library
 IMPLICIT NONE
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_Unknown = -1      ! Unknown [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_None = 0      ! No module selected [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_IfW = 1      ! InflowWind [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_ED = 2      ! ElastoDyn [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_BD = 3      ! BeamDyn [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_AD = 4      ! AeroDyn [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_SrvD = 5      ! ServoDyn [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_HD = 6      ! HydroDyn [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_SD = 7      ! SubDyn [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_MAP = 8      ! MAP (Mooring Analysis Program) [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_FEAM = 9      ! FEAMooring [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_IceF = 10      ! IceFloe [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: Module_IceD = 11      ! IceDyn [-]
+    INTEGER(IntKi), PUBLIC, PARAMETER  :: NumModules = 11      ! The number of modules available in FAST [-]
+! =========  FAST_OutputFileType  =======
+  TYPE, PUBLIC :: FAST_OutputFileType
+    REAL(DbKi) , DIMENSION(:), ALLOCATABLE  :: TimeData      ! Array to contain the time output data for the binary file (first output time and a time [fixed] increment) [-]
+    REAL(ReKi) , DIMENSION(:,:), ALLOCATABLE  :: AllOutData      ! Array to contain all the output data (time history of all outputs); Index 1 is NumOuts, Index 2 is Time step [-]
+    INTEGER(IntKi)  :: n_Out      ! Time index into the AllOutData array [-]
+    INTEGER(IntKi)  :: NOutSteps      ! Maximum number of output steps [-]
+    INTEGER(IntKi) , DIMENSION(0:0)  :: numOuts      ! number of outputs to print from each module [-]
+    INTEGER(IntKi)  :: UnOu = -1      ! I/O unit number for the tabular output file [-]
+    INTEGER(IntKi)  :: UnSum = -1      ! I/O unit number for the summary file [-]
+    INTEGER(IntKi)  :: UnGra = -1      ! I/O unit number for mesh graphics [-]
+    CHARACTER(1024) , DIMENSION(1:3)  :: FileDescLines      ! Description lines to include in output files (header, time run, plus module names/versions) [-]
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: ChannelNames      ! Names of the output channels [-]
+    CHARACTER(ChanLen) , DIMENSION(:), ALLOCATABLE  :: ChannelUnits      ! Units for the output channels [-]
+    TYPE(ProgDesc) , DIMENSION(0:0)  :: Module_Ver      ! version information from all modules [-]
+  END TYPE FAST_OutputFileType
+! =======================
 ! =========  IceDyn_Data  =======
   TYPE, PUBLIC :: IceDyn_Data
     TYPE(IceD_ContinuousStateType) , DIMENSION(:,:), ALLOCATABLE  :: x      ! Continuous states [-]
@@ -63,9 +93,6 @@ IMPLICIT NONE
     TYPE(IceD_ParameterType) , DIMENSION(:), ALLOCATABLE  :: p      ! Parameters [-]
     TYPE(IceD_InputType) , DIMENSION(:), ALLOCATABLE  :: u      ! System inputs [-]
     TYPE(IceD_OutputType) , DIMENSION(:), ALLOCATABLE  :: y      ! System outputs [-]
-    TYPE(IceD_ContinuousStateType) , DIMENSION(:), ALLOCATABLE  :: x_pred      ! Predicted continuous states [-]
-    TYPE(IceD_DiscreteStateType) , DIMENSION(:), ALLOCATABLE  :: xd_pred      ! Predicted discrete states [-]
-    TYPE(IceD_ConstraintStateType) , DIMENSION(:), ALLOCATABLE  :: z_pred      ! Predicted constraint states [-]
     TYPE(IceD_OtherStateType) , DIMENSION(:), ALLOCATABLE  :: OtherSt_old      ! Other/optimization states (copied for the case of subcycling) [-]
     TYPE(IceD_InputType) , DIMENSION(:,:), ALLOCATABLE  :: Input      ! Array of inputs associated with InputTimes [-]
     REAL(DbKi) , DIMENSION(:,:), ALLOCATABLE  :: InputTimes      ! Array of times associated with Input Array [-]
@@ -244,6 +271,297 @@ IMPLICIT NONE
   END TYPE FAST_MiscVarType
 ! =======================
 CONTAINS
+ SUBROUTINE FAST_CopyOutputFileType( SrcOutputFileTypeData, DstOutputFileTypeData, CtrlCode, ErrStat, ErrMsg )
+   TYPE(FAST_OutputFileType), INTENT(INOUT) :: SrcOutputFileTypeData
+   TYPE(FAST_OutputFileType), INTENT(INOUT) :: DstOutputFileTypeData
+   INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
+   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+! Local 
+   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
+   INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
+   INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
+! 
+   ErrStat = ErrID_None
+   ErrMsg  = ""
+IF (ALLOCATED(SrcOutputFileTypeData%TimeData)) THEN
+   i1_l = LBOUND(SrcOutputFileTypeData%TimeData,1)
+   i1_u = UBOUND(SrcOutputFileTypeData%TimeData,1)
+   IF (.NOT. ALLOCATED(DstOutputFileTypeData%TimeData)) THEN 
+      ALLOCATE(DstOutputFileTypeData%TimeData(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputFileTypeData%TimeData.', ErrStat, ErrMsg,'FAST_CopyOutputFileType')
+         RETURN
+      END IF
+   END IF
+   DstOutputFileTypeData%TimeData = SrcOutputFileTypeData%TimeData
+ENDIF
+IF (ALLOCATED(SrcOutputFileTypeData%AllOutData)) THEN
+   i1_l = LBOUND(SrcOutputFileTypeData%AllOutData,1)
+   i1_u = UBOUND(SrcOutputFileTypeData%AllOutData,1)
+   i2_l = LBOUND(SrcOutputFileTypeData%AllOutData,2)
+   i2_u = UBOUND(SrcOutputFileTypeData%AllOutData,2)
+   IF (.NOT. ALLOCATED(DstOutputFileTypeData%AllOutData)) THEN 
+      ALLOCATE(DstOutputFileTypeData%AllOutData(i1_l:i1_u,i2_l:i2_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputFileTypeData%AllOutData.', ErrStat, ErrMsg,'FAST_CopyOutputFileType')
+         RETURN
+      END IF
+   END IF
+   DstOutputFileTypeData%AllOutData = SrcOutputFileTypeData%AllOutData
+ENDIF
+   DstOutputFileTypeData%n_Out = SrcOutputFileTypeData%n_Out
+   DstOutputFileTypeData%NOutSteps = SrcOutputFileTypeData%NOutSteps
+   DstOutputFileTypeData%numOuts = SrcOutputFileTypeData%numOuts
+   DstOutputFileTypeData%UnOu = SrcOutputFileTypeData%UnOu
+   DstOutputFileTypeData%UnSum = SrcOutputFileTypeData%UnSum
+   DstOutputFileTypeData%UnGra = SrcOutputFileTypeData%UnGra
+   DstOutputFileTypeData%FileDescLines = SrcOutputFileTypeData%FileDescLines
+IF (ALLOCATED(SrcOutputFileTypeData%ChannelNames)) THEN
+   i1_l = LBOUND(SrcOutputFileTypeData%ChannelNames,1)
+   i1_u = UBOUND(SrcOutputFileTypeData%ChannelNames,1)
+   IF (.NOT. ALLOCATED(DstOutputFileTypeData%ChannelNames)) THEN 
+      ALLOCATE(DstOutputFileTypeData%ChannelNames(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputFileTypeData%ChannelNames.', ErrStat, ErrMsg,'FAST_CopyOutputFileType')
+         RETURN
+      END IF
+   END IF
+   DstOutputFileTypeData%ChannelNames = SrcOutputFileTypeData%ChannelNames
+ENDIF
+IF (ALLOCATED(SrcOutputFileTypeData%ChannelUnits)) THEN
+   i1_l = LBOUND(SrcOutputFileTypeData%ChannelUnits,1)
+   i1_u = UBOUND(SrcOutputFileTypeData%ChannelUnits,1)
+   IF (.NOT. ALLOCATED(DstOutputFileTypeData%ChannelUnits)) THEN 
+      ALLOCATE(DstOutputFileTypeData%ChannelUnits(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputFileTypeData%ChannelUnits.', ErrStat, ErrMsg,'FAST_CopyOutputFileType')
+         RETURN
+      END IF
+   END IF
+   DstOutputFileTypeData%ChannelUnits = SrcOutputFileTypeData%ChannelUnits
+ENDIF
+   DO i1 = LBOUND(SrcOutputFileTypeData%Module_Ver,1), UBOUND(SrcOutputFileTypeData%Module_Ver,1)
+      CALL NWTC_Library_Copyprogdesc( SrcOutputFileTypeData%Module_Ver(i1), DstOutputFileTypeData%Module_Ver(i1), CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyOutputFileType:Module_Ver(i1)')
+         IF (ErrStat>=AbortErrLev) RETURN
+   ENDDO
+ END SUBROUTINE FAST_CopyOutputFileType
+
+ SUBROUTINE FAST_DestroyOutputFileType( OutputFileTypeData, ErrStat, ErrMsg )
+  TYPE(FAST_OutputFileType), INTENT(INOUT) :: OutputFileTypeData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
+! 
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+IF (ALLOCATED(OutputFileTypeData%TimeData)) THEN
+   DEALLOCATE(OutputFileTypeData%TimeData)
+ENDIF
+IF (ALLOCATED(OutputFileTypeData%AllOutData)) THEN
+   DEALLOCATE(OutputFileTypeData%AllOutData)
+ENDIF
+IF (ALLOCATED(OutputFileTypeData%ChannelNames)) THEN
+   DEALLOCATE(OutputFileTypeData%ChannelNames)
+ENDIF
+IF (ALLOCATED(OutputFileTypeData%ChannelUnits)) THEN
+   DEALLOCATE(OutputFileTypeData%ChannelUnits)
+ENDIF
+DO i1 = LBOUND(OutputFileTypeData%Module_Ver,1), UBOUND(OutputFileTypeData%Module_Ver,1)
+  CALL NWTC_Library_Destroyprogdesc( OutputFileTypeData%Module_Ver(i1), ErrStat, ErrMsg )
+ENDDO
+ END SUBROUTINE FAST_DestroyOutputFileType
+
+ SUBROUTINE FAST_PackOutputFileType( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
+  REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
+  REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
+  INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
+  TYPE(FAST_OutputFileType),  INTENT(INOUT) :: InData
+  INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
+  CHARACTER(*),     INTENT(  OUT) :: ErrMsg
+  LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
+  LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
+ ! buffers to store meshes, if any
+  REAL(ReKi),     ALLOCATABLE :: Re_Module_Ver_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_Module_Ver_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_Module_Ver_Buf(:)
+  OnlySize = .FALSE.
+  IF ( PRESENT(SizeOnly) ) THEN
+    OnlySize = SizeOnly
+  ENDIF
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  IF ( ALLOCATED(InData%TimeData) )   Db_BufSz    = Db_BufSz    + SIZE( InData%TimeData )  ! TimeData 
+  IF ( ALLOCATED(InData%AllOutData) )   Re_BufSz    = Re_BufSz    + SIZE( InData%AllOutData )  ! AllOutData 
+  Int_BufSz  = Int_BufSz  + 1  ! n_Out
+  Int_BufSz  = Int_BufSz  + 1  ! NOutSteps
+  Int_BufSz   = Int_BufSz   + SIZE( InData%numOuts )  ! numOuts 
+  Int_BufSz  = Int_BufSz  + 1  ! UnOu
+  Int_BufSz  = Int_BufSz  + 1  ! UnSum
+  Int_BufSz  = Int_BufSz  + 1  ! UnGra
+!  missing buffer for FileDescLines
+!  missing buffer for ChannelNames
+!  missing buffer for ChannelUnits
+DO i1 = LBOUND(InData%Module_Ver,1), UBOUND(InData%Module_Ver,1)
+  CALL NWTC_Library_Packprogdesc( Re_Module_Ver_Buf, Db_Module_Ver_Buf, Int_Module_Ver_Buf, InData%Module_Ver(i1), ErrStat, ErrMsg, .TRUE. ) ! Module_Ver 
+  IF(ALLOCATED(Re_Module_Ver_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Module_Ver_Buf  ) ! Module_Ver
+  IF(ALLOCATED(Db_Module_Ver_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Module_Ver_Buf  ) ! Module_Ver
+  IF(ALLOCATED(Int_Module_Ver_Buf))Int_BufSz = Int_BufSz + SIZE( Int_Module_Ver_Buf ) ! Module_Ver
+  IF(ALLOCATED(Re_Module_Ver_Buf))  DEALLOCATE(Re_Module_Ver_Buf)
+  IF(ALLOCATED(Db_Module_Ver_Buf))  DEALLOCATE(Db_Module_Ver_Buf)
+  IF(ALLOCATED(Int_Module_Ver_Buf)) DEALLOCATE(Int_Module_Ver_Buf)
+ENDDO
+  IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
+  IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
+  IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
+  IF ( ALLOCATED(InData%TimeData) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%TimeData))-1 ) =  PACK(InData%TimeData ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%TimeData)
+  ENDIF
+  IF ( ALLOCATED(InData%AllOutData) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%AllOutData))-1 ) =  PACK(InData%AllOutData ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%AllOutData)
+  ENDIF
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%n_Out )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%NOutSteps )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%numOuts))-1 ) = PACK(InData%numOuts ,.TRUE.)
+  Int_Xferred   = Int_Xferred   + SIZE(InData%numOuts)
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnOu )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnSum )
+  Int_Xferred   = Int_Xferred   + 1
+  IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(1)-1 ) = (InData%UnGra )
+  Int_Xferred   = Int_Xferred   + 1
+DO i1 = LBOUND(InData%Module_Ver,1), UBOUND(InData%Module_Ver,1)
+  CALL NWTC_Library_Packprogdesc( Re_Module_Ver_Buf, Db_Module_Ver_Buf, Int_Module_Ver_Buf, InData%Module_Ver(i1), ErrStat, ErrMsg, OnlySize ) ! Module_Ver 
+  IF(ALLOCATED(Re_Module_Ver_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Module_Ver_Buf)-1 ) = Re_Module_Ver_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_Module_Ver_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_Module_Ver_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Module_Ver_Buf)-1 ) = Db_Module_Ver_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_Module_Ver_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_Module_Ver_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Module_Ver_Buf)-1 ) = Int_Module_Ver_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_Module_Ver_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_Module_Ver_Buf) )  DEALLOCATE(Re_Module_Ver_Buf)
+  IF( ALLOCATED(Db_Module_Ver_Buf) )  DEALLOCATE(Db_Module_Ver_Buf)
+  IF( ALLOCATED(Int_Module_Ver_Buf) ) DEALLOCATE(Int_Module_Ver_Buf)
+ENDDO
+ END SUBROUTINE FAST_PackOutputFileType
+
+ SUBROUTINE FAST_UnPackOutputFileType( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
+  REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
+  REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
+  INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
+  TYPE(FAST_OutputFileType), INTENT(INOUT) :: OutData
+  INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
+  CHARACTER(*),    INTENT(  OUT) :: ErrMsg
+    ! Local variables
+  INTEGER(IntKi)                 :: Re_BufSz
+  INTEGER(IntKi)                 :: Re_Xferred
+  INTEGER(IntKi)                 :: Re_CurrSz
+  INTEGER(IntKi)                 :: Db_BufSz
+  INTEGER(IntKi)                 :: Db_Xferred
+  INTEGER(IntKi)                 :: Db_CurrSz
+  INTEGER(IntKi)                 :: Int_BufSz
+  INTEGER(IntKi)                 :: Int_Xferred
+  INTEGER(IntKi)                 :: Int_CurrSz
+  INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5
+  LOGICAL, ALLOCATABLE           :: mask1(:)
+  LOGICAL, ALLOCATABLE           :: mask2(:,:)
+  LOGICAL, ALLOCATABLE           :: mask3(:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
+  LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
+ ! buffers to store meshes, if any
+  REAL(ReKi),    ALLOCATABLE :: Re_Module_Ver_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_Module_Ver_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_Module_Ver_Buf(:)
+    !
+  ErrStat = ErrID_None
+  ErrMsg  = ""
+  Re_Xferred  = 1
+  Db_Xferred  = 1
+  Int_Xferred  = 1
+  Re_BufSz  = 0
+  Db_BufSz  = 0
+  Int_BufSz  = 0
+  IF ( ALLOCATED(OutData%TimeData) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%TimeData,1)))
+  mask1 = .TRUE.
+    OutData%TimeData = UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%TimeData))-1 ),mask1,OutData%TimeData)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%TimeData)
+  ENDIF
+  IF ( ALLOCATED(OutData%AllOutData) ) THEN
+  ALLOCATE(mask2(SIZE(OutData%AllOutData,1),SIZE(OutData%AllOutData,2)))
+  mask2 = .TRUE.
+    OutData%AllOutData = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%AllOutData))-1 ),mask2,OutData%AllOutData)
+  DEALLOCATE(mask2)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%AllOutData)
+  ENDIF
+  OutData%n_Out = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%NOutSteps = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  ALLOCATE(mask1(SIZE(OutData%numOuts,1)))
+  mask1 = .TRUE.
+  OutData%numOuts = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%numOuts))-1 ),mask1,OutData%numOuts)
+  DEALLOCATE(mask1)
+  Int_Xferred   = Int_Xferred   + SIZE(OutData%numOuts)
+  OutData%UnOu = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%UnSum = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+  OutData%UnGra = IntKiBuf ( Int_Xferred )
+  Int_Xferred   = Int_Xferred   + 1
+DO i1 = LBOUND(OutData%Module_Ver,1), UBOUND(OutData%Module_Ver,1)
+ ! first call NWTC_Library_Packprogdesc to get correctly sized buffers for unpacking
+  CALL NWTC_Library_Packprogdesc( Re_Module_Ver_Buf, Db_Module_Ver_Buf, Int_Module_Ver_Buf, OutData%Module_Ver(i1), ErrStat, ErrMsg, .TRUE. ) ! Module_Ver 
+  IF(ALLOCATED(Re_Module_Ver_Buf)) THEN
+    Re_Module_Ver_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_Module_Ver_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_Module_Ver_Buf)
+  ENDIF
+  IF(ALLOCATED(Db_Module_Ver_Buf)) THEN
+    Db_Module_Ver_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_Module_Ver_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_Module_Ver_Buf)
+  ENDIF
+  IF(ALLOCATED(Int_Module_Ver_Buf)) THEN
+    Int_Module_Ver_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_Module_Ver_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_Module_Ver_Buf)
+  ENDIF
+  CALL NWTC_Library_UnPackprogdesc( Re_Module_Ver_Buf, Db_Module_Ver_Buf, Int_Module_Ver_Buf, OutData%Module_Ver(i1), ErrStat, ErrMsg ) ! Module_Ver 
+ENDDO
+  Re_Xferred   = Re_Xferred-1
+  Db_Xferred   = Db_Xferred-1
+  Int_Xferred  = Int_Xferred-1
+ END SUBROUTINE FAST_UnPackOutputFileType
+
  SUBROUTINE FAST_CopyIceDyn_Data( SrcIceDyn_DataData, DstIceDyn_DataData, CtrlCode, ErrStat, ErrMsg )
    TYPE(IceDyn_Data), INTENT(INOUT) :: SrcIceDyn_DataData
    TYPE(IceDyn_Data), INTENT(INOUT) :: DstIceDyn_DataData
@@ -383,54 +701,6 @@ IF (ALLOCATED(SrcIceDyn_DataData%y)) THEN
          IF (ErrStat>=AbortErrLev) RETURN
    ENDDO
 ENDIF
-IF (ALLOCATED(SrcIceDyn_DataData%x_pred)) THEN
-   i1_l = LBOUND(SrcIceDyn_DataData%x_pred,1)
-   i1_u = UBOUND(SrcIceDyn_DataData%x_pred,1)
-   IF (.NOT. ALLOCATED(DstIceDyn_DataData%x_pred)) THEN 
-      ALLOCATE(DstIceDyn_DataData%x_pred(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%x_pred.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
-         RETURN
-      END IF
-   END IF
-   DO i1 = LBOUND(SrcIceDyn_DataData%x_pred,1), UBOUND(SrcIceDyn_DataData%x_pred,1)
-      CALL IceD_CopyContState( SrcIceDyn_DataData%x_pred(i1), DstIceDyn_DataData%x_pred(i1), CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:x_pred(i1)')
-         IF (ErrStat>=AbortErrLev) RETURN
-   ENDDO
-ENDIF
-IF (ALLOCATED(SrcIceDyn_DataData%xd_pred)) THEN
-   i1_l = LBOUND(SrcIceDyn_DataData%xd_pred,1)
-   i1_u = UBOUND(SrcIceDyn_DataData%xd_pred,1)
-   IF (.NOT. ALLOCATED(DstIceDyn_DataData%xd_pred)) THEN 
-      ALLOCATE(DstIceDyn_DataData%xd_pred(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%xd_pred.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
-         RETURN
-      END IF
-   END IF
-   DO i1 = LBOUND(SrcIceDyn_DataData%xd_pred,1), UBOUND(SrcIceDyn_DataData%xd_pred,1)
-      CALL IceD_CopyDiscState( SrcIceDyn_DataData%xd_pred(i1), DstIceDyn_DataData%xd_pred(i1), CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:xd_pred(i1)')
-         IF (ErrStat>=AbortErrLev) RETURN
-   ENDDO
-ENDIF
-IF (ALLOCATED(SrcIceDyn_DataData%z_pred)) THEN
-   i1_l = LBOUND(SrcIceDyn_DataData%z_pred,1)
-   i1_u = UBOUND(SrcIceDyn_DataData%z_pred,1)
-   IF (.NOT. ALLOCATED(DstIceDyn_DataData%z_pred)) THEN 
-      ALLOCATE(DstIceDyn_DataData%z_pred(i1_l:i1_u),STAT=ErrStat2)
-      IF (ErrStat2 /= 0) THEN 
-         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstIceDyn_DataData%z_pred.', ErrStat, ErrMsg,'FAST_CopyIceDyn_Data')
-         RETURN
-      END IF
-   END IF
-   DO i1 = LBOUND(SrcIceDyn_DataData%z_pred,1), UBOUND(SrcIceDyn_DataData%z_pred,1)
-      CALL IceD_CopyConstrState( SrcIceDyn_DataData%z_pred(i1), DstIceDyn_DataData%z_pred(i1), CtrlCode, ErrStat2, ErrMsg2 )
-         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'FAST_CopyIceDyn_Data:z_pred(i1)')
-         IF (ErrStat>=AbortErrLev) RETURN
-   ENDDO
-ENDIF
 IF (ALLOCATED(SrcIceDyn_DataData%OtherSt_old)) THEN
    i1_l = LBOUND(SrcIceDyn_DataData%OtherSt_old,1)
    i1_u = UBOUND(SrcIceDyn_DataData%OtherSt_old,1)
@@ -539,24 +809,6 @@ DO i1 = LBOUND(IceDyn_DataData%y,1), UBOUND(IceDyn_DataData%y,1)
 ENDDO
    DEALLOCATE(IceDyn_DataData%y)
 ENDIF
-IF (ALLOCATED(IceDyn_DataData%x_pred)) THEN
-DO i1 = LBOUND(IceDyn_DataData%x_pred,1), UBOUND(IceDyn_DataData%x_pred,1)
-  CALL IceD_DestroyContState( IceDyn_DataData%x_pred(i1), ErrStat, ErrMsg )
-ENDDO
-   DEALLOCATE(IceDyn_DataData%x_pred)
-ENDIF
-IF (ALLOCATED(IceDyn_DataData%xd_pred)) THEN
-DO i1 = LBOUND(IceDyn_DataData%xd_pred,1), UBOUND(IceDyn_DataData%xd_pred,1)
-  CALL IceD_DestroyDiscState( IceDyn_DataData%xd_pred(i1), ErrStat, ErrMsg )
-ENDDO
-   DEALLOCATE(IceDyn_DataData%xd_pred)
-ENDIF
-IF (ALLOCATED(IceDyn_DataData%z_pred)) THEN
-DO i1 = LBOUND(IceDyn_DataData%z_pred,1), UBOUND(IceDyn_DataData%z_pred,1)
-  CALL IceD_DestroyConstrState( IceDyn_DataData%z_pred(i1), ErrStat, ErrMsg )
-ENDDO
-   DEALLOCATE(IceDyn_DataData%z_pred)
-ENDIF
 IF (ALLOCATED(IceDyn_DataData%OtherSt_old)) THEN
 DO i1 = LBOUND(IceDyn_DataData%OtherSt_old,1), UBOUND(IceDyn_DataData%OtherSt_old,1)
   CALL IceD_DestroyOtherState( IceDyn_DataData%OtherSt_old(i1), ErrStat, ErrMsg )
@@ -618,15 +870,6 @@ ENDIF
   REAL(ReKi),     ALLOCATABLE :: Re_y_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_y_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_y_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_x_pred_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_x_pred_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_x_pred_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_xd_pred_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_xd_pred_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_xd_pred_Buf(:)
-  REAL(ReKi),     ALLOCATABLE :: Re_z_pred_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_z_pred_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_z_pred_Buf(:)
   REAL(ReKi),     ALLOCATABLE :: Re_OtherSt_old_Buf(:)
   REAL(DbKi),     ALLOCATABLE :: Db_OtherSt_old_Buf(:)
   INTEGER(IntKi), ALLOCATABLE :: Int_OtherSt_old_Buf(:)
@@ -714,33 +957,6 @@ DO i1 = LBOUND(InData%y,1), UBOUND(InData%y,1)
   IF(ALLOCATED(Re_y_Buf))  DEALLOCATE(Re_y_Buf)
   IF(ALLOCATED(Db_y_Buf))  DEALLOCATE(Db_y_Buf)
   IF(ALLOCATED(Int_y_Buf)) DEALLOCATE(Int_y_Buf)
-ENDDO
-DO i1 = LBOUND(InData%x_pred,1), UBOUND(InData%x_pred,1)
-  CALL IceD_PackContState( Re_x_pred_Buf, Db_x_pred_Buf, Int_x_pred_Buf, InData%x_pred(i1), ErrStat, ErrMsg, .TRUE. ) ! x_pred 
-  IF(ALLOCATED(Re_x_pred_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_x_pred_Buf  ) ! x_pred
-  IF(ALLOCATED(Db_x_pred_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_x_pred_Buf  ) ! x_pred
-  IF(ALLOCATED(Int_x_pred_Buf))Int_BufSz = Int_BufSz + SIZE( Int_x_pred_Buf ) ! x_pred
-  IF(ALLOCATED(Re_x_pred_Buf))  DEALLOCATE(Re_x_pred_Buf)
-  IF(ALLOCATED(Db_x_pred_Buf))  DEALLOCATE(Db_x_pred_Buf)
-  IF(ALLOCATED(Int_x_pred_Buf)) DEALLOCATE(Int_x_pred_Buf)
-ENDDO
-DO i1 = LBOUND(InData%xd_pred,1), UBOUND(InData%xd_pred,1)
-  CALL IceD_PackDiscState( Re_xd_pred_Buf, Db_xd_pred_Buf, Int_xd_pred_Buf, InData%xd_pred(i1), ErrStat, ErrMsg, .TRUE. ) ! xd_pred 
-  IF(ALLOCATED(Re_xd_pred_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_xd_pred_Buf  ) ! xd_pred
-  IF(ALLOCATED(Db_xd_pred_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_xd_pred_Buf  ) ! xd_pred
-  IF(ALLOCATED(Int_xd_pred_Buf))Int_BufSz = Int_BufSz + SIZE( Int_xd_pred_Buf ) ! xd_pred
-  IF(ALLOCATED(Re_xd_pred_Buf))  DEALLOCATE(Re_xd_pred_Buf)
-  IF(ALLOCATED(Db_xd_pred_Buf))  DEALLOCATE(Db_xd_pred_Buf)
-  IF(ALLOCATED(Int_xd_pred_Buf)) DEALLOCATE(Int_xd_pred_Buf)
-ENDDO
-DO i1 = LBOUND(InData%z_pred,1), UBOUND(InData%z_pred,1)
-  CALL IceD_PackConstrState( Re_z_pred_Buf, Db_z_pred_Buf, Int_z_pred_Buf, InData%z_pred(i1), ErrStat, ErrMsg, .TRUE. ) ! z_pred 
-  IF(ALLOCATED(Re_z_pred_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_z_pred_Buf  ) ! z_pred
-  IF(ALLOCATED(Db_z_pred_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_z_pred_Buf  ) ! z_pred
-  IF(ALLOCATED(Int_z_pred_Buf))Int_BufSz = Int_BufSz + SIZE( Int_z_pred_Buf ) ! z_pred
-  IF(ALLOCATED(Re_z_pred_Buf))  DEALLOCATE(Re_z_pred_Buf)
-  IF(ALLOCATED(Db_z_pred_Buf))  DEALLOCATE(Db_z_pred_Buf)
-  IF(ALLOCATED(Int_z_pred_Buf)) DEALLOCATE(Int_z_pred_Buf)
 ENDDO
 DO i1 = LBOUND(InData%OtherSt_old,1), UBOUND(InData%OtherSt_old,1)
   CALL IceD_PackOtherState( Re_OtherSt_old_Buf, Db_OtherSt_old_Buf, Int_OtherSt_old_Buf, InData%OtherSt_old(i1), ErrStat, ErrMsg, .TRUE. ) ! OtherSt_old 
@@ -898,60 +1114,6 @@ DO i1 = LBOUND(InData%y,1), UBOUND(InData%y,1)
   IF( ALLOCATED(Db_y_Buf) )  DEALLOCATE(Db_y_Buf)
   IF( ALLOCATED(Int_y_Buf) ) DEALLOCATE(Int_y_Buf)
 ENDDO
-DO i1 = LBOUND(InData%x_pred,1), UBOUND(InData%x_pred,1)
-  CALL IceD_PackContState( Re_x_pred_Buf, Db_x_pred_Buf, Int_x_pred_Buf, InData%x_pred(i1), ErrStat, ErrMsg, OnlySize ) ! x_pred 
-  IF(ALLOCATED(Re_x_pred_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_x_pred_Buf)-1 ) = Re_x_pred_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_x_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_x_pred_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_x_pred_Buf)-1 ) = Db_x_pred_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_x_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_x_pred_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_x_pred_Buf)-1 ) = Int_x_pred_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_x_pred_Buf)
-  ENDIF
-  IF( ALLOCATED(Re_x_pred_Buf) )  DEALLOCATE(Re_x_pred_Buf)
-  IF( ALLOCATED(Db_x_pred_Buf) )  DEALLOCATE(Db_x_pred_Buf)
-  IF( ALLOCATED(Int_x_pred_Buf) ) DEALLOCATE(Int_x_pred_Buf)
-ENDDO
-DO i1 = LBOUND(InData%xd_pred,1), UBOUND(InData%xd_pred,1)
-  CALL IceD_PackDiscState( Re_xd_pred_Buf, Db_xd_pred_Buf, Int_xd_pred_Buf, InData%xd_pred(i1), ErrStat, ErrMsg, OnlySize ) ! xd_pred 
-  IF(ALLOCATED(Re_xd_pred_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_xd_pred_Buf)-1 ) = Re_xd_pred_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_xd_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_xd_pred_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_xd_pred_Buf)-1 ) = Db_xd_pred_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_xd_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_xd_pred_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_xd_pred_Buf)-1 ) = Int_xd_pred_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_xd_pred_Buf)
-  ENDIF
-  IF( ALLOCATED(Re_xd_pred_Buf) )  DEALLOCATE(Re_xd_pred_Buf)
-  IF( ALLOCATED(Db_xd_pred_Buf) )  DEALLOCATE(Db_xd_pred_Buf)
-  IF( ALLOCATED(Int_xd_pred_Buf) ) DEALLOCATE(Int_xd_pred_Buf)
-ENDDO
-DO i1 = LBOUND(InData%z_pred,1), UBOUND(InData%z_pred,1)
-  CALL IceD_PackConstrState( Re_z_pred_Buf, Db_z_pred_Buf, Int_z_pred_Buf, InData%z_pred(i1), ErrStat, ErrMsg, OnlySize ) ! z_pred 
-  IF(ALLOCATED(Re_z_pred_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_z_pred_Buf)-1 ) = Re_z_pred_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_z_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_z_pred_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_z_pred_Buf)-1 ) = Db_z_pred_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_z_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_z_pred_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_z_pred_Buf)-1 ) = Int_z_pred_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_z_pred_Buf)
-  ENDIF
-  IF( ALLOCATED(Re_z_pred_Buf) )  DEALLOCATE(Re_z_pred_Buf)
-  IF( ALLOCATED(Db_z_pred_Buf) )  DEALLOCATE(Db_z_pred_Buf)
-  IF( ALLOCATED(Int_z_pred_Buf) ) DEALLOCATE(Int_z_pred_Buf)
-ENDDO
 DO i1 = LBOUND(InData%OtherSt_old,1), UBOUND(InData%OtherSt_old,1)
   CALL IceD_PackOtherState( Re_OtherSt_old_Buf, Db_OtherSt_old_Buf, Int_OtherSt_old_Buf, InData%OtherSt_old(i1), ErrStat, ErrMsg, OnlySize ) ! OtherSt_old 
   IF(ALLOCATED(Re_OtherSt_old_Buf)) THEN
@@ -1041,15 +1203,6 @@ ENDDO
   REAL(ReKi),    ALLOCATABLE :: Re_y_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_y_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_y_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_x_pred_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_x_pred_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_x_pred_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_xd_pred_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_xd_pred_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_xd_pred_Buf(:)
-  REAL(ReKi),    ALLOCATABLE :: Re_z_pred_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_z_pred_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_z_pred_Buf(:)
   REAL(ReKi),    ALLOCATABLE :: Re_OtherSt_old_Buf(:)
   REAL(DbKi),    ALLOCATABLE :: Db_OtherSt_old_Buf(:)
   INTEGER(IntKi),    ALLOCATABLE :: Int_OtherSt_old_Buf(:)
@@ -1189,57 +1342,6 @@ DO i1 = LBOUND(OutData%y,1), UBOUND(OutData%y,1)
     Int_Xferred = Int_Xferred + SIZE(Int_y_Buf)
   ENDIF
   CALL IceD_UnPackOutput( Re_y_Buf, Db_y_Buf, Int_y_Buf, OutData%y(i1), ErrStat, ErrMsg ) ! y 
-ENDDO
-DO i1 = LBOUND(OutData%x_pred,1), UBOUND(OutData%x_pred,1)
- ! first call IceD_PackContState to get correctly sized buffers for unpacking
-  CALL IceD_PackContState( Re_x_pred_Buf, Db_x_pred_Buf, Int_x_pred_Buf, OutData%x_pred(i1), ErrStat, ErrMsg, .TRUE. ) ! x_pred 
-  IF(ALLOCATED(Re_x_pred_Buf)) THEN
-    Re_x_pred_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_x_pred_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_x_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_x_pred_Buf)) THEN
-    Db_x_pred_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_x_pred_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_x_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_x_pred_Buf)) THEN
-    Int_x_pred_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_x_pred_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_x_pred_Buf)
-  ENDIF
-  CALL IceD_UnPackContState( Re_x_pred_Buf, Db_x_pred_Buf, Int_x_pred_Buf, OutData%x_pred(i1), ErrStat, ErrMsg ) ! x_pred 
-ENDDO
-DO i1 = LBOUND(OutData%xd_pred,1), UBOUND(OutData%xd_pred,1)
- ! first call IceD_PackDiscState to get correctly sized buffers for unpacking
-  CALL IceD_PackDiscState( Re_xd_pred_Buf, Db_xd_pred_Buf, Int_xd_pred_Buf, OutData%xd_pred(i1), ErrStat, ErrMsg, .TRUE. ) ! xd_pred 
-  IF(ALLOCATED(Re_xd_pred_Buf)) THEN
-    Re_xd_pred_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_xd_pred_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_xd_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_xd_pred_Buf)) THEN
-    Db_xd_pred_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_xd_pred_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_xd_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_xd_pred_Buf)) THEN
-    Int_xd_pred_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_xd_pred_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_xd_pred_Buf)
-  ENDIF
-  CALL IceD_UnPackDiscState( Re_xd_pred_Buf, Db_xd_pred_Buf, Int_xd_pred_Buf, OutData%xd_pred(i1), ErrStat, ErrMsg ) ! xd_pred 
-ENDDO
-DO i1 = LBOUND(OutData%z_pred,1), UBOUND(OutData%z_pred,1)
- ! first call IceD_PackConstrState to get correctly sized buffers for unpacking
-  CALL IceD_PackConstrState( Re_z_pred_Buf, Db_z_pred_Buf, Int_z_pred_Buf, OutData%z_pred(i1), ErrStat, ErrMsg, .TRUE. ) ! z_pred 
-  IF(ALLOCATED(Re_z_pred_Buf)) THEN
-    Re_z_pred_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_z_pred_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_z_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Db_z_pred_Buf)) THEN
-    Db_z_pred_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_z_pred_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_z_pred_Buf)
-  ENDIF
-  IF(ALLOCATED(Int_z_pred_Buf)) THEN
-    Int_z_pred_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_z_pred_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_z_pred_Buf)
-  ENDIF
-  CALL IceD_UnPackConstrState( Re_z_pred_Buf, Db_z_pred_Buf, Int_z_pred_Buf, OutData%z_pred(i1), ErrStat, ErrMsg ) ! z_pred 
 ENDDO
 DO i1 = LBOUND(OutData%OtherSt_old,1), UBOUND(OutData%OtherSt_old,1)
  ! first call IceD_PackOtherState to get correctly sized buffers for unpacking
