@@ -38,6 +38,7 @@ SET IceD_Loc=%FAST_Loc%\dependencies\IceDyn
 SET MAP_Include_Lib=%MAP_Loc%\map.lib
 SET HD_Reg_Loc=%HD_Loc%
 SET IfW_Reg_Loc=%IfW_Loc%
+SET FEAM_Reg_Loc=%FEAM_Loc%
 
 IF /I "%2"=="dev" CALL ..\Set_FAST_paths.bat
 
@@ -52,7 +53,7 @@ REM ----------------------------------------------------------------------------
 ECHO on
 SET CURR_LOC=%FAST_Loc%
 %REGISTRY% "%CURR_LOC%\FAST_Registry.txt" -I "%NWTC_Lib_Loc%" -I "%ED_Loc%" -I "%SrvD_Loc%" -I "%AD_Loc%" -I^
- "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc%" -I "%FEAM_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -noextrap
+ "%IfW_Reg_Loc%" -I "%DWM_LOC%" -I "%SD_Loc%" -I "%HD_Reg_Loc%" -I "%MAP_Loc%" -I "%FEAM_Reg_Loc%"  -I "%IceF_Loc%" -I "%IceD_Loc%" -noextrap
 	    
 echo off		
 GOTO checkError
@@ -109,14 +110,14 @@ GOTO checkError
 
 :MAP
 SET CURR_LOC=%MAP_Loc%
-IF /I "%2"=="bjonkman" (
+IF /I "%2"=="dev" (
 %REGISTRY% "%CURR_LOC%\%ModuleName%_Registry.txt" -ccode -I "%NWTC_Lib_Loc%"
 )
 GOTO checkError
 
 :FEAMooring
 SET CURR_LOC=%FEAM_Loc%
-%REGISTRY% "%CURR_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"
+%REGISTRY% "%FEAM_Reg_LOC%\FEAM_Registry.txt" -I "%NWTC_Lib_Loc%"
 GOTO checkError
 
 :IceFloe
@@ -169,6 +170,7 @@ SET FAST_Loc=
 SET MAP_Include_Lib=
 SET HD_Reg_Loc=
 SET IfW_Reg_Loc=
+SET FEAM_Reg_Loc=
 
 SET ModuleName=
 SET CURR_LOC=

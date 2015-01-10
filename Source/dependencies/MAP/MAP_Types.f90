@@ -3,7 +3,7 @@
 ! WARNING This file is generated automatically by the FAST registry
 ! Do not edit.  Your changes to this file will be lost.
 !
-! FAST Registry (v2.03.01, 18-June-2014)
+! FAST Registry (v2.04.01, 8-Dec-2014)
 !*********************************************************************************************************************************
 ! MAP_Types
 !.................................................................................................................................
@@ -35,19 +35,18 @@ USE MAP_C_Types
 !USE, INTRINSIC :: ISO_C_Binding
 USE NWTC_Library
 IMPLICIT NONE
-! =========  MAP_InitInputType  =======
+! =========  MAP_InitInputType_C  =======
   TYPE, BIND(C) :: MAP_InitInputType_C
-    TYPE( MAP_InitInput_C ) :: object
+   TYPE( MAP_InitInput_C ) :: object
     REAL(KIND=C_DOUBLE) :: gravity 
     REAL(KIND=C_DOUBLE) :: sea_density 
     REAL(KIND=C_DOUBLE) :: depth 
-    LOGICAL(KIND=C_BOOL) :: coupled_to_FAST 
-    CHARACTER(KIND=C_CHAR,LEN=255) :: filename 
-    CHARACTER(KIND=C_CHAR,LEN=255) :: rootname 
-    CHARACTER(KIND=C_CHAR,LEN=255) :: cable_library_data 
-    CHARACTER(KIND=C_CHAR,LEN=255) :: node_data 
-    CHARACTER(KIND=C_CHAR,LEN=255) :: element_data 
-    CHARACTER(KIND=C_CHAR,LEN=255) :: solver_data 
+    CHARACTER(KIND=C_CHAR), DIMENSION(255) :: file_name 
+    CHARACTER(KIND=C_CHAR), DIMENSION(255) :: summary_file_name 
+    CHARACTER(KIND=C_CHAR), DIMENSION(255) :: library_input_str 
+    CHARACTER(KIND=C_CHAR), DIMENSION(255) :: node_input_str 
+    CHARACTER(KIND=C_CHAR), DIMENSION(255) :: line_input_str 
+    CHARACTER(KIND=C_CHAR), DIMENSION(255) :: option_input_str 
   END TYPE MAP_InitInputType_C
   TYPE, PUBLIC :: MAP_InitInputType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
@@ -55,40 +54,39 @@ IMPLICIT NONE
     REAL(DbKi)  :: gravity = -999.9      ! gravity constant [[m/s^2]]
     REAL(DbKi)  :: sea_density = -999.9      ! sea density [[kg/m^3]]
     REAL(DbKi)  :: depth = -999.9      ! depth of water [[m]]
-    LOGICAL  :: coupled_to_FAST      ! Let MAP know if FAST will write the output strings [-]
-    CHARACTER(255)  :: filename      ! MAP input file [-]
-    CHARACTER(255)  :: rootname      ! rootname of the MAP output files [-]
-    CHARACTER(255)  :: cable_library_data      ! cable library string information (from input file) [-]
-    CHARACTER(255)  :: node_data      ! node string information (from input file) [-]
-    CHARACTER(255)  :: element_data      ! element library string information (from input file) [-]
-    CHARACTER(255)  :: solver_data      ! solver options library string information (from input file) [-]
+    CHARACTER(255)  :: file_name      ! MAP input file [-]
+    CHARACTER(255)  :: summary_file_name      ! MAP summary file name [-]
+    CHARACTER(255)  :: library_input_str      ! cable library string information (from input file) [-]
+    CHARACTER(255)  :: node_input_str      ! node string information (from input file) [-]
+    CHARACTER(255)  :: line_input_str      ! element library string information (from input file) [-]
+    CHARACTER(255)  :: option_input_str      ! solver options library string information (from input file) [-]
   END TYPE MAP_InitInputType
 ! =======================
 ! =========  MAP_InitOutputType  =======
   TYPE, BIND(C) :: MAP_InitOutputType_C
-    TYPE( MAP_InitOutput_C ) :: object
-    CHARACTER(KIND=C_CHAR,LEN=99) :: MAP_name 
-    CHARACTER(KIND=C_CHAR,LEN=99) :: MAP_version 
-    CHARACTER(KIND=C_CHAR,LEN=24) :: MAP_date 
-    TYPE(C_ptr) :: WriteOutputHdr = C_NULL_PTR 
-    INTEGER(C_int) :: WriteOutputHdr_Len = 0 
-    TYPE(C_ptr) :: WriteOutputUnt = C_NULL_PTR 
-    INTEGER(C_int) :: WriteOutputUnt_Len = 0 
+   TYPE(C_PTR) :: object
+    CHARACTER(KIND=C_CHAR), DIMENSION(99) :: progName 
+    CHARACTER(KIND=C_CHAR), DIMENSION(99) :: version 
+    CHARACTER(KIND=C_CHAR), DIMENSION(24) :: compilingData 
+    TYPE(C_ptr) :: writeOutputHdr = C_NULL_PTR 
+    INTEGER(C_int) :: writeOutputHdr_Len = 0 
+    TYPE(C_ptr) :: writeOutputUnt = C_NULL_PTR 
+    INTEGER(C_int) :: writeOutputUnt_Len = 0 
   END TYPE MAP_InitOutputType_C
   TYPE, PUBLIC :: MAP_InitOutputType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_InitOutputType_C ) :: C_obj
-    CHARACTER(99)  :: MAP_name      ! MAP input file [-]
-    CHARACTER(99)  :: MAP_version      ! cable library string information (from input file) [-]
-    CHARACTER(24)  :: MAP_date      ! node string information (from input file) [-]
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputHdr      ! Line 1: output header. Line 2: units [-]
-    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: WriteOutputUnt      ! Line 1: output header. Line 2: units [-]
+    CHARACTER(99)  :: progName      ! program name [-]
+    CHARACTER(99)  :: version      ! version numnber [-]
+    CHARACTER(24)  :: compilingData      ! compiling data [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: writeOutputHdr      ! first line output file contents: output variable names [-]
+    CHARACTER(10) , DIMENSION(:), ALLOCATABLE  :: writeOutputUnt      ! second line of output file contents: units [-]
     TYPE(ProgDesc)  :: Ver      ! his module's name, version, and date [-]
   END TYPE MAP_InitOutputType
 ! =======================
 ! =========  MAP_ContinuousStateType  =======
   TYPE, BIND(C) :: MAP_ContinuousStateType_C
-    TYPE( MAP_ContState_C ) :: object
+   TYPE(C_PTR) :: object
     REAL(KIND=C_DOUBLE) :: dummy 
   END TYPE MAP_ContinuousStateType_C
   TYPE, PUBLIC :: MAP_ContinuousStateType
@@ -99,7 +97,7 @@ IMPLICIT NONE
 ! =======================
 ! =========  MAP_DiscreteStateType  =======
   TYPE, BIND(C) :: MAP_DiscreteStateType_C
-    TYPE( MAP_DiscState_C ) :: object
+   TYPE(C_PTR) :: object
     REAL(KIND=C_DOUBLE) :: dummy 
   END TYPE MAP_DiscreteStateType_C
   TYPE, PUBLIC :: MAP_DiscreteStateType
@@ -110,558 +108,150 @@ IMPLICIT NONE
 ! =======================
 ! =========  MAP_OtherStateType  =======
   TYPE, BIND(C) :: MAP_OtherStateType_C
-    TYPE( MAP_OtherState_C ) :: object
-    TYPE(C_ptr) :: FX = C_NULL_PTR 
-    INTEGER(C_int) :: FX_Len = 0 
-    TYPE(C_ptr) :: FY = C_NULL_PTR 
-    INTEGER(C_int) :: FY_Len = 0 
-    TYPE(C_ptr) :: FZ = C_NULL_PTR 
-    INTEGER(C_int) :: FZ_Len = 0 
-    TYPE(C_ptr) :: u_index = C_NULL_PTR 
-    INTEGER(C_int) :: u_index_Len = 0 
-    TYPE(C_ptr) :: p_index = C_NULL_PTR 
-    INTEGER(C_int) :: p_index_Len = 0 
-    TYPE(C_ptr) :: x_index = C_NULL_PTR 
-    INTEGER(C_int) :: x_index_Len = 0 
-    TYPE(C_ptr) :: xd_index = C_NULL_PTR 
-    INTEGER(C_int) :: xd_index_Len = 0 
-    TYPE(C_ptr) :: z_index = C_NULL_PTR 
-    INTEGER(C_int) :: z_index_Len = 0 
-    TYPE(C_ptr) :: y_index = C_NULL_PTR 
-    INTEGER(C_int) :: y_index_Len = 0 
-    TYPE(C_ptr) :: o_index = C_NULL_PTR 
-    INTEGER(C_int) :: o_index_Len = 0 
-  END TYPE MAP_OtherStateType_C
-  TYPE, PUBLIC :: MAP_OtherStateType
-    TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
-    TYPE( MAP_OtherStateType_C ) :: C_obj
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FX => NULL()      ! Connect node X force [[N]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FY => NULL()      ! Connect node Y force [[N]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FZ => NULL()      ! Connect node Z force [[N]]
-    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: u_index => NULL()      ! input index set [-]
-    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: p_index => NULL()      ! parameter index set [-]
-    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: x_index => NULL()      ! continuous state index set [-]
-    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: xd_index => NULL()      ! discete state index set [-]
-    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: z_index => NULL()      ! constraint state index set [-]
-    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: y_index => NULL()      ! output index set [-]
-    INTEGER(KIND=C_INT) , DIMENSION(:), POINTER  :: o_index => NULL()      ! other state (self) index set [-]
-  END TYPE MAP_OtherStateType
-! =======================
-! =========  MAP_ConstraintStateType  =======
-  TYPE, BIND(C) :: MAP_ConstraintStateType_C
-    TYPE( MAP_ConstrState_C ) :: object
-    TYPE(C_ptr) :: X = C_NULL_PTR 
-    INTEGER(C_int) :: X_Len = 0 
-    TYPE(C_ptr) :: Y = C_NULL_PTR 
-    INTEGER(C_int) :: Y_Len = 0 
-    TYPE(C_ptr) :: Z = C_NULL_PTR 
-    INTEGER(C_int) :: Z_Len = 0 
+   TYPE( MAP_OtherState_C ) :: object
     TYPE(C_ptr) :: H = C_NULL_PTR 
     INTEGER(C_int) :: H_Len = 0 
     TYPE(C_ptr) :: V = C_NULL_PTR 
     INTEGER(C_int) :: V_Len = 0 
+    TYPE(C_ptr) :: Ha = C_NULL_PTR 
+    INTEGER(C_int) :: Ha_Len = 0 
+    TYPE(C_ptr) :: Va = C_NULL_PTR 
+    INTEGER(C_int) :: Va_Len = 0 
+    TYPE(C_ptr) :: x = C_NULL_PTR 
+    INTEGER(C_int) :: x_Len = 0 
+    TYPE(C_ptr) :: y = C_NULL_PTR 
+    INTEGER(C_int) :: y_Len = 0 
+    TYPE(C_ptr) :: z = C_NULL_PTR 
+    INTEGER(C_int) :: z_Len = 0 
+    TYPE(C_ptr) :: xa = C_NULL_PTR 
+    INTEGER(C_int) :: xa_Len = 0 
+    TYPE(C_ptr) :: ya = C_NULL_PTR 
+    INTEGER(C_int) :: ya_Len = 0 
+    TYPE(C_ptr) :: za = C_NULL_PTR 
+    INTEGER(C_int) :: za_Len = 0 
+    TYPE(C_ptr) :: Fx_connect = C_NULL_PTR 
+    INTEGER(C_int) :: Fx_connect_Len = 0 
+    TYPE(C_ptr) :: Fy_connect = C_NULL_PTR 
+    INTEGER(C_int) :: Fy_connect_Len = 0 
+    TYPE(C_ptr) :: Fz_connect = C_NULL_PTR 
+    INTEGER(C_int) :: Fz_connect_Len = 0 
+    TYPE(C_ptr) :: Fx_anchor = C_NULL_PTR 
+    INTEGER(C_int) :: Fx_anchor_Len = 0 
+    TYPE(C_ptr) :: Fy_anchor = C_NULL_PTR 
+    INTEGER(C_int) :: Fy_anchor_Len = 0 
+    TYPE(C_ptr) :: Fz_anchor = C_NULL_PTR 
+    INTEGER(C_int) :: Fz_anchor_Len = 0 
+  END TYPE MAP_OtherStateType_C
+  TYPE, PUBLIC :: MAP_OtherStateType
+    TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
+    TYPE( MAP_OtherStateType_C ) :: C_obj
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: H => NULL()      ! horizontal line force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: V => NULL()      ! Vertical line force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Ha => NULL()      ! horizontal line force at anchor [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Va => NULL()      ! Vertical line force at anchor [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: x => NULL()      ! x fairlead line position [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: y => NULL()      ! y fairlead line position [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: z => NULL()      ! z fairlead line position [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: xa => NULL()      ! x fairlead line position at anchor [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: ya => NULL()      ! y fairlead line position at anchor [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: za => NULL()      ! z fairlead line position at anchor [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Fx_connect => NULL()      ! horizontal x line force at connect node [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Fy_connect => NULL()      ! horizontal y line force at connect node [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Fz_connect => NULL()      ! vertical z line force at connect node [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Fx_anchor => NULL()      ! horizontal x line force at connect node [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Fy_anchor => NULL()      ! horizontal y line force at connect node [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Fz_anchor => NULL()      ! vertical z line force at connect node [[N]]
+  END TYPE MAP_OtherStateType
+! =======================
+! =========  MAP_ConstraintStateType  =======
+  TYPE, BIND(C) :: MAP_ConstraintStateType_C
+   TYPE(C_PTR) :: object
+    TYPE(C_ptr) :: H = C_NULL_PTR 
+    INTEGER(C_int) :: H_Len = 0 
+    TYPE(C_ptr) :: V = C_NULL_PTR 
+    INTEGER(C_int) :: V_Len = 0 
+    TYPE(C_ptr) :: x = C_NULL_PTR 
+    INTEGER(C_int) :: x_Len = 0 
+    TYPE(C_ptr) :: y = C_NULL_PTR 
+    INTEGER(C_int) :: y_Len = 0 
+    TYPE(C_ptr) :: z = C_NULL_PTR 
+    INTEGER(C_int) :: z_Len = 0 
   END TYPE MAP_ConstraintStateType_C
   TYPE, PUBLIC :: MAP_ConstraintStateType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_ConstraintStateType_C ) :: C_obj
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: X => NULL()      ! Connect node X position [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Y => NULL()      ! Connect node Y position [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Z => NULL()      ! Connect node Z position [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: H => NULL()      ! Fairlead horizontal force [[N]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: V => NULL()      ! Fairlead vertical force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: H => NULL()      ! horizontal line force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: V => NULL()      ! Vertical line force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: x => NULL()      ! fairlead x displacement [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: y => NULL()      ! fairlead y displacement [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: z => NULL()      ! fairlead z displacement [[m]]
   END TYPE MAP_ConstraintStateType
 ! =======================
 ! =========  MAP_ParameterType  =======
   TYPE, BIND(C) :: MAP_ParameterType_C
-    TYPE( MAP_Param_C ) :: object
-    TYPE(C_ptr) :: Diam = C_NULL_PTR 
-    INTEGER(C_int) :: Diam_Len = 0 
-    TYPE(C_ptr) :: MassDenInAir = C_NULL_PTR 
-    INTEGER(C_int) :: MassDenInAir_Len = 0 
-    TYPE(C_ptr) :: EA = C_NULL_PTR 
-    INTEGER(C_int) :: EA_Len = 0 
-    TYPE(C_ptr) :: CB = C_NULL_PTR 
-    INTEGER(C_int) :: CB_Len = 0 
-    TYPE(C_ptr) :: Lu = C_NULL_PTR 
-    INTEGER(C_int) :: Lu_Len = 0 
-    TYPE(C_ptr) :: X = C_NULL_PTR 
-    INTEGER(C_int) :: X_Len = 0 
-    TYPE(C_ptr) :: Y = C_NULL_PTR 
-    INTEGER(C_int) :: Y_Len = 0 
-    TYPE(C_ptr) :: Z = C_NULL_PTR 
-    INTEGER(C_int) :: Z_Len = 0 
-    TYPE(C_ptr) :: FX = C_NULL_PTR 
-    INTEGER(C_int) :: FX_Len = 0 
-    TYPE(C_ptr) :: FY = C_NULL_PTR 
-    INTEGER(C_int) :: FY_Len = 0 
-    TYPE(C_ptr) :: FZ = C_NULL_PTR 
-    INTEGER(C_int) :: FZ_Len = 0 
-    TYPE(C_ptr) :: M = C_NULL_PTR 
-    INTEGER(C_int) :: M_Len = 0 
-    TYPE(C_ptr) :: B = C_NULL_PTR 
-    INTEGER(C_int) :: B_Len = 0 
+   TYPE(C_PTR) :: object
+    REAL(KIND=C_DOUBLE) :: g 
+    REAL(KIND=C_DOUBLE) :: depth 
+    REAL(KIND=C_DOUBLE) :: rho_sea 
     REAL(KIND=C_DOUBLE) :: dt 
   END TYPE MAP_ParameterType_C
   TYPE, PUBLIC :: MAP_ParameterType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_ParameterType_C ) :: C_obj
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Diam => NULL()      ! cable diameter [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: MassDenInAir => NULL()      ! cable mass density in air [[kg/m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: EA => NULL()      ! cable axial stiffness [[N]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: CB => NULL()      ! cable/seabed frcition coeff [[]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Lu => NULL()      ! unstretched cable length [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: X => NULL()      ! Fix node X position [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Y => NULL()      ! Fix node Y position [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Z => NULL()      ! Fix node X position [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FX => NULL()      ! Fix node sum forced in X (constant) [[N]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FY => NULL()      ! Fix node sum forced in Y (constant) [[N]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FZ => NULL()      ! Fix node sum forced in Z (constant) [[N]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: M => NULL()      ! Point mass at node [[kg]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: B => NULL()      ! Buoyancy module (displacement) at node [[m^3]]
-    REAL(DbKi)  :: dt      ! delta t -- time step [[s]]
+    REAL(DbKi)  :: g      ! gravitational constant [[kg/m^2]]
+    REAL(DbKi)  :: depth      ! distance to seabed [[m]]
+    REAL(DbKi)  :: rho_sea      ! density of seawater [[m]]
+    REAL(DbKi)  :: dt      ! time step coupling interval [[sec]]
   END TYPE MAP_ParameterType
 ! =======================
 ! =========  MAP_InputType  =======
   TYPE, BIND(C) :: MAP_InputType_C
-    TYPE( MAP_Input_C ) :: object
-    TYPE(C_ptr) :: X = C_NULL_PTR 
-    INTEGER(C_int) :: X_Len = 0 
-    TYPE(C_ptr) :: Y = C_NULL_PTR 
-    INTEGER(C_int) :: Y_Len = 0 
-    TYPE(C_ptr) :: Z = C_NULL_PTR 
-    INTEGER(C_int) :: Z_Len = 0 
+   TYPE(C_PTR) :: object
+    TYPE(C_ptr) :: x = C_NULL_PTR 
+    INTEGER(C_int) :: x_Len = 0 
+    TYPE(C_ptr) :: y = C_NULL_PTR 
+    INTEGER(C_int) :: y_Len = 0 
+    TYPE(C_ptr) :: z = C_NULL_PTR 
+    INTEGER(C_int) :: z_Len = 0 
   END TYPE MAP_InputType_C
   TYPE, PUBLIC :: MAP_InputType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_InputType_C ) :: C_obj
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: X => NULL()      ! fairlead X displacement [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Y => NULL()      ! fairlead Y displacement [[m]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Z => NULL()      ! fairlead Z displacement [[m]]
-    TYPE(MeshType)  :: PtFairleadDisplacement      ! Position of each fairlead in X,Y,Z [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: x => NULL()      ! fairlead x displacement [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: y => NULL()      ! fairlead y displacement [[m]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: z => NULL()      ! fairlead z displacement [[m]]
+    TYPE(MeshType)  :: PtFairDisplacement      ! position of each fairlead in X,Y,Z [[m]]
   END TYPE MAP_InputType
 ! =======================
 ! =========  MAP_OutputType  =======
   TYPE, BIND(C) :: MAP_OutputType_C
-    TYPE( MAP_Output_C ) :: object
-    TYPE(C_ptr) :: FX = C_NULL_PTR 
-    INTEGER(C_int) :: FX_Len = 0 
-    TYPE(C_ptr) :: FY = C_NULL_PTR 
-    INTEGER(C_int) :: FY_Len = 0 
-    TYPE(C_ptr) :: FZ = C_NULL_PTR 
-    INTEGER(C_int) :: FZ_Len = 0 
-    TYPE(C_ptr) :: writeOutput = C_NULL_PTR 
-    INTEGER(C_int) :: writeOutput_Len = 0 
+   TYPE(C_PTR) :: object
+    TYPE(C_ptr) :: Fx = C_NULL_PTR 
+    INTEGER(C_int) :: Fx_Len = 0 
+    TYPE(C_ptr) :: Fy = C_NULL_PTR 
+    INTEGER(C_int) :: Fy_Len = 0 
+    TYPE(C_ptr) :: Fz = C_NULL_PTR 
+    INTEGER(C_int) :: Fz_Len = 0 
+    TYPE(C_ptr) :: WriteOutput = C_NULL_PTR 
+    INTEGER(C_int) :: WriteOutput_Len = 0 
+    TYPE(C_ptr) :: wrtOutput = C_NULL_PTR 
+    INTEGER(C_int) :: wrtOutput_Len = 0 
   END TYPE MAP_OutputType_C
   TYPE, PUBLIC :: MAP_OutputType
     TYPE( c_ptr ) :: MAP_UserData = C_NULL_ptr
     TYPE( MAP_OutputType_C ) :: C_obj
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FX => NULL()      ! fairlead X force [[N]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FY => NULL()      ! fairlead Y force [[N]]
-    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: FZ => NULL()      ! fairlead Z force [[N]]
-    TYPE(MeshType)  :: PtFairleadLoad      ! point mesh for forces in X,Y,Z [[N]]
-    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: writeOutput      ! Buoyancy module (displacement) at node [[m^3]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Fx => NULL()      ! horizontal line force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Fy => NULL()      ! Vertical line force [[N]]
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: Fz => NULL()      ! horizontal line force at anchor [[N]]
+    REAL(ReKi) , DIMENSION(:), ALLOCATABLE  :: WriteOutput      ! outpur vector []
+    REAL(KIND=C_DOUBLE) , DIMENSION(:), POINTER  :: wrtOutput => NULL()      ! outpur vector []
+    TYPE(MeshType)  :: ptFairleadLoad      ! point mesh for forces in X,Y,Z [[N]]
   END TYPE MAP_OutputType
 ! =======================
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_FX( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_FX_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_FX
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_FY( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_FY_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_FY
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_FZ( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_FZ_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_FZ
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_u_index( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_u_index_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       INTEGER(KIND=C_INT), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_u_index
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_p_index( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_p_index_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       INTEGER(KIND=C_INT), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_p_index
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_x_index( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_x_index_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       INTEGER(KIND=C_INT), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_x_index
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_xd_index( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_xd_index_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       INTEGER(KIND=C_INT), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_xd_index
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_z_index( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_z_index_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       INTEGER(KIND=C_INT), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_z_index
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_y_index( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_y_index_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       INTEGER(KIND=C_INT), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_y_index
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_OtherState_o_index( Object, arr, len) BIND(C,name='MAP_F2C_OtherState_o_index_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OtherStateType_C ) Object
-       INTEGER(KIND=C_INT), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_OtherState_o_index
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_ConstrState_X( Object, arr, len) BIND(C,name='MAP_F2C_ConstrState_X_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ConstraintStateType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_ConstrState_X
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_ConstrState_Y( Object, arr, len) BIND(C,name='MAP_F2C_ConstrState_Y_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ConstraintStateType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_ConstrState_Y
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_ConstrState_Z( Object, arr, len) BIND(C,name='MAP_F2C_ConstrState_Z_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ConstraintStateType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_ConstrState_Z
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_ConstrState_H( Object, arr, len) BIND(C,name='MAP_F2C_ConstrState_H_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ConstraintStateType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_ConstrState_H
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_ConstrState_V( Object, arr, len) BIND(C,name='MAP_F2C_ConstrState_V_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ConstraintStateType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_ConstrState_V
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_Diam( Object, arr, len) BIND(C,name='MAP_F2C_Param_Diam_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_Diam
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_MassDenInAir( Object, arr, len) BIND(C,name='MAP_F2C_Param_MassDenInAir_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_MassDenInAir
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_EA( Object, arr, len) BIND(C,name='MAP_F2C_Param_EA_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_EA
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_CB( Object, arr, len) BIND(C,name='MAP_F2C_Param_CB_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_CB
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_Lu( Object, arr, len) BIND(C,name='MAP_F2C_Param_Lu_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_Lu
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_X( Object, arr, len) BIND(C,name='MAP_F2C_Param_X_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_X
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_Y( Object, arr, len) BIND(C,name='MAP_F2C_Param_Y_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_Y
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_Z( Object, arr, len) BIND(C,name='MAP_F2C_Param_Z_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_Z
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_FX( Object, arr, len) BIND(C,name='MAP_F2C_Param_FX_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_FX
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_FY( Object, arr, len) BIND(C,name='MAP_F2C_Param_FY_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_FY
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_FZ( Object, arr, len) BIND(C,name='MAP_F2C_Param_FZ_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_FZ
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_M( Object, arr, len) BIND(C,name='MAP_F2C_Param_M_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_M
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Param_B( Object, arr, len) BIND(C,name='MAP_F2C_Param_B_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_ParameterType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Param_B
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Input_X( Object, arr, len) BIND(C,name='MAP_F2C_Input_X_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_InputType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Input_X
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Input_Y( Object, arr, len) BIND(C,name='MAP_F2C_Input_Y_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_InputType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Input_Y
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Input_Z( Object, arr, len) BIND(C,name='MAP_F2C_Input_Z_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_InputType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Input_Z
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Output_FX( Object, arr, len) BIND(C,name='MAP_F2C_Output_FX_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OutputType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Output_FX
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Output_FY( Object, arr, len) BIND(C,name='MAP_F2C_Output_FY_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OutputType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Output_FY
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Output_FZ( Object, arr, len) BIND(C,name='MAP_F2C_Output_FZ_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OutputType_C ) Object
-       REAL(KIND=C_DOUBLE), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Output_FZ
-  END INTERFACE
-
-  INTERFACE
-     SUBROUTINE MAP_F2C_Output_writeOutput( Object, arr, len) BIND(C,name='MAP_F2C_Output_writeOutput_C') 
-       IMPORT
-       IMPLICIT NONE
-       TYPE( MAP_OutputType_C ) Object
-       REAL(KIND=C_FLOAT), DIMENSION(*) :: arr
-       INTEGER(KIND=C_INT), VALUE :: len
-     END SUBROUTINE MAP_F2C_Output_writeOutput
-  END INTERFACE
 CONTAINS
-  SUBROUTINE MAP_F2C_CopyInitInput( InitInputData, ErrStat, ErrMsg )
-    TYPE(MAP_initinputtype), INTENT(INOUT) :: InitInputData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-    InitInputData%C_obj%gravity = InitInputData%gravity
-    InitInputData%C_obj%sea_density = InitInputData%sea_density
-    InitInputData%C_obj%depth = InitInputData%depth
-    InitInputData%C_obj%coupled_to_FAST = InitInputData%coupled_to_FAST
- END SUBROUTINE MAP_F2C_CopyInitInput
-
-  SUBROUTINE MAP_C2F_CopyInitInput( InitInputData, ErrStat, ErrMsg )
-    TYPE(MAP_initinputtype), INTENT(INOUT) :: InitInputData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-    InitInputData%gravity = InitInputData%C_obj%gravity
-    InitInputData%sea_density = InitInputData%C_obj%sea_density
-    InitInputData%depth = InitInputData%C_obj%depth
-    InitInputData%coupled_to_FAST = InitInputData%C_obj%coupled_to_FAST
- END SUBROUTINE MAP_C2F_CopyInitInput
-
  SUBROUTINE MAP_CopyInitInput( SrcInitInputData, DstInitInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(MAP_initinputtype), INTENT(INOUT) :: SrcInitInputData
-   TYPE(MAP_initinputtype), INTENT(INOUT) :: DstInitInputData
+   TYPE(MAP_InitInputType), INTENT(INOUT) :: SrcInitInputData
+   TYPE(MAP_InitInputType), INTENT(INOUT) :: DstInitInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -669,23 +259,24 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
    DstInitInputData%gravity = SrcInitInputData%gravity
    DstInitInputData%sea_density = SrcInitInputData%sea_density
    DstInitInputData%depth = SrcInitInputData%depth
-   DstInitInputData%coupled_to_FAST = SrcInitInputData%coupled_to_FAST
-   DstInitInputData%filename = SrcInitInputData%filename
-   DstInitInputData%rootname = SrcInitInputData%rootname
-   DstInitInputData%cable_library_data = SrcInitInputData%cable_library_data
-   DstInitInputData%node_data = SrcInitInputData%node_data
-   DstInitInputData%element_data = SrcInitInputData%element_data
-   DstInitInputData%solver_data = SrcInitInputData%solver_data
+   DstInitInputData%file_name = SrcInitInputData%file_name
+   DstInitInputData%summary_file_name = SrcInitInputData%summary_file_name
+   DstInitInputData%library_input_str = SrcInitInputData%library_input_str
+   DstInitInputData%node_input_str = SrcInitInputData%node_input_str
+   DstInitInputData%line_input_str = SrcInitInputData%line_input_str
+   DstInitInputData%option_input_str = SrcInitInputData%option_input_str
  END SUBROUTINE MAP_CopyInitInput
 
  SUBROUTINE MAP_DestroyInitInput( InitInputData, ErrStat, ErrMsg )
-  TYPE(MAP_initinputtype), INTENT(INOUT) :: InitInputData
+  TYPE(MAP_InitInputType), INTENT(INOUT) :: InitInputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -698,7 +289,7 @@ CONTAINS
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(MAP_initinputtype),  INTENT(INOUT) :: InData
+  TYPE(MAP_InitInputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -731,6 +322,12 @@ CONTAINS
   Db_BufSz   = Db_BufSz   + 1  ! gravity
   Db_BufSz   = Db_BufSz   + 1  ! sea_density
   Db_BufSz   = Db_BufSz   + 1  ! depth
+!  missing buffer for file_name
+!  missing buffer for summary_file_name
+!  missing buffer for library_input_str
+!  missing buffer for node_input_str
+!  missing buffer for line_input_str
+!  missing buffer for option_input_str
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
@@ -746,7 +343,7 @@ CONTAINS
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(MAP_initinputtype), INTENT(INOUT) :: OutData
+  TYPE(MAP_InitInputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -786,47 +383,9 @@ CONTAINS
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE MAP_UnPackInitInput
 
-  SUBROUTINE MAP_F2C_CopyInitOutput( InitOutputData, ErrStat, ErrMsg )
-    TYPE(MAP_initoutputtype), INTENT(INOUT) :: InitOutputData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
- END SUBROUTINE MAP_F2C_CopyInitOutput
-
-  SUBROUTINE MAP_C2F_CopyInitOutput( InitOutputData, ErrStat, ErrMsg )
-    TYPE(MAP_initoutputtype), INTENT(INOUT) :: InitOutputData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
- END SUBROUTINE MAP_C2F_CopyInitOutput
-
  SUBROUTINE MAP_CopyInitOutput( SrcInitOutputData, DstInitOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(MAP_initoutputtype), INTENT(INOUT) :: SrcInitOutputData
-   TYPE(MAP_initoutputtype), INTENT(INOUT) :: DstInitOutputData
+   TYPE(MAP_InitOutputType), INTENT(INOUT) :: SrcInitOutputData
+   TYPE(MAP_InitOutputType), INTENT(INOUT) :: DstInitOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -834,54 +393,56 @@ CONTAINS
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-   DstInitOutputData%MAP_name = SrcInitOutputData%MAP_name
-   DstInitOutputData%MAP_version = SrcInitOutputData%MAP_version
-   DstInitOutputData%MAP_date = SrcInitOutputData%MAP_date
-IF (ALLOCATED(SrcInitOutputData%WriteOutputHdr)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WriteOutputHdr,1)
-   i1_u = UBOUND(SrcInitOutputData%WriteOutputHdr,1)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputHdr)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputHdr(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputHdr.'
+   DstInitOutputData%progName = SrcInitOutputData%progName
+   DstInitOutputData%version = SrcInitOutputData%version
+   DstInitOutputData%compilingData = SrcInitOutputData%compilingData
+IF (ALLOCATED(SrcInitOutputData%writeOutputHdr)) THEN
+   i1_l = LBOUND(SrcInitOutputData%writeOutputHdr,1)
+   i1_u = UBOUND(SrcInitOutputData%writeOutputHdr,1)
+   IF (.NOT. ALLOCATED(DstInitOutputData%writeOutputHdr)) THEN 
+      ALLOCATE(DstInitOutputData%writeOutputHdr(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%writeOutputHdr.', ErrStat, ErrMsg,'MAP_CopyInitOutput')
          RETURN
       END IF
    END IF
-   DstInitOutputData%WriteOutputHdr = SrcInitOutputData%WriteOutputHdr
+   DstInitOutputData%writeOutputHdr = SrcInitOutputData%writeOutputHdr
 ENDIF
-IF (ALLOCATED(SrcInitOutputData%WriteOutputUnt)) THEN
-   i1_l = LBOUND(SrcInitOutputData%WriteOutputUnt,1)
-   i1_u = UBOUND(SrcInitOutputData%WriteOutputUnt,1)
-   IF (.NOT. ALLOCATED(DstInitOutputData%WriteOutputUnt)) THEN 
-      ALLOCATE(DstInitOutputData%WriteOutputUnt(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyInitOutput: Error allocating DstInitOutputData%WriteOutputUnt.'
+IF (ALLOCATED(SrcInitOutputData%writeOutputUnt)) THEN
+   i1_l = LBOUND(SrcInitOutputData%writeOutputUnt,1)
+   i1_u = UBOUND(SrcInitOutputData%writeOutputUnt,1)
+   IF (.NOT. ALLOCATED(DstInitOutputData%writeOutputUnt)) THEN 
+      ALLOCATE(DstInitOutputData%writeOutputUnt(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInitOutputData%writeOutputUnt.', ErrStat, ErrMsg,'MAP_CopyInitOutput')
          RETURN
       END IF
    END IF
-   DstInitOutputData%WriteOutputUnt = SrcInitOutputData%WriteOutputUnt
+   DstInitOutputData%writeOutputUnt = SrcInitOutputData%writeOutputUnt
 ENDIF
-      CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat, ErrMsg )
+      CALL NWTC_Library_Copyprogdesc( SrcInitOutputData%Ver, DstInitOutputData%Ver, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MAP_CopyInitOutput:Ver')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE MAP_CopyInitOutput
 
  SUBROUTINE MAP_DestroyInitOutput( InitOutputData, ErrStat, ErrMsg )
-  TYPE(MAP_initoutputtype), INTENT(INOUT) :: InitOutputData
+  TYPE(MAP_InitOutputType), INTENT(INOUT) :: InitOutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ALLOCATED(InitOutputData%WriteOutputHdr)) THEN
-   DEALLOCATE(InitOutputData%WriteOutputHdr)
+IF (ALLOCATED(InitOutputData%writeOutputHdr)) THEN
+   DEALLOCATE(InitOutputData%writeOutputHdr)
 ENDIF
-IF (ALLOCATED(InitOutputData%WriteOutputUnt)) THEN
-   DEALLOCATE(InitOutputData%WriteOutputUnt)
+IF (ALLOCATED(InitOutputData%writeOutputUnt)) THEN
+   DEALLOCATE(InitOutputData%writeOutputUnt)
 ENDIF
   CALL NWTC_Library_Destroyprogdesc( InitOutputData%Ver, ErrStat, ErrMsg )
  END SUBROUTINE MAP_DestroyInitOutput
@@ -890,7 +451,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(MAP_initoutputtype),  INTENT(INOUT) :: InData
+  TYPE(MAP_InitOutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -923,6 +484,11 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
+!  missing buffer for progName
+!  missing buffer for version
+!  missing buffer for compilingData
+!  missing buffer for writeOutputHdr
+!  missing buffer for writeOutputUnt
   CALL NWTC_Library_Packprogdesc( Re_Ver_Buf, Db_Ver_Buf, Int_Ver_Buf, InData%Ver, ErrStat, ErrMsg, .TRUE. ) ! Ver 
   IF(ALLOCATED(Re_Ver_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_Ver_Buf  ) ! Ver
   IF(ALLOCATED(Db_Ver_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_Ver_Buf  ) ! Ver
@@ -955,7 +521,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(MAP_initoutputtype), INTENT(INOUT) :: OutData
+  TYPE(MAP_InitOutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1007,49 +573,9 @@ ENDIF
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE MAP_UnPackInitOutput
 
-  SUBROUTINE MAP_F2C_CopyContState( ContStateData, ErrStat, ErrMsg )
-    TYPE(MAP_continuousstatetype), INTENT(INOUT) :: ContStateData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-    ContStateData%C_obj%dummy = ContStateData%dummy
- END SUBROUTINE MAP_F2C_CopyContState
-
-  SUBROUTINE MAP_C2F_CopyContState( ContStateData, ErrStat, ErrMsg )
-    TYPE(MAP_continuousstatetype), INTENT(INOUT) :: ContStateData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-    ContStateData%dummy = ContStateData%C_obj%dummy
- END SUBROUTINE MAP_C2F_CopyContState
-
  SUBROUTINE MAP_CopyContState( SrcContStateData, DstContStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(MAP_continuousstatetype), INTENT(INOUT) :: SrcContStateData
-   TYPE(MAP_continuousstatetype), INTENT(INOUT) :: DstContStateData
+   TYPE(MAP_ContinuousStateType), INTENT(INOUT) :: SrcContStateData
+   TYPE(MAP_ContinuousStateType), INTENT(INOUT) :: DstContStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -1057,6 +583,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1064,7 +592,7 @@ ENDIF
  END SUBROUTINE MAP_CopyContState
 
  SUBROUTINE MAP_DestroyContState( ContStateData, ErrStat, ErrMsg )
-  TYPE(MAP_continuousstatetype), INTENT(INOUT) :: ContStateData
+  TYPE(MAP_ContinuousStateType), INTENT(INOUT) :: ContStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1077,7 +605,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(MAP_continuousstatetype),  INTENT(INOUT) :: InData
+  TYPE(MAP_ContinuousStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1119,7 +647,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(MAP_continuousstatetype), INTENT(INOUT) :: OutData
+  TYPE(MAP_ContinuousStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1155,49 +683,9 @@ ENDIF
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE MAP_UnPackContState
 
-  SUBROUTINE MAP_F2C_CopyDiscState( DiscStateData, ErrStat, ErrMsg )
-    TYPE(MAP_discretestatetype), INTENT(INOUT) :: DiscStateData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-    DiscStateData%C_obj%dummy = DiscStateData%dummy
- END SUBROUTINE MAP_F2C_CopyDiscState
-
-  SUBROUTINE MAP_C2F_CopyDiscState( DiscStateData, ErrStat, ErrMsg )
-    TYPE(MAP_discretestatetype), INTENT(INOUT) :: DiscStateData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-    DiscStateData%dummy = DiscStateData%C_obj%dummy
- END SUBROUTINE MAP_C2F_CopyDiscState
-
  SUBROUTINE MAP_CopyDiscState( SrcDiscStateData, DstDiscStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(MAP_discretestatetype), INTENT(INOUT) :: SrcDiscStateData
-   TYPE(MAP_discretestatetype), INTENT(INOUT) :: DstDiscStateData
+   TYPE(MAP_DiscreteStateType), INTENT(INOUT) :: SrcDiscStateData
+   TYPE(MAP_DiscreteStateType), INTENT(INOUT) :: DstDiscStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -1205,6 +693,8 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
@@ -1212,7 +702,7 @@ ENDIF
  END SUBROUTINE MAP_CopyDiscState
 
  SUBROUTINE MAP_DestroyDiscState( DiscStateData, ErrStat, ErrMsg )
-  TYPE(MAP_discretestatetype), INTENT(INOUT) :: DiscStateData
+  TYPE(MAP_DiscreteStateType), INTENT(INOUT) :: DiscStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
@@ -1225,7 +715,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(MAP_discretestatetype),  INTENT(INOUT) :: InData
+  TYPE(MAP_DiscreteStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1267,7 +757,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(MAP_discretestatetype), INTENT(INOUT) :: OutData
+  TYPE(MAP_DiscreteStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1303,227 +793,9 @@ ENDIF
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE MAP_UnPackDiscState
 
-  SUBROUTINE MAP_F2C_CopyOtherState( OtherStateData, ErrStat, ErrMsg )
-    TYPE(MAP_otherstatetype), INTENT(INOUT) :: OtherStateData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- FX OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%FX ) ) THEN
-       ALLOCATE( c_dbl_value(OtherStateData%C_obj%FX_Len) )
-       DO i = 1 , OtherStateData%C_obj%FX_Len
-          c_dbl_value(i) = OtherStateData%FX(i)
-       END DO
-       CALL MAP_F2C_OtherState_FX( OtherStateData%C_obj, c_dbl_value, OtherStateData%C_obj%FX_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- FY OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%FY ) ) THEN
-       ALLOCATE( c_dbl_value(OtherStateData%C_obj%FY_Len) )
-       DO i = 1 , OtherStateData%C_obj%FY_Len
-          c_dbl_value(i) = OtherStateData%FY(i)
-       END DO
-       CALL MAP_F2C_OtherState_FY( OtherStateData%C_obj, c_dbl_value, OtherStateData%C_obj%FY_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- FZ OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%FZ ) ) THEN
-       ALLOCATE( c_dbl_value(OtherStateData%C_obj%FZ_Len) )
-       DO i = 1 , OtherStateData%C_obj%FZ_Len
-          c_dbl_value(i) = OtherStateData%FZ(i)
-       END DO
-       CALL MAP_F2C_OtherState_FZ( OtherStateData%C_obj, c_dbl_value, OtherStateData%C_obj%FZ_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- u_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%u_index ) ) THEN
-       ALLOCATE( c_int_value(OtherStateData%C_obj%u_index_Len) )
-       DO i = 1 , OtherStateData%C_obj%u_index_Len
-          c_int_value(i) = OtherStateData%u_index(i)
-       END DO
-       CALL MAP_F2C_OtherState_u_index( OtherStateData%C_obj, c_int_value, OtherStateData%C_obj%u_index_Len )
-       DEALLOCATE( c_int_value )
-    ENDIF
-
-    ! -- p_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%p_index ) ) THEN
-       ALLOCATE( c_int_value(OtherStateData%C_obj%p_index_Len) )
-       DO i = 1 , OtherStateData%C_obj%p_index_Len
-          c_int_value(i) = OtherStateData%p_index(i)
-       END DO
-       CALL MAP_F2C_OtherState_p_index( OtherStateData%C_obj, c_int_value, OtherStateData%C_obj%p_index_Len )
-       DEALLOCATE( c_int_value )
-    ENDIF
-
-    ! -- x_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%x_index ) ) THEN
-       ALLOCATE( c_int_value(OtherStateData%C_obj%x_index_Len) )
-       DO i = 1 , OtherStateData%C_obj%x_index_Len
-          c_int_value(i) = OtherStateData%x_index(i)
-       END DO
-       CALL MAP_F2C_OtherState_x_index( OtherStateData%C_obj, c_int_value, OtherStateData%C_obj%x_index_Len )
-       DEALLOCATE( c_int_value )
-    ENDIF
-
-    ! -- xd_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%xd_index ) ) THEN
-       ALLOCATE( c_int_value(OtherStateData%C_obj%xd_index_Len) )
-       DO i = 1 , OtherStateData%C_obj%xd_index_Len
-          c_int_value(i) = OtherStateData%xd_index(i)
-       END DO
-       CALL MAP_F2C_OtherState_xd_index( OtherStateData%C_obj, c_int_value, OtherStateData%C_obj%xd_index_Len )
-       DEALLOCATE( c_int_value )
-    ENDIF
-
-    ! -- z_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%z_index ) ) THEN
-       ALLOCATE( c_int_value(OtherStateData%C_obj%z_index_Len) )
-       DO i = 1 , OtherStateData%C_obj%z_index_Len
-          c_int_value(i) = OtherStateData%z_index(i)
-       END DO
-       CALL MAP_F2C_OtherState_z_index( OtherStateData%C_obj, c_int_value, OtherStateData%C_obj%z_index_Len )
-       DEALLOCATE( c_int_value )
-    ENDIF
-
-    ! -- y_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%y_index ) ) THEN
-       ALLOCATE( c_int_value(OtherStateData%C_obj%y_index_Len) )
-       DO i = 1 , OtherStateData%C_obj%y_index_Len
-          c_int_value(i) = OtherStateData%y_index(i)
-       END DO
-       CALL MAP_F2C_OtherState_y_index( OtherStateData%C_obj, c_int_value, OtherStateData%C_obj%y_index_Len )
-       DEALLOCATE( c_int_value )
-    ENDIF
-
-    ! -- o_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%o_index ) ) THEN
-       ALLOCATE( c_int_value(OtherStateData%C_obj%o_index_Len) )
-       DO i = 1 , OtherStateData%C_obj%o_index_Len
-          c_int_value(i) = OtherStateData%o_index(i)
-       END DO
-       CALL MAP_F2C_OtherState_o_index( OtherStateData%C_obj, c_int_value, OtherStateData%C_obj%o_index_Len )
-       DEALLOCATE( c_int_value )
-    ENDIF
- END SUBROUTINE MAP_F2C_CopyOtherState
-
-  SUBROUTINE MAP_C2F_CopyOtherState( OtherStateData, ErrStat, ErrMsg )
-    TYPE(MAP_otherstatetype), INTENT(INOUT) :: OtherStateData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- FX OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%FX ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%FX, dbl_arr, (/OtherStateData%C_obj%FX_Len/) )
-       DO i = 1, OtherStateData%C_obj%FX_Len
-          OtherStateData%FX(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- FY OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%FY ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%FY, dbl_arr, (/OtherStateData%C_obj%FY_Len/) )
-       DO i = 1, OtherStateData%C_obj%FY_Len
-          OtherStateData%FY(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- FZ OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%FZ ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%FZ, dbl_arr, (/OtherStateData%C_obj%FZ_Len/) )
-       DO i = 1, OtherStateData%C_obj%FZ_Len
-          OtherStateData%FZ(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- u_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%u_index ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%u_index, int_arr, (/OtherStateData%C_obj%u_index_Len/) )
-       DO i = 1, OtherStateData%C_obj%u_index_Len
-          OtherStateData%u_index(i) = int_arr(i)
-       END DO
-    ENDIF
-
-    ! -- p_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%p_index ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%p_index, int_arr, (/OtherStateData%C_obj%p_index_Len/) )
-       DO i = 1, OtherStateData%C_obj%p_index_Len
-          OtherStateData%p_index(i) = int_arr(i)
-       END DO
-    ENDIF
-
-    ! -- x_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%x_index ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%x_index, int_arr, (/OtherStateData%C_obj%x_index_Len/) )
-       DO i = 1, OtherStateData%C_obj%x_index_Len
-          OtherStateData%x_index(i) = int_arr(i)
-       END DO
-    ENDIF
-
-    ! -- xd_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%xd_index ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%xd_index, int_arr, (/OtherStateData%C_obj%xd_index_Len/) )
-       DO i = 1, OtherStateData%C_obj%xd_index_Len
-          OtherStateData%xd_index(i) = int_arr(i)
-       END DO
-    ENDIF
-
-    ! -- z_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%z_index ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%z_index, int_arr, (/OtherStateData%C_obj%z_index_Len/) )
-       DO i = 1, OtherStateData%C_obj%z_index_Len
-          OtherStateData%z_index(i) = int_arr(i)
-       END DO
-    ENDIF
-
-    ! -- y_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%y_index ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%y_index, int_arr, (/OtherStateData%C_obj%y_index_Len/) )
-       DO i = 1, OtherStateData%C_obj%y_index_Len
-          OtherStateData%y_index(i) = int_arr(i)
-       END DO
-    ENDIF
-
-    ! -- o_index OtherState Data fields
-    IF ( ASSOCIATED( OtherStateData%o_index ) ) THEN
-       CALL C_F_POINTER( OtherStateData%C_obj%o_index, int_arr, (/OtherStateData%C_obj%o_index_Len/) )
-       DO i = 1, OtherStateData%C_obj%o_index_Len
-          OtherStateData%o_index(i) = int_arr(i)
-       END DO
-    ENDIF
- END SUBROUTINE MAP_C2F_CopyOtherState
-
  SUBROUTINE MAP_CopyOtherState( SrcOtherStateData, DstOtherStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(MAP_otherstatetype), INTENT(INOUT) :: SrcOtherStateData
-   TYPE(MAP_otherstatetype), INTENT(INOUT) :: DstOtherStateData
+   TYPE(MAP_OtherStateType), INTENT(INOUT) :: SrcOtherStateData
+   TYPE(MAP_OtherStateType), INTENT(INOUT) :: DstOtherStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -1531,188 +803,276 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ASSOCIATED(SrcOtherStateData%FX)) THEN
-   i1_l = LBOUND(SrcOtherStateData%FX,1)
-   i1_u = UBOUND(SrcOtherStateData%FX,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%FX)) THEN 
-      ALLOCATE(DstOtherStateData%FX(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%FX.'
+IF (ASSOCIATED(SrcOtherStateData%H)) THEN
+   i1_l = LBOUND(SrcOtherStateData%H,1)
+   i1_u = UBOUND(SrcOtherStateData%H,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%H)) THEN 
+      ALLOCATE(DstOtherStateData%H(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%H.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%FX = SrcOtherStateData%FX
+   DstOtherStateData%H = SrcOtherStateData%H
 ENDIF
-IF (ASSOCIATED(SrcOtherStateData%FY)) THEN
-   i1_l = LBOUND(SrcOtherStateData%FY,1)
-   i1_u = UBOUND(SrcOtherStateData%FY,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%FY)) THEN 
-      ALLOCATE(DstOtherStateData%FY(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%FY.'
+IF (ASSOCIATED(SrcOtherStateData%V)) THEN
+   i1_l = LBOUND(SrcOtherStateData%V,1)
+   i1_u = UBOUND(SrcOtherStateData%V,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%V)) THEN 
+      ALLOCATE(DstOtherStateData%V(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%V.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%FY = SrcOtherStateData%FY
+   DstOtherStateData%V = SrcOtherStateData%V
 ENDIF
-IF (ASSOCIATED(SrcOtherStateData%FZ)) THEN
-   i1_l = LBOUND(SrcOtherStateData%FZ,1)
-   i1_u = UBOUND(SrcOtherStateData%FZ,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%FZ)) THEN 
-      ALLOCATE(DstOtherStateData%FZ(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%FZ.'
+IF (ASSOCIATED(SrcOtherStateData%Ha)) THEN
+   i1_l = LBOUND(SrcOtherStateData%Ha,1)
+   i1_u = UBOUND(SrcOtherStateData%Ha,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%Ha)) THEN 
+      ALLOCATE(DstOtherStateData%Ha(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Ha.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%FZ = SrcOtherStateData%FZ
+   DstOtherStateData%Ha = SrcOtherStateData%Ha
 ENDIF
-IF (ASSOCIATED(SrcOtherStateData%u_index)) THEN
-   i1_l = LBOUND(SrcOtherStateData%u_index,1)
-   i1_u = UBOUND(SrcOtherStateData%u_index,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%u_index)) THEN 
-      ALLOCATE(DstOtherStateData%u_index(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%u_index.'
+IF (ASSOCIATED(SrcOtherStateData%Va)) THEN
+   i1_l = LBOUND(SrcOtherStateData%Va,1)
+   i1_u = UBOUND(SrcOtherStateData%Va,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%Va)) THEN 
+      ALLOCATE(DstOtherStateData%Va(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Va.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%u_index = SrcOtherStateData%u_index
+   DstOtherStateData%Va = SrcOtherStateData%Va
 ENDIF
-IF (ASSOCIATED(SrcOtherStateData%p_index)) THEN
-   i1_l = LBOUND(SrcOtherStateData%p_index,1)
-   i1_u = UBOUND(SrcOtherStateData%p_index,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%p_index)) THEN 
-      ALLOCATE(DstOtherStateData%p_index(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%p_index.'
+IF (ASSOCIATED(SrcOtherStateData%x)) THEN
+   i1_l = LBOUND(SrcOtherStateData%x,1)
+   i1_u = UBOUND(SrcOtherStateData%x,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%x)) THEN 
+      ALLOCATE(DstOtherStateData%x(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%x.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%p_index = SrcOtherStateData%p_index
+   DstOtherStateData%x = SrcOtherStateData%x
 ENDIF
-IF (ASSOCIATED(SrcOtherStateData%x_index)) THEN
-   i1_l = LBOUND(SrcOtherStateData%x_index,1)
-   i1_u = UBOUND(SrcOtherStateData%x_index,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%x_index)) THEN 
-      ALLOCATE(DstOtherStateData%x_index(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%x_index.'
+IF (ASSOCIATED(SrcOtherStateData%y)) THEN
+   i1_l = LBOUND(SrcOtherStateData%y,1)
+   i1_u = UBOUND(SrcOtherStateData%y,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%y)) THEN 
+      ALLOCATE(DstOtherStateData%y(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%y.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%x_index = SrcOtherStateData%x_index
+   DstOtherStateData%y = SrcOtherStateData%y
 ENDIF
-IF (ASSOCIATED(SrcOtherStateData%xd_index)) THEN
-   i1_l = LBOUND(SrcOtherStateData%xd_index,1)
-   i1_u = UBOUND(SrcOtherStateData%xd_index,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%xd_index)) THEN 
-      ALLOCATE(DstOtherStateData%xd_index(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%xd_index.'
+IF (ASSOCIATED(SrcOtherStateData%z)) THEN
+   i1_l = LBOUND(SrcOtherStateData%z,1)
+   i1_u = UBOUND(SrcOtherStateData%z,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%z)) THEN 
+      ALLOCATE(DstOtherStateData%z(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%z.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%xd_index = SrcOtherStateData%xd_index
+   DstOtherStateData%z = SrcOtherStateData%z
 ENDIF
-IF (ASSOCIATED(SrcOtherStateData%z_index)) THEN
-   i1_l = LBOUND(SrcOtherStateData%z_index,1)
-   i1_u = UBOUND(SrcOtherStateData%z_index,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%z_index)) THEN 
-      ALLOCATE(DstOtherStateData%z_index(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%z_index.'
+IF (ASSOCIATED(SrcOtherStateData%xa)) THEN
+   i1_l = LBOUND(SrcOtherStateData%xa,1)
+   i1_u = UBOUND(SrcOtherStateData%xa,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%xa)) THEN 
+      ALLOCATE(DstOtherStateData%xa(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%xa.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%z_index = SrcOtherStateData%z_index
+   DstOtherStateData%xa = SrcOtherStateData%xa
 ENDIF
-IF (ASSOCIATED(SrcOtherStateData%y_index)) THEN
-   i1_l = LBOUND(SrcOtherStateData%y_index,1)
-   i1_u = UBOUND(SrcOtherStateData%y_index,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%y_index)) THEN 
-      ALLOCATE(DstOtherStateData%y_index(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%y_index.'
+IF (ASSOCIATED(SrcOtherStateData%ya)) THEN
+   i1_l = LBOUND(SrcOtherStateData%ya,1)
+   i1_u = UBOUND(SrcOtherStateData%ya,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%ya)) THEN 
+      ALLOCATE(DstOtherStateData%ya(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%ya.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%y_index = SrcOtherStateData%y_index
+   DstOtherStateData%ya = SrcOtherStateData%ya
 ENDIF
-IF (ASSOCIATED(SrcOtherStateData%o_index)) THEN
-   i1_l = LBOUND(SrcOtherStateData%o_index,1)
-   i1_u = UBOUND(SrcOtherStateData%o_index,1)
-   IF (.NOT. ASSOCIATED(DstOtherStateData%o_index)) THEN 
-      ALLOCATE(DstOtherStateData%o_index(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOtherState: Error allocating DstOtherStateData%o_index.'
+IF (ASSOCIATED(SrcOtherStateData%za)) THEN
+   i1_l = LBOUND(SrcOtherStateData%za,1)
+   i1_u = UBOUND(SrcOtherStateData%za,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%za)) THEN 
+      ALLOCATE(DstOtherStateData%za(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%za.', ErrStat, ErrMsg,'MAP_CopyOtherState')
          RETURN
       END IF
    END IF
-   DstOtherStateData%o_index = SrcOtherStateData%o_index
+   DstOtherStateData%za = SrcOtherStateData%za
+ENDIF
+IF (ASSOCIATED(SrcOtherStateData%Fx_connect)) THEN
+   i1_l = LBOUND(SrcOtherStateData%Fx_connect,1)
+   i1_u = UBOUND(SrcOtherStateData%Fx_connect,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%Fx_connect)) THEN 
+      ALLOCATE(DstOtherStateData%Fx_connect(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Fx_connect.', ErrStat, ErrMsg,'MAP_CopyOtherState')
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%Fx_connect = SrcOtherStateData%Fx_connect
+ENDIF
+IF (ASSOCIATED(SrcOtherStateData%Fy_connect)) THEN
+   i1_l = LBOUND(SrcOtherStateData%Fy_connect,1)
+   i1_u = UBOUND(SrcOtherStateData%Fy_connect,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%Fy_connect)) THEN 
+      ALLOCATE(DstOtherStateData%Fy_connect(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Fy_connect.', ErrStat, ErrMsg,'MAP_CopyOtherState')
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%Fy_connect = SrcOtherStateData%Fy_connect
+ENDIF
+IF (ASSOCIATED(SrcOtherStateData%Fz_connect)) THEN
+   i1_l = LBOUND(SrcOtherStateData%Fz_connect,1)
+   i1_u = UBOUND(SrcOtherStateData%Fz_connect,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%Fz_connect)) THEN 
+      ALLOCATE(DstOtherStateData%Fz_connect(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Fz_connect.', ErrStat, ErrMsg,'MAP_CopyOtherState')
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%Fz_connect = SrcOtherStateData%Fz_connect
+ENDIF
+IF (ASSOCIATED(SrcOtherStateData%Fx_anchor)) THEN
+   i1_l = LBOUND(SrcOtherStateData%Fx_anchor,1)
+   i1_u = UBOUND(SrcOtherStateData%Fx_anchor,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%Fx_anchor)) THEN 
+      ALLOCATE(DstOtherStateData%Fx_anchor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Fx_anchor.', ErrStat, ErrMsg,'MAP_CopyOtherState')
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%Fx_anchor = SrcOtherStateData%Fx_anchor
+ENDIF
+IF (ASSOCIATED(SrcOtherStateData%Fy_anchor)) THEN
+   i1_l = LBOUND(SrcOtherStateData%Fy_anchor,1)
+   i1_u = UBOUND(SrcOtherStateData%Fy_anchor,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%Fy_anchor)) THEN 
+      ALLOCATE(DstOtherStateData%Fy_anchor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Fy_anchor.', ErrStat, ErrMsg,'MAP_CopyOtherState')
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%Fy_anchor = SrcOtherStateData%Fy_anchor
+ENDIF
+IF (ASSOCIATED(SrcOtherStateData%Fz_anchor)) THEN
+   i1_l = LBOUND(SrcOtherStateData%Fz_anchor,1)
+   i1_u = UBOUND(SrcOtherStateData%Fz_anchor,1)
+   IF (.NOT. ASSOCIATED(DstOtherStateData%Fz_anchor)) THEN 
+      ALLOCATE(DstOtherStateData%Fz_anchor(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOtherStateData%Fz_anchor.', ErrStat, ErrMsg,'MAP_CopyOtherState')
+         RETURN
+      END IF
+   END IF
+   DstOtherStateData%Fz_anchor = SrcOtherStateData%Fz_anchor
 ENDIF
  END SUBROUTINE MAP_CopyOtherState
 
  SUBROUTINE MAP_DestroyOtherState( OtherStateData, ErrStat, ErrMsg )
-  TYPE(MAP_otherstatetype), INTENT(INOUT) :: OtherStateData
+  TYPE(MAP_OtherStateType), INTENT(INOUT) :: OtherStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ASSOCIATED(OtherStateData%FX)) THEN
-   DEALLOCATE(OtherStateData%FX)
-   OtherStateData%FX => NULL()
+IF (ASSOCIATED(OtherStateData%H)) THEN
+   DEALLOCATE(OtherStateData%H)
+   OtherStateData%H => NULL()
 ENDIF
-IF (ASSOCIATED(OtherStateData%FY)) THEN
-   DEALLOCATE(OtherStateData%FY)
-   OtherStateData%FY => NULL()
+IF (ASSOCIATED(OtherStateData%V)) THEN
+   DEALLOCATE(OtherStateData%V)
+   OtherStateData%V => NULL()
 ENDIF
-IF (ASSOCIATED(OtherStateData%FZ)) THEN
-   DEALLOCATE(OtherStateData%FZ)
-   OtherStateData%FZ => NULL()
+IF (ASSOCIATED(OtherStateData%Ha)) THEN
+   DEALLOCATE(OtherStateData%Ha)
+   OtherStateData%Ha => NULL()
 ENDIF
-IF (ASSOCIATED(OtherStateData%u_index)) THEN
-   DEALLOCATE(OtherStateData%u_index)
-   OtherStateData%u_index => NULL()
+IF (ASSOCIATED(OtherStateData%Va)) THEN
+   DEALLOCATE(OtherStateData%Va)
+   OtherStateData%Va => NULL()
 ENDIF
-IF (ASSOCIATED(OtherStateData%p_index)) THEN
-   DEALLOCATE(OtherStateData%p_index)
-   OtherStateData%p_index => NULL()
+IF (ASSOCIATED(OtherStateData%x)) THEN
+   DEALLOCATE(OtherStateData%x)
+   OtherStateData%x => NULL()
 ENDIF
-IF (ASSOCIATED(OtherStateData%x_index)) THEN
-   DEALLOCATE(OtherStateData%x_index)
-   OtherStateData%x_index => NULL()
+IF (ASSOCIATED(OtherStateData%y)) THEN
+   DEALLOCATE(OtherStateData%y)
+   OtherStateData%y => NULL()
 ENDIF
-IF (ASSOCIATED(OtherStateData%xd_index)) THEN
-   DEALLOCATE(OtherStateData%xd_index)
-   OtherStateData%xd_index => NULL()
+IF (ASSOCIATED(OtherStateData%z)) THEN
+   DEALLOCATE(OtherStateData%z)
+   OtherStateData%z => NULL()
 ENDIF
-IF (ASSOCIATED(OtherStateData%z_index)) THEN
-   DEALLOCATE(OtherStateData%z_index)
-   OtherStateData%z_index => NULL()
+IF (ASSOCIATED(OtherStateData%xa)) THEN
+   DEALLOCATE(OtherStateData%xa)
+   OtherStateData%xa => NULL()
 ENDIF
-IF (ASSOCIATED(OtherStateData%y_index)) THEN
-   DEALLOCATE(OtherStateData%y_index)
-   OtherStateData%y_index => NULL()
+IF (ASSOCIATED(OtherStateData%ya)) THEN
+   DEALLOCATE(OtherStateData%ya)
+   OtherStateData%ya => NULL()
 ENDIF
-IF (ASSOCIATED(OtherStateData%o_index)) THEN
-   DEALLOCATE(OtherStateData%o_index)
-   OtherStateData%o_index => NULL()
+IF (ASSOCIATED(OtherStateData%za)) THEN
+   DEALLOCATE(OtherStateData%za)
+   OtherStateData%za => NULL()
+ENDIF
+IF (ASSOCIATED(OtherStateData%Fx_connect)) THEN
+   DEALLOCATE(OtherStateData%Fx_connect)
+   OtherStateData%Fx_connect => NULL()
+ENDIF
+IF (ASSOCIATED(OtherStateData%Fy_connect)) THEN
+   DEALLOCATE(OtherStateData%Fy_connect)
+   OtherStateData%Fy_connect => NULL()
+ENDIF
+IF (ASSOCIATED(OtherStateData%Fz_connect)) THEN
+   DEALLOCATE(OtherStateData%Fz_connect)
+   OtherStateData%Fz_connect => NULL()
+ENDIF
+IF (ASSOCIATED(OtherStateData%Fx_anchor)) THEN
+   DEALLOCATE(OtherStateData%Fx_anchor)
+   OtherStateData%Fx_anchor => NULL()
+ENDIF
+IF (ASSOCIATED(OtherStateData%Fy_anchor)) THEN
+   DEALLOCATE(OtherStateData%Fy_anchor)
+   OtherStateData%Fy_anchor => NULL()
+ENDIF
+IF (ASSOCIATED(OtherStateData%Fz_anchor)) THEN
+   DEALLOCATE(OtherStateData%Fz_anchor)
+   OtherStateData%Fz_anchor => NULL()
 ENDIF
  END SUBROUTINE MAP_DestroyOtherState
 
@@ -1720,7 +1080,7 @@ ENDIF
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(MAP_otherstatetype),  INTENT(INOUT) :: InData
+  TYPE(MAP_OtherStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -1750,58 +1110,88 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Db_BufSz    = Db_BufSz    + SIZE( InData%FX )  ! FX 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%FY )  ! FY 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%FZ )  ! FZ 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%u_index )  ! u_index 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%p_index )  ! p_index 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%x_index )  ! x_index 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%xd_index )  ! xd_index 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%z_index )  ! z_index 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%y_index )  ! y_index 
-  Int_BufSz   = Int_BufSz   + SIZE( InData%o_index )  ! o_index 
+  IF ( ASSOCIATED(InData%H) )   Db_BufSz    = Db_BufSz    + SIZE( InData%H )  ! H 
+  IF ( ASSOCIATED(InData%V) )   Db_BufSz    = Db_BufSz    + SIZE( InData%V )  ! V 
+  IF ( ASSOCIATED(InData%Ha) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Ha )  ! Ha 
+  IF ( ASSOCIATED(InData%Va) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Va )  ! Va 
+  IF ( ASSOCIATED(InData%x) )   Db_BufSz    = Db_BufSz    + SIZE( InData%x )  ! x 
+  IF ( ASSOCIATED(InData%y) )   Db_BufSz    = Db_BufSz    + SIZE( InData%y )  ! y 
+  IF ( ASSOCIATED(InData%z) )   Db_BufSz    = Db_BufSz    + SIZE( InData%z )  ! z 
+  IF ( ASSOCIATED(InData%xa) )   Db_BufSz    = Db_BufSz    + SIZE( InData%xa )  ! xa 
+  IF ( ASSOCIATED(InData%ya) )   Db_BufSz    = Db_BufSz    + SIZE( InData%ya )  ! ya 
+  IF ( ASSOCIATED(InData%za) )   Db_BufSz    = Db_BufSz    + SIZE( InData%za )  ! za 
+  IF ( ASSOCIATED(InData%Fx_connect) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Fx_connect )  ! Fx_connect 
+  IF ( ASSOCIATED(InData%Fy_connect) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Fy_connect )  ! Fy_connect 
+  IF ( ASSOCIATED(InData%Fz_connect) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Fz_connect )  ! Fz_connect 
+  IF ( ASSOCIATED(InData%Fx_anchor) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Fx_anchor )  ! Fx_anchor 
+  IF ( ASSOCIATED(InData%Fy_anchor) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Fy_anchor )  ! Fy_anchor 
+  IF ( ASSOCIATED(InData%Fz_anchor) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Fz_anchor )  ! Fz_anchor 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ASSOCIATED(InData%FX) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FX))-1 ) =  PACK(InData%FX ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%FX)
+  IF ( ASSOCIATED(InData%H) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%H))-1 ) =  PACK(InData%H ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%H)
   ENDIF
-  IF ( ASSOCIATED(InData%FY) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FY))-1 ) =  PACK(InData%FY ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%FY)
+  IF ( ASSOCIATED(InData%V) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%V))-1 ) =  PACK(InData%V ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%V)
   ENDIF
-  IF ( ASSOCIATED(InData%FZ) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FZ))-1 ) =  PACK(InData%FZ ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%FZ)
+  IF ( ASSOCIATED(InData%Ha) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Ha))-1 ) =  PACK(InData%Ha ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Ha)
   ENDIF
-  IF ( ASSOCIATED(InData%u_index) ) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%u_index))-1 ) = PACK(InData%u_index ,.TRUE.)
-    Int_Xferred   = Int_Xferred   + SIZE(InData%u_index)
+  IF ( ASSOCIATED(InData%Va) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Va))-1 ) =  PACK(InData%Va ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Va)
   ENDIF
-  IF ( ASSOCIATED(InData%p_index) ) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%p_index))-1 ) = PACK(InData%p_index ,.TRUE.)
-    Int_Xferred   = Int_Xferred   + SIZE(InData%p_index)
+  IF ( ASSOCIATED(InData%x) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%x))-1 ) =  PACK(InData%x ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%x)
   ENDIF
-  IF ( ASSOCIATED(InData%x_index) ) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%x_index))-1 ) = PACK(InData%x_index ,.TRUE.)
-    Int_Xferred   = Int_Xferred   + SIZE(InData%x_index)
+  IF ( ASSOCIATED(InData%y) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%y))-1 ) =  PACK(InData%y ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%y)
   ENDIF
-  IF ( ASSOCIATED(InData%xd_index) ) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%xd_index))-1 ) = PACK(InData%xd_index ,.TRUE.)
-    Int_Xferred   = Int_Xferred   + SIZE(InData%xd_index)
+  IF ( ASSOCIATED(InData%z) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%z))-1 ) =  PACK(InData%z ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%z)
   ENDIF
-  IF ( ASSOCIATED(InData%z_index) ) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%z_index))-1 ) = PACK(InData%z_index ,.TRUE.)
-    Int_Xferred   = Int_Xferred   + SIZE(InData%z_index)
+  IF ( ASSOCIATED(InData%xa) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%xa))-1 ) =  PACK(InData%xa ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%xa)
   ENDIF
-  IF ( ASSOCIATED(InData%y_index) ) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%y_index))-1 ) = PACK(InData%y_index ,.TRUE.)
-    Int_Xferred   = Int_Xferred   + SIZE(InData%y_index)
+  IF ( ASSOCIATED(InData%ya) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%ya))-1 ) =  PACK(InData%ya ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%ya)
   ENDIF
-  IF ( ASSOCIATED(InData%o_index) ) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf ( Int_Xferred:Int_Xferred+(SIZE(InData%o_index))-1 ) = PACK(InData%o_index ,.TRUE.)
-    Int_Xferred   = Int_Xferred   + SIZE(InData%o_index)
+  IF ( ASSOCIATED(InData%za) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%za))-1 ) =  PACK(InData%za ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%za)
+  ENDIF
+  IF ( ASSOCIATED(InData%Fx_connect) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Fx_connect))-1 ) =  PACK(InData%Fx_connect ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Fx_connect)
+  ENDIF
+  IF ( ASSOCIATED(InData%Fy_connect) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Fy_connect))-1 ) =  PACK(InData%Fy_connect ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Fy_connect)
+  ENDIF
+  IF ( ASSOCIATED(InData%Fz_connect) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Fz_connect))-1 ) =  PACK(InData%Fz_connect ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Fz_connect)
+  ENDIF
+  IF ( ASSOCIATED(InData%Fx_anchor) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Fx_anchor))-1 ) =  PACK(InData%Fx_anchor ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Fx_anchor)
+  ENDIF
+  IF ( ASSOCIATED(InData%Fy_anchor) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Fy_anchor))-1 ) =  PACK(InData%Fy_anchor ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Fy_anchor)
+  ENDIF
+  IF ( ASSOCIATED(InData%Fz_anchor) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Fz_anchor))-1 ) =  PACK(InData%Fz_anchor ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Fz_anchor)
   ENDIF
  END SUBROUTINE MAP_PackOtherState
 
@@ -1809,7 +1199,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(MAP_otherstatetype), INTENT(INOUT) :: OutData
+  TYPE(MAP_OtherStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -1838,202 +1228,126 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ASSOCIATED(OutData%FX) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
-    OutData%FX = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,REAL(OutData%FX,DbKi)), C_DOUBLE)
+  IF ( ASSOCIATED(OutData%H) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%H,1)))
+  mask1 = .TRUE.
+    OutData%H = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%H))-1 ),mask1,REAL(OutData%H,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%FX)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%H)
   ENDIF
-  IF ( ASSOCIATED(OutData%FY) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
-    OutData%FY = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,REAL(OutData%FY,DbKi)), C_DOUBLE)
+  IF ( ASSOCIATED(OutData%V) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%V,1)))
+  mask1 = .TRUE.
+    OutData%V = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%V))-1 ),mask1,REAL(OutData%V,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%FY)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%V)
   ENDIF
-  IF ( ASSOCIATED(OutData%FZ) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FZ,1))); mask1 = .TRUE.
-    OutData%FZ = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,REAL(OutData%FZ,DbKi)), C_DOUBLE)
+  IF ( ASSOCIATED(OutData%Ha) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Ha,1)))
+  mask1 = .TRUE.
+    OutData%Ha = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Ha))-1 ),mask1,REAL(OutData%Ha,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%FZ)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Ha)
   ENDIF
-  IF ( ASSOCIATED(OutData%u_index) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%u_index,1))); mask1 = .TRUE.
-    OutData%u_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%u_index))-1 ),mask1,OutData%u_index)
+  IF ( ASSOCIATED(OutData%Va) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Va,1)))
+  mask1 = .TRUE.
+    OutData%Va = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Va))-1 ),mask1,REAL(OutData%Va,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Int_Xferred   = Int_Xferred   + SIZE(OutData%u_index)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Va)
   ENDIF
-  IF ( ASSOCIATED(OutData%p_index) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%p_index,1))); mask1 = .TRUE.
-    OutData%p_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%p_index))-1 ),mask1,OutData%p_index)
+  IF ( ASSOCIATED(OutData%x) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%x,1)))
+  mask1 = .TRUE.
+    OutData%x = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%x))-1 ),mask1,REAL(OutData%x,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Int_Xferred   = Int_Xferred   + SIZE(OutData%p_index)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%x)
   ENDIF
-  IF ( ASSOCIATED(OutData%x_index) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%x_index,1))); mask1 = .TRUE.
-    OutData%x_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%x_index))-1 ),mask1,OutData%x_index)
+  IF ( ASSOCIATED(OutData%y) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%y,1)))
+  mask1 = .TRUE.
+    OutData%y = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%y))-1 ),mask1,REAL(OutData%y,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Int_Xferred   = Int_Xferred   + SIZE(OutData%x_index)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%y)
   ENDIF
-  IF ( ASSOCIATED(OutData%xd_index) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%xd_index,1))); mask1 = .TRUE.
-    OutData%xd_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%xd_index))-1 ),mask1,OutData%xd_index)
+  IF ( ASSOCIATED(OutData%z) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%z,1)))
+  mask1 = .TRUE.
+    OutData%z = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%z))-1 ),mask1,REAL(OutData%z,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Int_Xferred   = Int_Xferred   + SIZE(OutData%xd_index)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%z)
   ENDIF
-  IF ( ASSOCIATED(OutData%z_index) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%z_index,1))); mask1 = .TRUE.
-    OutData%z_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%z_index))-1 ),mask1,OutData%z_index)
+  IF ( ASSOCIATED(OutData%xa) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%xa,1)))
+  mask1 = .TRUE.
+    OutData%xa = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%xa))-1 ),mask1,REAL(OutData%xa,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Int_Xferred   = Int_Xferred   + SIZE(OutData%z_index)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%xa)
   ENDIF
-  IF ( ASSOCIATED(OutData%y_index) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%y_index,1))); mask1 = .TRUE.
-    OutData%y_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%y_index))-1 ),mask1,OutData%y_index)
+  IF ( ASSOCIATED(OutData%ya) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%ya,1)))
+  mask1 = .TRUE.
+    OutData%ya = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%ya))-1 ),mask1,REAL(OutData%ya,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Int_Xferred   = Int_Xferred   + SIZE(OutData%y_index)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%ya)
   ENDIF
-  IF ( ASSOCIATED(OutData%o_index) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%o_index,1))); mask1 = .TRUE.
-    OutData%o_index = UNPACK(IntKiBuf( Int_Xferred:Re_Xferred+(SIZE(OutData%o_index))-1 ),mask1,OutData%o_index)
+  IF ( ASSOCIATED(OutData%za) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%za,1)))
+  mask1 = .TRUE.
+    OutData%za = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%za))-1 ),mask1,REAL(OutData%za,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Int_Xferred   = Int_Xferred   + SIZE(OutData%o_index)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%za)
+  ENDIF
+  IF ( ASSOCIATED(OutData%Fx_connect) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Fx_connect,1)))
+  mask1 = .TRUE.
+    OutData%Fx_connect = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Fx_connect))-1 ),mask1,REAL(OutData%Fx_connect,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Fx_connect)
+  ENDIF
+  IF ( ASSOCIATED(OutData%Fy_connect) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Fy_connect,1)))
+  mask1 = .TRUE.
+    OutData%Fy_connect = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Fy_connect))-1 ),mask1,REAL(OutData%Fy_connect,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Fy_connect)
+  ENDIF
+  IF ( ASSOCIATED(OutData%Fz_connect) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Fz_connect,1)))
+  mask1 = .TRUE.
+    OutData%Fz_connect = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Fz_connect))-1 ),mask1,REAL(OutData%Fz_connect,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Fz_connect)
+  ENDIF
+  IF ( ASSOCIATED(OutData%Fx_anchor) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Fx_anchor,1)))
+  mask1 = .TRUE.
+    OutData%Fx_anchor = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Fx_anchor))-1 ),mask1,REAL(OutData%Fx_anchor,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Fx_anchor)
+  ENDIF
+  IF ( ASSOCIATED(OutData%Fy_anchor) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Fy_anchor,1)))
+  mask1 = .TRUE.
+    OutData%Fy_anchor = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Fy_anchor))-1 ),mask1,REAL(OutData%Fy_anchor,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Fy_anchor)
+  ENDIF
+  IF ( ASSOCIATED(OutData%Fz_anchor) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Fz_anchor,1)))
+  mask1 = .TRUE.
+    OutData%Fz_anchor = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Fz_anchor))-1 ),mask1,REAL(OutData%Fz_anchor,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Fz_anchor)
   ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE MAP_UnPackOtherState
 
-  SUBROUTINE MAP_F2C_CopyConstrState( ConstrStateData, ErrStat, ErrMsg )
-    TYPE(MAP_constraintstatetype), INTENT(INOUT) :: ConstrStateData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- X ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%X ) ) THEN
-       ALLOCATE( c_dbl_value(ConstrStateData%C_obj%X_Len) )
-       DO i = 1 , ConstrStateData%C_obj%X_Len
-          c_dbl_value(i) = ConstrStateData%X(i)
-       END DO
-       CALL MAP_F2C_ConstrState_X( ConstrStateData%C_obj, c_dbl_value, ConstrStateData%C_obj%X_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- Y ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%Y ) ) THEN
-       ALLOCATE( c_dbl_value(ConstrStateData%C_obj%Y_Len) )
-       DO i = 1 , ConstrStateData%C_obj%Y_Len
-          c_dbl_value(i) = ConstrStateData%Y(i)
-       END DO
-       CALL MAP_F2C_ConstrState_Y( ConstrStateData%C_obj, c_dbl_value, ConstrStateData%C_obj%Y_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- Z ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%Z ) ) THEN
-       ALLOCATE( c_dbl_value(ConstrStateData%C_obj%Z_Len) )
-       DO i = 1 , ConstrStateData%C_obj%Z_Len
-          c_dbl_value(i) = ConstrStateData%Z(i)
-       END DO
-       CALL MAP_F2C_ConstrState_Z( ConstrStateData%C_obj, c_dbl_value, ConstrStateData%C_obj%Z_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- H ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%H ) ) THEN
-       ALLOCATE( c_dbl_value(ConstrStateData%C_obj%H_Len) )
-       DO i = 1 , ConstrStateData%C_obj%H_Len
-          c_dbl_value(i) = ConstrStateData%H(i)
-       END DO
-       CALL MAP_F2C_ConstrState_H( ConstrStateData%C_obj, c_dbl_value, ConstrStateData%C_obj%H_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- V ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%V ) ) THEN
-       ALLOCATE( c_dbl_value(ConstrStateData%C_obj%V_Len) )
-       DO i = 1 , ConstrStateData%C_obj%V_Len
-          c_dbl_value(i) = ConstrStateData%V(i)
-       END DO
-       CALL MAP_F2C_ConstrState_V( ConstrStateData%C_obj, c_dbl_value, ConstrStateData%C_obj%V_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
- END SUBROUTINE MAP_F2C_CopyConstrState
-
-  SUBROUTINE MAP_C2F_CopyConstrState( ConstrStateData, ErrStat, ErrMsg )
-    TYPE(MAP_constraintstatetype), INTENT(INOUT) :: ConstrStateData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- X ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%X ) ) THEN
-       CALL C_F_POINTER( ConstrStateData%C_obj%X, dbl_arr, (/ConstrStateData%C_obj%X_Len/) )
-       DO i = 1, ConstrStateData%C_obj%X_Len
-          ConstrStateData%X(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- Y ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%Y ) ) THEN
-       CALL C_F_POINTER( ConstrStateData%C_obj%Y, dbl_arr, (/ConstrStateData%C_obj%Y_Len/) )
-       DO i = 1, ConstrStateData%C_obj%Y_Len
-          ConstrStateData%Y(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- Z ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%Z ) ) THEN
-       CALL C_F_POINTER( ConstrStateData%C_obj%Z, dbl_arr, (/ConstrStateData%C_obj%Z_Len/) )
-       DO i = 1, ConstrStateData%C_obj%Z_Len
-          ConstrStateData%Z(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- H ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%H ) ) THEN
-       CALL C_F_POINTER( ConstrStateData%C_obj%H, dbl_arr, (/ConstrStateData%C_obj%H_Len/) )
-       DO i = 1, ConstrStateData%C_obj%H_Len
-          ConstrStateData%H(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- V ConstrState Data fields
-    IF ( ASSOCIATED( ConstrStateData%V ) ) THEN
-       CALL C_F_POINTER( ConstrStateData%C_obj%V, dbl_arr, (/ConstrStateData%C_obj%V_Len/) )
-       DO i = 1, ConstrStateData%C_obj%V_Len
-          ConstrStateData%V(i) = dbl_arr(i)
-       END DO
-    ENDIF
- END SUBROUTINE MAP_C2F_CopyConstrState
-
  SUBROUTINE MAP_CopyConstrState( SrcConstrStateData, DstConstrStateData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(MAP_constraintstatetype), INTENT(INOUT) :: SrcConstrStateData
-   TYPE(MAP_constraintstatetype), INTENT(INOUT) :: DstConstrStateData
+   TYPE(MAP_ConstraintStateType), INTENT(INOUT) :: SrcConstrStateData
+   TYPE(MAP_ConstraintStateType), INTENT(INOUT) :: DstConstrStateData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -2041,56 +1355,18 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ASSOCIATED(SrcConstrStateData%X)) THEN
-   i1_l = LBOUND(SrcConstrStateData%X,1)
-   i1_u = UBOUND(SrcConstrStateData%X,1)
-   IF (.NOT. ASSOCIATED(DstConstrStateData%X)) THEN 
-      ALLOCATE(DstConstrStateData%X(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyConstrState: Error allocating DstConstrStateData%X.'
-         RETURN
-      END IF
-   END IF
-   DstConstrStateData%X = SrcConstrStateData%X
-ENDIF
-IF (ASSOCIATED(SrcConstrStateData%Y)) THEN
-   i1_l = LBOUND(SrcConstrStateData%Y,1)
-   i1_u = UBOUND(SrcConstrStateData%Y,1)
-   IF (.NOT. ASSOCIATED(DstConstrStateData%Y)) THEN 
-      ALLOCATE(DstConstrStateData%Y(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyConstrState: Error allocating DstConstrStateData%Y.'
-         RETURN
-      END IF
-   END IF
-   DstConstrStateData%Y = SrcConstrStateData%Y
-ENDIF
-IF (ASSOCIATED(SrcConstrStateData%Z)) THEN
-   i1_l = LBOUND(SrcConstrStateData%Z,1)
-   i1_u = UBOUND(SrcConstrStateData%Z,1)
-   IF (.NOT. ASSOCIATED(DstConstrStateData%Z)) THEN 
-      ALLOCATE(DstConstrStateData%Z(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyConstrState: Error allocating DstConstrStateData%Z.'
-         RETURN
-      END IF
-   END IF
-   DstConstrStateData%Z = SrcConstrStateData%Z
-ENDIF
 IF (ASSOCIATED(SrcConstrStateData%H)) THEN
    i1_l = LBOUND(SrcConstrStateData%H,1)
    i1_u = UBOUND(SrcConstrStateData%H,1)
    IF (.NOT. ASSOCIATED(DstConstrStateData%H)) THEN 
-      ALLOCATE(DstConstrStateData%H(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyConstrState: Error allocating DstConstrStateData%H.'
+      ALLOCATE(DstConstrStateData%H(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstConstrStateData%H.', ErrStat, ErrMsg,'MAP_CopyConstrState')
          RETURN
       END IF
    END IF
@@ -2100,37 +1376,60 @@ IF (ASSOCIATED(SrcConstrStateData%V)) THEN
    i1_l = LBOUND(SrcConstrStateData%V,1)
    i1_u = UBOUND(SrcConstrStateData%V,1)
    IF (.NOT. ASSOCIATED(DstConstrStateData%V)) THEN 
-      ALLOCATE(DstConstrStateData%V(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyConstrState: Error allocating DstConstrStateData%V.'
+      ALLOCATE(DstConstrStateData%V(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstConstrStateData%V.', ErrStat, ErrMsg,'MAP_CopyConstrState')
          RETURN
       END IF
    END IF
    DstConstrStateData%V = SrcConstrStateData%V
 ENDIF
+IF (ASSOCIATED(SrcConstrStateData%x)) THEN
+   i1_l = LBOUND(SrcConstrStateData%x,1)
+   i1_u = UBOUND(SrcConstrStateData%x,1)
+   IF (.NOT. ASSOCIATED(DstConstrStateData%x)) THEN 
+      ALLOCATE(DstConstrStateData%x(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstConstrStateData%x.', ErrStat, ErrMsg,'MAP_CopyConstrState')
+         RETURN
+      END IF
+   END IF
+   DstConstrStateData%x = SrcConstrStateData%x
+ENDIF
+IF (ASSOCIATED(SrcConstrStateData%y)) THEN
+   i1_l = LBOUND(SrcConstrStateData%y,1)
+   i1_u = UBOUND(SrcConstrStateData%y,1)
+   IF (.NOT. ASSOCIATED(DstConstrStateData%y)) THEN 
+      ALLOCATE(DstConstrStateData%y(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstConstrStateData%y.', ErrStat, ErrMsg,'MAP_CopyConstrState')
+         RETURN
+      END IF
+   END IF
+   DstConstrStateData%y = SrcConstrStateData%y
+ENDIF
+IF (ASSOCIATED(SrcConstrStateData%z)) THEN
+   i1_l = LBOUND(SrcConstrStateData%z,1)
+   i1_u = UBOUND(SrcConstrStateData%z,1)
+   IF (.NOT. ASSOCIATED(DstConstrStateData%z)) THEN 
+      ALLOCATE(DstConstrStateData%z(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstConstrStateData%z.', ErrStat, ErrMsg,'MAP_CopyConstrState')
+         RETURN
+      END IF
+   END IF
+   DstConstrStateData%z = SrcConstrStateData%z
+ENDIF
  END SUBROUTINE MAP_CopyConstrState
 
  SUBROUTINE MAP_DestroyConstrState( ConstrStateData, ErrStat, ErrMsg )
-  TYPE(MAP_constraintstatetype), INTENT(INOUT) :: ConstrStateData
+  TYPE(MAP_ConstraintStateType), INTENT(INOUT) :: ConstrStateData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ASSOCIATED(ConstrStateData%X)) THEN
-   DEALLOCATE(ConstrStateData%X)
-   ConstrStateData%X => NULL()
-ENDIF
-IF (ASSOCIATED(ConstrStateData%Y)) THEN
-   DEALLOCATE(ConstrStateData%Y)
-   ConstrStateData%Y => NULL()
-ENDIF
-IF (ASSOCIATED(ConstrStateData%Z)) THEN
-   DEALLOCATE(ConstrStateData%Z)
-   ConstrStateData%Z => NULL()
-ENDIF
 IF (ASSOCIATED(ConstrStateData%H)) THEN
    DEALLOCATE(ConstrStateData%H)
    ConstrStateData%H => NULL()
@@ -2139,13 +1438,25 @@ IF (ASSOCIATED(ConstrStateData%V)) THEN
    DEALLOCATE(ConstrStateData%V)
    ConstrStateData%V => NULL()
 ENDIF
+IF (ASSOCIATED(ConstrStateData%x)) THEN
+   DEALLOCATE(ConstrStateData%x)
+   ConstrStateData%x => NULL()
+ENDIF
+IF (ASSOCIATED(ConstrStateData%y)) THEN
+   DEALLOCATE(ConstrStateData%y)
+   ConstrStateData%y => NULL()
+ENDIF
+IF (ASSOCIATED(ConstrStateData%z)) THEN
+   DEALLOCATE(ConstrStateData%z)
+   ConstrStateData%z => NULL()
+ENDIF
  END SUBROUTINE MAP_DestroyConstrState
 
  SUBROUTINE MAP_PackConstrState( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(MAP_constraintstatetype),  INTENT(INOUT) :: InData
+  TYPE(MAP_ConstraintStateType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2175,26 +1486,14 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Db_BufSz    = Db_BufSz    + SIZE( InData%X )  ! X 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%Y )  ! Y 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%Z )  ! Z 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%H )  ! H 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%V )  ! V 
+  IF ( ASSOCIATED(InData%H) )   Db_BufSz    = Db_BufSz    + SIZE( InData%H )  ! H 
+  IF ( ASSOCIATED(InData%V) )   Db_BufSz    = Db_BufSz    + SIZE( InData%V )  ! V 
+  IF ( ASSOCIATED(InData%x) )   Db_BufSz    = Db_BufSz    + SIZE( InData%x )  ! x 
+  IF ( ASSOCIATED(InData%y) )   Db_BufSz    = Db_BufSz    + SIZE( InData%y )  ! y 
+  IF ( ASSOCIATED(InData%z) )   Db_BufSz    = Db_BufSz    + SIZE( InData%z )  ! z 
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ASSOCIATED(InData%X) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%X))-1 ) =  PACK(InData%X ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%X)
-  ENDIF
-  IF ( ASSOCIATED(InData%Y) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Y))-1 ) =  PACK(InData%Y ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%Y)
-  ENDIF
-  IF ( ASSOCIATED(InData%Z) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Z))-1 ) =  PACK(InData%Z ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%Z)
-  ENDIF
   IF ( ASSOCIATED(InData%H) ) THEN
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%H))-1 ) =  PACK(InData%H ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%H)
@@ -2203,13 +1502,25 @@ ENDIF
     IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%V))-1 ) =  PACK(InData%V ,.TRUE.)
     Db_Xferred   = Db_Xferred   + SIZE(InData%V)
   ENDIF
+  IF ( ASSOCIATED(InData%x) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%x))-1 ) =  PACK(InData%x ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%x)
+  ENDIF
+  IF ( ASSOCIATED(InData%y) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%y))-1 ) =  PACK(InData%y ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%y)
+  ENDIF
+  IF ( ASSOCIATED(InData%z) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%z))-1 ) =  PACK(InData%z ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%z)
+  ENDIF
  END SUBROUTINE MAP_PackConstrState
 
  SUBROUTINE MAP_UnPackConstrState( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(MAP_constraintstatetype), INTENT(INOUT) :: OutData
+  TYPE(MAP_ConstraintStateType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2238,318 +1549,49 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ASSOCIATED(OutData%X) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%X,1))); mask1 = .TRUE.
-    OutData%X = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,REAL(OutData%X,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%X)
-  ENDIF
-  IF ( ASSOCIATED(OutData%Y) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Y,1))); mask1 = .TRUE.
-    OutData%Y = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,REAL(OutData%Y,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%Y)
-  ENDIF
-  IF ( ASSOCIATED(OutData%Z) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Z,1))); mask1 = .TRUE.
-    OutData%Z = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,REAL(OutData%Z,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%Z)
-  ENDIF
   IF ( ASSOCIATED(OutData%H) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%H,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%H,1)))
+  mask1 = .TRUE.
     OutData%H = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%H))-1 ),mask1,REAL(OutData%H,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%H)
   ENDIF
   IF ( ASSOCIATED(OutData%V) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%V,1))); mask1 = .TRUE.
+  ALLOCATE(mask1(SIZE(OutData%V,1)))
+  mask1 = .TRUE.
     OutData%V = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%V))-1 ),mask1,REAL(OutData%V,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
     Db_Xferred   = Db_Xferred   + SIZE(OutData%V)
+  ENDIF
+  IF ( ASSOCIATED(OutData%x) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%x,1)))
+  mask1 = .TRUE.
+    OutData%x = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%x))-1 ),mask1,REAL(OutData%x,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%x)
+  ENDIF
+  IF ( ASSOCIATED(OutData%y) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%y,1)))
+  mask1 = .TRUE.
+    OutData%y = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%y))-1 ),mask1,REAL(OutData%y,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%y)
+  ENDIF
+  IF ( ASSOCIATED(OutData%z) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%z,1)))
+  mask1 = .TRUE.
+    OutData%z = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%z))-1 ),mask1,REAL(OutData%z,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%z)
   ENDIF
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE MAP_UnPackConstrState
 
-  SUBROUTINE MAP_F2C_CopyParam( ParamData, ErrStat, ErrMsg )
-    TYPE(MAP_parametertype), INTENT(INOUT) :: ParamData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- Diam Param Data fields
-    IF ( ASSOCIATED( ParamData%Diam ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%Diam_Len) )
-       DO i = 1 , ParamData%C_obj%Diam_Len
-          c_dbl_value(i) = ParamData%Diam(i)
-       END DO
-       CALL MAP_F2C_Param_Diam( ParamData%C_obj, c_dbl_value, ParamData%C_obj%Diam_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- MassDenInAir Param Data fields
-    IF ( ASSOCIATED( ParamData%MassDenInAir ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%MassDenInAir_Len) )
-       DO i = 1 , ParamData%C_obj%MassDenInAir_Len
-          c_dbl_value(i) = ParamData%MassDenInAir(i)
-       END DO
-       CALL MAP_F2C_Param_MassDenInAir( ParamData%C_obj, c_dbl_value, ParamData%C_obj%MassDenInAir_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- EA Param Data fields
-    IF ( ASSOCIATED( ParamData%EA ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%EA_Len) )
-       DO i = 1 , ParamData%C_obj%EA_Len
-          c_dbl_value(i) = ParamData%EA(i)
-       END DO
-       CALL MAP_F2C_Param_EA( ParamData%C_obj, c_dbl_value, ParamData%C_obj%EA_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- CB Param Data fields
-    IF ( ASSOCIATED( ParamData%CB ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%CB_Len) )
-       DO i = 1 , ParamData%C_obj%CB_Len
-          c_dbl_value(i) = ParamData%CB(i)
-       END DO
-       CALL MAP_F2C_Param_CB( ParamData%C_obj, c_dbl_value, ParamData%C_obj%CB_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- Lu Param Data fields
-    IF ( ASSOCIATED( ParamData%Lu ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%Lu_Len) )
-       DO i = 1 , ParamData%C_obj%Lu_Len
-          c_dbl_value(i) = ParamData%Lu(i)
-       END DO
-       CALL MAP_F2C_Param_Lu( ParamData%C_obj, c_dbl_value, ParamData%C_obj%Lu_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- X Param Data fields
-    IF ( ASSOCIATED( ParamData%X ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%X_Len) )
-       DO i = 1 , ParamData%C_obj%X_Len
-          c_dbl_value(i) = ParamData%X(i)
-       END DO
-       CALL MAP_F2C_Param_X( ParamData%C_obj, c_dbl_value, ParamData%C_obj%X_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- Y Param Data fields
-    IF ( ASSOCIATED( ParamData%Y ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%Y_Len) )
-       DO i = 1 , ParamData%C_obj%Y_Len
-          c_dbl_value(i) = ParamData%Y(i)
-       END DO
-       CALL MAP_F2C_Param_Y( ParamData%C_obj, c_dbl_value, ParamData%C_obj%Y_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- Z Param Data fields
-    IF ( ASSOCIATED( ParamData%Z ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%Z_Len) )
-       DO i = 1 , ParamData%C_obj%Z_Len
-          c_dbl_value(i) = ParamData%Z(i)
-       END DO
-       CALL MAP_F2C_Param_Z( ParamData%C_obj, c_dbl_value, ParamData%C_obj%Z_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- FX Param Data fields
-    IF ( ASSOCIATED( ParamData%FX ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%FX_Len) )
-       DO i = 1 , ParamData%C_obj%FX_Len
-          c_dbl_value(i) = ParamData%FX(i)
-       END DO
-       CALL MAP_F2C_Param_FX( ParamData%C_obj, c_dbl_value, ParamData%C_obj%FX_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- FY Param Data fields
-    IF ( ASSOCIATED( ParamData%FY ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%FY_Len) )
-       DO i = 1 , ParamData%C_obj%FY_Len
-          c_dbl_value(i) = ParamData%FY(i)
-       END DO
-       CALL MAP_F2C_Param_FY( ParamData%C_obj, c_dbl_value, ParamData%C_obj%FY_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- FZ Param Data fields
-    IF ( ASSOCIATED( ParamData%FZ ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%FZ_Len) )
-       DO i = 1 , ParamData%C_obj%FZ_Len
-          c_dbl_value(i) = ParamData%FZ(i)
-       END DO
-       CALL MAP_F2C_Param_FZ( ParamData%C_obj, c_dbl_value, ParamData%C_obj%FZ_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- M Param Data fields
-    IF ( ASSOCIATED( ParamData%M ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%M_Len) )
-       DO i = 1 , ParamData%C_obj%M_Len
-          c_dbl_value(i) = ParamData%M(i)
-       END DO
-       CALL MAP_F2C_Param_M( ParamData%C_obj, c_dbl_value, ParamData%C_obj%M_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- B Param Data fields
-    IF ( ASSOCIATED( ParamData%B ) ) THEN
-       ALLOCATE( c_dbl_value(ParamData%C_obj%B_Len) )
-       DO i = 1 , ParamData%C_obj%B_Len
-          c_dbl_value(i) = ParamData%B(i)
-       END DO
-       CALL MAP_F2C_Param_B( ParamData%C_obj, c_dbl_value, ParamData%C_obj%B_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-    ParamData%C_obj%dt = ParamData%dt
- END SUBROUTINE MAP_F2C_CopyParam
-
-  SUBROUTINE MAP_C2F_CopyParam( ParamData, ErrStat, ErrMsg )
-    TYPE(MAP_parametertype), INTENT(INOUT) :: ParamData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- Diam Param Data fields
-    IF ( ASSOCIATED( ParamData%Diam ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%Diam, dbl_arr, (/ParamData%C_obj%Diam_Len/) )
-       DO i = 1, ParamData%C_obj%Diam_Len
-          ParamData%Diam(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- MassDenInAir Param Data fields
-    IF ( ASSOCIATED( ParamData%MassDenInAir ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%MassDenInAir, dbl_arr, (/ParamData%C_obj%MassDenInAir_Len/) )
-       DO i = 1, ParamData%C_obj%MassDenInAir_Len
-          ParamData%MassDenInAir(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- EA Param Data fields
-    IF ( ASSOCIATED( ParamData%EA ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%EA, dbl_arr, (/ParamData%C_obj%EA_Len/) )
-       DO i = 1, ParamData%C_obj%EA_Len
-          ParamData%EA(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- CB Param Data fields
-    IF ( ASSOCIATED( ParamData%CB ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%CB, dbl_arr, (/ParamData%C_obj%CB_Len/) )
-       DO i = 1, ParamData%C_obj%CB_Len
-          ParamData%CB(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- Lu Param Data fields
-    IF ( ASSOCIATED( ParamData%Lu ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%Lu, dbl_arr, (/ParamData%C_obj%Lu_Len/) )
-       DO i = 1, ParamData%C_obj%Lu_Len
-          ParamData%Lu(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- X Param Data fields
-    IF ( ASSOCIATED( ParamData%X ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%X, dbl_arr, (/ParamData%C_obj%X_Len/) )
-       DO i = 1, ParamData%C_obj%X_Len
-          ParamData%X(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- Y Param Data fields
-    IF ( ASSOCIATED( ParamData%Y ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%Y, dbl_arr, (/ParamData%C_obj%Y_Len/) )
-       DO i = 1, ParamData%C_obj%Y_Len
-          ParamData%Y(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- Z Param Data fields
-    IF ( ASSOCIATED( ParamData%Z ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%Z, dbl_arr, (/ParamData%C_obj%Z_Len/) )
-       DO i = 1, ParamData%C_obj%Z_Len
-          ParamData%Z(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- FX Param Data fields
-    IF ( ASSOCIATED( ParamData%FX ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%FX, dbl_arr, (/ParamData%C_obj%FX_Len/) )
-       DO i = 1, ParamData%C_obj%FX_Len
-          ParamData%FX(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- FY Param Data fields
-    IF ( ASSOCIATED( ParamData%FY ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%FY, dbl_arr, (/ParamData%C_obj%FY_Len/) )
-       DO i = 1, ParamData%C_obj%FY_Len
-          ParamData%FY(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- FZ Param Data fields
-    IF ( ASSOCIATED( ParamData%FZ ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%FZ, dbl_arr, (/ParamData%C_obj%FZ_Len/) )
-       DO i = 1, ParamData%C_obj%FZ_Len
-          ParamData%FZ(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- M Param Data fields
-    IF ( ASSOCIATED( ParamData%M ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%M, dbl_arr, (/ParamData%C_obj%M_Len/) )
-       DO i = 1, ParamData%C_obj%M_Len
-          ParamData%M(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- B Param Data fields
-    IF ( ASSOCIATED( ParamData%B ) ) THEN
-       CALL C_F_POINTER( ParamData%C_obj%B, dbl_arr, (/ParamData%C_obj%B_Len/) )
-       DO i = 1, ParamData%C_obj%B_Len
-          ParamData%B(i) = dbl_arr(i)
-       END DO
-    ENDIF
-    ParamData%dt = ParamData%C_obj%dt
- END SUBROUTINE MAP_C2F_CopyParam
-
  SUBROUTINE MAP_CopyParam( SrcParamData, DstParamData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(MAP_parametertype), INTENT(INOUT) :: SrcParamData
-   TYPE(MAP_parametertype), INTENT(INOUT) :: DstParamData
+   TYPE(MAP_ParameterType), INTENT(INOUT) :: SrcParamData
+   TYPE(MAP_ParameterType), INTENT(INOUT) :: DstParamData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -2557,248 +1599,32 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ASSOCIATED(SrcParamData%Diam)) THEN
-   i1_l = LBOUND(SrcParamData%Diam,1)
-   i1_u = UBOUND(SrcParamData%Diam,1)
-   IF (.NOT. ASSOCIATED(DstParamData%Diam)) THEN 
-      ALLOCATE(DstParamData%Diam(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%Diam.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%Diam = SrcParamData%Diam
-ENDIF
-IF (ASSOCIATED(SrcParamData%MassDenInAir)) THEN
-   i1_l = LBOUND(SrcParamData%MassDenInAir,1)
-   i1_u = UBOUND(SrcParamData%MassDenInAir,1)
-   IF (.NOT. ASSOCIATED(DstParamData%MassDenInAir)) THEN 
-      ALLOCATE(DstParamData%MassDenInAir(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%MassDenInAir.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%MassDenInAir = SrcParamData%MassDenInAir
-ENDIF
-IF (ASSOCIATED(SrcParamData%EA)) THEN
-   i1_l = LBOUND(SrcParamData%EA,1)
-   i1_u = UBOUND(SrcParamData%EA,1)
-   IF (.NOT. ASSOCIATED(DstParamData%EA)) THEN 
-      ALLOCATE(DstParamData%EA(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%EA.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%EA = SrcParamData%EA
-ENDIF
-IF (ASSOCIATED(SrcParamData%CB)) THEN
-   i1_l = LBOUND(SrcParamData%CB,1)
-   i1_u = UBOUND(SrcParamData%CB,1)
-   IF (.NOT. ASSOCIATED(DstParamData%CB)) THEN 
-      ALLOCATE(DstParamData%CB(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%CB.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%CB = SrcParamData%CB
-ENDIF
-IF (ASSOCIATED(SrcParamData%Lu)) THEN
-   i1_l = LBOUND(SrcParamData%Lu,1)
-   i1_u = UBOUND(SrcParamData%Lu,1)
-   IF (.NOT. ASSOCIATED(DstParamData%Lu)) THEN 
-      ALLOCATE(DstParamData%Lu(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%Lu.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%Lu = SrcParamData%Lu
-ENDIF
-IF (ASSOCIATED(SrcParamData%X)) THEN
-   i1_l = LBOUND(SrcParamData%X,1)
-   i1_u = UBOUND(SrcParamData%X,1)
-   IF (.NOT. ASSOCIATED(DstParamData%X)) THEN 
-      ALLOCATE(DstParamData%X(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%X.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%X = SrcParamData%X
-ENDIF
-IF (ASSOCIATED(SrcParamData%Y)) THEN
-   i1_l = LBOUND(SrcParamData%Y,1)
-   i1_u = UBOUND(SrcParamData%Y,1)
-   IF (.NOT. ASSOCIATED(DstParamData%Y)) THEN 
-      ALLOCATE(DstParamData%Y(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%Y.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%Y = SrcParamData%Y
-ENDIF
-IF (ASSOCIATED(SrcParamData%Z)) THEN
-   i1_l = LBOUND(SrcParamData%Z,1)
-   i1_u = UBOUND(SrcParamData%Z,1)
-   IF (.NOT. ASSOCIATED(DstParamData%Z)) THEN 
-      ALLOCATE(DstParamData%Z(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%Z.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%Z = SrcParamData%Z
-ENDIF
-IF (ASSOCIATED(SrcParamData%FX)) THEN
-   i1_l = LBOUND(SrcParamData%FX,1)
-   i1_u = UBOUND(SrcParamData%FX,1)
-   IF (.NOT. ASSOCIATED(DstParamData%FX)) THEN 
-      ALLOCATE(DstParamData%FX(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%FX.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%FX = SrcParamData%FX
-ENDIF
-IF (ASSOCIATED(SrcParamData%FY)) THEN
-   i1_l = LBOUND(SrcParamData%FY,1)
-   i1_u = UBOUND(SrcParamData%FY,1)
-   IF (.NOT. ASSOCIATED(DstParamData%FY)) THEN 
-      ALLOCATE(DstParamData%FY(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%FY.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%FY = SrcParamData%FY
-ENDIF
-IF (ASSOCIATED(SrcParamData%FZ)) THEN
-   i1_l = LBOUND(SrcParamData%FZ,1)
-   i1_u = UBOUND(SrcParamData%FZ,1)
-   IF (.NOT. ASSOCIATED(DstParamData%FZ)) THEN 
-      ALLOCATE(DstParamData%FZ(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%FZ.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%FZ = SrcParamData%FZ
-ENDIF
-IF (ASSOCIATED(SrcParamData%M)) THEN
-   i1_l = LBOUND(SrcParamData%M,1)
-   i1_u = UBOUND(SrcParamData%M,1)
-   IF (.NOT. ASSOCIATED(DstParamData%M)) THEN 
-      ALLOCATE(DstParamData%M(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%M.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%M = SrcParamData%M
-ENDIF
-IF (ASSOCIATED(SrcParamData%B)) THEN
-   i1_l = LBOUND(SrcParamData%B,1)
-   i1_u = UBOUND(SrcParamData%B,1)
-   IF (.NOT. ASSOCIATED(DstParamData%B)) THEN 
-      ALLOCATE(DstParamData%B(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyParam: Error allocating DstParamData%B.'
-         RETURN
-      END IF
-   END IF
-   DstParamData%B = SrcParamData%B
-ENDIF
+   DstParamData%g = SrcParamData%g
+   DstParamData%depth = SrcParamData%depth
+   DstParamData%rho_sea = SrcParamData%rho_sea
    DstParamData%dt = SrcParamData%dt
  END SUBROUTINE MAP_CopyParam
 
  SUBROUTINE MAP_DestroyParam( ParamData, ErrStat, ErrMsg )
-  TYPE(MAP_parametertype), INTENT(INOUT) :: ParamData
+  TYPE(MAP_ParameterType), INTENT(INOUT) :: ParamData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ASSOCIATED(ParamData%Diam)) THEN
-   DEALLOCATE(ParamData%Diam)
-   ParamData%Diam => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%MassDenInAir)) THEN
-   DEALLOCATE(ParamData%MassDenInAir)
-   ParamData%MassDenInAir => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%EA)) THEN
-   DEALLOCATE(ParamData%EA)
-   ParamData%EA => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%CB)) THEN
-   DEALLOCATE(ParamData%CB)
-   ParamData%CB => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%Lu)) THEN
-   DEALLOCATE(ParamData%Lu)
-   ParamData%Lu => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%X)) THEN
-   DEALLOCATE(ParamData%X)
-   ParamData%X => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%Y)) THEN
-   DEALLOCATE(ParamData%Y)
-   ParamData%Y => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%Z)) THEN
-   DEALLOCATE(ParamData%Z)
-   ParamData%Z => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%FX)) THEN
-   DEALLOCATE(ParamData%FX)
-   ParamData%FX => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%FY)) THEN
-   DEALLOCATE(ParamData%FY)
-   ParamData%FY => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%FZ)) THEN
-   DEALLOCATE(ParamData%FZ)
-   ParamData%FZ => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%M)) THEN
-   DEALLOCATE(ParamData%M)
-   ParamData%M => NULL()
-ENDIF
-IF (ASSOCIATED(ParamData%B)) THEN
-   DEALLOCATE(ParamData%B)
-   ParamData%B => NULL()
-ENDIF
  END SUBROUTINE MAP_DestroyParam
 
  SUBROUTINE MAP_PackParam( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(MAP_parametertype),  INTENT(INOUT) :: InData
+  TYPE(MAP_ParameterType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -2828,75 +1654,19 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Db_BufSz    = Db_BufSz    + SIZE( InData%Diam )  ! Diam 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%MassDenInAir )  ! MassDenInAir 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%EA )  ! EA 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%CB )  ! CB 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%Lu )  ! Lu 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%X )  ! X 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%Y )  ! Y 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%Z )  ! Z 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%FX )  ! FX 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%FY )  ! FY 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%FZ )  ! FZ 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%M )  ! M 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%B )  ! B 
+  Db_BufSz   = Db_BufSz   + 1  ! g
+  Db_BufSz   = Db_BufSz   + 1  ! depth
+  Db_BufSz   = Db_BufSz   + 1  ! rho_sea
   Db_BufSz   = Db_BufSz   + 1  ! dt
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ASSOCIATED(InData%Diam) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Diam))-1 ) =  PACK(InData%Diam ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%Diam)
-  ENDIF
-  IF ( ASSOCIATED(InData%MassDenInAir) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%MassDenInAir))-1 ) =  PACK(InData%MassDenInAir ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%MassDenInAir)
-  ENDIF
-  IF ( ASSOCIATED(InData%EA) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%EA))-1 ) =  PACK(InData%EA ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%EA)
-  ENDIF
-  IF ( ASSOCIATED(InData%CB) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%CB))-1 ) =  PACK(InData%CB ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%CB)
-  ENDIF
-  IF ( ASSOCIATED(InData%Lu) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Lu))-1 ) =  PACK(InData%Lu ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%Lu)
-  ENDIF
-  IF ( ASSOCIATED(InData%X) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%X))-1 ) =  PACK(InData%X ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%X)
-  ENDIF
-  IF ( ASSOCIATED(InData%Y) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Y))-1 ) =  PACK(InData%Y ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%Y)
-  ENDIF
-  IF ( ASSOCIATED(InData%Z) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Z))-1 ) =  PACK(InData%Z ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%Z)
-  ENDIF
-  IF ( ASSOCIATED(InData%FX) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FX))-1 ) =  PACK(InData%FX ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%FX)
-  ENDIF
-  IF ( ASSOCIATED(InData%FY) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FY))-1 ) =  PACK(InData%FY ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%FY)
-  ENDIF
-  IF ( ASSOCIATED(InData%FZ) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FZ))-1 ) =  PACK(InData%FZ ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%FZ)
-  ENDIF
-  IF ( ASSOCIATED(InData%M) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%M))-1 ) =  PACK(InData%M ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%M)
-  ENDIF
-  IF ( ASSOCIATED(InData%B) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%B))-1 ) =  PACK(InData%B ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%B)
-  ENDIF
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%g )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%depth )
+  Db_Xferred   = Db_Xferred   + 1
+  IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%rho_sea )
+  Db_Xferred   = Db_Xferred   + 1
   IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(1)-1 ) =  (InData%dt )
   Db_Xferred   = Db_Xferred   + 1
  END SUBROUTINE MAP_PackParam
@@ -2905,7 +1675,7 @@ ENDIF
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(MAP_parametertype), INTENT(INOUT) :: OutData
+  TYPE(MAP_ParameterType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -2934,84 +1704,12 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ASSOCIATED(OutData%Diam) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Diam,1))); mask1 = .TRUE.
-    OutData%Diam = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Diam))-1 ),mask1,REAL(OutData%Diam,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%Diam)
-  ENDIF
-  IF ( ASSOCIATED(OutData%MassDenInAir) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%MassDenInAir,1))); mask1 = .TRUE.
-    OutData%MassDenInAir = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%MassDenInAir))-1 ),mask1,REAL(OutData%MassDenInAir,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%MassDenInAir)
-  ENDIF
-  IF ( ASSOCIATED(OutData%EA) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%EA,1))); mask1 = .TRUE.
-    OutData%EA = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%EA))-1 ),mask1,REAL(OutData%EA,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%EA)
-  ENDIF
-  IF ( ASSOCIATED(OutData%CB) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%CB,1))); mask1 = .TRUE.
-    OutData%CB = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%CB))-1 ),mask1,REAL(OutData%CB,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%CB)
-  ENDIF
-  IF ( ASSOCIATED(OutData%Lu) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Lu,1))); mask1 = .TRUE.
-    OutData%Lu = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Lu))-1 ),mask1,REAL(OutData%Lu,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%Lu)
-  ENDIF
-  IF ( ASSOCIATED(OutData%X) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%X,1))); mask1 = .TRUE.
-    OutData%X = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,REAL(OutData%X,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%X)
-  ENDIF
-  IF ( ASSOCIATED(OutData%Y) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Y,1))); mask1 = .TRUE.
-    OutData%Y = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,REAL(OutData%Y,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%Y)
-  ENDIF
-  IF ( ASSOCIATED(OutData%Z) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Z,1))); mask1 = .TRUE.
-    OutData%Z = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,REAL(OutData%Z,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%Z)
-  ENDIF
-  IF ( ASSOCIATED(OutData%FX) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
-    OutData%FX = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,REAL(OutData%FX,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%FX)
-  ENDIF
-  IF ( ASSOCIATED(OutData%FY) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
-    OutData%FY = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,REAL(OutData%FY,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%FY)
-  ENDIF
-  IF ( ASSOCIATED(OutData%FZ) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FZ,1))); mask1 = .TRUE.
-    OutData%FZ = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,REAL(OutData%FZ,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%FZ)
-  ENDIF
-  IF ( ASSOCIATED(OutData%M) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%M,1))); mask1 = .TRUE.
-    OutData%M = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%M))-1 ),mask1,REAL(OutData%M,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%M)
-  ENDIF
-  IF ( ASSOCIATED(OutData%B) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%B,1))); mask1 = .TRUE.
-    OutData%B = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%B))-1 ),mask1,REAL(OutData%B,DbKi)), C_DOUBLE)
-  DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%B)
-  ENDIF
+  OutData%g = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%depth = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
+  OutData%rho_sea = DbKiBuf ( Db_Xferred )
+  Db_Xferred   = Db_Xferred   + 1
   OutData%dt = DbKiBuf ( Db_Xferred )
   Db_Xferred   = Db_Xferred   + 1
   Re_Xferred   = Re_Xferred-1
@@ -3019,101 +1717,9 @@ ENDIF
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE MAP_UnPackParam
 
-  SUBROUTINE MAP_F2C_CopyInput( InputData, ErrStat, ErrMsg )
-    TYPE(MAP_inputtype), INTENT(INOUT) :: InputData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- X Input Data fields
-    IF ( ASSOCIATED( InputData%X ) ) THEN
-       ALLOCATE( c_dbl_value(InputData%C_obj%X_Len) )
-       DO i = 1 , InputData%C_obj%X_Len
-          c_dbl_value(i) = InputData%X(i)
-       END DO
-       CALL MAP_F2C_Input_X( InputData%C_obj, c_dbl_value, InputData%C_obj%X_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- Y Input Data fields
-    IF ( ASSOCIATED( InputData%Y ) ) THEN
-       ALLOCATE( c_dbl_value(InputData%C_obj%Y_Len) )
-       DO i = 1 , InputData%C_obj%Y_Len
-          c_dbl_value(i) = InputData%Y(i)
-       END DO
-       CALL MAP_F2C_Input_Y( InputData%C_obj, c_dbl_value, InputData%C_obj%Y_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- Z Input Data fields
-    IF ( ASSOCIATED( InputData%Z ) ) THEN
-       ALLOCATE( c_dbl_value(InputData%C_obj%Z_Len) )
-       DO i = 1 , InputData%C_obj%Z_Len
-          c_dbl_value(i) = InputData%Z(i)
-       END DO
-       CALL MAP_F2C_Input_Z( InputData%C_obj, c_dbl_value, InputData%C_obj%Z_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
- END SUBROUTINE MAP_F2C_CopyInput
-
-  SUBROUTINE MAP_C2F_CopyInput( InputData, ErrStat, ErrMsg )
-    TYPE(MAP_inputtype), INTENT(INOUT) :: InputData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- X Input Data fields
-    IF ( ASSOCIATED( InputData%X ) ) THEN
-       CALL C_F_POINTER( InputData%C_obj%X, dbl_arr, (/InputData%C_obj%X_Len/) )
-       DO i = 1, InputData%C_obj%X_Len
-          InputData%X(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- Y Input Data fields
-    IF ( ASSOCIATED( InputData%Y ) ) THEN
-       CALL C_F_POINTER( InputData%C_obj%Y, dbl_arr, (/InputData%C_obj%Y_Len/) )
-       DO i = 1, InputData%C_obj%Y_Len
-          InputData%Y(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- Z Input Data fields
-    IF ( ASSOCIATED( InputData%Z ) ) THEN
-       CALL C_F_POINTER( InputData%C_obj%Z, dbl_arr, (/InputData%C_obj%Z_Len/) )
-       DO i = 1, InputData%C_obj%Z_Len
-          InputData%Z(i) = dbl_arr(i)
-       END DO
-    ENDIF
- END SUBROUTINE MAP_C2F_CopyInput
-
  SUBROUTINE MAP_CopyInput( SrcInputData, DstInputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(MAP_inputtype), INTENT(INOUT) :: SrcInputData
-   TYPE(MAP_inputtype), INTENT(INOUT) :: DstInputData
+   TYPE(MAP_InputType), INTENT(INOUT) :: SrcInputData
+   TYPE(MAP_InputType), INTENT(INOUT) :: DstInputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -3121,80 +1727,81 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ASSOCIATED(SrcInputData%X)) THEN
-   i1_l = LBOUND(SrcInputData%X,1)
-   i1_u = UBOUND(SrcInputData%X,1)
-   IF (.NOT. ASSOCIATED(DstInputData%X)) THEN 
-      ALLOCATE(DstInputData%X(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyInput: Error allocating DstInputData%X.'
+IF (ASSOCIATED(SrcInputData%x)) THEN
+   i1_l = LBOUND(SrcInputData%x,1)
+   i1_u = UBOUND(SrcInputData%x,1)
+   IF (.NOT. ASSOCIATED(DstInputData%x)) THEN 
+      ALLOCATE(DstInputData%x(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputData%x.', ErrStat, ErrMsg,'MAP_CopyInput')
          RETURN
       END IF
    END IF
-   DstInputData%X = SrcInputData%X
+   DstInputData%x = SrcInputData%x
 ENDIF
-IF (ASSOCIATED(SrcInputData%Y)) THEN
-   i1_l = LBOUND(SrcInputData%Y,1)
-   i1_u = UBOUND(SrcInputData%Y,1)
-   IF (.NOT. ASSOCIATED(DstInputData%Y)) THEN 
-      ALLOCATE(DstInputData%Y(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyInput: Error allocating DstInputData%Y.'
+IF (ASSOCIATED(SrcInputData%y)) THEN
+   i1_l = LBOUND(SrcInputData%y,1)
+   i1_u = UBOUND(SrcInputData%y,1)
+   IF (.NOT. ASSOCIATED(DstInputData%y)) THEN 
+      ALLOCATE(DstInputData%y(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputData%y.', ErrStat, ErrMsg,'MAP_CopyInput')
          RETURN
       END IF
    END IF
-   DstInputData%Y = SrcInputData%Y
+   DstInputData%y = SrcInputData%y
 ENDIF
-IF (ASSOCIATED(SrcInputData%Z)) THEN
-   i1_l = LBOUND(SrcInputData%Z,1)
-   i1_u = UBOUND(SrcInputData%Z,1)
-   IF (.NOT. ASSOCIATED(DstInputData%Z)) THEN 
-      ALLOCATE(DstInputData%Z(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyInput: Error allocating DstInputData%Z.'
+IF (ASSOCIATED(SrcInputData%z)) THEN
+   i1_l = LBOUND(SrcInputData%z,1)
+   i1_u = UBOUND(SrcInputData%z,1)
+   IF (.NOT. ASSOCIATED(DstInputData%z)) THEN 
+      ALLOCATE(DstInputData%z(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstInputData%z.', ErrStat, ErrMsg,'MAP_CopyInput')
          RETURN
       END IF
    END IF
-   DstInputData%Z = SrcInputData%Z
+   DstInputData%z = SrcInputData%z
 ENDIF
   DstInputData%C_obj = SrcInputData%C_obj
-     CALL MeshCopy( SrcInputData%PtFairleadDisplacement, DstInputData%PtFairleadDisplacement, CtrlCode, ErrStat, ErrMsg )
+     CALL MeshCopy( SrcInputData%PtFairDisplacement, DstInputData%PtFairDisplacement, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MAP_CopyInput:PtFairDisplacement')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE MAP_CopyInput
 
  SUBROUTINE MAP_DestroyInput( InputData, ErrStat, ErrMsg )
-  TYPE(MAP_inputtype), INTENT(INOUT) :: InputData
+  TYPE(MAP_InputType), INTENT(INOUT) :: InputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ASSOCIATED(InputData%X)) THEN
-   DEALLOCATE(InputData%X)
-   InputData%X => NULL()
+IF (ASSOCIATED(InputData%x)) THEN
+   DEALLOCATE(InputData%x)
+   InputData%x => NULL()
 ENDIF
-IF (ASSOCIATED(InputData%Y)) THEN
-   DEALLOCATE(InputData%Y)
-   InputData%Y => NULL()
+IF (ASSOCIATED(InputData%y)) THEN
+   DEALLOCATE(InputData%y)
+   InputData%y => NULL()
 ENDIF
-IF (ASSOCIATED(InputData%Z)) THEN
-   DEALLOCATE(InputData%Z)
-   InputData%Z => NULL()
+IF (ASSOCIATED(InputData%z)) THEN
+   DEALLOCATE(InputData%z)
+   InputData%z => NULL()
 ENDIF
-  CALL MeshDestroy( InputData%PtFairleadDisplacement, ErrStat, ErrMsg )
+  CALL MeshDestroy( InputData%PtFairDisplacement, ErrStat, ErrMsg )
  END SUBROUTINE MAP_DestroyInput
 
  SUBROUTINE MAP_PackInput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(MAP_inputtype),  INTENT(INOUT) :: InData
+  TYPE(MAP_InputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3211,9 +1818,9 @@ ENDIF
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
  ! buffers to store meshes, if any
-  REAL(ReKi),     ALLOCATABLE :: Re_PtFairleadDisplacement_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_PtFairleadDisplacement_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_PtFairleadDisplacement_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_PtFairDisplacement_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_PtFairDisplacement_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_PtFairDisplacement_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -3227,55 +1834,55 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Db_BufSz    = Db_BufSz    + SIZE( InData%X )  ! X 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%Y )  ! Y 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%Z )  ! Z 
+  IF ( ASSOCIATED(InData%x) )   Db_BufSz    = Db_BufSz    + SIZE( InData%x )  ! x 
+  IF ( ASSOCIATED(InData%y) )   Db_BufSz    = Db_BufSz    + SIZE( InData%y )  ! y 
+  IF ( ASSOCIATED(InData%z) )   Db_BufSz    = Db_BufSz    + SIZE( InData%z )  ! z 
  ! Allocate mesh buffers, if any (we'll also get sizes from these) 
-  CALL MeshPack( InData%PtFairleadDisplacement, Re_PtFairleadDisplacement_Buf, Db_PtFairleadDisplacement_Buf, Int_PtFairleadDisplacement_Buf, ErrStat, ErrMsg, .TRUE. ) ! PtFairleadDisplacement 
-  IF(ALLOCATED(Re_PtFairleadDisplacement_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_PtFairleadDisplacement_Buf  ) ! PtFairleadDisplacement
-  IF(ALLOCATED(Db_PtFairleadDisplacement_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_PtFairleadDisplacement_Buf  ) ! PtFairleadDisplacement
-  IF(ALLOCATED(Int_PtFairleadDisplacement_Buf))Int_BufSz = Int_BufSz + SIZE( Int_PtFairleadDisplacement_Buf ) ! PtFairleadDisplacement
-  IF(ALLOCATED(Re_PtFairleadDisplacement_Buf))  DEALLOCATE(Re_PtFairleadDisplacement_Buf)
-  IF(ALLOCATED(Db_PtFairleadDisplacement_Buf))  DEALLOCATE(Db_PtFairleadDisplacement_Buf)
-  IF(ALLOCATED(Int_PtFairleadDisplacement_Buf)) DEALLOCATE(Int_PtFairleadDisplacement_Buf)
+  CALL MeshPack( InData%PtFairDisplacement, Re_PtFairDisplacement_Buf, Db_PtFairDisplacement_Buf, Int_PtFairDisplacement_Buf, ErrStat, ErrMsg, .TRUE. ) ! PtFairDisplacement 
+  IF(ALLOCATED(Re_PtFairDisplacement_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_PtFairDisplacement_Buf  ) ! PtFairDisplacement
+  IF(ALLOCATED(Db_PtFairDisplacement_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_PtFairDisplacement_Buf  ) ! PtFairDisplacement
+  IF(ALLOCATED(Int_PtFairDisplacement_Buf))Int_BufSz = Int_BufSz + SIZE( Int_PtFairDisplacement_Buf ) ! PtFairDisplacement
+  IF(ALLOCATED(Re_PtFairDisplacement_Buf))  DEALLOCATE(Re_PtFairDisplacement_Buf)
+  IF(ALLOCATED(Db_PtFairDisplacement_Buf))  DEALLOCATE(Db_PtFairDisplacement_Buf)
+  IF(ALLOCATED(Int_PtFairDisplacement_Buf)) DEALLOCATE(Int_PtFairDisplacement_Buf)
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ASSOCIATED(InData%X) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%X))-1 ) =  PACK(InData%X ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%X)
+  IF ( ASSOCIATED(InData%x) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%x))-1 ) =  PACK(InData%x ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%x)
   ENDIF
-  IF ( ASSOCIATED(InData%Y) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Y))-1 ) =  PACK(InData%Y ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%Y)
+  IF ( ASSOCIATED(InData%y) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%y))-1 ) =  PACK(InData%y ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%y)
   ENDIF
-  IF ( ASSOCIATED(InData%Z) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Z))-1 ) =  PACK(InData%Z ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%Z)
+  IF ( ASSOCIATED(InData%z) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%z))-1 ) =  PACK(InData%z ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%z)
   ENDIF
-  CALL MeshPack( InData%PtFairleadDisplacement, Re_PtFairleadDisplacement_Buf, Db_PtFairleadDisplacement_Buf, Int_PtFairleadDisplacement_Buf, ErrStat, ErrMsg, OnlySize ) ! PtFairleadDisplacement 
-  IF(ALLOCATED(Re_PtFairleadDisplacement_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PtFairleadDisplacement_Buf)-1 ) = Re_PtFairleadDisplacement_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_PtFairleadDisplacement_Buf)
+  CALL MeshPack( InData%PtFairDisplacement, Re_PtFairDisplacement_Buf, Db_PtFairDisplacement_Buf, Int_PtFairDisplacement_Buf, ErrStat, ErrMsg, OnlySize ) ! PtFairDisplacement 
+  IF(ALLOCATED(Re_PtFairDisplacement_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PtFairDisplacement_Buf)-1 ) = Re_PtFairDisplacement_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_PtFairDisplacement_Buf)
   ENDIF
-  IF(ALLOCATED(Db_PtFairleadDisplacement_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_PtFairleadDisplacement_Buf)-1 ) = Db_PtFairleadDisplacement_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_PtFairleadDisplacement_Buf)
+  IF(ALLOCATED(Db_PtFairDisplacement_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_PtFairDisplacement_Buf)-1 ) = Db_PtFairDisplacement_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_PtFairDisplacement_Buf)
   ENDIF
-  IF(ALLOCATED(Int_PtFairleadDisplacement_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_PtFairleadDisplacement_Buf)-1 ) = Int_PtFairleadDisplacement_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_PtFairleadDisplacement_Buf)
+  IF(ALLOCATED(Int_PtFairDisplacement_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_PtFairDisplacement_Buf)-1 ) = Int_PtFairDisplacement_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_PtFairDisplacement_Buf)
   ENDIF
-  IF( ALLOCATED(Re_PtFairleadDisplacement_Buf) )  DEALLOCATE(Re_PtFairleadDisplacement_Buf)
-  IF( ALLOCATED(Db_PtFairleadDisplacement_Buf) )  DEALLOCATE(Db_PtFairleadDisplacement_Buf)
-  IF( ALLOCATED(Int_PtFairleadDisplacement_Buf) ) DEALLOCATE(Int_PtFairleadDisplacement_Buf)
+  IF( ALLOCATED(Re_PtFairDisplacement_Buf) )  DEALLOCATE(Re_PtFairDisplacement_Buf)
+  IF( ALLOCATED(Db_PtFairDisplacement_Buf) )  DEALLOCATE(Db_PtFairDisplacement_Buf)
+  IF( ALLOCATED(Int_PtFairDisplacement_Buf) ) DEALLOCATE(Int_PtFairDisplacement_Buf)
  END SUBROUTINE MAP_PackInput
 
  SUBROUTINE MAP_UnPackInput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(MAP_inputtype), INTENT(INOUT) :: OutData
+  TYPE(MAP_InputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3295,9 +1902,9 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
  ! buffers to store meshes, if any
-  REAL(ReKi),    ALLOCATABLE :: Re_PtFairleadDisplacement_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_PtFairleadDisplacement_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_PtFairleadDisplacement_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_PtFairDisplacement_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_PtFairDisplacement_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_PtFairDisplacement_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -3307,160 +1914,53 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ASSOCIATED(OutData%X) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%X,1))); mask1 = .TRUE.
-    OutData%X = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%X))-1 ),mask1,REAL(OutData%X,DbKi)), C_DOUBLE)
+  IF ( ASSOCIATED(OutData%x) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%x,1)))
+  mask1 = .TRUE.
+    OutData%x = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%x))-1 ),mask1,REAL(OutData%x,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%X)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%x)
   ENDIF
-  IF ( ASSOCIATED(OutData%Y) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Y,1))); mask1 = .TRUE.
-    OutData%Y = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Y))-1 ),mask1,REAL(OutData%Y,DbKi)), C_DOUBLE)
+  IF ( ASSOCIATED(OutData%y) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%y,1)))
+  mask1 = .TRUE.
+    OutData%y = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%y))-1 ),mask1,REAL(OutData%y,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%Y)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%y)
   ENDIF
-  IF ( ASSOCIATED(OutData%Z) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%Z,1))); mask1 = .TRUE.
-    OutData%Z = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Z))-1 ),mask1,REAL(OutData%Z,DbKi)), C_DOUBLE)
+  IF ( ASSOCIATED(OutData%z) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%z,1)))
+  mask1 = .TRUE.
+    OutData%z = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%z))-1 ),mask1,REAL(OutData%z,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%Z)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%z)
   ENDIF
  ! first call MeshPack to get correctly sized buffers for unpacking
-  CALL MeshPack( OutData%PtFairleadDisplacement, Re_PtFairleadDisplacement_Buf, Db_PtFairleadDisplacement_Buf, Int_PtFairleadDisplacement_Buf, ErrStat, ErrMsg , .TRUE. ) ! PtFairleadDisplacement 
-  IF(ALLOCATED(Re_PtFairleadDisplacement_Buf)) THEN
-    Re_PtFairleadDisplacement_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PtFairleadDisplacement_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_PtFairleadDisplacement_Buf)
+  CALL MeshPack( OutData%PtFairDisplacement, Re_PtFairDisplacement_Buf, Db_PtFairDisplacement_Buf, Int_PtFairDisplacement_Buf, ErrStat, ErrMsg , .TRUE. ) ! PtFairDisplacement 
+  IF(ALLOCATED(Re_PtFairDisplacement_Buf)) THEN
+    Re_PtFairDisplacement_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PtFairDisplacement_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_PtFairDisplacement_Buf)
   ENDIF
-  IF(ALLOCATED(Db_PtFairleadDisplacement_Buf)) THEN
-    Db_PtFairleadDisplacement_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_PtFairleadDisplacement_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_PtFairleadDisplacement_Buf)
+  IF(ALLOCATED(Db_PtFairDisplacement_Buf)) THEN
+    Db_PtFairDisplacement_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_PtFairDisplacement_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_PtFairDisplacement_Buf)
   ENDIF
-  IF(ALLOCATED(Int_PtFairleadDisplacement_Buf)) THEN
-    Int_PtFairleadDisplacement_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_PtFairleadDisplacement_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_PtFairleadDisplacement_Buf)
+  IF(ALLOCATED(Int_PtFairDisplacement_Buf)) THEN
+    Int_PtFairDisplacement_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_PtFairDisplacement_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_PtFairDisplacement_Buf)
   ENDIF
-  CALL MeshUnPack( OutData%PtFairleadDisplacement, Re_PtFairleadDisplacement_Buf, Db_PtFairleadDisplacement_Buf, Int_PtFairleadDisplacement_Buf, ErrStat, ErrMsg ) ! PtFairleadDisplacement 
-  IF( ALLOCATED(Re_PtFairleadDisplacement_Buf) )  DEALLOCATE(Re_PtFairleadDisplacement_Buf)
-  IF( ALLOCATED(Db_PtFairleadDisplacement_Buf) )  DEALLOCATE(Db_PtFairleadDisplacement_Buf)
-  IF( ALLOCATED(Int_PtFairleadDisplacement_Buf) ) DEALLOCATE(Int_PtFairleadDisplacement_Buf)
+  CALL MeshUnPack( OutData%PtFairDisplacement, Re_PtFairDisplacement_Buf, Db_PtFairDisplacement_Buf, Int_PtFairDisplacement_Buf, ErrStat, ErrMsg ) ! PtFairDisplacement 
+  IF( ALLOCATED(Re_PtFairDisplacement_Buf) )  DEALLOCATE(Re_PtFairDisplacement_Buf)
+  IF( ALLOCATED(Db_PtFairDisplacement_Buf) )  DEALLOCATE(Db_PtFairDisplacement_Buf)
+  IF( ALLOCATED(Int_PtFairDisplacement_Buf) ) DEALLOCATE(Int_PtFairDisplacement_Buf)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
  END SUBROUTINE MAP_UnPackInput
 
-  SUBROUTINE MAP_F2C_CopyOutput( OutputData, ErrStat, ErrMsg )
-    TYPE(MAP_outputtype), INTENT(INOUT) :: OutputData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- FX Output Data fields
-    IF ( ASSOCIATED( OutputData%FX ) ) THEN
-       ALLOCATE( c_dbl_value(OutputData%C_obj%FX_Len) )
-       DO i = 1 , OutputData%C_obj%FX_Len
-          c_dbl_value(i) = OutputData%FX(i)
-       END DO
-       CALL MAP_F2C_Output_FX( OutputData%C_obj, c_dbl_value, OutputData%C_obj%FX_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- FY Output Data fields
-    IF ( ASSOCIATED( OutputData%FY ) ) THEN
-       ALLOCATE( c_dbl_value(OutputData%C_obj%FY_Len) )
-       DO i = 1 , OutputData%C_obj%FY_Len
-          c_dbl_value(i) = OutputData%FY(i)
-       END DO
-       CALL MAP_F2C_Output_FY( OutputData%C_obj, c_dbl_value, OutputData%C_obj%FY_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- FZ Output Data fields
-    IF ( ASSOCIATED( OutputData%FZ ) ) THEN
-       ALLOCATE( c_dbl_value(OutputData%C_obj%FZ_Len) )
-       DO i = 1 , OutputData%C_obj%FZ_Len
-          c_dbl_value(i) = OutputData%FZ(i)
-       END DO
-       CALL MAP_F2C_Output_FZ( OutputData%C_obj, c_dbl_value, OutputData%C_obj%FZ_Len )
-       DEALLOCATE( c_dbl_value )
-    ENDIF
-
-    ! -- writeOutput Output Data fields
-    IF ( ALLOCATED( OutputData%writeOutput ) ) THEN
-       ALLOCATE( c_float_value(OutputData%C_obj%writeOutput_Len) )
-       DO i = 1 , OutputData%C_obj%writeOutput_Len
-          c_float_value(i) = OutputData%writeOutput(i)
-       END DO
-       CALL MAP_F2C_Output_writeOutput( OutputData%C_obj, c_float_value, OutputData%C_obj%writeOutput_Len )
-       DEALLOCATE( c_float_value )
-    ENDIF
- END SUBROUTINE MAP_F2C_CopyOutput
-
-  SUBROUTINE MAP_C2F_CopyOutput( OutputData, ErrStat, ErrMsg )
-    TYPE(MAP_outputtype), INTENT(INOUT) :: OutputData
-    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
-    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
-    ! Local 
-    INTEGER(IntKi)                   :: i,i1,i2,i3,i4,i5,j,k
-    REAL(KIND=C_DOUBLE) ,ALLOCATABLE :: c_dbl_value(:)
-    REAL(KIND=C_DOUBLE) ,POINTER     :: dbl_arr(:)
-    REAL(KIND=C_FLOAT)  ,ALLOCATABLE :: c_float_value(:)
-    REAL(KIND=C_FLOAT)  ,POINTER     :: float_arr(:)
-    INTEGER(KIND=C_INT) ,ALLOCATABLE :: c_int_value(:)
-    INTEGER(KIND=C_INT) ,POINTER     :: int_arr(:)
-    LOGICAL(KIND=C_BOOL),ALLOCATABLE :: c_bool_value(:)
-    LOGICAL(KIND=C_BOOL),POINTER     :: bool_arr(:)
-    ! 
-    ErrStat = ErrID_None
-    ErrMsg  = ""
-
-    ! -- FX Output Data fields
-    IF ( ASSOCIATED( OutputData%FX ) ) THEN
-       CALL C_F_POINTER( OutputData%C_obj%FX, dbl_arr, (/OutputData%C_obj%FX_Len/) )
-       DO i = 1, OutputData%C_obj%FX_Len
-          OutputData%FX(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- FY Output Data fields
-    IF ( ASSOCIATED( OutputData%FY ) ) THEN
-       CALL C_F_POINTER( OutputData%C_obj%FY, dbl_arr, (/OutputData%C_obj%FY_Len/) )
-       DO i = 1, OutputData%C_obj%FY_Len
-          OutputData%FY(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- FZ Output Data fields
-    IF ( ASSOCIATED( OutputData%FZ ) ) THEN
-       CALL C_F_POINTER( OutputData%C_obj%FZ, dbl_arr, (/OutputData%C_obj%FZ_Len/) )
-       DO i = 1, OutputData%C_obj%FZ_Len
-          OutputData%FZ(i) = dbl_arr(i)
-       END DO
-    ENDIF
-
-    ! -- writeOutput Output Data fields
-    IF ( ALLOCATED( OutputData%writeOutput ) ) THEN
-       CALL C_F_POINTER( OutputData%C_obj%writeOutput, float_arr, (/OutputData%C_obj%writeOutput_Len/) )
-       DO i = 1, OutputData%C_obj%writeOutput_Len
-          OutputData%writeOutput(i) = float_arr(i)
-       END DO
-    ENDIF
- END SUBROUTINE MAP_C2F_CopyOutput
-
  SUBROUTINE MAP_CopyOutput( SrcOutputData, DstOutputData, CtrlCode, ErrStat, ErrMsg )
-   TYPE(MAP_outputtype), INTENT(INOUT) :: SrcOutputData
-   TYPE(MAP_outputtype), INTENT(INOUT) :: DstOutputData
+   TYPE(MAP_OutputType), INTENT(INOUT) :: SrcOutputData
+   TYPE(MAP_OutputType), INTENT(INOUT) :: DstOutputData
    INTEGER(IntKi),  INTENT(IN   ) :: CtrlCode
    INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
    CHARACTER(*),    INTENT(  OUT) :: ErrMsg
@@ -3468,96 +1968,112 @@ ENDIF
    INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5,j,k
    INTEGER(IntKi)                 :: i1_l,i2_l,i3_l,i4_l,i5_l  ! lower bounds for an array dimension
    INTEGER(IntKi)                 :: i1_u,i2_u,i3_u,i4_u,i5_u  ! upper bounds for an array dimension
+   INTEGER(IntKi)                 :: ErrStat2
+   CHARACTER(1024)                :: ErrMsg2
 ! 
    ErrStat = ErrID_None
    ErrMsg  = ""
-IF (ASSOCIATED(SrcOutputData%FX)) THEN
-   i1_l = LBOUND(SrcOutputData%FX,1)
-   i1_u = UBOUND(SrcOutputData%FX,1)
-   IF (.NOT. ASSOCIATED(DstOutputData%FX)) THEN 
-      ALLOCATE(DstOutputData%FX(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOutput: Error allocating DstOutputData%FX.'
+IF (ASSOCIATED(SrcOutputData%Fx)) THEN
+   i1_l = LBOUND(SrcOutputData%Fx,1)
+   i1_u = UBOUND(SrcOutputData%Fx,1)
+   IF (.NOT. ASSOCIATED(DstOutputData%Fx)) THEN 
+      ALLOCATE(DstOutputData%Fx(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%Fx.', ErrStat, ErrMsg,'MAP_CopyOutput')
          RETURN
       END IF
    END IF
-   DstOutputData%FX = SrcOutputData%FX
+   DstOutputData%Fx = SrcOutputData%Fx
 ENDIF
-IF (ASSOCIATED(SrcOutputData%FY)) THEN
-   i1_l = LBOUND(SrcOutputData%FY,1)
-   i1_u = UBOUND(SrcOutputData%FY,1)
-   IF (.NOT. ASSOCIATED(DstOutputData%FY)) THEN 
-      ALLOCATE(DstOutputData%FY(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOutput: Error allocating DstOutputData%FY.'
+IF (ASSOCIATED(SrcOutputData%Fy)) THEN
+   i1_l = LBOUND(SrcOutputData%Fy,1)
+   i1_u = UBOUND(SrcOutputData%Fy,1)
+   IF (.NOT. ASSOCIATED(DstOutputData%Fy)) THEN 
+      ALLOCATE(DstOutputData%Fy(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%Fy.', ErrStat, ErrMsg,'MAP_CopyOutput')
          RETURN
       END IF
    END IF
-   DstOutputData%FY = SrcOutputData%FY
+   DstOutputData%Fy = SrcOutputData%Fy
 ENDIF
-IF (ASSOCIATED(SrcOutputData%FZ)) THEN
-   i1_l = LBOUND(SrcOutputData%FZ,1)
-   i1_u = UBOUND(SrcOutputData%FZ,1)
-   IF (.NOT. ASSOCIATED(DstOutputData%FZ)) THEN 
-      ALLOCATE(DstOutputData%FZ(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOutput: Error allocating DstOutputData%FZ.'
+IF (ASSOCIATED(SrcOutputData%Fz)) THEN
+   i1_l = LBOUND(SrcOutputData%Fz,1)
+   i1_u = UBOUND(SrcOutputData%Fz,1)
+   IF (.NOT. ASSOCIATED(DstOutputData%Fz)) THEN 
+      ALLOCATE(DstOutputData%Fz(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%Fz.', ErrStat, ErrMsg,'MAP_CopyOutput')
          RETURN
       END IF
    END IF
-   DstOutputData%FZ = SrcOutputData%FZ
+   DstOutputData%Fz = SrcOutputData%Fz
+ENDIF
+IF (ALLOCATED(SrcOutputData%WriteOutput)) THEN
+   i1_l = LBOUND(SrcOutputData%WriteOutput,1)
+   i1_u = UBOUND(SrcOutputData%WriteOutput,1)
+   IF (.NOT. ALLOCATED(DstOutputData%WriteOutput)) THEN 
+      ALLOCATE(DstOutputData%WriteOutput(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%WriteOutput.', ErrStat, ErrMsg,'MAP_CopyOutput')
+         RETURN
+      END IF
+   END IF
+   DstOutputData%WriteOutput = SrcOutputData%WriteOutput
+ENDIF
+IF (ASSOCIATED(SrcOutputData%wrtOutput)) THEN
+   i1_l = LBOUND(SrcOutputData%wrtOutput,1)
+   i1_u = UBOUND(SrcOutputData%wrtOutput,1)
+   IF (.NOT. ASSOCIATED(DstOutputData%wrtOutput)) THEN 
+      ALLOCATE(DstOutputData%wrtOutput(i1_l:i1_u),STAT=ErrStat2)
+      IF (ErrStat2 /= 0) THEN 
+         CALL SetErrStat(ErrID_Fatal, 'Error allocating DstOutputData%wrtOutput.', ErrStat, ErrMsg,'MAP_CopyOutput')
+         RETURN
+      END IF
+   END IF
+   DstOutputData%wrtOutput = SrcOutputData%wrtOutput
 ENDIF
   DstOutputData%C_obj = SrcOutputData%C_obj
-     CALL MeshCopy( SrcOutputData%PtFairleadLoad, DstOutputData%PtFairleadLoad, CtrlCode, ErrStat, ErrMsg )
-IF (ALLOCATED(SrcOutputData%writeOutput)) THEN
-   i1_l = LBOUND(SrcOutputData%writeOutput,1)
-   i1_u = UBOUND(SrcOutputData%writeOutput,1)
-   IF (.NOT. ALLOCATED(DstOutputData%writeOutput)) THEN 
-      ALLOCATE(DstOutputData%writeOutput(i1_l:i1_u),STAT=ErrStat)
-      IF (ErrStat /= 0) THEN 
-         ErrStat = ErrID_Fatal 
-         ErrMsg = 'MAP_CopyOutput: Error allocating DstOutputData%writeOutput.'
-         RETURN
-      END IF
-   END IF
-   DstOutputData%writeOutput = SrcOutputData%writeOutput
-ENDIF
+     CALL MeshCopy( SrcOutputData%ptFairleadLoad, DstOutputData%ptFairleadLoad, CtrlCode, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MAP_CopyOutput:ptFairleadLoad')
+         IF (ErrStat>=AbortErrLev) RETURN
  END SUBROUTINE MAP_CopyOutput
 
  SUBROUTINE MAP_DestroyOutput( OutputData, ErrStat, ErrMsg )
-  TYPE(MAP_outputtype), INTENT(INOUT) :: OutputData
+  TYPE(MAP_OutputType), INTENT(INOUT) :: OutputData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
   INTEGER(IntKi)                 :: i, i1, i2, i3, i4, i5 
 ! 
   ErrStat = ErrID_None
   ErrMsg  = ""
-IF (ASSOCIATED(OutputData%FX)) THEN
-   DEALLOCATE(OutputData%FX)
-   OutputData%FX => NULL()
+IF (ASSOCIATED(OutputData%Fx)) THEN
+   DEALLOCATE(OutputData%Fx)
+   OutputData%Fx => NULL()
 ENDIF
-IF (ASSOCIATED(OutputData%FY)) THEN
-   DEALLOCATE(OutputData%FY)
-   OutputData%FY => NULL()
+IF (ASSOCIATED(OutputData%Fy)) THEN
+   DEALLOCATE(OutputData%Fy)
+   OutputData%Fy => NULL()
 ENDIF
-IF (ASSOCIATED(OutputData%FZ)) THEN
-   DEALLOCATE(OutputData%FZ)
-   OutputData%FZ => NULL()
+IF (ASSOCIATED(OutputData%Fz)) THEN
+   DEALLOCATE(OutputData%Fz)
+   OutputData%Fz => NULL()
 ENDIF
-  CALL MeshDestroy( OutputData%PtFairleadLoad, ErrStat, ErrMsg )
-IF (ALLOCATED(OutputData%writeOutput)) THEN
-   DEALLOCATE(OutputData%writeOutput)
+IF (ALLOCATED(OutputData%WriteOutput)) THEN
+   DEALLOCATE(OutputData%WriteOutput)
 ENDIF
+IF (ASSOCIATED(OutputData%wrtOutput)) THEN
+   DEALLOCATE(OutputData%wrtOutput)
+   OutputData%wrtOutput => NULL()
+ENDIF
+  CALL MeshDestroy( OutputData%ptFairleadLoad, ErrStat, ErrMsg )
  END SUBROUTINE MAP_DestroyOutput
 
  SUBROUTINE MAP_PackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Indata, ErrStat, ErrMsg, SizeOnly )
   REAL(ReKi),       ALLOCATABLE, INTENT(  OUT) :: ReKiBuf(:)
   REAL(DbKi),       ALLOCATABLE, INTENT(  OUT) :: DbKiBuf(:)
   INTEGER(IntKi),   ALLOCATABLE, INTENT(  OUT) :: IntKiBuf(:)
-  TYPE(MAP_outputtype),  INTENT(INOUT) :: InData
+  TYPE(MAP_OutputType),  INTENT(INOUT) :: InData
   INTEGER(IntKi),   INTENT(  OUT) :: ErrStat
   CHARACTER(*),     INTENT(  OUT) :: ErrMsg
   LOGICAL,OPTIONAL, INTENT(IN   ) :: SizeOnly
@@ -3574,9 +2090,9 @@ ENDIF
   INTEGER(IntKi)                 :: i,i1,i2,i3,i4,i5     
   LOGICAL                        :: OnlySize ! if present and true, do not pack, just allocate buffers
  ! buffers to store meshes, if any
-  REAL(ReKi),     ALLOCATABLE :: Re_PtFairleadLoad_Buf(:)
-  REAL(DbKi),     ALLOCATABLE :: Db_PtFairleadLoad_Buf(:)
-  INTEGER(IntKi), ALLOCATABLE :: Int_PtFairleadLoad_Buf(:)
+  REAL(ReKi),     ALLOCATABLE :: Re_ptFairleadLoad_Buf(:)
+  REAL(DbKi),     ALLOCATABLE :: Db_ptFairleadLoad_Buf(:)
+  INTEGER(IntKi), ALLOCATABLE :: Int_ptFairleadLoad_Buf(:)
   OnlySize = .FALSE.
   IF ( PRESENT(SizeOnly) ) THEN
     OnlySize = SizeOnly
@@ -3590,60 +2106,65 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  Db_BufSz    = Db_BufSz    + SIZE( InData%FX )  ! FX 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%FY )  ! FY 
-  Db_BufSz    = Db_BufSz    + SIZE( InData%FZ )  ! FZ 
+  IF ( ASSOCIATED(InData%Fx) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Fx )  ! Fx 
+  IF ( ASSOCIATED(InData%Fy) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Fy )  ! Fy 
+  IF ( ASSOCIATED(InData%Fz) )   Db_BufSz    = Db_BufSz    + SIZE( InData%Fz )  ! Fz 
+  IF ( ALLOCATED(InData%WriteOutput) )   Re_BufSz    = Re_BufSz    + SIZE( InData%WriteOutput )  ! WriteOutput 
+  IF ( ASSOCIATED(InData%wrtOutput) )   Db_BufSz    = Db_BufSz    + SIZE( InData%wrtOutput )  ! wrtOutput 
  ! Allocate mesh buffers, if any (we'll also get sizes from these) 
-  CALL MeshPack( InData%PtFairleadLoad, Re_PtFairleadLoad_Buf, Db_PtFairleadLoad_Buf, Int_PtFairleadLoad_Buf, ErrStat, ErrMsg, .TRUE. ) ! PtFairleadLoad 
-  IF(ALLOCATED(Re_PtFairleadLoad_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_PtFairleadLoad_Buf  ) ! PtFairleadLoad
-  IF(ALLOCATED(Db_PtFairleadLoad_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_PtFairleadLoad_Buf  ) ! PtFairleadLoad
-  IF(ALLOCATED(Int_PtFairleadLoad_Buf))Int_BufSz = Int_BufSz + SIZE( Int_PtFairleadLoad_Buf ) ! PtFairleadLoad
-  IF(ALLOCATED(Re_PtFairleadLoad_Buf))  DEALLOCATE(Re_PtFairleadLoad_Buf)
-  IF(ALLOCATED(Db_PtFairleadLoad_Buf))  DEALLOCATE(Db_PtFairleadLoad_Buf)
-  IF(ALLOCATED(Int_PtFairleadLoad_Buf)) DEALLOCATE(Int_PtFairleadLoad_Buf)
-  Re_BufSz    = Re_BufSz    + SIZE( InData%writeOutput )  ! writeOutput 
+  CALL MeshPack( InData%ptFairleadLoad, Re_ptFairleadLoad_Buf, Db_ptFairleadLoad_Buf, Int_ptFairleadLoad_Buf, ErrStat, ErrMsg, .TRUE. ) ! ptFairleadLoad 
+  IF(ALLOCATED(Re_ptFairleadLoad_Buf)) Re_BufSz  = Re_BufSz  + SIZE( Re_ptFairleadLoad_Buf  ) ! ptFairleadLoad
+  IF(ALLOCATED(Db_ptFairleadLoad_Buf)) Db_BufSz  = Db_BufSz  + SIZE( Db_ptFairleadLoad_Buf  ) ! ptFairleadLoad
+  IF(ALLOCATED(Int_ptFairleadLoad_Buf))Int_BufSz = Int_BufSz + SIZE( Int_ptFairleadLoad_Buf ) ! ptFairleadLoad
+  IF(ALLOCATED(Re_ptFairleadLoad_Buf))  DEALLOCATE(Re_ptFairleadLoad_Buf)
+  IF(ALLOCATED(Db_ptFairleadLoad_Buf))  DEALLOCATE(Db_ptFairleadLoad_Buf)
+  IF(ALLOCATED(Int_ptFairleadLoad_Buf)) DEALLOCATE(Int_ptFairleadLoad_Buf)
   IF ( Re_BufSz  .GT. 0 ) ALLOCATE( ReKiBuf(  Re_BufSz  ) )
   IF ( Db_BufSz  .GT. 0 ) ALLOCATE( DbKiBuf(  Db_BufSz  ) )
   IF ( Int_BufSz .GT. 0 ) ALLOCATE( IntKiBuf( Int_BufSz ) )
-  IF ( ASSOCIATED(InData%FX) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FX))-1 ) =  PACK(InData%FX ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%FX)
+  IF ( ASSOCIATED(InData%Fx) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Fx))-1 ) =  PACK(InData%Fx ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Fx)
   ENDIF
-  IF ( ASSOCIATED(InData%FY) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FY))-1 ) =  PACK(InData%FY ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%FY)
+  IF ( ASSOCIATED(InData%Fy) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Fy))-1 ) =  PACK(InData%Fy ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Fy)
   ENDIF
-  IF ( ASSOCIATED(InData%FZ) ) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%FZ))-1 ) =  PACK(InData%FZ ,.TRUE.)
-    Db_Xferred   = Db_Xferred   + SIZE(InData%FZ)
+  IF ( ASSOCIATED(InData%Fz) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%Fz))-1 ) =  PACK(InData%Fz ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%Fz)
   ENDIF
-  CALL MeshPack( InData%PtFairleadLoad, Re_PtFairleadLoad_Buf, Db_PtFairleadLoad_Buf, Int_PtFairleadLoad_Buf, ErrStat, ErrMsg, OnlySize ) ! PtFairleadLoad 
-  IF(ALLOCATED(Re_PtFairleadLoad_Buf)) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PtFairleadLoad_Buf)-1 ) = Re_PtFairleadLoad_Buf
-    Re_Xferred = Re_Xferred + SIZE(Re_PtFairleadLoad_Buf)
+  IF ( ALLOCATED(InData%WriteOutput) ) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%WriteOutput))-1 ) =  PACK(InData%WriteOutput ,.TRUE.)
+    Re_Xferred   = Re_Xferred   + SIZE(InData%WriteOutput)
   ENDIF
-  IF(ALLOCATED(Db_PtFairleadLoad_Buf)) THEN
-    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_PtFairleadLoad_Buf)-1 ) = Db_PtFairleadLoad_Buf
-    Db_Xferred = Db_Xferred + SIZE(Db_PtFairleadLoad_Buf)
+  IF ( ASSOCIATED(InData%wrtOutput) ) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf ( Db_Xferred:Db_Xferred+(SIZE(InData%wrtOutput))-1 ) =  PACK(InData%wrtOutput ,.TRUE.)
+    Db_Xferred   = Db_Xferred   + SIZE(InData%wrtOutput)
   ENDIF
-  IF(ALLOCATED(Int_PtFairleadLoad_Buf)) THEN
-    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_PtFairleadLoad_Buf)-1 ) = Int_PtFairleadLoad_Buf
-    Int_Xferred = Int_Xferred + SIZE(Int_PtFairleadLoad_Buf)
+  CALL MeshPack( InData%ptFairleadLoad, Re_ptFairleadLoad_Buf, Db_ptFairleadLoad_Buf, Int_ptFairleadLoad_Buf, ErrStat, ErrMsg, OnlySize ) ! ptFairleadLoad 
+  IF(ALLOCATED(Re_ptFairleadLoad_Buf)) THEN
+    IF ( .NOT. OnlySize ) ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ptFairleadLoad_Buf)-1 ) = Re_ptFairleadLoad_Buf
+    Re_Xferred = Re_Xferred + SIZE(Re_ptFairleadLoad_Buf)
   ENDIF
-  IF( ALLOCATED(Re_PtFairleadLoad_Buf) )  DEALLOCATE(Re_PtFairleadLoad_Buf)
-  IF( ALLOCATED(Db_PtFairleadLoad_Buf) )  DEALLOCATE(Db_PtFairleadLoad_Buf)
-  IF( ALLOCATED(Int_PtFairleadLoad_Buf) ) DEALLOCATE(Int_PtFairleadLoad_Buf)
-  IF ( ALLOCATED(InData%writeOutput) ) THEN
-    IF ( .NOT. OnlySize ) ReKiBuf ( Re_Xferred:Re_Xferred+(SIZE(InData%writeOutput))-1 ) =  PACK(InData%writeOutput ,.TRUE.)
-    Re_Xferred   = Re_Xferred   + SIZE(InData%writeOutput)
+  IF(ALLOCATED(Db_ptFairleadLoad_Buf)) THEN
+    IF ( .NOT. OnlySize ) DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ptFairleadLoad_Buf)-1 ) = Db_ptFairleadLoad_Buf
+    Db_Xferred = Db_Xferred + SIZE(Db_ptFairleadLoad_Buf)
   ENDIF
+  IF(ALLOCATED(Int_ptFairleadLoad_Buf)) THEN
+    IF ( .NOT. OnlySize ) IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ptFairleadLoad_Buf)-1 ) = Int_ptFairleadLoad_Buf
+    Int_Xferred = Int_Xferred + SIZE(Int_ptFairleadLoad_Buf)
+  ENDIF
+  IF( ALLOCATED(Re_ptFairleadLoad_Buf) )  DEALLOCATE(Re_ptFairleadLoad_Buf)
+  IF( ALLOCATED(Db_ptFairleadLoad_Buf) )  DEALLOCATE(Db_ptFairleadLoad_Buf)
+  IF( ALLOCATED(Int_ptFairleadLoad_Buf) ) DEALLOCATE(Int_ptFairleadLoad_Buf)
  END SUBROUTINE MAP_PackOutput
 
  SUBROUTINE MAP_UnPackOutput( ReKiBuf, DbKiBuf, IntKiBuf, Outdata, ErrStat, ErrMsg )
   REAL(ReKi),      ALLOCATABLE, INTENT(IN   ) :: ReKiBuf(:)
   REAL(DbKi),      ALLOCATABLE, INTENT(IN   ) :: DbKiBuf(:)
   INTEGER(IntKi),  ALLOCATABLE, INTENT(IN   ) :: IntKiBuf(:)
-  TYPE(MAP_outputtype), INTENT(INOUT) :: OutData
+  TYPE(MAP_OutputType), INTENT(INOUT) :: OutData
   INTEGER(IntKi),  INTENT(  OUT) :: ErrStat
   CHARACTER(*),    INTENT(  OUT) :: ErrMsg
     ! Local variables
@@ -3663,9 +2184,9 @@ ENDIF
   LOGICAL, ALLOCATABLE           :: mask4(:,:,:,:)
   LOGICAL, ALLOCATABLE           :: mask5(:,:,:,:,:)
  ! buffers to store meshes, if any
-  REAL(ReKi),    ALLOCATABLE :: Re_PtFairleadLoad_Buf(:)
-  REAL(DbKi),    ALLOCATABLE :: Db_PtFairleadLoad_Buf(:)
-  INTEGER(IntKi),    ALLOCATABLE :: Int_PtFairleadLoad_Buf(:)
+  REAL(ReKi),    ALLOCATABLE :: Re_ptFairleadLoad_Buf(:)
+  REAL(DbKi),    ALLOCATABLE :: Db_ptFairleadLoad_Buf(:)
+  INTEGER(IntKi),    ALLOCATABLE :: Int_ptFairleadLoad_Buf(:)
     !
   ErrStat = ErrID_None
   ErrMsg  = ""
@@ -3675,48 +2196,59 @@ ENDIF
   Re_BufSz  = 0
   Db_BufSz  = 0
   Int_BufSz  = 0
-  IF ( ASSOCIATED(OutData%FX) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FX,1))); mask1 = .TRUE.
-    OutData%FX = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FX))-1 ),mask1,REAL(OutData%FX,DbKi)), C_DOUBLE)
+  IF ( ASSOCIATED(OutData%Fx) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Fx,1)))
+  mask1 = .TRUE.
+    OutData%Fx = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Fx))-1 ),mask1,REAL(OutData%Fx,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%FX)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Fx)
   ENDIF
-  IF ( ASSOCIATED(OutData%FY) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FY,1))); mask1 = .TRUE.
-    OutData%FY = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FY))-1 ),mask1,REAL(OutData%FY,DbKi)), C_DOUBLE)
+  IF ( ASSOCIATED(OutData%Fy) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Fy,1)))
+  mask1 = .TRUE.
+    OutData%Fy = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Fy))-1 ),mask1,REAL(OutData%Fy,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%FY)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Fy)
   ENDIF
-  IF ( ASSOCIATED(OutData%FZ) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%FZ,1))); mask1 = .TRUE.
-    OutData%FZ = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%FZ))-1 ),mask1,REAL(OutData%FZ,DbKi)), C_DOUBLE)
+  IF ( ASSOCIATED(OutData%Fz) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%Fz,1)))
+  mask1 = .TRUE.
+    OutData%Fz = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%Fz))-1 ),mask1,REAL(OutData%Fz,DbKi)), C_DOUBLE)
   DEALLOCATE(mask1)
-    Db_Xferred   = Db_Xferred   + SIZE(OutData%FZ)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%Fz)
+  ENDIF
+  IF ( ALLOCATED(OutData%WriteOutput) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%WriteOutput,1)))
+  mask1 = .TRUE.
+    OutData%WriteOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%WriteOutput))-1 ),mask1,OutData%WriteOutput)
+  DEALLOCATE(mask1)
+    Re_Xferred   = Re_Xferred   + SIZE(OutData%WriteOutput)
+  ENDIF
+  IF ( ASSOCIATED(OutData%wrtOutput) ) THEN
+  ALLOCATE(mask1(SIZE(OutData%wrtOutput,1)))
+  mask1 = .TRUE.
+    OutData%wrtOutput = REAL( UNPACK(DbKiBuf( Db_Xferred:Re_Xferred+(SIZE(OutData%wrtOutput))-1 ),mask1,REAL(OutData%wrtOutput,DbKi)), C_DOUBLE)
+  DEALLOCATE(mask1)
+    Db_Xferred   = Db_Xferred   + SIZE(OutData%wrtOutput)
   ENDIF
  ! first call MeshPack to get correctly sized buffers for unpacking
-  CALL MeshPack( OutData%PtFairleadLoad, Re_PtFairleadLoad_Buf, Db_PtFairleadLoad_Buf, Int_PtFairleadLoad_Buf, ErrStat, ErrMsg , .TRUE. ) ! PtFairleadLoad 
-  IF(ALLOCATED(Re_PtFairleadLoad_Buf)) THEN
-    Re_PtFairleadLoad_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_PtFairleadLoad_Buf)-1 )
-    Re_Xferred = Re_Xferred + SIZE(Re_PtFairleadLoad_Buf)
+  CALL MeshPack( OutData%ptFairleadLoad, Re_ptFairleadLoad_Buf, Db_ptFairleadLoad_Buf, Int_ptFairleadLoad_Buf, ErrStat, ErrMsg , .TRUE. ) ! ptFairleadLoad 
+  IF(ALLOCATED(Re_ptFairleadLoad_Buf)) THEN
+    Re_ptFairleadLoad_Buf = ReKiBuf( Re_Xferred:Re_Xferred+SIZE(Re_ptFairleadLoad_Buf)-1 )
+    Re_Xferred = Re_Xferred + SIZE(Re_ptFairleadLoad_Buf)
   ENDIF
-  IF(ALLOCATED(Db_PtFairleadLoad_Buf)) THEN
-    Db_PtFairleadLoad_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_PtFairleadLoad_Buf)-1 )
-    Db_Xferred = Db_Xferred + SIZE(Db_PtFairleadLoad_Buf)
+  IF(ALLOCATED(Db_ptFairleadLoad_Buf)) THEN
+    Db_ptFairleadLoad_Buf = DbKiBuf( Db_Xferred:Db_Xferred+SIZE(Db_ptFairleadLoad_Buf)-1 )
+    Db_Xferred = Db_Xferred + SIZE(Db_ptFairleadLoad_Buf)
   ENDIF
-  IF(ALLOCATED(Int_PtFairleadLoad_Buf)) THEN
-    Int_PtFairleadLoad_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_PtFairleadLoad_Buf)-1 )
-    Int_Xferred = Int_Xferred + SIZE(Int_PtFairleadLoad_Buf)
+  IF(ALLOCATED(Int_ptFairleadLoad_Buf)) THEN
+    Int_ptFairleadLoad_Buf = IntKiBuf( Int_Xferred:Int_Xferred+SIZE(Int_ptFairleadLoad_Buf)-1 )
+    Int_Xferred = Int_Xferred + SIZE(Int_ptFairleadLoad_Buf)
   ENDIF
-  CALL MeshUnPack( OutData%PtFairleadLoad, Re_PtFairleadLoad_Buf, Db_PtFairleadLoad_Buf, Int_PtFairleadLoad_Buf, ErrStat, ErrMsg ) ! PtFairleadLoad 
-  IF( ALLOCATED(Re_PtFairleadLoad_Buf) )  DEALLOCATE(Re_PtFairleadLoad_Buf)
-  IF( ALLOCATED(Db_PtFairleadLoad_Buf) )  DEALLOCATE(Db_PtFairleadLoad_Buf)
-  IF( ALLOCATED(Int_PtFairleadLoad_Buf) ) DEALLOCATE(Int_PtFairleadLoad_Buf)
-  IF ( ALLOCATED(OutData%writeOutput) ) THEN
-  ALLOCATE(mask1(SIZE(OutData%writeOutput,1))); mask1 = .TRUE.
-    OutData%writeOutput = UNPACK(ReKiBuf( Re_Xferred:Re_Xferred+(SIZE(OutData%writeOutput))-1 ),mask1,OutData%writeOutput)
-  DEALLOCATE(mask1)
-    Re_Xferred   = Re_Xferred   + SIZE(OutData%writeOutput)
-  ENDIF
+  CALL MeshUnPack( OutData%ptFairleadLoad, Re_ptFairleadLoad_Buf, Db_ptFairleadLoad_Buf, Int_ptFairleadLoad_Buf, ErrStat, ErrMsg ) ! ptFairleadLoad 
+  IF( ALLOCATED(Re_ptFairleadLoad_Buf) )  DEALLOCATE(Re_ptFairleadLoad_Buf)
+  IF( ALLOCATED(Db_ptFairleadLoad_Buf) )  DEALLOCATE(Db_ptFairleadLoad_Buf)
+  IF( ALLOCATED(Int_ptFairleadLoad_Buf) ) DEALLOCATE(Int_ptFairleadLoad_Buf)
   Re_Xferred   = Re_Xferred-1
   Db_Xferred   = Db_Xferred-1
   Int_Xferred  = Int_Xferred-1
@@ -3761,6 +2293,8 @@ ENDIF
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -3831,47 +2365,51 @@ ENDIF
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-IF (ASSOCIATED(u_out%X) .AND. ASSOCIATED(u(1)%X)) THEN
-  u_out%X = u(1)%X
+IF (ASSOCIATED(u_out%x) .AND. ASSOCIATED(u(1)%x)) THEN
+  u_out%x = u(1)%x
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%Y) .AND. ASSOCIATED(u(1)%Y)) THEN
-  u_out%Y = u(1)%Y
+IF (ASSOCIATED(u_out%y) .AND. ASSOCIATED(u(1)%y)) THEN
+  u_out%y = u(1)%y
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%Z) .AND. ASSOCIATED(u(1)%Z)) THEN
-  u_out%Z = u(1)%Z
+IF (ASSOCIATED(u_out%z) .AND. ASSOCIATED(u(1)%z)) THEN
+  u_out%z = u(1)%z
 END IF ! check if allocated
-  CALL MeshCopy(u(1)%PtFairleadDisplacement, u_out%PtFairleadDisplacement, MESH_UPDATECOPY, ErrStat, ErrMsg )
+  CALL MeshCopy(u(1)%PtFairDisplacement, u_out%PtFairDisplacement, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MAP_Input_ExtrapInterp:%PtFairDisplacement')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
     ErrMsg  = ' Error in MAP_Input_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ASSOCIATED(u_out%X) .AND. ASSOCIATED(u(1)%X)) THEN
-  ALLOCATE(b1(SIZE(u_out%X,1)))
-  ALLOCATE(c1(SIZE(u_out%X,1)))
-  b1 = -(u(1)%X - u(2)%X)/t(2)
-  u_out%X = u(1)%X + b1 * t_out
+IF (ASSOCIATED(u_out%x) .AND. ASSOCIATED(u(1)%x)) THEN
+  ALLOCATE(b1(SIZE(u_out%x,1)))
+  ALLOCATE(c1(SIZE(u_out%x,1)))
+  b1 = -(u(1)%x - u(2)%x)/t(2)
+  u_out%x = u(1)%x + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%Y) .AND. ASSOCIATED(u(1)%Y)) THEN
-  ALLOCATE(b1(SIZE(u_out%Y,1)))
-  ALLOCATE(c1(SIZE(u_out%Y,1)))
-  b1 = -(u(1)%Y - u(2)%Y)/t(2)
-  u_out%Y = u(1)%Y + b1 * t_out
+IF (ASSOCIATED(u_out%y) .AND. ASSOCIATED(u(1)%y)) THEN
+  ALLOCATE(b1(SIZE(u_out%y,1)))
+  ALLOCATE(c1(SIZE(u_out%y,1)))
+  b1 = -(u(1)%y - u(2)%y)/t(2)
+  u_out%y = u(1)%y + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%Z) .AND. ASSOCIATED(u(1)%Z)) THEN
-  ALLOCATE(b1(SIZE(u_out%Z,1)))
-  ALLOCATE(c1(SIZE(u_out%Z,1)))
-  b1 = -(u(1)%Z - u(2)%Z)/t(2)
-  u_out%Z = u(1)%Z + b1 * t_out
+IF (ASSOCIATED(u_out%z) .AND. ASSOCIATED(u(1)%z)) THEN
+  ALLOCATE(b1(SIZE(u_out%z,1)))
+  ALLOCATE(c1(SIZE(u_out%z,1)))
+  b1 = -(u(1)%z - u(2)%z)/t(2)
+  u_out%z = u(1)%z + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  CALL MeshExtrapInterp1(u(1)%PtFairleadDisplacement, u(2)%PtFairleadDisplacement, tin, u_out%PtFairleadDisplacement, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp1(u(1)%PtFairDisplacement, u(2)%PtFairDisplacement, tin, u_out%PtFairDisplacement, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MAP_Input_ExtrapInterp:%PtFairDisplacement')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -3888,34 +2426,36 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MAP_Input_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ASSOCIATED(u_out%X) .AND. ASSOCIATED(u(1)%X)) THEN
-  ALLOCATE(b1(SIZE(u_out%X,1)))
-  ALLOCATE(c1(SIZE(u_out%X,1)))
-  b1 = (t(3)**2*(u(1)%X - u(2)%X) + t(2)**2*(-u(1)%X + u(3)%X))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%X + t(3)*u(2)%X - t(2)*u(3)%X ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%X = u(1)%X + b1 * t_out + c1 * t_out**2
+IF (ASSOCIATED(u_out%x) .AND. ASSOCIATED(u(1)%x)) THEN
+  ALLOCATE(b1(SIZE(u_out%x,1)))
+  ALLOCATE(c1(SIZE(u_out%x,1)))
+  b1 = (t(3)**2*(u(1)%x - u(2)%x) + t(2)**2*(-u(1)%x + u(3)%x))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u(1)%x + t(3)*u(2)%x - t(2)*u(3)%x ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%x = u(1)%x + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%Y) .AND. ASSOCIATED(u(1)%Y)) THEN
-  ALLOCATE(b1(SIZE(u_out%Y,1)))
-  ALLOCATE(c1(SIZE(u_out%Y,1)))
-  b1 = (t(3)**2*(u(1)%Y - u(2)%Y) + t(2)**2*(-u(1)%Y + u(3)%Y))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Y + t(3)*u(2)%Y - t(2)*u(3)%Y ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Y = u(1)%Y + b1 * t_out + c1 * t_out**2
+IF (ASSOCIATED(u_out%y) .AND. ASSOCIATED(u(1)%y)) THEN
+  ALLOCATE(b1(SIZE(u_out%y,1)))
+  ALLOCATE(c1(SIZE(u_out%y,1)))
+  b1 = (t(3)**2*(u(1)%y - u(2)%y) + t(2)**2*(-u(1)%y + u(3)%y))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u(1)%y + t(3)*u(2)%y - t(2)*u(3)%y ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%y = u(1)%y + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%Z) .AND. ASSOCIATED(u(1)%Z)) THEN
-  ALLOCATE(b1(SIZE(u_out%Z,1)))
-  ALLOCATE(c1(SIZE(u_out%Z,1)))
-  b1 = (t(3)**2*(u(1)%Z - u(2)%Z) + t(2)**2*(-u(1)%Z + u(3)%Z))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%Z + t(3)*u(2)%Z - t(2)*u(3)%Z ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%Z = u(1)%Z + b1 * t_out + c1 * t_out**2
+IF (ASSOCIATED(u_out%z) .AND. ASSOCIATED(u(1)%z)) THEN
+  ALLOCATE(b1(SIZE(u_out%z,1)))
+  ALLOCATE(c1(SIZE(u_out%z,1)))
+  b1 = (t(3)**2*(u(1)%z - u(2)%z) + t(2)**2*(-u(1)%z + u(3)%z))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u(1)%z + t(3)*u(2)%z - t(2)*u(3)%z ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%z = u(1)%z + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  CALL MeshExtrapInterp2(u(1)%PtFairleadDisplacement, u(2)%PtFairleadDisplacement, u(3)%PtFairleadDisplacement, tin, u_out%PtFairleadDisplacement, tin_out, ErrStat, ErrMsg )
+  CALL MeshExtrapInterp2(u(1)%PtFairDisplacement, u(2)%PtFairDisplacement, u(3)%PtFairDisplacement, tin, u_out%PtFairDisplacement, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MAP_Input_ExtrapInterp:%PtFairDisplacement')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in MAP_Input_ExtrapInterp '
@@ -3962,6 +2502,8 @@ END IF ! check if allocated
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:)  :: c4       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: b5       ! temporary for extrapolation/interpolation
  REAL(DbKi),ALLOCATABLE,DIMENSION(:,:,:,:,:):: c5       ! temporary for extrapolation/interpolation
+ INTEGER(IntKi)                             :: ErrStat2 ! local errors
+ CHARACTER(1024)                            :: ErrMsg2  ! local errors
  INTEGER                                    :: i01    ! dim1 level 0 counter variable for arrays of ddts
  INTEGER                                    :: i11    ! dim1 level 1 counter variable for arrays of ddts
  INTEGER                                    :: i21    ! dim1 level 2 counter variable for arrays of ddts
@@ -4032,58 +2574,73 @@ END IF ! check if allocated
  endif
  order = SIZE(u) - 1
  IF ( order .eq. 0 ) THEN
-IF (ASSOCIATED(u_out%FX) .AND. ASSOCIATED(u(1)%FX)) THEN
-  u_out%FX = u(1)%FX
+IF (ASSOCIATED(u_out%Fx) .AND. ASSOCIATED(u(1)%Fx)) THEN
+  u_out%Fx = u(1)%Fx
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%FY) .AND. ASSOCIATED(u(1)%FY)) THEN
-  u_out%FY = u(1)%FY
+IF (ASSOCIATED(u_out%Fy) .AND. ASSOCIATED(u(1)%Fy)) THEN
+  u_out%Fy = u(1)%Fy
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%FZ) .AND. ASSOCIATED(u(1)%FZ)) THEN
-  u_out%FZ = u(1)%FZ
+IF (ASSOCIATED(u_out%Fz) .AND. ASSOCIATED(u(1)%Fz)) THEN
+  u_out%Fz = u(1)%Fz
 END IF ! check if allocated
-  CALL MeshCopy(u(1)%PtFairleadLoad, u_out%PtFairleadLoad, MESH_UPDATECOPY, ErrStat, ErrMsg )
-IF (ALLOCATED(u_out%writeOutput) .AND. ALLOCATED(u(1)%writeOutput)) THEN
-  u_out%writeOutput = u(1)%writeOutput
+IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
+  u_out%WriteOutput = u(1)%WriteOutput
 END IF ! check if allocated
+IF (ASSOCIATED(u_out%wrtOutput) .AND. ASSOCIATED(u(1)%wrtOutput)) THEN
+  u_out%wrtOutput = u(1)%wrtOutput
+END IF ! check if allocated
+  CALL MeshCopy(u(1)%ptFairleadLoad, u_out%ptFairleadLoad, MESH_UPDATECOPY, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MAP_Output_ExtrapInterp:%ptFairleadLoad')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 1 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
     ErrMsg  = ' Error in MAP_Output_ExtrapInterp: t(1) must not equal t(2) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ASSOCIATED(u_out%FX) .AND. ASSOCIATED(u(1)%FX)) THEN
-  ALLOCATE(b1(SIZE(u_out%FX,1)))
-  ALLOCATE(c1(SIZE(u_out%FX,1)))
-  b1 = -(u(1)%FX - u(2)%FX)/t(2)
-  u_out%FX = u(1)%FX + b1 * t_out
+IF (ASSOCIATED(u_out%Fx) .AND. ASSOCIATED(u(1)%Fx)) THEN
+  ALLOCATE(b1(SIZE(u_out%Fx,1)))
+  ALLOCATE(c1(SIZE(u_out%Fx,1)))
+  b1 = -(u(1)%Fx - u(2)%Fx)/t(2)
+  u_out%Fx = u(1)%Fx + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%FY) .AND. ASSOCIATED(u(1)%FY)) THEN
-  ALLOCATE(b1(SIZE(u_out%FY,1)))
-  ALLOCATE(c1(SIZE(u_out%FY,1)))
-  b1 = -(u(1)%FY - u(2)%FY)/t(2)
-  u_out%FY = u(1)%FY + b1 * t_out
+IF (ASSOCIATED(u_out%Fy) .AND. ASSOCIATED(u(1)%Fy)) THEN
+  ALLOCATE(b1(SIZE(u_out%Fy,1)))
+  ALLOCATE(c1(SIZE(u_out%Fy,1)))
+  b1 = -(u(1)%Fy - u(2)%Fy)/t(2)
+  u_out%Fy = u(1)%Fy + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%FZ) .AND. ASSOCIATED(u(1)%FZ)) THEN
-  ALLOCATE(b1(SIZE(u_out%FZ,1)))
-  ALLOCATE(c1(SIZE(u_out%FZ,1)))
-  b1 = -(u(1)%FZ - u(2)%FZ)/t(2)
-  u_out%FZ = u(1)%FZ + b1 * t_out
+IF (ASSOCIATED(u_out%Fz) .AND. ASSOCIATED(u(1)%Fz)) THEN
+  ALLOCATE(b1(SIZE(u_out%Fz,1)))
+  ALLOCATE(c1(SIZE(u_out%Fz,1)))
+  b1 = -(u(1)%Fz - u(2)%Fz)/t(2)
+  u_out%Fz = u(1)%Fz + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  CALL MeshExtrapInterp1(u(1)%PtFairleadLoad, u(2)%PtFairleadLoad, tin, u_out%PtFairleadLoad, tin_out, ErrStat, ErrMsg )
-IF (ALLOCATED(u_out%writeOutput) .AND. ALLOCATED(u(1)%writeOutput)) THEN
-  ALLOCATE(b1(SIZE(u_out%writeOutput,1)))
-  ALLOCATE(c1(SIZE(u_out%writeOutput,1)))
-  b1 = -(u(1)%writeOutput - u(2)%writeOutput)/t(2)
-  u_out%writeOutput = u(1)%writeOutput + b1 * t_out
+IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
+  ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
+  ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))
+  b1 = -(u(1)%WriteOutput - u(2)%WriteOutput)/t(2)
+  u_out%WriteOutput = u(1)%WriteOutput + b1 * t_out
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
+IF (ASSOCIATED(u_out%wrtOutput) .AND. ASSOCIATED(u(1)%wrtOutput)) THEN
+  ALLOCATE(b1(SIZE(u_out%wrtOutput,1)))
+  ALLOCATE(c1(SIZE(u_out%wrtOutput,1)))
+  b1 = -(u(1)%wrtOutput - u(2)%wrtOutput)/t(2)
+  u_out%wrtOutput = u(1)%wrtOutput + b1 * t_out
+  DEALLOCATE(b1)
+  DEALLOCATE(c1)
+END IF ! check if allocated
+  CALL MeshExtrapInterp1(u(1)%ptFairleadLoad, u(2)%ptFairleadLoad, tin, u_out%ptFairleadLoad, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MAP_Output_ExtrapInterp:%ptFairleadLoad')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE IF ( order .eq. 2 ) THEN
   IF ( EqualRealNos( t(1), t(2) ) ) THEN
     ErrStat = ErrID_Fatal
@@ -4100,43 +2657,54 @@ END IF ! check if allocated
     ErrMsg  = ' Error in MAP_Output_ExtrapInterp: t(1) must not equal t(3) to avoid a division-by-zero error.'
     RETURN
   END IF
-IF (ASSOCIATED(u_out%FX) .AND. ASSOCIATED(u(1)%FX)) THEN
-  ALLOCATE(b1(SIZE(u_out%FX,1)))
-  ALLOCATE(c1(SIZE(u_out%FX,1)))
-  b1 = (t(3)**2*(u(1)%FX - u(2)%FX) + t(2)**2*(-u(1)%FX + u(3)%FX))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%FX + t(3)*u(2)%FX - t(2)*u(3)%FX ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%FX = u(1)%FX + b1 * t_out + c1 * t_out**2
+IF (ASSOCIATED(u_out%Fx) .AND. ASSOCIATED(u(1)%Fx)) THEN
+  ALLOCATE(b1(SIZE(u_out%Fx,1)))
+  ALLOCATE(c1(SIZE(u_out%Fx,1)))
+  b1 = (t(3)**2*(u(1)%Fx - u(2)%Fx) + t(2)**2*(-u(1)%Fx + u(3)%Fx))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u(1)%Fx + t(3)*u(2)%Fx - t(2)*u(3)%Fx ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Fx = u(1)%Fx + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%FY) .AND. ASSOCIATED(u(1)%FY)) THEN
-  ALLOCATE(b1(SIZE(u_out%FY,1)))
-  ALLOCATE(c1(SIZE(u_out%FY,1)))
-  b1 = (t(3)**2*(u(1)%FY - u(2)%FY) + t(2)**2*(-u(1)%FY + u(3)%FY))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%FY + t(3)*u(2)%FY - t(2)*u(3)%FY ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%FY = u(1)%FY + b1 * t_out + c1 * t_out**2
+IF (ASSOCIATED(u_out%Fy) .AND. ASSOCIATED(u(1)%Fy)) THEN
+  ALLOCATE(b1(SIZE(u_out%Fy,1)))
+  ALLOCATE(c1(SIZE(u_out%Fy,1)))
+  b1 = (t(3)**2*(u(1)%Fy - u(2)%Fy) + t(2)**2*(-u(1)%Fy + u(3)%Fy))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u(1)%Fy + t(3)*u(2)%Fy - t(2)*u(3)%Fy ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Fy = u(1)%Fy + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-IF (ASSOCIATED(u_out%FZ) .AND. ASSOCIATED(u(1)%FZ)) THEN
-  ALLOCATE(b1(SIZE(u_out%FZ,1)))
-  ALLOCATE(c1(SIZE(u_out%FZ,1)))
-  b1 = (t(3)**2*(u(1)%FZ - u(2)%FZ) + t(2)**2*(-u(1)%FZ + u(3)%FZ))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%FZ + t(3)*u(2)%FZ - t(2)*u(3)%FZ ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%FZ = u(1)%FZ + b1 * t_out + c1 * t_out**2
+IF (ASSOCIATED(u_out%Fz) .AND. ASSOCIATED(u(1)%Fz)) THEN
+  ALLOCATE(b1(SIZE(u_out%Fz,1)))
+  ALLOCATE(c1(SIZE(u_out%Fz,1)))
+  b1 = (t(3)**2*(u(1)%Fz - u(2)%Fz) + t(2)**2*(-u(1)%Fz + u(3)%Fz))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u(1)%Fz + t(3)*u(2)%Fz - t(2)*u(3)%Fz ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%Fz = u(1)%Fz + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
-  CALL MeshExtrapInterp2(u(1)%PtFairleadLoad, u(2)%PtFairleadLoad, u(3)%PtFairleadLoad, tin, u_out%PtFairleadLoad, tin_out, ErrStat, ErrMsg )
-IF (ALLOCATED(u_out%writeOutput) .AND. ALLOCATED(u(1)%writeOutput)) THEN
-  ALLOCATE(b1(SIZE(u_out%writeOutput,1)))
-  ALLOCATE(c1(SIZE(u_out%writeOutput,1)))
-  b1 = (t(3)**2*(u(1)%writeOutput - u(2)%writeOutput) + t(2)**2*(-u(1)%writeOutput + u(3)%writeOutput))/(t(2)*t(3)*(t(2) - t(3)))
-  c1 = ( (t(2)-t(3))*u(1)%writeOutput + t(3)*u(2)%writeOutput - t(2)*u(3)%writeOutput ) / (t(2)*t(3)*(t(2) - t(3)))
-  u_out%writeOutput = u(1)%writeOutput + b1 * t_out + c1 * t_out**2
+IF (ALLOCATED(u_out%WriteOutput) .AND. ALLOCATED(u(1)%WriteOutput)) THEN
+  ALLOCATE(b1(SIZE(u_out%WriteOutput,1)))
+  ALLOCATE(c1(SIZE(u_out%WriteOutput,1)))
+  b1 = (t(3)**2*(u(1)%WriteOutput - u(2)%WriteOutput) + t(2)**2*(-u(1)%WriteOutput + u(3)%WriteOutput))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u(1)%WriteOutput + t(3)*u(2)%WriteOutput - t(2)*u(3)%WriteOutput ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%WriteOutput = u(1)%WriteOutput + b1 * t_out + c1 * t_out**2
   DEALLOCATE(b1)
   DEALLOCATE(c1)
 END IF ! check if allocated
+IF (ASSOCIATED(u_out%wrtOutput) .AND. ASSOCIATED(u(1)%wrtOutput)) THEN
+  ALLOCATE(b1(SIZE(u_out%wrtOutput,1)))
+  ALLOCATE(c1(SIZE(u_out%wrtOutput,1)))
+  b1 = (t(3)**2*(u(1)%wrtOutput - u(2)%wrtOutput) + t(2)**2*(-u(1)%wrtOutput + u(3)%wrtOutput))/(t(2)*t(3)*(t(2) - t(3)))
+  c1 = ( (t(2)-t(3))*u(1)%wrtOutput + t(3)*u(2)%wrtOutput - t(2)*u(3)%wrtOutput ) / (t(2)*t(3)*(t(2) - t(3)))
+  u_out%wrtOutput = u(1)%wrtOutput + b1 * t_out + c1 * t_out**2
+  DEALLOCATE(b1)
+  DEALLOCATE(c1)
+END IF ! check if allocated
+  CALL MeshExtrapInterp2(u(1)%ptFairleadLoad, u(2)%ptFairleadLoad, u(3)%ptFairleadLoad, tin, u_out%ptFairleadLoad, tin_out, ErrStat2, ErrMsg2 )
+         CALL SetErrStat(ErrStat2, ErrMsg2, ErrStat, ErrMsg,'MAP_Output_ExtrapInterp:%ptFairleadLoad')
+         IF (ErrStat>=AbortErrLev) RETURN
  ELSE 
    ErrStat = ErrID_Fatal
    ErrMsg = ' order must be less than 3 in MAP_Output_ExtrapInterp '

@@ -1,7 +1,7 @@
 ---------------------- LINE DICTIONARY ---------------------------------------
-LineType     Diam     MassDenInAir    EA        CB
-(-)          (m)      (kg/m)         (kN)       (-)
-Material     0.0766    113.35      7.536E5      1.0
+LineType     Diam     MassDenInAir    EA        CB   CIntDamp  Ca   Cdn  Cdt
+(-)          (m)      (kg/m)         (N)       (-)   (Pa-s)   (-)  (-)  (-)
+Material     0.0766    113.35      7.536E8      1.0    0        0    0    0
 ---------------------- NODE PROPERTIES ---------------------------------------
 Node Type       X        Y        Z     M     B     FX    FY    FZ
 (-)  (-)       (m)      (m)      (m)   (kg)  (mˆ3) (kN)  (kN)  (kN)
@@ -10,22 +10,8 @@ Node Type       X        Y        Z     M     B     FX    FY    FZ
 ---------------------- LINE PROPERTIES ---------------------------------------
 Line   LineType  UnstrLen    NodeAnch  NodeFair  Flags
 (-)      (-)       (m)         (-)       (-)       (-)
-1       Material   835.35        1         2        fair_tension anch_tension 
-2       repeat     120 240
+1       Material   835.35        1         2        tension_fair tension_anch
 ---------------------- SOLVER OPTIONS-----------------------------------------
 Option
-(-)   
--snes_type newtonls
--ksp_type preonly
--msqs_fd_jacobian
--pc_type lu
--pc_factor_nonzeros_along_diagonal
--snes_atol 1e-6
--snes_rtol 1e-12
--snes_stol 1e-6
-!
-!LRadAnch  LAngAnch  LDpthAnch  LRadFair  LAngFair   LDrftFair  LUnstrLen  LDiam   LMassDen  LEAStff  LSeabedCD LTenTol [used only when NumLines>0 and LineMod=1]
-!(m)       (deg)     (m)        (m)       (deg)      (m)        (m)        (m)     (kg/m)    (N)      (-)       (-)     [used only when NumLines>0 and LineMod=1]
-!837.6      60.0     200.0      40.868     60.0      14.0       835.35     0.0766  113.35    7.536E8  1.0       0.0000001
-!837.6     180.0     200.0      40.868    180.0      14.0       835.35     0.0766  113.35    7.536E8  1.0       0.0000001
-!837.6     300.0     200.0      40.868    300.0      14.0       835.35     0.0766  113.35    7.536E8  1.0       0.0000001
+(-)
+repeat 240 120

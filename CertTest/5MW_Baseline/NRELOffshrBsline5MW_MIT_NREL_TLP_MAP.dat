@@ -1,7 +1,7 @@
 ---------------------- LINE DICTIONARY ---------------------------------------
-LineType     Diam     MassDenInAir     EA        CB
-(-)          (m)      (kg/m)          (kN)       (-)
-Material     0.127    116.027         1.5E6     1.0
+LineType     Diam     MassDenInAir     EA        CB   CIntDamp  Ca   Cdn  Cdt
+(-)          (m)      (kg/m)          (N)       (-)   (Pa-s)    (-)  (-)  (-)
+Material     0.127    116.027         1.5E9     1.0    0        0    0    0
 ---------------------- NODE PROPERTIES ---------------------------------------
 Node Type     X     Y     Z     M     B     FX   FY   FZ
 (-)  (-)     (m)   (m)   (m)   (kg)  (mˆ3) (kN) (kN) (kN)
@@ -10,15 +10,8 @@ Node Type     X     Y     Z     M     B     FX   FY   FZ
 ---------------------- LINE PROPERTIES ---------------------------------------
 Line  LineType  UnstrLen    NodeAnch  NodeFair  Flags
 (-)      (-)       (m)         (-)       (-)       (-)
-1       Material   151.73       1         2         plot anch_tension fair_tension
-2       repeat     90 180 270 0 90 180 270
+1       Material   151.73       1         2         tension_anch tension_fair
 ---------------------- SOLVER OPTIONS-----------------------------------------
 Option
 (-)
--snes_type newtonls
--ksp_type preonly
--pc_type lu
--pc_factor_nonzeros_along_diagonal
--snes_atol 1e-6
--snes_rtol 1e-6
--snes_stol 1e-6
+repeat 270 180 90 0 270 180 90

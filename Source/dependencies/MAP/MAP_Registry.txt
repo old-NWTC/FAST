@@ -14,94 +14,95 @@
 include Registry_NWTC_Library.txt
 
 														
-# ============================== Define input types here: ============================================================================================================================================				
-typedef	 	MAP		        InitInputType	        DbKi		gravity	            -	                 -999.9	           -                            "gravity constant" "[m/s^2]"	
-typedef	 	^			^		     	DbKi		sea_density	    -		         -999.9	           - 				"sea density" 	   "[kg/m^3]"
-typedef	 	^			^		     	DbKi		depth		    -			 -999.9		   -				"depth of water"   "[m]"	
-typedef         ^                       ^                       LOGICAL         coupled_to_FAST     -                    ""                -                            "Let MAP know if FAST will write the output strings"		
-typedef	 	^			^		     	CHARACTER(255)	filename	    -			 ""		   -  				"MAP input file"			
-typedef	 	^			^		     	CHARACTER(255)	rootname    -			 ""		   -  				"rootname of the MAP output files"			
-typedef	 	^			^		     	CHARACTER(255)	cable_library_data  -			 ""		   -				"cable library string information (from input file)"	
-typedef	 	^			^		     	CHARACTER(255)	node_data	    -			 ""		   -				"node string information (from input file)"	
-typedef	 	^			^		     	CHARACTER(255)	element_data	    -			 ""		   -			 	"element library string information (from input file)"	
-typedef	 	^			^		     	CHARACTER(255)	solver_data	    -			 ""		   -				"solver options library string information (from input file)"	
-
-# ============================== Define Initialization outputs here: ================================================================================================================================
-# Define outputs from the initialization routine here:                                                                   
-typedef	 	^			InitOutputType		CHARACTER(99)	MAP_name	    -			 ""		   -  				"MAP input file"			
-typedef	 	^			^		     	CHARACTER(99)	MAP_version         -			 ""		   -				"cable library string information (from input file)"	
-typedef 	^			^		     	CHARACTER(24)	MAP_date	    -			 ""		   -				"node string information (from input file)"	
-typedef         ^                       ^                       CHARACTER(10)   WriteOutputHdr     {:}                   ""                -                            "Line 1: output header. Line 2: units"
-typedef         ^                       ^                       CHARACTER(10)   WriteOutputUnt     {:}                   ""                -                            "Line 1: output header. Line 2: units"
-typedef         ^                       ^                       ProgDesc        Ver                 -                    ""                -                            "his module's name, version, and date"
-
-# ============================== Define Continuous states here: =====================================================================================================================================
-# Define continuous (differentiable) states here:
-typedef 	^              		ContinuousStateType   	DbKI           	dummy		    -			 -		   -  "Remove this variable if you have continuous states" -
-
-# ============================== Define Discrete states here: =====================================================================================================================================
-# Define discrete (nondifferentiable) states here:
-typedef   	^             		DiscreteStateType    	DbKi		dummy		    -			 -		   -  "Remove this variable if you have discrete states" -
-
-# ============================== Define Other states here: =====================================================================================================================================
-# Define other (nondifferentiable) states here:
-typedef		^	        	OtherStateType		DbKi		FX		     {:}		 -		   -  "Connect node X force"         "[N]"					
-typedef	 	^			^			DbKi		FY		     {:}		 -		   -  "Connect node Y force"         "[N]"					
-typedef	 	^			^			DbKi		FZ		     {:}		 -		   -  "Connect node Z force"         "[N]"		
-typedef 	^			^			IntKi           u_index	             {:}		 -		   - "input index set"						
-typedef 	^			^			IntKi           p_index	             {:}		 -		   - "parameter index set"						
-typedef 	^			^			IntKi           x_index	             {:}		 -		   - "continuous state index set"						
-typedef 	^			^			IntKi           xd_index             {:}		 -		   - "discete state index set"						
-typedef 	^			^			IntKi           z_index	             {:}		 -		   - "constraint state index set"						
-typedef 	^			^			IntKi           y_index	             {:}		 -		   - "output index set"						
-typedef 	^			^			IntKi           o_index	             {:}		 -		   - "other state (self) index set"						
+## ============================== Define input types here: ============================================================================================================================================				
+typedef         MAP    InitInputType        DbKi             gravity            -        -999.9               -            "gravity constant"   "[m/s^2]"	
+typedef         ^       ^                   DbKi             sea_density        -        -999.9               -            "sea density"        "[kg/m^3]"
+typedef	        ^       ^                   DbKi             depth              -        -999.9               -            "depth of water"     "[m]"	
+typedef	        ^       ^                   CHARACTER(255)   file_name          -         ""                  -            "MAP input file"
+typedef	        ^       ^                   CHARACTER(255)   summary_file_name  -         ""                  -            "MAP summary file name"
+typedef         ^       ^                   CHARACTER(255)   library_input_str  -         ""                  -            "cable library string information (from input file)"	
+typedef         ^       ^                   CHARACTER(255)   node_input_str     -         ""                  -            "node string information (from input file)"	
+typedef         ^       ^                   CHARACTER(255)   line_input_str     -         ""                  -            "element library string information (from input file)"	
+typedef	        ^       ^                   CHARACTER(255)   option_input_str   -         ""                  -            "solver options library string information (from input file)"	
 
 
-# ============================== Define constraint states here: =====================================================================================================================================
-# Define constraint states here:
-typedef	 	^	    		ConstraintStateType  	DbKi		X		    {:}			 -		   -  "Connect node X position"    "[m]"							
-typedef	 	^			^		     	DbKi		Y		    {:}			 -		   -  "Connect node Y position"    "[m]"						
-typedef	 	^			^		     	DbKi		Z		    {:}			 -		   -  "Connect node Z position"    "[m]"							
-typedef	 	^			^		     	DbKi		H		    {:}			 -		   -  "Fairlead horizontal force"  "[N]"
-typedef	 	^			^		     	DbKi		V		    {:}			 -		   -  "Fairlead vertical force"    "[N]"			
+## ============================== Define Initialization outputs here: ================================================================================================================================
+typedef         ^       InitOutputType      CHARACTER(99)    progName           -         ""                  -            "program name"
+typedef	        ^       ^                   CHARACTER(99)    version            -         ""                  -            "version numnber"
+typedef         ^       ^                   CHARACTER(24)    compilingData      -         ""                  -            "compiling data"
+typedef         ^       ^                   CHARACTER(10)    writeOutputHdr    {:}        ""                  -            "first line output file contents: output variable names"
+typedef         ^       ^                   CHARACTER(10)    writeOutputUnt    {:}        ""                  -            "second line of output file contents: units"
+typedef         ^       ^                   ProgDesc         Ver                -         ""                  -            "his module's name, version, and date"
 
-# ============================== Parameters ============================================================================================================================================
-# Define parameters here:
-typedef  	^			ParameterType		DbKi	       	Diam	     	     {:}		 -		   -  "cable diameter"                             "[m]"
-typedef	 	^			^			DbKi		MassDenInAir	     {:}		 -		   -  "cable mass density in air"    		   "[kg/m]"					
-typedef	 	^			^			DbKi		EA		     {:}		 -		   -  "cable axial stiffness"         		   "[N]"	
-typedef	 	^			^			DbKi		CB		     {:}		 -		   -  "cable/seabed frcition coeff"   		   "[]"		
-typedef	 	^			^			DbKi		Lu		     {:}		 -		   -  "unstretched cable length"                   "[m]"			
-typedef	 	^			^			DbKi		X		     {:}		 -		   -  "Fix node X position"                        "[m]"			
-typedef	 	^			^			DbKi		Y		     {:}		 -		   -  "Fix node Y position"                        "[m]"			
-typedef	 	^			^			DbKi		Z		     {:}		 -		   -  "Fix node X position"                        "[m]"			
-typedef	 	^			^			DbKi		FX		     {:}		 -		   -  "Fix node sum forced in X (constant)"        "[N]"			
-typedef	 	^			^			DbKi		FY		     {:}		 -		   -  "Fix node sum forced in Y (constant)"        "[N]"			
-typedef	 	^			^			DbKi		FZ		     {:}		 -		   -  "Fix node sum forced in Z (constant)"        "[N]"			
-typedef	 	^			^			DbKi		M		     {:}		 -		   -  "Point mass at node"                         "[kg]"			
-typedef	 	^			^			DbKi		B		     {:}		 -		   -  "Buoyancy module (displacement) at node"     "[m^3]"			
-typedef	 	^			^			DbKi		dt		     -  		 -		   -  "delta t -- time step"                       "[s]"			
+
+## ============================== Define Continuous states here: =====================================================================================================================================
+typedef         ^       ContinuousStateType DbKI             dummy              -         -                   -            "Remove this variable if you have continuous states" -
+
+
+## ============================== Define Discrete states here: =====================================================================================================================================
+typedef         ^       DiscreteStateType   DbKi             dummy              -         -                   -            "Remove this variable if you have discrete states" -
+
+
+## ============================== Define Other states here: =====================================================================================================================================
+typedef	       ^        OtherStateType      DbKi             H                 {:}        -                   -            "horizontal line force"   "[N]"	
+typedef	       ^        ^                   DbKi             V                 {:}        -                   -            "Vertical line force"     "[N]"
+typedef	       ^        ^                   DbKi             Ha                {:}        -                   -            "horizontal line force at anchor"   "[N]"	
+typedef	       ^        ^                   DbKi             Va                {:}        -                   -            "Vertical line force at anchor"     "[N]"
+typedef	       ^        ^                   DbKi             x                 {:}        -                   -            "x fairlead line position" "[m]"
+typedef	       ^        ^                   DbKi             y                 {:}        -                   -            "y fairlead line position" "[m]"
+typedef	       ^        ^                   DbKi             z                 {:}        -                   -            "z fairlead line position" "[m]"
+typedef	       ^        ^                   DbKi             xa                {:}        -                   -            "x fairlead line position at anchor" "[m]"
+typedef	       ^        ^                   DbKi             ya                {:}        -                   -            "y fairlead line position at anchor" "[m]"
+typedef	       ^        ^                   DbKi             za                {:}        -                   -            "z fairlead line position at anchor" "[m]"
+typedef	       ^        ^                   DbKi             Fx_connect        {:}        -                   -            "horizontal x line force at connect node"  "[N]"	
+typedef	       ^        ^                   DbKi             Fy_connect        {:}        -                   -            "horizontal y line force at connect node"  "[N]"
+typedef	       ^        ^                   DbKi             Fz_connect        {:}        -                   -            "vertical z line force at connect node"    "[N]"	
+typedef	       ^        ^                   DbKi             Fx_anchor         {:}        -                   -            "horizontal x line force at connect node"  "[N]"	
+typedef	       ^        ^                   DbKi             Fy_anchor         {:}        -                   -            "horizontal y line force at connect node"  "[N]"
+typedef	       ^        ^                   DbKi             Fz_anchor         {:}        -                   -            "vertical z line force at connect node"    "[N]"	
+
+
+## ============================== Define constraint states here: =====================================================================================================================================
+typedef	       ^        ConstraintStateType DbKi             H                 {:}        -                   -            "horizontal line force"   "[N]"	
+typedef	       ^        ^                   DbKi             V                 {:}        -                   -            "Vertical line force"     "[N]"
+typedef	       ^        ^                   DbKi             x                 {:}        -                   -            "fairlead x displacement"  "[m]"					
+typedef	       ^        ^                   DbKi             y                 {:}        -                   -            "fairlead y displacement"  "[m]"					
+typedef	       ^        ^                   DbKi             z                 {:}        -                   -            "fairlead z displacement"  "[m]"					
+
+
+## ============================== Parameters ============================================================================================================================================
+typedef         ^        ParameterType       DbKi             g                  -         -                   -            "gravitational constant"                          "[kg/m^2]"
+typedef         ^        ^                   DbKi             depth              -         -                   -            "distance to seabed"                              "[m]"
+typedef         ^        ^                   DbKi             rho_sea            -         -                   -            "density of seawater"                             "[m]"
+typedef         ^        ^                   DbKi             dt                 -         -                   -            "time step coupling interval"                     "[sec]"
+#typedef         ^       ^                   DbKi             Lu                 -         -                   -            "unstretched cable length"                        "[m]"
+#typedef         ^       ^                   DbKi             EA                 -         -                   -            "Axial stiffness"                                 "[N]"
+#typedef         ^       ^                   DbKi             diam               -         -                   -            "cable diameter"                                  "[m]"
+#typedef         ^       ^                   DbKi             cb                 -         -                   -            "cable/seabed friction coefficient"
+#typedef         ^       ^                   DbKi             mu                 -         -                   -            "cable mass denity"                               "[kg/m]"
+
 
 # ============================== Inputs ============================================================================================================================================	
-# Define inputs that are contained on the mesh here:							
-typedef	 	^              		InputType		DbKi		X		     {:}		 -		   -  "fairlead X displacement"  "[m]"					
-typedef	 	^			^			DbKi		Y		     {:}		 -		   -  "fairlead Y displacement"  "[m]"					
-typedef	 	^			^			DbKi		Z		     {:}		 -		   -  "fairlead Z displacement"  "[m]"					
-typedef	 	^			^			MeshType	PtFairleadDisplacement -                  -                 -  "Position of each fairlead in X,Y,Z"  "[m]"		
+typedef	        ^       InputType           DbKi             x                 {:}        -                   -            "fairlead x displacement"  "[m]"					
+typedef	        ^       ^                   DbKi             y                 {:}        -                   -            "fairlead y displacement"  "[m]"					
+typedef	        ^       ^                   DbKi             z                 {:}        -                   -            "fairlead z displacement"  "[m]"					
+typedef	        ^       ^                   MeshType         PtFairDisplacement -         -                   -            "position of each fairlead in X,Y,Z"  "[m]"		
 
-# ============================== Outputs ============================================================================================================================================
-# Define outputs that are contained on the mesh here:
-typedef		^	        	OutputType		DbKi		FX		     {:}		 -		   -  "fairlead X force"         "[N]"					
-typedef	 	^			^			DbKi		FY		     {:}		 -		   -  "fairlead Y force"         "[N]"					
-typedef	 	^			^			DbKi		FZ		     {:}		 -		   -  "fairlead Z force"         "[N]"		
-typedef	 	^			^			MeshType	PtFairleadLoad	      -                  -                 -  "point mesh for forces in X,Y,Z"         "[N]"
-typedef	 	^			^			ReKi		writeOutput	     {:}		 -		   -  "Buoyancy module (displacement) at node"     "[m^3]"			
+
+## ============================== Outputs ============================================================================================================================================
+typedef	       ^        OutputType          DbKi             Fx                 {:}        -                   -            "horizontal line force"   "[N]"	
+typedef	       ^        ^                   DbKi             Fy                 {:}        -                   -            "Vertical line force"     "[N]"
+typedef	       ^        ^                   DbKi             Fz                 {:}        -                   -            "horizontal line force at anchor"   "[N]"	
+typedef	       ^        ^                   ReKi             WriteOutput        {:}        -                   -            "outpur vector" ""
+typedef	       ^        ^                   DbKi             wrtOutput          {:}        -                   -            "outpur vector" ""
+typedef	       ^        ^                   MeshType         ptFairleadLoad      -         -                   -            "point mesh for forces in X,Y,Z"         "[N]"
+
 
 #####################################################################################################################################
 ## These are not necessary to define in the Registry, but are here to generate blank types until we do actually implement the
 ## Jacobians in the FAST framework. In the final implementation, they will probably not contain subtypes, but instead be
 ## square matrices of type ReKi or DbKi.
-#####################################################################################################################################
+e#####################################################################################################################################
 ## ..... Jacobians .................................................................................................................
 ## Define the Jacobian of the output equations (Y) with respect to the inputs (u), dY/du (or Partial Y / Partial u):
 #typedef   ^               SD_PartialOutputPInputType            SD_InputType            DummyOutput        -     -     -  "If you have output equations and input data, update this variable" -

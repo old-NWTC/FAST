@@ -56,11 +56,10 @@ endif
    # Name of compiler to use and flags to use.
 FC      = gfortran
 
-FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
-#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -C
-#FFLAGS = -g -O0 -v -da -Q -fbacktrace -ffree-line-length-none -x f95-cpp-input
+#FFLAGS  = -O2 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input
+#FFLAGS  = -O0 -m$(BITS) -fbacktrace -ffree-line-length-none -x f95-cpp-input -g -pg
 
-LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
+#LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware -g -pg
 
 # some useful gfortran options:
 #  -DFPE_TRAP_ENABLED
@@ -68,6 +67,7 @@ LDFLAGS = -O0 -m$(BITS) -fbacktrace -Wl,--stack=999999999,--large-address-aware 
 #  -Wl,--stack=999999999       # not necessary when $(BITS) is 64
 #  -Wconversion-extra -Wconversion
 #  -fdefault-real-8 -fcheck=bounds,do,mem,pointer -std=f2003 -O0 -v -Wall
+#  -pg                          # generate debugging info for debuggerdir
 # http://gcc.gnu.org/onlinedocs/gfortran/Option-Index.html#Option-Index
 #
 # makefile:

@@ -1,10 +1,10 @@
 ---------------------- LINE DICTIONARY ---------------------------------------
-LineType     Diam     MassDenInAir    EA        CB
-(-)          (m)      (kg/m)         (kN)       (-)
-Material    0.0809    130.403         589.0E3   1.0
+LineType     Diam     MassDenInAir    EA        CB   CIntDamp  Ca   Cdn  Cdt
+(-)          (m)      (kg/m)          (N)       (-)   (Pa-s)    (-)  (-)  (-)
+Material    0.0809    130.403         589.0E6   1.0    0          0    0    0
 ---------------------- NODE PROPERTIES ---------------------------------------
 Node Type       X       Y       Z     M     B     FX    FY    FZ
-(-)  (-)       (m)     (m)     (m)   (kg)  (mˆ3) (kN)  (kN)  (kN)
+(-)  (-)       (m)     (m)     (m)   (kg)  (mˆ3)  (N)   (N)   (N)
 1    fix     386.92  171.985  depth    0     0     #     #     #
 2    Vessel   20.0    20.0     -4.0    0     0     #     #     #
 3    fix     171.985 386.95   depth    0     0     #     #     #
@@ -12,11 +12,10 @@ Node Type       X       Y       Z     M     B     FX    FY    FZ
 ---------------------- LINE PROPERTIES ---------------------------------------
 Line    LineType  UnstrLen    NodeAnch  NodeFair  Flags
 (-)      (-)       (m)         (-)       (-)       (-)
-1       Material  473.312       1         2        plot fair_tension
-2       Material  473.312       3         4        plot fair_tension
-3       repeat    90 180 270
+1       Material  473.312       1         2         tension_fair
+2       Material  473.312       3         4         tension_fair
 ---------------------- SOLVER OPTIONS-----------------------------------------
 Option
 (-)
--msqs_fd_jacobian color
--msqs_default tr
+repeat 270 180 90
+

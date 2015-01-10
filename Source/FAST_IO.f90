@@ -2097,8 +2097,8 @@ SUBROUTINE Transfer_ED_to_HD_SD_Mooring( p_FAST, y_ED, u_HD, u_SD, u_MAP, u_FEAM
    IF ( p_FAST%CompMooring == Module_MAP ) THEN
       
          ! motions:
-      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairleadDisplacement, MeshMapData%ED_P_2_MAP_P, ErrStat, ErrMsg )
-         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring (u_MAP%PtFairleadDisplacement)' )
+      CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairDisplacement, MeshMapData%ED_P_2_MAP_P, ErrStat, ErrMsg )
+         CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat, ErrMsg,'Transfer_ED_to_HD_SD_Mooring (u_MAP%PtFairDisplacement)' )
                                  
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
          ! motions:
@@ -2127,7 +2127,7 @@ SUBROUTINE MAP_InputSolve(  u_MAP, y_ED, MeshMapData, ErrStat, ErrMsg )
       ! Map ED outputs to MAP inputs
       !----------------------------------------------------------------------------------------------------
       ! motions:
-   CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairleadDisplacement, MeshMapData%ED_P_2_MAP_P, ErrStat, ErrMsg )
+   CALL Transfer_Point_to_Point( y_ED%PlatformPtMesh, u_MAP%PtFairDisplacement, MeshMapData%ED_P_2_MAP_P, ErrStat, ErrMsg )
 
 
 END SUBROUTINE MAP_InputSolve
@@ -2678,7 +2678,7 @@ CONTAINS
             CALL CheckError(ErrStat2,ErrMsg2)
             IF (ErrStat >= AbortErrLev) RETURN       
                                  
-         CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
+         CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
             CALL CheckError( ErrStat2, ErrMsg2 )
             IF (ErrStat >= AbortErrLev) RETURN               
                         
@@ -3500,7 +3500,7 @@ CONTAINS
          
          ! Get the loads for ED from a mooring module and add them:
       IF ( p_FAST%CompMooring == Module_MAP ) THEN
-         CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairleadDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
+         CALL Transfer_Point_to_Point( y_MAP%PtFairleadLoad, MeshMapData%u_ED_PlatformPtMesh_2, MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2, u_MAP%PtFairDisplacement, y_ED2%PlatformPtMesh ) !u_MAP and y_ED contain the displacements needed for moment calculations
             CALL CheckError( ErrStat2, ErrMsg2 )
             IF (ErrStat >= AbortErrLev) RETURN               
             
@@ -4297,7 +4297,7 @@ SUBROUTINE WriteInputMeshesToFile(u_ED, u_SD, u_HD, u_MAP, u_AD, FileName, ErrSt
    CALL MeshWrBin( unOut, u_HD%Morison%distribMesh,     ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_HD%Morison%lumpedMesh,      ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_HD%Mesh,                    ErrStat, ErrMsg )
-   CALL MeshWrBin( unOut, u_MAP%PtFairleadDisplacement, ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_MAP%PtFairDisplacement,     ErrStat, ErrMsg )
       
       
       ! Close the file
@@ -4360,7 +4360,7 @@ SUBROUTINE WriteMotionMeshesToFile(time, y_ED, u_SD, y_SD, u_HD, u_MAP, UnOut, E
    CALL MeshWrBin( unOut, u_HD%Morison%distribMesh,     ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_HD%Morison%lumpedMesh,      ErrStat, ErrMsg )
    CALL MeshWrBin( unOut, u_HD%Mesh,                    ErrStat, ErrMsg )
-   CALL MeshWrBin( unOut, u_MAP%PtFairleadDisplacement, ErrStat, ErrMsg )
+   CALL MeshWrBin( unOut, u_MAP%PtFairDisplacement,     ErrStat, ErrMsg )
       
    !   
    !   ! Close the file
@@ -4589,7 +4589,7 @@ SUBROUTINE ResetRemapFlags(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, IceD 
       
    ! MAP , FEAM
    IF ( p_FAST%CompMooring == Module_MAP ) THEN
-      MAPp%Input(1)%PtFairleadDisplacement%RemapFlag  = .FALSE.
+      MAPp%Input(1)%PtFairDisplacement%RemapFlag      = .FALSE.
              MAPp%y%PtFairleadLoad%RemapFlag          = .FALSE.
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
       FEAM%Input(1)%PtFairleadDisplacement%RemapFlag  = .FALSE.
@@ -4826,7 +4826,7 @@ SUBROUTINE InitModuleMappings(p_FAST, ED, AD, HD, SD, SrvD, MAPp, FEAM, IceF, Ic
          ! MAP point mesh to/from ElastoDyn point mesh
       CALL MeshMapCreate( MAPp%y%PtFairleadLoad, ED%Input(1)%PlatformPtMesh,  MeshMapData%MAP_P_2_ED_P, ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:MAP_P_2_ED_P' )                  
-      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, MAPp%Input(1)%PtFairleadDisplacement,  MeshMapData%ED_P_2_MAP_P, ErrStat2, ErrMsg2 )
+      CALL MeshMapCreate( ED%Output(1)%PlatformPtMesh, MAPp%Input(1)%PtFairDisplacement,  MeshMapData%ED_P_2_MAP_P, ErrStat2, ErrMsg2 )
          CALL SetErrStat( ErrStat2, ErrMsg2, ErrStat, ErrMsg, 'InitModuleMappings:ED_P_2_MAP_P' )                  
 
    ELSEIF ( p_FAST%CompMooring == Module_FEAM ) THEN
@@ -5712,14 +5712,19 @@ SUBROUTINE FAST_InitializeAll( t_initial, p_FAST, y_FAST, m_FAST, ED, SrvD, AD, 
       
       CALL WrScr(NewLine) !bjj: I'm printing two blank lines here because MAP seems to be writing over the last line on the screen.
       
-      InitInData_MAP%filename          =  p_FAST%MooringFile        ! This needs to be set according to what is in the FAST input file. 
-      InitInData_MAP%rootname          =  p_FAST%OutFileRoot        ! Output file name 
+
+!      InitInData_MAP%rootname          =  p_FAST%OutFileRoot        ! Output file name 
       InitInData_MAP%gravity           =  InitOutData_ED%Gravity    ! This need to be according to g used in ElastoDyn
       InitInData_MAP%sea_density       =  InitOutData_HD%WtrDens    ! This needs to be set according to seawater density in HydroDyn
       InitInData_MAP%depth             =  InitOutData_HD%WtrDpth    ! This need to be set according to the water depth in HydroDyn
                   
-      InitInData_MAP%coupled_to_FAST   = .TRUE.      
+   ! differences for MAP++
+      InitInData_MAP%file_name         =  p_FAST%MooringFile        ! This needs to be set according to what is in the FAST input file. 
+      InitInData_MAP%summary_file_name =  TRIM(p_FAST%OutFileRoot)//'.MAP.sum'        ! Output file name 
+      InitInData_MAP%depth             = -InitOutData_HD%WtrDpth    ! This need to be set according to the water depth in HydroDyn
             
+
+      
       CALL MAP_Init( InitInData_MAP, MAPp%Input(1), MAPp%p,  MAPp%x(STATE_CURR), MAPp%xd(STATE_CURR), MAPp%z(STATE_CURR), MAPp%OtherSt, &
                       MAPp%y, p_FAST%dt_module( MODULE_MAP ), InitOutData_MAP, ErrStat2, ErrMsg2 )
          CALL SetErrStat(ErrStat2,ErrMsg2,ErrStat,ErrMsg,RoutineName)

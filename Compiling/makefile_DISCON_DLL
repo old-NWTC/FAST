@@ -14,15 +14,10 @@ BITS = 32
 #BITS = 64
 
 
-   # Location of source files for FAST, AeroDyn, InflowWind, and the NWTC Library.
-   # You will probably need to change these for your system.
+   # Location of source files for the DLL.
+   # You may need to change these for your DLL.
 
-
-ifeq ($(OS),Windows_NT)
-   DLL_DIR     = ../CertTest/5MW_Baseline/ServoData/Source/
-else
-   DLL_DIR      = $(HOME)/PC/CAEtools/simulators/FAST/SVNdirectory/branches/BJonkman/Source
-endif
+DLL_DIR     = ../CertTest/5MW_Baseline/ServoData/Source/
 
 SOURCE_FILE = DISCON.f90
 
